@@ -4,7 +4,7 @@ A published platform for running a modded Minecraft **1.21.1** server as infrast
 
 Runs Fabric on Docker (`itzg/minecraft-server`) with ~150 pinned server mods (Terralith, Incendium, Nullscape, seasons, YUNG's structures, and more) plus a 100+ mod client pack. Invite-only via online-mode + whitelist, driven by Discord roles. Cloudflare tunnel for web services, restic backups to R2, Uptime Kuma for monitoring.
 
-[![Deploy Minecraft Server](../../actions/workflows/deploy.yml/badge.svg)](../../actions/workflows/deploy.yml)
+[![Deploy Minecraft Server](../../actions/workflows/deploy-reusable.yml/badge.svg)](../../actions/workflows/deploy-reusable.yml)
 
 > **AI agents:** read [`AGENTS.md`](AGENTS.md) before making any changes. It has the constraints, architecture traps, and access details that apply to every task.
 >
