@@ -1,33 +1,57 @@
 name: Release Bundle
 
+# Cut a release: gh workflow run release.yml -f version=v1.2.3
+#
+# Builds the stack bundle, creates the release as a DRAFT with the assets
+# attached, then publishes it. This is the only order that works with
+# immutable releases (assets cannot be added after publish - and consumers
+# get the supply-chain guarantee that a published bundle never changes).
+# Publishing the draft fires the `release: published` event, which triggers
+# publish.yml to build and tag the container images.
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (vX.Y.Z)"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   bundle:
-    name: Build and attach stack bundle
+    name: Build bundle and publish release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Build bundle
-        run: ./scripts/build-stack-bundle.sh "${GITHUB_REF_NAME}"
+      - name: Validate version
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Version must be vX.Y.Z (got: ${{ inputs.version }})"
+            exit 1
+          fi
 
-      - name: Upload to release
-        run: gh release upload "${GITHUB_REF_NAME}" dist/stack-*.tar.gz dist/stack-*.sha256
+      - name: Build bundle
+        run: ./scripts/build-stack-bundle.sh "${{ inputs.version }}"
+
+      - name: Create draft release with assets, then publish
+        run: |
+          gh release create "${{ inputs.version }}" \
+            dist/stack-*.tar.gz dist/stack-*.sha256 \
+            --draft --generate-notes --target "${GITHUB_SHA}" \
+            --title "${{ inputs.version }}"
+          gh release edit "${{ inputs.version }}" --draft=false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Advance major tag
         run: |
-          MAJOR=$(echo "${GITHUB_REF_NAME}" | grep -oE '^v[0-9]+')
+          MAJOR=$(echo "${{ inputs.version }}" | grep -oE '^v[0-9]+')
           if [[ -n "$MAJOR" ]]; then
-            git tag -f "$MAJOR"
+            git tag -f "$MAJOR" "${GITHUB_SHA}"
             git push origin "$MAJOR" --force
           fi

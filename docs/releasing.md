@@ -5,10 +5,15 @@
 1. Ensure `main` is clean and CI is green.
 2. Review the conventional-commit history since the last release to determine the semver bump:
    - `fix:` → patch, `feat:` → minor, `BREAKING CHANGE:` / `!` → major.
-3. Create the release:
+3. Run the release workflow (it builds the bundle, creates the release as a
+   draft with assets attached, then publishes — the only order compatible
+   with immutable releases):
    ```bash
-   gh release create vX.Y.Z --generate-notes --target main
+   gh workflow run release.yml -f version=vX.Y.Z
    ```
+
+Do NOT use `gh release create` directly: with immutable releases enabled,
+assets can't be attached after publish, so the bundle upload fails.
 
 ## What a release produces
 
