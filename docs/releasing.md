@@ -15,6 +15,10 @@
 Do NOT use `gh release create` directly: with immutable releases enabled,
 assets can't be attached after publish, so the bundle upload fails.
 
+A failed or deleted release burns its tag forever — immutable releases
+reserve the tag name permanently, even after deletion. If a release fails,
+fix the cause and cut the NEXT patch version; never retry the same one.
+
 ## What a release produces
 
 A published release triggers two workflows:
