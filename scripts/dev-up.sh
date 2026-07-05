@@ -181,14 +181,49 @@ fi
 # --- Start the local profile --------------------------------------------------
 # --project-directory is critical: it makes ./data, ./overlay, ./modpack-dist,
 # ./backups resolve relative to the consumer dir, not .stack/current/stack.
-# shellcheck disable=SC2086
-docker compose \
-  -f "$STACK_DIR/docker-compose.yml" \
-  -f "$STACK_DIR/docker-compose.local.yml" \
-  $EXTRA_COMPOSE \
-  --project-directory "$CONSUMER_DIR" \
-  -p "$COMPOSE_PROJECT_NAME" \
-  --profile local up -d
+compose_up() {
+  # shellcheck disable=SC2086
+  docker compose \
+    -f "$STACK_DIR/docker-compose.yml" \
+    -f "$STACK_DIR/docker-compose.local.yml" \
+    $EXTRA_COMPOSE \
+    --project-directory "$CONSUMER_DIR" \
+    -p "$COMPOSE_PROJECT_NAME" \
+    --profile local up -d
+}
+
+MC_NAME="${CONTAINER_PREFIX:-}mc"
+if ! compose_up; then
+  # A mod-sync boot downloads ~150 JARs and mc can restart once mid-sync
+  # (Modrinth rate limits). That aborts compose's dependency wait even
+  # though mc recovers on its own - so wait for it, then start the rest.
+  MC_STATE=$(docker inspect -f '{{.State.Status}}' "$MC_NAME" 2> /dev/null || echo "missing")
+  if [[ "$MC_STATE" == "running" || "$MC_STATE" == "restarting" ]]; then
+    echo ""
+    echo "  mc is still booting (first boot downloads ~150 mods - can take 10+ minutes)."
+    echo "  Waiting for it to become healthy before starting the remaining services..."
+    HEALTHY=0
+    for _ in $(seq 1 90); do
+      HEALTH=$(docker inspect -f '{{.State.Health.Status}}' "$MC_NAME" 2> /dev/null || echo "none")
+      if [[ "$HEALTH" == "healthy" ]]; then
+        HEALTHY=1
+        break
+      fi
+      sleep 10
+    done
+    if [[ $HEALTHY -eq 1 ]]; then
+      echo "  mc is healthy - starting the remaining services..."
+      compose_up
+    else
+      echo "  mc did not become healthy within 15 minutes."
+      echo "  Check the logs: ./dev logs"
+      exit 1
+    fi
+  else
+    echo "  mc failed to start (state: ${MC_STATE}). Check the logs: ./dev logs"
+    exit 1
+  fi
+fi
 
 # Save mod hash and clean up override
 if [[ -f "$MODRINTH_OVERRIDE" ]]; then

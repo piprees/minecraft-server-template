@@ -261,8 +261,15 @@ else
   COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
 fi
 
+# A mod-sync boot can restart mc once mid-download (Modrinth rate limits),
+# which aborts compose's dependency wait even though mc recovers under its
+# restart policy. Don't die here - the RCON wait below is the real gate,
+# and the second `up -d` after it starts any services compose gave up on.
 # shellcheck disable=SC2086
-$COMPOSE_CMD --profile cloud up -d --remove-orphans
+if ! $COMPOSE_CMD --profile cloud up -d --remove-orphans; then
+  echo "  compose up reported a dependency failure - mc is likely still"
+  echo "  syncing mods; continuing to the health wait."
+fi
 
 # Force-recreate sidecars so config/script changes actually load.
 # Keep this list in sync with infra-deploy.sh.
@@ -283,7 +290,10 @@ fi
 echo ""
 echo "==> Waiting for server to pass healthcheck..."
 
+# Mod-sync boots download ~150 JARs before the server even starts -
+# give them a much longer window than a plain restart.
 MAX_WAIT=300
+[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=900
 ELAPSED=0
 INTERVAL=10
 
@@ -303,6 +313,11 @@ if [[ $ELAPSED -ge $MAX_WAIT ]]; then
   echo "  The whitelist will be restored from .env on next boot."
   exit 1
 fi
+
+# Now that mc is healthy, start anything the first `up -d` gave up on
+# (dependents stay Created when compose aborts its dependency wait).
+# shellcheck disable=SC2086
+$COMPOSE_CMD --profile cloud up -d --remove-orphans 2> /dev/null || true
 
 # =============================================================================
 # 12. Apply overlay configs + world borders + game rules + permissions
