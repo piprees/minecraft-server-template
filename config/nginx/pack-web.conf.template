@@ -1,0 +1,87 @@
+# Root domain redirect - DOMAIN > status.DOMAIN
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    server_tokens off;
+
+    return 301 https://status.${DOMAIN}$request_uri;
+}
+
+# Pack download site
+server {
+    listen 80 default_server;
+    server_name _;
+
+    server_tokens off;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'" always;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Mirrored mod JARs referenced by the .mrpack and packwiz indexes.
+    # Filenames are version-unique, so cache forever - Cloudflare edge-caches
+    # .jar by default and honours these headers. Missing files MUST return a
+    # plain 404 so launchers fall back to the Modrinth URL instead of
+    # downloading an HTML page: the location-level error_page overrides the
+    # site-wide `error_page 404 =301 /` (which otherwise intercepts even a
+    # named location's `return 404` - learned the hard way).
+    location /mods/ {
+        try_files $uri =404;
+        error_page 404 = @mod_not_found;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Content-Disposition "attachment";
+    }
+
+    # recursive_error_pages is off (default), so this 404 is final - the
+    # site-wide 404->301 cannot re-intercept it.
+    location @mod_not_found {
+        default_type text/plain;
+        return 404 "not found";
+    }
+
+    # Packwiz auto-update index. The .toml metafiles are the update signal
+    # for one-click instances - they must never be served stale (AGENTS.md
+    # invariant). no-cache forbids reuse without revalidation but still
+    # allows cheap 304s: nginx's default ETag/Last-Modified change whenever
+    # build-modpack.sh regenerates the files, so the ETag is effectively
+    # tied to the pack version (git sha) and busts on every rebuild.
+    location /packwiz/ {
+        try_files $uri =404;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Self-hosted webfonts. Also consumed cross-origin by status.DOMAIN
+    # (Kuma customCSS references pack.DOMAIN/fonts/): fonts REQUIRE CORS
+    # or browsers silently drop them and fall back to Georgia.
+    location /fonts/ {
+        try_files $uri =404;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location ~* \.(mrpack|zip)$ {
+        add_header Content-Disposition "attachment";
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'" always;
+    }
+
+    error_page 404 /404.html;
+}

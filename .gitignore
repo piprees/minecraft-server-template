@@ -1,0 +1,65 @@
+# === Secrets - never commit ===
+.env
+*.env.local
+config/server.local.env
+.impeccable
+
+# === Server data - large, generated, personal ===
+data/
+!config/datapacks/**/data/
+backups/
+
+# === Backup copies made by scripts ===
+*.bak.*
+
+# === Cloudflare tunnel credentials ===
+config/cloudflared/*.json
+config/cloudflared/cert.pem
+
+# === Restic ===
+restic-password.txt
+
+# === Seed-rolling artefacts ===
+seedtest-data/
+seedtest-data-*/
+seedtest-data-*/*
+scripts/seed/seed-errors.log
+scripts/seed/seed-errors.log.lock
+scripts/seed/seed-results.csv
+scripts/seed/seed-results.csv.lock
+scripts/seed/seed-report-top25.md
+
+__pycache__
+*/__pycache__/*
+
+# === Built modpack files ===
+modpack/*.mrpack
+modpack/dist/
+
+# === Stack bundle build output ===
+dist/
+
+# === Asset cache (Docker images, mod JARs, offline bundles) ===
+cache/
+
+# === OS / editor junk ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# === Docker override (local dev only, created by --offline mode) ===
+docker-compose.override.yml
+
+# === Claude Code / AI agent state ===
+.github/.hooks-state/
+.claude/
+docker-compose.modrinth.yml
+config/nginx/nav-proxy-local.conf
+
+# === Setup wizard state ===
+.setup-state/
+
+pivot/
+__pycache__/

@@ -1,0 +1,385 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      stack_version:
+        required: true
+        type: string
+      environment:
+        type: string
+        default: production
+    secrets:
+      DEPLOY_SSH_KEY:
+        required: true
+      RCON_PASSWORD:
+        required: true
+      DISCORD_BOT_TOKEN:
+        required: true
+      DISCORD_CHANNEL_ID:
+        required: true
+      DISCORD_GUILD_ID:
+        required: true
+      DISCORD_WEBHOOK_URL:
+        required: true
+      R2_ACCOUNT_ID:
+        required: true
+      R2_BUCKET:
+        required: true
+      R2_ACCESS_KEY_ID:
+        required: true
+      R2_SECRET_ACCESS_KEY:
+        required: true
+      RESTIC_PASSWORD:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      CLOUDFLARE_ZONE_ID:
+        required: true
+      CLOUDFLARE_TUNNEL_ID:
+        required: false
+      KUMA_API_KEY:
+        required: false
+      KUMA_PASSWORD:
+        required: false
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: vars.DROPLET_HOST != ''
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout consumer repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set commit metadata
+        id: meta
+        run: |
+          MSG=$(git log -1 --pretty=format:'%s' | head -c 200)
+          SHA=$(git log -1 --pretty=format:'%h')
+          echo "msg=${MSG}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "full_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ vars.DROPLET_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Determine deploy tier
+        id: tier
+        run: |
+          SSH="ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+
+          # Manual dispatch and releases always get a full deploy
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "release" ]]; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (manual/release trigger)"
+            exit 0
+          fi
+
+          # Read the deployed state file
+          DEPLOYED=$($SSH "cat ~/server/.deployed 2>/dev/null" || echo "")
+          DEPLOYED_SHA=$(echo "$DEPLOYED" | sed -n 's/^consumer_sha=//p' | head -1)
+          DEPLOYED_STACK=$(echo "$DEPLOYED" | sed -n 's/^stack_version=//p' | head -1)
+
+          if [[ -z "$DEPLOYED_SHA" ]]; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (no state file — first deploy)"
+            exit 0
+          fi
+
+          # Self-heal: a state file with no running stack means a previous
+          # deploy died after writing state (or the server was rebuilt).
+          # Trusting the sha here would downgrade to pull/infra and leave
+          # the server empty while CI reports success.
+          MC_PRESENT=$($SSH "docker ps -a --format '{{.Names}}' 2>/dev/null" | grep -cx mc || true)
+          if [[ "$MC_PRESENT" == "0" ]]; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (state file present but no mc container — recovering)"
+            exit 0
+          fi
+
+          # Stack version change always triggers full
+          if [[ "$DEPLOYED_STACK" != "${{ inputs.stack_version }}" ]]; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (stack ${DEPLOYED_STACK} → ${{ inputs.stack_version }})"
+            exit 0
+          fi
+
+          # Diff consumer commits since last deploy
+          CHANGED=$(git diff --name-only "$DEPLOYED_SHA" HEAD 2>/dev/null || echo "FORCE")
+          if [[ "$CHANGED" == "FORCE" ]]; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (cannot determine diff)"
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED" | sed 's/^/  /'
+
+          FULL_PATTERNS="^overlay/config/|^overlay/mods-extra\.txt$|^overlay/mods-remove\.txt$"
+          if echo "$CHANGED" | grep -qE "$FULL_PATTERNS"; then
+            echo "tier=full" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: full (mc-affecting files changed)"
+            exit 0
+          fi
+
+          # Patterns requiring infra deploy (sidecars only, mc untouched)
+          if echo "$CHANGED" | grep -qE "^overlay/"; then
+            echo "tier=infra" >> "$GITHUB_OUTPUT"
+            echo "Deploy tier: infra (overlay changes, no mc restart)"
+            exit 0
+          fi
+
+          echo "tier=pull" >> "$GITHUB_OUTPUT"
+          echo "Deploy tier: pull (no server changes needed)"
+
+      - name: Notify Discord (starting)
+        if: steps.tier.outputs.tier != 'pull'
+        run: |
+          TIER="${{ steps.tier.outputs.tier }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          MSG="${{ steps.meta.outputs.msg }}"
+          jq -n --arg c "Deploying **${TIER}** (\`${SHA}\`: ${MSG})" '{content: $c}' \
+            | curl -sf -H "Content-Type: application/json" -d @- \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+      - name: Generate server .env
+        if: steps.tier.outputs.tier == 'full'
+        run: |
+          umask 077
+          cat > /tmp/.env.generated << 'ENVEOF'
+          ONLINE_MODE=TRUE
+          ENABLE_WHITELIST=TRUE
+          ENFORCE_WHITELIST=TRUE
+          ENVEOF
+          {
+            echo "BRAND_NAME=${{ vars.BRAND_NAME }}"
+            echo "BRAND_SLUG=${{ vars.BRAND_SLUG }}"
+            echo "MOTD=${{ vars.MOTD }}"
+            echo "DISCORD_INVITE_URL=${{ vars.DISCORD_INVITE_URL }}"
+            echo "MC_VERSION=${{ vars.MC_VERSION || '1.21.1' }}"
+            echo "SEED=${{ vars.SEED }}"
+            echo "DOMAIN=${{ vars.DOMAIN }}"
+            echo "SERVER_PORT=${{ vars.SERVER_PORT || '25577' }}"
+            echo "MEMORY=${{ vars.MEMORY || '5G' }}"
+            echo "VIEW_DISTANCE=${{ vars.VIEW_DISTANCE || '10' }}"
+            echo "SIMULATION_DISTANCE=${{ vars.SIMULATION_DISTANCE || '8' }}"
+            echo "SPAWN_X=${{ vars.SPAWN_X }}"
+            echo "SPAWN_Y=${{ vars.SPAWN_Y }}"
+            echo "SPAWN_Z=${{ vars.SPAWN_Z }}"
+            echo "PREGEN_BORDER_RADIUS=${{ vars.PREGEN_BORDER_RADIUS || '8192' }}"
+            echo "PLAYER_BORDER_RADIUS=${{ vars.PLAYER_BORDER_RADIUS || '8192' }}"
+            echo "BACKUP_INTERVAL=${{ vars.BACKUP_INTERVAL || '12h' }}"
+            echo "CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER || 'hetzner' }}"
+            echo "IMAGE_REGISTRY=${{ vars.IMAGE_REGISTRY || 'ghcr.io/piprees/minecraft-server-template' }}"
+            echo "STACK_VERSION=${{ inputs.stack_version }}"
+            echo "DISCORD_ADMIN_ROLE_ID=${{ vars.DISCORD_ADMIN_ROLE_ID }}"
+            echo "DISCORD_PLAYER_ROLE_ID=${{ vars.DISCORD_PLAYER_ROLE_ID }}"
+            echo "RCON_PASSWORD=${{ secrets.RCON_PASSWORD }}"
+            echo "R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}"
+            echo "R2_BUCKET=${{ secrets.R2_BUCKET }}"
+            echo "R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}"
+            echo "R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}"
+            echo "RESTIC_PASSWORD=${{ secrets.RESTIC_PASSWORD }}"
+            echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}"
+            echo "DISCORD_CHANNEL_ID=${{ secrets.DISCORD_CHANNEL_ID }}"
+            echo "DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}"
+            echo "DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}"
+            echo "KUMA_API_KEY=${{ secrets.KUMA_API_KEY }}"
+            echo "KUMA_PASSWORD=${{ secrets.KUMA_PASSWORD }}"
+            echo "CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}"
+            echo "CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+            echo "CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}"
+            echo "CLOUDFLARE_TUNNEL_ID=${{ secrets.CLOUDFLARE_TUNNEL_ID }}"
+          } >> /tmp/.env.generated
+          sed -i 's/^[[:space:]]*//' /tmp/.env.generated
+
+          REQUIRED=(RCON_PASSWORD R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY RESTIC_PASSWORD)
+          MISSING=()
+          for key in "${REQUIRED[@]}"; do
+            if ! grep -q "^${key}=.\+" /tmp/.env.generated; then
+              MISSING+=("$key")
+            fi
+          done
+          if [[ ${#MISSING[@]} -gt 0 ]]; then
+            echo "::error::Refusing to deploy: missing required values: ${MISSING[*]}"
+            rm -f /tmp/.env.generated
+            exit 1
+          fi
+
+      - name: Upload .env and sync overlay
+        if: steps.tier.outputs.tier != 'pull'
+        run: |
+          HOST="${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+
+          if [[ "${{ steps.tier.outputs.tier }}" == "full" ]]; then
+            scp -i ~/.ssh/deploy_key /tmp/.env.generated "${HOST}:~/server/.env"
+            rm -f /tmp/.env.generated
+          fi
+
+          if [[ -d overlay ]]; then
+            rsync -a --delete -e "ssh -i ~/.ssh/deploy_key" \
+              overlay/ "${HOST}:~/server/overlay/"
+          fi
+
+      - name: Update stack bundle
+        if: steps.tier.outputs.tier != 'pull'
+        run: |
+          HOST="${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+
+          # Ensure stack-pull.sh is on the server (consumer vendors a copy)
+          if [[ -f stack-pull.sh ]]; then
+            scp -i ~/.ssh/deploy_key stack-pull.sh "${HOST}:~/server/stack-pull.sh"
+            ssh -i ~/.ssh/deploy_key "$HOST" "chmod +x ~/server/stack-pull.sh"
+          fi
+
+          ssh -i ~/.ssh/deploy_key "$HOST" \
+            "cd ~/server && STACK_VERSION='${{ inputs.stack_version }}' ./stack-pull.sh"
+
+      - name: Full deploy (countdown + restart)
+        if: steps.tier.outputs.tier == 'full'
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'
+
+      - name: Infra deploy (sidecars only, mc untouched)
+        if: steps.tier.outputs.tier == 'infra'
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            'cd ~/server && .stack/current/stack/scripts/infra-deploy.sh'
+
+      - name: Verify server health
+        if: always() && steps.tier.outputs.tier == 'full'
+        run: |
+          SSH="ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+
+          echo "::group::Server container logs (last 80 lines)"
+          $SSH 'sudo docker logs mc --tail 80 2>&1' || true
+          echo "::endgroup::"
+
+          HEALTH=$($SSH 'docker exec mc rcon-cli "list" 2>&1' || true)
+          echo "RCON health check: $HEALTH"
+          if echo "$HEALTH" | grep -q "players online"; then
+            echo "Server is healthy"
+          else
+            echo "::error::Server failed to respond to RCON after deploy"
+            echo "::group::Extended server logs (last 200 lines)"
+            $SSH 'sudo docker logs mc --tail 200 2>&1' || true
+            echo "::endgroup::"
+            exit 1
+          fi
+
+      - name: Rebuild modpack
+        if: success() && steps.tier.outputs.tier != 'pull'
+        continue-on-error: true
+        run: |
+          SSH="ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+
+          # Detect if pack inputs changed (controls Discord notification only).
+          # Inputs: consumer overlay mod lists + the stack version (a stack
+          # bump can change default mods). The pack manifest itself is baked
+          # into the modpack-builder image, so the image tag rides along via
+          # the stack version.
+          MODS_CHANGED=$($SSH '
+            cd ~/server
+            NEW_HASH=$( (readlink .stack/current; cat overlay/mods-extra.txt overlay/mods-remove.txt 2>/dev/null) | sha256sum | cut -d" " -f1)
+            OLD_HASH=$(cat modpack-dist/.modpack-hash 2>/dev/null || echo "none")
+            if [ "$NEW_HASH" = "$OLD_HASH" ]; then echo "unchanged"; else echo "changed"; fi
+          ')
+
+          $SSH 'cd ~/server && .stack/current/stack/scripts/pack-build.sh' \
+            || echo "::warning::Modpack build failed"
+
+          if [ "$MODS_CHANGED" = "changed" ]; then
+            $SSH 'cd ~/server && (readlink .stack/current; cat overlay/mods-extra.txt overlay/mods-remove.txt 2>/dev/null) | sha256sum | cut -d" " -f1 > modpack-dist/.modpack-hash'
+
+            SHA="${{ steps.meta.outputs.sha }}"
+            MC_VERSION="${{ vars.MC_VERSION }}"
+            PACK_NAME="${MC_VERSION:-unknown}-v${SHA}"
+            PLAYER_ROLE_ID="${{ vars.DISCORD_PLAYER_ROLE_ID }}"
+            MSG="Modpack updated: **${PACK_NAME}**"
+            [[ -n "$PLAYER_ROLE_ID" ]] && MSG="<@&${PLAYER_ROLE_ID}> ${MSG}"
+
+            if [[ -n "$PLAYER_ROLE_ID" ]]; then
+              PAYLOAD=$(echo "$MSG" | jq -Rs --arg rid "$PLAYER_ROLE_ID" \
+                '{content: ., allowed_mentions: {roles: [$rid]}}')
+            else
+              PAYLOAD=$(echo "$MSG" | jq -Rs '{content: .}')
+            fi
+            curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+          else
+            echo "Mod content unchanged — page regenerated, no Discord notification"
+          fi
+
+      - name: Refresh kuma-init
+        if: success() && steps.tier.outputs.tier != 'pull'
+        continue-on-error: true
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            'cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud up -d --force-recreate --no-deps kuma-init'
+
+      - name: Update deployed state
+        # success() only: recording the sha after a FAILED deploy makes the
+        # next run diff against a sha that never deployed and silently
+        # downgrade to pull tier - the server stays broken while CI goes
+        # green. (This exact failure mode used to be "fixed" by nuking the
+        # server; the stale .deployed died with it.)
+        if: success() && steps.tier.outputs.tier != ''
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            "printf 'consumer_sha=%s\nstack_version=%s\n' \
+              '${{ steps.meta.outputs.full_sha }}' \
+              '${{ inputs.stack_version }}' \
+              > ~/server/.deployed" || true
+
+      - name: Notify Discord (success)
+        if: success()
+        run: |
+          TIER="${{ steps.tier.outputs.tier }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          MSG="${{ steps.meta.outputs.msg }}"
+          jq -n --arg c "Deploy complete (**${TIER}**, \`${SHA}\`: ${MSG})" '{content: $c}' \
+            | curl -sf -H "Content-Type: application/json" -d @- \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+      - name: Notify Discord (failure)
+        if: failure()
+        run: |
+          TIER="${{ steps.tier.outputs.tier }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          MSG="${{ steps.meta.outputs.msg }}"
+          URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ADMIN_ROLE_ID="${{ vars.DISCORD_ADMIN_ROLE_ID }}"
+          CONTENT="Deploy **FAILED** (**${TIER}**, \`${SHA}\`: ${MSG})\n${URL}"
+          [[ -n "$ADMIN_ROLE_ID" ]] && CONTENT="<@&${ADMIN_ROLE_ID}> ${CONTENT}"
+
+          if [[ -n "$ADMIN_ROLE_ID" ]]; then
+            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs --arg rid "$ADMIN_ROLE_ID" \
+              '{content: ., allowed_mentions: {roles: [$rid]}}')
+          else
+            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs '{content: .}')
+          fi
+          curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

@@ -1,0 +1,250 @@
+# Server mods - slug:versionId (Modrinth)
+# Re-pin: ./scripts/pin-mod-versions.sh --version 1.21.1
+
+# === core / performance ===
+fabric-api:Lwt6YYHL
+fabric-language-kotlin:Pd0xrHCw
+lithium:N08Z8wog
+ferrite-core:sOzRw3CG
+krypton:Acz3ttTp
+c2me-fabric:iFXcxwPb
+noisium:4sGQgiu2
+servercore:GQ2a51Rl
+chunky:RVFHfo1D
+chunkyborder:uT1cdd3k
+spark:cALUj9l1
+modernfix:NnNX8LBn
+clumps:3ene3W1l
+
+# === distance ===
+distanthorizons:g68FsgfE
+
+# === terrain & biomes ===
+tectonic:cXSQRWNy
+lithostitched:xziCgMIU
+terralith:eWDLFabb
+wwoo:JBbDOEnc
+geophilic:jDzSPLta
+
+# === dimensions ===
+incendium:7mVvV9Th
+nullscape:3fv8O3xX
+paradise-lost:P3XQS2ui
+ender-dragon-destroys-end-island:19ntjDUW
+
+# === structures (need yungs-api) ===
+yungs-api:9aZPNrZC
+yungs-bridges:8h9N9fvs
+towns-and-towers:5PS5OhIh
+when-dungeons-arise:g8oglmT0
+yungs-better-dungeons:fQ7EjDPE
+yungs-better-strongholds:uYZShp1p
+yungs-better-mineshafts:4ybDuGhA
+yungs-better-witch-huts:bdpPtvTn
+yungs-better-ocean-monuments:TGK6gpeO
+yungs-better-desert-temples:M6eeDRkC
+yungs-better-jungle-temples:uiGCmR8O
+yungs-better-nether-fortresses:gxBGYcIL
+yungs-better-end-island:zpUYcjIg
+structory:Nvh2sSPX
+structory-towers:ioKwCTuD
+explorify:CuBdAr31
+philips-ruins:hWBO2GFM
+dungeons-and-taverns:EUlNXs9V
+
+# === boss dungeons & extra structures ===
+deadly-deadly-dungeon:MlHPA0g5
+adventure-dungeons:EIun1fbq
+epic-structures-dungeons:59vSrRUg
+dungeons+:m8RPwRlg
+dungeonsreborn:PIK4U4ip
+datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
+moogs-structure-lib:8YZq16ew
+moogs-voyager-structures:cvepxaBC
+mes-moogs-end-structures:JW80uvhz
+mns-moogs-nether-structures:RFeEhpv4
+mss-moogs-soaring-structures:i1RQPVjQ
+mtr-moogs-temples-reimagined:BVSj6cXd
+
+# === mobs & animals ===
+friends-and-foes:SJvhiYGe
+untitled-duck-mod:1iG0fXae
+critters-and-companions:YuM4Jtu5
+creeper-overhaul:O6yuPiE8
+
+# === villager overhaul ===
+more-villagers-re-employed:6A4P2wqq
+
+# === cosy village life ===
+lets-do-vinery:BV45cdzS
+
+# === dependency libraries ===
+resourceful-lib:Hf91FuVF
+athena-ctm:JfyYsWKP
+geckolib:sLlRgyS8
+villagerapi:5cNuAKiT
+terrablender:XNtIBXyQ
+collective:4XRlrKGN
+cristel-lib:K1dyr5gj
+architectury-api:Wto0RchG
+forge-config-api-port:N5qzq0XV
+moonlight:76cdJwLO
+kambrik:eMIEIbFZ
+playeranimator:CkedfDp3
+almanac:hUgNmeCO
+owo-lib:m3XmDd8j
+deimos:mxzk31z4
+bookshelf-lib:kpkjWpa5
+prickle:Ef7P6Rb7
+otterlib:lMOoBAw6
+resourceful-config:dQh99ERC
+puzzles-lib:pqCNhF6A
+
+# === accessories ===
+accessories:Xlt4eWBe
+inmis:iE11BIfP
+
+# === variety ===
+immersive-armors:4m0lwLNO
+3d-placeable-food:F9DGEOfs
+supplementaries:BF0SUpAZ
+natures-spirit:TRMapjpU
+macaws-bridges:pl1CA7dW
+macaws-doors:Zsfvgzu6
+macaws-roofs:BgPUaaiV
+macaws-furniture:x2pXgG0s
+handcrafted:f0pKpUWd
+chipped:6h2mVZcb
+dramatic-doors:X5oMCwaA
+farmers-delight-refabricated:NCLOIK5z
+appleskin:b5ZiCjAr
+
+# === seasons ===
+fabric-seasons:2mIvRTNp
+fabric-seasons-terralith-compat:MJ2OF7eg
+fabric-seasons-delight-compat:KIzyS8hk
+fabric-seasons-extras:W9dvZHrP
+
+# === time cycle ===
+betterdays:dTNbe6uN
+pause-day-cycle:KQWm3NrZ
+
+# === quality of life ===
+balm:HpG2iLwB
+netherportalfix:9KrnphgC
+waystones:h6AyNItT
+nether-portal-spread:KkeWVnMV
+fallingtree:wxGXaJMA
+carry-on:dmotghAy
+bountiful:LFm1BWOE
+lootr:eYyx60ld
+better-combat:nsxmEb8y
+stack-refill:5RkgQCwL
+softer-hay-bales:RnWSv8yZ
+bouncier-beds:2u5kjJ75
+no-animal-tempt-delay:NA7TkDk6
+natures-compass:dtrDpgsF
+explorers-compass:qSRKiE4D
+animal_feeding_trough:BgW2cRLu
+sit!:wstK3UaY
+amendments:7ASmn54d
+smarter-farmers-farmers-replant:bsYbob1i
+grabby-mobs:a40un6os
+name-tag-tweaks:IFWMImfs
+nutritious-milk:ZPSKkcnK
+healing-campfire:OQXaaklM
+double-doors:KgGapm4H
+# just-mob-heads                               # disabled: mob heads are decorative only, adds clutter
+easy-elytra-takeoff:7JjYvNu3
+
+# === archery ===
+expanded-bow-enchanting:yAnAJwGZ
+fire-arrows-ignite-fire:aacuCUt5
+datapack:borrow-their-arrows:Qq8BwuBw         # pick up arrows shot by mobs
+
+# === death & safety ===
+your-items-are-safe:lFkq1P1J
+
+# === fire & griefing ===
+fire-spread-tweaks:fAAi76Fv
+
+# === enchanting ===
+enchantment-descriptions:YSJWkwEM
+beautiful-enchanted-books-mod-edition:kcGH3Tr5
+enchanting-commands:1LHfij4k
+overstacked-enchantments:66Chl80b
+
+# === chat ===
+hide-invis-msgs:t2fMQNrr
+
+# === spawn & new player ===
+betterspawn:I0Kiorjk
+starter-kit:OUsoZwOx
+
+# === server defaults ===
+boring-default-game-rules:4cRPF0s7
+configured-defaults:DsINYFQi
+
+# === datapacks ===
+datapack:fast-nether-portals:a05ug6MQ         # instant nether portal transition (no loading screen)
+# datapack:extra_enchantments                   # disabled: all versions use 1.21.2 registry keys incompatible with 1.21.1
+
+# === ambient audio ===
+sound-physics-remastered:tVu2EZ4u
+
+# === admin / community ===
+luckperms:l47d4ZWk
+open-parties-and-claims:lQh1EunS
+bluemap:Dr2hvJBc
+simple-voice-chat:IttovdN3
+ledger:t1AtqfxZ
+styled-chat:4e1xZSk3
+essential-commands:kev3hDqV
+dcintegration:I3kp6jxL
+no-chat-reports:D8K0KJXM
+packet-fixer:2C41Q8WX
+lmd:Wb7jqi55
+ground-clear:tf5mozqp
+
+# =============================================================================
+# Disabled, no Fabric build for 1.21.x
+# =============================================================================
+# lexters-cataclysm                           # endgame boss dungeons, latest Fabric build is 1.21.10, no 1.21.1
+# naturalist                                  # realistic animals, no Fabric build exists for any 1.21.x
+# twigs                                       # decorative twig/pebble blocks, no Fabric build past 1.20.1
+
+# =============================================================================
+# Client-only (in modpack manifest, not loaded by server)
+# =============================================================================
+# sodium                                      # client rendering optimiser
+# entityculling                               # skips rendering entities you can't see
+# iris                                        # shader loader (OptiFine replacement)
+# euphoria-patches                            # shader pack for Iris
+# xaeros-minimap                              # corner minimap
+# xaeros-world-map                            # full-screen world map
+# jade                                        # tooltip overlay, shows what you're looking at
+# modmenu                                     # in-game mod settings menu
+# zoomify                                     # configurable zoom key
+# continuity                                  # connected textures (glass, bookshelves)
+# freecam                                     # detached camera for screenshots/exploration
+# betterf3                                    # cleaner debug screen
+# 3dskinlayers                                # renders skin overlay as 3D geometry
+# ambientsounds                               # ambient background sounds per biome
+# presence-footsteps                          # material-aware footstep sounds
+# visuality                                   # extra particles (hit sparks, water splashes)
+# particle-rain                               # visible rain/snow particles instead of flat overlay
+# emi                                         # recipe viewer with search and bookmarks
+# controlify                                  # controller/gamepad support
+# gui-effect-timer                            # client: shows remaining time on status effects
+# enchantment-level-cap-indicator             # client: star symbol on max-level enchantments
+# areas                                       # client: named region markers with enter/leave HUD
+# custom-splash-screen                        # client: dark/custom loading screen
+# mindful-darkness                            # client: dark UI theme
+# dark-window-bar                             # client: dark title bar
+# dark-graph                                  # client: dark debug graph
+# better-advancements                         # client: better advancement screen
+# wavey-capes                                 # client: animated wavy capes
+# first-person-model                          # client: see your own body in first person
+# particular                                  # client: enhanced particles
+# weaponmaster                                # client: displays held items on character model
+# satin-free-wakes                            # client: boat wake effects on water

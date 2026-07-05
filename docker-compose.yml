@@ -1,0 +1,601 @@
+# ============================================================================
+# Minecraft Adventure Server - Docker Compose Stack
+# ============================================================================
+#
+# This stack uses Docker Compose PROFILES to support two modes:
+#
+#   local  - Full stack on a Mac for dev and testing. Runs the game server
+#            plus all supporting services (backups, monitoring, modpack
+#            server, mod checker). Backups go to a local MinIO container
+#            (S3-compatible) instead of Cloudflare R2. Only cloudflared is
+#            excluded (needs a real tunnel). ONLINE_MODE is disabled so you
+#            can join without a valid Mojang session.
+#
+#   cloud  - Full production deployment on your server. Includes the game
+#            server, automated offsite backups (restic > R2), uptime
+#            monitoring (Uptime Kuma), a Cloudflare tunnel for HTTP
+#            services, and a static nginx server for modpack downloads.
+#
+# Usage:
+#   docker compose --profile local up -d      # Local dev
+#   docker compose --profile cloud up -d      # Production deployment
+#
+# Every service runs a published image. Config is seeded into named volumes
+# by the `seed` init container (defaults from the image + consumer overlay).
+# No service bind-mounts ./scripts or ./config.
+# ============================================================================
+
+# --- Shared logging config (prevents unbounded log growth) ---
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  # ==========================================================================
+  # seed - Init container: seeds default config + overlay into shared volumes
+  # ==========================================================================
+  # Copies baked-in defaults (modrinth-mods.txt, nginx templates, mod configs,
+  # kuma config, etc.) into named volumes, then applies the consumer overlay
+  # on top. Other services mount these volumes read-only.
+  # ==========================================================================
+  seed:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/defaults-seed:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}seed"
+    restart: "no"
+    volumes:
+      - ${OVERLAY_DIR:-./overlay}:/overlay:ro
+      - stack-config:/out/config
+      - stack-mods:/out/mods
+    logging: *default-logging
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # mc - The Minecraft game server (Fabric)
+  # ==========================================================================
+  # Uses the excellent itzg/minecraft-server image which handles Fabric
+  # installation, mod loading via Modrinth, RCON, and graceful shutdown.
+  #
+  # Present in BOTH profiles: local (seed-rolling) and cloud (production).
+  # The key difference is ONLINE_MODE - disabled locally so you don't need
+  # a valid Mojang session for throwaway test worlds.
+  # ==========================================================================
+  mc:
+    image: itzg/minecraft-server:2026.6.1-java21
+    container_name: "${CONTAINER_PREFIX:-}mc"
+    ports:
+      # Game port - non-default to reduce automated 25565 scanning noise.
+      # Friends connect to mc.DOMAIN:SERVER_PORT (GAME_PORT is an alias).
+      - "${SERVER_PORT:-25577}:25565"
+      # Simple Voice Chat - UDP for proximity and group voice.
+      - "${VOICE_PORT:-24454}:24454/udp"
+    environment:
+      # --- Core server settings ---
+      EULA: "TRUE"
+      TYPE: FABRIC
+      VERSION: ${MC_VERSION:-1.21.1}
+      MEMORY: ${MEMORY:-5G}
+      USE_AIKAR_FLAGS: "TRUE"
+
+      # --- Authentication ---
+      # Production: ONLINE_MODE=TRUE (from .env) enforces Mojang auth.
+      # Local: ONLINE_MODE=FALSE (from .env) skips auth for seed-rolling.
+      ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
+
+      # --- Allowlist & operators ---
+      # In online mode, the itzg image resolves usernames via Mojang API.
+      # In offline mode (ONLINE_MODE=FALSE), PlayerDB lookups fail, so
+      # whitelist/ops are seeded via RCON after boot (see dev-up.sh).
+      ENABLE_WHITELIST: "${ENABLE_WHITELIST:-TRUE}"
+      ENFORCE_WHITELIST: "${ENFORCE_WHITELIST:-TRUE}"
+      WHITELIST: "${WHITELIST:-}"
+      OPS: "${OPS:-}"
+
+      # --- RCON (admin console, used by backup sidecar too) ---
+      ENABLE_RCON: "TRUE"
+      RCON_PASSWORD: ${RCON_PASSWORD}
+
+      # --- World generation ---
+      SEED: ${SEED:-}
+
+      # --- Performance ---
+      # Keep these modest; Distant Horizons handles far visual range.
+      VIEW_DISTANCE: ${VIEW_DISTANCE:-10}
+      SIMULATION_DISTANCE: ${SIMULATION_DISTANCE:-8}
+
+      # --- Auto-pause when empty ---
+      # Freezes the JVM when no players are connected. Resumes instantly
+      # on connect - transparent to players, zero CPU/RAM while idle.
+      ENABLE_AUTOPAUSE: "TRUE"
+      AUTOPAUSE_TIMEOUT_EST: ${AUTOPAUSE_TIMEOUT:-600}
+      AUTOPAUSE_TIMEOUT_INIT: "300"
+      MAX_TICK_TIME: "-1"
+
+      # --- Gameplay ---
+      DIFFICULTY: hard
+      ALLOW_NETHER: "TRUE"
+      SPAWN_PROTECTION: "0"
+      MOTD: ${MOTD:-A modded adventure server}
+
+      # --- Mods ---
+      # Modrinth mod sync is disabled by default for fast restarts.
+      # deploy.sh enables it via a compose override file when the mod list
+      # changes, restarts mc to download/update, then removes the override.
+      # Normal restarts/reboots skip Modrinth entirely and boot from the
+      # cached JARs in data/mods/.
+      # To force a manual mod sync:
+      #   MODRINTH_PROJECTS="@/extras/modrinth-mods.txt" docker compose --profile cloud up -d mc
+      # MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
+
+      # Force env vars to overwrite server.properties on every boot.
+      # Without this, stale values (e.g. enforce-whitelist=true) persist.
+      OVERRIDE_SERVER_PROPERTIES: "true"
+
+      # Custom log4j config to filter RCON spam, Vinery warnings, etc.
+      JVM_OPTS: "-Dlog4j.configurationFile=/config-vol/log4j2-adventure.xml"
+
+    volumes:
+      # Persistent world data, config, mods, logs - the lot.
+      - ./data:/data
+      # Merged modrinth mod list from the seed container.
+      - stack-mods:/extras:ro
+      # Seeded config (log4j2, etc.) - read-only.
+      - stack-config:/config-vol:ro
+    logging: *default-logging
+    restart: unless-stopped
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    profiles:
+      - local
+      - cloud
+    healthcheck:
+      # mc-health is a built-in script in the itzg image that checks
+      # whether the server is accepting connections.
+      test: mc-health
+      interval: 30s
+      timeout: 10s
+      start_period: 5m
+      retries: 10
+
+  # ==========================================================================
+  # minio - Local S3-compatible storage (replaces R2 for local dev)
+  # ==========================================================================
+  # MinIO provides the same S3 API as Cloudflare R2 so mc-backup-local
+  # works identically to production. Data stored in ./backups/minio/.
+  # Console at http://localhost:9001 (admin/admin123).
+  # Local profile only.
+  # ==========================================================================
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: "${CONTAINER_PREFIX:-}minio"
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./backups/minio:/data
+    mem_limit: 512m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # ==========================================================================
+  # minio-init - One-shot: creates the backup bucket in MinIO
+  # ==========================================================================
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    container_name: "${CONTAINER_PREFIX:-}minio-init"
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        mc alias set local http://minio:9000 minioadmin minioadmin123
+        mc mb --ignore-existing local/mc-backups
+        echo "MinIO bucket 'mc-backups' ready"
+    restart: "no"
+    profiles:
+      - local
+
+  # ==========================================================================
+  # mc-backup-local - Backups to local MinIO (same interface as production)
+  # ==========================================================================
+  mc-backup-local:
+    image: itzg/mc-backup:2026.6.2
+    container_name: "${CONTAINER_PREFIX:-}mc-backup-local"
+    depends_on:
+      mc:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      BACKUP_METHOD: restic
+      RESTIC_REPOSITORY: "s3:http://minio:9000/mc-backups"
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin123
+      RESTIC_PASSWORD: local-dev-backups
+      BACKUP_INTERVAL: "${BACKUP_INTERVAL:-6h}"
+      INITIAL_DELAY: 2m
+      PRUNE_RESTIC_RETENTION: >-
+        --keep-daily ${RESTIC_RETENTION_DAILY:-7}
+        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
+        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+      RCON_HOST: mc
+      RCON_PASSWORD: ${RCON_PASSWORD}
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+    mem_limit: 256m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+
+  # ==========================================================================
+  # mc-backup - Automated offsite backups via restic to Cloudflare R2
+  # R2 uses Cloudflare's account ID as the S3 endpoint subdomain.
+  # ==========================================================================
+  # Runs alongside the game server and performs daily (by default) backups
+  # to an R2 bucket using restic (S3-compatible). Also keeps local tar
+  # snapshots in ./backups as a belt-and-braces fallback.
+  #
+  # Uses RCON to issue save-off / save-on around snapshots so the world
+  # files are consistent.
+  #
+  # Cloud profile only - you don't need backups of throwaway seed-rolling
+  # worlds.
+  # ==========================================================================
+  mc-backup:
+    image: itzg/mc-backup:2026.6.2
+    container_name: "${CONTAINER_PREFIX:-}mc-backup"
+    depends_on:
+      mc:
+        condition: service_healthy
+    environment:
+      # --- Restic to Cloudflare R2 (S3-compatible) ---
+      BACKUP_METHOD: restic
+      RESTIC_REPOSITORY: "s3:https://${R2_ACCOUNT_ID:-}.r2.cloudflarestorage.com/${R2_BUCKET:-}"
+      AWS_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+
+      # --- Schedule ---
+      BACKUP_INTERVAL: ${BACKUP_INTERVAL:-6h}
+      INITIAL_DELAY: 2m
+
+      # --- Retention policy ---
+      # Prune old snapshots to keep storage costs sensible.
+      PRUNE_RESTIC_RETENTION: >-
+        --keep-daily ${RESTIC_RETENTION_DAILY:-7}
+        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
+        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+
+      # --- Exclude regenerable data from backups ---
+      # Only world/ and config/ are irreplaceable; everything else is
+      # re-downloaded or regenerated on deploy.
+      EXCLUDES: bluemap,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
+
+      # --- RCON connection to the game server ---
+      RCON_HOST: mc
+      RCON_PASSWORD: ${RCON_PASSWORD}
+    volumes:
+      # World data - read-only; the backup sidecar never writes to it.
+      - ./data:/data:ro
+      # Local tar backups as a secondary safety net.
+      - ./backups:/backups
+    mem_limit: 256m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  # ==========================================================================
+  # uptime-kuma - Lightweight monitoring and alerting
+  # ==========================================================================
+  # Monitors the Minecraft server (and anything else you point it at) and
+  # sends alerts to Discord when things go down. In production, the web UI
+  # is tunnelled through Cloudflare for HTTPS access.
+  #
+  # Both profiles.
+  # ==========================================================================
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.17
+    container_name: "${CONTAINER_PREFIX:-}uptime-kuma"
+    ports:
+      # Bound to localhost - not accessible from the internet.
+      # Cloudflared reaches Kuma via Docker network DNS, not this port.
+      - "127.0.0.1:${KUMA_PORT:-3001}:3001"
+    volumes:
+      - ./data/kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 256m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const h=require('http');h.get('http://localhost:3001/api/entry-page',r=>{process.exit(r.statusCode<400?0:1)}).on('error',()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  # ==========================================================================
+  # kuma-init - One-shot: provisions Uptime Kuma with monitors & status page
+  # ==========================================================================
+  # Creates the admin account (first run only), adds monitors for all server
+  # endpoints, configures Discord alerting, and builds a public status page.
+  # Idempotent - skips anything that already exists.
+  # ==========================================================================
+  kuma-init:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/kuma-init:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}kuma-init"
+    depends_on:
+      uptime-kuma:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
+    environment:
+      KUMA_URL: http://uptime-kuma:3001
+      KUMA_API_KEY: ${KUMA_API_KEY:-}
+      KUMA_USERNAME: ${KUMA_USERNAME:-admin}
+      KUMA_PASSWORD: ${KUMA_PASSWORD:-}
+      KUMA_CONFIG: /config-vol/uptime-kuma/kuma-config.json
+      DOMAIN: ${DOMAIN:-example.com}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      SERVER_PORT: ${SERVER_PORT:-25577}
+    volumes:
+      - stack-config:/config-vol:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 256m
+    logging: *default-logging
+    restart: "no"
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # nav-proxy - Reverse proxy that injects the site nav bar
+  # ==========================================================================
+  # Sits in front of all web services (BlueMap, Uptime Kuma, pack-web),
+  # using nginx sub_filter to inject a consistent nav bar with logo into
+  # every HTML page. Cloudflared routes all subdomains here.
+  # ==========================================================================
+  nav-proxy:
+    image: nginx:1.27-alpine
+    container_name: "${CONTAINER_PREFIX:-}nav-proxy"
+    # Stage the seeded template, then re-run the image entrypoint so its
+    # envsubst hook (which already ran before this command) renders it.
+    command: /bin/sh -c "mkdir -p /etc/nginx/templates && cp /config-vol/nginx/nav-proxy.conf.template /etc/nginx/templates/default.conf.template && exec /docker-entrypoint.sh nginx -g 'daemon off;'"
+    volumes:
+      - stack-config:/config-vol:ro
+    environment:
+      DOMAIN: ${DOMAIN:-example.com}
+      BRAND_NAME: ${BRAND_NAME:-Adventure Server}
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      mc:
+        condition: service_healthy
+      uptime-kuma:
+        condition: service_healthy
+      pack-web:
+        condition: service_started
+    mem_limit: 64m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # cloudflared - Cloudflare Tunnel for HTTP services
+  # ==========================================================================
+  # Provides secure HTTPS ingress to web services (Uptime Kuma, BlueMap,
+  # modpack downloads) without opening extra ports on the droplet. The game
+  # port itself is NOT tunnelled - players connect directly via UDP/TCP.
+  #
+  # Tunnel configuration is host-generated by cloudflare-setup.sh.
+  #
+  # Cloud profile only.
+  # ==========================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:2026.6.1
+    container_name: "${CONTAINER_PREFIX:-}cloudflared"
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ${CLOUDFLARED_DIR:-./cloudflared}:/etc/cloudflared:ro
+    depends_on:
+      mc:
+        condition: service_healthy
+    mem_limit: 128m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  # ==========================================================================
+  # pack-web - Static file server for modpack downloads (nginx)
+  # ==========================================================================
+  # Serves the built modpack ZIP so players can download it via a friendly
+  # URL (routed through the Cloudflare tunnel). No ports are exposed
+  # directly - cloudflared routes to it on port 80 internally.
+  #
+  # Both profiles.
+  # ==========================================================================
+  pack-web:
+    image: nginx:1.27-alpine
+    container_name: "${CONTAINER_PREFIX:-}pack-web"
+    # No host port - nav-proxy and cloudflared reach pack-web via Docker DNS.
+    # For direct debugging: docker compose exec pack-web curl localhost:80
+    # Same staging trick as nav-proxy: mkdir + cp, then re-exec the
+    # entrypoint so envsubst renders the template.
+    command: /bin/sh -c "mkdir -p /etc/nginx/templates && cp /config-vol/nginx/pack-web.conf.template /etc/nginx/templates/default.conf.template && exec /docker-entrypoint.sh nginx -g 'daemon off;'"
+    volumes:
+      - ${DIST_DIR:-./modpack-dist}:/usr/share/nginx/html
+      - stack-config:/config-vol:ro
+    environment:
+      DOMAIN: ${DOMAIN:-example.com}
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    mem_limit: 64m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # idle-tasks - Maintenance runner when no players are connected
+  # ==========================================================================
+  # Polls RCON for the player count. When the server has been empty for
+  # IDLE_GRACE minutes (default 3), runs save-all, BlueMap render, and
+  # garbage collection before autopause freezes the JVM.
+  #
+  # Cloud profile only.
+  # ==========================================================================
+  idle-tasks:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/idle-tasks:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}idle-tasks"
+    environment:
+      RCON_HOST: mc
+      RCON_PASSWORD: ${RCON_PASSWORD}
+      IDLE_GRACE: "3"
+      POLL_INTERVAL: "30"
+      PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/data
+    depends_on:
+      mc:
+        condition: service_healthy
+    mem_limit: 128m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - cloud
+
+  # ==========================================================================
+  # mod-checker - Daily mod update checker
+  # ==========================================================================
+  # Runs check-updates.sh on startup and then daily, writing an HTML status
+  # page to the same directory nginx serves. Shows which mods have updates,
+  # which are current, and links to changelogs on Modrinth.
+  #
+  # Visible at mods.DOMAIN (via the Cloudflare tunnel to nav-proxy).
+  #
+  # Both profiles.
+  # ==========================================================================
+  mod-checker:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/mod-checker:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}mod-checker"
+    # Symlink config files from the seed volumes into the paths the baked
+    # script expects (/app/config/*, /app/modpack/*).
+    command:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /app/config /app/modpack
+        ln -sf /mods-vol/modrinth-mods.txt /app/config/modrinth-mods.txt
+        ln -sf /config-vol/messages.json /app/config/messages.json
+        ln -sf /config-vol/modpack-manifest.json /app/modpack/adventure.mrpack.json
+        exec /app/entrypoint.sh
+    environment:
+      MC_VERSION: ${MC_VERSION:-1.21.1}
+      DOMAIN: ${DOMAIN:-example.com}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      DISCORD_ADMIN_ROLE_ID: ${DISCORD_ADMIN_ROLE_ID:-}
+    volumes:
+      - stack-config:/config-vol:ro
+      - stack-mods:/mods-vol:ro
+      - ${DIST_DIR:-./modpack-dist}:/app/modpack/dist
+      - ./data/mods:/app/data/mods:ro
+    working_dir: /app
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    mem_limit: 128m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # discord-sync - Discord bot: role sync, /register, and /mc admin commands
+  # ==========================================================================
+  # Role sync: maps Discord users to MC usernames via /register, syncs
+  # Discord roles (Player, Admin) to the server's whitelist and ops list
+  # via RCON. Mappings persist in /data/discord-players.json.
+  #
+  # Admin commands: /mc status, /mc restart, /mc heal, /mc give, etc.
+  # All /mc commands require the @Admin Discord role and are audit-logged
+  # to the #minecraft channel. See COMMANDS.md for the full list.
+  #
+  # Docker socket is mounted for /mc restart (container restart only,
+  # the bot never runs arbitrary docker commands).
+  #
+  # Both profiles - players register locally for testing too.
+  # ==========================================================================
+  discord-sync:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/discord-sync:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}discord-sync"
+    environment:
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
+      DISCORD_CHANNEL_ID: ${DISCORD_CHANNEL_ID:-}
+      RCON_HOST: mc
+      RCON_PASSWORD: ${RCON_PASSWORD}
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      mc:
+        condition: service_healthy
+    mem_limit: 192m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
+  # crafty - Web-based server management dashboard (commented out)
+  # ==========================================================================
+  # crafty:
+  #   image: registry.gitlab.com/crafty-controller/crafty-4:latest
+  #   container_name: crafty
+  #   ports:
+  #     - "8443:8443"
+  #   volumes:
+  #     - crafty-data:/crafty/crafty
+  #     - ./data:/servers/mc:ro
+  #   environment:
+  #     TZ: Europe/London
+  #   restart: unless-stopped
+  #   profiles:
+  #     - local
+  #     - cloud
+
+volumes:
+  stack-config:
+  stack-mods:

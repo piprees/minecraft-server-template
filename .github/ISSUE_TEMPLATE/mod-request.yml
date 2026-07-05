@@ -1,0 +1,67 @@
+name: Mod request
+description: Suggest a mod to add to the server or client pack.
+labels: ["enhancement", "minecraft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggesting a new mod? Give us enough detail to evaluate it.
+
+        Before requesting, check `config/modrinth-mods.txt` (server mods) and `modpack/adventure.mrpack.json` (client mods) to make sure it is not already included.
+
+  - type: input
+    id: mod-name
+    attributes:
+      label: Mod name
+      placeholder: "e.g. Terralith"
+    validations:
+      required: true
+
+  - type: input
+    id: modrinth-url
+    attributes:
+      label: Modrinth URL
+      description: Link to the mod's Modrinth page.
+      placeholder: "https://modrinth.com/mod/..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: side
+    attributes:
+      label: Side
+      description: Is this a server mod, client mod, or both?
+      options:
+        - Server-side
+        - Client-side
+        - Both (server + client)
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why add this mod?
+      description: What does it do and why would it be a good fit for the server?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: compatibility
+    attributes:
+      label: Compatibility checks
+      description: Please verify before submitting.
+      options:
+        - label: The mod targets Fabric for 1.21.1
+          required: true
+        - label: I have checked for dependency mods and listed them below (if any)
+        - label: The mod does not conflict with existing worldgen mods (Terralith, Incendium, Nullscape)
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List any required dependency mods (check the Modrinth page or use the dependency checklist in CONTRIBUTING.md).
+      placeholder: |
+        - fabric-api (already included)
+        - some-library-mod

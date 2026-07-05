@@ -1,0 +1,42 @@
+# !! TEMPLATE - deploy.sh substitutes CLOUDFLARE_TUNNEL_ID and DOMAIN at deploy time.
+# !! Don't use this directly with cloudflared. Run ./scripts/deploy.sh first.
+# Tunnels HTTP services only. The game port uses a plain DNS A record.
+tunnel: CLOUDFLARE_TUNNEL_ID
+credentials-file: /etc/cloudflared/CLOUDFLARE_TUNNEL_ID.json
+
+ingress:
+  # BlueMap web map (via nav-proxy for nav bar injection)
+  - hostname: map.DOMAIN
+    service: http://nav-proxy:80
+
+  # Modpack download server (via nav-proxy for nav bar injection)
+  - hostname: pack.DOMAIN
+    service: http://nav-proxy:80
+
+  # Uptime Kuma monitoring / status page (via nav-proxy for nav bar injection)
+  - hostname: status.DOMAIN
+    service: http://nav-proxy:80
+
+  # Mod JAR mirror - straight to pack-web: binaries don't need the nav-bar
+  # injection hop, and this is the download path baked into the .mrpack and
+  # packwiz indexes (Cloudflare edge-caches .jar by default)
+  - hostname: mods.DOMAIN
+    path: ^/mods/.*
+    service: http://pack-web:80
+
+  # Mod status page (via nav-proxy for nav bar injection)
+  - hostname: mods.DOMAIN
+    service: http://nav-proxy:80
+
+  # Crafty dashboard (uncomment if enabled in docker-compose.yml)
+  # - hostname: panel.DOMAIN
+  #   service: https://crafty:8443
+  #   originRequest:
+  #     noTLSVerify: true
+
+  # Root domain redirect (nginx handles the 301 to status.DOMAIN)
+  - hostname: DOMAIN
+    service: http://pack-web:80
+
+  # Catch-all: reject unmatched hostnames
+  - service: http_status:404

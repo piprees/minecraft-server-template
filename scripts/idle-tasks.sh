@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+# idle-tasks.sh - Run maintenance when no players are connected.
+#
+# Runs bind-mounted in the idle-tasks container (cloud profile). Polls RCON
+# for the player count; when the server stays empty for IDLE_GRACE minutes:
+# save-all flush, BlueMap render, spark gc, then Chunky pre-generation -
+# one dimension at a time (overworld -> nether -> end -> paradise_lost), to
+# the world border + margin so Distant Horizons has LOD data ready.
+#
+# Completion is tracked by marker files that persist across restarts:
+#   data/.chunky-complete, .chunky-nether-complete, .chunky-end-complete,
+#   .chunky-paradise-lost-complete
+# Delete a marker to force that dimension to re-generate (e.g. after a
+# border change). Pre-gen pauses when a player joins, resumes next idle.
+#
+# While Chunky runs, the script "knocks" the game port every poll cycle -
+# the ONE sanctioned autopause-defeating poke, since autopause would freeze
+# the JVM mid-generation. RCON returning nothing = server paused; treated
+# as "not idle" rather than an error.
+set -euo pipefail
+
+RCON_HOST="${RCON_HOST:-mc}"
+RCON_PASSWORD="${RCON_PASSWORD:-}"
+IDLE_GRACE="${IDLE_GRACE:-3}"
+POLL_INTERVAL="${POLL_INTERVAL:-30}"
+
+# Chunky pre-generation: border radius + 128 chunks (2048 blocks) for DH LOD
+PREGEN_BORDER_RADIUS="${PREGEN_BORDER_RADIUS:-${WORLD_BORDER_RADIUS:-8192}}"
+CHUNKY_OVERWORLD_RADIUS=$((PREGEN_BORDER_RADIUS + 2048))
+CHUNKY_NETHER_RADIUS=$((PREGEN_BORDER_RADIUS / 8 + 256))
+CHUNKY_END_RADIUS=$((4096 + 512))
+CHUNKY_PL_RADIUS=$((4096 + 512))
+CHUNKY_MARKER="/data/.chunky-complete"
+CHUNKY_NETHER_MARKER="/data/.chunky-nether-complete"
+CHUNKY_END_MARKER="/data/.chunky-end-complete"
+CHUNKY_PL_MARKER="/data/.chunky-paradise-lost-complete"
+chunky_active=false
+chunky_dimension="overworld"
+tasks_done=false
+
+rcon() {
+  docker exec mc rcon-cli "$@" 2> /dev/null || true
+}
+
+get_player_count() {
+  local result
+  result=$(rcon "list" 2> /dev/null || echo "")
+  if [[ -z "$result" ]]; then
+    echo "-1"
+    return
+  fi
+  echo "$result" | grep -oE 'There are [0-9]+' | grep -oE '[0-9]+' || echo "-1"
+}
+
+# Knock the game port to prevent autopause from freezing the JVM.
+# Autopause monitors TCP connections on port 25565 - RCON (25575) doesn't count.
+knock_game_port() {
+  (echo -n "" > /dev/tcp/mc/25565) 2> /dev/null || true
+}
+
+run_idle_tasks() {
+  echo "[$(date '+%H:%M:%S')] Server empty for ${IDLE_GRACE}min - running idle maintenance"
+
+  echo "  Saving world..."
+  rcon "save-all flush"
+  sleep 5
+
+  echo "  Triggering BlueMap render..."
+  rcon "bluemap update"
+
+  echo "  Requesting garbage collection..."
+  rcon "spark gc" || true
+
+  echo "  Idle maintenance complete."
+}
+
+# --- Chunky pre-generation ----------------------------------------------------
+
+start_chunky() {
+  # Find the next dimension that needs pre-generation
+  local world="" radius=""
+  if [[ ! -f "$CHUNKY_MARKER" ]]; then
+    world="minecraft:overworld"
+    radius="$CHUNKY_OVERWORLD_RADIUS"
+    chunky_dimension="overworld"
+  elif [[ ! -f "$CHUNKY_NETHER_MARKER" ]]; then
+    world="minecraft:the_nether"
+    radius="$CHUNKY_NETHER_RADIUS"
+    chunky_dimension="nether"
+  elif [[ ! -f "$CHUNKY_END_MARKER" ]]; then
+    world="minecraft:the_end"
+    radius="$CHUNKY_END_RADIUS"
+    chunky_dimension="end"
+  elif [[ ! -f "$CHUNKY_PL_MARKER" ]]; then
+    world="paradise_lost:paradise_lost"
+    radius="$CHUNKY_PL_RADIUS"
+    chunky_dimension="paradise_lost"
+  else
+    # Explicit 0 matters: a bare `return` here inherits the exit status of the
+    # failed `[[ ! -f ... ]]` test above (1), which under `set -e` kills the
+    # whole script - the container then restarts in an endless loop once all
+    # dimensions finish pre-generating.
+    return 0
+  fi
+
+  # Try to resume a paused task first
+  echo "[$(date '+%H:%M:%S')] Starting Chunky pre-generation: ${chunky_dimension} (radius: ${radius})"
+  local resume_result
+  resume_result=$(rcon "chunky continue" 2> /dev/null || echo "")
+  if echo "$resume_result" | grep -qi "continuing\|resumed"; then
+    echo "  Resumed paused task"
+    chunky_active=true
+    return
+  fi
+
+  # No paused task - start fresh
+  echo "  No paused task found, starting fresh"
+  rcon "chunky cancel"
+  rcon "chunky confirm"
+  sleep 1
+  rcon "chunky world $world"
+  rcon "chunky center 0 0"
+  rcon "chunky radius $radius"
+  rcon "chunky start"
+  chunky_active=true
+}
+
+pause_chunky() {
+  if [[ "$chunky_active" == true ]]; then
+    echo "[$(date '+%H:%M:%S')] Pausing Chunky pre-generation (${chunky_dimension})"
+    rcon "chunky pause"
+    chunky_active=false
+  fi
+}
+
+check_chunky_complete() {
+  if [[ "$chunky_active" != true ]]; then
+    return 0
+  fi
+
+  local status
+  status=$(rcon "chunky progress" 2> /dev/null || echo "")
+  if echo "$status" | grep -qiE "Task finished|complete|100%|No tasks running"; then
+    echo "[$(date '+%H:%M:%S')] Chunky pre-generation complete (${chunky_dimension})"
+    chunky_active=false
+
+    # Mark current dimension done
+    case "$chunky_dimension" in
+      overworld) touch "$CHUNKY_MARKER" ;;
+      nether) touch "$CHUNKY_NETHER_MARKER" ;;
+      end) touch "$CHUNKY_END_MARKER" ;;
+      paradise_lost) touch "$CHUNKY_PL_MARKER" ;;
+    esac
+
+    echo "  Triggering BlueMap update for newly generated chunks..."
+    rcon "bluemap update"
+
+    # Start the next dimension if any remain
+    start_chunky
+  fi
+}
+
+# --- Main loop ----------------------------------------------------------------
+
+# Completion markers persist across restarts. To force Chunky to re-run
+# (e.g. after a world border change), delete the markers manually:
+#   rm -f data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete
+
+echo "Idle task monitor started (grace: ${IDLE_GRACE}min, poll: ${POLL_INTERVAL}s)"
+echo "  Chunky will pre-generate when idle:"
+echo "    Overworld: ${CHUNKY_OVERWORLD_RADIUS} block radius"
+echo "    Nether:    ${CHUNKY_NETHER_RADIUS} block radius"
+echo "    End:       ${CHUNKY_END_RADIUS} block radius"
+echo "    Paradise:  ${CHUNKY_PL_RADIUS} block radius"
+
+empty_since=""
+
+while true; do
+  count=$(get_player_count)
+
+  if [[ "$count" == "-1" ]]; then
+    # Server not responding - might be paused or starting
+    empty_since=""
+    tasks_done=false
+    sleep "$POLL_INTERVAL"
+    continue
+  fi
+
+  if [[ "$count" == "0" ]]; then
+    if [[ -z "$empty_since" ]]; then
+      empty_since=$(date +%s)
+      tasks_done=false
+      echo "[$(date '+%H:%M:%S')] Server empty - waiting ${IDLE_GRACE}min before maintenance"
+    fi
+
+    now=$(date +%s)
+    elapsed=$(((now - empty_since) / 60))
+
+    if [[ $elapsed -ge $IDLE_GRACE ]] && [[ "$tasks_done" != true ]]; then
+      run_idle_tasks
+      start_chunky
+      tasks_done=true
+    fi
+
+    # While chunky is active, knock the game port every poll cycle to
+    # prevent autopause from freezing the JVM mid-generation.
+    if [[ "$chunky_active" == true ]]; then
+      knock_game_port
+    fi
+
+    check_chunky_complete
+  else
+    if [[ -n "$empty_since" ]]; then
+      echo "[$(date '+%H:%M:%S')] Player joined - cancelling idle timer"
+      pause_chunky
+    fi
+    empty_since=""
+    tasks_done=false
+  fi
+
+  sleep "$POLL_INTERVAL"
+done

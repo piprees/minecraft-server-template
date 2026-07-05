@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Custom log4j2 config - filters noisy messages and limits log growth.
+     Mounted into the mc container via JVM_OPTS in docker-compose.yml. -->
+<Configuration status="WARN">
+    <Properties>
+        <Property name="logPattern">[%d{HH:mm:ss}] [%t/%level]: %msg{nolookups}%n</Property>
+    </Properties>
+    <Appenders>
+        <Console name="SysOut" target="SYSTEM_OUT">
+            <PatternLayout pattern="${logPattern}" />
+            <Filters>
+                <!-- RCON listener thread start/stop spam (runs every healthcheck) -->
+                <RegexFilter regex=".*Thread RCON Client.*started.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Thread RCON Client.*stopped.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Vinery missing trade item warnings (harmless mod compat issue) -->
+                <RegexFilter regex=".*Vinery Villager Trade Item not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Loot table cross-mod reference warnings (mods referencing each other's loot tables) -->
+                <RegexFilter regex=".*Unknown loot table called farmersdelight.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- owo-lib DataResult stack traces (debug noise from expanded-bow-enchanting) -->
+                <RegexFilter regex=".*owo.*addStackTraceToException.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Autopause polling noise -->
+                <RegexFilter regex=".*\[Autopause\].*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Distant Horizons chunk loading warnings (expected during exploration) -->
+                <RegexFilter regex=".*\[DistantHorizons\].*chunk.*timeout.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Supplementaries registry warnings (harmless cross-mod compat) -->
+                <RegexFilter regex=".*supplementaries.*registry.*not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Lithium/C2ME optimisation debug messages -->
+                <RegexFilter regex=".*\[c2me\].*debug.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- ModernFix class loading noise -->
+                <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
+            </Filters>
+        </Console>
+        <RollingRandomAccessFile name="File" fileName="logs/latest.log"
+                                 filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${logPattern}" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="10 MB" />
+                <OnStartupTriggeringPolicy />
+            </Policies>
+            <!-- Keep 3 days of compressed logs, delete older ones -->
+            <DefaultRolloverStrategy max="3">
+                <Delete basePath="logs" maxDepth="1">
+                    <IfFileName glob="*.log.gz" />
+                    <IfLastModified age="3d" />
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <!-- Suppress Distant Horizons info-level chatter -->
+        <Logger name="com.seibel.distanthorizons" level="warn" additivity="false">
+            <AppenderRef ref="SysOut" />
+            <AppenderRef ref="File" />
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="SysOut" />
+            <AppenderRef ref="File" />
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,0 +1,118 @@
+name: Mod Updates
+
+# Dependabot-style updates for Modrinth mods. Re-pins every mod in
+# config/modrinth-mods.txt to its latest Fabric build for MC_VERSION, then opens
+# (or refreshes) a PR with changelogs. Never touches production directly - this
+# only runs against a checkout in the Actions runner.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC, matches dependabot.yml cadence
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: mod-updates
+  cancel-in-progress: false
+
+env:
+  BRANCH: mod-updates/auto
+
+jobs:
+  update-mods:
+    name: Check for mod updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create dependencies --color B8EE55 --force
+          gh label create minecraft --color 44BD32 --description "Minecraft server/mod content" --force
+
+      - name: Snapshot current mod list
+        run: cp config/modrinth-mods.txt /tmp/modrinth-mods.before.txt
+
+      - name: Resolve latest mod versions
+        run: ./scripts/pin-mod-versions.sh --apply
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet -- config/modrinth-mods.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Close stale PR (no updates)
+        if: steps.diff.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr comment "$PR_NUM" --body "All mods now match \`main\` - closing, nothing left to update."
+            gh pr close "$PR_NUM" --delete-branch
+            echo "Closed stale PR #$PR_NUM"
+          else
+            echo "No mod updates available."
+          fi
+
+      - name: Build PR body with changelogs
+        if: steps.diff.outputs.changed == 'true'
+        id: body
+        run: |
+          python3 scripts/build-mod-update-report.py \
+            --old /tmp/modrinth-mods.before.txt \
+            --new config/modrinth-mods.txt \
+            --server-env .env.example \
+            --output /tmp/pr-body.md >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add config/modrinth-mods.txt
+          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s)"
+          git push --force origin "$BRANCH"
+
+      - name: Open or update PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr edit "$PR_NUM" \
+              --title "chore: update ${{ steps.body.outputs.count }} mod version(s)" \
+              --body-file /tmp/pr-body.md
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions ($(date -u +%Y-%m-%d))."
+            echo "Updated PR #$PR_NUM"
+          else
+            gh pr create \
+              --title "chore: update ${{ steps.body.outputs.count }} mod version(s)" \
+              --body-file /tmp/pr-body.md \
+              --base main \
+              --head "$BRANCH" \
+              --label dependencies \
+              --label minecraft
+            echo "Opened new PR"
+          fi

@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# build-stack-bundle.sh — Assemble the stack bundle tarball for a release.
+#
+# Usage:
+#   ./scripts/build-stack-bundle.sh v1.2.3
+#   VERSION=v1.2.3 ./scripts/build-stack-bundle.sh
+#
+# Output: dist/stack-v1.2.3.tar.gz + dist/stack-v1.2.3.tar.gz.sha256
+#
+# Template-maintenance script — not shipped in the bundle itself.
+set -euo pipefail
+
+VERSION="${1:-${VERSION:-}}"
+VERSION="${VERSION#v}"
+
+if [[ -z "$VERSION" ]]; then
+  echo "Usage: $0 <version>" >&2
+  echo "  e.g. $0 v1.2.3" >&2
+  exit 1
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+DIST_DIR="$PROJECT_DIR/dist"
+STAGING_DIR="$DIST_DIR/.bundle-staging"
+BUNDLE_NAME="stack-v${VERSION}"
+
+MANIFEST=(
+  docker-compose.yml
+  docker-compose.local.yml
+  .env.example
+  scripts/lib.sh
+  scripts/deploy.sh
+  scripts/initial-setup.sh
+  scripts/infra-deploy.sh
+  scripts/setup-permissions.sh
+  scripts/setup.sh
+  scripts/prepare-droplet.sh
+  scripts/preflight-check.sh
+  scripts/github-env-sync.sh
+  scripts/provision.sh
+  scripts/provision-hetzner.sh
+  scripts/provision-droplet.sh
+  scripts/harden.sh
+  scripts/cloudflare-setup.sh
+  scripts/teardown.sh
+  scripts/op-env.sh
+  scripts/op-sync-env.sh
+  scripts/kuma-token.sh
+  scripts/rcon.sh
+  scripts/doctor.sh
+  scripts/live-logs.sh
+  scripts/live-stats.sh
+  scripts/restart-service.sh
+  scripts/backup-now.sh
+  scripts/reset-seed.sh
+  scripts/seed/roll-seeds.sh
+  scripts/seed/score-seed.sh
+  scripts/seed/report-top.sh
+  scripts/discord-notify.sh
+  scripts/discord-cleanup.sh
+  scripts/discord-pin-sync.sh
+  scripts/ddns-update.sh
+  scripts/cache-assets.sh
+  scripts/dev-up.sh
+  scripts/pack-build.sh
+  config/messages.json
+)
+
+echo "Building stack bundle v${VERSION}..."
+
+errors=0
+for file in "${MANIFEST[@]}"; do
+  if [[ ! -f "$PROJECT_DIR/$file" ]]; then
+    echo "ERROR: missing manifest file: $file" >&2
+    errors=$((errors + 1))
+  fi
+done
+if [[ $errors -gt 0 ]]; then
+  echo "Aborting: $errors missing file(s)" >&2
+  exit 1
+fi
+
+rm -rf "$STAGING_DIR"
+mkdir -p "$STAGING_DIR/stack/scripts/seed"
+
+echo "$VERSION" > "$STAGING_DIR/stack/VERSION"
+
+for file in "${MANIFEST[@]}"; do
+  dest="$STAGING_DIR/stack/$file"
+  mkdir -p "$(dirname "$dest")"
+  cp "$PROJECT_DIR/$file" "$dest"
+done
+
+mkdir -p "$DIST_DIR"
+
+TAR_CMD="tar"
+if command -v gtar > /dev/null 2>&1; then
+  TAR_CMD="gtar"
+fi
+
+if $TAR_CMD --sort=name --help > /dev/null 2>&1; then
+  $TAR_CMD \
+    --sort=name \
+    --owner=0 \
+    --group=0 \
+    --mtime="2024-01-01 00:00:00" \
+    -czf "$DIST_DIR/${BUNDLE_NAME}.tar.gz" \
+    -C "$STAGING_DIR" \
+    stack
+else
+  echo "WARNING: GNU tar not available — bundle will not be reproducible (install gnu-tar for CI parity)" >&2
+  $TAR_CMD \
+    -czf "$DIST_DIR/${BUNDLE_NAME}.tar.gz" \
+    -C "$STAGING_DIR" \
+    stack
+fi
+
+(cd "$DIST_DIR" && shasum -a 256 "${BUNDLE_NAME}.tar.gz" > "${BUNDLE_NAME}.tar.gz.sha256")
+
+rm -rf "$STAGING_DIR"
+
+echo "Bundle: dist/${BUNDLE_NAME}.tar.gz"
+echo "Checksum: dist/${BUNDLE_NAME}.tar.gz.sha256"
+echo "Done."

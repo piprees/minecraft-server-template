@@ -1,0 +1,68 @@
+name: Config / setup help
+description: You are stuck getting the server running or configured.
+labels: ["help wanted", "setup"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Having trouble getting set up? No worries - fill this in and we'll try to help.
+
+        Before opening this issue, check:
+        - [README.md quickstart](../blob/main/README.md#try-it-locally-in-10-minutes) for the fastest path
+        - [docs/setup-guide.md](../blob/main/docs/setup-guide.md) for the full walkthrough
+        - [Troubleshooting](../blob/main/README.md#troubleshooting) for common problems
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Where are you stuck?
+      description: Which stage of setup are you working through?
+      options:
+        - Local quickstart (./dev up)
+        - Setup wizard (setup.sh)
+        - Provisioning (provision.sh)
+        - Server hardening (harden.sh)
+        - Deploying (prepare-droplet.sh / initial-setup.sh)
+        - Cloudflare setup (cloudflare-setup.sh)
+        - Discord bot setup
+        - GitHub Actions / CI deployment
+        - Mod configuration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What is happening?
+      description: Describe what you tried and what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output or logs
+      description: Paste any error messages or relevant output. This will be formatted as code automatically.
+      render: shell
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux (Ubuntu/Debian)
+        - Linux (other)
+        - Windows / WSL2
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I have Docker and Docker Compose installed and running
+        - label: I have copied `.env.example` to `.env` (or run `setup.sh`)
+        - label: I have read the setup guide or README quickstart

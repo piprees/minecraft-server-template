@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${BRAND_NAME} - Download the Modpack</title>
+    <meta name="description" content="Download the modpack for ${BRAND_NAME}, a private modded Minecraft adventure server.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="theme-color" content="#424242">
+    <style>
+        :root {
+            --bg: #303030;
+            --surface: #3a3a3a;
+            --surface-2: #353535;
+            --border: #4a4a4a;
+            --border-2: #555;
+            --ink: #f5f5f5;
+            --text: #e0e0e0;
+            --muted: #9e9e9e;
+            --faint: #757575;
+            --primary: #757575;
+            --primary-hover: #8a8a8a;
+            --accent: #9e9e9e;
+            --accent-hover: #bdbdbd;
+            --code-bg: #424242;
+            --warn: #bdbdbd;
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+            /* Type scale */
+            --text-display: clamp(3rem, 2rem + 5vw, 8rem);
+            --text-heading: 1.25rem;
+            --text-body: 1rem;
+            --text-sm: 0.875rem;
+            --text-xs: 0.8rem;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+        a { color: var(--accent); text-decoration: none; transition: color .15s var(--ease-out-quart); }
+        a:hover { color: var(--accent-hover); }
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 1rem;
+            background: var(--primary);
+            color: #fff;
+            padding: .5rem 1rem;
+            border-radius: .25rem;
+            z-index: 100000;
+            font-weight: 600;
+        }
+        .skip-link:focus { top: .5rem; color: #fff; }
+
+        main {
+            max-width: 65ch;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        /* Hero content */
+        .hero {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5rem 0 3rem;
+        }
+        .hero-icon {
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fade-up 600ms var(--ease-out-expo) 50ms forwards;
+        }
+        .hero h1 {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-size: var(--text-display);
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0.02em;
+            margin-bottom: .25rem;
+            text-wrap: balance;
+            opacity: 0;
+            animation: fade-up 600ms var(--ease-out-expo) 100ms forwards;
+        }
+        .hero .subtitle {
+            color: var(--muted);
+            font-size: var(--text-heading);
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fade-up 600ms var(--ease-out-expo) 200ms forwards;
+        }
+        .hero .dl-btn {
+            opacity: 0;
+            animation: fade-up 500ms var(--ease-out-expo) 300ms forwards;
+        }
+        .hero-note {
+            color: var(--muted);
+            font-size: var(--text-sm);
+            margin-top: 1.5rem;
+            text-align: center;
+            opacity: 0;
+            animation: fade-up 500ms var(--ease-out-expo) 400ms forwards;
+        }
+        .hero-note + .hero-note { margin-top: .3rem; animation-delay: 450ms; }
+        .hero-note strong { color: var(--text); }
+        .hero-note code {
+            background: var(--code-bg);
+            padding: .1em .3em;
+            border-radius: .2rem;
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+            font-size: .85em;
+            color: var(--ink);
+        }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons */
+        .dl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--primary);
+            color: #fff;
+            font-size: var(--text-body);
+            font-weight: 600;
+            padding: .65rem 1.5rem;
+            border-radius: .5rem;
+            transition: background .2s var(--ease-out-quart), transform .15s var(--ease-out-quart), box-shadow .3s var(--ease-out-quart);
+            box-shadow: 0 0 0 rgba(117, 117, 117, 0);
+        }
+        .dl-btn:hover {
+            background: var(--primary-hover);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(117, 117, 117, 0.25);
+        }
+        .dl-btn:active { transform: translateY(0); box-shadow: 0 0 0 rgba(117, 117, 117, 0); }
+        .dl-btn svg { width: 1.1rem; height: 1.1rem; }
+
+        /* URL copy */
+        .url-copy {
+            display: flex;
+            width: 100%;
+            border: 1px solid var(--border-2);
+            border-radius: .5rem;
+            overflow: hidden;
+            background: var(--surface);
+            margin: .5rem 0;
+        }
+        .url-copy input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+            font-size: var(--text-xs);
+            padding: .5rem .75rem;
+            outline: none;
+            min-width: 0;
+            text-overflow: ellipsis;
+        }
+        .url-copy button {
+            flex-shrink: 0;
+            background: var(--code-bg);
+            border: none;
+            color: var(--text);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            padding: .5rem .85rem;
+            cursor: pointer;
+            transition: background .15s var(--ease-out-quart);
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+        }
+        .url-copy button:hover { background: var(--faint); }
+
+        /* Details: smooth expand via grid */
+        details {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: .375rem;
+            margin-top: .6rem;
+        }
+        details summary {
+            padding: .55rem .85rem;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--accent);
+            cursor: pointer;
+            list-style: none;
+            transition: color .15s var(--ease-out-quart);
+        }
+        details summary:hover { color: var(--accent-hover); }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::before {
+            content: "\25b8";
+            margin-right: .5rem;
+            transition: transform .2s var(--ease-out-expo);
+            display: inline-block;
+        }
+        details[open] summary::before { transform: rotate(90deg); }
+        details[open] summary { border-bottom: 1px solid var(--border); }
+
+        .details-body {
+            padding: .75rem .85rem;
+            font-size: var(--text-sm);
+            color: var(--muted);
+            line-height: 1.65;
+            max-width: 65ch;
+        }
+        .details-body p { margin-bottom: .5rem; }
+        .details-body p:last-child { margin-bottom: 0; }
+        .details-body code {
+            background: var(--code-bg);
+            color: var(--text);
+            padding: .1em .35em;
+            border-radius: .2rem;
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+            font-size: .85em;
+        }
+        .details-body table { width: 100%; border-collapse: collapse; margin: .5rem 0; font-size: var(--text-sm); }
+        .details-body th { text-align: left; padding: .3rem .5rem; background: var(--surface); color: var(--text); font-weight: 600; }
+        .details-body td { padding: .3rem .5rem; border-bottom: 1px solid var(--border); }
+        .details-body ul { margin: .4rem 0; padding-left: 1.25rem; }
+        .details-body li { margin-bottom: .2rem; }
+
+        /* Help section */
+        .help {
+            padding: 0 0 2rem;
+        }
+        .help h2 {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-size: var(--text-heading);
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: .75rem;
+            padding-top: 3rem;
+            letter-spacing: 0.02em;
+            text-wrap: balance;
+        }
+        .help > details {
+            margin-top: 0;
+            margin-bottom: .35rem;
+        }
+        .help > details summary {
+            font-size: var(--text-sm);
+        }
+
+        .g-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-top: .5rem; }
+        .g-table th { text-align: left; padding: .35rem .5rem; background: var(--surface); color: var(--text); font-weight: 600; }
+        .g-table td { padding: .35rem .5rem; border-bottom: 1px solid var(--border); }
+        .table-wrap { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: var(--text-xs);
+            color: var(--muted);
+            margin-top: auto;
+        }
+
+        /* Reduced motion: disable all animation, keep layout */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .hero-icon, .hero h1, .hero .subtitle, .hero .dl-btn, .hero-note {
+                opacity: 1 !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero { padding: 2rem 0; }
+            .dl-btn { font-size: var(--text-sm); padding: .6rem 1.25rem; }
+            .g-table { font-size: var(--text-xs); }
+            .g-table th, .g-table td { padding: .25rem .4rem; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { letter-spacing: 0.02em; }
+            main { padding: 0 1rem; }
+            .dl-btn { width: 100%; justify-content: center; }
+            .url-copy { flex-direction: column; }
+            .url-copy input { padding: .5rem .75rem; font-size: .75rem; }
+            .url-copy button { justify-content: center; padding: .5rem; }
+            .help h2 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#get-started">Skip to content</a>
+
+    <main>
+    <section class="hero" id="get-started">
+        <div class="hero-icon" role="presentation">&#x26CF;&#xFE0F;</div>
+        <h1>${BRAND_NAME}</h1>
+        <p class="subtitle">A private, modded Minecraft adventure server.</p>
+
+        <a class="dl-btn" href="${PACK_NAME}-prism-instance.zip">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
+            Download modpack
+        </a>
+        <p class="hero-note">Need <a href="https://prismlauncher.org/" target="_blank" rel="noopener">Prism Launcher</a> first? See <a href="#help">getting started</a> below.</p>
+        <p class="hero-note"><strong>Invite only.</strong> Requires the <a href="${DISCORD_INVITE_URL}">Discord server</a> and <code>@Player</code> role.</p>
+    </section>
+
+    <section class="help" id="help" aria-label="Help and reference">
+        <h2>Need help?</h2>
+
+        <details>
+            <summary>Getting started</summary>
+            <div class="details-body">
+                <p><strong>1. Register on Discord.</strong> Join the <a href="${DISCORD_INVITE_URL}">Discord server</a>, type <code>/register YourMinecraftUsername</code> in <code>#minecraft</code>, then ask an admin for the <code>@Player</code> role.</p>
+                <p><strong>2. Install Prism Launcher.</strong> <a href="https://prismlauncher.org/">Download it here</a>. It's free, handles mods, and you only need it once.</p>
+                <p><strong>3. Import the modpack.</strong> Download the pack from the button above, then in Prism: <strong>Add Instance</strong> &gt; <strong>Import</strong> &gt; <strong>Browse</strong>, pick the file. Or paste this URL into Prism's Import tab instead:</p>
+                <div class="url-copy">
+                    <input type="text" value="https://pack.${DOMAIN}/${BRAND_SLUG}-${MC_VERSION}-latest.mrpack" readonly id="pack-url" aria-label="Pack URL for manual import">
+                    <button type="button" onclick="var u=document.getElementById('pack-url');navigator.clipboard.writeText(u.value).then(function(){var b=event.currentTarget;b.textContent='Copied!';setTimeout(function(){b.textContent='Copy';},2000)}).catch(function(){u.select();var b=event.currentTarget;b.textContent='Select + copy';setTimeout(function(){b.textContent='Copy';},3000)})">Copy</button>
+                </div>
+                <p><strong>4. Play.</strong> Add your Microsoft account in Prism (top right), double-click the instance, done. Mods download on first launch and sync automatically every time you play.</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>What do I need to play?</summary>
+            <div class="details-body">
+                <p>You need a <strong>paid copy of Minecraft: Java Edition</strong>. If you don't have one, go to <a href="https://minecraft.net">minecraft.net</a>, sign in with a Microsoft account, and buy <strong>Minecraft: Java &amp; Bedrock Edition for PC</strong>.</p>
+                <p>Your computer needs at least <strong>8 GB of RAM</strong>. 16 GB is better.</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>Game running slow?</summary>
+            <div class="details-body">
+                <p>These settings help the most on slower computers. All in <code>Options &gt; Video Settings</code>.</p>
+                <div class="table-wrap">
+                <table class="g-table">
+                    <tr><th>Setting</th><th>Change to</th></tr>
+                    <tr><td>Shader Packs</td><td><strong>OFF</strong> (biggest speed boost)</td></tr>
+                    <tr><td>Render distance</td><td><strong>8</strong> (Distant Horizons handles the rest)</td></tr>
+                    <tr><td>Particles</td><td><strong>Decreased</strong></td></tr>
+                    <tr><td>Entity distance</td><td><strong>75%</strong></td></tr>
+                    <tr><td>Biome blend</td><td><strong>1x1 (off)</strong></td></tr>
+                </table>
+                </div>
+            </div>
+        </details>
+
+        <details>
+            <summary>Having problems?</summary>
+            <div class="details-body">
+                <div class="table-wrap">
+                <table class="g-table">
+                    <tr><th>Problem</th><th>What to do</th></tr>
+                    <tr><td>"Not whitelisted"</td><td>Run <code>/register</code> in Discord with your exact Minecraft username, then get the <code>@Player</code> role from an admin.</td></tr>
+                    <tr><td>"Failed to authenticate"</td><td>In Prism, remove your Microsoft account and add it again. Make sure it's the account that owns Minecraft.</td></tr>
+                    <tr><td>"Outdated client/server"</td><td>One-click instance: just launch again, it updates itself. Manual: re-import the pack.</td></tr>
+                    <tr><td>Game won't start</td><td>Check you've added your Microsoft account in Prism. Try installing Java 25 from <a href="https://adoptium.net">adoptium.net</a>.</td></tr>
+                    <tr><td>Game crashes after a few seconds</td><td>Manual installs only: you're missing the ZGC Java arguments. Right-click the instance &gt; <code>Edit</code> &gt; <code>Settings</code> &gt; <code>Java</code>, tick <code>Java arguments</code>, add: <code>-XX:+UseZGC -XX:+ZGenerational</code>. The one-click instance has this built in.</td></tr>
+                    <tr><td>Really slow / choppy</td><td>Turn shaders off (<code>Options &gt; Video &gt; Shader Packs &gt; OFF</code>). Set render distance to 8.</td></tr>
+                    <tr><td>Can't connect at all</td><td>Check the address is <code>mc.${DOMAIN}</code>. Check your internet. Ask in Discord if the server is up.</td></tr>
+                </table>
+                </div>
+            </div>
+        </details>
+
+        <details>
+            <summary>Chat commands</summary>
+            <div class="details-body">
+                <p>Press <code>T</code> to chat. Everything in game chat also shows up in the Discord <code>#minecraft</code> channel, and vice versa.</p>
+                <div class="table-wrap">
+                <table class="g-table">
+                    <tr><th>Command</th><th>What it does</th></tr>
+                    <tr><td><code>/w Alex meet me at the village</code></td><td>Private whisper (stays in-game, not sent to Discord)</td></tr>
+                    <tr><td><code>/me hides from the creeper</code></td><td>Action message: "* YourName hides from the creeper"</td></tr>
+                    <tr><td><code>/nick Taffy</code></td><td>Set a display nickname</td></tr>
+                    <tr><td><code>/afk</code></td><td>Toggle AFK status</td></tr>
+                    <tr><td><code>/rules</code></td><td>Show the server rules</td></tr>
+                </table>
+                </div>
+            </div>
+        </details>
+
+        <details>
+            <summary>Voice chat</summary>
+            <div class="details-body">
+                <p>Proximity voice chat is built in. Stand near someone and talk. Voice activation and noise suppression are already on.</p>
+                <p>Press <code>V</code> to open voice settings: pick your mic, adjust volumes, or switch to push-to-talk.</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>Maps</summary>
+            <div class="details-body">
+                <ul>
+                    <li><strong>Minimap</strong>: always in the corner, shows nearby terrain and players.</li>
+                    <li><strong>World map</strong> (<code>M</code>): everywhere you've explored. Press <code>B</code> to drop a waypoint.</li>
+                    <li><strong>Web map</strong>: <a href="https://map.${DOMAIN}/">map.${DOMAIN}</a> shows the world in 3D in your browser.</li>
+                </ul>
+                <p>To pre-fill your minimap with everything already explored, open chat in game and type: <code>/maplink download_tiles 2048 2048 0 0</code>. Click the map name when asked, open the full map (<code>M</code>), and wait for it to fill in.</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>Shaders &amp; Distant Horizons</summary>
+            <div class="details-body">
+                <p>The pack comes with a shader for nicer lighting, water, and shadows. If it's slow, turn it off: <code>Options &gt; Video &gt; Shader Packs &gt; OFF</code>.</p>
+                <p>Distant Horizons lets you see terrain far beyond normal render distance. Keep your normal render distance low (8-12). DH handles everything beyond that.</p>
+                <p>If far-away terrain looks weird at night, set DH's "LOD Shading" to "Old Lighting / Forced", or turn the shader off.</p>
+            </div>
+        </details>
+
+        <details>
+            <summary>Staying up to date</summary>
+            <div class="details-body">
+                <p><strong>One-click instance:</strong> the pack checks for updates and syncs itself every time you launch. Your keybinds and settings are never touched.</p>
+                <p><strong>Manual install:</strong> download the latest <code>.mrpack</code> from this page, then right-click your instance &gt; <code>Edit</code> &gt; <code>Modrinth</code> &gt; <strong>Update from file</strong>. If things get weird after an update, switch to the one-click instance.</p>
+            </div>
+        </details>
+    </section>
+    </main>
+
+    <footer class="footer">
+        ${BRAND_NAME} &middot; ${PACK_NAME}
+    </footer>
+</body>
+</html>

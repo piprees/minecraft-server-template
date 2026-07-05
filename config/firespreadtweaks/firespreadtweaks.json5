@@ -1,0 +1,12 @@
+{
+	// Fire goes out after this many ticks (20 ticks = 1 second).
+	// 200 ticks = 10 seconds. Quick enough to prevent griefing.
+	"timeFireBurnsInTicks": 200,
+
+	// Adds randomness to the burn duration so fires don't all vanish at once.
+	"enableRandomizedFireDuration": true,
+
+	// Random range added/subtracted from timeFireBurnsInTicks.
+	"minRandomExtraBurnTicks": -60,
+	"maxRandomExtraBurnTicks": 60
+}

@@ -1,0 +1,86 @@
+name: Bug report
+description: Something is broken or not working as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill in as much detail as you can - it helps us reproduce and fix the issue faster.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project is affected?
+      options:
+        - Server (game, mods, performance)
+        - Docker / Compose
+        - Scripts (setup, deploy, provision, etc.)
+        - Discord bot (commands, role sync, chat bridge)
+        - Web services (map, status, pack page, mods page)
+        - CI / GitHub Actions
+        - Backups
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "When I run ./dev up, the mc container exits with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this? Be as specific as possible.
+      placeholder: |
+        1. Clone the repo
+        2. Run `cp .env.example .env`
+        3. Run `./dev up`
+        4. See error in `docker logs mc`
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error output
+      description: Paste any error messages, stack traces, or log output. This will be formatted as code automatically.
+      render: shell
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: Where are you running this?
+      options:
+        - Local (macOS)
+        - Local (Linux)
+        - Local (Windows / WSL2)
+        - Cloud server (Hetzner)
+        - Cloud server (DigitalOcean)
+        - Cloud server (other)
+        - GitHub Actions
+    validations:
+      required: true
+
+  - type: input
+    id: docker-version
+    attributes:
+      label: Docker version
+      description: Output of `docker --version`
+      placeholder: "Docker version 27.x.x"

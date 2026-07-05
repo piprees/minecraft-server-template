@@ -1,0 +1,12 @@
+# mods-extra.txt — Additional server mods (added on top of platform defaults).
+#
+# Format: one mod per line as slug:versionId
+#   slug       = the Modrinth project slug (from the URL)
+#   versionId  = the Modrinth version ID (click the version, copy from URL)
+#
+# Example:
+#   # tree-harvester:AANobbMI
+#
+# Lines starting with # are ignored. Blank lines are ignored.
+# The ? suffix marks a mod as optional (won't fail the boot if unavailable):
+#   # some-experimental-mod:versionId?

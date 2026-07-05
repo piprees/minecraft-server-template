@@ -1,0 +1,9 @@
+# mods-remove.txt — Default server mods to remove from this instance.
+#
+# Format: one Modrinth slug per line. The slug must match a mod in the
+# platform's default modrinth-mods.txt (shipped in the seed image).
+#
+# Example:
+#   # distant-horizons
+#
+# Lines starting with # are ignored. Blank lines are ignored.

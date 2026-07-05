@@ -1,0 +1,76 @@
+{
+	"enabled": true,
+	"serverEntries": [
+		{
+			"maptype": "Bluemap",
+			"ip": "mc.example.com:25577",
+			"link": "https://map.example.com",
+			"markerVisibilityMode": "All",
+			"markerLayers": [
+				"waystones:sharestones",
+				"waystones:waystones",
+				"chunky"
+			],
+			"individualMarkerMode": "BlackList",
+			"markers": [],
+			"areaMarkerVisibilityMode": "All",
+			"areaMarkerLayers": [
+				"waystones:sharestones",
+				"waystones:waystones",
+				"chunky"
+			],
+			"individualAreaMarkerMode": "BlackList",
+			"areaMarkers": [],
+			"iconMarkerVisibilityMode": "All",
+			"iconMarkerLayers": [
+				"waystones:sharestones",
+				"waystones:waystones",
+				"chunky"
+			],
+			"individualIconMode": "BlackList",
+			"icons": [],
+			"dimensionMapping": {
+				"minecraft:overworld": [
+					"world"
+				]
+			}
+		}
+	],
+	"maxUpdateDelay": 2000,
+	"defaultY": 64,
+	"minimapWaypointsRenderBelow": "WHEN_PLAYER_LIST_SHOWN",
+	"enablePlayerWaypoints": true,
+	"showPlayerWaypointsAsTrackedPlayers": false,
+	"interpolationTime": 0,
+	"enablePlayerIconWaypoints": true,
+	"useMcHeadsPlayerNameIcons": false,
+	"playerWaypointColor": "Black",
+	"showAfkInTabList": true,
+	"timeUntilAfk": 120,
+	"showAfkTimeInTabList": true,
+	"hideAfkMinutes": false,
+	"AfkColor": 16734464,
+	"unknownAfkStateColor": 6316128,
+	"enableMarkerWaypoints": true,
+	"enableMarkerIcons": true,
+	"showDefaultMarkerIcons": true,
+	"markerWaypointColor": "Gray",
+	"enableAreaMarkerOverlay": true,
+	"areaFillAlphaMul": 100,
+	"areaFillAlphaMin": 0,
+	"areaFillAlphaMax": 42,
+	"areaLineAlphaMul": 100,
+	"areaLineAlphaMin": 0,
+	"areaLineAlphaMax": 100,
+	"blocksPerChunkThreshold": 16,
+	"maxChunkArea": 500000,
+	"excludeOPAC": true,
+	"ignoredServers": [],
+	"ignoreMarkerMessage": false,
+	"hideAllChatErrors": false,
+	"invisibilityRecovery": true,
+	"debugMode": false,
+	"chatLogInDebugMode": false,
+	"ignoreCertificatesUseAtYourOwnRisk": false,
+	"configVersionDoNotEdit": 2
+}

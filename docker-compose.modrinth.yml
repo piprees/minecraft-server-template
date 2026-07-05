@@ -1,0 +1,4 @@
+services:
+  mc:
+    environment:
+      MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"

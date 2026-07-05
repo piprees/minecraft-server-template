@@ -1,0 +1,120 @@
+# Open Parties and Claims - server configuration
+# Small-holding protection, no forceloading, sensible defaults.
+# Full option reference: https://github.com/thexaero/open-parties-and-claims
+
+[serverConfig]
+    permissionSystem = "luck_perms"
+    primaryPartySystem = "default"
+
+    [serverConfig.parties]
+        enabled = true
+        maxPartyMembers = 16
+        maxPartyAllies = 8
+        maxPartyInvites = 16
+
+    [serverConfig.claims]
+        enabled = true
+
+        # --- Claim limits ---
+        # 4 chunks per player. That's a 2x2 area (32x32 blocks) - enough for
+        # a base, farm, and small perimeter. Admins can grant more per-player
+        # via LuckPerms (xaero.pac_max_claims permission node) or the
+        # bonusChunkClaims player config option.
+        maxPlayerClaims = 16
+
+        # No forceloading - chunks staying loaded when nobody's online kills autopause.
+        maxPlayerClaimForceloads = 0
+
+        # Must be within 3 chunks to claim. Keeps claims clustered around
+        # bases rather than scattered randomly across the map.
+        maxClaimDistance = 3
+
+        # Party-owned claims disabled - each player owns their own chunks.
+        partyOwnedClaims = false
+
+        # Sync claims to clients so Xaero's maps can show them.
+        claimsSynchronization = "ALL"
+
+        # Show "entering X's claim" messages.
+        claimWelcomeMessages = true
+
+        # Expire claims after 90 days of inactivity (default is 365).
+        playerClaimsExpirationTime = 2160
+        playerClaimsConvertExpiredClaims = true
+
+        [serverConfig.claims.protection]
+            # --- Block protection ---
+            # Falling sand/gravel can't enter claims (prevents sand cannons).
+            # Supplementaries slingshot projectiles also blocked.
+            forcedBlockProtectionExceptionList = ["minecraft:crafting_table"]
+            forcedEntityClaimBarrierList = ["minecraft:falling_block", "supplementaries:slingshot_projectile"]
+
+            # --- Entity protection ---
+            # Minecarts can be interacted with by anyone.
+            forcedEntityProtectionExceptionList = ["minecraft:minecart"]
+
+            # Firework rockets allowed everywhere (elytra takeoff).
+            itemUseProtectionExceptionList = ["minecraft:firework_rocket"]
+            # Slingshot banned in claims (griefing tool).
+            additionalBannedItemsList = ["supplementaries:slingshot"]
+
+    # Options players can toggle in their own claim config UI.
+    playerConfigurablePlayerConfigOptions = [
+        "claims.protectClaimedChunks",
+        "claims.name",
+        "claims.color",
+        "claims.protection.exceptions.fullAccess",
+        "claims.protection.exceptions.buttonsByProjectiles",
+        "claims.protection.exceptions.platesByPlayers",
+        "claims.protection.exceptions.platesByMobs",
+        "claims.protection.exceptions.tripwireByPlayers",
+        "claims.protection.exceptions.cropTrample",
+        "claims.protection.exceptions.playerLightning",
+        "claims.protection.exceptions.frostWalking",
+        "claims.protection.exceptions.entitiesByPlayers",
+        "claims.protection.exceptions.entitiesByMobs",
+        "claims.protection.exceptions.entitiesByExplosions",
+        "claims.protection.exceptions.entitiesByFire",
+        "claims.protection.fluidBarrier",
+        "claims.protection.dispenserBarrier",
+        "claims.protection.pistonBarrier",
+        "claims.protection.exceptions.itemTossPlayers",
+        "claims.protection.exceptions.mobLoot",
+        "claims.protection.playerDeathLoot",
+        "claims.protection.exceptions.itemPickupPlayers",
+        "claims.protection.exceptions.xpPickup",
+        "claims.protection.exceptions.raids",
+        "claims.protection.exceptions.naturalSpawnHostile",
+        "claims.protection.exceptions.naturalSpawnFriendly",
+        "claims.protection.exceptions.groups.block.interact.Controls",
+        "claims.protection.exceptions.groups.block.interact.Doors",
+        "claims.protection.exceptions.groups.block.interact.Chests",
+        "claims.protection.exceptions.groups.block.interact.Barrels",
+        "claims.protection.exceptions.groups.block.interact.Ender_Chests",
+        "claims.protection.exceptions.groups.block.interact.Shulker_Boxes",
+        "claims.protection.exceptions.groups.block.interact.Furnaces",
+        "claims.protection.exceptions.groups.block.interact.Anvils",
+        "claims.protection.exceptions.groups.block.interact.Beds",
+        "claims.protection.exceptions.groups.block.interact.Enchanting_Tables",
+        "claims.protection.exceptions.groups.block.break.Crops",
+        "claims.protection.exceptions.groups.entity.interact.Traders",
+        "claims.protection.exceptions.groups.entity.handInteract.Item_Frames",
+        "claims.protection.exceptions.groups.entity.interact.Armor_Stands",
+        "claims.protection.exceptions.groups.entity.break.Livestock",
+        "claims.protection.exceptions.groups.entity.blockAccess.Villagers",
+        "claims.protection.exceptions.groups.entity.droppedItemAccess.Villagers",
+        "claims.protection.exceptions.groups.entity.droppedItemAccess.Piglins",
+        "claims.protection.exceptions.groups.entity.droppedItemAccess.Foxes",
+        "claims.protection.exceptions.groups.item.interact.Books",
+        "claims.protection.exceptions.groups.entity.barrier.Ender_Pearls",
+        "parties.name",
+        "parties.shareLocationWithParty",
+        "parties.receiveLocationsFromParty",
+    ]
+
+    # --- OP-only options ---
+    # Admins can grant bonus claims/forceloads per-player via the in-game UI.
+    opConfigurablePlayerConfigOptions = [
+        "claims.bonusChunkClaims",
+        "claims.bonusChunkForceloads",
+    ]

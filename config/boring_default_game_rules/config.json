@@ -1,0 +1,11 @@
+{
+  "default_game_rules": {
+    "doInsomnia": false,
+    "playersSleepingPercentage": 50,
+    "spawnRadius": 0,
+    "forgiveDeadPlayers": true,
+    "universalAnger": false,
+    "mobGriefing": true
+  },
+  "generate_json_schema": false
+}

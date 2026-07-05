@@ -1,0 +1,6 @@
+{
+  "infinityAndMendingCanBeMixed": true,
+  "canUseLootingOnBow": true,
+  "canUsePiercingOnBow": true,
+  "canUseMultishotOnBow": false
+}

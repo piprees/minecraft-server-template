@@ -1,0 +1,83 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run ShellCheck on all scripts
+        run: |
+          find scripts/ -name '*.sh' -print0 | xargs -0 shellcheck --severity=warning
+  yamllint:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML files
+        run: |
+          yamllint -d relaxed docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml
+
+  compose-validate:
+    name: Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create minimal .env for validation
+        run: |
+          cat > .env <<'EOF'
+          MC_VERSION=1.21.1
+          MEMORY=4G
+          SEED=0
+          RCON_PASSWORD=dummy
+          SERVER_PORT=25577
+          VOICE_PORT=24454
+          MOTD=CI validation
+          DOMAIN=example.com
+          ONLINE_MODE=FALSE
+          ENABLE_WHITELIST=FALSE
+          ENFORCE_WHITELIST=FALSE
+          R2_ACCOUNT_ID=dummy
+          R2_BUCKET=dummy
+          R2_ACCESS_KEY_ID=dummy
+          R2_SECRET_ACCESS_KEY=dummy
+          RESTIC_PASSWORD=dummy
+          DISCORD_BOT_TOKEN=dummy
+          DISCORD_GUILD_ID=dummy
+          DISCORD_CHANNEL_ID=dummy
+          DISCORD_WEBHOOK_URL=https://example.com
+          KUMA_API_KEY=dummy
+          EOF
+
+      - name: Validate local profile
+        run: docker compose --profile local config > /dev/null
+
+      - name: Validate cloud profile
+        run: docker compose --profile cloud config > /dev/null
+
+  pip-check:
+    name: Python deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install and verify dependencies
+        run: pip install -r scripts/requirements-discord-sync.txt
+
+      - name: Check for conflicts
+        run: pip check

@@ -1,0 +1,14 @@
+# Local dev overrides - committed, not generated.
+# Disables whitelist (PlayerDB lookups fail without auth servers).
+# Disables autopause (causes watchdog issues in Docker on Mac).
+services:
+  mc:
+    environment:
+      ONLINE_MODE: "FALSE"
+      ENABLE_WHITELIST: "FALSE"
+      ENFORCE_WHITELIST: "FALSE"
+      OVERRIDE_WHITELIST: "FALSE"
+      ENABLE_AUTOPAUSE: "FALSE"
+  nav-proxy:
+    ports:
+      - "${WEB_PORT:-8080}:80"

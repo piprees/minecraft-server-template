@@ -1,0 +1,71 @@
+version: 2
+
+updates:
+  # GitHub Actions: pin actions to latest major/minor
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "ci"
+    labels:
+      - dependencies
+      - ci
+
+  # Docker: custom sidecar Dockerfiles
+  - package-ecosystem: docker
+    directory: /docker/discord-sync
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /docker/kuma-init
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /docker/mod-checker
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: docker
+    directory: /docker/idle-tasks
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - docker
+
+  # Python: deps for the Discord sync bot
+  - package-ecosystem: pip
+    directory: /scripts
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - python

@@ -1,0 +1,4 @@
+# ShellCheck configuration
+# https://www.shellcheck.net/wiki/
+shell=bash
+severity=warning

@@ -1,0 +1,5 @@
+.env
+.stack/
+data/
+modpack-dist/
+backups/

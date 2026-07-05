@@ -1,0 +1,33 @@
+name: Release Bundle
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    name: Build and attach stack bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build bundle
+        run: ./scripts/build-stack-bundle.sh "${GITHUB_REF_NAME}"
+
+      - name: Upload to release
+        run: gh release upload "${GITHUB_REF_NAME}" dist/stack-*.tar.gz dist/stack-*.sha256
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Advance major tag
+        run: |
+          MAJOR=$(echo "${GITHUB_REF_NAME}" | grep -oE '^v[0-9]+')
+          if [[ -n "$MAJOR" ]]; then
+            git tag -f "$MAJOR"
+            git push origin "$MAJOR" --force
+          fi

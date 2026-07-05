@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# dev — Local development entrypoint.
+# Thin wrapper that resolves paths/env and delegates to bundle scripts.
+# Contains NO stack logic.
+set -euo pipefail
+
+CONSUMER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$CONSUMER_DIR"
+
+STACK_SCRIPTS=".stack/current/stack/scripts"
+
+usage() {
+  echo "Usage: ./dev <command>"
+  echo ""
+  echo "Commands:"
+  echo "  up       Start the local dev stack"
+  echo "  down     Stop the local dev stack"
+  echo "  logs     Tail the Minecraft server logs"
+  echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
+  echo "  pack     Build the client modpack into ./modpack-dist/"
+  echo "  update   Pull the latest stack bundle + Docker images"
+}
+
+ensure_env() {
+  if [[ ! -f "$CONSUMER_DIR/.env" ]]; then
+    echo "No .env found. Run ./ops setup first, or:"
+    echo "  cp .env.example .env"
+    echo "  # then fill in your secrets"
+    exit 1
+  fi
+}
+
+ensure_stack() {
+  if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
+    echo "Stack bundle not found. Pulling..."
+    bash "$CONSUMER_DIR/stack-pull.sh"
+  fi
+}
+
+CMD="${1:-help}"
+shift || true
+
+case "$CMD" in
+  up)
+    ensure_env
+    ensure_stack
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+    ;;
+  down)
+    ensure_stack
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down
+    ;;
+  logs)
+    ensure_stack
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" logs
+    ;;
+  rcon)
+    ensure_stack
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "$@"
+    ;;
+  pack)
+    ensure_env
+    ensure_stack
+    # Load env for IMAGE_REGISTRY, LOCAL_DOMAIN, etc.
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    mkdir -p "$CONSUMER_DIR/modpack-dist"
+    docker run --rm \
+      -v "$CONSUMER_DIR/overlay:/overlay:ro" \
+      -v "$CONSUMER_DIR/modpack-dist:/work/dist" \
+      -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
+      -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
+      -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
+      -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+      -e "SERVER_PORT=${SERVER_PORT:-25577}" \
+      -e "LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}" \
+      -e "GIT_SHA=${GIT_SHA:-local}" \
+      -e "DISCORD_INVITE_URL=${DISCORD_INVITE_URL:-}" \
+      "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}"
+    echo "Modpack built to ./modpack-dist/"
+    ;;
+  update)
+    bash "$CONSUMER_DIR/stack-pull.sh"
+    ensure_env
+    set -a
+    # shellcheck disable=SC1091
+    source "$CONSUMER_DIR/.env"
+    set +a
+    STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
+    docker compose \
+      -f "$STACK_DIR/docker-compose.yml" \
+      -f "$STACK_DIR/docker-compose.local.yml" \
+      --project-directory "$CONSUMER_DIR" \
+      --profile local pull
+    echo "Stack and images updated."
+    ;;
+  help | --help | -h)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $CMD"
+    usage
+    exit 1
+    ;;
+esac

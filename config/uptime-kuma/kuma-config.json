@@ -1,0 +1,108 @@
+{
+  "_comment": "Uptime Kuma monitor/notification/status-page config. Provisioned by kuma-provision.py on deploy. Values like ${DOMAIN} are interpolated at runtime from env vars.",
+  "settings": {
+    "entryPage": "statusPage-server",
+    "serverTimezone": "Europe/London",
+    "keepDataPeriodDays": 3,
+    "dnsCache": true,
+    "nscd": true,
+    "searchEngineIndex": false,
+    "tlsExpiryNotifyDays": [
+      7,
+      14,
+      21
+    ],
+    "trustProxy": false,
+    "checkUpdate": true
+  },
+  "notifications": [
+    {
+      "name": "Discord Alerts",
+      "type": "discord",
+      "isDefault": true,
+      "applyExisting": true,
+      "webhookUrlEnv": "DISCORD_WEBHOOK_URL"
+    }
+  ],
+  "groups": [
+    {
+      "name": "Minecraft",
+      "interval": 30,
+      "retryInterval": 60,
+      "monitors": [
+        {
+          "name": "Container",
+          "type": "docker",
+          "dockerContainer": "mc",
+          "interval": 30,
+          "retryInterval": 20,
+          "maxretries": 3,
+          "notify": true
+        }
+      ]
+    },
+    {
+      "name": "Site",
+      "interval": 60,
+      "retryInterval": 60,
+      "monitors": [
+        {
+          "_comment": "GET, not HEAD: BlueMap's built-in webserver 400s HEAD requests, so a HEAD monitor is DOWN exactly when the server is awake (the nginx sleeping fallback answers HEAD fine, inverting the truth). GET returns 200 in both states: the real map when awake, nav-proxy's sleeping page when autopaused.",
+          "name": "Map",
+          "type": "http",
+          "url": "https://map.${DOMAIN}",
+          "method": "GET",
+          "interval": 60,
+          "retryInterval": 30,
+          "maxretries": 3,
+          "notify": true
+        },
+        {
+          "name": "Mods",
+          "type": "http",
+          "url": "https://mods.${DOMAIN}",
+          "method": "HEAD",
+          "interval": 60,
+          "retryInterval": 30,
+          "maxretries": 3,
+          "notify": true
+        },
+        {
+          "name": "Pack",
+          "type": "http",
+          "url": "https://pack.${DOMAIN}",
+          "method": "HEAD",
+          "interval": 60,
+          "retryInterval": 30,
+          "maxretries": 3,
+          "notify": true
+        },
+        {
+          "name": "Status",
+          "type": "http",
+          "url": "https://status.${DOMAIN}",
+          "method": "HEAD",
+          "interval": 60,
+          "retryInterval": 30,
+          "maxretries": 3,
+          "notify": true
+        }
+      ]
+    }
+  ],
+  "statusPage": {
+    "slug": "server",
+    "title": "Server Status",
+    "description": "Live uptime and status for the server.",
+    "icon": "https://pack.${DOMAIN}/icon.svg",
+    "theme": "auto",
+    "footerText": "${PACK_NAME}",
+    "showPoweredBy": false,
+    "showTags": false,
+    "groupOrder": [
+      "Minecraft",
+      "Site"
+    ],
+    "customCSS": "body { background-color: #0c1319 !important; color: #c5cdd8; } .container { max-width: 65ch !important; padding-top: 3rem !important; } h1 { font-family: system-ui, -apple-system, sans-serif !important; font-size: clamp(1.5rem, 1rem + 1.5vw, 2rem) !important; font-weight: 700 !important; color: #e8ecf1 !important; letter-spacing: 0.04em; } h1 .logo-wrapper { display: none !important; } h2, h3, h4, h5, h6, .group-title { font-family: system-ui, -apple-system, sans-serif !important; color: #e8ecf1 !important; letter-spacing: 0.02em; } .shadow-box { background-color: #141d27 !important; border: 1px solid #1c2835 !important; box-shadow: none !important; border-radius: 8px !important; } .overall-status .ok { color: #5a9a70 !important; } .description { color: #7a8999 !important; font-size: 0.875rem; } .footer-text, footer .alert-heading { color: #7a8999 !important; font-size: 0.8rem; } .item .name { color: #c5cdd8 !important; } .btn-info { background-color: #b05540 !important; border-color: #b05540 !important; border-radius: .5rem !important; font-weight: 600 !important; transition: background .2s cubic-bezier(0.25, 1, 0.5, 1), transform .15s cubic-bezier(0.25, 1, 0.5, 1), box-shadow .3s cubic-bezier(0.25, 1, 0.5, 1) !important; } .btn-info:hover, .btn-info:focus { background-color: #c06550 !important; border-color: #c06550 !important; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(176, 85, 64, 0.25); } .btn-primary { background-color: #b05540 !important; border-color: #b05540 !important; border-radius: .5rem !important; font-weight: 600 !important; } .btn-primary:hover, .btn-primary:focus { background-color: #c06550 !important; border-color: #c06550 !important; } a { color: #5a9a70; } .site-nav a.site-nav-brand { color: #e8ecf1 !important; } a:hover { color: #70b088; } .badge.bg-primary { background-color: #5a9a70 !important; color: #0c1319 !important; } .badge.bg-danger { background-color: #c96a6a !important; color: #0c1319 !important; } .badge.bg-warning { background-color: #d4950a !important; color: #0c1319 !important; } .badge.bg-maintenance { background-color: #7a8999 !important; color: #0c1319 !important; } .beat { background-color: #5a9a70 !important; } .beat.down { background-color: #c96a6a !important; } .beat.pending { background-color: #d4950a !important; } .beat.maintenance { background-color: #7a8999 !important; } .beat.empty { background-color: #1c2835 !important; } .refresh-info { color: #7a8999 !important; font-size: 0.8rem; } .refresh-info > *:not(:first-child) { display: none !important; }"
+  }
+}

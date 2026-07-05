@@ -1,0 +1,10 @@
+{
+  "name": "adventure-maintenance",
+  "main": "maintenance-worker.js",
+  "compatibility_date": "2024-01-01",
+  "routes": [
+    { "pattern": "map.example.com/*", "zone_name": "example.com" },
+    { "pattern": "pack.example.com/*", "zone_name": "example.com" },
+    { "pattern": "status.example.com/*", "zone_name": "example.com" }
+  ]
+}

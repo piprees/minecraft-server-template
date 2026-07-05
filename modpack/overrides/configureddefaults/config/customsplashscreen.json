@@ -1,0 +1,12 @@
+{
+  "progressBarType": "Vanilla",
+  "logoStyle": "Aspect1to1",
+  "backgroundImage": false,
+  "logoBlend": false,
+  "splashBackgroundColor": "#1E2233",
+  "splashProgressBarColor": "#E87420",
+  "splashProgressFrameColor": "#6B4226",
+  "splashProgressBackgroundColor": "#141824",
+  "progressBarBackground": true,
+  "customProgressBarMode": "Linear"
+}

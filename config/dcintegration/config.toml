@@ -1,0 +1,53 @@
+# !! TEMPLATE - deploy.sh injects botToken and channelId from .env at deploy time.
+# !! Don't use this directly. The live config is data/config/Discord-Integration.toml.
+#
+# Bot setup: https://discord.com/developers/applications
+#   1. Create a new application
+#   2. Go to Bot tab, copy the token
+#   3. Enable MESSAGE CONTENT INTENT under Privileged Gateway Intents
+#   4. Invite the bot to your server with Send Messages + Read Messages + Manage Webhooks permissions
+#   5. Copy the channel ID (right-click channel with Developer Mode on)
+
+[bot]
+botToken = "REPLACE_WITH_DISCORD_BOT_TOKEN"
+# The Discord channel to relay Minecraft chat to/from
+channelId = REPLACE_WITH_DISCORD_CHANNEL_ID
+
+[webhook]
+# Removes the "Rcon:" prefix from relayed messages.
+enable = true
+useServerNameForRcon = true
+useServerNameForConsole = true
+serverName = "Server"
+
+[messages]
+chatEnabled = true
+discordToMinecraftEnabled = true
+playerJoinEnabled = true
+playerLeaveEnabled = true
+deathEnabled = true
+advancementEnabled = true
+
+# Server start/stop notifications
+# Disabled by blanking Messages.toml entries during deploy.
+# The mod has no config toggle for these - empty message = not sent.
+serverStartEnabled = false
+serverStopEnabled = false
+
+# Handled by discord-sync.py instead.
+[commands]
+enabled = false
+
+# discord-sync.py handles linking via /register -> LinkedPlayers.json.
+[linking]
+enableLinking = false
+
+[formatting]
+minecraftToDiscord = "**{player}** {message}"
+discordToMinecraft = "[Discord] <{user}> {message}"
+playerJoin = "**{player}** joined the server"
+playerLeave = "**{player}** left the server"
+death = "**{player}** {message}"
+advancement = "**{player}** has made the advancement **{advancement}**"
+serverStart = "Server has started!"
+serverStop = "Server has stopped!"

@@ -1,0 +1,688 @@
+#!/usr/bin/env bash
+# build-modpack.sh - Build the client .mrpack + download page from the manifest.
+#
+# Reads modpack/adventure.mrpack.json (_clientMods required/optional,
+# _resourcePacks, _shaderPacks), resolves each slug's latest MC_VERSION Fabric
+# build from Modrinth, bakes in overrides/ (Configured Defaults, servers.dat
+# generated as real NBT), and writes modpack/dist/:
+#   ${BRAND_SLUG}-<MC_VERSION>-v<gitsha>.mrpack  + ${BRAND_SLUG}-<MC_VERSION>-latest.mrpack
+#   index.html (the player-facing "how to join" download page)
+#
+# CI runs this on the server after every successful deploy (idempotent;
+# Discord ping only when mod content actually changed). pack-web (nginx)
+# serves dist/ at pack.DOMAIN.
+#
+# Mod JARs are also mirrored into dist/mods/ and listed as the FIRST download
+# URL in the index (Modrinth CDN second) - Cloudflare edge-caches the JARs,
+# launchers hash-verify and fall back automatically, so pack installs survive
+# a Modrinth outage entirely and rebuilds of an unchanged list need no network.
+#
+# Usage:
+#   ./scripts/build-modpack.sh
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/lib.sh"
+PROJECT_DIR="${PROJECT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+cd "$PROJECT_DIR"
+
+# --- load .env ----------------------------------------------------------------
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
+MC_VERSION="${MC_VERSION:-1.21.1}"
+PACK_VERSION="${GIT_SHA:-$(git rev-parse --short HEAD 2> /dev/null || echo unknown)}"
+MANIFEST="${MANIFEST:-$PROJECT_DIR/modpack/adventure.mrpack.json}"
+FABRIC_LOADER_VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST'))['dependencies']['fabric-loader'])" 2> /dev/null || echo "0.19.3")
+DIST_DIR="$PROJECT_DIR/modpack/dist"
+WORK_DIR="$(mktemp -d)"
+PACK_NAME="${BRAND_SLUG:-adventure}-${MC_VERSION}-v${PACK_VERSION}"
+
+# --- check prerequisites ------------------------------------------------------
+if ! command -v python3 &> /dev/null; then
+  echo "python3 required. Install it first."
+  exit 1
+fi
+
+if [[ ! -f "$MANIFEST" ]]; then
+  echo "Manifest not found at $MANIFEST"
+  exit 1
+fi
+
+echo "==> Building modpack: ${PACK_NAME}.mrpack"
+
+# --- extract client mod slugs from manifest -----------------------------------
+echo "==> Reading client mod list from manifest..."
+
+REQUIRED_MODS=$(python3 -c "
+import json, sys
+with open('$MANIFEST') as f:
+    data = json.load(f)
+mods = data.get('_clientMods', {}).get('required', [])
+for m in mods:
+    print(m)
+")
+
+OPTIONAL_MODS=$(python3 -c "
+import json, sys
+with open('$MANIFEST') as f:
+    data = json.load(f)
+mods = data.get('_clientMods', {}).get('optional', [])
+for m in mods:
+    print(m)
+")
+
+STABLE_ONLY_SLUGS=$(python3 -c "
+import json
+print(','.join(json.load(open('$MANIFEST')).get('_clientMods', {}).get('stableOnly', [])))
+")
+
+echo "  Required: $(echo "$REQUIRED_MODS" | wc -l | xargs) mods"
+echo "  Optional: $(echo "$OPTIONAL_MODS" | wc -l | xargs) mods"
+
+# --- resolve Modrinth download URLs -------------------------------------------
+echo ""
+echo "==> Resolving download URLs from Modrinth API..."
+
+resolve_mod() {
+  local slug="$1"
+  local optional="${2:-false}"
+  local tmpfile
+  tmpfile="$(mktemp)"
+
+  # Get the latest version for our MC version + Fabric
+  curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
+    -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$tmpfile"
+
+  # Take the newest build of ANY channel by default - mod authors keep their
+  # own latest sets coherent (supplementaries' release requires sodium's
+  # beta; preferring releases downgraded sodium to 0.6.13 and broke launch).
+  # Slugs listed in _clientMods.stableOnly get newest-RELEASE instead - for
+  # mods whose pre-release channels have burned us (owo-lib alpha
+  # mixin-crashed Particular).
+  local result
+  result=$(STABLE_ONLY="$STABLE_ONLY_SLUGS" SLUG="$slug" python3 -c "
+import json, os, sys
+with open('$tmpfile') as f:
+    versions = json.load(f)
+if not versions:
+    sys.exit(1)
+stable_only = set(os.environ.get('STABLE_ONLY', '').split(','))
+if os.environ.get('SLUG', '') in stable_only:
+    v = next((x for x in versions if x.get('version_type') == 'release'), versions[0])
+else:
+    v = versions[0]
+for f in v.get('files', []):
+    if f.get('primary', False):
+        print(json.dumps({
+            'path': 'mods/' + f['filename'],
+            'hashes': {'sha1': f['hashes'].get('sha1', ''), 'sha512': f['hashes'].get('sha512', '')},
+            'downloads': [f['url']],
+            'fileSize': f['size']
+        }))
+        break
+" 2> /dev/null) || true
+
+  rm -f "$tmpfile"
+
+  if [[ -n "$result" ]]; then
+    echo "  ✓ $slug"
+    echo "$result"
+  else
+    if [[ "$optional" == "true" ]]; then
+      echo "  ! $slug (no ${MC_VERSION} build - skipped, optional)" >&2
+    else
+      echo "  ✗ $slug (no ${MC_VERSION} build found)" >&2
+    fi
+  fi
+}
+
+# Collect file entries
+FILES_JSON="["
+FIRST=1
+
+while IFS= read -r slug; do
+  [[ -z "$slug" ]] && continue
+  result=$(resolve_mod "$slug" "false" 2>&1 | grep -v '^  ' || true)
+  if [[ -n "$result" ]]; then
+    [[ $FIRST -eq 0 ]] && FILES_JSON+=","
+    FILES_JSON+="$result"
+    FIRST=0
+  fi
+done <<< "$REQUIRED_MODS"
+
+while IFS= read -r slug; do
+  [[ -z "$slug" ]] && continue
+  result=$(resolve_mod "$slug" "true" 2>&1 | grep -v '^  ' || true)
+  if [[ -n "$result" ]]; then
+    [[ $FIRST -eq 0 ]] && FILES_JSON+=","
+    FILES_JSON+="$result"
+    FIRST=0
+  fi
+done <<< "$OPTIONAL_MODS"
+
+FILES_JSON+="]"
+
+# --- mirror mod JARs + build the modrinth.index.json --------------------------
+# Every mod JAR is mirrored into modpack/dist/mods/ (served by pack-web at
+# https://pack.DOMAIN/mods/, edge-cached by Cloudflare - .jar is in CF's
+# default cached-extension list). The index lists our mirror FIRST and the
+# original Modrinth CDN URL second: Prism tries downloads[] in order and
+# falls back on failure (verified against PrismLauncher source - no domain
+# whitelist, multi-URL fallback), and verifies sha1/sha512 whichever source
+# served the file. Net effect: installs survive a Modrinth outage (mirror
+# serves) AND a droplet outage (Modrinth serves).
+#
+# Mirroring only fetches missing/corrupt files, so rebuilds are cheap and a
+# Modrinth outage doesn't break rebuilds of an unchanged mod list. JARs no
+# longer referenced by the current index are pruned.
+echo ""
+echo "==> Mirroring mod JARs and building modrinth.index.json..."
+
+mkdir -p "$WORK_DIR"
+MIRROR_DIR="$DIST_DIR/mods"
+mkdir -p "$MIRROR_DIR"
+
+# Write collected file entries to a temp file for safe JSON parsing
+FILES_TMPFILE="$(mktemp)"
+echo "$FILES_JSON" > "$FILES_TMPFILE"
+
+python3 -c "
+import hashlib, json, os, sys, urllib.request
+from urllib.parse import quote
+
+with open('$FILES_TMPFILE') as f:
+    files = json.load(f)
+
+mirror_dir = '$MIRROR_DIR'
+domain = '${DOMAIN:-example.com}'
+
+def sha512_of(path):
+    h = hashlib.sha512()
+    with open(path, 'rb') as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+kept, fetched, modrinth_only = set(), 0, 0
+for entry in files:
+    filename = entry['path'].split('/', 1)[1]
+    target = os.path.join(mirror_dir, filename)
+    want = entry.get('hashes', {}).get('sha512', '')
+    ok = os.path.isfile(target) and (not want or sha512_of(target) == want)
+    if not ok:
+        try:
+            req = urllib.request.Request(entry['downloads'][0],
+                headers={'User-Agent': 'minecraft-adventure-server/build-modpack'})
+            with urllib.request.urlopen(req, timeout=60) as resp, open(target, 'wb') as out:
+                while True:
+                    chunk = resp.read(1 << 20)
+                    if not chunk:
+                        break
+                    out.write(chunk)
+            ok = not want or sha512_of(target) == want
+            if ok:
+                fetched += 1
+            else:
+                print(f'  ! {filename}: hash mismatch after download', file=sys.stderr)
+        except Exception as e:
+            print(f'  ! {filename}: mirror fetch failed ({e})', file=sys.stderr)
+            ok = False
+        if not ok and os.path.exists(target):
+            os.remove(target)
+    if ok:
+        kept.add(filename)
+        entry['downloads'] = [f'https://mods.{domain}/mods/{quote(filename)}'] + entry['downloads']
+    else:
+        modrinth_only += 1
+
+# Prune mirror JARs no longer referenced (superseded mod versions). Old pack
+# versions still resolve via their Modrinth fallback URLs.
+pruned = 0
+for existing in os.listdir(mirror_dir):
+    if existing.endswith('.jar') and existing not in kept:
+        os.remove(os.path.join(mirror_dir, existing))
+        pruned += 1
+
+index = {
+    'formatVersion': 1,
+    'game': 'minecraft',
+    'versionId': '${PACK_NAME}',
+    'name': '${BRAND_NAME:-Adventure Server} Modpack',
+    'summary': 'Modded Minecraft ${MC_VERSION} - vanilla-plus.',
+    'files': files,
+    'dependencies': {
+        'minecraft': '${MC_VERSION}',
+        'fabric-loader': '${FABRIC_LOADER_VERSION}'
+    }
+}
+
+with open('$WORK_DIR/modrinth.index.json', 'w') as f:
+    json.dump(index, f, indent=2)
+
+print(f'  {len(files)} mods resolved: {len(kept)} mirrored ({fetched} newly fetched, {pruned} pruned), {modrinth_only} Modrinth-only')
+"
+rm -f "$FILES_TMPFILE"
+
+# --- dependency coherence gate --------------------------------------------------
+# Refuse to publish a pack Fabric would refuse to launch: every mod's
+# depends/breaks predicates are checked against the mods actually present
+# (the sodium/supplementaries incident, 2026-07-02). On conflict the build
+# aborts here and the previously-published artefacts keep serving.
+echo ""
+echo "==> Checking mod dependency coherence..."
+python3 "$SCRIPT_DIR/check-pack-coherence.py" "$MIRROR_DIR"
+
+# --- copy static overrides (servers.dat, options.txt, configs) ----------------
+OVERRIDES_SRC="$PROJECT_DIR/modpack/overrides"
+if [[ -d "$OVERRIDES_SRC" ]]; then
+  cp -r "$OVERRIDES_SRC" "$WORK_DIR/overrides"
+
+  # Substitute domain and port in maplink config
+  if [[ -f "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5" ]]; then
+    sed_i "s|mc\.example\.com:25577|mc.${DOMAIN:-example.com}:${SERVER_PORT:-25577}|g" \
+         "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5"
+    sed_i "s|https://map\.example\.com|https://map.${DOMAIN:-example.com}|g" \
+         "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5"
+  fi
+
+  python3 -c "
+import struct, io
+
+def write_nbt(filepath, servers):
+    buf = io.BytesIO()
+    def ws(s):
+        e = s.encode('utf-8')
+        buf.write(struct.pack('>H', len(e)))
+        buf.write(e)
+    buf.write(b'\x0a'); ws('')  # root compound
+    buf.write(b'\x09'); ws('servers')  # list
+    buf.write(b'\x0a'); buf.write(struct.pack('>i', len(servers)))  # list of compounds
+    for s in servers:
+        for k, v in s.items():
+            buf.write(b'\x08'); ws(k); ws(v)
+        buf.write(b'\x00')
+    buf.write(b'\x00')  # end root
+    with open(filepath, 'wb') as f:
+        f.write(buf.getvalue())
+
+write_nbt('$WORK_DIR/overrides/servers.dat', [
+    {'name': '${BRAND_NAME:-Adventure Server}', 'ip': 'mc.${DOMAIN:-example.com}'},
+    {'name': '${BRAND_NAME:-Adventure Server} (Local Dev)', 'ip': 'localhost:${SERVER_PORT:-25577}'},
+])
+" 2> /dev/null && echo "  ✓ servers.dat written"
+  echo ""
+  echo "==> Copied client overrides:"
+  find "$WORK_DIR/overrides" -type f -not -path '*/resourcepacks/*' -not -path '*/shaderpacks/*' | while read -r f; do
+    echo "  ✓ $(echo "$f" | sed "s|$WORK_DIR/overrides/||")"
+  done
+fi
+
+# --- download resource packs into overrides -----------------------------------
+mkdir -p "$WORK_DIR/overrides/resourcepacks"
+
+RESOURCE_PACKS=$(python3 -c "
+import json
+with open('$MANIFEST') as f:
+    data = json.load(f)
+packs = data.get('_resourcePacks', {}).get('packs', [])
+for p in packs:
+    print(p)
+" 2> /dev/null || true)
+
+if [[ -n "$RESOURCE_PACKS" ]]; then
+  echo ""
+  echo "==> Downloading resource packs into overrides/resourcepacks/..."
+
+  while IFS= read -r slug; do
+    [[ -z "$slug" ]] && continue
+
+    # Resource packs are version-agnostic, so don't filter by game_versions
+    rp_tmpfile="$(mktemp)"
+    curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+      -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$rp_tmpfile"
+
+    rp_info=$(python3 -c "
+import json, sys
+with open('$rp_tmpfile') as f:
+    versions = json.load(f)
+if not versions:
+    sys.exit(1)
+v = versions[0]
+for f in v.get('files', []):
+    if f.get('primary', False):
+        print(f['url'])
+        print(f['filename'])
+        break
+" 2> /dev/null) || true
+    rm -f "$rp_tmpfile"
+
+    if [[ -n "$rp_info" ]]; then
+      rp_url=$(echo "$rp_info" | head -1)
+      rp_filename=$(echo "$rp_info" | tail -1)
+      if curl -sL --max-time 60 -o "$WORK_DIR/overrides/resourcepacks/$rp_filename" "$rp_url"; then
+        echo "  ✓ $slug ($rp_filename)"
+      else
+        echo "  ✗ $slug - download failed" >&2
+      fi
+    else
+      echo "  ! $slug - no ${MC_VERSION} build found" >&2
+    fi
+  done <<< "$RESOURCE_PACKS"
+fi
+
+# --- download shader packs into overrides --------------------------------------
+SHADER_PACKS=$(python3 -c "
+import json
+with open('$MANIFEST') as f:
+    data = json.load(f)
+packs = data.get('_shaderPacks', {}).get('packs', [])
+for p in packs:
+    print(p)
+" 2> /dev/null || true)
+
+if [[ -n "$SHADER_PACKS" ]]; then
+  mkdir -p "$WORK_DIR/overrides/shaderpacks"
+  echo ""
+  echo "==> Downloading shader packs into overrides/shaderpacks/..."
+
+  while IFS= read -r slug; do
+    [[ -z "$slug" ]] && continue
+
+    sp_tmpfile="$(mktemp)"
+    curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+      -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$sp_tmpfile"
+
+    sp_info=$(python3 -c "
+import json, sys
+with open('$sp_tmpfile') as f:
+    versions = json.load(f)
+if not versions:
+    sys.exit(1)
+v = versions[0]
+for f in v.get('files', []):
+    if f.get('primary', False):
+        print(f['url'])
+        print(f['filename'])
+        break
+" 2> /dev/null) || true
+    rm -f "$sp_tmpfile"
+
+    if [[ -n "$sp_info" ]]; then
+      sp_url=$(echo "$sp_info" | head -1)
+      sp_filename=$(echo "$sp_info" | tail -1)
+      if curl -sL --max-time 60 -o "$WORK_DIR/overrides/shaderpacks/$sp_filename" "$sp_url"; then
+        echo "  ✓ $slug ($sp_filename)"
+      else
+        echo "  ✗ $slug - download failed" >&2
+      fi
+    else
+      echo "  ! $slug - not found on Modrinth" >&2
+    fi
+  done <<< "$SHADER_PACKS"
+fi
+
+# --- package as .mrpack (ZIP with modrinth.index.json + overrides) ------------
+echo ""
+echo "==> Packaging ${PACK_NAME}.mrpack..."
+
+mkdir -p "$DIST_DIR"
+PACK_FILE="$DIST_DIR/${PACK_NAME}.mrpack"
+
+(cd "$WORK_DIR" && zip -r "$PACK_FILE" modrinth.index.json overrides/)
+
+# --- create 'latest' symlink --------------------------------------------------
+LATEST_LINK="$DIST_DIR/${BRAND_SLUG:-adventure}-${MC_VERSION}-latest.mrpack"
+ln -sf "${PACK_NAME}.mrpack" "$LATEST_LINK"
+
+# --- brand assets (icons, og image) -----------------------------------------------
+# Ships web-ready assets (icon.svg, og-image.jpg, favicon.ico, apple-touch-icon.png)
+# to the site root so nav-proxy and OG tags can reference them.
+if [[ -d "$PROJECT_DIR/assets" ]]; then
+  for asset in "$PROJECT_DIR/assets/"*.{svg,png,ico,jpg,jpeg} ; do
+    [[ -f "$asset" ]] && cp "$asset" "$DIST_DIR/"
+  done
+fi
+
+# --- copy font assets to dist -------------------------------------------------
+mkdir -p "$DIST_DIR/fonts"
+if [[ -d "$PROJECT_DIR/modpack/template/fonts" ]]; then
+  cp "$PROJECT_DIR/modpack/template/fonts/"*.woff2 "$DIST_DIR/fonts/" 2>/dev/null || true
+fi
+
+# --- create a polished index.html for the download page -----------------------
+# The template lives in modpack/template/index.html for easy local preview and
+# iteration (open it in a browser directly). Variables are substituted at build
+# time by sed. The template uses \${VAR} syntax matching the heredoc convention.
+DOMAIN_VAL="${DOMAIN:-example.com}"
+BRAND_NAME_VAL="${BRAND_NAME:-Adventure Server}"
+BRAND_SLUG_VAL="${BRAND_SLUG:-adventure}"
+DISCORD_INVITE_VAL="${DISCORD_INVITE_URL:-}"
+# Use python for template substitution — sed breaks on spaces, ampersands, pipes in values
+python3 -c "
+import sys
+tpl = open(sys.argv[1]).read()
+for k, v in [('MC_VERSION','${MC_VERSION}'),('PACK_NAME','${PACK_NAME}'),
+             ('DOMAIN','${DOMAIN_VAL}'),('BRAND_NAME','${BRAND_NAME_VAL}'),
+             ('BRAND_SLUG','${BRAND_SLUG_VAL}'),('DISCORD_INVITE_URL','${DISCORD_INVITE_VAL}')]:
+    tpl = tpl.replace('\${' + k + '}', v)
+open(sys.argv[2], 'w').write(tpl)
+" "$PROJECT_DIR/modpack/template/index.html" "$DIST_DIR/index.html"
+echo "  \u2713 Download page generated from template"
+
+# --- create a branded 404 page -----------------------------------------------
+cat > "$DIST_DIR/404.html" << 'NOTFOUND'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page Not Found</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0c1319">
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui,-apple-system,sans-serif;background:#0c1319;color:#c5cdd8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:44px}
+        h1{font-family:Georgia,"Times New Roman",serif;font-size:1.5rem;color:#e8ecf1;margin-bottom:.5rem;letter-spacing:.02em}
+        p{color:#7a8999;max-width:28rem;text-align:center;line-height:1.6}
+        a{color:#5a9a70;text-decoration:none}
+        a:hover{color:#70b088}
+    </style>
+</head>
+<body>
+    <h1>Page not found</h1>
+    <p>That page doesn't exist. <a href="/">Back to the download page</a>.</p>
+</body>
+</html>
+NOTFOUND
+
+# --- generate the packwiz pack (auto-update index) -----------------------------
+# packwiz-installer runs as a Prism pre-launch task and syncs the instance
+# against this index on EVERY launch: adds, updates, and removes mods,
+# hash-verified, and never touches files it doesn't manage - so player
+# keybinds/settings are structurally safe. All download URLs point at our
+# Cloudflare-cached mirror (pack.DOMAIN/mods/), so auto-updates work even
+# when Modrinth is down. The .toml index files aren't edge-cached (not in
+# CF's default extension list), so update signals are always fresh.
+echo ""
+echo "==> Generating packwiz auto-update index..."
+PACKWIZ_DIR="$DIST_DIR/packwiz"
+mkdir -p "$PACKWIZ_DIR"
+python3 - "$WORK_DIR" "$PACKWIZ_DIR" "$MC_VERSION" "$FABRIC_LOADER_VERSION" "$PACK_VERSION" << 'PWEOF'
+import hashlib, json, os, shutil, sys
+
+work, pw, mc_version, loader_version, pack_version = sys.argv[1:6]
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+def t(s):  # TOML basic string (json escaping is valid TOML)
+    return json.dumps(s)
+
+# Regenerate managed subtrees; keep the cached bootstrap jar and pack.toml
+for sub in ('mods', 'configureddefaults', 'resourcepacks', 'shaderpacks'):
+    shutil.rmtree(os.path.join(pw, sub), ignore_errors=True)
+os.makedirs(os.path.join(pw, 'mods'), exist_ok=True)
+
+index_entries = []
+
+# 1. Mods: one metafile each, download URL = mirror-first entry from the index
+mrindex = json.load(open(os.path.join(work, 'modrinth.index.json')))
+for f in mrindex['files']:
+    jar = f['path'].split('/', 1)[1]
+    stem = jar[:-4] if jar.endswith('.jar') else jar
+    rel = 'mods/' + stem + '.pw.toml'
+    body = (
+        'name = ' + t(stem) + '\n'
+        'filename = ' + t(jar) + '\n'
+        'side = "both"\n\n'
+        '[download]\n'
+        'url = ' + t(f['downloads'][0]) + '\n'
+        'hash-format = "sha512"\n'
+        'hash = ' + t(f['hashes']['sha512']) + '\n'
+    )
+    path = os.path.join(pw, rel)
+    with open(path, 'w') as out:
+        out.write(body)
+    index_entries.append((rel, sha256_file(path), True, False))
+
+# 2. Non-mod files from overrides (configureddefaults tree, servers.dat,
+#    resourcepacks, shaderpacks). servers.dat is preserve=true so a player's
+#    own server-list additions survive; everything else here is pack-managed.
+ov = os.path.join(work, 'overrides')
+for root, dirs, files in os.walk(ov):
+    for name in files:
+        src = os.path.join(root, name)
+        rel = os.path.relpath(src, ov).replace(os.sep, '/')
+        if name == '.DS_Store':
+            continue
+        dst = os.path.join(pw, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+        preserve = (rel == 'servers.dat')
+        index_entries.append((rel, sha256_file(dst), False, preserve))
+
+# 3. index.toml
+lines = ['hash-format = "sha256"', '']
+for rel, digest, metafile, preserve in sorted(index_entries):
+    lines.append('[[files]]')
+    lines.append('file = ' + t(rel))
+    lines.append('hash = ' + t(digest))
+    if metafile:
+        lines.append('metafile = true')
+    if preserve:
+        lines.append('preserve = true')
+    lines.append('')
+with open(os.path.join(pw, 'index.toml'), 'w') as out:
+    out.write('\n'.join(lines))
+
+# 4. pack.toml (points at the index with its hash)
+index_hash = sha256_file(os.path.join(pw, 'index.toml'))
+pack_toml = (
+    'name = "${BRAND_NAME:-Adventure Server}"\n'
+    'author = ""\n'
+    'version = ' + t(pack_version) + '\n'
+    'pack-format = "packwiz:1.1.0"\n\n'
+    '[versions]\n'
+    'minecraft = ' + t(mc_version) + '\n'
+    'fabric = ' + t(loader_version) + '\n\n'
+    '[index]\n'
+    'file = "index.toml"\n'
+    'hash-format = "sha256"\n'
+    'hash = ' + t(index_hash) + '\n'
+)
+with open(os.path.join(pw, 'pack.toml'), 'w') as out:
+    out.write(pack_toml)
+
+mods = sum(1 for e in index_entries if e[2])
+print(f'  packwiz index: {mods} mods + {len(index_entries) - mods} files')
+PWEOF
+
+# Pinned packwiz-installer-bootstrap (cached; GitHub needed at build time only)
+BOOTSTRAP_JAR="$PACKWIZ_DIR/packwiz-installer-bootstrap.jar"
+if [[ ! -f "$BOOTSTRAP_JAR" ]]; then
+  echo "  Fetching packwiz-installer-bootstrap v0.0.3..."
+  curl -sL --max-time 120 -o "$BOOTSTRAP_JAR" \
+    "https://github.com/packwiz/packwiz-installer-bootstrap/releases/download/v0.0.3/packwiz-installer-bootstrap.jar" \
+    || { rm -f "$BOOTSTRAP_JAR"; echo "  ! bootstrap download failed - instance zip will be skipped" >&2; }
+fi
+
+# --- build the one-click Prism instance zip ------------------------------------
+# The .mrpack format can't carry launcher-level settings (verified against
+# Prism's ModrinthInstanceCreationTask: it reads only the index + overrides),
+# so we ship a Prism/MMC-format instance zip: the icon, the ZGC Java args
+# (the "crash a few seconds after joining" fix), auto-join, the Java-compat
+# override, and packwiz-installer as a pre-launch task. Import once - the
+# instance then self-updates from the packwiz index on every launch via the
+# CDN. Deliberately slim: no mods baked in; packwiz pulls everything on
+# first boot from the edge-cached mirror.
+INSTANCE_ZIP="$DIST_DIR/${PACK_NAME}-prism-instance.zip"
+if [[ -f "$BOOTSTRAP_JAR" ]]; then
+  echo ""
+  echo "==> Building Prism instance zip (self-updating via packwiz)..."
+  INST_DIR="$(mktemp -d)"
+  mkdir -p "$INST_DIR/.minecraft"
+
+  cat > "$INST_DIR/instance.cfg" << CFGEOF
+[General]
+ConfigVersion=1.3
+InstanceType=OneSix
+name=${BRAND_NAME:-Adventure Server}
+iconKey=fox_legacy
+OverrideJavaArgs=true
+JvmArgs=-XX:+UseZGC -XX:+ZGenerational
+IgnoreJavaCompatibility=true
+JoinServerOnLaunch=true
+JoinServerOnLaunchAddress=mc.${DOMAIN:-example.com}
+OverrideCommands=true
+PreLaunchCommand="\"\$INST_JAVA\" -jar packwiz-installer-bootstrap.jar -s client https://pack.${DOMAIN:-example.com}/packwiz/pack.toml"
+ManagedPack=false
+CFGEOF
+
+  cat > "$INST_DIR/mmc-pack.json" << MMCEOF
+{
+    "components": [
+        { "cachedName": "LWJGL 3", "cachedVersion": "3.3.3", "cachedVolatile": true, "dependencyOnly": true, "uid": "org.lwjgl3", "version": "3.3.3" },
+        { "cachedName": "Minecraft", "cachedRequires": [ { "suggests": "3.3.3", "uid": "org.lwjgl3" } ], "cachedVersion": "${MC_VERSION}", "important": true, "uid": "net.minecraft", "version": "${MC_VERSION}" },
+        { "cachedName": "Intermediary Mappings", "cachedRequires": [ { "equals": "${MC_VERSION}", "uid": "net.minecraft" } ], "cachedVersion": "${MC_VERSION}", "cachedVolatile": true, "dependencyOnly": true, "uid": "net.fabricmc.intermediary", "version": "${MC_VERSION}" },
+        { "cachedName": "Fabric Loader", "cachedRequires": [ { "uid": "net.fabricmc.intermediary" } ], "cachedVersion": "${FABRIC_LOADER_VERSION}", "uid": "net.fabricmc.fabric-loader", "version": "${FABRIC_LOADER_VERSION}" }
+    ],
+    "formatVersion": 1
+}
+MMCEOF
+
+  cp "$BOOTSTRAP_JAR" "$INST_DIR/.minecraft/packwiz-installer-bootstrap.jar"
+  cp -r "$WORK_DIR/overrides/." "$INST_DIR/.minecraft/"
+
+  # Only the current version is kept - these are ~350MB each
+  rm -f "$DIST_DIR"/${BRAND_SLUG:-adventure}-*-prism-instance.zip
+  (cd "$INST_DIR" && zip -qr "$INSTANCE_ZIP" .)
+  rm -rf "$INST_DIR"
+  echo "  ✓ $(basename "$INSTANCE_ZIP") ($(du -h "$INSTANCE_ZIP" | cut -f1))"
+else
+  echo ""
+  echo "==> Skipping Prism instance zip (bootstrap jar unavailable)"
+fi
+
+# --- clean up -----------------------------------------------------------------
+rm -rf "$WORK_DIR"
+
+echo ""
+echo "=================================================================="
+echo " Modpack built: ${PACK_FILE}"
+echo " Latest link:   ${LATEST_LINK}"
+echo " Download page: modpack/dist/index.html"
+echo ""
+echo " To serve: the pack-web container (nginx) mounts modpack/dist/"
+echo " Friends download from: https://pack.${DOMAIN:-example.com}/"
+echo "=================================================================="

@@ -1,0 +1,355 @@
+# Nav bar injection proxy - adds the site nav bar and OG metadata
+# to all web services. Cloudflared routes subdomains here instead of
+# directly to upstreams.
+
+# BlueMap
+server {
+    listen 80;
+    server_name map.${DOMAIN};
+
+    server_tokens off;
+
+    # Re-resolve Docker hostnames when containers restart and get new IPs.
+    # 127.0.0.11 is Docker's embedded DNS server.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' data:" always;
+
+    proxy_buffer_size 8k;
+    proxy_buffers 4 16k;
+    client_max_body_size 1m;
+
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 10s;
+
+    proxy_hide_header X-Powered-By;
+
+    # When BlueMap is down (autopause/restart), show a friendly page
+    error_page 502 503 504 =200 @sleeping;
+    location @sleeping {
+        default_type text/html;
+        return 200 '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${BRAND_NAME} - Map Sleeping</title><meta property="og:site_name" content="${BRAND_NAME}"><meta property="og:title" content="${BRAND_NAME} - World Map"><meta property="og:description" content="Live world map for ${BRAND_NAME}, a modded Minecraft adventure server."><meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg"><meta property="og:type" content="website"><meta property="og:url" content="https://map.${DOMAIN}/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;background:#0c1319;color:#c5cdd8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}.box{text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#7a8999;max-width:28rem}code{background:#1c2835;padding:.15em .4em;border-radius:4px;font-size:.9em}</style></head><body><nav class="site-nav"><a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a><a href="https://map.${DOMAIN}" aria-current="page">Map</a><a href="https://status.${DOMAIN}">Status</a><a href="https://pack.${DOMAIN}">Download</a><a href="https://mods.${DOMAIN}">Mods</a></nav><div class="box"><h1>Map is sleeping</h1><p>The server is idle and the map renderer is paused. Join <code>mc.${DOMAIN}</code> to wake it up, and the map will be back in a few seconds.</p></div></body></html>';
+    }
+
+    # Live data (player positions, markers) - never cache, real-time
+    location ~* ^/maps/.*/live/ {
+        set $bluemap_upstream http://mc:8100;
+        proxy_pass $bluemap_upstream;
+        proxy_set_header Host $host;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # Map tiles - cache at Cloudflare edge for 24 hours, serve stale while revalidating
+    # Tiles only change on re-render (idle cycle); outdated tiles are vastly preferable to origin hits
+    location /maps/ {
+        set $bluemap_upstream http://mc:8100;
+        proxy_pass $bluemap_upstream;
+        proxy_set_header Host $host;
+        expires 24h;
+        add_header Cache-Control "public, max-age=86400, stale-while-revalidate=86400" always;
+    }
+
+    # Static webapp assets (JS, CSS, fonts, icons) - cache for 30 days.
+    # Excludes /maps/ so tile images (also .png) fall through to the
+    # location /maps/ block above instead - regex locations are checked
+    # before nginx falls back to a prefix match, so without this exclusion
+    # every tile was matching here and getting a 30-day immutable cache
+    # instead of the tile-appropriate 24h stale-while-revalidate one.
+    location ~* ^(?!/maps/).*\.(js|css|woff2?|png|svg|ico|webp)$ {
+        set $bluemap_upstream http://mc:8100;
+        proxy_pass $bluemap_upstream;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000, immutable" always;
+    }
+
+    # Root HTML + everything else - inject nav bar, cache for 1 hour
+    location / {
+        set $bluemap_upstream http://mc:8100;
+        proxy_pass $bluemap_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        expires 1h;
+        add_header Cache-Control "public, max-age=3600, stale-while-revalidate=3600" always;
+        # BlueMap's embedded server sends Transfer-Encoding: chunked with no
+        # body on HEAD responses. Buffer and re-frame with a real
+        # Content-Length instead of passing chunked through - HEAD health
+        # checks (Uptime Kuma) otherwise fail against this endpoint.
+        chunked_transfer_encoding off;
+
+        # Fix BlueMap's page title (partial match handles any suffix like "- world (overworld)")
+        sub_filter '<title>BlueMap' '<title>${BRAND_NAME}';
+
+        # Neutralize BlueMap's meta tags by renaming their attributes.
+        # BlueMap uses non-standard name= for OG tags; our proper property= tags
+        # are injected via the </head> replacement below.
+        # Partial matches on attribute names are version-proof (don't depend on
+        # exact content values that change between BlueMap releases).
+        sub_filter '<meta name="description" content="BlueMap' '<meta name="x-bm-desc" content="BlueMap';
+        sub_filter 'name="og:site_name"' 'name="x-bm-og-site"';
+        sub_filter 'name="og:title"' 'name="x-bm-og-title"';
+        sub_filter 'name="og:description"' 'name="x-bm-og-desc"';
+        sub_filter 'name="og:image"' 'name="x-bm-og-img"';
+        sub_filter 'name="og:type"' 'name="x-bm-og-type"';
+
+        sub_filter '</head>' '
+<meta name="description" content="Live world map for ${BRAND_NAME}, a modded Minecraft adventure server.">
+<meta property="og:site_name" content="${BRAND_NAME}">
+<meta property="og:title" content="${BRAND_NAME} - World Map">
+<meta property="og:description" content="Live world map for ${BRAND_NAME}, a modded Minecraft adventure server.">
+<meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://map.${DOMAIN}/">
+<meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png">
+<style>
+.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}
+.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}
+.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}
+.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}
+.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}
+body{padding-top:44px !important}
+.control-bar{top:44px !important}
+.side-menu{top:44px !important;height:calc(100% - 44px) !important}
+</style>
+</head>';
+
+        sub_filter '</body>' '
+<nav class="site-nav">
+<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="https://map.${DOMAIN}" aria-current="page">Map</a>
+<a href="https://status.${DOMAIN}">Status</a>
+<a href="https://pack.${DOMAIN}">Download</a>
+<a href="https://mods.${DOMAIN}">Mods</a>
+</nav>
+</body>';
+
+        sub_filter_once on;
+        proxy_set_header Accept-Encoding "";
+    }
+}
+
+# Uptime Kuma
+server {
+    listen 80;
+    server_name status.${DOMAIN};
+
+    server_tokens off;
+
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' https://pack.${DOMAIN} data:" always;
+
+    proxy_buffer_size 8k;
+    proxy_buffers 4 16k;
+    client_max_body_size 1m;
+
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 10s;
+
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Content-Security-Policy;
+
+    # WebSocket endpoint for real-time updates
+    location /socket.io/ {
+        set $kuma_upstream http://uptime-kuma:3001;
+        proxy_pass $kuma_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        set $kuma_upstream http://uptime-kuma:3001;
+        proxy_pass $kuma_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        sub_filter '<title>' '<meta property="og:site_name" content="${BRAND_NAME}"><meta property="og:title" content="${BRAND_NAME} - Server Status"><meta property="og:description" content="Live uptime and status for ${BRAND_NAME}, a modded Minecraft adventure server."><meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg"><meta property="og:type" content="website"><meta property="og:url" content="https://status.${DOMAIN}/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png"><title>';
+
+        sub_filter '</head>' '
+<style>
+.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}
+.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}
+.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}
+.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}
+.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}
+body{padding-top:44px !important}
+.container{max-width:65ch !important}
+</style>
+</head>';
+
+        sub_filter '</body>' '
+<nav class="site-nav">
+<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="https://map.${DOMAIN}">Map</a>
+<a href="https://status.${DOMAIN}" aria-current="page">Status</a>
+<a href="https://pack.${DOMAIN}">Download</a>
+<a href="https://mods.${DOMAIN}">Mods</a>
+</nav>
+</body>';
+
+        sub_filter_once on;
+        proxy_set_header Accept-Encoding "";
+    }
+}
+
+# Pack download site
+server {
+    listen 80;
+    server_name pack.${DOMAIN};
+
+    server_tokens off;
+
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' data:" always;
+
+    proxy_buffer_size 8k;
+    proxy_buffers 4 16k;
+    client_max_body_size 1m;
+
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 10s;
+
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Content-Security-Policy;
+
+    location / {
+        set $pack_upstream http://pack-web:80;
+        proxy_pass $pack_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        sub_filter '<title>' '<meta property="og:site_name" content="${BRAND_NAME}"><meta property="og:title" content="${BRAND_NAME} - Download the Modpack"><meta property="og:description" content="Download the modpack for ${BRAND_NAME}, a modded Minecraft adventure server."><meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg"><meta property="og:type" content="website"><meta property="og:url" content="https://pack.${DOMAIN}/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png"><title>';
+
+        sub_filter '</head>' '
+<style>
+.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}
+.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}
+.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}
+.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}
+.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}
+body{padding-top:44px !important}
+</style>
+</head>';
+
+        sub_filter '</body>' '
+<nav class="site-nav">
+<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="https://map.${DOMAIN}">Map</a>
+<a href="https://status.${DOMAIN}">Status</a>
+<a href="https://pack.${DOMAIN}" aria-current="page">Download</a>
+<a href="https://mods.${DOMAIN}">Mods</a>
+</nav>
+</body>';
+
+        sub_filter_once on;
+        proxy_set_header Accept-Encoding "";
+    }
+}
+
+# Mod status page
+server {
+    listen 80;
+    server_name mods.${DOMAIN};
+
+    server_tokens off;
+
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' data:" always;
+
+    proxy_buffer_size 8k;
+    proxy_buffers 4 16k;
+    client_max_body_size 1m;
+
+    proxy_connect_timeout 10s;
+    proxy_read_timeout 30s;
+    proxy_send_timeout 10s;
+
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Content-Security-Policy;
+
+    location / {
+        set $pack_upstream http://pack-web:80;
+
+        if ($uri = /) {
+            rewrite ^ /status.html break;
+        }
+
+        proxy_pass $pack_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        sub_filter '<title>' '<meta property="og:site_name" content="${BRAND_NAME}"><meta property="og:title" content="${BRAND_NAME} - Mod Status"><meta property="og:description" content="Mod versions and update status for ${BRAND_NAME}, a modded Minecraft adventure server."><meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg"><meta property="og:type" content="website"><meta property="og:url" content="https://mods.${DOMAIN}/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png"><title>';
+
+        sub_filter '</head>' '
+<style>
+.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}
+.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
+.site-nav-brand img{width:28px;height:28px;border-radius:6px}
+.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}
+.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}
+.site-nav a[aria-current]{color:#5a9a70}
+@media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}
+body{padding-top:44px !important}
+</style>
+</head>';
+
+        sub_filter '</body>' '
+<nav class="site-nav">
+<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="https://map.${DOMAIN}">Map</a>
+<a href="https://status.${DOMAIN}">Status</a>
+<a href="https://pack.${DOMAIN}">Download</a>
+<a href="https://mods.${DOMAIN}" aria-current="page">Mods</a>
+</nav>
+</body>';
+
+        sub_filter_once on;
+        proxy_set_header Accept-Encoding "";
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "_comment": "Centralised message templates. Variables use {variable} syntax. Used by discord-notify.sh (--key), deploy.yml, and deploy.sh.",
+
+  "deploy.starting": "**Deploy starting** ({deploy_mode}): `{commit_sha}` {commit_msg}",
+  "deploy.successful": "**Deploy successful** ({deploy_mode}): `{commit_sha}` {commit_msg}",
+  "deploy.failed": "**Deploy failed** ({deploy_mode}): `{commit_sha}` {commit_msg}\n{admin_ping}Check the logs: {actions_url}",
+
+  "modpack.updated": "**Modpack updated:** `{pack_name}`\n{player_ping}Grab the latest version from the pack site.\nOne-click instances update automatically on next launch.",
+
+  "restart.warning_60s": "§e§l[Server] §rUpdate deploying in §c60 seconds§r. Save your work, land, or get to a safe place.",
+  "restart.warning_30s": "§e§l[Server] §rRestarting in §c30 seconds§r...",
+  "restart.warning_10s": "§e§l[Server] §rRestarting in §c10 seconds§r!",
+  "restart.warning_5s": "§e§l[Server] §rRestarting in §c5§r...",
+  "restart.countdown_3": "§e§l[Server] §c3...",
+  "restart.countdown_2": "§e§l[Server] §c2...",
+  "restart.countdown_1": "§e§l[Server] §c1...",
+  "restart.kick": "§eServer's restarting for an update. Back in a few minutes.",
+  "restart.kick_forced": "§cKicked for a server update. Won't be long.",
+  "restart.welcome_back": "§a§l[Server] §rUpdate complete, welcome back!",
+
+  "updates.available": "{admin_ping}**Mod updates available** ({count}):\n{mod_list}\nFull status on the mods page.",
+
+  "setup.webhook_test": "**Setup wizard:** webhook connection verified. The bot is checking in!",
+
+  "discord.welcome_pin": "**Welcome to the {brand_name}!**\n\n**:package: Get started**\n\nThis is a modded Minecraft 1.21.1 server with loads of mods focused on exploration and adventuring.\n\nHere's what to do:\n\n**1. Register your Minecraft username**\nIn the `Message #general` box, type out `/register` and then enter your Minecraft username. You can get this from the [Minecraft account](https://www.minecraft.net/en-us/msaprofile) page, just click on `Change Profile Name` and then it is displayed as `Current Java Profile Name`. Copy it exactly, it's case sensitive.\n\nYou can undo this with `/unregister`.\n\n**2. Get the Player role**\nAsk an {admin_role} to give you the {player_role} role and then you'll be added to the allow-list automatically.\n\n**3. Set up a client with our modpack and join the server**\nInstall [Prism Launcher](https://prismlauncher.org/) (free), then grab the **one-click instance** from the pack page - everything comes pre-configured, and the pack **updates itself automatically every time you play**, so you never need to redo this. Add your Microsoft account in Prism, double-click the instance, and it'll connect you straight to the server.\n\nFull instructions (and a manual setup option) are on the pack page.\n\n**Useful links**\n\n:map: [Map](https://map.{domain})\n:bar_chart: [Status](https://status.{domain})\n:fire: [Mods](https://mods.{domain})\n:arrow_down: [Instructions](https://pack.{domain})\n\nModpack updates happen automatically - if an admin announces new mods, just restart your game.\n\nSomething broken or got an idea? Ping an {admin_role}."
+}

@@ -1,0 +1,69 @@
+{
+  "debug": {
+    "report_unresolved_tables": false
+  },
+  "seed": {
+    "randomize_seed": true
+  },
+  "conversion": {
+    "disable": false,
+    "convert_elytras_to_chests": false,
+    "convert_elytras_to_item_frames": true,
+    "convert_mineshafts": true,
+    "convert_structure_item_frames": true,
+    "world_border": false,
+    "perform_piecewise_check": true,
+    "bypass_spawn_protection": true,
+    "skip_logging_no_loot_table_at_generation": true,
+    "save_mode": "SMART"
+  },
+  "breaking": {
+    "disable_break": false,
+    "enable_break": false,
+    "enable_fake_player_break": false,
+    "power_comparators": true,
+    "blast_resistant": false,
+    "blast_immune": false,
+    "trapped_custom": false,
+    "should_drop_player_loot": false,
+    "brushables_self_support": false,
+    "item_frames_self_support": false
+  },
+  "lists": {
+    "dimension_whitelist": [],
+    "dimension_blacklist": [],
+    "loot_table_blacklist": [],
+    "loot_modid_blacklist": [],
+    "modid_dimension_whitelist": [],
+    "modid_dimension_blacklist": []
+  },
+  "decay": {
+    "decay_value": 6000,
+    "decay_all": false,
+    "perform_tick_decay": true,
+    "start_tick_decay": false,
+    "decay_modids": [],
+    "decay_loot_tables": [],
+    "decay_dimensions": [],
+    "replace_when_decayed": false
+  },
+  "refresh": {
+    "refresh_value": 24000,
+    "refresh_all": false,
+    "perform_tick_refresh": true,
+    "start_tick_refresh": true,
+    "refresh_modids": [],
+    "refresh_loot_tables": [],
+    "refresh_dimensions": []
+  },
+  "notifications": {
+    "notification_delay": 600,
+    "disable_notifications": false,
+    "disable_message_styles": false
+  },
+  "client": {
+    "vanilla_textures": false,
+    "new_textures": true,
+    "unopened_particles": true
+  }
+}

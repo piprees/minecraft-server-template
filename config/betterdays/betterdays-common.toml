@@ -1,0 +1,71 @@
+# Better Days - server-side time configuration
+# 45-minute day / 15-minute night (1 hour total cycle)
+# Vanilla is 10 min day + 10 min night = 20 min total.
+
+[time]
+	# MINUTES mode uses daySpeedMinutes/nightSpeedMinutes instead of ratio
+	speedMethod = "MINUTES"
+	# Unused (speedMethod = MINUTES)
+	daySpeed = 1.0
+	nightSpeed = 1.0
+	daySpeedMinutes = 45.0
+	nightSpeedMinutes = 15.0
+	dayStart = 23500
+	nightStart = 12500
+	enableInterpolatedTime = false
+	interpolatedTimeSmoothingFactor = 1.5
+	interpolatedTimeList = ["0,1.0", "24000,1.0"]
+
+[time.effects]
+	# Sync weather passage with time speed
+	weatherEffect = "ALWAYS"
+	# Sync random tick speed (crop/tree growth) with time speed
+	randomTickEffect = "ALWAYS"
+	baseRandomTickSpeed = 3
+	# Sync potion durations with time speed
+	potionEffect = "NEVER"
+	# Sync hunger drain with time speed
+	hungerEffect = "NEVER"
+	# Sync block entities (furnaces, hoppers) with time speed
+	blockEntityEffect = "NEVER"
+
+[sleep]
+	enableSleepFeature = true
+	# Max speed when all players sleep (110 ~ vanilla skip-to-morning)
+	sleepSpeedMax = 110.0
+	# Min speed when 1 player sleeps on a full server
+	sleepSpeedMin = 10.0
+	# Speed when literally all players are sleeping (-1 = use sleepSpeedMax)
+	sleepSpeedAll = -1.0
+	# Interpolation curve for sleep speed (higher = smoother ramp)
+	sleepSpeedCurve = 1.2
+	# Clear weather when waking (vanilla behaviour)
+	clearWeatherOnWake = true
+	# Allow sleeping during the day
+	allowDaySleep = false
+	# Ratio of players needed to trigger sleep (0.5 = half)
+	ratioPlayersForSleep = 0.5
+
+[sleep.messages]
+
+	[sleep.messages.morning]
+		message = ""
+		type = "GAME_INFO"
+		target = "DIMENSION"
+
+	[sleep.messages.enterBed]
+		message = "${player} is now sleeping. [${sleepingPlayers}/${totalPlayers}]"
+		type = "GAME_INFO"
+		target = "DIMENSION"
+
+	[sleep.messages.leaveBed]
+		message = "${player} has left their bed. [${sleepingPlayers}/${totalPlayers}]"
+		type = "GAME_INFO"
+		target = "DIMENSION"
+
+[gui]
+	displayBedClock = true
+	clockScale = 0.5
+	clockAlignment = "TOP_RIGHT"
+	clockMargin = 4
+	preventClockWobble = true

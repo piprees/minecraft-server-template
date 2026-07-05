@@ -1,0 +1,106 @@
+# Build and push custom sidecar images to GitHub Container Registry.
+#
+# Triggers on pushes to main that touch Dockerfiles or the baked scripts,
+# on published releases (semver tags), and on manual dispatch.
+#
+# Fork-safe: uses GITHUB_TOKEN (packages:write) - no PAT needed. Images
+# publish to ghcr.io/<fork-owner>/<fork-repo>/<sidecar> automatically.
+#
+# Multi-arch: linux/amd64 + linux/arm64 (production runs on Hetzner ARM).
+
+name: Publish Container Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docker/**'
+      - 'config/**'
+      - 'modpack/**'
+      - 'assets/**'
+      - 'scripts/discord-sync.py'
+      - 'scripts/requirements-discord-sync.txt'
+      - 'scripts/kuma-provision.py'
+      - 'scripts/check-updates.sh'
+      - 'scripts/modrinth-api.py'
+      - 'scripts/idle-tasks.sh'
+      - 'scripts/build-modpack.sh'
+      - 'scripts/check-pack-coherence.py'
+      - 'scripts/lib.sh'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    name: Build ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [discord-sync, kuma-init, mod-checker, idle-tasks, defaults-seed, modpack-builder]
+        include:
+          - image: discord-sync
+            dockerfile: docker/discord-sync/Dockerfile
+          - image: kuma-init
+            dockerfile: docker/kuma-init/Dockerfile
+          - image: mod-checker
+            dockerfile: docker/mod-checker/Dockerfile
+          - image: idle-tasks
+            dockerfile: docker/idle-tasks/Dockerfile
+          - image: defaults-seed
+            dockerfile: docker/defaults-seed/Dockerfile
+          - image: modpack-builder
+            dockerfile: docker/modpack-builder/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags + OCI labels)
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            REPO_URL=${{ github.server_url }}/${{ github.repository }}

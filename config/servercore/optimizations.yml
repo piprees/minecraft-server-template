@@ -1,0 +1,12 @@
+# ServerCore optimizations (require server restart to take effect).
+
+# Prevents lagspikes from synchronous chunk loading (maps update only loaded chunks).
+reduce-sync-loads: true
+# Cache the ticking chunks list, update once per second instead of every tick.
+cache-ticking-chunks: true
+# Cache parsed commands for command blocks.
+optimize-command-blocks: true
+# Faster mob spawning at the cost of slight biome border inaccuracy (cosmetic only).
+fast-biome-lookups: true
+# Skip the duplicate second fluid random tick per game tick.
+cancel-duplicate-fluid-ticks: true

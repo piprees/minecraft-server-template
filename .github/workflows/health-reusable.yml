@@ -1,0 +1,66 @@
+name: Health Check
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        default: production
+    secrets:
+      DEPLOY_SSH_KEY:
+        required: true
+      DISCORD_WEBHOOK_URL:
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: health-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  doctor:
+    name: Production doctor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: vars.DROPLET_HOST != ''
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ vars.DROPLET_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Run doctor
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            'cd ~/server && .stack/current/stack/scripts/doctor.sh' \
+            | tee doctor-report.txt
+
+      - name: Notify Discord (failure)
+        if: failure()
+        run: |
+          ADMIN_ROLE_ID="${{ vars.DISCORD_ADMIN_ROLE_ID }}"
+          [ -f doctor-report.txt ] || echo "(doctor did not run)" > doctor-report.txt
+          REPORT=$(grep -vE '^\s*$' doctor-report.txt | tail -25 | sed 's/\x1b\[[0-9;]*m//g')
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          MSG="<@&${ADMIN_ROLE_ID}> **Daily health check FAILED**
+          \`\`\`
+          ${REPORT}
+          \`\`\`
+          ${RUN_URL}"
+          PAYLOAD=$(echo "$MSG" | jq -Rs --arg rid "$ADMIN_ROLE_ID" \
+            '{content: ., allowed_mentions: {roles: [$rid]}}')
+          curl -sf -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

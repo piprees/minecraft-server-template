@@ -1,0 +1,9 @@
+extends: relaxed
+
+rules:
+  line-length:
+    max: 200
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1

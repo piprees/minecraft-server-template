@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# ops — Thin dispatcher to bundle operational scripts.
+# Loads consumer env, then delegates to .stack/current/stack/scripts/<command>.sh
+set -euo pipefail
+
+CONSUMER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$CONSUMER_DIR"
+
+STACK_SCRIPTS=".stack/current/stack/scripts"
+
+ALLOWED_COMMANDS=(
+  setup
+  preflight
+  provision
+  harden
+  prepare
+  github-env-sync
+  cloudflare
+  teardown
+  kuma-token
+  doctor
+  backup
+  reset-seed
+  rcon
+  live-logs
+  live-stats
+  restart-service
+  op-env
+  op-sync-env
+  discord-notify
+  discord-cleanup
+  discord-pin-sync
+)
+
+usage() {
+  echo "Usage: ./ops <command> [args]"
+  echo ""
+  echo "Delegates to bundle scripts with your consumer environment loaded."
+  echo ""
+  echo "Commands:"
+  for cmd in "${ALLOWED_COMMANDS[@]}"; do
+    echo "  $cmd"
+  done
+}
+
+CMD="${1:-help}"
+shift || true
+
+if [[ "$CMD" == "help" || "$CMD" == "--help" || "$CMD" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+# Validate command is in the allowlist
+allowed=0
+for acmd in "${ALLOWED_COMMANDS[@]}"; do
+  if [[ "$acmd" == "$CMD" ]]; then
+    allowed=1
+    break
+  fi
+done
+
+if [[ $allowed -eq 0 ]]; then
+  echo "Unknown command: $CMD"
+  echo "Run ./ops help for a list of available commands."
+  exit 1
+fi
+
+if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
+  echo "Stack bundle not found. Run ./dev up or ./stack-pull.sh first."
+  exit 1
+fi
+
+# Resolve script names to actual filenames
+script_file="$CMD"
+case "$CMD" in
+  preflight)   script_file="preflight-check" ;;
+  prepare)     script_file="prepare-droplet" ;;
+  cloudflare)  script_file="cloudflare-setup" ;;
+  backup)      script_file="backup-now" ;;
+esac
+
+SCRIPT_PATH="$CONSUMER_DIR/$STACK_SCRIPTS/${script_file}.sh"
+
+if [[ ! -f "$SCRIPT_PATH" ]]; then
+  echo "Script not found: $SCRIPT_PATH"
+  echo "Your stack bundle may be outdated. Run: ./dev update"
+  exit 1
+fi
+
+# Load consumer environment before delegating
+if [[ -f "$CONSUMER_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$CONSUMER_DIR/.env"
+  set +a
+fi
+
+export CONSUMER_DIR
+exec bash "$SCRIPT_PATH" "$@"

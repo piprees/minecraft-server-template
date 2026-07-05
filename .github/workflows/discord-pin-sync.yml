@@ -1,0 +1,31 @@
+name: Sync Discord Welcome Pin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config/messages.json'
+  workflow_dispatch:
+
+jobs:
+  sync-pin:
+    name: Update Discord welcome pin
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: vars.DROPLET_HOST != ''
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Sync pin to Discord
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ADMIN_ROLE_ID: ${{ vars.DISCORD_ADMIN_ROLE_ID }}
+          DISCORD_PLAYER_ROLE_ID: ${{ vars.DISCORD_PLAYER_ROLE_ID }}
+          DISCORD_WELCOME_CHANNEL_ID: ${{ vars.DISCORD_WELCOME_CHANNEL_ID }}
+          DISCORD_WELCOME_MESSAGE_ID: ${{ vars.DISCORD_WELCOME_MESSAGE_ID }}
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          DOMAIN: ${{ vars.DOMAIN }}
+        run: ./scripts/discord-pin-sync.sh --push
