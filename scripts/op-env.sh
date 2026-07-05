@@ -19,11 +19,11 @@ OP_TEMPLATE="$PROJECT_DIR/config/1password.env"
 
 # Per-server 1Password item (matches op-sync-env.sh). BRAND_SLUG comes from
 # an existing .env when present; on a fresh machine pass it explicitly:
-#   OP_ITEM_NAME="Minecraft Server (myslug)" ./scripts/op-env.sh > .env
+#   OP_ITEM_NAME="Minecraft Server - myslug" ./scripts/op-env.sh > .env
 if [[ -z "${BRAND_SLUG:-}" && -f "$PROJECT_DIR/.env" ]]; then
   BRAND_SLUG=$(grep -E '^BRAND_SLUG=' "$PROJECT_DIR/.env" | head -1 | cut -d= -f2- | tr -d "'\"") || true
 fi
-ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ (${BRAND_SLUG})}}"
+ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ - ${BRAND_SLUG}}}"
 
 # --- check prerequisites ------------------------------------------------------
 if ! command -v op &> /dev/null; then

@@ -23,7 +23,7 @@ if [[ -f "$PROJECT_DIR/.env" ]]; then
   set +a
 fi
 VAULT_NAME="${OP_VAULT:-Dev}"
-ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ (${BRAND_SLUG})}}"
+ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ - ${BRAND_SLUG}}}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

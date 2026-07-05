@@ -84,8 +84,10 @@ this scheme; it does not apply here.
 ## 1Password backup (`./ops op-env` / `./ops op-sync-env`)
 
 Secrets are mirrored to a 1Password item for recovery. The item is named
-**`Minecraft Server (<BRAND_SLUG>)`** — one item per server — overridable
+**`Minecraft Server - <BRAND_SLUG>`** — one item per server — overridable
 with `OP_ITEM_NAME` in `.env` (`OP_VAULT` for the vault, default `Dev`).
+Keep custom names free of parentheses and punctuation: `op://` secret
+references reject them, which breaks restores.
 
 `op-sync-env` pushes your local `.env` **over** the 1Password item
 (empty local values are skipped, non-empty ones overwrite). Rotate a

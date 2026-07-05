@@ -12,7 +12,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-MESSAGES_FILE="$PROJECT_DIR/config/messages.json"
+# Resolution order: consumer overlay override, the stack bundle copy
+# (this script lives in .stack/current/stack/scripts/), then a platform
+# checkout's config/ - consumers have no config/ dir of their own.
+MESSAGES_FILE="$PROJECT_DIR/overlay/config/messages.json"
+[[ -f "$MESSAGES_FILE" ]] || MESSAGES_FILE="$SCRIPT_DIR/../config/messages.json"
+[[ -f "$MESSAGES_FILE" ]] || MESSAGES_FILE="$PROJECT_DIR/config/messages.json"
 
 WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 

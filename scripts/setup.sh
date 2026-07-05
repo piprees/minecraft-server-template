@@ -330,7 +330,9 @@ setup_1password() {
     persist_secret BRAND_SLUG "$BRAND_SLUG"
   fi
   VAULT_NAME="${OP_VAULT:-Dev}"
-  ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ (${BRAND_SLUG})}}"
+  # Hyphen, not parentheses: op:// secret references reject ( and ), which
+  # silently broke every read-back. Keep item names URI-safe.
+  ITEM_NAME="${OP_ITEM_NAME:-Minecraft Server${BRAND_SLUG:+ - ${BRAND_SLUG}}}"
 
   echo -e "  ${GREEN}✓${RESET} 1Password CLI detected - secrets will be stored in your vault."
   echo -e "    Vault: ${BOLD}${VAULT_NAME}${RESET} / Item: ${BOLD}${ITEM_NAME}${RESET}"
@@ -356,10 +358,12 @@ op_load() {
   [[ $HAS_OP -eq 0 ]] && return 0
   local var_name="$1" field="${2:-$1}" section="${3:-}"
   [[ -n "${!var_name:-}" ]] && return 0
-  local ref="op://${VAULT_NAME}/${ITEM_NAME}/${field}"
-  [[ -n "$section" ]] && ref="op://${VAULT_NAME}/${ITEM_NAME}/${section}/${field}"
+  local spec="$field"
+  [[ -n "$section" ]] && spec="${section}.${field}"
   local val
-  val=$(op read "$ref" 2> /dev/null || true)
+  # op item get, not op read: secret-reference URIs reject several
+  # characters (parentheses broke per-brand item names entirely).
+  val=$(op item get "$ITEM_NAME" --vault "$VAULT_NAME" --fields "label=${spec}" --reveal 2> /dev/null || true)
   # A missing field is fine (not every credential exists in every vault).
   # Do NOT end on a bare `[[ ]] &&` - a false test would return 1 and,
   # under set -e, kill the whole wizard with no error message.
@@ -377,10 +381,8 @@ op_store() {
   [[ $HAS_OP -eq 0 || -z "$value" ]] && return 0
 
   local edit_key="$field"
-  local read_ref="op://${VAULT_NAME}/${ITEM_NAME}/${field}"
   if [[ -n "$section" ]]; then
     edit_key="${section}.${field}"
-    read_ref="op://${VAULT_NAME}/${ITEM_NAME}/${section}/${field}"
   fi
 
   # 1Password is a backup convenience - a store/verify failure is counted
@@ -394,12 +396,12 @@ op_store() {
   fi
 
   local readback
-  readback=$(op read "$read_ref" 2> /dev/null || true)
+  readback=$(op item get "$ITEM_NAME" --vault "$VAULT_NAME" --fields "label=${edit_key}" --reveal 2> /dev/null || true)
   if [[ "$readback" != "$value" ]]; then
     # The CLI can race the desktop app's sync right after a write - one
     # short retry absorbs it.
     sleep 1
-    readback=$(op read "$read_ref" 2> /dev/null || true)
+    readback=$(op item get "$ITEM_NAME" --vault "$VAULT_NAME" --fields "label=${edit_key}" --reveal 2> /dev/null || true)
   fi
   if [[ "$readback" == "$value" ]]; then
     echo -e "    ${GREEN}✓${RESET} 1Password: ${field} (verified)"
