@@ -67,8 +67,8 @@ if [[ $allowed -eq 0 ]]; then
 fi
 
 if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
-  echo "Stack bundle not found. Run ./dev up or ./stack-pull.sh first."
-  exit 1
+  echo "Stack bundle not found. Pulling..."
+  bash "$CONSUMER_DIR/stack-pull.sh"
 fi
 
 # Resolve script names to actual filenames

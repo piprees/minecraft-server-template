@@ -84,6 +84,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 cd "$PROJECT_DIR"
 
+# Consumers invoke this wizard as `./ops setup`; platform developers run
+# scripts/setup.sh directly. Use the right name in every message.
+SELF_CMD="./scripts/setup.sh"
+[[ -n "${CONSUMER_DIR:-}" ]] && SELF_CMD="./ops setup"
+
 # --- state directory for persistent tool-decline tracking --------------------
 STATE_DIR="$PROJECT_DIR/.setup-state"
 mkdir -p "$STATE_DIR"
@@ -235,12 +240,14 @@ cleanup_on_error() {
     echo -e "${RED}  Setup interrupted (exit code: ${rc})${RESET}"
     echo -e "${RED}═══════════════════════════════════════════════════${RESET}"
     echo ""
-    echo "  Your progress has been saved. Re-run setup.sh to continue."
+    echo "  Your progress has been saved. Re-run ${SELF_CMD} to continue."
     echo "  Configuration collected so far is preserved in .env."
     save_progress
   fi
 }
 trap cleanup_on_error EXIT
+# Name the failing command - a set -e death with no message is undebuggable.
+trap 'echo -e "\n  ${RED}Failed at line ${LINENO}: ${BASH_COMMAND}${RESET}" >&2' ERR
 
 # --- run a delegated script with error recovery ------------------------------
 run_script() {
@@ -261,7 +268,7 @@ run_script() {
       fi
     fi
     echo ""
-    info "Skipped. You can fix this later and re-run setup.sh."
+    info "Skipped. You can fix this later and re-run ${SELF_CMD}."
     info "Or run the script directly: $*"
     return 0
   fi
@@ -353,7 +360,13 @@ op_load() {
   [[ -n "$section" ]] && ref="op://${VAULT_NAME}/${ITEM_NAME}/${section}/${field}"
   local val
   val=$(op read "$ref" 2> /dev/null || true)
-  [[ -n "$val" ]] && printf -v "$var_name" '%s' "$val"
+  # A missing field is fine (not every credential exists in every vault).
+  # Do NOT end on a bare `[[ ]] &&` - a false test would return 1 and,
+  # under set -e, kill the whole wizard with no error message.
+  if [[ -n "$val" ]]; then
+    printf -v "$var_name" '%s' "$val"
+  fi
+  return 0
 }
 
 op_store() {
@@ -1076,7 +1089,7 @@ if ! "$SCRIPT_DIR/preflight-check.sh" --target "$TARGET"; then
   info "This is normal if you haven't set up cloud services yet."
   if ! ask_yes_no "  Continue anyway?" "Y"; then
     echo ""
-    info "Fix the issues above, then re-run: ./scripts/setup.sh"
+    info "Fix the issues above, then re-run: ${SELF_CMD}"
     exit 0
   fi
 fi
@@ -1119,7 +1132,7 @@ ${HOSTS_MARKER_END}"
       echo "$HOSTS_BLOCK" | sudo tee -a /etc/hosts > /dev/null
       echo -e "  ${GREEN}✓${RESET} Added. Remove later with: sudo sed -i '' '/${HOSTS_MARKER_BEGIN}/,/${HOSTS_MARKER_END}/d' /etc/hosts"
     else
-      info "Skipped. Add manually or re-run setup.sh."
+      info "Skipped. Add manually or re-run ${SELF_CMD}."
     fi
   fi
 
@@ -1219,7 +1232,7 @@ if [[ $IS_CLOUD -eq 1 ]]; then
       else
         setup_warn "Provisioning failed."
         info "Fix the issue above and run: ./scripts/provision.sh --provider $TARGET"
-        info "Then re-run setup.sh to continue from here."
+        info "Then re-run ${SELF_CMD} to continue from here."
         if ! ask_yes_no "  Continue to next step anyway?" "N"; then
           exit 0
         fi
@@ -1268,7 +1281,7 @@ if [[ $IS_CLOUD -eq 1 ]]; then
         run_script "Hardening server" "$SCRIPT_DIR/harden.sh" --remote "root@${SERVER_IP}"
       else
         setup_warn "Can't reach the server via SSH (tried root and deploy)."
-        info "Check your SSH keys and the server IP, then re-run setup.sh."
+        info "Check your SSH keys and the server IP, then re-run ${SELF_CMD}."
       fi
 
       # --- 14c. Prepare the server ------------------------------------------------
@@ -1565,7 +1578,7 @@ else
 fi
 
 echo ""
-echo "Re-run this wizard any time to update settings: ./scripts/setup.sh"
+echo "Re-run this wizard any time to update settings: ${SELF_CMD}"
 echo ""
 echo -e "${BOLD}Done. Have fun.${RESET}"
 

@@ -12,7 +12,7 @@ Runs Fabric on Docker (`itzg/minecraft-server`) with ~150 pinned server mods (Te
 
 ## Run your own server
 
-Copy the consumer scaffold, configure your secrets, and you're up in 10 minutes:
+Copy the consumer scaffold, run the setup wizard, and you're up in 10 minutes:
 
 ```bash
 # Option A: degit (no git history)
@@ -23,8 +23,14 @@ mkdir my-server && curl -sL https://github.com/piprees/minecraft-server-template
   | tar -xz --strip-components=3 -C my-server 'minecraft-server-template-main/examples/consumer'
 
 cd my-server
-cp .env.example .env            # fill in secrets
-./dev up                         # pulls the stack bundle + starts everything
+./ops setup                      # guided wizard: credentials -> .env -> local test -> production
+```
+
+Prefer to do it by hand? For local dev only:
+
+```bash
+cp .env.example .env             # every variable documented in comments
+./dev up                          # pulls the stack bundle + starts everything
 ```
 
 Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`). Add the `/etc/hosts` entries printed by `./dev up` for subdomain routing.

@@ -3,10 +3,20 @@
 A consumer repo powered by
 [minecraft-server-template](https://github.com/piprees/minecraft-server-template).
 
-## Quick start (local dev)
+## Quick start
+
+The guided path — the wizard walks you through every credential (with the
+exact dashboard pages and settings), writes `.env`, and can take you all the
+way from local test to production:
 
 ```bash
-cp .env.example .env          # fill in secrets (or: ./ops setup)
+./ops setup
+```
+
+Local-only alternative, if you'd rather fill the file in by hand:
+
+```bash
+cp .env.example .env          # every variable documented in comments
 ./dev up                       # pulls the stack bundle + starts everything
 ```
 
