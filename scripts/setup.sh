@@ -383,22 +383,31 @@ op_store() {
     read_ref="op://${VAULT_NAME}/${ITEM_NAME}/${section}/${field}"
   fi
 
+  # 1Password is a backup convenience - a store/verify failure is counted
+  # and reported in the final summary, but must NEVER abort the wizard
+  # (a non-zero return here would, under set -e).
   if ! op item edit "$ITEM_NAME" --vault "$VAULT_NAME" \
     "${edit_key}=${value}" > /dev/null 2>&1; then
     echo -e "    ${RED}✗${RESET} 1Password: failed to store ${field}"
     OP_VERIFY_FAILURES=$((OP_VERIFY_FAILURES + 1))
-    return 1
+    return 0
   fi
 
   local readback
   readback=$(op read "$read_ref" 2> /dev/null || true)
+  if [[ "$readback" != "$value" ]]; then
+    # The CLI can race the desktop app's sync right after a write - one
+    # short retry absorbs it.
+    sleep 1
+    readback=$(op read "$read_ref" 2> /dev/null || true)
+  fi
   if [[ "$readback" == "$value" ]]; then
     echo -e "    ${GREEN}✓${RESET} 1Password: ${field} (verified)"
   else
-    echo -e "    ${RED}✗${RESET} 1Password: ${field} (MISMATCH - read-back doesn't match)"
+    echo -e "    ${RED}✗${RESET} 1Password: ${field} (read-back mismatch - continuing; re-sync later with ./ops op-sync-env)"
     OP_VERIFY_FAILURES=$((OP_VERIFY_FAILURES + 1))
-    return 1
   fi
+  return 0
 }
 
 # --- cross-platform install hint ---------------------------------------------
