@@ -95,6 +95,25 @@ Place the file in `overlay/config/` with the same path as the template's
 Edit `.env`: `BRAND_NAME`, `BRAND_SLUG`, `MOTD`, `DISCORD_INVITE_URL`.
 Place custom assets in `overlay/assets/` (see `overlay/assets/README.md`).
 
+### Customise the web pages
+
+All four surfaces ship with one shared dark palette (the template's
+`DESIGN.md` tokens) and get the nav bar injected by the nav-proxy. To
+restyle them:
+
+| Surface | Override with | Notes |
+| -- | -- | -- |
+| `pack.DOMAIN` (download page) | `overlay/modpack/template/index.html` | Replaces the whole page template; rebuild with `./dev pack` or push |
+| `mods.DOMAIN` (mod status) | `overlay/config/mods-page.css` | Appended after the default styles, so override selectively |
+| `status.DOMAIN` (Uptime Kuma) | `overlay/config/uptime-kuma/kuma-config.json` | Full config replacement; copy the default from the template repo and edit `statusPage.customCSS` |
+| `map.DOMAIN` (BlueMap) | upstream webapp | Only the nav bar is ours |
+
+The nav bar itself lives in the template's `config/nginx/nav-proxy.conf`
+(platform-level; open an issue or PR there for structural changes).
+
+Changes under `overlay/` deploy as the infra tier on push — no server
+restart.
+
 ## Directory structure
 
 ```

@@ -47,7 +47,13 @@ mkdir -p "$PROJECT/modpack" "$PROJECT/scripts"
 
 ln -sf /work/src/manifest.json "$PROJECT/modpack/adventure.mrpack.json"
 ln -sf /work/src/overrides     "$PROJECT/modpack/overrides"
-ln -sf /defaults/template      "$PROJECT/modpack/template"
+# Consumers can replace the download page wholesale:
+# overlay/modpack/template/index.html
+if [[ -f /overlay/modpack/template/index.html ]]; then
+  ln -sf /overlay/modpack/template "$PROJECT/modpack/template"
+else
+  ln -sf /defaults/template      "$PROJECT/modpack/template"
+fi
 ln -sf /work/dist              "$PROJECT/modpack/dist"
 ln -sf "$ASSETS_DIR"           "$PROJECT/assets"
 ln -sf /app                    "$PROJECT/scripts"

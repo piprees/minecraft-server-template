@@ -256,9 +256,10 @@ ingress:
   - hostname: map.${DOMAIN}
     service: http://nav-proxy:80
 
-  # Modpack download server
+  # Modpack download server (via nav-proxy for nav bar injection;
+  # binary downloads pass through untouched - sub_filter is html-only)
   - hostname: pack.${DOMAIN}
-    service: http://pack-web:80
+    service: http://nav-proxy:80
 
   # Uptime Kuma monitoring / status page (via nav-proxy for nav bar injection)
   - hostname: status.${DOMAIN}

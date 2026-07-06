@@ -258,6 +258,16 @@ if [[ $OUTPUT_HTML -eq 1 ]]; then
 </head>
 HTMLHEAD
 
+  # Consumer CSS override hook: the seed container lands the overlay in the
+  # shared config volume, so overlay/config/mods-page.css reaches us here.
+  if [[ -f /config-vol/mods-page.css ]]; then
+    {
+      echo "    <style>"
+      cat /config-vol/mods-page.css
+      echo "    </style>"
+    } >> "$STATUS_FILE"
+  fi
+
   # Count statuses
   count_ok=0
   count_update=0
