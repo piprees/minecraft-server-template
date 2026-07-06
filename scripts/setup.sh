@@ -1475,12 +1475,14 @@ fi
 banner "Modpack & Assets"
 
 MODPACK_DEFAULT="Y"
-if [[ -f "$PROJECT_DIR/modpack/dist/index.html" ]]; then
+if [[ -f "$PROJECT_DIR/modpack-dist/index.html" ]]; then
   MODPACK_DEFAULT="N"
   echo -e "  ${GREEN}✓${RESET} Modpack already built."
 fi
 if ask_yes_no "Build the client modpack?" "$MODPACK_DEFAULT"; then
-  run_script "Building modpack" "$SCRIPT_DIR/build-modpack.sh"
+  # build-modpack.sh is baked into the modpack-builder image;
+  # pack-build.sh is the host-side wrapper that runs it.
+  run_script "Building modpack" "$SCRIPT_DIR/pack-build.sh"
 fi
 
 echo ""
@@ -1576,7 +1578,7 @@ if [[ $IS_CLOUD -eq 1 ]]; then
   echo "  First deploy:     ssh ${DEPLOY_USER}@SERVER_IP 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'"
   echo "  Cloudflare:       ./scripts/cloudflare-setup.sh"
   echo "  GitHub wiring:    ./scripts/github-env-sync.sh   (verify: --check)"
-  echo "  Build modpack:    ./scripts/build-modpack.sh"
+  echo "  Build modpack:    ./dev pack"
   echo "  Teardown:         ./scripts/teardown.sh"
   echo ""
   echo "  After first deploy, pushes to main auto-deploy via GitHub Actions."
@@ -1587,7 +1589,7 @@ else
   echo "  Stop server:      ./scripts/dev-up.sh --down"
   echo "  Watch logs:       ./scripts/dev-up.sh --logs"
   echo "  Roll seeds:       ./scripts/seed/roll-seeds.sh"
-  echo "  Build modpack:    ./scripts/build-modpack.sh"
+  echo "  Build modpack:    ./dev pack"
   echo "  Teardown:         ./scripts/teardown.sh --target local"
   echo ""
   LOCAL_HOST="${LOCAL_DOMAIN:-localhost}"
