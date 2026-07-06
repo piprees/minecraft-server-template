@@ -8,3 +8,5 @@ seedtest-data/
 seed-results.csv
 seed-errors.log
 seed-report-*.md
+cache/
+config/cloudflared/
