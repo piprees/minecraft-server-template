@@ -344,6 +344,19 @@ jobs:
             exit 1
           fi
 
+      - name: Update deployed state
+        # Written before the pack rebuild so pack-build.sh can read
+        # consumer_sha for the version string. success() only: recording
+        # the sha after a FAILED deploy makes the next run diff against a
+        # sha that never deployed and silently downgrade to pull tier.
+        if: success() && steps.tier.outputs.tier != ''
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
+            "printf 'consumer_sha=%s\nstack_version=%s\n' \
+              '${{ steps.meta.outputs.full_sha }}' \
+              '${{ inputs.stack_version }}' \
+              > ~/server/.deployed" || true
+
       - name: Rebuild modpack
         if: success() && steps.tier.outputs.tier != 'pull'
         continue-on-error: true
@@ -393,20 +406,6 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
             'cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud up -d --force-recreate --no-deps kuma-init'
-
-      - name: Update deployed state
-        # success() only: recording the sha after a FAILED deploy makes the
-        # next run diff against a sha that never deployed and silently
-        # downgrade to pull tier - the server stays broken while CI goes
-        # green. (This exact failure mode used to be "fixed" by nuking the
-        # server; the stale .deployed died with it.)
-        if: success() && steps.tier.outputs.tier != ''
-        run: |
-          ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
-            "printf 'consumer_sha=%s\nstack_version=%s\n' \
-              '${{ steps.meta.outputs.full_sha }}' \
-              '${{ inputs.stack_version }}' \
-              > ~/server/.deployed" || true
 
       - name: Notify Discord (success)
         if: success()

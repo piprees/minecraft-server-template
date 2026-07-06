@@ -360,6 +360,8 @@ services:
       KUMA_PASSWORD: ${KUMA_PASSWORD:-}
       KUMA_CONFIG: /config-vol/uptime-kuma/kuma-config.json
       DOMAIN: ${DOMAIN:-example.com}
+      BRAND_SLUG: ${BRAND_SLUG:-adventure}
+      MC_VERSION: ${MC_VERSION:-1.21.1}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       SERVER_PORT: ${SERVER_PORT:-25577}
     volumes:
@@ -521,6 +523,7 @@ services:
         exec /app/entrypoint.sh
     environment:
       MC_VERSION: ${MC_VERSION:-1.21.1}
+      BRAND_SLUG: ${BRAND_SLUG:-adventure}
       DOMAIN: ${DOMAIN:-example.com}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       DISCORD_ADMIN_ROLE_ID: ${DISCORD_ADMIN_ROLE_ID:-}
