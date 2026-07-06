@@ -97,7 +97,7 @@ services:
 
       # --- RCON (admin console, used by backup sidecar too) ---
       ENABLE_RCON: "TRUE"
-      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
 
       # --- World generation ---
       SEED: ${SEED:-}
@@ -238,7 +238,7 @@ services:
         --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
         --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
       RCON_HOST: mc
-      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
     volumes:
       - ./data:/data:ro
       - ./backups:/backups
@@ -294,7 +294,7 @@ services:
 
       # --- RCON connection to the game server ---
       RCON_HOST: mc
-      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
     volumes:
       # World data - read-only; the backup sidecar never writes to it.
       - ./data:/data:ro
@@ -480,7 +480,7 @@ services:
     container_name: "${CONTAINER_PREFIX:-}idle-tasks"
     environment:
       RCON_HOST: mc
-      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
       IDLE_GRACE: "3"
       POLL_INTERVAL: "30"
       PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"
@@ -567,7 +567,7 @@ services:
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
       DISCORD_CHANNEL_ID: ${DISCORD_CHANNEL_ID:-}
       RCON_HOST: mc
-      RCON_PASSWORD: ${RCON_PASSWORD}
+      RCON_PASSWORD: ${RCON_PASSWORD:-}
     volumes:
       - ./data:/data
       - /var/run/docker.sock:/var/run/docker.sock
