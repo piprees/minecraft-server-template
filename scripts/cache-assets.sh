@@ -30,7 +30,22 @@ IMAGE_CACHE="$CACHE_DIR/images"
 SERVER_MOD_CACHE="$CACHE_DIR/server-mods"
 CLIENT_MOD_CACHE="$CACHE_DIR/client-mods"
 CLIENT_BUNDLE_DIR="$CACHE_DIR/client-bundle"
+
+# Compose file: bundle copy when running from a stack bundle, else the
+# platform checkout's. Consumers have no docker-compose.yml of their own.
+COMPOSE_SRC="$SCRIPT_DIR/../docker-compose.yml"
+[[ -f "$COMPOSE_SRC" ]] || COMPOSE_SRC="$PROJECT_DIR/docker-compose.yml"
+
+# Pack manifest: platform checkouts have it in modpack/; consumers extract
+# it from the modpack-builder image (where it is baked as the default).
 MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+if [[ ! -f "$MANIFEST" ]]; then
+  MANIFEST="$CACHE_DIR/.manifest.json"
+  mkdir -p "$CACHE_DIR"
+  docker run --rm --entrypoint cat \
+    "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}" \
+    /defaults/manifest.json > "$MANIFEST" 2> /dev/null || rm -f "$MANIFEST"
+fi
 
 # --- parse flags --------------------------------------------------------------
 DO_IMAGES=0
@@ -62,9 +77,20 @@ if [[ $DO_IMAGES -eq 1 ]]; then
   echo "=== 1. Caching Docker images ==="
   mkdir -p "$IMAGE_CACHE"
 
-  # Extract pinned image tags from docker-compose.yml
-  mapfile -t IMAGES < <(grep '^\s*image:' "$PROJECT_DIR/docker-compose.yml" \
-    | sed 's/.*image:\s*//' | tr -d '"' | tr -d "'" | sort -u)
+  # Extract pinned image tags from the compose file. No mapfile - this
+  # must run on macOS bash 3.2.
+  # Expand the compose file's ${IMAGE_REGISTRY:-...}/${IMAGE_TAG:-...}
+  # interpolations - grep returns them literally, and docker can't pull a
+  # literal "${...}" reference (those images silently never got cached).
+  REG="${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"
+  TAG="${IMAGE_TAG:-latest}"
+  IMAGES=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && IMAGES+=("$line")
+  done < <(grep -E '^\s*image:' "$COMPOSE_SRC" 2> /dev/null \
+    | sed -E 's/.*image:[[:space:]]*//' | tr -d '"' | tr -d "'" \
+    | sed -e "s|\${IMAGE_REGISTRY:-[^}]*}|${REG}|" -e "s|\${IMAGE_TAG:-[^}]*}|${TAG}|" \
+    | sort -u)
 
   # Fallback if grep found nothing
   if [[ ${#IMAGES[@]} -eq 0 ]]; then
