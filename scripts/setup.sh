@@ -1495,23 +1495,6 @@ if ask_yes_no "Cache Docker images + mod JARs for offline resilience?" "$CACHE_D
   run_script "Caching assets" "$SCRIPT_DIR/cache-assets.sh"
 fi
 
-# --- dist mode (pre-built images from a container registry) -------------------
-# Image registry configuration (all services use published GHCR images)
-if [[ -z "${IMAGE_REGISTRY:-}" ]]; then
-  registry_default=""
-  git_remote="$(git remote get-url origin 2> /dev/null || true)"
-  if [[ "$git_remote" == *"github.com"* ]]; then
-    repo_slug="$(echo "$git_remote" | sed 's|.*github.com[:/]||' | sed 's|\.git$||')"
-    if [[ -n "$repo_slug" ]]; then
-      registry_default="ghcr.io/${repo_slug}"
-    fi
-  fi
-  if [[ -n "$registry_default" ]]; then
-    persist_secret IMAGE_REGISTRY "$registry_default"
-    persist_secret IMAGE_TAG "${IMAGE_TAG:-latest}"
-  fi
-fi
-
 # =============================================================================
 #  Final 1Password Sync
 # =============================================================================
