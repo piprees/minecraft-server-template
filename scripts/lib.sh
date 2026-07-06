@@ -55,6 +55,47 @@ load_env() {
   fi
 }
 
+# --- .env writing ---------------------------------------------------------------
+# THE rule for .env files: every value is written single-quoted, with any
+# embedded single quote mapped to a typographic ’. That form parses
+# identically under bash `source` and docker compose's env-file reader.
+# An unquoted MOTD containing spaces once executed itself as a command on
+# a production server - all writers go through these helpers.
+# Users paste values already wrapped in quotes ('token' or "My Server") -
+# strip one matching surrounding pair so they don't get double-wrapped.
+strip_surrounding_quotes() {
+  local v="${1-}"
+  if [[ ${#v} -ge 2 ]]; then
+    local first="${v:0:1}" last="${v: $((${#v} - 1)):1}"
+    if [[ ("$first" == "'" && "$last" == "'") || ("$first" == '"' && "$last" == '"') ]]; then
+      v="${v:1:$((${#v} - 2))}"
+    fi
+  fi
+  printf '%s' "$v"
+}
+
+env_quote() {
+  local v
+  v=$(strip_surrounding_quotes "${1-}")
+  printf "'%s'" "${v//\'/’}"
+}
+
+# set_env_var FILE KEY VALUE - update in place or append, always quoted.
+set_env_var() {
+  local file="$1" key="$2" value="$3"
+  local quoted
+  quoted=$(env_quote "$value")
+  if grep -q "^${key}=" "$file" 2> /dev/null; then
+    # Escape sed replacement metacharacters in the value
+    local safe="${quoted//\\/\\\\}"
+    safe="${safe//&/\\&}"
+    safe="${safe//|/\\|}"
+    sed_i "s|^${key}=.*|${key}=${safe}|" "$file"
+  else
+    printf '%s=%s\n' "$key" "$quoted" >> "$file"
+  fi
+}
+
 # --- Portable sed -i (macOS BSD vs GNU) ---------------------------------------
 sed_i() {
   if [[ "$(uname)" == "Darwin" ]]; then

@@ -71,7 +71,7 @@ echo "    Profile: cloud"
 # --- auto-generate RCON password if blank -------------------------------------
 if [[ -z "${RCON_PASSWORD:-}" ]]; then
   RCON_PW="$(head -c 18 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)"
-  echo "RCON_PASSWORD=$RCON_PW" >> .env
+  printf "RCON_PASSWORD='%s'\n" "$RCON_PW" >> .env
   export RCON_PASSWORD="$RCON_PW"
   echo "  Auto-generated RCON_PASSWORD."
 fi

@@ -114,7 +114,7 @@ mkdir -p "$CONSUMER_DIR/data/mods" \
 # --- Auto-generate RCON password if blank -------------------------------------
 if [[ -z "${RCON_PASSWORD:-}" ]]; then
   RCON_PW="$(head -c 18 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)"
-  echo "RCON_PASSWORD=$RCON_PW" >> "$CONSUMER_DIR/.env"
+  printf "RCON_PASSWORD='%s'\n" "$RCON_PW" >> "$CONSUMER_DIR/.env"
   echo "Auto-generated RCON_PASSWORD and appended to .env."
   export RCON_PASSWORD="$RCON_PW"
 fi
@@ -123,7 +123,7 @@ fi
 # kuma-init creates the admin account on first run (KUMA_USERNAME/KUMA_PASSWORD).
 if [[ -z "${KUMA_PASSWORD:-}" ]]; then
   KUMA_PW="$(head -c 18 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24)"
-  echo "KUMA_PASSWORD=$KUMA_PW" >> "$CONSUMER_DIR/.env"
+  printf "KUMA_PASSWORD='%s'\n" "$KUMA_PW" >> "$CONSUMER_DIR/.env"
   echo "Auto-generated KUMA_PASSWORD and appended to .env."
   export KUMA_PASSWORD="$KUMA_PW"
 fi

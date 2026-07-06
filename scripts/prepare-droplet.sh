@@ -230,7 +230,7 @@ echo ""
 echo "=== 5. Production .env ==="
 
 # Build .env from local .env with ONLINE_MODE=TRUE for production
-sed -e "s/^ONLINE_MODE=.*/ONLINE_MODE=TRUE/" \
+sed -e "s/^ONLINE_MODE=.*/ONLINE_MODE='TRUE'/" \
   -e '/^DEPLOY_KEY_PUB=/d' \
   .env > /tmp/mc-prod-env.$$
 scp -o StrictHostKeyChecking=no "/tmp/mc-prod-env.$$" "${DEPLOY_USER}@${DROPLET_HOST}:~/${SERVER_DIR}/.env"

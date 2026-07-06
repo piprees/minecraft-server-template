@@ -234,11 +234,7 @@ log "Server IP: $SERVER_IP"
 
 # Persist the IP so harden.sh / prepare-droplet.sh / github-env-sync.sh can
 # find the server without the user copying it around.
-if grep -q '^DROPLET_HOST=' "$PROJECT_DIR/.env" 2> /dev/null; then
-  sed_i "s/^DROPLET_HOST=.*/DROPLET_HOST=$SERVER_IP/" "$PROJECT_DIR/.env"
-else
-  printf '\nDROPLET_HOST=%s\n' "$SERVER_IP" >> "$PROJECT_DIR/.env"
-fi
+set_env_var "$PROJECT_DIR/.env" DROPLET_HOST "$SERVER_IP"
 log "DROPLET_HOST=$SERVER_IP written to .env"
 
 # =============================================================================

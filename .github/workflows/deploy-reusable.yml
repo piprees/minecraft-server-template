@@ -160,67 +160,120 @@ jobs:
 
       - name: Generate server .env
         if: steps.tier.outputs.tier == 'full'
+        # Values flow through env: so arbitrary content can't break the shell,
+        # and every line is written single-quoted (embedded ' mapped to ’) so
+        # the file parses identically under bash `source` and compose's
+        # env-file reader. An unquoted MOTD with spaces once executed itself
+        # as a command on the server.
+        env:
+          V_BRAND_NAME: ${{ vars.BRAND_NAME }}
+          V_BRAND_SLUG: ${{ vars.BRAND_SLUG }}
+          V_MOTD: ${{ vars.MOTD }}
+          V_DISCORD_INVITE_URL: ${{ vars.DISCORD_INVITE_URL }}
+          V_MC_VERSION: ${{ vars.MC_VERSION }}
+          V_SEED: ${{ vars.SEED }}
+          V_DOMAIN: ${{ vars.DOMAIN }}
+          V_SERVER_PORT: ${{ vars.SERVER_PORT }}
+          V_MEMORY: ${{ vars.MEMORY }}
+          V_VIEW_DISTANCE: ${{ vars.VIEW_DISTANCE }}
+          V_SIMULATION_DISTANCE: ${{ vars.SIMULATION_DISTANCE }}
+          V_SPAWN_X: ${{ vars.SPAWN_X }}
+          V_SPAWN_Y: ${{ vars.SPAWN_Y }}
+          V_SPAWN_Z: ${{ vars.SPAWN_Z }}
+          V_PREGEN_BORDER_RADIUS: ${{ vars.PREGEN_BORDER_RADIUS }}
+          V_PLAYER_BORDER_RADIUS: ${{ vars.PLAYER_BORDER_RADIUS }}
+          V_BACKUP_INTERVAL: ${{ vars.BACKUP_INTERVAL }}
+          V_CLOUD_PROVIDER: ${{ vars.CLOUD_PROVIDER }}
+          V_IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
+          V_STACK_VERSION: ${{ inputs.stack_version }}
+          V_DISCORD_ADMIN_ROLE_ID: ${{ vars.DISCORD_ADMIN_ROLE_ID }}
+          V_DISCORD_PLAYER_ROLE_ID: ${{ vars.DISCORD_PLAYER_ROLE_ID }}
+          S_RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
+          S_R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          S_R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          S_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          S_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          S_RESTIC_PASSWORD: ${{ secrets.RESTIC_PASSWORD }}
+          S_DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          S_DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          S_DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          S_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          S_KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
+          S_KUMA_PASSWORD: ${{ secrets.KUMA_PASSWORD }}
+          S_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          S_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          S_CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          S_CLOUDFLARE_TUNNEL_ID: ${{ secrets.CLOUDFLARE_TUNNEL_ID }}
         run: |
           umask 077
-          cat > /tmp/.env.generated << 'ENVEOF'
-          ONLINE_MODE=TRUE
-          ENABLE_WHITELIST=TRUE
-          ENFORCE_WHITELIST=TRUE
-          ENVEOF
+          emit() {
+            local v="$2"
+            v="${v//\'/’}"
+            printf "%s='%s'\n" "$1" "$v"
+          }
           {
-            echo "BRAND_NAME=${{ vars.BRAND_NAME }}"
-            echo "BRAND_SLUG=${{ vars.BRAND_SLUG }}"
-            echo "MOTD=${{ vars.MOTD }}"
-            echo "DISCORD_INVITE_URL=${{ vars.DISCORD_INVITE_URL }}"
-            echo "MC_VERSION=${{ vars.MC_VERSION || '1.21.1' }}"
-            echo "SEED=${{ vars.SEED }}"
-            echo "DOMAIN=${{ vars.DOMAIN }}"
-            echo "SERVER_PORT=${{ vars.SERVER_PORT || '25577' }}"
-            echo "MEMORY=${{ vars.MEMORY || '5G' }}"
-            echo "VIEW_DISTANCE=${{ vars.VIEW_DISTANCE || '10' }}"
-            echo "SIMULATION_DISTANCE=${{ vars.SIMULATION_DISTANCE || '8' }}"
-            echo "SPAWN_X=${{ vars.SPAWN_X }}"
-            echo "SPAWN_Y=${{ vars.SPAWN_Y }}"
-            echo "SPAWN_Z=${{ vars.SPAWN_Z }}"
-            echo "PREGEN_BORDER_RADIUS=${{ vars.PREGEN_BORDER_RADIUS || '8192' }}"
-            echo "PLAYER_BORDER_RADIUS=${{ vars.PLAYER_BORDER_RADIUS || '8192' }}"
-            echo "BACKUP_INTERVAL=${{ vars.BACKUP_INTERVAL || '12h' }}"
-            echo "CLOUD_PROVIDER=${{ vars.CLOUD_PROVIDER || 'hetzner' }}"
-            echo "IMAGE_REGISTRY=${{ vars.IMAGE_REGISTRY || 'ghcr.io/piprees/minecraft-server-template' }}"
-            echo "STACK_VERSION=${{ inputs.stack_version }}"
-            echo "DISCORD_ADMIN_ROLE_ID=${{ vars.DISCORD_ADMIN_ROLE_ID }}"
-            echo "DISCORD_PLAYER_ROLE_ID=${{ vars.DISCORD_PLAYER_ROLE_ID }}"
-            echo "RCON_PASSWORD=${{ secrets.RCON_PASSWORD }}"
-            echo "R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}"
-            echo "R2_BUCKET=${{ secrets.R2_BUCKET }}"
-            echo "R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}"
-            echo "R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}"
-            echo "RESTIC_PASSWORD=${{ secrets.RESTIC_PASSWORD }}"
-            echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}"
-            echo "DISCORD_CHANNEL_ID=${{ secrets.DISCORD_CHANNEL_ID }}"
-            echo "DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}"
-            echo "DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}"
-            echo "KUMA_API_KEY=${{ secrets.KUMA_API_KEY }}"
-            echo "KUMA_PASSWORD=${{ secrets.KUMA_PASSWORD }}"
-            echo "CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}"
-            echo "CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
-            echo "CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}"
-            echo "CLOUDFLARE_TUNNEL_ID=${{ secrets.CLOUDFLARE_TUNNEL_ID }}"
-          } >> /tmp/.env.generated
-          sed -i 's/^[[:space:]]*//' /tmp/.env.generated
+            emit ONLINE_MODE TRUE
+            emit ENABLE_WHITELIST TRUE
+            emit ENFORCE_WHITELIST TRUE
+            emit BRAND_NAME "$V_BRAND_NAME"
+            emit BRAND_SLUG "$V_BRAND_SLUG"
+            emit MOTD "$V_MOTD"
+            emit DISCORD_INVITE_URL "$V_DISCORD_INVITE_URL"
+            emit MC_VERSION "${V_MC_VERSION:-1.21.1}"
+            emit SEED "$V_SEED"
+            emit DOMAIN "$V_DOMAIN"
+            emit SERVER_PORT "${V_SERVER_PORT:-25577}"
+            emit MEMORY "${V_MEMORY:-5G}"
+            emit VIEW_DISTANCE "${V_VIEW_DISTANCE:-10}"
+            emit SIMULATION_DISTANCE "${V_SIMULATION_DISTANCE:-8}"
+            emit SPAWN_X "$V_SPAWN_X"
+            emit SPAWN_Y "$V_SPAWN_Y"
+            emit SPAWN_Z "$V_SPAWN_Z"
+            emit PREGEN_BORDER_RADIUS "${V_PREGEN_BORDER_RADIUS:-8192}"
+            emit PLAYER_BORDER_RADIUS "${V_PLAYER_BORDER_RADIUS:-8192}"
+            emit BACKUP_INTERVAL "${V_BACKUP_INTERVAL:-12h}"
+            emit CLOUD_PROVIDER "${V_CLOUD_PROVIDER:-hetzner}"
+            emit IMAGE_REGISTRY "${V_IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"
+            emit STACK_VERSION "$V_STACK_VERSION"
+            emit DISCORD_ADMIN_ROLE_ID "$V_DISCORD_ADMIN_ROLE_ID"
+            emit DISCORD_PLAYER_ROLE_ID "$V_DISCORD_PLAYER_ROLE_ID"
+            emit RCON_PASSWORD "$S_RCON_PASSWORD"
+            emit R2_ACCOUNT_ID "$S_R2_ACCOUNT_ID"
+            emit R2_BUCKET "$S_R2_BUCKET"
+            emit R2_ACCESS_KEY_ID "$S_R2_ACCESS_KEY_ID"
+            emit R2_SECRET_ACCESS_KEY "$S_R2_SECRET_ACCESS_KEY"
+            emit RESTIC_PASSWORD "$S_RESTIC_PASSWORD"
+            emit DISCORD_BOT_TOKEN "$S_DISCORD_BOT_TOKEN"
+            emit DISCORD_CHANNEL_ID "$S_DISCORD_CHANNEL_ID"
+            emit DISCORD_GUILD_ID "$S_DISCORD_GUILD_ID"
+            emit DISCORD_WEBHOOK_URL "$S_DISCORD_WEBHOOK_URL"
+            emit KUMA_API_KEY "$S_KUMA_API_KEY"
+            emit KUMA_PASSWORD "$S_KUMA_PASSWORD"
+            emit CLOUDFLARE_API_TOKEN "$S_CLOUDFLARE_API_TOKEN"
+            emit CLOUDFLARE_ACCOUNT_ID "$S_CLOUDFLARE_ACCOUNT_ID"
+            emit CLOUDFLARE_ZONE_ID "$S_CLOUDFLARE_ZONE_ID"
+            emit CLOUDFLARE_TUNNEL_ID "$S_CLOUDFLARE_TUNNEL_ID"
+          } > /tmp/.env.generated
 
-          REQUIRED=(RCON_PASSWORD R2_ACCOUNT_ID R2_BUCKET R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY RESTIC_PASSWORD)
+          # Validate the real values, not the file - a quoted empty ('')
+          # line would fool a grep-based check.
           MISSING=()
-          for key in "${REQUIRED[@]}"; do
-            if ! grep -q "^${key}=.\+" /tmp/.env.generated; then
-              MISSING+=("$key")
-            fi
-          done
+          [[ -z "$S_RCON_PASSWORD" ]] && MISSING+=(RCON_PASSWORD)
+          [[ -z "$S_R2_ACCOUNT_ID" ]] && MISSING+=(R2_ACCOUNT_ID)
+          [[ -z "$S_R2_BUCKET" ]] && MISSING+=(R2_BUCKET)
+          [[ -z "$S_R2_ACCESS_KEY_ID" ]] && MISSING+=(R2_ACCESS_KEY_ID)
+          [[ -z "$S_R2_SECRET_ACCESS_KEY" ]] && MISSING+=(R2_SECRET_ACCESS_KEY)
+          [[ -z "$S_RESTIC_PASSWORD" ]] && MISSING+=(RESTIC_PASSWORD)
           if [[ ${#MISSING[@]} -gt 0 ]]; then
             echo "::error::Refusing to deploy: missing required values: ${MISSING[*]}"
             rm -f /tmp/.env.generated
             exit 1
           fi
+
+          # The file must survive a shell source - catch quoting bugs HERE,
+          # not on the server mid-deploy.
+          bash -n /tmp/.env.generated
+          ( set -a; . /tmp/.env.generated ) > /dev/null
 
       - name: Upload .env and sync overlay
         if: steps.tier.outputs.tier != 'pull'

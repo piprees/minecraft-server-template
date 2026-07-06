@@ -77,7 +77,9 @@ while IFS= read -r line; do
   value=$(op read "$op_ref" 2> /dev/null || true)
 
   if [[ -n "$value" ]]; then
-    echo "${var_name}=${value}"
+    # Always-quoted output (embedded ' mapped to ’) - values with spaces
+    # must not break `source` on the generated .env
+    echo "${var_name}='${value//\'/’}'"
     echo "  ✓ ${var_name}" >&2
   else
     echo "# ${var_name}= (not found in 1Password: ${op_ref})"

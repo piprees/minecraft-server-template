@@ -284,11 +284,7 @@ EOF
 echo "  Written: $CRED_DIR/config.yml"
 
 # Persist the tunnel ID so github-env-sync.sh and op-sync-env.sh can see it.
-if grep -q '^CLOUDFLARE_TUNNEL_ID=' "$PROJECT_DIR/.env" 2> /dev/null; then
-  sed_i "s/^CLOUDFLARE_TUNNEL_ID=.*/CLOUDFLARE_TUNNEL_ID='${TUNNEL_ID}'/" "$PROJECT_DIR/.env"
-else
-  printf '\nCLOUDFLARE_TUNNEL_ID=%s\n' "'${TUNNEL_ID}'" >> "$PROJECT_DIR/.env"
-fi
+set_env_var "$PROJECT_DIR/.env" CLOUDFLARE_TUNNEL_ID "$TUNNEL_ID"
 echo "  CLOUDFLARE_TUNNEL_ID written to .env"
 
 # =============================================================================
