@@ -408,6 +408,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 | Out of memory       | Raise `MEMORY` in `.env`; look for `OutOfMemoryError` in logs                     |
 | Port conflict       | `lsof -i :25577`                                                                        |
 | Mod download fails  | Verify the slug + pinned ID on Modrinth; use `./dev up --offline` if Modrinth is down   |
+| Modrinth `429 Too Many Requests` on first boot | Expected — ~150 downloads trip the per-IP limit. Completed downloads persist, the container retries, and the scripts wait for it to converge (can take 10+ min). On servers, `./ops prepare` offers to upload your locally-synced mods instead, skipping Modrinth entirely |
 
 **Can't connect:**
 

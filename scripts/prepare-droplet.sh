@@ -185,6 +185,45 @@ else
 fi
 
 # =============================================================================
+# 4b. Pre-seed server mods from the local machine (optional)
+# =============================================================================
+# The local test already downloaded every mod JAR. Shipping them to the
+# server skips the ~150-download Modrinth burst on first deploy - the main
+# source of 429 rate limits and slow, restart-prone first boots.
+echo ""
+echo "=== 4b. Pre-seed server mods ==="
+
+HAS_SERVER_MODS=$($SSH_CMD "ls ~/${SERVER_DIR}/data/mods/*.jar > /dev/null 2>&1 && echo yes || echo no")
+if [[ "$HAS_SERVER_MODS" == "yes" ]]; then
+  step_skip "Server already has mods"
+elif ls "$PROJECT_DIR/data/mods/"*.jar > /dev/null 2>&1; then
+  MOD_COUNT=$(find "$PROJECT_DIR/data/mods" -name '*.jar' | wc -l | xargs)
+  UPLOAD_MODS="Y"
+  if [[ "${NON_INTERACTIVE:-0}" != "1" ]]; then
+    read -rp "  Upload ${MOD_COUNT} locally-synced mod JARs to the server (skips Modrinth on first deploy)? [Y/n]: " answer
+    UPLOAD_MODS="${answer:-Y}"
+  fi
+  if [[ "$UPLOAD_MODS" =~ ^[Yy] ]]; then
+    $SSH_CMD "mkdir -p ~/${SERVER_DIR}/data/mods"
+    rsync -az --ignore-existing -e "ssh -o StrictHostKeyChecking=no" \
+      "$PROJECT_DIR/data/mods/" "${DEPLOY_USER}@${DROPLET_HOST}:~/${SERVER_DIR}/data/mods/"
+    # Pre-seed the mod hash EXACTLY as deploy.sh computes it, so the first
+    # deploy sees the mod list as unchanged and skips the Modrinth sync.
+    SERVER_STACK_VER=$($SSH_CMD "readlink ~/${SERVER_DIR}/.stack/current 2> /dev/null" || echo "unknown")
+    MOD_INPUTS="${SERVER_STACK_VER}"
+    [[ -f "$PROJECT_DIR/overlay/mods-extra.txt" ]] && MOD_INPUTS+=$(cat "$PROJECT_DIR/overlay/mods-extra.txt")
+    [[ -f "$PROJECT_DIR/overlay/mods-remove.txt" ]] && MOD_INPUTS+=$(cat "$PROJECT_DIR/overlay/mods-remove.txt")
+    MOD_HASH=$(echo "$MOD_INPUTS" | shasum -a 256 | cut -d' ' -f1)
+    $SSH_CMD "echo '${MOD_HASH}' > ~/${SERVER_DIR}/data/.modrinth-hash"
+    step_ok "${MOD_COUNT} mod JARs uploaded, Modrinth sync pre-seeded"
+  else
+    echo "  Skipped - first deploy will download mods from Modrinth."
+  fi
+else
+  echo "  No local mods found (run ./dev up first to enable this shortcut)."
+fi
+
+# =============================================================================
 # 5. Create production .env
 # =============================================================================
 echo ""
