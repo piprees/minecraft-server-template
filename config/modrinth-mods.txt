@@ -7,7 +7,7 @@ fabric-language-kotlin:Pd0xrHCw
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
-c2me-fabric:iFXcxwPb
+c2me-fabric:GC7ouKxZ
 noisium:4sGQgiu2
 servercore:GQ2a51Rl
 chunky:RVFHfo1D
@@ -21,7 +21,7 @@ distanthorizons:g68FsgfE
 
 # === terrain & biomes ===
 tectonic:L87Phsbl
-lithostitched:xziCgMIU
+lithostitched:JWtSqSeY
 terralith:eWDLFabb
 wwoo:JBbDOEnc
 geophilic:jDzSPLta
