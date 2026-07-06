@@ -27,6 +27,11 @@ SERVER_NAME="${HCLOUD_SERVER_NAME:-mc-${BRAND_SLUG:-adventure}}"
 SERVER_IMAGE="ubuntu-24.04"
 FW_NAME="${SERVER_NAME}-fw"
 
+# Used by the create loop AND the final summary - must be set on the
+# "server already exists" path too (set -u).
+CURRENT_TYPE="$HCLOUD_SERVER_TYPE"
+CURRENT_LOCATION="$HCLOUD_LOCATION"
+
 export HCLOUD_TOKEN
 
 require_provider_cli hetzner
