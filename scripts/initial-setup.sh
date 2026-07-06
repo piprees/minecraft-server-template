@@ -54,8 +54,9 @@ set -a
 source .env
 set +a
 
-: "${MC_VERSION:?Set MC_VERSION in .env}"
-: "${SERVER_PORT:?Set SERVER_PORT in .env}"
+# Platform defaults live in docker-compose.yml - a lean .env omits these.
+: "${MC_VERSION:=1.21.1}"
+: "${SERVER_PORT:=25577}"
 : "${RCON_PASSWORD:=}"
 
 echo "==> Deploying server"
