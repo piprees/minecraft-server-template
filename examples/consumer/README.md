@@ -58,6 +58,8 @@ consumer environment loaded:
 ./ops harden                   # lock down SSH, firewall, fail2ban
 ./ops prepare                  # deploy key, .env on server, GitHub env sync
 ./ops cloudflare               # tunnel + DNS records + R2 bucket
+./ops update                   # pull latest bundle + images on server, restart
+./ops update v1.0.18           # pin to a specific release version
 ```
 
 Then push to `main` -- the caller workflow in `.github/workflows/deploy.yml`

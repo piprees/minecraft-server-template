@@ -16,6 +16,7 @@ ALLOWED_COMMANDS=(
   prepare
   github-env-sync
   cloudflare
+  update
   teardown
   kuma-token
   doctor
@@ -77,6 +78,7 @@ case "$CMD" in
   preflight)   script_file="preflight-check" ;;
   prepare)     script_file="prepare-droplet" ;;
   cloudflare)  script_file="cloudflare-setup" ;;
+  update)      script_file="remote-update" ;;
   backup)      script_file="backup-now" ;;
 esac
 
