@@ -382,8 +382,7 @@ jobs:
             $SSH 'cd ~/server && (readlink .stack/current; cat overlay/mods-extra.txt overlay/mods-remove.txt 2>/dev/null) | sha256sum | cut -d" " -f1 > modpack-dist/.modpack-hash'
 
             SHA="${{ steps.meta.outputs.sha }}"
-            MC_VERSION="${{ vars.MC_VERSION }}"
-            PACK_NAME="${MC_VERSION:-unknown}-v${SHA}"
+            PACK_NAME=$($SSH "cd ~/server && . .env && echo \"\${BRAND_SLUG:-server}-\${MC_VERSION:-1.21.1}-v${SHA}\"")
             PLAYER_ROLE_ID="${{ vars.DISCORD_PLAYER_ROLE_ID }}"
             MSG="Modpack updated: **${PACK_NAME}**"
             [[ -n "$PLAYER_ROLE_ID" ]] && MSG="<@&${PLAYER_ROLE_ID}> ${MSG}"
