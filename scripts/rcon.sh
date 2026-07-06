@@ -41,7 +41,7 @@ fi
 
 : "${DROPLET_HOST:?Set DROPLET_HOST in .env (or run with --local)}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
-SSH_KEY="${RCON_SSH_KEY:-$HOME/.ssh/mc_deploy_key}"
+SSH_KEY="${RCON_SSH_KEY:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
 
 if [[ $# -eq 0 ]]; then
   exec ssh -t -i "$SSH_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" 'docker exec -it mc rcon-cli'

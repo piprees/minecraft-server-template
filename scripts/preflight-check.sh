@@ -316,7 +316,7 @@ fi
 # --- GitHub deploy key --------------------------------------------------------
 if [[ $IS_CLOUD -eq 1 ]]; then
   echo -e "\n${BOLD}7. GitHub deploy key${RESET}"
-  DEPLOY_KEY_PUB="${DEPLOY_KEY_PUB:-$HOME/.ssh/mc_deploy_key.pub}"
+  DEPLOY_KEY_PUB="${DEPLOY_KEY_PUB:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key.pub}"
   DEPLOY_KEY_PUB_EXPANDED="${DEPLOY_KEY_PUB/#\~/$HOME}"
   if [[ -f "$DEPLOY_KEY_PUB_EXPANDED" ]]; then
     pass "Deploy public key exists at $DEPLOY_KEY_PUB"

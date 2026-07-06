@@ -32,7 +32,7 @@ load_env
 
 : "${DROPLET_HOST:?Set DROPLET_HOST in .env}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
-SSH_KEY="${DOCTOR_SSH_KEY:-$HOME/.ssh/mc_deploy_key}"
+SSH_KEY="${DOCTOR_SSH_KEY:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
 
 PASS=0
 WARN=0

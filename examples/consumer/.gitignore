@@ -3,3 +3,8 @@
 data/
 modpack-dist/
 backups/
+.setup-state/
+seedtest-data/
+seed-results.csv
+seed-errors.log
+seed-report-*.md

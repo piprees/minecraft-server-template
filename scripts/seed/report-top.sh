@@ -24,10 +24,10 @@ TOP_N="${1:-25}"
 
 # Resolve paths relative to the project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-RESULTS_CSV="${2:-$PROJECT_ROOT/scripts/seed/seed-results.csv}"
-REPORT_FILE="$PROJECT_ROOT/scripts/seed/seed-report-top${TOP_N}.md"
+RESULTS_CSV="${2:-$PROJECT_ROOT/seed-results.csv}"
+REPORT_FILE="$PROJECT_ROOT/seed-report-top${TOP_N}.md"
 
 # ---------------------------------------------------------------------------
 # Preflight

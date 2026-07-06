@@ -100,7 +100,7 @@ elif [[ $CHECK_ONLY -eq 0 ]]; then
 fi
 
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
-DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
+DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
 
 # --- gh preconditions ------------------------------------------------------------
 if ! command -v gh &> /dev/null; then

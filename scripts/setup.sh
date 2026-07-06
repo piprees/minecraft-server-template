@@ -814,6 +814,18 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
   persist_secret CLOUDFLARE_TUNNEL_NAME "$CLOUDFLARE_TUNNEL_NAME"
 
   if [[ $IS_CLOUD -eq 1 ]]; then
+    # --- Deploy SSH key (per-brand: avoids clobbering other servers' keys) ----
+    step "Deploy SSH key"
+    DEPLOY_KEY_PATH="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG}_mc_deploy_key}"
+    if [[ ! -f "$DEPLOY_KEY_PATH" ]]; then
+      ssh-keygen -t ed25519 -f "$DEPLOY_KEY_PATH" -C "${BRAND_SLUG}-deploy" -N '' -q
+      echo -e "  ${GREEN}\u2713${RESET} Generated ${DEPLOY_KEY_PATH}"
+    else
+      echo -e "  ${GREEN}\u2713${RESET} Using existing ${DEPLOY_KEY_PATH}"
+    fi
+    persist_secret DEPLOY_KEY_PATH "$DEPLOY_KEY_PATH"
+    export DEPLOY_KEY_PATH
+
     # --- Cloud provider token -------------------------------------------------
     banner "Cloud Provider: ${TARGET}"
 
@@ -1205,8 +1217,9 @@ echo ""
 
 if ask_yes_no "Start seed rolling?" "N"; then
   echo ""
-  "$SCRIPT_DIR/seed/roll-seeds.sh"
-  "$SCRIPT_DIR/seed/report-top.sh"
+  # Optional feature: a seed-rolling failure must not kill the wizard.
+  run_script "Rolling seeds" "$SCRIPT_DIR/seed/roll-seeds.sh"
+  run_script "Building seed report" "$SCRIPT_DIR/seed/report-top.sh"
 
   echo ""
   step "Choose your seed"
@@ -1312,24 +1325,24 @@ if [[ $IS_CLOUD -eq 1 ]]; then
     echo ""
 
     DEPLOY_USER="${DEPLOY_USER:-deploy}"
-    DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
-    SERVER_DIR="${SERVER_DIR:-$(basename "$PROJECT_DIR")}"
+    DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
+    # Bundle model: the server dir is always ~/server (prepare-droplet.sh
+    # creates it), never the consumer folder's name.
     if [[ -n "$SERVER_IP" ]]; then
       run_script "First deploy on ${SERVER_IP}" \
         ssh -o ConnectTimeout=10 -o ServerAliveInterval=30 -i "$DEPLOY_KEY" \
-        "${DEPLOY_USER}@${SERVER_IP}" "cd ~/${SERVER_DIR} && ./scripts/initial-setup.sh"
+        "${DEPLOY_USER}@${SERVER_IP}" "cd ~/server && .stack/current/stack/scripts/initial-setup.sh"
       info "After this, pushes to main auto-deploy via GitHub Actions."
     fi
 
   else
     echo ""
-    SERVER_DIR="${SERVER_DIR:-$(basename "$PROJECT_DIR")}"
     echo "  Cloud deployment steps (run these when ready):"
     echo ""
-    echo "  1. Provision: ./scripts/provision.sh --provider $TARGET"
-    echo "  2. Harden:    ./scripts/harden.sh --remote root@SERVER_IP"
-    echo "  3. Prepare:   DROPLET_HOST=SERVER_IP ./scripts/prepare-droplet.sh"
-    echo "  4. Deploy:    ssh deploy@SERVER_IP 'cd ~/${SERVER_DIR} && ./scripts/initial-setup.sh'"
+    echo "  1. Provision: ./ops provision"
+    echo "  2. Harden:    ./ops harden"
+    echo "  3. Prepare:   ./ops prepare"
+    echo "  4. Deploy:    ssh deploy@SERVER_IP 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'"
   fi
 
   # ===========================================================================
@@ -1554,14 +1567,13 @@ echo ""
 
 if [[ $IS_CLOUD -eq 1 ]]; then
   DEPLOY_USER="${DEPLOY_USER:-deploy}"
-  SERVER_DIR="${SERVER_DIR:-$(basename "$PROJECT_DIR")}"
   echo "Quick reference:"
   echo ""
   echo "  Local server:     ./scripts/dev-up.sh"
   echo "  Provision:        ./scripts/provision.sh"
   echo "  Harden:           ./scripts/harden.sh --remote root@SERVER_IP"
   echo "  Prepare:          DROPLET_HOST=SERVER_IP ./scripts/prepare-droplet.sh"
-  echo "  First deploy:     ssh ${DEPLOY_USER}@SERVER_IP 'cd ~/${SERVER_DIR} && ./scripts/initial-setup.sh'"
+  echo "  First deploy:     ssh ${DEPLOY_USER}@SERVER_IP 'cd ~/server && .stack/current/stack/scripts/initial-setup.sh'"
   echo "  Cloudflare:       ./scripts/cloudflare-setup.sh"
   echo "  GitHub wiring:    ./scripts/github-env-sync.sh   (verify: --check)"
   echo "  Build modpack:    ./scripts/build-modpack.sh"

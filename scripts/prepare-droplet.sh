@@ -33,7 +33,7 @@ if [[ -f .env ]]; then
 fi
 
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
-DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
+DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
 BRAND_SLUG="${BRAND_SLUG:-adventure}"
 STACK_VERSION="${STACK_VERSION:-v1}"
 SERVER_DIR="server"
@@ -70,8 +70,27 @@ if [[ -z "$REPO_SLUG" ]]; then
 fi
 
 if [[ -z "$REPO_SLUG" ]]; then
-  echo "Could not determine GitHub repo. Set a git remote first."
-  exit 1
+  # A degit'd consumer has no git repo at all - CI/CD needs one. Offer to
+  # create it (private) and push, so the whole flow works from a bare folder.
+  echo "No GitHub repo configured yet - the deploy workflow needs one."
+  if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1 && [[ "${NON_INTERACTIVE:-0}" != "1" ]]; then
+    GH_USER=$(gh api user -q .login 2> /dev/null || true)
+    DEFAULT_SLUG="${GH_USER}/${BRAND_SLUG}"
+    read -rp "  Create private repo ${DEFAULT_SLUG} and push this folder? [Y/n]: " answer
+    if [[ "${answer:-Y}" =~ ^[Yy] ]]; then
+      git rev-parse --is-inside-work-tree > /dev/null 2>&1 || git init -b main
+      git add -A
+      git rev-parse HEAD > /dev/null 2>&1 || git commit -m "feat: initial server config"
+      gh repo create "$DEFAULT_SLUG" --private --source . --remote origin --push
+      REPO_SLUG="$DEFAULT_SLUG"
+    fi
+  fi
+  if [[ -z "$REPO_SLUG" ]]; then
+    echo "  Create one, then re-run:"
+    echo "    git init -b main && git add -A && git commit -m 'feat: initial server config'"
+    echo "    gh repo create <you>/${BRAND_SLUG} --private --source . --remote origin --push"
+    exit 1
+  fi
 fi
 echo "    GitHub repo: ${REPO_SLUG}"
 echo ""

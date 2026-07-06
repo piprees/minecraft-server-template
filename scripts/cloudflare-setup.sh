@@ -364,7 +364,7 @@ echo "=================================================================="
 # Server layout is the bundle model: project dir ~/server, compose mounts
 # ${CLOUDFLARED_DIR:-./cloudflared} - i.e. ~/server/cloudflared/.
 if [[ -n "${DROPLET_HOST:-}" ]]; then
-  DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/mc_deploy_key}"
+  DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
   DEPLOY_USER="${DEPLOY_USER:-deploy}"
   echo ""
   echo "  Syncing tunnel config to server and restarting cloudflared..."

@@ -55,10 +55,10 @@ IMAGE="itzg/minecraft-server:latest"
 CONTAINER_NAME="seedroll"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-RESULTS_CSV="$SCRIPT_DIR/seed-results.csv"
-ERROR_LOG="$SCRIPT_DIR/seed-errors.log"
+RESULTS_CSV="$PROJECT_ROOT/seed-results.csv"
+ERROR_LOG="$PROJECT_ROOT/seed-errors.log"
 WORK_DIR="$PROJECT_ROOT/seedtest-data"
 LOCAL_DATA="$PROJECT_ROOT/data"
 SCORER="$SCRIPT_DIR/score-seed.sh"
@@ -87,7 +87,7 @@ chmod +x "$SCORER"
 
 if ! ls "$LOCAL_DATA/mods/"*.jar &> /dev/null 2>&1; then
   echo "Error: No mods found in data/mods/." >&2
-  echo "  Run ./scripts/dev-up.sh first to download the modpack," >&2
+  echo "  Run ./dev up (or ./scripts/dev-up.sh) first to download the modpack," >&2
   echo "  then re-run this script." >&2
   exit 1
 fi

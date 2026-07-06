@@ -20,7 +20,7 @@ load_env
 : "${DEPLOY_USER:=deploy}"
 : "${DROPLET_HOST:?Set DROPLET_HOST in .env}"
 
-SSH_KEY="$HOME/.ssh/mc_deploy_key"
+SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
 SSH_CMD="ssh -i $SSH_KEY ${DEPLOY_USER}@${DROPLET_HOST}"
 SERVER_DIR="$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")"
 
