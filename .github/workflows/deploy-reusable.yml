@@ -215,6 +215,11 @@ jobs:
             emit ONLINE_MODE TRUE
             emit ENABLE_WHITELIST TRUE
             emit ENFORCE_WHITELIST TRUE
+            # Compose derives the project name from this via the
+            # project-directory .env - without it, the directory name
+            # ("server") is used and a second stack collides with the
+            # first deploy's containers.
+            emit COMPOSE_PROJECT_NAME "${V_BRAND_SLUG:-server}"
             emit BRAND_NAME "$V_BRAND_NAME"
             emit BRAND_SLUG "$V_BRAND_SLUG"
             emit MOTD "$V_MOTD"
