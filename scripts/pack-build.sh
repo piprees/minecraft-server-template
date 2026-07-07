@@ -35,6 +35,10 @@ elif command -v git > /dev/null 2>&1; then
   GIT_SHA=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2> /dev/null || echo "local")
 fi
 
+MODPACK_IMAGE="${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}"
+log "Pulling modpack-builder image..."
+docker pull "$MODPACK_IMAGE" 2>/dev/null || warn "Pull failed, using cached image"
+
 log "Building modpack (${GIT_SHA}) via modpack-builder image..."
 docker run --rm \
   -v "$PROJECT_DIR/overlay:/overlay:ro" \
@@ -46,6 +50,6 @@ docker run --rm \
   -e "SERVER_PORT=${SERVER_PORT:-25577}" \
   -e "GIT_SHA=${GIT_SHA}" \
   -e "DISCORD_INVITE_URL=${DISCORD_INVITE_URL:-}" \
-  "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}"
+  "$MODPACK_IMAGE"
 
 log "Modpack built to $PROJECT_DIR/modpack-dist/"
