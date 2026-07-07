@@ -17,6 +17,7 @@ Output: one JSON object per line (order matches input).
 
 import http.client
 import json
+import os
 import ssl
 import sys
 import time
@@ -30,7 +31,7 @@ class ModrinthAPI:
             "api.modrinth.com", timeout=15, context=ctx
         )
         self.headers = {
-            "User-Agent": "minecraft-adventure-server/modrinth-api",
+            "User-Agent": f"{os.environ.get('BRAND_SLUG', 'adventure')}/modrinth-api",
             "Accept": "application/json",
         }
         self.remaining = 300

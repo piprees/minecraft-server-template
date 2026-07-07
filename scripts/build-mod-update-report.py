@@ -14,13 +14,14 @@ Prints `count=N` and `fixme_count=M` to stdout (GITHUB_OUTPUT format).
 """
 import argparse
 import json
+import os
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 
 API = "https://api.modrinth.com/v2"
-USER_AGENT = "minecraft-adventure-server/mod-update-pr"
+USER_AGENT = f"{os.environ.get('BRAND_SLUG', 'adventure')}/mod-update-pr"
 MAX_BODY_CHARS = 60000
 MAX_CHANGELOG_CHARS = 1500
 FIXME_RE = re.compile(r"#\s*FIXME:\s*no [\d.]+x? build - (\S+)")

@@ -97,7 +97,7 @@ resolve_mod() {
 
   # Get the latest version for our MC version + Fabric
   curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
-    -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$tmpfile"
+    -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
 
   # Take the newest build of ANY channel by default - mod authors keep their
   # own latest sets coherent (supplementaries' release requires sodium's
@@ -218,7 +218,7 @@ for entry in files:
     if not ok:
         try:
             req = urllib.request.Request(entry['downloads'][0],
-                headers={'User-Agent': 'minecraft-adventure-server/build-modpack'})
+                headers={'User-Agent': '${BRAND_SLUG:-adventure}/build-modpack'})
             with urllib.request.urlopen(req, timeout=60) as resp, open(target, 'wb') as out:
                 while True:
                     chunk = resp.read(1 << 20)
@@ -345,7 +345,7 @@ if [[ -n "$RESOURCE_PACKS" ]]; then
     # Resource packs are version-agnostic, so don't filter by game_versions
     rp_tmpfile="$(mktemp)"
     curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
-      -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$rp_tmpfile"
+      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$rp_tmpfile"
 
     rp_info=$(python3 -c "
 import json, sys
@@ -396,7 +396,7 @@ if [[ -n "$SHADER_PACKS" ]]; then
 
     sp_tmpfile="$(mktemp)"
     curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
-      -H "User-Agent: minecraft-adventure-server/build-modpack" -o "$sp_tmpfile"
+      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$sp_tmpfile"
 
     sp_info=$(python3 -c "
 import json, sys

@@ -76,7 +76,7 @@ def call(method, path, payload=None):
         api + path,
         data=json.dumps(payload).encode() if payload is not None else None,
         headers={"Authorization": f"Bot {token}", "Content-Type": "application/json",
-                 "User-Agent": "minecraft-adventure-server/pin-sync"},
+                 "User-Agent": f"{os.environ.get('BRAND_SLUG', 'adventure')}/pin-sync"},
         method=method,
     )
     try:

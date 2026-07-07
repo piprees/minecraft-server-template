@@ -206,7 +206,7 @@ for m in cm.get('required', []) + cm.get('optional', []):
       MODRINTH_TMP=$(mktemp)
       curl -s --max-time 10 \
         "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
-        -H "User-Agent: minecraft-adventure-server/cache-assets" \
+        -H "User-Agent: ${BRAND_SLUG:-adventure}/cache-assets" \
         -o "$MODRINTH_TMP" 2>/dev/null || echo "[]" > "$MODRINTH_TMP"
 
       dl_info=$(python3 -c "
