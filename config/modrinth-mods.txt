@@ -55,7 +55,7 @@ dungeons-and-taverns:EUlNXs9V
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
 adventure-dungeons:EIun1fbq
-epic-structures-dungeons:59vSrRUg
+epic-structures-dungeons:gwmJ4Ez4
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
@@ -141,7 +141,7 @@ netherportalfix:9KrnphgC
 waystones:CxLc6vVg
 nether-portal-spread:KkeWVnMV
 fallingtree:wxGXaJMA
-carry-on:dmotghAy
+carry-on:eFWFmwmL
 bountiful:LFm1BWOE
 lootr:eYyx60ld
 better-combat:nsxmEb8y
