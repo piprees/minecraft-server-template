@@ -13,6 +13,18 @@ updates:
       - dependencies
       - ci
 
+  # Docker: compose file (third-party images: itzg, nginx, kuma, etc.)
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
+    labels:
+      - dependencies
+      - docker
+
   # Docker: custom sidecar Dockerfiles
   - package-ecosystem: docker
     directory: /docker/discord-sync

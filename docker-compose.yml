@@ -65,7 +65,7 @@ services:
   # a valid Mojang session for throwaway test worlds.
   # ==========================================================================
   mc:
-    image: itzg/minecraft-server:2026.6.1-java21
+    image: itzg/minecraft-server:2026.7.0-java21
     container_name: "${CONTAINER_PREFIX:-}mc"
     ports:
       # Game port - non-default to reduce automated 25565 scanning noise.
@@ -171,7 +171,7 @@ services:
   # Local profile only.
   # ==========================================================================
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: minio/minio:RELEASE.2025-10-15T17-29-55Z
     container_name: "${CONTAINER_PREFIX:-}minio"
     command: server /data --console-address ":9001"
     environment:
@@ -218,7 +218,7 @@ services:
   # mc-backup-local - Backups to local MinIO (same interface as production)
   # ==========================================================================
   mc-backup-local:
-    image: itzg/mc-backup:2026.6.2
+    image: itzg/mc-backup:2026.7.0
     container_name: "${CONTAINER_PREFIX:-}mc-backup-local"
     depends_on:
       mc:
@@ -263,7 +263,7 @@ services:
   # worlds.
   # ==========================================================================
   mc-backup:
-    image: itzg/mc-backup:2026.6.2
+    image: itzg/mc-backup:2026.7.0
     container_name: "${CONTAINER_PREFIX:-}mc-backup"
     depends_on:
       mc:
@@ -316,7 +316,7 @@ services:
   # Both profiles.
   # ==========================================================================
   uptime-kuma:
-    image: louislam/uptime-kuma:1.23.17
+    image: louislam/uptime-kuma:2.4.0
     container_name: "${CONTAINER_PREFIX:-}uptime-kuma"
     ports:
       # Bound to localhost - not accessible from the internet.
@@ -382,7 +382,7 @@ services:
   # every HTML page. Cloudflared routes all subdomains here.
   # ==========================================================================
   nav-proxy:
-    image: nginx:1.27-alpine
+    image: nginx:1.30.3-alpine
     container_name: "${CONTAINER_PREFIX:-}nav-proxy"
     # Stage the seeded template, then re-run the image entrypoint so its
     # envsubst hook (which already ran before this command) renders it.
@@ -444,7 +444,7 @@ services:
   # Both profiles.
   # ==========================================================================
   pack-web:
-    image: nginx:1.27-alpine
+    image: nginx:1.30.3-alpine
     container_name: "${CONTAINER_PREFIX:-}pack-web"
     # No host port - nav-proxy and cloudflared reach pack-web via Docker DNS.
     # For direct debugging: docker compose exec pack-web curl localhost:80

@@ -95,11 +95,11 @@ if [[ $DO_IMAGES -eq 1 ]]; then
   # Fallback if grep found nothing
   if [[ ${#IMAGES[@]} -eq 0 ]]; then
     IMAGES=(
-      "itzg/minecraft-server:2026.6.1-java21"
-      "itzg/mc-backup:2026.6.2"
-      "louislam/uptime-kuma:1.23.17"
+      "itzg/minecraft-server:2026.7.0-java21"
+      "itzg/mc-backup:2026.7.0"
+      "louislam/uptime-kuma:2.4.0"
       "cloudflare/cloudflared:2026.6.1"
-      "nginx:1.27-alpine"
+      "nginx:1.30.3-alpine"
       "python:3.14-alpine"
       "alpine:3.24"
     )
