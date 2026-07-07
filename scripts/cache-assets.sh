@@ -183,8 +183,15 @@ if [[ $DO_CLIENT -eq 1 ]]; then
   else
     mkdir -p "$CLIENT_MOD_CACHE" "$CLIENT_BUNDLE_DIR"
 
-    # --- 3a. Download all client mod JARs from Modrinth ---
+    # --- 3a. Download client mod JARs (mirror first, Modrinth fallback) ---
+    # If build-modpack.sh has already run, modpack/dist/mods/ contains
+    # hash-verified client mod JARs. Copy from there when available to
+    # avoid redundant Modrinth API calls and rate limits.
+    MIRROR_DIR="$PROJECT_DIR/modpack/dist/mods"
     echo "  Resolving and downloading client mod JARs..."
+    if [[ -d "$MIRROR_DIR" ]] && ls "$MIRROR_DIR/"*.jar &> /dev/null 2>&1; then
+      echo "  (using modpack/dist/mods/ mirror as primary source)"
+    fi
 
     # Extract all client mod slugs (required + optional)
     ALL_CLIENT_MODS=$(python3 -c "
@@ -197,13 +204,14 @@ for m in cm.get('required', []) + cm.get('optional', []):
 ")
 
     downloaded=0
+    mirrored=0
     skipped=0
     failed=0
 
     while IFS= read -r slug; do
       [[ -z "$slug" ]] && continue
 
-      # Resolve the latest version from Modrinth
+      # Resolve the latest version from Modrinth (needed for filename + hash)
       sleep 0.5
       MODRINTH_TMP=$(mktemp)
       curl -s --max-time 10 \
@@ -253,6 +261,14 @@ except:
         [[ -f "$old" && "$(basename "$old")" != "$filename" ]] && rm -f "$old"
       done
 
+      # Try the mirror first (already hash-verified by build-modpack.sh)
+      if [[ -f "$MIRROR_DIR/$filename" ]]; then
+        cp "$MIRROR_DIR/$filename" "$CLIENT_MOD_CACHE/$filename"
+        mirrored=$((mirrored + 1))
+        continue
+      fi
+
+      # Fall back to Modrinth download
       if curl -sL --max-time 60 -o "$CLIENT_MOD_CACHE/$filename" "$url"; then
         if [[ -n "$want_hash" ]]; then
           got_hash=$(shasum -a 512 "$CLIENT_MOD_CACHE/$filename" | cut -d' ' -f1)
@@ -273,7 +289,7 @@ except:
     done <<< "$ALL_CLIENT_MODS"
 
     total_client=$(ls "$CLIENT_MOD_CACHE/"*.jar 2> /dev/null | wc -l | tr -d " " || echo 0)
-    echo "  Client mods: $total_client cached ($downloaded new, $skipped unchanged, $failed failed)"
+    echo "  Client mods: $total_client cached ($mirrored from mirror, $downloaded from Modrinth, $skipped unchanged, $failed failed)"
     echo ""
 
     # --- 3b. Build offline .mrpack (JARs in overrides/mods/) ---

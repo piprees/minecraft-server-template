@@ -170,6 +170,30 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$CONSUMER_DIR"
 fi
 
+# --- Pre-seed mods from mirror/cache -----------------------------------------
+# If modpack/dist/mods/ (the mod mirror) or cache/server-mods/ exists, copy
+# any JARs into data/mods/ that aren't already there. itzg skips downloading
+# mods it already has, so this reduces Modrinth API calls and avoids rate
+# limits on first boot. The mirror has client mods (overlaps ~70% with server
+# mods); the server-mods cache has the full set after a previous boot.
+MOD_DIR="$CONSUMER_DIR/data/mods"
+SEEDED=0
+for src_dir in "$CONSUMER_DIR/cache/server-mods" "$CONSUMER_DIR/modpack/dist/mods" \
+               "$STACK_DIR/../modpack/dist/mods"; do
+  if [[ -d "$src_dir" ]] && ls "$src_dir/"*.jar &> /dev/null 2>&1; then
+    for jar in "$src_dir/"*.jar; do
+      dest="$MOD_DIR/$(basename "$jar")"
+      if [[ ! -f "$dest" ]]; then
+        cp "$jar" "$dest"
+        SEEDED=$((SEEDED + 1))
+      fi
+    done
+  fi
+done
+if [[ $SEEDED -gt 0 ]]; then
+  echo "  Pre-seeded $SEEDED mod JARs from local mirror/cache"
+fi
+
 # --- Modrinth hash-gating ----------------------------------------------------
 # Only re-sync mods when the merged mod list changes (or on first boot).
 MODRINTH_OVERRIDE="$CONSUMER_DIR/.modrinth-override.yml"
