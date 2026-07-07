@@ -11,8 +11,5 @@ COPY scripts/idle-tasks.sh /app/
 
 RUN chmod +x /app/idle-tasks.sh
 
-RUN adduser -D -u 1000 app
-
-USER app
 WORKDIR /app
 CMD ["bash", "/app/idle-tasks.sh"]

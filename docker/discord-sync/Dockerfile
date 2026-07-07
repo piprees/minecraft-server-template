@@ -12,8 +12,5 @@ RUN pip install --no-cache-dir -r /app/requirements-discord-sync.txt
 
 COPY scripts/discord-sync.py /app/
 
-RUN addgroup -S app && adduser -S -G app app
-
-USER app
 WORKDIR /app
 CMD ["python3", "/app/discord-sync.py"]

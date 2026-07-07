@@ -40,8 +40,6 @@ COPY config/servercore/                /defaults/config/servercore/
 COPY config/bluemap/                   /defaults/config/bluemap/
 
 COPY docker/defaults-seed/seed.sh /seed.sh
-RUN chmod +x /seed.sh \
- && adduser -D -u 1000 seed
+RUN chmod +x /seed.sh
 
-USER seed
 ENTRYPOINT ["/seed.sh"]

@@ -21,8 +21,5 @@ COPY docker/modpack-builder/merge-manifest.py /app/merge-manifest.py
 
 RUN chmod +x /app/*.sh /app/*.py
 
-RUN addgroup -S app && adduser -S -G app app
-
-USER app
 WORKDIR /work
 ENTRYPOINT ["/app/entrypoint.sh"]

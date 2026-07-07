@@ -13,8 +13,5 @@ COPY docker/mod-checker/entrypoint.sh /app/
 
 RUN chmod +x /app/entrypoint.sh /app/scripts/check-updates.sh
 
-RUN addgroup -S app && adduser -S -G app app
-
-USER app
 WORKDIR /app
 CMD ["/app/entrypoint.sh"]
