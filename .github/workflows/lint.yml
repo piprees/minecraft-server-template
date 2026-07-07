@@ -74,14 +74,40 @@ jobs:
 
       - name: Check all ops/dev commands resolve to manifest entries
         run: |
-          MANIFEST=$(grep -oP "scripts/\S+\.sh" scripts/build-stack-bundle.sh)
+          MANIFEST=$(grep -oE "scripts/[^ \")]+\.sh" scripts/build-stack-bundle.sh | sort -u)
           ERRORS=0
 
-          # Every script_file case in ops must be in the manifest
-          for cmd in $(grep -oP 'script_file="\K[^"]+' examples/consumer/ops); do
+          # Build the resolved script list from the ops case statement.
+          # Each explicit script_file="X" mapping, plus every ALLOWED_COMMANDS
+          # entry that has no mapping (defaults to the command name itself).
+          MAPPED=$(grep -oE 'script_file="[^"]+"' examples/consumer/ops \
+            | sed 's/script_file="//;s/"//' | sort -u)
+
+          # Commands with explicit mappings
+          for script in $MAPPED; do
+            target="scripts/${script}.sh"
+            if ! echo "$MANIFEST" | grep -qF "$target"; then
+              echo "::error::ops script_file='$script' maps to $target which is missing from build-stack-bundle.sh MANIFEST"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          # Commands that use the default (script_file="$CMD" -> command name)
+          # Extract ALLOWED_COMMANDS entries, subtract those with explicit mappings
+          ALLOWED=$(sed -n '/ALLOWED_COMMANDS=(/,/)/p' examples/consumer/ops \
+            | grep -oE '[a-z][-a-z]*' | sort -u)
+          # Commands that have a case mapping (the left side of the =>)
+          CASE_CMDS=$(grep -oE '[a-z|][-a-z|]*\)' examples/consumer/ops \
+            | tr '|)' '\n' | grep -v '^$' | sort -u)
+
+          for cmd in $ALLOWED; do
+            # Skip commands that have an explicit case mapping (already checked via MAPPED)
+            if echo "$CASE_CMDS" | grep -qxF "$cmd"; then
+              continue
+            fi
             target="scripts/${cmd}.sh"
             if ! echo "$MANIFEST" | grep -qF "$target"; then
-              echo "::error::ops command '$cmd' maps to $target which is missing from build-stack-bundle.sh MANIFEST"
+              echo "::error::ops command '$cmd' has no case mapping and scripts/${cmd}.sh is missing from build-stack-bundle.sh MANIFEST"
               ERRORS=$((ERRORS + 1))
             fi
           done
@@ -89,7 +115,8 @@ jobs:
           # Every script sourced/exec'd by bundle scripts should be in the manifest
           for script in $(echo "$MANIFEST" | grep '^scripts/'); do
             if [ -f "$script" ]; then
-              for ref in $(grep -ohP '\$SCRIPT_DIR/\K[\w-]+\.sh' "$script" 2>/dev/null || true); do
+              for ref in $(grep -oE '\$SCRIPT_DIR/[a-z][-a-z]*\.sh' "$script" 2>/dev/null \
+                | sed 's|\$SCRIPT_DIR/||' || true); do
                 target="scripts/$ref"
                 if [ -f "$target" ] && ! echo "$MANIFEST" | grep -qF "$target"; then
                   echo "::error::$script references $target which is missing from build-stack-bundle.sh MANIFEST"
