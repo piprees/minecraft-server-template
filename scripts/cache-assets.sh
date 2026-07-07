@@ -22,7 +22,7 @@ if [[ -f .env ]]; then
 fi
 
 MC_VERSION="${MC_VERSION:-1.21.1}"
-PACK_VERSION="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+PACK_VERSION="$(git rev-parse --short HEAD 2> /dev/null || echo unknown)"
 PACK_NAME="${BRAND_SLUG:-adventure}-${MC_VERSION}-v${PACK_VERSION}"
 
 CACHE_DIR="$PROJECT_DIR/cache"
@@ -111,11 +111,14 @@ if [[ $DO_IMAGES -eq 1 ]]; then
     tarball="$IMAGE_CACHE/${safe_name}.tar"
 
     # Pull if not present locally
-    img_id=$(docker image inspect "$img" --format '{{.Id}}' 2>/dev/null || true)
+    img_id=$(docker image inspect "$img" --format '{{.Id}}' 2> /dev/null || true)
     if [[ -z "$img_id" ]]; then
       echo "  Pulling $img..."
-      docker pull "$img" 2>/dev/null || { echo "  ⚠ Failed to pull $img"; continue; }
-      img_id=$(docker image inspect "$img" --format '{{.Id}}' 2>/dev/null || true)
+      docker pull "$img" 2> /dev/null || {
+        echo "  ⚠ Failed to pull $img"
+        continue
+      }
+      img_id=$(docker image inspect "$img" --format '{{.Id}}' 2> /dev/null || true)
     fi
 
     # Store the image ID alongside the tarball for staleness checks
@@ -196,7 +199,6 @@ for m in cm.get('required', []) + cm.get('optional', []):
     downloaded=0
     skipped=0
     failed=0
-    updated=0
 
     while IFS= read -r slug; do
       [[ -z "$slug" ]] && continue
@@ -207,7 +209,7 @@ for m in cm.get('required', []) + cm.get('optional', []):
       curl -s --max-time 10 \
         "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
         -H "User-Agent: ${BRAND_SLUG:-adventure}/cache-assets" \
-        -o "$MODRINTH_TMP" 2>/dev/null || echo "[]" > "$MODRINTH_TMP"
+        -o "$MODRINTH_TMP" 2> /dev/null || echo "[]" > "$MODRINTH_TMP"
 
       dl_info=$(python3 -c "
 import json, sys
@@ -224,7 +226,7 @@ try:
             break
 except:
     sys.exit(1)
-" "$MODRINTH_TMP" 2>/dev/null) || true
+" "$MODRINTH_TMP" 2> /dev/null) || true
       rm -f "$MODRINTH_TMP"
 
       if [[ -z "$dl_info" ]]; then
