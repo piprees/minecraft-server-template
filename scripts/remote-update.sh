@@ -25,16 +25,19 @@ SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
 SSH_CMD="ssh -i $SSH_KEY ${DEPLOY_USER}@${DROPLET_HOST}"
 
 IMAGES_ONLY=0
+NO_RESTART=0
 VERSION=""
 
 for arg in "$@"; do
   case "$arg" in
     --images-only) IMAGES_ONLY=1 ;;
+    --no-restart) NO_RESTART=1 ;;
     --help | -h)
-      echo "Usage: ./ops update [version] [--images-only]"
+      echo "Usage: ./ops update [version] [--images-only] [--no-restart]"
       echo ""
       echo "  version       Pin to a specific release (e.g. v1.0.18)"
       echo "  --images-only Skip bundle pull, just update images + restart"
+      echo "  --no-restart  Pull bundle + images + rebuild pack, skip mc restart"
       exit 0
       ;;
     *)
@@ -64,8 +67,12 @@ fi
 log "Pulling updated Docker images on server..."
 $SSH_CMD "cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud pull"
 
-log "Restarting stack..."
-$SSH_CMD "cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive"
+if [[ $NO_RESTART -eq 0 ]]; then
+  log "Restarting stack..."
+  $SSH_CMD "cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive"
+else
+  log "Skipping restart (--no-restart)"
+fi
 
 log "Rebuilding modpack..."
 $SSH_CMD "cd ~/server && .stack/current/stack/scripts/pack-build.sh" \
