@@ -19,6 +19,7 @@ usage() {
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  update   Pull the latest stack bundle + Docker images"
+  echo "  sync     Update everything: local down, update, server update, local up"
 }
 
 ensure_env() {
@@ -109,6 +110,22 @@ case "$CMD" in
       --project-directory "$CONSUMER_DIR" \
       --profile local pull
     echo "Stack and images updated."
+    ;;
+  sync)
+    ensure_env
+    ensure_stack
+    echo "==> Stopping local stack..."
+    export CONSUMER_DIR
+    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down
+    echo ""
+    echo "==> Updating local bundle + images..."
+    bash "$CONSUMER_DIR/dev" update
+    echo ""
+    echo "==> Updating server..."
+    bash "$CONSUMER_DIR/ops" update --quick "$@"
+    echo ""
+    echo "==> Starting local stack..."
+    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
     ;;
   help | --help | -h)
     usage
