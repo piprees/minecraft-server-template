@@ -12,9 +12,8 @@
 #   ./dev start nav-proxy
 #   ./dev stop uptime-kuma
 #
-# Does NOT restart mc - use deploy.sh for that (it handles countdowns, kicks,
-# config sync, and whitelist restoration). Restarting mc directly skips all of
-# that and risks data loss.
+# For mc, prefer deploy.sh (handles countdowns, kicks, config sync, whitelist).
+# This script does a raw docker compose start/stop/restart — no safety dance.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -48,9 +47,7 @@ usage() {
   echo "  restart  Force-recreate a service"
   echo "  status   Show container status (all if no service named)"
   echo ""
-  echo "Services: ${SERVICES[*]}"
-  echo ""
-  echo "mc is excluded - use deploy.sh for safe restarts."
+  echo "Services: mc ${SERVICES[*]}"
 }
 
 if [[ -z "$ACTION" || "$ACTION" == "help" || "$ACTION" == "--help" ]]; then
@@ -105,10 +102,6 @@ fi
 case "$ACTION" in
   start)
     for svc in "${targets[@]}"; do
-      if [[ "$svc" == "mc" ]]; then
-        warn "Skipping mc - use deploy.sh for safe restarts."
-        continue
-      fi
       echo "Starting $svc..."
       compose_cmd up -d --no-deps "$svc" \
         && echo "  $svc started" \
@@ -117,10 +110,6 @@ case "$ACTION" in
     ;;
   stop)
     for svc in "${targets[@]}"; do
-      if [[ "$svc" == "mc" ]]; then
-        warn "Skipping mc - use deploy.sh for safe restarts."
-        continue
-      fi
       echo "Stopping $svc..."
       compose_cmd stop "$svc" \
         && echo "  $svc stopped" \
@@ -129,10 +118,6 @@ case "$ACTION" in
     ;;
   restart)
     for svc in "${targets[@]}"; do
-      if [[ "$svc" == "mc" ]]; then
-        warn "Skipping mc - use deploy.sh for safe restarts."
-        continue
-      fi
       echo "Recreating $svc..."
       compose_cmd up -d --force-recreate --no-deps "$svc" \
         && echo "  $svc recreated" \
