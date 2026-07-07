@@ -95,6 +95,9 @@ case "$CMD" in
         chmod +x "$CONSUMER_DIR/$f"
       fi
     done
+    if [[ -f "$STACK_DIR/.env.example" ]]; then
+      cp "$STACK_DIR/.env.example" "$CONSUMER_DIR/.env.example"
+    fi
     ensure_env
     set -a
     # shellcheck disable=SC1091
