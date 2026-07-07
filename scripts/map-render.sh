@@ -88,10 +88,17 @@ fi
 echo "Setting render threads to ${RENDER_THREADS}..."
 set_threads "$RENDER_THREADS"
 
-# --- Trigger force-update ----------------------------------------------------
+# --- Trigger force-update (retry if BlueMap is still loading) ----------------
 for m in "${MAPS[@]}"; do
   echo "Force-updating $m..."
-  rcon_remote "bluemap force-update $m"
+  for _ in 1 2 3 4 5; do
+    RESULT=$(rcon_remote "bluemap force-update $m" || echo "")
+    if echo "$RESULT" | grep -qi "still loading"; then
+      sleep 3
+    else
+      break
+    fi
+  done
 done
 echo ""
 
