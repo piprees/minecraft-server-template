@@ -67,4 +67,12 @@ $SSH_CMD "cd ~/server && docker compose --project-directory . -f .stack/current/
 log "Restarting stack..."
 $SSH_CMD "cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive"
 
+log "Rebuilding modpack..."
+$SSH_CMD "cd ~/server && .stack/current/stack/scripts/pack-build.sh" \
+  || warn "Modpack build failed (non-fatal)"
+
+log "Refreshing kuma-init..."
+$SSH_CMD "cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud up -d --force-recreate --no-deps kuma-init" \
+  || warn "kuma-init refresh failed (non-fatal)"
+
 log "Update complete."
