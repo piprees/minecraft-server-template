@@ -12,10 +12,13 @@
 # Discord ping only when mod content actually changed). pack-web (nginx)
 # serves dist/ at pack.DOMAIN.
 #
-# Mod JARs are also mirrored into dist/mods/ and listed as the FIRST download
-# URL in the index (Modrinth CDN second) - Cloudflare edge-caches the JARs,
-# launchers hash-verify and fall back automatically, so pack installs survive
-# a Modrinth outage entirely and rebuilds of an unchanged list need no network.
+# Mod JARs are mirrored into dist/mods/ — both client mods (listed as the
+# FIRST download URL in the pack index, Modrinth CDN second) AND server mods
+# (from config/modrinth-mods.txt, resolved via the bulk /v2/versions API).
+# Cloudflare edge-caches the JARs, launchers hash-verify and fall back
+# automatically, so pack installs survive a Modrinth outage entirely,
+# rebuilds of an unchanged list need no network, and dev-up.sh / CI can
+# pre-seed data/mods/ from the mirror to avoid Modrinth rate limits.
 #
 # Usage:
 #   ./scripts/build-modpack.sh
@@ -201,6 +204,7 @@ with open('$FILES_TMPFILE') as f:
 
 mirror_dir = '$MIRROR_DIR'
 domain = '${DOMAIN:-example.com}'
+ua = '${BRAND_SLUG:-adventure}/build-modpack'
 
 def sha512_of(path):
     h = hashlib.sha512()
@@ -209,40 +213,86 @@ def sha512_of(path):
             h.update(chunk)
     return h.hexdigest()
 
-kept, fetched, modrinth_only = set(), 0, 0
+def fetch_jar(url, target, want_hash):
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': ua})
+        with urllib.request.urlopen(req, timeout=60) as resp, open(target, 'wb') as out:
+            while True:
+                chunk = resp.read(1 << 20)
+                if not chunk:
+                    break
+                out.write(chunk)
+        if want_hash and sha512_of(target) != want_hash:
+            os.remove(target)
+            return False
+        return True
+    except Exception as e:
+        print(f'  ! {os.path.basename(target)}: fetch failed ({e})', file=sys.stderr)
+        if os.path.exists(target):
+            os.remove(target)
+        return False
+
+# --- Mirror client mod JARs ---
+kept, client_fetched, modrinth_only = set(), 0, 0
 for entry in files:
     filename = entry['path'].split('/', 1)[1]
     target = os.path.join(mirror_dir, filename)
     want = entry.get('hashes', {}).get('sha512', '')
     ok = os.path.isfile(target) and (not want or sha512_of(target) == want)
     if not ok:
-        try:
-            req = urllib.request.Request(entry['downloads'][0],
-                headers={'User-Agent': '${BRAND_SLUG:-adventure}/build-modpack'})
-            with urllib.request.urlopen(req, timeout=60) as resp, open(target, 'wb') as out:
-                while True:
-                    chunk = resp.read(1 << 20)
-                    if not chunk:
-                        break
-                    out.write(chunk)
-            ok = not want or sha512_of(target) == want
-            if ok:
-                fetched += 1
-            else:
-                print(f'  ! {filename}: hash mismatch after download', file=sys.stderr)
-        except Exception as e:
-            print(f'  ! {filename}: mirror fetch failed ({e})', file=sys.stderr)
-            ok = False
-        if not ok and os.path.exists(target):
-            os.remove(target)
+        ok = fetch_jar(entry['downloads'][0], target, want)
+        if ok:
+            client_fetched += 1
     if ok:
         kept.add(filename)
         entry['downloads'] = [f'https://mods.{domain}/mods/{quote(filename)}'] + entry['downloads']
     else:
         modrinth_only += 1
 
-# Prune mirror JARs no longer referenced (superseded mod versions). Old pack
-# versions still resolve via their Modrinth fallback URLs.
+# --- Mirror server mod JARs (expands the mirror beyond client-only mods) ---
+server_mods_file = '$PROJECT_DIR/config/modrinth-mods.txt'
+server_fetched = 0
+if os.path.isfile(server_mods_file):
+    version_ids = []
+    for line in open(server_mods_file):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('datapack:'):
+            line = line[len('datapack:'):]
+        parts = line.rstrip('?').split(':')
+        if len(parts) == 2:
+            version_ids.append(parts[1])
+
+    # Bulk-resolve version IDs (one API call instead of ~150)
+    if version_ids:
+        ids_json = json.dumps(version_ids)
+        url = f'https://api.modrinth.com/v2/versions?ids={quote(ids_json)}'
+        req = urllib.request.Request(url, headers={'User-Agent': ua})
+        try:
+            versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
+        except Exception as e:
+            print(f'  ! Server mod bulk resolve failed ({e})', file=sys.stderr)
+            versions = []
+
+        for ver in versions:
+            for f in ver.get('files', []):
+                if f.get('primary', False):
+                    filename = f['filename']
+                    if filename in kept:
+                        break  # already mirrored from client mods
+                    target = os.path.join(mirror_dir, filename)
+                    want = f['hashes'].get('sha512', '')
+                    ok = os.path.isfile(target) and (not want or sha512_of(target) == want)
+                    if not ok:
+                        ok = fetch_jar(f['url'], target, want)
+                        if ok:
+                            server_fetched += 1
+                    if ok:
+                        kept.add(filename)
+                    break
+
+# --- Prune mirror JARs no longer referenced by either mod list ---
 pruned = 0
 for existing in os.listdir(mirror_dir):
     if existing.endswith('.jar') and existing not in kept:
@@ -265,7 +315,9 @@ index = {
 with open('$WORK_DIR/modrinth.index.json', 'w') as f:
     json.dump(index, f, indent=2)
 
-print(f'  {len(files)} mods resolved: {len(kept)} mirrored ({fetched} newly fetched, {pruned} pruned), {modrinth_only} Modrinth-only')
+total = len(kept)
+print(f'  {len(files)} client + {total - len(files) + modrinth_only} server mods resolved')
+print(f'  {total} mirrored ({client_fetched} client + {server_fetched} server newly fetched, {pruned} pruned), {modrinth_only} client Modrinth-only')
 "
 rm -f "$FILES_TMPFILE"
 
