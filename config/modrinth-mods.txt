@@ -17,7 +17,7 @@ modernfix:NnNX8LBn
 clumps:3ene3W1l
 
 # === distance ===
-distanthorizons:g68FsgfE
+distanthorizons:ZpKb4kZp
 
 # === terrain & biomes ===
 tectonic:L87Phsbl
