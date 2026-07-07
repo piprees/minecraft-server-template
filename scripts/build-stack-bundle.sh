@@ -64,7 +64,11 @@ MANIFEST=(
   scripts/cache-assets.sh
   scripts/dev-up.sh
   scripts/pack-build.sh
+  scripts/remote-update.sh
   config/messages.json
+  examples/consumer/dev
+  examples/consumer/ops
+  examples/consumer/stack-pull.sh
 )
 
 echo "Building stack bundle v${VERSION}..."
@@ -82,7 +86,7 @@ if [[ $errors -gt 0 ]]; then
 fi
 
 rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR/stack/scripts/seed"
+mkdir -p "$STAGING_DIR/stack/scripts/seed" "$STAGING_DIR/stack/examples/consumer"
 
 echo "$VERSION" > "$STAGING_DIR/stack/VERSION"
 

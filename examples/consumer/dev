@@ -86,12 +86,20 @@ case "$CMD" in
     ;;
   update)
     bash "$CONSUMER_DIR/stack-pull.sh"
+    STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
+    # Sync consumer entry points from the bundle
+    for f in dev ops stack-pull.sh; do
+      src="$STACK_DIR/examples/consumer/$f"
+      if [[ -f "$src" ]]; then
+        cp "$src" "$CONSUMER_DIR/$f"
+        chmod +x "$CONSUMER_DIR/$f"
+      fi
+    done
     ensure_env
     set -a
     # shellcheck disable=SC1091
     source "$CONSUMER_DIR/.env"
     set +a
-    STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
     docker compose \
       -f "$STACK_DIR/docker-compose.yml" \
       -f "$STACK_DIR/docker-compose.local.yml" \
