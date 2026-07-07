@@ -23,7 +23,7 @@ if [[ "${1:-}" == "--remote" ]]; then
   KEY="${HOME}/.ssh/mc_deploy_key"
 
   read -rp "TOTP code: " TOTP_CODE
-  SERVER_DIR=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")
+  SERVER_DIR="server"
   TOKEN=$(ssh -i "$KEY" "deploy@${HOST}" "
     docker run --rm --network ${SERVER_DIR}_default python:3.13-alpine sh -c '
       pip install -q uptime-kuma-api 2>/dev/null

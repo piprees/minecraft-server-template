@@ -69,7 +69,7 @@ echo "=============================================="
 # Everything below runs in ONE ssh session on the server, emitting
 # "LEVEL<TAB>message" lines that the local loop colours and counts.
 # The heredoc is quoted: nothing here expands locally.
-SERVER_DIR="$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")"
+SERVER_DIR="server"
 REMOTE_OUTPUT=$(ssh -i "$SSH_KEY" -o ConnectTimeout=10 -o BatchMode=yes \
   "${DEPLOY_USER}@${DROPLET_HOST}" bash -s -- "$SERVER_DIR" << 'REMOTE' 2> /dev/null
 set -u

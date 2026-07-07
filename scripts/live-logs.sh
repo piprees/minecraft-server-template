@@ -31,7 +31,7 @@ fi
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 SSH_CMD="ssh ${DEPLOY_USER}@${DROPLET_HOST}"
 TAIL_LINES=100
-SERVER_DIR="$(basename "$(git -C "$PROJECT_DIR" rev-parse --show-toplevel 2>/dev/null || echo server)")"
+SERVER_DIR="server"
 CONFIG_DIR="$HOME/.config/minecraft-server"
 SELECTION_FILE="$CONFIG_DIR/log-selection"
 

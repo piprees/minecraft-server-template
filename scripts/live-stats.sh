@@ -14,7 +14,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 load_env
-SERVER_DIR="$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")"
+SERVER_DIR="server"
 
 : "${DROPLET_HOST:?Set DROPLET_HOST in .env or environment}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
