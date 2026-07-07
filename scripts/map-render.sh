@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # map-render.sh - Force-render all BlueMap maps with progress tracking.
 #
-# Bumps render threads for speed, triggers force-update on all maps,
-# polls progress until complete, then resets threads. Safe to Ctrl+C —
-# rendering continues server-side, threads reset on next idle cycle.
+# Bumps render threads via core.conf for speed, triggers force-update on
+# all maps, polls progress until complete, then resets threads to 1.
+# Safe to Ctrl+C — rendering continues server-side.
 #
 # Usage (via ops):
 #   ./ops map render              # force-update all maps, poll progress
@@ -11,9 +11,8 @@
 #   ./ops map status              # one-shot progress check
 #   ./ops map threads 2           # set render threads manually
 #
-# The render threads are temporarily raised to RENDER_THREADS (default 3)
-# for the duration of the render, then reset to 1. The game server stays
-# responsive — BlueMap throttles itself between tile batches.
+# BlueMap's render-thread-count is a config file setting (core.conf), not
+# an RCON command. This script edits it via SSH, then reloads BlueMap.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,9 +26,17 @@ SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
 SSH_CMD="ssh -i $SSH_KEY ${DEPLOY_USER}@${DROPLET_HOST}"
 
 RENDER_THREADS="${RENDER_THREADS:-3}"
+BM_CORE="server/data/config/bluemap/core.conf"
 
 rcon_remote() {
   $SSH_CMD "docker exec mc rcon-cli '$*'" 2>/dev/null
+}
+
+set_threads() {
+  local count="$1"
+  $SSH_CMD "sed -i 's/^render-thread-count: .*/render-thread-count: $count/' ~/$BM_CORE" 2>/dev/null
+  rcon_remote "bluemap reload" >/dev/null 2>&1
+  echo "Render threads set to $count (config + reload)"
 }
 
 ACTION="${1:-render}"
@@ -42,8 +49,7 @@ case "$ACTION" in
     ;;
   threads)
     COUNT="${1:?Usage: map threads <count>}"
-    rcon_remote "bluemap render-threads $COUNT"
-    echo "Render threads set to $COUNT"
+    set_threads "$COUNT"
     exit 0
     ;;
   render)
@@ -64,7 +70,7 @@ fi
 
 # --- Bump render threads -----------------------------------------------------
 echo "Setting render threads to ${RENDER_THREADS}..."
-rcon_remote "bluemap render-threads $RENDER_THREADS"
+set_threads "$RENDER_THREADS"
 
 # --- Trigger force-update ----------------------------------------------------
 for m in "${MAPS[@]}"; do
@@ -74,11 +80,10 @@ done
 echo ""
 
 # --- Poll progress until complete --------------------------------------------
-# Trap Ctrl+C to reset threads before exit
 cleanup() {
   echo ""
   echo "Resetting render threads to 1..."
-  rcon_remote "bluemap render-threads 1" || true
+  set_threads 1 || true
   echo "Rendering continues server-side. Check progress: ./ops map status"
 }
 trap cleanup EXIT INT TERM
@@ -92,11 +97,11 @@ while true; do
   # Strip ANSI codes for parsing
   CLEAN=$(echo "$STATUS" | sed 's/\x1b\[[0-9;]*m//g')
 
-  # Extract current map and progress
-  CURRENT_MAP=$(echo "$CLEAN" | grep -oP 'map \K\S+(?= is currently)' || true)
-  PROGRESS=$(echo "$CLEAN" | grep -oP 'progress: \K[0-9.]+%' || true)
-  REMAINING=$(echo "$CLEAN" | grep -oP 'remaining time: \K.*' || true)
-  PENDING=$(echo "$CLEAN" | grep -oP '\K[0-9]+(?= maps have pending)' || true)
+  # Extract progress fields (POSIX grep — no -P on macOS)
+  CURRENT_MAP=$(echo "$CLEAN" | grep -o 'map [^ ]* is currently' | sed 's/map //;s/ is currently//' || true)
+  PROGRESS=$(echo "$CLEAN" | grep -o 'progress: [0-9.]*%' | sed 's/progress: //' || true)
+  REMAINING=$(echo "$CLEAN" | grep -o 'remaining time: .*' | sed 's/remaining time: //' || true)
+  PENDING=$(echo "$CLEAN" | grep -o '[0-9]* maps have pending' | grep -o '[0-9]*' || true)
 
   if [[ -n "$CURRENT_MAP" ]]; then
     PENDING_STR=""

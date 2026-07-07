@@ -91,7 +91,7 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 ## Conventions
 
-**Scripting:** `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on **macOS bash 3.2** (no `declare -A`, no `${var,,}`, no `|&`, no `mapfile`). Idempotent - safe to run twice. Back up before overwriting (`backup()` in lib.sh → `file.bak.TIMESTAMP`). Support `--non-interactive` for CI. Every script carries a header comment with purpose, context, usage, and gotchas - **keep headers current when changing behaviour**; they're the authoritative reference.
+**Scripting:** `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on **macOS bash 3.2** (no `declare -A`, no `${var,,}`, no `|&`, no `mapfile`). **No `grep -P`** — macOS BSD grep doesn't support Perl-compatible regexes. Use `grep -oE` (extended regex) or `sed` instead. This has caused multiple CI and runtime failures. Idempotent - safe to run twice. Back up before overwriting (`backup()` in lib.sh → `file.bak.TIMESTAMP`). Support `--non-interactive` for CI. Every script carries a header comment with purpose, context, usage, and gotchas - **keep headers current when changing behaviour**; they're the authoritative reference.
 
 **.env writing:** every value is written single-quoted with embedded `'` mapped to `’`, via `set_env_var`/`env_quote` in lib.sh (the reusable workflow's generator applies the same rule). User-pasted values arriving pre-wrapped in quotes are stripped on input. Never write a raw `KEY=$value` line - an unquoted MOTD once executed itself as a command on a production server.
 
