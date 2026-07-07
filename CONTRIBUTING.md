@@ -101,11 +101,12 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" \
 
 ## Config sync
 
-If you add a mod with server-side configuration, you need to touch three places:
+If you add a mod with server-side configuration, you need to touch two places:
 
 1. Config files in `config/<modname>/`
-2. Sync logic in `sync_mod_configs()` in `scripts/lib.sh`
-3. The directory added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
+2. The directory added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
+
+Config seeding is handled automatically by `deploy.sh` step 8 — it copies all files from the bundle's `config/` into `data/config/` (skip-if-exists for defaults, force-overwrite for consumer overlay). This runs before mc starts so mods don't create their own defaults first.
 
 ## Reporting issues
 

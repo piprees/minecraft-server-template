@@ -119,11 +119,10 @@ Every required dependency must already be in the pack or added alongside. Librar
 
 ## Config sync
 
-Mod configs in `config/<modname>/` are copied to `data/config/` by **`sync_mod_configs()` in `scripts/lib.sh`** - called by deploy.sh (every full deploy) and initial-setup.sh (first boot). Adding a mod with config means touching **three places**:
+Mod configs in `config/<modname>/` are copied to `data/config/` by **deploy.sh step 8** (every full deploy) — skip-if-exists for bundle defaults, then force-overwrite for consumer overlay. This runs **before mc starts** so mods that auto-generate config on first boot don't create defaults that block the bundle's version. Adding a mod with config means touching **two places**:
 
 1. Config files in `config/<modname>/`
-2. Sync logic in `sync_mod_configs()` in `scripts/lib.sh`
-3. The dir added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
+2. The dir added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
 
 **Game rules** live in two places that must match: `config/boring_default_game_rules/config.json` (new-world defaults) AND the RCON enforcement block in `scripts/deploy.sh` (existing world). Each has a comment pointing at the other.
 

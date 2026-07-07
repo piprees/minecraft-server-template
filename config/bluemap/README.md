@@ -8,9 +8,9 @@ from the mod's own `config/bluemap/` relative to the server root). This is
 its config. Auto-generated on first boot if not already present.
 
 Files in `config/bluemap/` here (this directory) are synced into
-`data/config/bluemap/` on every deploy via `sync_mod_configs()` in
-`scripts/lib.sh` - repo is the source of truth, same pattern as every other
-mod config in this project.
+`data/config/bluemap/` on every deploy by `deploy.sh` step 8 (before mc
+starts) - repo is the source of truth, same pattern as every other mod
+config in this project.
 
 ## Where configs live at runtime
 

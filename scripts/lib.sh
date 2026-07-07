@@ -8,13 +8,12 @@
 # Provides: PROJECT_DIR, colour codes, log/warn/die, load_env (sources .env),
 # sed_i + sha256 (macOS/Linux portable), backup (file.bak.TIMESTAMP),
 # rcon + get_player_count (via docker exec mc), detect_provider /
-# require_provider_cli, and sync_mod_configs.
+# require_provider_cli.
 #
-# sync_mod_configs() is the single source of truth for copying committed
-# mod configs from config/ into data/config/ (called by deploy.sh on every
-# full deploy and initial-setup.sh on first boot). Adding a mod with config
-# means: add its copy logic HERE, and add its config dir to MC_PATTERNS in
-# .github/workflows/deploy.yml so changes trigger a full deploy.
+# Mod config sync is handled inline by deploy.sh step 8 (before mc starts).
+# Adding a mod with config means: add its files under config/<modname>/,
+# and add the dir to MC_PATTERNS in .github/workflows/deploy.yml so changes
+# trigger a full deploy.
 #
 # Everything must run on macOS bash 3.2 - no declare -A, no ${var,,}.
 
@@ -148,85 +147,6 @@ detect_provider() {
   else
     echo "local"
   fi
-}
-
-# --- Mod config sync (single source of truth for deploy + initial-setup) ------
-# Copies committed mod configs from config/ into data/config/.
-# Add new mod config dirs here when adding mods with configs.
-sync_mod_configs() {
-  local data_cfg="$PROJECT_DIR/data/config"
-  mkdir -p "$data_cfg"
-
-  # JSON/JSON5 flat-file configs (copied directly into data/config/)
-  for mod_dir in firespreadtweaks healingcampfire youritemsaresafe doubledoors \
-    nutritiousmilk collective expanded_bow_enchanting fallingtree lootr \
-    groundclear nametagtweaks; do
-    if [[ -d "$PROJECT_DIR/config/${mod_dir}" ]]; then
-      cp "$PROJECT_DIR/config/${mod_dir}"/*.{json,json5} "$data_cfg/" 2> /dev/null || true
-    fi
-  done
-
-  # TOML configs (copied into data/config/ as flat files)
-  if [[ -f "$PROJECT_DIR/config/betterdays/betterdays-common.toml" ]]; then
-    cp "$PROJECT_DIR/config/betterdays/betterdays-common.toml" "$data_cfg/"
-  fi
-  if [[ -f "$PROJECT_DIR/config/openpartiesandclaims/openpartiesandclaims-server.toml" ]]; then
-    cp "$PROJECT_DIR/config/openpartiesandclaims/openpartiesandclaims-server.toml" "$data_cfg/"
-  fi
-
-  # Subdirectory configs (need their own directories under data/config/)
-  if [[ -d "$PROJECT_DIR/config/boring_default_game_rules" ]]; then
-    mkdir -p "$data_cfg/boring_default_game_rules"
-    cp "$PROJECT_DIR/config/boring_default_game_rules"/* "$data_cfg/boring_default_game_rules/" 2> /dev/null || true
-  fi
-  if [[ -f "$PROJECT_DIR/config/voicechat/voicechat-server.properties" ]]; then
-    mkdir -p "$data_cfg/voicechat"
-    cp "$PROJECT_DIR/config/voicechat/voicechat-server.properties" "$data_cfg/voicechat/"
-  fi
-  if [[ -f "$PROJECT_DIR/config/essentialcommands/EssentialCommands.properties" ]]; then
-    cp "$PROJECT_DIR/config/essentialcommands/EssentialCommands.properties" "$data_cfg/"
-    mkdir -p "$data_cfg/essentialcommands"
-    cp "$PROJECT_DIR/config/essentialcommands/rules.txt" "$data_cfg/essentialcommands/" 2> /dev/null || true
-  fi
-  if [[ -d "$PROJECT_DIR/config/starterkit" ]]; then
-    mkdir -p "$data_cfg/starterkit/kits" "$data_cfg/starterkit/descriptions"
-    cp -r "$PROJECT_DIR/config/starterkit"/* "$data_cfg/starterkit/" 2> /dev/null || true
-  fi
-  if [[ -f "$PROJECT_DIR/config/starterkit.json5" ]]; then
-    cp "$PROJECT_DIR/config/starterkit.json5" "$data_cfg/"
-  fi
-  if [[ -d "$PROJECT_DIR/config/servercore" ]]; then
-    mkdir -p "$data_cfg/servercore"
-    cp "$PROJECT_DIR/config/servercore"/*.yml "$data_cfg/servercore/" 2> /dev/null || true
-  fi
-
-  # BlueMap core config (render-thread-count, accept-download, etc.)
-  if [[ -f "$PROJECT_DIR/config/bluemap/core.conf" ]]; then
-    mkdir -p "$data_cfg/bluemap"
-    cp "$PROJECT_DIR/config/bluemap/core.conf" "$data_cfg/bluemap/"
-  fi
-
-  # BlueMap map configs (always overwrite - repo is source of truth)
-  if [[ -d "$PROJECT_DIR/config/bluemap/maps" ]]; then
-    local bm_maps="$data_cfg/bluemap/maps"
-    mkdir -p "$bm_maps"
-    cp "$PROJECT_DIR/config/bluemap/maps"/*.conf "$bm_maps/" 2> /dev/null || true
-  fi
-
-  # Custom datapacks (copied to world/datapacks/)
-  if [[ -d "$PROJECT_DIR/config/datapacks" ]]; then
-    local dp_dir="$PROJECT_DIR/data/world/datapacks"
-    mkdir -p "$dp_dir"
-    for pack in "$PROJECT_DIR/config/datapacks"/*/; do
-      local pack_name
-      pack_name="$(basename "$pack")"
-      rm -rf "${dp_dir:?}/${pack_name}"
-      cp -r "$pack" "$dp_dir/$pack_name"
-    done
-    echo "  ✓ Custom datapacks synced to world/datapacks/"
-  fi
-
-  echo "  ✓ All mod configs synced to data/config/"
 }
 
 # Provider-specific server creation tool

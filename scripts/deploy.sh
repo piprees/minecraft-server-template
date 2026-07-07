@@ -4,10 +4,11 @@
 #
 # Sequence: in-game countdown (60s->1s) -> clear whitelist (blocks joins) ->
 # kick all -> save-all flush -> stop mc -> pull images -> re-run seed ->
+# seed mod configs into data/config/ -> apply overlay -> datapacks ->
 # enforce Discord config -> Modrinth sync IF mod list changed -> compose up ->
-# force-recreate sidecars -> wait for RCON (300s) -> apply overlay configs ->
-# world borders -> game rules -> LuckPerms -> spawn -> restore whitelist ->
-# BlueMap defaults -> welcome back -> docker prune.
+# force-recreate sidecars -> wait for RCON (300s) -> world borders ->
+# game rules -> LuckPerms -> spawn -> restore whitelist -> BlueMap defaults ->
+# welcome back -> docker prune.
 #
 # Usage:
 #   .stack/current/stack/scripts/deploy.sh                    # restart only
@@ -202,139 +203,12 @@ docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
   --profile cloud up --force-recreate --no-deps seed
 
 # =============================================================================
-# 8. Enforce Discord integration config (invariant 3)
+# 8. Seed mod configs into data/config/ (before mc starts)
 # =============================================================================
-# The dcintegration mod must never register slash commands: it shares the bot
-# token with discord-sync and bulk-overwrites the guild command registry on
-# every mc boot. discord-sync owns all slash commands.
-if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$SERVER_DIR/data/config/Discord-Integration.toml" ]]; then
-  if ! grep -q '^\[messages' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null; then
-    echo "  Discord config is truncated - deleting so the mod regenerates a fresh one"
-    rm -f "$SERVER_DIR/data/config/Discord-Integration.toml"
-  else
-    sed -i "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHANNEL_ID:-0}|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|enable = false|enable = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|useServerNameForRcon = false|useServerNameForRcon = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|useServerNameForConsole = false|useServerNameForConsole = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|serverName = ".*"|serverName = "Server"|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|serverStarting = true|serverStarting = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    # CRITICAL: [commands] enabled = false (invariant 3)
-    sed -i '/^\[commands\]/,/adminRoleIDs/ s|enabled = true|enabled = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-  fi
-fi
-if [[ -f "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" ]]; then
-  sed -i 's|^serverStarted = .*|serverStarted = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
-  sed -i 's|^serverStarting = .*|serverStarting = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
-  sed -i 's|^serverStopped = .*|serverStopped = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
-fi
-
-# =============================================================================
-# 9. Sync mods from Modrinth (only if inputs changed)
-# =============================================================================
-# Hash the mod list inputs (overlay files + stack version) to detect changes.
-# A stack version change includes new default mods, so the hash changes.
-MODRINTH_OVERRIDE="$SERVER_DIR/docker-compose.modrinth.yml"
-MOD_HASH_FILE="$SERVER_DIR/data/.modrinth-hash"
-STACK_VER=$(readlink "$SERVER_DIR/.stack/current" 2> /dev/null || echo "unknown")
-MOD_INPUTS="${STACK_VER}"
-[[ -f "$SERVER_DIR/overlay/mods-extra.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-extra.txt")
-[[ -f "$SERVER_DIR/overlay/mods-remove.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-remove.txt")
-CURRENT_MOD_HASH=$(echo "$MOD_INPUTS" | sha256sum | cut -d' ' -f1)
-PREVIOUS_MOD_HASH=$(cat "$MOD_HASH_FILE" 2> /dev/null || echo "none")
-
-if [[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]]; then
-  echo ""
-  echo "==> Mod list changed - enabling Modrinth sync for this restart..."
-  cat > "$MODRINTH_OVERRIDE" << 'MODEOF'
-services:
-  mc:
-    environment:
-      MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
-MODEOF
-else
-  echo ""
-  echo "==> Mod list unchanged - skipping Modrinth (fast restart from cached JARs)"
-  rm -f "$MODRINTH_OVERRIDE"
-fi
-
-# =============================================================================
-# 10. Start the stack
-# =============================================================================
-echo ""
-echo "==> Starting stack..."
-if [[ -f "$MODRINTH_OVERRIDE" ]]; then
-  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE -f $MODRINTH_OVERRIDE"
-else
-  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
-fi
-
-# A mod-sync boot can restart mc once mid-download (Modrinth rate limits),
-# which aborts compose's dependency wait even though mc recovers under its
-# restart policy. Don't die here - the RCON wait below is the real gate,
-# and the second `up -d` after it starts any services compose gave up on.
-# shellcheck disable=SC2086
-if ! $COMPOSE_CMD --profile cloud up -d --remove-orphans; then
-  echo "  compose up reported a dependency failure - mc is likely still"
-  echo "  syncing mods; continuing to the health wait."
-fi
-
-# Force-recreate sidecars so config/script changes actually load.
-# Keep this list in sync with infra-deploy.sh.
-# shellcheck disable=SC2086
-$COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
-  nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
-
-# Clean up the Modrinth override and save the hash
-if [[ -f "$MODRINTH_OVERRIDE" ]]; then
-  rm -f "$MODRINTH_OVERRIDE"
-  echo "$CURRENT_MOD_HASH" > "$MOD_HASH_FILE"
-  echo "  Modrinth sync complete - override removed, hash saved"
-fi
-
-# =============================================================================
-# 11. Wait for RCON healthcheck
-# =============================================================================
-echo ""
-echo "==> Waiting for server to pass healthcheck..."
-
-# Mod-sync boots download ~150 JARs before the server even starts -
-# give them a much longer window than a plain restart.
-MAX_WAIT=300
-[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=900
-ELAPSED=0
-INTERVAL=10
-
-while [[ $ELAPSED -lt $MAX_WAIT ]]; do
-  if server_alive; then
-    echo "  Server is healthy (took ${ELAPSED}s)"
-    break
-  fi
-  sleep $INTERVAL
-  ELAPSED=$((ELAPSED + INTERVAL))
-  echo "    ...waiting (${ELAPSED}s / ${MAX_WAIT}s)"
-done
-
-if [[ $ELAPSED -ge $MAX_WAIT ]]; then
-  echo "  WARNING: Server didn't become ready within ${MAX_WAIT}s."
-  echo "  Check logs: docker compose --profile cloud logs -f mc"
-  echo "  The whitelist will be restored from .env on next boot."
-  exit 1
-fi
-
-# Now that mc is healthy, start anything the first `up -d` gave up on
-# (dependents stay Created when compose aborts its dependency wait).
-# shellcheck disable=SC2086
-$COMPOSE_CMD --profile cloud up -d --remove-orphans 2> /dev/null || true
-
-# =============================================================================
-# 12. Apply overlay configs + world borders + game rules + permissions
-# =============================================================================
-
-# Seed default mod configs from the bundle into data/config/.
-# rsync --ignore-existing lays down platform defaults without overwriting
-# configs that mods or the player have already customised in-game.
-# The consumer overlay (below) then overwrites selectively.
+# Platform defaults are seeded with skip-if-exists so player/in-game
+# customisations are preserved. The consumer overlay then force-overwrites.
+# This MUST run before mc starts — mods that auto-generate config on first
+# boot would otherwise create defaults that block the bundle's version.
 echo ""
 echo "==> Seeding default mod configs into data/config/..."
 BUNDLE_CONFIG="$STACK_DIR/config"
@@ -391,6 +265,137 @@ if [[ -d "$SERVER_DIR/overlay/config/datapacks" ]]; then
   done
   echo "  Custom datapacks synced to world/datapacks/"
 fi
+
+# =============================================================================
+# 9. Enforce Discord integration config (invariant 3)
+# =============================================================================
+# The dcintegration mod must never register slash commands: it shares the bot
+# token with discord-sync and bulk-overwrites the guild command registry on
+# every mc boot. discord-sync owns all slash commands.
+if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$SERVER_DIR/data/config/Discord-Integration.toml" ]]; then
+  if ! grep -q '^\[messages' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null; then
+    echo "  Discord config is truncated - deleting so the mod regenerates a fresh one"
+    rm -f "$SERVER_DIR/data/config/Discord-Integration.toml"
+  else
+    sed -i "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHANNEL_ID:-0}|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i 's|enable = false|enable = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i 's|useServerNameForRcon = false|useServerNameForRcon = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i 's|useServerNameForConsole = false|useServerNameForConsole = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i 's|serverName = ".*"|serverName = "Server"|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i 's|serverStarting = true|serverStarting = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    # CRITICAL: [commands] enabled = false (invariant 3)
+    sed -i '/^\[commands\]/,/adminRoleIDs/ s|enabled = true|enabled = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+  fi
+fi
+if [[ -f "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" ]]; then
+  sed -i 's|^serverStarted = .*|serverStarted = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
+  sed -i 's|^serverStarting = .*|serverStarting = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
+  sed -i 's|^serverStopped = .*|serverStopped = ""|' "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" 2> /dev/null || true
+fi
+
+# =============================================================================
+# 10. Sync mods from Modrinth (only if inputs changed)
+# =============================================================================
+# Hash the mod list inputs (overlay files + stack version) to detect changes.
+# A stack version change includes new default mods, so the hash changes.
+MODRINTH_OVERRIDE="$SERVER_DIR/docker-compose.modrinth.yml"
+MOD_HASH_FILE="$SERVER_DIR/data/.modrinth-hash"
+STACK_VER=$(readlink "$SERVER_DIR/.stack/current" 2> /dev/null || echo "unknown")
+MOD_INPUTS="${STACK_VER}"
+[[ -f "$SERVER_DIR/overlay/mods-extra.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-extra.txt")
+[[ -f "$SERVER_DIR/overlay/mods-remove.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-remove.txt")
+CURRENT_MOD_HASH=$(echo "$MOD_INPUTS" | sha256sum | cut -d' ' -f1)
+PREVIOUS_MOD_HASH=$(cat "$MOD_HASH_FILE" 2> /dev/null || echo "none")
+
+if [[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]]; then
+  echo ""
+  echo "==> Mod list changed - enabling Modrinth sync for this restart..."
+  cat > "$MODRINTH_OVERRIDE" << 'MODEOF'
+services:
+  mc:
+    environment:
+      MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
+MODEOF
+else
+  echo ""
+  echo "==> Mod list unchanged - skipping Modrinth (fast restart from cached JARs)"
+  rm -f "$MODRINTH_OVERRIDE"
+fi
+
+# =============================================================================
+# 11. Start the stack
+# =============================================================================
+echo ""
+echo "==> Starting stack..."
+if [[ -f "$MODRINTH_OVERRIDE" ]]; then
+  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE -f $MODRINTH_OVERRIDE"
+else
+  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
+fi
+
+# A mod-sync boot can restart mc once mid-download (Modrinth rate limits),
+# which aborts compose's dependency wait even though mc recovers under its
+# restart policy. Don't die here - the RCON wait below is the real gate,
+# and the second `up -d` after it starts any services compose gave up on.
+# shellcheck disable=SC2086
+if ! $COMPOSE_CMD --profile cloud up -d --remove-orphans; then
+  echo "  compose up reported a dependency failure - mc is likely still"
+  echo "  syncing mods; continuing to the health wait."
+fi
+
+# Force-recreate sidecars so config/script changes actually load.
+# Keep this list in sync with infra-deploy.sh.
+# shellcheck disable=SC2086
+$COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
+  nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
+
+# Clean up the Modrinth override and save the hash
+if [[ -f "$MODRINTH_OVERRIDE" ]]; then
+  rm -f "$MODRINTH_OVERRIDE"
+  echo "$CURRENT_MOD_HASH" > "$MOD_HASH_FILE"
+  echo "  Modrinth sync complete - override removed, hash saved"
+fi
+
+# =============================================================================
+# 12. Wait for RCON healthcheck
+# =============================================================================
+echo ""
+echo "==> Waiting for server to pass healthcheck..."
+
+# Mod-sync boots download ~150 JARs before the server even starts -
+# give them a much longer window than a plain restart.
+MAX_WAIT=300
+[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=900
+ELAPSED=0
+INTERVAL=10
+
+while [[ $ELAPSED -lt $MAX_WAIT ]]; do
+  if server_alive; then
+    echo "  Server is healthy (took ${ELAPSED}s)"
+    break
+  fi
+  sleep $INTERVAL
+  ELAPSED=$((ELAPSED + INTERVAL))
+  echo "    ...waiting (${ELAPSED}s / ${MAX_WAIT}s)"
+done
+
+if [[ $ELAPSED -ge $MAX_WAIT ]]; then
+  echo "  WARNING: Server didn't become ready within ${MAX_WAIT}s."
+  echo "  Check logs: docker compose --profile cloud logs -f mc"
+  echo "  The whitelist will be restored from .env on next boot."
+  exit 1
+fi
+
+# =============================================================================
+# 13. Start any services that failed the dependency wait
+# =============================================================================
+# shellcheck disable=SC2086
+$COMPOSE_CMD --profile cloud up -d --remove-orphans 2> /dev/null || true
+
+# =============================================================================
+# 14. World borders + game rules + permissions
+# =============================================================================
 
 # PREGEN_BORDER_RADIUS = master radius for tooling (BlueMap, Chunky, DH).
 # PLAYER_BORDER_RADIUS = in-game barrier. Defaults to PREGEN_BORDER_RADIUS.
@@ -483,7 +488,7 @@ if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Y:-}" && -n "${SPAWN_Z:-}" ]]; then
 fi
 
 # =============================================================================
-# 13. Restore the whitelist
+# 15. Restore the whitelist
 # =============================================================================
 echo ""
 echo "==> Restoring whitelist..."
@@ -516,12 +521,12 @@ if [[ -f "$BLUEMAP_WEBAPP" ]]; then
 fi
 
 # =============================================================================
-# 14. Welcome back
+# 16. Welcome back
 # =============================================================================
 rcon "say $(msg restart.welcome_back)"
 
 # =============================================================================
-# 15. Clean up stale Docker resources
+# 17. Clean up stale Docker resources
 # =============================================================================
 echo ""
 echo "==> Cleaning up old Docker resources..."

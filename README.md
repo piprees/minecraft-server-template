@@ -228,7 +228,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `ddns-update.sh` | local host | Cloudflare dynamic DNS for home hosting (cron-installable) |
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
 | `seed/*` | Mac | Batch seed testing, scoring, reports |
-| `lib.sh` | (sourced) | Shared utilities: env loading, RCON, `sync_mod_configs`, provider detection |
+| `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
 
 ### Image scripts (baked into GHCR images, not run directly)
 
