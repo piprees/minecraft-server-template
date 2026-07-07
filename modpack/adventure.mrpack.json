@@ -130,7 +130,7 @@
       "pick-up-notifier"
     ],
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
-    "stableOnly": []
+    "stableOnly": ["iris"]
   },
   "_shaderPacks": {
     "_comment": "Modrinth slugs for shader packs. build-modpack.sh downloads these into overrides/shaderpacks/.",
