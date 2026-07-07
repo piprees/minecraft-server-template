@@ -142,6 +142,34 @@ echo ""
 echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
 echo ""
 
+# --- Seed default mod configs into data/config/ ------------------------------
+# Copy platform default configs from the bundle into data/config/ without
+# overwriting existing files (mods or the player may have customised them).
+BUNDLE_CONFIG="$STACK_DIR/config"
+if [[ -d "$BUNDLE_CONFIG" ]]; then
+  echo "  Seeding default mod configs into data/config/..."
+  local_data_cfg="$CONSUMER_DIR/data/config"
+  mkdir -p "$local_data_cfg"
+  cd "$BUNDLE_CONFIG"
+  find . -type f \
+    -not -path './nginx/*' \
+    -not -path './uptime-kuma/*' \
+    -not -path './cloudflare/*' \
+    -not -path './cloudflared/*' \
+    -not -name 'modrinth-mods.txt' \
+    -not -name 'modrinth-mods.pinned.txt' \
+    -not -name 'messages.json' \
+    -not -name '1password.env' \
+    | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./}"
+    if [[ ! -f "$dest" ]]; then
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    fi
+  done
+  cd "$CONSUMER_DIR"
+fi
+
 # --- Modrinth hash-gating ----------------------------------------------------
 # Only re-sync mods when the merged mod list changes (or on first boot).
 MODRINTH_OVERRIDE="$CONSUMER_DIR/.modrinth-override.yml"

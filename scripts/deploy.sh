@@ -331,12 +331,39 @@ $COMPOSE_CMD --profile cloud up -d --remove-orphans 2> /dev/null || true
 # 12. Apply overlay configs + world borders + game rules + permissions
 # =============================================================================
 
-# Copy consumer overlay config files to data/config/ (custom mod configs).
-# TODO: In the stack model, the seed container handles default config seeding
-# into Docker volumes. This step applies consumer overlay overrides that need
-# to land in data/config/ (host bind-mount). The legacy sync_mod_configs
-# function in lib.sh operates on paths that don't exist in the bundle; this
-# direct copy from overlay/ replaces it for the gitless model.
+# Seed default mod configs from the bundle into data/config/.
+# rsync --ignore-existing lays down platform defaults without overwriting
+# configs that mods or the player have already customised in-game.
+# The consumer overlay (below) then overwrites selectively.
+echo ""
+echo "==> Seeding default mod configs into data/config/..."
+BUNDLE_CONFIG="$STACK_DIR/config"
+if [[ -d "$BUNDLE_CONFIG" ]]; then
+  local_data_cfg="$SERVER_DIR/data/config"
+  mkdir -p "$local_data_cfg"
+  cd "$BUNDLE_CONFIG"
+  find . -type f \
+    -not -path './nginx/*' \
+    -not -path './uptime-kuma/*' \
+    -not -path './cloudflare/*' \
+    -not -path './cloudflared/*' \
+    -not -name 'modrinth-mods.txt' \
+    -not -name 'modrinth-mods.pinned.txt' \
+    -not -name 'messages.json' \
+    -not -name '1password.env' \
+    | while IFS= read -r f; do
+    dest="$local_data_cfg/${f#./}"
+    if [[ ! -f "$dest" ]]; then
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    fi
+  done
+  cd "$SERVER_DIR"
+  echo "  Default configs seeded"
+fi
+
+# Copy consumer overlay config files to data/config/ (overrides).
+# These REPLACE defaults — the consumer's overlay is authoritative.
 if [[ -d "$SERVER_DIR/overlay/config" ]]; then
   echo ""
   echo "==> Applying overlay config to data/config/..."

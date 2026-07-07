@@ -65,7 +65,6 @@ MANIFEST=(
   scripts/dev-up.sh
   scripts/pack-build.sh
   scripts/remote-update.sh
-  config/messages.json
   examples/consumer/dev
   examples/consumer/ops
   examples/consumer/stack-pull.sh
@@ -95,6 +94,13 @@ for file in "${MANIFEST[@]}"; do
   mkdir -p "$(dirname "$dest")"
   cp "$PROJECT_DIR/$file" "$dest"
 done
+
+# Bundle the entire config/ directory (mod configs, messages, nginx, etc.)
+# Excludes 1password.env (secrets) and pinned mod lists (platform-internal).
+rsync -a \
+  --exclude='1password.env' \
+  --exclude='modrinth-mods.pinned.txt' \
+  "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 
 mkdir -p "$DIST_DIR"
 
