@@ -101,6 +101,8 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Git:** conventional-commit style, imperative mood (`fix:`, `feat:`, `chore:`).
 
+**Versions (images, actions, tools):** never rely on training data for version numbers — it will be outdated. Before adding or updating any Docker image tag, GitHub Actions step, CLI tool, or library version, look up the latest from a live source: `gh release list --repo <owner/repo> --limit 5`, Context7 (`npx ctx7@latest docs`), or the project's GitHub releases page. This applies to every `image:` tag in `docker-compose.yml`, every `uses:` reference in `.github/workflows/`, and every pinned version in scripts. **Trap:** `gh release list --limit 1` returns the most *recently published* release, not the highest version — backported patch releases (e.g. v5.1.0 published after v6.0.0) will appear first. Always use `--limit 5` and check `isLatest` or sort by semver: `gh release list --limit 5 --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName'`.
+
 ## Mods
 
 Server list: `config/modrinth-mods.txt` (`slug:versionId`, `?` = optional, `datapack:` prefix for datapacks). Client list: `modpack/adventure.mrpack.json` `_clientMods`. All worldgen/dimension mods must be present from chunk zero. Check mod docs on Modrinth or the mod's wiki before editing configs or using commands - **never guess config keys or command syntax**; fetch current docs (`npx ctx7@latest docs`).
