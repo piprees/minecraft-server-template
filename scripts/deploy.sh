@@ -53,9 +53,11 @@ fi
 
 # --- flags --------------------------------------------------------------------
 export NON_INTERACTIVE=0
+QUICK=0
 for arg in "$@"; do
   case "$arg" in
     --non-interactive) export NON_INTERACTIVE=1 ;;
+    --quick) QUICK=1 ;;
   esac
 done
 
@@ -98,28 +100,34 @@ get_player_count() {
 # 1. In-game countdown warnings
 # =============================================================================
 if server_alive; then
-  echo "==> Sending in-game restart warnings..."
+  if [[ $QUICK -eq 0 ]]; then
+    echo "==> Sending in-game restart warnings..."
 
-  rcon "say $(msg restart.warning_60s)"
-  echo "  60s warning sent"
-  sleep 30
+    rcon "say $(msg restart.warning_60s)"
+    echo "  60s warning sent"
+    sleep 30
 
-  rcon "say $(msg restart.warning_30s)"
-  echo "  30s warning sent"
-  sleep 20
+    rcon "say $(msg restart.warning_30s)"
+    echo "  30s warning sent"
+    sleep 20
 
-  rcon "say $(msg restart.warning_10s)"
-  echo "  10s warning sent"
-  sleep 5
+    rcon "say $(msg restart.warning_10s)"
+    echo "  10s warning sent"
+    sleep 5
 
-  rcon "say $(msg restart.warning_5s)"
-  sleep 2
-  rcon "say $(msg restart.countdown_3)"
-  sleep 1
-  rcon "say $(msg restart.countdown_2)"
-  sleep 1
-  rcon "say $(msg restart.countdown_1)"
-  sleep 1
+    rcon "say $(msg restart.warning_5s)"
+    sleep 2
+    rcon "say $(msg restart.countdown_3)"
+    sleep 1
+    rcon "say $(msg restart.countdown_2)"
+    sleep 1
+    rcon "say $(msg restart.countdown_1)"
+    sleep 1
+  else
+    echo "==> Quick restart (skipping countdown)..."
+    rcon "say Server restarting now."
+    sleep 1
+  fi
 
   # =========================================================================
   # 2. Block new connections
