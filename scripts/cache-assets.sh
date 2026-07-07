@@ -196,17 +196,12 @@ for m in cm.get('required', []) + cm.get('optional', []):
     downloaded=0
     skipped=0
     failed=0
+    updated=0
 
     while IFS= read -r slug; do
       [[ -z "$slug" ]] && continue
 
-      # Check if we already have a JAR for this slug
-      if ls "$CLIENT_MOD_CACHE/${slug}"*.jar &> /dev/null 2>&1; then
-        skipped=$((skipped + 1))
-        continue
-      fi
-
-      # Resolve the latest version from Modrinth (rate-limit: 1 req/s)
+      # Resolve the latest version from Modrinth
       sleep 0.5
       MODRINTH_TMP=$(mktemp)
       curl -s --max-time 10 \
@@ -214,7 +209,6 @@ for m in cm.get('required', []) + cm.get('optional', []):
         -H "User-Agent: minecraft-adventure-server/cache-assets" \
         -o "$MODRINTH_TMP" 2>/dev/null || echo "[]" > "$MODRINTH_TMP"
 
-      # Extract download URL and filename
       dl_info=$(python3 -c "
 import json, sys
 try:
@@ -226,6 +220,7 @@ try:
         if f.get('primary', False):
             print(f['url'])
             print(f['filename'])
+            print(f['hashes'].get('sha512', ''))
             break
 except:
     sys.exit(1)
@@ -233,16 +228,39 @@ except:
       rm -f "$MODRINTH_TMP"
 
       if [[ -z "$dl_info" ]]; then
-        echo "    ⚠ $slug - no 1.21.1 Fabric build"
+        echo "    ⚠ $slug - no ${MC_VERSION} Fabric build"
         failed=$((failed + 1))
         continue
       fi
 
-      url=$(echo "$dl_info" | head -1)
-      filename=$(echo "$dl_info" | tail -1)
+      url=$(echo "$dl_info" | sed -n '1p')
+      filename=$(echo "$dl_info" | sed -n '2p')
+      want_hash=$(echo "$dl_info" | sed -n '3p')
 
-      # Download the actual JAR
+      # Check if we already have this exact version (by sha512)
+      if [[ -f "$CLIENT_MOD_CACHE/$filename" && -n "$want_hash" ]]; then
+        got_hash=$(shasum -a 512 "$CLIENT_MOD_CACHE/$filename" | cut -d' ' -f1)
+        if [[ "$got_hash" == "$want_hash" ]]; then
+          skipped=$((skipped + 1))
+          continue
+        fi
+      fi
+
+      # Remove old versions of this mod (different filename = old version)
+      for old in "$CLIENT_MOD_CACHE/${slug}"*.jar; do
+        [[ -f "$old" && "$(basename "$old")" != "$filename" ]] && rm -f "$old"
+      done
+
       if curl -sL --max-time 60 -o "$CLIENT_MOD_CACHE/$filename" "$url"; then
+        if [[ -n "$want_hash" ]]; then
+          got_hash=$(shasum -a 512 "$CLIENT_MOD_CACHE/$filename" | cut -d' ' -f1)
+          if [[ "$got_hash" != "$want_hash" ]]; then
+            echo "    ✗ $slug - hash mismatch after download"
+            rm -f "$CLIENT_MOD_CACHE/$filename"
+            failed=$((failed + 1))
+            continue
+          fi
+        fi
         echo "    ✓ $slug > $filename"
         downloaded=$((downloaded + 1))
       else
@@ -253,7 +271,7 @@ except:
     done <<< "$ALL_CLIENT_MODS"
 
     total_client=$(ls "$CLIENT_MOD_CACHE/"*.jar 2> /dev/null | wc -l | tr -d " " || echo 0)
-    echo "  Client mods: $total_client cached ($downloaded new, $skipped existing, $failed failed)"
+    echo "  Client mods: $total_client cached ($downloaded new, $skipped unchanged, $failed failed)"
     echo ""
 
     # --- 3b. Build offline .mrpack (JARs in overrides/mods/) ---
