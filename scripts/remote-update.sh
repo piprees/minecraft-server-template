@@ -67,15 +67,15 @@ fi
 log "Pulling updated Docker images on server..."
 $SSH_CMD "cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud pull"
 
+log "Rebuilding modpack..."
+$SSH_CMD "cd ~/server && .stack/current/stack/scripts/pack-build.sh" \
+  || warn "Modpack build failed (non-fatal)"
+
 DEPLOY_FLAGS="--non-interactive"
 [[ $QUICK -eq 1 ]] && DEPLOY_FLAGS="$DEPLOY_FLAGS --quick"
 
 log "Restarting stack..."
 $SSH_CMD "cd ~/server && .stack/current/stack/scripts/deploy.sh $DEPLOY_FLAGS"
-
-log "Rebuilding modpack..."
-$SSH_CMD "cd ~/server && .stack/current/stack/scripts/pack-build.sh" \
-  || warn "Modpack build failed (non-fatal)"
 
 log "Refreshing kuma-init..."
 $SSH_CMD "cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud up -d --force-recreate --no-deps kuma-init" \
