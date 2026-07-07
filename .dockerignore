@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+.stack
+*.md
+docs/
+examples/
+cache/
+data/
+backups/
+modpack-dist/
+seed-results.csv
+seed-errors.log
+seedtest-data/

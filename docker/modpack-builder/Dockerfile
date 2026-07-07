@@ -1,4 +1,4 @@
-FROM python:3.13-alpine
+FROM python:3.14.6-alpine3.24
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
@@ -21,5 +21,8 @@ COPY docker/modpack-builder/merge-manifest.py /app/merge-manifest.py
 
 RUN chmod +x /app/*.sh /app/*.py
 
+RUN addgroup -S app && adduser -S -G app app
+
+USER app
 WORKDIR /work
 ENTRYPOINT ["/app/entrypoint.sh"]

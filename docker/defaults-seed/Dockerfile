@@ -1,4 +1,4 @@
-FROM alpine:3.24
+FROM alpine:3.24.1
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
@@ -40,6 +40,8 @@ COPY config/servercore/                /defaults/config/servercore/
 COPY config/bluemap/                   /defaults/config/bluemap/
 
 COPY docker/defaults-seed/seed.sh /seed.sh
-RUN chmod +x /seed.sh
+RUN chmod +x /seed.sh \
+ && adduser -D -u 1000 seed
 
+USER seed
 ENTRYPOINT ["/seed.sh"]

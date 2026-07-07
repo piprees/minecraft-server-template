@@ -1,4 +1,4 @@
-FROM python:3.14-alpine
+FROM python:3.14.6-alpine3.24
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
@@ -13,5 +13,8 @@ COPY docker/mod-checker/entrypoint.sh /app/
 
 RUN chmod +x /app/entrypoint.sh /app/scripts/check-updates.sh
 
+RUN addgroup -S app && adduser -S -G app app
+
+USER app
 WORKDIR /app
 CMD ["/app/entrypoint.sh"]

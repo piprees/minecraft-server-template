@@ -51,7 +51,7 @@ else
 fi
 
 RCON_PW="seedroll"
-IMAGE="itzg/minecraft-server:latest"
+IMAGE="itzg/minecraft-server:2026.7.0-java21"
 CONTAINER_NAME="seedroll"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
