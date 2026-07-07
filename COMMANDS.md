@@ -499,7 +499,37 @@ See the [Scripts table in README.md](README.md#scripts) for the full list with c
 | `./ops doctor` | Full production health triage in one command |
 | `./ops deploy --pull` | Full deploy on the server: countdown, kick, restart, config sync |
 | `./ops backup` | Trigger an immediate backup (on the server) |
-| `./dev up` / `./dev down` / `./dev logs` | Start/stop/logs for the local dev server |
-| `./ops restart <name>` | Force-recreate a production sidecar (refuses mc) |
 | `./ops stats --once` | Production system + container snapshot |
 | `./ops logs` | Interactive log tailing (streams — humans only, agents use `docker logs --tail`) |
+| `./dev up` / `./dev down` / `./dev logs` | Start/stop/logs for the local dev server |
+
+### Service management
+
+Start, stop, restart, or check status of individual services — both locally (`./dev`) and on production (`./ops`).
+
+| Command | Description |
+| --- | --- |
+| `./ops start <service>` | Start a stopped service on production |
+| `./ops stop <service>` | Stop a running service on production |
+| `./ops restart <service>` | Force-recreate a service on production |
+| `./ops status` | Show all container statuses on production |
+| `./ops status <service>` | Show one service's status on production |
+| `./dev start <service>` | Start a stopped service locally |
+| `./dev stop <service>` | Stop a running service locally |
+| `./dev restart <service>` | Force-recreate a service locally |
+| `./dev status` | Show all local container statuses |
+
+Services: `mc`, `nav-proxy`, `pack-web`, `cloudflared`, `uptime-kuma`, `kuma-init`, `mc-backup`, `idle-tasks`, `mod-checker`, `discord-sync`, `seed`.
+
+### Map rendering
+
+Manage BlueMap renders from your Mac. The render command temporarily bumps threads for speed and resets them on completion or Ctrl+C.
+
+| Command | Description |
+| --- | --- |
+| `./ops map render` | Force-render all 4 maps with progress tracking (3 threads) |
+| `./ops map render <map>` | Force-render one map (e.g. `world`, `paradise_lost`) |
+| `./ops map status` | One-shot render progress check |
+| `./ops map threads <n>` | Manually set render thread count |
+
+Map IDs: `world`, `world_the_nether`, `world_the_end`, `paradise_lost`.

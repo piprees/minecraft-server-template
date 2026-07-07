@@ -228,6 +228,8 @@ Scripts fall into three categories depending on where they live and who runs the
 | `ddns-update.sh` | local host | Cloudflare dynamic DNS for home hosting (cron-installable) |
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
 | `seed/*` | Mac | Batch seed testing, scoring, reports |
+| `service.sh` | Mac | Start, stop, restart, or check status of individual services (local or production) |
+| `map-render.sh` | Mac | Force-render BlueMap maps with thread boost and progress tracking |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
 
 ### Image scripts (baked into GHCR images, not run directly)
