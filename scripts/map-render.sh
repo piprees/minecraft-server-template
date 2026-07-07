@@ -91,6 +91,9 @@ trap cleanup EXIT INT TERM
 echo "Monitoring render progress (Ctrl+C to detach — render continues)..."
 echo ""
 
+# Wait for BlueMap to register the update tasks (reload clears state briefly)
+sleep 5
+
 while true; do
   STATUS=$($SSH_CMD "docker exec mc rcon-cli 'bluemap'" 2>/dev/null || echo "")
 
