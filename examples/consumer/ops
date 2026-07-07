@@ -26,6 +26,10 @@ ALLOWED_COMMANDS=(
   live-logs
   live-stats
   restart-service
+  start
+  stop
+  restart
+  status
   op-env
   op-sync-env
   discord-notify
@@ -80,6 +84,7 @@ case "$CMD" in
   cloudflare)  script_file="cloudflare-setup" ;;
   update)      script_file="remote-update" ;;
   backup)      script_file="backup-now" ;;
+  start|stop|restart|status) script_file="service" ;;
 esac
 
 SCRIPT_PATH="$CONSUMER_DIR/$STACK_SCRIPTS/${script_file}.sh"
@@ -99,4 +104,12 @@ if [[ -f "$CONSUMER_DIR/.env" ]]; then
 fi
 
 export CONSUMER_DIR
+
+# For service.sh, pass the original command as the first argument (the action)
+case "$CMD" in
+  start|stop|restart|status)
+    exec bash "$SCRIPT_PATH" "$CMD" "$@"
+    ;;
+esac
+
 exec bash "$SCRIPT_PATH" "$@"

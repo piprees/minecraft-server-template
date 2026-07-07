@@ -20,6 +20,10 @@ usage() {
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  sync     Update everything: local down, update, server update, local up"
+  echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
+  echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
+  echo "  restart  Force-recreate a service (e.g. ./dev restart nav-proxy)"
+  echo "  status   Show container status (e.g. ./dev status)"
 }
 
 ensure_env() {
@@ -126,6 +130,11 @@ case "$CMD" in
     echo ""
     echo "==> Starting local stack..."
     bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+    ;;
+  start | stop | restart | status)
+    ensure_stack
+    export CONSUMER_DIR SERVICE_LOCAL=1
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/service.sh" "$CMD" "$@"
     ;;
   help | --help | -h)
     usage
