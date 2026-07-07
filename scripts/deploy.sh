@@ -476,6 +476,22 @@ rcon "chunky shape square"
 rcon "chunky border add"
 echo "  ChunkyBorder paradise lost: ${PARADISE_LOST_RADIUS} radius"
 
+# --- Activate all dimensions (so Chunky can pre-generate them) ----------------
+# Dimensions don't create region files until a chunk is loaded in them.
+# Forceload one chunk in each, wait for it to save, then remove.
+echo ""
+echo "==> Activating dimensions for pre-generation..."
+for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
+  rcon "execute in $dim run forceload add 0 0"
+done
+sleep 10
+rcon "save-all flush"
+sleep 5
+for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
+  rcon "execute in $dim run forceload remove 0 0"
+done
+echo "  Dimensions activated (nether, end, paradise lost)"
+
 # --- Enforce game rules -------------------------------------------------------
 echo ""
 echo "==> Enforcing game rules..."
