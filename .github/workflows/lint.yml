@@ -66,6 +66,46 @@ jobs:
       - name: Validate cloud profile
         run: docker compose --profile cloud config > /dev/null
 
+  bundle-manifest:
+    name: Bundle manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check all ops/dev commands resolve to manifest entries
+        run: |
+          MANIFEST=$(grep -oP "scripts/\S+\.sh" scripts/build-stack-bundle.sh)
+          ERRORS=0
+
+          # Every script_file case in ops must be in the manifest
+          for cmd in $(grep -oP 'script_file="\K[^"]+' examples/consumer/ops); do
+            target="scripts/${cmd}.sh"
+            if ! echo "$MANIFEST" | grep -qF "$target"; then
+              echo "::error::ops command '$cmd' maps to $target which is missing from build-stack-bundle.sh MANIFEST"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          # Every script sourced/exec'd by bundle scripts should be in the manifest
+          for script in $(echo "$MANIFEST" | grep '^scripts/'); do
+            if [ -f "$script" ]; then
+              for ref in $(grep -ohP '\$SCRIPT_DIR/\K[\w-]+\.sh' "$script" 2>/dev/null || true); do
+                target="scripts/$ref"
+                if [ -f "$target" ] && ! echo "$MANIFEST" | grep -qF "$target"; then
+                  echo "::error::$script references $target which is missing from build-stack-bundle.sh MANIFEST"
+                  ERRORS=$((ERRORS + 1))
+                fi
+              done
+            fi
+          done
+
+          if [ $ERRORS -gt 0 ]; then
+            echo ""
+            echo "Add missing scripts to the MANIFEST array in scripts/build-stack-bundle.sh"
+            exit 1
+          fi
+          echo "All bundle script references resolved"
+
   pip-check:
     name: Python deps
     runs-on: ubuntu-latest

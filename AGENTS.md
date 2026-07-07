@@ -87,6 +87,8 @@ Scripts live in three places. Know which category a script belongs to before edi
 
 See the [full scripts table in README.md](README.md#scripts) for the complete list.
 
+**Bundle manifest trap:** new bundle scripts must be added to the `MANIFEST` array in `scripts/build-stack-bundle.sh` or they won't be shipped to consumers. CI validates this — `lint.yml` checks that every `.sh` file referenced by `ops` or imported by other bundle scripts exists in the manifest.
+
 ## Conventions
 
 **Scripting:** `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on **macOS bash 3.2** (no `declare -A`, no `${var,,}`, no `|&`, no `mapfile`). Idempotent - safe to run twice. Back up before overwriting (`backup()` in lib.sh → `file.bak.TIMESTAMP`). Support `--non-interactive` for CI. Every script carries a header comment with purpose, context, usage, and gotchas - **keep headers current when changing behaviour**; they're the authoritative reference.
