@@ -106,11 +106,15 @@ jobs:
 
       - name: Assert starterkit config is bundle version (not mod default)
         run: |
-          KIT=$(docker exec mc cat /data/config/starterkit/kits/Default.txt 2>/dev/null || true)
+          # The seed container writes configs to /config-vol/ (stack-config volume).
+          # deploy.sh copies these to /data/config/ on production; in CI we check
+          # the volume directly since deploy.sh doesn't run.
+          KIT=$(docker exec mc cat /config-vol/starterkit/kits/Default.txt 2>/dev/null || true)
           if echo "$KIT" | grep -q "diamond_helmet"; then
             echo "Starterkit: bundle version applied (diamond armour)"
           elif [ -z "$KIT" ]; then
-            echo "::warning::Starterkit config not found (mod may not have created it yet)"
+            echo "::error::Starterkit config not found in seed volume"
+            exit 1
           else
             echo "::error::Starterkit config is the mod default, not the bundle version"
             echo "$KIT" | head -5
@@ -127,7 +131,7 @@ jobs:
           fi
           echo "No crash reports"
 
-      - name: Assert key configs exist
+      - name: Assert key configs seeded
         run: |
           MISSING=0
           for cfg in \
@@ -136,10 +140,10 @@ jobs:
             starterkit/descriptions/Default.txt \
             boring_default_game_rules/config.json \
             voicechat/voicechat-server.properties; do
-            if docker exec mc test -f "/data/config/$cfg"; then
+            if docker exec mc test -f "/config-vol/$cfg"; then
               echo "  OK: $cfg"
             else
-              echo "::error::Missing config: $cfg"
+              echo "::error::Missing config in seed volume: $cfg"
               MISSING=$((MISSING + 1))
             fi
           done
