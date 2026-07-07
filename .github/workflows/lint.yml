@@ -81,7 +81,7 @@ jobs:
           # Each explicit script_file="X" mapping, plus every ALLOWED_COMMANDS
           # entry that has no mapping (defaults to the command name itself).
           MAPPED=$(grep -oE 'script_file="[^"]+"' examples/consumer/ops \
-            | sed 's/script_file="//;s/"//' | sort -u)
+            | sed 's/script_file="//;s/"//' | grep -v '^\$' | sort -u)
 
           # Commands with explicit mappings
           for script in $MAPPED; do
