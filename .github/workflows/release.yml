@@ -20,8 +20,15 @@ permissions:
   contents: write
 
 jobs:
+  smoke-test:
+    name: Smoke test
+    uses: ./.github/workflows/smoke-test.yml
+    permissions:
+      contents: read
+
   bundle:
     name: Build bundle and publish release
+    needs: smoke-test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

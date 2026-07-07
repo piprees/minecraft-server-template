@@ -236,6 +236,27 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   echo "  Default configs seeded"
 fi
 
+# BlueMap map configs: force-copy from bundle (not skip-if-exists) and
+# remove auto-generated duplicates. BlueMap creates its own map configs
+# on first boot with names like world_paradise_lost_paradise_lost.conf
+# that duplicate our curated paradise_lost.conf. Force-copy ensures our
+# names and render bounds are applied; removing extras prevents duplicate
+# map entries in the web UI.
+BM_BUNDLE="$STACK_DIR/config/bluemap/maps"
+BM_DATA="$SERVER_DIR/data/config/bluemap/maps"
+if [[ -d "$BM_BUNDLE" && -d "$BM_DATA" ]]; then
+  cp "$BM_BUNDLE"/*.conf "$BM_DATA/" 2> /dev/null || true
+  for f in "$BM_DATA"/*.conf; do
+    [[ -f "$f" ]] || continue
+    basename_f="$(basename "$f")"
+    if [[ ! -f "$BM_BUNDLE/$basename_f" ]]; then
+      rm -f "$f"
+      echo "  Removed auto-generated BlueMap map: $basename_f"
+    fi
+  done
+  echo "  BlueMap map configs applied"
+fi
+
 # Copy consumer overlay config files to data/config/ (overrides).
 # These REPLACE defaults — the consumer's overlay is authoritative.
 if [[ -d "$SERVER_DIR/overlay/config" ]]; then

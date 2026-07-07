@@ -1,0 +1,160 @@
+name: Smoke Test
+
+# Boot the server with all mods, verify health and config correctness.
+#
+# Called by release.yml as a gate before publishing. Can also be run
+# manually or on PRs that touch server-critical paths.
+#
+# Builds defaults-seed from source (single-platform), boots mc with the
+# local profile, waits for RCON, and runs assertions. Mods are cached
+# between runs to avoid Modrinth rate limits (~150 JARs).
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'docker/defaults-seed/**'
+      - 'docker-compose.yml'
+      - 'scripts/deploy.sh'
+      - 'scripts/lib.sh'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boot-test:
+    name: Boot server and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build defaults-seed image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/defaults-seed:ci \
+            -f docker/defaults-seed/Dockerfile .
+
+      - name: Create minimal .env
+        run: |
+          cat > .env <<'EOF'
+          MC_VERSION=1.21.1
+          MEMORY=4G
+          SEED=0
+          RCON_PASSWORD=smoketest
+          SERVER_PORT=25577
+          VOICE_PORT=24454
+          MOTD=CI smoke test
+          DOMAIN=example.com
+          ONLINE_MODE=FALSE
+          ENABLE_WHITELIST=FALSE
+          ENFORCE_WHITELIST=FALSE
+          IMAGE_TAG=ci
+          EOF
+
+      - name: Restore mod cache
+        uses: actions/cache@v4
+        with:
+          path: data/mods
+          key: mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}
+          restore-keys: mc-mods-
+
+      - name: Create bind-mount directories
+        run: mkdir -p data/mods data/config modpack-dist overlay backups
+
+      - name: Start seed and mc
+        run: |
+          docker compose --profile local up -d mc
+        env:
+          MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
+
+      - name: Wait for server to become healthy
+        run: |
+          echo "Waiting for RCON (up to 600s for first-run mod download)..."
+          ELAPSED=0
+          INTERVAL=15
+          MAX_WAIT=600
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            if docker exec mc rcon-cli "list" 2>/dev/null | grep -q "players online"; then
+              echo "Server is healthy (took ${ELAPSED}s)"
+              exit 0
+            fi
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+            echo "  ...waiting (${ELAPSED}s / ${MAX_WAIT}s)"
+            # Show last few log lines for progress visibility
+            docker logs mc --tail 3 2>/dev/null || true
+          done
+          echo "::error::Server failed to become healthy within ${MAX_WAIT}s"
+          docker logs mc --tail 100
+          exit 1
+
+      - name: Assert RCON responds
+        run: |
+          RESULT=$(docker exec mc rcon-cli "list" 2>/dev/null)
+          echo "$RESULT"
+          echo "$RESULT" | grep -q "players online" || {
+            echo "::error::RCON 'list' did not return expected output"
+            exit 1
+          }
+
+      - name: Assert starterkit config is bundle version (not mod default)
+        run: |
+          KIT=$(docker exec mc cat /data/config/starterkit/kits/Default.txt 2>/dev/null || true)
+          if echo "$KIT" | grep -q "diamond_helmet"; then
+            echo "Starterkit: bundle version applied (diamond armour)"
+          elif [ -z "$KIT" ]; then
+            echo "::warning::Starterkit config not found (mod may not have created it yet)"
+          else
+            echo "::error::Starterkit config is the mod default, not the bundle version"
+            echo "$KIT" | head -5
+            exit 1
+          fi
+
+      - name: Assert no crash reports
+        run: |
+          if [ -d data/crash-reports ] && [ "$(ls -A data/crash-reports 2>/dev/null)" ]; then
+            echo "::error::Crash reports found:"
+            ls data/crash-reports/
+            cat data/crash-reports/*.txt | head -50
+            exit 1
+          fi
+          echo "No crash reports"
+
+      - name: Assert key configs exist
+        run: |
+          MISSING=0
+          for cfg in \
+            starterkit.json5 \
+            starterkit/kits/Default.txt \
+            starterkit/descriptions/Default.txt \
+            boring_default_game_rules/config.json \
+            voicechat/voicechat-server.properties; do
+            if docker exec mc test -f "/data/config/$cfg"; then
+              echo "  OK: $cfg"
+            else
+              echo "::error::Missing config: $cfg"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          [ $MISSING -eq 0 ] || exit 1
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          echo "=== mc logs (last 200) ==="
+          docker logs mc --tail 200 2>&1 || true
+          echo "=== seed logs ==="
+          docker logs seed 2>&1 || true
+          echo "=== container status ==="
+          docker ps -a
+
+      - name: Stop stack
+        if: always()
+        run: docker compose --profile local down -v
