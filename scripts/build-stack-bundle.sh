@@ -53,6 +53,7 @@ MANIFEST=(
   scripts/live-stats.sh
   scripts/restart-service.sh
   scripts/service.sh
+  scripts/map-render.sh
   scripts/backup-now.sh
   scripts/reset-seed.sh
   scripts/seed/roll-seeds.sh
