@@ -171,25 +171,46 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
 fi
 
 # --- Pre-seed mods from mirror/cache -----------------------------------------
-# If modpack/dist/mods/ (the mod mirror) or cache/server-mods/ exists, copy
-# any JARs into data/mods/ that aren't already there. itzg skips downloading
-# mods it already has, so this reduces Modrinth API calls and avoids rate
-# limits on first boot. The mirror has client mods (overlaps ~70% with server
-# mods); the server-mods cache has the full set after a previous boot.
+# The mod mirror uses content-addressed filenames ({slug}-{versionId}.jar) but
+# itzg expects Modrinth's original filenames. mirror-map.json maps between them.
+# cache/server-mods/ uses original filenames (copied from data/mods/ after boot).
 MOD_DIR="$CONSUMER_DIR/data/mods"
 SEEDED=0
-for src_dir in "$CONSUMER_DIR/cache/server-mods" "$CONSUMER_DIR/modpack/dist/mods" \
-               "$STACK_DIR/../modpack/dist/mods"; do
-  if [[ -d "$src_dir" ]] && ls "$src_dir/"*.jar &> /dev/null 2>&1; then
-    for jar in "$src_dir/"*.jar; do
-      dest="$MOD_DIR/$(basename "$jar")"
-      if [[ ! -f "$dest" ]]; then
-        cp "$jar" "$dest"
+
+# Mirror directories (content-addressed, need mirror-map.json for renaming)
+for mirror_dir in "$CONSUMER_DIR/modpack/dist/mods" "$STACK_DIR/../modpack/dist/mods"; do
+  MAP_FILE="$mirror_dir/mirror-map.json"
+  if [[ -f "$MAP_FILE" ]]; then
+    while IFS= read -r line; do
+      mirror_name=$(echo "$line" | cut -d'|' -f1)
+      original_name=$(echo "$line" | cut -d'|' -f2)
+      src="$mirror_dir/$mirror_name"
+      dest="$MOD_DIR/$original_name"
+      if [[ -f "$src" && ! -f "$dest" ]]; then
+        cp "$src" "$dest"
         SEEDED=$((SEEDED + 1))
       fi
-    done
+    done < <(python3 -c "
+import json, sys
+m = json.load(open(sys.argv[1]))
+for k, v in m.items():
+    print(f'{k}|{v}')
+" "$MAP_FILE" 2>/dev/null)
+    break
   fi
 done
+
+# Server-mods cache (original filenames, direct copy)
+if [[ -d "$CONSUMER_DIR/cache/server-mods" ]] && ls "$CONSUMER_DIR/cache/server-mods/"*.jar &> /dev/null 2>&1; then
+  for jar in "$CONSUMER_DIR/cache/server-mods/"*.jar; do
+    dest="$MOD_DIR/$(basename "$jar")"
+    if [[ ! -f "$dest" ]]; then
+      cp "$jar" "$dest"
+      SEEDED=$((SEEDED + 1))
+    fi
+  done
+fi
+
 if [[ $SEEDED -gt 0 ]]; then
   echo "  Pre-seeded $SEEDED mod JARs from local mirror/cache"
 fi

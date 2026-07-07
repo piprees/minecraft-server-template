@@ -116,7 +116,8 @@ with open('$tmpfile') as f:
 if not versions:
     sys.exit(1)
 stable_only = set(os.environ.get('STABLE_ONLY', '').split(','))
-if os.environ.get('SLUG', '') in stable_only:
+slug = os.environ.get('SLUG', '')
+if slug in stable_only:
     v = next((x for x in versions if x.get('version_type') == 'release'), versions[0])
 else:
     v = versions[0]
@@ -126,7 +127,9 @@ for f in v.get('files', []):
             'path': 'mods/' + f['filename'],
             'hashes': {'sha1': f['hashes'].get('sha1', ''), 'sha512': f['hashes'].get('sha512', '')},
             'downloads': [f['url']],
-            'fileSize': f['size']
+            'fileSize': f['size'],
+            '_slug': slug,
+            '_versionId': v['id']
         }))
         break
 " 2> /dev/null) || true
@@ -232,11 +235,18 @@ def fetch_jar(url, target, want_hash):
             os.remove(target)
         return False
 
-# --- Mirror client mod JARs ---
-kept, client_fetched, modrinth_only = set(), 0, 0
+# mirror_map: {mirror_name: original_filename} — used by dev-up.sh to
+# pre-seed data/mods/ with the correct filenames itzg expects.
+kept, mirror_map = set(), {}
+
+# --- Mirror client mod JARs (content-addressed: {slug}-{versionId}.jar) ---
+client_fetched, modrinth_only = 0, 0
 for entry in files:
-    filename = entry['path'].split('/', 1)[1]
-    target = os.path.join(mirror_dir, filename)
+    original = entry['path'].split('/', 1)[1]
+    slug = entry.get('_slug', '')
+    vid = entry.get('_versionId', '')
+    mirror_name = f'{slug}-{vid}.jar' if slug and vid else original
+    target = os.path.join(mirror_dir, mirror_name)
     want = entry.get('hashes', {}).get('sha512', '')
     ok = os.path.isfile(target) and (not want or sha512_of(target) == want)
     if not ok:
@@ -244,16 +254,17 @@ for entry in files:
         if ok:
             client_fetched += 1
     if ok:
-        kept.add(filename)
-        entry['downloads'] = [f'https://mods.{domain}/mods/{quote(filename)}'] + entry['downloads']
+        kept.add(mirror_name)
+        mirror_map[mirror_name] = original
+        entry['downloads'] = [f'https://mods.{domain}/mods/{quote(mirror_name)}'] + entry['downloads']
     else:
         modrinth_only += 1
 
-# --- Mirror server mod JARs (expands the mirror beyond client-only mods) ---
+# --- Mirror server mod JARs ---
 server_mods_file = '$PROJECT_DIR/config/modrinth-mods.txt'
 server_fetched = 0
 if os.path.isfile(server_mods_file):
-    version_ids = []
+    slug_vid_pairs = []
     for line in open(server_mods_file):
         line = line.strip()
         if not line or line.startswith('#'):
@@ -262,10 +273,11 @@ if os.path.isfile(server_mods_file):
             line = line[len('datapack:'):]
         parts = line.rstrip('?').split(':')
         if len(parts) == 2:
-            version_ids.append(parts[1])
+            slug_vid_pairs.append((parts[0], parts[1]))
 
-    # Bulk-resolve version IDs (one API call instead of ~150)
-    if version_ids:
+    if slug_vid_pairs:
+        vid_to_slug = {vid: slug for slug, vid in slug_vid_pairs}
+        version_ids = [vid for _, vid in slug_vid_pairs]
         ids_json = json.dumps(version_ids)
         url = f'https://api.modrinth.com/v2/versions?ids={quote(ids_json)}'
         req = urllib.request.Request(url, headers={'User-Agent': ua})
@@ -276,12 +288,15 @@ if os.path.isfile(server_mods_file):
             versions = []
 
         for ver in versions:
+            vid = ver['id']
+            slug = vid_to_slug.get(vid, '')
             for f in ver.get('files', []):
                 if f.get('primary', False):
-                    filename = f['filename']
-                    if filename in kept:
-                        break  # already mirrored from client mods
-                    target = os.path.join(mirror_dir, filename)
+                    original = f['filename']
+                    mirror_name = f'{slug}-{vid}.jar' if slug else original
+                    if mirror_name in kept:
+                        break
+                    target = os.path.join(mirror_dir, mirror_name)
                     want = f['hashes'].get('sha512', '')
                     ok = os.path.isfile(target) and (not want or sha512_of(target) == want)
                     if not ok:
@@ -289,8 +304,13 @@ if os.path.isfile(server_mods_file):
                         if ok:
                             server_fetched += 1
                     if ok:
-                        kept.add(filename)
+                        kept.add(mirror_name)
+                        mirror_map[mirror_name] = original
                     break
+
+# --- Write mirror map (for pre-seeding with correct filenames) ---
+with open(os.path.join(mirror_dir, 'mirror-map.json'), 'w') as f:
+    json.dump(mirror_map, f, indent=2, sort_keys=True)
 
 # --- Prune mirror JARs no longer referenced by either mod list ---
 pruned = 0
