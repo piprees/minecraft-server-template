@@ -1,7 +1,7 @@
 {
   "progressBarType": "Vanilla",
-  "logoStyle": "Aspect1to1",
-  "backgroundImage": false,
+  "logoStyle": "Hidden",
+  "backgroundImage": true,
   "logoBlend": false,
   "splashBackgroundColor": "#1E2233",
   "splashProgressBarColor": "#E87420",

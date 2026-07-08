@@ -48,7 +48,7 @@ mouseSensitivity:0.5
 damageTiltStrength:1.0
 highContrast:false
 narratorHotkey:false
-resourcePacks:["vanilla","fabric","file/Better-Leaves-9.5.zip","file/Fancy Crops v1.3.zip","file/Simple Grass Flowers v1.9.6.zip","file/Os\u0027 Colorful Grasses (Short and Fluffy).zip","file/LowOnFire v26.2§8.zip"]
+resourcePacks:["vanilla","fabric","file/server-panorama","file/Better-Leaves-9.5.zip","file/Fancy Crops v1.3.zip","file/Simple Grass Flowers v1.9.6.zip","file/Os\u0027 Colorful Grasses (Short and Fluffy).zip","file/LowOnFire v26.2§8.zip"]
 incompatibleResourcePacks:[]
 lastServer:
 lang:en_gb
@@ -185,7 +185,7 @@ key_gui.xaero_quick_confirm:key.keyboard.right.shift
 key_gui.xaero_toggle_dimension:key.keyboard.unknown
 key_zoomify.key.zoom:key.keyboard.c
 key_zoomify.key.zoom.secondary:key.keyboard.unknown
-key_iris.keybind.reload:key.keyboard.unknown
+key_iris.keybind.reload:key.keyboard.world.2
 key_iris.keybind.toggleShaders:key.keyboard.k
 key_iris.keybind.shaderPackSelection:key.keyboard.unknown
 key_iris.keybind.wireframe:key.keyboard.unknown
