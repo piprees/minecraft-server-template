@@ -69,6 +69,7 @@ OPTIONAL_VARS=(
   DISCORD_PLAYER_ROLE_ID
   DISCORD_WELCOME_CHANNEL_ID
   DISCORD_WELCOME_MESSAGE_ID
+  STACK_VERSION
 )
 
 # --- flags ---------------------------------------------------------------------
