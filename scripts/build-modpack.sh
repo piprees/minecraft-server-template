@@ -793,8 +793,13 @@ MMCEOF
   cp "$BOOTSTRAP_JAR" "$INST_DIR/.minecraft/packwiz-installer-bootstrap.jar"
   cp -r "$WORK_DIR/overrides/." "$INST_DIR/.minecraft/"
 
-  # Only the current version is kept - these are ~350MB each
+  # Only the current version is kept — prune old instance zips and mrpacks
   rm -f "$DIST_DIR"/${BRAND_SLUG:-adventure}-*-prism-instance.zip
+  for old in "$DIST_DIR"/${BRAND_SLUG:-adventure}-*-v*.mrpack; do
+    [[ -f "$old" ]] || continue
+    [[ "$old" == "$PACK_FILE" ]] && continue
+    rm -f "$old"
+  done
   (cd "$INST_DIR" && zip -qr "$INSTANCE_ZIP" .)
   rm -rf "$INST_DIR"
   echo "  ✓ $(basename "$INSTANCE_ZIP") ($(du -h "$INSTANCE_ZIP" | cut -f1))"
