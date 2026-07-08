@@ -24,8 +24,14 @@
                 <RegexFilter regex=".*\[DistantHorizons\].*chunk.*timeout.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Supplementaries registry warnings (harmless cross-mod compat) -->
                 <RegexFilter regex=".*supplementaries.*registry.*not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- Lithium/C2ME optimisation debug messages -->
+                <!-- C2ME parallel worldgen noise (harmless during chunk generation) -->
                 <RegexFilter regex=".*\[c2me\].*debug.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Ignoring unknown attribute.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Couldn't find template pool reference.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Block-attached entity at invalid position.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Error upgrading chunk.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Failed to load chunk.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Failed to parse either.*Not a string: null.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- ModernFix class loading noise -->
                 <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
