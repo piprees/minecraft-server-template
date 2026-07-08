@@ -13,7 +13,7 @@
 #     autopaused, which is normal when empty - reported as INFO, not failure)
 #   - last restic snapshot age (FAIL >48h, WARN >26h vs the 12h schedule)
 #   - Discord slash-command registry (guild must have register/unregister/mc)
-#   - modpack mirror populated (dist/mods)
+#   - modpack mirror populated (DIST_DIR/mods, defaults to modpack-dist/mods)
 #   - kuma-init exit code, fail2ban jail bans, recent mc log errors
 #     (filtered for known-harmless mod noise)
 #
@@ -180,10 +180,11 @@ else
   res WARN "Discord registry check skipped (token/guild not in .env)"
 fi
 
-# --- modpack mirror ---
-NJARS=$(ls modpack/dist/mods/*.jar 2> /dev/null | wc -l)
+# --- modpack mirror (DIST_DIR defaults to ./modpack-dist in compose) ---
+_dist_dir="${DIST_DIR:-./modpack-dist}"
+NJARS=$(ls "${_dist_dir}"/mods/*.jar 2> /dev/null | wc -l)
 if [ "$NJARS" -gt 0 ]; then
-  res OK "modpack mirror: $NJARS JARs in dist/mods"
+  res OK "modpack mirror: $NJARS JARs in ${_dist_dir}/mods"
 else
   res WARN "modpack mirror empty - installs fall back to Modrinth (run build-modpack.sh)"
 fi
@@ -212,6 +213,7 @@ ERRS=$(docker logs mc --tail 300 2>&1 | grep -i "ERROR" \
   | grep -v -e "No data fixer registered" -e "Error loading class" \
     -e "Block-attached entity at invalid position" -e "template pool reference" \
     -e "Parsing error loading custom advancement" -e "Couldn't load advancements" \
+    -e "Error upgrading chunk" -e "Failed to load chunk" \
   | wc -l)
 if [ "$ERRS" -eq 0 ]; then
   res OK "no non-trivial errors in the last 300 mc log lines"
