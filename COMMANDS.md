@@ -323,7 +323,8 @@ docker exec -i mc rcon-cli "weather thunder 600"   # 30 seconds of thunder
 docker exec -i mc rcon-cli "worldborder center 0 0"
 docker exec -i mc rcon-cli "worldborder set 16384"  # 8192 radius
 
-# Set spawn
+# Set spawn - NOTE: deploy.sh re-applies SPAWN_X/Y/Z from config/.env on every
+# deploy, so change it there; a manual setworldspawn only lasts until then
 docker exec -i mc rcon-cli "setworldspawn 0 64 0"
 
 # Game rules

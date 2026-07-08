@@ -132,6 +132,8 @@ Mod configs in `config/<modname>/` are copied to `data/config/` by **deploy.sh s
 
 **Game rules** live in two places that must match: `config/boring_default_game_rules/config.json` (new-world defaults) AND the RCON enforcement block in `scripts/deploy.sh` (existing world). Each has a comment pointing at the other.
 
+**World spawn** is enforced the same way: `deploy.sh` runs `setworldspawn` from `SPAWN_X/Y/Z` in `config/.env` on every deploy (and centres the BlueMap webapp on it), so an in-game `/setworldspawn` doesn't stick - change the env vars instead.
+
 ## Web surfaces (styles & markup)
 
 The four public pages share one design system but have **no shared stylesheet** - each surface carries its own copy of the styles. `DESIGN.md` (repo root) is the source of truth for tokens (the Quarry palette, type scale, spacing); keep every copy in step with it by hand.
