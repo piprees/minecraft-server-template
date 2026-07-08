@@ -37,6 +37,8 @@ CHUNKY_NETHER_MARKER="/data/.chunky-nether-complete"
 CHUNKY_END_MARKER="/data/.chunky-end-complete"
 CHUNKY_PL_MARKER="/data/.chunky-paradise-lost-complete"
 SKIP_PAUSE_FILE="/data/.skip-pause"
+C2ME_PARALLEL_MARKER="/data/.c2me-parallel"
+C2ME_PLAYER_THRESHOLD="${C2ME_PLAYER_THRESHOLD:-10}"
 chunky_active=false
 chunky_dimension="overworld"
 tasks_done=false
@@ -71,6 +73,13 @@ exit_pregen_mode() {
   rcon "gamerule doMobSpawning true"
   rcon "gamerule doFireTick true"
   echo "  Pre-gen mode off: simulation restored"
+}
+
+enable_c2me_parallel() {
+  if [[ ! -f "$C2ME_PARALLEL_MARKER" ]]; then
+    touch "$C2ME_PARALLEL_MARKER"
+    echo "  Created .c2me-parallel (deploy.sh will enable full parallelism on next restart)"
+  fi
 }
 
 enable_skip_pause() {
@@ -199,6 +208,7 @@ check_chunky_complete() {
     start_chunky
     if [[ "$chunky_active" != true ]]; then
       echo "[$(date '+%H:%M:%S')] All dimensions pre-generated"
+      enable_c2me_parallel
       exit_pregen_mode
       disable_skip_pause
     fi
@@ -265,6 +275,9 @@ while true; do
     if [[ -n "$empty_since" ]]; then
       echo "[$(date '+%H:%M:%S')] Player joined - cancelling idle timer"
       pause_chunky
+    fi
+    if [[ "$count" -ge "$C2ME_PLAYER_THRESHOLD" ]]; then
+      enable_c2me_parallel
     fi
     empty_since=""
     tasks_done=false

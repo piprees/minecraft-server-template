@@ -1,0 +1,11 @@
+# Platform default: single-threaded chunk loading to avoid c2me
+# ConcurrentModificationException during Chunky pre-generation.
+#
+# deploy.sh upgrades this to "default" (c2me auto-calculated parallelism)
+# when data/.c2me-parallel exists — set by idle-tasks once all dimensions
+# are pre-generated or 10+ players have been seen online.
+version = 3
+globalExecutorParallelism = 1
+
+[chunkSystem]
+	recoverFromErrors = true
