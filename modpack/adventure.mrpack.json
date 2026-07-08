@@ -26,6 +26,7 @@
       "kambrik",
       "playeranimator",
       "cloth-config",
+      "yungs-api",
       "distanthorizons",
       "simple-voice-chat",
       "untitled-duck-mod",
@@ -83,7 +84,9 @@
       "trinkets",
       "charm-of-undying",
       "elytra-slot",
-      "artifacts"
+      "artifacts",
+      "comforts",
+      "guard-villagers-(fabricquilt)"
     ],
     "optional": [
       "sodium",
@@ -127,7 +130,10 @@
       "first-person-model",
       "weaponmaster",
       "satin-free-wakes",
-      "pick-up-notifier"
+      "pick-up-notifier",
+      "travelers-titles",
+      "entity-model-features",
+      "entitytexturefeatures"
     ],
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
     "stableOnly": []
@@ -146,7 +152,8 @@
       "fancy-crops",
       "simple-grass-flowers",
       "os-colorful-grasses",
-      "low-on-fire"
+      "low-on-fire",
+      "fresh-animations"
     ]
   }
 }
