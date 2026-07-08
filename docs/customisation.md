@@ -131,23 +131,39 @@ Your images replace the template defaults. No `pack.mcmeta` or `options.txt` cha
 
 ### Capturing cubemap faces
 
-Get to your chosen spot in-game. Freeze the world first so lighting is consistent across all 6 faces:
+Cubemap faces must be **square** screenshots taken at **exactly 90° FOV** with no dynamic FOV effects. Mismatched FOV or non-square images cause visible seams at cube edges.
+
+#### 1. Set options.txt before launching
+
+Close Minecraft, then edit `options.txt` in your Prism/MultiMC instance:
+
+```
+fov:0.5
+fovEffectScale:0.0
+fullscreen:false
+overrideWidth:1024
+overrideHeight:1024
+```
+
+- `fov:0.5` = exactly 90° (the slider is non-linear: `0.0` = 70°, `0.5` = 90°, `1.0` = 110°)
+- `fovEffectScale:0.0` = disables dynamic FOV from sprinting/potions
+- `overrideWidth`/`overrideHeight` = forces a square window (critical — widescreen screenshots won't tile correctly)
+
+#### 2. Launch and freeze the world
 
 ```
 /gamerule doDaylightCycle false
 /gamerule doWeatherCycle false
 /time set 6000
 /weather clear
+/gamemode spectator
 ```
 
-Then prepare for capture:
+Press **F1** to hide HUD. Enable shaders if desired.
 
-1. `/gamemode spectator` — clean shots, no hand or body
-2. Set FOV to **90** in Video Settings (must be exactly 90 for cubemap geometry)
-3. Press **F1** to hide HUD
-4. Enable shaders if desired — the cubemap is static images, so they'll look as captured
+#### 3. Capture the 6 faces
 
-Run each command below, taking a screenshot (**F2**) after each:
+Replace `<x> <y> <z>` with your coordinates from `.env` (`SPAWN_X`, `SPAWN_Y`, `SPAWN_Z`). Run each command, then take a screenshot (**F2**):
 
 ```
 /tp @s <x> <y> <z> 0 0        → panorama_0.png (South)
@@ -158,9 +174,7 @@ Run each command below, taking a screenshot (**F2**) after each:
 /tp @s <x> <y> <z> 0 90       → panorama_5.png (Down)
 ```
 
-Replace `<x> <y> <z>` with your spawn or scenic coordinates from `.env` (`SPAWN_X`, `SPAWN_Y`, `SPAWN_Z`).
-
-Reset when done:
+#### 4. Reset
 
 ```
 /gamemode survival
@@ -168,12 +182,22 @@ Reset when done:
 /gamerule doWeatherCycle true
 ```
 
-Press **F1** to show HUD, restore FOV in Video Settings.
+Press **F1** to show HUD. Restore your preferred settings in `options.txt`:
+
+```
+fov:0.5
+fovEffectScale:0.5000000000000001
+fullscreen:true
+overrideWidth:0
+overrideHeight:0
+```
+
+#### 5. Process and place
 
 Rename the 6 screenshots to `panorama_0.png` through `panorama_5.png` and place them in the overlay path above. Optionally crush them with `pngquant` to reduce pack size:
 
 ```bash
-pngquant --quality=80-100 --speed 1 --force --output panorama_0.png panorama_0.png
+for f in panorama_*.png; do pngquant --quality=80-100 --speed 1 --force --output "$f" "$f"; done
 ```
 
 ## Multi-instance
