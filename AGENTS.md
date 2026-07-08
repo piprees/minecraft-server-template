@@ -165,6 +165,7 @@ OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<tit
 7. `RESTIC_PASSWORD` is unrecoverable if lost - all backups die with it. It's in 1Password.
 8. Never restart `mc` directly on production (`docker restart mc` skips the countdown, kick, save, and whitelist dance) - use `deploy.sh`, or `/mc restart` in Discord which does it properly.
 9. `harden.sh` restarts Docker - run at provision time only, never during or near a CI deploy.
+10. **Never use unbounded wait loops over SSH.** A `while true; sleep; done` loop waiting for a container, healthcheck, or log message that may never arrive will trap you indefinitely with no way to break out. Allowed: a single `sleep N` outside a loop for a known duration. Forbidden: `docker logs -f` (streams forever), any interactive shell, `gh run watch` (streams), and any loop that exits on a condition you cannot guarantee will occur (a crashing container will never become healthy). Use `./ops` commands, `docker logs --tail N` snapshots, or `gh run view --json` polls with a finite iteration cap instead.
 
 ## Common tasks
 
