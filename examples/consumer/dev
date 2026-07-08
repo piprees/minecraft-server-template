@@ -18,6 +18,7 @@ usage() {
   echo "  logs     Tail the Minecraft server logs"
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
   echo "  pack     Build the client modpack into ./modpack-dist/"
+  echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  sync     Update everything: local down, update, server update, local up"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
@@ -88,6 +89,16 @@ case "$CMD" in
       -e "DISCORD_INVITE_URL=${DISCORD_INVITE_URL:-}" \
       "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}"
     echo "Modpack built to ./modpack-dist/"
+    ;;
+  pin)
+    ensure_stack
+    if [[ ! -f "$CONSUMER_DIR/overlay/mods-extra.txt" ]]; then
+      echo "No overlay/mods-extra.txt found - nothing to pin."
+      exit 0
+    fi
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/pin-mod-versions.sh" \
+      --file "$CONSUMER_DIR/overlay/mods-extra.txt" "$@"
     ;;
   update)
     bash "$CONSUMER_DIR/stack-pull.sh"

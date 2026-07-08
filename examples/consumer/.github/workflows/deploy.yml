@@ -7,9 +7,11 @@ on:
 
 jobs:
   deploy:
-    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v1
+    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v2
     with:
-      stack_version: ${{ vars.STACK_VERSION || 'v1' }}
+      # Set the STACK_VERSION repository variable to pin a release line (v2)
+      # or exact version (v2.0.1); unset = latest release.
+      stack_version: ${{ vars.STACK_VERSION || 'latest' }}
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}

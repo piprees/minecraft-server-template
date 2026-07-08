@@ -759,6 +759,19 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
   persist_secret SPAWN_Y "$SPAWN_Y"
   persist_secret SPAWN_Z "$SPAWN_Z"
 
+  # Record the stack release line this server runs, so the pin is explicit
+  # in .env rather than an invisible default. Derived from the bundle in use
+  # (.stack/current -> v2.0.1 -> v2); a major pin floats on the latest
+  # release of that line, exact pins (v2.0.1) are a manual .env edit. If no
+  # bundle is resolved yet, leave it unset - stack-pull then tracks the
+  # latest release.
+  if [[ -z "${STACK_VERSION:-}" ]]; then
+    STACK_VERSION="$(basename "$(readlink "$PROJECT_DIR/.stack/current" 2>/dev/null || true)" 2>/dev/null | cut -d. -f1)" || true
+  fi
+  if [[ -n "${STACK_VERSION:-}" ]]; then
+    persist_secret STACK_VERSION "$STACK_VERSION"
+  fi
+
   step "Ports"
   info "Non-default ports reduce automated scanning noise."
   prompt_value GAME_PORT "Game port" "${GAME_PORT:-25577}"

@@ -14,6 +14,12 @@
 #                                                   # config/modrinth-mods.pinned.txt for review
 #   ./scripts/pin-mod-versions.sh --version 1.21.1  # override target version
 #   ./scripts/pin-mod-versions.sh --apply           # also overwrite modrinth-mods.txt
+#   ./scripts/pin-mod-versions.sh --file <path>     # re-pin an arbitrary mod list
+#                                                   # IN PLACE (consumer overlay
+#                                                   # mods-extra.txt; review via git diff)
+#
+# Comment-only lines survive re-pinning; inline comments on mod lines do NOT
+# (lines are rewritten as bare slug:versionId) - comment above the mod instead.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,18 +36,32 @@ fi
 
 TARGET_VERSION="${MC_VERSION:-1.21.1}"
 APPLY=0
+FILE_OVERRIDE=0
 MODS_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
 
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --version)
-      shift
-      TARGET_VERSION="$1"
+      TARGET_VERSION="$2"
+      shift 2
+      ;;
+    --apply)
+      APPLY=1
       shift
       ;;
-    --apply) APPLY=1 ;;
+    --file)
+      MODS_FILE="$2"
+      FILE_OVERRIDE=1
+      shift 2
+      ;;
+    *) shift ;;
   esac
 done
+
+if [[ ! -f "$MODS_FILE" ]]; then
+  echo "ERROR: mod list not found: $MODS_FILE" >&2
+  exit 1
+fi
 
 # Build a list of 1.21.x versions to try, in priority order:
 # exact match first, then descending from 1.21.1 down to 1.21
@@ -67,6 +87,7 @@ echo ""
 # --- collect slugs and preserve file structure --------------------------------
 LINE_TYPES=()
 LINE_SLUGS=()
+LINE_SUFFIXES=()
 LINE_ORIGINALS=()
 SLUGS_ONLY=()
 
@@ -77,11 +98,19 @@ while IFS= read -r line; do
   if [[ -z "$stripped" ]] || [[ "$stripped" == datapack:* ]] || [[ "$stripped" == resourcepack:* ]]; then
     LINE_TYPES+=("passthrough")
     LINE_SLUGS+=("")
+    LINE_SUFFIXES+=("")
     LINE_ORIGINALS+=("$line")
   else
+    # A trailing ? marks the mod optional - preserve it through re-pinning
+    suffix=""
+    if [[ "$stripped" == *\? ]]; then
+      suffix="?"
+      stripped="${stripped%\?}"
+    fi
     slug="${stripped%%:*}"
     LINE_TYPES+=("mod")
     LINE_SLUGS+=("$slug")
+    LINE_SUFFIXES+=("$suffix")
     LINE_ORIGINALS+=("$line")
     SLUGS_ONLY+=("$slug")
   fi
@@ -116,7 +145,7 @@ for i in "${!LINE_TYPES[@]}"; do
     else
       echo "  $slug - ~ $ver_num (fallback $matched_ver)"
     fi
-    OUTPUT_LINES+=("${slug}:${ver_id}")
+    OUTPUT_LINES+=("${slug}:${ver_id}${LINE_SUFFIXES[$i]}")
   else
     echo "  $slug - ✗ no 1.21.x build found - keeping as-is"
     OUTPUT_LINES+=("# FIXME: no 1.21.x build - $slug")
@@ -128,6 +157,14 @@ echo ""
 echo "=================================================================="
 
 # --- output -------------------------------------------------------------------
+if [[ $FILE_OVERRIDE -eq 1 ]]; then
+  # In-place re-pin of an arbitrary list (consumer overlay) - review via git diff
+  printf '%s\n' "${OUTPUT_LINES[@]}" > "$MODS_FILE"
+  echo "Re-pinned in place: $MODS_FILE"
+  echo "Review with: git diff $MODS_FILE"
+  exit 0
+fi
+
 OUTPUT_FILE="$PROJECT_DIR/config/modrinth-mods.pinned.txt"
 printf '%s\n' "${OUTPUT_LINES[@]}" > "$OUTPUT_FILE"
 echo "Pinned mod list written to: config/modrinth-mods.pinned.txt"

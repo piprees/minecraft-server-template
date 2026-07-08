@@ -5,12 +5,14 @@
 # on lib.sh or any other file in the stack bundle.
 #
 # Usage:
-#   STACK_VERSION=v1 ./stack-pull.sh          # resolve latest v1.x.y
-#   STACK_VERSION=v1.2 ./stack-pull.sh        # resolve latest v1.2.x
-#   STACK_VERSION=v1.2.3 ./stack-pull.sh      # exact pin
+#   ./stack-pull.sh                            # resolve the latest release
+#   STACK_VERSION=v2 ./stack-pull.sh           # resolve latest v2.x.y
+#   STACK_VERSION=v2.1 ./stack-pull.sh         # resolve latest v2.1.x
+#   STACK_VERSION=v2.1.3 ./stack-pull.sh       # exact pin
 #
 # Reads STACK_VERSION from the environment or from .env in the current
-# directory (defaults to v1 — the latest v1.x.y release).
+# directory (unset or 'latest' = the newest release of any major;
+# ./ops setup records the major line in use so upgrades stay deliberate).
 # Downloads the bundle + sha256 checksum to .stack/<version>/,
 # verifies the checksum, unpacks, and atomically repoints .stack/current.
 #
@@ -57,22 +59,25 @@ _resolve_version() {
   resolved=$(
     echo "$releases_json" | \
     grep -oE '"tag_name"\s*:\s*"v[0-9]+\.[0-9]+\.[0-9]+"' | \
-    grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | \
+    grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | \
     sort -t. -k1,1nr -k2,2nr -k3,3nr | \
-    while IFS= read -r tag; do
-      tag_bare="${tag#v}"
-      if [[ "$pin" == *.*.* ]]; then
-        [[ "$tag_bare" = "$pin" ]] && echo "$tag" && return 0
-      elif [[ "$pin" == *.* ]]; then
-        [[ "$tag_bare" = "$pin".* ]] && echo "$tag" && return 0
+    while IFS= read -r tag_bare; do
+      if [[ -z "$pin" ]] || [[ "$pin" == "latest" ]]; then
+        echo "v$tag_bare" && return 0
+      elif [[ "$pin" == *.*.* ]]; then
+        [[ "$tag_bare" = "$pin" ]] && echo "v$tag_bare" && return 0
       else
-        [[ "$tag_bare" = "$pin".* ]] && echo "$tag" && return 0
+        [[ "$tag_bare" = "$pin".* ]] && echo "v$tag_bare" && return 0
       fi
     done
   )
 
   if [[ -z "$resolved" ]]; then
-    echo "ERROR: no release matching v${pin}" >&2
+    if [[ -z "$pin" ]] || [[ "$pin" == "latest" ]]; then
+      echo "ERROR: no releases found" >&2
+    else
+      echo "ERROR: no release matching v${pin}" >&2
+    fi
     return 1
   fi
   echo "$resolved"
@@ -109,8 +114,9 @@ if [[ -z "${STACK_VERSION:-}" ]] && [[ -f ".env" ]]; then
   STACK_VERSION=$(grep -E '^STACK_VERSION=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
 fi
 
-# Default: track the latest v1.x.y. Pin STACK_VERSION in .env to override.
-STACK_VERSION="${STACK_VERSION:-v1}"
+# Default: track the latest release. Pin STACK_VERSION in .env (v2 = latest
+# v2.x.y, v2.1.3 = exact) to hold a line - ./ops setup records this for you.
+STACK_VERSION="${STACK_VERSION:-latest}"
 
 echo "Resolving STACK_VERSION=${STACK_VERSION}..."
 
@@ -120,20 +126,23 @@ if RESOLVED=$(_resolve_version "$STACK_VERSION"); then
 else
   echo "WARNING: GitHub API unavailable, checking local cache..." >&2
   pin="${STACK_VERSION#v}"
+  [[ "$pin" == "latest" ]] && pin=""
   best=""
   if [[ -d "$STACK_DIR" ]]; then
-    for dir in "$STACK_DIR"/v*/; do
-      [[ -d "$dir" ]] || continue
-      tag=$(basename "$dir")
-      tag_bare="${tag#v}"
-      if [[ "$pin" == *.*.* ]]; then
-        [[ "$tag_bare" = "$pin" ]] && best="$tag" && break
-      elif [[ "$pin" == *.* ]]; then
-        [[ "$tag_bare" = "$pin".* ]] && best="$tag"
-      else
-        [[ "$tag_bare" = "$pin".* ]] && best="$tag"
-      fi
-    done
+    best=$(
+      for dir in "$STACK_DIR"/v*/; do
+        [[ -d "$dir" ]] && basename "$dir" || true
+      done | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | \
+      while IFS= read -r tag_bare; do
+        if [[ -z "$pin" ]]; then
+          echo "v$tag_bare"
+        elif [[ "$pin" == *.*.* ]]; then
+          [[ "$tag_bare" = "$pin" ]] && echo "v$tag_bare" || true
+        else
+          [[ "$tag_bare" = "$pin".* ]] && echo "v$tag_bare" || true
+        fi
+      done | tail -1
+    ) || true
   fi
   if [[ -z "$best" ]]; then
     echo "ERROR: no cached version matches ${STACK_VERSION} and GitHub API is unavailable" >&2

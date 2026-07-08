@@ -74,8 +74,8 @@ creeper-overhaul:O6yuPiE8
 
 # === villager overhaul ===
 more-villagers-re-employed:6A4P2wqq
-villager-names-serilum:2PLlKTES               # server-side: every villager gets a name
-guard-villagers-(fabricquilt):ea8J4gbH        # villages defend themselves; people live in this dangerous land
+villager-names-serilum:2PLlKTES
+guard-villagers-(fabricquilt):ea8J4gbH
 
 # === cosy village life ===
 lets-do-vinery:BV45cdzS
@@ -150,7 +150,7 @@ better-combat:nsxmEb8y
 stack-refill:5RkgQCwL
 softer-hay-bales:RnWSv8yZ
 bouncier-beds:2u5kjJ75
-comforts:LUPOTXbk                             # sleeping bags + hammocks, no spawn reset
+comforts:LUPOTXbk
 no-animal-tempt-delay:NA7TkDk6
 natures-compass:dtrDpgsF
 explorers-compass:qSRKiE4D
