@@ -55,6 +55,24 @@ get_player_count() {
   echo "$result" | grep -oE 'There are [0-9]+' | grep -oE '[0-9]+' || echo "-1"
 }
 
+enter_pregen_mode() {
+  rcon "gamerule randomTickSpeed 0"
+  rcon "gamerule doDaylightCycle false"
+  rcon "gamerule doWeatherCycle false"
+  rcon "gamerule doMobSpawning false"
+  rcon "gamerule doFireTick false"
+  echo "  Pre-gen mode: simulation reduced (ticks/mobs/weather/daylight off)"
+}
+
+exit_pregen_mode() {
+  rcon "gamerule randomTickSpeed 3"
+  rcon "gamerule doDaylightCycle true"
+  rcon "gamerule doWeatherCycle true"
+  rcon "gamerule doMobSpawning true"
+  rcon "gamerule doFireTick true"
+  echo "  Pre-gen mode off: simulation restored"
+}
+
 enable_skip_pause() {
   if [[ ! -f "$SKIP_PAUSE_FILE" ]]; then
     touch "$SKIP_PAUSE_FILE"
@@ -123,6 +141,8 @@ start_chunky() {
   # Try to resume a paused task first
   local resume_result
   resume_result=$(rcon "chunky continue" 2> /dev/null || echo "")
+  enter_pregen_mode
+
   if echo "$resume_result" | grep -qi "continuing\|resumed"; then
     echo "  Resumed paused task"
     chunky_active=true
@@ -145,6 +165,7 @@ pause_chunky() {
   if [[ "$chunky_active" == true ]]; then
     echo "[$(date '+%H:%M:%S')] Pausing Chunky pre-generation (${chunky_dimension})"
     rcon "chunky pause"
+    exit_pregen_mode
     chunky_active=false
     disable_skip_pause
   fi
@@ -178,6 +199,7 @@ check_chunky_complete() {
     start_chunky
     if [[ "$chunky_active" != true ]]; then
       echo "[$(date '+%H:%M:%S')] All dimensions pre-generated"
+      exit_pregen_mode
       disable_skip_pause
     fi
   fi
@@ -190,6 +212,7 @@ check_chunky_complete() {
 #   rm -f data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete
 
 cleanup() {
+  exit_pregen_mode
   disable_skip_pause
 }
 trap cleanup EXIT
@@ -212,6 +235,7 @@ while true; do
     # clean up .skip-pause so autopause works normally on recovery.
     if [[ "$chunky_active" == true ]]; then
       chunky_active=false
+      exit_pregen_mode
       disable_skip_pause
     fi
     empty_since=""
