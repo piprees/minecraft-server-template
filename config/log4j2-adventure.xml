@@ -2,10 +2,11 @@
 <!-- Custom log4j2 config - filters noisy messages and limits log growth.
      Mounted into the mc container via JVM_OPTS in docker-compose.yml.
 
-     IMPORTANT: This is the canonical place to suppress known-harmless log
-     noise. Filter here (at source) rather than in doctor.sh (after the fact).
-     doctor.sh should only filter messages that are genuinely harmless but
-     can't be suppressed by log4j (e.g. non-mc container logs). -->
+     IMPORTANT: Only filter cosmetic noise here — mod compat warnings,
+     debug chatter, polling spam. Never suppress real errors, even noisy
+     ones (e.g. c2me chunk upgrade failures). Those go in doctor.sh's
+     grep filter so they don't inflate the error count but stay visible
+     in raw logs for diagnosis. -->
 <Configuration status="WARN">
     <Properties>
         <Property name="logPattern">[%d{HH:mm:ss}] [%t/%level]: %msg{nolookups}%n</Property>
