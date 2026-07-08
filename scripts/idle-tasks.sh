@@ -13,10 +13,12 @@
 # Delete a marker to force that dimension to re-generate (e.g. after a
 # border change). Pre-gen pauses when a player joins, resumes next idle.
 #
-# While Chunky runs, the script "knocks" the game port every poll cycle -
-# the ONE sanctioned autopause-defeating poke, since autopause would freeze
-# the JVM mid-generation. RCON returning nothing = server paused; treated
-# as "not idle" rather than an error.
+# While Chunky runs, the script creates /data/.skip-pause — the itzg
+# image's built-in autopause bypass. The autopause daemon checks for this
+# file and stays in the "established" state (won't freeze the JVM) as
+# long as it exists. Removed when Chunky pauses or all dimensions finish.
+# RCON returning nothing = server paused; treated as "not idle" rather
+# than an error.
 set -euo pipefail
 
 RCON_HOST="${RCON_HOST:-mc}"
@@ -34,6 +36,7 @@ CHUNKY_MARKER="/data/.chunky-complete"
 CHUNKY_NETHER_MARKER="/data/.chunky-nether-complete"
 CHUNKY_END_MARKER="/data/.chunky-end-complete"
 CHUNKY_PL_MARKER="/data/.chunky-paradise-lost-complete"
+SKIP_PAUSE_FILE="/data/.skip-pause"
 chunky_active=false
 chunky_dimension="overworld"
 tasks_done=false
@@ -52,10 +55,18 @@ get_player_count() {
   echo "$result" | grep -oE 'There are [0-9]+' | grep -oE '[0-9]+' || echo "-1"
 }
 
-# Knock the game port to prevent autopause from freezing the JVM.
-# Autopause monitors TCP connections on port 25565 - RCON (25575) doesn't count.
-knock_game_port() {
-  (echo -n "" > /dev/tcp/mc/25565) 2> /dev/null || true
+enable_skip_pause() {
+  if [[ ! -f "$SKIP_PAUSE_FILE" ]]; then
+    touch "$SKIP_PAUSE_FILE"
+    echo "  Created .skip-pause (autopause bypassed while Chunky runs)"
+  fi
+}
+
+disable_skip_pause() {
+  if [[ -f "$SKIP_PAUSE_FILE" ]]; then
+    rm -f "$SKIP_PAUSE_FILE"
+    echo "  Removed .skip-pause (autopause re-enabled)"
+  fi
 }
 
 run_idle_tasks() {
@@ -103,8 +114,13 @@ start_chunky() {
     return 0
   fi
 
-  # Try to resume a paused task first
   echo "[$(date '+%H:%M:%S')] Starting Chunky pre-generation: ${chunky_dimension} (radius: ${radius})"
+
+  # Bypass autopause BEFORE the first RCON call that wakes the server,
+  # so the daemon sees the file on its next poll and stays in state E.
+  enable_skip_pause
+
+  # Try to resume a paused task first
   local resume_result
   resume_result=$(rcon "chunky continue" 2> /dev/null || echo "")
   if echo "$resume_result" | grep -qi "continuing\|resumed"; then
@@ -130,6 +146,7 @@ pause_chunky() {
     echo "[$(date '+%H:%M:%S')] Pausing Chunky pre-generation (${chunky_dimension})"
     rcon "chunky pause"
     chunky_active=false
+    disable_skip_pause
   fi
 }
 
@@ -155,8 +172,14 @@ check_chunky_complete() {
     echo "  Triggering BlueMap update for newly generated chunks..."
     rcon "bluemap update"
 
-    # Start the next dimension if any remain
+    # Start the next dimension if any remain; if none left,
+    # start_chunky returns without setting chunky_active, so
+    # we re-enable autopause.
     start_chunky
+    if [[ "$chunky_active" != true ]]; then
+      echo "[$(date '+%H:%M:%S')] All dimensions pre-generated"
+      disable_skip_pause
+    fi
   fi
 }
 
@@ -165,6 +188,11 @@ check_chunky_complete() {
 # Completion markers persist across restarts. To force Chunky to re-run
 # (e.g. after a world border change), delete the markers manually:
 #   rm -f data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete
+
+cleanup() {
+  disable_skip_pause
+}
+trap cleanup EXIT
 
 echo "Idle task monitor started (grace: ${IDLE_GRACE}min, poll: ${POLL_INTERVAL}s)"
 echo "  Chunky will pre-generate when idle:"
@@ -179,7 +207,13 @@ while true; do
   count=$(get_player_count)
 
   if [[ "$count" == "-1" ]]; then
-    # Server not responding - might be paused or starting
+    # Server not responding - might be paused or starting.
+    # If Chunky was active, the server likely paused or crashed;
+    # clean up .skip-pause so autopause works normally on recovery.
+    if [[ "$chunky_active" == true ]]; then
+      chunky_active=false
+      disable_skip_pause
+    fi
     empty_since=""
     tasks_done=false
     sleep "$POLL_INTERVAL"
@@ -200,12 +234,6 @@ while true; do
       run_idle_tasks
       start_chunky
       tasks_done=true
-    fi
-
-    # While chunky is active, knock the game port every poll cycle to
-    # prevent autopause from freezing the JVM mid-generation.
-    if [[ "$chunky_active" == true ]]; then
-      knock_game_port
     fi
 
     check_chunky_complete
