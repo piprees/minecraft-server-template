@@ -5,9 +5,21 @@
 # Backs up everything before destroying world data, then restarts
 # the server with the new seed.
 #
+# Deletes: all world data (overworld, nether, end, dimensions/),
+# player data (playerdata, stats, advancements), BlueMap render data,
+# Chunky markers + task state + .skip-pause, Distant Horizons cache,
+# POI, ledger, dynamic-data-pack-cache.
+#
+# Optionally wipes restic backups in R2 (--wipe-backups flag).
+#
+# After restart, re-runs deploy.sh's post-boot configuration:
+# world borders, game rules, permissions, spawn coordinates.
+#
 # Usage:
 #   ./scripts/reset-seed.sh                   # interactive (prompts for seed)
 #   ./scripts/reset-seed.sh <seed>            # pre-fill seed (still confirms)
+#   ./scripts/reset-seed.sh --wipe-backups    # also purge restic snapshots
+#   ./scripts/reset-seed.sh --wipe-backups <seed>
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,12 +53,22 @@ set +a
 
 CURRENT_SEED="${SEED:-unknown}"
 REMOTE="${DEPLOY_USER}@${DROPLET_HOST}"
+SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
 REPO_NAME="$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")"
 # shellcheck disable=SC2088
 REMOTE_DIR="~/${REPO_NAME}"
+# shellcheck disable=SC2088
+STACK_SCRIPTS="${REMOTE_DIR}/.stack/current/stack/scripts"
 
 # --- parse args ---------------------------------------------------------------
-NEW_SEED="${1:-}"
+WIPE_BACKUPS=false
+NEW_SEED=""
+for arg in "$@"; do
+  case "$arg" in
+    --wipe-backups) WIPE_BACKUPS=true ;;
+    *) NEW_SEED="$arg" ;;
+  esac
+done
 
 # =============================================================================
 # 1. Explain what will happen and collect confirmation
@@ -62,12 +84,17 @@ echo ""
 echo " This script will:"
 echo "   1. Back up the world (restic + local tar.gz on the droplet)"
 echo "   2. Stop all containers on the droplet"
-echo "   3. Delete world data (Overworld, Nether, End)"
-echo "   4. Delete BlueMap render data"
-echo "   5. Delete Chunky completion marker"
-echo "   6. Delete Distant Horizons LOD cache (if present)"
-echo "   7. Update the seed in .env (local + droplet)"
-echo "   8. Restart the server with the new seed"
+echo "   3. Delete world data (Overworld, Nether, End, dimensions/)"
+echo "   4. Delete player data (playerdata, stats, advancements)"
+echo "   5. Delete BlueMap render data"
+echo "   6. Delete all Chunky markers, task state, and .skip-pause"
+echo "   7. Delete Distant Horizons LOD cache"
+echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
+if [[ "$WIPE_BACKUPS" == true ]]; then
+echo "   9. WIPE all restic snapshots in R2"
+fi
+echo "  10. Update the seed in .env (local + droplet)"
+echo "  11. Restart and re-apply game rules, permissions, world borders"
 echo ""
 echo " This is IRREVERSIBLE without restoring from the backup."
 echo "=================================================================="
@@ -113,7 +140,7 @@ echo "==> Starting world reset..."
 # =============================================================================
 echo ""
 echo "==> Running restic backup on the droplet..."
-ssh "$REMOTE" "cd ${REMOTE_DIR} && ./scripts/backup-now.sh" || {
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && bash ${STACK_SCRIPTS}/backup-now.sh" || {
   echo "WARNING: Restic backup failed. Continuing with tar backup."
 }
 
@@ -125,7 +152,7 @@ BACKUP_PATH="backups/${BACKUP_NAME}"
 
 echo ""
 echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
-ssh "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} data/"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} data/"
 echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
 
 # =============================================================================
@@ -133,33 +160,31 @@ echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
 # =============================================================================
 echo ""
 echo "==> Stopping all containers on the droplet..."
-ssh "$REMOTE" "cd ${REMOTE_DIR} && docker compose --profile cloud down"
+COMPOSE_FILE="${REMOTE_DIR}/.stack/current/stack/docker-compose.yml"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud down"
 echo "  Containers stopped."
 
 # =============================================================================
-# 5. Delete world data
+# 5. Delete world + player + regenerable data
 # =============================================================================
 echo ""
-echo "==> Deleting world data on the droplet..."
+echo "==> Deleting world and player data on the droplet..."
 
-ssh "$REMOTE" "cd ${REMOTE_DIR} && rm -rf data/world/ data/world_the_nether/ data/world_the_end/"
-echo "  Deleted: data/world/, data/world_the_nether/, data/world_the_end/"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && \
+  rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/ && \
+  rm -rf data/playerdata/ data/stats/ data/advancements/ && \
+  rm -rf data/bluemap/web/maps/ && \
+  rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete && \
+  rm -f  data/.skip-pause && \
+  rm -rf data/config/chunky/tasks/ && \
+  rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite && \
+  rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
 
-# --- BlueMap render data (keep config) ----------------------------------------
-ssh "$REMOTE" "cd ${REMOTE_DIR} && rm -rf data/bluemap/web/maps/"
-echo "  Deleted: data/bluemap/web/maps/ (config preserved)"
-
-# --- Chunky completion marker -------------------------------------------------
-ssh "$REMOTE" "cd ${REMOTE_DIR} && rm -f data/.chunky-complete"
-echo "  Deleted: data/.chunky-complete"
-
-# --- Distant Horizons LOD cache -----------------------------------------------
-if ssh "$REMOTE" "test -d ${REMOTE_DIR}/data/DistantHorizons"; then
-  ssh "$REMOTE" "cd ${REMOTE_DIR} && rm -rf data/DistantHorizons/"
-  echo "  Deleted: data/DistantHorizons/"
-else
-  echo "  Skipped: data/DistantHorizons/ (not present)"
-fi
+echo "  Deleted: world data (all dimensions)"
+echo "  Deleted: player data (playerdata, stats, advancements)"
+echo "  Deleted: BlueMap render data (config preserved)"
+echo "  Deleted: Chunky markers, task state, .skip-pause"
+echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
 
 # =============================================================================
 # 6. Update seed everywhere
@@ -173,42 +198,36 @@ sed_i "s/^SEED=.*/SEED=${NEW_SEED}/" .env
 echo "  Updated .env (backed up to .env.bak.${STAMP})"
 
 # --- .env on the droplet ------------------------------------------------------
-ssh "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
 echo "  Updated .env on droplet (backed up to .env.bak.${STAMP})"
 
 # =============================================================================
-# 7. Restart the cloud stack
+# 7. Wipe restic backups (optional)
 # =============================================================================
-echo ""
-echo "==> Starting cloud stack on the droplet..."
-ssh "$REMOTE" "cd ${REMOTE_DIR} && docker compose --profile cloud up -d"
-
-# --- wait for healthcheck -----------------------------------------------------
-echo ""
-echo "==> Waiting for the server to become ready..."
-MAX_WAIT=600
-ELAPSED=0
-INTERVAL=10
-
-while [[ $ELAPSED -lt $MAX_WAIT ]]; do
-  if ssh "$REMOTE" "docker exec mc rcon-cli list" &> /dev/null; then
-    echo "  Server is ready! (took ${ELAPSED}s)"
-    break
-  fi
-  sleep $INTERVAL
-  ELAPSED=$((ELAPSED + INTERVAL))
-  echo "    ...waiting (${ELAPSED}s / ${MAX_WAIT}s)"
-done
-
-if [[ $ELAPSED -ge $MAX_WAIT ]]; then
+if [[ "$WIPE_BACKUPS" == true ]]; then
   echo ""
-  echo "WARNING: Server did not become ready within ${MAX_WAIT}s."
-  echo "Check logs: ssh ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --profile cloud logs -f mc'"
-  echo "This may be normal on first boot with a new world."
+  echo "==> Wiping restic snapshots in R2..."
+  # shellcheck disable=SC2029
+  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && set -a && source .env && set +a && \\
+    export RESTIC_REPOSITORY=\"s3:https://\\\${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/\\\${R2_BUCKET}\" \\
+           AWS_ACCESS_KEY_ID=\"\\\$R2_ACCESS_KEY_ID\" \\
+           AWS_SECRET_ACCESS_KEY=\"\\\$R2_SECRET_ACCESS_KEY\" \\
+           RESTIC_PASSWORD && \\
+    SNAP_IDS=\\\$(restic snapshots --json 2>/dev/null | python3 -c \"import json,sys; [print(s['short_id']) for s in json.load(sys.stdin)]\" 2>/dev/null) && \\
+    if [ -n \"\\\$SNAP_IDS\" ]; then restic forget \\\$SNAP_IDS --prune 2>&1 | tail -3; else echo 'No snapshots to remove'; fi"
+  echo "  Restic backups wiped"
 fi
 
 # =============================================================================
-# 8. Summary and undo instructions
+# 8. Restart via deploy.sh (handles compose, config sync, permissions, borders)
+# =============================================================================
+echo ""
+echo "==> Running deploy.sh on the droplet (full server setup)..."
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive" \
+  || echo "WARNING: deploy.sh exited non-zero. Check server logs."
+
+# =============================================================================
+# 9. Summary and undo instructions
 # =============================================================================
 echo ""
 echo "=================================================================="
@@ -222,19 +241,16 @@ echo ""
 echo " To undo (restore world data from backup):"
 echo ""
 echo "   # 1. Stop the server"
-echo "   ssh ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --profile cloud down'"
+echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && docker compose --project-directory ${REMOTE_DIR} --profile cloud down'"
 echo ""
 echo "   # 2. Restore the backup"
-echo "   ssh ${REMOTE} 'cd ${REMOTE_DIR} && tar xzf ${BACKUP_PATH}'"
+echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR} && tar xzf ${BACKUP_PATH}'"
 echo ""
-echo "   # 3. Revert the seed in .env"
-echo "   #    Change SEED=${NEW_SEED} back to SEED=${CURRENT_SEED}"
-echo ""
-echo "   # 4. Revert the seed in .env (local and droplet)"
+echo "   # 3. Revert the seed in .env (local and droplet)"
 echo "   #    Or restore from .env.bak.${STAMP}"
 echo ""
-echo "   # 5. Restart"
-echo "   ssh ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --profile cloud up -d'"
+echo "   # 4. Restart via deploy.sh"
+echo "   ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
 echo ""
 echo " Don't forget to commit and push .env if deploying via CI."
 echo "=================================================================="
