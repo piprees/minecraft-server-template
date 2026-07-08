@@ -208,7 +208,10 @@ if command -v fail2ban-client > /dev/null; then
   res INFO "fail2ban: ${TOTAL} currently banned across jails:$BANS"
 fi
 
-# --- recent mc errors (same harmless-noise filter as roll-seeds.sh) ---
+# --- recent mc errors ---
+# Most harmless mc log noise is filtered at source by log4j2-adventure.xml.
+# Only add grep filters here for messages that log4j can't suppress (e.g.
+# non-mc containers, or messages that appear despite log4j filtering).
 ERRS=$(docker logs mc --tail 300 2>&1 | grep -i "ERROR" \
   | grep -v -e "No data fixer registered" -e "Error loading class" \
     -e "Parsing error loading custom advancement" -e "Couldn't load advancements" \
