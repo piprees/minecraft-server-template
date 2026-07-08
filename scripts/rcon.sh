@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # rcon.sh - Run RCON commands without typing the ssh + docker exec dance.
 #
-# Auto-detects the target: if an mc container is running locally, talks to
-# it; otherwise SSHes to production (DROPLET_HOST from .env). No response
-# usually means the server is autopaused (JVM frozen while empty), not down.
+# Targets production by default; auto-detects local only when SERVICE_LOCAL=1
+# (set by ./dev). No response usually means the server is autopaused (JVM
+# frozen while empty), not down.
 #
 # Usage:
 #   ./scripts/rcon.sh "list"                 # one command
@@ -18,19 +18,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 load_env
 
-TARGET="auto"
+TARGET="remote"
+if [[ "${SERVICE_LOCAL:-}" == "1" ]]; then
+  TARGET="local"
+fi
 case "${1:-}" in
   --remote) TARGET="remote"; shift ;;
   --local) TARGET="local"; shift ;;
 esac
-
-if [[ "$TARGET" == "auto" ]]; then
-  if docker ps --format '{{.Names}}' 2> /dev/null | grep -qx mc; then
-    TARGET="local"
-  else
-    TARGET="remote"
-  fi
-fi
 
 if [[ "$TARGET" == "local" ]]; then
   if [[ $# -eq 0 ]]; then
