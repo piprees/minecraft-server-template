@@ -29,60 +29,60 @@ if [[ "$TARGET" == "auto" ]]; then
   fi
 fi
 
-run_check() {
-  local rcon_cmd="docker exec mc rcon-cli"
-  local data_dir="data"
+# The check runs as a single heredoc over SSH (or locally via eval).
+# No declare -f, no function transport — just flat commands.
+read -r -d '' CHECK_SCRIPT << 'CHECKEOF' || true
+echo "Chunky pre-generation status"
+echo "=============================="
+echo ""
 
-  echo "Chunky pre-generation status"
-  echo "=============================="
-  echo ""
+echo "Active tasks:"
+progress=$(docker exec mc rcon-cli "chunky progress" 2>/dev/null || echo "")
+if [ -z "$progress" ]; then
+  echo "  (RCON silent - server is autopaused)"
+elif echo "$progress" | grep -qi "No tasks running"; then
+  echo "  None (if .skip-pause was just created, the JVM may still be waking)"
+else
+  echo "$progress" | sed 's/^/  /'
+fi
 
-  echo "Active tasks:"
-  local progress
-  progress=$($rcon_cmd "chunky progress" 2> /dev/null || echo "")
-  if [[ -z "$progress" ]]; then
-    echo "  (RCON silent - server is autopaused)"
-  elif echo "$progress" | grep -qi "No tasks running"; then
-    echo "  None (if .skip-pause was just created, the JVM may still be waking)"
+echo ""
+echo "Completion markers:"
+for pair in \
+  ".chunky-complete Overworld" \
+  ".chunky-nether-complete Nether" \
+  ".chunky-end-complete End" \
+  ".chunky-paradise-lost-complete Paradise_Lost"; do
+  file="${pair%% *}"
+  label="${pair#* }"
+  label=$(echo "$label" | tr '_' ' ')
+  if [ -f "data/${file}" ]; then
+    echo "  ${label}: done"
   else
-    echo "$progress" | sed 's/^/  /'
+    echo "  ${label}: pending"
   fi
+done
 
-  echo ""
-  echo "Completion markers:"
-  for marker in \
-    ".chunky-complete:Overworld" \
-    ".chunky-nether-complete:Nether" \
-    ".chunky-end-complete:End" \
-    ".chunky-paradise-lost-complete:Paradise Lost"; do
-    file="${marker%%:*}"
-    label="${marker##*:}"
-    if [[ -f "${data_dir}/${file}" ]]; then
-      echo "  ${label}: done"
-    else
-      echo "  ${label}: pending"
-    fi
-  done
+echo ""
+echo "Autopause bypass:"
+if [ -f "data/.skip-pause" ]; then
+  echo "  .skip-pause present (autopause disabled for pre-gen)"
+else
+  echo "  .skip-pause absent (autopause active)"
+fi
 
-  echo ""
-  echo "Autopause bypass:"
-  if [[ -f "${data_dir}/.skip-pause" ]]; then
-    echo "  .skip-pause present (autopause disabled for pre-gen)"
-  else
-    echo "  .skip-pause absent (autopause active)"
-  fi
-
-  echo ""
-  echo "Idle-tasks:"
-  docker logs idle-tasks --tail 3 2>&1 | sed 's/^/  /'
-}
+echo ""
+echo "Idle-tasks:"
+docker logs idle-tasks --tail 3 2>&1 | sed 's/^/  /'
+CHECKEOF
 
 if [[ "$TARGET" == "local" ]]; then
-  run_check
+  eval "$CHECK_SCRIPT"
 else
   : "${DROPLET_HOST:?Set DROPLET_HOST in .env (or run with --local)}"
   DEPLOY_USER="${DEPLOY_USER:-deploy}"
   SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
 
-  ssh -i "$SSH_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" "cd ~/server && $(declare -f run_check) && run_check"
+  # shellcheck disable=SC2029
+  ssh -i "$SSH_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" "cd ~/server && ${CHECK_SCRIPT}"
 fi
