@@ -41,9 +41,9 @@ run_check() {
   local progress
   progress=$($rcon_cmd "chunky progress" 2> /dev/null || echo "")
   if [[ -z "$progress" ]]; then
-    echo "  (RCON silent - server may be autopaused)"
+    echo "  (RCON silent - server is autopaused)"
   elif echo "$progress" | grep -qi "No tasks running"; then
-    echo "  None"
+    echo "  None (if .skip-pause was just created, the JVM may still be waking)"
   else
     echo "$progress" | sed 's/^/  /'
   fi
