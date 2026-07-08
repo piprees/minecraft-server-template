@@ -205,6 +205,7 @@ sound-physics-remastered:tVu2EZ4u
 luckperms:l47d4ZWk
 open-parties-and-claims:lQh1EunS
 bluemap:Dr2hvJBc
+bluemap-sign-markers:AaI8kDsr
 simple-voice-chat:IttovdN3
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3
