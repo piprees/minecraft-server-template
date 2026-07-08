@@ -20,7 +20,7 @@ usage() {
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  update   Pull the latest stack bundle + Docker images"
-  echo "  sync     Update everything: local down, update, server update, local up"
+  echo "  sync     Update everything: local down, update, env sync to GitHub, server update, local up"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
   echo "  restart  Force-recreate a service (e.g. ./dev restart nav-proxy)"
@@ -167,6 +167,9 @@ case "$CMD" in
     # check for a self-update here and restart sync on the new code (the
     # repeated down/update steps are idempotent and near-instant).
     reexec_if_self_updated "$SELF_BEFORE" sync "$@"
+    echo ""
+    echo "==> Syncing .env to GitHub environment..."
+    bash "$CONSUMER_DIR/$STACK_SCRIPTS/github-env-sync.sh" --allow-missing
     echo ""
     echo "==> Updating server..."
     bash "$CONSUMER_DIR/ops" update --quick "$@"
