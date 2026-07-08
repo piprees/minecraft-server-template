@@ -15,19 +15,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 load_env
 
-TARGET="auto"
+TARGET="remote"
 case "${1:-}" in
-  --remote) TARGET="remote"; shift ;;
+  --remote) shift ;;
   --local) TARGET="local"; shift ;;
 esac
-
-if [[ "$TARGET" == "auto" ]]; then
-  if docker ps --format '{{.Names}}' 2> /dev/null | grep -qx mc; then
-    TARGET="local"
-  else
-    TARGET="remote"
-  fi
-fi
 
 # The check runs as a single heredoc over SSH (or locally via eval).
 # No declare -f, no function transport — just flat commands.
