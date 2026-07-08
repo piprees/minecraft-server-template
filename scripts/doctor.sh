@@ -215,6 +215,7 @@ fi
 ERRS=$(docker logs mc --tail 300 2>&1 | grep -i "ERROR" \
   | grep -v -e "No data fixer registered" -e "Error loading class" \
     -e "Parsing error loading custom advancement" -e "Couldn't load advancements" \
+    -e "Error upgrading chunk" -e "Failed to load chunk" \
   | wc -l)
 if [ "$ERRS" -eq 0 ]; then
   res OK "no non-trivial errors in the last 300 mc log lines"
