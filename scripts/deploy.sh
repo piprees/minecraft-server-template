@@ -205,8 +205,9 @@ docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" \
 # =============================================================================
 # 8. Seed mod configs into data/config/ (before mc starts)
 # =============================================================================
-# Platform defaults are seeded with skip-if-exists so player/in-game
-# customisations are preserved. The consumer overlay then force-overwrites.
+# Platform defaults always overwrite — consumers customise via the overlay,
+# not by editing defaults in data/config/. Force-copy ensures every deploy
+# gets the latest bundle configs (starter kits, mod settings, etc.).
 # This MUST run before mc starts — mods that auto-generate config on first
 # boot would otherwise create defaults that block the bundle's version.
 echo ""
@@ -227,10 +228,8 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     -not -name '1password.env' \
     | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
-    if [[ ! -f "$dest" ]]; then
-      mkdir -p "$(dirname "$dest")"
-      cp "$f" "$dest"
-    fi
+    mkdir -p "$(dirname "$dest")"
+    cp "$f" "$dest"
   done
   cd "$SERVER_DIR"
   echo "  Default configs seeded"
