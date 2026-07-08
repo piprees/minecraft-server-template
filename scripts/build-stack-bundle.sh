@@ -48,6 +48,9 @@ MANIFEST=(
   scripts/op-sync-env.sh
   scripts/kuma-token.sh
   scripts/rcon.sh
+  scripts/ssh.sh
+  scripts/chunky.sh
+  scripts/wipe-chunk.sh
   scripts/doctor.sh
   scripts/live-logs.sh
   scripts/live-stats.sh

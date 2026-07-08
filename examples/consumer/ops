@@ -23,6 +23,9 @@ ALLOWED_COMMANDS=(
   backup
   reset-seed
   rcon
+  ssh
+  chunky
+  wipe-chunk
   live-logs
   live-stats
   restart-service
@@ -85,6 +88,7 @@ case "$CMD" in
   cloudflare)  script_file="cloudflare-setup" ;;
   update)      script_file="remote-update" ;;
   backup)      script_file="backup-now" ;;
+  wipe-chunk)  script_file="wipe-chunk" ;;
   start|stop|restart|status) script_file="service" ;;
   map)                       script_file="map-render" ;;
 esac
