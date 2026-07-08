@@ -145,7 +145,7 @@
     ]
   },
   "_resourcePacks": {
-    "_comment": "Modrinth slugs for resource packs. build-modpack.sh downloads these into overrides/resourcepacks/ so they auto-install with the modpack.",
+    "_comment": "Modrinth slugs for resource packs. build-modpack.sh resolves each to its newest MC_VERSION-tagged version and downloads into overrides/resourcepacks/ so they auto-install with the modpack. An entry may also be an object {slug, files: [...]} to additionally download the named companion files (micropacks) from that same version. Packs are ENABLED by filename in overrides/configureddefaults/options.txt (last entry = highest priority); the build fails if an enabled filename wasn't downloaded, which catches filename drift after a pack updates.",
     "packs": [
       "better-leaves",
       "dramatic-skys",
@@ -153,7 +153,16 @@
       "simple-grass-flowers",
       "os-colorful-grasses",
       "low-on-fire",
-      "fresh-animations"
+      "fresh-animations",
+      {
+        "_comment": "Human villagers/illagers/zombies via EMF+ETF (CC-BY-SA-4.0, by BishopMCNuggets). FreshAni Activator makes it drive Fresh Animations; FA Iron Golem Remover keeps golems vanilla-style - drop it (and its options.txt entry) for HEVI's human-soldier golems.",
+        "slug": "human-era-villagers-illagers",
+        "files": [
+          "HEVI FreshAni Activator.zip",
+          "HEVI FA Iron Golem Remover.zip"
+        ]
+      },
+      "quiks-human-guard-villagers"
     ]
   }
 }

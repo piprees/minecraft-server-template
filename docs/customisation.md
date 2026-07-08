@@ -302,6 +302,32 @@ The template ships a curated ~150 server + ~110 client mod list focused on explo
 3. Pin versions: `./scripts/pin-mod-versions.sh --apply`
 4. Test locally: `./dev up`
 
+## Resource packs
+
+Resource packs auto-install with the modpack. They're declared in `modpack/adventure.mrpack.json` under `_resourcePacks.packs`, and `build-modpack.sh` resolves each slug to its **newest version tagged for `MC_VERSION`** on Modrinth at build time.
+
+Two entry forms:
+
+```json
+"packs": [
+  "better-leaves",
+  { "slug": "human-era-villagers-illagers", "files": ["HEVI FreshAni Activator.zip"] }
+]
+```
+
+A plain slug downloads the version's primary file. The object form *also* downloads the named companion files (micropacks) from that same resolved version - so add-ons can never drift out of sync with their main pack.
+
+Downloading a pack doesn't enable it (Dramatic Skys ships download-only, for players to opt into). Packs are **enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt` on the `resourcePacks:` line. Two rules:
+
+- **Order is priority**: the last entry in the array sits on top and overrides everything below it.
+- **Filenames are pinned**: when a pack updates on Modrinth its filename usually changes, and the build **fails with a filename-drift error** until you refresh the `options.txt` entry. This is deliberate - the alternative is a pack that silently stops applying.
+
+### The human villagers stack
+
+Villagers (plus illagers, zombie villagers and wandering traders) render as player-model humans via [Human Era: Villagers & Illagers](https://modrinth.com/resourcepack/human-era-villagers-illagers) (CC-BY-SA-4.0), driven by the Entity Model/Texture Features client mods, with [Quik's Human Guard Villagers](https://modrinth.com/resourcepack/quiks-human-guard-villagers) doing the same for Guard Villagers' guards. Stack order (bottom → top): Fresh Animations → HEVI → Quik's Guards → HEVI FreshAni Activator → HEVI FA Iron Golem Remover.
+
+The **Iron Golem Remover** keeps golems vanilla-style; HEVI would otherwise restyle them as human soldiers/mechas. If you want HEVI's golems, delete that filename from `options.txt` and its entry from the manifest's `files` list. The author publishes more micropacks (gender ratios, profession tweaks) on the pack's Modrinth page - add any of them as extra `files` entries and enable them above the main pack.
+
 ## Minecraft version
 
 The template targets **1.21.1**. Upgrading requires all ~260 mods to support the target version - see README § Update Minecraft version.

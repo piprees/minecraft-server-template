@@ -48,7 +48,7 @@ mouseSensitivity:0.5
 damageTiltStrength:1.0
 highContrast:false
 narratorHotkey:false
-resourcePacks:["vanilla","fabric","file/server-panorama","file/Better-Leaves-9.5.zip","file/Fancy Crops v1.3.zip","file/Simple Grass Flowers v1.9.6.zip","file/Os\u0027 Colorful Grasses (Short and Fluffy).zip","file/LowOnFire v26.2§8.zip","file/FreshAnimations_v1.10.4.zip"]
+resourcePacks:["vanilla","fabric","file/server-panorama","file/Better-Leaves-9.5.zip","file/Fancy Crops v1.3.zip","file/Simple Grass Flowers v1.9.6.zip","file/Os\u0027 Colorful Grasses (Short and Fluffy).zip","file/LowOnFire v26.2§8.zip","file/FreshAnimations_v1.10.4.zip","file/HumanEraVillagersIllagers[3.91.4].zip","file/Quik's Guards FA.zip","file/HEVI FreshAni Activator.zip","file/HEVI FA Iron Golem Remover.zip"]
 incompatibleResourcePacks:[]
 lastServer:
 lang:en_gb
