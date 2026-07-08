@@ -23,7 +23,7 @@ set -euo pipefail
 
 RCON_HOST="${RCON_HOST:-mc}"
 RCON_PASSWORD="${RCON_PASSWORD:-}"
-IDLE_GRACE="${IDLE_GRACE:-3}"
+IDLE_GRACE="${IDLE_GRACE:-1}"
 POLL_INTERVAL="${POLL_INTERVAL:-30}"
 
 # Chunky pre-generation: border radius + 128 chunks (2048 blocks) for DH LOD
