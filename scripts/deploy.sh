@@ -286,17 +286,6 @@ if [[ -d "$SERVER_DIR/overlay/config/datapacks" ]]; then
   echo "  Custom datapacks synced to world/datapacks/"
 fi
 
-# --- c2me parallelism upgrade (marker-gated) ----------------------------------
-# The platform ships globalExecutorParallelism=1 to avoid CME errors during
-# Chunky pre-gen. idle-tasks creates data/.c2me-parallel once all dimensions
-# finish or 10+ players have been seen. When the marker exists, upgrade to
-# c2me's auto-calculated parallelism for better gameplay chunk loading.
-C2ME_CONFIG="$SERVER_DIR/data/config/c2me.toml"
-if [[ -f "$SERVER_DIR/data/.c2me-parallel" && -f "$C2ME_CONFIG" ]]; then
-  sed -i 's/^globalExecutorParallelism = .*/globalExecutorParallelism = "default"/' "$C2ME_CONFIG"
-  echo "  c2me: parallelism upgraded to default (.c2me-parallel marker present)"
-fi
-
 # =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
 # =============================================================================
