@@ -15,6 +15,7 @@
 #   ./scripts/live-logs.sh --all        # all containers (streams)
 #   ./scripts/live-logs.sh mc           # single container (streams)
 #   ./scripts/live-logs.sh mc --tail N [--grep PATTERN] [--since 1h]   # snapshot
+#   ./scripts/live-logs.sh mc --errors                                 # recent errors/warnings
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,6 +48,10 @@ if [[ "${1:-}" != "" && "${1:-}" != "--all" ]]; then
       --tail) SNAP_TAIL="${2:?--tail needs a number}"; shift 2 ;;
       --grep) SNAP_GREP="${2:?--grep needs a pattern}"; shift 2 ;;
       --since) SNAP_SINCE="${2:?--since needs a duration (e.g. 1h)}"; shift 2 ;;
+      --errors)
+        SNAP_TAIL="${SNAP_TAIL:-500}"
+        SNAP_GREP="ERROR|WARN"
+        shift ;;
       *) echo "Unknown flag: $1 (see header for usage)"; exit 1 ;;
     esac
   done
