@@ -1,0 +1,126 @@
+name: Updates
+
+# Weekly maintenance PR for your server:
+#   - re-pins overlay/mods-extra.txt to the latest builds for your MC version
+#   - reports the latest stack (template) release in the PR body
+#
+# Stack version: the deploy workflow uses `vars.STACK_VERSION || 'latest'`.
+# Unset floats on the latest release and a major pin like v2 floats on the
+# latest v2.x.y - no action needed to stay current. If you pin an exact
+# version (v2.0.1) in the STACK_VERSION repository variable for
+# reproducibility, this PR tells you when a newer release exists so you can
+# bump the variable deliberately.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: consumer-updates
+  cancel-in-progress: false
+
+env:
+  BRANCH: updates/auto
+
+jobs:
+  update:
+    name: Re-pin extra mods
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Pull stack bundle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STACK_VERSION: ${{ vars.STACK_VERSION || 'latest' }}
+        run: ./stack-pull.sh
+
+      - name: Report stack versions
+        id: stack
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "current=$(readlink .stack/current)" >> "$GITHUB_OUTPUT"
+          latest=$(gh api /repos/piprees/minecraft-server-template/releases/latest --jq .tag_name 2>/dev/null || echo "unknown")
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Re-pin extra mods
+        id: pin
+        run: |
+          if [[ ! -f overlay/mods-extra.txt ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No overlay/mods-extra.txt - nothing to pin."
+            exit 0
+          fi
+          cp overlay/mods-extra.txt /tmp/mods-extra.before.txt
+          bash .stack/current/stack/scripts/pin-mod-versions.sh --file overlay/mods-extra.txt
+          if git diff --quiet -- overlay/mods-extra.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Close stale PR (no updates)
+        if: steps.pin.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr comment "$PR_NUM" --body "All extra mods now match \`main\` - closing."
+            gh pr close "$PR_NUM" --delete-branch
+          else
+            echo "No updates available."
+          fi
+
+      - name: Build PR body
+        if: steps.pin.outputs.changed == 'true'
+        run: |
+          {
+            echo "Weekly re-pin of \`overlay/mods-extra.txt\`."
+            echo ""
+            echo '```diff'
+            git diff -- overlay/mods-extra.txt | tail -n +5
+            echo '```'
+            echo ""
+            echo "**Stack**: running \`${{ steps.stack.outputs.current }}\`, latest release \`${{ steps.stack.outputs.latest }}\`."
+            echo "Deploys track \`${{ vars.STACK_VERSION || 'latest' }}\` (set the \`STACK_VERSION\` repository variable to pin)."
+            echo ""
+            echo "Merging triggers a deploy; grep the FIXME lines below for mods with no build for this MC version (kept as-is)."
+            grep -n "FIXME" overlay/mods-extra.txt || true
+          } > /tmp/pr-body.md
+
+      - name: Commit and push
+        if: steps.pin.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add overlay/mods-extra.txt
+          git commit -m "chore: re-pin extra mods"
+          git push --force origin "$BRANCH"
+
+      - name: Open or update PR
+        if: steps.pin.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$PR_NUM" ]]; then
+            gh pr edit "$PR_NUM" --body-file /tmp/pr-body.md
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest available versions ($(date -u +%Y-%m-%d))."
+          else
+            gh pr create \
+              --title "chore: re-pin extra mods" \
+              --body-file /tmp/pr-body.md \
+              --base main \
+              --head "$BRANCH"
+          fi

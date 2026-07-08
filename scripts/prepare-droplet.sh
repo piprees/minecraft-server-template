@@ -35,7 +35,7 @@ fi
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 DEPLOY_KEY="${DEPLOY_KEY_PATH:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
 BRAND_SLUG="${BRAND_SLUG:-adventure}"
-STACK_VERSION="${STACK_VERSION:-v1}"
+STACK_VERSION="${STACK_VERSION:-latest}"
 SERVER_DIR="server"
 
 # --- resolve droplet IP -------------------------------------------------------

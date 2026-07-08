@@ -121,6 +121,8 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" | python3 -c "import 
 
 Every required dependency must already be in the pack or added alongside. Libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional. Verify the resolved version actually targets 1.21.1 - Modrinth metadata lies sometimes (e.g. `extra_enchantments` claimed 1.21.1 but shipped 1.21.2 registry keys). Then pin: `./scripts/pin-mod-versions.sh --apply`.
 
+**Resource/shader packs**: `_resourcePacks.packs` / `_shaderPacks.packs` in the manifest - plain slug (primary file) or `{slug, files: [...]}` to also fetch named companion micropacks from the same version. `build-modpack.sh` resolves each to the newest `MC_VERSION`-tagged Modrinth version (falling back to newest upload if untagged). Resource packs are **enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt` (`resourcePacks:` array, last entry = highest priority); the build fails on an enabled filename that wasn't downloaded, so refresh `options.txt` whenever a pack's version bumps. See docs/customisation.md § Resource packs.
+
 ## Config sync
 
 Mod configs in `config/<modname>/` are copied to `data/config/` by **deploy.sh step 8** (every full deploy) — skip-if-exists for bundle defaults, then force-overwrite for consumer overlay. This runs **before mc starts** so mods that auto-generate config on first boot don't create defaults that block the bundle's version. Adding a mod with config means touching **two places**:
@@ -129,6 +131,8 @@ Mod configs in `config/<modname>/` are copied to `data/config/` by **deploy.sh s
 2. The dir added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
 
 **Game rules** live in two places that must match: `config/boring_default_game_rules/config.json` (new-world defaults) AND the RCON enforcement block in `scripts/deploy.sh` (existing world). Each has a comment pointing at the other.
+
+**World spawn** is enforced the same way: `deploy.sh` runs `setworldspawn` from `SPAWN_X/Y/Z` in `config/.env` on every deploy (and centres the BlueMap webapp on it), so an in-game `/setworldspawn` doesn't stick - change the env vars instead.
 
 ## Web surfaces (styles & markup)
 

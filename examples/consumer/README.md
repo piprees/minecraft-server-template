@@ -38,13 +38,26 @@ Add the `/etc/hosts` entries printed by `./dev up` for subdomain routing.
 
 ### Update the platform
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v1` to track the latest
-v1.x.y), then:
+`STACK_VERSION` in `.env` pins the platform release: a major pin like `v2`
+floats on the latest `v2.x.y`, an exact pin (`v2.0.1`) holds it, and unset
+tracks the latest release. `./ops setup` records the line in use. To update:
 
 ```bash
 ./dev update                   # re-pulls the bundle + Docker images
 ./dev up                       # restart with the new version
 ```
+
+### Update your extra mods
+
+```bash
+./dev pin                      # re-pin overlay/mods-extra.txt to latest builds
+git diff overlay/mods-extra.txt
+./dev up                       # or push to main to deploy
+```
+
+The `Updates` workflow (`.github/workflows/update.yml`) does the same thing
+weekly and opens a PR with the diff, plus a note when a new stack release is
+available.
 
 ## Going to production
 
@@ -131,6 +144,7 @@ restart.
 ├── ops                         # operational commands (setup/provision/deploy/...)
 ├── stack-pull.sh               # vendored bundle fetcher
 ├── .github/workflows/deploy.yml # CI/CD caller workflow
+├── .github/workflows/update.yml # weekly mod re-pin PR + stack release notes
 ├── .stack/                     # git-ignored bundle cache
 ├── data/                       # git-ignored world + server state
 ├── modpack-dist/               # git-ignored built modpack

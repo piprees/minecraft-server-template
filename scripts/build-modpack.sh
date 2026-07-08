@@ -398,54 +398,105 @@ fi
 # --- download resource packs into overrides -----------------------------------
 mkdir -p "$WORK_DIR/overrides/resourcepacks"
 
+# Entries in _resourcePacks.packs are either a plain slug (download the
+# version's primary file) or an object {"slug": ..., "files": [...]} that also
+# downloads the named companion files (micropacks) from the same resolved
+# version, so companions can never drift out of sync with the main pack.
 RESOURCE_PACKS=$(python3 -c "
 import json
 with open('$MANIFEST') as f:
     data = json.load(f)
 packs = data.get('_resourcePacks', {}).get('packs', [])
 for p in packs:
-    print(p)
+    if isinstance(p, str):
+        print(p)
+    else:
+        print(p['slug'] + '\t' + '\t'.join(p.get('files', [])))
 " 2> /dev/null || true)
 
 if [[ -n "$RESOURCE_PACKS" ]]; then
   echo ""
   echo "==> Downloading resource packs into overrides/resourcepacks/..."
 
-  while IFS= read -r slug; do
-    [[ -z "$slug" ]] && continue
+  while IFS= read -r rp_entry; do
+    [[ -z "$rp_entry" ]] && continue
+    slug="${rp_entry%%$'\t'*}"
+    rp_extras=""
+    [[ "$rp_entry" == *$'\t'* ]] && rp_extras="${rp_entry#*$'\t'}"
 
-    # Resource packs are version-agnostic, so don't filter by game_versions
+    # Prefer the newest build tagged for MC_VERSION - a pack's latest upload
+    # can target newer Minecraft only (e.g. Fresh Animations 1.10.5 is
+    # 26.x-only while 1.10.4 is the newest 1.21.1 build). Packs without
+    # game-version tags fall back to the newest upload.
     rp_tmpfile="$(mktemp)"
-    curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" \
       -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$rp_tmpfile"
+    if [[ "$(head -c 2 "$rp_tmpfile")" == "[]" ]]; then
+      curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$rp_tmpfile"
+    fi
 
-    rp_info=$(python3 -c "
-import json, sys
+    rp_info=$(RP_EXTRAS="$rp_extras" python3 -c "
+import json, os, sys
 with open('$rp_tmpfile') as f:
     versions = json.load(f)
 if not versions:
     sys.exit(1)
-v = versions[0]
-for f in v.get('files', []):
-    if f.get('primary', False):
-        print(f['url'])
-        print(f['filename'])
-        break
+files = versions[0].get('files', [])
+picked = [f for f in files if f.get('primary', False)][:1]
+for name in os.environ.get('RP_EXTRAS', '').split('\t'):
+    if not name:
+        continue
+    match = [f for f in files if f['filename'] == name]
+    if match:
+        picked.append(match[0])
+    else:
+        print('MISSING\t' + name)
+for f in picked:
+    print(f['url'] + '\t' + f['filename'])
 " 2> /dev/null) || true
     rm -f "$rp_tmpfile"
 
     if [[ -n "$rp_info" ]]; then
-      rp_url=$(echo "$rp_info" | head -1)
-      rp_filename=$(echo "$rp_info" | tail -1)
-      if curl -sL --max-time 60 -o "$WORK_DIR/overrides/resourcepacks/$rp_filename" "$rp_url"; then
-        echo "  ✓ $slug ($rp_filename)"
-      else
-        echo "  ✗ $slug - download failed" >&2
-      fi
+      while IFS=$'\t' read -r rp_url rp_filename; do
+        [[ -z "$rp_url" ]] && continue
+        if [[ "$rp_url" == "MISSING" ]]; then
+          echo "  ✗ $slug - companion file '$rp_filename' not in the resolved version" >&2
+          continue
+        fi
+        if curl -sL --max-time 60 -o "$WORK_DIR/overrides/resourcepacks/$rp_filename" "$rp_url"; then
+          echo "  ✓ $slug ($rp_filename)"
+        else
+          echo "  ✗ $slug - download failed ($rp_filename)" >&2
+        fi
+      done <<< "$rp_info"
     else
       echo "  ! $slug - no ${MC_VERSION} build found" >&2
     fi
   done <<< "$RESOURCE_PACKS"
+
+  # options.txt enables packs by exact filename. When a pack updates on
+  # Modrinth the filename changes, and a stale options.txt entry would ship
+  # the pack silently disabled - fail the build so the entry gets refreshed.
+  OPTIONS_TXT="$WORK_DIR/overrides/configureddefaults/options.txt"
+  if [[ -f "$OPTIONS_TXT" ]]; then
+    python3 - "$OPTIONS_TXT" "$WORK_DIR/overrides/resourcepacks" << 'DRIFTEOF'
+import json, os, sys
+options_path, rp_dir = sys.argv[1], sys.argv[2]
+line = next((l for l in open(options_path, encoding='utf-8')
+             if l.startswith('resourcePacks:')), None)
+if line:
+    entries = json.loads(line.split(':', 1)[1])
+    have = set(os.listdir(rp_dir))
+    missing = [e[5:] for e in entries
+               if e.startswith('file/') and e.endswith('.zip') and e[5:] not in have]
+    for m in missing:
+        print(f"  ✗ options.txt enables '{m}' but no such file was downloaded"
+              " (pack updated on Modrinth? refresh the filename)", file=sys.stderr)
+    if missing:
+        sys.exit(1)
+DRIFTEOF
+  fi
 fi
 
 # --- download shader packs into overrides --------------------------------------
@@ -466,9 +517,15 @@ if [[ -n "$SHADER_PACKS" ]]; then
   while IFS= read -r slug; do
     [[ -z "$slug" ]] && continue
 
+    # Same resolution rule as resource packs: newest MC_VERSION-tagged build,
+    # falling back to the newest upload for packs without game-version tags.
     sp_tmpfile="$(mktemp)"
-    curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" \
       -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$sp_tmpfile"
+    if [[ "$(head -c 2 "$sp_tmpfile")" == "[]" ]]; then
+      curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
+        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$sp_tmpfile"
+    fi
 
     sp_info=$(python3 -c "
 import json, sys

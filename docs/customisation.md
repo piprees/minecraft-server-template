@@ -200,6 +200,58 @@ Rename the 6 screenshots to `panorama_0.png` through `panorama_5.png` and place 
 for f in panorama_*.png; do pngquant --quality=80-100 --speed 1 --force --output "$f" "$f"; done
 ```
 
+## Map markers
+
+BlueMap supports named POI markers - the way to put place names on the shared web map. Per-map config lives in `config/bluemap/maps/` (synced to `data/config/bluemap/maps/` on deploy; consumers override via `overlay/config/bluemap/maps/`). **Overlay files replace the template file wholesale**, so copy the template's `world.conf` first, then append a marker set:
+
+```hocon
+marker-sets: {
+    places: {
+        label: "Places"
+        toggleable: true
+        default-hidden: false
+        markers: {
+            spawn-town: {
+                type: "poi"
+                label: "Saltmere"
+                position: { x: 120, y: 64, z: -340 }
+                max-distance: 10000
+            }
+        }
+    }
+}
+```
+
+Add one marker per named place as players explore. Full marker reference (icons, lines, areas): [bluemap.bluecolored.de/wiki/customization/Markers.html](https://bluemap.bluecolored.de/wiki/customization/Markers.html).
+
+Markers don't stop at the web map: the client pack ships [MapLink](https://modrinth.com/mod/maplink), which mirrors BlueMap markers, player positions and area overlays into every player's Xaero's minimap and world map in-game. Waystone markers are already tracked; if a marker set of yours doesn't appear in Xaero's, check the `markerLayers` lists in `modpack/overrides/configureddefaults/config/maplink/general.json5`.
+
+## Starter kit
+
+The starter kit is handed to every new player by [Starter Kit](https://modrinth.com/mod/starter-kit). Config lives in `config/starterkit/`:
+
+| File | Purpose |
+| --- | --- |
+| `kits/<Name>.txt` | One line per slot: `head/chest/legs/feet/offhand`, hotbar+inventory slots `0`-`35`, plus `effects` |
+| `descriptions/<Name>.txt` | Flavour text shown on the kit choice screen / in chat |
+| `../starterkit.json5` | Behaviour: `chooseKitText`, multiple-kit handling, effects toggle |
+
+The easiest way to build a kit is **in-game**: arrange your inventory exactly as the kit should be (damaged gear, enchantments, modded items, even written books all work - items are stored as full NBT), then run `/starterkit set` as an op (see the command notes in `starterkit.json5`; `/starterkit add <name>` creates additional kits, and disabling `randomizeMultipleKitsToggle` gives players a choice screen on first join). Copy the resulting files from `data/config/starterkit/` into `overlay/config/starterkit/` so they survive redeploys and are canonical in your repo.
+
+## Player-facing messages
+
+Where each piece of player-facing (or Discord-facing) text lives. The MOTD is covered by setup (`MOTD` in `.env`); the rest:
+
+| Surface | File / key |
+| --- | --- |
+| Kit choice prompt | `chooseKitText` in `config/starterkit.json5` |
+| Restart countdowns, kick messages | `restart.*` keys in `config/messages.json` |
+| Discord welcome pin | `discord.welcome_pin` in `config/messages.json` (push with `./scripts/discord-pin-sync.sh --push`) |
+| In-game `/rules` | `config/essentialcommands/rules.txt` |
+| Join/leave/chat formatting | [Styled Chat](https://modrinth.com/mod/styled-chat) - the template ships no config (mod defaults), so its generated config in `data/config/` is yours to edit; see the mod's docs for the format |
+
+Consumers override any of these via `overlay/config/` (same relative paths).
+
 ## Multi-instance
 
 Each clone can run an independent stack:
@@ -220,6 +272,28 @@ The template ships a curated ~150 server + ~110 client mod list focused on explo
 2. Follow the dependency checklist in `AGENTS.md` § Mods
 3. Pin versions: `./scripts/pin-mod-versions.sh --apply`
 4. Test locally: `./dev up`
+
+## Resource packs
+
+Resource packs auto-install with the modpack. They're declared in `modpack/adventure.mrpack.json` under `_resourcePacks.packs`, and `build-modpack.sh` resolves each slug to its **newest version tagged for `MC_VERSION`** on Modrinth at build time.
+
+Two entry forms:
+
+```json
+"packs": [
+  "better-leaves",
+  { "slug": "human-era-villagers-illagers", "files": ["HEVI FreshAni Activator.zip"] }
+]
+```
+
+A plain slug downloads the version's primary file. The object form *also* downloads the named companion files (micropacks) from that same resolved version - so add-ons can never drift out of sync with their main pack.
+
+Downloading a pack doesn't enable it (Dramatic Skys ships download-only, for players to opt into). Packs are **enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt` on the `resourcePacks:` line. Two rules:
+
+- **Order is priority**: the last entry in the array sits on top and overrides everything below it.
+- **Filenames are pinned**: when a pack updates on Modrinth its filename usually changes, and the build **fails with a filename-drift error** until you refresh the `options.txt` entry. This is deliberate - the alternative is a pack that silently stops applying.
+
+Worked example: villagers render as player-model humans via [Human Era: Villagers & Illagers](https://modrinth.com/resourcepack/human-era-villagers-illagers) plus its FreshAni Activator and FA Iron Golem Remover companion files (the remover keeps golems vanilla-style - delete its `options.txt` and `files` entries if you want HEVI's human-soldier golems), with [Quik's Human Guard Villagers](https://modrinth.com/resourcepack/quiks-human-guard-villagers) covering Guard Villagers' guards. Any of the author's other micropacks can be added the same way: an extra `files` entry, enabled above the main pack.
 
 ## Minecraft version
 
