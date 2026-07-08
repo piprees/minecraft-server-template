@@ -43,6 +43,25 @@ ensure_stack() {
   fi
 }
 
+# Change-detection checksum of this script. cksum is POSIX, so it behaves
+# identically on macOS and Linux (md5/md5sum don't share a name or format).
+self_sum() {
+  cksum "$CONSUMER_DIR/dev" 2> /dev/null | awk '{print $1"-"$2}'
+}
+
+# If an update just replaced this script on disk, re-exec the same command
+# so the rest of the run (and everything after it) uses the new code - the
+# in-memory copy of a self-updated script is stale by definition.
+# DEV_SELF_REEXEC guards against loops; a second pass sees equal sums anyway.
+reexec_if_self_updated() {
+  local before="$1"
+  shift
+  if [[ "$(self_sum)" != "$before" && -z "${DEV_SELF_REEXEC:-}" ]]; then
+    echo "==> dev script was updated - re-running '$1' with the new version..."
+    DEV_SELF_REEXEC=1 exec bash "$CONSUMER_DIR/dev" "$@"
+  fi
+}
+
 CMD="${1:-help}"
 shift || true
 
@@ -101,6 +120,7 @@ case "$CMD" in
       --file "$CONSUMER_DIR/overlay/mods-extra.txt" "$@"
     ;;
   update)
+    SELF_BEFORE="$(self_sum)"
     bash "$CONSUMER_DIR/stack-pull.sh"
     STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
     # Sync consumer entry points from the bundle. Write-to-temp + mv, never
@@ -117,6 +137,7 @@ case "$CMD" in
         mv "$CONSUMER_DIR/$f.new" "$CONSUMER_DIR/$f"
       fi
     done
+    reexec_if_self_updated "$SELF_BEFORE" update "$@"
     if [[ -f "$STACK_DIR/.env.example" ]]; then
       cp "$STACK_DIR/.env.example" "$CONSUMER_DIR/.env.example"
     fi
@@ -135,12 +156,17 @@ case "$CMD" in
   sync)
     ensure_env
     ensure_stack
+    SELF_BEFORE="$(self_sum)"
     echo "==> Stopping local stack..."
     export CONSUMER_DIR
     bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down
     echo ""
     echo "==> Updating local bundle + images..."
     bash "$CONSUMER_DIR/dev" update
+    # update runs in a child process, so it can't re-exec this parent -
+    # check for a self-update here and restart sync on the new code (the
+    # repeated down/update steps are idempotent and near-instant).
+    reexec_if_self_updated "$SELF_BEFORE" sync "$@"
     echo ""
     echo "==> Updating server..."
     bash "$CONSUMER_DIR/ops" update --quick "$@"
