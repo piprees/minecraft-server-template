@@ -103,12 +103,18 @@ case "$CMD" in
   update)
     bash "$CONSUMER_DIR/stack-pull.sh"
     STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
-    # Sync consumer entry points from the bundle
+    # Sync consumer entry points from the bundle. Write-to-temp + mv, never
+    # cp: this loop replaces the very script bash is executing, and cp
+    # rewrites the inode in place - bash reads scripts incrementally, so the
+    # running interpreter would hit shifted bytes and die with a bogus parse
+    # error ("unexpected EOF"). mv swaps the directory entry instead; the
+    # running script keeps its old inode until exit.
     for f in dev ops stack-pull.sh; do
       src="$STACK_DIR/examples/consumer/$f"
       if [[ -f "$src" ]]; then
-        cp "$src" "$CONSUMER_DIR/$f"
-        chmod +x "$CONSUMER_DIR/$f"
+        cp "$src" "$CONSUMER_DIR/$f.new"
+        chmod +x "$CONSUMER_DIR/$f.new"
+        mv "$CONSUMER_DIR/$f.new" "$CONSUMER_DIR/$f"
       fi
     done
     if [[ -f "$STACK_DIR/.env.example" ]]; then
