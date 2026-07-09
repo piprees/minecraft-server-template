@@ -10,3 +10,4 @@ seed-errors.log
 seed-report-*.md
 cache/
 config/cloudflared/
+.github/.hooks-state/
