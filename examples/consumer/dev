@@ -148,6 +148,11 @@ case "$CMD" in
       src="$STACK_DIR/examples/consumer/$f"
       [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
     done
+    # README.md: copy only if missing (consumer customises this).
+    if [[ ! -f "$CONSUMER_DIR/README.md" ]]; then
+      src="$STACK_DIR/examples/consumer/README.md"
+      [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/README.md"
+    fi
     # Workflows (mkdir -p for first-time consumers without .github/).
     mkdir -p "$CONSUMER_DIR/.github/workflows"
     for f in .github/workflows/deploy.yml .github/workflows/update.yml; do
