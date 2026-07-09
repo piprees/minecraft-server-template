@@ -31,14 +31,23 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class DimensionManager {
     private static final DimensionManager INSTANCE = new DimensionManager();
+    private static final Set<RegistryKey<World>> PROTECTED_DIMENSIONS = Set.of(
+            World.OVERWORLD, World.NETHER, World.END,
+            RegistryKey.of(RegistryKeys.WORLD, Identifier.of("paradise_lost", "paradise_lost"))
+    );
+
     private MinecraftServer server;
+    private final Map<RegistryKey<World>, Long> lastPlayerPresence = new HashMap<>();
 
     public static DimensionManager getInstance() {
         return INSTANCE;
@@ -210,6 +219,60 @@ public class DimensionManager {
         } finally {
             if (wasFrozen) {
                 accessor.setFrozen(true);
+            }
+        }
+    }
+
+    public void updatePlayerPresence(RegistryKey<World> worldKey, boolean hasPlayers) {
+        if (hasPlayers) {
+            lastPlayerPresence.put(worldKey, server != null ? (long) server.getTicks() : 0L);
+        }
+    }
+
+    public void unloadIdleDimensions(MinecraftServer server, int idleMinutes) {
+        if (server == null) {
+            return;
+        }
+        long currentTick = server.getTicks();
+        long idleTicks = (long) idleMinutes * 60 * 20;
+        MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) server;
+        Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
+
+        List<RegistryKey<World>> toUnload = new ArrayList<>();
+        for (Map.Entry<RegistryKey<World>, ServerWorld> entry : worlds.entrySet()) {
+            RegistryKey<World> key = entry.getKey();
+            if (PROTECTED_DIMENSIONS.contains(key)) {
+                continue;
+            }
+            if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
+                continue;
+            }
+
+            ServerWorld world = entry.getValue();
+            if (!world.getPlayers().isEmpty()) {
+                continue;
+            }
+            if (!world.getForcedChunks().isEmpty()) {
+                continue;
+            }
+
+            long lastPresence = lastPlayerPresence.getOrDefault(key, 0L);
+            if (currentTick - lastPresence >= idleTicks) {
+                toUnload.add(key);
+            }
+        }
+
+        for (RegistryKey<World> key : toUnload) {
+            ServerWorld world = worlds.get(key);
+            if (world == null) {
+                continue;
+            }
+            try {
+                world.save(null, false, false);
+                worlds.remove(key);
+                MultiverseServer.LOGGER.info("Unloading idle dimension: {} (no players for {} min)", key.getValue(), idleMinutes);
+            } catch (Exception e) {
+                MultiverseServer.LOGGER.error("Failed to save dimension before unload: {}", key.getValue(), e);
             }
         }
     }

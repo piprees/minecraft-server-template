@@ -32,6 +32,7 @@ public class MultiverseConfig {
     private String frameOverworld = "minecraft:crying_obsidian";
     private String frameNether = "minecraft:obsidian";
     private String frameEnd = "minecraft:iron_block";
+    private int idleUnloadMinutes = 5;
 
     public static MultiverseConfig getInstance() {
         return INSTANCE;
@@ -61,6 +62,7 @@ public class MultiverseConfig {
                 this.frameOverworld = loaded.frameOverworld != null ? loaded.frameOverworld : this.frameOverworld;
                 this.frameNether = loaded.frameNether != null ? loaded.frameNether : this.frameNether;
                 this.frameEnd = loaded.frameEnd != null ? loaded.frameEnd : this.frameEnd;
+                this.idleUnloadMinutes = loaded.idleUnloadMinutes > 0 ? loaded.idleUnloadMinutes : this.idleUnloadMinutes;
             }
             this.dirty = false;
         } catch (IOException e) {
@@ -235,6 +237,10 @@ public class MultiverseConfig {
 
     public String getFrameEnd() {
         return this.frameEnd;
+    }
+
+    public int getIdleUnloadMinutes() {
+        return this.idleUnloadMinutes;
     }
 
     public boolean isDirty() {

@@ -2,6 +2,7 @@ package com.customdimensions.mixin;
 
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
+import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -141,5 +142,11 @@ public class ServerWorldMixin {
         }
 
         PortalHelper.spawnTargetPortalParticles(world);
+
+        DimensionManager.getInstance().updatePlayerPresence(worldKey, !world.getPlayers().isEmpty());
+
+        if (worldKey == World.OVERWORLD && world.getServer().getTicks() % 1200 == 0) {
+            DimensionManager.getInstance().unloadIdleDimensions(world.getServer(), MultiverseConfig.getInstance().getIdleUnloadMinutes());
+        }
     }
 }
