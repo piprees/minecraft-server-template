@@ -55,13 +55,19 @@ declare -a ignitors=()
 log "Reading dimensions from $DIMENSIONS_FILE..."
 
 # shellcheck disable=SC2034
-while IFS='|' read -r name type scale seed portal_block ignitor _group; do
+while IFS='|' read -r name type scale seed portal_block ignitor _group biome; do
   [[ "$name" =~ ^#.*$ || -z "$name" ]] && continue
 
-  if [[ -n "${SEED:-}" && "$seed" == "$SEED" ]]; then
+  if [[ "$seed" != "server" && -n "${SEED:-}" && "$seed" == "$SEED" ]]; then
     warn "Skipping $name — seed matches main server seed"
     skipped=$((skipped + 1))
     continue
+  fi
+
+  # Resolve "server" to the actual server seed
+  dim_seed="$seed"
+  if [[ "$seed" == "server" ]]; then
+    dim_seed="${SEED:-}"
   fi
 
   names+=("$name")
@@ -70,8 +76,16 @@ while IFS='|' read -r name type scale seed portal_block ignitor _group; do
   portal_blocks+=("$portal_block")
   ignitors+=("$ignitor")
 
-  log "Creating dimension: $name ($type)"
-  run_rcon "dimension create $name $type"
+  if [[ -n "$biome" ]]; then
+    log "Creating dimension: $name ($type, biome: $biome)"
+    run_rcon "dimension create $name $type $dim_seed $biome"
+  elif [[ -n "$dim_seed" ]]; then
+    log "Creating dimension: $name ($type, seed: $dim_seed)"
+    run_rcon "dimension create $name $type $dim_seed"
+  else
+    log "Creating dimension: $name ($type)"
+    run_rcon "dimension create $name $type"
+  fi
   created=$((created + 1))
   sleep 0.5
 done < "$DIMENSIONS_FILE"
