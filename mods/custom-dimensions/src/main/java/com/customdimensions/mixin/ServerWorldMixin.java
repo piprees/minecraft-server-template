@@ -4,9 +4,13 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.portal.PortalHelper;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -124,18 +128,22 @@ public class ServerWorldMixin {
                         int portalCooldown = def.getCooldown();
 
                         if (existing != null) {
+                            playPortalSound(world, pos, def.getEnterSound());
                             player.setPortalCooldown(portalCooldown);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                             double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
                             player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                            playPortalSound(targetWorld, existing, def.getExitSound());
                             continue playerLoop;
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
+                        playPortalSound(world, pos, def.getEnterSound());
                         player.setPortalCooldown(portalCooldown);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                         double landY = isHorizontal ? targetY + 1 : targetY;
                         player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                        playPortalSound(targetWorld, new BlockPos(targetCenterX, (int) landY, targetCenterZ), def.getExitSound());
                     } catch (Exception ignored) {
                     }
                     continue playerLoop;
@@ -149,6 +157,16 @@ public class ServerWorldMixin {
 
         if (worldKey == World.OVERWORLD && world.getServer().getTicks() % 1200 == 0) {
             DimensionManager.getInstance().unloadIdleDimensions(world.getServer(), MultiverseConfig.getInstance().getIdleUnloadMinutes());
+        }
+    }
+
+    private static void playPortalSound(ServerWorld world, BlockPos pos, String soundName) {
+        Identifier soundId = Identifier.tryParse(soundName);
+        if (soundId != null) {
+            SoundEvent sound = Registries.SOUND_EVENT.get(soundId);
+            if (sound != null) {
+                world.playSound(null, pos, sound, SoundCategory.BLOCKS, 1.0f, 1.0f);
+            }
         }
     }
 }

@@ -10,6 +10,8 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -106,6 +108,7 @@ public class PortalIgnitionMixin {
             PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
             PortalHelper.registerZone(zone);
             PortalHelper.spawnParticles(serverWorld, zone);
+            playIgniteSound(serverWorld, clickedPos, def);
 
             if (!context.getPlayer().isCreative()) {
                 context.getStack().decrement(1);
@@ -151,6 +154,7 @@ public class PortalIgnitionMixin {
                     PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
                     PortalHelper.registerZone(zone);
                     PortalHelper.spawnParticles(serverWorld, zone);
+                    playIgniteSound(serverWorld, candidate, def);
 
                     if (!context.getPlayer().isCreative()) {
                         context.getStack().decrement(1);
@@ -158,6 +162,16 @@ public class PortalIgnitionMixin {
                     cir.setReturnValue(ActionResult.SUCCESS);
                     return;
                 }
+            }
+        }
+    }
+
+    private static void playIgniteSound(ServerWorld world, BlockPos pos, PortalDefinition def) {
+        Identifier soundId = Identifier.tryParse(def.getIgniteSound());
+        if (soundId != null) {
+            SoundEvent sound = Registries.SOUND_EVENT.get(soundId);
+            if (sound != null) {
+                world.playSound(null, pos, sound, SoundCategory.BLOCKS, 1.0f, 1.0f);
             }
         }
     }

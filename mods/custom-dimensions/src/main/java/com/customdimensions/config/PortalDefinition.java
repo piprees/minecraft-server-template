@@ -14,6 +14,9 @@ public class PortalDefinition {
     private int lightLevel;
     private double scale = 1.0;
     private int cooldown = 40;
+    private String igniteSound = "block.portal.trigger";
+    private String enterSound = "block.portal.travel";
+    private String exitSound = "block.portal.travel";
 
     public PortalDefinition() {
     }
@@ -91,6 +94,18 @@ public class PortalDefinition {
 
     public void setCooldown(int cooldown) {
         this.cooldown = cooldown;
+    }
+
+    public String getIgniteSound() {
+        return this.igniteSound != null ? this.igniteSound : "block.portal.trigger";
+    }
+
+    public String getEnterSound() {
+        return this.enterSound != null ? this.enterSound : "block.portal.travel";
+    }
+
+    public String getExitSound() {
+        return this.exitSound != null ? this.exitSound : "block.portal.travel";
     }
 
     public RegistryKey<World> getTargetKey() {
