@@ -24,7 +24,12 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.dimension.DimensionOptions;
 import net.minecraft.block.Blocks;
+import net.minecraft.world.biome.source.BiomeSource;
 import net.minecraft.world.biome.source.FixedBiomeSource;
+import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
+import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList;
+import net.minecraft.world.biome.source.util.MultiNoiseUtil;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.FlatChunkGenerator;
@@ -39,12 +44,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DimensionManager {
     private static final DimensionManager INSTANCE = new DimensionManager();
@@ -177,6 +185,43 @@ public class DimensionManager {
                 if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
                     RegistryEntry<ChunkGeneratorSettings> settings = noiseGen.getSettings();
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(fixedSource, settings);
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(newGen, worldSeed));
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+            }
+            case "multi_biome" -> {
+                String biomeList = def.getBiome();
+                if (biomeList == null || biomeList.isEmpty()) {
+                    biomeList = "minecraft:plains";
+                }
+                Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
+                        .map(String::trim)
+                        .map(Identifier::tryParse)
+                        .filter(id -> id != null)
+                        .collect(Collectors.toSet());
+
+                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
+                        && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
+                    // Extract biome entries from the live overworld source (includes Terralith)
+                    // and filter to only the allowed biomes
+                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = multiSource.getBiomeEntries()
+                            .getEntries().stream()
+                            .filter(pair -> {
+                                Identifier biomeId = pair.getSecond().getKey()
+                                        .map(key -> key.getValue())
+                                        .orElse(null);
+                                return biomeId != null && allowedIds.contains(biomeId);
+                            })
+                            .collect(Collectors.toList());
+
+                    if (filtered.isEmpty()) {
+                        MultiverseServer.LOGGER.warn("No matching biomes found for multi_biome dimension {}, falling back to plains", def.getName());
+                        RegistryEntry<Biome> plains = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
+                        filtered.add(Pair.of(MultiNoiseUtil.createNoiseHypercube(0, 0, 0, 0, 0, 0, 0), plains));
+                    }
+
+                    MultiNoiseBiomeSource filteredSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
+                    NoiseChunkGenerator newGen = new NoiseChunkGenerator(filteredSource, noiseGen.getSettings());
                     yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(newGen, worldSeed));
                 }
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));

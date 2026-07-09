@@ -85,7 +85,7 @@ the_violet_spire|overworld|12|16261891333034106707|minecraft:purpur_block|minecr
 the_amplified_reaches|amplified|1|server|minecraft:cracked_deepslate|minecraft:amethyst_shard|overworld|
 the_underdark|single_biome|1|server|minecraft:moss_carpet|minecraft:amethyst_shard|overworld|minecraft:lush_caves
 the_canvas|superflat|1|server|minecraft:white_concrete|minecraft:amethyst_shard|overworld||true
-the_blossom_gardens|single_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove|true
+the_blossom_gardens|multi_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:plains,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley|true
 
 # --- 1:1 End dimensions ---
 the_end_citadel|end|1|2345324516627475701|minecraft:end_stone_bricks|minecraft:ender_eye|end

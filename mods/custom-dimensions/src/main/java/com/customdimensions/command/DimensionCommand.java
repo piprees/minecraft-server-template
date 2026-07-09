@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class DimensionCommand {
     private static final Set<String> VALID_TYPES = Set.of(
-            "overworld", "nether", "end", "void", "superflat", "amplified", "large_biomes", "single_biome"
+            "overworld", "nether", "end", "void", "superflat", "amplified", "large_biomes", "single_biome", "multi_biome"
     );
 
     private static final SuggestionProvider<ServerCommandSource> DIMENSION_TYPES = (ctx, builder) -> {
@@ -90,8 +90,8 @@ public class DimensionCommand {
         } catch (Exception ignored) {
         }
 
-        if (type.equals("single_biome") && biome == null) {
-            ctx.getSource().sendError(Text.literal("single_biome type requires a biome argument (e.g., minecraft:cherry_grove)"));
+        if ((type.equals("single_biome") || type.equals("multi_biome")) && biome == null) {
+            ctx.getSource().sendError(Text.literal(type + " type requires a biome argument (e.g., minecraft:cherry_grove or cherry_grove,meadow,flower_forest)"));
             return 0;
         }
 
