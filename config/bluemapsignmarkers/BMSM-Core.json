@@ -9,82 +9,106 @@
       "offsetY": 0
     },
     {
-      "prefix": "[village]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(village|hamlet|settlement|town|city|borough|parish|commune|stead|enclave|colony|haven|refuge|sanctuary|quarter|ward|district|precinct|plaza|square|market|bazaar|agora|crossroads|waypoint|junction|outskirts).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Villages",
+      "name": "Villages & Settlements",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[dungeon]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(dungeon|keep|pit|crypt|tomb|stronghold|catacomb|labyrinth|maze|vault|lair|den|barrow|cairn|sepulchre|mausoleum|ossuary|necropolis|sanctum|chamber|depths|abyss|spawner|trial|undercroft|oubliette|gauntlet).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Dungeons",
+      "name": "Dungeons & Ruins",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[base]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(base|camp|outpost|fort|fortress|citadel|bastion|garrison|bunker|compound|headquarters|holdfast|watchtower|rampart|bulwark|palisade|stockade|redoubt|battlement|barracks).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Bases",
+      "name": "Bases & Fortifications",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[treasure]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(house|cottage|cabin|lodge|shack|hut|hovel|manor|mansion|estate|hall|homestead|dwelling|abode|inn|tavern|pub|hostel|post|trading|shop|store|bakery|smithy|forge|brewery|workshop|studio|library|archive).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Treasure",
+      "name": "Houses & Buildings",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[mine]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(farm|ranch|plantation|orchard|vineyard|grove|garden|greenhouse|paddock|stable|pen|coop|hatchery|apiary|fishery|herd|pasture|field|harvest|crop|mob|xp|grinder|spawner|sorter|hopper|dropper|collector|auto|smelter|furnace).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Mines",
+      "name": "Farms & Automation",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[house]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(mine|quarry|dig|excavation|shaft|tunnel|bore|vein|lode|seam|drift|adit|pit|strip|deep|bedrock|hollow|burrow|delve|sinkhole).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Houses",
+      "name": "Mines & Excavations",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[stash]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(stash|cache|supply|depot|stockpile|vault|cellar|pantry|stores|warehouse|silo|bunker|chest|barrel|crate|reserve|hoard|storage).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Stashes",
+      "name": "Stashes & Storage",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[farm]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(treasure|loot|bounty|relic|artefact|artifact|plunder|spoils|riches|jewel|gem|prize|trove|buried|sunken|ancient|forgotten|lost|hidden|secret).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Farms",
+      "name": "Treasure & Discoveries",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[portal]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(portal|gateway|rift|gate|warp|threshold|passage|crossing|bridge|arch|link|nexus|conduit|waystone|teleport|end|nether).*",
+      "matchType": "REGEX",
       "type": "POI",
-      "name": "Portals",
+      "name": "Portals & Gateways",
       "offsetX": 0,
       "offsetY": 0
     },
     {
-      "prefix": "[danger]",
-      "matchType": "STARTS_WITH",
+      "prefix": "(?i).*(danger|hazard|beware|warning|peril|death|deadly|cursed|corrupted|blighted|toxic|wither|skeletal|infested|haunted|forsaken|damned|doomed|trap|ambush|hostile|skull|bones|graveyard|cemetery).*",
+      "matchType": "REGEX",
       "type": "POI",
       "name": "Danger Zones",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "(?i).*(temple|shrine|altar|chapel|church|cathedral|monastery|abbey|cloister|sanctum|oracle|idol|totem|obelisk|monolith|pillar|spire|ziggurat|pagoda|minaret|tabernacle|reliquary|blessed|sacred|divine|holy|hallowed|consecrated|profane|unholy|ritual|rune|glyph|sigil|enchant|arcane|mystic|wizard|witch|mage|sorcerer|druid|shaman|coven|circle).*",
+      "matchType": "REGEX",
+      "type": "POI",
+      "name": "Temples & Mystical",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "(?i).*(mountain|peak|summit|ridge|cliff|bluff|crag|mesa|butte|plateau|volcano|caldera|crater|canyon|gorge|ravine|chasm|valley|basin|dale|glen|dell|hollow|grotto|cave|cavern|spring|falls|waterfall|rapids|bay|cove|lagoon|reef|island|isle|atoll|marsh|swamp|bog|fen|mire|tundra|glacier|iceberg|oasis|dune|desert|jungle|rainforest|taiga|steppe|savanna|meadow|clearing|glade).*",
+      "matchType": "REGEX",
+      "type": "POI",
+      "name": "Natural Landmarks",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "(?i).*(dock|pier|harbour|harbor|port|wharf|marina|shipyard|lighthouse|beacon|dam|aqueduct|canal|mill|windmill|foundry|factory|kiln|refinery|powerplant|reactor|piston|redstone|rail|station|terminal|depot|elevator|lift|launcher|cannon|tnt|contraption|machine|mechanism|clock|tower|monument|statue|arena|colosseum|amphitheatre|theater|stage|gallery|museum|observatory|telescope|antenna|signal).*",
+      "matchType": "REGEX",
+      "type": "POI",
+      "name": "Structures & Industry",
       "offsetX": 0,
       "offsetY": 0
     }
