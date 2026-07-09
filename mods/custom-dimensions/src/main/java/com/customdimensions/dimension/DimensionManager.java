@@ -174,6 +174,7 @@ public class DimensionManager {
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
         ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
+        long worldSeed = def.getSeed() != null ? def.getSeed() : overworld.getSeed();
 
         ServerWorld newWorld = new ServerWorld(
                 this.server,
@@ -183,7 +184,7 @@ public class DimensionManager {
                 worldKey,
                 options,
                 false,
-                overworld.getSeed(),
+                worldSeed,
                 List.of(),
                 false,
                 overworld.getRandomSequences()

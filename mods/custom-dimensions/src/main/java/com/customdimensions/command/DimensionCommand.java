@@ -4,6 +4,7 @@ import com.customdimensions.config.DimensionDefinition;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -39,7 +40,9 @@ public class DimensionCommand {
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .then(CommandManager.argument("type", StringArgumentType.word())
                                                 .suggests(DIMENSION_TYPES)
-                                                .executes(DimensionCommand::executeCreate))))
+                                                .executes(DimensionCommand::executeCreate)
+                                                .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                                                        .executes(DimensionCommand::executeCreate)))))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(EXISTING_DIMENSIONS)
@@ -64,12 +67,20 @@ public class DimensionCommand {
             return 0;
         }
 
+        Long seed = null;
+        try {
+            seed = LongArgumentType.getLong(ctx, "seed");
+        } catch (Exception ignored) {
+        }
+
         DimensionDefinition def = new DimensionDefinition(name, type, "minecraft:" + name);
+        def.setSeed(seed);
         MultiverseConfig.getInstance().addDimension(def);
         DimensionManager.getInstance().registerDimension(def);
         DimensionManager.getInstance().getOrCreateDimension(name);
 
-        ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + ")"), true);
+        String seedInfo = seed != null ? ", seed: " + seed : "";
+        ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + seedInfo + ")"), true);
         return 1;
     }
 

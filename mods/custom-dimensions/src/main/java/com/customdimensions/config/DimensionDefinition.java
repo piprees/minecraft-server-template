@@ -6,6 +6,7 @@ public class DimensionDefinition {
     private String name;
     private String type;
     private String dimensionId;
+    private Long seed;
 
     public DimensionDefinition() {
     }
@@ -38,6 +39,14 @@ public class DimensionDefinition {
 
     public void setDimensionId(String dimensionId) {
         this.dimensionId = dimensionId;
+    }
+
+    public Long getSeed() {
+        return this.seed;
+    }
+
+    public void setSeed(Long seed) {
+        this.seed = seed;
     }
 
     public Identifier getDimensionIdentifier() {
