@@ -42,6 +42,15 @@ dist/
 # === Asset cache (Docker images, mod JARs, offline bundles) ===
 cache/
 
+# === In-house mod build artifacts ===
+mods/*/build/
+mods/*/.gradle/
+mods/*/run/
+mods/*/.fabric/
+
+# === Mod development scratch ===
+scratch/
+
 # === OS / editor junk ===
 .DS_Store
 Thumbs.db

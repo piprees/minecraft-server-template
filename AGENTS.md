@@ -136,6 +136,16 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Versions (images, actions, tools):** never rely on training data for version numbers — it will be outdated. Before adding or updating any Docker image tag, GitHub Actions step, CLI tool, or library version, look up the latest from a live source: `gh release list --repo <owner/repo> --limit 5`, Context7 (`npx ctx7@latest docs`), or the project's GitHub releases page. This applies to every `image:` tag in `docker-compose.yml`, every `uses:` reference in `.github/workflows/`, and every pinned version in scripts. **Traps:** (1) `gh release list --limit 1` returns the most *recently published* release, not the highest version — backported patch releases (e.g. v5.1.0 published after v6.0.0) will appear first. Always use `--limit 5` and check `isLatest` or sort by semver: `gh release list --limit 5 --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName'`. (2) GitHub release tags don't always exist on Docker Hub — some projects (e.g. MinIO) publish GitHub releases but stop pushing to Docker Hub. Always verify Docker image availability with `docker pull` or the Docker Hub API before pinning a new tag.
 
+## In-house mods
+
+`mods/` contains Fabric mod projects built and maintained as part of this platform. Each subdirectory is a standalone Gradle project targeting MC 1.21.1 + Java 21 (pinned via `mods/mise.toml`). See `mods/AGENTS.md` for the full mod development contract — mixin conventions, testing workflow, and the custom-dimensions architecture.
+
+| Mod | Dir | Purpose |
+| --- | --- | --- |
+| custom-dimensions | `mods/custom-dimensions/` | Runtime dimension creation, custom portal frames, coordinate scaling, bidirectional travel |
+
+Built JARs go into `overlay/mods/` in consumer repos — not published to Modrinth.
+
 ## Mods
 
 Server list: `config/modrinth-mods.txt` (`slug:versionId`, `?` = optional, `datapack:` prefix for datapacks). Client list: `modpack/adventure.mrpack.json` `_clientMods`. All worldgen/dimension mods must be present from chunk zero. Check mod docs on Modrinth or the mod's wiki before editing configs or using commands - **never guess config keys or command syntax**; fetch current docs (`npx ctx7@latest docs`).
@@ -205,6 +215,7 @@ OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<tit
 | --- | --- | --- |
 | Add a server mod (consumer) | `overlay/mods-extra.txt` (+ deps, pinned) | `./dev up` or push to `main` |
 | Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned) | Push, cut release |
+| Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && ./gradlew build` → copy JAR to `overlay/mods/` |
 | Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
 | Add a client mod | `modpack/adventure.mrpack.json` | Push (CI rebuilds `.mrpack`) |
 | Change a game rule | `config/boring_default_game_rules/config.json` + `scripts/deploy.sh` | Push (full deploy) |

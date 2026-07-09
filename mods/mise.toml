@@ -1,0 +1,5 @@
+[tools]
+java = "temurin-21"
+
+[env]
+JAVA_HOME = "{{env.MISE_JAVA_HOME}}"
