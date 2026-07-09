@@ -8,6 +8,7 @@ public class DimensionDefinition {
     private String dimensionId;
     private Long seed;
     private String biome;
+    private Boolean hostileSpawning;
 
     public DimensionDefinition() {
     }
@@ -56,6 +57,14 @@ public class DimensionDefinition {
 
     public void setBiome(String biome) {
         this.biome = biome;
+    }
+
+    public boolean isHostileSpawningEnabled() {
+        return this.hostileSpawning != null ? this.hostileSpawning : true;
+    }
+
+    public void setHostileSpawning(Boolean hostileSpawning) {
+        this.hostileSpawning = hostileSpawning;
     }
 
     public Identifier getDimensionIdentifier() {

@@ -6,6 +6,7 @@
   "mixins": [
     "EntityTickPortalMixin",
     "MinecraftServerAccessor",
+    "MobSpawnMixin",
     "NoiseChunkGeneratorAccessor",
     "PortalIgnitionMixin",
     "ServerWorldMixin",

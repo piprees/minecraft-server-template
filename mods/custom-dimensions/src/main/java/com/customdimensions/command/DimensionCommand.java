@@ -4,6 +4,7 @@ import com.customdimensions.config.DimensionDefinition;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -50,7 +51,9 @@ public class DimensionCommand {
                                                 .then(CommandManager.argument("seed", LongArgumentType.longArg())
                                                         .executes(DimensionCommand::executeCreate)
                                                         .then(CommandManager.argument("biome", IdentifierArgumentType.identifier())
-                                                                .executes(DimensionCommand::executeCreate))))))
+                                                                .executes(DimensionCommand::executeCreate)
+                                                                .then(CommandManager.argument("peaceful", BoolArgumentType.bool())
+                                                                        .executes(DimensionCommand::executeCreate)))))))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(EXISTING_DIMENSIONS)
@@ -92,14 +95,23 @@ public class DimensionCommand {
             return 0;
         }
 
+        boolean peaceful = false;
+        try {
+            peaceful = BoolArgumentType.getBool(ctx, "peaceful");
+        } catch (Exception ignored) {
+        }
+
         DimensionDefinition def = new DimensionDefinition(name, type, "minecraft:" + name);
         def.setSeed(seed);
         def.setBiome(biome);
+        if (peaceful) {
+            def.setHostileSpawning(false);
+        }
         MultiverseConfig.getInstance().addDimension(def);
         DimensionManager.getInstance().registerDimension(def);
         DimensionManager.getInstance().getOrCreateDimension(name);
 
-        String extra = (seed != null ? ", seed: " + seed : "") + (biome != null ? ", biome: " + biome : "");
+        String extra = (seed != null ? ", seed: " + seed : "") + (biome != null ? ", biome: " + biome : "") + (peaceful ? ", peaceful" : "");
         ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + extra + ")"), true);
         return 1;
     }
