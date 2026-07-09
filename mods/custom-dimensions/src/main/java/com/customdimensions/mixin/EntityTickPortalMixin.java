@@ -66,11 +66,13 @@ public abstract class EntityTickPortalMixin {
             tz = origin.pos.getZ() + 0.5;
         }
 
+        int cooldown = 40;
         if (targetWorldKey == null) {
             PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(portalBlocks.iterator().next());
             if (target != null) {
                 targetWorldKey = target.sourceWorld;
                 ty = target.sourceY;
+                cooldown = target.cooldown;
             }
         }
 
@@ -83,7 +85,7 @@ public abstract class EntityTickPortalMixin {
         }
 
         ci.cancel();
-        player.setPortalCooldown(300);
+        player.setPortalCooldown(cooldown);
         player.teleport(targetWorld, tx, ty, tz, Set.of(), player.getYaw(), player.getPitch(), true);
     }
 }

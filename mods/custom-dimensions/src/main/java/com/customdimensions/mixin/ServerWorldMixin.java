@@ -121,8 +121,10 @@ public class ServerWorldMixin {
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
                         BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, targetY + 1, targetCenterZ, 5);
+                        int portalCooldown = def.getCooldown();
+
                         if (existing != null) {
-                            player.setPortalCooldown(40);
+                            player.setPortalCooldown(portalCooldown);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                             double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
                             player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
@@ -130,7 +132,7 @@ public class ServerWorldMixin {
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
-                        player.setPortalCooldown(40);
+                        player.setPortalCooldown(portalCooldown);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                         double landY = isHorizontal ? targetY + 1 : targetY;
                         player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);

@@ -40,7 +40,9 @@ public class PortalCommand {
                                                                                 .suggests(lightSuggester())
                                                                                 .executes(PortalCommand::executeLink)
                                                                                 .then(CommandManager.argument("scale", DoubleArgumentType.doubleArg(0.001, 1000.0))
-                                                                                        .executes(PortalCommand::executeLink)))))))))
+                                                                                        .executes(PortalCommand::executeLink)
+                                                                                        .then(CommandManager.argument("cooldown", IntegerArgumentType.integer(0, 200))
+                                                                                                .executes(PortalCommand::executeLink))))))))))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("id", StringArgumentType.string())
                                         .suggests(EXISTING_PORTALS)
@@ -61,6 +63,11 @@ public class PortalCommand {
             scale = DoubleArgumentType.getDouble(ctx, "scale");
         } catch (Exception ignored) {
         }
+        int cooldown = 40;
+        try {
+            cooldown = IntegerArgumentType.getInteger(ctx, "cooldown");
+        } catch (Exception ignored) {
+        }
 
         if (MultiverseConfig.getInstance().getPortal(id) != null) {
             ctx.getSource().sendError(Text.literal("Portal ID '" + id + "' already exists"));
@@ -73,6 +80,7 @@ public class PortalCommand {
 
         PortalDefinition def = new PortalDefinition(id, frame, igniter, target, color.toUpperCase(), light);
         def.setScale(scale);
+        def.setCooldown(cooldown);
         MultiverseConfig.getInstance().addPortal(def);
         DimensionManager.getInstance().getOrCreateDimension(target);
 

@@ -13,6 +13,7 @@ public class PortalDefinition {
     private String color;
     private int lightLevel;
     private double scale = 1.0;
+    private int cooldown = 40;
 
     public PortalDefinition() {
     }
@@ -25,6 +26,7 @@ public class PortalDefinition {
         this.color = color;
         this.lightLevel = lightLevel;
         this.scale = 1.0;
+        this.cooldown = 40;
     }
 
     public String getId() {
@@ -81,6 +83,14 @@ public class PortalDefinition {
 
     public void setScale(double scale) {
         this.scale = scale;
+    }
+
+    public int getCooldown() {
+        return this.cooldown;
+    }
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
     }
 
     public RegistryKey<World> getTargetKey() {
