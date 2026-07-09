@@ -63,7 +63,6 @@ public class PortalHelper {
             link.put("targetWorld", target.sourceWorld.getValue().toString());
             link.put("sourceY", target.sourceY);
             link.put("color", target.color);
-            link.put("cooldown", target.cooldown);
             links.add(link);
         }
         try {
@@ -93,15 +92,14 @@ public class PortalHelper {
                 RegistryKey<World> sourceWorld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of((String) link.get("targetWorld")));
                 int sourceY = link.containsKey("sourceY") ? ((Number) link.get("sourceY")).intValue() : y;
                 int color = link.containsKey("color") ? ((Number) link.get("color")).intValue() : 0x8844FF;
-                int cooldown = link.containsKey("cooldown") ? ((Number) link.get("cooldown")).intValue() : 40;
-                PORTAL_TARGETS.put(new BlockPos(x, y, z), new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
+                PORTAL_TARGETS.put(new BlockPos(x, y, z), new PortalReturnTarget(sourceWorld, sourceY, color));
             }
         } catch (IOException ignored) {
         }
     }
 
-    public static void registerPortal(BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
-        PORTAL_TARGETS.put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
+    public static void registerPortal(BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color) {
+        PORTAL_TARGETS.put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color));
     }
 
     public static PortalReturnTarget getPortalTarget(BlockPos keyPos) {
@@ -257,9 +255,8 @@ public class PortalHelper {
         }
 
         int color = parseColor(definition.getColor());
-        int cooldown = definition.getCooldown();
         for (BlockPos p : interior) {
-            registerPortal(p, sourceWorld, sourceY, color, cooldown);
+            registerPortal(p, sourceWorld, sourceY, color);
         }
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
@@ -420,13 +417,11 @@ public class PortalHelper {
         public final RegistryKey<World> sourceWorld;
         public final int sourceY;
         public final int color;
-        public final int cooldown;
 
-        public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
+        public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color) {
             this.sourceWorld = sourceWorld;
             this.sourceY = sourceY;
             this.color = color;
-            this.cooldown = cooldown;
         }
     }
 
