@@ -278,6 +278,8 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./ops restart <service>` | Force-recreate a production service |
 | `./ops map render` | Force-render all BlueMap maps |
 
+For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms permission model, see the [Commands reference](https://github.com/piprees/minecraft-server-template/blob/main/COMMANDS.md).
+
 ## Directory structure
 
 ```
