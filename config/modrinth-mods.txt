@@ -32,6 +32,7 @@ nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
 ender-dragon-destroys-end-island:19ntjDUW
 custom-dimensions:dUVY8Eps
+seeded-dimensions:dBzRdUj8
 
 # === structures (need yungs-api) ===
 yungs-api:9aZPNrZC
