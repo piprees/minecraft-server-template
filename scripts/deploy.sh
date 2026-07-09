@@ -499,12 +499,19 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   echo ""
   echo "==> Processing custom dimensions..."
 
-  # Activate custom dimensions (forceload one chunk so region files exist)
+  # Activate custom dimensions (forceload one chunk so region files exist).
+  # Dimensions must be created by the custom-dimensions mod first (via
+  # setup-dimensions.sh). Skip any that don't exist yet — the mod creates
+  # them at runtime, not at deploy time.
   DIM_COUNT=0
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type _scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" = "${SEED:-}" ]] && continue
+    result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
+    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
+      continue
+    fi
     rcon "execute in adventure:$name run forceload add 0 0"
     DIM_COUNT=$((DIM_COUNT + 1))
   done < "$DIMENSIONS_FILE"
@@ -521,14 +528,21 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
       rcon "execute in adventure:$name run forceload remove 0 0"
     done < "$DIMENSIONS_FILE"
     echo "  $DIM_COUNT custom dimensions activated"
+  else
+    echo "  No custom dimensions created yet (run setup-dimensions.sh first)"
   fi
 
-  # ChunkyBorder per custom dimension (radius scales with dimension scale)
+  # ChunkyBorder per custom dimension (radius scales with dimension scale).
+  # Only set borders for dimensions that exist.
   echo "  Setting ChunkyBorder for custom dimensions..."
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" = "${SEED:-}" ]] && continue
+    result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
+    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
+      continue
+    fi
     case "$scale" in
       1)  dim_radius=$PLAYER_BORDER_RADIUS ;;
       4)  dim_radius=$((PLAYER_BORDER_RADIUS / 4)) ;;
@@ -553,7 +567,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     while IFS='|' read -r name _type _scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
       [[ -z "$name" || "$name" = \#* ]] && continue
       [[ "$seed" = "${SEED:-}" ]] && continue
-      for bm_conf in "$BM_MAPS_DIR"/adventure*"$name"*.conf; do
+      for bm_conf in "$BM_MAPS_DIR"/*"$name"*.conf; do
         [[ -f "$bm_conf" ]] || continue
         sed -i 's/enable-hires: true/enable-hires: false/' "$bm_conf"
         sed -i 's/enable-perspective-view: true/enable-perspective-view: false/' "$bm_conf"
