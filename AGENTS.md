@@ -197,6 +197,7 @@ OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<tit
 8. Never restart `mc` directly on production (`docker restart mc` skips the countdown, kick, save, and whitelist dance) - use `deploy.sh`, or `/mc restart` in Discord which does it properly.
 9. `harden.sh` restarts Docker - run at provision time only, never during or near a CI deploy.
 10. **Never use unbounded wait loops over SSH.** A `while true; sleep; done` loop waiting for a container, healthcheck, or log message that may never arrive will trap you indefinitely with no way to break out. Allowed: a single `sleep N` outside a loop for a known duration. Forbidden: `docker logs -f` (streams forever), any interactive shell, `gh run watch` (streams), and any loop that exits on a condition you cannot guarantee will occur (a crashing container will never become healthy). Use `./ops` commands, `docker logs --tail N` snapshots, or `gh run view --json` polls with a finite iteration cap instead.
+11. **Don't repeatedly poll CI runs.** After dispatching a workflow or pushing, check status once. If it's in progress, give the user the Actions URL and stop. Smoke tests boot ~150 mods and take 5-10 minutes on GitHub runners — repeatedly running `gh run view` every 60s wastes context and achieves nothing. One background check with a generous timeout is fine; five manual polls in a row is not.
 
 ## Common tasks
 
