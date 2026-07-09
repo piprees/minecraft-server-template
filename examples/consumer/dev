@@ -46,6 +46,23 @@ ensure_stack() {
   fi
 }
 
+ensure_docker() {
+  if ! docker info &> /dev/null; then
+    echo "Docker is not running. Starting..."
+    open -a Docker
+    local tries=0
+    while ! docker info &> /dev/null && [[ $tries -lt 30 ]]; do
+      sleep 2
+      tries=$((tries + 1))
+    done
+    if ! docker info &> /dev/null; then
+      echo "Docker failed to start after 60s."
+      exit 1
+    fi
+    echo "Docker started."
+  fi
+}
+
 # Change-detection checksum of this script. cksum is POSIX, so it behaves
 # identically on macOS and Linux (md5/md5sum don't share a name or format).
 self_sum() {
@@ -72,11 +89,13 @@ case "$CMD" in
   up)
     ensure_env
     ensure_stack
+    ensure_docker
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
     ;;
   down)
     ensure_stack
+    ensure_docker
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down
     ;;
@@ -92,6 +111,7 @@ case "$CMD" in
   pack)
     ensure_env
     ensure_stack
+    ensure_docker
     # Load env for IMAGE_REGISTRY, LOCAL_DOMAIN, etc.
     set -a
     # shellcheck disable=SC1091
@@ -160,6 +180,7 @@ case "$CMD" in
       [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
     done
     ensure_env
+    ensure_docker
     set -a
     # shellcheck disable=SC1091
     source "$CONSUMER_DIR/.env"
@@ -174,6 +195,7 @@ case "$CMD" in
   sync)
     ensure_env
     ensure_stack
+    ensure_docker
     SELF_BEFORE="$(self_sum)"
     echo "==> Stopping local stack..."
     export CONSUMER_DIR
@@ -214,6 +236,7 @@ case "$CMD" in
     ;;
   start | stop | restart | status)
     ensure_stack
+    ensure_docker
     export CONSUMER_DIR SERVICE_LOCAL=1
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/service.sh" "$CMD" "$@"
     ;;
