@@ -7,6 +7,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -64,7 +65,7 @@ public class ServerWorldMixin {
                 BlockPos pos = player.getBlockPos();
                 boolean insideAny = false;
                 for (PortalHelper.PortalZone zone : zones) {
-                    if (PortalHelper.isInsideZone(pos, zone) || PortalHelper.isInsideZone(pos.down(), zone)) {
+                    if (PortalHelper.isInsideZone(pos, zone) || PortalHelper.isInsideZone(pos.down(), zone) || PortalHelper.isInsideZone(pos.up(), zone)) {
                         insideAny = true;
                         break;
                     }
@@ -77,7 +78,7 @@ public class ServerWorldMixin {
                 }
 
                 for (PortalHelper.PortalZone zone : zones) {
-                    if (!PortalHelper.isInsideZone(pos, zone) && !PortalHelper.isInsideZone(pos.down(), zone)) {
+                    if (!PortalHelper.isInsideZone(pos, zone) && !PortalHelper.isInsideZone(pos.down(), zone) && !PortalHelper.isInsideZone(pos.up(), zone)) {
                         continue;
                     }
                     RegistryKey<World> targetKey = zone.targetWorld;
@@ -116,18 +117,22 @@ public class ServerWorldMixin {
                             adjustedInterior.add(new BlockPos(p.getX() + dx, targetY, p.getZ() + dz));
                         }
 
+                        boolean isHorizontal = zone.axis == Direction.Axis.Y;
+
                         BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, targetY + 1, targetCenterZ, 5);
                         if (existing != null) {
                             player.setPortalCooldown(40);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
-                            player.teleport(targetWorld, existing.getX() + 0.5, existing.getY(), existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                            double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
+                            player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
                             continue playerLoop;
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
                         player.setPortalCooldown(40);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
-                        player.teleport(targetWorld, targetCenterX + 0.5, targetY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                        double landY = isHorizontal ? targetY + 1 : targetY;
+                        player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
                     } catch (Exception ignored) {
                     }
                     continue playerLoop;

@@ -69,18 +69,38 @@ public class PortalIgnitionMixin {
 
             Set<BlockPos> xFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.X);
             Set<BlockPos> zFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Z);
+            Set<BlockPos> yFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Y);
             boolean xValid = !xFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, xFill, frameBlock, Direction.Axis.X);
             boolean zValid = !zFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, zFill, frameBlock, Direction.Axis.Z);
+            boolean yValid = !yFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, yFill, frameBlock, Direction.Axis.Y);
 
-            if (!xValid && !zValid) {
+            if (!xValid && !zValid && !yValid) {
                 continue;
             }
 
-            boolean useX = xValid && zValid
-                    ? (dir.getAxis() == Direction.Axis.X ? true : (dir.getAxis() == Direction.Axis.Z ? false : xFill.size() >= zFill.size()))
-                    : xValid;
-            Set<BlockPos> fill = useX ? xFill : zFill;
-            Direction.Axis axis = useX ? Direction.Axis.X : Direction.Axis.Z;
+            Set<BlockPos> fill;
+            Direction.Axis axis;
+            Direction.Axis clickedAxis = dir.getAxis();
+
+            if (yValid && clickedAxis == Direction.Axis.Y) {
+                fill = yFill;
+                axis = Direction.Axis.Y;
+            } else if (xValid && clickedAxis == Direction.Axis.X) {
+                fill = xFill;
+                axis = Direction.Axis.X;
+            } else if (zValid && clickedAxis == Direction.Axis.Z) {
+                fill = zFill;
+                axis = Direction.Axis.Z;
+            } else if (yValid) {
+                fill = yFill;
+                axis = Direction.Axis.Y;
+            } else if (xValid) {
+                fill = xFill;
+                axis = Direction.Axis.X;
+            } else {
+                fill = zFill;
+                axis = Direction.Axis.Z;
+            }
 
             RegistryKey<World> worldKey = serverWorld.getRegistryKey();
             PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
@@ -105,15 +125,27 @@ public class PortalIgnitionMixin {
 
                     Set<BlockPos> xFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.X);
                     Set<BlockPos> zFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Z);
+                    Set<BlockPos> yFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Y);
                     boolean xValid = !xFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, xFill, frameBlock, Direction.Axis.X);
                     boolean zValid = !zFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, zFill, frameBlock, Direction.Axis.Z);
+                    boolean yValid = !yFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, yFill, frameBlock, Direction.Axis.Y);
 
-                    if (!xValid && !zValid) {
+                    if (!xValid && !zValid && !yValid) {
                         continue;
                     }
 
-                    Set<BlockPos> fill = xValid ? xFill : zFill;
-                    Direction.Axis axis = xValid && !zValid ? Direction.Axis.X : Direction.Axis.Z;
+                    Set<BlockPos> fill;
+                    Direction.Axis axis;
+                    if (yValid) {
+                        fill = yFill;
+                        axis = Direction.Axis.Y;
+                    } else if (xValid) {
+                        fill = xFill;
+                        axis = Direction.Axis.X;
+                    } else {
+                        fill = zFill;
+                        axis = Direction.Axis.Z;
+                    }
 
                     RegistryKey<World> worldKey = serverWorld.getRegistryKey();
                     PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());

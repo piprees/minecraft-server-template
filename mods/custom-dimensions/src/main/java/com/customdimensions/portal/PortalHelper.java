@@ -236,7 +236,8 @@ public class PortalHelper {
         }
 
         BlockState frameState = frameBlock.getDefaultState();
-        BlockState portalState = Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, axis);
+        Direction.Axis visualAxis = (axis == Direction.Axis.Y) ? Direction.Axis.X : axis;
+        BlockState portalState = Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, visualAxis);
 
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
         for (BlockPos pos : interior) {
@@ -286,6 +287,9 @@ public class PortalHelper {
     public static Direction[] planeDirections(Direction.Axis axis) {
         if (axis == Direction.Axis.X) {
             return new Direction[]{Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN};
+        }
+        if (axis == Direction.Axis.Y) {
+            return new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
         }
         return new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.UP, Direction.DOWN};
     }
@@ -348,7 +352,12 @@ public class PortalHelper {
             return Collections.emptySet();
         }
 
-        Direction.Axis axis = startState.get(NetherPortalBlock.AXIS);
+        Direction.Axis axis = getEffectiveAxis(world, start);
+        if (axis == null) {
+            axis = startState.get(NetherPortalBlock.AXIS);
+        }
+
+        Direction.Axis effectiveAxis = axis;
         HashSet<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         queue.add(start);
@@ -363,7 +372,15 @@ public class PortalHelper {
                     continue;
                 }
                 BlockState neighborState = world.getBlockState(neighbor);
-                if (!neighborState.isOf(Blocks.NETHER_PORTAL) || !neighborState.contains(NetherPortalBlock.AXIS) || neighborState.get(NetherPortalBlock.AXIS) != axis) {
+                if (!neighborState.isOf(Blocks.NETHER_PORTAL) || !neighborState.contains(NetherPortalBlock.AXIS)) {
+                    continue;
+                }
+                Direction.Axis neighborAxis = neighborState.get(NetherPortalBlock.AXIS);
+                if (effectiveAxis == Direction.Axis.Y) {
+                    if (neighborAxis != Direction.Axis.X && neighborAxis != Direction.Axis.Z) {
+                        continue;
+                    }
+                } else if (neighborAxis != effectiveAxis) {
                     continue;
                 }
                 visited.add(neighbor);
@@ -371,6 +388,17 @@ public class PortalHelper {
             }
         }
         return visited;
+    }
+
+    private static Direction.Axis getEffectiveAxis(ServerWorld world, BlockPos pos) {
+        for (List<PortalZone> zones : PORTAL_ZONES.values()) {
+            for (PortalZone zone : zones) {
+                if (zone.axis == Direction.Axis.Y && zone.interior.contains(pos)) {
+                    return Direction.Axis.Y;
+                }
+            }
+        }
+        return null;
     }
 
     public static int parseColor(String hexColor) {
