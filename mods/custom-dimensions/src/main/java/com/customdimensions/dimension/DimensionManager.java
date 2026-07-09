@@ -21,9 +21,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.dimension.DimensionOptions;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.block.Blocks;
+import net.minecraft.world.biome.source.FixedBiomeSource;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.chunk.FlatChunkGenerator;
 import net.minecraft.world.gen.chunk.FlatChunkGeneratorConfig;
+import net.minecraft.world.gen.chunk.FlatChunkGeneratorLayer;
+import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
 import net.minecraft.world.level.ServerWorldProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
@@ -110,40 +114,64 @@ public class DimensionManager {
 
     private DimensionOptions createDimensionOptions(DimensionDefinition def) {
         MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
-        Identifier typeId = Identifier.of(def.getType());
-        String path = typeId.getPath();
+        DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        Registry<Biome> biomeRegistry = regManager.get(RegistryKeys.BIOME);
+        String type = def.getType();
 
-        if (path.equals("void")) {
-            DimensionOptions overworldOpts = dimRegistry.get(DimensionOptions.OVERWORLD);
-            if (overworldOpts != null) {
-                DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
-                Registry<Biome> biomeRegistry = regManager.get(RegistryKeys.BIOME);
-                Biome biomeValue = biomeRegistry.get(BiomeKeys.THE_VOID);
-                RegistryEntry<Biome> voidBiome = biomeRegistry.getEntry(biomeValue);
-                FlatChunkGeneratorConfig voidConfig = new FlatChunkGeneratorConfig(Optional.empty(), voidBiome, List.of());
-                FlatChunkGenerator voidGen = new FlatChunkGenerator(voidConfig);
-                return new DimensionOptions(overworldOpts.dimensionTypeEntry(), voidGen);
+        DimensionOptions overworldOpts = dimRegistry.get(DimensionOptions.OVERWORLD);
+        if (overworldOpts == null) {
+            throw new IllegalStateException("Cannot create dimension options: overworld not found");
+        }
+
+        return switch (type) {
+            case "void" -> {
+                RegistryEntry<Biome> voidBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.THE_VOID));
+                FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), voidBiome, List.of());
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), new FlatChunkGenerator(config));
             }
-        }
-
-        RegistryKey<DimensionOptions> sourceKey = switch (path) {
-            case "overworld" -> DimensionOptions.OVERWORLD;
-            case "nether" -> DimensionOptions.NETHER;
-            case "end" -> DimensionOptions.END;
-            default -> DimensionOptions.OVERWORLD;
+            case "superflat" -> {
+                RegistryEntry<Biome> plainsBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
+                List<FlatChunkGeneratorLayer> layers = List.of(
+                        new FlatChunkGeneratorLayer(1, Blocks.BEDROCK),
+                        new FlatChunkGeneratorLayer(2, Blocks.DIRT),
+                        new FlatChunkGeneratorLayer(1, Blocks.GRASS_BLOCK)
+                );
+                FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), plainsBiome, layers);
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), new FlatChunkGenerator(config));
+            }
+            case "single_biome" -> {
+                String biomeId = def.getBiome();
+                if (biomeId == null) {
+                    biomeId = "minecraft:plains";
+                }
+                Identifier biomeIdentifier = Identifier.tryParse(biomeId);
+                Biome biome = biomeIdentifier != null ? biomeRegistry.get(biomeIdentifier) : null;
+                if (biome == null) {
+                    biome = biomeRegistry.get(BiomeKeys.PLAINS);
+                }
+                RegistryEntry<Biome> biomeEntry = biomeRegistry.getEntry(biome);
+                FixedBiomeSource fixedSource = new FixedBiomeSource(biomeEntry);
+                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
+                    RegistryEntry<ChunkGeneratorSettings> settings = ((NoiseChunkGeneratorAccessor) noiseGen).getSettings();
+                    NoiseChunkGenerator newGen = new NoiseChunkGenerator(fixedSource, settings);
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), newGen);
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), overworldGen);
+            }
+            case "nether" -> {
+                DimensionOptions source = dimRegistry.get(DimensionOptions.NETHER);
+                yield source != null
+                        ? new DimensionOptions(source.dimensionTypeEntry(), source.chunkGenerator())
+                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), overworldOpts.chunkGenerator());
+            }
+            case "end" -> {
+                DimensionOptions source = dimRegistry.get(DimensionOptions.END);
+                yield source != null
+                        ? new DimensionOptions(source.dimensionTypeEntry(), source.chunkGenerator())
+                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), overworldOpts.chunkGenerator());
+            }
+            default -> new DimensionOptions(overworldOpts.dimensionTypeEntry(), overworldOpts.chunkGenerator());
         };
-
-        DimensionOptions source = dimRegistry.get(sourceKey);
-        if (source != null) {
-            return new DimensionOptions(source.dimensionTypeEntry(), source.chunkGenerator());
-        }
-
-        DimensionOptions fallback = dimRegistry.get(DimensionOptions.OVERWORLD);
-        if (fallback != null) {
-            return new DimensionOptions(fallback.dimensionTypeEntry(), fallback.chunkGenerator());
-        }
-
-        throw new IllegalStateException("Cannot create dimension options: no source dimension found");
     }
 
     public ServerWorld getOrCreateDimension(String dimName) {

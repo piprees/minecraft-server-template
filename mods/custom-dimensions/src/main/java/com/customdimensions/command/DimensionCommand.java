@@ -8,15 +8,21 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
 import java.util.Locale;
+import java.util.Set;
 
 public class DimensionCommand {
+    private static final Set<String> VALID_TYPES = Set.of(
+            "overworld", "nether", "end", "void", "superflat", "amplified", "large_biomes", "single_biome"
+    );
+
     private static final SuggestionProvider<ServerCommandSource> DIMENSION_TYPES = (ctx, builder) -> {
-        for (String t : new String[]{"overworld", "nether", "end", "void"}) {
+        for (String t : VALID_TYPES) {
             if (t.startsWith(builder.getRemainingLowerCase())) {
                 builder.suggest(t);
             }
@@ -42,7 +48,9 @@ public class DimensionCommand {
                                                 .suggests(DIMENSION_TYPES)
                                                 .executes(DimensionCommand::executeCreate)
                                                 .then(CommandManager.argument("seed", LongArgumentType.longArg())
-                                                        .executes(DimensionCommand::executeCreate)))))
+                                                        .executes(DimensionCommand::executeCreate)
+                                                        .then(CommandManager.argument("biome", IdentifierArgumentType.identifier())
+                                                                .executes(DimensionCommand::executeCreate))))))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(EXISTING_DIMENSIONS)
@@ -62,8 +70,8 @@ public class DimensionCommand {
             ctx.getSource().sendError(Text.literal("Dimension '" + name + "' already exists"));
             return 0;
         }
-        if (!(type.equals("overworld") || type.equals("nether") || type.equals("end") || type.equals("void"))) {
-            ctx.getSource().sendError(Text.literal("Invalid type. Use: overworld, nether, end, void"));
+        if (!VALID_TYPES.contains(type)) {
+            ctx.getSource().sendError(Text.literal("Invalid type. Use: overworld, nether, end, void, superflat, amplified, large_biomes, single_biome"));
             return 0;
         }
 
@@ -73,14 +81,26 @@ public class DimensionCommand {
         } catch (Exception ignored) {
         }
 
+        String biome = null;
+        try {
+            biome = IdentifierArgumentType.getIdentifier(ctx, "biome").toString();
+        } catch (Exception ignored) {
+        }
+
+        if (type.equals("single_biome") && biome == null) {
+            ctx.getSource().sendError(Text.literal("single_biome type requires a biome argument (e.g., minecraft:cherry_grove)"));
+            return 0;
+        }
+
         DimensionDefinition def = new DimensionDefinition(name, type, "minecraft:" + name);
         def.setSeed(seed);
+        def.setBiome(biome);
         MultiverseConfig.getInstance().addDimension(def);
         DimensionManager.getInstance().registerDimension(def);
         DimensionManager.getInstance().getOrCreateDimension(name);
 
-        String seedInfo = seed != null ? ", seed: " + seed : "";
-        ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + seedInfo + ")"), true);
+        String extra = (seed != null ? ", seed: " + seed : "") + (biome != null ? ", biome: " + biome : "");
+        ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + extra + ")"), true);
         return 1;
     }
 

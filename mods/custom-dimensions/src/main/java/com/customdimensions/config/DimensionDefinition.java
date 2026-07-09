@@ -7,6 +7,7 @@ public class DimensionDefinition {
     private String type;
     private String dimensionId;
     private Long seed;
+    private String biome;
 
     public DimensionDefinition() {
     }
@@ -47,6 +48,14 @@ public class DimensionDefinition {
 
     public void setSeed(Long seed) {
         this.seed = seed;
+    }
+
+    public String getBiome() {
+        return this.biome;
+    }
+
+    public void setBiome(String biome) {
+        this.biome = biome;
     }
 
     public Identifier getDimensionIdentifier() {
