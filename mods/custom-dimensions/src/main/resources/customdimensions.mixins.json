@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.customdimensions.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntityTickPortalMixin",
+    "MinecraftServerAccessor",
+    "PortalIgnitionMixin",
+    "ServerWorldMixin",
+    "SimpleRegistryAccessor",
+    "WorldLoaderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

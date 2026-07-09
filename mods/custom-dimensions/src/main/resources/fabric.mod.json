@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "customdimensions",
+  "version": "${version}",
+  "name": "Custom Dimensions",
+  "description": "Create and manage custom dimensions with portals",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "com.customdimensions.MultiverseServer"
+    ]
+  },
+  "mixins": [
+    "customdimensions.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=1.21 <=1.21.1",
+    "java": ">=21"
+  }
+}
