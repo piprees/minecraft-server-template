@@ -4,6 +4,7 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionDefinition;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.mixin.MinecraftServerAccessor;
+import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.customdimensions.mixin.SimpleRegistryAccessor;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.MutableRegistry;
@@ -204,7 +205,8 @@ public class DimensionManager {
                         && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
                     // Extract biome entries from the live overworld source (includes Terralith)
                     // and filter to only the allowed biomes
-                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = multiSource.getBiomeEntries()
+                    MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
+                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries
                             .getEntries().stream()
                             .filter(pair -> {
                                 Identifier biomeId = pair.getSecond().getKey()
