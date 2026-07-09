@@ -36,12 +36,7 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - Player origins are tracked by UUID for return trips.
 - All portal state persists to `config/portal_links.json` inside the server data directory.
 
-**Horizontal portals** are a planned feature. The current implementation only supports vertical portals (X-axis and Z-axis planes). Adding Y-axis plane support requires:
-1. Extending `PortalHelper.planeDirections()` to return X/Z directions for Y-axis portals
-2. Updating `PortalHelper.floodFill()` to accept `Direction.Axis.Y`
-3. Modifying `PortalIgnitionMixin` to detect horizontal frames (floor/ceiling)
-4. Adjusting `PortalHelper.createTargetPortal()` to place horizontal frames and portal blocks with the correct axis property
-5. Testing interactions with gravity — players falling through floor portals need correct velocity handling
+**Feature ideas** live in `mods/.ideas/` as individual markdown files — not in this document.
 
 **Testing:** There is no automated test framework for Fabric mods in this repo. Test locally:
 1. Build the JAR: `./gradlew build`
