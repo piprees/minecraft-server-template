@@ -47,20 +47,25 @@ ensure_stack() {
 }
 
 ensure_docker() {
-  if ! docker info &> /dev/null; then
-    echo "Docker is not running. Starting..."
-    open -a Docker
-    local tries=0
-    while ! docker info &> /dev/null && [[ $tries -lt 30 ]]; do
-      sleep 2
-      tries=$((tries + 1))
-    done
-    if ! docker info &> /dev/null; then
-      echo "Docker failed to start after 60s."
-      exit 1
-    fi
-    echo "Docker started."
+  if docker info &> /dev/null; then
+    return
   fi
+  echo "Docker is not running. Starting..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    open -a Docker
+  else
+    sudo systemctl start docker
+  fi
+  local tries=0
+  while ! docker info &> /dev/null && [[ $tries -lt 30 ]]; do
+    sleep 2
+    tries=$((tries + 1))
+  done
+  if ! docker info &> /dev/null; then
+    echo "Docker failed to start after 60s."
+    exit 1
+  fi
+  echo "Docker started."
 }
 
 # Change-detection checksum of this script. cksum is POSIX, so it behaves
