@@ -1,0 +1,92 @@
+{
+  "markerGroups": [
+    {
+      "prefix": "[poi]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Points of Interest",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[village]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Villages",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[dungeon]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Dungeons",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[base]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Bases",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[treasure]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Treasure",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[mine]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Mines",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[house]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Houses",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[stash]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Stashes",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[farm]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Farms",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[portal]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Portals",
+      "offsetX": 0,
+      "offsetY": 0
+    },
+    {
+      "prefix": "[danger]",
+      "matchType": "STARTS_WITH",
+      "type": "POI",
+      "name": "Danger Zones",
+      "offsetX": 0,
+      "offsetY": 0
+    }
+  ]
+}

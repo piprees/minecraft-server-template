@@ -202,7 +202,36 @@ for f in panorama_*.png; do pngquant --quality=80-100 --speed 1 --force --output
 
 ## Map markers
 
-BlueMap supports named POI markers - the way to put place names on the shared web map. Per-map config lives in `config/bluemap/maps/` (synced to `data/config/bluemap/maps/` on deploy; consumers override via `overlay/config/bluemap/maps/`). **Overlay files replace the template file wholesale**, so copy the template's `world.conf` first, then append a marker set:
+### In-game sign markers (player-placed)
+
+The [BlueMap Sign Markers](https://modrinth.com/mod/bluemap-sign-markers) mod lets any player place a sign with a tag on the first line and a description on the second. The marker appears on the web map and can be toggled by category. Breaking the sign removes the marker.
+
+```
+Line 1: [tag]
+Line 2: Description
+```
+
+Available tags (each is a separate toggleable layer on the map):
+
+| Tag | Category | Example use |
+| --- | --- | --- |
+| `[poi]` | Points of Interest | General landmarks, notable locations |
+| `[village]` | Villages | NPC villages, trading posts |
+| `[dungeon]` | Dungeons | Spawners, trial chambers, strongholds |
+| `[base]` | Bases | Player bases and builds |
+| `[house]` | Houses | Individual player homes |
+| `[farm]` | Farms | Crop, mob, or XP farms |
+| `[mine]` | Mines | Mine entrances, strip mines |
+| `[stash]` | Stashes | Hidden storage, supply caches |
+| `[treasure]` | Treasure | Loot finds, buried treasure |
+| `[portal]` | Portals | Nether portals, End portals |
+| `[danger]` | Danger Zones | Hazards, PvP areas, mob hotspots |
+
+Tags are configured in `config/bluemapsignmarkers/BMSM-Core.json`. To add custom tags, add a new entry to the `markerGroups` array — each group needs a `prefix`, `name`, and `type` (`POI`).
+
+### Static config markers (admin-placed)
+
+For permanent landmarks that shouldn't depend on a sign existing in-world, add markers directly to the BlueMap map config. Per-map config lives in `config/bluemap/maps/` (synced to `data/config/bluemap/maps/` on deploy; consumers override via `overlay/config/bluemap/maps/`). **Overlay files replace the template file wholesale**, so copy the template's `world.conf` first, then append a marker set:
 
 ```hocon
 marker-sets: {
@@ -222,7 +251,9 @@ marker-sets: {
 }
 ```
 
-Add one marker per named place as players explore. Full marker reference (icons, lines, areas): [bluemap.bluecolored.de/wiki/customization/Markers.html](https://bluemap.bluecolored.de/wiki/customization/Markers.html).
+Full marker reference (icons, lines, areas): [bluemap.bluecolored.de/wiki/customization/Markers.html](https://bluemap.bluecolored.de/wiki/customization/Markers.html).
+
+### Map sync
 
 Markers don't stop at the web map: the client pack ships [MapLink](https://modrinth.com/mod/maplink), which mirrors BlueMap markers, player positions and area overlays into every player's Xaero's minimap and world map in-game. Waystone markers are already tracked; if a marker set of yours doesn't appear in Xaero's, check the `markerLayers` lists in `modpack/overrides/configureddefaults/config/maplink/general.json5`.
 
