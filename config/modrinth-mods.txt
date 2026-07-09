@@ -48,8 +48,8 @@ yungs-better-desert-temples:M6eeDRkC
 yungs-better-jungle-temples:uiGCmR8O
 yungs-better-nether-fortresses:gxBGYcIL
 yungs-better-end-island:zpUYcjIg
-structory:Nvh2sSPX
-structory-towers:ioKwCTuD
+structory:TUbwu7eG
+structory-towers:ziO4YIv1
 explorify:CuBdAr31
 philips-ruins:hWBO2GFM
 dungeons-and-taverns:EUlNXs9V
@@ -61,7 +61,7 @@ epic-structures-dungeons:gwmJ4Ez4
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
-moogs-structure-lib:8YZq16ew
+moogs-structure-lib:BF7uKrml
 moogs-voyager-structures:uEZeTQ4b
 mes-moogs-end-structures:JW80uvhz
 mns-moogs-nether-structures:RFeEhpv4
@@ -205,7 +205,7 @@ sound-physics-remastered:tVu2EZ4u
 
 # === admin / community ===
 luckperms:l47d4ZWk
-open-parties-and-claims:lQh1EunS
+open-parties-and-claims:YuzqKlFY
 bluemap:Dr2hvJBc
 bluemap-sign-markers:AaI8kDsr
 simple-voice-chat:IttovdN3
