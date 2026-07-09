@@ -31,7 +31,7 @@ incendium:7mVvV9Th
 nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
 ender-dragon-destroys-end-island:19ntjDUW
-custom-dimensions:dUVY8Eps
+# custom-dimensions:dUVY8Eps              # disabled: NetherPortalBlockMixin crashes with netherportalfix/fast-nether-portals (v2.7.1)
 
 # === structures (need yungs-api) ===
 yungs-api:9aZPNrZC
