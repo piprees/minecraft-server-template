@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export STATE_DIR="/app/state"
+mkdir -p "$STATE_DIR"
+
 echo "Running initial mod update check..."
 bash /app/scripts/check-updates.sh --html --discord
 

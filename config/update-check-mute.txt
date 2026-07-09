@@ -1,0 +1,4 @@
+# Mods to skip in update checks (one slug per line).
+# These won't appear on the mods status page or trigger Discord alerts.
+# Use for mods with noisy/irrelevant updates or no meaningful changelogs.
+bluemap-sign-markers

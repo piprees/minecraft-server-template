@@ -139,9 +139,9 @@ betterdays:dTNbe6uN
 pause-day-cycle:KQWm3NrZ
 
 # === quality of life ===
-balm:jR9x1yws
+# balm:jR9x1yws                               # removed: only dep was waystones+netherportalfix (both removed)
 # netherportalfix:9KrnphgC                    # removed: custom-dimensions handles portal linking; also clashed with its NetherPortalBlockMixin
-waystones:CxLc6vVg
+# waystones:CxLc6vVg                          # removed: unused, disliked
 nether-portal-spread:KkeWVnMV
 fallingtree:wxGXaJMA
 carry-on:eFWFmwmL

@@ -44,6 +44,8 @@ MC_VERSION="${MC_VERSION:-1.21.1}"
 MODS_FILE="$PROJECT_DIR/config/modrinth-mods.txt"
 MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
 STATUS_DIR="$PROJECT_DIR/modpack/dist"
+STATE_DIR="${STATE_DIR:-$PROJECT_DIR/state}"
+MUTE_FILE="$PROJECT_DIR/config/update-check-mute.txt"
 
 OUTPUT_HTML=0
 OUTPUT_JSON=0
@@ -108,6 +110,34 @@ for m in cm.get('required', []) + cm.get('optional', []):
     done
     [[ $found -eq 0 ]] && SLUGS+=("$slug")
   done <<< "$CLIENT_SLUGS"
+fi
+
+# --- load mute list (mods to skip in update checks) -------------------------
+MUTED_SLUGS=()
+if [[ -f "$MUTE_FILE" ]]; then
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="$(echo "$line" | xargs)"
+    [[ -z "$line" ]] && continue
+    MUTED_SLUGS+=("$line")
+  done < "$MUTE_FILE"
+  if [[ ${#MUTED_SLUGS[@]} -gt 0 ]]; then
+    FILTERED_SLUGS=()
+    FILTERED_PINNED=()
+    for i in "${!SLUGS[@]}"; do
+      muted=0
+      for m in "${MUTED_SLUGS[@]}"; do
+        [[ "${SLUGS[$i]}" == "$m" ]] && muted=1 && break
+      done
+      if [[ $muted -eq 0 ]]; then
+        FILTERED_SLUGS+=("${SLUGS[$i]}")
+        FILTERED_PINNED+=("${PINNED_IDS[$i]:-}")
+      fi
+    done
+    echo "Muted ${#MUTED_SLUGS[@]} mods from update checks: ${MUTED_SLUGS[*]}"
+    SLUGS=("${FILTERED_SLUGS[@]}")
+    PINNED_IDS=("${FILTERED_PINNED[@]}")
+  fi
 fi
 
 echo "Checking ${#SLUGS[@]} mods against Modrinth API..."
@@ -407,8 +437,8 @@ fi
 
 # --- Discord notification (only when new updates appear) ----------------------
 if [[ $NOTIFY_DISCORD -eq 1 && $UPDATES_AVAILABLE -gt 0 ]]; then
-  ALERT_HASH_FILE="$STATUS_DIR/.update-alert-hash"
-  mkdir -p "$STATUS_DIR"
+  ALERT_HASH_FILE="$STATE_DIR/.update-alert-hash"
+  mkdir -p "$STATE_DIR"
 
   # Build sorted list of mods with updates
   UPDATE_SLUGS=""
@@ -479,5 +509,5 @@ print(msg)
   fi
 elif [[ $NOTIFY_DISCORD -eq 1 && $UPDATES_AVAILABLE -eq 0 ]]; then
   # Clear the hash when everything is up to date, so next update triggers an alert
-  rm -f "$STATUS_DIR/.update-alert-hash" 2> /dev/null || true
+  rm -f "$STATE_DIR/.update-alert-hash" 2> /dev/null || true
 fi

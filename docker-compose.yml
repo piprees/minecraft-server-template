@@ -520,6 +520,7 @@ services:
         ln -sf /mods-vol/modrinth-mods.txt /app/config/modrinth-mods.txt
         ln -sf /config-vol/messages.json /app/config/messages.json
         ln -sf /config-vol/modpack-manifest.json /app/modpack/adventure.mrpack.json
+        [ -f /config-vol/update-check-mute.txt ] && ln -sf /config-vol/update-check-mute.txt /app/config/update-check-mute.txt
         exec /app/entrypoint.sh
     environment:
       MC_VERSION: ${MC_VERSION:-1.21.1}
@@ -532,6 +533,7 @@ services:
       - stack-mods:/mods-vol:ro
       - ${DIST_DIR:-./modpack-dist}:/app/modpack/dist
       - ./data/mods:/app/data/mods:ro
+      - ./data/.mod-checker-state:/app/state
     working_dir: /app
     depends_on:
       seed:
