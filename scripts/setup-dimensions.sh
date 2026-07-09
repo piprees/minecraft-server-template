@@ -54,7 +54,8 @@ declare -a ignitors=()
 
 log "Reading dimensions from $DIMENSIONS_FILE..."
 
-while IFS='|' read -r name type scale seed portal_block ignitor group; do
+# shellcheck disable=SC2034
+while IFS='|' read -r name type scale seed portal_block ignitor _group; do
   [[ "$name" =~ ^#.*$ || -z "$name" ]] && continue
 
   if [[ -n "${SEED:-}" && "$seed" == "$SEED" ]]; then

@@ -501,7 +501,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
 
   # Activate custom dimensions (forceload one chunk so region files exist)
   DIM_COUNT=0
-  while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+  # shellcheck disable=SC2034
+  while IFS='|' read -r name _type _scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" = "${SEED:-}" ]] && continue
     rcon "execute in adventure:$name run forceload add 0 0"
@@ -513,7 +514,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     rcon "save-all flush"
     sleep 5
 
-    while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+    # shellcheck disable=SC2034
+    while IFS='|' read -r name _type _scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
       [[ -z "$name" || "$name" = \#* ]] && continue
       [[ "$seed" = "${SEED:-}" ]] && continue
       rcon "execute in adventure:$name run forceload remove 0 0"
@@ -523,7 +525,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
 
   # ChunkyBorder per custom dimension (radius scales with dimension scale)
   echo "  Setting ChunkyBorder for custom dimensions..."
-  while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+  # shellcheck disable=SC2034
+  while IFS='|' read -r name _type scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" = "${SEED:-}" ]] && continue
     case "$scale" in
@@ -546,7 +549,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
   if [[ -d "$BM_MAPS_DIR" ]]; then
     echo "  Enforcing BlueMap settings for custom dimensions..."
-    while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+    # shellcheck disable=SC2034
+    while IFS='|' read -r name _type _scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
       [[ -z "$name" || "$name" = \#* ]] && continue
       [[ "$seed" = "${SEED:-}" ]] && continue
       for bm_conf in "$BM_MAPS_DIR"/adventure*"$name"*.conf; do
