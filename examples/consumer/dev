@@ -54,7 +54,7 @@ ensure_docker() {
   if [[ "$(uname)" == "Darwin" ]]; then
     open -a Docker
   else
-    sudo systemctl start docker
+    systemctl start docker 2> /dev/null || sudo systemctl start docker
   fi
   local tries=0
   while ! docker info &> /dev/null && [[ $tries -lt 30 ]]; do
