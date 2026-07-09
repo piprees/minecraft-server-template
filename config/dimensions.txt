@@ -9,6 +9,7 @@
 # ignitor = full item ID (minecraft:xxx)
 # group = organisational group (overworld, nether, paradise_lost, end, void)
 # biome = (optional) biome ID for single_biome type only
+# peaceful = (optional) "true" to disable hostile mob spawning
 
 # --- 8:1 Overworld dimensions ---
 the_claymarsh|overworld|8|6273634989319082075|minecraft:clay|minecraft:amethyst_shard|overworld
@@ -83,8 +84,8 @@ the_violet_spire|overworld|12|16261891333034106707|minecraft:purpur_block|minecr
 # --- 1:1 Special dimensions (use server seed) ---
 the_amplified_reaches|amplified|1|server|minecraft:cracked_deepslate|minecraft:amethyst_shard|overworld|
 the_underdark|single_biome|1|server|minecraft:moss_carpet|minecraft:amethyst_shard|overworld|minecraft:lush_caves
-the_canvas|superflat|1|server|minecraft:white_concrete|minecraft:amethyst_shard|overworld|
-the_blossom_gardens|single_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove
+the_canvas|superflat|1|server|minecraft:white_concrete|minecraft:amethyst_shard|overworld||true
+the_blossom_gardens|single_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove|true
 
 # --- 1:1 End dimensions ---
 the_end_citadel|end|1|2345324516627475701|minecraft:end_stone_bricks|minecraft:ender_eye|end

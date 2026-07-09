@@ -55,7 +55,7 @@ declare -a ignitors=()
 log "Reading dimensions from $DIMENSIONS_FILE..."
 
 # shellcheck disable=SC2034
-while IFS='|' read -r name type scale seed portal_block ignitor _group biome; do
+while IFS='|' read -r name type scale seed portal_block ignitor _group biome peaceful; do
   [[ "$name" =~ ^#.*$ || -z "$name" ]] && continue
 
   if [[ "$seed" != "server" && -n "${SEED:-}" && "$seed" == "$SEED" ]]; then
@@ -76,16 +76,13 @@ while IFS='|' read -r name type scale seed portal_block ignitor _group biome; do
   portal_blocks+=("$portal_block")
   ignitors+=("$ignitor")
 
-  if [[ -n "$biome" ]]; then
-    log "Creating dimension: $name ($type, biome: $biome)"
-    run_rcon "dimension create $name $type $dim_seed $biome"
-  elif [[ -n "$dim_seed" ]]; then
-    log "Creating dimension: $name ($type, seed: $dim_seed)"
-    run_rcon "dimension create $name $type $dim_seed"
-  else
-    log "Creating dimension: $name ($type)"
-    run_rcon "dimension create $name $type"
-  fi
+  dim_args="$name $type"
+  [[ -n "$dim_seed" ]] && dim_args="$dim_args $dim_seed"
+  [[ -n "$biome" ]] && dim_args="$dim_args $biome"
+  [[ "$peaceful" == "true" ]] && dim_args="$dim_args true"
+
+  log "Creating dimension: $name ($type${biome:+, biome: $biome}${peaceful:+, peaceful})"
+  run_rcon "dimension create $dim_args"
   created=$((created + 1))
   sleep 0.5
 done < "$DIMENSIONS_FILE"

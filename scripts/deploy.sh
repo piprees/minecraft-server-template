@@ -505,7 +505,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   # them at runtime, not at deploy time.
   DIM_COUNT=0
   # shellcheck disable=SC2034
-  while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome || [[ -n "$name" ]]; do
+  while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
     result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
@@ -522,7 +522,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     sleep 5
 
     # shellcheck disable=SC2034
-    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome || [[ -n "$name" ]]; do
+    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
       [[ -z "$name" || "$name" = \#* ]] && continue
       [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
       rcon "execute in adventure:$name run forceload remove 0 0"
@@ -564,7 +564,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   if [[ -d "$BM_MAPS_DIR" ]]; then
     echo "  Enforcing BlueMap settings for custom dimensions..."
     # shellcheck disable=SC2034
-    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome || [[ -n "$name" ]]; do
+    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
       [[ -z "$name" || "$name" = \#* ]] && continue
       [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
       for bm_conf in "$BM_MAPS_DIR"/*"$name"*.conf; do
