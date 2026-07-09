@@ -1,5 +1,6 @@
 package com.customdimensions.mixin;
 
+import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
@@ -21,18 +22,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
 public class ServerWorldMixin {
-    @Inject(method = "save", at = @At("HEAD"))
-    private void onSave(CallbackInfo ci) {
-        MultiverseConfig.getInstance().markDirty();
-    }
-
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
         ServerWorld world = (ServerWorld) (Object) this;
@@ -42,19 +37,16 @@ public class ServerWorldMixin {
             MultiverseConfig.getInstance().save();
         }
 
-        List<PortalHelper.PortalZone> zones = PortalHelper.getSourceZones(worldKey);
-        if (!zones.isEmpty()) {
-            Iterator<PortalHelper.PortalZone> zoneIter = zones.iterator();
-            while (zoneIter.hasNext()) {
-                PortalHelper.PortalZone zone = zoneIter.next();
-                if (!PortalHelper.isZoneValid(world, zone)) {
-                    PortalHelper.clearInteriorPortals(world, zone);
-                    PortalHelper.removeZone(zone);
-                    zoneIter = zones.iterator();
-                    if (!zoneIter.hasNext()) {
-                        break;
-                    }
+        List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
+        if (!sourceZones.isEmpty()) {
+            List<PortalHelper.PortalZone> zones = new ArrayList<>();
+            for (PortalHelper.PortalZone zone : sourceZones) {
+                if (PortalHelper.isZoneValid(world, zone)) {
+                    zones.add(zone);
+                    continue;
                 }
+                PortalHelper.clearInteriorPortals(world, zone);
+                PortalHelper.removeZone(zone);
             }
 
             for (PortalHelper.PortalZone zone : zones) {
@@ -124,7 +116,7 @@ public class ServerWorldMixin {
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
-                        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, targetY + 1, targetCenterZ, 5);
+                        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, targetY + 1, targetCenterZ, 5, zone.axis);
                         int portalCooldown = def.getCooldown();
 
                         if (existing != null) {
@@ -132,7 +124,7 @@ public class ServerWorldMixin {
                             player.setPortalCooldown(portalCooldown);
                             PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                             double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
-                            player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                            player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
                             playPortalSound(targetWorld, existing, def.getExitSound());
                             continue playerLoop;
                         }
@@ -142,9 +134,10 @@ public class ServerWorldMixin {
                         player.setPortalCooldown(portalCooldown);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
                         double landY = isHorizontal ? targetY + 1 : targetY;
-                        player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch(), true);
+                        player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch());
                         playPortalSound(targetWorld, new BlockPos(targetCenterX, (int) landY, targetCenterZ), def.getExitSound());
-                    } catch (Exception ignored) {
+                    } catch (Exception e) {
+                        MultiverseServer.LOGGER.error("Failed portal teleport for player {} in {}", player.getName().getString(), worldKey.getValue(), e);
                     }
                     continue playerLoop;
                 }

@@ -23,12 +23,6 @@ public class WorldLoaderMixin {
         DimensionManager.getInstance().registerDimensions();
     }
 
-    @Inject(method = "createWorlds", at = @At("TAIL"))
-    private void afterCreateWorlds(CallbackInfo ci) {
-        MinecraftServer server = (MinecraftServer) (Object) this;
-        MultiverseServer.onServerStarted(server);
-    }
-
     @Inject(method = "shutdown", at = @At("HEAD"))
     private void onShutdown(CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;

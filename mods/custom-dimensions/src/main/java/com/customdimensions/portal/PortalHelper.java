@@ -18,6 +18,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import org.joml.Vector3f;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -160,7 +161,7 @@ public class PortalHelper {
 
     public static void clearInteriorPortals(ServerWorld world, PortalZone zone) {
         for (BlockPos p : zone.interior) {
-            if (world.getBlockState(p).isOf(Blocks.NETHER_PORTAL)) {
+            if (isPortalBlock(world.getBlockState(p))) {
                 world.setBlockState(p, Blocks.AIR.getDefaultState(), 3);
             }
         }
@@ -199,7 +200,7 @@ public class PortalHelper {
         int color = parseColor(zone.definition.getColor());
         for (BlockPos p : zone.interior) {
             world.spawnParticles(
-                    new DustParticleEffect(color, 2.0f),
+                    new DustParticleEffect(toDustColor(color), 2.0f),
                     p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                     2, 0.4, 0.4, 0.4, 0.01
             );
@@ -210,11 +211,11 @@ public class PortalHelper {
         for (Map.Entry<BlockPos, PortalReturnTarget> entry : PORTAL_TARGETS.entrySet()) {
             BlockPos p = entry.getKey();
             int color = entry.getValue().color;
-            if (!level.getBlockState(p).isOf(Blocks.NETHER_PORTAL)) {
+            if (!isPortalBlock(level.getBlockState(p))) {
                 continue;
             }
             level.spawnParticles(
-                    new DustParticleEffect(color, 2.0f),
+                    new DustParticleEffect(toDustColor(color), 2.0f),
                     p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                     1, 0.3, 0.3, 0.3, 0.01
             );
@@ -223,7 +224,7 @@ public class PortalHelper {
             BlockPos p = entry.getKey();
             int color = entry.getValue();
             level.spawnParticles(
-                    new DustParticleEffect(color, 1.5f),
+                    new DustParticleEffect(toDustColor(color), 1.5f),
                     p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                     1, 0.2, 0.2, 0.2, 0.01
             );
@@ -238,8 +239,9 @@ public class PortalHelper {
         }
 
         BlockState frameState = frameBlock.getDefaultState();
-        Direction.Axis visualAxis = (axis == Direction.Axis.Y) ? Direction.Axis.X : axis;
-        BlockState portalState = Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, visualAxis);
+        BlockState portalState = axis == Direction.Axis.Y
+            ? Blocks.END_PORTAL.getDefaultState()
+            : Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, axis);
 
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
         for (BlockPos pos : interior) {
@@ -273,12 +275,19 @@ public class PortalHelper {
         savePortalLinks();
     }
 
-    public static BlockPos findExistingPortal(ServerWorld world, int centerX, int centerY, int centerZ, int radius) {
+    public static BlockPos findExistingPortal(ServerWorld world, int centerX, int centerY, int centerZ, int radius, Direction.Axis axis) {
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 for (int dy = -radius; dy <= radius; dy++) {
                     BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
-                    if (world.getBlockState(pos).isOf(Blocks.NETHER_PORTAL)) {
+                    BlockState state = world.getBlockState(pos);
+                    if (axis == Direction.Axis.Y) {
+                        if (state.isOf(Blocks.END_PORTAL)) {
+                            return pos;
+                        }
+                        continue;
+                    }
+                    if (state.isOf(Blocks.NETHER_PORTAL) && state.contains(NetherPortalBlock.AXIS) && state.get(NetherPortalBlock.AXIS) == axis) {
                         return pos;
                     }
                 }
@@ -348,6 +357,9 @@ public class PortalHelper {
 
     public static Set<BlockPos> collectPortalArea(ServerWorld world, BlockPos start) {
         BlockState startState = world.getBlockState(start);
+        if (startState.isOf(Blocks.END_PORTAL)) {
+            return collectHorizontalPortalArea(world, start);
+        }
         if (!startState.isOf(Blocks.NETHER_PORTAL)) {
             return Collections.emptySet();
         }
@@ -393,6 +405,30 @@ public class PortalHelper {
         return visited;
     }
 
+    private static Set<BlockPos> collectHorizontalPortalArea(ServerWorld world, BlockPos start) {
+        HashSet<BlockPos> visited = new HashSet<>();
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        queue.add(start);
+        visited.add(start);
+        Direction[] directions = planeDirections(Direction.Axis.Y);
+
+        while (!queue.isEmpty()) {
+            BlockPos pos = queue.poll();
+            for (Direction dir : directions) {
+                BlockPos neighbor = pos.offset(dir);
+                if (visited.contains(neighbor)) {
+                    continue;
+                }
+                if (!world.getBlockState(neighbor).isOf(Blocks.END_PORTAL)) {
+                    continue;
+                }
+                visited.add(neighbor);
+                queue.add(neighbor);
+            }
+        }
+        return visited;
+    }
+
     private static Direction.Axis getEffectiveAxis(ServerWorld world, BlockPos pos) {
         for (List<PortalZone> zones : PORTAL_ZONES.values()) {
             for (PortalZone zone : zones) {
@@ -414,6 +450,18 @@ public class PortalHelper {
         } catch (NumberFormatException e) {
             return 0x8844FF;
         }
+    }
+
+    public static boolean isPortalBlock(BlockState state) {
+        return state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL);
+    }
+
+    private static Vector3f toDustColor(int color) {
+        return new Vector3f(
+                ((color >> 16) & 0xFF) / 255.0f,
+                ((color >> 8) & 0xFF) / 255.0f,
+                (color & 0xFF) / 255.0f
+        );
     }
 
     public static class PortalReturnTarget {

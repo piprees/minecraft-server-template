@@ -9,15 +9,12 @@
   "license": "MIT",
   "environment": "server",
   "entrypoints": {
-    "server": [
-      "com.customdimensions.MultiverseServer"
-    ]
+    "server": ["com.customdimensions.MultiverseServer"]
   },
-  "mixins": [
-    "customdimensions.mixins.json"
-  ],
+  "mixins": ["customdimensions.mixins.json"],
   "depends": {
     "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
     "minecraft": ">=1.21 <=1.21.1",
     "java": ">=21"
   }

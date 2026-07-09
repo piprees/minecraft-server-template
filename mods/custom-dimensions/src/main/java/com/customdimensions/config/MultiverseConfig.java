@@ -14,15 +14,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String FILE_NAME = "multiverse_config.json";
 
-    private final transient ReadWriteLock lock = new ReentrantReadWriteLock();
     private final List<DimensionDefinition> dimensions = new ArrayList<>();
     private final List<PortalDefinition> portals = new ArrayList<>();
     private transient Path configPath;
@@ -51,7 +48,6 @@ public class MultiverseConfig {
             this.save();
             return;
         }
-        this.lock.writeLock().lock();
         try (BufferedReader reader = Files.newBufferedReader(this.configPath)) {
             MultiverseConfig loaded = GSON.fromJson(reader, MultiverseConfig.class);
             if (loaded != null) {
@@ -67,8 +63,6 @@ public class MultiverseConfig {
             this.dirty = false;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to load config", e);
-        } finally {
-            this.lock.writeLock().unlock();
         }
     }
 
@@ -76,7 +70,6 @@ public class MultiverseConfig {
         if (this.configPath == null) {
             return;
         }
-        this.lock.writeLock().lock();
         try {
             Files.createDirectories(this.configPath.getParent());
             try (BufferedWriter writer = Files.newBufferedWriter(this.configPath)) {
@@ -85,146 +78,84 @@ public class MultiverseConfig {
             }
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to save config", e);
-        } finally {
-            this.lock.writeLock().unlock();
         }
     }
 
     public DimensionDefinition getDimension(String name) {
-        this.lock.readLock().lock();
-        try {
-            return this.dimensions.stream()
-                    .filter(d -> d.getName().equals(name))
-                    .findFirst()
-                    .orElse(null);
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return this.dimensions.stream()
+                .filter(d -> d.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     public List<DimensionDefinition> getDimensions() {
-        this.lock.readLock().lock();
-        try {
-            return Collections.unmodifiableList(new ArrayList<>(this.dimensions));
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return Collections.unmodifiableList(new ArrayList<>(this.dimensions));
     }
 
     public List<String> getDimensionNames() {
-        this.lock.readLock().lock();
-        try {
-            return this.dimensions.stream().map(DimensionDefinition::getName).toList();
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return this.dimensions.stream().map(DimensionDefinition::getName).toList();
     }
 
     public void addDimension(DimensionDefinition def) {
-        this.lock.writeLock().lock();
-        try {
-            this.dimensions.removeIf(d -> d.getName().equals(def.getName()));
-            this.dimensions.add(def);
-            this.dirty = true;
-        } finally {
-            this.lock.writeLock().unlock();
-        }
+        this.dimensions.removeIf(d -> d.getName().equals(def.getName()));
+        this.dimensions.add(def);
+        this.dirty = true;
     }
 
     public boolean removeDimension(String name) {
-        this.lock.writeLock().lock();
-        try {
-            boolean removed = this.dimensions.removeIf(d -> d.getName().equals(name));
-            if (removed) {
-                this.dirty = true;
-            }
-            return removed;
-        } finally {
-            this.lock.writeLock().unlock();
+        boolean removed = this.dimensions.removeIf(d -> d.getName().equals(name));
+        if (removed) {
+            this.dirty = true;
         }
+        return removed;
     }
 
     public PortalDefinition getPortal(String id) {
-        this.lock.readLock().lock();
-        try {
-            return this.portals.stream()
-                    .filter(p -> p.getId().equals(id))
-                    .findFirst()
-                    .orElse(null);
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return this.portals.stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
     public List<PortalDefinition> getPortals() {
-        this.lock.readLock().lock();
-        try {
-            return Collections.unmodifiableList(new ArrayList<>(this.portals));
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return Collections.unmodifiableList(new ArrayList<>(this.portals));
     }
 
     public List<String> getPortalIds() {
-        this.lock.readLock().lock();
-        try {
-            return this.portals.stream().map(PortalDefinition::getId).toList();
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return this.portals.stream().map(PortalDefinition::getId).toList();
     }
 
     public void addPortal(PortalDefinition def) {
-        this.lock.writeLock().lock();
-        try {
-            this.portals.removeIf(p -> p.getId().equals(def.getId()));
-            this.portals.add(def);
-            this.dirty = true;
-        } finally {
-            this.lock.writeLock().unlock();
-        }
+        this.portals.removeIf(p -> p.getId().equals(def.getId()));
+        this.portals.add(def);
+        this.dirty = true;
     }
 
     public boolean removePortal(String id) {
-        this.lock.writeLock().lock();
-        try {
-            boolean removed = this.portals.removeIf(p -> p.getId().equals(id));
-            if (removed) {
-                this.dirty = true;
-            }
-            return removed;
-        } finally {
-            this.lock.writeLock().unlock();
+        boolean removed = this.portals.removeIf(p -> p.getId().equals(id));
+        if (removed) {
+            this.dirty = true;
         }
+        return removed;
     }
 
     public Optional<PortalDefinition> getPortalByIgniter(String itemId) {
-        this.lock.readLock().lock();
-        try {
-            return this.portals.stream()
-                    .filter(p -> p.getIgniterItem().equals(itemId))
-                    .findFirst();
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        return this.portals.stream()
+                .filter(p -> p.getIgniterItem().equals(itemId))
+                .findFirst();
     }
 
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {
-        this.lock.readLock().lock();
-        try {
-            if (blockId.equals(this.frameOverworld)) {
-                return new PortalDefinition("default_overworld", this.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
-            }
-            if (blockId.equals(this.frameNether)) {
-                return new PortalDefinition("default_nether", this.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
-            }
-            if (blockId.equals(this.frameEnd)) {
-                return new PortalDefinition("default_end", this.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
-            }
-            return null;
-        } finally {
-            this.lock.readLock().unlock();
+        if (blockId.equals(this.frameOverworld)) {
+            return new PortalDefinition("default_overworld", this.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
         }
+        if (blockId.equals(this.frameNether)) {
+            return new PortalDefinition("default_nether", this.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
+        }
+        if (blockId.equals(this.frameEnd)) {
+            return new PortalDefinition("default_end", this.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
+        }
+        return null;
     }
 
     public String getFrameOverworld() {

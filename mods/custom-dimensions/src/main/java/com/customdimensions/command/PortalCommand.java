@@ -13,6 +13,7 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public class PortalCommand {
     private static final SuggestionProvider<ServerCommandSource> EXISTING_PORTALS = (ctx, builder) -> {
@@ -82,7 +83,13 @@ public class PortalCommand {
         def.setScale(scale);
         def.setCooldown(cooldown);
         MultiverseConfig.getInstance().addPortal(def);
-        DimensionManager.getInstance().getOrCreateDimension(target);
+
+        if (DimensionManager.getInstance().getOrCreateDimension(target) == null) {
+            Identifier targetId = Identifier.tryParse(target);
+            if (targetId != null) {
+                DimensionManager.getInstance().getOrCreateDimension(targetId.getPath());
+            }
+        }
 
         ctx.getSource().sendFeedback(() -> Text.literal("Linked portal '" + id + "' -> " + target), true);
         return 1;

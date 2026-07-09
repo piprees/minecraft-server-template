@@ -110,7 +110,7 @@ public class PortalIgnitionMixin {
             PortalHelper.spawnParticles(serverWorld, zone);
             playIgniteSound(serverWorld, clickedPos, def);
 
-            if (!context.getPlayer().isCreative()) {
+            if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
                 context.getStack().decrement(1);
             }
             cir.setReturnValue(ActionResult.SUCCESS);
@@ -156,7 +156,7 @@ public class PortalIgnitionMixin {
                     PortalHelper.spawnParticles(serverWorld, zone);
                     playIgniteSound(serverWorld, candidate, def);
 
-                    if (!context.getPlayer().isCreative()) {
+                    if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
                         context.getStack().decrement(1);
                     }
                     cir.setReturnValue(ActionResult.SUCCESS);

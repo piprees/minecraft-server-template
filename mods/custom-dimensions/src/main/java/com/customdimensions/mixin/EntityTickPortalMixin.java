@@ -40,12 +40,17 @@ public abstract class EntityTickPortalMixin {
 
         BlockPos pos = player.getBlockPos();
         BlockState state = serverLevel.getBlockState(pos);
-        if (!state.isOf(Blocks.NETHER_PORTAL)) {
+        if (!PortalHelper.isPortalBlock(state)) {
             state = serverLevel.getBlockState(pos.up());
-            if (!state.isOf(Blocks.NETHER_PORTAL)) {
-                return;
+            if (PortalHelper.isPortalBlock(state)) {
+                pos = pos.up();
+            } else {
+                state = serverLevel.getBlockState(pos.down());
+                if (!PortalHelper.isPortalBlock(state)) {
+                    return;
+                }
+                pos = pos.down();
             }
-            pos = pos.up();
         }
 
         Set<BlockPos> portalBlocks = PortalHelper.collectPortalArea(serverLevel, pos);
@@ -86,6 +91,6 @@ public abstract class EntityTickPortalMixin {
 
         ci.cancel();
         player.setPortalCooldown(cooldown);
-        player.teleport(targetWorld, tx, ty, tz, Set.of(), player.getYaw(), player.getPitch(), true);
+        player.teleport(targetWorld, tx, ty, tz, Set.of(), player.getYaw(), player.getPitch());
     }
 }
