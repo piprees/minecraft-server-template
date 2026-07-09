@@ -196,7 +196,7 @@ boring-default-game-rules:4cRPF0s7
 configured-defaults:DsINYFQi
 
 # === datapacks ===
-datapack:fast-nether-portals:a05ug6MQ         # instant nether portal transition (no loading screen)
+# datapack:fast-nether-portals:a05ug6MQ       # replaced by playersNetherPortalDefaultDelay gamerule
 # datapack:extra_enchantments                   # disabled: all versions use 1.21.2 registry keys incompatible with 1.21.1
 
 # === ambient audio ===

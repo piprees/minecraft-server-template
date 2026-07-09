@@ -500,6 +500,7 @@ rcon "gamerule spawnRadius 0"
 rcon "gamerule forgiveDeadPlayers true"
 rcon "gamerule universalAnger false"
 rcon "gamerule mobGriefing true"
+rcon "gamerule playersNetherPortalDefaultDelay 0"
 echo "  Game rules set"
 
 # --- ServerCore hot-reload -----------------------------------------------------

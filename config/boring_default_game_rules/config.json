@@ -5,7 +5,8 @@
     "spawnRadius": 0,
     "forgiveDeadPlayers": true,
     "universalAnger": false,
-    "mobGriefing": true
+    "mobGriefing": true,
+    "playersNetherPortalDefaultDelay": 0
   },
   "generate_json_schema": false
 }
