@@ -1,0 +1,89 @@
+# Dimension registry — source of truth for setup-dimensions.sh and seeded-dimensions.json.
+# Format: name|type|scale|seed|portal_block|ignitor|group
+#
+# name = portal block minus minecraft: prefix (after substitution), underscores not hyphens
+# type = overworld, nether, end, void
+# scale = coordinate ratio relative to overworld (1, 8, 12, 16)
+# seed = world seed for this dimension
+# portal_block = full block ID (minecraft:xxx)
+# ignitor = full item ID (minecraft:xxx)
+# group = organisational group (overworld, nether, paradise_lost, end, void)
+
+# --- 8:1 Overworld dimensions ---
+clay|overworld|8|6273634989319082075|minecraft:clay|minecraft:amethyst_shard|overworld
+terracotta|overworld|8|4022812798061399348|minecraft:terracotta|minecraft:amethyst_shard|overworld
+coarse_dirt|overworld|8|15200330489283432700|minecraft:coarse_dirt|minecraft:amethyst_shard|overworld
+rooted_dirt|overworld|8|6179727709884658474|minecraft:rooted_dirt|minecraft:amethyst_shard|overworld
+mossy_cobblestone|overworld|8|9273702517627130566|minecraft:mossy_cobblestone|minecraft:amethyst_shard|overworld
+grass_block|overworld|8|4365588300327455070|minecraft:grass_block|minecraft:amethyst_shard|overworld
+polished_granite|overworld|8|3624185682401255876|minecraft:polished_granite|minecraft:amethyst_shard|overworld
+polished_andesite|overworld|8|6102446688561208171|minecraft:polished_andesite|minecraft:amethyst_shard|overworld
+mud|overworld|8|13194636330450295598|minecraft:mud|minecraft:amethyst_shard|overworld
+moss_block|overworld|8|6115258093970217788|minecraft:moss_block|minecraft:amethyst_shard|overworld
+polished_diorite|overworld|8|4251950210753714448|minecraft:polished_diorite|minecraft:amethyst_shard|overworld
+podzol|overworld|8|13073213823599358898|minecraft:podzol|minecraft:amethyst_shard|overworld
+calcite|overworld|8|2195798975866015064|minecraft:calcite|minecraft:amethyst_shard|overworld
+smooth_stone|overworld|8|16217598787372067171|minecraft:smooth_stone|minecraft:amethyst_shard|overworld
+tuff|overworld|8|6416894595201730599|minecraft:tuff|minecraft:amethyst_shard|overworld
+amethyst_block|overworld|8|6857879019486337303|minecraft:amethyst_block|minecraft:amethyst_shard|overworld
+cobbled_deepslate|overworld|8|2418931438629928634|minecraft:cobbled_deepslate|minecraft:amethyst_shard|overworld
+dripstone_block|overworld|8|17370959472872930558|minecraft:dripstone_block|minecraft:amethyst_shard|overworld
+chiseled_stone_bricks|overworld|8|16472147818638940307|minecraft:chiseled_stone_bricks|minecraft:amethyst_shard|overworld
+
+# --- 16:1 Overworld dimensions ---
+prismarine|overworld|16|5735056219198225107|minecraft:prismarine|minecraft:netherite_scrap|overworld
+sea_lantern|overworld|16|10697167521217611878|minecraft:sea_lantern|minecraft:netherite_scrap|overworld
+packed_mud|overworld|16|13657802946321471204|minecraft:packed_mud|minecraft:netherite_scrap|overworld
+mossy_stone_bricks|overworld|16|6564334460230090799|minecraft:mossy_stone_bricks|minecraft:netherite_scrap|overworld
+packed_ice|overworld|16|11645886907683913886|minecraft:packed_ice|minecraft:netherite_scrap|overworld
+
+# --- 16:1 Void dimensions (remapped from 128:1) ---
+blue_ice|void|16|5964372207964005987|minecraft:blue_ice|minecraft:netherite_scrap|void
+sculk|void|16|18090591003891674839|minecraft:sculk|minecraft:netherite_scrap|void
+deepslate|void|16|194264687702097290|minecraft:deepslate|minecraft:netherite_scrap|void
+
+# --- 8:1 Nether dimensions ---
+chiseled_nether_bricks|nether|8|9221821359447431546|minecraft:chiseled_nether_bricks|minecraft:flint_and_steel|nether
+crimson_nylium|nether|8|6135847632709183989|minecraft:crimson_nylium|minecraft:flint_and_steel|nether
+basalt|nether|8|14268788340776233|minecraft:basalt|minecraft:flint_and_steel|nether
+blackstone|nether|8|10504593801255609797|minecraft:blackstone|minecraft:flint_and_steel|nether
+smooth_basalt|nether|8|16866183796207928071|minecraft:smooth_basalt|minecraft:flint_and_steel|nether
+obsidian|nether|8|888677704244175115|minecraft:obsidian|minecraft:flint_and_steel|nether
+magma_block|nether|8|15274193566772243825|minecraft:magma_block|minecraft:flint_and_steel|nether
+warped_nylium|nether|8|11199591245382967311|minecraft:warped_nylium|minecraft:flint_and_steel|nether
+soul_soil|nether|8|5882171892785548389|minecraft:soul_soil|minecraft:flint_and_steel|nether
+nether_wart_block|nether|8|7394931452934382410|minecraft:nether_wart_block|minecraft:flint_and_steel|nether
+warped_wart_block|nether|8|5801515250367357934|minecraft:warped_wart_block|minecraft:flint_and_steel|nether
+crying_obsidian|nether|8|15235008127663609308|minecraft:crying_obsidian|minecraft:flint_and_steel|nether
+bone_block|nether|8|4924327300096628285|minecraft:bone_block|minecraft:flint_and_steel|nether
+ancient_debris|nether|8|10924079833093618548|minecraft:ancient_debris|minecraft:flint_and_steel|nether
+glowstone|nether|8|1126811856535624437|minecraft:glowstone|minecraft:flint_and_steel|nether
+shroomlight|nether|8|13555197697533708971|minecraft:shroomlight|minecraft:flint_and_steel|nether
+
+# --- 12:1 Nether dimensions (remapped from 32:1) ---
+gilded_blackstone|nether|12|1881563837797304477|minecraft:gilded_blackstone|minecraft:diamond|nether
+soul_sand|nether|12|11411387548770988221|minecraft:soul_sand|minecraft:diamond|nether
+deepslate_bricks|nether|12|13668392332695580358|minecraft:deepslate_bricks|minecraft:diamond|nether
+
+# --- 1:1 Paradise Lost dimensions ---
+ice|overworld|1|13322652625986054568|minecraft:ice|minecraft:gold_ingot|paradise_lost
+prismarine_bricks|overworld|1|10893650924749928644|minecraft:prismarine_bricks|minecraft:gold_ingot|paradise_lost
+
+# --- 8:1 Paradise Lost dimensions ---
+snow_block|overworld|8|11542948311335741018|minecraft:snow_block|minecraft:gold_ingot|paradise_lost
+
+# --- 16:1 Paradise Lost dimensions ---
+dark_prismarine|overworld|16|10044953503635443257|minecraft:dark_prismarine|minecraft:netherite_scrap|paradise_lost
+
+# --- 12:1 Paradise Lost dimensions (remapped from 32:1) ---
+end_stone|overworld|12|7588343130126410291|minecraft:end_stone|minecraft:diamond|paradise_lost
+purpur_block|overworld|12|16261891333034106707|minecraft:purpur_block|minecraft:diamond|paradise_lost
+
+# --- 1:1 End dimensions ---
+end_stone_bricks|end|1|2345324516627475701|minecraft:end_stone_bricks|minecraft:ender_eye|end
+deepslate_tiles|end|1|3362388695457488365|minecraft:deepslate_tiles|minecraft:ender_eye|end
+polished_basalt|end|1|17750394375217209488|minecraft:polished_basalt|minecraft:ender_eye|end
+sculk_catalyst|end|1|7719368698613726672|minecraft:sculk_catalyst|minecraft:ender_eye|end
+mud_bricks|end|1|12088398654737429932|minecraft:mud_bricks|minecraft:ender_eye|end
+red_sandstone|end|1|1348467636973897365|minecraft:red_sandstone|minecraft:ender_eye|end
+cracked_stone_bricks|end|1|4989373384118084179|minecraft:cracked_stone_bricks|minecraft:ender_eye|end

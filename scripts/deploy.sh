@@ -491,6 +491,75 @@ for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; d
 done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
+# --- Custom dimensions (from dimensions.txt) ----------------------------------
+# Handles ~57 modded dimensions: activate, set world borders, enforce BlueMap.
+# Skips comments, blanks, and dimensions sharing the server seed (vanilla worlds).
+DIMENSIONS_FILE="$STACK_DIR/config/dimensions.txt"
+if [[ -f "$DIMENSIONS_FILE" ]]; then
+  echo ""
+  echo "==> Processing custom dimensions..."
+
+  # Activate custom dimensions (forceload one chunk so region files exist)
+  DIM_COUNT=0
+  while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+    [[ -z "$name" || "$name" = \#* ]] && continue
+    [[ "$seed" = "${SEED:-}" ]] && continue
+    rcon "execute in adventure:$name run forceload add 0 0"
+    DIM_COUNT=$((DIM_COUNT + 1))
+  done < "$DIMENSIONS_FILE"
+
+  if [[ $DIM_COUNT -gt 0 ]]; then
+    sleep 10
+    rcon "save-all flush"
+    sleep 5
+
+    while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+      [[ -z "$name" || "$name" = \#* ]] && continue
+      [[ "$seed" = "${SEED:-}" ]] && continue
+      rcon "execute in adventure:$name run forceload remove 0 0"
+    done < "$DIMENSIONS_FILE"
+    echo "  $DIM_COUNT custom dimensions activated"
+  fi
+
+  # ChunkyBorder per custom dimension (radius scales with dimension scale)
+  echo "  Setting ChunkyBorder for custom dimensions..."
+  while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+    [[ -z "$name" || "$name" = \#* ]] && continue
+    [[ "$seed" = "${SEED:-}" ]] && continue
+    case "$scale" in
+      1)  dim_radius=$PLAYER_BORDER_RADIUS ;;
+      4)  dim_radius=$((PLAYER_BORDER_RADIUS / 4)) ;;
+      8)  dim_radius=$((PLAYER_BORDER_RADIUS / 8)) ;;
+      12) dim_radius=$((PLAYER_BORDER_RADIUS / 12)) ;;
+      16) dim_radius=$((PLAYER_BORDER_RADIUS / 16)) ;;
+      *)  dim_radius=$((PLAYER_BORDER_RADIUS / scale)) ;;
+    esac
+    rcon "chunky world adventure:$name"
+    rcon "chunky center 0 0"
+    rcon "chunky radius $dim_radius"
+    rcon "chunky shape square"
+    rcon "chunky border add"
+    echo "    adventure:$name — radius $dim_radius (scale 1:$scale)"
+  done < "$DIMENSIONS_FILE"
+
+  # BlueMap: custom dimensions get low-res flat view only (saves disk)
+  BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
+  if [[ -d "$BM_MAPS_DIR" ]]; then
+    echo "  Enforcing BlueMap settings for custom dimensions..."
+    while IFS='|' read -r name type scale seed portal ignitor group || [[ -n "$name" ]]; do
+      [[ -z "$name" || "$name" = \#* ]] && continue
+      [[ "$seed" = "${SEED:-}" ]] && continue
+      for bm_conf in "$BM_MAPS_DIR"/adventure*"$name"*.conf; do
+        [[ -f "$bm_conf" ]] || continue
+        sed -i 's/enable-hires: true/enable-hires: false/' "$bm_conf"
+        sed -i 's/enable-perspective-view: true/enable-perspective-view: false/' "$bm_conf"
+        sed -i 's/enable-free-flight-view: true/enable-free-flight-view: false/' "$bm_conf"
+      done
+    done < "$DIMENSIONS_FILE"
+    echo "  BlueMap: custom dimensions set to low-res flat view"
+  fi
+fi
+
 # --- Enforce game rules -------------------------------------------------------
 echo ""
 echo "==> Enforcing game rules..."
