@@ -1,0 +1,50 @@
+# Guardrail: verify every published release has the stack bundle attached.
+#
+# Catches the mistake of using `gh release create` directly instead of
+# dispatching release.yml, which builds and attaches the bundle before
+# publishing. Without the bundle, consumer `./dev sync` 404s.
+#
+# Fires on release:published — the same event that triggers publish.yml
+# for container images. Runs fast (no checkout needed) and fails loudly.
+
+name: Release Guard
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-bundle:
+    name: Verify bundle tarball
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check bundle assets exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Checking release $TAG for bundle tarball..."
+
+          ASSETS=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[].name')
+
+          if ! echo "$ASSETS" | grep -q "^stack-.*\.tar\.gz$"; then
+            echo "::error::Release $TAG is missing the stack bundle tarball!"
+            echo ""
+            echo "This release was likely created with 'gh release create' instead of"
+            echo "the release.yml workflow. Consumer './dev sync' will 404."
+            echo ""
+            echo "To cut a release correctly:"
+            echo "  gh workflow run release.yml -f version=$TAG"
+            echo ""
+            echo "This release cannot be fixed (immutable). You must delete it and re-cut:"
+            echo "  gh release delete $TAG --yes"
+            echo "  git push origin :refs/tags/$TAG"
+            echo "  gh workflow run release.yml -f version=$TAG"
+            exit 1
+          fi
+
+          echo "Bundle found. Release $TAG is valid."

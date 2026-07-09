@@ -61,6 +61,35 @@ Pushing to `main` in a consumer repo triggers the caller workflow, which invokes
 
 Note: an in-flight deploy executes the **pre-pull** `deploy.sh` - changes to deploy.sh itself take effect on the *next* deploy after merging.
 
+## Cutting a release (platform repo only)
+
+Releases are **immutable** — once published, assets cannot be added or changed. This means the bundle tarball must be built and attached *before* publishing. There is exactly one correct way to cut a release:
+
+```bash
+gh workflow run release.yml -f version=v2.7.0
+```
+
+This dispatches `release.yml`, which: runs smoke tests → builds the stack bundle → creates a **draft** release with the tarball attached → publishes the draft. Publishing fires the `release: published` event, which triggers `publish.yml` to build and tag all container images with semver tags.
+
+**Never use `gh release create` directly.** It publishes immediately with no bundle attached. Consumer `./dev sync` resolves `STACK_VERSION=v2` to the latest release and tries to download the tarball — a missing bundle means a 404 and a broken sync. `release-guard.yml` fires on every `release: published` event and fails loudly if the bundle tarball is missing, but the damage (an empty immutable release) is already done.
+
+**If a release ships without a bundle:** delete it and re-cut (the only fix for an immutable release):
+
+```bash
+gh release delete v2.7.0 --yes
+git push origin :refs/tags/v2.7.0
+gh workflow run release.yml -f version=v2.7.0
+```
+
+**Two pipelines, one chain:**
+
+| Workflow | Triggers | Produces |
+| --- | --- | --- |
+| `release.yml` (Release Bundle) | Manual dispatch only | Stack bundle tarball → draft release → publish |
+| `publish.yml` (Publish Container Images) | `release: published`, push to main (Dockerfile/script changes), manual dispatch | GHCR images tagged `X.Y.Z`, `X.Y`, `X`, `latest` |
+
+Pushing to `main` triggers `publish.yml` independently (images tagged `latest` + sha), so consumers on `latest` get image updates between releases. But only `release.yml` produces the bundle tarball that consumers need for `./dev sync`.
+
 ## Architecture traps (each of these has caused a real incident)
 
 1. **Shared Discord bot token.** dcintegration (in mc) and discord-sync both log in as the same bot. If the mod's `[commands] enabled` flips true in the live `data/config/Discord-Integration.toml`, it bulk-overwrites the command registry on every mc boot and silently deletes `/mc` + `/register`. deploy.sh enforces `enabled = false`; discord-sync purges the global registry at boot as a second line of defence. The repo's `config/dcintegration/config.toml` is an intent doc, **not** the live schema.
@@ -175,6 +204,7 @@ OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<tit
 | --- | --- | --- |
 | Add a server mod (consumer) | `overlay/mods-extra.txt` (+ deps, pinned) | `./dev up` or push to `main` |
 | Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned) | Push, cut release |
+| Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
 | Add a client mod | `modpack/adventure.mrpack.json` | Push (CI rebuilds `.mrpack`) |
 | Change a game rule | `config/boring_default_game_rules/config.json` + `scripts/deploy.sh` | Push (full deploy) |
 | Change claim settings | `config/openpartiesandclaims/openpartiesandclaims-server.toml` | Push (full deploy) |
