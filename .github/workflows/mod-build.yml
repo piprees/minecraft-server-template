@@ -1,0 +1,38 @@
+name: Mod build
+
+on:
+  pull_request:
+    paths:
+      - 'mods/**'
+  push:
+    branches: [main]
+    paths:
+      - 'mods/**'
+
+jobs:
+  build-and-test:
+    name: Build & test in-house mods
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate wrapper
+        working-directory: mods/custom-dimensions
+        run: gradle wrapper --gradle-version 8.13
+
+      - name: Build
+        working-directory: mods/custom-dimensions
+        run: ./gradlew build
+
+      - name: Test
+        working-directory: mods/custom-dimensions
+        run: ./gradlew test
