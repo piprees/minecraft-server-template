@@ -1,7 +1,7 @@
 {
   "enabled": true,
-  "intervalSeconds": 10800,
-  "minimumItemAgeSeconds": 60,
+  "intervalSeconds": 300,
+  "minimumItemAgeSeconds": 10800,
   "announcementsEnabled": false,
   "warningSeconds": [60],
   "broadcastClearMessage": false,
