@@ -132,6 +132,8 @@ case "$CMD" in
     # running interpreter would hit shifted bytes and die with a bogus parse
     # error ("unexpected EOF"). mv swaps the directory entry instead; the
     # running script keeps its old inode until exit.
+    # Executable entry points (write-to-temp + mv to avoid corrupting
+    # the running script — see comment above reexec_if_self_updated).
     for f in dev ops stack-pull.sh; do
       src="$STACK_DIR/examples/consumer/$f"
       if [[ -f "$src" ]]; then
@@ -141,9 +143,17 @@ case "$CMD" in
       fi
     done
     reexec_if_self_updated "$SELF_BEFORE" update "$@"
-    if [[ -f "$STACK_DIR/.env.example" ]]; then
-      cp "$STACK_DIR/.env.example" "$CONSUMER_DIR/.env.example"
-    fi
+    # Non-executable files that track the platform.
+    for f in .env.example .gitignore AGENTS.md; do
+      src="$STACK_DIR/examples/consumer/$f"
+      [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
+    done
+    # Workflows (mkdir -p for first-time consumers without .github/).
+    mkdir -p "$CONSUMER_DIR/.github/workflows"
+    for f in .github/workflows/deploy.yml .github/workflows/update.yml; do
+      src="$STACK_DIR/examples/consumer/$f"
+      [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
+    done
     ensure_env
     set -a
     # shellcheck disable=SC1091

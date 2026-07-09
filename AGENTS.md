@@ -89,6 +89,8 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Bundle manifest trap:** new bundle scripts must be added to the `MANIFEST` array in `scripts/build-stack-bundle.sh` or they won't be shipped to consumers. CI validates this — `lint.yml` checks that every `.sh` file referenced by `ops` or imported by other bundle scripts exists in the manifest.
 
+**Consumer scaffold sync trap:** files in `examples/consumer/` are copied to consumer repos by `./dev update`. The sync list lives in the `update)` case of `examples/consumer/dev` — executable entry points (`dev`, `ops`, `stack-pull.sh`), non-executable files (`.env.example`, `.gitignore`, `AGENTS.md`), and workflows (`.github/workflows/*.yml`). **When adding a new file to `examples/consumer/`, add it to the sync list too** or existing consumers will never receive it. `README.md` and `overlay/` are deliberately excluded — those are consumer-owned content.
+
 ## Conventions
 
 **Scripting:** `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on **macOS bash 3.2** (no `declare -A`, no `${var,,}`, no `|&`, no `mapfile`). **No `grep -P`** — macOS BSD grep doesn't support Perl-compatible regexes. Use `grep -oE` (extended regex) or `sed` instead. This has caused multiple CI and runtime failures. Idempotent - safe to run twice. Back up before overwriting (`backup()` in lib.sh → `file.bak.TIMESTAMP`). Support `--non-interactive` for CI. Every script carries a header comment with purpose, context, usage, and gotchas - **keep headers current when changing behaviour**; they're the authoritative reference.
