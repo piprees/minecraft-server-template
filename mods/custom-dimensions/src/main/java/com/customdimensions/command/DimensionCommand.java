@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class DimensionCommand {
     private static final Set<String> VALID_TYPES = Set.of(
-            "overworld", "nether", "end", "void", "superflat", "amplified", "large_biomes", "single_biome", "multi_biome"
+            "overworld", "nether", "end", "void", "superflat", "amplified", "large_biomes", "single_biome", "multi_biome", "sky_islands", "nether_islands"
     );
 
     private static final SuggestionProvider<ServerCommandSource> DIMENSION_TYPES = (ctx, builder) -> {

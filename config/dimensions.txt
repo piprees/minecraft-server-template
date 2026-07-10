@@ -101,6 +101,10 @@ the_gauntlet|multi_biome|4|server|minecraft:oxidized_copper|minecraft:diamond|ov
 the_crimson_nexus|multi_biome|1|server|minecraft:nether_bricks|minecraft:flint_and_steel|nether|minecraft:crimson_forest,minecraft:warped_forest,minecraft:nether_wastes
 the_souldrift|multi_biome|1|server|minecraft:polished_blackstone_bricks|minecraft:flint_and_steel|nether|minecraft:soul_sand_valley,minecraft:basalt_deltas,minecraft:nether_wastes
 
+# --- 1:1 Sky island dimensions (end terrain shape + overworld/nether biomes) ---
+the_shattered_skies|sky_islands|1|server|minecraft:light_blue_stained_glass|minecraft:amethyst_shard|overworld|minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,terralith:blooming_valley,terralith:sakura_valley,terralith:alpine_grove
+the_burning_archipelago|nether_islands|1|server|minecraft:nether_brick_fence|minecraft:flint_and_steel|nether|minecraft:crimson_forest,minecraft:warped_forest,minecraft:soul_sand_valley,minecraft:basalt_deltas
+
 # --- 1:1 Large biomes ---
 the_endless_expanse|large_biomes|1|server|minecraft:raw_iron_block|minecraft:amethyst_shard|overworld|
 

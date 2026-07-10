@@ -242,6 +242,68 @@ public class DimensionManager {
                         ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(source.chunkGenerator(), worldSeed))
                         : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
             }
+            case "sky_islands" -> {
+                // End terrain shape (floating islands) with overworld biomes
+                DimensionOptions endOpts = dimRegistry.get(DimensionOptions.END);
+                if (endOpts != null && endOpts.chunkGenerator() instanceof NoiseChunkGenerator endGen) {
+                    BiomeSource biomeSource;
+                    String biomeList = def.getBiome();
+                    if (biomeList != null && !biomeList.isEmpty()) {
+                        // Custom biome list for the islands
+                        Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
+                                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
+                                .collect(Collectors.toSet());
+                        if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
+                                && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
+                            MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
+                            List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
+                                    .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
+                                    .collect(Collectors.toList());
+                            if (!filtered.isEmpty()) {
+                                biomeSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
+                            } else {
+                                biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
+                            }
+                        } else {
+                            biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
+                        }
+                    } else {
+                        biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
+                    }
+                    NoiseChunkGenerator skyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(skyGen, worldSeed));
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+            }
+            case "nether_islands" -> {
+                // End terrain shape (floating islands) with nether biomes
+                DimensionOptions endOpts = dimRegistry.get(DimensionOptions.END);
+                DimensionOptions netherOpts = dimRegistry.get(DimensionOptions.NETHER);
+                if (endOpts != null && netherOpts != null && endOpts.chunkGenerator() instanceof NoiseChunkGenerator endGen) {
+                    BiomeSource biomeSource;
+                    String biomeList = def.getBiome();
+                    if (biomeList != null && !biomeList.isEmpty()) {
+                        Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
+                                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
+                                .collect(Collectors.toSet());
+                        MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) (MultiNoiseBiomeSource) netherOpts.chunkGenerator().getBiomeSource()).invokeGetBiomeEntries();
+                        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
+                                .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
+                                .collect(Collectors.toList());
+                        if (!filtered.isEmpty()) {
+                            biomeSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
+                        } else {
+                            biomeSource = netherOpts.chunkGenerator().getBiomeSource();
+                        }
+                    } else {
+                        biomeSource = netherOpts.chunkGenerator().getBiomeSource();
+                    }
+                    // Use nether dimension type (ceiling, lava sea, etc.) with end terrain shape
+                    NoiseChunkGenerator netherSkyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
+                    yield new DimensionOptions(netherOpts.dimensionTypeEntry(), withSeed(netherSkyGen, worldSeed));
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+            }
             case "amplified" -> {
                 Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
                 WorldPreset preset = presetRegistry.get(WorldPresets.AMPLIFIED);

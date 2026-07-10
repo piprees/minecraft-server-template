@@ -126,6 +126,10 @@
     "adventure:the_crimson_nexus": 1.5,
     "adventure:the_souldrift": 1.8,
 
+    // --- Sky islands (dangerous — falling is the real threat) ---
+    "adventure:the_shattered_skies": 1.5,
+    "adventure:the_burning_archipelago": 2.0,
+
     // --- Large biomes ---
     "adventure:the_endless_expanse": 1.0,
 
