@@ -18,8 +18,10 @@
 # Usage:
 #   ./scripts/reset-seed.sh                   # interactive (prompts for seed)
 #   ./scripts/reset-seed.sh <seed>            # pre-fill seed (still confirms)
+#   ./scripts/reset-seed.sh --same-seed       # reset world, keep current seed
+#   ./scripts/reset-seed.sh --force           # skip all confirmation prompts
 #   ./scripts/reset-seed.sh --wipe-backups    # also purge restic snapshots
-#   ./scripts/reset-seed.sh --wipe-backups <seed>
+#   ./scripts/reset-seed.sh --force --same-seed --wipe-backups
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -61,13 +63,21 @@ STACK_SCRIPTS="${REMOTE_DIR}/.stack/current/stack/scripts"
 
 # --- parse args ---------------------------------------------------------------
 WIPE_BACKUPS=false
+SAME_SEED=false
+FORCE=false
 NEW_SEED=""
 for arg in "$@"; do
   case "$arg" in
     --wipe-backups) WIPE_BACKUPS=true ;;
+    --same-seed) SAME_SEED=true ;;
+    --force) FORCE=true ;;
     *) NEW_SEED="$arg" ;;
   esac
 done
+
+if [[ "$SAME_SEED" == true ]]; then
+  NEW_SEED="$CURRENT_SEED"
+fi
 
 # =============================================================================
 # 1. Explain what will happen and collect confirmation
@@ -113,22 +123,26 @@ echo ""
 echo "New seed: ${NEW_SEED}"
 echo ""
 
-# --- confirm by re-typing the seed -------------------------------------------
-read -rp "Type the new seed again to confirm: " CONFIRM_SEED
-if [[ "$CONFIRM_SEED" != "$NEW_SEED" ]]; then
-  echo "Seeds don't match. Aborting."
-  exit 1
-fi
+if [[ "$FORCE" != true ]]; then
+  # --- confirm by re-typing the seed -------------------------------------------
+  read -rp "Type the new seed again to confirm: " CONFIRM_SEED
+  if [[ "$CONFIRM_SEED" != "$NEW_SEED" ]]; then
+    echo "Seeds don't match. Aborting."
+    exit 1
+  fi
 
-# --- confirm destructive action -----------------------------------------------
-echo ""
-echo "WARNING: This will permanently delete the current world."
-echo "         The backup will be the only way to recover it."
-echo ""
-read -rp "Type RESET to confirm you understand: " CONFIRM_RESET
-if [[ "$CONFIRM_RESET" != "RESET" ]]; then
-  echo "Confirmation not received. Aborting."
-  exit 1
+  # --- confirm destructive action -----------------------------------------------
+  echo ""
+  echo "WARNING: This will permanently delete the current world."
+  echo "         The backup will be the only way to recover it."
+  echo ""
+  read -rp "Type RESET to confirm you understand: " CONFIRM_RESET
+  if [[ "$CONFIRM_RESET" != "RESET" ]]; then
+    echo "Confirmation not received. Aborting."
+    exit 1
+  fi
+else
+  echo "  --force: skipping confirmation prompts"
 fi
 
 echo ""
@@ -201,17 +215,22 @@ echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
 # =============================================================================
 # 6. Update seed everywhere
 # =============================================================================
-echo ""
-echo "==> Updating seed: ${CURRENT_SEED} -> ${NEW_SEED}"
+if [[ "$SAME_SEED" == true ]]; then
+  echo ""
+  echo "==> Keeping current seed: ${CURRENT_SEED}"
+else
+  echo ""
+  echo "==> Updating seed: ${CURRENT_SEED} -> ${NEW_SEED}"
 
-# --- .env (local) -----------------------------------------------------------------
-cp -p .env ".env.bak.${STAMP}"
-sed_i "s/^SEED=.*/SEED=${NEW_SEED}/" .env
-echo "  Updated .env (backed up to .env.bak.${STAMP})"
+  # --- .env (local) ---------------------------------------------------------------
+  cp -p .env ".env.bak.${STAMP}"
+  sed_i "s/^SEED=.*/SEED=${NEW_SEED}/" .env
+  echo "  Updated .env (backed up to .env.bak.${STAMP})"
 
-# --- .env on the droplet ------------------------------------------------------
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
-echo "  Updated .env on droplet (backed up to .env.bak.${STAMP})"
+  # --- .env on the droplet --------------------------------------------------------
+  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
+  echo "  Updated .env on droplet (backed up to .env.bak.${STAMP})"
+fi
 
 # =============================================================================
 # 7. Wipe restic backups (optional)
