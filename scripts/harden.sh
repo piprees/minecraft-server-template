@@ -353,6 +353,18 @@ if ! grep -q '^net.ipv4.ip_forward=1' /etc/sysctl.conf 2> /dev/null; then
 fi
 echo "  IP forwarding enabled"
 
+# BlueMap needs one inotify watcher per map — 78+ maps exhaust the default 128 limit
+sysctl -w fs.inotify.max_user_instances=512 > /dev/null
+sysctl -w fs.inotify.max_user_watches=65536 > /dev/null
+for param in 'fs.inotify.max_user_instances=512' 'fs.inotify.max_user_watches=65536'; do
+  if ! grep -q "^${param%%=*}" /etc/sysctl.conf 2> /dev/null; then
+    echo "$param" >> /etc/sysctl.conf
+  else
+    sed -i "s/^${param%%=*}=.*/$param/" /etc/sysctl.conf
+  fi
+done
+echo "  inotify limits raised (512 instances, 65536 watches)"
+
 backup /etc/default/ufw
 sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
 echo "  UFW forward policy set to ACCEPT"

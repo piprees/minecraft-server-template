@@ -36,6 +36,10 @@
                 <RegexFilter regex=".*Couldn't find template pool reference.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Block-attached entity at invalid position.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Failed to parse either.*Not a string: null.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- BlueMap inotify exhaustion (harmless — maps still render, just won't auto-update) -->
+                <RegexFilter regex=".*inotify instances reached.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*watch-service.*stopped unexpectedly.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Failed to create update-watcher for map.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- ModernFix class loading noise -->
                 <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- DramaticDoors + Woodworks sawmill recipes (Woodworks is Forge-only, no Fabric build) -->
