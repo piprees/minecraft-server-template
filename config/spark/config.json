@@ -1,0 +1,4 @@
+{
+  "_comment": "Background profiler disabled: with ~74 registered dimensions its per-minute world-statistics sweep times out constantly ('Timed out waiting for world statistics' log spam) and burns CPU. On-demand profiling ('spark profiler start') is unaffected.",
+  "backgroundProfiler": false
+}
