@@ -22,8 +22,10 @@
                 <!-- Mixin target not found warnings (cross-mod optional compat) -->
                 <RegexFilter regex=".*@Mixin target.*was not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Error loading class:.*ClassNotFoundException.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- Bountiful pool configuration warnings (cosmetic, pools still work) -->
-                <RegexFilter regex=".*has been loaded, but is not attached to any existing data.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Bountiful pool configuration warnings (cosmetic, pools still work).
+                     (?s) is required: RegexFilter full-matches the message and these
+                     messages are multi-line. -->
+                <RegexFilter regex="(?s).*has been loaded, but is not attached to any existing data.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Quark color set definitions (mod not installed) -->
                 <RegexFilter regex=".*Failed to load custom color set definition.*quark.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Missing tags for lead (no lead mod installed) -->
@@ -32,9 +34,11 @@
                 <RegexFilter regex=".*Option.*overriden.*by mods.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Method overwrite conflict.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Static binding violation.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- Distant Horizons GC warnings (informational, not actionable) -->
-                <RegexFilter regex=".*Distant Horizons.*Garbage.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <RegexFilter regex=".*Distant Horizons.*G1.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Distant Horizons GC warnings (informational, not actionable;
+                     multi-line, hence (?s)). Also disabled at source via the
+                     DH config keys in deploy.sh/dev-up.sh. -->
+                <RegexFilter regex="(?s).*Distant Horizons.*Garbage.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex="(?s).*Distant Horizons.*G1.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- OPAC missing party/permission system (configured for mods we don't have) -->
                 <RegexFilter regex=".*configured.*isn't registered.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Lithium mixin options being force-disabled (normal mod interaction) -->
@@ -65,13 +69,28 @@
                 <RegexFilter regex=".*Failed to create update-watcher for map.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- ModernFix class loading noise -->
                 <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- DramaticDoors + Woodworks sawmill recipes (Woodworks is Forge-only, no Fabric build) -->
-                <RegexFilter regex=".*woodworks:sawmill.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- DramaticDoors + Chipped cross-mod door variant recipes (item IDs don't match our Chipped version) -->
-                <RegexFilter regex=".*dramaticdoors:tall_chipped_.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <RegexFilter regex=".*dramaticdoors:recipes/redstone/tall_chipped_.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- When Dungeons Arise advancement format issues (old JSON format, mod bug) -->
-                <RegexFilter regex=".*dungeons_arise:find_.*No key id in MapLike.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- DramaticDoors dead optional integrations: its bundled recipes for
+                     Woodworks' sawmill (Forge-only) and mismatched Chipped door items
+                     can never parse here. The distinguishing text lives in the
+                     EXCEPTION, which RegexFilter can't see — filter the vanilla
+                     "Parsing error loading recipe <id>" message itself. Working
+                     sawmill recipes come from universal-sawmill's generated pack. -->
+                <RegexFilter regex="Parsing error loading recipe dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex="Parsing error loading custom advancement dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- When Dungeons Arise data bugs (pre-1.21 item predicate format) -->
+                <RegexFilter regex="Parsing error loading custom advancement dungeons_arise:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- The follow-up summary line for the same known-broken advancements -->
+                <RegexFilter regex="Couldn't load advancements: .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- FastNetherPortals datapack references a gamerule that doesn't exist on Fabric -->
+                <RegexFilter regex="Failed to load function fnp:load" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*missing following references: fnp:load.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Mods registering entities/blocks without datafixers — standard modded
+                     noise, harmless (datafixers only matter for vanilla version upgrades) -->
+                <RegexFilter regex="No data fixer registered for .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Lithium option cascade: supplementaries ships a compat override
+                     (mixin.util.block_tracking=false) and Lithium logs every dependent
+                     option it therefore disables -->
+                <RegexFilter regex="Option 'mixin\..*' requires 'mixin\.util\.block_tracking=true'.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Natures Spirit missing tag reference (harmless) -->
                 <RegexFilter regex=".*Couldn't load tag c:stripped_wood.*natures_spirit.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->

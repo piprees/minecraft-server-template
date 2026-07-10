@@ -199,10 +199,16 @@ PYEOF
 # Distant Horizons: silence the per-boot G1/explicit-GC warning wall.
 DH_TOML="$CONSUMER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
+  DH_SEDS=(
+    -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/'
+    -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/'
+    -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/'
+    -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/'
+  )
   if [[ "$(uname)" == "Darwin" ]]; then
-    sed -i '' -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+    sed -i '' "${DH_SEDS[@]}" "$DH_TOML"
   else
-    sed -i -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+    sed -i "${DH_SEDS[@]}" "$DH_TOML"
   fi
 fi
 

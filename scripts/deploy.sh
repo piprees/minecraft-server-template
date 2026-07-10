@@ -361,8 +361,12 @@ PYEOF
 # [common.logging.warning] in DistantHorizons.toml.
 DH_TOML="$SERVER_DIR/data/config/DistantHorizons.toml"
 if [[ -f "$DH_TOML" ]]; then
-  sed -i 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' "$DH_TOML"
-  sed -i 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+  sed -i \
+    -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' \
+    -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' \
+    -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/' \
+    -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/' \
+    "$DH_TOML"
 fi
 
 # =============================================================================
@@ -472,6 +476,10 @@ while [[ $ELAPSED -lt $MAX_WAIT ]]; do
     echo "  Server is healthy (took ${ELAPSED}s)"
     break
   fi
+  # Re-assert the autopause suspension each poll: if mc crash-restarted
+  # mid-boot (e.g. a failed download), an exec into the dead container
+  # was silently lost and the fresh one must get the sentinel again.
+  suspend_autopause
   sleep $INTERVAL
   ELAPSED=$((ELAPSED + INTERVAL))
   echo "    ...waiting (${ELAPSED}s / ${MAX_WAIT}s)"

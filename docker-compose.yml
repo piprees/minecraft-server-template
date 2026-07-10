@@ -112,7 +112,10 @@ services:
       # on connect - transparent to players, zero CPU/RAM while idle.
       ENABLE_AUTOPAUSE: "TRUE"
       AUTOPAUSE_TIMEOUT_EST: ${AUTOPAUSE_TIMEOUT:-300}
-      AUTOPAUSE_TIMEOUT_INIT: "120"
+      # 900s: boots create every custom dimension world and load ~80 BlueMap
+      # maps — pausing mid-boot (the old 120s) froze that work half-done and
+      # started a knock/pause churn. Deploys additionally hold .skip-pause.
+      AUTOPAUSE_TIMEOUT_INIT: "900"
       MAX_TICK_TIME: "-1"
 
       # --- Gameplay ---
