@@ -25,6 +25,24 @@ cat .stack/current/stack/scripts/deploy.sh           # local bundle cache
 curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/main/scripts/deploy.sh
 ```
 
+## Keeping up to date
+
+The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v2`) resolves to the latest matching release.
+
+```bash
+./dev update    # pull the latest stack bundle + Docker images (local only)
+./dev sync      # everything: local down → update → env sync to GitHub → server update → local up
+./ops update    # update the production server only (pull bundle, images, full redeploy)
+```
+
+`./dev update` also refreshes this repo's `dev`, `ops`, `stack-pull.sh`, `.env.example`, `.gitignore`, this `AGENTS.md`, and the CI workflows from the bundle — those files are platform-owned and will be overwritten; don't customise them. `README.md` and `overlay/` are yours and are never touched.
+
+## In-house platform mods & custom dimensions
+
+The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-edit `data/mods/`**: it's managed (Modrinth sync + bundle installs) and your changes will be overwritten.
+
+The custom-dimensions mod creates the platform's `adventure:*` dimensions at deploy time from the bundle's `config/dimensions.txt`, links their portals, and persists everything to `data/config/multiverse_config.json`. That file is state, not config — the deploy recreates it idempotently; don't hand-edit it. Ops commands (RCON): `dimension create|load|delete`, `portal link|delete`. Full grammar and architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
+
 ## Production access
 
 ```bash
@@ -39,6 +57,16 @@ curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/mai
 **Snapshot, never stream.** `docker logs --tail N` — yes. `docker logs -f`, `live-logs.sh` — no; they block forever. Never use unbounded wait loops over SSH.
 
 **RCON silence usually means autopause**, not an outage. The JVM freezes when the server is empty for 10 minutes.
+
+**Crash-loop triage:** boot failures (mod downloads, mixin apply errors) die before the game log exists, so `data/logs/latest.log` will look fine while the container loops. Check the container itself:
+
+```bash
+./ops ssh 'docker inspect mc --format "RestartCount={{.RestartCount}} Health={{if .State.Health}}{{.State.Health.Status}}{{end}}"'
+./ops ssh 'docker logs mc --tail 80'      # init + mixin errors live here, not in data/logs/
+ls data/crash-reports/ 2>/dev/null        # tick-loop crashes land here (local)
+```
+
+A RestartCount above 0 is a crash you haven't explained yet. `Mixin apply ... failed` in the docker log means a broken mod jar — usually fixed by `./ops update` pulling the current bundle, not by removing mods.
 
 ## The environment model
 
@@ -60,9 +88,12 @@ Before pushing: check no CI run is in progress (`gh run list --limit 3`), check 
 | Remove a default mod | `overlay/mods-remove.txt` | `./dev up` or push |
 | Override a config | `overlay/config/<modname>/file` | Push |
 | Change branding | `.env` (BRAND_NAME, MOTD, etc.) + `overlay/assets/` | Push |
+| Reset the world / new seed | `.env` (`SEED`) | `./ops reset-seed <seed>` (triple-confirmed, backs up first) |
+| Update to the latest platform | — | `./dev sync` |
 | Add a client mod | Not here — PR to the template repo | — |
 | Change game rules | Not here — PR to the template repo | — |
 | Change permissions | Not here — PR to the template repo | — |
+| Add/change custom dimensions | Not here — PR to the template repo (`config/dimensions.txt` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | — |
 
 ## Safety rules
 
