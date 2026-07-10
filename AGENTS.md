@@ -138,13 +138,15 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 ## In-house mods
 
-`mods/` contains Fabric mod projects built and maintained as part of this platform. Each subdirectory is a standalone Gradle project targeting MC 1.21.1 + Java 21 (pinned via `mods/mise.toml`). See `mods/AGENTS.md` for the full mod development contract — mixin conventions, testing workflow, and the custom-dimensions architecture.
+`mods/` contains Fabric mod projects built and maintained as part of this platform. Each subdirectory is a standalone Gradle project targeting MC 1.21.1 + Java 21 (pinned via `mods/mise.toml`). See `mods/AGENTS.md` for the full mod development contract — mixin conventions, the verification loop, and the custom-dimensions architecture.
 
 | Mod | Dir | Purpose |
 | --- | --- | --- |
 | custom-dimensions | `mods/custom-dimensions/` | Runtime dimension creation, custom portal frames, coordinate scaling, bidirectional travel |
 
-Built JARs go into `overlay/mods/` in consumer repos — not published to Modrinth.
+**Delivery pipeline (never hand-copy jars into consumer repos, never publish to Modrinth):** `release.yml` builds each mod and stages the **remapped** jar from `build/libs/` (never the `-dev` jar from `build/devlibs/`) as `dist/local-mods/<mod>.jar`; `build-stack-bundle.sh` packs it into the bundle as `stack/local-mods/`; from there `deploy.sh` (production, step 8b — while mc is stopped, before it starts) and `dev-up.sh` (local, every `./dev up`) copy `stack/local-mods/*.jar` into `data/mods/`. Both `mod-build.yml` and `release.yml` verify the jar contains compiled classes and the Loom-generated refmap — an unremapped or empty jar boots as a production crash loop, and Gradle will happily report BUILD SUCCESSFUL while producing one.
+
+**Iterate locally before releasing.** A release→deploy→sync cycle costs ~10–15 minutes per attempt and restarts production; the local loop costs ~1 minute and catches almost everything. Follow the [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop): build → install into the local consumer's `data/mods/` → restart local mc → exercise via RCON → soak time-based paths. Only cut a release once the local loop passes end to end.
 
 ## Mods
 
@@ -215,7 +217,7 @@ OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<tit
 | --- | --- | --- |
 | Add a server mod (consumer) | `overlay/mods-extra.txt` (+ deps, pinned) | `./dev up` or push to `main` |
 | Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned) | Push, cut release |
-| Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && ./gradlew build` → copy JAR to `overlay/mods/` |
+| Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && ./gradlew build` → local verification loop ([mods/AGENTS.md](mods/AGENTS.md#verification-loop)) → cut a release to ship |
 | Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
 | Add a client mod | `modpack/adventure.mrpack.json` | Push (CI rebuilds `.mrpack`) |
 | Change a game rule | `config/boring_default_game_rules/config.json` + `scripts/deploy.sh` | Push (full deploy) |

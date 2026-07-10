@@ -85,7 +85,7 @@ Bump `STACK_VERSION` in `.env` (or leave it as `v1` to track the latest v1.x.y):
 Each GitHub release `vX.Y.Z` on this repo:
 
 - Tags every GHCR image (`defaults-seed`, `modpack-builder`, sidecars) with `X.Y.Z`, `X.Y`, `X`, `latest`
-- Attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs
+- Attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified — installed into `data/mods/` by `deploy.sh` and `./dev up`)
 
 ### Compatibility promise
 
@@ -185,6 +185,7 @@ This is the **platform repo** — it builds and publishes images, the stack bund
 │   ├── kuma-init/                   #   Uptime Kuma provisioner
 │   └── mod-checker/                 #   mod update checker
 ├── examples/consumer/               # Consumer scaffold — copy this to start your server
+├── mods/                            # In-house Fabric mods (Gradle projects; see mods/AGENTS.md)
 ├── scripts/                         # Operational + build scripts (see table below)
 ├── config/                          # Default server configs, mod list, messages, nginx, etc.
 ├── modpack/                         # Client pack manifest + overrides + built .mrpack (dist/)
@@ -213,6 +214,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `initial-setup.sh` | server | First boot: restic init, config seed, image pull |
 | `deploy.sh` | server (CI) | The deploy: countdown → kick → restart → config sync → rules → whitelist |
 | `setup-permissions.sh` | server | LuckPerms groups/permissions via RCON (called by deploy.sh) |
+| `setup-dimensions.sh` | server | Create custom dimensions + link portals via RCON from `config/dimensions.txt` (called by deploy.sh) |
 | `cloudflare-setup.sh` | Mac | Tunnel + A/SRV/CNAME records + R2 bucket + maintenance Worker |
 | `infra-deploy.sh` | server (CI) | Infra-tier deploy: pull + recreate sidecars without touching mc |
 | `github-env-sync.sh` | Mac | Create GitHub production environment, push secrets/vars from .env |
@@ -384,7 +386,7 @@ RCON is never exposed publicly — it only exists inside the Docker network, rea
 
 This is the platform repo. Contributors work here to improve the images, bundle scripts, default configs, and workflows that all consumers inherit.
 
-**Repo layout:** `docker/` contains Dockerfiles for all GHCR images. `scripts/` has the operational scripts shipped in the bundle plus template-only tooling. `config/` holds the default configs seeded by the `defaults-seed` image.
+**Repo layout:** `docker/` contains Dockerfiles for all GHCR images. `scripts/` has the operational scripts shipped in the bundle plus template-only tooling. `config/` holds the default configs seeded by the `defaults-seed` image. `mods/` holds the in-house Fabric mods — changes there must go through the [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop) (build → inspect the remapped jar → local RCON exercise → soak timed paths) before a release ships them.
 
 **How defaults get released:** push to `main` triggers image builds. Cut a release with `vX.Y.Z` tag to publish the stack bundle and tag images. See [docs/releasing.md](docs/releasing.md).
 
