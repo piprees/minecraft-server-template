@@ -491,6 +491,13 @@ for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; d
 done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
+# --- Create custom dimensions (idempotent — skips existing) -------------------
+if [[ -x "$SCRIPT_DIR/setup-dimensions.sh" && -f "$STACK_DIR/config/dimensions.txt" ]]; then
+  echo ""
+  echo "==> Creating custom dimensions..."
+  bash "$SCRIPT_DIR/setup-dimensions.sh"
+fi
+
 # --- Custom dimensions (from dimensions.txt) ----------------------------------
 # Handles ~57 modded dimensions: activate, set world borders, enforce BlueMap.
 # Skips comments, blanks, and dimensions sharing the server seed (vanilla worlds).
