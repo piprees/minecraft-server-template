@@ -54,9 +54,8 @@ set +a
 CURRENT_SEED="${SEED:-unknown}"
 REMOTE="${DEPLOY_USER}@${DROPLET_HOST}"
 SSH_KEY="$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key"
-REPO_NAME="$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo server)")"
 # shellcheck disable=SC2088
-REMOTE_DIR="~/${REPO_NAME}"
+REMOTE_DIR="~/server"
 # shellcheck disable=SC2088
 STACK_SCRIPTS="${REMOTE_DIR}/.stack/current/stack/scripts"
 
