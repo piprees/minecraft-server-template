@@ -302,6 +302,38 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
 fi
 
 # =============================================================================
+# 8c. Enforce c2me density-function-compiler OFF (per-dimension seeds)
+# =============================================================================
+# c2me's DFC caches compiled+instantiated density functions across
+# NoiseConfig creations, ignoring the seed — every custom dimension then
+# generates as a clone of the main world regardless of its pinned seed.
+# Disabling just this submodule restores correct per-dimension worldgen;
+# the rest of c2me stays on. Idempotent; runs while mc is stopped.
+C2ME_TOML="$SERVER_DIR/data/config/c2me.toml"
+python3 - "$C2ME_TOML" << 'PYEOF'
+import sys, os
+p = sys.argv[1]
+section = "[vanillaWorldGenOptimizations]"
+key = "useDensityFunctionCompiler"
+if os.path.exists(p):
+    s = open(p).read()
+    if key in s:
+        import re
+        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
+    elif section in s:
+        s2 = s.replace(section, section + "\n\t%s = false" % key)
+    else:
+        s2 = s + "\n%s\n\t%s = false\n" % (section, key)
+    if s2 != s:
+        open(p, "w").write(s2)
+        print("  c2me: useDensityFunctionCompiler forced off (per-dimension seeds)")
+else:
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    open(p, "w").write("%s\n\t%s = false\n" % (section, key))
+    print("  c2me: config created with useDensityFunctionCompiler off")
+PYEOF
+
+# =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
 # =============================================================================
 # The dcintegration mod must never register slash commands: it shares the bot

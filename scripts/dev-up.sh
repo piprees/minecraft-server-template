@@ -170,6 +170,32 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$CONSUMER_DIR"
 fi
 
+# --- Enforce c2me density-function-compiler OFF -------------------------------
+# c2me's DFC caches compiled density functions across NoiseConfig creations,
+# ignoring the seed — custom dimensions clone the main world without this.
+# Mirrors deploy.sh step 8c. Idempotent.
+C2ME_TOML="$CONSUMER_DIR/data/config/c2me.toml"
+python3 - "$C2ME_TOML" << 'PYEOF'
+import sys, os, re
+p = sys.argv[1]
+section = "[vanillaWorldGenOptimizations]"
+key = "useDensityFunctionCompiler"
+if os.path.exists(p):
+    s = open(p).read()
+    if key in s:
+        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
+    elif section in s:
+        s2 = s.replace(section, section + "\n\t%s = false" % key)
+    else:
+        s2 = s + "\n%s\n\t%s = false\n" % (section, key)
+    if s2 != s:
+        open(p, "w").write(s2)
+        print("  c2me: useDensityFunctionCompiler forced off (per-dimension seeds)")
+else:
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    open(p, "w").write("%s\n\t%s = false\n" % (section, key))
+PYEOF
+
 # --- Install in-house mod JARs from the bundle --------------------------------
 # Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
 # Overwrite deliberately so a bundle update replaces stale copies. Without

@@ -12,6 +12,7 @@
     "PeacefulDimensionSpawnMixin",
     "PortalIgnitionMixin",
     "ServerWorldMixin",
+    "ServerWorldSeedMixin",
     "SimpleRegistryAccessor",
     "WorldLoaderMixin"
   ],

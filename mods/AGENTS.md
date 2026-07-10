@@ -95,6 +95,8 @@ grep -iE 'Unloading idle|ConcurrentModification' <consumer>/data/logs/latest.log
 
 **Tick-loop threading rule:** never mutate the server's worlds map (or any collection vanilla iterates per tick) from a `ServerWorld.tick` / world-tick mixin — that's a `ConcurrentModificationException` crash when the timer fires. Defer mutations to `ServerTickEvents.END_SERVER_TICK` (see `MultiverseServer` and the pending-load queue in `DimensionManager` for the pattern).
 
+**c2me DFC trap (per-dimension seeds):** `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension — that value feeds `NoiseConfig` (terrain, biome layout, aquifers) and structure placement. c2me's density-function compiler (`c2me-opts-dfc`) caches compiled+instantiated density functions across `NoiseConfig` creations and IGNORES the seed, so with it enabled every custom dimension silently clones the main world. `deploy.sh` (step 8c) and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml`; the rest of c2me stays enabled. When testing seeds, use the locate oracle: two dims with different seeds must give different `execute in adventure:<dim> run locate biome/structure` results; same seed must match.
+
 ### 5. Ship and verify at each layer
 
 Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production only). Then verify **outcomes, not script output**:
