@@ -138,6 +138,10 @@ services:
       # Custom log4j config to filter RCON spam, Vinery warnings, etc.
       JVM_OPTS: "-Dlog4j.configurationFile=/config-vol/log4j2-adventure.xml"
 
+    # 78 BlueMap maps each need an inotify watcher — raise the default limit
+    sysctls:
+      - fs.inotify.max_user_instances=512
+      - fs.inotify.max_user_watches=65536
     volumes:
       # Persistent world data, config, mods, logs - the lot.
       - ./data:/data
