@@ -536,7 +536,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   # Only set borders for dimensions that exist.
   echo "  Setting ChunkyBorder for custom dimensions..."
   # shellcheck disable=SC2034
-  while IFS='|' read -r name _type scale seed _portal _ignitor _group || [[ -n "$name" ]]; do
+  while IFS='|' read -r name _type scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
     result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
