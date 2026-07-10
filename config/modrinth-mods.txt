@@ -195,7 +195,7 @@ starter-kit:OUsoZwOx
 
 # === difficulty ===
 configurable-difficulty:nEy5XFzJ
-attributefix:XwbErf6s?
+attributefix?:XwbErf6s
 
 # === server defaults ===
 boring-default-game-rules:4cRPF0s7
