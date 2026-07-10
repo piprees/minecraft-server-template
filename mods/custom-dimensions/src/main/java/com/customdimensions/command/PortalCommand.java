@@ -148,7 +148,7 @@ public class PortalCommand {
                 }
             }
             for (String name : MultiverseConfig.getInstance().getDimensionNames()) {
-                String full = "minecraft:" + name;
+                String full = com.customdimensions.config.DimensionDefinition.NAMESPACE + ":" + name;
                 if (full.toLowerCase().startsWith(rem)) {
                     builder.suggest(full);
                 }

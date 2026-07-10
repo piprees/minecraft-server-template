@@ -3,6 +3,11 @@ package com.customdimensions.config;
 import net.minecraft.util.Identifier;
 
 public class DimensionDefinition {
+    // Platform contract: custom dimensions live under adventure:<name>.
+    // config/dimensions.txt, deploy.sh, and the BlueMap map configs all
+    // address dimensions by this namespace.
+    public static final String NAMESPACE = "adventure";
+
     private String name;
     private String type;
     private String dimensionId;
@@ -69,6 +74,6 @@ public class DimensionDefinition {
 
     public Identifier getDimensionIdentifier() {
         String id = this.dimensionId.toLowerCase();
-        return id.contains(":") ? Identifier.of(id) : Identifier.of("minecraft", id);
+        return id.contains(":") ? Identifier.of(id) : Identifier.of(NAMESPACE, id);
     }
 }

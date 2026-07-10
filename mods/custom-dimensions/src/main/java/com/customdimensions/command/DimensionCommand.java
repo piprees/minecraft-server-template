@@ -9,10 +9,10 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import java.util.Locale;
 import java.util.Set;
@@ -50,7 +50,11 @@ public class DimensionCommand {
                                                 .executes(DimensionCommand::executeCreate)
                                                 .then(CommandManager.argument("seed", LongArgumentType.longArg())
                                                         .executes(DimensionCommand::executeCreate)
-                                                        .then(CommandManager.argument("biome", IdentifierArgumentType.identifier())
+                                                        // Quoted string, not an identifier: multi_biome and the
+                                                        // island types take comma-separated biome lists
+                                                        // (e.g. "minecraft:plains,terralith:shield"), and commas
+                                                        // are illegal in identifiers.
+                                                        .then(CommandManager.argument("biome", StringArgumentType.string())
                                                                 .executes(DimensionCommand::executeCreate)
                                                                 .then(CommandManager.argument("peaceful", BoolArgumentType.bool())
                                                                         .executes(DimensionCommand::executeCreate)))))))
@@ -86,12 +90,23 @@ public class DimensionCommand {
 
         String biome = null;
         try {
-            biome = IdentifierArgumentType.getIdentifier(ctx, "biome").toString();
+            biome = StringArgumentType.getString(ctx, "biome");
         } catch (Exception ignored) {
+        }
+        if (biome != null && biome.isEmpty()) {
+            biome = null;
+        }
+        if (biome != null) {
+            for (String token : biome.split(",")) {
+                if (Identifier.tryParse(token.trim()) == null) {
+                    ctx.getSource().sendError(Text.literal("Invalid biome id '" + token.trim() + "' in biome list"));
+                    return 0;
+                }
+            }
         }
 
         if ((type.equals("single_biome") || type.equals("multi_biome")) && biome == null) {
-            ctx.getSource().sendError(Text.literal(type + " type requires a biome argument (e.g., minecraft:cherry_grove or cherry_grove,meadow,flower_forest)"));
+            ctx.getSource().sendError(Text.literal(type + " type requires a biome argument (e.g., \"minecraft:cherry_grove\" or \"cherry_grove,meadow,flower_forest\")"));
             return 0;
         }
 
@@ -101,7 +116,7 @@ public class DimensionCommand {
         } catch (Exception ignored) {
         }
 
-        DimensionDefinition def = new DimensionDefinition(name, type, "minecraft:" + name);
+        DimensionDefinition def = new DimensionDefinition(name, type, DimensionDefinition.NAMESPACE + ":" + name);
         def.setSeed(seed);
         def.setBiome(biome);
         if (peaceful) {
