@@ -1,0 +1,10 @@
+{
+	"objectives": [
+		"carpenter_objs",
+		"_all_objs"
+	],
+	"rewards": [
+		"carpenter_rews",
+		"_all_rews"
+	]
+}

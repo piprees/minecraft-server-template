@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # stack-pull.sh — Fetch and cache a pinned stack bundle from GitHub releases.
 #
+# INTERNAL PLUMBING — never run or edit directly. `dev` and `ops` call this
+# for you (ops update also ships it to the production server and runs it
+# there). It exists as a top-level file only because it's the bootstrap: the
+# script that downloads the bundle can't live inside the bundle.
+#
 # This is the ONE script consumers vendor a copy of. It has no dependencies
 # on lib.sh or any other file in the stack bundle.
 #

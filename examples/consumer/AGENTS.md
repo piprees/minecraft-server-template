@@ -37,6 +37,8 @@ The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v2
 
 `./dev update` also refreshes this repo's `dev`, `ops`, `stack-pull.sh`, `.env.example`, `.gitignore`, this `AGENTS.md`, and the CI workflows from the bundle — those files are platform-owned and will be overwritten; don't customise them. `README.md` and `overlay/` are yours and are never touched.
 
+`stack-pull.sh` is internal plumbing, not a command: it's the bootstrap that downloads the platform bundle, so it's the one script that can't live *inside* the bundle (chicken-and-egg). `dev`/`ops` call it for you (including on the production server, where `ops update` ships and runs it) — never run or edit it directly.
+
 ## In-house platform mods & custom dimensions
 
 The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-edit `data/mods/`**: it's managed (Modrinth sync + bundle installs) and your changes will be overwritten.

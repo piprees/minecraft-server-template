@@ -293,7 +293,7 @@ For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms pe
 │   └── assets/                 # branding (icon, logo, cover)
 ├── dev                         # local dev commands (up/down/logs/rcon/pack/sync)
 ├── ops                         # operational commands (setup/provision/deploy/...)
-├── stack-pull.sh               # vendored bundle fetcher
+├── stack-pull.sh               # internal bootstrap — dev/ops call it, never run directly
 ├── .github/workflows/deploy.yml # CI/CD caller workflow
 ├── .github/workflows/update.yml # weekly mod re-pin PR + stack release notes
 ├── .stack/                     # git-ignored bundle cache

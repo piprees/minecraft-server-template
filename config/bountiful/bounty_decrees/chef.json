@@ -1,0 +1,10 @@
+{
+	"objectives": [
+		"chef_objs",
+		"_all_objs"
+	],
+	"rewards": [
+		"chef_rews",
+		"_all_rews"
+	]
+}
