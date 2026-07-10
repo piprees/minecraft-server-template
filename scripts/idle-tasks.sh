@@ -40,7 +40,14 @@ CHUNKY_MARKER="/data/.chunky-complete"
 CHUNKY_NETHER_MARKER="/data/.chunky-nether-complete"
 CHUNKY_END_MARKER="/data/.chunky-end-complete"
 CHUNKY_PL_MARKER="/data/.chunky-paradise-lost-complete"
+# Autopause suspension uses owner files reconciled into the aggregate the
+# itzg daemon actually checks (/data/.skip-pause). idle-tasks owns
+# .skip-pause-idle; deploy.sh owns .skip-pause-deploying. The aggregate
+# exists iff ANY owner file exists, so each owner can clean up its own
+# suspension without clobbering the other's.
 SKIP_PAUSE_FILE="/data/.skip-pause"
+SKIP_PAUSE_OWN="/data/.skip-pause-idle"
+SKIP_PAUSE_OTHER="/data/.skip-pause-deploying"
 chunky_active=false
 chunky_dimension="overworld"
 tasks_done=false
@@ -94,16 +101,22 @@ exit_pregen_mode() {
 }
 
 enable_skip_pause() {
-  if [[ ! -f "$SKIP_PAUSE_FILE" ]]; then
+  if [[ ! -f "$SKIP_PAUSE_OWN" ]]; then
+    touch "$SKIP_PAUSE_OWN"
     touch "$SKIP_PAUSE_FILE"
-    echo "  Created .skip-pause (autopause bypassed while Chunky runs)"
+    echo "  Created .skip-pause-idle (autopause bypassed while Chunky runs)"
   fi
 }
 
 disable_skip_pause() {
-  if [[ -f "$SKIP_PAUSE_FILE" ]]; then
-    rm -f "$SKIP_PAUSE_FILE"
-    echo "  Removed .skip-pause (autopause re-enabled)"
+  if [[ -f "$SKIP_PAUSE_OWN" ]]; then
+    rm -f "$SKIP_PAUSE_OWN"
+    if [[ ! -f "$SKIP_PAUSE_OTHER" ]]; then
+      rm -f "$SKIP_PAUSE_FILE"
+      echo "  Removed .skip-pause-idle (autopause re-enabled)"
+    else
+      echo "  Removed .skip-pause-idle (deploy suspension still active)"
+    fi
   fi
 }
 

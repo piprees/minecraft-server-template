@@ -76,15 +76,18 @@ mkdir -p "$SERVER_DIR/data/mods" "$SERVER_DIR/data/config" \
 # without this, the daemon pauses the JVM BETWEEN the deploy's own RCON
 # commands and every next command has to knock it awake — activation crawls
 # and the pause/resume churn races the chunk system. The autopause daemon
-# honours /data/.skip-pause. Managed via docker exec: the host uid can't
-# write inside data/ subtrees the container owns. Applied here (if mc is
-# up) and re-applied after the restart in step 11; removed on exit
-# (idle-tasks re-creates it when it runs Chunky).
+# honours only /data/.skip-pause, so that file is a derived AGGREGATE:
+# deploy.sh owns .skip-pause-deploying, idle-tasks owns .skip-pause-idle,
+# and the aggregate exists iff any owner file exists — each owner cleans
+# up its own suspension without clobbering the other's. Managed via
+# docker exec (the host uid can't write container-owned paths). Applied
+# here (if mc is up) and re-applied after the restart in step 11;
+# released on exit.
 suspend_autopause() {
-  docker exec mc touch /data/.skip-pause 2> /dev/null || true
+  docker exec mc sh -c 'touch /data/.skip-pause-deploying /data/.skip-pause' 2> /dev/null || true
 }
 resume_autopause() {
-  docker exec mc rm -f /data/.skip-pause 2> /dev/null || true
+  docker exec mc sh -c 'rm -f /data/.skip-pause-deploying; [ -e /data/.skip-pause-idle ] || rm -f /data/.skip-pause' 2> /dev/null || true
 }
 suspend_autopause
 trap resume_autopause EXIT
@@ -585,41 +588,23 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   echo ""
   echo "==> Processing custom dimensions..."
 
-  # Activate custom dimensions (forceload one chunk so region files exist).
+  # Ensure custom dimension worlds are loaded (queued via END_SERVER_TICK).
   # Dimensions must be created by the custom-dimensions mod first (via
-  # setup-dimensions.sh). Their ServerWorlds are lazy — created on demand
-  # and dropped by the idle unloader — so load each explicitly before
-  # touching it; skip any not created yet.
+  # setup-dimensions.sh). NO forceload here: forceloading 0,0 in each
+  # dimension triggers synchronous spawn-chunk generation on the main
+  # thread (~minutes per dimension on a 74-dim server — a deploy once
+  # crawled at 4 dims/30min). Chunk pre-generation belongs to idle-tasks'
+  # Chunky sessions, not the deploy.
   DIM_COUNT=0
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
     rcon "dimension load $name"
-    sleep 1   # load is queued for END_SERVER_TICK — give it a tick
-    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
-    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
-      continue
-    fi
-    rcon "execute in adventure:$name run forceload add 0 0"
     DIM_COUNT=$((DIM_COUNT + 1))
   done < "$DIMENSIONS_FILE"
-
-  if [[ $DIM_COUNT -gt 0 ]]; then
-    sleep 5
-    rcon "save-all flush"
-    sleep 3
-
-    # shellcheck disable=SC2034
-    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
-      [[ -z "$name" || "$name" = \#* ]] && continue
-      [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
-      rcon "execute in adventure:$name run forceload remove 0 0"
-    done < "$DIMENSIONS_FILE"
-    echo "  $DIM_COUNT custom dimensions activated"
-  else
-    echo "  No custom dimensions created yet (run setup-dimensions.sh first)"
-  fi
+  sleep 3
+  echo "  $DIM_COUNT custom dimension loads queued"
 
   # ChunkyBorder per custom dimension (radius scales with dimension scale).
   # Only set borders for dimensions that exist (load first — worlds are lazy).
