@@ -61,8 +61,11 @@ public class MultiverseConfig {
                 this.idleUnloadMinutes = loaded.idleUnloadMinutes > 0 ? loaded.idleUnloadMinutes : this.idleUnloadMinutes;
             }
             this.dirty = false;
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error("Failed to load config", e);
+        } catch (IOException | com.google.gson.JsonParseException e) {
+            // Do NOT mark clean or save here: overwriting a corrupt file with
+            // the (empty) in-memory state would silently destroy every
+            // dimension and portal definition. Leave the file for inspection.
+            MultiverseServer.LOGGER.error("Failed to load config — refusing to overwrite {}", this.configPath, e);
         }
     }
 
@@ -70,12 +73,21 @@ public class MultiverseConfig {
         if (this.configPath == null) {
             return;
         }
+        // Write-to-temp + atomic move: save() also runs during crash
+        // shutdowns, and truncating the real file in place means a crash
+        // mid-write loses every definition (this happened in production).
         try {
             Files.createDirectories(this.configPath.getParent());
-            try (BufferedWriter writer = Files.newBufferedWriter(this.configPath)) {
+            Path tmp = this.configPath.resolveSibling(FILE_NAME + ".tmp");
+            try (BufferedWriter writer = Files.newBufferedWriter(tmp)) {
                 GSON.toJson(this, writer);
-                this.dirty = false;
             }
+            try {
+                Files.move(tmp, this.configPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                Files.move(tmp, this.configPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+            this.dirty = false;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to save config", e);
         }
