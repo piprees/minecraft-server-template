@@ -238,13 +238,20 @@ fi
 if [[ "$WIPE_BACKUPS" == true ]]; then
   echo ""
   echo "==> Wiping restic snapshots in R2..."
-  ssh -i "$SSH_KEY" "$REMOTE" 'cd ~/server && set -a && source .env && set +a && \
-    export RESTIC_REPOSITORY="s3:https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}" \
-           AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
-           AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
-           RESTIC_PASSWORD && \
-    SNAP_IDS=$(restic snapshots --json 2>/dev/null | python3 -c "import json,sys; [print(s['"'"'short_id'"'"']) for s in json.load(sys.stdin)]" 2>/dev/null) && \
-    if [ -n "$SNAP_IDS" ]; then restic forget $SNAP_IDS --prune 2>&1 | tail -3; else echo "No snapshots to remove"; fi'
+  # shellcheck disable=SC2087
+  ssh -i "$SSH_KEY" "$REMOTE" bash <<'WIPE_EOF'
+cd ~/server && set -a && source .env && set +a
+export RESTIC_REPOSITORY="s3:https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}"
+export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+export RESTIC_PASSWORD
+SNAP_IDS=$(restic snapshots --json 2>/dev/null | python3 -c 'import json,sys; [print(s["short_id"]) for s in json.load(sys.stdin)]' 2>/dev/null)
+if [ -n "$SNAP_IDS" ]; then
+  restic forget $SNAP_IDS --prune 2>&1 | tail -3
+else
+  echo "No snapshots to remove"
+fi
+WIPE_EOF
   echo "  Restic backups wiped"
 fi
 
