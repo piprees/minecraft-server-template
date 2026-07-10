@@ -58,11 +58,31 @@ public class DimensionCommand {
                                                                 .executes(DimensionCommand::executeCreate)
                                                                 .then(CommandManager.argument("peaceful", BoolArgumentType.bool())
                                                                         .executes(DimensionCommand::executeCreate)))))))
+                        .then(CommandManager.literal("load")
+                                .then(CommandManager.argument("name", StringArgumentType.string())
+                                        .suggests(EXISTING_DIMENSIONS)
+                                        .executes(DimensionCommand::executeLoad)))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(EXISTING_DIMENSIONS)
                                         .executes(DimensionCommand::executeDelete)))
         );
+    }
+
+    private static int executeLoad(CommandContext<ServerCommandSource> ctx) {
+        String name = StringArgumentType.getString(ctx, "name").toLowerCase(Locale.ROOT);
+        if (MultiverseConfig.getInstance().getDimension(name) == null) {
+            ctx.getSource().sendError(Text.literal("Dimension '" + name + "' not found"));
+            return 0;
+        }
+        // Commands run from the main-thread task queue, outside tickWorlds —
+        // creating the world here is safe.
+        if (DimensionManager.getInstance().getOrCreateDimension(name) == null) {
+            ctx.getSource().sendError(Text.literal("Failed to load dimension '" + name + "'"));
+            return 0;
+        }
+        ctx.getSource().sendFeedback(() -> Text.literal("Loaded dimension '" + name + "' (" + DimensionDefinition.NAMESPACE + ":" + name + ")"), true);
+        return 1;
     }
 
     private static int executeCreate(CommandContext<ServerCommandSource> ctx) {

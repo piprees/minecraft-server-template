@@ -84,6 +84,13 @@ public class ServerWorldMixin {
                     }
                     ServerWorld targetWorld = world.getServer().getWorld(targetKey);
                     if (targetWorld == null) {
+                        // Target world not loaded (fresh boot or idle-unloaded).
+                        // Creating it here would mutate the worlds map inside
+                        // tickWorlds — queue it for END_SERVER_TICK and reset the
+                        // player's zone-entry edge so the teleport retriggers
+                        // once the world exists.
+                        DimensionManager.getInstance().requestWorldLoad(targetKey.getValue().getPath());
+                        PortalHelper.setPlayerInZone(entryKey, false);
                         continue;
                     }
 
@@ -148,9 +155,10 @@ public class ServerWorldMixin {
 
         DimensionManager.getInstance().updatePlayerPresence(worldKey, !world.getPlayers().isEmpty());
 
-        if (worldKey == World.OVERWORLD && world.getServer().getTicks() % 1200 == 0) {
-            DimensionManager.getInstance().unloadIdleDimensions(world.getServer(), MultiverseConfig.getInstance().getIdleUnloadMinutes());
-        }
+        // Idle unload is driven by ServerTickEvents.END_SERVER_TICK (see
+        // MultiverseServer) — never from here: this injection runs inside
+        // MinecraftServer.tickWorlds' iteration of the worlds map, and
+        // removing worlds mid-iteration is a ConcurrentModificationException.
     }
 
     private static void playPortalSound(ServerWorld world, BlockPos pos, String soundName) {

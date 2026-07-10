@@ -524,13 +524,15 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
 
   # Activate custom dimensions (forceload one chunk so region files exist).
   # Dimensions must be created by the custom-dimensions mod first (via
-  # setup-dimensions.sh). Skip any that don't exist yet — the mod creates
-  # them at runtime, not at deploy time.
+  # setup-dimensions.sh). Their ServerWorlds are lazy — created on demand
+  # and dropped by the idle unloader — so load each explicitly before
+  # touching it; skip any not created yet.
   DIM_COUNT=0
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
+    rcon "dimension load $name"
     result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
       continue
@@ -556,12 +558,13 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   fi
 
   # ChunkyBorder per custom dimension (radius scales with dimension scale).
-  # Only set borders for dimensions that exist.
+  # Only set borders for dimensions that exist (load first — worlds are lazy).
   echo "  Setting ChunkyBorder for custom dimensions..."
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
+    rcon "dimension load $name"
     result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
       continue

@@ -83,6 +83,13 @@ public class DimensionManager {
 
     private MinecraftServer server;
     private final Map<RegistryKey<World>, Long> lastPlayerPresence = new HashMap<>();
+    // Dimensions whose ServerWorld must be (re)created at the next safe point.
+    // Worlds are created lazily and dropped by the idle unloader, so a portal
+    // can target a dimension with no live world. Creating it from inside
+    // ServerWorld.tick would mutate the server's worlds map mid-iteration
+    // (ConcurrentModificationException) — requests queue here and are drained
+    // from END_SERVER_TICK instead.
+    private final Set<String> pendingWorldLoads = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public static DimensionManager getInstance() {
         return INSTANCE;
@@ -489,6 +496,22 @@ public class DimensionManager {
             } catch (Exception e) {
                 MultiverseServer.LOGGER.error("Failed to save dimension before unload: {}", key.getValue(), e);
             }
+        }
+    }
+
+    public void requestWorldLoad(String name) {
+        if (MultiverseConfig.getInstance().getDimension(name) != null) {
+            this.pendingWorldLoads.add(name);
+        }
+    }
+
+    public void processPendingWorldLoads() {
+        if (this.pendingWorldLoads.isEmpty()) {
+            return;
+        }
+        for (String name : new ArrayList<>(this.pendingWorldLoads)) {
+            this.pendingWorldLoads.remove(name);
+            this.getOrCreateDimension(name);
         }
     }
 
