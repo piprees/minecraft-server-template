@@ -5,7 +5,6 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -48,7 +47,11 @@ public class DimensionCommand {
                                         .then(CommandManager.argument("type", StringArgumentType.word())
                                                 .suggests(DIMENSION_TYPES)
                                                 .executes(DimensionCommand::executeCreate)
-                                                .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                                                // word(), not longArg(): Minecraft seeds are raw 64-bit
+                                                // values often written as unsigned decimals above
+                                                // Long.MAX_VALUE, which longArg() rejects. Parsed in
+                                                // executeCreate with parseUnsignedLong fallback.
+                                                .then(CommandManager.argument("seed", StringArgumentType.word())
                                                         .executes(DimensionCommand::executeCreate)
                                                         // Quoted string, not an identifier: multi_biome and the
                                                         // island types take comma-separated biome lists
@@ -103,9 +106,24 @@ public class DimensionCommand {
         }
 
         Long seed = null;
+        String seedStr = null;
         try {
-            seed = LongArgumentType.getLong(ctx, "seed");
+            seedStr = StringArgumentType.getString(ctx, "seed");
         } catch (Exception ignored) {
+        }
+        if (seedStr != null) {
+            try {
+                seed = Long.parseLong(seedStr);
+            } catch (NumberFormatException e) {
+                try {
+                    // Unsigned decimals above Long.MAX_VALUE map to the same
+                    // 64-bit pattern vanilla uses for seeds.
+                    seed = Long.parseUnsignedLong(seedStr);
+                } catch (NumberFormatException e2) {
+                    ctx.getSource().sendError(Text.literal("Invalid seed '" + seedStr + "' — must be a 64-bit number"));
+                    return 0;
+                }
+            }
         }
 
         String biome = null;
