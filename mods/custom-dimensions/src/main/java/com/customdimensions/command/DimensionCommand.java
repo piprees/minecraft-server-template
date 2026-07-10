@@ -78,13 +78,13 @@ public class DimensionCommand {
             ctx.getSource().sendError(Text.literal("Dimension '" + name + "' not found"));
             return 0;
         }
-        // Commands run from the main-thread task queue, outside tickWorlds —
-        // creating the world here is safe.
-        if (DimensionManager.getInstance().getOrCreateDimension(name) == null) {
-            ctx.getSource().sendError(Text.literal("Failed to load dimension '" + name + "'"));
-            return 0;
-        }
-        ctx.getSource().sendFeedback(() -> Text.literal("Loaded dimension '" + name + "' (" + DimensionDefinition.NAMESPACE + ":" + name + ")"), true);
+        // NEVER create the world synchronously here: world creation from a
+        // command deadlocked the production main thread (the new world's
+        // chunk system init waits on main-thread work that can't run while
+        // this command holds it). Queue it for END_SERVER_TICK like the
+        // portal path — it loads within a tick of the command returning.
+        DimensionManager.getInstance().requestWorldLoad(name);
+        ctx.getSource().sendFeedback(() -> Text.literal("Queued load of dimension '" + name + "' (" + DimensionDefinition.NAMESPACE + ":" + name + ") — ready next tick"), true);
         return 1;
     }
 
@@ -162,7 +162,9 @@ public class DimensionCommand {
         }
         MultiverseConfig.getInstance().addDimension(def);
         DimensionManager.getInstance().registerDimension(def);
-        DimensionManager.getInstance().getOrCreateDimension(name);
+        // World materialises at END_SERVER_TICK — synchronous creation from
+        // a command deadlocked production under load (see executeLoad).
+        DimensionManager.getInstance().requestWorldLoad(name);
 
         String extra = (seed != null ? ", seed: " + seed : "") + (biome != null ? ", biome: " + biome : "") + (peaceful ? ", peaceful" : "");
         ctx.getSource().sendFeedback(() -> Text.literal("Created dimension '" + name + "' (type: " + type + extra + ")"), true);

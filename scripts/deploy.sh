@@ -72,8 +72,11 @@ mkdir -p "$SERVER_DIR/data/mods" "$SERVER_DIR/data/config" \
          "$SERVER_DIR/backups" "$SERVER_DIR/cloudflared"
 
 # --- helpers ------------------------------------------------------------------
+# Hard 30s cap per RCON call: a single hung command (e.g. a wedged main
+# thread) must fail the step, never freeze the whole deploy — an unbounded
+# rcon call once pinned a deploy for 50+ minutes against a deadlocked server.
 rcon() {
-  docker exec mc rcon-cli "$@" 2> /dev/null || true
+  timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null || true
 }
 
 msg() {
@@ -89,7 +92,7 @@ server_alive() {
 
 get_player_count() {
   local result
-  result=$(docker exec mc rcon-cli "list" 2> /dev/null || echo "")
+  result=$(timeout 30 docker exec mc rcon-cli "list" 2> /dev/null || echo "")
   if [[ -z "$result" ]]; then
     echo "0"
     return
@@ -565,7 +568,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
     rcon "dimension load $name"
-    result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
+    sleep 1   # load is queued for END_SERVER_TICK — give it a tick
+    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
       continue
     fi
@@ -597,7 +601,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
     rcon "dimension load $name"
-    result=$(docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
+    sleep 1
+    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
       continue
     fi
