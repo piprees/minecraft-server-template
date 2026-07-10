@@ -57,7 +57,7 @@ dungeons-and-taverns:EUlNXs9V
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
 adventure-dungeons:EIun1fbq
-# epic-structures-dungeons:gwmJ4Ez4          # disabled: uses uppercase resource IDs (DungeonZombie, DungeonPoop1) which crash chunk gen on 1.21.1
+epic-structures-dungeons:gwmJ4Ez4
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
