@@ -170,6 +170,17 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$CONSUMER_DIR"
 fi
 
+# --- Install in-house mod JARs from the bundle --------------------------------
+# Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
+# Overwrite deliberately so a bundle update replaces stale copies. Without
+# this step the local stack runs WITHOUT the in-house mods and local testing
+# can't catch mod regressions before they hit production.
+LOCAL_MODS="$STACK_DIR/local-mods"
+if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
+  cp "$LOCAL_MODS"/*.jar "$CONSUMER_DIR/data/mods/"
+  echo "  Installed $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') in-house mod JAR(s) from the bundle"
+fi
+
 # --- Pre-seed mods from mirror/cache -----------------------------------------
 # The mod mirror uses content-addressed filenames ({slug}-{versionId}.jar) but
 # itzg expects Modrinth's original filenames. mirror-map.json maps between them.

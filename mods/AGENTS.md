@@ -40,12 +40,14 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 
 **Testing:** There is no automated test framework for Fabric mods in this repo. Test locally:
 1. Build the JAR: `./gradlew build`
-2. Copy to the server's overlay: `cp build/libs/<mod>.jar ../../overlay/mods/`
+2. Copy the **remapped** jar (from `build/libs/`, NOT the `-dev` jar from `build/devlibs/`) into the local server: `cp build/libs/<mod>-<version>.jar ../../data/mods/`
 3. Boot the local server: `cd ../.. && ./dev up`
 4. Check logs for mixin errors: `docker logs mc 2>&1 | grep -i 'mixin\|error\|exception'`
 5. Test in-game: create a dimension, link a portal, step through it, return
 
-**Releasing:** Built JARs are committed to `overlay/mods/` in consumer repos (not published to Modrinth). The server loads them alongside Modrinth-managed mods via the itzg image's `/data/mods/` directory.
+**Dev jar trap:** `build/devlibs/<mod>-<version>-dev.jar` uses Yarn named mappings and has no refmap — it only works inside a Loom dev environment. On a real server every mixin fails (`could not find any targets ... No refMap loaded`) and the server crash-loops. Only ever ship `build/libs/<mod>-<version>.jar`. CI verifies the refmap is present (`mod-build.yml`, `release.yml`).
+
+**Releasing:** `release.yml` builds the mod with Gradle, stages the remapped jar as `dist/local-mods/customdimensions.jar`, and `build-stack-bundle.sh` packs it into the stack bundle as `stack/local-mods/`. On production, `deploy.sh` copies `stack/local-mods/*.jar` into `data/mods/`; locally, `dev-up.sh` does the same on `./dev up`. Nothing is published to Modrinth and no jars are committed to git.
 
 ## Current mods
 

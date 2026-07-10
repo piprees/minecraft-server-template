@@ -53,11 +53,32 @@ jobs:
           gradle-version: '8.13'
 
       - name: Build in-house mods
+        # Ship the REMAPPED jar from build/libs/ — never the -dev jar from
+        # build/devlibs/. Dev jars use Yarn named mappings and carry no refmap,
+        # so every mixin fails on a production server (intermediary names) and
+        # the server crash-loops at boot.
         run: |
           cd mods/custom-dimensions
           gradle build
           mkdir -p ../../dist/local-mods
-          cp build/devlibs/customdimensions-*-dev.jar ../../dist/local-mods/customdimensions.jar
+          JAR=$(find build/libs -name 'customdimensions-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
+          cp "$JAR" ../../dist/local-mods/customdimensions.jar
+
+      - name: Verify mod JAR is remapped
+        # Guards against the empty/unremapped jar failure mode: the jar must
+        # contain compiled classes and the mixin refmap Loom generates during
+        # remapping. An unremapped or empty jar ships a production crash loop.
+        run: |
+          JAR=dist/local-mods/customdimensions.jar
+          if ! unzip -l "$JAR" | grep -q 'customdimensions-refmap.json'; then
+            echo "::error::$JAR is missing customdimensions-refmap.json — remapJar produced an unremapped or empty jar"
+            exit 1
+          fi
+          CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+          if [[ "$CLASSES" -lt 10 ]]; then
+            echo "::error::$JAR contains only $CLASSES classes — remapJar output looks empty"
+            exit 1
+          fi
 
       - name: Build bundle
         run: ./scripts/build-stack-bundle.sh "${{ inputs.version }}"

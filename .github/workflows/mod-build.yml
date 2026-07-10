@@ -30,3 +30,25 @@ jobs:
       - name: Build & test
         working-directory: mods/custom-dimensions
         run: gradle build
+
+      - name: Verify remapped JAR
+        # remapJar can silently produce an empty jar (25-byte MANIFEST only)
+        # on an incompatible Loom/Gradle pairing — catch it here, not on the
+        # production server. The remapped jar must contain classes + refmap.
+        working-directory: mods/custom-dimensions
+        run: |
+          JAR=$(find build/libs -name 'customdimensions-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
+          if [[ -z "$JAR" ]]; then
+            echo "::error::No remapped jar found in build/libs"
+            exit 1
+          fi
+          if ! unzip -l "$JAR" | grep -q 'customdimensions-refmap.json'; then
+            echo "::error::$JAR is missing customdimensions-refmap.json — output is unremapped or empty"
+            exit 1
+          fi
+          CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+          if [[ "$CLASSES" -lt 10 ]]; then
+            echo "::error::$JAR contains only $CLASSES classes — remapJar output looks empty"
+            exit 1
+          fi
+          echo "OK: $JAR ($CLASSES classes, refmap present)"
