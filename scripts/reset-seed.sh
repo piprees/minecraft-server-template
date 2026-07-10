@@ -151,7 +151,20 @@ BACKUP_PATH="backups/${BACKUP_NAME}"
 
 echo ""
 echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} data/"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
+  --exclude='data/bluemap' \
+  --exclude='data/mods' \
+  --exclude='data/libraries' \
+  --exclude='data/versions' \
+  --exclude='data/logs' \
+  --exclude='data/crash-reports' \
+  --exclude='data/DistantHorizons' \
+  --exclude='data/DistantHorizons.sqlite' \
+  --exclude='data/poi' \
+  --exclude='data/ledger.sqlite' \
+  --exclude='data/dynamic-data-pack-cache' \
+  --exclude='data/kuma' \
+  data/"
 echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
 
 # =============================================================================
