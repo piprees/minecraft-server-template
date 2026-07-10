@@ -35,9 +35,9 @@ The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v2
 ./ops update    # update the production server only (pull bundle, images, full redeploy)
 ```
 
-`./dev update` also refreshes this repo's `dev`, `ops`, `stack-pull.sh`, `.env.example`, `.gitignore`, this `AGENTS.md`, and the CI workflows from the bundle — those files are platform-owned and will be overwritten; don't customise them. `README.md` and `overlay/` are yours and are never touched.
+`./dev update` also refreshes this repo's `dev`, `ops`, `.env.example`, `.gitignore`, this `AGENTS.md`, and the CI workflows from the bundle — those files are platform-owned and will be overwritten; don't customise them. `README.md` and `overlay/` are yours and are never touched.
 
-`stack-pull.sh` is internal plumbing, not a command: it's the bootstrap that downloads the platform bundle, so it's the one script that can't live *inside* the bundle (chicken-and-egg). `dev`/`ops` call it for you (including on the production server, where `ops update` ships and runs it) — never run or edit it directly.
+The bundle puller lives in the bundle itself (`.stack/current/stack/scripts/stack-pull.sh`); `./dev pull` invokes it (with a minimal bootstrap inside `dev` for the first-ever pull), and `ops update` ships it to the production server. If you still have a top-level `stack-pull.sh`, it's from an older scaffold — `./dev update` removes it.
 
 ## In-house platform mods & custom dimensions
 

@@ -43,5 +43,5 @@ A major bump signals that consumers must review migration notes before upgrading
 To upgrade, consumers:
 
 1. Bump `STACK_VERSION` in `.env` (e.g. `v1` stays on latest `v1.x.y`; pin `v1.2.3` for exact control).
-2. Run `./dev update` or `./stack-pull.sh` to fetch the new bundle.
+2. Run `./dev update` (or `./dev pull`) to fetch the new bundle.
 3. Restart local dev or redeploy.

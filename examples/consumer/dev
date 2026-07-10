@@ -19,6 +19,7 @@ usage() {
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
+  echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  sync     Update everything: local down, update, env sync to GitHub, server update, local up"
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
@@ -39,10 +40,82 @@ ensure_env() {
   fi
 }
 
+# Pull/refresh the stack bundle. The full-featured puller lives IN the
+# bundle (scripts/stack-pull.sh) — safe to run from the bundle it updates,
+# because each release unpacks into an immutable .stack/<version>/ dir and
+# only the .stack/current symlink moves. bootstrap_stack below is the
+# minimal first-ever pull for when no bundle exists yet.
+stack_pull() {
+  if [[ -f "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh" ]]; then
+    (cd "$CONSUMER_DIR" && bash "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh")
+  else
+    bootstrap_stack
+  fi
+}
+
+bootstrap_stack() {
+  local repo="piprees/minecraft-server-template"
+  local pin="${STACK_VERSION:-}"
+  if [[ -z "$pin" && -f "$CONSUMER_DIR/.env" ]]; then
+    pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
+  fi
+  pin="${pin:-latest}"
+  pin="${pin#v}"
+  [[ "$pin" == "latest" ]] && pin=""
+  echo "Bootstrapping stack bundle (pin: ${pin:-latest})..."
+
+  local releases="" tag=""
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    releases=$(curl -fsSL --connect-timeout 10 --max-time 30 \
+      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      "https://api.github.com/repos/$repo/releases" 2> /dev/null) || true
+  fi
+  if [[ -z "$releases" ]] && command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
+    releases=$(gh api "/repos/$repo/releases" 2> /dev/null) || true
+  fi
+  if [[ -z "$releases" ]]; then
+    releases=$(curl -fsSL --connect-timeout 10 --max-time 30 \
+      "https://api.github.com/repos/$repo/releases" 2> /dev/null) || true
+  fi
+  tag=$(echo "$releases" \
+    | grep -oE '"tag_name"\s*:\s*"v[0-9]+\.[0-9]+\.[0-9]+"' \
+    | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
+    | sort -t. -k1,1nr -k2,2nr -k3,3nr \
+    | while IFS= read -r t; do
+        if [[ -z "$pin" || "$t" == "$pin" || "$t" == "$pin".* ]]; then
+          echo "v$t"
+          break
+        fi
+      done)
+  if [[ -z "$tag" ]]; then
+    echo "ERROR: could not resolve a release matching '${pin:-latest}'" >&2
+    exit 1
+  fi
+
+  local bare="${tag#v}"
+  local dir="$CONSUMER_DIR/.stack/$tag"
+  local tarball="stack-v${bare}.tar.gz"
+  echo "Downloading $tag..."
+  mkdir -p "$dir"
+  local f
+  for f in "$tarball" "$tarball.sha256"; do
+    curl -fSL --connect-timeout 10 --max-time 120 -o "$dir/$f" \
+      "https://github.com/$repo/releases/download/$tag/$f"
+  done
+  if ! (cd "$dir" && { shasum -a 256 -c "$tarball.sha256" > /dev/null 2>&1 || sha256sum -c "$tarball.sha256" > /dev/null 2>&1; }); then
+    echo "ERROR: checksum verification failed — removing corrupted download" >&2
+    rm -rf "$dir"
+    exit 1
+  fi
+  tar -xzf "$dir/$tarball" -C "$dir"
+  ln -sfn "$tag" "$CONSUMER_DIR/.stack/current"
+  echo "$tag ready at .stack/current"
+}
+
 ensure_stack() {
   if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
     echo "Stack bundle not found. Pulling..."
-    bash "$CONSUMER_DIR/stack-pull.sh"
+    stack_pull
   fi
 }
 
@@ -147,9 +220,12 @@ case "$CMD" in
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/pin-mod-versions.sh" \
       --file "$CONSUMER_DIR/overlay/mods-extra.txt" "$@"
     ;;
+  pull)
+    stack_pull
+    ;;
   update)
     SELF_BEFORE="$(self_sum)"
-    bash "$CONSUMER_DIR/stack-pull.sh"
+    stack_pull
     STACK_DIR="$CONSUMER_DIR/.stack/current/stack"
     # Sync consumer entry points from the bundle. Write-to-temp + mv, never
     # cp: this loop replaces the very script bash is executing, and cp
@@ -159,7 +235,7 @@ case "$CMD" in
     # running script keeps its old inode until exit.
     # Executable entry points (write-to-temp + mv to avoid corrupting
     # the running script — see comment above reexec_if_self_updated).
-    for f in dev ops stack-pull.sh; do
+    for f in dev ops; do
       src="$STACK_DIR/examples/consumer/$f"
       if [[ -f "$src" ]]; then
         cp "$src" "$CONSUMER_DIR/$f.new"
@@ -167,6 +243,9 @@ case "$CMD" in
         mv "$CONSUMER_DIR/$f.new" "$CONSUMER_DIR/$f"
       fi
     done
+    # Migration: the puller moved into the bundle (scripts/stack-pull.sh);
+    # remove the old vendored consumer-root copy.
+    rm -f "$CONSUMER_DIR/stack-pull.sh"
     reexec_if_self_updated "$SELF_BEFORE" update "$@"
     # Non-executable files that track the platform.
     for f in .env.example .gitignore AGENTS.md; do

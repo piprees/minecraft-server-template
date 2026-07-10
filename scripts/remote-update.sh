@@ -47,8 +47,9 @@ for arg in "$@"; do
 done
 
 if [[ $IMAGES_ONLY -eq 0 ]]; then
-  # Sync stack-pull.sh from local bundle before running it on the server
-  LOCAL_PULL="$CONSUMER_DIR/.stack/current/stack/examples/consumer/stack-pull.sh"
+  # Sync stack-pull.sh from the local bundle before running it on the server
+  # (the puller lives in the bundle at scripts/stack-pull.sh)
+  LOCAL_PULL="$CONSUMER_DIR/.stack/current/stack/scripts/stack-pull.sh"
   if [[ -f "$LOCAL_PULL" ]]; then
     log "Syncing stack-pull.sh to server..."
     scp -i "$SSH_KEY" "$LOCAL_PULL" "${DEPLOY_USER}@${DROPLET_HOST}:~/server/stack-pull.sh"

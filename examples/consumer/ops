@@ -77,7 +77,7 @@ fi
 
 if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
   echo "Stack bundle not found. Pulling..."
-  bash "$CONSUMER_DIR/stack-pull.sh"
+  bash "$CONSUMER_DIR/dev" pull
 fi
 
 # Resolve script names to actual filenames

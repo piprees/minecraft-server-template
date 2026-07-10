@@ -71,9 +71,9 @@ MANIFEST=(
   scripts/dev-up.sh
   scripts/pack-build.sh
   scripts/remote-update.sh
+  scripts/stack-pull.sh
   examples/consumer/dev
   examples/consumer/ops
-  examples/consumer/stack-pull.sh
 )
 
 echo "Building stack bundle v${VERSION}..."

@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # stack-pull.sh — Fetch and cache a pinned stack bundle from GitHub releases.
 #
-# This is the ONE script consumers vendor a copy of. It has no dependencies
-# on lib.sh or any other file in the stack bundle.
+# Lives IN the bundle (scripts/stack-pull.sh) like every other operational
+# script. Safe to run from the bundle it updates: each release unpacks into
+# an immutable .stack/<version>/ dir and only the .stack/current symlink is
+# repointed, so the running copy is never overwritten. Consumers reach it
+# via `./dev pull` / `./dev update` (dev carries a minimal inline bootstrap
+# for the first-ever pull, before any bundle exists); `ops update` ships
+# this file to the production server and runs it there.
+#
+# No dependencies on lib.sh or any other file in the stack bundle.
 #
 # Usage:
 #   ./stack-pull.sh                            # resolve the latest release

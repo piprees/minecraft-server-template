@@ -41,7 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           STACK_VERSION: ${{ vars.STACK_VERSION || 'latest' }}
-        run: ./stack-pull.sh
+        run: ./dev pull
 
       - name: Report stack versions
         id: stack
