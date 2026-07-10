@@ -83,7 +83,7 @@ the_violet_spire|overworld|12|16261891333034106707|minecraft:purpur_block|minecr
 
 # --- 1:1 Special dimensions (use server seed) ---
 the_amplified_reaches|amplified|1|server|minecraft:cracked_deepslate|minecraft:amethyst_shard|overworld|
-the_underdark|single_biome|1|server|minecraft:moss_carpet|minecraft:amethyst_shard|overworld|minecraft:lush_caves
+the_underdark|multi_biome|1|server|minecraft:moss_carpet|minecraft:amethyst_shard|overworld|minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,terralith:orchid_swamp,minecraft:mushroom_fields,minecraft:crimson_forest,minecraft:warped_forest
 the_canvas|superflat|1|server|minecraft:white_concrete|minecraft:amethyst_shard|overworld||true
 the_blossom_gardens|multi_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:plains,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley|true
 
