@@ -71,6 +71,24 @@ mkdir -p "$SERVER_DIR/data/mods" "$SERVER_DIR/data/config" \
          "$SERVER_DIR/modpack-dist" "$SERVER_DIR/overlay" \
          "$SERVER_DIR/backups" "$SERVER_DIR/cloudflared"
 
+# --- Suspend autopause for the whole deploy -----------------------------------
+# Boot takes minutes with many dimensions and AUTOPAUSE_TIMEOUT_INIT is 120s:
+# without this, the daemon pauses the JVM BETWEEN the deploy's own RCON
+# commands and every next command has to knock it awake — activation crawls
+# and the pause/resume churn races the chunk system. The autopause daemon
+# honours /data/.skip-pause. Managed via docker exec: the host uid can't
+# write inside data/ subtrees the container owns. Applied here (if mc is
+# up) and re-applied after the restart in step 11; removed on exit
+# (idle-tasks re-creates it when it runs Chunky).
+suspend_autopause() {
+  docker exec mc touch /data/.skip-pause 2> /dev/null || true
+}
+resume_autopause() {
+  docker exec mc rm -f /data/.skip-pause 2> /dev/null || true
+}
+suspend_autopause
+trap resume_autopause EXIT
+
 # --- helpers ------------------------------------------------------------------
 # Hard 30s cap per RCON call: a single hung command (e.g. a wedged main
 # thread) must fail the step, never freeze the whole deploy — an unbounded
@@ -305,36 +323,42 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
 fi
 
 # =============================================================================
-# 8c. Enforce c2me density-function-compiler OFF (per-dimension seeds)
+# 8c. Enforce single-key config invariants (while mc is stopped)
 # =============================================================================
-# c2me's DFC caches compiled+instantiated density functions across
-# NoiseConfig creations, ignoring the seed — every custom dimension then
-# generates as a clone of the main world regardless of its pinned seed.
-# Disabling just this submodule restores correct per-dimension worldgen;
-# the rest of c2me stays on. Idempotent; runs while mc is stopped.
+# c2me: the density-function compiler caches compiled+instantiated density
+# functions across NoiseConfig creations, ignoring the seed — every custom
+# dimension then generates as a clone of the main world. Off restores
+# per-dimension worldgen; the rest of c2me stays on. c2me strips the key
+# when it rewrites its config at boot, so this re-applies every deploy.
 C2ME_TOML="$SERVER_DIR/data/config/c2me.toml"
-python3 - "$C2ME_TOML" << 'PYEOF'
-import sys, os
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
+python3 - "$C2ME_TOML" "[vanillaWorldGenOptimizations]" "useDensityFunctionCompiler" "false" << 'PYEOF'
+import sys, os, re
+p, section, key, value = sys.argv[1:5]
 if os.path.exists(p):
     s = open(p).read()
     if key in s:
-        import re
-        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-    elif section in s:
-        s2 = s.replace(section, section + "\n\t%s = false" % key)
+        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = %s' % (key, value), s)
+    elif section.replace("[", "\\[") and section in s:
+        s2 = s.replace(section, section + "\n\t%s = %s" % (key, value))
     else:
-        s2 = s + "\n%s\n\t%s = false\n" % (section, key)
+        s2 = s + "\n%s\n\t%s = %s\n" % (section, key, value)
     if s2 != s:
         open(p, "w").write(s2)
-        print("  c2me: useDensityFunctionCompiler forced off (per-dimension seeds)")
+        print("  %s: %s = %s enforced" % (os.path.basename(p), key, value))
 else:
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    open(p, "w").write("%s\n\t%s = false\n" % (section, key))
-    print("  c2me: config created with useDensityFunctionCompiler off")
+    open(p, "w").write("%s\n\t%s = %s\n" % (section, key, value))
+    print("  %s: created with %s = %s" % (os.path.basename(p), key, value))
 PYEOF
+
+# Distant Horizons: silence the per-boot G1/explicit-GC nag (multi-line WARN
+# wall on every start; the GC choice is deliberate). Keys live under
+# [common.logging.warning] in DistantHorizons.toml.
+DH_TOML="$SERVER_DIR/data/config/DistantHorizons.toml"
+if [[ -f "$DH_TOML" ]]; then
+  sed -i 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' "$DH_TOML"
+  sed -i 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+fi
 
 # =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
@@ -413,6 +437,10 @@ if ! $COMPOSE_CMD --profile cloud up -d --remove-orphans; then
   echo "  compose up reported a dependency failure - mc is likely still"
   echo "  syncing mods; continuing to the health wait."
 fi
+
+# Re-apply the autopause suspension inside the freshly (re)created container —
+# the pre-restart file died with the old container's filesystem view.
+suspend_autopause
 
 # Force-recreate sidecars so config/script changes actually load.
 # Keep this list in sync with infra-deploy.sh.

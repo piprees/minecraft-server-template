@@ -28,6 +28,8 @@ public class PortalCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("portal")
+                        // Admin-only, same gate as /dimension.
+                        .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.literal("link")
                                 .then(CommandManager.argument("id", StringArgumentType.string())
                                         .then(CommandManager.argument("frame", IdentifierArgumentType.identifier())

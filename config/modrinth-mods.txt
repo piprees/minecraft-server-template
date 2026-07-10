@@ -127,6 +127,9 @@ macaws-furniture:x2pXgG0s
 handcrafted:f0pKpUWd
 chipped:6h2mVZcb
 dramatic-doors:X5oMCwaA
+# universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
+# references (kills the boot recipe-parse errors). Dep: moonlight (present).
+universal-sawmill:xpemrBXJ
 farmers-delight-refabricated:NCLOIK5z
 appleskin:b5ZiCjAr
 

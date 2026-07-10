@@ -196,6 +196,16 @@ else:
     open(p, "w").write("%s\n\t%s = false\n" % (section, key))
 PYEOF
 
+# Distant Horizons: silence the per-boot G1/explicit-GC warning wall.
+DH_TOML="$CONSUMER_DIR/data/config/DistantHorizons.toml"
+if [[ -f "$DH_TOML" ]]; then
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+  else
+    sed -i -e 's/logGarbageCollectorWarning = true/logGarbageCollectorWarning = false/' -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' "$DH_TOML"
+  fi
+fi
+
 # --- Install in-house mod JARs from the bundle --------------------------------
 # Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
 # Overwrite deliberately so a bundle update replaces stale copies. Without

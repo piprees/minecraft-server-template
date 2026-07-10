@@ -42,6 +42,10 @@ public class DimensionCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(
                 CommandManager.literal("dimension")
+                        // Admin-only: permission level 2+ (ops / the LuckPerms
+                        // admin group, which deploy.sh grants op). Same gate
+                        // vanilla uses for /gamerule.
+                        .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.literal("create")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .then(CommandManager.argument("type", StringArgumentType.word())
