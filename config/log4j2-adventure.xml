@@ -15,9 +15,32 @@
         <Console name="SysOut" target="SYSTEM_OUT">
             <PatternLayout pattern="${logPattern}" />
             <Filters>
-                <!-- RCON listener thread start/stop spam (runs every healthcheck) -->
-                <RegexFilter regex=".*Thread RCON Client.*started.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <RegexFilter regex=".*Thread RCON Client.*stopped.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- RCON client/listener thread start/stop spam (hundreds per deploy) -->
+                <RegexFilter regex=".*Thread RCON.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Mixin refmap warnings (harmless, "development environment" noise) -->
+                <RegexFilter regex=".*refmap.*could not be read.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Mixin target not found warnings (cross-mod optional compat) -->
+                <RegexFilter regex=".*@Mixin target.*was not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Error loading class:.*ClassNotFoundException.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Bountiful pool configuration warnings (cosmetic, pools still work) -->
+                <RegexFilter regex=".*has been loaded, but is not attached to any existing data.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Quark color set definitions (mod not installed) -->
+                <RegexFilter regex=".*Failed to load custom color set definition.*quark.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Missing tags for lead (no lead mod installed) -->
+                <RegexFilter regex=".*Not all defined tags.*c:ingots/lead.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- C2ME/Lithium/ModernFix mixin override notices -->
+                <RegexFilter regex=".*Option.*overriden.*by mods.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Method overwrite conflict.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Static binding violation.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Distant Horizons GC warnings (informational, not actionable) -->
+                <RegexFilter regex=".*Distant Horizons.*Garbage.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*Distant Horizons.*G1.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- OPAC missing party/permission system (configured for mods we don't have) -->
+                <RegexFilter regex=".*configured.*isn't registered.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Lithium mixin options being force-disabled (normal mod interaction) -->
+                <RegexFilter regex=".*Force-disabling mixin.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- CrittersAndCompanions shift warning -->
+                <RegexFilter regex=".*Shift\.BY.*exceeds the maximum.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Vinery missing trade item warnings (harmless mod compat issue) -->
                 <RegexFilter regex=".*Vinery Villager Trade Item not found.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Loot table cross-mod reference warnings (mods referencing each other's loot tables) -->
