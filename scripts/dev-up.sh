@@ -214,6 +214,9 @@ fi
 LOCAL_MODS="$STACK_DIR/local-mods"
 if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   cp "$LOCAL_MODS"/*.jar "$CONSUMER_DIR/data/mods/"
+  # Record what we installed: the stale-jar prune exempts these names even
+  # when the bundle dir isn't visible (e.g. platform-dev checkouts).
+  for j in "$LOCAL_MODS"/*.jar; do basename "$j"; done > "$CONSUMER_DIR/data/mods/.local-mods-manifest"
   echo "  Installed $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') in-house mod JAR(s) from the bundle"
 fi
 
@@ -262,51 +265,17 @@ if [[ $SEEDED -gt 0 ]]; then
   echo "  Pre-seeded $SEEDED mod JARs from local mirror/cache"
 fi
 
-# --- Modrinth hash-gating ----------------------------------------------------
-# Only re-sync mods when the merged mod list changes (or on first boot).
-MODRINTH_OVERRIDE="$CONSUMER_DIR/.modrinth-override.yml"
-MOD_HASH_FILE="$CONSUMER_DIR/data/.modrinth-hash"
-
-# The seed container produces the merged mod list in the stack-mods volume.
-# We hash the consumer's overlay files to detect changes.
-HASH_INPUT=""
-if [[ -f "$CONSUMER_DIR/overlay/mods-extra.txt" ]]; then
-  HASH_INPUT+=$(cat "$CONSUMER_DIR/overlay/mods-extra.txt")
-fi
-if [[ -f "$CONSUMER_DIR/overlay/mods-remove.txt" ]]; then
-  HASH_INPUT+=$(cat "$CONSUMER_DIR/overlay/mods-remove.txt")
-fi
-
-if command -v sha256sum > /dev/null 2>&1; then
-  CURRENT_MOD_HASH=$(echo "$HASH_INPUT" | sha256sum | cut -d' ' -f1)
-else
-  CURRENT_MOD_HASH=$(echo "$HASH_INPUT" | shasum -a 256 | cut -d' ' -f1)
-fi
-PREVIOUS_MOD_HASH=$(cat "$MOD_HASH_FILE" 2>/dev/null || echo "none")
-
-EXTRA_COMPOSE=""
-if [[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]]; then
-  echo "  Mod overlay changed - Modrinth sync enabled for this boot"
-  cat > "$MODRINTH_OVERRIDE" << 'MODEOF'
-services:
-  mc:
-    environment:
-      MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
-MODEOF
-  EXTRA_COMPOSE="-f $MODRINTH_OVERRIDE"
-else
-  rm -f "$MODRINTH_OVERRIDE"
-fi
-
 # --- Start the local profile --------------------------------------------------
+# Mod downloads use MODS_FILE (URLs resolved by the seed container, cached) —
+# no Modrinth API at boot; itzg fetches only files missing from data/mods.
+# Legacy hash-gate override cleanup:
+rm -f "$CONSUMER_DIR/.modrinth-override.yml"
 # --project-directory is critical: it makes ./data, ./overlay, ./modpack-dist,
 # ./backups resolve relative to the consumer dir, not .stack/current/stack.
 compose_up() {
-  # shellcheck disable=SC2086
   docker compose \
     -f "$STACK_DIR/docker-compose.yml" \
     -f "$STACK_DIR/docker-compose.local.yml" \
-    $EXTRA_COMPOSE \
     --project-directory "$CONSUMER_DIR" \
     -p "$COMPOSE_PROJECT_NAME" \
     --profile local up -d
@@ -345,10 +314,23 @@ if ! compose_up; then
   fi
 fi
 
-# Save mod hash and clean up override
-if [[ -f "$MODRINTH_OVERRIDE" ]]; then
-  echo "$CURRENT_MOD_HASH" > "$MOD_HASH_FILE"
-  rm -f "$MODRINTH_OVERRIDE"
+# --- Prune stale mod jars against the seed's manifest --------------------------
+# The manifest was written by THIS boot's seed run, so removals from the
+# overlay take effect immediately; in-house bundle jars are exempt.
+MANIFEST=$(docker run --rm -v "${COMPOSE_PROJECT_NAME}_stack-mods":/m:ro alpine cat /m/mods-manifest.txt 2> /dev/null || echo "")
+LOCAL_MANIFEST=$(cat "$CONSUMER_DIR/data/mods/.local-mods-manifest" 2> /dev/null || echo "")
+if [[ -n "$MANIFEST" ]]; then
+  PRUNED=0
+  for jar in "$CONSUMER_DIR"/data/mods/*.jar; do
+    [[ -f "$jar" ]] || continue
+    base=$(basename "$jar")
+    grep -qxF "$base" <<< "$MANIFEST" && continue
+    grep -qxF "$base" <<< "$LOCAL_MANIFEST" && continue
+    [[ -f "$STACK_DIR/local-mods/$base" ]] && continue
+    rm -f "$jar"
+    PRUNED=$((PRUNED + 1))
+  done
+  [[ $PRUNED -gt 0 ]] && echo "  Pruned $PRUNED stale mod jar(s)"
 fi
 
 # --- Auto-accept BlueMap download ---------------------------------------------

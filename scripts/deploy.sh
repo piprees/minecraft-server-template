@@ -322,6 +322,8 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   echo ""
   echo "==> Copying in-house mod JARs..."
   cp "$LOCAL_MODS"/*.jar "$SERVER_DIR/data/mods/"
+  # Record what we installed so the stale-jar prune exempts these names.
+  for j in "$LOCAL_MODS"/*.jar; do basename "$j"; done > "$SERVER_DIR/data/mods/.local-mods-manifest"
   echo "  Copied $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') mod JAR(s)"
 fi
 
@@ -392,32 +394,35 @@ if [[ -f "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" ]]; then
 fi
 
 # =============================================================================
-# 10. Sync mods from Modrinth (only if inputs changed)
+# 10. Remove stale mod jars (manifest from the seed's resolver)
 # =============================================================================
-# Hash the mod list inputs (overlay files + stack version) to detect changes.
-# A stack version change includes new default mods, so the hash changes.
-MODRINTH_OVERRIDE="$SERVER_DIR/docker-compose.modrinth.yml"
-MOD_HASH_FILE="$SERVER_DIR/data/.modrinth-hash"
-STACK_VER=$(readlink "$SERVER_DIR/.stack/current" 2> /dev/null || echo "unknown")
-MOD_INPUTS="${STACK_VER}"
-[[ -f "$SERVER_DIR/overlay/mods-extra.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-extra.txt")
-[[ -f "$SERVER_DIR/overlay/mods-remove.txt" ]] && MOD_INPUTS+=$(cat "$SERVER_DIR/overlay/mods-remove.txt")
-CURRENT_MOD_HASH=$(echo "$MOD_INPUTS" | sha256sum | cut -d' ' -f1)
-PREVIOUS_MOD_HASH=$(cat "$MOD_HASH_FILE" 2> /dev/null || echo "none")
-
-if [[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]]; then
+# The seed container resolves every pin to a URL + filename and writes
+# mods-manifest.txt; the mc container's MODS_FILE downloads only missing
+# files (no Modrinth API at boot). Removal is our job: delete managed jars
+# that are no longer expected. In-house jars from the bundle are exempt.
+MANIFEST=$(docker run --rm -v "$(docker volume ls -q | grep stack-mods | head -1)":/m:ro alpine cat /m/mods-manifest.txt 2> /dev/null || echo "")
+LOCAL_MANIFEST=$(cat "$SERVER_DIR/data/mods/.local-mods-manifest" 2> /dev/null || echo "")
+if [[ -n "$MANIFEST" ]]; then
   echo ""
-  echo "==> Mod list changed - enabling Modrinth sync for this restart..."
-  cat > "$MODRINTH_OVERRIDE" << 'MODEOF'
-services:
-  mc:
-    environment:
-      MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
-MODEOF
-else
-  echo ""
-  echo "==> Mod list unchanged - skipping Modrinth (fast restart from cached JARs)"
-  rm -f "$MODRINTH_OVERRIDE"
+  echo "==> Pruning stale mod jars..."
+  PRUNED=0
+  for jar in "$SERVER_DIR"/data/mods/*.jar; do
+    [[ -f "$jar" ]] || continue
+    base=$(basename "$jar")
+    if grep -qxF "$base" <<< "$MANIFEST"; then
+      continue
+    fi
+    if grep -qxF "$base" <<< "$LOCAL_MANIFEST"; then
+      continue
+    fi
+    if [[ -f "$STACK_DIR/local-mods/$base" ]]; then
+      continue
+    fi
+    rm -f "$jar"
+    PRUNED=$((PRUNED + 1))
+    echo "  pruned: $base"
+  done
+  echo "  $PRUNED stale jar(s) removed"
 fi
 
 # =============================================================================
@@ -425,11 +430,7 @@ fi
 # =============================================================================
 echo ""
 echo "==> Starting stack..."
-if [[ -f "$MODRINTH_OVERRIDE" ]]; then
-  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE -f $MODRINTH_OVERRIDE"
-else
-  COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
-fi
+COMPOSE_CMD="docker compose --project-directory $SERVER_DIR -f $COMPOSE_FILE"
 
 # A mod-sync boot can restart mc once mid-download (Modrinth rate limits),
 # which aborts compose's dependency wait even though mc recovers under its
@@ -451,12 +452,8 @@ suspend_autopause
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
   nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
 
-# Clean up the Modrinth override and save the hash
-if [[ -f "$MODRINTH_OVERRIDE" ]]; then
-  rm -f "$MODRINTH_OVERRIDE"
-  echo "$CURRENT_MOD_HASH" > "$MOD_HASH_FILE"
-  echo "  Modrinth sync complete - override removed, hash saved"
-fi
+# Remove any legacy Modrinth override left by pre-v2.12 deploys.
+rm -f "$SERVER_DIR/docker-compose.modrinth.yml"
 
 # =============================================================================
 # 12. Wait for RCON healthcheck
@@ -464,10 +461,9 @@ fi
 echo ""
 echo "==> Waiting for server to pass healthcheck..."
 
-# Mod-sync boots download ~150 JARs before the server even starts -
-# give them a much longer window than a plain restart.
-MAX_WAIT=180
-[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=600
+# Boots create every custom dimension world (and any missing mod jars
+# download first) — a many-dimension boot regularly exceeds 5 minutes.
+MAX_WAIT=600
 ELAPSED=0
 INTERVAL=10
 

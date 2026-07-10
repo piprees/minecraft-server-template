@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="Init container: seeds default config + overlay merge into shared volumes" \
       org.opencontainers.image.licenses="MIT"
 
-RUN apk add --no-cache bash rsync
+RUN apk add --no-cache bash rsync python3
 
 COPY config/modrinth-mods.txt /defaults/modrinth-mods.txt
 
@@ -40,6 +40,7 @@ COPY config/servercore/                /defaults/config/servercore/
 COPY config/bluemap/                   /defaults/config/bluemap/
 
 COPY docker/defaults-seed/seed.sh /seed.sh
-RUN chmod +x /seed.sh
+COPY docker/defaults-seed/resolve-mods.py /resolve-mods.py
+RUN chmod +x /seed.sh /resolve-mods.py
 
 ENTRYPOINT ["/seed.sh"]

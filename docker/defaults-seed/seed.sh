@@ -93,3 +93,10 @@ defaults_count=${#lines[@]}
 hash=$(sha256sum "$out_file" | cut -d' ' -f1)
 
 echo "seed: $defaults_count defaults, $removed removed, $added added, sha256=$hash"
+
+# Resolve every pin to a direct download URL (cached — a warm cache makes
+# this zero API calls). Outputs mods-urls.txt / datapacks-urls.txt /
+# mods-manifest.txt for the mc container's MODS_FILE / DATAPACKS_FILE and
+# the deploy's stale-jar cleanup. A failed required resolution fails the
+# seed (and therefore the boot) loudly.
+python3 /resolve-mods.py "$out_file" /out/mods

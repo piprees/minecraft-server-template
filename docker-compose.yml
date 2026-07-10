@@ -122,14 +122,14 @@ services:
       MOTD: ${MOTD:-A modded adventure server}
 
       # --- Mods ---
-      # Modrinth mod sync is disabled by default for fast restarts.
-      # deploy.sh enables it via a compose override file when the mod list
-      # changes, restarts mc to download/update, then removes the override.
-      # Normal restarts/reboots skip Modrinth entirely and boot from the
-      # cached JARs in data/mods/.
-      # To force a manual mod sync:
-      #   MODRINTH_PROJECTS="@/extras/modrinth-mods.txt" docker compose --profile cloud up -d mc
-      # MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
+      # The seed container resolves every pinned Modrinth version to a
+      # direct download URL (cached — zero API calls once warm) and writes
+      # these files into the stack-mods volume. itzg downloads only files
+      # missing from data/mods, straight from the CDN — no Modrinth API at
+      # boot, no 429 restart loops when the mod list changes. Stale jars
+      # are removed by deploy.sh/dev-up.sh using mods-manifest.txt.
+      MODS_FILE: /extras/mods-urls.txt
+      DATAPACKS_FILE: /extras/datapacks-urls.txt
 
       # Force env vars to overwrite server.properties on every boot.
       # Without this, stale values (e.g. enforce-whitelist=true) persist.

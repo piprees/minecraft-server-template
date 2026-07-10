@@ -272,7 +272,7 @@ Every script has a header comment with usage, context, and gotchas — **read th
 
 Mods must target **Fabric for 1.21.1**. Before adding anything, check its dependencies via the Modrinth API and add them too (see the mandatory checklist in [AGENTS.md](AGENTS.md#mods)). Dependency libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) are never optional.
 
-Modrinth downloads are **hash-gated**: the itzg image only re-syncs mods when the merged mods file changes; unchanged inputs → unchanged file → fast boots.
+Mod downloads never touch the Modrinth **API** at boot: the seed container resolves every pin to a direct download URL once (cached in the stack-mods volume — version IDs are immutable), and the mc container's `MODS_FILE` downloads only files missing from `data/mods/` straight from the CDN. Adding one mod costs one API lookup in the seed and one CDN download — no more 429 restart loops.
 
 **Auto-updates** come via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror), and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task — every launch hash-syncs mods and pack configs from the CDN.
 
@@ -412,7 +412,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 | Out of memory       | Raise `MEMORY` in `.env`; look for `OutOfMemoryError` in logs                     |
 | Port conflict       | `lsof -i :25577`                                                                        |
 | Mod download fails  | Verify the slug + pinned ID on Modrinth; use `./dev up --offline` if Modrinth is down   |
-| Modrinth `429 Too Many Requests` on first boot | Expected — ~150 downloads trip the per-IP limit. Completed downloads persist, the container retries, and the scripts wait for it to converge (can take 10+ min). On servers, `./ops prepare` offers to upload your locally-synced mods instead, skipping Modrinth entirely |
+| Modrinth `429 Too Many Requests` in the seed container | Only possible on a cold resolve cache (first ever boot) — the resolver paces requests and honours `Retry-After`, so it converges in one run. Boots never call the Modrinth API: mods download by direct URL only when missing from `data/mods/` |
 
 **Can't connect:**
 
