@@ -31,6 +31,8 @@ import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.world.gen.WorldPreset;
+import net.minecraft.world.gen.WorldPresets;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.chunk.FlatChunkGenerator;
@@ -240,8 +242,28 @@ public class DimensionManager {
                         ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(source.chunkGenerator(), worldSeed))
                         : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
             }
-            case "amplified", "large_biomes" -> {
-                MultiverseServer.LOGGER.warn("Dimension type '{}' currently maps to overworld terrain settings", type);
+            case "amplified" -> {
+                Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
+                WorldPreset preset = presetRegistry.get(WorldPresets.AMPLIFIED);
+                if (preset != null) {
+                    Optional<DimensionOptions> presetOpts = preset.getOverworld();
+                    if (presetOpts.isPresent()) {
+                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(presetOpts.get().chunkGenerator(), worldSeed));
+                    }
+                }
+                MultiverseServer.LOGGER.warn("Amplified preset not found, falling back to overworld");
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+            }
+            case "large_biomes" -> {
+                Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
+                WorldPreset preset = presetRegistry.get(WorldPresets.LARGE_BIOMES);
+                if (preset != null) {
+                    Optional<DimensionOptions> presetOpts = preset.getOverworld();
+                    if (presetOpts.isPresent()) {
+                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(presetOpts.get().chunkGenerator(), worldSeed));
+                    }
+                }
+                MultiverseServer.LOGGER.warn("Large biomes preset not found, falling back to overworld");
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
             }
             default -> new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
