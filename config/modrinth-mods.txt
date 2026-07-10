@@ -102,6 +102,7 @@ prickle:Ef7P6Rb7
 otterlib:lMOoBAw6
 resourceful-config:dQh99ERC
 puzzles-lib:pqCNhF6A
+yacl:o3cDn8Vp
 
 # === accessories (Trinkets framework - functional charm/cape slots) ===
 # Trinkets chosen over Accessories on 1.21.1: charm-of-undying (totem slot)
@@ -191,6 +192,10 @@ hide-invis-msgs:t2fMQNrr
 # === spawn & new player ===
 betterspawn:I0Kiorjk
 starter-kit:OUsoZwOx
+
+# === difficulty ===
+configurable-difficulty:nEy5XFzJ
+attributefix:XwbErf6s?
 
 # === server defaults ===
 boring-default-game-rules:4cRPF0s7

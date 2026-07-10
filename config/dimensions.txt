@@ -87,6 +87,23 @@ the_underdark|single_biome|1|server|minecraft:moss_carpet|minecraft:amethyst_sha
 the_canvas|superflat|1|server|minecraft:white_concrete|minecraft:amethyst_shard|overworld||true
 the_blossom_gardens|multi_biome|1|server|minecraft:cherry_leaves|minecraft:cherry_sapling|overworld|minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:plains,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley|true
 
+# --- 1:1 Multi-biome overworld blends ---
+the_whispering_wilds|multi_biome|1|server|minecraft:vine|minecraft:amethyst_shard|overworld|minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,terralith:moonlight_grove,terralith:cloud_forest,minecraft:swamp,terralith:orchid_swamp
+the_sun_kingdoms|multi_biome|1|server|minecraft:sandstone|minecraft:amethyst_shard|overworld|minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:hot_shrubland,terralith:fractured_savanna
+the_frozen_hearth|multi_biome|1|server|minecraft:powder_snow_bucket|minecraft:amethyst_shard|overworld|minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,terralith:alpine_grove
+the_highland_crossing|multi_biome|1|server|minecraft:raw_copper_block|minecraft:amethyst_shard|overworld|terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs
+
+# --- 4:1 Hard compact overworld (high difficulty) ---
+the_crucible|multi_biome|4|server|minecraft:copper_block|minecraft:diamond|overworld|minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,terralith:cloud_forest,minecraft:mangrove_swamp,minecraft:swamp
+the_gauntlet|multi_biome|4|server|minecraft:oxidized_copper|minecraft:diamond|overworld|minecraft:windswept_hills,minecraft:windswept_gravelly_hills,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,minecraft:stony_peaks
+
+# --- 1:1 Multi-biome nether blends ---
+the_crimson_nexus|multi_biome|1|server|minecraft:nether_bricks|minecraft:flint_and_steel|nether|minecraft:crimson_forest,minecraft:warped_forest,minecraft:nether_wastes
+the_souldrift|multi_biome|1|server|minecraft:polished_blackstone_bricks|minecraft:flint_and_steel|nether|minecraft:soul_sand_valley,minecraft:basalt_deltas,minecraft:nether_wastes
+
+# --- 1:1 Large biomes ---
+the_endless_expanse|large_biomes|1|server|minecraft:raw_iron_block|minecraft:amethyst_shard|overworld|
+
 # --- 1:1 End dimensions ---
 the_end_citadel|end|1|2345324516627475701|minecraft:end_stone_bricks|minecraft:ender_eye|end
 the_tiled_expanse|end|1|3362388695457488365|minecraft:deepslate_tiles|minecraft:ender_eye|end
