@@ -38,6 +38,17 @@
                 <RegexFilter regex=".*Failed to parse either.*Not a string: null.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- ModernFix class loading noise -->
                 <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- DramaticDoors + Woodworks sawmill recipes (Woodworks is Forge-only, no Fabric build) -->
+                <RegexFilter regex=".*woodworks:sawmill.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- DramaticDoors + Chipped cross-mod door variant recipes (item IDs don't match our Chipped version) -->
+                <RegexFilter regex=".*dramaticdoors:tall_chipped_.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <RegexFilter regex=".*dramaticdoors:recipes/redstone/tall_chipped_.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- When Dungeons Arise advancement format issues (old JSON format, mod bug) -->
+                <RegexFilter regex=".*dungeons_arise:find_.*No key id in MapLike.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Natures Spirit missing tag reference (harmless) -->
+                <RegexFilter regex=".*Couldn't load tag c:stripped_wood.*natures_spirit.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
+                <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
         </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log"
