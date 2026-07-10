@@ -6,7 +6,7 @@
 # kick all -> save-all flush -> stop mc -> pull images -> re-run seed ->
 # seed mod configs into data/config/ -> apply overlay -> datapacks ->
 # enforce Discord config -> Modrinth sync IF mod list changed -> compose up ->
-# force-recreate sidecars -> wait for RCON (300s) -> world borders ->
+# force-recreate sidecars -> wait for RCON (180s) -> world borders ->
 # game rules -> LuckPerms -> spawn -> restore whitelist -> BlueMap defaults ->
 # welcome back -> docker prune.
 #
@@ -385,8 +385,8 @@ echo "==> Waiting for server to pass healthcheck..."
 
 # Mod-sync boots download ~150 JARs before the server even starts -
 # give them a much longer window than a plain restart.
-MAX_WAIT=300
-[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=900
+MAX_WAIT=180
+[[ "$CURRENT_MOD_HASH" != "$PREVIOUS_MOD_HASH" ]] && MAX_WAIT=600
 ELAPSED=0
 INTERVAL=10
 
@@ -483,9 +483,9 @@ echo "==> Activating dimensions for pre-generation..."
 for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
   rcon "execute in $dim run forceload add 0 0"
 done
-sleep 10
-rcon "save-all flush"
 sleep 5
+rcon "save-all flush"
+sleep 3
 for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; do
   rcon "execute in $dim run forceload remove 0 0"
 done
@@ -524,9 +524,9 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
   done < "$DIMENSIONS_FILE"
 
   if [[ $DIM_COUNT -gt 0 ]]; then
-    sleep 10
-    rcon "save-all flush"
     sleep 5
+    rcon "save-all flush"
+    sleep 3
 
     # shellcheck disable=SC2034
     while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do

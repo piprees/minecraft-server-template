@@ -111,8 +111,8 @@ services:
       # Freezes the JVM when no players are connected. Resumes instantly
       # on connect - transparent to players, zero CPU/RAM while idle.
       ENABLE_AUTOPAUSE: "TRUE"
-      AUTOPAUSE_TIMEOUT_EST: ${AUTOPAUSE_TIMEOUT:-600}
-      AUTOPAUSE_TIMEOUT_INIT: "300"
+      AUTOPAUSE_TIMEOUT_EST: ${AUTOPAUSE_TIMEOUT:-300}
+      AUTOPAUSE_TIMEOUT_INIT: "120"
       MAX_TICK_TIME: "-1"
 
       # --- Gameplay ---
