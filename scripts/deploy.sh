@@ -491,6 +491,15 @@ for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; d
 done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
+# --- Copy in-house mod JARs to data/mods/ -------------------------------------
+LOCAL_MODS="$STACK_DIR/local-mods"
+if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
+  echo ""
+  echo "==> Copying in-house mod JARs..."
+  cp "$LOCAL_MODS"/*.jar "$SERVER_DIR/data/mods/"
+  echo "  Copied $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') mod JAR(s)"
+fi
+
 # --- Create custom dimensions (idempotent — skips existing) -------------------
 if [[ -x "$SCRIPT_DIR/setup-dimensions.sh" && -f "$STACK_DIR/config/dimensions.txt" ]]; then
   echo ""

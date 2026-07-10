@@ -108,6 +108,14 @@ rsync -a \
   --exclude='modrinth-mods.pinned.txt' \
   "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 
+# Include built in-house mod JARs (produced by CI before this script runs)
+LOCAL_MODS="$DIST_DIR/local-mods"
+if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
+  mkdir -p "$STAGING_DIR/stack/local-mods"
+  cp "$LOCAL_MODS"/*.jar "$STAGING_DIR/stack/local-mods/"
+  echo "  Included $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') in-house mod JAR(s)"
+fi
+
 mkdir -p "$DIST_DIR"
 
 TAR_CMD="tar"

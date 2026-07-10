@@ -48,6 +48,9 @@ mods/*/.gradle/
 mods/*/run/
 mods/*/.fabric/
 
+# === Built mod JARs (produced by CI, never committed) ===
+dist/local-mods/
+
 # === Mod development scratch ===
 scratch/
 
