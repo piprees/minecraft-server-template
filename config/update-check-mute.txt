@@ -2,3 +2,28 @@
 # These won't appear on the mods status page or trigger Discord alerts.
 # Use for mods with noisy/irrelevant updates or no meaningful changelogs.
 bluemap-sign-markers
+
+# Structure and worldgen mods — pinned to known-good versions.
+# Updates can change structure placement and break chunk generation.
+structory
+structory-towers
+moogs-structure-lib
+moogs-voyager-structures
+mes-moogs-end-structures
+mns-moogs-nether-structures
+mss-moogs-soaring-structures
+mtr-moogs-temples-reimagined
+when-dungeons-arise
+dungeons-and-taverns
+explorify
+philips-ruins
+deadly-deadly-dungeon
+adventure-dungeons
+dungeons+
+dungeonsreborn
+terralith
+incendium
+nullscape
+tectonic
+geophilic
+wwoo

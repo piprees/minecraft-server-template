@@ -28,7 +28,7 @@ geophilic:jDzSPLta
 
 # === dimensions ===
 # custom-dimensions:dUVY8Eps              # disabled: broken on 1.21.1 (missing refMap, wrong mixin targets, unregistered accessors) — replaced by in-house fork in mods/custom-dimensions/
-seeded-dimensions:dBzRdUj8
+# seeded-dimensions:dBzRdUj8              # removed: functionality covered by in-house custom-dimensions mod
 incendium:7mVvV9Th
 nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
@@ -48,8 +48,8 @@ yungs-better-desert-temples:M6eeDRkC
 yungs-better-jungle-temples:uiGCmR8O
 yungs-better-nether-fortresses:gxBGYcIL
 yungs-better-end-island:zpUYcjIg
-structory:TUbwu7eG
-structory-towers:ziO4YIv1
+structory:Nvh2sSPX
+structory-towers:ioKwCTuD
 explorify:CuBdAr31
 philips-ruins:hWBO2GFM
 dungeons-and-taverns:EUlNXs9V
@@ -61,7 +61,7 @@ adventure-dungeons:EIun1fbq
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
-moogs-structure-lib:BF7uKrml
+moogs-structure-lib:8YZq16ew
 moogs-voyager-structures:uEZeTQ4b
 mes-moogs-end-structures:JW80uvhz
 mns-moogs-nether-structures:RFeEhpv4
