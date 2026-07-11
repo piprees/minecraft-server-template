@@ -32,10 +32,21 @@ def main():
 
     api = UptimeKumaApi(os.environ.get("KUMA_URL", "http://uptime-kuma:3001"), timeout=30)
     token = os.environ.get("KUMA_API_KEY", "")
+    username = os.environ.get("KUMA_USERNAME", "admin")
+    password = os.environ.get("KUMA_PASSWORD", "")
+    # KUMA_API_KEY is a socket.io SESSION token and expires — an expired one
+    # left a maintenance window open for hours (2026-07-11: the deploy's EXIT
+    # trap stop failed with authIncorrectCreds behind || true). Fall back to
+    # username/password rather than trusting the token unconditionally.
+    logged_in = False
     if token:
-        api.login_by_token(token)
-    else:
-        api.login(os.environ.get("KUMA_USERNAME", "admin"), os.environ.get("KUMA_PASSWORD", ""))
+        try:
+            api.login_by_token(token)
+            logged_in = True
+        except Exception as e:
+            print(f"session token rejected ({e}); falling back to password login")
+    if not logged_in:
+        api.login(username, password)
 
     try:
         existing = [m for m in api.get_maintenances() if m.get("title") == TITLE]
