@@ -44,6 +44,16 @@ cd "$SERVER_DIR"
 
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
+# --- timestamped output ---------------------------------------------------
+# Deploys are long and the captured log is the primary forensic artefact:
+# stamp every line with wall-clock time. Child scripts (setup-dimensions,
+# setup-permissions) inherit stdout, so their output is stamped too.
+# printf %(...)T needs bash >= 4.2 — fine, deploy.sh only ever runs on the
+# Linux server (see header), never on a macOS workstation.
+exec > >(while IFS= read -r line; do printf '[%(%H:%M:%S)T] %s\n' -1 "$line"; done) 2>&1
+
+echo "==> deploy.sh starting (stack bundle v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?'), $(date '+%Y-%m-%d'))"
+
 # --- load .env ----------------------------------------------------------------
 if [[ -f .env ]]; then
   set -a
