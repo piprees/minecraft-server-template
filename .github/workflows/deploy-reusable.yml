@@ -103,7 +103,7 @@ jobs:
           pin="${PIN#v}"
           tags=$(gh api /repos/piprees/minecraft-server-template/releases --paginate \
             --jq '.[].tag_name' \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^v//' \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' \
             | sort -t. -k1,1nr -k2,2nr -k3,3nr)
           if [[ -z "$pin" || "$pin" == "latest" ]]; then
             resolved=$(head -1 <<< "$tags")
@@ -175,7 +175,7 @@ jobs:
           fi
 
           echo "Changed files:"
-          echo "$CHANGED" | sed 's/^/  /'
+          while IFS= read -r f; do echo "  $f"; done <<< "$CHANGED"
 
           FULL_PATTERNS="^overlay/config/|^overlay/mods-extra\.txt$|^overlay/mods-remove\.txt$"
           if echo "$CHANGED" | grep -qE "$FULL_PATTERNS"; then
