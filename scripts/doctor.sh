@@ -9,6 +9,8 @@
 #   - stashed pre-deploy hotfixes (deploy.sh stashes silently - review them)
 #   - disk usage (WARN >=80%, FAIL >=90%) + biggest data/ consumers
 #   - every expected container: running, healthy, restart count
+#   - stale .deployed state file (mc missing but state file present)
+#   - ONLINE_MODE + ENFORCE_WHITELIST are TRUE (security invariant)
 #   - RCON: player list + spark TPS/MSPT/memory (silence + healthy mc =
 #     autopaused, which is normal when empty - reported as INFO, not failure)
 #   - last restic snapshot age (FAIL >48h, WARN >26h vs the 12h schedule)
@@ -131,6 +133,26 @@ if [ "$MC_HEALTH" = "healthy" ]; then
   res OK "mc healthcheck: healthy"
 else
   res FAIL "mc healthcheck: $MC_HEALTH"
+fi
+
+# --- stale .deployed state file ---
+MC_STATE=$(docker inspect mc --format '{{.State.Status}}' 2> /dev/null || echo missing)
+if [ -f .deployed ] && [ "$MC_STATE" = "missing" ]; then
+  res FAIL ".deployed exists but mc container is missing - stale state file (delete it or dispatch a manual deploy)"
+fi
+
+# --- security: ONLINE_MODE + ENFORCE_WHITELIST must be TRUE in production ---
+OM=$(docker exec mc env 2> /dev/null | grep '^ONLINE_MODE=' | cut -d= -f2 || echo "?")
+EW=$(docker exec mc env 2> /dev/null | grep '^ENFORCE_WHITELIST=' | cut -d= -f2 || echo "?")
+if [ "$OM" = "TRUE" ]; then
+  res OK "ONLINE_MODE=TRUE"
+else
+  res FAIL "ONLINE_MODE=$OM on production (must be TRUE)"
+fi
+if [ "$EW" = "TRUE" ]; then
+  res OK "ENFORCE_WHITELIST=TRUE"
+else
+  res FAIL "ENFORCE_WHITELIST=$EW on production (must be TRUE)"
 fi
 
 # --- RCON + performance (silence while healthy = autopause, not an outage) ---
