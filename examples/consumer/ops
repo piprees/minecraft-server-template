@@ -119,6 +119,12 @@ done
 
 if [[ $allowed -eq 0 ]]; then
   echo "Unknown command: $CMD"
+  # Suggest close matches
+  for acmd in "${ALLOWED_COMMANDS[@]}"; do
+    case "$acmd" in
+      *"$CMD"*|"$CMD"*) echo "  Did you mean: ./ops $acmd?" ;;
+    esac
+  done
   echo "Run ./ops help for a list of available commands."
   exit 1
 fi
@@ -150,6 +156,12 @@ if [[ ! -f "$SCRIPT_PATH" ]]; then
   echo "Script not found: $SCRIPT_PATH"
   echo "Your stack bundle may be outdated. Run: ./dev update"
   exit 1
+fi
+
+# Per-command help: extract the header comment block from the target script
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  sed -n '2,/^[^#]/{ /^#/s/^# \{0,1\}//p; }' "$SCRIPT_PATH"
+  exit 0
 fi
 
 # Load consumer environment before delegating

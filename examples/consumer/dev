@@ -29,6 +29,12 @@ usage() {
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
   echo "  restart  Force-recreate a service (e.g. ./dev restart nav-proxy)"
   echo "  status   Show container status (e.g. ./dev status)"
+  echo ""
+  echo "Production equivalents: ./ops help"
+  echo "  dev up      ↔  (push to main triggers CI)"
+  echo "  dev logs    ↔  ops logs [--tail N]"
+  echo "  dev rcon    ↔  ops rcon"
+  echo "  dev status  ↔  ops status"
 }
 
 ensure_env() {
