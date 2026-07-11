@@ -74,6 +74,7 @@ MANIFEST=(
   scripts/pack-build.sh
   scripts/remote-update.sh
   scripts/stack-pull.sh
+  scripts/dc.sh
   examples/consumer/dev
   examples/consumer/ops
   # Everything `dev update` syncs into a consumer repo must ship in the
@@ -83,6 +84,7 @@ MANIFEST=(
   examples/consumer/.env.example
   examples/consumer/.gitignore
   examples/consumer/AGENTS.md
+  examples/consumer/commands.json
   examples/consumer/README.md
   examples/consumer/.github/workflows/deploy.yml
   examples/consumer/.github/workflows/update.yml
