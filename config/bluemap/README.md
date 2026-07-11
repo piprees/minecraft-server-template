@@ -1,16 +1,8 @@
 # BlueMap Configuration
 
-BlueMap (the Fabric mod, not the Paper/Spigot plugin) reads its config from
-the standard Fabric mod-config convention: `data/config/bluemap/` (mapped
-from the mod's own `config/bluemap/` relative to the server root). This is
-**not** `data/bluemap/` - that directory holds BlueMap's runtime *data*
-(rendered web assets, the downloaded Mojang resource jar, debug logs), not
-its config. Auto-generated on first boot if not already present.
+BlueMap (the Fabric mod, not the Paper/Spigot plugin) reads its config from the standard Fabric mod-config convention: `data/config/bluemap/` (mapped from the mod's own `config/bluemap/` relative to the server root). This is **not** `data/bluemap/` - that directory holds BlueMap's runtime _data_ (rendered web assets, the downloaded Mojang resource jar, debug logs), not its config. Auto-generated on first boot if not already present.
 
-Files in `config/bluemap/` here (this directory) are synced into
-`data/config/bluemap/` on every deploy by `deploy.sh` step 8 (before mc
-starts) - repo is the source of truth, same pattern as every other mod
-config in this project.
+Files in `config/bluemap/` here (this directory) are synced into `data/config/bluemap/` on every deploy by `deploy.sh` step 8 (before mc starts) - repo is the source of truth, same pattern as every other mod config in this project.
 
 ## Where configs live at runtime
 
@@ -58,6 +50,22 @@ map "overworld" {
 
 - `hiRes.resolution`: pixels per block face. Default 32 is a good balance. Lower to 16 for faster renders, raise to 64 for sharper detail (more disk/CPU).
 - `renderThreads` in `core.conf`: defaults to CPU count minus 1. On a shared server, set this to 1-2 to avoid starving the game server.
+
+### Keeping the custom dimensions lazy (`maps/the_*.conf`)
+
+With ~70 `adventure:*` dimensions from `dimensions.txt`, most are never actually visited — BlueMap still detects each one as soon as `custom-dimensions` creates its `ServerWorld` and would otherwise start scanning/watching it immediately. Two settings keep that cost near-zero until a player actually shows up:
+
+- **`render-thread-count: 1`** in `core.conf` — global cap on how many CPU cores BlueMap uses for rendering, regardless of how many maps are configured. Deliberately pinned at 1 for the 4-vCPU production host (BlueMap's own wiki recommends 1 for ≤4-core hosts). Raising this doesn't make individual maps render faster in parallel with the game server — it just gives BlueMap more of the host's CPU, so leave it at 1-2 unless the host has cores to spare.
+- **`min-inhabited-time: 3600`** in every custom-dimension `.conf` — filters by the chunk's vanilla `inhabitedTime` (accumulated player-presence ticks, 20/tick-second). Chunks nobody has spent time in are skipped entirely rather than rendered at low priority, so a freshly created dimension with zero player visits costs BlueMap nothing until someone actually plays there. `world.conf`/`world_the_end.conf`/ `world_the_nether.conf`/`paradise_lost.conf` deliberately keep `0` since those are the actively-played dimensions.
+
+If a specific dimension should never be mapped at all (not even after a visit), freeze it explicitly — this persists across restarts, unlike `min-inhabited-time` which re-activates rendering the moment someone visits:
+
+```
+/bluemap freeze the_claymarsh
+/bluemap unfreeze the_claymarsh   # to resume later
+```
+
+`config/bluemap/maps/*.conf` is force-copied over `data/config/bluemap/maps/` on every deploy (see `deploy.sh`), so edits here always win over anything BlueMap wrote to disk at runtime.
 
 ## Triggering a re-render
 

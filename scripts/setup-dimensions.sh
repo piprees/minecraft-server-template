@@ -24,10 +24,29 @@
 #   - <target> is adventure:<name> — the mod registers all custom
 #     dimensions under the adventure: namespace.
 #   - <color> is a 6-digit hex WITHOUT '#'; <light> is 0-15.
+#
+# Idempotency: "dimension create" already rejects duplicates server-side
+# (MultiverseConfig lookup by name), but only after a full RCON round trip —
+# every boot was re-attempting all ~57 dimensions, each failing with
+# "already exists" and burning its 0.5s sleep. dimension_exists() below reads
+# the mod's persisted state directly to skip the create call entirely for
+# dimensions that already exist. Portal linking still runs unconditionally
+# for every dimension every boot (portal state can legitimately need
+# relinking), matching "portal link"'s own idempotent duplicate check.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
+
+# SERVER_DIR = where data/ actually lives. In production this script runs
+# from the bundle cache (.stack/current/stack/scripts/), so PROJECT_DIR
+# (derived from this script's own location) resolves to the bundle root, not
+# the server root. Same derivation as deploy.sh/infra-deploy.sh — keep in sync.
+if [[ "$SCRIPT_DIR" == *"/.stack/"* ]]; then
+  SERVER_DIR="${SCRIPT_DIR%%/.stack/*}"
+else
+  SERVER_DIR="${SERVER_DIR:-$PROJECT_DIR}"
+fi
 
 DRY_RUN=false
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -38,11 +57,44 @@ fi
 DIMENSIONS_FILE="$PROJECT_DIR/config/dimensions.txt"
 [[ -f "$DIMENSIONS_FILE" ]] || die "Dimensions file not found: $DIMENSIONS_FILE"
 
+# Persisted by com.customdimensions.config.MultiverseConfig — the source of
+# truth for which dimensions already exist. There's no RCON "dimension list"
+# command, so we read this file directly instead of round-tripping RCON.
+DIMENSIONS_CONFIG="$SERVER_DIR/data/config/multiverse_config.json"
+
+# True (exit 0) if a dimension with this name is already persisted.
+dimension_exists() {
+  local name="$1"
+  [[ -f "$DIMENSIONS_CONFIG" ]] || return 1
+  if command -v jq &> /dev/null; then
+    jq -e --arg n "$name" 'any(.dimensions[]?; .name == $n)' "$DIMENSIONS_CONFIG" > /dev/null 2>&1
+  else
+    python3 - "$DIMENSIONS_CONFIG" "$name" << 'PYEOF'
+import json, sys
+path, name = sys.argv[1], sys.argv[2]
+try:
+    with open(path) as f:
+        data = json.load(f)
+except Exception:
+    sys.exit(1)
+sys.exit(0 if any(d.get("name") == name for d in data.get("dimensions", [])) else 1)
+PYEOF
+  fi
+}
+
 run_rcon() {
   if $DRY_RUN; then
     echo "  [dry-run] rcon $1"
   else
-    rcon "$1"
+    local start elapsed response
+    start=$(date +%s)
+    # Call docker exec directly instead of lib.sh's rcon() helper — that
+    # helper redirects stderr to /dev/null internally, which was also
+    # swallowing the actual command feedback ("Created dimension...",
+    # "already exists", connection timeouts) before we ever saw it here.
+    response=$(docker exec "${CONTAINER_PREFIX:-}mc" rcon-cli "$1" 2>&1)
+    elapsed=$(($(date +%s) - start))
+    echo "  <- ${response:-(no response)} (${elapsed}s)"
   fi
 }
 
@@ -60,6 +112,7 @@ portal_color() {
 PORTAL_LIGHT=11
 
 created=0
+existing=0
 skipped=0
 linked=0
 
@@ -98,6 +151,14 @@ while IFS='|' read -r name type scale seed portal_block ignitor group biome peac
   ignitors+=("$ignitor")
   groups+=("$group")
 
+  # Skip the create round trip entirely for dimensions the mod already has
+  # persisted — still queued above for the portal-link pass below.
+  if dimension_exists "$name"; then
+    log "Dimension already exists, skipping create: $name"
+    existing=$((existing + 1))
+    continue
+  fi
+
   # Brigadier tree is positional: seed must precede biome, biome must
   # precede peaceful. Biome is a quoted string; use "" as the explicit
   # empty placeholder when only peaceful is set.
@@ -128,4 +189,4 @@ while [[ $i -lt ${#names[@]} ]]; do
 done
 
 echo ""
-log "Done. Created: $created, Skipped: $skipped, Portals linked: $linked"
+log "Done. Created: $created, Already existed: $existing, Skipped: $skipped, Portals linked: $linked"

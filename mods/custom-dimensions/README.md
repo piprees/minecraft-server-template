@@ -54,16 +54,16 @@ Removes a dimension definition from the config. Does not delete world files.
 /portal link <id> <frame> <igniter> <target> <color> <light> [scale] [cooldown]
 ```
 
-| Argument | Type | Required | Description |
-| --- | --- | --- | --- |
-| `id` | string | yes | Unique portal identifier |
-| `frame` | identifier | yes | Block ID for the portal frame (e.g., `minecraft:obsidian`) |
-| `igniter` | identifier | yes | Item ID to ignite the portal (e.g., `minecraft:flint_and_steel`) |
-| `target` | identifier | yes | Target dimension (e.g., `minecraft:the_nether` or `minecraft:cherry_pocket`) |
-| `color` | string | yes | 6-digit hex colour for particles (e.g., `FF0000`) |
-| `light` | integer | yes | Light level 0-15 |
-| `scale` | double | no | Coordinate scale factor, default 1.0 (0.001-1000) |
-| `cooldown` | integer | no | Teleport cooldown in ticks, default 40 (0-200) |
+| Argument   | Type       | Required | Description                                                                  |
+| ---------- | ---------- | -------- | ---------------------------------------------------------------------------- |
+| `id`       | string     | yes      | Unique portal identifier                                                     |
+| `frame`    | identifier | yes      | Block ID for the portal frame (e.g., `minecraft:obsidian`)                   |
+| `igniter`  | identifier | yes      | Item ID to ignite the portal (e.g., `minecraft:flint_and_steel`)             |
+| `target`   | identifier | yes      | Target dimension (e.g., `minecraft:the_nether` or `minecraft:cherry_pocket`) |
+| `color`    | string     | yes      | 6-digit hex colour for particles (e.g., `FF0000`)                            |
+| `light`    | integer    | yes      | Light level 0-15                                                             |
+| `scale`    | double     | no       | Coordinate scale factor, default 1.0 (0.001-1000)                            |
+| `cooldown` | integer    | no       | Teleport cooldown in ticks, default 40 (0-200)                               |
 
 ### `/portal delete`
 
@@ -74,40 +74,45 @@ Removes a dimension definition from the config. Does not delete world files.
 ## Examples
 
 **Standard overworld dimension:**
+
 ```
 /dimension create adventure overworld
 ```
 
 **Cherry grove pocket dimension (peaceful, custom seed):**
+
 ```
 /dimension create cherry_pocket single_biome 98765 minecraft:cherry_grove true
 /portal link cherry minecraft:cherry_blossom minecraft:cherry_blossom_petals minecraft:cherry_pocket FF9EC6 8
 ```
 
 **Nether hub with 1:8 coordinate scaling:**
+
 ```
 /dimension create nether_hub void
 /portal link nether_gate minecraft:obsidian minecraft:flint_and_steel minecraft:nether_hub AA0000 11 0.125
 ```
 
 **Superflat redstone world:**
+
 ```
 /dimension create redstone_lab superflat
 /portal link lab minecraft:iron_block minecraft:redstone minecraft:redstone_lab FF0000 15
 ```
 
 **Amplified terrain with custom seed:**
+
 ```
 /dimension create epic_terrain amplified 42
 ```
 
 **Near-instant hub portal (5-tick cooldown):**
+
 ```
 /portal link hub_gate minecraft:gold_block minecraft:ender_pearl minecraft:hub FFD700 12 1.0 5
 ```
 
-**Horizontal floor portal:**
-Build a frame flat on the ground (e.g., a ring of obsidian), then right-click the top face with the igniter item. The portal detects the horizontal plane and creates a Y-axis portal you walk onto.
+**Horizontal floor portal:** Build a frame flat on the ground (e.g., a ring of obsidian), then right-click the top face with the igniter item. The portal detects the horizontal plane and creates a Y-axis portal you walk onto.
 
 ## Configuration
 
@@ -160,6 +165,10 @@ Sound fields (`igniteSound`, `enterSound`, `exitSound`) are config-file-only -- 
 ### Idle unloading
 
 `idleUnloadMinutes` (default 5) controls how long a dimension with no players stays loaded before being saved and removed from memory. Vanilla dimensions (overworld, nether, end) and paradise_lost are never unloaded. Dimensions with forceloaded chunks are never unloaded. Re-created automatically when a player teleports in.
+
+### BlueMap integration (auto-unfreeze on first visit)
+
+The server's deploy script freezes every custom dimension's BlueMap map the one time it sets it up (`/bluemap freeze <name>`), so BlueMap does zero watching or rendering for a dimension nobody's found yet. `DimensionManager.unfreezeBlueMapOnFirstVisit` (called from `updatePlayerPresence`, which already runs every tick per loaded world) detects the first real player presence in a custom dimension and issues `/bluemap unfreeze <name>` itself — command-based, not a compile-time BlueMap dependency, so it's a silent no-op if BlueMap isn't installed. Guarded by an in-memory (non-persisted) set so it only fires once per server run per dimension; safe to fire again after a restart since unfreezing an already-unfrozen map is a no-op, and BlueMap's frozen/unfrozen state itself persists across restarts independently.
 
 ## Building
 

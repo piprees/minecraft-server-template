@@ -68,8 +68,8 @@ done
 # ./data/mods mount) starts first, mc (uid 1000) can't write its mods and
 # crash-loops with AccessDeniedException.
 mkdir -p "$SERVER_DIR/data/mods" "$SERVER_DIR/data/config" \
-         "$SERVER_DIR/modpack-dist" "$SERVER_DIR/overlay" \
-         "$SERVER_DIR/backups" "$SERVER_DIR/cloudflared"
+  "$SERVER_DIR/modpack-dist" "$SERVER_DIR/overlay" \
+  "$SERVER_DIR/backups" "$SERVER_DIR/cloudflared"
 
 # --- Suspend autopause for the whole deploy -----------------------------------
 # Boot takes minutes with many dimensions and AUTOPAUSE_TIMEOUT_INIT is 120s:
@@ -251,10 +251,10 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     -not -name 'messages.json' \
     -not -name '1password.env' \
     | while IFS= read -r f; do
-    dest="$local_data_cfg/${f#./}"
-    mkdir -p "$(dirname "$dest")"
-    cp "$f" "$dest"
-  done
+      dest="$local_data_cfg/${f#./}"
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    done
   cd "$SERVER_DIR"
   echo "  Default configs seeded"
 fi
@@ -585,77 +585,75 @@ if [[ -x "$SCRIPT_DIR/setup-dimensions.sh" && -f "$STACK_DIR/config/dimensions.t
 fi
 
 # --- Custom dimensions (from dimensions.txt) ----------------------------------
-# Handles ~57 modded dimensions: activate, set world borders, enforce BlueMap.
+# One-time setup per dimension: load once, set ChunkyBorder, pin BlueMap to
+# low-res flat view, then freeze that BlueMap map so it does nothing at all
+# until a player actually finds the portal (the mod unfreezes it itself on
+# first visit — see DimensionManager.unfreezeBlueMapOnFirstVisit). Gated on
+# a marker file, deliberately independent of multiverse_config.json: that
+# file just means "the mod knows this dimension exists", not "we've already
+# bordered/BlueMap-configured it" — a dimension can be created in one
+# deploy and only get this one-time setup in a later one (e.g. this
+# rollout, for the ~74 dimensions created before this marker existed).
 # Skips comments, blanks, and dimensions sharing the server seed (vanilla worlds).
+# These dimensions are meant to sit idle 99.9%+ of the time — idle-tasks
+# doesn't pre-generate them, deploy.sh doesn't forceload them, and once
+# this one-time setup is done, nothing here ever touches them again.
 DIMENSIONS_FILE="$STACK_DIR/config/dimensions.txt"
+SETUP_MARKERS_DIR="$SERVER_DIR/data/.dimension-setup"
 if [[ -f "$DIMENSIONS_FILE" ]]; then
+  mkdir -p "$SETUP_MARKERS_DIR"
   echo ""
-  echo "==> Processing custom dimensions..."
-
-  # Ensure custom dimension worlds are loaded (queued via END_SERVER_TICK).
-  # Dimensions must be created by the custom-dimensions mod first (via
-  # setup-dimensions.sh). NO forceload here: forceloading 0,0 in each
-  # dimension triggers synchronous spawn-chunk generation on the main
-  # thread (~minutes per dimension on a 74-dim server — a deploy once
-  # crawled at 4 dims/30min). Chunk pre-generation belongs to idle-tasks'
-  # Chunky sessions, not the deploy.
-  DIM_COUNT=0
-  # shellcheck disable=SC2034
-  while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
-    [[ -z "$name" || "$name" = \#* ]] && continue
-    [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
-    rcon "dimension load $name"
-    DIM_COUNT=$((DIM_COUNT + 1))
-  done < "$DIMENSIONS_FILE"
-  sleep 3
-  echo "  $DIM_COUNT custom dimension loads queued"
-
-  # ChunkyBorder per custom dimension (radius scales with dimension scale).
-  # Only set borders for dimensions that exist (load first — worlds are lazy).
-  echo "  Setting ChunkyBorder for custom dimensions..."
+  echo "==> Setting up new custom dimensions..."
+  BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
+  NEW_COUNT=0
+  SKIPPED_COUNT=0
   # shellcheck disable=SC2034
   while IFS='|' read -r name _type scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
     [[ -z "$name" || "$name" = \#* ]] && continue
     [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
-    rcon "dimension load $name"
-    sleep 1
-    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2>/dev/null || echo "")
-    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
+
+    if [[ -f "$SETUP_MARKERS_DIR/$name" ]]; then
+      SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
       continue
     fi
+
+    rcon "dimension load $name"
+    sleep 1
+    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2> /dev/null || echo "")
+    if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
+      echo "    adventure:$name — not ready yet, will retry next deploy"
+      continue
+    fi
+
     case "$scale" in
-      1)  dim_radius=$PLAYER_BORDER_RADIUS ;;
-      4)  dim_radius=$((PLAYER_BORDER_RADIUS / 4)) ;;
-      8)  dim_radius=$((PLAYER_BORDER_RADIUS / 8)) ;;
+      1) dim_radius=$PLAYER_BORDER_RADIUS ;;
+      4) dim_radius=$((PLAYER_BORDER_RADIUS / 4)) ;;
+      8) dim_radius=$((PLAYER_BORDER_RADIUS / 8)) ;;
       12) dim_radius=$((PLAYER_BORDER_RADIUS / 12)) ;;
       16) dim_radius=$((PLAYER_BORDER_RADIUS / 16)) ;;
-      *)  dim_radius=$((PLAYER_BORDER_RADIUS / scale)) ;;
+      *) dim_radius=$((PLAYER_BORDER_RADIUS / scale)) ;;
     esac
     rcon "chunky world adventure:$name"
     rcon "chunky center 0 0"
     rcon "chunky radius $dim_radius"
     rcon "chunky shape square"
     rcon "chunky border add"
-    echo "    adventure:$name — radius $dim_radius (scale 1:$scale)"
-  done < "$DIMENSIONS_FILE"
 
-  # BlueMap: custom dimensions get low-res flat view only (saves disk)
-  BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
-  if [[ -d "$BM_MAPS_DIR" ]]; then
-    echo "  Enforcing BlueMap settings for custom dimensions..."
-    # shellcheck disable=SC2034
-    while IFS='|' read -r name _type _scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
-      [[ -z "$name" || "$name" = \#* ]] && continue
-      [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
+    if [[ -d "$BM_MAPS_DIR" ]]; then
       for bm_conf in "$BM_MAPS_DIR"/*"$name"*.conf; do
         [[ -f "$bm_conf" ]] || continue
         sed -i 's/enable-hires: true/enable-hires: false/' "$bm_conf"
         sed -i 's/enable-perspective-view: true/enable-perspective-view: false/' "$bm_conf"
         sed -i 's/enable-free-flight-view: true/enable-free-flight-view: false/' "$bm_conf"
       done
-    done < "$DIMENSIONS_FILE"
-    echo "  BlueMap: custom dimensions set to low-res flat view"
-  fi
+    fi
+    rcon "bluemap freeze $name"
+
+    touch "$SETUP_MARKERS_DIR/$name"
+    NEW_COUNT=$((NEW_COUNT + 1))
+    echo "    adventure:$name — loaded once, border radius $dim_radius (scale 1:$scale), BlueMap frozen until visited"
+  done < "$DIMENSIONS_FILE"
+  echo "  $NEW_COUNT dimension(s) newly configured, $SKIPPED_COUNT already set up (untouched)"
 fi
 
 # --- Enforce game rules -------------------------------------------------------
