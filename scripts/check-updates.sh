@@ -9,8 +9,10 @@
 #   - from CI after deploys, when its inputs changed (deploy.yml)
 #
 # Bulk resolution goes through modrinth-api.py (one connection, rate-limit
-# aware). Discord alerts are deduped by hashing the SET of mods with updates
-# (.update-alert-hash in modpack/dist/) - re-alerts only when new mods join.
+# aware). Discord alerts are deduped per (mod, version): a ledger of already-
+# alerted slug:version_id pairs lives at $STATE_DIR/.update-alerted-versions
+# (persisted via the ./data/.mod-checker-state bind mount) and a ping only
+# fires for a pair not yet in it — boot-time re-checks stay silent.
 #
 # Usage:
 #   ./scripts/check-updates.sh              # terminal output
@@ -435,36 +437,46 @@ HTMLFOOT
   echo "View at: https://mods.${DOMAIN:-example.com}"
 fi
 
-# --- Discord notification (only when new updates appear) ----------------------
+# --- Discord notification (only for never-before-alerted mod versions) --------
 if [[ $NOTIFY_DISCORD -eq 1 && $UPDATES_AVAILABLE -gt 0 ]]; then
-  ALERT_HASH_FILE="$STATE_DIR/.update-alert-hash"
+  # Ledger of slug:version_id pairs we have already pinged about. A ping
+  # fires only when a pair is NEW — the boot-time check after a deploy and
+  # API-error churn (mods transiently dropping in/out of the update set)
+  # stay silent. The old set-hash approach re-pinged on any drift in either
+  # direction, which meant an @Admin ping on nearly every deploy.
+  LEDGER_FILE="$STATE_DIR/.update-alerted-versions"
   mkdir -p "$STATE_DIR"
+  # Legacy state from the set-hash era
+  rm -f "$STATE_DIR/.update-alert-hash" 2> /dev/null || true
 
-  # Build sorted list of mods with updates
-  UPDATE_SLUGS=""
+  CURRENT_PAIRS=""
   UPDATE_LINES=""
   for r in "${RESULTS[@]}"; do
     info=$(echo "$r" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
 if d.get('status') == 'update-available':
-    print(f\"{d['slug']}|{d.get('pinned_ver','')} → {d.get('latest_compat_ver','')}\")
+    vid = d.get('latest_compat_id') or d.get('latest_compat_ver') or 'unknown'
+    print(f\"{d['slug']}:{vid}|{d.get('pinned_ver','')} → {d.get('latest_compat_ver','')}\")
 " 2> /dev/null || true)
     if [[ -n "$info" ]]; then
-      slug="${info%%|*}"
+      pair="${info%%|*}"
       versions="${info#*|}"
-      UPDATE_SLUGS="${UPDATE_SLUGS}${slug}\n"
+      slug="${pair%%:*}"
+      CURRENT_PAIRS="${CURRENT_PAIRS}${pair}"$'\n'
       UPDATE_LINES="${UPDATE_LINES}• \`${slug}\` ${versions}\n"
     fi
   done
 
-  # Hash the set of mods with updates (not versions - so re-alerts if new mods join)
-  CURRENT_HASH=$(printf '%b' "$UPDATE_SLUGS" | sort | sha256sum | cut -d' ' -f1)
-  PREVIOUS_HASH=$(cat "$ALERT_HASH_FILE" 2> /dev/null || echo "none")
+  if [[ -f "$LEDGER_FILE" ]]; then
+    NEW_PAIRS=$(printf '%s' "$CURRENT_PAIRS" | grep -vxF -f "$LEDGER_FILE" || true)
+  else
+    NEW_PAIRS="$CURRENT_PAIRS"
+  fi
 
-  if [[ "$CURRENT_HASH" != "$PREVIOUS_HASH" ]]; then
+  if [[ -n "$NEW_PAIRS" ]]; then
     echo ""
-    echo "New updates detected - notifying Discord..."
+    echo "New mod version(s) never alerted before - notifying Discord..."
 
     WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
     ADMIN_ROLE_ID="${DISCORD_ADMIN_ROLE_ID:-}"
@@ -501,13 +513,14 @@ print(msg)
       echo "Skipping Discord notification: DISCORD_WEBHOOK_URL not set or messages.json missing"
     fi
 
-    # Save the hash so we don't re-alert for the same set
-    echo "$CURRENT_HASH" > "$ALERT_HASH_FILE"
+    # Remember every pair we've now alerted (union with prior ledger).
+    # Applied/vanished versions stay in the ledger deliberately — if an API
+    # blip resurfaces a known version, it must not re-ping. The file is a
+    # few hundred bytes; no pruning needed.
+    { cat "$LEDGER_FILE" 2> /dev/null; printf '%s' "$CURRENT_PAIRS"; } | sort -u > "$LEDGER_FILE.tmp"
+    mv "$LEDGER_FILE.tmp" "$LEDGER_FILE"
   else
     echo ""
-    echo "Updates unchanged since last alert - skipping Discord notification"
+    echo "All available updates already alerted - skipping Discord notification"
   fi
-elif [[ $NOTIFY_DISCORD -eq 1 && $UPDATES_AVAILABLE -eq 0 ]]; then
-  # Clear the hash when everything is up to date, so next update triggers an alert
-  rm -f "$STATE_DIR/.update-alert-hash" 2> /dev/null || true
 fi

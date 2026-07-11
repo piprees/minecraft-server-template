@@ -12,6 +12,7 @@ COPY config/modrinth-mods.txt /defaults/modrinth-mods.txt
 COPY config/log4j2-adventure.xml /defaults/config/log4j2-adventure.xml
 COPY config/messages.json        /defaults/config/messages.json
 COPY config/starterkit.json5     /defaults/config/starterkit.json5
+COPY config/update-check-mute.txt /defaults/config/update-check-mute.txt
 
 COPY config/uptime-kuma/  /defaults/config/uptime-kuma/
 COPY config/nginx/        /defaults/config/nginx/
