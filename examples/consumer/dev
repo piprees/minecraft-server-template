@@ -22,7 +22,7 @@ usage() {
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  rollback Revert to a previous stack bundle version"
-  echo "  sync     Update everything: local down, update, env sync to GitHub, server update, local up"
+  echo "  sync     (deprecated, use ./ops sync) Full local+remote alignment"
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
   echo "  seed-report Generate the top-N seed report from results"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
@@ -315,29 +315,10 @@ case "$CMD" in
     echo "Rolled back to $target. Run ./dev up to restart."
     ;;
   sync)
-    ensure_env
-    ensure_stack
-    ensure_docker
-    SELF_BEFORE="$(self_sum)"
-    echo "==> Stopping local stack..."
-    export CONSUMER_DIR
-    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down
+    echo "Note: sync touches production — use ./ops sync instead."
+    echo "      ./dev sync will be removed in the next major version."
     echo ""
-    echo "==> Updating local bundle + images..."
-    bash "$CONSUMER_DIR/dev" update
-    # update runs in a child process, so it can't re-exec this parent -
-    # check for a self-update here and restart sync on the new code (the
-    # repeated down/update steps are idempotent and near-instant).
-    reexec_if_self_updated "$SELF_BEFORE" sync "$@"
-    echo ""
-    echo "==> Syncing .env to GitHub environment..."
-    bash "$CONSUMER_DIR/$STACK_SCRIPTS/github-env-sync.sh" --allow-missing
-    echo ""
-    echo "==> Updating server..."
-    bash "$CONSUMER_DIR/ops" update --quick "$@"
-    echo ""
-    echo "==> Starting local stack..."
-    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+    exec bash "$CONSUMER_DIR/ops" sync "$@"
     ;;
   seed-roll)
     ensure_env

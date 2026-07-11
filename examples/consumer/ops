@@ -41,6 +41,7 @@ ALLOWED_COMMANDS=(
   discord-notify
   discord-cleanup
   discord-pin-sync
+  sync
 )
 
 usage() {
@@ -67,6 +68,8 @@ Server control:
   status [svc]                Container status (all, or one service)
   start|stop|restart <svc>    Manage one service (mc, nav-proxy, pack-web...)
   update [--quick]            Pull latest bundle + images, full redeploy
+  sync                        Full alignment: local down, update, env sync to
+                              GitHub, server update, local up
   rcon "<command>"            Run an RCON command (auto local/production)
   ssh ['<command>']           Shell, or a one-shot command, on the server
 
@@ -132,6 +135,29 @@ fi
 if [[ ! -d "$CONSUMER_DIR/.stack/current" ]]; then
   echo "Stack bundle not found. Pulling..."
   bash "$CONSUMER_DIR/dev" pull
+fi
+
+# sync is orchestration, not a single bundle script — handle it inline
+if [[ "$CMD" == "sync" ]]; then
+  if [[ -f "$CONSUMER_DIR/.env" ]]; then
+    set -a; source "$CONSUMER_DIR/.env"; set +a
+  fi
+  export CONSUMER_DIR
+  echo "==> Stopping local stack..."
+  bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down 2>/dev/null || true
+  echo ""
+  echo "==> Updating local bundle + images..."
+  bash "$CONSUMER_DIR/dev" update
+  echo ""
+  echo "==> Syncing .env to GitHub environment..."
+  bash "$CONSUMER_DIR/$STACK_SCRIPTS/github-env-sync.sh" --allow-missing
+  echo ""
+  echo "==> Updating server..."
+  bash "$CONSUMER_DIR/ops" update --quick "$@"
+  echo ""
+  echo "==> Starting local stack..."
+  bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+  exit 0
 fi
 
 # Resolve script names to actual filenames

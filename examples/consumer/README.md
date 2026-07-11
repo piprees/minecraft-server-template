@@ -47,7 +47,7 @@ Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`)
 ### Sync everything (local + server + GitHub)
 
 ```bash
-./dev sync                     # stops local, updates bundle, syncs .env to GitHub, deploys to server, starts local
+./ops sync                     # stops local, updates bundle, syncs .env to GitHub, deploys to server, starts local
 ```
 
 One command to bring local and production into alignment.
