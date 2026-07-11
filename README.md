@@ -261,6 +261,15 @@ Every script has a header comment with usage, context, and gotchas — **read th
 
 ## How to do things
 
+- [Add or remove mods](#add-or-remove-mods)
+- [Update Minecraft version](#update-minecraft-version)
+- [Manage players](#manage-players)
+- [Discord integration](#discord-integration)
+- [Backups](#backups)
+- [Deploy to production](#deploy-to-production)
+- [Server access](#server-access)
+- [Reset the world](#reset-the-world-launch-events)
+
 ### Add or remove mods
 
 | What | Edit | Then |
