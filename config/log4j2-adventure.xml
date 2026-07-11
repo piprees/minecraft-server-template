@@ -125,6 +125,14 @@
                      data/logs/latest.log keeps every occurrence (file appender
                      is unfiltered). Real fix: c2me bump past 0.4.00.19. -->
                 <RegexFilter regex="Error executing task on Chunk source main thread executor.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Epic Dungeons 1.2.2 ships template NBTs whose chests
+                     reference CamelCase loot ids (epic:chests/DungeonPoop1)
+                     that 1.21 identifiers reject — feature placement aborts
+                     for that chunk and the chest spawns lootless. Unfixable
+                     locally (uppercase ids can't be registered by datapack);
+                     reported upstream. Same caveat as above: generic message,
+                     full detail stays in data/logs/latest.log + data/debug/. -->
+                <RegexFilter regex="Failed to load chunk .*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>

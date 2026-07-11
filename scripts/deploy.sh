@@ -848,5 +848,10 @@ echo ""
 echo "==> Cleaning up old Docker resources..."
 docker system prune -f --filter "until=24h" 2> /dev/null || true
 
+# Vanilla writes a debug/chunk-*.txt report for every chunk that fails
+# feature placement (e.g. the Epic Dungeons CamelCase loot-id bug) —
+# hundreds accumulate under Chunky pregen. Keep 3 days, like the logs.
+find "$SERVER_DIR/data/debug" -name 'chunk-*.txt' -mtime +3 -delete 2> /dev/null || true
+
 echo ""
 echo "==> Deploy complete."
