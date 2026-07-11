@@ -13,20 +13,12 @@ name: Publish Container Images
 on:
   push:
     branches: [main]
-    paths:
-      - 'docker/**'
-      - 'config/**'
-      - 'modpack/**'
-      - 'assets/**'
-      - 'scripts/discord-sync.py'
-      - 'scripts/requirements-discord-sync.txt'
-      - 'scripts/kuma-provision.py'
-      - 'scripts/check-updates.sh'
-      - 'scripts/modrinth-api.py'
-      - 'scripts/idle-tasks.sh'
-      - 'scripts/build-modpack.sh'
-      - 'scripts/check-pack-coherence.py'
-      - 'scripts/lib.sh'
+    # No path filter: images rebuild on every push. The builds are ~3 min,
+    # cost nothing on public repos, and it means a release NEVER tags stale
+    # images (the old path filter missed scripts baked into images, causing
+    # silent regressions — e.g. build-modpack.sh changes that only took
+    # effect after a manual publish.yml dispatch). If build volume ever
+    # becomes a concern, re-add paths but audit EVERY baked file first.
   release:
     types: [published]
   workflow_dispatch:
