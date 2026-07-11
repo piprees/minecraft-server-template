@@ -520,6 +520,21 @@ rcon "gamerule doWeatherCycle false"
 rcon "gamerule doFireTick false"
 echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
 
+# Keep non-admins out for the rest of the deploy: the itzg image re-applies
+# WHITELIST from .env at boot, so the server is joinable the moment it's
+# healthy — hours before a long dimension pass finishes. Empty the list
+# again until step 15 restores it; ops bypass the vanilla whitelist, so
+# admins can still get in to inspect a live deploy.
+if [[ -n "${WHITELIST:-}" ]]; then
+  IFS=',' read -ra WL_BOOT_ARRAY <<< "$WHITELIST"
+  for player in "${WL_BOOT_ARRAY[@]}"; do
+    player="$(echo "$player" | xargs)"
+    [[ -n "$player" ]] && rcon "whitelist remove $player" &> /dev/null
+  done
+fi
+rcon "whitelist on"
+echo "  Whitelist emptied until deploy completes (ops can still join)"
+
 # =============================================================================
 # 13. Start any services that failed the dependency wait
 # =============================================================================
