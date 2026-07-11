@@ -86,9 +86,11 @@ Setup & secrets:
   cloudflare                  Tunnel + DNS configuration
   github-env-sync             Push .env to the GitHub environment (CI source)
   op-env | op-sync-env        1Password <-> .env helpers
-  reauth-kuma                 Mint a fresh Kuma session token (prompts TOTP);
-                              run github-env-sync after, or CI wipes it
-  kuma-token --remote         Same as reauth-kuma
+  reauth-kuma                 Mint a fresh Kuma session token via a real
+                              browser login (Playwright window; password +
+                              TOTP). Run github-env-sync after, or CI wipes it
+  kuma-token --paste          Paste a JWT copied from the dashboard yourself
+  kuma-token --remote         Legacy socket login (Kuma 1.x only)
   teardown                    Destroy cloud resources (DESTRUCTIVE)
 
 Discord:
@@ -168,8 +170,9 @@ case "$CMD" in
     exec bash "$SCRIPT_PATH" "$@"
     ;;
   reauth-kuma)
-    # Kuma session-token re-mint (interactive: prompts for a TOTP code).
-    exec bash "$SCRIPT_PATH" --remote "$@"
+    # Kuma session-token re-mint. Browser flow: log in (password + TOTP)
+    # in the Chromium window it opens; the JWT is captured automatically.
+    exec bash "$SCRIPT_PATH" --browser "$@"
     ;;
 esac
 
