@@ -40,6 +40,8 @@ Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`)
 ```bash
 ./dev update                   # re-pulls the bundle + Docker images
 ./dev up                       # restart with the new version
+./dev rollback                 # list available versions to roll back to
+./dev rollback v2.6.0          # revert to a specific version
 ```
 
 ### Sync everything (local + server + GitHub)

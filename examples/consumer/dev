@@ -21,6 +21,7 @@ usage() {
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
+  echo "  rollback Revert to a previous stack bundle version"
   echo "  sync     Update everything: local down, update, env sync to GitHub, server update, local up"
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
   echo "  seed-report Generate the top-N seed report from results"
@@ -280,7 +281,38 @@ case "$CMD" in
       -f "$STACK_DIR/docker-compose.local.yml" \
       --project-directory "$CONSUMER_DIR" \
       --profile local pull
+    echo ""
     echo "Stack and images updated."
+    echo "Tip: run 'git diff' to see what changed in synced scaffold files."
+    ;;
+  rollback)
+    if [[ ! -d "$CONSUMER_DIR/.stack" ]]; then
+      echo "No stack directory found — nothing to roll back to."
+      exit 1
+    fi
+    current="$(readlink "$CONSUMER_DIR/.stack/current" 2>/dev/null || true)"
+    echo "Available versions (current: ${current:-unknown}):"
+    for d in "$CONSUMER_DIR"/.stack/v*/; do
+      tag="$(basename "$d")"
+      if [[ "$tag" == "$current" ]]; then
+        echo "  $tag  (current)"
+      else
+        echo "  $tag"
+      fi
+    done
+    if [[ -z "${1:-}" ]]; then
+      echo ""
+      echo "Usage: ./dev rollback <version>"
+      echo "Example: ./dev rollback v2.6.0"
+      exit 0
+    fi
+    target="$1"
+    if [[ ! -d "$CONSUMER_DIR/.stack/$target" ]]; then
+      echo "Version $target not found in .stack/"
+      exit 1
+    fi
+    ln -sfn "$target" "$CONSUMER_DIR/.stack/current"
+    echo "Rolled back to $target. Run ./dev up to restart."
     ;;
   sync)
     ensure_env
