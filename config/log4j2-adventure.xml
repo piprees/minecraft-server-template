@@ -114,6 +114,17 @@
                 <!-- yungsapi mixin duplicate-method discards (per worker thread,
                      every boot; upstream cosmetic) -->
                 <RegexFilter regex="Discarding @Unique public method .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- c2me rewrites-chunk-system race: onChunkStatusChange walks
+                     ServerEntityManager tracking lists while another task
+                     mutates them -> CME, caught by the executor. One
+                     bookkeeping pass is abandoned and redone on the next
+                     status change; no serialization involved, hundreds/hour
+                     under Chunky at zero observed harm. CAVEAT: this is
+                     vanilla's generic chunk-executor error message, so any
+                     OTHER exception on that executor is console-hidden too —
+                     data/logs/latest.log keeps every occurrence (file appender
+                     is unfiltered). Real fix: c2me bump past 0.4.00.19. -->
+                <RegexFilter regex="Error executing task on Chunk source main thread executor.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
