@@ -27,6 +27,16 @@ git push origin :refs/tags/vX.Y.Z
 gh workflow run release.yml -f version=vX.Y.Z
 ```
 
+## Tag protection
+
+Enable tag protection rules in GitHub (Settings → Rules → Rulesets) to prevent direct `v*` tag pushes. Only GitHub Actions should create release tags:
+
+1. Create a ruleset targeting tags matching `v*`
+2. Set bypass: GitHub Actions only
+3. Restrict creation to "through a merge queue or GitHub Actions only"
+
+This prevents accidental `git push origin v2.7.0` which would create a broken release without a bundle.
+
 ## Two pipelines, one chain
 
 | Workflow | Triggers | Produces |
