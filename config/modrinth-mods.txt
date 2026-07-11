@@ -71,7 +71,7 @@ mtr-moogs-temples-reimagined:pI3PZZrR
 # === mobs & animals ===
 friends-and-foes:SJvhiYGe
 untitled-duck-mod:1iG0fXae
-critters-and-companions:JQtWWNPd
+critters-and-companions:YuM4Jtu5
 creeper-overhaul:O6yuPiE8
 
 # === villager overhaul ===

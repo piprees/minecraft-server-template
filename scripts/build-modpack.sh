@@ -93,14 +93,27 @@ echo ""
 echo "==> Resolving download URLs from Modrinth API..."
 
 resolve_mod() {
-  local slug="$1"
+  local entry="$1"
   local optional="${2:-false}"
+  local slug="${entry%%:*}"
+  local pinned_vid=""
+  [[ "$entry" == *:* ]] && pinned_vid="${entry#*:}"
   local tmpfile
   tmpfile="$(mktemp)"
 
-  # Get the latest version for our MC version + Fabric
-  curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
-    -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
+  if [[ -n "$pinned_vid" ]]; then
+    # Pinned version ID: resolve directly (bypass latest-version search).
+    # Used when a mod's newest build has incompatible deps (e.g.
+    # critters-and-companions 2.5.0 needs newer architectury than we pin).
+    curl -s "https://api.modrinth.com/v2/version/${pinned_vid}" \
+      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
+    # Wrap in an array so the downstream parser is uniform
+    python3 -c "import json; d=json.load(open('$tmpfile')); json.dump([d], open('$tmpfile','w'))" 2>/dev/null
+  else
+    # Get the latest version for our MC version + Fabric
+    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
+      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
+  fi
 
   # Take the newest build of ANY channel by default - mod authors keep their
   # own latest sets coherent (supplementaries' release requires sodium's
@@ -152,9 +165,9 @@ for f in v.get('files', []):
 FILES_JSON="["
 FIRST=1
 
-while IFS= read -r slug; do
-  [[ -z "$slug" ]] && continue
-  result=$(resolve_mod "$slug" "false" 2>&1 | grep -v '^  ' || true)
+while IFS= read -r entry; do
+  [[ -z "$entry" ]] && continue
+  result=$(resolve_mod "$entry" "false" 2>&1 | grep -v '^  ' || true)
   if [[ -n "$result" ]]; then
     [[ $FIRST -eq 0 ]] && FILES_JSON+=","
     FILES_JSON+="$result"
@@ -162,9 +175,9 @@ while IFS= read -r slug; do
   fi
 done <<< "$REQUIRED_MODS"
 
-while IFS= read -r slug; do
-  [[ -z "$slug" ]] && continue
-  result=$(resolve_mod "$slug" "true" 2>&1 | grep -v '^  ' || true)
+while IFS= read -r entry; do
+  [[ -z "$entry" ]] && continue
+  result=$(resolve_mod "$entry" "true" 2>&1 | grep -v '^  ' || true)
   if [[ -n "$result" ]]; then
     [[ $FIRST -eq 0 ]] && FILES_JSON+=","
     FILES_JSON+="$result"
