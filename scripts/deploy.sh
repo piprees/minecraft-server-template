@@ -52,7 +52,8 @@ COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
 BANNER_FILE="$SERVER_DIR/overlay/config/deploy-banner.txt"
 [[ -f "$BANNER_FILE" ]] || BANNER_FILE="$STACK_DIR/config/deploy-banner.txt"
-[[ -f "$BANNER_FILE" ]] && cat "$BANNER_FILE"
+# if/fi, not `[[ ]] &&`: a missing banner must not kill the deploy (set -e)
+if [[ -f "$BANNER_FILE" ]]; then cat "$BANNER_FILE"; fi
 echo "  ${BRAND_NAME:-Minecraft} — deploying stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
 echo ""
 

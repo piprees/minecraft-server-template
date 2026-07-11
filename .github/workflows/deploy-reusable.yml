@@ -77,6 +77,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Keepalives for every ssh/scp/rsync in this job: a full deploy has
+          # long QUIET stretches (image pull with mc stopped) and an idle NAT
+          # path killed the session mid-deploy (exit 255, 2026-07-11) —
+          # leaving the server down with the whitelist cleared.
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' >> ~/.ssh/config
           ssh-keyscan -H ${{ vars.DROPLET_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Resolve stack version
