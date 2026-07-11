@@ -14,6 +14,7 @@
 #   ./scripts/live-logs.sh              # interactive selection (streams)
 #   ./scripts/live-logs.sh --all        # all containers (streams)
 #   ./scripts/live-logs.sh mc           # single container (streams)
+#   ./scripts/live-logs.sh --once                                      # mc --tail 200
 #   ./scripts/live-logs.sh mc --tail N [--grep PATTERN] [--since 1h]   # snapshot
 #   ./scripts/live-logs.sh mc --errors                                 # recent errors/warnings
 set -euo pipefail
@@ -35,6 +36,11 @@ TAIL_LINES=100
 SERVER_DIR="server"
 CONFIG_DIR="$HOME/.config/minecraft-server"
 SELECTION_FILE="$CONFIG_DIR/log-selection"
+
+# --- --once shortcut (consistent with live-stats.sh) -------------------------
+if [[ "${1:-}" == "--once" ]]; then
+  set -- "mc" "--tail" "200"
+fi
 
 # --- single container: snapshot mode (any flag) or stream (no flags) ----------
 if [[ "${1:-}" != "" && "${1:-}" != "--all" ]]; then
