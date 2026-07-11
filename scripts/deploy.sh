@@ -604,6 +604,12 @@ rcon "gamerule doWeatherCycle false"
 rcon "gamerule doFireTick false"
 echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
 
+# Pause BlueMap rendering — it auto-detects new dimensions on boot and
+# starts scanning them immediately, competing with dimension activation.
+# Resumed at the end alongside game-rules and DH.
+rcon "bluemap stop" > /dev/null 2>&1 || true
+echo "  BlueMap rendering paused until deploy completes"
+
 # Keep non-admins out for the rest of the deploy: the itzg image re-applies
 # WHITELIST from .env at boot, so the server is joinable the moment it's
 # healthy — hours before a long dimension pass finishes. Empty the list
@@ -811,6 +817,11 @@ if [[ -f "$DH_TOML" ]]; then
   rcon "dh config set enableDistantGeneration true" > /dev/null 2>&1 || true
   echo "  DH distant generation re-enabled"
 fi
+
+# Resume BlueMap rendering (paused post-health to keep it from scanning
+# dimensions mid-deploy).
+rcon "bluemap start" > /dev/null 2>&1 || true
+echo "  BlueMap rendering resumed"
 
 # --- ServerCore hot-reload -----------------------------------------------------
 rcon "servercore reload" > /dev/null 2>&1 || true
