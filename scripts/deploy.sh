@@ -96,7 +96,12 @@ trap resume_autopause EXIT
 # Hard 30s cap per RCON call: a single hung command (e.g. a wedged main
 # thread) must fail the step, never freeze the whole deploy — an unbounded
 # rcon call once pinned a deploy for 50+ minutes against a deadlocked server.
+# Each call also heartbeats the deploy sentinel: idle-tasks goes dormant
+# while .skip-pause-deploying exists but treats a stale mtime (default
+# >60min) as a dead deploy and cleans it up — the touch keeps hours-long
+# dimension passes recognised as live.
 rcon() {
+  docker exec mc sh -c 'touch /data/.skip-pause-deploying' 2> /dev/null || true
   timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null || true
 }
 
@@ -187,8 +192,21 @@ if server_alive; then
   echo "  All players disconnected"
 
   # =========================================================================
-  # 4. Save and flush (world is now quiesced)
+  # 4. Quiet-boot gamerules + save and flush (world is now quiesced)
   # =========================================================================
+  # Gamerules persist in level.dat, so setting these BEFORE the stop means
+  # the NEXT boot runs with spawning/ticking/cycles off — nobody is online
+  # during a deploy, and dimension activation gets dramatically cheaper
+  # (entity spawn + game-event work during chunk loads is what blocks the
+  # main thread). Restored by step 14's "Enforcing game rules" at the end.
+  echo ""
+  echo "==> Enabling quiet-boot mode (spawning/ticking off until deploy completes)..."
+  rcon "gamerule doMobSpawning false"
+  rcon "gamerule randomTickSpeed 0"
+  rcon "gamerule doDaylightCycle false"
+  rcon "gamerule doWeatherCycle false"
+  rcon "gamerule doFireTick false"
+
   echo ""
   echo "==> Saving world..."
   rcon "save-off"
@@ -492,6 +510,16 @@ if [[ $ELAPSED -ge $MAX_WAIT ]]; then
   exit 1
 fi
 
+# Re-assert quiet-boot mode: covers cold boots (mc wasn't alive before the
+# stop, so step 4's pre-stop gamerules never ran). Keeps spawning/ticking
+# off through dimension activation below; step 14 restores normal rules.
+rcon "gamerule doMobSpawning false"
+rcon "gamerule randomTickSpeed 0"
+rcon "gamerule doDaylightCycle false"
+rcon "gamerule doWeatherCycle false"
+rcon "gamerule doFireTick false"
+echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
+
 # =============================================================================
 # 13. Start any services that failed the dependency wait
 # =============================================================================
@@ -657,8 +685,15 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
 fi
 
 # --- Enforce game rules -------------------------------------------------------
+# Also exits quiet-boot mode (step 4 / post-health): spawning, ticking,
+# and cycles come back here, at the very end, once dimension work is done.
 echo ""
 echo "==> Enforcing game rules..."
+rcon "gamerule doMobSpawning true"
+rcon "gamerule randomTickSpeed 3"
+rcon "gamerule doDaylightCycle true"
+rcon "gamerule doWeatherCycle true"
+rcon "gamerule doFireTick true"
 rcon "gamerule doInsomnia false"
 rcon "gamerule playersSleepingPercentage 50"
 rcon "gamerule spawnRadius 0"
@@ -666,7 +701,7 @@ rcon "gamerule forgiveDeadPlayers true"
 rcon "gamerule universalAnger false"
 rcon "gamerule mobGriefing true"
 rcon "gamerule playersNetherPortalDefaultDelay 0"
-echo "  Game rules set"
+echo "  Game rules set (quiet-boot mode off)"
 
 # --- ServerCore hot-reload -----------------------------------------------------
 rcon "servercore reload" > /dev/null 2>&1 || true

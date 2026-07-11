@@ -48,6 +48,14 @@ CHUNKY_PL_MARKER="/data/.chunky-paradise-lost-complete"
 SKIP_PAUSE_FILE="/data/.skip-pause"
 SKIP_PAUSE_OWN="/data/.skip-pause-idle"
 SKIP_PAUSE_OTHER="/data/.skip-pause-deploying"
+# While .skip-pause-deploying exists, idle-tasks goes fully dormant — no
+# RCON, no Chunky, no maintenance. A deploy owns the server (restarts,
+# dimension setup, config sync); idle work would race it. deploy.sh
+# heartbeats the sentinel (its rcon() touches it on every call), so mtime
+# staleness distinguishes a live deploy from one that died without running
+# its EXIT trap (e.g. dropped SSH session). A stale sentinel is cleaned up
+# here — otherwise autopause would stay suppressed forever.
+DEPLOY_STALE_MINUTES="${DEPLOY_STALE_MINUTES:-60}"
 chunky_active=false
 chunky_dimension="overworld"
 tasks_done=false
@@ -66,6 +74,28 @@ java_paused() {
   local stat
   stat=$(docker exec mc ps -ax -o stat,comm 2> /dev/null | grep java | awk '{print $1}' || echo "")
   [[ "$stat" == T* ]]
+}
+
+# True while a live deploy holds .skip-pause-deploying. Removes the
+# sentinel (and the aggregate, if we don't own it) when it's gone stale —
+# a deploy killed hard (SSH drop = no EXIT trap) must not leave idle-tasks
+# dormant and autopause suppressed forever.
+deploy_in_progress() {
+  [[ -f "$SKIP_PAUSE_OTHER" ]] || return 1
+  local now mtime age
+  now=$(date +%s)
+  mtime=$(stat -c %Y "$SKIP_PAUSE_OTHER" 2> /dev/null || echo 0)
+  age=$((now - mtime))
+  if [[ $age -gt $((DEPLOY_STALE_MINUTES * 60)) ]]; then
+    echo "[$(date '+%H:%M:%S')] Deploy sentinel is ${age}s old (> ${DEPLOY_STALE_MINUTES}min) - the deploy died without cleanup; clearing it"
+    rm -f "$SKIP_PAUSE_OTHER"
+    [[ -f "$SKIP_PAUSE_OWN" ]] || rm -f "$SKIP_PAUSE_FILE"
+    # A dead deploy may have left the server in quiet-boot mode (spawning/
+    # ticking off — same rule set as pre-gen mode). Restore once RCON responds.
+    pregen_dirty=true
+    return 1
+  fi
+  return 0
 }
 
 get_player_count() {
@@ -260,8 +290,34 @@ echo "    Paradise:  ${CHUNKY_PL_RADIUS} block radius"
 empty_since=""
 rcon_failures=0
 pregen_dirty=false
+deploy_dormant=false
 
 while true; do
+  # A deploy owns the server: no RCON, no Chunky, no maintenance until its
+  # sentinel clears. Checked before get_player_count so a paused-or-busy
+  # server mid-deploy never accrues rcon_failures or idle timers here.
+  if deploy_in_progress; then
+    if [[ "$chunky_active" == true ]]; then
+      echo "[$(date '+%H:%M:%S')] Deploy in progress - abandoning pre-gen state (no RCON sent)"
+      chunky_active=false
+      disable_skip_pause
+      pregen_dirty=true
+    fi
+    if [[ "$deploy_dormant" != true ]]; then
+      echo "[$(date '+%H:%M:%S')] Deploy in progress - idle-tasks dormant until it completes"
+      deploy_dormant=true
+    fi
+    empty_since=""
+    tasks_done=false
+    rcon_failures=0
+    sleep "$POLL_INTERVAL"
+    continue
+  fi
+  if [[ "$deploy_dormant" == true ]]; then
+    echo "[$(date '+%H:%M:%S')] Deploy finished - resuming idle monitoring"
+    deploy_dormant=false
+  fi
+
   count=$(get_player_count)
 
   if [[ "$count" == "-2" ]]; then
