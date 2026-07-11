@@ -75,9 +75,10 @@ case "${1:-}" in
     echo "The session token is picked up automatically after login."
 
     # Playwright must be require()-able by the script, so it lives in a
-    # small cached workdir (npx -p only wires up PATH, not module
-    # resolution - that bit us). One-time ~30s install, instant after.
-    WORKDIR="${HOME}/.cache/kuma-token"
+    # small workdir (npx -p only wires up PATH, not module resolution -
+    # that bit us). Kept inside the consumer repo's gitignored cache/
+    # rather than any global/temp location. One-time ~30s install.
+    WORKDIR="${PROJECT_DIR}/cache/kuma-token"
     mkdir -p "$WORKDIR"
     if [[ ! -d "$WORKDIR/node_modules/playwright" ]]; then
       echo "Installing Playwright into ${WORKDIR} (one-time)..."
