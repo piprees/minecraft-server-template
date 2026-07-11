@@ -86,7 +86,8 @@
       "elytra-slot",
       "artifacts",
       "comforts",
-      "guard-villagers-(fabricquilt)"
+      "guard-villagers-(fabricquilt)",
+      "universal-sawmill"
     ],
     "optional": [
       "sodium",
