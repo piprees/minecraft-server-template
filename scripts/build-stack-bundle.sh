@@ -74,6 +74,16 @@ MANIFEST=(
   scripts/stack-pull.sh
   examples/consumer/dev
   examples/consumer/ops
+  # Everything `dev update` syncs into a consumer repo must ship in the
+  # bundle — its copy loops are guarded by [[ -f "$src" ]] and silently
+  # skip missing sources (elfydd ran a v1-era deploy.yml for months
+  # because these weren't here).
+  examples/consumer/.env.example
+  examples/consumer/.gitignore
+  examples/consumer/AGENTS.md
+  examples/consumer/README.md
+  examples/consumer/.github/workflows/deploy.yml
+  examples/consumer/.github/workflows/update.yml
 )
 
 echo "Building stack bundle v${VERSION}..."
