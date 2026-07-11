@@ -460,7 +460,9 @@ if [[ -f "$DH_TOML" ]]; then
     -e 's/showGarbageCollectorWarning = true/showGarbageCollectorWarning = false/' \
     -e 's/logExplicitGcDisabledWarning = true/logExplicitGcDisabledWarning = false/' \
     -e 's/showExplicitGcDisabledWarning = true/showExplicitGcDisabledWarning = false/' \
+    -e 's/enableDistantGeneration = true/enableDistantGeneration = false/' \
     "$DH_TOML"
+  echo "  DH distant generation disabled (restored at deploy end)"
 fi
 
 # =============================================================================
@@ -801,6 +803,14 @@ rcon "gamerule universalAnger false"
 rcon "gamerule mobGriefing true"
 rcon "gamerule playersNetherPortalDefaultDelay 0"
 echo "  Game rules set (quiet-boot mode off)"
+
+# Re-enable DH distant generation (disabled at step 8c to keep its worldgen
+# threads from competing with dimension activation and Chunky pregen).
+if [[ -f "$DH_TOML" ]]; then
+  sed -i 's/enableDistantGeneration = false/enableDistantGeneration = true/' "$DH_TOML"
+  rcon "dh config set enableDistantGeneration true" > /dev/null 2>&1 || true
+  echo "  DH distant generation re-enabled"
+fi
 
 # --- ServerCore hot-reload -----------------------------------------------------
 rcon "servercore reload" > /dev/null 2>&1 || true
