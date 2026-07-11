@@ -405,6 +405,14 @@ if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   echo "  Copied $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') mod JAR(s)"
 fi
 
+# Repair known-bad data inside third-party mod jars (idempotent; a patched
+# jar keeps its filename so the MODS_FILE skip-existing download and the
+# manifest prune both leave it alone). Currently: Epic Dungeons CamelCase
+# loot ids that abort feature placement and spawn lootless chests.
+if [[ -f "$SCRIPT_DIR/patch-mod-data.py" ]]; then
+  python3 "$SCRIPT_DIR/patch-mod-data.py" "$SERVER_DIR/data/mods" || true
+fi
+
 # =============================================================================
 # 8c. Enforce single-key config invariants (while mc is stopped)
 # =============================================================================

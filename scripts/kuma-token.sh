@@ -24,16 +24,20 @@ if [[ "${1:-}" == "--remote" ]]; then
 
   read -rp "TOTP code: " TOTP_CODE
   SERVER_DIR="server"
+  # Use the kuma-init image (already on the server, has uptime-kuma-api) —
+  # pulling python:alpine + pip install used to burn the 30s TOTP window.
+  # The compose network is named after COMPOSE_PROJECT_NAME, not "server",
+  # so resolve it from the running mc container instead of hardcoding.
   TOKEN=$(ssh -i "$KEY" "deploy@${HOST}" "
-    docker run --rm --network ${SERVER_DIR}_default python:3.13-alpine sh -c '
-      pip install -q uptime-kuma-api 2>/dev/null
-      python3 -c \"
+    NET=\$(docker inspect mc --format '{{range \$k, \$v := .NetworkSettings.Networks}}{{\$k}}{{end}}' | head -1)
+    IMG=\$(docker inspect kuma-init --format '{{.Config.Image}}' 2>/dev/null || echo ghcr.io/piprees/minecraft-server-template/kuma-init:latest)
+    docker run --rm --network \"\$NET\" --entrypoint python3 \"\$IMG\" -c \"
 from uptime_kuma_api import UptimeKumaApi
 api = UptimeKumaApi(\\\"http://uptime-kuma:3001\\\")
 result = api.login(\\\"${KUMA_USERNAME:-admin}\\\", \\\"${KUMA_PASSWORD}\\\", \\\"${TOTP_CODE}\\\")
 print(result[\\\"token\\\"])
 api.disconnect()
-\"'
+\"
   ")
 
   if [[ -z "$TOKEN" || "$TOKEN" == *"Error"* ]]; then
@@ -43,14 +47,25 @@ api.disconnect()
 
   echo "Session token obtained."
 
-  # Save locally
-  sed -i '' "s|KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|" "$PROJECT_DIR/.env" 2>/dev/null \
-    || sed -i "s|KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|" "$PROJECT_DIR/.env"
+  # Save locally — APPEND when the line doesn't exist: a consumer .env
+  # without a KUMA_API_KEY line made the old sed a silent no-op, so the
+  # token never reached GitHub and CI deploys kept wiping it (2026-07-11).
+  if grep -q '^KUMA_API_KEY=' "$PROJECT_DIR/.env"; then
+    sed -i '' "s|^KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|" "$PROJECT_DIR/.env" 2>/dev/null \
+      || sed -i "s|^KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|" "$PROJECT_DIR/.env"
+  else
+    printf 'KUMA_API_KEY=%s\n' "$TOKEN" >> "$PROJECT_DIR/.env"
+  fi
   echo "  Updated local .env"
 
-  # Save on server
-  ssh -i "$KEY" "deploy@${HOST}" "cd ~/${SERVER_DIR} && sed -i 's|KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|' .env"
+  # Save on server (same append-if-missing guard)
+  ssh -i "$KEY" "deploy@${HOST}" "cd ~/${SERVER_DIR} && if grep -q '^KUMA_API_KEY=' .env; then sed -i 's|^KUMA_API_KEY=.*|KUMA_API_KEY=${TOKEN}|' .env; else printf 'KUMA_API_KEY=%s\n' '${TOKEN}' >> .env; fi"
   echo "  Updated server .env"
+
+  echo ""
+  echo "IMPORTANT: push the token to the GitHub environment or the next full"
+  echo "CI deploy will wipe it from the server again:"
+  echo "  ./ops github-env-sync"
 
   echo ""
   echo "Done. Restart kuma-init to apply:"

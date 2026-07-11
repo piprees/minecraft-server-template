@@ -44,14 +44,58 @@ ALLOWED_COMMANDS=(
 )
 
 usage() {
-  echo "Usage: ./ops <command> [args]"
-  echo ""
-  echo "Delegates to bundle scripts with your consumer environment loaded."
-  echo ""
-  echo "Commands:"
-  for cmd in "${ALLOWED_COMMANDS[@]}"; do
-    echo "  $cmd"
-  done
+  cat << 'EOF'
+Usage: ./ops <command> [args]
+
+Production operations - delegates to bundle scripts with your consumer
+environment loaded. Every script has a usage header: read it with
+  cat .stack/current/stack/scripts/<name>.sh | head -30
+
+Health & logs:
+  doctor [--threads]          Full health triage - START HERE. --threads adds
+                              a JVM thread-dump verdict (main thread stuck?)
+  logs [svc] [--tail N] [--grep P]
+                              Log snapshot, never streams (default svc: mc)
+  logs --latest [--tail N] [--grep P]
+                              RAW game log file - includes what console
+                              filters hide (resets each boot, 3-day retention)
+  live-logs                   Stream all container logs (blocks - humans only)
+  live-stats                  Stream system + container stats (blocks)
+
+Server control:
+  status [svc]                Container status (all, or one service)
+  start|stop|restart <svc>    Manage one service (mc, nav-proxy, pack-web...)
+  restart-service <svc>       Force-recreate one service
+  update [--quick]            Pull latest bundle + images, full redeploy
+  rcon "<command>"            Run an RCON command (auto local/production)
+  ssh ['<command>']           Shell, or a one-shot command, on the server
+
+World:
+  chunky                      Pre-generation progress
+  map render [map]            Force-render BlueMap (all maps or one)
+  map status|threads <n>      Render progress / thread count
+  wipe-chunk <x> <z> [dim]    Regenerate a corrupted chunk
+  reset-seed <seed>           Reset the world (triple-confirmed, backup first)
+  backup                      Run a restic backup now
+
+Setup & secrets:
+  setup                       First-time interactive setup
+  preflight                   Validate credentials before provisioning
+  provision | prepare         Create / prepare the cloud server
+  harden                      SSH + firewall hardening
+  cloudflare                  Tunnel + DNS configuration
+  github-env-sync             Push .env to the GitHub environment (CI source)
+  op-env | op-sync-env        1Password <-> .env helpers
+  reauth-kuma                 Mint a fresh Kuma session token (prompts TOTP);
+                              run github-env-sync after, or CI wipes it
+  kuma-token --remote         Same as reauth-kuma
+  teardown                    Destroy cloud resources (DESTRUCTIVE)
+
+Discord:
+  discord-notify              Send a message via the webhook
+  discord-cleanup             Prune old bot messages
+  discord-pin-sync            Re-sync pinned info messages
+EOF
 }
 
 CMD="${1:-help}"
