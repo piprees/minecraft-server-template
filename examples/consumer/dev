@@ -30,6 +30,7 @@ usage() {
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
   echo "  restart  Force-recreate a service (e.g. ./dev restart nav-proxy)"
   echo "  status   Show container status (e.g. ./dev status)"
+  echo "  doctor   Local health check (containers, RCON, seed exit)"
   echo ""
   echo "Production equivalents: ./ops help"
   echo "  dev up      ↔  (push to main triggers CI)"
@@ -336,6 +337,90 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/cache-assets.sh" "$@"
+    ;;
+  doctor)
+    ensure_docker
+    if [[ -f "$CONSUMER_DIR/.env" ]]; then
+      set -a; source "$CONSUMER_DIR/.env"; set +a
+    fi
+    BRAND_SLUG="${BRAND_SLUG:-myserver}"
+    PREFIX="${COMPOSE_PROJECT_NAME:-$BRAND_SLUG}"
+    PASS=0; WARN=0; FAIL=0
+    res() {
+      case "$1" in
+        OK)   echo "  ✓ $2"; PASS=$((PASS + 1)) ;;
+        WARN) echo "  ! $2"; WARN=$((WARN + 1)) ;;
+        FAIL) echo "  ✗ $2"; FAIL=$((FAIL + 1)) ;;
+        *)    echo "  · $2" ;;
+      esac
+    }
+    echo ""
+    echo "Local doctor — ${PREFIX}"
+    echo "=============================================="
+    for c in mc defaults-seed uptime-kuma nav-proxy pack-web mod-checker discord-sync; do
+      name="${PREFIX}-${c}-1"
+      # try both naming conventions
+      STATE=$(docker inspect "$name" --format '{{.State.Status}}' 2>/dev/null \
+        || docker inspect "${c}" --format '{{.State.Status}}' 2>/dev/null \
+        || echo missing)
+      RESTARTS=$(docker inspect "$name" --format '{{.RestartCount}}' 2>/dev/null \
+        || docker inspect "${c}" --format '{{.RestartCount}}' 2>/dev/null \
+        || echo 0)
+      if [[ "$STATE" == "missing" ]]; then
+        if [[ "$c" == "defaults-seed" ]]; then
+          EXIT=$(docker inspect "$name" --format '{{.State.ExitCode}}' 2>/dev/null \
+            || docker inspect "${c}" --format '{{.State.ExitCode}}' 2>/dev/null \
+            || echo "?")
+          if [[ "$EXIT" == "0" ]]; then
+            res OK "defaults-seed exited 0 (normal — runs once)"
+          else
+            res FAIL "defaults-seed exit code: $EXIT"
+          fi
+        else
+          res WARN "container $c not found"
+        fi
+      elif [[ "$STATE" == "exited" && "$c" == "defaults-seed" ]]; then
+        EXIT=$(docker inspect "$name" --format '{{.State.ExitCode}}' 2>/dev/null \
+          || docker inspect "${c}" --format '{{.State.ExitCode}}' 2>/dev/null \
+          || echo "?")
+        if [[ "$EXIT" == "0" ]]; then
+          res OK "defaults-seed exited 0 (normal — runs once)"
+        else
+          res FAIL "defaults-seed exit code: $EXIT"
+        fi
+      elif [[ "$STATE" != "running" ]]; then
+        res FAIL "container $c is $STATE"
+      elif [[ "$RESTARTS" -gt 0 ]]; then
+        res WARN "container $c running but restarted ${RESTARTS}x"
+      else
+        res OK "container $c running"
+      fi
+    done
+    # mc healthcheck
+    MC_NAME="${PREFIX}-mc-1"
+    MC_HEALTH=$(docker inspect "$MC_NAME" --format '{{.State.Health.Status}}' 2>/dev/null \
+      || docker inspect mc --format '{{.State.Health.Status}}' 2>/dev/null \
+      || echo unknown)
+    if [[ "$MC_HEALTH" == "healthy" ]]; then
+      res OK "mc healthcheck: healthy"
+    elif [[ "$MC_HEALTH" == "starting" ]]; then
+      res INFO "mc healthcheck: starting (still booting)"
+    else
+      res FAIL "mc healthcheck: $MC_HEALTH"
+    fi
+    # RCON
+    LIST=$(timeout 8 docker exec "$MC_NAME" rcon-cli list 2>/dev/null \
+      || timeout 8 docker exec mc rcon-cli list 2>/dev/null || true)
+    if [[ -n "$LIST" ]]; then
+      res OK "RCON: $LIST"
+    else
+      res INFO "RCON silent (autopaused or still booting)"
+    fi
+    echo ""
+    echo "=============================================="
+    echo "Results: ${PASS} ok, ${WARN} warnings, ${FAIL} failures"
+    [[ $FAIL -gt 0 ]] && exit 1
+    exit 0
     ;;
   start | stop | restart | status)
     ensure_stack
