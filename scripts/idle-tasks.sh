@@ -93,6 +93,8 @@ deploy_in_progress() {
     # A dead deploy may have left the server in quiet-boot mode (spawning/
     # ticking off — same rule set as pre-gen mode). Restore once RCON responds.
     pregen_dirty=true
+    # ...and may have left mc-backup stopped (deploys pause it). Restart it.
+    docker start mc-backup > /dev/null 2>&1 || true
     return 1
   fi
   return 0

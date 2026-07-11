@@ -139,9 +139,25 @@ kuma_maintenance() {
     run --rm --no-deps kuma-init python3 /app/kuma-maintenance.py "$1" 2> /dev/null || true
 }
 kuma_maintenance start
-# Replaces the earlier resume-only trap: close the maintenance window and
-# release the autopause suspension however the deploy exits.
-trap 'kuma_maintenance stop; resume_autopause' EXIT
+
+# mc-backup must not run mid-deploy: its scheduled rcon save-on/save-off
+# fires against a stopped or booting server (5x ERROR retries per attempt)
+# and a backup of a half-assembled deploy state is worthless. Stopped here
+# and RE-stopped after every compose up below (which would otherwise start
+# it again); resumed by the EXIT trap. If a deploy dies without the trap,
+# idle-tasks' stale-sentinel cleanup restarts it.
+pause_backups() {
+  docker stop mc-backup 2> /dev/null || true
+}
+resume_backups() {
+  docker start mc-backup 2> /dev/null || true
+}
+pause_backups
+
+# Replaces the earlier resume-only trap: close the maintenance window,
+# release the autopause suspension, and restart backups however the
+# deploy exits.
+trap 'kuma_maintenance stop; resume_autopause; resume_backups' EXIT
 
 msg() {
   local key="$1"
@@ -511,6 +527,8 @@ fi
 # Re-apply the autopause suspension inside the freshly (re)created container —
 # the pre-restart file died with the old container's filesystem view.
 suspend_autopause
+# compose up just started mc-backup again — keep it paused until the trap.
+pause_backups
 
 # Force-recreate sidecars so config/script changes actually load.
 # Keep this list in sync with infra-deploy.sh.
@@ -584,6 +602,8 @@ echo "  Whitelist emptied until deploy completes (ops can still join)"
 # =============================================================================
 # shellcheck disable=SC2086
 $COMPOSE_CMD --profile cloud up -d --remove-orphans 2> /dev/null || true
+# ...which starts mc-backup yet again — keep it paused until the trap.
+pause_backups
 
 # =============================================================================
 # 14. World borders + game rules + permissions
