@@ -63,32 +63,14 @@ Note: an in-flight deploy executes the **pre-pull** `deploy.sh` - changes to dep
 
 ## Cutting a release (platform repo only)
 
-Releases are **immutable** — once published, assets cannot be added or changed. This means the bundle tarball must be built and attached _before_ publishing. There is exactly one correct way to cut a release:
+See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility promise, and consumer impact.
 
-```bash
-gh workflow run release.yml -f version=v2.7.0
-```
+**Key constraints for agents:**
 
-This dispatches `release.yml`, which: runs smoke tests → builds the stack bundle → creates a **draft** release with the tarball attached → publishes the draft. Publishing fires the `release: published` event, which triggers `publish.yml` to build and tag all container images with semver tags.
-
-**Never use `gh release create` directly.** It publishes immediately with no bundle attached. Consumer `./dev sync` resolves `STACK_VERSION=v2` to the latest release and tries to download the tarball — a missing bundle means a 404 and a broken sync. `release-guard.yml` fires on every `release: published` event and fails loudly if the bundle tarball is missing, but the damage (an empty immutable release) is already done.
-
-**If a release ships without a bundle:** delete it and re-cut (the only fix for an immutable release):
-
-```bash
-gh release delete v2.7.0 --yes
-git push origin :refs/tags/v2.7.0
-gh workflow run release.yml -f version=v2.7.0
-```
-
-**Two pipelines, one chain:**
-
-| Workflow | Triggers | Produces |
-| --- | --- | --- |
-| `release.yml` (Release Bundle) | Manual dispatch only | Stack bundle tarball → draft release → publish |
-| `publish.yml` (Publish Container Images) | `release: published`, push to main (Dockerfile/script changes), manual dispatch | GHCR images tagged `X.Y.Z`, `X.Y`, `X`, `latest` |
-
-Pushing to `main` triggers `publish.yml` independently (images tagged `latest` + sha), so consumers on `latest` get image updates between releases. But only `release.yml` produces the bundle tarball that consumers need for `./dev sync`.
+- **Never use `gh release create` directly** — use `gh workflow run release.yml -f version=vX.Y.Z`.
+- Releases are **immutable**: assets can't be attached after publish, so `gh release create` produces a broken release with no bundle.
+- A failed or deleted release **burns its tag forever** (immutable releases reserve the tag name permanently). Fix the cause and cut the NEXT patch version.
+- If a release ships without a bundle: `gh release delete vX.Y.Z --yes && git push origin :refs/tags/vX.Y.Z`, then re-cut.
 
 ## Architecture traps (each of these has caused a real incident)
 

@@ -19,16 +19,28 @@ A failed or deleted release burns its tag forever — immutable releases
 reserve the tag name permanently, even after deletion. If a release fails,
 fix the cause and cut the NEXT patch version; never retry the same one.
 
-## What a release produces
+**If a release ships without a bundle:** delete it and re-cut (the only fix for an immutable release):
 
-A published release triggers two workflows:
+```bash
+gh release delete vX.Y.Z --yes
+git push origin :refs/tags/vX.Y.Z
+gh workflow run release.yml -f version=vX.Y.Z
+```
 
-| Workflow | Output |
-| --- | --- |
-| **Publish Container Images** (`publish.yml`) | 6 GHCR images (`discord-sync`, `kuma-init`, `mod-checker`, `idle-tasks`, `defaults-seed`, `modpack-builder`) tagged `X.Y.Z`, `X.Y`, `X`, and `latest` |
-| **Release Bundle** (`release.yml`) | `stack-vX.Y.Z.tar.gz` + `.sha256` attached to the release, plus an advancing `vX` major tag for workflow `@vX` references |
+## Two pipelines, one chain
+
+| Workflow | Triggers | Produces |
+| --- | --- | --- |
+| `release.yml` (Release Bundle) | Manual dispatch only | Stack bundle tarball → draft release → publish |
+| `publish.yml` (Publish Container Images) | `release: published`, push to main (Dockerfile/script changes), manual dispatch | GHCR images tagged `X.Y.Z`, `X.Y`, `X`, `latest` |
+
+Pushing to `main` triggers `publish.yml` independently (images tagged `latest` + sha), so consumers on `latest` get image updates between releases. But only `release.yml` produces the bundle tarball that consumers need for `./dev update`.
 
 ## Compatibility promise
+
+- **Major** (`v1` → `v2`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided.
+- **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
+- **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 
 Within a major version:
 
@@ -37,6 +49,8 @@ Within a major version:
 - No breaking changes to reusable-workflow inputs or secrets.
 
 A major bump signals that consumers must review migration notes before upgrading.
+
+Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updates.
 
 ## Consumer impact
 

@@ -93,7 +93,7 @@ Each GitHub release `vX.Y.Z` on this repo:
 - **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
 - **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 
-Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updates.
+Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updates. See [docs/releasing.md](docs/releasing.md) for the full release process and pipeline details.
 
 ## Architecture
 

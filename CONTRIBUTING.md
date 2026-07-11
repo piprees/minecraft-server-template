@@ -8,17 +8,22 @@ This is a Minecraft server template built as infrastructure-as-code. Bug fixes, 
 2. **Check existing issues** for related discussion before opening a new one.
 3. **For large changes**, open an issue first to discuss the approach. Small bug fixes and documentation improvements can go straight to a PR.
 
-## Local development
+## Which workflow am I in?
 
-```bash
-# Clone and start the local dev server
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
-cp .env.example .env
-./scripts/dev-up.sh
-```
+- **Platform contributor** (you cloned this repo to improve scripts, configs, images, or workflows):
+  ```bash
+  cp .env.example .env
+  ./scripts/dev-up.sh
+  ```
+- **Consumer contributor** (you cloned a consumer repo to add mods or overlays):
+  ```bash
+  cp .env.example .env
+  ./dev up
+  ```
 
-The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account. See [README.md](README.md#contributing) for more.
+Most people reading this file are platform contributors — it lives in the platform repo. If you're working in a consumer repo, see that repo's README instead.
+
+The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account.
 
 ## Quality gates
 
@@ -53,9 +58,10 @@ Common prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `refactor:`, `style:
 ## Style guide
 
 - British English in all user-facing strings, docs, and commit messages (colour, behaviour, initialise).
+- Second-person imperative for instructions ("Run", "Edit", "Add"). Present tense for descriptions ("The seed container resolves pins"). Blunt warnings with no softening ("Never", "Don't", "This will break").
 - Shell scripts use `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on macOS bash 3.2 (no `declare -A`, no `${var,,}`, no `|&`). Idempotent - safe to run twice.
 - Player-facing messages all live in `config/messages.json`. Never hard-code user-facing strings in scripts.
-- Docker Compose values come from `.env`/`server.env`. No hard-coded values in `docker-compose.yml`.
+- Docker Compose values come from `.env`. No hard-coded values in `docker-compose.yml`.
 
 ## Adding or removing mods
 
@@ -107,6 +113,23 @@ If you add a mod with server-side configuration, you need to touch two places:
 2. The directory added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
 
 Config seeding is handled automatically by `deploy.sh` step 8 — it copies all files from the bundle's `config/` into `data/config/` (skip-if-exists for defaults, force-overwrite for consumer overlay). This runs before mc starts so mods don't create their own defaults first.
+
+## Good first contributions
+
+Not sure where to start? These are low-risk and always welcome:
+
+- Documentation improvements (typos, clarifications, dead links)
+- Adding a mod to `config/modrinth-mods.txt` (follow the dependency checklist above)
+- Shell script linting fixes flagged by ShellCheck
+- Improving issue templates
+
+Look for issues labelled `good first issue` or `help wanted`.
+
+## After you open a PR
+
+This is maintained by one person — response times vary, but straightforward changes with green CI typically get a fast turnaround. The maintainer may squash-merge with a conventional commit message.
+
+If CI fails, fix the issues flagged in the annotations (click them for exact locations), push again, and CI re-runs automatically. Quick local check: `./scripts/test-scripts.sh --quick`.
 
 ## Reporting issues
 
