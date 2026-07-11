@@ -12,4 +12,38 @@ backups/
 modpack-dist/
 seed-results.csv
 seed-errors.log
+seed-results.csv.lock
+seed-errors.log.lock
+seed-report-top25.md
 seedtest-data/
+seedtest-data-*/
+
+# Not referenced by any Dockerfile COPY (all six build with context: . but
+# only ever copy from config/, scripts/, modpack/, assets/, docker/) —
+# excluding these keeps the build context small and fast.
+mods/
+dist/
+scratch/
+modpack/dist/
+
+# Secrets — defense in depth. No current Dockerfile copies config/
+# broadly enough to pull these in, but .dockerignore shouldn't rely on
+# COPY specificity alone to keep credentials out of a pushed image layer.
+config/cloudflared/*.json
+config/cloudflared/cert.pem
+config/server.local.env
+restic-password.txt
+.impeccable
+
+# OS / editor / agent junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.claude/
+.setup-state/
+__pycache__/
+**/__pycache__/
+*.bak.*

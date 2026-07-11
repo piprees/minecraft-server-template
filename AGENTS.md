@@ -54,16 +54,16 @@ Pushing to `main` in a consumer repo triggers the caller workflow, which invokes
 1. Resolve the run id **by commit sha**, not `--limit 1` (a fresh push races run creation and you'll grab the previous run): `gh run list --workflow deploy.yml --commit <sha> --json databaseId,status` (retry if empty).
 2. Poll `gh run view <id> --json status,conclusion` every 30-60s. Never `gh run watch` - it streams and blocks, same rule as log tailing. Full deploys take 3-15 min (longer when the mod list changed - Modrinth re-syncs ~150 JARs).
 3. Snapshot server logs for boot errors: `ssh ... 'docker logs mc --tail 50'`.
-3. If it fails, **fix it immediately** - a failed deploy can leave containers stopped or configs half-applied. Verify: `docker exec -i mc rcon-cli "list"`.
-4. No manual changes on the server while CI runs. Never run `harden.sh` or `deploy.sh` manually while CI is deploying.
+4. If it fails, **fix it immediately** - a failed deploy can leave containers stopped or configs half-applied. Verify: `docker exec -i mc rcon-cli "list"`.
+5. No manual changes on the server while CI runs. Never run `harden.sh` or `deploy.sh` manually while CI is deploying.
 
 **Collision symptom:** `client_loop: send disconnect: Broken pipe` - a concurrent Docker restart delayed the healthcheck. Wait for CI, verify health, re-run.
 
-Note: an in-flight deploy executes the **pre-pull** `deploy.sh` - changes to deploy.sh itself take effect on the *next* deploy after merging.
+Note: an in-flight deploy executes the **pre-pull** `deploy.sh` - changes to deploy.sh itself take effect on the _next_ deploy after merging.
 
 ## Cutting a release (platform repo only)
 
-Releases are **immutable** — once published, assets cannot be added or changed. This means the bundle tarball must be built and attached *before* publishing. There is exactly one correct way to cut a release:
+Releases are **immutable** — once published, assets cannot be added or changed. This means the bundle tarball must be built and attached _before_ publishing. There is exactly one correct way to cut a release:
 
 ```bash
 gh workflow run release.yml -f version=v2.7.0
@@ -138,7 +138,7 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Git:** conventional-commit style, imperative mood (`fix:`, `feat:`, `chore:`).
 
-**Versions (images, actions, tools):** never rely on training data for version numbers — it will be outdated. Before adding or updating any Docker image tag, GitHub Actions step, CLI tool, or library version, look up the latest from a live source: `gh release list --repo <owner/repo> --limit 5`, Context7 (`npx ctx7@latest docs`), or the project's GitHub releases page. This applies to every `image:` tag in `docker-compose.yml`, every `uses:` reference in `.github/workflows/`, and every pinned version in scripts. **Traps:** (1) `gh release list --limit 1` returns the most *recently published* release, not the highest version — backported patch releases (e.g. v5.1.0 published after v6.0.0) will appear first. Always use `--limit 5` and check `isLatest` or sort by semver: `gh release list --limit 5 --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName'`. (2) GitHub release tags don't always exist on Docker Hub — some projects (e.g. MinIO) publish GitHub releases but stop pushing to Docker Hub. Always verify Docker image availability with `docker pull` or the Docker Hub API before pinning a new tag.
+**Versions (images, actions, tools):** never rely on training data for version numbers — it will be outdated. Before adding or updating any Docker image tag, GitHub Actions step, CLI tool, or library version, look up the latest from a live source: `gh release list --repo <owner/repo> --limit 5`, Context7 (`npx ctx7@latest docs`), or the project's GitHub releases page. This applies to every `image:` tag in `docker-compose.yml`, every `uses:` reference in `.github/workflows/`, and every pinned version in scripts. **Traps:** (1) `gh release list --limit 1` returns the most _recently published_ release, not the highest version — backported patch releases (e.g. v5.1.0 published after v6.0.0) will appear first. Always use `--limit 5` and check `isLatest` or sort by semver: `gh release list --limit 5 --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName'`. (2) GitHub release tags don't always exist on Docker Hub — some projects (e.g. MinIO) publish GitHub releases but stop pushing to Docker Hub. Always verify Docker image availability with `docker pull` or the Docker Hub API before pinning a new tag.
 
 ## In-house mods
 
@@ -195,7 +195,7 @@ The four public pages share one design system but have **no shared stylesheet** 
 
 **The nav bar is injected, not authored per page**: `config/nginx/nav-proxy.conf` `sub_filter`s the nav HTML + CSS into every page - **four near-identical copies** (one per `server` block) plus a fifth in the map-sleeping page. Changing the nav means changing all five.
 
-**Footer version string** (`<PackName> · <pack>-<MC_VERSION>-v<git sha>`): `PACK_NAME` is computed by `build-modpack.sh` from `git rev-parse --short HEAD` and baked into the pack page. The mods page (`check-updates.sh`) and status page (`kuma-provision.py`) run in containers with no git checkout, so they read the *served* pack build instead - `modpack/dist/packwiz/pack.toml` (`version = "<sha>"`), via the dist mount and `http://pack-web/packwiz/pack.toml` respectively. If the status footer shows `vunknown`, pack-web wasn't reachable and no git checkout existed.
+**Footer version string** (`<PackName> · <pack>-<MC_VERSION>-v<git sha>`): `PACK_NAME` is computed by `build-modpack.sh` from `git rev-parse --short HEAD` and baked into the pack page. The mods page (`check-updates.sh`) and status page (`kuma-provision.py`) run in containers with no git checkout, so they read the _served_ pack build instead - `modpack/dist/packwiz/pack.toml` (`version = "<sha>"`), via the dist mount and `http://pack-web/packwiz/pack.toml` respectively. If the status footer shows `vunknown`, pack-web wasn't reachable and no git checkout existed.
 
 **Fonts**: the placeholder uses system fonts throughout. To add a custom display font, place the woff2 in `modpack/template/fonts/` (copied to `dist/fonts/` by the build), update the CSS in each surface, and add a CORS header on `/fonts/` in `pack-web.conf` if Kuma's customCSS loads it cross-origin from pack.DOMAIN.
 

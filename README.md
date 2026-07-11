@@ -236,26 +236,26 @@ Scripts fall into three categories depending on where they live and who runs the
 
 ### Image scripts (baked into GHCR images, not run directly)
 
-| Script | Image | What it does |
-| --- | --- | --- |
-| `build-modpack.sh` | modpack-builder | Build versioned `.mrpack` + download page from the manifest |
-| `check-pack-coherence.py` | modpack-builder | Validate pack manifest consistency |
-| `modrinth-api.py` | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
-| `discord-sync.py` | discord-sync | Discord bot: `/register`, `/mc` commands, role sync |
-| `kuma-provision.py` | kuma-init | One-shot Kuma provisioning from kuma-config.json |
-| `idle-tasks.sh` | idle-tasks | Save/render/GC/Chunky when the server is empty |
-| `check-updates.sh` | mod-checker | Mod update check, HTML status page generation |
+| Script                    | Image           | What it does                                                           |
+| ------------------------- | --------------- | ---------------------------------------------------------------------- |
+| `build-modpack.sh`        | modpack-builder | Build versioned `.mrpack` + download page from the manifest            |
+| `check-pack-coherence.py` | modpack-builder | Validate pack manifest consistency                                     |
+| `modrinth-api.py`         | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
+| `discord-sync.py`         | discord-sync    | Discord bot: `/register`, `/mc` commands, role sync                    |
+| `kuma-provision.py`       | kuma-init       | One-shot Kuma provisioning from kuma-config.json                       |
+| `idle-tasks.sh`           | idle-tasks      | Save/render/GC/Chunky when the server is empty                         |
+| `check-updates.sh`        | mod-checker     | Mod update check, HTML status page generation                          |
 
 ### Template-only scripts (for platform development, not shipped)
 
-| Script | What it does |
-| --- | --- |
-| `pin-mod-versions.sh` | Re-pin every mod to its latest build (used by mod-updates.yml) |
-| `check-modrinth-compat.sh` | Check the mod list against a target MC version/loader |
-| `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
-| `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
-| `test-scripts.sh` | shellcheck + py_compile + compose validation |
-| `build-stack-bundle.sh` | Assemble the release tarball |
+| Script                       | What it does                                                        |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `pin-mod-versions.sh`        | Re-pin every mod to its latest build (used by mod-updates.yml)      |
+| `check-modrinth-compat.sh`   | Check the mod list against a target MC version/loader               |
+| `build-mod-update-report.py` | Build the mod-update PR body with changelogs                        |
+| `client-defaults.sh`         | Diff/sync shipped client defaults against the source Prism instance |
+| `test-scripts.sh`            | shellcheck + py_compile + compose validation                        |
+| `build-stack-bundle.sh`      | Assemble the release tarball                                        |
 
 Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
 
@@ -405,13 +405,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 
 **Server won't start:**
 
-| Symptom             | Fix                                                                                     |
-| ------------------- | --------------------------------------------------------------------------------------- |
+| Symptom | Fix |
+| --- | --- |
 | Mod incompatibility | A mod has no 1.21.1 build. Check `./scripts/check-updates.sh`, mark it `?` or remove it |
-| Missing dependency  | Check the crash log for the mod ID, add the library to the mod list                     |
-| Out of memory       | Raise `MEMORY` in `.env`; look for `OutOfMemoryError` in logs                     |
-| Port conflict       | `lsof -i :25577`                                                                        |
-| Mod download fails  | Verify the slug + pinned ID on Modrinth; use `./dev up --offline` if Modrinth is down   |
+| Missing dependency | Check the crash log for the mod ID, add the library to the mod list |
+| Out of memory | Raise `MEMORY` in `.env`; look for `OutOfMemoryError` in logs |
+| Port conflict | `lsof -i :25577` |
+| Mod download fails | Verify the slug + pinned ID on Modrinth; use `./dev up --offline` if Modrinth is down |
 | Modrinth `429 Too Many Requests` in the seed container | Only possible on a cold resolve cache (first ever boot) — the resolver paces requests and honours `Retry-After`, so it converges in one run. Boots never call the Modrinth API: mods download by direct URL only when missing from `data/mods/` |
 
 **Can't connect:**
@@ -439,10 +439,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 
 | Action       | Command                                                                               |
 | ------------ | ------------------------------------------------------------------------------------- |
-| Health check | `docker exec -i mc rcon-cli "spark health"` — TPS 20, MSPT < 50ms                    |
+| Health check | `docker exec -i mc rcon-cli "spark health"` — TPS 20, MSPT < 50ms                     |
 | Profile      | `spark profiler start` … 30-60s … `spark profiler stop`                               |
 | Pre-generate | idle-tasks runs Chunky automatically when empty; progress via `/mc status` in Discord |
-| Reduce load  | Lower `VIEW_DISTANCE`/`SIMULATION_DISTANCE` in `.env`                          |
+| Reduce load  | Lower `VIEW_DISTANCE`/`SIMULATION_DISTANCE` in `.env`                                 |
 
 ## Deployment targets
 
