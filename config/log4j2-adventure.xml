@@ -111,6 +111,9 @@
                 <!-- Pre-1.21 sculk sensor NBT that DFU can't parse; the listener
                      resets itself and the sensor works from then on -->
                 <RegexFilter regex="Failed to parse vibration listener for Sculk Sensor: .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- yungsapi mixin duplicate-method discards (per worker thread,
+                     every boot; upstream cosmetic) -->
+                <RegexFilter regex="Discarding @Unique public method .*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>
