@@ -6,6 +6,9 @@ To get started, run `./ops setup` and follow the instructions carefully.
 
 ## Quick start
 
+<!-- Maintainer note: keep this section to 3 commands maximum.
+     Everything below here is optional for local-only development. -->
+
 The setup wizard walks you through every credential (with the exact dashboard pages and settings), writes `.env`, and can take you all the way from local test to production.
 
 Local-only alternative, if you'd rather fill the file in by hand:
@@ -268,7 +271,8 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./ops rcon "list"` | RCON command (always targets production) |
 | `./ops chunky` | Chunky pre-generation status |
 | `./ops status` | All container statuses |
-| `./ops live-logs mc --errors` | Recent errors and warnings |
+| `./ops logs mc --tail 200` | Recent log snapshot |
+| `./ops stats --once` | System + container stats snapshot |
 | `./ops backup` | Trigger an immediate backup |
 | `./ops wipe-chunk --block X Z` | Delete a region file (regenerates from seed) |
 | `./ops reset-seed <seed>` | World reset (triple-confirmed, backs up first) |
