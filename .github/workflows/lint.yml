@@ -26,7 +26,7 @@ jobs:
 
       - name: Lint YAML files
         run: |
-          yamllint -d relaxed docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml
+          yamllint -c .yamllint.yml docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml
 
   compose-validate:
     name: Compose config
@@ -61,10 +61,24 @@ jobs:
           EOF
 
       - name: Validate local profile
-        run: docker compose --profile local config > /dev/null
+        run: |
+          if ! docker compose --profile local config > /dev/null 2> compose-err.txt; then
+            echo "::error::Compose validation failed for local profile"
+            cat compose-err.txt
+            echo ""
+            echo "Validation uses a synthetic .env (see step above). If your change adds a new required variable, add it there too."
+            exit 1
+          fi
 
       - name: Validate cloud profile
-        run: docker compose --profile cloud config > /dev/null
+        run: |
+          if ! docker compose --profile cloud config > /dev/null 2> compose-err.txt; then
+            echo "::error::Compose validation failed for cloud profile"
+            cat compose-err.txt
+            echo ""
+            echo "Validation uses a synthetic .env (see step above). If your change adds a new required variable, add it there too."
+            exit 1
+          fi
 
   bundle-manifest:
     name: Bundle manifest
@@ -148,3 +162,21 @@ jobs:
 
       - name: Check for conflicts
         run: pip check
+
+  ci-help:
+    name: CI guidance
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [shellcheck, yamllint, compose-validate, bundle-manifest, pip-check]
+    steps:
+      - name: Post failure guidance
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## CI failed — here's what to do
+
+          1. Fix the issues flagged above (click the annotations for exact locations).
+          2. Push again — CI re-runs automatically on every push to this PR.
+          3. If you're stuck, comment on the PR and a maintainer will help.
+
+          Quick local check: `./scripts/test-scripts.sh --quick`
+          EOF
