@@ -517,7 +517,11 @@ print(msg)
     # Applied/vanished versions stay in the ledger deliberately — if an API
     # blip resurfaces a known version, it must not re-ping. The file is a
     # few hundred bytes; no pruning needed.
-    { cat "$LEDGER_FILE" 2> /dev/null; printf '%s' "$CURRENT_PAIRS"; } | sort -u > "$LEDGER_FILE.tmp"
+    # `|| true` on cat is load-bearing: on the first ever run the ledger
+    # doesn't exist, and under set -e/pipefail a bare failing cat aborts
+    # the group mid-pipeline — the script died here, the container
+    # restart-looped, and every restart re-pinged Discord (2026-07-11).
+    { cat "$LEDGER_FILE" 2> /dev/null || true; printf '%s' "$CURRENT_PAIRS"; } | sort -u > "$LEDGER_FILE.tmp"
     mv "$LEDGER_FILE.tmp" "$LEDGER_FILE"
   else
     echo ""

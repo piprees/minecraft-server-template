@@ -13,7 +13,12 @@
     </Properties>
     <Appenders>
         <Console name="SysOut" target="SYSTEM_OUT">
-            <PatternLayout pattern="${logPattern}" />
+            <!-- Console traces are for humans: filtered %xEx collapses JDK
+                 stream/collection plumbing and rxjava scheduler frames into
+                 "... suppressed" lines, leaving the game/mod frames that
+                 actually identify the fault. The File appender below keeps
+                 FULL traces — grep data/logs/latest.log for forensics. -->
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg{nolookups}%n%xEx{filters(java.util.stream,java.util.Spliterator,java.util.Spliterators,java.util.ArrayList,java.util.Iterator,java.util.PrimitiveIterator,java.util.Optional,java.util.concurrent,com.google.common.collect,io.reactivex.rxjava3)}" />
             <Filters>
                 <!-- RCON client/listener thread start/stop spam (hundreds per deploy) -->
                 <RegexFilter regex=".*Thread RCON.*" onMatch="DENY" onMismatch="NEUTRAL" />
@@ -97,6 +102,15 @@
                      registered in this pack (dungeons_reborn/skyblock renames).
                      Dead aliases are inert — nothing in a world references them. -->
                 <RegexFilter regex="Adding \S+ as an alias for \S+, but the latter doesn't exist in registry ResourceKey.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Worldgen height-range quirk in custom dimensions (c2me worker;
+                     the feature simply doesn't place — cosmetic) -->
+                <RegexFilter regex="Empty height range: .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- POI re-registration on chunk reload/upgrade — vanilla recovers
+                     by keeping the existing entry; recurring with c2me -->
+                <RegexFilter regex="POI data mismatch: already registered at .*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Pre-1.21 sculk sensor NBT that DFU can't parse; the listener
+                     resets itself and the sensor works from then on -->
+                <RegexFilter regex="Failed to parse vibration listener for Sculk Sensor: .*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>

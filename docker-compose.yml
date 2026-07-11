@@ -116,6 +116,11 @@ services:
       # maps — pausing mid-boot (the old 120s) froze that work half-done and
       # started a knock/pause churn. Deploys additionally hold .skip-pause.
       AUTOPAUSE_TIMEOUT_INIT: "900"
+      # The daemon logs its "pausing in Ns"/"skipping" pair on EVERY poll
+      # while .skip-pause holds it off — at the 10s default that's 360
+      # log lines/hour of pure chatter. 60s keeps pause/resume latency
+      # fine-grained enough (knocks resume instantly regardless).
+      AUTOPAUSE_PERIOD: "60"
       MAX_TICK_TIME: "-1"
 
       # --- Gameplay ---

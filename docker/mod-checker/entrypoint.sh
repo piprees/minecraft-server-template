@@ -4,8 +4,12 @@ set -euo pipefail
 export STATE_DIR="/app/state"
 mkdir -p "$STATE_DIR"
 
-echo "Running initial mod update check..."
-bash /app/scripts/check-updates.sh --html --discord
+# Boot check refreshes the status page only — NO --discord. The container
+# is force-recreated on every deploy, so a boot-time ping means an @Admin
+# ping per deploy; update notifications belong to the scheduled daily run
+# below (per-version deduped) and the weekly CI re-pin PR.
+echo "Running initial mod update check (page refresh only)..."
+bash /app/scripts/check-updates.sh --html
 
 echo "Next check in 24h. Running daily at 06:00 UTC."
 while true; do
