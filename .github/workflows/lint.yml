@@ -6,6 +6,37 @@ on:
     branches: [main]
 
 jobs:
+  commit-messages:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate conventional commit format
+        run: |
+          ERRORS=0
+          BASE="${{ github.event.pull_request.base.sha }}"
+          while IFS= read -r msg; do
+            if ! echo "$msg" | grep -qE '^(feat|fix|docs|ci|chore|refactor|style|perf|test|build|revert)(\(.+\))?!?: .+'; then
+              echo "::warning::Non-conventional commit: $msg"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(git log --format='%s' "$BASE"..HEAD)
+          if [ $ERRORS -gt 0 ]; then
+            echo ""
+            echo "Commits should follow conventional format: type: description"
+            echo "  e.g. feat: add rollback command"
+            echo "  e.g. fix: handle RCON timeout during autopause"
+            echo ""
+            echo "Valid types: feat, fix, docs, ci, chore, refactor, style, perf, test, build, revert"
+            echo ""
+            echo "Non-conventional commits won't appear in the auto-generated changelog."
+            echo "This is a warning, not a blocker — the maintainer may squash-merge with a conventional message."
+          fi
+
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest

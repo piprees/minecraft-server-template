@@ -184,6 +184,13 @@ else
   tar -xzf "$CACHE_DIR/$TARBALL" -C "$CACHE_DIR"
 fi
 
+PREV="$(readlink "${STACK_DIR}/current" 2>/dev/null || true)"
 ln -sfn "$RESOLVED" "${STACK_DIR}/current"
 
 echo "${RESOLVED} ready at ${STACK_DIR}/current"
+
+if [[ "$PREV" != "$RESOLVED" && -n "$PREV" ]]; then
+  echo ""
+  echo "Updated from ${PREV} to ${RESOLVED}"
+  echo "  Release notes: https://github.com/${REPO}/releases/tag/${RESOLVED}"
+fi

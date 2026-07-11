@@ -426,6 +426,10 @@ See [docs/troubleshooting.md](docs/troubleshooting.md) for the full diagnostic g
 | Server customisation | [docs/customisation.md](docs/customisation.md) |
 | Releasing | [docs/releasing.md](docs/releasing.md) |
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a full history of changes, or check individual [release notes on GitHub](../../releases).
+
 ## Fixed decisions
 
 Minecraft **1.21.1**, Fabric, Docker, conventional networking, Cloudflare HTTP tunnel only, Incendium-only Nether, restic to R2, guild-scoped Discord commands owned by discord-sync. See [AGENTS.md](AGENTS.md#fixed-decisions-template-defaults) for the full list and rationale.
