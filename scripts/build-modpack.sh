@@ -161,35 +161,36 @@ for f in v.get('files', []):
   fi
 }
 
-# Collect file entries
-FILES_JSON="["
-FIRST=1
+# Collect file entries — write each to a temp dir, assemble in Python.
+# Bash string concat silently corrupts JSON containing $, `, or shell
+# metacharacters in download URLs (this dropped 4 mods in production).
+RESULTS_DIR="$(mktemp -d)"
 
+resolve_to_file() {
+  local entry="$1" optional="$2" idx="$3"
+  local result
+  result=$(resolve_mod "$entry" "$optional" 2>&1 | grep -v '^  ' || true)
+  if [[ -n "$result" ]]; then
+    printf '%s' "$result" > "$RESULTS_DIR/$idx.json"
+  fi
+}
+
+IDX=0
 while IFS= read -r entry; do
   [[ -z "$entry" ]] && continue
-  result=$(resolve_mod "$entry" "false" 2>&1 | grep -v '^  ' || true)
-  if [[ -n "$result" ]]; then
-    [[ $FIRST -eq 0 ]] && FILES_JSON+=","
-    FILES_JSON+="$result"
-    FIRST=0
-  fi
+  resolve_to_file "$entry" "false" "$IDX"
+  IDX=$((IDX + 1))
 done <<< "$REQUIRED_MODS"
 
 while IFS= read -r entry; do
   [[ -z "$entry" ]] && continue
-  result=$(resolve_mod "$entry" "true" 2>&1 | grep -v '^  ' || true)
-  if [[ -n "$result" ]]; then
-    [[ $FIRST -eq 0 ]] && FILES_JSON+=","
-    FILES_JSON+="$result"
-    FIRST=0
-  fi
+  resolve_to_file "$entry" "false" "$IDX"
+  IDX=$((IDX + 1))
 done <<< "$OPTIONAL_MODS"
 
-FILES_JSON+="]"
+MANIFEST_COUNT=$IDX
+RESOLVED_COUNT=$(ls "$RESULTS_DIR"/*.json 2> /dev/null | wc -l | tr -d ' ')
 
-# --- fail-fast: every manifest mod must resolve --------------------------------
-RESOLVED_COUNT=$(python3 -c "import json; print(len(json.loads('''$FILES_JSON''')))")
-MANIFEST_COUNT=$(( $(echo "$REQUIRED_MODS" | grep -c . || true) + $(echo "$OPTIONAL_MODS" | grep -c . || true) ))
 if [[ "$RESOLVED_COUNT" -lt "$MANIFEST_COUNT" ]]; then
   MISSING=$((MANIFEST_COUNT - RESOLVED_COUNT))
   echo ""
@@ -198,8 +199,21 @@ if [[ "$RESOLVED_COUNT" -lt "$MANIFEST_COUNT" ]]; then
   echo "Check the ✗ lines above — the pinned versionId may be invalid," >&2
   echo "the Modrinth API may be down, or the modpack-builder image may" >&2
   echo "be stale (rebuild with: gh workflow run publish.yml)." >&2
+  rm -rf "$RESULTS_DIR"
   exit 1
 fi
+
+# Assemble the JSON array from individual files (no bash string concat)
+FILES_TMPFILE="$(mktemp)"
+python3 -c "
+import json, glob, sys
+files = []
+for p in sorted(glob.glob('$RESULTS_DIR/*.json')):
+    files.append(json.load(open(p)))
+json.dump(files, open('$FILES_TMPFILE', 'w'))
+print(f'  {len(files)} mods resolved (all {len(files)} of $MANIFEST_COUNT)')
+"
+rm -rf "$RESULTS_DIR"
 
 # --- mirror mod JARs + build the modrinth.index.json --------------------------
 # Every mod JAR is mirrored into modpack/dist/mods/ (served by pack-web at
@@ -220,10 +234,6 @@ echo "==> Mirroring mod JARs and building modrinth.index.json..."
 mkdir -p "$WORK_DIR"
 MIRROR_DIR="$DIST_DIR/mods"
 mkdir -p "$MIRROR_DIR"
-
-# Write collected file entries to a temp file for safe JSON parsing
-FILES_TMPFILE="$(mktemp)"
-echo "$FILES_JSON" > "$FILES_TMPFILE"
 
 python3 -c "
 import hashlib, json, os, sys, urllib.request
