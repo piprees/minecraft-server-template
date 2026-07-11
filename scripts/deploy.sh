@@ -44,6 +44,18 @@ cd "$SERVER_DIR"
 
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
+# --- deploy banner ----------------------------------------------------------
+# Printed BEFORE the timestamp redirect so ASCII art stays clean. Consumers
+# personalise it by shipping overlay/config/deploy-banner.txt (any multiline
+# art); the bundle's config/deploy-banner.txt is the default. CI passes
+# DEPLOY_COMMIT so the status line identifies exactly what is going out.
+BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
+BANNER_FILE="$SERVER_DIR/overlay/config/deploy-banner.txt"
+[[ -f "$BANNER_FILE" ]] || BANNER_FILE="$STACK_DIR/config/deploy-banner.txt"
+[[ -f "$BANNER_FILE" ]] && cat "$BANNER_FILE"
+echo "  ${BRAND_NAME:-Minecraft} — deploying stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
+echo ""
+
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
 # stamp every line with wall-clock time. Child scripts (setup-dimensions,
@@ -52,7 +64,7 @@ COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 # Linux server (see header), never on a macOS workstation.
 exec > >(while IFS= read -r line; do printf '[%(%H:%M:%S)T] %s\n' -1 "$line"; done) 2>&1
 
-echo "==> deploy.sh starting (stack bundle v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?'), $(date '+%Y-%m-%d'))"
+echo "==> deploy.sh starting (stack bundle ${BUNDLE_VERSION})"
 
 # --- load .env ----------------------------------------------------------------
 if [[ -f .env ]]; then

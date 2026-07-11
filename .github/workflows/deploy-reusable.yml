@@ -362,7 +362,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
-            'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'
+            "cd ~/server && DEPLOY_COMMIT='${{ steps.meta.outputs.sha }}' .stack/current/stack/scripts/deploy.sh --non-interactive"
 
       - name: Infra deploy (sidecars only, mc untouched)
         if: steps.tier.outputs.tier == 'infra'
