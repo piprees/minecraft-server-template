@@ -52,6 +52,7 @@ MANIFEST=(
   scripts/chunky.sh
   scripts/wipe-chunk.sh
   scripts/doctor.sh
+  scripts/game-log.sh
   scripts/live-logs.sh
   scripts/live-stats.sh
   scripts/restart-service.sh

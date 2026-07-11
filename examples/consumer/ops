@@ -19,6 +19,8 @@ ALLOWED_COMMANDS=(
   update
   teardown
   kuma-token
+  reauth-kuma
+  logs
   doctor
   backup
   reset-seed
@@ -88,6 +90,8 @@ case "$CMD" in
   cloudflare)  script_file="cloudflare-setup" ;;
   update)      script_file="remote-update" ;;
   backup)      script_file="backup-now" ;;
+  logs)        script_file="game-log" ;;
+  reauth-kuma) script_file="kuma-token" ;;
   wipe-chunk)  script_file="wipe-chunk" ;;
   start|stop|restart|status) script_file="service" ;;
   map)                       script_file="map-render" ;;
@@ -118,6 +122,10 @@ case "$CMD" in
     ;;
   map)
     exec bash "$SCRIPT_PATH" "$@"
+    ;;
+  reauth-kuma)
+    # Kuma session-token re-mint (interactive: prompts for a TOTP code).
+    exec bash "$SCRIPT_PATH" --remote "$@"
     ;;
 esac
 
