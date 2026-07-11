@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "EntityTickPortalMixin",
+    "GameEventSuppressionMixin",
     "MinecraftServerAccessor",
     "MobSpawnMixin",
     "MultiNoiseBiomeSourceAccessor",
