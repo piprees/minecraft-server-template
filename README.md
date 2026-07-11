@@ -355,13 +355,15 @@ docker compose --profile cloud up -d
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. The workflow diffs against **the server's currently deployed commit** and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. The workflow first **resolves the symbolic `STACK_VERSION` pin (`v2`, `latest`) to a concrete release tag**, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against **the server's currently deployed commit** and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |
-| **Full** | `docker-compose.yml`, `.env`, mod list, synced mod-config dirs, datapacks, bluemap, deploy scripts, releases | Secrets uploaded → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
-| **Infra** | Other config or script changes | Image pull + compose up (mc untouched via `--no-recreate`) + force-recreate sidecars |
-| **Pull** | Docs, CI, modpack manifests | Config sync only |
+| **Full** | A new platform release matching the pin (resolved tag ≠ running bundle), `overlay/config/`, `overlay/mods-extra.txt`, `overlay/mods-remove.txt`, manual dispatch, releases | Secrets uploaded → stack bundle pinned to the resolved tag → deploy.sh: countdown → kick → whitelist-block → save → restart → regenerate .env → config sync → permissions → whitelist restore → Discord notify |
+| **Infra** | Other `overlay/` changes (assets, branding) | Image pull + compose up (mc untouched) + force-recreate sidecars |
+| **Pull** | Docs, CI, everything else — and no stack change | Nothing touches the server |
+
+Consumer repos have almost no deployable files of their own — the stack bundle carries the compose file, scripts, and default configs — so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs. A consumer push made after a platform release lands is what actually rolls that release out.
 
 After a full deploy, CI also rebuilds the `.mrpack` + download page (Discord ping only when mod content actually changed).
 

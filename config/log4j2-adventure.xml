@@ -93,6 +93,10 @@
                 <RegexFilter regex="Option 'mixin\..*' requires 'mixin\.util\.block_tracking=true'.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Natures Spirit missing tag reference (harmless) -->
                 <RegexFilter regex=".*Couldn't load tag c:stripped_wood.*natures_spirit.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Fabric registry-sync migration aliases pointing at IDs not
+                     registered in this pack (dungeons_reborn/skyblock renames).
+                     Dead aliases are inert — nothing in a world references them. -->
+                <RegexFilter regex="Adding \S+ as an alias for \S+, but the latter doesn't exist in registry ResourceKey.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- Moogs structure loot table validation (optional parameter in wrong context) -->
                 <RegexFilter regex=".*loot_table.*mns:chests.*attacking_entity.*" onMatch="DENY" onMismatch="NEUTRAL" />
             </Filters>

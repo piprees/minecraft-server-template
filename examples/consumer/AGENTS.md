@@ -78,7 +78,7 @@ A RestartCount above 0 is a crash you haven't explained yet. `Mixin apply ... fa
 
 ## CI discipline
 
-Pushing to `main` triggers the caller workflow → reusable workflow. Three deploy tiers (full/infra/pull) picked by diffing changed files. See the [template README](https://github.com/piprees/minecraft-server-template#deploy-to-production) for the tier table.
+Pushing to `main` triggers the caller workflow → reusable workflow. Three deploy tiers (full/infra/pull). The tier is picked by (1) resolving your `STACK_VERSION` pin to a concrete platform release and comparing it against the bundle the server is running — a new release means a full deploy — and (2) diffing your changed files (`overlay/config/` and mod lists → full; other `overlay/` → infra; everything else → pull). **Any push after a platform release lands rolls that release out**, even if the push itself only touches docs. See the [template README](https://github.com/piprees/minecraft-server-template#deploy-to-production) for the tier table.
 
 Before pushing: check no CI run is in progress (`gh run list --limit 3`), check players online if it's a full deploy, batch related changes.
 

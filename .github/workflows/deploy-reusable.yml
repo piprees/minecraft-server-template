@@ -79,10 +79,42 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ vars.DROPLET_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Resolve stack version
+        id: stack
+        # inputs.stack_version is usually SYMBOLIC ("v2", "latest") — it
+        # resolves to a different concrete release over time. Tier detection
+        # must compare concrete tags, or a platform release never registers
+        # as a change (symbolic == symbolic forever, the historical bug that
+        # made consumer pushes always land in pull tier). Resolution mirrors
+        # stack-pull.sh: highest semver release matching the pin.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PIN: ${{ inputs.stack_version }}
+        run: |
+          pin="${PIN#v}"
+          tags=$(gh api /repos/piprees/minecraft-server-template/releases --paginate \
+            --jq '.[].tag_name' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^v//' \
+            | sort -t. -k1,1nr -k2,2nr -k3,3nr)
+          if [[ -z "$pin" || "$pin" == "latest" ]]; then
+            resolved=$(head -1 <<< "$tags")
+          elif [[ "$pin" == *.*.* ]]; then
+            resolved=$(grep -xF "$pin" <<< "$tags" | head -1)
+          else
+            resolved=$(grep -E "^${pin//./\\.}\." <<< "$tags" | head -1)
+          fi
+          if [[ -z "$resolved" ]]; then
+            echo "::error::No platform release matches STACK_VERSION=${PIN}"
+            exit 1
+          fi
+          echo "resolved=v${resolved}" >> "$GITHUB_OUTPUT"
+          echo "Stack pin '${PIN}' resolved to v${resolved}"
+
       - name: Determine deploy tier
         id: tier
         run: |
           SSH="ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
+          RESOLVED="${{ steps.stack.outputs.resolved }}"
 
           # Manual dispatch and releases always get a full deploy
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ github.event_name }}" == "release" ]]; then
@@ -94,7 +126,6 @@ jobs:
           # Read the deployed state file
           DEPLOYED=$($SSH "cat ~/server/.deployed 2>/dev/null" || echo "")
           DEPLOYED_SHA=$(echo "$DEPLOYED" | sed -n 's/^consumer_sha=//p' | head -1)
-          DEPLOYED_STACK=$(echo "$DEPLOYED" | sed -n 's/^stack_version=//p' | head -1)
 
           if [[ -z "$DEPLOYED_SHA" ]]; then
             echo "tier=full" >> "$GITHUB_OUTPUT"
@@ -113,10 +144,15 @@ jobs:
             exit 0
           fi
 
-          # Stack version change always triggers full
-          if [[ "$DEPLOYED_STACK" != "${{ inputs.stack_version }}" ]]; then
+          # Compare the resolved incoming tag against the bundle the server
+          # is ACTUALLY running (the .stack/current symlink target) — not a
+          # recorded string, which can go stale or stay symbolic. Any stack
+          # change is a full deploy: bundle contents (scripts, configs,
+          # default mods, images) all ride on the version.
+          RUNNING_STACK=$($SSH 'basename "$(readlink ~/server/.stack/current)" 2>/dev/null' || echo "")
+          if [[ "$RUNNING_STACK" != "$RESOLVED" ]]; then
             echo "tier=full" >> "$GITHUB_OUTPUT"
-            echo "Deploy tier: full (stack ${DEPLOYED_STACK} → ${{ inputs.stack_version }})"
+            echo "Deploy tier: full (stack ${RUNNING_STACK:-none} → ${RESOLVED})"
             exit 0
           fi
 
@@ -297,17 +333,29 @@ jobs:
 
       - name: Update stack bundle
         if: steps.tier.outputs.tier != 'pull'
+        # Pin the pull to the RESOLVED tag, not the symbolic input — the tier
+        # decision above was made against that exact tag, and a release
+        # published mid-run must not change what this deploy installs.
+        # The puller lives in the bundle itself (scripts/stack-pull.sh);
+        # for servers on a pre-v2.12.1 bundle, fetch the resolved tag's copy
+        # from GitHub. The legacy root-level stack-pull.sh is removed.
+        env:
+          RESOLVED: ${{ steps.stack.outputs.resolved }}
         run: |
           HOST="${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }}"
-
-          # Ensure stack-pull.sh is on the server (consumer vendors a copy)
-          if [[ -f stack-pull.sh ]]; then
-            scp -i ~/.ssh/deploy_key stack-pull.sh "${HOST}:~/server/stack-pull.sh"
-            ssh -i ~/.ssh/deploy_key "$HOST" "chmod +x ~/server/stack-pull.sh"
+          ssh -i ~/.ssh/deploy_key "$HOST" "RESOLVED='${RESOLVED}' bash -s" << 'EOF'
+          set -euo pipefail
+          cd ~/server
+          rm -f stack-pull.sh
+          PULLER=".stack/current/stack/scripts/stack-pull.sh"
+          if [[ ! -f "$PULLER" ]]; then
+            PULLER="$(mktemp)"
+            curl -fsSL --connect-timeout 10 --max-time 60 \
+              -o "$PULLER" \
+              "https://raw.githubusercontent.com/piprees/minecraft-server-template/${RESOLVED}/scripts/stack-pull.sh"
           fi
-
-          ssh -i ~/.ssh/deploy_key "$HOST" \
-            "cd ~/server && STACK_VERSION='${{ inputs.stack_version }}' ./stack-pull.sh"
+          STACK_VERSION="$RESOLVED" bash "$PULLER"
+          EOF
 
       - name: Full deploy (countdown + restart)
         if: steps.tier.outputs.tier == 'full'
@@ -352,8 +400,9 @@ jobs:
         if: success() && steps.tier.outputs.tier != ''
         run: |
           ssh -i ~/.ssh/deploy_key ${{ vars.DEPLOY_USER }}@${{ vars.DROPLET_HOST }} \
-            "printf 'consumer_sha=%s\nstack_version=%s\n' \
+            "printf 'consumer_sha=%s\nstack_version=%s\nstack_pin=%s\n' \
               '${{ steps.meta.outputs.full_sha }}' \
+              '${{ steps.stack.outputs.resolved }}' \
               '${{ inputs.stack_version }}' \
               > ~/server/.deployed" || true
 
