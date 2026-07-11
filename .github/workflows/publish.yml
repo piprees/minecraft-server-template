@@ -1,7 +1,11 @@
 # Build and push custom sidecar images to GitHub Container Registry.
 #
-# Triggers on pushes to main that touch Dockerfiles or the baked scripts,
-# on published releases (semver tags), and on manual dispatch.
+# Pushes to main rebuild `latest` images so they're always fresh when a
+# consumer deploys. Releases get their semver tags from the `images` job
+# inside release.yml (which calls this same build matrix directly), so
+# there's no separate release trigger here — that eliminates the race
+# where a deploy pulled stale `latest` images before the release event's
+# independent build finished.
 #
 # Fork-safe: uses GITHUB_TOKEN (packages:write) - no PAT needed. Images
 # publish to ghcr.io/<fork-owner>/<fork-repo>/<sidecar> automatically.
@@ -13,15 +17,8 @@ name: Publish Container Images
 on:
   push:
     branches: [main]
-    # No path filter: images rebuild on every push. The builds are ~3 min,
-    # cost nothing on public repos, and it means a release NEVER tags stale
-    # images (the old path filter missed scripts baked into images, causing
-    # silent regressions — e.g. build-modpack.sh changes that only took
-    # effect after a manual publish.yml dispatch). If build volume ever
-    # becomes a concern, re-add paths but audit EVERY baked file first.
-  release:
-    types: [published]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

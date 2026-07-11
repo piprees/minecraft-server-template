@@ -121,3 +121,17 @@ jobs:
             git tag -f "$MAJOR" "${GITHUB_SHA}"
             git push origin "$MAJOR" --force
           fi
+
+  # Rebuild all container images from this exact commit. publish.yml is
+  # reusable (workflow_call); calling it here means the release run won't
+  # complete until images are built — no more stale `latest` on deploy.
+  # The push-to-main trigger on publish.yml also fires independently
+  # (safety net for between-release fixes), but this is the authoritative
+  # build for a release.
+  images:
+    name: Container images
+    needs: bundle
+    uses: ./.github/workflows/publish.yml
+    permissions:
+      contents: read
+      packages: write
