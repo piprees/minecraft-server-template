@@ -256,7 +256,7 @@ case "$CMD" in
     rm -f "$CONSUMER_DIR/stack-pull.sh"
     reexec_if_self_updated "$SELF_BEFORE" update "$@"
     # Non-executable files that track the platform.
-    for f in .env.example .gitignore AGENTS.md; do
+    for f in .env.example .gitignore AGENTS.md commands.json; do
       src="$STACK_DIR/examples/consumer/$f"
       [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
     done
