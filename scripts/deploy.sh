@@ -105,6 +105,21 @@ rcon() {
   timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null || true
 }
 
+# Kuma maintenance window for the whole deploy: monitors show "maintenance"
+# instead of flapping up/down (and Kuma's Discord alerts stay quiet) while
+# we restart things. Runs the helper inside the kuma-init image (has
+# uptime-kuma-api + auth env from compose); --no-deps because uptime-kuma
+# is already up (or down, in which case this must not block the deploy).
+kuma_maintenance() {
+  # shellcheck disable=SC2086
+  timeout 60 docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" --profile cloud \
+    run --rm --no-deps kuma-init python3 /app/kuma-maintenance.py "$1" 2> /dev/null || true
+}
+kuma_maintenance start
+# Replaces the earlier resume-only trap: close the maintenance window and
+# release the autopause suspension however the deploy exits.
+trap 'kuma_maintenance stop; resume_autopause' EXIT
+
 msg() {
   local key="$1"
   local messages_file="$SERVER_DIR/overlay/config/messages.json"

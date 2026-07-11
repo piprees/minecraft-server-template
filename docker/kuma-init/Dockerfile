@@ -8,6 +8,7 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
 RUN pip install --no-cache-dir 'uptime-kuma-api>=1.2.1'
 
 COPY scripts/kuma-provision.py /app/
+COPY scripts/kuma-maintenance.py /app/
 
 RUN addgroup -S app && adduser -S -G app app
 
