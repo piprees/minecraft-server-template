@@ -70,9 +70,11 @@ jobs:
         run: |
           MSG=$(git log -1 --pretty=format:'%s' | head -c 200)
           SHA=$(git log -1 --pretty=format:'%h')
-          echo "msg=${MSG}" >> "$GITHUB_OUTPUT"
-          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
-          echo "full_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          {
+            echo "msg=${MSG}"
+            echo "sha=${SHA}"
+            echo "full_sha=$(git rev-parse HEAD)"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up SSH
         run: |
@@ -132,7 +134,8 @@ jobs:
 
           # Read the deployed state file
           DEPLOYED=$($SSH "cat ~/server/.deployed 2>/dev/null" || echo "")
-          DEPLOYED_SHA=$(echo "$DEPLOYED" | sed -n 's/^consumer_sha=//p' | head -1)
+          DEPLOYED_SHA=$(echo "$DEPLOYED" | grep '^consumer_sha=' | head -1)
+          DEPLOYED_SHA="${DEPLOYED_SHA#consumer_sha=}"
 
           if [[ -z "$DEPLOYED_SHA" ]]; then
             echo "tier=full" >> "$GITHUB_OUTPUT"
