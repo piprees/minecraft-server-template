@@ -290,10 +290,18 @@ else
 fi
 
 # =============================================================================
-# 6. Pull latest Docker images
+# 6. Pull Docker images (pinned to the stack version when set)
 # =============================================================================
+# IMAGE_TAG defaults to `latest` in docker-compose.yml. When STACK_VERSION
+# is set (it always is on production — CI writes it to .env), derive the
+# tag from it so images match the bundle: STACK_VERSION=v2.13.0 → tag 2.13.0,
+# STACK_VERSION=v2 → tag 2. Release.yml tags every image with major, minor,
+# and patch semver patterns, so any pin depth resolves.
+if [[ -n "${STACK_VERSION:-}" && -z "${IMAGE_TAG:-}" ]]; then
+  export IMAGE_TAG="${STACK_VERSION#v}"
+fi
 echo ""
-echo "==> Pulling latest Docker images..."
+echo "==> Pulling Docker images (tag: ${IMAGE_TAG:-latest})..."
 docker compose --project-directory "$SERVER_DIR" -f "$COMPOSE_FILE" --profile cloud pull
 
 # =============================================================================

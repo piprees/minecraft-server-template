@@ -87,6 +87,11 @@ if [[ -f "$CONSUMER_DIR/.env" ]]; then
 fi
 
 # --- Resolve variables --------------------------------------------------------
+# Pin images to the stack version so local dev uses the same images as
+# production. STACK_VERSION=v2 → IMAGE_TAG=2 → pulls :2 (latest v2.x.y).
+if [[ -n "${STACK_VERSION:-}" && -z "${IMAGE_TAG:-}" ]]; then
+  export IMAGE_TAG="${STACK_VERSION#v}"
+fi
 BRAND_SLUG="${BRAND_SLUG:-myserver}"
 LOCAL_DOMAIN="${LOCAL_DOMAIN:-${BRAND_SLUG}.local}"
 SERVER_PORT="${SERVER_PORT:-25577}"
