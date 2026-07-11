@@ -187,6 +187,20 @@ done <<< "$OPTIONAL_MODS"
 
 FILES_JSON+="]"
 
+# --- fail-fast: every manifest mod must resolve --------------------------------
+RESOLVED_COUNT=$(python3 -c "import json; print(len(json.loads('''$FILES_JSON''')))")
+MANIFEST_COUNT=$(( $(echo "$REQUIRED_MODS" | grep -c . || true) + $(echo "$OPTIONAL_MODS" | grep -c . || true) ))
+if [[ "$RESOLVED_COUNT" -lt "$MANIFEST_COUNT" ]]; then
+  MISSING=$((MANIFEST_COUNT - RESOLVED_COUNT))
+  echo ""
+  echo "ERROR: $MISSING of $MANIFEST_COUNT manifest mods failed to resolve." >&2
+  echo "The pack would be missing mods and Fabric would refuse to launch." >&2
+  echo "Check the ✗ lines above — the pinned versionId may be invalid," >&2
+  echo "the Modrinth API may be down, or the modpack-builder image may" >&2
+  echo "be stale (rebuild with: gh workflow run publish.yml)." >&2
+  exit 1
+fi
+
 # --- mirror mod JARs + build the modrinth.index.json --------------------------
 # Every mod JAR is mirrored into modpack/dist/mods/ (served by pack-web at
 # https://pack.DOMAIN/mods/, edge-cached by Cloudflare - .jar is in CF's
