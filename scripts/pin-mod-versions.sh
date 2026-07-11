@@ -177,3 +177,68 @@ fi
 echo ""
 echo "Review the output, then apply with:"
 echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
+
+# --- re-pin the client manifest (adventure.mrpack.json) -----------------------
+# Every slug:versionId entry in _clientMods gets its versionId bumped to the
+# newest build for TARGET_VERSION, exactly like modrinth-mods.txt. Bare slugs
+# (legacy) are pinned too. Resource/shader packs are left alone (they follow
+# their own resolution in build-modpack.sh and don't cause registry mismatches).
+MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
+if [[ -f "$MANIFEST" ]]; then
+  echo ""
+  echo "==> Re-pinning client manifest ($MANIFEST)..."
+
+  python3 - "$MANIFEST" "$TARGET_VERSION" "$FALLBACK_CSV" << 'MANIFEST_PIN'
+import json, sys, time, urllib.request
+
+manifest_path, target, fallback_csv = sys.argv[1:4]
+fallbacks = fallback_csv.split(",")
+m = json.load(open(manifest_path))
+ua = "adventure/pin-mod-versions"
+updated = 0
+
+def resolve_latest(slug):
+    """Return (version_id, version_number, matched_mc) or None."""
+    for mc in fallbacks:
+        url = f"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{mc}%22%5D&loaders=%5B%22fabric%22%5D"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": ua})
+            versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
+            if versions:
+                v = versions[0]
+                return v["id"], v["version_number"], mc
+        except Exception:
+            pass
+        time.sleep(0.35)
+    return None
+
+for key in ("required", "optional"):
+    entries = m.get("_clientMods", {}).get(key, [])
+    new_entries = []
+    for entry in entries:
+        if not isinstance(entry, str):
+            new_entries.append(entry)
+            continue
+        slug = entry.split(":")[0]
+        result = resolve_latest(slug)
+        if result:
+            vid, ver, mc = result
+            old_vid = entry.split(":")[1] if ":" in entry else "unpinned"
+            if old_vid != vid:
+                print(f"  {slug}: {old_vid} -> {vid} ({ver}, {mc})")
+                updated += 1
+            else:
+                print(f"  {slug}: up to date ({ver})")
+            new_entries.append(f"{slug}:{vid}")
+        else:
+            print(f"  {slug}: no {target} build found - keeping as-is")
+            new_entries.append(entry)
+        time.sleep(0.35)
+    m["_clientMods"][key] = new_entries
+
+with open(manifest_path, "w") as f:
+    json.dump(m, f, indent=2)
+    f.write("\n")
+print(f"\n  {updated} client mod(s) updated in {manifest_path}")
+MANIFEST_PIN
+fi

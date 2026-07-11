@@ -45,16 +45,18 @@ jobs:
           gh label create dependencies --color B8EE55 --force
           gh label create minecraft --color 44BD32 --description "Minecraft server/mod content" --force
 
-      - name: Snapshot current mod list
-        run: cp config/modrinth-mods.txt /tmp/modrinth-mods.before.txt
+      - name: Snapshot current mod lists
+        run: |
+          cp config/modrinth-mods.txt /tmp/modrinth-mods.before.txt
+          cp modpack/adventure.mrpack.json /tmp/adventure.mrpack.before.json
 
-      - name: Resolve latest mod versions
+      - name: Resolve latest mod versions (server + client manifest)
         run: ./scripts/pin-mod-versions.sh --apply
 
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet -- config/modrinth-mods.txt; then
+          if git diff --quiet -- config/modrinth-mods.txt modpack/adventure.mrpack.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -90,7 +92,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"
-          git add config/modrinth-mods.txt
+          git add config/modrinth-mods.txt modpack/adventure.mrpack.json
           git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s)"
           git push --force origin "$BRANCH"
 
