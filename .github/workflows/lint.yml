@@ -145,9 +145,17 @@ jobs:
           CASE_CMDS=$(grep -oE '[a-z|][-a-z|]*\)' examples/consumer/ops \
             | tr '|)' '\n' | grep -v '^$' | sort -u)
 
+          # Commands handled inline (if/then before the case block) rather
+          # than via a script_file mapping — they never hit the resolver.
+          INLINE_HANDLED="sync"
+
           for cmd in $ALLOWED; do
             # Skip commands that have an explicit case mapping (already checked via MAPPED)
             if echo "$CASE_CMDS" | grep -qxF "$cmd"; then
+              continue
+            fi
+            # Skip commands handled inline in ops (not delegated to a script)
+            if echo "$INLINE_HANDLED" | grep -qwF "$cmd"; then
               continue
             fi
             target="scripts/${cmd}.sh"
