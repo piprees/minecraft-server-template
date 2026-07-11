@@ -168,6 +168,12 @@ get_player_count() {
 # 1. In-game countdown warnings
 # =============================================================================
 if server_alive; then
+  # Empty server = no one to warn: skip the 60s countdown (and its Discord
+  # chat-bridge spam) and restart immediately, exactly like --quick.
+  if [[ $QUICK -eq 0 ]] && [[ "$(get_player_count)" -eq 0 ]]; then
+    echo "==> No players online - skipping countdown"
+    QUICK=1
+  fi
   if [[ $QUICK -eq 0 ]]; then
     echo "==> Sending in-game restart warnings..."
 
