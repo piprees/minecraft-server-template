@@ -414,76 +414,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 
 ## Troubleshooting
 
-**Server won't start:**
+See [docs/troubleshooting.md](docs/troubleshooting.md) for the full diagnostic guide covering server startup, connections, backups, voice chat, BlueMap, Uptime Kuma, Discord, and performance.
 
-| Symptom | Fix |
+## More documentation
+
+| Topic | Link |
 | --- | --- |
-| Mod incompatibility | A mod has no 1.21.1 build. Check `./scripts/check-updates.sh`, mark it `?` or remove it |
-| Missing dependency | Check the crash log for the mod ID, add the library to the mod list |
-| Out of memory | Raise `MEMORY` in `.env`; look for `OutOfMemoryError` in logs |
-| Port conflict | `lsof -i :25577` |
-| Mod download fails | Verify the slug + pinned ID on Modrinth; use `./dev up --offline` if Modrinth is down |
-| Modrinth `429 Too Many Requests` in the seed container | Only possible on a cold resolve cache (first ever boot) — the resolver paces requests and honours `Retry-After`, so it converges in one run. Boots never call the Modrinth API: mods download by direct URL only when missing from `data/mods/` |
-
-**Can't connect:**
-
-| Check           | Command                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------- |
-| Server running? | `docker ps` — mc should be `(healthy)`                                                  |
-| RCON responds?  | `docker exec -i mc rcon-cli "list"` (no response can just mean autopaused)              |
-| Whitelisted?    | `docker exec -i mc rcon-cli "whitelist list"` — or did they `/register` + get the role? |
-| Firewall open?  | `sudo ufw status` — `25577/tcp` allowed                                                 |
-| DNS resolves?   | `dig mc.example.com` → server IP                                                        |
-| Correct port?   | `mc.example.com:25577` (the SRV record usually makes the bare hostname work)            |
-
-**Backup fails:** verify R2 credentials in `.env`; `restic snapshots` ("repository does not exist" → `restic init`); `df -h`; `docker logs mc-backup --tail 50`.
-
-**Voice chat:** UDP `24454` must be open in UFW **and** mapped in Docker. Icon error = mod version mismatch, re-import the `.mrpack`. Walls not muffling = Sound Physics is client-side, ships in the pack.
-
-**BlueMap:** force render `bluemap update`; nuclear option `bluemap purge world` then update; check `https://map.example.com` routes through the tunnel.
-
-**Uptime Kuma:** `config/uptime-kuma/kuma-config.json` is the source of truth — `kuma-init` re-syncs on every deploy and recreates anything deleted only via the UI. Monitors are deliberately minimal (container health + HTTP checks): every game-port probe that was ever added woke the server from autopause, so don't add them back.
-
-**Discord:** see [Discord integration](#discord-integration) above.
-
-**Performance (lag, high MSPT):**
-
-| Action       | Command                                                                               |
-| ------------ | ------------------------------------------------------------------------------------- |
-| Health check | `docker exec -i mc rcon-cli "spark health"` — TPS 20, MSPT < 50ms                     |
-| Profile      | `spark profiler start` … 30-60s … `spark profiler stop`                               |
-| Pre-generate | idle-tasks runs Chunky automatically when empty; progress via `/mc status` in Discord |
-| Reduce load  | Lower `VIEW_DISTANCE`/`SIMULATION_DISTANCE` in `.env`                                 |
-
-## Deployment targets
-
-Deploys to any Ubuntu 24.04 machine. `./ops provision` routes to the provider; `.env` + `.env` hold everything.
-
-| Target | Approximate cost | Notes |
-| --- | --- | --- |
-| **Hetzner Cloud** | ~€11/mo (cx33 x86) | Free L3/L4 DDoS protection, EU DCs. ARM (cax21, ~€7.5/mo) is cheaper when available — the provision script offers live alternatives if your pick is sold out |
-| **DigitalOcean** | ~$48/mo (4vCPU/8GB) | Multiple DC regions available |
-| **Local machine** | electricity | Needs static IP or DDNS (`./ops ddns --install-cron`), router port-forwards for `25577/tcp` + `24454/udp`, ideally a UPS |
-| **WSL2** | electricity | Use `networkingMode=mirrored` in `.wslconfig`, or `netsh portproxy` (re-run after WSL restarts) |
-
-Home hosting: the Cloudflare tunnel still covers HTTP services; the game port must be forwarded directly (free tier is HTTP-only). Consider [TCPShield](https://tcpshield.com) (free tier) to hide your home IP — add the `tcpshield` mod so the server sees real player IPs, and note it proxies TCP only (voice stays direct).
-
-## Backup alternatives
-
-`mc-backup` is plain restic — swap `RESTIC_REPOSITORY` in `.env` to change backend: Backblaze B2 (`s3:https://s3.REGION.backblazeb2.com/BUCKET`, 10GB free), local path, `sftp:user@host:/path`, MinIO, Wasabi. Init the new repo (`restic -r <repo> init`), restart `mc-backup`, test with `./ops backup`.
-
-## Security
-
-`./ops harden` applies (idempotent, run once at provision — **never during a CI deploy**, it restarts Docker):
-
-- **UFW**: default deny inbound; only SSH, game TCP, voice UDP
-- **SSH**: key-only, no root, fail2ban (4 failures → 24h)
-- **Rate limiting** (iptables hashlimit in UFW before.rules): game 6 conn/IP/min, voice 10 pkt/IP/min, SYN 30/IP/min; Docker bridge traffic exempt
-- **fail2ban jails**: MC connection spam (10 in 2m → 1h), login flood (20 in 5m → 6h), nginx exploit scans (`wp-login.php`, `/.env`, admin panels → 1 week on first hit, banned on the real `X-Forwarded-For` IP); Cloudflare ranges, Docker nets, localhost whitelisted
-- **Docker**: `iptables=false` so containers can't bypass UFW (NAT/forwarding handled in before.rules); log rotation
-- **systemd log pipes** feed container logs to `/var/log/*` for fail2ban (Docker container IDs change on recreate, so fail2ban can't read them directly)
-- **journald** capped at 200MB; 2G swap, swappiness 10
-- **`ONLINE_MODE=TRUE` + `ENFORCE_WHITELIST=TRUE`** — non-negotiable in production
+| Deployment targets & backup alternatives | [docs/deployment.md](docs/deployment.md) |
+| Security hardening | [docs/security.md](docs/security.md) |
+| Credentials & API tokens | [docs/credentials.md](docs/credentials.md) |
+| Server customisation | [docs/customisation.md](docs/customisation.md) |
+| Releasing | [docs/releasing.md](docs/releasing.md) |
 
 ## Fixed decisions
 
