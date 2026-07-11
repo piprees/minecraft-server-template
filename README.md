@@ -222,7 +222,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `rcon.sh` | Mac | RCON without the ssh dance: `./ops rcon "list"` (auto local/production) |
 | `doctor.sh` | Mac (CI) | One-shot production triage: drift, stashes, disk, containers, backups, Discord registry, errors |
 | `live-logs.sh` / `live-stats.sh` | Mac | Log tailing / container stats |
-| `restart-service.sh` | Mac | Force-recreate a sidecar on production (never mc — use deploy.sh) |
+| `game-log.sh` | Mac | Log snapshot with grep/tail filters (never streams) |
 | `reset-seed.sh` | Mac | World reset with a new seed (backs up first, triple-confirmed) |
 | `discord-notify.sh` | any | Send templated messages to the Discord webhook |
 | `discord-cleanup.sh` | Mac | Delete all bot/webhook messages from a Discord channel |

@@ -28,9 +28,9 @@ ALLOWED_COMMANDS=(
   ssh
   chunky
   wipe-chunk
+  stats
   live-logs
   live-stats
-  restart-service
   start
   stop
   restart
@@ -60,12 +60,12 @@ Health & logs:
                               RAW game log file - includes what console
                               filters hide (resets each boot, 3-day retention)
   live-logs                   Stream all container logs (blocks - humans only)
-  live-stats                  Stream system + container stats (blocks)
+  stats [--once]              System + container stats (--once for snapshot)
+  live-stats                  Alias for stats (streams by default)
 
 Server control:
   status [svc]                Container status (all, or one service)
   start|stop|restart <svc>    Manage one service (mc, nav-proxy, pack-web...)
-  restart-service <svc>       Force-recreate one service
   update [--quick]            Pull latest bundle + images, full redeploy
   rcon "<command>"            Run an RCON command (auto local/production)
   ssh ['<command>']           Shell, or a one-shot command, on the server
@@ -139,6 +139,7 @@ case "$CMD" in
   logs)        script_file="game-log" ;;
   reauth-kuma) script_file="kuma-token" ;;
   wipe-chunk)  script_file="wipe-chunk" ;;
+  stats)                     script_file="live-stats" ;;
   start|stop|restart|status) script_file="service" ;;
   map)                       script_file="map-render" ;;
 esac
