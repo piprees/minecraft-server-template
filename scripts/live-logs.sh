@@ -37,6 +37,13 @@ SERVER_DIR="server"
 CONFIG_DIR="$HOME/.config/minecraft-server"
 SELECTION_FILE="$CONFIG_DIR/log-selection"
 
+# --- agent safety: streaming is dangerous in non-interactive contexts ---------
+if [[ -n "${CLAUDE_CODE:-}${CODEX:-}${CI:-}" && $# -eq 0 ]]; then
+  echo "Detected non-interactive context — defaulting to snapshot mode (mc --tail 200)."
+  echo "Use --tail N or --once explicitly to suppress this message."
+  set -- "mc" "--tail" "200"
+fi
+
 # --- --once shortcut (consistent with live-stats.sh) -------------------------
 if [[ "${1:-}" == "--once" ]]; then
   set -- "mc" "--tail" "200"

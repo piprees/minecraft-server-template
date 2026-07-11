@@ -23,6 +23,12 @@ CONTAINER="${1:-}"
 ONCE=0
 [[ "$CONTAINER" == "--once" ]] && ONCE=1 && CONTAINER=""
 
+# Agent safety: streaming is dangerous in non-interactive contexts
+if [[ -n "${CLAUDE_CODE:-}${CODEX:-}${CI:-}" && $ONCE -eq 0 && -z "$CONTAINER" ]]; then
+  echo "Detected non-interactive context — defaulting to --once snapshot mode."
+  ONCE=1
+fi
+
 if [[ $ONCE -eq 1 ]]; then
   # One-shot snapshot with server summary
   echo "=== Server: ${DROPLET_HOST} ==="
