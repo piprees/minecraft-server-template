@@ -18,6 +18,8 @@ on:
         required: true
       DISCORD_CHANNEL_ID:
         required: true
+      DISCORD_CHAT_CHANNEL_ID:
+        required: false
       DISCORD_GUILD_ID:
         required: true
       DISCORD_WEBHOOK_URL:
@@ -237,6 +239,7 @@ jobs:
           S_RESTIC_PASSWORD: ${{ secrets.RESTIC_PASSWORD }}
           S_DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           S_DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          S_DISCORD_CHAT_CHANNEL_ID: ${{ secrets.DISCORD_CHAT_CHANNEL_ID }}
           S_DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
           S_DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           S_KUMA_API_KEY: ${{ secrets.KUMA_API_KEY }}
@@ -291,6 +294,7 @@ jobs:
             emit RESTIC_PASSWORD "$S_RESTIC_PASSWORD"
             emit DISCORD_BOT_TOKEN "$S_DISCORD_BOT_TOKEN"
             emit DISCORD_CHANNEL_ID "$S_DISCORD_CHANNEL_ID"
+            emit DISCORD_CHAT_CHANNEL_ID "$S_DISCORD_CHAT_CHANNEL_ID"
             emit DISCORD_GUILD_ID "$S_DISCORD_GUILD_ID"
             emit DISCORD_WEBHOOK_URL "$S_DISCORD_WEBHOOK_URL"
             emit KUMA_API_KEY "$S_KUMA_API_KEY"

@@ -467,7 +467,11 @@ if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$SERVER_DIR/data/config/Discord-Integra
     rm -f "$SERVER_DIR/data/config/Discord-Integration.toml"
   else
     sed -i "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHANNEL_ID:-0}|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    # Game chat <-> Discord sync goes to the CHAT channel when one is set;
+    # everything else (bot ops, mod updates, CI notifications) stays on
+    # DISCORD_CHANNEL_ID (admin). Falls back to the admin channel so
+    # consumers without a dedicated chat channel are unaffected.
+    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|enable = false|enable = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|useServerNameForRcon = false|useServerNameForRcon = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|useServerNameForConsole = false|useServerNameForConsole = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true

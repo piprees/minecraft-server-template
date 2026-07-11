@@ -37,7 +37,7 @@ REQUIRED_SECRETS=(
 )
 # Generated later in setup (kuma-token.sh / cloudflare-setup.sh) - synced when present
 OPTIONAL_SECRETS=(
-  KUMA_API_KEY
+  KUMA_API_KEY DISCORD_CHAT_CHANNEL_ID
   CLOUDFLARE_TUNNEL_ID
 )
 REQUIRED_VARS=(

@@ -17,6 +17,7 @@ jobs:
       RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
       DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
       DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+      DISCORD_CHAT_CHANNEL_ID: ${{ secrets.DISCORD_CHAT_CHANNEL_ID }}
       DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
