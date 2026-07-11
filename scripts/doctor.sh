@@ -22,6 +22,10 @@
 #
 # Usage:
 #   ./scripts/doctor.sh                 # uses DROPLET_HOST from .env
+#   ./scripts/doctor.sh --threads       # + JVM thread dump: what is the main
+#                                       #   thread doing, and is it progressing?
+#                                       #   (SIGQUIT is non-invasive: the JVM
+#                                       #   prints the dump and carries on)
 #   DOCTOR_SSH_KEY=~/.ssh/deploy_key DROPLET_HOST=1.2.3.4 ./scripts/doctor.sh   # CI
 set -euo pipefail
 
@@ -33,6 +37,11 @@ load_env
 : "${DROPLET_HOST:?Set DROPLET_HOST in .env}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 SSH_KEY="${DOCTOR_SSH_KEY:-$HOME/.ssh/${BRAND_SLUG:+${BRAND_SLUG}_}mc_deploy_key}"
+
+THREADS=0
+for arg in "$@"; do
+  [[ "$arg" == "--threads" ]] && THREADS=1
+done
 
 PASS=0
 WARN=0
@@ -71,9 +80,10 @@ echo "=============================================="
 # The heredoc is quoted: nothing here expands locally.
 SERVER_DIR="server"
 REMOTE_OUTPUT=$(ssh -i "$SSH_KEY" -o ConnectTimeout=10 -o BatchMode=yes \
-  "${DEPLOY_USER}@${DROPLET_HOST}" bash -s -- "$SERVER_DIR" << 'REMOTE' 2> /dev/null
+  "${DEPLOY_USER}@${DROPLET_HOST}" bash -s -- "$SERVER_DIR" "$THREADS" << 'REMOTE' 2> /dev/null
 set -u
 _server_dir="$1"; cd ~/${_server_dir} || { printf 'FAIL\trepo not found at ~/%s\n' "$_server_dir"; exit 0; }
+_threads="${2:-0}"
 res() { printf '%s\t%s\n' "$1" "$2"; }
 
 # --- secrets (needed for restic + Discord checks; never printed) ---
@@ -131,6 +141,61 @@ if [ -n "$LIST" ]; then
   [ -n "$SPARK" ] && res INFO "spark: $SPARK"
 else
   res INFO "RCON silent - server autopaused or booting (normal when empty; mc healthcheck above is the truth)"
+fi
+
+# --- main thread + autopause plumbing (the RCON-silent triage kit) ---
+# java state: T = SIGSTOPped by autopause (normal when empty), S/R = live.
+# RCON silent + java live + high CPU = main thread busy/blocked, NOT paused.
+JSTATE=$(docker exec mc ps -ax -o stat,comm 2> /dev/null | grep java | awk '{print $1}' || echo "?")
+# (T*) balanced-paren patterns: macOS bash 3.2's $() scanner miscounts a
+# bare `T*)` inside this heredoc-in-command-substitution and dies.
+case "$JSTATE" in
+  (T*) res INFO "java process: SIGSTOPped (autopaused — normal when empty)" ;;
+  (S* | R*) res OK "java process: running (state $JSTATE)" ;;
+  (*) res WARN "java process: state '$JSTATE' (container down or exec failed)" ;;
+esac
+ORPHANS=$(docker exec mc ps -ax -o comm 2> /dev/null | grep -c rcon-cli || echo 0)
+if [ "${ORPHANS:-0}" -gt 5 ]; then
+  res WARN "$ORPHANS rcon-cli processes inside mc - RCON commands are queueing behind a busy/blocked main thread"
+elif [ "${ORPHANS:-0}" -gt 0 ]; then
+  res INFO "$ORPHANS rcon-cli process(es) inside mc"
+fi
+for s in .skip-pause .skip-pause-idle .skip-pause-deploying; do
+  if docker exec mc test -f "/data/$s" 2> /dev/null; then
+    AGE=$(( $(date +%s) - $(docker exec mc stat -c %Y "/data/$s" 2> /dev/null || date +%s) ))
+    if [ "$s" = ".skip-pause-deploying" ] && [ "$AGE" -gt 3600 ]; then
+      res WARN "autopause sentinel $s is ${AGE}s old - a deploy died without cleanup (idle-tasks clears it after 60min)"
+    else
+      res INFO "autopause sentinel $s present (${AGE}s old)"
+    fi
+  fi
+done
+
+# --- JVM thread dump (--threads only; SIGQUIT = dump + carry on, never fatal) ---
+if [ "$_threads" = "1" ] && [ "$JSTATE" != "?" ]; then
+  JPID=$(docker exec mc ps -ax -o pid,comm 2> /dev/null | awk '/java/{print $1; exit}')
+  if [ -n "$JPID" ]; then
+    docker exec mc kill -3 "$JPID" 2> /dev/null
+    sleep 8
+    docker exec mc kill -3 "$JPID" 2> /dev/null
+    sleep 2
+    # Two dumps 8s apart: a rising cpu= on "Server thread" means it is
+    # progressing (driving chunk tasks while parked); flat = truly stuck.
+    CPUS=$(docker logs mc --since 30s 2>&1 | grep -oE '"Server thread".*cpu=[0-9.]+' | grep -oE '[0-9.]+$' | tr '\n' ' ')
+    CPU1=$(echo "$CPUS" | awk '{print $1}')
+    CPU2=$(echo "$CPUS" | awk '{print $NF}')
+    if [ -n "$CPU1" ] && [ -n "$CPU2" ]; then
+      DELTA=$(awk -v a="$CPU1" -v b="$CPU2" 'BEGIN{printf "%.0f", b-a}')
+      if [ "${DELTA:-0}" -gt 100 ]; then
+        res INFO "Server thread: +${DELTA}ms CPU over 8s - busy but PROGRESSING (likely worldgen/chunk cascade; wait or redeploy)"
+      else
+        res WARN "Server thread: +${DELTA:-0}ms CPU over 8s - effectively STUCK (deadlock or starved; a restart is likely needed)"
+      fi
+    fi
+    docker logs mc --since 30s 2>&1 | grep -m1 -A 12 '"Server thread"' | while IFS= read -r line; do
+      res INFO "  $line"
+    done
+  fi
 fi
 
 # --- backup age (restic on the host, creds from .env) ---
