@@ -74,7 +74,18 @@ case "${1:-}" in
     echo "Opening ${URL} - log in with your password + TOTP."
     echo "The session token is picked up automatically after login."
 
-    TMPJS="$(mktemp -t kuma-token-XXXXXX).cjs"
+    # Playwright must be require()-able by the script, so it lives in a
+    # small cached workdir (npx -p only wires up PATH, not module
+    # resolution - that bit us). One-time ~30s install, instant after.
+    WORKDIR="${HOME}/.cache/kuma-token"
+    mkdir -p "$WORKDIR"
+    if [[ ! -d "$WORKDIR/node_modules/playwright" ]]; then
+      echo "Installing Playwright into ${WORKDIR} (one-time)..."
+      (cd "$WORKDIR" && npm init -y > /dev/null 2>&1 && npm install --no-fund --no-audit playwright > /dev/null)
+    fi
+    (cd "$WORKDIR" && ./node_modules/.bin/playwright install chromium > /dev/null 2>&1) || true
+
+    TMPJS="$WORKDIR/rip-token.cjs"
     cat > "$TMPJS" << 'JS'
 const { chromium } = require('playwright');
 (async () => {
@@ -99,9 +110,7 @@ const { chromium } = require('playwright');
   console.log(token);
 })();
 JS
-    # Playwright needs its browser once; install is idempotent and cached.
-    npx -y playwright install chromium > /dev/null 2>&1 || true
-    TOKEN=$(KUMA_DASH_URL="$URL" npx -y -p playwright node "$TMPJS")
+    TOKEN=$(cd "$WORKDIR" && KUMA_DASH_URL="$URL" node "$TMPJS")
     rm -f "$TMPJS"
 
     if ! looks_like_jwt "$TOKEN"; then
