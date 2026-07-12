@@ -6,6 +6,7 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.mixin.MinecraftServerAccessor;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.customdimensions.mixin.SimpleRegistryAccessor;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.MutableRegistry;
 import net.minecraft.registry.Registry;
@@ -415,6 +416,12 @@ public class DimensionManager {
         );
 
         worlds.put(worldKey, newWorld);
+        // Fabric contract for dynamic world registration: mods that add a
+        // ServerWorld outside createWorlds MUST fire LOAD, or every mod that
+        // builds a per-level map from this event (Distant Horizons, BlueMap,
+        // c2me) never learns the world exists. Skipping it NPE'd Distant
+        // Horizons on the first portal teleport in production (2026-07-12).
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
         MultiverseServer.LOGGER.info("Created runtime world: {}", worldKey.getValue());
         return newWorld;
     }
@@ -511,6 +518,10 @@ public class DimensionManager {
             }
             try {
                 world.save(null, false, false);
+                // Mirror of the LOAD above: fired before close so listeners
+                // can release their handles while the world is still usable
+                // (matches Fabric's own shutdown ordering).
+                ServerWorldEvents.UNLOAD.invoker().onWorldUnload(server, world);
                 world.close();
                 worlds.remove(key);
                 lastPlayerPresence.remove(key);

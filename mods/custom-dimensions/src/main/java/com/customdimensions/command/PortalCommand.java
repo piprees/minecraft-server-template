@@ -86,12 +86,14 @@ public class PortalCommand {
         def.setCooldown(cooldown);
         MultiverseConfig.getInstance().addPortal(def);
 
-        if (DimensionManager.getInstance().getOrCreateDimension(target) == null) {
-            Identifier targetId = Identifier.tryParse(target);
-            if (targetId != null) {
-                DimensionManager.getInstance().getOrCreateDimension(targetId.getPath());
-            }
-        }
+        // NEVER create the world synchronously here: this is the same
+        // command-context deadlock DimensionCommand.executeLoad was fixed
+        // for (the new world's chunk system init waits on main-thread work
+        // this command is holding). setup-dimensions.sh hits this ~57 times
+        // per full deploy. Queue for END_SERVER_TICK instead — a no-op for
+        // vanilla targets, which need no creation.
+        Identifier targetId = Identifier.tryParse(target);
+        DimensionManager.getInstance().requestWorldLoad(targetId != null ? targetId.getPath() : target);
 
         ctx.getSource().sendFeedback(() -> Text.literal("Linked portal '" + id + "' -> " + target), true);
         return 1;
