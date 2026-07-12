@@ -55,7 +55,11 @@ jobs:
   deploy:
     name: Deploy to server
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Full deploys legitimately run 3-15 min (countdown + mod re-sync +
+    # ~150-mod boot + setup-dimensions over RCON). 10 min killed deploy.sh
+    # mid-run twice on 2026-07-12, stranding the server between restart and
+    # the post-boot setup steps.
+    timeout-minutes: 30
     if: vars.DROPLET_HOST != ''
     environment: ${{ inputs.environment }}
 
