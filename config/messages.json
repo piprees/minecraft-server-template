@@ -7,6 +7,7 @@
 
   "modpack.updated": "**Modpack updated:** `{pack_name}`\n{player_ping}Grab the latest version from the pack site.\nOne-click instances update automatically on next launch.",
 
+  "restart.now": "§e§l[Server] §rServer restarting now.",
   "restart.warning_60s": "§e§l[Server] §rUpdate deploying in §c60 seconds§r. Save your work, land, or get to a safe place.",
   "restart.warning_30s": "§e§l[Server] §rRestarting in §c30 seconds§r...",
   "restart.warning_10s": "§e§l[Server] §rRestarting in §c10 seconds§r!",

@@ -45,6 +45,9 @@ jobs:
 
       - name: Notify Discord (failure)
         if: failure()
+        env:
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
         run: |
           ADMIN_ROLE_ID="${{ vars.DISCORD_ADMIN_ROLE_ID }}"
           [ -f doctor-report.txt ] || echo "(doctor did not run)" > doctor-report.txt
@@ -55,8 +58,15 @@ jobs:
           ${REPORT}
           \`\`\`
           ${RUN_URL}"
-          PAYLOAD=$(echo "$MSG" | jq -Rs --arg rid "$ADMIN_ROLE_ID" \
-            '{content: ., allowed_mentions: {roles: [$rid]}}')
+          JQ_ARGS=(--arg rid "$ADMIN_ROLE_ID")
+          JQ_EXPR='{content: ., allowed_mentions: {roles: [$rid]}}'
+          if [[ -n "$BRAND_NAME" ]]; then
+            JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+          fi
+          if [[ -n "$BRAND_ICON_URL" ]]; then
+            JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+          fi
+          PAYLOAD=$(echo "$MSG" | jq -Rs "${JQ_ARGS[@]}" "$JQ_EXPR")
           curl -sf -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
             "${{ secrets.DISCORD_WEBHOOK_URL }}" || true

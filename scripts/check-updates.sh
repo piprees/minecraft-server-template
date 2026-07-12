@@ -500,11 +500,19 @@ print(msg)
 " 2> /dev/null || echo "")
 
       if [[ -n "$MSG" ]]; then
+        JQ_ARGS=()
+        JQ_EXPR='{content: .}'
+        if [[ -n "${BRAND_NAME:-}" ]]; then
+          JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+        fi
+        if [[ -n "${BRAND_ICON_URL:-}" ]]; then
+          JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+        fi
         if [[ -n "$ADMIN_ROLE_ID" ]]; then
-          PAYLOAD=$(echo "$MSG" | jq -Rs --arg rid "$ADMIN_ROLE_ID" \
-            '{content: ., allowed_mentions: {roles: [$rid]}}')
+          PAYLOAD=$(echo "$MSG" | jq -Rs "${JQ_ARGS[@]}" --arg rid "$ADMIN_ROLE_ID" \
+            "${JQ_EXPR%\}}, allowed_mentions: {roles: [\$rid]}}")
         else
-          PAYLOAD=$(echo "$MSG" | jq -Rs '{content: .}')
+          PAYLOAD=$(echo "$MSG" | jq -Rs "${JQ_ARGS[@]}" "$JQ_EXPR")
         fi
         curl -s -H "Content-Type: application/json" \
           -d "$PAYLOAD" "$WEBHOOK_URL" || true

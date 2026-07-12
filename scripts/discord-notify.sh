@@ -20,6 +20,8 @@ MESSAGES_FILE="$PROJECT_DIR/overlay/config/messages.json"
 [[ -f "$MESSAGES_FILE" ]] || MESSAGES_FILE="$PROJECT_DIR/config/messages.json"
 
 WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
+WEBHOOK_USERNAME="${BRAND_NAME:-}"
+WEBHOOK_AVATAR="${BRAND_ICON_URL:-}"
 
 if [[ -z "$WEBHOOK_URL" ]]; then
   echo "DISCORD_WEBHOOK_URL not set - skipping Discord notification" >&2
@@ -99,22 +101,40 @@ fi
 
 # --- send ---------------------------------------------------------------------
 if command -v jq &> /dev/null; then
+  JQ_ARGS=(--arg msg "$MESSAGE")
+  JQ_EXPR='{content: $msg}'
+  if [[ -n "$WEBHOOK_USERNAME" ]]; then
+    JQ_ARGS+=(--arg username "$WEBHOOK_USERNAME")
+    JQ_EXPR='{content: $msg, username: $username}'
+  fi
+  if [[ -n "$WEBHOOK_AVATAR" ]]; then
+    JQ_ARGS+=(--arg avatar "$WEBHOOK_AVATAR")
+    JQ_EXPR="${JQ_EXPR%\}} , avatar_url: \$avatar}"
+  fi
   if [[ ${#ROLE_IDS[@]} -gt 0 ]]; then
     ROLES_JSON=$(printf '%s\n' "${ROLE_IDS[@]}" | jq -R . | jq -s .)
-    PAYLOAD=$(jq -n --arg msg "$MESSAGE" --argjson roles "$ROLES_JSON" \
-      '{content: $msg, allowed_mentions: {roles: $roles}}')
-  else
-    PAYLOAD=$(jq -n --arg msg "$MESSAGE" '{content: $msg}')
+    JQ_ARGS+=(--argjson roles "$ROLES_JSON")
+    JQ_EXPR="${JQ_EXPR%\}} , allowed_mentions: {roles: \$roles}}"
   fi
+  PAYLOAD=$(jq -n "${JQ_ARGS[@]}" "$JQ_EXPR")
 else
   MESSAGE="${MESSAGE//\\/\\\\}"
   MESSAGE="${MESSAGE//\"/\\\"}"
+  EXTRA=""
+  if [[ -n "$WEBHOOK_USERNAME" ]]; then
+    USER_ESC="${WEBHOOK_USERNAME//\\/\\\\}"
+    USER_ESC="${USER_ESC//\"/\\\"}"
+    EXTRA="${EXTRA}, \"username\": \"${USER_ESC}\""
+  fi
+  if [[ -n "$WEBHOOK_AVATAR" ]]; then
+    EXTRA="${EXTRA}, \"avatar_url\": \"${WEBHOOK_AVATAR}\""
+  fi
   if [[ ${#ROLE_IDS[@]} -gt 0 ]]; then
     ROLES_CSV=$(printf '"%s",' "${ROLE_IDS[@]}")
     ROLES_CSV="[${ROLES_CSV%,}]"
-    PAYLOAD="{\"content\": \"${MESSAGE}\", \"allowed_mentions\": {\"roles\": ${ROLES_CSV}}}"
+    PAYLOAD="{\"content\": \"${MESSAGE}\"${EXTRA}, \"allowed_mentions\": {\"roles\": ${ROLES_CSV}}}"
   else
-    PAYLOAD="{\"content\": \"${MESSAGE}\"}"
+    PAYLOAD="{\"content\": \"${MESSAGE}\"${EXTRA}}"
   fi
 fi
 

@@ -196,11 +196,22 @@ jobs:
 
       - name: Notify Discord (starting)
         if: steps.tier.outputs.tier != 'pull'
+        env:
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
         run: |
           TIER="${{ steps.tier.outputs.tier }}"
           SHA="${{ steps.meta.outputs.sha }}"
           MSG="${{ steps.meta.outputs.msg }}"
-          jq -n --arg c "Deploying **${TIER}** (\`${SHA}\`: ${MSG})" '{content: $c}' \
+          JQ_ARGS=(--arg c "Deploying **${TIER}** (\`${SHA}\`: ${MSG})")
+          JQ_EXPR='{content: $c}'
+          if [[ -n "$BRAND_NAME" ]]; then
+            JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+          fi
+          if [[ -n "$BRAND_ICON_URL" ]]; then
+            JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+          fi
+          jq -n "${JQ_ARGS[@]}" "$JQ_EXPR" \
             | curl -sf -H "Content-Type: application/json" -d @- \
               "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
 
@@ -454,8 +465,18 @@ jobs:
             else
               PAYLOAD=$(echo "$MSG" | jq -Rs '{content: .}')
             fi
-            curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" \
-              "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+
+            # Post to the player chat channel (via bot API) so players see it.
+            # Falls back to the admin webhook if DISCORD_CHAT_CHANNEL_ID is unset.
+            CHAT_CHANNEL="${{ secrets.DISCORD_CHAT_CHANNEL_ID }}"
+            if [[ -n "$CHAT_CHANNEL" && -n "${{ secrets.DISCORD_BOT_TOKEN }}" ]]; then
+              curl -sf -H "Authorization: Bot ${{ secrets.DISCORD_BOT_TOKEN }}" \
+                -H "Content-Type: application/json" -d "$PAYLOAD" \
+                "https://discord.com/api/v10/channels/${CHAT_CHANNEL}/messages" || true
+            else
+              curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" \
+                "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
+            fi
           else
             echo "Mod content unchanged — page regenerated, no Discord notification"
           fi
@@ -469,16 +490,30 @@ jobs:
 
       - name: Notify Discord (success)
         if: success()
+        env:
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
         run: |
           TIER="${{ steps.tier.outputs.tier }}"
           SHA="${{ steps.meta.outputs.sha }}"
           MSG="${{ steps.meta.outputs.msg }}"
-          jq -n --arg c "Deploy complete (**${TIER}**, \`${SHA}\`: ${MSG})" '{content: $c}' \
+          JQ_ARGS=(--arg c "Deploy complete (**${TIER}**, \`${SHA}\`: ${MSG})")
+          JQ_EXPR='{content: $c}'
+          if [[ -n "$BRAND_NAME" ]]; then
+            JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+          fi
+          if [[ -n "$BRAND_ICON_URL" ]]; then
+            JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+          fi
+          jq -n "${JQ_ARGS[@]}" "$JQ_EXPR" \
             | curl -sf -H "Content-Type: application/json" -d @- \
               "${{ secrets.DISCORD_WEBHOOK_URL }}" || true
 
       - name: Notify Discord (failure)
         if: failure()
+        env:
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
         run: |
           TIER="${{ steps.tier.outputs.tier }}"
           SHA="${{ steps.meta.outputs.sha }}"
@@ -488,11 +523,20 @@ jobs:
           CONTENT="Deploy **FAILED** (**${TIER}**, \`${SHA}\`: ${MSG})\n${URL}"
           [[ -n "$ADMIN_ROLE_ID" ]] && CONTENT="<@&${ADMIN_ROLE_ID}> ${CONTENT}"
 
+          JQ_ARGS=()
+          JQ_EXPR='{content: .}'
+          if [[ -n "$BRAND_NAME" ]]; then
+            JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+          fi
+          if [[ -n "$BRAND_ICON_URL" ]]; then
+            JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+          fi
+
           if [[ -n "$ADMIN_ROLE_ID" ]]; then
-            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs --arg rid "$ADMIN_ROLE_ID" \
-              '{content: ., allowed_mentions: {roles: [$rid]}}')
+            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs "${JQ_ARGS[@]}" --arg rid "$ADMIN_ROLE_ID" \
+              "${JQ_EXPR%\}}, allowed_mentions: {roles: [\$rid]}}")
           else
-            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs '{content: .}')
+            PAYLOAD=$(printf '%s' "$CONTENT" | jq -Rs "${JQ_ARGS[@]}" "$JQ_EXPR")
           fi
           curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" \
             "${{ secrets.DISCORD_WEBHOOK_URL }}" || true

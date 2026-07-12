@@ -18,6 +18,7 @@ channelId = REPLACE_WITH_DISCORD_CHANNEL_ID
 enable = true
 useServerNameForRcon = true
 useServerNameForConsole = true
+# deploy.sh overrides this with BRAND_NAME from .env
 serverName = "Server"
 
 [messages]

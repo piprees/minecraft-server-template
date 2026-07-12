@@ -215,7 +215,7 @@ if server_alive; then
     sleep 1
   else
     echo "==> Quick restart (skipping countdown)..."
-    rcon "say Server restarting now."
+    rcon "say $(msg restart.now)"
     sleep 1
   fi
 
@@ -485,7 +485,7 @@ if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$SERVER_DIR/data/config/Discord-Integra
     sed -i 's|enable = false|enable = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|useServerNameForRcon = false|useServerNameForRcon = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|useServerNameForConsole = false|useServerNameForConsole = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    sed -i 's|serverName = ".*"|serverName = "Server"|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    sed -i "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|serverStarting = true|serverStarting = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     # CRITICAL: [commands] enabled = false (invariant 3)
     sed -i '/^\[commands\]/,/adminRoleIDs/ s|enabled = true|enabled = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
