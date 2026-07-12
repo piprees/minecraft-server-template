@@ -176,14 +176,19 @@ public class DimensionCommand {
     }
 
     private static int executeDelete(CommandContext<ServerCommandSource> ctx) {
-        String name = StringArgumentType.getString(ctx, "name");
+        String name = StringArgumentType.getString(ctx, "name").toLowerCase(Locale.ROOT);
 
         if (!MultiverseConfig.getInstance().removeDimension(name)) {
             ctx.getSource().sendError(Text.literal("Dimension '" + name + "' not found"));
             return 0;
         }
 
-        ctx.getSource().sendFeedback(() -> Text.literal("Deleted dimension '" + name + "'"), true);
+        // Tear down the live world too (players evacuated to overworld spawn
+        // at END_SERVER_TICK) — without this the world lingered in the server
+        // map until restart, invisible to the idle unloader.
+        DimensionManager.getInstance().requestWorldUnload(name);
+
+        ctx.getSource().sendFeedback(() -> Text.literal("Deleted dimension '" + name + "' (world unloading; files remain on disk)"), true);
         return 1;
     }
 }

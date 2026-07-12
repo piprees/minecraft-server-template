@@ -5,10 +5,10 @@
 # Sequence: in-game countdown (60s->1s) -> clear whitelist (blocks joins) ->
 # kick all -> save-all flush -> stop mc -> pull images -> re-run seed ->
 # seed mod configs into data/config/ -> apply overlay -> datapacks ->
-# enforce Discord config -> Modrinth sync IF mod list changed -> compose up ->
-# force-recreate sidecars -> wait for RCON (180s) -> world borders ->
-# game rules -> LuckPerms -> spawn -> restore whitelist -> BlueMap defaults ->
-# welcome back -> docker prune.
+# BlueMap defaults (pre-boot, no reload) -> enforce Discord config ->
+# Modrinth sync IF mod list changed -> compose up -> force-recreate sidecars ->
+# wait for RCON (180s) -> world borders -> game rules -> LuckPerms -> spawn ->
+# restore whitelist -> welcome back -> docker prune.
 #
 # Usage:
 #   .stack/current/stack/scripts/deploy.sh                    # restart only
@@ -465,6 +465,27 @@ if [[ -f "$DH_TOML" ]]; then
   echo "  DH distant generation disabled (restored at deploy end)"
 fi
 
+# BlueMap defaults, applied WHILE STOPPED so the boot picks them up directly.
+# These used to run post-boot followed by `bluemap reload` — but reload
+# restarts BlueMap's entire sequential map-loading pass (~78 maps, 10+ min
+# of I/O on the shared host), interrupting the boot pass that was usually
+# still running ("Loading has been interrupted!" on every deploy). Editing
+# the config pre-boot needs no reload at all.
+BLUEMAP_CONF="$SERVER_DIR/data/config/bluemap/core.conf"
+if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
+  sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
+  echo "  BlueMap: auto-accepted resource download."
+fi
+BLUEMAP_WEBAPP="$SERVER_DIR/data/config/bluemap/webapp.conf"
+if [[ -f "$BLUEMAP_WEBAPP" ]]; then
+  sed -i 's/enable-free-flight: true/enable-free-flight: false/' "$BLUEMAP_WEBAPP"
+  sed -i 's/default-to-flat-view: false/default-to-flat-view: true/' "$BLUEMAP_WEBAPP"
+  if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Z:-}" ]]; then
+    sed -i "s/start-pos: {.*}/start-pos: { x: ${SPAWN_X}, z: ${SPAWN_Z} }/" "$BLUEMAP_WEBAPP"
+  fi
+  echo "  BlueMap: webapp defaults set (flat view, free-flight off, centred on spawn)."
+fi
+
 # =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
 # =============================================================================
@@ -858,24 +879,6 @@ if [[ -n "${WHITELIST:-}" ]]; then
 fi
 rcon "whitelist on"
 echo "  Whitelist restored, connections open"
-
-# --- BlueMap webapp defaults (idempotent) --------------------------------------
-BLUEMAP_CONF="$SERVER_DIR/data/config/bluemap/core.conf"
-if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
-  sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
-  echo "  BlueMap: auto-accepted resource download."
-fi
-
-BLUEMAP_WEBAPP="$SERVER_DIR/data/config/bluemap/webapp.conf"
-if [[ -f "$BLUEMAP_WEBAPP" ]]; then
-  sed -i 's/enable-free-flight: true/enable-free-flight: false/' "$BLUEMAP_WEBAPP"
-  sed -i 's/default-to-flat-view: false/default-to-flat-view: true/' "$BLUEMAP_WEBAPP"
-  if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Z:-}" ]]; then
-    sed -i "s/start-pos: {.*}/start-pos: { x: ${SPAWN_X}, z: ${SPAWN_Z} }/" "$BLUEMAP_WEBAPP"
-  fi
-  rcon "bluemap reload" > /dev/null 2>&1 || true
-  echo "  BlueMap: webapp defaults set (flat view, free-flight off, centred on spawn)."
-fi
 
 # =============================================================================
 # 16. Welcome back

@@ -31,6 +31,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // server with a ConcurrentModificationException.
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             DimensionManager.getInstance().processPendingWorldLoads();
+            DimensionManager.getInstance().processPendingWorldUnloads();
             if (server.getTicks() % 1200 == 0) {
                 DimensionManager.getInstance().unloadIdleDimensions(server, MultiverseConfig.getInstance().getIdleUnloadMinutes());
             }

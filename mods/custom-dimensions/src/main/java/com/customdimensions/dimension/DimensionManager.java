@@ -91,6 +91,12 @@ public class DimensionManager {
     // (ConcurrentModificationException) — requests queue here and are drained
     // from END_SERVER_TICK instead.
     private final Set<String> pendingWorldLoads = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    // Dimensions whose live ServerWorld must be torn down at the next safe
+    // point (deleted via /dimension delete). Same END_SERVER_TICK drain as
+    // pendingWorldLoads, same reason. Without this, a deleted dimension's
+    // world sat in the server's worlds map until restart — the idle unloader
+    // skips any world with no config entry.
+    private final Set<String> pendingWorldUnloads = java.util.concurrent.ConcurrentHashMap.newKeySet();
     // Custom dimensions we've already told BlueMap to unfreeze this server
     // run. Not persisted — BlueMap remembers its own frozen/unfrozen state
     // across restarts, this just stops us re-issuing the command every tick
@@ -467,6 +473,9 @@ public class DimensionManager {
     // this fires. Command-based rather than a compile-time BlueMap dependency
     // — a no-op if BlueMap isn't installed or the map id doesn't exist.
     private void unfreezeBlueMapOnFirstVisit(RegistryKey<World> worldKey) {
+        if (!DimensionDefinition.NAMESPACE.equals(worldKey.getValue().getNamespace())) {
+            return;
+        }
         String name = worldKey.getValue().getPath();
         if (this.server == null || MultiverseConfig.getInstance().getDimension(name) == null) {
             return;
@@ -493,6 +502,11 @@ public class DimensionManager {
             if (PROTECTED_DIMENSIONS.contains(key)) {
                 continue;
             }
+            // Namespace first, then path: another mod's dimension whose PATH
+            // happens to match one of our names must never be closed by us.
+            if (!DimensionDefinition.NAMESPACE.equals(key.getValue().getNamespace())) {
+                continue;
+            }
             if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
                 continue;
             }
@@ -512,22 +526,62 @@ public class DimensionManager {
         }
 
         for (RegistryKey<World> key : toUnload) {
+            if (this.closeWorld(server, key)) {
+                MultiverseServer.LOGGER.info("Unloading idle dimension: {} (no players for {} min)", key.getValue(), idleMinutes);
+            }
+        }
+    }
+
+    // Shared teardown for idle unload and delete: save, fire UNLOAD (before
+    // close, so listeners can release handles while the world is usable —
+    // matches Fabric's own shutdown ordering), close, drop from the map.
+    private boolean closeWorld(MinecraftServer server, RegistryKey<World> key) {
+        Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) server).getWorlds();
+        ServerWorld world = worlds.get(key);
+        if (world == null) {
+            return false;
+        }
+        try {
+            world.save(null, false, false);
+            ServerWorldEvents.UNLOAD.invoker().onWorldUnload(server, world);
+            world.close();
+            worlds.remove(key);
+            lastPlayerPresence.remove(key);
+            return true;
+        } catch (Exception e) {
+            MultiverseServer.LOGGER.error("Failed to save dimension before unload: {}", key.getValue(), e);
+            return false;
+        }
+    }
+
+    public void requestWorldUnload(String name) {
+        this.pendingWorldUnloads.add(name);
+    }
+
+    public void processPendingWorldUnloads() {
+        if (this.pendingWorldUnloads.isEmpty() || this.server == null) {
+            return;
+        }
+        for (String name : new ArrayList<>(this.pendingWorldUnloads)) {
+            this.pendingWorldUnloads.remove(name);
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(DimensionDefinition.NAMESPACE, name));
+            if (PROTECTED_DIMENSIONS.contains(key)) {
+                continue;
+            }
+            Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) this.server).getWorlds();
             ServerWorld world = worlds.get(key);
             if (world == null) {
                 continue;
             }
-            try {
-                world.save(null, false, false);
-                // Mirror of the LOAD above: fired before close so listeners
-                // can release their handles while the world is still usable
-                // (matches Fabric's own shutdown ordering).
-                ServerWorldEvents.UNLOAD.invoker().onWorldUnload(server, world);
-                world.close();
-                worlds.remove(key);
-                lastPlayerPresence.remove(key);
-                MultiverseServer.LOGGER.info("Unloading idle dimension: {} (no players for {} min)", key.getValue(), idleMinutes);
-            } catch (Exception e) {
-                MultiverseServer.LOGGER.error("Failed to save dimension before unload: {}", key.getValue(), e);
+            // Evacuate before teardown — a player inside a closed world is a
+            // guaranteed desync/disconnect (that's how the DH incident felt).
+            ServerWorld overworld = this.server.getOverworld();
+            net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
+            for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+                player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
+            }
+            if (this.closeWorld(this.server, key)) {
+                MultiverseServer.LOGGER.info("Unloaded deleted dimension: {} (world files remain on disk; registry entry clears on next restart)", key.getValue());
             }
         }
     }

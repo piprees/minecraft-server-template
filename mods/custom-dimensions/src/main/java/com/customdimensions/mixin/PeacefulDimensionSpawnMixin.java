@@ -20,6 +20,11 @@ public class PeacefulDimensionSpawnMixin {
         }
 
         ServerWorld world = (ServerWorld) (Object) this;
+        // Same namespace guard as MobSpawnMixin: path lookups must never
+        // match foreign dimensions.
+        if (!DimensionDefinition.NAMESPACE.equals(world.getRegistryKey().getValue().getNamespace())) {
+            return;
+        }
         DimensionDefinition def = MultiverseConfig.getInstance().getDimension(world.getRegistryKey().getValue().getPath());
         if (def != null && !def.isHostileSpawningEnabled()) {
             cir.setReturnValue(true);

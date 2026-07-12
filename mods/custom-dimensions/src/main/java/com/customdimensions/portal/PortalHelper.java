@@ -37,11 +37,20 @@ import java.util.UUID;
 
 public class PortalHelper {
     private static final int MAX_PORTAL_BLOCKS = 128;
-    private static final Map<BlockPos, PortalReturnTarget> PORTAL_TARGETS = new HashMap<>();
+    // Keyed by the world the portal block lives IN, then position. A flat
+    // BlockPos key collided across dimensions AND made the per-tick particle
+    // pass getBlockState foreign-world positions — which synchronously loads
+    // (and keeps re-loading) chunks in worlds the portal isn't even in.
+    private static final Map<RegistryKey<World>, Map<BlockPos, PortalReturnTarget>> PORTAL_TARGETS = new HashMap<>();
+    // Entries loaded from a pre-world-keyed portal_links.json: position only,
+    // world unknown. Claimed into PORTAL_TARGETS on first return-trip lookup
+    // (which knows the world the player is standing in), re-persisted with
+    // their world from then on. Unclaimed entries survive restarts.
+    private static final Map<BlockPos, PortalReturnTarget> LEGACY_PORTAL_TARGETS = new HashMap<>();
     private static final Map<RegistryKey<World>, List<PortalZone>> PORTAL_ZONES = new HashMap<>();
     private static final Map<String, Boolean> PLAYER_IN_ZONE = new HashMap<>();
     private static final Map<UUID, PlayerOrigin> PLAYER_ORIGINS = new HashMap<>();
-    private static final Map<BlockPos, Integer> PORTAL_FRAMES = new HashMap<>();
+    private static final Map<RegistryKey<World>, Map<BlockPos, Integer>> PORTAL_FRAMES = new HashMap<>();
     private static Path portalLinksPath;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
@@ -54,18 +63,17 @@ public class PortalHelper {
             return;
         }
         ArrayList<Map<String, Object>> links = new ArrayList<>();
-        for (Map.Entry<BlockPos, PortalReturnTarget> entry : PORTAL_TARGETS.entrySet()) {
-            BlockPos pos = entry.getKey();
-            PortalReturnTarget target = entry.getValue();
-            HashMap<String, Object> link = new HashMap<>();
-            link.put("x", pos.getX());
-            link.put("y", pos.getY());
-            link.put("z", pos.getZ());
-            link.put("targetWorld", target.sourceWorld.getValue().toString());
-            link.put("sourceY", target.sourceY);
-            link.put("color", target.color);
-            link.put("cooldown", target.cooldown);
-            links.add(link);
+        for (Map.Entry<RegistryKey<World>, Map<BlockPos, PortalReturnTarget>> worldEntry : PORTAL_TARGETS.entrySet()) {
+            for (Map.Entry<BlockPos, PortalReturnTarget> entry : worldEntry.getValue().entrySet()) {
+                Map<String, Object> link = linkJson(entry.getKey(), entry.getValue());
+                link.put("portalWorld", worldEntry.getKey().getValue().toString());
+                links.add(link);
+            }
+        }
+        // Unclaimed legacy entries persist without portalWorld so they keep
+        // round-tripping until a return trip claims them.
+        for (Map.Entry<BlockPos, PortalReturnTarget> entry : LEGACY_PORTAL_TARGETS.entrySet()) {
+            links.add(linkJson(entry.getKey(), entry.getValue()));
         }
         try {
             Files.createDirectories(portalLinksPath.getParent());
@@ -76,9 +84,21 @@ public class PortalHelper {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    private static Map<String, Object> linkJson(BlockPos pos, PortalReturnTarget target) {
+        HashMap<String, Object> link = new HashMap<>();
+        link.put("x", pos.getX());
+        link.put("y", pos.getY());
+        link.put("z", pos.getZ());
+        link.put("targetWorld", target.sourceWorld.getValue().toString());
+        link.put("sourceY", target.sourceY);
+        link.put("color", target.color);
+        link.put("cooldown", target.cooldown);
+        return link;
+    }
+
     public static void loadPortalLinks() {
         PORTAL_TARGETS.clear();
+        LEGACY_PORTAL_TARGETS.clear();
         if (portalLinksPath == null || !Files.exists(portalLinksPath)) {
             return;
         }
@@ -95,22 +115,37 @@ public class PortalHelper {
                 int sourceY = link.containsKey("sourceY") ? ((Number) link.get("sourceY")).intValue() : y;
                 int color = link.containsKey("color") ? ((Number) link.get("color")).intValue() : 0x8844FF;
                 int cooldown = link.containsKey("cooldown") ? ((Number) link.get("cooldown")).intValue() : 40;
-                PORTAL_TARGETS.put(new BlockPos(x, y, z), new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
+                PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown);
+                String portalWorld = (String) link.get("portalWorld");
+                if (portalWorld != null) {
+                    RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
+                    PORTAL_TARGETS.computeIfAbsent(worldKey, k -> new HashMap<>()).put(new BlockPos(x, y, z), target);
+                } else {
+                    LEGACY_PORTAL_TARGETS.put(new BlockPos(x, y, z), target);
+                }
             }
         } catch (IOException ignored) {
         }
     }
 
-    public static void registerPortal(BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
-        PORTAL_TARGETS.put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
+    public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
+        PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
     }
 
-    public static PortalReturnTarget getPortalTarget(BlockPos keyPos) {
-        return PORTAL_TARGETS.get(keyPos);
-    }
-
-    public static void unregisterPortal(BlockPos keyPos) {
-        PORTAL_TARGETS.remove(keyPos);
+    public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
+        PortalReturnTarget target = targets != null ? targets.get(keyPos) : null;
+        if (target != null) {
+            return target;
+        }
+        target = LEGACY_PORTAL_TARGETS.remove(keyPos);
+        if (target != null) {
+            // Claim: the caller is standing in this portal, so its world is
+            // now known — re-key and persist so the migration sticks.
+            PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, target);
+            savePortalLinks();
+        }
+        return target;
     }
 
     public static boolean wasPlayerInZone(String key) {
@@ -208,26 +243,43 @@ public class PortalHelper {
     }
 
     public static void spawnTargetPortalParticles(ServerWorld level) {
-        for (Map.Entry<BlockPos, PortalReturnTarget> entry : PORTAL_TARGETS.entrySet()) {
-            BlockPos p = entry.getKey();
-            int color = entry.getValue().color;
-            if (!isPortalBlock(level.getBlockState(p))) {
-                continue;
+        RegistryKey<World> worldKey = level.getRegistryKey();
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(worldKey);
+        if (targets != null) {
+            for (Map.Entry<BlockPos, PortalReturnTarget> entry : targets.entrySet()) {
+                BlockPos p = entry.getKey();
+                // Never load chunks for particles: getBlockState on an
+                // unloaded chunk loads it synchronously, and doing that every
+                // tick kept portal chunks permanently hot. No loaded chunk =
+                // no players near enough to see particles anyway.
+                if (!level.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
+                    continue;
+                }
+                int color = entry.getValue().color;
+                if (!isPortalBlock(level.getBlockState(p))) {
+                    continue;
+                }
+                level.spawnParticles(
+                        new DustParticleEffect(toDustColor(color), 2.0f),
+                        p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
+                        1, 0.3, 0.3, 0.3, 0.01
+                );
             }
-            level.spawnParticles(
-                    new DustParticleEffect(toDustColor(color), 2.0f),
-                    p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
-                    1, 0.3, 0.3, 0.3, 0.01
-            );
         }
-        for (Map.Entry<BlockPos, Integer> entry : PORTAL_FRAMES.entrySet()) {
-            BlockPos p = entry.getKey();
-            int color = entry.getValue();
-            level.spawnParticles(
-                    new DustParticleEffect(toDustColor(color), 1.5f),
-                    p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
-                    1, 0.2, 0.2, 0.2, 0.01
-            );
+        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
+        if (frames != null) {
+            for (Map.Entry<BlockPos, Integer> entry : frames.entrySet()) {
+                BlockPos p = entry.getKey();
+                if (!level.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
+                    continue;
+                }
+                int color = entry.getValue();
+                level.spawnParticles(
+                        new DustParticleEffect(toDustColor(color), 1.5f),
+                        p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
+                        1, 0.2, 0.2, 0.2, 0.01
+                );
+            }
         }
     }
 
@@ -260,14 +312,16 @@ public class PortalHelper {
 
         int color = parseColor(definition.getColor());
         int cooldown = definition.getCooldown();
+        RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
         for (BlockPos p : interior) {
-            registerPortal(p, sourceWorld, sourceY, color, cooldown);
+            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown);
         }
+        Map<BlockPos, Integer> frames = PORTAL_FRAMES.computeIfAbsent(portalWorld, k -> new HashMap<>());
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
                 BlockPos neighbor = p.offset(dir);
                 if (!interiorSet.contains(neighbor)) {
-                    PORTAL_FRAMES.put(neighbor, color);
+                    frames.put(neighbor, color);
                 }
             }
         }

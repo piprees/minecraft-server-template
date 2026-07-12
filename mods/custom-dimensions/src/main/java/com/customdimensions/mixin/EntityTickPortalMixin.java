@@ -73,7 +73,7 @@ public abstract class EntityTickPortalMixin {
 
         int cooldown = 40;
         if (targetWorldKey == null) {
-            PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(portalBlocks.iterator().next());
+            PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
             if (target != null) {
                 targetWorldKey = target.sourceWorld;
                 ty = target.sourceY;
