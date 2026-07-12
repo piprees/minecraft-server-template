@@ -243,6 +243,7 @@ jobs:
           V_CLOUD_PROVIDER: ${{ vars.CLOUD_PROVIDER }}
           V_IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
           V_STACK_VERSION: ${{ inputs.stack_version }}
+          V_BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
           V_DISCORD_ADMIN_ROLE_ID: ${{ vars.DISCORD_ADMIN_ROLE_ID }}
           V_DISCORD_PLAYER_ROLE_ID: ${{ vars.DISCORD_PLAYER_ROLE_ID }}
           S_RCON_PASSWORD: ${{ secrets.RCON_PASSWORD }}
@@ -298,6 +299,7 @@ jobs:
             emit CLOUD_PROVIDER "${V_CLOUD_PROVIDER:-hetzner}"
             emit IMAGE_REGISTRY "${V_IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"
             emit STACK_VERSION "$V_STACK_VERSION"
+            emit BRAND_ICON_URL "$V_BRAND_ICON_URL"
             emit DISCORD_ADMIN_ROLE_ID "$V_DISCORD_ADMIN_ROLE_ID"
             emit DISCORD_PLAYER_ROLE_ID "$V_DISCORD_PLAYER_ROLE_ID"
             emit RCON_PASSWORD "$S_RCON_PASSWORD"
