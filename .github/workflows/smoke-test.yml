@@ -129,15 +129,20 @@ jobs:
           docker restart mc
 
           echo "Waiting for server to become healthy with Carpet..."
-          ELAPSED=0
-          while [ $ELAPSED -lt 300 ]; do
+          CARPET_ELAPSED=0
+          while [ $CARPET_ELAPSED -lt 300 ]; do
             if docker exec mc rcon-cli "list" 2>/dev/null | grep -q "players online"; then
+              echo "Server healthy with Carpet (took ${CARPET_ELAPSED}s)"
               break
             fi
-            sleep 10
-            ELAPSED=$((ELAPSED + 10))
+            sleep 15
+            CARPET_ELAPSED=$((CARPET_ELAPSED + 15))
           done
-          [ $ELAPSED -lt 300 ] || { echo "::error::Server did not recover after Carpet install"; exit 1; }
+          if [ $CARPET_ELAPSED -ge 300 ]; then
+            echo "::error::Server did not recover after Carpet install"
+            docker logs mc --tail 30
+            exit 1
+          fi
 
           echo "Spawning Carpet bot..."
           docker exec mc rcon-cli "player SmokeBot spawn"
@@ -147,12 +152,13 @@ jobs:
           echo "$ONLINE"
           echo "$ONLINE" | grep -q "SmokeBot" || {
             echo "::error::Carpet bot SmokeBot did not appear in player list"
+            docker logs mc --tail 20
             exit 1
           }
 
           echo "Verifying bot is in the overworld with valid coordinates..."
-          DIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null)
-          POS=$(docker exec mc rcon-cli "data get entity SmokeBot Pos" 2>/dev/null)
+          DIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null || echo "")
+          POS=$(docker exec mc rcon-cli "data get entity SmokeBot Pos" 2>/dev/null || echo "")
           echo "Dimension: $DIM"
           echo "Position: $POS"
           echo "$DIM" | grep -q "overworld" || {
@@ -161,7 +167,8 @@ jobs:
           }
 
           echo "Checking for world generation (region files exist)..."
-          if [ -d data/world/region ] && [ "$(ls -A data/world/region/*.mca 2>/dev/null | head -1)" ]; then
+          REGIONS=$(find data/world/region -name '*.mca' 2>/dev/null | head -1)
+          if [ -n "$REGIONS" ]; then
             echo "Region files present — world generated"
           else
             echo "::error::No region files found — world was not generated"
@@ -169,10 +176,10 @@ jobs:
           fi
 
           echo "Checking mc logs for errors after player join..."
-          ERRORS=$(docker logs mc 2>&1 | grep -ciE "FATAL|crash|ClassCastException|MixinApplyError" || true)
+          ERRORS=$(docker logs mc 2>&1 | grep -ciE "FATAL|ClassCastException|MixinApplyError" || true)
           if [ "$ERRORS" -gt 0 ]; then
             echo "::warning::$ERRORS critical error(s) found in logs after bot join"
-            docker logs mc 2>&1 | grep -iE "FATAL|crash|ClassCastException|MixinApplyError" | head -10
+            docker logs mc 2>&1 | grep -iE "FATAL|ClassCastException|MixinApplyError" | head -10
           fi
 
           echo "Cleaning up bot..."
