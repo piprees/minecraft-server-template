@@ -453,10 +453,11 @@ jobs:
             if [ "$NEW_HASH" = "$OLD_HASH" ]; then echo "unchanged"; else echo "changed"; fi
           ')
 
+          PACK_BUILD_OK=true
           $SSH 'cd ~/server && .stack/current/stack/scripts/pack-build.sh' \
-            || echo "::warning::Modpack build failed"
+            || { echo "::warning::Modpack build failed"; PACK_BUILD_OK=false; }
 
-          if [ "$MODS_CHANGED" = "changed" ]; then
+          if [ "$MODS_CHANGED" = "changed" ] && [ "$PACK_BUILD_OK" = "true" ]; then
             $SSH 'cd ~/server && (readlink .stack/current; cat overlay/mods-extra.txt overlay/mods-remove.txt 2>/dev/null) | sha256sum | cut -d" " -f1 > modpack-dist/.modpack-hash'
 
             SHA="${{ steps.meta.outputs.sha }}"

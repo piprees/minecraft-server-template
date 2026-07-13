@@ -101,18 +101,30 @@ resolve_mod() {
   local tmpfile
   tmpfile="$(mktemp)"
 
+  # Retry with backoff: Modrinth rate-limits at ~300 req/min; transient
+  # 429/5xx responses cause single-mod resolve failures that fail the
+  # entire pack build. 3 attempts with 2/4/8s delays.
+  modrinth_fetch() {
+    local url="$1" out="$2"
+    local attempt
+    for attempt in 1 2 3; do
+      local http_code
+      http_code=$(curl -s -w '%{http_code}' -o "$out" \
+        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" "$url")
+      if [[ "$http_code" =~ ^2 ]]; then
+        return 0
+      fi
+      echo "  ~ $slug: Modrinth returned $http_code (attempt $attempt/3)" >&2
+      sleep $((2 ** attempt))
+    done
+    return 1
+  }
+
   if [[ -n "$pinned_vid" ]]; then
-    # Pinned version ID: resolve directly (bypass latest-version search).
-    # Used when a mod's newest build has incompatible deps (e.g.
-    # critters-and-companions 2.5.0 needs newer architectury than we pin).
-    curl -s "https://api.modrinth.com/v2/version/${pinned_vid}" \
-      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
-    # Wrap in an array so the downstream parser is uniform
+    modrinth_fetch "https://api.modrinth.com/v2/version/${pinned_vid}" "$tmpfile" || true
     python3 -c "import json; d=json.load(open('$tmpfile')); json.dump([d], open('$tmpfile','w'))" 2>/dev/null
   else
-    # Get the latest version for our MC version + Fabric
-    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" \
-      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$tmpfile"
+    modrinth_fetch "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&loaders=%5B%22fabric%22%5D" "$tmpfile" || true
   fi
 
   # Take the newest build of ANY channel by default - mod authors keep their
@@ -466,11 +478,20 @@ if [[ -n "$RESOURCE_PACKS" ]]; then
     # 26.x-only while 1.10.4 is the newest 1.21.1 build). Packs without
     # game-version tags fall back to the newest upload.
     rp_tmpfile="$(mktemp)"
-    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" \
-      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$rp_tmpfile"
+    modrinth_fetch_rp() {
+      local url="$1" out="$2"
+      for attempt in 1 2 3; do
+        local code
+        code=$(curl -s -w '%{http_code}' -o "$out" \
+          -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" "$url")
+        [[ "$code" =~ ^2 ]] && return 0
+        sleep $((2 ** attempt))
+      done
+      return 1
+    }
+    modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$rp_tmpfile" || true
     if [[ "$(head -c 2 "$rp_tmpfile")" == "[]" ]]; then
-      curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
-        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$rp_tmpfile"
+      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$rp_tmpfile" || true
     fi
 
     rp_info=$(RP_EXTRAS="$rp_extras" python3 -c "
@@ -557,11 +578,9 @@ if [[ -n "$SHADER_PACKS" ]]; then
     # Same resolution rule as resource packs: newest MC_VERSION-tagged build,
     # falling back to the newest upload for packs without game-version tags.
     sp_tmpfile="$(mktemp)"
-    curl -s "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" \
-      -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$sp_tmpfile"
+    modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$sp_tmpfile" || true
     if [[ "$(head -c 2 "$sp_tmpfile")" == "[]" ]]; then
-      curl -s "https://api.modrinth.com/v2/project/${slug}/version?limit=1" \
-        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" -o "$sp_tmpfile"
+      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$sp_tmpfile" || true
     fi
 
     sp_info=$(python3 -c "
