@@ -161,8 +161,7 @@
         "_comment": "Human villagers/illagers/zombies via EMF+ETF (CC-BY-SA-4.0, by BishopMCNuggets). FreshAni Activator makes it drive Fresh Animations; FA Iron Golem Remover keeps golems vanilla-style - drop it (and its options.txt entry) for HEVI's human-soldier golems.",
         "slug": "human-era-villagers-illagers",
         "files": [
-          "HEVI FreshAni Activator.zip",
-          "HEVI FA Iron Golem Remover.zip"
+          "HEVI FreshAni Activator.zip"
         ]
       },
       "quiks-human-guard-villagers"
