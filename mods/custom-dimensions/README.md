@@ -168,7 +168,7 @@ Sound fields (`igniteSound`, `enterSound`, `exitSound`) are config-file-only -- 
 
 ### BlueMap integration (auto-unfreeze on first visit)
 
-The server's deploy script freezes every custom dimension's BlueMap map the one time it sets it up (`/bluemap freeze <name>`), so BlueMap does zero watching or rendering for a dimension nobody's found yet. `DimensionManager.unfreezeBlueMapOnFirstVisit` (called from `updatePlayerPresence`, which already runs every tick per loaded world) detects the first real player presence in a custom dimension and issues `/bluemap unfreeze <name>` itself — command-based, not a compile-time BlueMap dependency, so it's a silent no-op if BlueMap isn't installed. Guarded by an in-memory (non-persisted) set so it only fires once per server run per dimension; safe to fire again after a restart since unfreezing an already-unfrozen map is a no-op, and BlueMap's frozen/unfrozen state itself persists across restarts independently.
+BlueMap runs as a standalone CLI sidecar container (since v2.14.0), so the mod has no map integration at all. Unvisited dimensions cost the renderer nothing via `min-inhabited-time: 1` in each map's conf — the old freeze/unfreeze dance (deploy froze each map once; the mod unfroze on first visit) is gone along with the in-process BlueMap mod that required it.
 
 ## Building
 

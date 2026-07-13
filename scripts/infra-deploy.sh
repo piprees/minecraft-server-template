@@ -40,6 +40,6 @@ $COMPOSE_BASE --profile cloud up -d --remove-orphans --no-recreate
 
 # Force-recreate sidecars so updated configs/scripts load
 $COMPOSE_BASE --profile cloud up -d --force-recreate --no-deps \
-  nav-proxy pack-web cloudflared mod-checker kuma-init discord-sync idle-tasks 2> /dev/null || true
+  bluemap nav-proxy pack-web cloudflared mod-checker kuma-init discord-sync idle-tasks 2> /dev/null || true
 
 echo "infra deploy complete"

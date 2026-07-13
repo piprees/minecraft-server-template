@@ -192,18 +192,18 @@ minecraft.command.gamemode.*      # all gamemode access
 
 ### BlueMap (web map)
 
-| Command             | Syntax                     | Description                        |
-| ------------------- | -------------------------- | ---------------------------------- |
-| `/bluemap update`   | `/bluemap update`          | Trigger a full map render          |
-| `/bluemap update`   | `/bluemap update <radius>` | Render chunks within radius of you |
-| `/bluemap purge`    | `/bluemap purge <map>`     | Delete all render data for a map   |
-| `/bluemap freeze`   | `/bluemap freeze <map>`    | Pause rendering for a map          |
-| `/bluemap unfreeze` | `/bluemap unfreeze <map>`  | Resume rendering for a map         |
-| `/bluemap maps`     | `/bluemap maps`            | List all configured maps           |
-| `/bluemap reload`   | `/bluemap reload`          | Reload BlueMap configuration       |
-| `/bluemap version`  | `/bluemap version`         | Show BlueMap version               |
-| `/bluemap stop`     | `/bluemap stop`            | Stop BlueMap rendering             |
-| `/bluemap start`    | `/bluemap start`           | Start BlueMap rendering            |
+BlueMap runs as a standalone sidecar container (`bluemap`), not a server mod —
+there are no `/bluemap` in-game or RCON commands. It watches the world files
+and updates the map automatically; players never appear on it. Manage it with
+Docker (or `./ops map ...` from your Mac):
+
+| Task | Command |
+| --- | --- |
+| Render status + recent activity | `docker logs bluemap --tail 15` |
+| Container health | `docker inspect bluemap --format '{{.State.Health.Status}}'` |
+| Restart the renderer (re-scans all maps) | `docker restart bluemap` |
+| Force re-render everything | `./ops map render` (see [Map rendering](#map-rendering)) |
+| Purge one map's render data | stop the sidecar, delete `data/bluemap/web/maps/<map>/`, start it |
 
 ### Chunky (chunk pre-generation)
 
@@ -357,12 +357,11 @@ docker exec -i mc rcon-cli "spark gc"
 ### Map and rendering
 
 ```bash
-# Trigger BlueMap render
-docker exec -i mc rcon-cli "bluemap update"
+# Map render status (BlueMap is a sidecar container, no RCON)
+docker logs bluemap --tail 15
 
-# Purge and rebuild a map
-docker exec -i mc rcon-cli "bluemap purge world"
-docker exec -i mc rcon-cli "bluemap update"
+# Restart the map renderer (re-scans every map for changes)
+docker restart bluemap
 
 # Pre-generate chunks (Chunky)
 docker exec -i mc rcon-cli "chunky world minecraft:overworld"
@@ -463,7 +462,7 @@ All `/mc` commands are audit-logged to `#minecraft`. Commands that target a play
 | Command | Description | Limits |
 | --- | --- | --- |
 | `/mc restart` | Full server restart (30s countdown, kick, save, restart game + web services) | 10 min cooldown, button confirmation |
-| `/mc map-refresh` | Trigger a BlueMap re-render | 5 min cooldown |
+| `/mc map-refresh` | Restart the map renderer (re-scans all maps) | 5 min cooldown |
 
 #### Player tools
 
@@ -520,11 +519,11 @@ Start, stop, restart, or check status of individual services — both locally (`
 | `./dev restart <service>` | Force-recreate a service locally          |
 | `./dev status`            | Show all local container statuses         |
 
-Services: `mc`, `nav-proxy`, `pack-web`, `cloudflared`, `uptime-kuma`, `kuma-init`, `mc-backup`, `idle-tasks`, `mod-checker`, `discord-sync`, `seed`.
+Services: `mc`, `bluemap`, `nav-proxy`, `pack-web`, `cloudflared`, `uptime-kuma`, `kuma-init`, `mc-backup`, `idle-tasks`, `mod-checker`, `discord-sync`, `seed`.
 
 ### Map rendering
 
-Manage BlueMap renders from your Mac. The render command temporarily bumps threads for speed and resets them on completion or Ctrl+C.
+Manage the BlueMap sidecar from your Mac. Normal updates are automatic (the sidecar watches the world files); `render` is for forcing a full rebuild after texture or config changes. It stops the watcher, streams the render to your terminal (Ctrl+C aborts), bumps threads for speed, and restarts the sidecar either way.
 
 | Command                  | Description                                                |
 | ------------------------ | ---------------------------------------------------------- |

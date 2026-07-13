@@ -97,11 +97,6 @@ public class DimensionManager {
     // world sat in the server's worlds map until restart — the idle unloader
     // skips any world with no config entry.
     private final Set<String> pendingWorldUnloads = java.util.concurrent.ConcurrentHashMap.newKeySet();
-    // Custom dimensions we've already told BlueMap to unfreeze this server
-    // run. Not persisted — BlueMap remembers its own frozen/unfrozen state
-    // across restarts, this just stops us re-issuing the command every tick
-    // while a player is standing in an already-unfrozen dimension.
-    private final Set<String> bluemapUnfrozen = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public static DimensionManager getInstance() {
         return INSTANCE;
@@ -464,27 +459,7 @@ public class DimensionManager {
     public void updatePlayerPresence(RegistryKey<World> worldKey, boolean hasPlayers) {
         if (hasPlayers) {
             lastPlayerPresence.put(worldKey, server != null ? (long) server.getTicks() : 0L);
-            this.unfreezeBlueMapOnFirstVisit(worldKey);
         }
-    }
-
-    // deploy.sh freezes every custom dimension's BlueMap map the one time it
-    // sets it up, so BlueMap does zero watching/rendering work for it until
-    // this fires. Command-based rather than a compile-time BlueMap dependency
-    // — a no-op if BlueMap isn't installed or the map id doesn't exist.
-    private void unfreezeBlueMapOnFirstVisit(RegistryKey<World> worldKey) {
-        if (!DimensionDefinition.NAMESPACE.equals(worldKey.getValue().getNamespace())) {
-            return;
-        }
-        String name = worldKey.getValue().getPath();
-        if (this.server == null || MultiverseConfig.getInstance().getDimension(name) == null) {
-            return;
-        }
-        if (!this.bluemapUnfrozen.add(name)) {
-            return;
-        }
-        this.server.getCommandManager().executeWithPrefix(this.server.getCommandSource(), "bluemap unfreeze " + name);
-        MultiverseServer.LOGGER.info("First visit to dimension '{}' — unfroze its BlueMap map", name);
     }
 
     public void unloadIdleDimensions(MinecraftServer server, int idleMinutes) {

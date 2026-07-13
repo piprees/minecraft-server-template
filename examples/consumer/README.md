@@ -199,31 +199,11 @@ overlay/modpack/overrides/configureddefaults/resourcepacks/server-panorama/
 
 Cubemap faces must be **square** screenshots at **exactly 90° FOV** (`fov:0.5` in options.txt) with `fovEffectScale:0.0`. See the [template docs](https://github.com/piprees/minecraft-server-template/blob/main/docs/customisation.md#capturing-cubemap-faces) for the step-by-step capture guide.
 
-### Map markers
+### Area titles from signs
 
-Players can place signs to create markers on the web map ([BlueMap Sign Markers](https://modrinth.com/mod/bluemap-sign-markers)). Signs with recognised keywords are auto-categorised into toggleable map layers. The sign text is also shown as an on-screen title when entering/leaving the area ([Areas](https://modrinth.com/mod/areas)).
+Signs with place names show the text as an on-screen title when entering/leaving the area ([Areas](https://modrinth.com/mod/areas)).
 
-Each category matches natural-language keywords anywhere in the sign text — no brackets needed:
-
-| Category | Example sign text |
-| --- | --- |
-| Villages & Settlements | "Honeywood Village", "The Haven" |
-| Dungeons & Ruins | "Ancient Crypt", "The Deep Stronghold" |
-| Bases & Fortifications | "Iron Fort", "Northern Outpost" |
-| Houses & Buildings | "Pip's Cottage", "The Tavern" |
-| Farms & Automation | "XP Grinder", "Melon Farm" |
-| Mines & Excavations | "Diamond Mine", "The Deep Shaft" |
-| Stashes & Storage | "Supply Cache", "Emergency Stash" |
-| Treasure & Discoveries | "Ancient Relic", "Hidden Treasure" |
-| Portals & Gateways | "Nether Portal", "End Gateway" |
-| Danger Zones | "Beware!", "Cursed Ruins" |
-| Temples & Mystical | "Forest Shrine", "Arcane Sanctum" |
-| Natural Landmarks | "Crystal Cavern", "Eagle Peak" |
-| Structures & Industry | "The Lighthouse", "Redstone Factory" |
-
-For markers that don't match any keyword, use `[poi]` on the first line explicitly.
-
-Tags are configured in `config/bluemapsignmarkers/BMSM-Core.json` — add new entries to the `markerGroups` array for custom categories.
+> The web map runs as a standalone renderer container — it has no live player markers and no sign-marker layers (those needed the old in-process BlueMap mod). In exchange, the map stays online 24/7, even while the server is asleep.
 
 ### Starter kit
 
@@ -282,7 +262,7 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./ops start <service>` | Start a stopped production service |
 | `./ops stop <service>` | Stop a running production service |
 | `./ops restart <service>` | Force-recreate a production service |
-| `./ops map render` | Force-render all BlueMap maps |
+| `./ops map render` | Force a full map re-render (normal updates are automatic) |
 
 For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms permission model, see the [Commands reference](https://github.com/piprees/minecraft-server-template/blob/main/COMMANDS.md).
 

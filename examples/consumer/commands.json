@@ -39,7 +39,7 @@
     "rcon":             { "description": "Run an RCON command (auto local/production)", "production": true },
     "ssh":              { "description": "Shell or one-shot command on the server", "production": true },
     "chunky":           { "description": "Pre-generation progress", "production": true },
-    "map":              { "description": "Force-render BlueMap maps", "production": true },
+    "map":              { "description": "Map sidecar: status, force re-render, threads", "production": true },
     "wipe-chunk":       { "description": "Regenerate a corrupted chunk", "production": true },
     "reset-seed":       { "description": "Reset the world (triple-confirmed, backup first)", "production": true },
     "backup":           { "description": "Run a restic backup now", "production": true },

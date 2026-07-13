@@ -43,12 +43,12 @@ server {
         return 200 '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${BRAND_NAME} - Map Sleeping</title><meta property="og:site_name" content="${BRAND_NAME}"><meta property="og:title" content="${BRAND_NAME} - World Map"><meta property="og:description" content="Live world map for ${BRAND_NAME}, a modded Minecraft adventure server."><meta property="og:image" content="https://pack.${DOMAIN}/og-image.jpg"><meta property="og:type" content="website"><meta property="og:url" content="https://map.${DOMAIN}/"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="https://pack.${DOMAIN}/favicon.ico"><link rel="apple-touch-icon" href="https://pack.${DOMAIN}/apple-touch-icon.png"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;background:#0c1319;color:#c5cdd8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}.site-nav{position:fixed;top:0;left:0;right:0;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;padding:.75rem 1.5rem;border-bottom:1px solid #1c2835;background:#080d12;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem}.site-nav-brand{display:inline-flex;align-items:center;gap:.5rem;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:1.1rem;color:#e8ecf1;letter-spacing:.03em;margin-right:auto;text-decoration:none}
 .site-nav-brand img{width:28px;height:28px;border-radius:6px}.site-nav a{color:#7a8999;text-decoration:none;transition:color .15s}.site-nav a:hover{color:#c5cdd8}.site-nav a.site-nav-brand{color:#e8ecf1}.site-nav a[aria-current]{color:#5a9a70}
 @media (max-width:600px){.site-nav{gap:.85rem;padding:.65rem .75rem;font-size:.8rem;flex-wrap:nowrap;overflow-x:auto}.site-nav-brand{font-size:1rem;gap:.4rem}}
-@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}.box{text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#7a8999;max-width:28rem}code{background:#1c2835;padding:.15em .4em;border-radius:4px;font-size:.9em}</style></head><body><nav class="site-nav"><a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a><a href="https://map.${DOMAIN}" aria-current="page">Map</a><a href="https://status.${DOMAIN}">Status</a><a href="https://pack.${DOMAIN}">Download</a><a href="https://mods.${DOMAIN}">Mods</a></nav><div class="box"><h1>Map is sleeping</h1><p>The server is idle and the map renderer is paused. Join <code>mc.${DOMAIN}</code> to wake it up, and the map will be back in a few seconds.</p></div></body></html>';
+@media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}.box{text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#7a8999;max-width:28rem}code{background:#1c2835;padding:.15em .4em;border-radius:4px;font-size:.9em}</style></head><body><nav class="site-nav"><a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a><a href="https://map.${DOMAIN}" aria-current="page">Map</a><a href="https://status.${DOMAIN}">Status</a><a href="https://pack.${DOMAIN}">Download</a><a href="https://mods.${DOMAIN}">Mods</a></nav><div class="box"><h1>Map is taking a nap</h1><p>The map service is restarting and will be back in a minute or two. The game server itself is unaffected - you can join <code>mc.${DOMAIN}</code> as usual.</p></div></body></html>';
     }
 
     # Live data (player positions, markers) - never cache, real-time
     location ~* ^/maps/.*/live/ {
-        set $bluemap_upstream http://mc:8100;
+        set $bluemap_upstream http://bluemap:8100;
         proxy_pass $bluemap_upstream;
         proxy_set_header Host $host;
         add_header Cache-Control "no-store" always;
@@ -57,7 +57,7 @@ server {
     # Map tiles - cache at Cloudflare edge for 24 hours, serve stale while revalidating
     # Tiles only change on re-render (idle cycle); outdated tiles are vastly preferable to origin hits
     location /maps/ {
-        set $bluemap_upstream http://mc:8100;
+        set $bluemap_upstream http://bluemap:8100;
         proxy_pass $bluemap_upstream;
         proxy_set_header Host $host;
         expires 24h;
@@ -71,7 +71,7 @@ server {
     # every tile was matching here and getting a 30-day immutable cache
     # instead of the tile-appropriate 24h stale-while-revalidate one.
     location ~* ^(?!/maps/).*\.(js|css|woff2?|png|svg|ico|webp)$ {
-        set $bluemap_upstream http://mc:8100;
+        set $bluemap_upstream http://bluemap:8100;
         proxy_pass $bluemap_upstream;
         proxy_set_header Host $host;
         expires 30d;
@@ -80,7 +80,7 @@ server {
 
     # Root HTML + everything else - inject nav bar, cache for 1 hour
     location / {
-        set $bluemap_upstream http://mc:8100;
+        set $bluemap_upstream http://bluemap:8100;
         proxy_pass $bluemap_upstream;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

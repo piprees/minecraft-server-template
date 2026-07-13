@@ -214,8 +214,8 @@ sound-physics-remastered:tVu2EZ4u
 # === admin / community ===
 luckperms:l47d4ZWk
 open-parties-and-claims:YuzqKlFY
-bluemap:Dr2hvJBc
-bluemap-sign-markers:AaI8kDsr
+# bluemap runs as a standalone CLI sidecar container (see docker-compose.yml),
+# not as a server mod - do not re-add the mod pin here.
 simple-voice-chat:IttovdN3
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3

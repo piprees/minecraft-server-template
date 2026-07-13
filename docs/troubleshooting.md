@@ -26,7 +26,7 @@
 
 **Voice chat:** UDP `24454` must be open in UFW **and** mapped in Docker. Icon error = mod version mismatch, re-import the `.mrpack`. Walls not muffling = Sound Physics is client-side, ships in the pack.
 
-**BlueMap:** force render `bluemap update`; nuclear option `bluemap purge world` then update; check `https://map.example.com` routes through the tunnel.
+**BlueMap:** runs as the `bluemap` sidecar container (no RCON, no in-game commands, no player markers). Check `docker logs bluemap --tail 30` and `docker inspect bluemap --format '{{.State.Health.Status}}'`; restart with `docker restart bluemap` (re-scans all maps). Force a full rebuild with `./ops map render`; nuclear option: stop the sidecar, delete `data/bluemap/web/maps/<map>/`, start it. The map stays online while mc is autopaused — if map.example.com is down, the problem is the sidecar or the tunnel, never the game server.
 
 **Uptime Kuma:** `config/uptime-kuma/kuma-config.json` is the source of truth — `kuma-init` re-syncs on every deploy and recreates anything deleted only via the UI. Monitors are deliberately minimal (container health + HTTP checks): every game-port probe that was ever added woke the server from autopause, so don't add them back.
 

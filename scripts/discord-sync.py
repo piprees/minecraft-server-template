@@ -329,24 +329,33 @@ def get_chunky_task_info(dim: str) -> dict[str, str] | None:
         return None
 
 
-def parse_bluemap_status(text: str, server_up: bool = True) -> list[str]:
-    """Parse 'bluemap maps' RCON output into status lines per map."""
-    if not text:
-        return ["    (server paused)"] if not server_up else ["    (unavailable)"]
-    lines: list[str] = []
-    clean = re.sub(r"\x1b\[[0-9;]*m|\[0m", "", text)
-    matches = list(re.finditer(r"[✔⛏]\s+(world[\w]*|paradise_lost)", clean))
-    for i, match in enumerate(matches):
-        name = match.group(1)
-        label = name.replace("world_the_", "").replace("world_", "").replace("world", "overworld").replace("_", " ").title()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(clean)
-        section = clean[match.start():end]
-        pct = re.search(r"currently being updated:\s*([\d.]+)%", section)
-        if pct:
-            lines.append(f"    {label:14s} rendering ({pct.group(1)}%)")
-        else:
-            lines.append(f"    {label:14s} up to date")
-    return lines or ["    (unavailable)"]
+def get_bluemap_sidecar_status() -> list[str]:
+    """Status lines for the standalone bluemap sidecar container.
+
+    BlueMap runs as a CLI sidecar (no RCON interface); the container's
+    state and recent render log lines are the observable status.
+    """
+    try:
+        result = subprocess.run(
+            ["docker", "inspect", "bluemap", "--format",
+             "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode != 0:
+            return ["    (sidecar not found)"]
+        state = result.stdout.strip() or "unknown"
+        lines = [f"    renderer: {state}"]
+        logs = subprocess.run(
+            ["docker", "logs", "bluemap", "--tail", "50"],
+            capture_output=True, text=True, timeout=5,
+        )
+        progress = re.findall(r"Rendering.*?(\d+(?:\.\d+)?)\s*%|Update finished", logs.stdout + logs.stderr)
+        if progress:
+            last = progress[-1]
+            lines.append(f"    rendering ({last}%)" if last else "    up to date")
+        return lines
+    except Exception:
+        return ["    (unavailable)"]
 
 
 def get_container_uptime(container: str) -> str:
@@ -668,11 +677,10 @@ mc_group = app_commands.Group(
 async def mc_status(interaction: discord.Interaction) -> None:
     await interaction.response.defer()
 
-    rcon_results = await async_rcon_batch(["spark health", "list", "chunky progress", "bluemap maps"])
+    rcon_results = await async_rcon_batch(["spark health", "list", "chunky progress"])
     health_raw = rcon_results.get("spark health")
     list_raw = rcon_results.get("list")
     chunky_raw = rcon_results.get("chunky progress")
-    bluemap_raw = rcon_results.get("bluemap maps")
 
     health = parse_spark_health(health_raw or "")
     tps = health.get("tps", "?")
@@ -727,8 +735,8 @@ async def mc_status(interaction: discord.Interaction) -> None:
                 else:
                     chunky_lines.append(f"    {dim:14s} queued")
 
-    # BlueMap render status
-    bluemap_lines = parse_bluemap_status(bluemap_raw or "", server_up=server_up)
+    # BlueMap render status (standalone sidecar - queried via Docker, not RCON)
+    bluemap_lines = await asyncio.to_thread(get_bluemap_sidecar_status)
 
     # Roster from mappings
     mappings = load_mappings()
@@ -950,7 +958,7 @@ async def _do_restart(interaction: discord.Interaction) -> None:
 
 # --- /mc map-refresh ----------------------------------------------------------
 
-@mc_group.command(name="map-refresh", description="Trigger a BlueMap re-render (5 min cooldown)")
+@mc_group.command(name="map-refresh", description="Restart the map renderer (5 min cooldown)")
 @is_admin()
 async def mc_map_refresh(interaction: discord.Interaction) -> None:
     remaining = check_cooldown("map-refresh", 300)
@@ -959,9 +967,14 @@ async def mc_map_refresh(interaction: discord.Interaction) -> None:
             f"Map refresh on cooldown - try again in **{remaining}s**.", ephemeral=True
         )
         return
-    await async_rcon("bluemap update")
-    await interaction.response.send_message("BlueMap re-render started.", ephemeral=True)
-    await audit(interaction, "triggered a BlueMap re-render")
+    # BlueMap runs as a CLI sidecar; restarting the container makes it
+    # re-scan every map for changes (its file watcher covers normal updates).
+    await interaction.response.send_message("Map renderer restarting - it will re-scan all maps.", ephemeral=True)
+    await asyncio.to_thread(
+        subprocess.run, ["docker", "restart", "bluemap"],
+        capture_output=True, timeout=60,
+    )
+    await audit(interaction, "restarted the map renderer")
 
 
 # --- /mc heal -----------------------------------------------------------------

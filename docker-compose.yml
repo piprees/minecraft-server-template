@@ -383,6 +383,61 @@ services:
       - cloud
 
   # ==========================================================================
+  # bluemap - Standalone BlueMap CLI renderer + map webserver
+  # ==========================================================================
+  # Renders the world map and serves the web-app, fully decoupled from the
+  # mc process (the BlueMap Fabric mod is no longer installed). -r renders,
+  # -u watches region files for changes, -w serves the webapp on :8100
+  # (Docker network only - nav-proxy fronts it). The map stays online while
+  # mc is autopaused or restarting.
+  #
+  # Mounts mirror the paths the old in-process mod used, so the existing
+  # configs (data: "bluemap", webroot: "bluemap/web", world: "world") and
+  # all previously rendered tiles carry over unchanged: the CLI resolves
+  # relative config paths against /app.
+  #
+  # data/mods is mounted so modded blocks render with their real textures
+  # (-n). -v pins the resource version to the server's MC version.
+  #
+  # Pinned to v5.7 — the exact version the old in-process mod ran, so the
+  # existing map configs and rendered tiles carry over without migration.
+  # Newer CLI versions (v5.22 tested) REJECT this config format ("Your
+  # map-configuration is outdated"); upgrading means following BlueMap's
+  # changelog migration notes for every version crossed, then bumping here.
+  #
+  # Both profiles.
+  # ==========================================================================
+  bluemap:
+    image: ghcr.io/bluemap-minecraft/bluemap:v5.7
+    container_name: "${CONTAINER_PREFIX:-}bluemap"
+    command: -r -u -w -n /app/mods -v ${MC_VERSION:-1.21.1}
+    environment:
+      # Explicit heap: the JVM's default (25% of the container limit) OOMs
+      # while unpacking the datapack/resource zips at startup.
+      JAVA_TOOL_OPTIONS: "-Xmx1024m"
+    volumes:
+      - ./data/config/bluemap:/app/config
+      - ./data/world:/app/world:ro
+      - ./data/bluemap:/app/bluemap
+      - ./data/mods:/app/mods:ro
+    mem_limit: 1536m
+    logging: *default-logging
+    restart: unless-stopped
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    profiles:
+      - local
+      - cloud
+    healthcheck:
+      # Image ships no curl/wget; bash /dev/tcp checks the webserver port.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8100 && exec 3<&-"]
+      interval: 30s
+      timeout: 5s
+      start_period: 2m
+      retries: 5
+
+  # ==========================================================================
   # nav-proxy - Reverse proxy that injects the site nav bar
   # ==========================================================================
   # Sits in front of all web services (BlueMap, Uptime Kuma, pack-web),
@@ -400,11 +455,12 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}
+    # No mc dependency: since the map moved to the bluemap sidecar,
+    # nav-proxy has no mc upstream — web services come up (and stay up)
+    # independently of the game server.
     depends_on:
       seed:
         condition: service_completed_successfully
-      mc:
-        condition: service_healthy
       uptime-kuma:
         condition: service_healthy
       pack-web:

@@ -104,10 +104,11 @@ Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updat
    mc.example.com:25577   │   (+ SRV record hides the port)                │  ├ autopause when empty
                           │                                                │  └ RCON :25575 (internal only)
   Friends (browser) ──────┼─ Cloudflare Tunnel (HTTP only):                │
-   map.example.com        │    map/status/mods ─► nav-proxy ─► BlueMap/Kuma│ sidecars:
-   pack.example.com       │    pack             ─► pack-web (nginx)        │  mc-backup (restic ► R2, 12h)
-   status.example.com     │                                                │  idle-tasks (Chunky pre-gen, GC)
-   mods.example.com       │                                                │  mod-checker (daily update page)
+   map.example.com        │    map/status/mods ─► nav-proxy ─► bluemap/Kuma│ sidecars:
+   pack.example.com       │    pack             ─► pack-web (nginx)        │  bluemap (map render + web, 24/7)
+   status.example.com     │                                                │  mc-backup (restic ► R2, 12h)
+   mods.example.com       │                                                │  idle-tasks (Chunky pre-gen, GC)
+                          │                                                │  mod-checker (daily update page)
                           │                                                │  uptime-kuma + kuma-init
   GitHub Actions ─────────┼─ SSH (deploy key) ─► deploy user               │  cloudflared, nav-proxy, pack-web
    (auto-deploy)          │                                                │  discord-sync (bot, RCON bridge)
@@ -122,13 +123,14 @@ Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updat
 | --- | --- | --- | --- |
 | `mc` | `itzg/minecraft-server` | local, cloud | The game server. Fabric, autopause, RCON, healthcheck |
 | `defaults-seed` | `ghcr.io/.../defaults-seed` | local, cloud | Seeds default configs, mods, and datapacks into shared volumes; applies consumer overlay |
+| `bluemap` | `ghcr.io/bluemap-minecraft/bluemap` | both | Standalone map renderer + web server; watches world files, stays up during autopause. No player markers |
 | `mc-backup` | `itzg/mc-backup` | cloud | restic snapshots to R2 every 12h, `save-off` consistency |
 | `minio` + `minio-init` + `mc-backup-local` | minio / itzg | local | Local S3 stand-in so backups work identically in dev |
 | `uptime-kuma` + `kuma-init` | louislam / ghcr.io/.../kuma-init | both | Monitoring + one-shot idempotent provisioning from `config/uptime-kuma/kuma-config.json` |
 | `nav-proxy` | nginx | both | Injects the server nav bar into every web page via `sub_filter` |
 | `cloudflared` | cloudflare | cloud | HTTPS tunnel for web services (never the game port) |
 | `pack-web` | nginx | both | Serves the `.mrpack`, download page, and the mirrored mod JARs (`/mods/`, Cloudflare edge-cached) from `modpack/dist/` |
-| `idle-tasks` | ghcr.io/.../idle-tasks | cloud | When empty: save, BlueMap render, GC, Chunky pre-generation |
+| `idle-tasks` | ghcr.io/.../idle-tasks | cloud | When empty: save, GC, Chunky pre-generation |
 | `mod-checker` | ghcr.io/.../mod-checker | both | Daily (06:00 UTC) mod update check, HTML page at mods.DOMAIN |
 | `discord-sync` | ghcr.io/.../discord-sync | both | Discord bot: `/register`, `/mc` admin commands, role→whitelist sync |
 
@@ -231,7 +233,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
 | `seed/*` | Mac | Batch seed testing, scoring, reports |
 | `service.sh` | Mac | Start, stop, restart, or check status of individual services (local or production) |
-| `map-render.sh` | Mac | Force-render BlueMap maps with thread boost and progress tracking |
+| `map-render.sh` | Mac | Drive the bluemap sidecar: status, force re-renders, thread tuning |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
 
 ### Image scripts (baked into GHCR images, not run directly)
@@ -295,7 +297,7 @@ Mod downloads never touch the Modrinth **API** at boot: the seed container resol
 2. Check compatibility: `./scripts/check-modrinth-compat.sh --version <target>`
 3. Update `MC_VERSION` in `.env`, re-pin: `./scripts/pin-mod-versions.sh --version <target> --apply`
 4. Test locally: `./dev up` — watch for mod load errors
-5. Deploy: push to `main`; then re-render BlueMap: `docker exec -i mc rcon-cli "bluemap update"`
+5. Deploy: push to `main`; then force a map re-render: `./ops map render`
 
 Terralith, Incendium, and Nullscape generate custom terrain — version changes can cause visible chunk borders. Test on a copy first.
 

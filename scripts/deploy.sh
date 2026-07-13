@@ -465,12 +465,9 @@ if [[ -f "$DH_TOML" ]]; then
   echo "  DH distant generation disabled (restored at deploy end)"
 fi
 
-# BlueMap defaults, applied WHILE STOPPED so the boot picks them up directly.
-# These used to run post-boot followed by `bluemap reload` — but reload
-# restarts BlueMap's entire sequential map-loading pass (~78 maps, 10+ min
-# of I/O on the shared host), interrupting the boot pass that was usually
-# still running ("Loading has been interrupted!" on every deploy). Editing
-# the config pre-boot needs no reload at all.
+# BlueMap defaults. The config dir is shared with the bluemap sidecar
+# container, which reads it at startup — the sidecar is force-recreated
+# later in this deploy, so edits made here always take effect.
 BLUEMAP_CONF="$SERVER_DIR/data/config/bluemap/core.conf"
 if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
   sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
@@ -577,7 +574,7 @@ pause_backups
 # Keep this list in sync with infra-deploy.sh.
 # shellcheck disable=SC2086
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
-  nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
+  bluemap nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
 
 # Remove any legacy Modrinth override left by pre-v2.12 deploys.
 rm -f "$SERVER_DIR/docker-compose.modrinth.yml"
@@ -624,12 +621,6 @@ rcon "gamerule doDaylightCycle false"
 rcon "gamerule doWeatherCycle false"
 rcon "gamerule doFireTick false"
 echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
-
-# Pause BlueMap rendering — it auto-detects new dimensions on boot and
-# starts scanning them immediately, competing with dimension activation.
-# Resumed at the end alongside game-rules and DH.
-rcon "bluemap stop" > /dev/null 2>&1 || true
-echo "  BlueMap rendering paused until deploy completes"
 
 # Keep non-admins out for the rest of the deploy: the itzg image re-applies
 # WHITELIST from .env at boot, so the server is joinable the moment it's
@@ -803,11 +794,9 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
         sed -i 's/enable-free-flight-view: true/enable-free-flight-view: false/' "$bm_conf"
       done
     fi
-    rcon "bluemap freeze $name"
-
     touch "$SETUP_MARKERS_DIR/$name"
     NEW_COUNT=$((NEW_COUNT + 1))
-    echo "    adventure:$name — loaded once, border radius $dim_radius (scale 1:$scale), BlueMap frozen until visited"
+    echo "    adventure:$name — loaded once, border radius $dim_radius (scale 1:$scale)"
   done < "$DIMENSIONS_FILE"
   echo "  $NEW_COUNT dimension(s) newly configured, $SKIPPED_COUNT already set up (untouched)"
 fi
@@ -838,11 +827,6 @@ if [[ -f "$DH_TOML" ]]; then
   rcon "dh config set enableDistantGeneration true" > /dev/null 2>&1 || true
   echo "  DH distant generation re-enabled"
 fi
-
-# Resume BlueMap rendering (paused post-health to keep it from scanning
-# dimensions mid-deploy).
-rcon "bluemap start" > /dev/null 2>&1 || true
-echo "  BlueMap rendering resumed"
 
 # --- ServerCore hot-reload -----------------------------------------------------
 rcon "servercore reload" > /dev/null 2>&1 || true

@@ -159,8 +159,8 @@ run_idle_tasks() {
   rcon "save-all flush"
   sleep 5
 
-  echo "  Triggering BlueMap render..."
-  rcon "bluemap update"
+  # No BlueMap trigger needed: the bluemap sidecar watches region files
+  # and picks up the save on its own.
 
   echo "  Requesting garbage collection..."
   rcon "spark gc" || true
@@ -255,8 +255,8 @@ check_chunky_complete() {
       paradise_lost) touch "$CHUNKY_PL_MARKER" ;;
     esac
 
-    echo "  Triggering BlueMap update for newly generated chunks..."
-    rcon "bluemap update"
+    # Newly pre-generated chunks are picked up by the bluemap sidecar's
+    # file watcher — no explicit update trigger needed.
 
     # Start the next dimension if any remain; if none left,
     # start_chunky returns without setting chunky_active, so

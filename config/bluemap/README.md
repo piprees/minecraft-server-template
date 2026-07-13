@@ -1,103 +1,94 @@
 # BlueMap Configuration
 
-BlueMap (the Fabric mod, not the Paper/Spigot plugin) reads its config from the standard Fabric mod-config convention: `data/config/bluemap/` (mapped from the mod's own `config/bluemap/` relative to the server root). This is **not** `data/bluemap/` - that directory holds BlueMap's runtime _data_ (rendered web assets, the downloaded Mojang resource jar, debug logs), not its config. Auto-generated on first boot if not already present.
+BlueMap runs as a **standalone CLI sidecar container** (the `bluemap` service in
+`docker-compose.yml`), not as a server mod. It renders the map and serves the
+web UI completely decoupled from the mc process: mc boots with zero map work,
+and the map stays online while the server is autopaused or restarting.
 
-Files in `config/bluemap/` here (this directory) are synced into `data/config/bluemap/` on every deploy by `deploy.sh` step 8 (before mc starts) - repo is the source of truth, same pattern as every other mod config in this project.
+Consequences of the sidecar model:
 
-## Where configs live at runtime
+- **No `/bluemap` in-game or RCON commands** — manage it with Docker
+  (`docker logs bluemap`, `docker restart bluemap`) or `./ops map ...`.
+- **No live player markers** and no sign markers (both required the in-process
+  mod; accepted trade-off).
+- Updates are automatic: the CLI's watch mode (`-u`) picks up region-file
+  changes as mc saves them. Nothing needs to "trigger" a render.
+
+## Where things live
+
+The sidecar reads the **same config tree the mod used**, so nothing moved:
 
 ```
-data/config/bluemap/
-  core.conf          # global settings (render threads, webserver, metrics)
-  webserver.conf      # HTTP listener (port, address) - not repo-synced yet
-  maps/
-    overworld.conf    # per-map render settings - not repo-synced yet
-    nether.conf
-    end.conf           # repo-synced (config/bluemap/maps/world_the_end.conf)
-  storages/
-    file.conf         # where rendered tiles are stored - not repo-synced yet
+data/config/bluemap/      # config (this directory is the repo source for it)
+  core.conf               # render threads, resource download, data dir
+  webapp.conf             # web-app settings (flat view, start position)
+  webserver.conf          # HTTP listener (port 8100, Docker network only)
+  maps/*.conf             # one file per map - repo-synced on every deploy
+data/bluemap/             # runtime data: rendered tiles (web/), resources, logs
 ```
 
-## Key settings to tweak after first boot
+Container mounts (see `docker-compose.yml`): `/app/config` ← `data/config/bluemap`,
+`/app/world` ← `data/world` (read-only), `/app/bluemap` ← `data/bluemap`,
+`/app/mods` ← `data/mods` (read-only, so modded blocks render with real
+textures). Relative paths in the confs (`data: "bluemap"`, `webroot:
+"bluemap/web"`, `world: "world"`) resolve against the CLI's `/app` workdir and
+land on the same files the mod used — rendered tiles carry over unchanged.
 
-### Webserver port (`webserver.conf`)
+`config/bluemap/maps/*.conf` is force-copied over `data/config/bluemap/maps/`
+on every deploy (`deploy.sh` step 8), so edits in the repo always win. The
+sidecar is force-recreated at the end of every deploy, which is when config
+changes take effect.
 
-The Docker Compose file maps port 8100. If you change it, update both `webserver.conf` and the Compose port mapping:
+## Key settings
 
-```hocon
-webserver {
-    port = 8100
-}
-```
+### Render threads (`core.conf`)
 
-### Render distance (`maps/overworld.conf`)
-
-- `hiRes.viewDistance`: how many chunks are rendered in full detail. Default 5 is fine for a small server. Increase to 8-10 if you have CPU headroom.
-- `lowRes.viewDistance`: how far the low-resolution map extends. Default 200 gives a good overview. Increase to 500 for a wider world map.
-
-```hocon
-map "overworld" {
-    hiRes {
-        viewDistance: 5
-    }
-    lowRes {
-        viewDistance: 200
-    }
-}
-```
-
-### Map quality
-
-- `hiRes.resolution`: pixels per block face. Default 32 is a good balance. Lower to 16 for faster renders, raise to 64 for sharper detail (more disk/CPU).
-- `renderThreads` in `core.conf`: defaults to CPU count minus 1. On a shared server, set this to 1-2 to avoid starving the game server.
+`render-thread-count: 1` — deliberately pinned for the 4-vCPU production host.
+The sidecar has its own `mem_limit`, but CPU is still shared with mc; leave
+this at 1 unless the host has cores to spare. `./ops map render` bumps it
+temporarily for force-renders and resets it after.
 
 ### Keeping the custom dimensions lazy (`maps/the_*.conf`)
 
-With ~70 `adventure:*` dimensions from `dimensions.txt`, most are never actually visited — BlueMap still detects each one as soon as `custom-dimensions` creates its `ServerWorld` and would otherwise start scanning/watching it immediately. Two settings keep that cost near-zero until a player actually shows up:
+With ~70 `adventure:*` dimensions from `dimensions.txt`, most are never
+visited. `min-inhabited-time: 1` in every custom-dimension `.conf` filters
+by the chunk's vanilla `inhabitedTime` — chunks no player has ever been near
+are skipped entirely, so an unvisited dimension costs the renderer nothing.
+`world.conf` / `world_the_nether.conf` / `world_the_end.conf` /
+`paradise_lost.conf` deliberately keep `0` since those are actively played.
 
-- **`render-thread-count: 1`** in `core.conf` — global cap on how many CPU cores BlueMap uses for rendering, regardless of how many maps are configured. Deliberately pinned at 1 for the 4-vCPU production host (BlueMap's own wiki recommends 1 for ≤4-core hosts). Raising this doesn't make individual maps render faster in parallel with the game server — it just gives BlueMap more of the host's CPU, so leave it at 1-2 unless the host has cores to spare.
-- **`min-inhabited-time: 3600`** in every custom-dimension `.conf` — filters by the chunk's vanilla `inhabitedTime` (accumulated player-presence ticks, 20/tick-second). Chunks nobody has spent time in are skipped entirely rather than rendered at low priority, so a freshly created dimension with zero player visits costs BlueMap nothing until someone actually plays there. `world.conf`/`world_the_end.conf`/ `world_the_nether.conf`/`paradise_lost.conf` deliberately keep `0` since those are the actively-played dimensions.
+(The old `/bluemap freeze` mechanism is gone with the mod — `min-inhabited-time`
+is now the only laziness lever, and it has proven sufficient.)
 
-If a specific dimension should never be mapped at all (not even after a visit), freeze it explicitly — this persists across restarts, unlike `min-inhabited-time` which re-activates rendering the moment someone visits:
+### Render bounds (`maps/*.conf`)
 
-```
-/bluemap freeze the_claymarsh
-/bluemap unfreeze the_claymarsh   # to resume later
-```
+`min-x`/`max-x`/`min-z`/`max-z` cap how far each map renders; deploy.sh
+templates these from the world-border radius.
 
-`config/bluemap/maps/*.conf` is force-copied over `data/config/bluemap/maps/` on every deploy (see `deploy.sh`), so edits here always win over anything BlueMap wrote to disk at runtime.
+## Forcing a re-render
 
-## Triggering a re-render
+Only needed after texture/terrain-mod changes or tile corruption — normal play
+is picked up automatically. From your Mac:
 
-After adding or changing terrain mods (Tectonic, Terralith, etc.), the existing rendered tiles will be stale. Force a full re-render:
-
-```
-# In-game (op required)
-/bluemap purge overworld
-/bluemap force-update overworld
-
-# Or via the web UI controls panel
-```
-
-To re-render all maps:
-
-```
-/bluemap purge world
-/bluemap purge world_nether
-/bluemap purge world_the_end
-/bluemap force-update
+```bash
+./ops map render          # all maps, progress streamed to your terminal
+./ops map render world    # one map id
+./ops map status          # container state + recent render activity
 ```
 
-Re-renders can take hours depending on explored area and render distance. Monitor progress with `/bluemap` or via the web UI.
+Nuclear option for one map: stop the sidecar, delete
+`data/bluemap/web/maps/<map>/`, start the sidecar — it re-renders that map
+from scratch. Full re-renders can take hours depending on explored area.
 
 ## Web access
 
-The BlueMap web UI is tunnelled via Cloudflare and available at:
+The web UI is served by the sidecar on port 8100 (Docker network only,
+`http://bluemap:8100`), fronted by nav-proxy and tunnelled via Cloudflare:
 
 ```
 https://map.DOMAIN
 ```
 
-Replace `DOMAIN` with your actual domain. The tunnel routes to the BlueMap webserver running on port 8100 inside the Docker network.
-
-Internal Docker network address: `http://mc:8100`
+Because the webserver lives in the sidecar, the map stays up 24/7 — including
+while mc is autopaused. If the map is down, check the sidecar
+(`docker logs bluemap --tail 30`), never mc.
