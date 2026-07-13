@@ -121,6 +121,65 @@ jobs:
             exit 1
           fi
 
+      - name: Spawn a fake player (Carpet bot) and verify world generation
+        run: |
+          echo "Installing Carpet for fake-player support..."
+          CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
+          curl -sL -o data/mods/carpet-ci.jar "$CARPET_URL"
+          docker restart mc
+
+          echo "Waiting for server to become healthy with Carpet..."
+          ELAPSED=0
+          while [ $ELAPSED -lt 300 ]; do
+            if docker exec mc rcon-cli "list" 2>/dev/null | grep -q "players online"; then
+              break
+            fi
+            sleep 10
+            ELAPSED=$((ELAPSED + 10))
+          done
+          [ $ELAPSED -lt 300 ] || { echo "::error::Server did not recover after Carpet install"; exit 1; }
+
+          echo "Spawning Carpet bot..."
+          docker exec mc rcon-cli "player SmokeBot spawn"
+          sleep 5
+
+          ONLINE=$(docker exec mc rcon-cli "list" 2>/dev/null)
+          echo "$ONLINE"
+          echo "$ONLINE" | grep -q "SmokeBot" || {
+            echo "::error::Carpet bot SmokeBot did not appear in player list"
+            exit 1
+          }
+
+          echo "Verifying bot is in the overworld with valid coordinates..."
+          DIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null)
+          POS=$(docker exec mc rcon-cli "data get entity SmokeBot Pos" 2>/dev/null)
+          echo "Dimension: $DIM"
+          echo "Position: $POS"
+          echo "$DIM" | grep -q "overworld" || {
+            echo "::error::Bot not in overworld: $DIM"
+            exit 1
+          }
+
+          echo "Checking for world generation (region files exist)..."
+          if [ -d data/world/region ] && [ "$(ls -A data/world/region/*.mca 2>/dev/null | head -1)" ]; then
+            echo "Region files present — world generated"
+          else
+            echo "::error::No region files found — world was not generated"
+            exit 1
+          fi
+
+          echo "Checking mc logs for errors after player join..."
+          ERRORS=$(docker logs mc 2>&1 | grep -ciE "FATAL|crash|ClassCastException|MixinApplyError" || true)
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::warning::$ERRORS critical error(s) found in logs after bot join"
+            docker logs mc 2>&1 | grep -iE "FATAL|crash|ClassCastException|MixinApplyError" | head -10
+          fi
+
+          echo "Cleaning up bot..."
+          docker exec mc rcon-cli "player SmokeBot kill" || true
+          rm -f data/mods/carpet-ci.jar
+          echo "Fake player test passed"
+
       - name: Assert no crash reports
         run: |
           if [ -d data/crash-reports ] && [ "$(ls -A data/crash-reports 2>/dev/null)" ]; then
