@@ -53,6 +53,9 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     stream=sys.stdout,
 )
+# Suppress discord.py's "voice will NOT be supported" warnings — we
+# don't use voice and intentionally don't install PyNaCl/davey.
+logging.getLogger("discord.client").setLevel(logging.ERROR)
 log = logging.getLogger("discord-sync")
 
 # === Config ===================================================================
