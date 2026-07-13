@@ -76,12 +76,14 @@ If the persisted state format changed (config schema, namespace, IDs), delete th
 Dimensions are now created automatically at boot from `config/multiverse_config.json` — there are no `/dimension create` or `/portal link` commands. Verify via RCON that dimensions loaded correctly:
 
 ```bash
-docker exec -i mc rcon-cli 'execute in adventure:the_blossom_gardens run seed'   # proves the dimension was created from config
-docker exec -i mc rcon-cli 'execute in adventure:the_canvas run seed'
-docker logs mc 2>&1 | grep -i "registered dimension\|Created runtime\|Boot:" | tail -10
+# Namespace comes from multiverse_config.json ("namespace" field, default "adventure")
+NS=$(python3 -c "import json; print(json.load(open('data/config/multiverse_config.json')).get('namespace','adventure'))")
+docker exec -i mc rcon-cli "execute in ${NS}:the_blossom_gardens run seed"   # proves dimension was created from config
+docker exec -i mc rcon-cli "execute in ${NS}:the_canvas run seed"
+docker exec mc cat /data/logs/latest.log | grep -i "registered dimension\|Created runtime" | tail -10
 ```
 
-To add/change dimensions: edit `config/multiverse_config.json`, commit, deploy. The mod reads the config at boot, creates missing worlds, and reconciles orphans.
+To add/change dimensions: edit `config/multiverse_config.json`, commit, deploy. The mod reads the config at boot, creates missing worlds, and reconciles orphans (any `<namespace>:*` world not in the config is unloaded).
 
 ### 3b. Player-dependent paths: drive a Carpet fake player (local only)
 
@@ -89,28 +91,56 @@ Paths that only trigger on real player presence (portal traversal, zone entry, p
 
 ```bash
 # Install (LOCAL ONLY — never ship): resolve the 1.21.1 build via the Modrinth
-# API, download to data/mods/TEMP-carpet-test.jar, docker restart mc.
-docker exec -i mc rcon-cli 'player Bot spawn'          # async — wait ~2s, verify with "list"
-docker exec -i mc rcon-cli 'tp Bot <x> <y> <z>'
-docker exec -i mc rcon-cli 'item replace entity Bot hotbar.0 with minecraft:amethyst_shard 8'
-docker exec -i mc rcon-cli 'player Bot hotbar 1'       # bots spawn holding a join-kit item — /give lands in the wrong slot
-docker exec -i mc rcon-cli 'player Bot look at <x> <y> <z>'
-docker exec -i mc rcon-cli 'player Bot use once'       # right-click (ignition, buttons, etc.)
-docker exec -i mc rcon-cli 'data get entity Bot Dimension'   # assert outcomes via NBT, not chat
+# API, download to data/mods/TEMP-carpet-test.jar, docker stop mc && docker start mc.
+docker exec -i mc rcon-cli 'carpet commandPlayer true'
+docker exec -i mc rcon-cli 'player Bot spawn'          # async — wait ~3s, verify with "list"
+
+# --- Build a portal frame and ignite it ---
+# Example: cherry_planks frame (the_blossom_gardens portal, igniter: cherry_sapling)
+X=2000; Y=80; Z=2000
+docker exec -i mc rcon-cli "tp Bot $((X+1)).5 $((Y+1)) $Z.5"
+# Build frame, give igniter, then:
+docker exec -i mc rcon-cli 'item replace entity Bot hotbar.0 with minecraft:cherry_sapling 8'
+docker exec -i mc rcon-cli 'player Bot hotbar 1'
+docker exec -i mc rcon-cli 'player Bot look west'      # look at frame wall from INSIDE
+docker exec -i mc rcon-cli 'player Bot use once'        # right-click to ignite
+
+# --- Assert traversal ---
+sleep 10                                                 # dimension creation takes several seconds on first visit
+docker exec -i mc rcon-cli 'data get entity Bot Dimension'   # expect the target dimension
 docker exec -i mc rcon-cli 'data get entity Bot Pos'
+
+# --- Return trip ---
+docker exec -i mc rcon-cli 'tp Bot <x+5> <y> <z>'      # step out of portal zone
+sleep 5                                                  # wait for cooldown to clear
+docker exec -i mc rcon-cli 'tp Bot <portal_x> <portal_y> <portal_z>'  # step back in
+sleep 8
+docker exec -i mc rcon-cli 'data get entity Bot Dimension'   # expect overworld
+
+# --- Portal breaking ---
+docker exec -i mc rcon-cli 'setblock <frame_x> <frame_y> <frame_z> air'  # break one frame block
+sleep 3
+# Interior portal blocks should now be air (zone validation cleared them)
 ```
 
-Gotchas learned the hard way: `player Bot spawn at ...` may ignore the position (tp after instead); vanilla resets portal cooldown every tick while an entity stands IN a portal, so return trips need step-out → wait cooldown → step-in; assert with `data get entity` and log greps, never RCON chat echoes. Always clean up: `player Bot kill`, delete test dimensions, remove the carpet jar, restart mc, and scrub any state files the test dirtied (`portal_links.json`, `multiverse_config.json` test entries).
+Gotchas learned the hard way:
+
+- **Ignition positioning**: the bot must be INSIDE the frame looking at the frame wall — from outside, cherry_sapling plants itself on the adjacent block instead of triggering ignition. The `PortalIgnitionMixin` hooks `ItemStack.useOnBlock` at HEAD, but the clicked position must have an air block adjacent to the frame for flood-fill to find the portal shape.
+- `player Bot spawn at ...` may ignore the position (tp after instead).
+- Vanilla resets portal cooldown every tick while an entity stands IN a portal, so return trips need step-out → wait cooldown (check `data get entity Bot PortalCooldown` = 0) → step-in.
+- Assert with `data get entity` and log greps (`docker exec mc cat /data/logs/latest.log`), never RCON chat echoes.
+- Autopause kicks the bot: use `docker exec mc sh -c 'touch /data/.skip-pause'` before testing.
+- Always clean up: `player Bot kill`, remove the carpet jar (`docker exec mc rm -f /data/mods/TEMP-carpet-test.jar`), restart mc.
 
 ### 4. Soak time-based paths
 
 Anything on a timer (idle unload, cooldowns, periodic saves) must be soaked through its **real** window, not assumed from reading the code — the tick-loop crash class only shows up when the timer actually fires:
 
 ```bash
-docker exec -i mc rcon-cli 'dimension create soak_test overworld 987654'
+# Add a test dimension to multiverse_config.json, restart mc, then:
 # wait out the full timer window (e.g. idle unload = 5 min + the check cadence), then:
 docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'   # Restarts must be 0
-grep -iE 'Unloading idle|ConcurrentModification' <consumer>/data/logs/latest.log          # expect the feature line, no CME
+docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentModification'  # expect the feature line, no CME
 ```
 
 **Tick-loop threading rule:** never mutate the server's worlds map (or any collection vanilla iterates per tick) from a `ServerWorld.tick` / world-tick mixin — that's a `ConcurrentModificationException` crash when the timer fires. Defer mutations to `ServerTickEvents.END_SERVER_TICK` (see `MultiverseServer` and the pending-load queue in `DimensionManager` for the pattern).
