@@ -113,17 +113,26 @@ public class ServerWorldMixin {
                         int dx = targetCenterX - portalCenterX;
                         int dz = targetCenterZ - portalCenterZ;
 
-                        int yOffset = PortalHelper.findSafeYOffset(targetWorld, zone.interior);
-                        int targetY = targetWorld.getBottomY() + yOffset;
+                        // Arrival height comes from the target column's own
+                        // surface — the SCALED centre, since source-portal
+                        // coordinates are the wrong column for scale != 1.
+                        int surfaceY = PortalHelper.findSurfaceY(targetWorld, targetCenterX, targetCenterZ);
 
+                        // Rebuild the portal with its shape intact: keep each
+                        // interior block's height relative to the portal's
+                        // bottom layer rather than flattening to one Y.
+                        int minInteriorY = Integer.MAX_VALUE;
+                        for (BlockPos p : zone.interior) {
+                            minInteriorY = Math.min(minInteriorY, p.getY());
+                        }
                         HashSet<BlockPos> adjustedInterior = new HashSet<>();
                         for (BlockPos p : zone.interior) {
-                            adjustedInterior.add(new BlockPos(p.getX() + dx, targetY, p.getZ() + dz));
+                            adjustedInterior.add(new BlockPos(p.getX() + dx, surfaceY + (p.getY() - minInteriorY), p.getZ() + dz));
                         }
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
-                        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, targetY + 1, targetCenterZ, 5, zone.axis);
+                        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16, zone.axis);
                         int portalCooldown = def.getCooldown();
 
                         if (existing != null) {
@@ -137,10 +146,12 @@ public class ServerWorldMixin {
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
+                        MultiverseServer.LOGGER.info("Created portal in {} at ({}, {}, {})",
+                                targetKey.getValue(), targetCenterX, surfaceY, targetCenterZ);
                         playPortalSound(world, pos, def.getEnterSound());
                         player.setPortalCooldown(portalCooldown);
                         PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
-                        double landY = isHorizontal ? targetY + 1 : targetY;
+                        double landY = isHorizontal ? surfaceY + 1 : surfaceY;
                         player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch());
                         playPortalSound(targetWorld, new BlockPos(targetCenterX, (int) landY, targetCenterZ), def.getExitSound());
                     } catch (Exception e) {

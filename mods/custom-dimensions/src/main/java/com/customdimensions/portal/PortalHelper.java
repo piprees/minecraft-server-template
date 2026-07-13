@@ -17,6 +17,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
@@ -202,33 +203,23 @@ public class PortalHelper {
         }
     }
 
-    public static int findSafeYOffset(ServerWorld world, Set<BlockPos> templateInterior) {
-        int centerX = 0;
-        int centerZ = 0;
-        int minY = Integer.MAX_VALUE;
-        for (BlockPos p : templateInterior) {
-            centerX += p.getX();
-            centerZ += p.getZ();
-            minY = Math.min(minY, p.getY());
-        }
-        int count = templateInterior.size();
-        if (count == 0) {
-            return 0;
-        }
-        centerX /= count;
-        centerZ /= count;
+    // Fallback arrival height for columns with no surface (void worlds);
+    // createTargetPortal lays a floor when nothing solid is underneath.
+    public static final int VOID_FALLBACK_Y = 64;
 
-        for (int y = minY; y <= world.getBottomY() + world.getHeight() - 1; y++) {
-            if (world.getBlockState(new BlockPos(centerX, y, centerZ)).isSolid()) {
-                return y + 1 - minY;
-            }
+    // Absolute Y a player should stand at when arriving at (centerX, centerZ)
+    // — one above the heightmap surface. The caller must pass the SCALED
+    // target-world column, not source-portal coordinates. Forces generation
+    // of the one target chunk because World.getTopY silently reports bottomY
+    // for unloaded chunks, which would put the portal on bedrock.
+    public static int findSurfaceY(ServerWorld world, int centerX, int centerZ) {
+        int surfaceY = world.getChunk(centerX >> 4, centerZ >> 4)
+                .sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, centerX & 15, centerZ & 15) + 1;
+        if (surfaceY <= world.getBottomY() + 1) {
+            return VOID_FALLBACK_Y;
         }
-        for (int y = minY - 1; y >= world.getBottomY(); y--) {
-            if (world.getBlockState(new BlockPos(centerX, y, centerZ)).isSolid()) {
-                return y + 1 - minY;
-            }
-        }
-        return 0 - world.getBottomY();
+        // Leave headroom so tall portals never poke out of the build limit.
+        return Math.min(surfaceY, world.getTopY() - 8);
     }
 
     public static void spawnParticles(ServerWorld world, PortalZone zone) {
@@ -296,18 +287,37 @@ public class PortalHelper {
             : Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, axis);
 
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
-        for (BlockPos pos : interior) {
-            targetWorld.setBlockState(pos, portalState, 3);
-        }
-
         Direction[] planeDirs = planeDirections(axis);
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
                 BlockPos neighbor = p.offset(dir);
                 if (!interiorSet.contains(neighbor)) {
-                    targetWorld.setBlockState(neighbor, frameState, 3);
+                    targetWorld.setBlockState(neighbor, frameState, Block.NOTIFY_ALL);
                 }
             }
+        }
+
+        // Guarantee a floor. Vertical portals get one for free (DOWN is in
+        // the frame plane), but horizontal END_PORTAL planes have no
+        // below-neighbour — over water or a void-fallback there is nothing
+        // to stand on and portal blocks have no collision.
+        if (axis == Direction.Axis.Y) {
+            for (BlockPos p : interior) {
+                BlockPos below = p.down();
+                if (!targetWorld.getBlockState(below).isSolid()) {
+                    targetWorld.setBlockState(below, frameState, Block.NOTIFY_ALL);
+                }
+            }
+        }
+
+        // Portal blocks go in LAST, with shape updates suppressed: any
+        // neighbour placement with NOTIFY_ALL makes vanilla NetherPortalBlock
+        // re-validate its shape, and it pops to air unless framed by
+        // OBSIDIAN specifically — custom frame blocks fail that check, so a
+        // freshly built return portal would self-destruct mid-placement.
+        int portalFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
+        for (BlockPos pos : interior) {
+            targetWorld.setBlockState(pos, portalState, portalFlags);
         }
 
         int color = parseColor(definition.getColor());
@@ -329,10 +339,13 @@ public class PortalHelper {
         savePortalLinks();
     }
 
-    public static BlockPos findExistingPortal(ServerWorld world, int centerX, int centerY, int centerZ, int radius, Direction.Axis axis) {
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                for (int dy = -radius; dy <= radius; dy++) {
+    // radiusV is wider than radiusH so a portal built when the surface sat a
+    // few blocks higher or lower (chunk regen, terrain edits) is still found
+    // and reused instead of double-created.
+    public static BlockPos findExistingPortal(ServerWorld world, int centerX, int centerY, int centerZ, int radiusH, int radiusV, Direction.Axis axis) {
+        for (int dx = -radiusH; dx <= radiusH; dx++) {
+            for (int dz = -radiusH; dz <= radiusH; dz++) {
+                for (int dy = -radiusV; dy <= radiusV; dy++) {
                     BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
                     BlockState state = world.getBlockState(pos);
                     if (axis == Direction.Axis.Y) {
