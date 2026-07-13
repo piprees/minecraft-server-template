@@ -127,7 +127,11 @@ jobs:
           CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
           curl -sL -o /tmp/carpet-ci.jar "$CARPET_URL"
           docker cp /tmp/carpet-ci.jar mc:/data/mods/carpet-ci.jar
-          docker restart mc || true
+          # Full stop+start (not restart): the itzg entrypoint re-scans
+          # /data/mods/ on start, and Fabric rebuilds its mod list. A plain
+          # restart reuses the cached mod list from the first boot.
+          docker stop mc
+          docker start mc
 
           echo "Waiting for server to become healthy with Carpet..."
           CARPET_ELAPSED=0
@@ -146,14 +150,17 @@ jobs:
           fi
 
           echo "Spawning Carpet bot..."
-          docker exec mc rcon-cli "player SmokeBot spawn"
+          SPAWN_RESULT=$(docker exec mc rcon-cli "player SmokeBot spawn" 2>&1 || true)
+          echo "Spawn command result: $SPAWN_RESULT"
           sleep 5
 
           ONLINE=$(docker exec mc rcon-cli "list" 2>/dev/null)
-          echo "$ONLINE"
+          echo "Player list: $ONLINE"
           echo "$ONLINE" | grep -q "SmokeBot" || {
             echo "::error::Carpet bot SmokeBot did not appear in player list"
-            docker logs mc --tail 20
+            echo "Checking if Carpet loaded..."
+            docker exec mc rcon-cli "carpet" 2>&1 || echo "(carpet command not found — mod may not have loaded)"
+            docker logs mc --tail 30
             exit 1
           }
 
