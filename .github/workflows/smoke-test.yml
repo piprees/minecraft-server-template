@@ -125,9 +125,8 @@ jobs:
         run: |
           echo "Installing Carpet for fake-player support..."
           CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
-          mkdir -p data/mods
-          curl -sL -o data/mods/carpet-ci.jar "$CARPET_URL"
-          ls -la data/mods/carpet-ci.jar
+          curl -sL -o /tmp/carpet-ci.jar "$CARPET_URL"
+          docker cp /tmp/carpet-ci.jar mc:/data/mods/carpet-ci.jar
           docker restart mc || true
 
           echo "Waiting for server to become healthy with Carpet..."
@@ -169,7 +168,7 @@ jobs:
           }
 
           echo "Checking for world generation (region files exist)..."
-          REGIONS=$(find data/world/region -name '*.mca' 2>/dev/null | head -1)
+          REGIONS=$(docker exec mc find /data/world/region -name '*.mca' 2>/dev/null | head -1)
           if [ -n "$REGIONS" ]; then
             echo "Region files present — world generated"
           else
@@ -186,7 +185,7 @@ jobs:
 
           echo "Cleaning up bot..."
           docker exec mc rcon-cli "player SmokeBot kill" || true
-          rm -f data/mods/carpet-ci.jar
+          docker exec mc rm -f /data/mods/carpet-ci.jar || true
           echo "Fake player test passed"
 
       - name: Assert no crash reports
