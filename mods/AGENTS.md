@@ -73,16 +73,15 @@ If the persisted state format changed (config schema, namespace, IDs), delete th
 
 ### 3. Exercise via RCON, headless
 
-Design every feature to be drivable by command so it can be verified without a game client, both here and later by `deploy.sh`:
+Dimensions are now created automatically at boot from `config/multiverse_config.json` — there are no `/dimension create` or `/portal link` commands. Verify via RCON that dimensions loaded correctly:
 
 ```bash
-docker exec -i mc rcon-cli 'dimension create test_x multi_biome 424242 "minecraft:plains,terralith:shield" true'
-docker exec -i mc rcon-cli 'portal link test_x minecraft:quartz_block minecraft:amethyst_shard adventure:test_x 55FF55 11 4'
-docker exec -i mc rcon-cli 'execute in adventure:test_x run seed'   # proves the dimension resolves to vanilla commands
-docker exec -i mc rcon-cli 'dimension delete test_x'                # always clean up test entities
+docker exec -i mc rcon-cli 'execute in adventure:the_blossom_gardens run seed'   # proves the dimension was created from config
+docker exec -i mc rcon-cli 'execute in adventure:the_canvas run seed'
+docker logs mc 2>&1 | grep -i "registered dimension\|Created runtime\|Boot:" | tail -10
 ```
 
-Test the awkward inputs deliberately: quoted comma lists, identifiers with colons, seeds above `Long.MAX_VALUE`, empty optional arguments. Brigadier argument types are stricter than they look, and every one of those has broken a release.
+To add/change dimensions: edit `config/multiverse_config.json`, commit, deploy. The mod reads the config at boot, creates missing worlds, and reconciles orphans.
 
 ### 3b. Player-dependent paths: drive a Carpet fake player (local only)
 
@@ -135,17 +134,18 @@ Once the local loop passes: commit → `gh workflow run release.yml -f version=v
 
 | Mod | Status | Purpose |
 | --- | --- | --- |
-| `custom-dimensions` | In development | Runtime dimension creation, custom portal frames with configurable igniters, coordinate scaling, coloured particles, bidirectional travel |
+| `custom-dimensions` | In development | Boot-time dimension creation from repo config, custom portal frames with configurable igniters, coordinate scaling, coloured particles, bidirectional travel |
 
 ## Architecture (custom-dimensions)
 
 ```
 MultiverseServer (entrypoint)
 ├── WorldLoaderMixin → hooks server start/stop
-│   ├── MultiverseConfig.load() → JSON config
+│   ├── MultiverseConfig.load() → reads repo-owned JSON config (read-only)
 │   ├── PortalHelper.loadPortalLinks() → JSON portal state
 │   ├── DimensionManager.registerDimensions() → unfreezes registry, adds entries
-│   └── registers /dimension and /portal commands
+│   └── DimensionManager.bootCreateDimensions() → queues all config dims for creation
+├── END_SERVER_TICK → drains pending world loads/unloads, reconciles orphans
 ├── ServerWorldMixin → per-tick logic
 │   ├── validates portal zones (removes broken ones)
 │   ├── teleports players stepping into portals

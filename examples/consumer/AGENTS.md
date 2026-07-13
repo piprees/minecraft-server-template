@@ -43,7 +43,7 @@ The bundle puller lives in the bundle itself (`.stack/current/stack/scripts/stac
 
 The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-edit `data/mods/`**: it's managed (Modrinth sync + bundle installs) and your changes will be overwritten.
 
-The custom-dimensions mod creates the platform's `adventure:*` dimensions at deploy time from the bundle's `config/dimensions.txt`, links their portals, and persists everything to `data/config/multiverse_config.json`. That file is state, not config — the deploy recreates it idempotently; don't hand-edit it. Ops commands (RCON): `dimension create|load|delete`, `portal link|delete`. Full grammar and architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
+The custom-dimensions mod reads the platform's dimension and portal definitions from `config/multiverse_config.json` at boot and creates all dimensions automatically — no RCON commands needed. That config is repo-owned and deploy-seeded; the mod never writes to it. Consumer overlays can override it via `overlay/config/multiverse_config.json`. Full architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
 
 ## Production access
 
@@ -95,7 +95,7 @@ Before pushing: check no CI run is in progress (`gh run list --limit 3`), check 
 | Add a client mod | Not here — PR to the template repo | — |
 | Change game rules | Not here — PR to the template repo | — |
 | Change permissions | Not here — PR to the template repo | — |
-| Add/change custom dimensions | Not here — PR to the template repo (`config/dimensions.txt` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | — |
+| Add/change custom dimensions | Not here — PR to the template repo (`config/multiverse_config.json` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | — |
 
 ## Safety rules
 

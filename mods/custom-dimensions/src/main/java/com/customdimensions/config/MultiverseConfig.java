@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,8 +23,8 @@ public class MultiverseConfig {
     private final List<PortalDefinition> portals = new ArrayList<>();
     private transient Path configPath;
     private transient MinecraftServer server;
-    private transient boolean dirty = false;
 
+    private String namespace;
     private String frameOverworld = "minecraft:crying_obsidian";
     private String frameNether = "minecraft:obsidian";
     private String frameEnd = "minecraft:iron_block";
@@ -45,7 +44,6 @@ public class MultiverseConfig {
             return;
         }
         if (!Files.exists(this.configPath)) {
-            this.save();
             return;
         }
         try (BufferedReader reader = Files.newBufferedReader(this.configPath)) {
@@ -55,41 +53,15 @@ public class MultiverseConfig {
                 this.dimensions.addAll(loaded.dimensions);
                 this.portals.clear();
                 this.portals.addAll(loaded.portals);
+                this.namespace = loaded.namespace;
                 this.frameOverworld = loaded.frameOverworld != null ? loaded.frameOverworld : this.frameOverworld;
                 this.frameNether = loaded.frameNether != null ? loaded.frameNether : this.frameNether;
                 this.frameEnd = loaded.frameEnd != null ? loaded.frameEnd : this.frameEnd;
                 this.idleUnloadMinutes = loaded.idleUnloadMinutes > 0 ? loaded.idleUnloadMinutes : this.idleUnloadMinutes;
             }
-            this.dirty = false;
+            DimensionDefinition.setNamespace(this.namespace != null ? this.namespace : "adventure");
         } catch (IOException | com.google.gson.JsonParseException e) {
-            // Do NOT mark clean or save here: overwriting a corrupt file with
-            // the (empty) in-memory state would silently destroy every
-            // dimension and portal definition. Leave the file for inspection.
-            MultiverseServer.LOGGER.error("Failed to load config — refusing to overwrite {}", this.configPath, e);
-        }
-    }
-
-    public void save() {
-        if (this.configPath == null) {
-            return;
-        }
-        // Write-to-temp + atomic move: save() also runs during crash
-        // shutdowns, and truncating the real file in place means a crash
-        // mid-write loses every definition (this happened in production).
-        try {
-            Files.createDirectories(this.configPath.getParent());
-            Path tmp = this.configPath.resolveSibling(FILE_NAME + ".tmp");
-            try (BufferedWriter writer = Files.newBufferedWriter(tmp)) {
-                GSON.toJson(this, writer);
-            }
-            try {
-                Files.move(tmp, this.configPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
-            } catch (java.nio.file.AtomicMoveNotSupportedException e) {
-                Files.move(tmp, this.configPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            }
-            this.dirty = false;
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error("Failed to save config", e);
+            MultiverseServer.LOGGER.error("Failed to load config — file left for inspection: {}", this.configPath, e);
         }
     }
 
@@ -108,20 +80,6 @@ public class MultiverseConfig {
         return this.dimensions.stream().map(DimensionDefinition::getName).toList();
     }
 
-    public void addDimension(DimensionDefinition def) {
-        this.dimensions.removeIf(d -> d.getName().equals(def.getName()));
-        this.dimensions.add(def);
-        this.dirty = true;
-    }
-
-    public boolean removeDimension(String name) {
-        boolean removed = this.dimensions.removeIf(d -> d.getName().equals(name));
-        if (removed) {
-            this.dirty = true;
-        }
-        return removed;
-    }
-
     public PortalDefinition getPortal(String id) {
         return this.portals.stream()
                 .filter(p -> p.getId().equals(id))
@@ -135,20 +93,6 @@ public class MultiverseConfig {
 
     public List<String> getPortalIds() {
         return this.portals.stream().map(PortalDefinition::getId).toList();
-    }
-
-    public void addPortal(PortalDefinition def) {
-        this.portals.removeIf(p -> p.getId().equals(def.getId()));
-        this.portals.add(def);
-        this.dirty = true;
-    }
-
-    public boolean removePortal(String id) {
-        boolean removed = this.portals.removeIf(p -> p.getId().equals(id));
-        if (removed) {
-            this.dirty = true;
-        }
-        return removed;
     }
 
     public Optional<PortalDefinition> getPortalByIgniter(String itemId) {
@@ -186,11 +130,4 @@ public class MultiverseConfig {
         return this.idleUnloadMinutes;
     }
 
-    public boolean isDirty() {
-        return this.dirty;
-    }
-
-    public void markDirty() {
-        this.dirty = true;
-    }
 }

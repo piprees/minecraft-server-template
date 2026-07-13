@@ -216,7 +216,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `initial-setup.sh` | server | First boot: restic init, config seed, image pull |
 | `deploy.sh` | server (CI) | The deploy: countdown → kick → restart → config sync → rules → whitelist |
 | `setup-permissions.sh` | server | LuckPerms groups/permissions via RCON (called by deploy.sh) |
-| `setup-dimensions.sh` | server | Create custom dimensions + link portals via RCON from `config/dimensions.txt` (called by deploy.sh) |
+| `setup-dimensions.sh` | _(removed)_ | Replaced by mod-owned boot-time creation from `config/multiverse_config.json` |
 | `cloudflare-setup.sh` | Mac | Tunnel + A/SRV/CNAME records + R2 bucket + maintenance Worker |
 | `infra-deploy.sh` | server (CI) | Infra-tier deploy: pull + recreate sidecars without touching mc |
 | `github-env-sync.sh` | Mac | Create GitHub production environment, push secrets/vars from .env |

@@ -59,8 +59,8 @@ echo ""
 
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
-# stamp every line with wall-clock time. Child scripts (setup-dimensions,
-# setup-permissions) inherit stdout, so their output is stamped too.
+# stamp every line with wall-clock time. Child scripts (setup-permissions)
+# inherit stdout, so their output is stamped too.
 # printf %(...)T needs bash >= 4.2 — fine, deploy.sh only ever runs on the
 # Linux server (see header), never on a macOS workstation.
 exec > >(while IFS= read -r line; do printf '[%(%H:%M:%S)T] %s\n' -1 "$line"; done) 2>&1
@@ -728,41 +728,42 @@ for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; d
 done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
-# --- Create custom dimensions (idempotent — skips existing) -------------------
-# (In-house mod JARs are installed in step 8b, before mc starts.)
-if [[ -x "$SCRIPT_DIR/setup-dimensions.sh" && -f "$STACK_DIR/config/dimensions.txt" ]]; then
-  echo ""
-  echo "==> Creating custom dimensions..."
-  bash "$SCRIPT_DIR/setup-dimensions.sh"
-fi
-
-# --- Custom dimensions (from dimensions.txt) ----------------------------------
+# --- Custom dimensions (from multiverse_config.json) --------------------------
 # One-time setup per dimension: load once, set ChunkyBorder, pin BlueMap to
 # low-res flat view, then freeze that BlueMap map so it does nothing at all
 # until a player actually finds the portal (the mod unfreezes it itself on
 # first visit — see DimensionManager.unfreezeBlueMapOnFirstVisit). Gated on
-# a marker file, deliberately independent of multiverse_config.json: that
-# file just means "the mod knows this dimension exists", not "we've already
-# bordered/BlueMap-configured it" — a dimension can be created in one
-# deploy and only get this one-time setup in a later one (e.g. this
-# rollout, for the ~74 dimensions created before this marker existed).
-# Skips comments, blanks, and dimensions sharing the server seed (vanilla worlds).
-# These dimensions are meant to sit idle 99.9%+ of the time — idle-tasks
-# doesn't pre-generate them, deploy.sh doesn't forceload them, and once
-# this one-time setup is done, nothing here ever touches them again.
-DIMENSIONS_FILE="$STACK_DIR/config/dimensions.txt"
+# a marker file so each dimension is set up exactly once — a dimension can
+# be added to multiverse_config.json in one deploy and only get this one-time
+# setup in a later one. Namespace comes from the config's "namespace" field
+# (default: "adventure"). These dimensions are meant to sit idle 99.9%+ of
+# the time — idle-tasks doesn't pre-generate them, deploy.sh doesn't
+# forceload them, and once this one-time setup is done, nothing here ever
+# touches them again.
+MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
 SETUP_MARKERS_DIR="$SERVER_DIR/data/.dimension-setup"
-if [[ -f "$DIMENSIONS_FILE" ]]; then
+if [[ -f "$MULTIVERSE_CONFIG" ]]; then
+  DIM_DATA=$(python3 - "$MULTIVERSE_CONFIG" << 'PYEOF'
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+ns = data.get("namespace", "adventure")
+scales = {p["id"]: int(p.get("scale", 1)) for p in data.get("portals", [])}
+print(ns)
+for d in data.get("dimensions", []):
+    name = d["name"]
+    print("%s|%d" % (name, scales.get(name, 1)))
+PYEOF
+  )
+  DIM_NAMESPACE=$(echo "$DIM_DATA" | head -1)
   mkdir -p "$SETUP_MARKERS_DIR"
   echo ""
   echo "==> Setting up new custom dimensions..."
   BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
   NEW_COUNT=0
   SKIPPED_COUNT=0
-  # shellcheck disable=SC2034
-  while IFS='|' read -r name _type scale seed _portal _ignitor _group _biome _peaceful || [[ -n "$name" ]]; do
-    [[ -z "$name" || "$name" = \#* ]] && continue
-    [[ "$seed" != "server" && "$seed" = "${SEED:-}" ]] && continue
+  while IFS='|' read -r name scale; do
+    [[ -z "$name" ]] && continue
 
     if [[ -f "$SETUP_MARKERS_DIR/$name" ]]; then
       SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
@@ -771,9 +772,9 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
 
     rcon "dimension load $name"
     sleep 1
-    result=$(timeout 30 docker exec mc rcon-cli "execute in adventure:$name run seed" 2> /dev/null || echo "")
+    result=$(timeout 30 docker exec mc rcon-cli "execute in ${DIM_NAMESPACE}:$name run seed" 2> /dev/null || echo "")
     if [[ -z "$result" || "$result" == *"Unknown"* ]]; then
-      echo "    adventure:$name — not ready yet, will retry next deploy"
+      echo "    ${DIM_NAMESPACE}:$name — not ready yet, will retry next deploy"
       continue
     fi
 
@@ -785,7 +786,7 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
       16) dim_radius=$((PLAYER_BORDER_RADIUS / 16)) ;;
       *) dim_radius=$((PLAYER_BORDER_RADIUS / scale)) ;;
     esac
-    rcon "chunky world adventure:$name"
+    rcon "chunky world ${DIM_NAMESPACE}:$name"
     rcon "chunky center 0 0"
     rcon "chunky radius $dim_radius"
     rcon "chunky shape square"
@@ -801,8 +802,8 @@ if [[ -f "$DIMENSIONS_FILE" ]]; then
     fi
     touch "$SETUP_MARKERS_DIR/$name"
     NEW_COUNT=$((NEW_COUNT + 1))
-    echo "    adventure:$name — loaded once, border radius $dim_radius (scale 1:$scale)"
-  done < "$DIMENSIONS_FILE"
+    echo "    ${DIM_NAMESPACE}:$name — loaded once, border radius $dim_radius (scale 1:$scale)"
+  done <<< "$(echo "$DIM_DATA" | tail -n +2)"
   echo "  $NEW_COUNT dimension(s) newly configured, $SKIPPED_COUNT already set up (untouched)"
 fi
 

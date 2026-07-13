@@ -97,6 +97,7 @@ public class DimensionManager {
     // world sat in the server's worlds map until restart — the idle unloader
     // skips any world with no config entry.
     private final Set<String> pendingWorldUnloads = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private boolean bootReconciled = false;
 
     public static DimensionManager getInstance() {
         return INSTANCE;
@@ -104,6 +105,7 @@ public class DimensionManager {
 
     public void onServerStart(MinecraftServer server) {
         this.server = server;
+        this.bootReconciled = false;
         this.cleanupDatapack();
     }
 
@@ -479,7 +481,7 @@ public class DimensionManager {
             }
             // Namespace first, then path: another mod's dimension whose PATH
             // happens to match one of our names must never be closed by us.
-            if (!DimensionDefinition.NAMESPACE.equals(key.getValue().getNamespace())) {
+            if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
                 continue;
             }
             if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
@@ -539,7 +541,7 @@ public class DimensionManager {
         }
         for (String name : new ArrayList<>(this.pendingWorldUnloads)) {
             this.pendingWorldUnloads.remove(name);
-            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(DimensionDefinition.NAMESPACE, name));
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(DimensionDefinition.getNamespace(), name));
             if (PROTECTED_DIMENSIONS.contains(key)) {
                 continue;
             }
@@ -574,6 +576,34 @@ public class DimensionManager {
         for (String name : new ArrayList<>(this.pendingWorldLoads)) {
             this.pendingWorldLoads.remove(name);
             this.getOrCreateDimension(name);
+        }
+    }
+
+    public void bootCreateDimensions() {
+        for (DimensionDefinition def : MultiverseConfig.getInstance().getDimensions()) {
+            this.requestWorldLoad(def.getName());
+        }
+    }
+
+    public void reconcileOrphansOnce() {
+        if (this.bootReconciled || this.server == null) {
+            return;
+        }
+        this.bootReconciled = true;
+        Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) this.server).getWorlds();
+        List<String> configNames = MultiverseConfig.getInstance().getDimensionNames();
+        for (RegistryKey<World> key : worlds.keySet()) {
+            if (PROTECTED_DIMENSIONS.contains(key)) {
+                continue;
+            }
+            if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
+                continue;
+            }
+            String path = key.getValue().getPath();
+            if (!configNames.contains(path)) {
+                MultiverseServer.LOGGER.info("Orphan dimension detected: {} — queuing unload", key.getValue());
+                this.requestWorldUnload(path);
+            }
         }
     }
 

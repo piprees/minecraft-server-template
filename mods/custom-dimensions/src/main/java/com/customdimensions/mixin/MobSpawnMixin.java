@@ -24,7 +24,7 @@ public class MobSpawnMixin {
         // Namespace guard: definitions are looked up by path, and a foreign
         // dimension whose path matches one of our names must not inherit its
         // spawn suppression.
-        if (!DimensionDefinition.NAMESPACE.equals(worldKey.getValue().getNamespace())) {
+        if (!DimensionDefinition.getNamespace().equals(worldKey.getValue().getNamespace())) {
             return;
         }
         DimensionDefinition def = MultiverseConfig.getInstance().getDimension(worldKey.getValue().getPath());

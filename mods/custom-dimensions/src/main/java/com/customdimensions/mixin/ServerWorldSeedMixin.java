@@ -27,7 +27,7 @@ public class ServerWorldSeedMixin {
     private void customdimensions$perDimensionSeed(CallbackInfoReturnable<Long> cir) {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> key = world.getRegistryKey();
-        if (!DimensionDefinition.NAMESPACE.equals(key.getValue().getNamespace())) {
+        if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
             return;
         }
         DimensionDefinition def = MultiverseConfig.getInstance().getDimension(key.getValue().getPath());

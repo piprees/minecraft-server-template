@@ -33,10 +33,6 @@ public class ServerWorldMixin {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> worldKey = world.getRegistryKey();
 
-        if (MultiverseConfig.getInstance().isDirty()) {
-            MultiverseConfig.getInstance().save();
-        }
-
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
         if (!sourceZones.isEmpty()) {
             // Snapshot: getSourceZones returns the live backing list;

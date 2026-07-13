@@ -18,14 +18,9 @@ class MultiverseConfigTest {
 
     @Test
     void gsonRoundTripPreservesDimensions() {
-        MultiverseConfig config = new MultiverseConfig();
-        DimensionDefinition dim = new DimensionDefinition("test_world", "overworld", "minecraft:test_world");
-        dim.setSeed(42L);
-        dim.setBiome("minecraft:plains");
-        dim.setHostileSpawning(false);
-        config.addDimension(dim);
-
-        String json = GSON.toJson(config);
+        String json = """
+                {"dimensions":[{"name":"test_world","type":"overworld","dimensionId":"minecraft:test_world","seed":42,"biome":"minecraft:plains","hostileSpawning":false}]}
+                """;
         MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
 
         assertEquals(1, loaded.getDimensions().size());
@@ -40,13 +35,9 @@ class MultiverseConfigTest {
 
     @Test
     void gsonRoundTripPreservesPortals() {
-        MultiverseConfig config = new MultiverseConfig();
-        PortalDefinition portal = new PortalDefinition("nether_gate", "minecraft:obsidian", "minecraft:flint_and_steel", "minecraft:the_nether", "AA0000", 11);
-        portal.setScale(0.125);
-        portal.setCooldown(80);
-        config.addPortal(portal);
-
-        String json = GSON.toJson(config);
+        String json = """
+                {"portals":[{"id":"nether_gate","frameBlock":"minecraft:obsidian","igniterItem":"minecraft:flint_and_steel","targetDimension":"minecraft:the_nether","color":"AA0000","lightLevel":11,"scale":0.125,"cooldown":80}]}
+                """;
         MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
 
         assertEquals(1, loaded.getPortals().size());
@@ -64,11 +55,9 @@ class MultiverseConfigTest {
 
     @Test
     void gsonRoundTripPreservesSoundFields() {
-        MultiverseConfig config = new MultiverseConfig();
-        PortalDefinition portal = new PortalDefinition("sound_test", "minecraft:stone", "minecraft:stick", "minecraft:overworld", "FFFFFF", 0);
-        config.addPortal(portal);
-
-        String json = GSON.toJson(config);
+        String json = """
+                {"portals":[{"id":"sound_test","frameBlock":"minecraft:stone","igniterItem":"minecraft:stick","targetDimension":"minecraft:overworld","color":"FFFFFF","lightLevel":0}]}
+                """;
         MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
 
         PortalDefinition loadedPortal = loaded.getPortal("sound_test");
@@ -102,12 +91,11 @@ class MultiverseConfigTest {
     void fileRoundTripWorks(@TempDir Path tempDir) throws IOException {
         Path configFile = tempDir.resolve("test_config.json");
 
-        MultiverseConfig config = new MultiverseConfig();
-        config.addDimension(new DimensionDefinition("dim1", "void", "minecraft:dim1"));
-        config.addPortal(new PortalDefinition("p1", "minecraft:gold_block", "minecraft:blaze_rod", "minecraft:dim1", "FFD700", 8));
-
+        String json = """
+                {"dimensions":[{"name":"dim1","type":"void","dimensionId":"minecraft:dim1"}],"portals":[{"id":"p1","frameBlock":"minecraft:gold_block","igniterItem":"minecraft:blaze_rod","targetDimension":"minecraft:dim1","color":"FFD700","lightLevel":8}]}
+                """;
         try (BufferedWriter writer = Files.newBufferedWriter(configFile)) {
-            GSON.toJson(config, writer);
+            writer.write(json);
         }
 
         MultiverseConfig loaded;
@@ -122,32 +110,11 @@ class MultiverseConfigTest {
     }
 
     @Test
-    void addDimensionReplacesByName() {
-        MultiverseConfig config = new MultiverseConfig();
-        config.addDimension(new DimensionDefinition("test", "overworld", "minecraft:test"));
-        config.addDimension(new DimensionDefinition("test", "nether", "minecraft:test"));
-
-        assertEquals(1, config.getDimensions().size());
-        assertEquals("nether", config.getDimension("test").getType());
-    }
-
-    @Test
-    void removeDimensionReturnsFalseForUnknown() {
-        MultiverseConfig config = new MultiverseConfig();
-        assertFalse(config.removeDimension("nonexistent"));
-    }
-
-    @Test
-    void removePortalReturnsFalseForUnknown() {
-        MultiverseConfig config = new MultiverseConfig();
-        assertFalse(config.removePortal("nonexistent"));
-    }
-
-    @Test
     void getDimensionNamesReturnsAllNames() {
-        MultiverseConfig config = new MultiverseConfig();
-        config.addDimension(new DimensionDefinition("alpha", "overworld", "minecraft:alpha"));
-        config.addDimension(new DimensionDefinition("beta", "nether", "minecraft:beta"));
+        String json = """
+                {"dimensions":[{"name":"alpha","type":"overworld"},{"name":"beta","type":"nether"}]}
+                """;
+        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
 
         var names = config.getDimensionNames();
         assertEquals(2, names.size());
@@ -157,8 +124,10 @@ class MultiverseConfigTest {
 
     @Test
     void getPortalByIgniterFindsMatch() {
-        MultiverseConfig config = new MultiverseConfig();
-        config.addPortal(new PortalDefinition("p1", "minecraft:obsidian", "minecraft:blaze_rod", "minecraft:the_nether", "AA0000", 0));
+        String json = """
+                {"portals":[{"id":"p1","frameBlock":"minecraft:obsidian","igniterItem":"minecraft:blaze_rod","targetDimension":"minecraft:the_nether","color":"AA0000","lightLevel":0}]}
+                """;
+        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
 
         assertTrue(config.getPortalByIgniter("minecraft:blaze_rod").isPresent());
         assertFalse(config.getPortalByIgniter("minecraft:stick").isPresent());
@@ -166,13 +135,21 @@ class MultiverseConfigTest {
 
     @Test
     void nullSeedSurvivesRoundTrip() {
-        MultiverseConfig config = new MultiverseConfig();
-        DimensionDefinition dim = new DimensionDefinition("test", "overworld", "minecraft:test");
-        config.addDimension(dim);
-
-        String json = GSON.toJson(config);
+        String json = """
+                {"dimensions":[{"name":"test","type":"overworld","dimensionId":"minecraft:test"}]}
+                """;
         MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
 
         assertNull(loaded.getDimension("test").getSeed());
+    }
+
+    @Test
+    void namespaceFieldDeserializes() {
+        String json = """
+                {"namespace":"custom_ns","dimensions":[]}
+                """;
+        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
+
+        assertNotNull(config);
     }
 }

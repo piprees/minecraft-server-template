@@ -64,7 +64,6 @@ MANIFEST=(
   scripts/seed/roll-seeds.sh
   scripts/seed/score-seed.sh
   scripts/seed/report-top.sh
-  scripts/setup-dimensions.sh
   scripts/discord-notify.sh
   scripts/discord-cleanup.sh
   scripts/discord-pin-sync.sh

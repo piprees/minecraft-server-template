@@ -21,6 +21,7 @@ public class WorldLoaderMixin {
         PortalHelper.loadPortalLinks();
         DimensionManager.getInstance().onServerStart(server);
         DimensionManager.getInstance().registerDimensions();
+        DimensionManager.getInstance().bootCreateDimensions();
     }
 
     @Inject(method = "shutdown", at = @At("HEAD"))

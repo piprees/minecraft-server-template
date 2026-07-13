@@ -232,7 +232,7 @@ These actions are allowed but carry irreversible consequences — pause and ask 
 - **Cutting a release** — a burnt tag can't be reused; a broken release breaks all consumer updates.
 - **Running `./ops reset-seed`** — deletes the world, BlueMap, Chunky, and DH data.
 - **Changing `FULL_PATTERNS`** in the reusable workflow — alters deploy behaviour for all consumers.
-- **Modifying `config/dimensions.txt`** — worldgen changes can't be undone on existing chunks.
+- **Modifying `config/multiverse_config.json`** — worldgen changes can't be undone on existing chunks.
 - **Deleting or modifying `data/` on production** — the world can't be replaced.
 - **Running `./ops teardown`** — destroys cloud resources.
 

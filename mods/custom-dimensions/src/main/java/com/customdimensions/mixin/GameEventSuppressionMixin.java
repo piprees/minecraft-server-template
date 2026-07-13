@@ -32,7 +32,7 @@ public class GameEventSuppressionMixin {
     @Inject(method = "emitGameEvent(Lnet/minecraft/registry/entry/RegistryEntry;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/world/event/GameEvent$Emitter;)V", at = @At("HEAD"), cancellable = true)
     private void customdimensions$skipGameEventsInEmptyWorlds(RegistryEntry<GameEvent> event, Vec3d emitterPos, GameEvent.Emitter emitter, CallbackInfo ci) {
         ServerWorld world = (ServerWorld) (Object) this;
-        if (!DimensionDefinition.NAMESPACE.equals(world.getRegistryKey().getValue().getNamespace())) {
+        if (!DimensionDefinition.getNamespace().equals(world.getRegistryKey().getValue().getNamespace())) {
             return;
         }
         if (world.getPlayers().isEmpty()) {
