@@ -77,6 +77,7 @@ See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility
 **Key constraints for agents:**
 
 - **Never use `gh release create` directly** — use `gh workflow run release.yml -f version=vX.Y.Z`.
+- **Never push to `main` while release.yml is in progress.** The image builds (publish.yml) use concurrency group `publish-${{ github.ref }}` with `cancel-in-progress: true`, and a push-triggered build shares the group with the release's builds — the push CANCELS the release's in-flight image builds mid-push, leaving the release published but its version-tagged images missing (2026-07-13: a docs push cancelled the discord-sync 2.14.0 image; production pulls version tags via `IMAGE_TAG="${STACK_VERSION#v}"`). Recovery: `gh run rerun <release-run-id> --failed` rebuilds only the cancelled jobs — the release/tag themselves are unaffected if the "Build bundle and publish release" job succeeded.
 - Releases are **immutable**: assets can't be attached after publish, so `gh release create` produces a broken release with no bundle.
 - A failed or deleted release **burns its tag forever** (immutable releases reserve the tag name permanently). Fix the cause and cut the NEXT patch version.
 - If a release ships without a bundle: `gh release delete vX.Y.Z --yes && git push origin :refs/tags/vX.Y.Z`, then re-cut.
