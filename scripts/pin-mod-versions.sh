@@ -181,8 +181,11 @@ echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
 # --- re-pin the client manifest (adventure.mrpack.json) -----------------------
 # Every slug:versionId entry in _clientMods gets its versionId bumped to the
 # newest build for TARGET_VERSION, exactly like modrinth-mods.txt. Bare slugs
-# (legacy) are pinned too. Resource/shader packs are left alone (they follow
-# their own resolution in build-modpack.sh and don't cause registry mismatches).
+# (legacy) are pinned too. Slugs listed in _clientMods.holds keep their current
+# pin (holds map slug -> reason; used when a newer build breaks a dependant,
+# e.g. Xaero WM 1.42 vs maplink). Resource/shader packs are left alone (they
+# follow their own resolution in build-modpack.sh and don't cause registry
+# mismatches).
 MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"
 if [[ -f "$MANIFEST" ]]; then
   echo ""
@@ -196,6 +199,7 @@ fallbacks = fallback_csv.split(",")
 m = json.load(open(manifest_path))
 ua = "adventure/pin-mod-versions"
 updated = 0
+holds = m.get("_clientMods", {}).get("holds", {})
 
 def resolve_latest(slug):
     """Return (version_id, version_number, matched_mc) or None."""
@@ -220,6 +224,10 @@ for key in ("required", "optional"):
             new_entries.append(entry)
             continue
         slug = entry.split(":")[0]
+        if slug in holds:
+            print(f"  {slug}: HELD - {holds[slug]}")
+            new_entries.append(entry)
+            continue
         result = resolve_latest(slug)
         if result:
             vid, ver, mc = result

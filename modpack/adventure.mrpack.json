@@ -93,8 +93,8 @@
       "entityculling:hsWvcyFJ",
       "iris:bAo1Qhte",
       "euphoria-patches:7GNWrkGL",
-      "xaeros-minimap:JVCvGnhe",
-      "xaeros-world-map:dnHKmImB",
+      "xaeros-minimap:UlRSujUV",
+      "xaeros-world-map:9ts5xgne",
       "maplink:FxXZXGZ4",
       "jade:5Sbkzz4O",
       "modmenu:v6Xx3fbU",
@@ -134,7 +134,12 @@
       "entitytexturefeatures:udcdeUXw"
     ],
     "_stableOnlyComment": "stableOnly: resolver picks the newest RELEASE for these slugs instead of the newest build of any channel. Use for mods whose pre-release channels have burned us. Everything else gets the newest build - mod authors keep their own latest sets coherent (e.g. supplementaries release requires sodium beta).",
-    "stableOnly": []
+    "stableOnly": [],
+    "_holdsComment": "holds: slugs pin-mod-versions.sh must NOT re-pin, keyed by slug with the reason. Remove an entry only when its blocker clears.",
+    "holds": {
+      "xaeros-world-map": "1.42.0 removed Waypoint's int x/y/z fields; maplink 4.4.0's @Accessor mixin hard-crashes the client on map open. Hold at 1.41.2 (9ts5xgne) until a maplink release supports WM 1.42+.",
+      "xaeros-minimap": "era-pair of xaeros-world-map 1.41.2 - held at 26.1.0 (UlRSujUV); bump both together when the maplink hold clears"
+    }
   },
   "_shaderPacks": {
     "_comment": "Modrinth slugs for shader packs. build-modpack.sh downloads these into overrides/shaderpacks/.",
