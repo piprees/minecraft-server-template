@@ -149,7 +149,9 @@ jobs:
             exit 1
           fi
 
-          echo "Spawning Carpet bot..."
+          echo "Enabling Carpet player command and spawning bot..."
+          docker exec mc rcon-cli "carpet commandPlayer true" || true
+          sleep 2
           SPAWN_RESULT=$(docker exec mc rcon-cli "player SmokeBot spawn" 2>&1 || true)
           echo "Spawn command result: $SPAWN_RESULT"
           sleep 5
