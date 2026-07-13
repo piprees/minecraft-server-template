@@ -1,0 +1,1430 @@
+{
+  "dimensions": [
+    {
+      "name": "the_claymarsh",
+      "type": "overworld",
+      "dimensionId": "adventure:the_claymarsh",
+      "seed": 6273634989319082075
+    },
+    {
+      "name": "the_scorched_mesa",
+      "type": "overworld",
+      "dimensionId": "adventure:the_scorched_mesa",
+      "seed": 4022812798061399348
+    },
+    {
+      "name": "the_gritlands",
+      "type": "overworld",
+      "dimensionId": "adventure:the_gritlands",
+      "seed": -3246413584426118916
+    },
+    {
+      "name": "the_roothold",
+      "type": "overworld",
+      "dimensionId": "adventure:the_roothold",
+      "seed": 6179727709884658474
+    },
+    {
+      "name": "the_overgrowth",
+      "type": "overworld",
+      "dimensionId": "adventure:the_overgrowth",
+      "seed": -9173041556082421050
+    },
+    {
+      "name": "the_greenreach",
+      "type": "overworld",
+      "dimensionId": "adventure:the_greenreach",
+      "seed": 4365588300327455070
+    },
+    {
+      "name": "the_rosebluff",
+      "type": "overworld",
+      "dimensionId": "adventure:the_rosebluff",
+      "seed": 3624185682401255876
+    },
+    {
+      "name": "the_greywoods",
+      "type": "overworld",
+      "dimensionId": "adventure:the_greywoods",
+      "seed": 6102446688561208171
+    },
+    {
+      "name": "the_miredeep",
+      "type": "overworld",
+      "dimensionId": "adventure:the_miredeep",
+      "seed": -5252107743259256018
+    },
+    {
+      "name": "the_verdant_hollow",
+      "type": "overworld",
+      "dimensionId": "adventure:the_verdant_hollow",
+      "seed": 6115258093970217788
+    },
+    {
+      "name": "the_whitestone_ford",
+      "type": "overworld",
+      "dimensionId": "adventure:the_whitestone_ford",
+      "seed": 4251950210753714448
+    },
+    {
+      "name": "the_needlefall",
+      "type": "overworld",
+      "dimensionId": "adventure:the_needlefall",
+      "seed": -5373530250110192718
+    },
+    {
+      "name": "the_chalk_meadows",
+      "type": "overworld",
+      "dimensionId": "adventure:the_chalk_meadows",
+      "seed": 2195798975866015064
+    },
+    {
+      "name": "the_stonemantle",
+      "type": "overworld",
+      "dimensionId": "adventure:the_stonemantle",
+      "seed": -2229145286337484445
+    },
+    {
+      "name": "the_ashgrove",
+      "type": "overworld",
+      "dimensionId": "adventure:the_ashgrove",
+      "seed": 6416894595201730599
+    },
+    {
+      "name": "the_crystal_vale",
+      "type": "overworld",
+      "dimensionId": "adventure:the_crystal_vale",
+      "seed": 6857879019486337303
+    },
+    {
+      "name": "the_darkpine_depths",
+      "type": "overworld",
+      "dimensionId": "adventure:the_darkpine_depths",
+      "seed": 2418931438629928634
+    },
+    {
+      "name": "the_dripping_pines",
+      "type": "overworld",
+      "dimensionId": "adventure:the_dripping_pines",
+      "seed": -1075784600836621058
+    },
+    {
+      "name": "the_ruined_timberland",
+      "type": "overworld",
+      "dimensionId": "adventure:the_ruined_timberland",
+      "seed": -1974596255070611309
+    },
+    {
+      "name": "the_shallows",
+      "type": "overworld",
+      "dimensionId": "adventure:the_shallows",
+      "seed": 5735056219198225107
+    },
+    {
+      "name": "the_lantern_pools",
+      "type": "overworld",
+      "dimensionId": "adventure:the_lantern_pools",
+      "seed": -7749576552491939738
+    },
+    {
+      "name": "the_dustbowl",
+      "type": "overworld",
+      "dimensionId": "adventure:the_dustbowl",
+      "seed": -4788941127388080412
+    },
+    {
+      "name": "the_lost_outpost",
+      "type": "overworld",
+      "dimensionId": "adventure:the_lost_outpost",
+      "seed": 6564334460230090799
+    },
+    {
+      "name": "the_frozen_strait",
+      "type": "overworld",
+      "dimensionId": "adventure:the_frozen_strait",
+      "seed": -6800857166025637730
+    },
+    {
+      "name": "the_icebound_rift",
+      "type": "void",
+      "dimensionId": "adventure:the_icebound_rift",
+      "seed": 5964372207964005987
+    },
+    {
+      "name": "the_sculked_beyond",
+      "type": "void",
+      "dimensionId": "adventure:the_sculked_beyond",
+      "seed": -356153069817876777
+    },
+    {
+      "name": "the_slatemouth",
+      "type": "void",
+      "dimensionId": "adventure:the_slatemouth",
+      "seed": 194264687702097290
+    },
+    {
+      "name": "the_furnace_halls",
+      "type": "nether",
+      "dimensionId": "adventure:the_furnace_halls",
+      "seed": 9221821359447431546
+    },
+    {
+      "name": "the_bloodroot_wastes",
+      "type": "nether",
+      "dimensionId": "adventure:the_bloodroot_wastes",
+      "seed": 6135847632709183989
+    },
+    {
+      "name": "the_basalt_spires",
+      "type": "nether",
+      "dimensionId": "adventure:the_basalt_spires",
+      "seed": 14268788340776233
+    },
+    {
+      "name": "the_blackstone_keep",
+      "type": "nether",
+      "dimensionId": "adventure:the_blackstone_keep",
+      "seed": -7942150272453941819
+    },
+    {
+      "name": "the_molten_flats",
+      "type": "nether",
+      "dimensionId": "adventure:the_molten_flats",
+      "seed": -1580560277501623545
+    },
+    {
+      "name": "the_obsidian_sanctum",
+      "type": "nether",
+      "dimensionId": "adventure:the_obsidian_sanctum",
+      "seed": 888677704244175115
+    },
+    {
+      "name": "the_ember_fields",
+      "type": "nether",
+      "dimensionId": "adventure:the_ember_fields",
+      "seed": -3172550506937307791
+    },
+    {
+      "name": "the_twisted_groves",
+      "type": "nether",
+      "dimensionId": "adventure:the_twisted_groves",
+      "seed": -7247152828326584305
+    },
+    {
+      "name": "the_soulfields",
+      "type": "nether",
+      "dimensionId": "adventure:the_soulfields",
+      "seed": 5882171892785548389
+    },
+    {
+      "name": "the_blighted_maw",
+      "type": "nether",
+      "dimensionId": "adventure:the_blighted_maw",
+      "seed": 7394931452934382410
+    },
+    {
+      "name": "the_teal_corruption",
+      "type": "nether",
+      "dimensionId": "adventure:the_teal_corruption",
+      "seed": 5801515250367357934
+    },
+    {
+      "name": "the_weeping_vault",
+      "type": "nether",
+      "dimensionId": "adventure:the_weeping_vault",
+      "seed": -3211735946045942308
+    },
+    {
+      "name": "the_boneyard",
+      "type": "nether",
+      "dimensionId": "adventure:the_boneyard",
+      "seed": 4924327300096628285
+    },
+    {
+      "name": "the_buried_age",
+      "type": "nether",
+      "dimensionId": "adventure:the_buried_age",
+      "seed": -7522664240615933068
+    },
+    {
+      "name": "the_luminous_caverns",
+      "type": "nether",
+      "dimensionId": "adventure:the_luminous_caverns",
+      "seed": 1126811856535624437
+    },
+    {
+      "name": "the_fungal_lanterns",
+      "type": "nether",
+      "dimensionId": "adventure:the_fungal_lanterns",
+      "seed": -4891546376175842645
+    },
+    {
+      "name": "the_gilded_pit",
+      "type": "nether",
+      "dimensionId": "adventure:the_gilded_pit",
+      "seed": 1881563837797304477
+    },
+    {
+      "name": "the_wailing_narrows",
+      "type": "nether",
+      "dimensionId": "adventure:the_wailing_narrows",
+      "seed": -7035356524938563395
+    },
+    {
+      "name": "the_forged_depths",
+      "type": "nether",
+      "dimensionId": "adventure:the_forged_depths",
+      "seed": -4778351741013971258
+    },
+    {
+      "name": "the_glacial_drift",
+      "type": "overworld",
+      "dimensionId": "adventure:the_glacial_drift",
+      "seed": -5124091447723497048
+    },
+    {
+      "name": "the_sunken_temple",
+      "type": "overworld",
+      "dimensionId": "adventure:the_sunken_temple",
+      "seed": -7553093148959622972
+    },
+    {
+      "name": "the_snowbound_isle",
+      "type": "overworld",
+      "dimensionId": "adventure:the_snowbound_isle",
+      "seed": -6903795762373810598
+    },
+    {
+      "name": "the_abyssal_shrine",
+      "type": "overworld",
+      "dimensionId": "adventure:the_abyssal_shrine",
+      "seed": -8401790570074108359
+    },
+    {
+      "name": "the_pale_reach",
+      "type": "overworld",
+      "dimensionId": "adventure:the_pale_reach",
+      "seed": 7588343130126410291
+    },
+    {
+      "name": "the_violet_spire",
+      "type": "overworld",
+      "dimensionId": "adventure:the_violet_spire",
+      "seed": -2184852740675444909
+    },
+    {
+      "name": "the_amplified_reaches",
+      "type": "amplified",
+      "dimensionId": "adventure:the_amplified_reaches",
+      "seed": -3604832347219380837
+    },
+    {
+      "name": "the_underdark",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_underdark",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,minecraft:mushroom_fields,minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:river,minecraft:crimson_forest,minecraft:warped_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest"
+    },
+    {
+      "name": "the_canvas",
+      "type": "superflat",
+      "dimensionId": "adventure:the_canvas",
+      "seed": -3604832347219380837,
+      "hostileSpawning": false
+    },
+    {
+      "name": "the_blossom_gardens",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_blossom_gardens",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:old_growth_birch_forest,minecraft:plains,minecraft:sunflower_plains,minecraft:forest,minecraft:river,minecraft:beach,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley,terralith:temperate_highlands",
+      "hostileSpawning": false
+    },
+    {
+      "name": "the_whispering_wilds",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_whispering_wilds",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,minecraft:swamp,minecraft:mangrove_swamp,minecraft:taiga,minecraft:jungle,minecraft:sparse_jungle,minecraft:mushroom_fields,minecraft:river,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:orchid_swamp,terralith:shield,terralith:shield_clearing,terralith:birch_taiga"
+    },
+    {
+      "name": "the_sun_kingdoms",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_sun_kingdoms",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,minecraft:wooded_badlands,minecraft:badlands,minecraft:eroded_badlands,minecraft:plains,minecraft:river,minecraft:beach,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:desert_canyon,terralith:hot_shrubland,terralith:fractured_savanna,terralith:red_oasis,terralith:savanna_badlands,terralith:savanna_slopes,terralith:brushland,terralith:steppe,terralith:shrubland"
+    },
+    {
+      "name": "the_frozen_hearth",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_frozen_hearth",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,minecraft:snowy_slopes,minecraft:frozen_peaks,minecraft:jagged_peaks,minecraft:old_growth_spruce_taiga,minecraft:taiga,minecraft:river,minecraft:stony_shore,terralith:alpine_grove,terralith:birch_taiga,terralith:rocky_mountains"
+    },
+    {
+      "name": "the_highland_crossing",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_highland_crossing",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:windswept_hills,minecraft:windswept_forest,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:meadow,minecraft:plains,minecraft:forest,minecraft:river,minecraft:stony_shore,terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs,terralith:basalt_cliffs,terralith:caldera,terralith:blooming_plateau"
+    },
+    {
+      "name": "the_crucible",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_crucible",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,minecraft:mangrove_swamp,minecraft:swamp,minecraft:sparse_jungle,minecraft:river,minecraft:beach,minecraft:lush_caves,terralith:cloud_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:mirage_isles,terralith:moonlight_valley"
+    },
+    {
+      "name": "the_gauntlet",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_gauntlet",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:windswept_hills,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:jagged_peaks,minecraft:frozen_peaks,minecraft:snowy_slopes,minecraft:grove,minecraft:river,minecraft:deep_dark,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,terralith:haze_mountain,terralith:granite_cliffs,terralith:white_cliffs"
+    },
+    {
+      "name": "the_crimson_nexus",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_crimson_nexus",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:nether_wastes,incendium:inverted_forest,incendium:weeping_valley,incendium:withered_forest,incendium:quartz_flats"
+    },
+    {
+      "name": "the_souldrift",
+      "type": "multi_biome",
+      "dimensionId": "adventure:the_souldrift",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:ash_barrens,incendium:volcanic_deltas,incendium:infernal_dunes,incendium:toxic_heap"
+    },
+    {
+      "name": "the_shattered_skies",
+      "type": "sky_islands",
+      "dimensionId": "adventure:the_shattered_skies",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,minecraft:cherry_grove,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:alpine_grove,terralith:lush_valley,terralith:lavender_valley,terralith:blooming_plateau,terralith:shrubland"
+    },
+    {
+      "name": "the_burning_archipelago",
+      "type": "nether_islands",
+      "dimensionId": "adventure:the_burning_archipelago",
+      "seed": -3604832347219380837,
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:volcanic_deltas,incendium:ash_barrens,incendium:infernal_dunes,incendium:withered_forest"
+    },
+    {
+      "name": "the_endless_expanse",
+      "type": "large_biomes",
+      "dimensionId": "adventure:the_endless_expanse",
+      "seed": -3604832347219380837
+    },
+    {
+      "name": "the_end_citadel",
+      "type": "end",
+      "dimensionId": "adventure:the_end_citadel",
+      "seed": 2345324516627475701
+    },
+    {
+      "name": "the_tiled_expanse",
+      "type": "end",
+      "dimensionId": "adventure:the_tiled_expanse",
+      "seed": 3362388695457488365
+    },
+    {
+      "name": "the_pillared_void",
+      "type": "end",
+      "dimensionId": "adventure:the_pillared_void",
+      "seed": -696349698492342128
+    },
+    {
+      "name": "the_catalyst_maw",
+      "type": "end",
+      "dimensionId": "adventure:the_catalyst_maw",
+      "seed": 7719368698613726672
+    },
+    {
+      "name": "the_crumbling_reaches",
+      "type": "end",
+      "dimensionId": "adventure:the_crumbling_reaches",
+      "seed": -6358345418972121684
+    },
+    {
+      "name": "the_red_monument",
+      "type": "end",
+      "dimensionId": "adventure:the_red_monument",
+      "seed": 1348467636973897365
+    },
+    {
+      "name": "the_fractured_halls",
+      "type": "end",
+      "dimensionId": "adventure:the_fractured_halls",
+      "seed": 4989373384118084179
+    }
+  ],
+  "portals": [
+    {
+      "id": "the_claymarsh",
+      "frameBlock": "minecraft:clay",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_claymarsh",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_scorched_mesa",
+      "frameBlock": "minecraft:terracotta",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_scorched_mesa",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_gritlands",
+      "frameBlock": "minecraft:coarse_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_gritlands",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_roothold",
+      "frameBlock": "minecraft:rooted_dirt",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_roothold",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_overgrowth",
+      "frameBlock": "minecraft:mossy_cobblestone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_overgrowth",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_greenreach",
+      "frameBlock": "minecraft:grass_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_greenreach",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_rosebluff",
+      "frameBlock": "minecraft:polished_granite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_rosebluff",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_greywoods",
+      "frameBlock": "minecraft:polished_andesite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_greywoods",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_miredeep",
+      "frameBlock": "minecraft:mud",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_miredeep",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_verdant_hollow",
+      "frameBlock": "minecraft:moss_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_verdant_hollow",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_whitestone_ford",
+      "frameBlock": "minecraft:polished_diorite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_whitestone_ford",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_needlefall",
+      "frameBlock": "minecraft:podzol",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_needlefall",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_chalk_meadows",
+      "frameBlock": "minecraft:calcite",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_chalk_meadows",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_stonemantle",
+      "frameBlock": "minecraft:smooth_stone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_stonemantle",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_ashgrove",
+      "frameBlock": "minecraft:tuff",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_ashgrove",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_crystal_vale",
+      "frameBlock": "minecraft:amethyst_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_crystal_vale",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_darkpine_depths",
+      "frameBlock": "minecraft:cobbled_deepslate",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_darkpine_depths",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_dripping_pines",
+      "frameBlock": "minecraft:dripstone_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_dripping_pines",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_ruined_timberland",
+      "frameBlock": "minecraft:chiseled_stone_bricks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_ruined_timberland",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_shallows",
+      "frameBlock": "minecraft:prismarine",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_shallows",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_lantern_pools",
+      "frameBlock": "minecraft:sea_lantern",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_lantern_pools",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_dustbowl",
+      "frameBlock": "minecraft:packed_mud",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_dustbowl",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_lost_outpost",
+      "frameBlock": "minecraft:mossy_stone_bricks",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_lost_outpost",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_frozen_strait",
+      "frameBlock": "minecraft:packed_ice",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_frozen_strait",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_icebound_rift",
+      "frameBlock": "minecraft:blue_ice",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_icebound_rift",
+      "color": "00FFFF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_sculked_beyond",
+      "frameBlock": "minecraft:sculk",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_sculked_beyond",
+      "color": "00FFFF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_slatemouth",
+      "frameBlock": "minecraft:deepslate",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_slatemouth",
+      "color": "00FFFF",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_furnace_halls",
+      "frameBlock": "minecraft:chiseled_nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_furnace_halls",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_bloodroot_wastes",
+      "frameBlock": "minecraft:crimson_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_bloodroot_wastes",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_basalt_spires",
+      "frameBlock": "minecraft:basalt",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_basalt_spires",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_blackstone_keep",
+      "frameBlock": "minecraft:blackstone",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_blackstone_keep",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_molten_flats",
+      "frameBlock": "minecraft:smooth_basalt",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_molten_flats",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_obsidian_sanctum",
+      "frameBlock": "minecraft:obsidian",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_obsidian_sanctum",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_ember_fields",
+      "frameBlock": "minecraft:magma_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_ember_fields",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_twisted_groves",
+      "frameBlock": "minecraft:warped_nylium",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_twisted_groves",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_soulfields",
+      "frameBlock": "minecraft:soul_soil",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_soulfields",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_blighted_maw",
+      "frameBlock": "minecraft:nether_wart_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_blighted_maw",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_teal_corruption",
+      "frameBlock": "minecraft:warped_wart_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_teal_corruption",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_weeping_vault",
+      "frameBlock": "minecraft:crying_obsidian",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_weeping_vault",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_boneyard",
+      "frameBlock": "minecraft:bone_block",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_boneyard",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_buried_age",
+      "frameBlock": "minecraft:ancient_debris",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_buried_age",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_luminous_caverns",
+      "frameBlock": "minecraft:glowstone",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_luminous_caverns",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_fungal_lanterns",
+      "frameBlock": "minecraft:shroomlight",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_fungal_lanterns",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_gilded_pit",
+      "frameBlock": "minecraft:gilded_blackstone",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_gilded_pit",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_wailing_narrows",
+      "frameBlock": "minecraft:quartz_bricks",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_wailing_narrows",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_forged_depths",
+      "frameBlock": "minecraft:deepslate_bricks",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_forged_depths",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_glacial_drift",
+      "frameBlock": "minecraft:ice",
+      "igniterItem": "minecraft:gold_ingot",
+      "targetDimension": "adventure:the_glacial_drift",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_sunken_temple",
+      "frameBlock": "minecraft:prismarine_bricks",
+      "igniterItem": "minecraft:gold_ingot",
+      "targetDimension": "adventure:the_sunken_temple",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_snowbound_isle",
+      "frameBlock": "minecraft:snow_block",
+      "igniterItem": "minecraft:gold_ingot",
+      "targetDimension": "adventure:the_snowbound_isle",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 8.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_abyssal_shrine",
+      "frameBlock": "minecraft:dark_prismarine",
+      "igniterItem": "minecraft:netherite_scrap",
+      "targetDimension": "adventure:the_abyssal_shrine",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 16.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_pale_reach",
+      "frameBlock": "minecraft:end_stone",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_pale_reach",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_violet_spire",
+      "frameBlock": "minecraft:purpur_block",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_violet_spire",
+      "color": "FFD700",
+      "lightLevel": 11,
+      "scale": 12.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_amplified_reaches",
+      "frameBlock": "minecraft:cracked_deepslate",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_amplified_reaches",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_underdark",
+      "frameBlock": "minecraft:brown_mushroom_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_underdark",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_canvas",
+      "frameBlock": "minecraft:white_concrete",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_canvas",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_blossom_gardens",
+      "frameBlock": "minecraft:cherry_planks",
+      "igniterItem": "minecraft:cherry_sapling",
+      "targetDimension": "adventure:the_blossom_gardens",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_whispering_wilds",
+      "frameBlock": "minecraft:dark_oak_planks",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_whispering_wilds",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_sun_kingdoms",
+      "frameBlock": "minecraft:sandstone",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_sun_kingdoms",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_frozen_hearth",
+      "frameBlock": "minecraft:lapis_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_frozen_hearth",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_highland_crossing",
+      "frameBlock": "minecraft:raw_copper_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_highland_crossing",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_crucible",
+      "frameBlock": "minecraft:copper_block",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_crucible",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_gauntlet",
+      "frameBlock": "minecraft:oxidized_copper",
+      "igniterItem": "minecraft:diamond",
+      "targetDimension": "adventure:the_gauntlet",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 4.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_crimson_nexus",
+      "frameBlock": "minecraft:nether_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_crimson_nexus",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_souldrift",
+      "frameBlock": "minecraft:polished_blackstone_bricks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_souldrift",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_shattered_skies",
+      "frameBlock": "minecraft:quartz_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_shattered_skies",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_burning_archipelago",
+      "frameBlock": "minecraft:crimson_planks",
+      "igniterItem": "minecraft:flint_and_steel",
+      "targetDimension": "adventure:the_burning_archipelago",
+      "color": "FF5555",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_endless_expanse",
+      "frameBlock": "minecraft:raw_iron_block",
+      "igniterItem": "minecraft:amethyst_shard",
+      "targetDimension": "adventure:the_endless_expanse",
+      "color": "55FF55",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_end_citadel",
+      "frameBlock": "minecraft:end_stone_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_end_citadel",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_tiled_expanse",
+      "frameBlock": "minecraft:deepslate_tiles",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_tiled_expanse",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_pillared_void",
+      "frameBlock": "minecraft:polished_basalt",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_pillared_void",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_catalyst_maw",
+      "frameBlock": "minecraft:sculk_catalyst",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_catalyst_maw",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_crumbling_reaches",
+      "frameBlock": "minecraft:mud_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_crumbling_reaches",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_red_monument",
+      "frameBlock": "minecraft:red_sandstone",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_red_monument",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    },
+    {
+      "id": "the_fractured_halls",
+      "frameBlock": "minecraft:cracked_stone_bricks",
+      "igniterItem": "minecraft:ender_eye",
+      "targetDimension": "adventure:the_fractured_halls",
+      "color": "AA00AA",
+      "lightLevel": 11,
+      "scale": 1.0,
+      "cooldown": 40,
+      "igniteSound": "block.portal.trigger",
+      "enterSound": "block.portal.travel",
+      "exitSound": "block.portal.travel"
+    }
+  ],
+  "frameOverworld": "minecraft:crying_obsidian",
+  "frameNether": "minecraft:obsidian",
+  "frameEnd": "minecraft:iron_block",
+  "idleUnloadMinutes": 5
+}
