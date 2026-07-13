@@ -204,7 +204,7 @@ public class PortalHelper {
     public static void clearInteriorPortals(ServerWorld world, PortalZone zone) {
         for (BlockPos p : zone.interior) {
             if (isPortalBlock(world.getBlockState(p))) {
-                world.setBlockState(p, Blocks.AIR.getDefaultState(), 3);
+                world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
         }
     }
@@ -291,35 +291,34 @@ public class PortalHelper {
             ? Blocks.END_PORTAL.getDefaultState()
             : Blocks.NETHER_PORTAL.getDefaultState().with(NetherPortalBlock.AXIS, axis);
 
+        // Suppress neighbour updates for ALL arrival-portal blocks (frame
+        // AND portal). NOTIFY_NEIGHBORS cascades to adjacent pistons, and
+        // Supplementaries' captureBeForPistonMove mixin NPEs when a
+        // scheduled piston tick fires with movingPiston=null — crash on
+        // every portal traversal near a piston mechanism. Frame blocks at
+        // the arrival site are structural; they don't need the surrounding
+        // terrain to react to their placement.
+        int frameFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
         Direction[] planeDirs = planeDirections(axis);
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
                 BlockPos neighbor = p.offset(dir);
                 if (!interiorSet.contains(neighbor)) {
-                    targetWorld.setBlockState(neighbor, frameState, Block.NOTIFY_ALL);
+                    targetWorld.setBlockState(neighbor, frameState, frameFlags);
                 }
             }
         }
 
-        // Guarantee a floor. Vertical portals get one for free (DOWN is in
-        // the frame plane), but horizontal END_PORTAL planes have no
-        // below-neighbour — over water or a void-fallback there is nothing
-        // to stand on and portal blocks have no collision.
         if (axis == Direction.Axis.Y) {
             for (BlockPos p : interior) {
                 BlockPos below = p.down();
                 if (!targetWorld.getBlockState(below).isSolid()) {
-                    targetWorld.setBlockState(below, frameState, Block.NOTIFY_ALL);
+                    targetWorld.setBlockState(below, frameState, frameFlags);
                 }
             }
         }
 
-        // Portal blocks go in LAST, with shape updates suppressed: any
-        // neighbour placement with NOTIFY_ALL makes vanilla NetherPortalBlock
-        // re-validate its shape, and it pops to air unless framed by
-        // OBSIDIAN specifically — custom frame blocks fail that check, so a
-        // freshly built return portal would self-destruct mid-placement.
         int portalFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
         for (BlockPos pos : interior) {
             targetWorld.setBlockState(pos, portalState, portalFlags);
