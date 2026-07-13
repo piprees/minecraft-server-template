@@ -482,6 +482,10 @@ if [[ -f "$BLUEMAP_WEBAPP" ]]; then
   fi
   echo "  BlueMap: webapp defaults set (flat view, free-flight off, centred on spawn)."
 fi
+# Delete the webapp index.html so the sidecar regenerates it on start.
+# BlueMap version upgrades ship new webapp builds but only write them when
+# the index is absent; a stale index silently serves old JS/CSS.
+rm -f "$SERVER_DIR/data/bluemap/web/index.html"
 
 # =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
@@ -660,10 +664,11 @@ for bm_map in world:$PREGEN_BORDER_RADIUS world_the_nether:$BM_NETHER_RADIUS; do
   bm_file="$SERVER_DIR/data/config/bluemap/maps/${bm_map%%:*}.conf"
   bm_radius="${bm_map##*:}"
   if [[ -f "$bm_file" ]]; then
-    sed -i "s/^min-x: .*/min-x: -${bm_radius}/" "$bm_file"
-    sed -i "s/^max-x: .*/max-x: ${bm_radius}/" "$bm_file"
-    sed -i "s/^min-z: .*/min-z: -${bm_radius}/" "$bm_file"
-    sed -i "s/^max-z: .*/max-z: ${bm_radius}/" "$bm_file"
+    # v5.11+ render-mask format: bounds live inside render-mask: [ { ... } ]
+    sed -i "s/^\( *\)min-x: .*/\1min-x: -${bm_radius}/" "$bm_file"
+    sed -i "s/^\( *\)max-x: .*/\1max-x: ${bm_radius}/" "$bm_file"
+    sed -i "s/^\( *\)min-z: .*/\1min-z: -${bm_radius}/" "$bm_file"
+    sed -i "s/^\( *\)max-z: .*/\1max-z: ${bm_radius}/" "$bm_file"
   fi
 done
 echo "  BlueMap render bounds: overworld +/-${PREGEN_BORDER_RADIUS}, nether +/-${BM_NETHER_RADIUS}"

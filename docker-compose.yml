@@ -399,16 +399,10 @@ services:
   # data/mods is mounted so modded blocks render with their real textures
   # (-n). -v pins the resource version to the server's MC version.
   #
-  # Pinned to v5.7 — the exact version the old in-process mod ran, so the
-  # existing map configs and rendered tiles carry over without migration.
-  # Newer CLI versions (v5.22 tested) REJECT this config format ("Your
-  # map-configuration is outdated"); upgrading means following BlueMap's
-  # changelog migration notes for every version crossed, then bumping here.
-  #
   # Both profiles.
   # ==========================================================================
   bluemap:
-    image: ghcr.io/bluemap-minecraft/bluemap:v5.7
+    image: ghcr.io/bluemap-minecraft/bluemap:v5.22
     container_name: "${CONTAINER_PREFIX:-}bluemap"
     command: -r -u -w -n /app/mods -v ${MC_VERSION:-1.21.1}
     environment:
