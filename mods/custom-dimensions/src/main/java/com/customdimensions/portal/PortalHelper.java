@@ -9,6 +9,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -94,6 +96,9 @@ public class PortalHelper {
         link.put("sourceY", target.sourceY);
         link.put("color", target.color);
         link.put("cooldown", target.cooldown);
+        if (target.particleType != null) {
+            link.put("particleType", target.particleType);
+        }
         return link;
     }
 
@@ -116,7 +121,8 @@ public class PortalHelper {
                 int sourceY = link.containsKey("sourceY") ? ((Number) link.get("sourceY")).intValue() : y;
                 int color = link.containsKey("color") ? ((Number) link.get("color")).intValue() : 0x8844FF;
                 int cooldown = link.containsKey("cooldown") ? ((Number) link.get("cooldown")).intValue() : 40;
-                PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown);
+                String particleType = (String) link.get("particleType");
+                PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType);
                 String portalWorld = (String) link.get("portalWorld");
                 if (portalWorld != null) {
                     RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
@@ -129,8 +135,8 @@ public class PortalHelper {
         }
     }
 
-    public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
-        PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown));
+    public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType) {
+        PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType));
     }
 
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
@@ -223,10 +229,9 @@ public class PortalHelper {
     }
 
     public static void spawnParticles(ServerWorld world, PortalZone zone) {
-        int color = parseColor(zone.definition.getColor());
+        ParticleEffect effect = resolveParticleEffect(zone.definition);
         for (BlockPos p : zone.interior) {
-            world.spawnParticles(
-                    new DustParticleEffect(toDustColor(color), 2.0f),
+            world.spawnParticles(effect,
                     p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                     2, 0.4, 0.4, 0.4, 0.01
             );
@@ -246,12 +251,12 @@ public class PortalHelper {
                 if (!level.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
                     continue;
                 }
-                int color = entry.getValue().color;
+                PortalReturnTarget rt = entry.getValue();
                 if (!isPortalBlock(level.getBlockState(p))) {
                     continue;
                 }
-                level.spawnParticles(
-                        new DustParticleEffect(toDustColor(color), 2.0f),
+                ParticleEffect effect = resolveParticleFromTarget(rt);
+                level.spawnParticles(effect,
                         p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                         1, 0.3, 0.3, 0.3, 0.01
                 );
@@ -322,9 +327,10 @@ public class PortalHelper {
 
         int color = parseColor(definition.getColor());
         int cooldown = definition.getCooldown();
+        String particleType = definition.getParticleType();
         RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
         for (BlockPos p : interior) {
-            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown);
+            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType);
         }
         Map<BlockPos, Integer> frames = PORTAL_FRAMES.computeIfAbsent(portalWorld, k -> new HashMap<>());
         for (BlockPos p : interior) {
@@ -523,6 +529,38 @@ public class PortalHelper {
         return state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL);
     }
 
+    private static ParticleEffect resolveParticleFromTarget(PortalReturnTarget target) {
+        if (target.particleType != null && !target.particleType.isEmpty()) {
+            ParticleEffect resolved = resolveParticleById(target.particleType);
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        return new DustParticleEffect(toDustColor(target.color), 2.0f);
+    }
+
+    private static ParticleEffect resolveParticleById(String typeName) {
+        Identifier particleId = Identifier.tryParse(typeName);
+        if (particleId != null) {
+            ParticleType<?> type = Registries.PARTICLE_TYPE.get(particleId);
+            if (type instanceof ParticleEffect effect) {
+                return effect;
+            }
+        }
+        return null;
+    }
+
+    private static ParticleEffect resolveParticleEffect(PortalDefinition def) {
+        String typeName = def.getParticleType();
+        if (typeName != null && !typeName.isEmpty()) {
+            ParticleEffect resolved = resolveParticleById(typeName);
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        return new DustParticleEffect(toDustColor(parseColor(def.getColor())), 2.0f);
+    }
+
     private static Vector3f toDustColor(int color) {
         return new Vector3f(
                 ((color >> 16) & 0xFF) / 255.0f,
@@ -536,12 +574,18 @@ public class PortalHelper {
         public final int sourceY;
         public final int color;
         public final int cooldown;
+        public final String particleType;
 
         public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
+            this(sourceWorld, sourceY, color, cooldown, null);
+        }
+
+        public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType) {
             this.sourceWorld = sourceWorld;
             this.sourceY = sourceY;
             this.color = color;
             this.cooldown = cooldown;
+            this.particleType = particleType;
         }
     }
 

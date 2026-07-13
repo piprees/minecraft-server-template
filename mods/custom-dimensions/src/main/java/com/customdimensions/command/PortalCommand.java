@@ -45,7 +45,9 @@ public class PortalCommand {
                                                                                 .then(CommandManager.argument("scale", DoubleArgumentType.doubleArg(0.001, 1000.0))
                                                                                         .executes(PortalCommand::executeLink)
                                                                                         .then(CommandManager.argument("cooldown", IntegerArgumentType.integer(0, 200))
-                                                                                                .executes(PortalCommand::executeLink))))))))))
+                                                                                                .executes(PortalCommand::executeLink)
+                                                                                                .then(CommandManager.argument("particle", IdentifierArgumentType.identifier())
+                                                                                                        .executes(PortalCommand::executeLink)))))))))))
                         .then(CommandManager.literal("delete")
                                 .then(CommandManager.argument("id", StringArgumentType.string())
                                         .suggests(EXISTING_PORTALS)
@@ -81,9 +83,18 @@ public class PortalCommand {
             return 0;
         }
 
+        String particleType = null;
+        try {
+            particleType = IdentifierArgumentType.getIdentifier(ctx, "particle").toString();
+        } catch (Exception ignored) {
+        }
+
         PortalDefinition def = new PortalDefinition(id, frame, igniter, target, color.toUpperCase(), light);
         def.setScale(scale);
         def.setCooldown(cooldown);
+        if (particleType != null) {
+            def.setParticleType(particleType);
+        }
         MultiverseConfig.getInstance().addPortal(def);
 
         // NEVER create the world synchronously here: this is the same

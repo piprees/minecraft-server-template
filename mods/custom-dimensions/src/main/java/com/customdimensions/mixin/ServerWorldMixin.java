@@ -39,8 +39,11 @@ public class ServerWorldMixin {
 
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
         if (!sourceZones.isEmpty()) {
+            // Snapshot: getSourceZones returns the live backing list;
+            // removeZone modifies it, so iterating directly is a CME.
+            List<PortalHelper.PortalZone> snapshot = new ArrayList<>(sourceZones);
             List<PortalHelper.PortalZone> zones = new ArrayList<>();
-            for (PortalHelper.PortalZone zone : sourceZones) {
+            for (PortalHelper.PortalZone zone : snapshot) {
                 if (PortalHelper.isZoneValid(world, zone)) {
                     zones.add(zone);
                     continue;

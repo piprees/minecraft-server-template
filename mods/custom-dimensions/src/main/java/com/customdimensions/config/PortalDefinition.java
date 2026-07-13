@@ -14,6 +14,7 @@ public class PortalDefinition {
     private int lightLevel;
     private double scale = 1.0;
     private int cooldown = 40;
+    private String particleType;
     private String igniteSound = "block.portal.trigger";
     private String enterSound = "block.portal.travel";
     private String exitSound = "block.portal.travel";
@@ -94,6 +95,14 @@ public class PortalDefinition {
 
     public void setCooldown(int cooldown) {
         this.cooldown = cooldown;
+    }
+
+    public String getParticleType() {
+        return this.particleType;
+    }
+
+    public void setParticleType(String particleType) {
+        this.particleType = particleType;
     }
 
     public String getIgniteSound() {
