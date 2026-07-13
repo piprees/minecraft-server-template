@@ -142,29 +142,29 @@
     }
   },
   "_shaderPacks": {
-    "_comment": "Modrinth slugs for shader packs. build-modpack.sh downloads these into overrides/shaderpacks/.",
+    "_comment": "Modrinth shader packs, pinned as slug:versionId.",
     "packs": [
-      "complementary-reimagined"
+      "complementary-reimagined:yCCduG44"
     ]
   },
   "_resourcePacks": {
-    "_comment": "Modrinth slugs for resource packs. build-modpack.sh resolves each to its newest MC_VERSION-tagged version and downloads into overrides/resourcepacks/ so they auto-install with the modpack. An entry may also be an object {slug, files: [...]} to additionally download the named companion files (micropacks) from that same version. Packs are ENABLED by filename in overrides/configureddefaults/options.txt (last entry = highest priority); the build fails if an enabled filename wasn't downloaded, which catches filename drift after a pack updates.",
+    "_comment": "Modrinth resource packs. Pinned as slug:versionId (like _clientMods) so builds are reproducible and weekly updates don't silently change filenames. An entry may also be an object {slug: 'slug:vid', files: [...]} for named companion files. pin-mod-versions.sh re-pins on --apply. Packs are ENABLED by exact filename in overrides/configureddefaults/options.txt; the build fails if an enabled filename wasn't downloaded.",
     "packs": [
-      "better-leaves",
-      "dramatic-skys",
-      "fancy-crops",
-      "simple-grass-flowers",
-      "os-colorful-grasses",
-      "low-on-fire",
-      "fresh-animations",
+      "better-leaves:XWtayRKd",
+      "dramatic-skys:obHItVKX",
+      "fancy-crops:ZJEBZjg6",
+      "simple-grass-flowers:BFqp4P2V",
+      "os-colorful-grasses:6y5oHV7t",
+      "low-on-fire:yQdcUfnr",
+      "fresh-animations:xN57JJts",
       {
-        "_comment": "Human villagers/illagers/zombies via EMF+ETF (CC-BY-SA-4.0, by BishopMCNuggets). FreshAni Activator makes it drive Fresh Animations; FA Iron Golem Remover keeps golems vanilla-style - drop it (and its options.txt entry) for HEVI's human-soldier golems.",
-        "slug": "human-era-villagers-illagers",
+        "_comment": "Human villagers/illagers/zombies via EMF+ETF (CC-BY-SA-4.0, by BishopMCNuggets). FreshAni Activator makes it drive Fresh Animations.",
+        "slug": "human-era-villagers-illagers:UIdTFACz",
         "files": [
           "HEVI FreshAni Activator.zip"
         ]
       },
-      "quiks-human-guard-villagers"
+      "quiks-human-guard-villagers:2fyRWzoZ"
     ]
   }
 }

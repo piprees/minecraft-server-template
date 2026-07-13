@@ -447,10 +447,11 @@ fi
 # --- download resource packs into overrides -----------------------------------
 mkdir -p "$WORK_DIR/overrides/resourcepacks"
 
-# Entries in _resourcePacks.packs are either a plain slug (download the
-# version's primary file) or an object {"slug": ..., "files": [...]} that also
-# downloads the named companion files (micropacks) from the same resolved
-# version, so companions can never drift out of sync with the main pack.
+# Entries in _resourcePacks.packs are either:
+#   "slug"            — resolves to the newest MC_VERSION build (unpinned)
+#   "slug:versionId"  — resolves that exact version (pinned, like _clientMods)
+#   {"slug": "slug[:versionId]", "files": [...]} — with named companion files
+# pin-mod-versions.sh re-pins all entries on --apply.
 RESOURCE_PACKS=$(python3 -c "
 import json
 with open('$MANIFEST') as f:
@@ -467,31 +468,41 @@ if [[ -n "$RESOURCE_PACKS" ]]; then
   echo ""
   echo "==> Downloading resource packs into overrides/resourcepacks/..."
 
+  # Retry helper (shared with shader packs below)
+  modrinth_fetch_rp() {
+    local url="$1" out="$2"
+    for attempt in 1 2 3; do
+      local code
+      code=$(curl -s -w '%{http_code}' -o "$out" \
+        -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" "$url")
+      [[ "$code" =~ ^2 ]] && return 0
+      sleep $((2 ** attempt))
+    done
+    return 1
+  }
+
   while IFS= read -r rp_entry; do
     [[ -z "$rp_entry" ]] && continue
-    slug="${rp_entry%%$'\t'*}"
+    slug_field="${rp_entry%%$'\t'*}"
     rp_extras=""
     [[ "$rp_entry" == *$'\t'* ]] && rp_extras="${rp_entry#*$'\t'}"
 
-    # Prefer the newest build tagged for MC_VERSION - a pack's latest upload
-    # can target newer Minecraft only (e.g. Fresh Animations 1.10.5 is
-    # 26.x-only while 1.10.4 is the newest 1.21.1 build). Packs without
-    # game-version tags fall back to the newest upload.
+    # Split slug:versionId if pinned
+    slug="${slug_field%%:*}"
+    pinned_vid=""
+    [[ "$slug_field" == *:* ]] && pinned_vid="${slug_field#*:}"
+
     rp_tmpfile="$(mktemp)"
-    modrinth_fetch_rp() {
-      local url="$1" out="$2"
-      for attempt in 1 2 3; do
-        local code
-        code=$(curl -s -w '%{http_code}' -o "$out" \
-          -H "User-Agent: ${BRAND_SLUG:-adventure}/build-modpack" "$url")
-        [[ "$code" =~ ^2 ]] && return 0
-        sleep $((2 ** attempt))
-      done
-      return 1
-    }
-    modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$rp_tmpfile" || true
-    if [[ "$(head -c 2 "$rp_tmpfile")" == "[]" ]]; then
-      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$rp_tmpfile" || true
+    if [[ -n "$pinned_vid" ]]; then
+      # Pinned: resolve exact version, wrap in array for uniform parsing
+      modrinth_fetch_rp "https://api.modrinth.com/v2/version/${pinned_vid}" "$rp_tmpfile" || true
+      python3 -c "import json; d=json.load(open('$rp_tmpfile')); json.dump([d], open('$rp_tmpfile','w'))" 2>/dev/null
+    else
+      # Unpinned: newest MC_VERSION-tagged build, falling back to newest upload
+      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$rp_tmpfile" || true
+      if [[ "$(head -c 2 "$rp_tmpfile")" == "[]" ]]; then
+        modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$rp_tmpfile" || true
+      fi
     fi
 
     rp_info=$(RP_EXTRAS="$rp_extras" python3 -c "
@@ -572,15 +583,21 @@ if [[ -n "$SHADER_PACKS" ]]; then
   echo ""
   echo "==> Downloading shader packs into overrides/shaderpacks/..."
 
-  while IFS= read -r slug; do
-    [[ -z "$slug" ]] && continue
+  while IFS= read -r sp_entry; do
+    [[ -z "$sp_entry" ]] && continue
+    slug="${sp_entry%%:*}"
+    sp_pinned_vid=""
+    [[ "$sp_entry" == *:* ]] && sp_pinned_vid="${sp_entry#*:}"
 
-    # Same resolution rule as resource packs: newest MC_VERSION-tagged build,
-    # falling back to the newest upload for packs without game-version tags.
     sp_tmpfile="$(mktemp)"
-    modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$sp_tmpfile" || true
-    if [[ "$(head -c 2 "$sp_tmpfile")" == "[]" ]]; then
-      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$sp_tmpfile" || true
+    if [[ -n "$sp_pinned_vid" ]]; then
+      modrinth_fetch_rp "https://api.modrinth.com/v2/version/${sp_pinned_vid}" "$sp_tmpfile" || true
+      python3 -c "import json; d=json.load(open('$sp_tmpfile')); json.dump([d], open('$sp_tmpfile','w'))" 2>/dev/null
+    else
+      modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?game_versions=%5B%22${MC_VERSION}%22%5D&limit=1" "$sp_tmpfile" || true
+      if [[ "$(head -c 2 "$sp_tmpfile")" == "[]" ]]; then
+        modrinth_fetch_rp "https://api.modrinth.com/v2/project/${slug}/version?limit=1" "$sp_tmpfile" || true
+      fi
     fi
 
     sp_info=$(python3 -c "

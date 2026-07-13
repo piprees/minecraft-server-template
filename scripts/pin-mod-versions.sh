@@ -244,9 +244,81 @@ for key in ("required", "optional"):
         time.sleep(0.35)
     m["_clientMods"][key] = new_entries
 
+def resolve_pack(slug):
+    """Resolve a resource/shader pack — no loader filter, MC version preferred."""
+    for mc in fallbacks:
+        url = f"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{mc}%22%5D&limit=1"
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": ua})
+            versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
+            if versions:
+                v = versions[0]
+                return v["id"], v["version_number"], mc
+        except Exception:
+            pass
+        time.sleep(0.35)
+    # Fallback: no MC version filter (some packs aren't tagged)
+    url = f"https://api.modrinth.com/v2/project/{slug}/version?limit=1"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": ua})
+        versions = json.loads(urllib.request.urlopen(req, timeout=30).read())
+        if versions:
+            v = versions[0]
+            return v["id"], v["version_number"], "any"
+    except Exception:
+        pass
+    return None
+
+def repin_packs(section_name):
+    """Re-pin slug:versionId entries in _resourcePacks or _shaderPacks."""
+    packs = m.get(section_name, {}).get("packs", [])
+    new_packs = []
+    count = 0
+    for p in packs:
+        if isinstance(p, dict):
+            slug_field = p.get("slug", "")
+            slug = slug_field.split(":")[0]
+            result = resolve_pack(slug)
+            if result:
+                vid, ver, mc = result
+                old_vid = slug_field.split(":")[1] if ":" in slug_field else "unpinned"
+                if old_vid != vid:
+                    print(f"  {slug}: {old_vid} -> {vid} ({ver})")
+                    count += 1
+                else:
+                    print(f"  {slug}: up to date ({ver})")
+                p["slug"] = f"{slug}:{vid}"
+            else:
+                print(f"  {slug}: no build found - keeping as-is")
+            new_packs.append(p)
+            time.sleep(0.35)
+        elif isinstance(p, str):
+            slug = p.split(":")[0]
+            result = resolve_pack(slug)
+            if result:
+                vid, ver, mc = result
+                old_vid = p.split(":")[1] if ":" in p else "unpinned"
+                if old_vid != vid:
+                    print(f"  {slug}: {old_vid} -> {vid} ({ver})")
+                    count += 1
+                else:
+                    print(f"  {slug}: up to date ({ver})")
+                new_packs.append(f"{slug}:{vid}")
+            else:
+                print(f"  {slug}: no build found - keeping as-is")
+                new_packs.append(p)
+            time.sleep(0.35)
+        else:
+            new_packs.append(p)
+    m[section_name]["packs"] = new_packs
+    return count
+
+rp_count = repin_packs("_resourcePacks") if "_resourcePacks" in m else 0
+sp_count = repin_packs("_shaderPacks") if "_shaderPacks" in m else 0
+
 with open(manifest_path, "w") as f:
     json.dump(m, f, indent=2)
     f.write("\n")
-print(f"\n  {updated} client mod(s) updated in {manifest_path}")
+print(f"\n  {updated} client mod(s), {rp_count} resource pack(s), {sp_count} shader pack(s) updated in {manifest_path}")
 MANIFEST_PIN
 fi
