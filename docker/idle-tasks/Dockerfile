@@ -2,7 +2,7 @@ FROM alpine:3.24.1
 
 ARG REPO_URL=https://github.com/piprees/minecraft-server-template
 LABEL org.opencontainers.image.source=${REPO_URL} \
-      org.opencontainers.image.description="Idle maintenance: save, BlueMap render, Chunky pre-gen" \
+      org.opencontainers.image.description="Idle maintenance: save, GC, Chunky pre-gen" \
       org.opencontainers.image.licenses="MIT"
 
 RUN apk add --no-cache bash curl docker-cli

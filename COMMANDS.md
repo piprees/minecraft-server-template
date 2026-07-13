@@ -410,7 +410,7 @@ ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
 
 # Manual deploy
 ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \
-  'cd ~/server && ./scripts/deploy.sh --pull --non-interactive'
+  'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'
 
 # Restart without full deploy
 ssh -i ~/.ssh/mc_deploy_key deploy@DROPLET_HOST \

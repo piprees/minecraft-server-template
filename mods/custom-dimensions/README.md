@@ -175,7 +175,7 @@ BlueMap runs as a standalone CLI sidecar container (since v2.14.0), so the mod h
 ```bash
 mise install                         # ensure Java 21
 gradle wrapper --gradle-version 8.13 # one-time, generates gradlew
-./gradlew build                      # output: build/libs/customdimensions-1.0.1-fork.jar
+./gradlew build                      # output: build/libs/customdimensions-1.0.5-fork.jar
 ```
 
 ## Testing
@@ -191,7 +191,7 @@ Tests cover config serialisation round-trips, definition defaults, colour parsin
 Copy the built JAR to the server's `mods/` directory, or to `overlay/mods/` in a consumer repo for automatic deployment.
 
 ```bash
-cp build/libs/customdimensions-1.0.1-fork.jar ../../overlay/mods/
+cp build/libs/customdimensions-1.0.5-fork.jar ../../overlay/mods/
 ```
 
 ## Fork notes

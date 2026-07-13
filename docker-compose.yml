@@ -112,9 +112,9 @@ services:
       # on connect - transparent to players, zero CPU/RAM while idle.
       ENABLE_AUTOPAUSE: "TRUE"
       AUTOPAUSE_TIMEOUT_EST: ${AUTOPAUSE_TIMEOUT:-300}
-      # 900s: boots create every custom dimension world and load ~80 BlueMap
-      # maps — pausing mid-boot (the old 120s) froze that work half-done and
-      # started a knock/pause churn. Deploys additionally hold .skip-pause.
+      # 900s: boots create every custom dimension world — pausing mid-boot
+      # (the old 120s) froze that work half-done and started a knock/pause
+      # churn. Deploys additionally hold .skip-pause.
       AUTOPAUSE_TIMEOUT_INIT: "900"
       # The daemon logs its "pausing in Ns"/"skipping" pair on EVERY poll
       # while .skip-pause holds it off — at the 10s default that's 360
@@ -528,8 +528,8 @@ services:
   # idle-tasks - Maintenance runner when no players are connected
   # ==========================================================================
   # Polls RCON for the player count. When the server has been empty for
-  # IDLE_GRACE minutes (default 3), runs save-all, BlueMap render, and
-  # garbage collection before autopause freezes the JVM.
+  # IDLE_GRACE minutes (default 3), runs save-all and garbage collection
+  # before autopause freezes the JVM.
   #
   # Cloud profile only.
   # ==========================================================================

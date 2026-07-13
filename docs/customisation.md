@@ -202,32 +202,7 @@ for f in panorama_*.png; do pngquant --quality=80-100 --speed 1 --force --output
 
 ## Map markers
 
-### In-game sign markers (player-placed)
-
-The [BlueMap Sign Markers](https://modrinth.com/mod/bluemap-sign-markers) mod lets any player place a sign with a tag on the first line and a description on the second. The marker appears on the web map and can be toggled by category. Breaking the sign removes the marker.
-
-```
-Line 1: [tag]
-Line 2: Description
-```
-
-Available tags (each is a separate toggleable layer on the map):
-
-| Tag | Category | Example use |
-| --- | --- | --- |
-| `[poi]` | Points of Interest | General landmarks, notable locations |
-| `[village]` | Villages | NPC villages, trading posts |
-| `[dungeon]` | Dungeons | Spawners, trial chambers, strongholds |
-| `[base]` | Bases | Player bases and builds |
-| `[house]` | Houses | Individual player homes |
-| `[farm]` | Farms | Crop, mob, or XP farms |
-| `[mine]` | Mines | Mine entrances, strip mines |
-| `[stash]` | Stashes | Hidden storage, supply caches |
-| `[treasure]` | Treasure | Loot finds, buried treasure |
-| `[portal]` | Portals | Nether portals, End portals |
-| `[danger]` | Danger Zones | Hazards, PvP areas, mob hotspots |
-
-Tags are configured in `config/bluemapsignmarkers/BMSM-Core.json`. To add custom tags, add a new entry to the `markerGroups` array — each group needs a `prefix`, `name`, and `type` (`POI`).
+> **Note:** The BlueMap Sign Markers mod was removed in v2.14.0 (BlueMap moved to a standalone sidecar). Player-placed sign markers and live player positions are no longer available on the web map. Static config markers (below) still work.
 
 ### Static config markers (admin-placed)
 
@@ -255,7 +230,7 @@ Full marker reference (icons, lines, areas): [bluemap.bluecolored.de/wiki/custom
 
 ### Map sync
 
-Markers don't stop at the web map: the client pack ships [MapLink](https://modrinth.com/mod/maplink), which mirrors BlueMap markers, player positions and area overlays into every player's Xaero's minimap and world map in-game. Waystone markers are already tracked; if a marker set of yours doesn't appear in Xaero's, check the `markerLayers` lists in `modpack/overrides/configureddefaults/config/maplink/general.json5`.
+Markers don't stop at the web map: the client pack ships [MapLink](https://modrinth.com/mod/maplink), which mirrors BlueMap markers and area overlays into every player's Xaero's minimap and world map in-game. Waystone markers are already tracked; if a marker set of yours doesn't appear in Xaero's, check the `markerLayers` lists in `modpack/overrides/configureddefaults/config/maplink/general.json5`.
 
 ## Starter kit
 

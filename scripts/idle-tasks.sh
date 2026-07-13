@@ -3,7 +3,7 @@
 #
 # Runs bind-mounted in the idle-tasks container (cloud profile). Polls RCON
 # for the player count; when the server stays empty for IDLE_GRACE minutes:
-# save-all flush, BlueMap render, spark gc, then Chunky pre-generation -
+# save-all flush, spark gc, then Chunky pre-generation -
 # one dimension at a time (overworld -> nether -> end -> paradise_lost), to
 # the world border + margin so Distant Horizons has LOD data ready.
 #

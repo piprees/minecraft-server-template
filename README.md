@@ -245,7 +245,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `modrinth-api.py`         | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
 | `discord-sync.py`         | discord-sync    | Discord bot: `/register`, `/mc` commands, role sync                    |
 | `kuma-provision.py`       | kuma-init       | One-shot Kuma provisioning from kuma-config.json                       |
-| `idle-tasks.sh`           | idle-tasks      | Save/render/GC/Chunky when the server is empty                         |
+| `idle-tasks.sh`           | idle-tasks      | Save/GC/Chunky when the server is empty                         |
 | `check-updates.sh`        | mod-checker     | Mod update check, HTML status page generation                          |
 
 ### Template-only scripts (for platform development, not shipped)
