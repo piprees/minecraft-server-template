@@ -35,6 +35,8 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - Coordinate scaling applies to the portal center position when creating the target-side portal.
 - Player origins are tracked by UUID for return trips.
 - All portal state persists to `config/portal_links.json` inside the server data directory.
+- **Placing NETHER_PORTAL blocks: frames first, portal blocks last with `Block.NOTIFY_LISTENERS | Block.FORCE_STATE`.** Vanilla `NetherPortalBlock` re-validates its shape on any neighbour update and pops to air unless framed by OBSIDIAN specifically — with `NOTIFY_ALL`, a custom-framed portal self-destructs during its own placement (each block's update pops the previous one). This shipped silently for months: arrival teleports are coordinate-based so traversal "worked" while the return portal never existed (found 2026-07-13 by the Carpet-bot loop below).
+- **Arrival placement comes from the target column's heightmap** (`findSurfaceY`, scaled centre, chunk force-generated first) — never from offsets against `getBottomY()`, and never trust `World.getTopY` on an unloaded chunk (it silently returns bottomY).
 
 **Feature ideas** live in `mods/.ideas/` as individual markdown files — not in this document.
 
@@ -81,6 +83,25 @@ docker exec -i mc rcon-cli 'dimension delete test_x'                # always cle
 ```
 
 Test the awkward inputs deliberately: quoted comma lists, identifiers with colons, seeds above `Long.MAX_VALUE`, empty optional arguments. Brigadier argument types are stricter than they look, and every one of those has broken a release.
+
+### 3b. Player-dependent paths: drive a Carpet fake player (local only)
+
+Paths that only trigger on real player presence (portal traversal, zone entry, presence timers) CAN be tested headlessly — install fabric-carpet temporarily and puppet a bot. This turned "needs a human in-game" into an automated loop and caught a bug code review missed (the portal self-destruction above: the bot arrived fine but could never return).
+
+```bash
+# Install (LOCAL ONLY — never ship): resolve the 1.21.1 build via the Modrinth
+# API, download to data/mods/TEMP-carpet-test.jar, docker restart mc.
+docker exec -i mc rcon-cli 'player Bot spawn'          # async — wait ~2s, verify with "list"
+docker exec -i mc rcon-cli 'tp Bot <x> <y> <z>'
+docker exec -i mc rcon-cli 'item replace entity Bot hotbar.0 with minecraft:amethyst_shard 8'
+docker exec -i mc rcon-cli 'player Bot hotbar 1'       # bots spawn holding a join-kit item — /give lands in the wrong slot
+docker exec -i mc rcon-cli 'player Bot look at <x> <y> <z>'
+docker exec -i mc rcon-cli 'player Bot use once'       # right-click (ignition, buttons, etc.)
+docker exec -i mc rcon-cli 'data get entity Bot Dimension'   # assert outcomes via NBT, not chat
+docker exec -i mc rcon-cli 'data get entity Bot Pos'
+```
+
+Gotchas learned the hard way: `player Bot spawn at ...` may ignore the position (tp after instead); vanilla resets portal cooldown every tick while an entity stands IN a portal, so return trips need step-out → wait cooldown → step-in; assert with `data get entity` and log greps, never RCON chat echoes. Always clean up: `player Bot kill`, delete test dimensions, remove the carpet jar, restart mc, and scrub any state files the test dirtied (`portal_links.json`, `multiverse_config.json` test entries).
 
 ### 4. Soak time-based paths
 
