@@ -694,15 +694,21 @@ else
   HERO_HEADING_HTML="<h1>${BRAND_NAME_VAL}</h1>"
 fi
 
-# Use python for template substitution — sed breaks on spaces, ampersands, pipes in values
+# Use python for template substitution. Cover HTML and banner are written
+# to temp files — the base64-encoded cover image exceeds argv limits.
+COVER_TMP=$(mktemp)
+HERO_TMP=$(mktemp)
+printf '%s' "$COVER_BG_HTML" > "$COVER_TMP"
+printf '%s' "$HERO_HEADING_HTML" > "$HERO_TMP"
+
 python3 - "$PROJECT_DIR/modpack/template/index.html" "$DIST_DIR/index.html" \
   "$MC_VERSION" "$PACK_NAME" "$DOMAIN_VAL" "$BRAND_NAME_VAL" "$BRAND_SLUG_VAL" \
-  "$DISCORD_INVITE_VAL" "$COVER_BG_HTML" "$HERO_HEADING_HTML" "${BANNER_SRC:-}" << 'TPLEOF'
+  "$DISCORD_INVITE_VAL" "$COVER_TMP" "$HERO_TMP" "${BANNER_SRC:-}" << 'TPLEOF'
 import sys
 
 tpl_in, tpl_out = sys.argv[1], sys.argv[2]
 mc_ver, pack_name, domain, brand, slug, discord = sys.argv[3:9]
-cover_bg, hero_heading, banner_src = sys.argv[9], sys.argv[10], sys.argv[11]
+cover_tmp, hero_tmp, banner_src = sys.argv[9], sys.argv[10], sys.argv[11]
 
 tpl = open(tpl_in).read()
 for k, v in [('MC_VERSION', mc_ver), ('PACK_NAME', pack_name),
@@ -710,6 +716,8 @@ for k, v in [('MC_VERSION', mc_ver), ('PACK_NAME', pack_name),
              ('BRAND_SLUG', slug), ('DISCORD_INVITE_URL', discord)]:
     tpl = tpl.replace('${' + k + '}', v)
 
+cover_bg = open(cover_tmp).read()
+hero_heading = open(hero_tmp).read()
 tpl = tpl.replace('${COVER_BG}', cover_bg)
 
 if banner_src:
@@ -722,6 +730,7 @@ else:
 
 open(tpl_out, 'w').write(tpl)
 TPLEOF
+rm -f "$COVER_TMP" "$HERO_TMP"
 echo "  download page generated from template"
 
 # --- create a branded 404 page -----------------------------------------------
