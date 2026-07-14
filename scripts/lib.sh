@@ -43,6 +43,9 @@ log() { echo -e "${GREEN}==>${RESET} $*"; }
 # by the script name and a brief description. Call at the top of any
 # user-facing script: show_banner "deploy" "Full production deploy"
 show_banner() {
+  # Skip if the ops/dev dispatcher already printed it (BANNER_SHOWN is
+  # exported by the dispatchers before exec-ing the target script).
+  [[ "${BANNER_SHOWN:-}" == "1" ]] && return
   local cmd="${1:-}" detail="${2:-}"
   local banner_file="${CONSUMER_DIR:-$PROJECT_DIR}/overlay/config/deploy-banner.txt"
   [[ -f "$banner_file" ]] || banner_file="$PROJECT_DIR/config/deploy-banner.txt"
@@ -57,6 +60,7 @@ show_banner() {
     echo -e "  ${line}"
     echo ""
   fi
+  export BANNER_SHOWN=1
 }
 warn() { echo -e "${YELLOW}WARNING:${RESET} $*" >&2; }
 die() {

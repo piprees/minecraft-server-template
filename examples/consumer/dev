@@ -171,6 +171,23 @@ reexec_if_self_updated() {
 CMD="${1:-help}"
 shift || true
 
+# Show the deploy banner (if available) for a branded feel on every command.
+if [[ "$CMD" != "help" && "$CMD" != "--help" && "$CMD" != "-h" ]]; then
+  _banner="$CONSUMER_DIR/overlay/config/deploy-banner.txt"
+  [[ -f "$_banner" ]] || _banner="$CONSUMER_DIR/.stack/current/stack/config/deploy-banner.txt"
+  if [[ -f "$_banner" ]]; then
+    printf '\033[1m'
+    cat "$_banner"
+    printf '\033[0m'
+  fi
+  _brand=""
+  [[ -f "$CONSUMER_DIR/.env" ]] && _brand=$(grep -E '^BRAND_NAME=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d "'" | tr -d '"') || true
+  echo "  ${_brand:+$_brand — }dev $CMD"
+  echo ""
+  export BANNER_SHOWN=1
+  unset _banner _brand
+fi
+
 case "$CMD" in
   up)
     ensure_env
@@ -267,7 +284,7 @@ case "$CMD" in
     fi
     # Workflows (mkdir -p for first-time consumers without .github/).
     mkdir -p "$CONSUMER_DIR/.github/workflows"
-    for f in .github/workflows/deploy.yml .github/workflows/update.yml; do
+    for f in .github/workflows/deploy.yml .github/workflows/update.yml .github/workflows/server-power.yml; do
       src="$STACK_DIR/examples/consumer/$f"
       [[ -f "$src" ]] && cp "$src" "$CONSUMER_DIR/$f"
     done
