@@ -151,20 +151,29 @@ jobs:
 
           echo "Enabling Carpet player command and spawning bot..."
           docker exec mc rcon-cli "carpet commandPlayer true" || true
-          sleep 2
+          sleep 3
           SPAWN_RESULT=$(docker exec mc rcon-cli "player SmokeBot spawn" 2>&1 || true)
           echo "Spawn command result: $SPAWN_RESULT"
-          sleep 5
 
-          ONLINE=$(docker exec mc rcon-cli "list" 2>/dev/null)
-          echo "Player list: $ONLINE"
-          echo "$ONLINE" | grep -q "SmokeBot" || {
-            echo "::error::Carpet bot SmokeBot did not appear in player list"
+          # Carpet bot spawn is async — wait up to 30s for it to appear.
+          # CI runners are slow and spawn chunks may still be generating.
+          BOT_FOUND=0
+          for attempt in $(seq 1 6); do
+            sleep 5
+            ONLINE=$(docker exec mc rcon-cli "list" 2>/dev/null || echo "")
+            echo "Player list (attempt $attempt): $ONLINE"
+            if echo "$ONLINE" | grep -q "SmokeBot"; then
+              BOT_FOUND=1
+              break
+            fi
+          done
+          if [ $BOT_FOUND -eq 0 ]; then
+            echo "::error::Carpet bot SmokeBot did not appear in player list after 30s"
             echo "Checking if Carpet loaded..."
             docker exec mc rcon-cli "carpet" 2>&1 || echo "(carpet command not found — mod may not have loaded)"
             docker logs mc --tail 30
             exit 1
-          }
+          fi
 
           echo "Verifying bot is in the overworld with valid coordinates..."
           DIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null || echo "")
