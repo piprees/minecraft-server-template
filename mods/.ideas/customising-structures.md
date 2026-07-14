@@ -336,6 +336,97 @@ new consumer worlds/dimensions), prefer `frequency` over
 `spacing`/`salt` changes anywhere near explored terrain, and respect
 the `AGENTS.md` confirm-before-proceeding rule for worldgen config.
 
+## Curated structure inventory and recommendations
+
+Companion file: **`customising-structures.csv`** (357 rows — every
+structure set from every installed structure mod, extracted from the
+pinned jars, plus the tunable vanilla sets and a marker row for
+Dungeons Reborn). Columns:
+
+- `mod`, `structure_set`, `structures` — what it is and what's in it;
+- `theme` — classification: `dungeon` (hostile, conquerable),
+  `settlement` (villages/taverns/farms — friendly), `maritime` (ships,
+  wrecks, ocean), `landmark` (temples, towers, epic set-pieces),
+  `deco` (ambient clutter: trees, ruins, wells, lanterns), `loot`
+  (supply caches, reward shrines);
+- `current` — the mod's default `spacing/separation` (+ `frequency`
+  where set) and `attempts_per_1k_chunks` (≈ `1000·f/spacing²`) so
+  dense sets stand out at a glance;
+- `dims` — where its biomes can generate: `overworld`, `nether`, `end`,
+  `sky+overworld` (Moog's Soaring — floating builds, a natural fit for
+  `the_shattered_skies`);
+- `rec_global` — `keep default` for most sets (the user goal: curate a
+  subset, leave the rest alone), or `CONFIGURE: …` with a suggested
+  value for the handful worth an explicit dial;
+- `rec_peaceful_dims` / `rec_hard_dims` — the per-dimension-class
+  intent (see below);
+- `notes` — vanilla-set overrides, custom placement types, by-design
+  ultra-rares to leave alone.
+
+### Theme totals
+
+dungeon 69 · settlement 64 · landmark 61 · deco 139 · maritime 18 ·
+loot 6 — across overworld 233, nether 56, end 34, sky 34 sets.
+
+### The curated dial list (everything else stays at mod defaults)
+
+Sets recommended for an explicit global `frequency` config, chosen
+because their defaults are unusually dense (attempts/1k chunks in
+brackets) or because they're the flagship content:
+
+| Set | Default | Why / suggestion |
+| --- | --- | --- |
+| `dungeons_plus:dungeons` | 8/3 f=0.9 (14/1k) | Densest hostile set in the pack — suggest f=0.5 |
+| `betterdungeons:small_dungeons` | 10/6 (10/1k) | Constant vanilla-style dungeons — suggest f=0.6 |
+| `philipsruins:ancient_dungeon` | 10/3 (10/1k) | Suggest 20/8 or f=0.5 |
+| `terralith:underground` / `underground_dungeon` | 11/3, 9/6 | Underground clutter — suggest f=0.7 / f=0.6 |
+| `ati_structures:underground_small` | 10/5 | Sculk/silverfish nests — suggest f=0.6 |
+| `nova_structures:deepslate_camp` | 15/7 | Suggest f=0.7 |
+| `dungeons_arise:major_structures` | 50/45 | Flagship mega-dungeons; fine by default — the *hard-dimension boost* target (30/20) |
+| MVS `deco` sets (~90 sets at 13–26 spacing) | dense | One preset (f=0.6 across the group) if the world ever feels cluttered |
+| `minecraft:trial_chambers`, `minecraft:ancient_cities` | 34/12, 24/8 | The vanilla "chambers" — exclusion targets for peaceful dims |
+| `towns_and_towers:*`, `explorify:*` | various | Configurable **today** via Cristel Lib configs — no datapack needed |
+
+Leave-alone flags: `nova_structures:shrine_tower` (600/312) and
+`philipsruins:rare_ruin` (360/130) are ultra-rare by design;
+`bettermineshafts:mineshafts` uses a chance-per-chunk model (spacing 1,
+f=0.003) — tune only its `frequency`; four YUNG sets use custom
+placement types (still overridable by whole-file datapack override);
+`dungeons_reborn` has no structure sets at all (placed features only).
+
+### Dimension classes (mapping to `multiverse_config.json`)
+
+- **peaceful** — `the_canvas` (superflat, `hostileSpawning: false` —
+  already structure-free: the mod builds its flat/void generators with
+  empty structure overrides) and `the_blossom_gardens`. Intent: **no
+  `dungeon`-theme sets at all**; `settlement`/`maritime`/`landmark`
+  kept but rare (f≈0.3 or doubled spacing) — rare villages, wrecks and
+  "fun stuff" without anything to fight; `deco` untouched.
+- **hard** — `the_underdark` (deep-dark caves), `the_crucible`,
+  `the_gauntlet`, plus the nastier nether dims (`the_blighted_maw`,
+  `the_boneyard`, `the_weeping_vault`, `the_forged_depths`…). Intent:
+  `dungeon` sets boosted (~half spacing or f=1.0), `loot` boosted to
+  reward the risk, settlements sparse survivor enclaves.
+- **standard** — everything else stays at mod defaults.
+- Void-type dims (`the_icebound_rift`, `the_sculked_beyond`,
+  `the_slatemouth`) cannot generate structures at all with the current
+  generator (empty structure overrides) — no work needed.
+
+Note on `the_sun_kingdoms`, `the_frozen_hearth` and the other themed
+`multi_biome` dims: their structure roster is already shaped by their
+biome lists; the class presets above are refinements on top.
+
+### How the per-class intent would be realised (recap)
+
+The `rec_global` column is implementable today with any of Options
+A–C. The `rec_peaceful_dims`/`rec_hard_dims` columns require the
+per-dimension mechanism from the custom-dimensions section (a
+`structureDensity`/`structureProfile` field per dimension scaling or
+filtering placements per world) — vanilla cannot vary a set's
+frequency per dimension. A cheap interim for peaceful dims: keep their
+biome lists to biomes absent from the `dungeon` sets' `has_structure`
+tags, which the CSV's `theme` column makes easy to audit.
+
 ## Sources
 
 - Structure sets / biome tags / pack formats: [minecraft.wiki Structure_set](https://minecraft.wiki/w/Structure_set), [Biome_tag](https://minecraft.wiki/w/Biome_tag_(Java_Edition)), [Pack_format](https://minecraft.wiki/w/Pack_format); vanilla baselines via [misode/mcmeta](https://github.com/misode/mcmeta)
