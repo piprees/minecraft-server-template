@@ -667,7 +667,8 @@ BRAND_SLUG_VAL="${BRAND_SLUG:-adventure}"
 DISCORD_INVITE_VAL="${DISCORD_INVITE_URL:-}"
 
 # --- detect optional brand assets for the download page -----------------------
-COVER_BG_HTML=""
+COVER_TMP=$(mktemp)
+printf '' > "$COVER_TMP"
 for ext in svg png jpg jpeg webp; do
   if [[ -f "$PROJECT_DIR/assets/cover.$ext" ]]; then
     COVER_MIME="image/svg+xml"
@@ -676,8 +677,9 @@ for ext in svg png jpg jpeg webp; do
       jpg|jpeg) COVER_MIME="image/jpeg" ;;
       webp) COVER_MIME="image/webp" ;;
     esac
-    COVER_B64=$(base64 < "$PROJECT_DIR/assets/cover.$ext" | tr -d '\n')
-    COVER_BG_HTML="<div class=\"bg-cover\" style=\"background-image:url(data:${COVER_MIME};base64,${COVER_B64})\" aria-hidden=\"true\"></div>"
+    printf '<div class="bg-cover" style="background-image:url(data:%s;base64,' "$COVER_MIME" > "$COVER_TMP"
+    base64 < "$PROJECT_DIR/assets/cover.$ext" | tr -d '\n' >> "$COVER_TMP"
+    printf ')" aria-hidden="true"></div>' >> "$COVER_TMP"
     echo "  cover image embedded (cover.$ext)"
     break
   fi
@@ -696,9 +698,7 @@ fi
 
 # Use python for template substitution. Cover HTML and banner are written
 # to temp files — the base64-encoded cover image exceeds argv limits.
-COVER_TMP=$(mktemp)
 HERO_TMP=$(mktemp)
-printf '%s' "$COVER_BG_HTML" > "$COVER_TMP"
 printf '%s' "$HERO_HEADING_HTML" > "$HERO_TMP"
 
 python3 - "$PROJECT_DIR/modpack/template/index.html" "$DIST_DIR/index.html" \
