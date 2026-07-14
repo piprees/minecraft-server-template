@@ -37,6 +37,27 @@ fi
 
 # --- Logging helpers ----------------------------------------------------------
 log() { echo -e "${GREEN}==>${RESET} $*"; }
+
+# --- Script banner -----------------------------------------------------------
+# Prints the deploy banner (if available) with the brand colour, followed
+# by the script name and a brief description. Call at the top of any
+# user-facing script: show_banner "deploy" "Full production deploy"
+show_banner() {
+  local cmd="${1:-}" detail="${2:-}"
+  local banner_file="${CONSUMER_DIR:-$PROJECT_DIR}/overlay/config/deploy-banner.txt"
+  [[ -f "$banner_file" ]] || banner_file="$PROJECT_DIR/config/deploy-banner.txt"
+  if [[ -f "$banner_file" ]]; then
+    echo -e "${BOLD}"
+    cat "$banner_file"
+    echo -e "${RESET}"
+  fi
+  if [[ -n "$cmd" ]]; then
+    local brand="${BRAND_NAME:-}"
+    local line="${brand:+$brand — }${cmd}${detail:+ | $detail}"
+    echo -e "  ${line}"
+    echo ""
+  fi
+}
 warn() { echo -e "${YELLOW}WARNING:${RESET} $*" >&2; }
 die() {
   echo -e "${RED}ERROR:${RESET} $*" >&2

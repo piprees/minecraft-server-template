@@ -38,6 +38,17 @@
             --text-xs: 0.8rem;
         }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -46,6 +57,23 @@
             display: flex;
             flex-direction: column;
             line-height: 1.6;
+        }
+        .bg-cover {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+        }
+        .bg-cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: color-mix(in srgb, var(--bg) 80%, transparent);
         }
         a { color: var(--accent); text-decoration: none; transition: color .15s var(--ease-out-quart); }
         a:hover { color: var(--accent-hover); }
@@ -90,6 +118,19 @@
             opacity: 0;
             animation: fade-up 600ms var(--ease-out-expo) 100ms forwards;
         }
+        .hero-banner {
+            font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+            font-size: clamp(0.35rem, 0.8vw, 0.7rem);
+            line-height: 1.15;
+            color: var(--primary);
+            white-space: pre;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fade-up 600ms var(--ease-out-expo) 100ms forwards;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .hero-banner + .subtitle { animation-delay: 200ms; }
         .hero .subtitle {
             color: var(--muted);
             font-size: var(--text-heading);
@@ -304,10 +345,11 @@
 </head>
 <body>
     <a class="skip-link" href="#get-started">Skip to content</a>
+    ${COVER_BG}
 
     <main>
     <section class="hero" id="get-started">
-        <h1>${BRAND_NAME}</h1>
+        ${HERO_HEADING}
         <p class="subtitle">A private, modded Minecraft adventure server.</p>
 
         <a class="dl-btn" href="${PACK_NAME}-prism-instance.zip">

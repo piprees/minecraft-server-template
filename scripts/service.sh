@@ -23,6 +23,7 @@ load_env
 
 ACTION="${1:-}"
 shift || true
+show_banner "${ACTION:-service}" "${*:-all services}"
 
 SERVICES=(
   nav-proxy

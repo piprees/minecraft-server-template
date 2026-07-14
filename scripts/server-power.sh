@@ -24,6 +24,7 @@ source "$SCRIPT_DIR/lib.sh"
 load_env
 
 ACTION="${1:-}"
+show_banner "${ACTION:-server-power}" "cloud VPS power management"
 
 usage() {
   echo "Usage: server-power.sh <shutdown|startup|reboot>"

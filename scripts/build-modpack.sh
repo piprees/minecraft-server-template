@@ -665,17 +665,64 @@ DOMAIN_VAL="${DOMAIN:-example.com}"
 BRAND_NAME_VAL="${BRAND_NAME:-Adventure Server}"
 BRAND_SLUG_VAL="${BRAND_SLUG:-adventure}"
 DISCORD_INVITE_VAL="${DISCORD_INVITE_URL:-}"
+
+# --- detect optional brand assets for the download page -----------------------
+COVER_BG_HTML=""
+for ext in svg png jpg jpeg webp; do
+  if [[ -f "$PROJECT_DIR/assets/cover.$ext" ]]; then
+    COVER_MIME="image/svg+xml"
+    case "$ext" in
+      png) COVER_MIME="image/png" ;;
+      jpg|jpeg) COVER_MIME="image/jpeg" ;;
+      webp) COVER_MIME="image/webp" ;;
+    esac
+    COVER_B64=$(base64 < "$PROJECT_DIR/assets/cover.$ext" | tr -d '\n')
+    COVER_BG_HTML="<div class=\"bg-cover\" style=\"background-image:url(data:${COVER_MIME};base64,${COVER_B64})\" aria-hidden=\"true\"></div>"
+    echo "  cover image embedded (cover.$ext)"
+    break
+  fi
+done
+
+HERO_HEADING_HTML=""
+BANNER_SRC="${SERVER_DIR:-$PROJECT_DIR}/overlay/config/deploy-banner.txt"
+[[ -f "$BANNER_SRC" ]] || BANNER_SRC="$PROJECT_DIR/config/deploy-banner.txt"
+if [[ -f "${BANNER_SRC:-}" ]]; then
+  HERO_HEADING_HTML="<h1 class=\"sr-only\">${BRAND_NAME_VAL}</h1>"
+  echo "  deploy banner embedded in download page"
+else
+  BANNER_SRC=""
+  HERO_HEADING_HTML="<h1>${BRAND_NAME_VAL}</h1>"
+fi
+
 # Use python for template substitution — sed breaks on spaces, ampersands, pipes in values
-python3 -c "
+python3 - "$PROJECT_DIR/modpack/template/index.html" "$DIST_DIR/index.html" \
+  "$MC_VERSION" "$PACK_NAME" "$DOMAIN_VAL" "$BRAND_NAME_VAL" "$BRAND_SLUG_VAL" \
+  "$DISCORD_INVITE_VAL" "$COVER_BG_HTML" "$HERO_HEADING_HTML" "${BANNER_SRC:-}" << 'TPLEOF'
 import sys
-tpl = open(sys.argv[1]).read()
-for k, v in [('MC_VERSION','${MC_VERSION}'),('PACK_NAME','${PACK_NAME}'),
-             ('DOMAIN','${DOMAIN_VAL}'),('BRAND_NAME','${BRAND_NAME_VAL}'),
-             ('BRAND_SLUG','${BRAND_SLUG_VAL}'),('DISCORD_INVITE_URL','${DISCORD_INVITE_VAL}')]:
-    tpl = tpl.replace('\${' + k + '}', v)
-open(sys.argv[2], 'w').write(tpl)
-" "$PROJECT_DIR/modpack/template/index.html" "$DIST_DIR/index.html"
-echo "  \u2713 Download page generated from template"
+
+tpl_in, tpl_out = sys.argv[1], sys.argv[2]
+mc_ver, pack_name, domain, brand, slug, discord = sys.argv[3:9]
+cover_bg, hero_heading, banner_src = sys.argv[9], sys.argv[10], sys.argv[11]
+
+tpl = open(tpl_in).read()
+for k, v in [('MC_VERSION', mc_ver), ('PACK_NAME', pack_name),
+             ('DOMAIN', domain), ('BRAND_NAME', brand),
+             ('BRAND_SLUG', slug), ('DISCORD_INVITE_URL', discord)]:
+    tpl = tpl.replace('${' + k + '}', v)
+
+tpl = tpl.replace('${COVER_BG}', cover_bg)
+
+if banner_src:
+    banner_text = open(banner_src).read().rstrip('\n')
+    banner_html = hero_heading + '\n'
+    banner_html += '        <pre class="hero-banner" role="presentation" aria-hidden="true">' + banner_text + '</pre>'
+    tpl = tpl.replace('${HERO_HEADING}', banner_html)
+else:
+    tpl = tpl.replace('${HERO_HEADING}', hero_heading)
+
+open(tpl_out, 'w').write(tpl)
+TPLEOF
+echo "  download page generated from template"
 
 # --- create a branded 404 page -----------------------------------------------
 cat > "$DIST_DIR/404.html" << 'NOTFOUND'

@@ -45,17 +45,8 @@ cd "$SERVER_DIR"
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------
-# Printed BEFORE the timestamp redirect so ASCII art stays clean. Consumers
-# personalise it by shipping overlay/config/deploy-banner.txt (any multiline
-# art); the bundle's config/deploy-banner.txt is the default. CI passes
-# DEPLOY_COMMIT so the status line identifies exactly what is going out.
 BUNDLE_VERSION="v$(cat "$STACK_DIR/VERSION" 2> /dev/null || echo '?')"
-BANNER_FILE="$SERVER_DIR/overlay/config/deploy-banner.txt"
-[[ -f "$BANNER_FILE" ]] || BANNER_FILE="$STACK_DIR/config/deploy-banner.txt"
-# if/fi, not `[[ ]] &&`: a missing banner must not kill the deploy (set -e)
-if [[ -f "$BANNER_FILE" ]]; then cat "$BANNER_FILE"; fi
-echo "  ${BRAND_NAME:-Minecraft} — deploying stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
-echo ""
+show_banner "deploy" "stack ${BUNDLE_VERSION} | mc ${MC_VERSION:-1.21.1} | $(date '+%Y-%m-%d %H:%M %Z')${DEPLOY_COMMIT:+ | commit ${DEPLOY_COMMIT}}"
 
 # --- timestamped output ---------------------------------------------------
 # Deploys are long and the captured log is the primary forensic artefact:
