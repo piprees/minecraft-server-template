@@ -1,0 +1,152 @@
+name: Server Power
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Power action'
+        required: true
+        type: choice
+        options:
+          - shutdown
+          - startup
+          - reboot
+
+jobs:
+  power:
+    name: "${{ inputs.action }} server"
+    runs-on: ubuntu-latest
+    if: vars.DROPLET_HOST != ''
+    environment: production
+    # Startup from cold can take a minute; SSH wait adds more.
+    timeout-minutes: 15
+
+    steps:
+      - name: Detect provider
+        id: provider
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+        run: |
+          if [[ -n "$HCLOUD_TOKEN" ]]; then
+            echo "provider=hetzner" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$DO_API_TOKEN" ]]; then
+            echo "provider=digitalocean" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::No cloud provider token found (need HETZNER_API_TOKEN or DO_API_TOKEN)"
+            exit 1
+          fi
+
+      - name: Install CLI
+        run: |
+          case "${{ steps.provider.outputs.provider }}" in
+            hetzner)
+              curl -sL https://github.com/hetznercloud/cli/releases/latest/download/hcloud-linux-amd64.tar.gz \
+                | tar xz -C /usr/local/bin hcloud
+              ;;
+            digitalocean)
+              curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-1.123.0-linux-amd64.tar.gz \
+                | tar xz -C /usr/local/bin doctl
+              ;;
+          esac
+
+      - name: "${{ inputs.action }}"
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HETZNER_API_TOKEN }}
+          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+          BRAND_SLUG: ${{ vars.BRAND_SLUG }}
+          ACTION: ${{ inputs.action }}
+        run: |
+          SERVER_NAME="mc-${BRAND_SLUG:-adventure}"
+
+          case "${{ steps.provider.outputs.provider }}" in
+            hetzner)
+              export HCLOUD_TOKEN
+              STATUS=$(hcloud server describe "$SERVER_NAME" -o format='{{.Status}}' 2>/dev/null || echo "unknown")
+              echo "Current status: $STATUS"
+
+              case "$ACTION" in
+                shutdown)
+                  [[ "$STATUS" == "off" ]] && { echo "Already off."; exit 0; }
+                  hcloud server shutdown "$SERVER_NAME" && echo "Shutdown initiated."
+                  # Wait for off
+                  for i in $(seq 1 60); do
+                    S=$(hcloud server describe "$SERVER_NAME" -o format='{{.Status}}' 2>/dev/null)
+                    [[ "$S" == "off" ]] && { echo "Powered off (${i}0s)."; exit 0; }
+                    sleep 10
+                  done
+                  echo "::warning::Server didn't reach 'off' within 10 minutes"
+                  ;;
+                startup)
+                  [[ "$STATUS" == "running" ]] && { echo "Already running."; exit 0; }
+                  hcloud server poweron "$SERVER_NAME" && echo "Power on initiated."
+                  # Wait for running
+                  for i in $(seq 1 30); do
+                    S=$(hcloud server describe "$SERVER_NAME" -o format='{{.Status}}' 2>/dev/null)
+                    [[ "$S" == "running" ]] && { echo "Running (${i}0s)."; exit 0; }
+                    sleep 10
+                  done
+                  echo "::warning::Server didn't reach 'running' within 5 minutes"
+                  ;;
+                reboot)
+                  [[ "$STATUS" == "off" ]] && { echo "::error::Server is off. Use startup."; exit 1; }
+                  hcloud server reboot "$SERVER_NAME" && echo "Reboot initiated."
+                  sleep 15
+                  for i in $(seq 1 30); do
+                    S=$(hcloud server describe "$SERVER_NAME" -o format='{{.Status}}' 2>/dev/null)
+                    [[ "$S" == "running" ]] && { echo "Running ($((i * 10 + 15))s)."; exit 0; }
+                    sleep 10
+                  done
+                  echo "::warning::Server didn't come back within 5 minutes"
+                  ;;
+              esac
+              ;;
+
+            digitalocean)
+              export DIGITALOCEAN_ACCESS_TOKEN="$DO_API_TOKEN"
+              DROPLET_ID=$(doctl compute droplet list --format ID,Name --no-header \
+                | grep "$SERVER_NAME" | awk '{print $1}')
+              [[ -z "$DROPLET_ID" ]] && { echo "::error::Droplet '$SERVER_NAME' not found"; exit 1; }
+              STATUS=$(doctl compute droplet get "$DROPLET_ID" --format Status --no-header)
+              echo "Current status: $STATUS"
+
+              case "$ACTION" in
+                shutdown)
+                  [[ "$STATUS" == "off" ]] && { echo "Already off."; exit 0; }
+                  doctl compute droplet-action shutdown "$DROPLET_ID" --wait
+                  echo "Powered off."
+                  ;;
+                startup)
+                  [[ "$STATUS" == "active" ]] && { echo "Already running."; exit 0; }
+                  doctl compute droplet-action power-on "$DROPLET_ID" --wait
+                  echo "Powered on."
+                  ;;
+                reboot)
+                  [[ "$STATUS" == "off" ]] && { echo "::error::Server is off. Use startup."; exit 1; }
+                  doctl compute droplet-action reboot "$DROPLET_ID" --wait
+                  echo "Rebooted."
+                  ;;
+              esac
+              ;;
+          esac
+
+      - name: Notify Discord
+        if: always()
+        env:
+          BRAND_NAME: ${{ vars.BRAND_NAME }}
+          BRAND_ICON_URL: ${{ vars.BRAND_ICON_URL }}
+        run: |
+          ACTION="${{ inputs.action }}"
+          STATUS="${{ job.status }}"
+          MSG="Server **${ACTION}** ${STATUS}"
+          JQ_ARGS=(--arg c "$MSG")
+          JQ_EXPR='{content: $c}'
+          if [[ -n "$BRAND_NAME" ]]; then
+            JQ_ARGS+=(--arg u "$BRAND_NAME"); JQ_EXPR="${JQ_EXPR%\}}, username: \$u}"
+          fi
+          if [[ -n "$BRAND_ICON_URL" ]]; then
+            JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
+          fi
+          jq -n "${JQ_ARGS[@]}" "$JQ_EXPR" \
+            | curl -sf -H "Content-Type: application/json" -d @- \
+              "${{ secrets.DISCORD_WEBHOOK_URL }}" || true

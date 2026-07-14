@@ -35,6 +35,9 @@ ALLOWED_COMMANDS=(
   stop
   restart
   status
+  shutdown
+  startup
+  reboot
   map
   op-env
   op-sync-env
@@ -67,6 +70,9 @@ Health & logs:
 Server control:
   status [svc]                Container status (all, or one service)
   start|stop|restart <svc>    Manage one service (mc, nav-proxy, pack-web...)
+  shutdown                    Power off the cloud VPS (saves costs)
+  startup                     Power on a stopped cloud VPS
+  reboot                      Reboot the cloud VPS
   update [--quick]            Pull latest bundle + images, full redeploy
   sync                        Full alignment: local down, update, env sync to
                               GitHub, server update, local up
@@ -172,8 +178,9 @@ case "$CMD" in
   reauth-kuma) script_file="kuma-token" ;;
   wipe-chunk)  script_file="wipe-chunk" ;;
   stats)                     script_file="live-stats" ;;
-  start|stop|restart|status) script_file="service" ;;
-  map)                       script_file="map-render" ;;
+  start|stop|restart|status)    script_file="service" ;;
+  shutdown|startup|reboot)      script_file="server-power" ;;
+  map)                          script_file="map-render" ;;
 esac
 
 SCRIPT_PATH="$CONSUMER_DIR/$STACK_SCRIPTS/${script_file}.sh"
@@ -203,6 +210,9 @@ export CONSUMER_DIR
 # For service.sh, pass the original command as the first argument (the action)
 case "$CMD" in
   start|stop|restart|status)
+    exec bash "$SCRIPT_PATH" "$CMD" "$@"
+    ;;
+  shutdown|startup|reboot)
     exec bash "$SCRIPT_PATH" "$CMD" "$@"
     ;;
   map)
