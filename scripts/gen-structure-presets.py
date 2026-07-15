@@ -276,6 +276,7 @@ def main():
     for preset in ("default", "dense", "sparse"):
         out_root = PRESETS_OUT / preset / "structures"
         written = 0
+        ownership = {}
         for row in rows:
             action = decide(preset, row)
             if action is None:
@@ -316,11 +317,19 @@ def main():
                 fn(body, fargs)
 
             ns, path = set_id.split(":", 1)
-            dest = out_root / "data" / ns / "worldgen/structure_set" / (path + ".json")
+            rel = f"data/{ns}/worldgen/structure_set/{path}.json"
+            dest = out_root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(json.dumps(body, indent=1) + "\n")
+            # Ownership by MODRINTH SLUG (vanilla-owned files say "minecraft"),
+            # so deploy.sh/dev-up.sh can strip overrides whose owning mod a
+            # consumer removed via overlay/mods-remove.txt — a structure_set
+            # referencing structures from an absent mod fails dynamic-registry
+            # load and prevents the world from loading.
+            ownership[rel] = "minecraft" if mod == "minecraft" else SLUG_ALIASES.get(mod, mod)
             written += 1
 
+        (out_root / "ownership.json").write_text(json.dumps(dict(sorted(ownership.items())), indent=1) + "\n")
         (out_root / "pack.mcmeta").write_text(json.dumps({
             "pack": {
                 "pack_format": 48,

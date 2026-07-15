@@ -41,6 +41,12 @@ Frequency changes never move existing placements; the villages spacing
 change re-rolls that placement grid — intended for new worlds (see the v3
 migration guide).
 
+Each pack carries an `ownership.json` (override file → owning modrinth
+slug): deploy.sh/dev-up.sh strip overrides whose mod a consumer removed via
+`overlay/mods-remove.txt`, so removals can never leave a boot-breaking
+dangling reference. Consumer packs without an ownership.json are never
+filtered.
+
 ## Staying in sync with mod updates
 
 The weekly `mod-updates.yml` PR regenerates these presets (and the

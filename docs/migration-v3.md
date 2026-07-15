@@ -65,3 +65,16 @@ Seed selection happens BEFORE the release is adopted: world seed via
 dimension whose terrain/structure profile changed (see
 `docs/dimension-profiles-v3.md`), then a human picks winners from the
 reports and writes them into `.env` / `config/multiverse_config.json`.
+
+## Removing default mods under v3
+
+- **Structure mods**: safe. The `structures` override datapack carries an
+  ownership manifest, and every deploy/`./dev up` strips overrides owned by
+  mods in your `overlay/mods-remove.txt` before the server boots. Their
+  structure sets simply revert to nothing (mod absent).
+- **Tectonic or Terralith**: NOT supported with v3. The jar-baked
+  `adventure:wide`/`adventure:compressed` presets reference their noise
+  definitions, so removing either breaks the boot. If you must run without
+  them, also remove every `noiseSettings` pin from your multiverse config
+  overlay — full self-containment is tracked in
+  `mods/.ideas/optional-mods-hardening.md`.

@@ -405,6 +405,15 @@ if [[ -d "$SERVER_DIR/overlay/config/datapacks" ]]; then
   echo "  Custom datapacks synced to world/datapacks/"
 fi
 
+# Strip datapack overrides owned by mods the consumer removed — a
+# structure_set referencing an absent mod's structures fails registry load
+# and blocks the boot. Runs AFTER both syncs so overlay-swapped presets are
+# covered too; only packs carrying an ownership.json are touched.
+if [[ -d "$SERVER_DIR/data/world/datapacks" ]]; then
+  python3 "$SCRIPT_DIR/filter-datapacks.py" "$SERVER_DIR/data/world/datapacks" \
+    "$STACK_DIR/config/modrinth-mods.txt" "$SERVER_DIR/overlay" || true
+fi
+
 # =============================================================================
 # 8b. Copy in-house mod JARs to data/mods/ (before mc starts)
 # =============================================================================

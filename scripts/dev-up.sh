@@ -204,6 +204,16 @@ if [[ -d "$CONSUMER_DIR/overlay/config/datapacks" ]]; then
   echo "  Overlay datapacks synced to world/datapacks/"
 fi
 
+# Strip datapack overrides owned by mods removed via overlay/mods-remove.txt
+# — a structure_set referencing an absent mod's structures fails registry
+# load and blocks the boot. AFTER both syncs so overlay-swapped presets are
+# covered; only packs carrying an ownership.json are touched. Mirrors
+# deploy.sh.
+if [[ -d "$dp_dir" ]]; then
+  python3 "$SCRIPT_DIR/filter-datapacks.py" "$dp_dir" \
+    "$STACK_DIR/config/modrinth-mods.txt" "$CONSUMER_DIR/overlay" || true
+fi
+
 # --- Enforce c2me density-function-compiler OFF -------------------------------
 # c2me's DFC caches compiled density functions across NoiseConfig creations,
 # ignoring the seed — custom dimensions clone the main world without this.

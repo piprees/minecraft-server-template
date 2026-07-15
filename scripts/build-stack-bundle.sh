@@ -54,6 +54,7 @@ MANIFEST=(
   scripts/doctor.sh
   scripts/game-log.sh
   scripts/patch-mod-data.py
+  scripts/filter-datapacks.py
   scripts/live-logs.sh
   scripts/live-stats.sh
   scripts/restart-service.sh

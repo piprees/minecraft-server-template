@@ -1,0 +1,22 @@
+{
+ "data/ati_structures/worldgen/structure_set/aboveground_large.json": "ati-structures-fabricforge",
+ "data/ati_structures/worldgen/structure_set/aboveground_medium.json": "ati-structures-fabricforge",
+ "data/ati_structures/worldgen/structure_set/rare.json": "ati-structures-fabricforge",
+ "data/ati_structures/worldgen/structure_set/underground_small.json": "ati-structures-fabricforge",
+ "data/betterdungeons/worldgen/structure_set/small_dungeons.json": "yungs-better-dungeons",
+ "data/dungeons_arise/worldgen/structure_set/major_structures.json": "when-dungeons-arise",
+ "data/dungeons_plus/worldgen/structure_set/dungeons.json": "dungeons+",
+ "data/minecraft/worldgen/structure_set/villages.json": "minecraft",
+ "data/nova_structures/worldgen/structure_set/deepslate_camp.json": "dungeons-and-taverns",
+ "data/nova_structures/worldgen/structure_set/villages_birch.json": "dungeons-and-taverns",
+ "data/nova_structures/worldgen/structure_set/villages_jungle.json": "dungeons-and-taverns",
+ "data/nova_structures/worldgen/structure_set/villages_swamp.json": "dungeons-and-taverns",
+ "data/philipsruins/worldgen/structure_set/ancient_dungeon.json": "philips-ruins",
+ "data/philipsruins/worldgen/structure_set/ancient_towers.json": "philips-ruins",
+ "data/structory_towers/worldgen/structure_set/rare_towers.json": "structory-towers",
+ "data/structory_towers/worldgen/structure_set/towers.json": "structory-towers",
+ "data/structory_towers/worldgen/structure_set/ultra_rare_towers.json": "structory-towers",
+ "data/terralith/worldgen/structure_set/mage.json": "terralith",
+ "data/terralith/worldgen/structure_set/underground.json": "terralith",
+ "data/terralith/worldgen/structure_set/underground_dungeon.json": "terralith"
+}
