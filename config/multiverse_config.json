@@ -5,19 +5,22 @@
       "name": "the_claymarsh",
       "type": "overworld",
       "dimensionId": "adventure:the_claymarsh",
-      "seed": 6273634989319082075
+      "seed": 6273634989319082075,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_scorched_mesa",
       "type": "overworld",
       "dimensionId": "adventure:the_scorched_mesa",
-      "seed": 4022812798061399348
+      "seed": 4022812798061399348,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_gritlands",
       "type": "overworld",
       "dimensionId": "adventure:the_gritlands",
-      "seed": -3246413584426118916
+      "seed": -3246413584426118916,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_roothold",
@@ -29,19 +32,23 @@
       "name": "the_overgrowth",
       "type": "overworld",
       "dimensionId": "adventure:the_overgrowth",
-      "seed": -9173041556082421050
+      "seed": -9173041556082421050,
+      "noiseSettings": "adventure:compressed",
+      "structureDensity": "sparse"
     },
     {
       "name": "the_greenreach",
       "type": "overworld",
       "dimensionId": "adventure:the_greenreach",
-      "seed": 4365588300327455070
+      "seed": 4365588300327455070,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_rosebluff",
       "type": "overworld",
       "dimensionId": "adventure:the_rosebluff",
-      "seed": 3624185682401255876
+      "seed": 3624185682401255876,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_greywoods",
@@ -53,37 +60,43 @@
       "name": "the_miredeep",
       "type": "overworld",
       "dimensionId": "adventure:the_miredeep",
-      "seed": -5252107743259256018
+      "seed": -5252107743259256018,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_verdant_hollow",
       "type": "overworld",
       "dimensionId": "adventure:the_verdant_hollow",
-      "seed": 6115258093970217788
+      "seed": 6115258093970217788,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_whitestone_ford",
       "type": "overworld",
       "dimensionId": "adventure:the_whitestone_ford",
-      "seed": 4251950210753714448
+      "seed": 4251950210753714448,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_needlefall",
       "type": "overworld",
       "dimensionId": "adventure:the_needlefall",
-      "seed": -5373530250110192718
+      "seed": -5373530250110192718,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_chalk_meadows",
       "type": "overworld",
       "dimensionId": "adventure:the_chalk_meadows",
-      "seed": 2195798975866015064
+      "seed": 2195798975866015064,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_stonemantle",
       "type": "overworld",
       "dimensionId": "adventure:the_stonemantle",
-      "seed": -2229145286337484445
+      "seed": -2229145286337484445,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_ashgrove",
@@ -95,7 +108,8 @@
       "name": "the_crystal_vale",
       "type": "overworld",
       "dimensionId": "adventure:the_crystal_vale",
-      "seed": 6857879019486337303
+      "seed": 6857879019486337303,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_darkpine_depths",
@@ -113,37 +127,44 @@
       "name": "the_ruined_timberland",
       "type": "overworld",
       "dimensionId": "adventure:the_ruined_timberland",
-      "seed": -1974596255070611309
+      "seed": -1974596255070611309,
+      "structureDensity": "dense"
     },
     {
       "name": "the_shallows",
       "type": "overworld",
       "dimensionId": "adventure:the_shallows",
-      "seed": 5735056219198225107
+      "seed": 5735056219198225107,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_lantern_pools",
       "type": "overworld",
       "dimensionId": "adventure:the_lantern_pools",
-      "seed": -7749576552491939738
+      "seed": -7749576552491939738,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_dustbowl",
       "type": "overworld",
       "dimensionId": "adventure:the_dustbowl",
-      "seed": -4788941127388080412
+      "seed": -4788941127388080412,
+      "noiseSettings": "adventure:wide",
+      "structureDensity": "sparse"
     },
     {
       "name": "the_lost_outpost",
       "type": "overworld",
       "dimensionId": "adventure:the_lost_outpost",
-      "seed": 6564334460230090799
+      "seed": 6564334460230090799,
+      "structureDensity": "dense"
     },
     {
       "name": "the_frozen_strait",
       "type": "overworld",
       "dimensionId": "adventure:the_frozen_strait",
-      "seed": -6800857166025637730
+      "seed": -6800857166025637730,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_icebound_rift",
@@ -185,7 +206,8 @@
       "name": "the_blackstone_keep",
       "type": "nether",
       "dimensionId": "adventure:the_blackstone_keep",
-      "seed": -7942150272453941819
+      "seed": -7942150272453941819,
+      "structureDensity": "dense"
     },
     {
       "name": "the_molten_flats",
@@ -197,13 +219,15 @@
       "name": "the_obsidian_sanctum",
       "type": "nether",
       "dimensionId": "adventure:the_obsidian_sanctum",
-      "seed": 888677704244175115
+      "seed": 888677704244175115,
+      "structureDensity": "dense"
     },
     {
       "name": "the_ember_fields",
       "type": "nether",
       "dimensionId": "adventure:the_ember_fields",
-      "seed": -3172550506937307791
+      "seed": -3172550506937307791,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_twisted_groves",
@@ -215,13 +239,15 @@
       "name": "the_soulfields",
       "type": "nether",
       "dimensionId": "adventure:the_soulfields",
-      "seed": 5882171892785548389
+      "seed": 5882171892785548389,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_blighted_maw",
       "type": "nether",
       "dimensionId": "adventure:the_blighted_maw",
-      "seed": 7394931452934382410
+      "seed": 7394931452934382410,
+      "structureDensity": "dense"
     },
     {
       "name": "the_teal_corruption",
@@ -233,13 +259,15 @@
       "name": "the_weeping_vault",
       "type": "nether",
       "dimensionId": "adventure:the_weeping_vault",
-      "seed": -3211735946045942308
+      "seed": -3211735946045942308,
+      "structureDensity": "dense"
     },
     {
       "name": "the_boneyard",
       "type": "nether",
       "dimensionId": "adventure:the_boneyard",
-      "seed": 4924327300096628285
+      "seed": 4924327300096628285,
+      "structureDensity": "dense"
     },
     {
       "name": "the_buried_age",
@@ -251,19 +279,22 @@
       "name": "the_luminous_caverns",
       "type": "nether",
       "dimensionId": "adventure:the_luminous_caverns",
-      "seed": 1126811856535624437
+      "seed": 1126811856535624437,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_fungal_lanterns",
       "type": "nether",
       "dimensionId": "adventure:the_fungal_lanterns",
-      "seed": -4891546376175842645
+      "seed": -4891546376175842645,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_gilded_pit",
       "type": "nether",
       "dimensionId": "adventure:the_gilded_pit",
-      "seed": 1881563837797304477
+      "seed": 1881563837797304477,
+      "structureDensity": "dense"
     },
     {
       "name": "the_wailing_narrows",
@@ -275,19 +306,23 @@
       "name": "the_forged_depths",
       "type": "nether",
       "dimensionId": "adventure:the_forged_depths",
-      "seed": -4778351741013971258
+      "seed": -4778351741013971258,
+      "structureDensity": "dense"
     },
     {
       "name": "the_glacial_drift",
       "type": "overworld",
       "dimensionId": "adventure:the_glacial_drift",
-      "seed": -5124091447723497048
+      "seed": -5124091447723497048,
+      "noiseSettings": "adventure:wide",
+      "structureDensity": "sparse"
     },
     {
       "name": "the_sunken_temple",
       "type": "overworld",
       "dimensionId": "adventure:the_sunken_temple",
-      "seed": -7553093148959622972
+      "seed": -7553093148959622972,
+      "structureDensity": "dense"
     },
     {
       "name": "the_snowbound_isle",
@@ -299,19 +334,22 @@
       "name": "the_abyssal_shrine",
       "type": "overworld",
       "dimensionId": "adventure:the_abyssal_shrine",
-      "seed": -8401790570074108359
+      "seed": -8401790570074108359,
+      "structureDensity": "dense"
     },
     {
       "name": "the_pale_reach",
       "type": "overworld",
       "dimensionId": "adventure:the_pale_reach",
-      "seed": 7588343130126410291
+      "seed": 7588343130126410291,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_violet_spire",
       "type": "overworld",
       "dimensionId": "adventure:the_violet_spire",
-      "seed": -2184852740675444909
+      "seed": -2184852740675444909,
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_amplified_reaches",
@@ -324,7 +362,8 @@
       "type": "multi_biome",
       "dimensionId": "adventure:the_underdark",
       "seed": -3604832347219380837,
-      "biome": "minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,minecraft:mushroom_fields,minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:river,minecraft:crimson_forest,minecraft:warped_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest"
+      "biome": "minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,minecraft:mushroom_fields,minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:river,minecraft:crimson_forest,minecraft:warped_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest",
+      "structureDensity": "dense"
     },
     {
       "name": "the_canvas",
@@ -339,49 +378,58 @@
       "dimensionId": "adventure:the_blossom_gardens",
       "seed": -3604832347219380837,
       "biome": "minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:old_growth_birch_forest,minecraft:plains,minecraft:sunflower_plains,minecraft:forest,minecraft:river,minecraft:beach,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley,terralith:temperate_highlands",
-      "hostileSpawning": false
+      "hostileSpawning": false,
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_whispering_wilds",
       "type": "multi_biome",
       "dimensionId": "adventure:the_whispering_wilds",
       "seed": -3604832347219380837,
-      "biome": "minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,minecraft:swamp,minecraft:mangrove_swamp,minecraft:taiga,minecraft:jungle,minecraft:sparse_jungle,minecraft:mushroom_fields,minecraft:river,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:orchid_swamp,terralith:shield,terralith:shield_clearing,terralith:birch_taiga"
+      "biome": "minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,minecraft:swamp,minecraft:mangrove_swamp,minecraft:taiga,minecraft:jungle,minecraft:sparse_jungle,minecraft:mushroom_fields,minecraft:river,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:orchid_swamp,terralith:shield,terralith:shield_clearing,terralith:birch_taiga",
+      "structureDensity": "sparse"
     },
     {
       "name": "the_sun_kingdoms",
       "type": "multi_biome",
       "dimensionId": "adventure:the_sun_kingdoms",
       "seed": -3604832347219380837,
-      "biome": "minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,minecraft:wooded_badlands,minecraft:badlands,minecraft:eroded_badlands,minecraft:plains,minecraft:river,minecraft:beach,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:desert_canyon,terralith:hot_shrubland,terralith:fractured_savanna,terralith:red_oasis,terralith:savanna_badlands,terralith:savanna_slopes,terralith:brushland,terralith:steppe,terralith:shrubland"
+      "biome": "minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,minecraft:wooded_badlands,minecraft:badlands,minecraft:eroded_badlands,minecraft:plains,minecraft:river,minecraft:beach,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:desert_canyon,terralith:hot_shrubland,terralith:fractured_savanna,terralith:red_oasis,terralith:savanna_badlands,terralith:savanna_slopes,terralith:brushland,terralith:steppe,terralith:shrubland",
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_frozen_hearth",
       "type": "multi_biome",
       "dimensionId": "adventure:the_frozen_hearth",
       "seed": -3604832347219380837,
-      "biome": "minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,minecraft:snowy_slopes,minecraft:frozen_peaks,minecraft:jagged_peaks,minecraft:old_growth_spruce_taiga,minecraft:taiga,minecraft:river,minecraft:stony_shore,terralith:alpine_grove,terralith:birch_taiga,terralith:rocky_mountains"
+      "biome": "minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,minecraft:snowy_slopes,minecraft:frozen_peaks,minecraft:jagged_peaks,minecraft:old_growth_spruce_taiga,minecraft:taiga,minecraft:river,minecraft:stony_shore,terralith:alpine_grove,terralith:birch_taiga,terralith:rocky_mountains",
+      "noiseSettings": "adventure:wide"
     },
     {
       "name": "the_highland_crossing",
       "type": "multi_biome",
       "dimensionId": "adventure:the_highland_crossing",
       "seed": -3604832347219380837,
-      "biome": "minecraft:windswept_hills,minecraft:windswept_forest,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:meadow,minecraft:plains,minecraft:forest,minecraft:river,minecraft:stony_shore,terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs,terralith:basalt_cliffs,terralith:caldera,terralith:blooming_plateau"
+      "biome": "minecraft:windswept_hills,minecraft:windswept_forest,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:meadow,minecraft:plains,minecraft:forest,minecraft:river,minecraft:stony_shore,terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs,terralith:basalt_cliffs,terralith:caldera,terralith:blooming_plateau",
+      "noiseSettings": "adventure:compressed"
     },
     {
       "name": "the_crucible",
       "type": "multi_biome",
       "dimensionId": "adventure:the_crucible",
       "seed": -3604832347219380837,
-      "biome": "minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,minecraft:mangrove_swamp,minecraft:swamp,minecraft:sparse_jungle,minecraft:river,minecraft:beach,minecraft:lush_caves,terralith:cloud_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:mirage_isles,terralith:moonlight_valley"
+      "biome": "minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,minecraft:mangrove_swamp,minecraft:swamp,minecraft:sparse_jungle,minecraft:river,minecraft:beach,minecraft:lush_caves,terralith:cloud_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:mirage_isles,terralith:moonlight_valley",
+      "noiseSettings": "adventure:compressed",
+      "structureDensity": "dense"
     },
     {
       "name": "the_gauntlet",
       "type": "multi_biome",
       "dimensionId": "adventure:the_gauntlet",
       "seed": -3604832347219380837,
-      "biome": "minecraft:windswept_hills,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:jagged_peaks,minecraft:frozen_peaks,minecraft:snowy_slopes,minecraft:grove,minecraft:river,minecraft:deep_dark,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,terralith:haze_mountain,terralith:granite_cliffs,terralith:white_cliffs"
+      "biome": "minecraft:windswept_hills,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:jagged_peaks,minecraft:frozen_peaks,minecraft:snowy_slopes,minecraft:grove,minecraft:river,minecraft:deep_dark,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,terralith:haze_mountain,terralith:granite_cliffs,terralith:white_cliffs",
+      "noiseSettings": "adventure:compressed",
+      "structureDensity": "dense"
     },
     {
       "name": "the_crimson_nexus",
@@ -421,7 +469,8 @@
       "name": "the_end_citadel",
       "type": "end",
       "dimensionId": "adventure:the_end_citadel",
-      "seed": 2345324516627475701
+      "seed": 2345324516627475701,
+      "structureDensity": "dense"
     },
     {
       "name": "the_tiled_expanse",
@@ -433,19 +482,24 @@
       "name": "the_pillared_void",
       "type": "end",
       "dimensionId": "adventure:the_pillared_void",
-      "seed": -696349698492342128
+      "seed": -696349698492342128,
+      "structureDensity": "sparse"
     },
     {
       "name": "the_catalyst_maw",
       "type": "end",
       "dimensionId": "adventure:the_catalyst_maw",
-      "seed": 7719368698613726672
+      "seed": 7719368698613726672,
+      "noiseSettings": "adventure:compressed",
+      "structureDensity": "dense"
     },
     {
       "name": "the_crumbling_reaches",
       "type": "end",
       "dimensionId": "adventure:the_crumbling_reaches",
-      "seed": -6358345418972121684
+      "seed": -6358345418972121684,
+      "noiseSettings": "adventure:compressed",
+      "structureDensity": "dense"
     },
     {
       "name": "the_red_monument",
@@ -457,7 +511,8 @@
       "name": "the_fractured_halls",
       "type": "end",
       "dimensionId": "adventure:the_fractured_halls",
-      "seed": 4989373384118084179
+      "seed": 4989373384118084179,
+      "structureDensity": "dense"
     }
   ],
   "portals": [
