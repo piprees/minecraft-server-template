@@ -64,6 +64,14 @@ MANIFEST=(
   scripts/seed/roll-seeds.sh
   scripts/seed/score-seed.sh
   scripts/seed/report-top.sh
+  scripts/seed/score-report.py
+  scripts/seed/profiles/classic.profile
+  scripts/seed/profiles/overworld-natural.profile
+  scripts/seed/profiles/dim-hard-overworld.profile
+  scripts/seed/profiles/dim-hard-nether.profile
+  scripts/seed/profiles/dim-pastoral.profile
+  scripts/seed/profiles/dim-end-chaos.profile
+  scripts/seed/profiles/dim-nether-rolling.profile
   scripts/server-power.sh
   scripts/discord-notify.sh
   scripts/discord-cleanup.sh
