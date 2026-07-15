@@ -205,8 +205,17 @@ jobs:
           # dimension type to height 512 (tectonic:set_height_limits). A
           # silent tectonic-config failure leaves it 384 and this setblock
           # fails. Run in a custom dim to confirm the patched type is shared.
-          SB=$(docker exec mc rcon-cli "execute in adventure:the_smoke_wide run setblock 8 440 8 minecraft:stone" 2>&1 || true)
-          echo "setblock@y440: $SB"
+          # setblock does not load chunks ("That position is not loaded") —
+          # forceload first and give async chunk gen a few tries.
+          docker exec mc rcon-cli "execute in adventure:the_smoke_wide run forceload add 8 8" || true
+          SB=""
+          for attempt in 1 2 3 4 5 6; do
+            sleep 5
+            SB=$(docker exec mc rcon-cli "execute in adventure:the_smoke_wide run setblock 8 440 8 minecraft:stone" 2>&1 || true)
+            echo "setblock@y440 (attempt $attempt): $SB"
+            echo "$SB" | grep -qi "changed the block" && break
+          done
+          docker exec mc rcon-cli "execute in adventure:the_smoke_wide run forceload remove 8 8" || true
           echo "$SB" | grep -qi "changed the block" || {
             echo "::error::Cannot place a block at y=440 — tectonic height limits not applied (output: $SB)"
             exit 1
