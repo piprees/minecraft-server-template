@@ -139,6 +139,7 @@ Place the file in `overlay/config/` with the same path as the template's `config
 - **Terrain shape**: copy the platform's `config/tectonic.json` to `overlay/config/tectonic.json` and adjust the dials (keep every key — a partial file silently falls back to factory defaults). New chunks only; existing terrain keeps its shape.
 - **Structure frequency**: the platform ships a "sparse & natural" `structures` datapack. Swap preset with `cp -r .stack/current/stack/config/datapack-presets/dense/structures overlay/config/datapacks/structures` (or `sparse`); delete the overlay copy to return to default.
 - **Per-dimension character**: each dimension in the multiverse config accepts optional `"noiseSettings"` (`adventure:wide` / `adventure:compressed`) and `"structureDensity"` (`dense`/`normal`/`sparse`/`none`); dimensions with `"hostileSpawning": false` automatically lose dungeon-theme structures.
+- **Your own structure mods**: mods you add via `overlay/mods-extra.txt` keep their default spawn rates, and per-dimension density can't classify their structure sets until you theme them. Drop `overlay/config/structure_themes.json` mapping each set id to a theme (`dungeon`, `settlement`, `maritime`, `landmark`, `deco`, `loot`) — e.g. `{"somemod:big_dungeon": "dungeon"}` — and `structureDensity` plus the peaceful overlay apply to them too.
 
 ### Rebrand
 

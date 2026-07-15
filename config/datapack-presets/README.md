@@ -40,3 +40,13 @@ default on the next full deploy.
 Frequency changes never move existing placements; the villages spacing
 change re-rolls that placement grid — intended for new worlds (see the v3
 migration guide).
+
+## Staying in sync with mod updates
+
+The weekly `mod-updates.yml` PR regenerates these presets (and the
+jar-baked terrain presets + theme map) from the freshly re-pinned jars, so
+whole-file overrides never drift silently; generator drift warnings appear
+in the PR body. Consumer-added structure mods are deliberately NOT covered
+here — they keep their mod defaults, and consumers theme them for
+per-dimension density via `overlay/config/structure_themes.json` (see the
+consumer README).

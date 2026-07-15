@@ -62,6 +62,32 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Regenerate worldgen presets from the new pins
+        # The structure override datapacks are WHOLE-FILE copies of the pinned
+        # jars' structure_set JSONs, and the adventure:wide/compressed noise
+        # presets are cloned from the pinned Tectonic jar — a pin bump makes
+        # them stale. Regenerate so the weekly PR carries the re-synced files;
+        # baseline-drift warnings from the generators land in the PR body for
+        # the reviewer.
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          python3 scripts/gen-structure-presets.py 2>&1 | tee /tmp/gen-structures.log
+          python3 scripts/gen-terrain-presets.py 2>&1 | tee /tmp/gen-terrain.log
+          {
+            echo ""
+            echo "## Worldgen presets regenerated"
+            echo ""
+            if git diff --quiet -- config/datapacks config/datapack-presets mods/custom-dimensions/src/main/resources; then
+              echo "No preset content changed under the new pins."
+            else
+              echo "Preset files changed — review the diff. Generator warnings:"
+              echo ""
+              echo '```'
+              grep -iE "warning|drift" /tmp/gen-structures.log /tmp/gen-terrain.log || echo "(none)"
+              echo '```'
+            fi
+          } >> /tmp/gen-notes.md
+
       - name: Close stale PR (no updates)
         if: steps.diff.outputs.changed == 'false'
         env:
@@ -85,6 +111,7 @@ jobs:
             --new config/modrinth-mods.txt \
             --server-env .env.example \
             --output /tmp/pr-body.md >> "$GITHUB_OUTPUT"
+          cat /tmp/gen-notes.md >> /tmp/pr-body.md
 
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
@@ -92,8 +119,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"
-          git add config/modrinth-mods.txt modpack/adventure.mrpack.json
-          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s)"
+          git add config/modrinth-mods.txt modpack/adventure.mrpack.json \
+            config/datapacks config/datapack-presets \
+            mods/custom-dimensions/src/main/resources
+          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s) + regenerate worldgen presets"
           git push --force origin "$BRANCH"
 
       - name: Open or update PR

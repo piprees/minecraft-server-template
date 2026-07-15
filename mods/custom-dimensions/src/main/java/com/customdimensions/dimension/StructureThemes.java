@@ -17,6 +17,11 @@ import java.util.Map;
  * theme-aware parts of per-dimension structure control: peaceful dimensions
  * drop dungeon-theme sets, dense dimensions boost dungeon+loot, etc.
  * Unknown ids have no theme and are only affected by "none".
+ *
+ * Consumer extension: an optional config/structure_themes.json (same shape,
+ * delivered via overlay/config/) is merged OVER the jar map at load, so
+ * consumer-added structure mods can be themed too — their sets then respond
+ * to structureDensity and the peaceful overlay like platform mods.
  */
 public final class StructureThemes {
     private static Map<String, String> themes;
@@ -32,20 +37,39 @@ public final class StructureThemes {
     }
 
     private static Map<String, String> load() {
+        Map<String, String> map = new java.util.HashMap<>();
         try (InputStream in = StructureThemes.class.getResourceAsStream("/structure_themes.json")) {
             if (in == null) {
                 MultiverseServer.LOGGER.warn("structure_themes.json missing from jar — theme-aware structure control disabled");
-                return Collections.emptyMap();
+            } else {
+                Map<String, String> baked = new Gson().fromJson(
+                        new InputStreamReader(in, StandardCharsets.UTF_8),
+                        new TypeToken<Map<String, String>>() {
+                        }.getType());
+                map.putAll(baked);
+                MultiverseServer.LOGGER.info("Loaded {} structure-set themes", baked.size());
             }
-            Map<String, String> map = new Gson().fromJson(
-                    new InputStreamReader(in, StandardCharsets.UTF_8),
-                    new TypeToken<Map<String, String>>() {
-                    }.getType());
-            MultiverseServer.LOGGER.info("Loaded {} structure-set themes", map.size());
-            return map;
         } catch (Exception e) {
             MultiverseServer.LOGGER.error("Failed to load structure_themes.json", e);
-            return Collections.emptyMap();
         }
+        // Consumer overlay rows win over the baked map.
+        try {
+            java.nio.file.Path extra = net.fabricmc.loader.api.FabricLoader.getInstance()
+                    .getConfigDir().resolve("structure_themes.json");
+            if (java.nio.file.Files.exists(extra)) {
+                Map<String, String> overlay = new Gson().fromJson(
+                        java.nio.file.Files.readString(extra),
+                        new TypeToken<Map<String, String>>() {
+                        }.getType());
+                if (overlay != null && !overlay.isEmpty()) {
+                    map.putAll(overlay);
+                    MultiverseServer.LOGGER.info("Merged {} consumer structure-set themes from config/structure_themes.json",
+                            overlay.size());
+                }
+            }
+        } catch (Exception e) {
+            MultiverseServer.LOGGER.error("Failed to merge config/structure_themes.json — using baked themes only", e);
+        }
+        return map.isEmpty() ? Collections.emptyMap() : map;
     }
 }
