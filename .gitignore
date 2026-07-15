@@ -77,3 +77,6 @@ config/nginx/nav-proxy-local.conf
 
 pivot/
 __pycache__/
+
+# generated jar download cache (gen-structure-presets.py)
+/.cache/
