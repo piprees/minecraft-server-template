@@ -62,14 +62,20 @@ Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` ha
 
 ### Roll seeds locally (Mac)
 
-Find a great world seed by testing against the real modded server:
+Find a great world seed by testing against the real modded server. Rolls
+bank raw measurements; scoring happens at report time against a named
+profile, so re-weighting never requires re-rolling:
 
 ```bash
-./dev seed-roll                  # batch-test seeds (resumable)
-./dev seed-report                # generate the top-N markdown report
+./dev seed-roll --profile overworld-natural    # measure world seeds (resumable)
+./dev seed-report --profile overworld-natural  # score + top-N markdown report
+
+# Roll one custom dimension's seed (N candidates per boot):
+./dev seed-roll --dimension the_gauntlet --profile dim-hard-overworld --candidates 16
+./dev seed-report --profile dim-hard-overworld --target the_gauntlet
 ```
 
-Pick your favourite from the generated report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env`.
+Pick your favourite from the generated report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env` (dimension seeds go into that dimension's entry in `config/multiverse_config.json`). Profiles live in `scripts/seed/profiles/` — `classic` reproduces the pre-v3 taste.
 
 ## Upgrading
 

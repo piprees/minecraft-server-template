@@ -304,3 +304,64 @@ Worked example: villagers render as player-model humans via [Human Era: Villager
 ## Minecraft version
 
 The template targets **1.21.1**. Upgrading requires all ~260 mods to support the target version - see README § Update Minecraft version.
+
+## Worldgen: terrain shape (Tectonic)
+
+The platform ships `config/tectonic.json` — a fully-enumerated Tectonic 3.x
+config tuned for wide, realistically proportioned terrain (see the comments
+in the file for every dial and its rationale). Consumers override any of it
+via `overlay/config/tectonic.json`; the file must stay COMPLETE (every key)
+so a partial parse can never silently fall back to factory defaults — start
+from the platform copy. Changes apply to newly generated chunks only; see
+[docs/migration-v3.md](migration-v3.md) for the seam tradeoff.
+
+`max_y` interacts with the two jar-baked noise presets: `adventure:wide`
+assumes the 448 height; dropping global `max_y` back to 320 trims pinned-wide
+dimensions at 320.
+
+## Worldgen: structure frequency presets
+
+`config/datapacks/structures/` (active) tunes structure spawn rates; the
+`dense`/`sparse` variants live in `config/datapack-presets/` and swap in via
+the overlay (same pack name wins):
+
+```bash
+cp -r .stack/current/stack/config/datapack-presets/dense/structures overlay/config/datapacks/structures
+```
+
+See `config/datapack-presets/README.md` for what each preset changes and
+what is deliberately left alone (Cristel Lib mods, custom placement types,
+ultra-rares).
+
+## Worldgen: per-dimension profiles
+
+Each entry in `config/multiverse_config.json` accepts two optional fields:
+
+- `"noiseSettings"`: a `worldgen/noise_settings` registry id. The mod ships
+  `adventure:wide` (broad realistic relief) and `adventure:compressed`
+  (tight dramatic relief); any datapack-registered id works. Unset keeps
+  the dimension type's default generator. Ignored for void/superflat.
+- `"structureDensity"`: `dense` | `normal` | `sparse` | `none`. Theme-aware
+  (dungeon/loot/settlement/landmark/deco): dense boosts dungeons+loot ~2x,
+  sparse halves them. Dimensions with `"hostileSpawning": false` also drop
+  all dungeon-theme structure sets and rarify settlements/ships to ~0.3x
+  automatically.
+
+The shipped 74-dimension mapping is documented in
+[docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
+
+## Worldgen: seed rolling with profiles
+
+`./dev seed-roll` measures seeds (no judgement); `./dev seed-report
+--profile <name>` scores the banked measurements at report time. Profiles
+live in `scripts/seed/profiles/` (`classic`, `overworld-natural`, and the
+`dim-*` archetypes) — format documented in `classic.profile`. Roll a single
+dimension's seed candidates in batches with:
+
+```bash
+./dev seed-roll --dimension the_gauntlet --profile dim-hard-overworld --candidates 16 --rounds 4
+./dev seed-report --profile dim-hard-overworld --target the_gauntlet
+```
+
+Winners are applied by hand: world seed → `SEED=` in `.env`; dimension seed
+→ that dimension's `"seed"` in `config/multiverse_config.json`.

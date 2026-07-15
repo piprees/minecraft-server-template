@@ -65,11 +65,11 @@ The `Updates` workflow (`.github/workflows/update.yml`) does the same thing week
 ### Roll seeds locally
 
 ```bash
-./dev seed-roll                # batch-test seeds (resumable)
-./dev seed-report              # generate the top-N markdown report
+./dev seed-roll --profile overworld-natural    # measure seeds (resumable)
+./dev seed-report --profile overworld-natural  # score + top-N report
 ```
 
-Pick your favourite from the generated report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env`.
+Rolls bank raw measurements; scoring happens at report time against a named profile (`classic`, `overworld-natural`, or the `dim-*` archetypes), so trying a different taste never requires re-rolling. Roll a single custom dimension's seed with `./dev seed-roll --dimension <name> --profile <dim profile>`. Pick your favourite from the report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env` (dimension seeds go into that dimension's entry in the multiverse config).
 
 ### Cache assets for offline use
 
@@ -133,6 +133,12 @@ distant-horizons
 ### Override a config file
 
 Place the file in `overlay/config/` with the same path as the template's `config/` directory. Your file replaces the platform default.
+
+### Tune worldgen
+
+- **Terrain shape**: copy the platform's `config/tectonic.json` to `overlay/config/tectonic.json` and adjust the dials (keep every key — a partial file silently falls back to factory defaults). New chunks only; existing terrain keeps its shape.
+- **Structure frequency**: the platform ships a "sparse & natural" `structures` datapack. Swap preset with `cp -r .stack/current/stack/config/datapack-presets/dense/structures overlay/config/datapacks/structures` (or `sparse`); delete the overlay copy to return to default.
+- **Per-dimension character**: each dimension in the multiverse config accepts optional `"noiseSettings"` (`adventure:wide` / `adventure:compressed`) and `"structureDensity"` (`dense`/`normal`/`sparse`/`none`); dimensions with `"hostileSpawning": false` automatically lose dungeon-theme structures.
 
 ### Rebrand
 
