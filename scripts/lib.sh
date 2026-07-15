@@ -11,9 +11,9 @@
 # require_provider_cli.
 #
 # Mod config sync is handled inline by deploy.sh step 8 (before mc starts).
-# Adding a mod with config means: add its files under config/<modname>/,
-# and add the dir to MC_PATTERNS in .github/workflows/deploy.yml so changes
-# trigger a full deploy.
+# Adding a mod with config means: add its files under config/<modname>/ and
+# a COPY line in docker/defaults-seed/Dockerfile; platform config changes
+# reach consumers via the next release (full deploy via tag comparison).
 #
 # Everything must run on macOS bash 3.2 - no declare -A, no ${var,,}.
 

@@ -5,7 +5,9 @@ config/server.local.env
 .impeccable
 
 # === Server data - large, generated, personal ===
-data/
+# Root-anchored: mod jars carry their datapacks in src/main/resources/data/,
+# which an unanchored data/ silently swallowed.
+/data/
 !config/datapacks/**/data/
 backups/
 

@@ -1,0 +1,92 @@
+{
+	// Tectonic 3.x terrain tune — the "wider, more realistic" defaults for new
+	// worlds (v3 platform release). Verified against the pinned jar
+	// (tectonic 3.0.26-fabric-21.1): the mod reads config/tectonic.json (flat,
+	// NOT config/tectonic/tectonic.json) via ApollibConfigHolder; every key and
+	// default below was extracted from ConfigState bytecode. A parse failure is
+	// SILENT (mod logs "Couldn't load tectonic config file" and falls back to
+	// factory defaults) — grep boot logs for that line whenever this changes.
+	//
+	// This file lists EVERY key so a future Tectonic codec change can never
+	// half-apply it. Non-default values are marked CHANGED with rationale from
+	// mods/.ideas/customising-terrain.md. Existing worlds get terrain seams at
+	// the border of already-generated chunks — this tune is intended for NEW
+	// worlds and new custom dimensions (see docs/migration-v3.md).
+	//
+	// Consumers override via overlay/config/tectonic.json.
+	"minor_version": 1,
+	"general": {
+		"mod_enabled": true,
+		"snow_start_offset": 128
+	},
+	"global_terrain": {
+		// CHANGED 1.125 -> 1.0: same heights spread over wider slopes reads as
+		// realistic proportions; verticality comes from elevation_boost instead.
+		"vertical_scale": 1.0,
+		// CHANGED 0 -> 0.3: mountains gain height faster than lowlands.
+		"elevation_boost": 0.3,
+		"min_y": -64,
+		// CHANGED 320 -> 448: headroom for boosted peaks (must be a multiple of
+		// 16; raising elevation_boost without max_y is a known generation-issue
+		// source per Tectonic 3.0.13 changelog).
+		"max_y": 448,
+		"lava_tunnels": true,
+		// CHANGED false -> true: removes staircase/terracing artifacts. Known
+		// caveat (author-documented): odd generation in deep oceans and
+		// windswept biomes — evaluate during seed rolls.
+		"ultrasmooth": true
+	},
+	"continents": {
+		"ocean_offset": -0.8,
+		// CHANGED 0.13 -> 0.1: larger continents and oceans.
+		"continents_scale": 0.1,
+		// CHANGED 0.25 -> 0.12: the main "wider mountains" dial — thicker
+		// ranges, wider terrain between them (~2x wavelength).
+		"erosion_scale": 0.12,
+		// CHANGED 0.25 -> 0.18: wider rivers, valleys and plateau systems.
+		"ridge_scale": 0.18,
+		"underground_rivers": true,
+		"river_lanterns": true,
+		"river_ice": false,
+		// CHANGED 0.1 -> 0.3: favour flat/rolling terrain over stepped plateaus.
+		"flat_terrain_skew": 0.3,
+		"rolling_hills": true,
+		"jungle_pillars": true
+	},
+	"islands": {
+		"enabled": true,
+		"noise": { "scale": 0.11, "multiplier": 1.0, "offset": 0.0 }
+	},
+	"oceans": {
+		"ocean_depth": -0.22,
+		"deep_ocean_depth": -0.45,
+		"monument_offset": -30,
+		"remove_frozen_ocean_ice": false
+	},
+	"biomes": {
+		// CHANGED scale 0.25 -> 0.15 (both): larger climate regions so biomes
+		// don't stripe across the now-larger landforms.
+		"temperature": { "scale": 0.15, "multiplier": 1.0, "offset": 0.0 },
+		"vegetation": { "scale": 0.15, "multiplier": 1.0, "offset": 0.0 }
+	},
+	"caves": {
+		"depth_cutoff_start": 0.1,
+		"depth_cutoff_size": 0.1,
+		"cheese_enabled": true,
+		"cheese_additive": 0.27,
+		"noodle_enabled": true,
+		"noodle_additive": -0.075,
+		"spaghetti_enabled": true,
+		"carvers_enabled": true,
+		"ore_fix": false
+	},
+	"experimental": {
+		// Deliberately false: the author flags these as incompatible with
+		// "C2ME's hardware acceleration". We force useDensityFunctionCompiler
+		// off (deploy.sh 8c / dev-up.sh), which is very likely the feature in
+		// question, but that pairing has NOT been verified in the local loop —
+		// per the research report, unverified means ship false.
+		"alternate_erosion_scaling": false,
+		"alternate_continents_scaling": false
+	}
+}

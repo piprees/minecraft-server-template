@@ -19,7 +19,7 @@ class MultiverseConfigTest {
     @Test
     void gsonRoundTripPreservesDimensions() {
         String json = """
-                {"dimensions":[{"name":"test_world","type":"overworld","dimensionId":"minecraft:test_world","seed":42,"biome":"minecraft:plains","hostileSpawning":false}]}
+                {"dimensions":[{"name":"test_world","type":"overworld","dimensionId":"minecraft:test_world","seed":42,"biome":"minecraft:plains","hostileSpawning":false,"noiseSettings":"adventure:wide"}]}
                 """;
         MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
 
@@ -31,6 +31,16 @@ class MultiverseConfigTest {
         assertEquals(42L, loadedDim.getSeed());
         assertEquals("minecraft:plains", loadedDim.getBiome());
         assertFalse(loadedDim.isHostileSpawningEnabled());
+        assertEquals("adventure:wide", loadedDim.getNoiseSettings());
+    }
+
+    @Test
+    void noiseSettingsAbsentStaysNull() {
+        String json = """
+                {"dimensions":[{"name":"plain","type":"overworld","dimensionId":"adventure:plain","seed":1}]}
+                """;
+        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
+        assertNull(loaded.getDimension("plain").getNoiseSettings());
     }
 
     @Test

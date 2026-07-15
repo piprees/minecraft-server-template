@@ -76,5 +76,18 @@ class DimensionDefinitionTest {
         assertNull(def.getSeed());
         assertNull(def.getBiome());
         assertTrue(def.isHostileSpawningEnabled());
+        assertNull(def.getNoiseSettings());
+    }
+
+    @Test
+    void noiseSettingsDefaultsToNullAndIsSettable() {
+        DimensionDefinition def = new DimensionDefinition("test", "overworld", "minecraft:test");
+        assertNull(def.getNoiseSettings());
+
+        def.setNoiseSettings("adventure:wide");
+        assertEquals("adventure:wide", def.getNoiseSettings());
+
+        def.setNoiseSettings(null);
+        assertNull(def.getNoiseSettings());
     }
 }

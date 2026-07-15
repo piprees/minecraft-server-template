@@ -159,12 +159,54 @@ public class DimensionManager {
         }
     }
 
+    // Optional per-dimension ChunkGeneratorSettings override ("noiseSettings"
+    // in multiverse_config.json, e.g. "adventure:wide"). Resolved against the
+    // dynamic worldgen/noise_settings registry; the adventure:* presets ship
+    // inside this mod's jar datapack. Additive: unset or unknown ids keep the
+    // dimension's current generator settings — an unknown id must never turn
+    // a boot into a crash loop, so it logs and falls back instead.
+    private RegistryEntry<ChunkGeneratorSettings> resolveNoiseSettingsOverride(DimensionDefinition def) {
+        String id = def.getNoiseSettings();
+        if (id == null || id.isEmpty()) {
+            return null;
+        }
+        Identifier ident = Identifier.tryParse(id.toLowerCase());
+        DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        Registry<ChunkGeneratorSettings> registry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+        Optional<? extends RegistryEntry<ChunkGeneratorSettings>> entry = ident == null
+                ? Optional.empty()
+                : registry.getEntry(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS, ident));
+        if (entry.isEmpty()) {
+            MultiverseServer.LOGGER.warn(
+                    "noiseSettings '{}' for dimension {} not found in the noise_settings registry — using the type's default generator",
+                    id, def.getName());
+            return null;
+        }
+        MultiverseServer.LOGGER.info("Dimension {} uses noise settings {}", def.getName(), id);
+        return entry.get();
+    }
+
+    // Swap a noise generator's ChunkGeneratorSettings while keeping its biome
+    // source. No-op for flat/void generators (noiseSettings has no meaning
+    // there) and when no override is set.
+    private static ChunkGenerator withSettings(ChunkGenerator generator, RegistryEntry<ChunkGeneratorSettings> settings) {
+        if (settings != null && generator instanceof NoiseChunkGenerator noiseGen) {
+            return new NoiseChunkGenerator(noiseGen.getBiomeSource(), settings);
+        }
+        return generator;
+    }
+
     private DimensionOptions createDimensionOptions(DimensionDefinition def) {
         MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
         DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
         Registry<Biome> biomeRegistry = regManager.get(RegistryKeys.BIOME);
         String type = def.getType();
         long worldSeed = def.getSeed() != null ? def.getSeed() : this.server.getOverworld().getSeed();
+        RegistryEntry<ChunkGeneratorSettings> settingsOverride = this.resolveNoiseSettingsOverride(def);
+        if (settingsOverride != null && ("void".equals(type) || "superflat".equals(type))) {
+            MultiverseServer.LOGGER.warn(
+                    "noiseSettings on dimension {} is ignored: type '{}' uses a flat generator", def.getName(), type);
+        }
 
         DimensionOptions overworldOpts = dimRegistry.get(DimensionOptions.OVERWORLD);
         if (overworldOpts == null) {
@@ -204,9 +246,9 @@ public class DimensionManager {
                 if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
                     RegistryEntry<ChunkGeneratorSettings> settings = noiseGen.getSettings();
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(fixedSource, settings);
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(newGen, worldSeed));
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "multi_biome" -> {
                 String biomeList = def.getBiome();
@@ -242,21 +284,21 @@ public class DimensionManager {
 
                     MultiNoiseBiomeSource filteredSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(filteredSource, noiseGen.getSettings());
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(newGen, worldSeed));
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.NETHER);
                 yield source != null
-                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(source.chunkGenerator(), worldSeed))
-                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(source.chunkGenerator(), settingsOverride), worldSeed))
+                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "end" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.END);
                 yield source != null
-                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(source.chunkGenerator(), worldSeed))
-                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(source.chunkGenerator(), settingsOverride), worldSeed))
+                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "sky_islands" -> {
                 // End terrain shape (floating islands) with overworld biomes
@@ -287,9 +329,9 @@ public class DimensionManager {
                         biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
                     }
                     NoiseChunkGenerator skyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(skyGen, worldSeed));
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(skyGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether_islands" -> {
                 // End terrain shape (floating islands) with nether biomes
@@ -316,9 +358,9 @@ public class DimensionManager {
                     }
                     // Use nether dimension type (ceiling, lava sea, etc.) with end terrain shape
                     NoiseChunkGenerator netherSkyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
-                    yield new DimensionOptions(netherOpts.dimensionTypeEntry(), withSeed(netherSkyGen, worldSeed));
+                    yield new DimensionOptions(netherOpts.dimensionTypeEntry(), withSeed(withSettings(netherSkyGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "amplified" -> {
                 Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
@@ -326,11 +368,11 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(presetOpts.get().chunkGenerator(), worldSeed));
+                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Amplified preset not found, falling back to overworld");
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "large_biomes" -> {
                 Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
@@ -338,13 +380,13 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(presetOpts.get().chunkGenerator(), worldSeed));
+                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Large biomes preset not found, falling back to overworld");
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
-            default -> new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(overworldOpts.chunkGenerator(), worldSeed));
+            default -> new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
         };
     }
 

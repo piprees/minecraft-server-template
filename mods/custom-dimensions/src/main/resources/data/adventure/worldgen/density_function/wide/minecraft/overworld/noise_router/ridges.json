@@ -1,0 +1,5 @@
+{
+ "type": "minecraft:add",
+ "argument1": "adventure:wide/tectonic/biome_parameter/ridges",
+ "argument2": 0
+}

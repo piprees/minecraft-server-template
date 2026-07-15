@@ -68,6 +68,61 @@ jobs:
       - name: Create bind-mount directories
         run: mkdir -p data/mods data/config modpack-dist overlay backups
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.13'
+
+      - name: Build and install custom-dimensions mod
+        # The remapped-jar checks mirror mod-build.yml: Gradle reports
+        # BUILD SUCCESSFUL even when remapJar emits an empty/unremapped jar.
+        working-directory: mods/custom-dimensions
+        run: |
+          gradle build -x test --no-daemon
+          JAR=$(find build/libs -name 'customdimensions-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
+          if [[ -z "$JAR" ]]; then
+            echo "::error::No remapped jar found in build/libs"
+            exit 1
+          fi
+          unzip -l "$JAR" | grep -q 'customdimensions-refmap.json' || {
+            echo "::error::$JAR is missing the refmap — unremapped or empty"
+            exit 1
+          }
+          CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+          [[ "$CLASSES" -ge 10 ]] || { echo "::error::only $CLASSES classes in $JAR"; exit 1; }
+          cp "$JAR" ../../data/mods/customdimensions.jar
+          echo "Installed $JAR ($CLASSES classes)"
+
+      - name: Install worldgen configs (multiverse fixture + tectonic + c2me)
+        # A REDUCED multiverse config: booting all 74 dimensions is too heavy
+        # for a CI runner. Two shipped dimensions prove config-driven boot
+        # creation; two smoke-only dimensions exercise the noiseSettings
+        # presets (adventure:wide / adventure:compressed) baked into the jar.
+        run: |
+          python3 - <<'EOF'
+          import json
+          cfg = json.load(open('config/multiverse_config.json'))
+          keep = [d for d in cfg['dimensions'] if d['name'] in ('the_claymarsh', 'the_blossom_gardens')]
+          keep.append({"name": "the_smoke_wide", "type": "overworld",
+                       "dimensionId": "adventure:the_smoke_wide",
+                       "seed": 1111, "noiseSettings": "adventure:wide"})
+          keep.append({"name": "the_smoke_compressed", "type": "overworld",
+                       "dimensionId": "adventure:the_smoke_compressed",
+                       "seed": 2222, "noiseSettings": "adventure:compressed"})
+          cfg['dimensions'] = keep
+          json.dump(cfg, open('data/config/multiverse_config.json', 'w'), indent=2)
+          print('fixture dimensions:', [d['name'] for d in keep])
+          EOF
+          cp config/tectonic.json data/config/tectonic.json
+          # c2me DFC off — per-dimension seeds silently clone the main world
+          # otherwise (mods/AGENTS.md); mirrors deploy.sh 8c / dev-up.sh.
+          printf '[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n' > data/config/c2me.toml
+
       - name: Start seed and mc
         run: |
           docker compose --profile local up -d mc
@@ -103,6 +158,60 @@ jobs:
             echo "::error::RCON 'list' did not return expected output"
             exit 1
           }
+
+      - name: Assert custom dimensions, noise presets and tectonic config
+        run: |
+          LOG=$(docker logs mc 2>&1)
+
+          # Tectonic parses config/tectonic.json SILENTLY — a malformed file
+          # logs one line and falls back to factory defaults. Fail loudly here.
+          if echo "$LOG" | grep -qi "Couldn't load tectonic config"; then
+            echo "::error::Tectonic fell back to factory defaults — config/tectonic.json failed to parse"
+            exit 1
+          fi
+
+          # Boot-time dimension creation from the fixture config.
+          for dim in the_claymarsh the_blossom_gardens the_smoke_wide the_smoke_compressed; do
+            OUT=$(docker exec mc rcon-cli "execute in adventure:$dim run seed" 2>&1 || true)
+            echo "seed($dim): $OUT"
+            echo "$OUT" | grep -q "Seed" || {
+              echo "::error::Dimension adventure:$dim missing or seed query failed"
+              exit 1
+            }
+          done
+
+          # Per-dimension seed mixin oracle: the reported seed must be the
+          # config seed, not the world seed (c2me DFC trap in mods/AGENTS.md).
+          docker exec mc rcon-cli "execute in adventure:the_smoke_wide run seed" | grep -q "1111" || {
+            echo "::error::the_smoke_wide reports the wrong seed — per-dimension seed mixin broken"
+            exit 1
+          }
+
+          # noiseSettings resolution (registry lookup of the jar-baked presets).
+          echo "$LOG" | grep -q "Dimension the_smoke_wide uses noise settings adventure:wide" || {
+            echo "::error::noiseSettings adventure:wide was not applied"
+            exit 1
+          }
+          echo "$LOG" | grep -q "Dimension the_smoke_compressed uses noise settings adventure:compressed" || {
+            echo "::error::noiseSettings adventure:compressed was not applied"
+            exit 1
+          }
+          if echo "$LOG" | grep -q "not found in the noise_settings registry"; then
+            echo "::error::a noiseSettings id failed registry lookup"
+            exit 1
+          fi
+
+          # Height-limit oracle: tectonic max_y=448 must raise the overworld
+          # dimension type to height 512 (tectonic:set_height_limits). A
+          # silent tectonic-config failure leaves it 384 and this setblock
+          # fails. Run in a custom dim to confirm the patched type is shared.
+          SB=$(docker exec mc rcon-cli "execute in adventure:the_smoke_wide run setblock 8 440 8 minecraft:stone" 2>&1 || true)
+          echo "setblock@y440: $SB"
+          echo "$SB" | grep -qi "changed the block" || {
+            echo "::error::Cannot place a block at y=440 — tectonic height limits not applied (output: $SB)"
+            exit 1
+          }
+          echo "Custom dimensions + noise presets verified"
 
       - name: Assert starterkit config is bundle version (not mod default)
         run: |
