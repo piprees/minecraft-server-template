@@ -1,0 +1,15 @@
+{
+ "structures": [
+  {
+   "structure": "philipsruins:antiquus_crypta",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 348998429,
+  "spacing": 90,
+  "separation": 40,
+  "frequency": 0.5
+ }
+}

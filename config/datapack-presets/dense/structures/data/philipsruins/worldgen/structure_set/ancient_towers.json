@@ -1,0 +1,14 @@
+{
+ "structures": [
+  {
+   "structure": "philipsruins:ancient_towers",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 283426912,
+  "spacing": 40,
+  "separation": 32
+ }
+}

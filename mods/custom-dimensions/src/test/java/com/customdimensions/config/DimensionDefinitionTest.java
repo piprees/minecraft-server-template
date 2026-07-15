@@ -80,6 +80,15 @@ class DimensionDefinitionTest {
     }
 
     @Test
+    void structureDensityDefaultsToNullAndIsSettable() {
+        DimensionDefinition def = new DimensionDefinition("test", "overworld", "minecraft:test");
+        assertNull(def.getStructureDensity());
+
+        def.setStructureDensity("dense");
+        assertEquals("dense", def.getStructureDensity());
+    }
+
+    @Test
     void noiseSettingsDefaultsToNullAndIsSettable() {
         DimensionDefinition def = new DimensionDefinition("test", "overworld", "minecraft:test");
         assertNull(def.getNoiseSettings());

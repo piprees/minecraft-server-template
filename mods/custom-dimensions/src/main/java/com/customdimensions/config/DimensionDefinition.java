@@ -20,6 +20,7 @@ public class DimensionDefinition {
     private String biome;
     private Boolean hostileSpawning;
     private String noiseSettings;
+    private String structureDensity;
 
     public DimensionDefinition() {
     }
@@ -84,6 +85,14 @@ public class DimensionDefinition {
 
     public void setNoiseSettings(String noiseSettings) {
         this.noiseSettings = noiseSettings;
+    }
+
+    public String getStructureDensity() {
+        return this.structureDensity;
+    }
+
+    public void setStructureDensity(String structureDensity) {
+        this.structureDensity = structureDensity;
     }
 
     public Identifier getDimensionIdentifier() {

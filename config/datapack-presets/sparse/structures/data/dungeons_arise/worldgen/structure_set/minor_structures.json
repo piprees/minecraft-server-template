@@ -1,0 +1,39 @@
+{
+ "structures": [
+  {
+   "structure": "dungeons_arise:fishing_hut",
+   "weight": 1
+  },
+  {
+   "structure": "dungeons_arise:wishing_well",
+   "weight": 1
+  },
+  {
+   "structure": "dungeons_arise:jungle_tree_house",
+   "weight": 1
+  },
+  {
+   "structure": "dungeons_arise:bathhouse",
+   "weight": 1
+  },
+  {
+   "structure": "dungeons_arise:abandoned_temple",
+   "weight": 1
+  },
+  {
+   "structure": "dungeons_arise:lighthouse",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "salt": 342415935,
+  "spacing": 45,
+  "separation": 40,
+  "type": "minecraft:random_spread",
+  "frequency": 0.7
+ },
+ "exclusion_zone": {
+  "chunk_count": 10,
+  "other_set": "dungeons_arise:major_structures"
+ }
+}

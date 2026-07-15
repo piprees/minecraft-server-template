@@ -1,0 +1,14 @@
+{
+ "structures": [
+  {
+   "structure": "nova_structures:trident_trial_monument",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "spacing": 140,
+  "separation": 133,
+  "salt": 69846574,
+  "type": "minecraft:random_spread"
+ }
+}

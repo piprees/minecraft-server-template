@@ -1,0 +1,44 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 81051435,
+  "separation": 40,
+  "spacing": 50,
+  "spread_type": "triangular",
+  "exclusion_zone": {
+   "other_set": "minecraft:trial_chambers",
+   "chunk_count": 8
+  },
+  "frequency": 0.5
+ },
+ "structures": [
+  {
+   "structure": "ddd:minor_dungeon_plains",
+   "weight": 1
+  },
+  {
+   "structure": "ddd:minor_dungeon_plains",
+   "weight": 7
+  },
+  {
+   "structure": "ddd:spider_lair",
+   "weight": 2
+  },
+  {
+   "structure": "ddd:minor_dungeon_desert",
+   "weight": 1
+  },
+  {
+   "structure": "ddd:minor_dungeon_desert",
+   "weight": 7
+  },
+  {
+   "structure": "ddd:minor_dungeon_frozen",
+   "weight": 1
+  },
+  {
+   "structure": "ddd:minor_dungeon_frozen",
+   "weight": 9
+  }
+ ]
+}

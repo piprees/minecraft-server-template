@@ -158,6 +158,8 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$BUNDLE_CONFIG"
   find . -type f \
     -not -path './nginx/*' \
+    -not -path './datapacks/*' \
+    -not -path './datapack-presets/*' \
     -not -path './uptime-kuma/*' \
     -not -path './cloudflare/*' \
     -not -path './cloudflared/*' \
@@ -173,6 +175,33 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     fi
   done
   cd "$CONSUMER_DIR"
+fi
+
+# --- Sync platform datapacks into the world -----------------------------------
+# Mirrors deploy.sh: bundle config/datapacks/<pack>/ -> data/world/datapacks/,
+# then overlay packs of the same name replace the platform copy. Without this
+# the local stack never loads platform datapacks (structures tuning,
+# adventure-mob-sweep) and local testing diverges from production.
+dp_dir="$CONSUMER_DIR/data/world/datapacks"
+if [[ -d "$STACK_DIR/config/datapacks" ]]; then
+  mkdir -p "$dp_dir"
+  for pack in "$STACK_DIR/config/datapacks"/*/; do
+    [[ -d "$pack" ]] || continue
+    pack_name="$(basename "$pack")"
+    rm -rf "${dp_dir:?}/${pack_name}"
+    cp -r "$pack" "$dp_dir/$pack_name"
+  done
+  echo "  Platform datapacks synced to world/datapacks/"
+fi
+if [[ -d "$CONSUMER_DIR/overlay/config/datapacks" ]]; then
+  mkdir -p "$dp_dir"
+  for pack in "$CONSUMER_DIR/overlay/config/datapacks"/*/; do
+    [[ -d "$pack" ]] || continue
+    pack_name="$(basename "$pack")"
+    rm -rf "${dp_dir:?}/${pack_name}"
+    cp -r "$pack" "$dp_dir/$pack_name"
+  done
+  echo "  Overlay datapacks synced to world/datapacks/"
 fi
 
 # --- Enforce c2me density-function-compiler OFF -------------------------------

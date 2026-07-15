@@ -1,0 +1,15 @@
+{
+ "structures": [
+  {
+   "structure": "philipsruins:lost_soul_city",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 121229911,
+  "spacing": 80,
+  "separation": 65,
+  "frequency": 0.5
+ }
+}

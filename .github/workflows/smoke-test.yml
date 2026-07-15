@@ -113,7 +113,8 @@ jobs:
                        "seed": 1111, "noiseSettings": "adventure:wide"})
           keep.append({"name": "the_smoke_compressed", "type": "overworld",
                        "dimensionId": "adventure:the_smoke_compressed",
-                       "seed": 2222, "noiseSettings": "adventure:compressed"})
+                       "seed": 2222, "noiseSettings": "adventure:compressed",
+                       "structureDensity": "dense"})
           cfg['dimensions'] = keep
           json.dump(cfg, open('data/config/multiverse_config.json', 'w'), indent=2)
           print('fixture dimensions:', [d['name'] for d in keep])
@@ -200,6 +201,22 @@ jobs:
             echo "::error::a noiseSettings id failed registry lookup"
             exit 1
           fi
+
+          # Per-dimension structure control: the fixture gives
+          # the_smoke_compressed structureDensity=dense, and
+          # the_blossom_gardens is peaceful (hostileSpawning:false).
+          echo "$LOG" | grep -q "Dimension the_smoke_compressed structure profile: density=dense" || {
+            echo "::error::structureDensity=dense was not applied to the_smoke_compressed"
+            exit 1
+          }
+          echo "$LOG" | grep -q "Dimension the_blossom_gardens structure profile: density=normal+peaceful" || {
+            echo "::error::peaceful structure overlay was not applied to the_blossom_gardens"
+            exit 1
+          }
+          echo "$LOG" | grep -q "Loaded .* structure-set themes" || {
+            echo "::error::structure theme map failed to load from the jar"
+            exit 1
+          }
 
           # Height-limit oracle: tectonic max_y=448 must raise the overworld
           # dimension type to height 512 (tectonic:set_height_limits). A

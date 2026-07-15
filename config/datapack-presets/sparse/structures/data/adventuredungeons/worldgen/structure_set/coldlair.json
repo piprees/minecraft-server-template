@@ -1,0 +1,16 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 12044320,
+  "separation": 12,
+  "spacing": 40,
+  "spread_type": "linear",
+  "frequency": 0.5
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:coldlair",
+   "weight": 1
+  }
+ ]
+}

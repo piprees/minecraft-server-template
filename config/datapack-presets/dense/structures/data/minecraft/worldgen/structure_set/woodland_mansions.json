@@ -1,0 +1,19 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 10387319,
+  "separation": 14,
+  "spacing": 56,
+  "spread_type": "triangular"
+ },
+ "structures": [
+  {
+   "structure": "minecraft:mansion",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:illager_manor",
+   "weight": 1
+  }
+ ]
+}

@@ -12,9 +12,12 @@
     "NoiseChunkGeneratorAccessor",
     "PeacefulDimensionSpawnMixin",
     "PortalIgnitionMixin",
+    "ServerChunkLoadingManagerMixin",
     "ServerWorldMixin",
     "ServerWorldSeedMixin",
     "SimpleRegistryAccessor",
+    "StructurePlacementAccessor",
+    "StructurePlacementCalculatorInvoker",
     "WorldLoaderMixin"
   ],
   "injectors": {

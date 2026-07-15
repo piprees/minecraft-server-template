@@ -1,0 +1,15 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 63463741,
+  "separation": 8,
+  "spacing": 28,
+  "spread_type": "triangular"
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:bygonedungeon",
+   "weight": 1
+  }
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "pack": {
+  "pack_format": 48,
+  "supported_formats": [
+   48,
+   999
+  ],
+  "description": "Adventure structure tuning: sparse & natural overworld"
+ }
+}

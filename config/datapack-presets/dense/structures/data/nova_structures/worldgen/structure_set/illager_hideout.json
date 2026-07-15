@@ -1,0 +1,14 @@
+{
+ "structures": [
+  {
+   "structure": "nova_structures:illager_hideout",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "spacing": 140,
+  "separation": 8,
+  "salt": 3094032,
+  "type": "minecraft:random_spread"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "spacing": 60,
+  "separation": 12,
+  "salt": 783,
+  "frequency": 0.7
+ },
+ "structures": [
+  {
+   "structure": "minecraft:mineshaft_mesa",
+   "weight": 1
+  }
+ ]
+}

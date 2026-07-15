@@ -1,0 +1,15 @@
+{
+ "structures": [
+  {
+   "structure": "betteroceanmonuments:ocean_monument",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "salt": 784827271,
+  "spacing": 50,
+  "separation": 20,
+  "type": "minecraft:random_spread",
+  "frequency": 0.5
+ }
+}

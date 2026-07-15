@@ -1,0 +1,15 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 20010020,
+  "separation": 8,
+  "spacing": 24,
+  "spread_type": "triangular"
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:trialrooms",
+   "weight": 1
+  }
+ ]
+}

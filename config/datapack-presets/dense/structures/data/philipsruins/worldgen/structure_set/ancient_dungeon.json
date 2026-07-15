@@ -1,0 +1,14 @@
+{
+ "structures": [
+  {
+   "structure": "philipsruins:ancient_dungeon",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 512345192,
+  "spacing": 7,
+  "separation": 2
+ }
+}

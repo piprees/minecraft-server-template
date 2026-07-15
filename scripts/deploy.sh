@@ -320,6 +320,8 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   cd "$BUNDLE_CONFIG"
   find . -type f \
     -not -path './nginx/*' \
+    -not -path './datapacks/*' \
+    -not -path './datapack-presets/*' \
     -not -path './uptime-kuma/*' \
     -not -path './cloudflare/*' \
     -not -path './cloudflared/*' \
@@ -372,6 +374,22 @@ if [[ -d "$SERVER_DIR/overlay/config" ]]; then
   done
   cd "$SERVER_DIR"
   echo "  Overlay config applied to data/config/"
+fi
+
+# Platform datapacks from the bundle (config/datapacks/<pack>/). Synced
+# BEFORE the overlay so a consumer pack with the same name replaces the
+# platform copy (e.g. copy a config/datapack-presets/ structure variant to
+# overlay/config/datapacks/structures/ to swap preset).
+if [[ -d "$STACK_DIR/config/datapacks" ]]; then
+  dp_dir="$SERVER_DIR/data/world/datapacks"
+  mkdir -p "$dp_dir"
+  for pack in "$STACK_DIR/config/datapacks"/*/; do
+    [[ -d "$pack" ]] || continue
+    pack_name="$(basename "$pack")"
+    rm -rf "${dp_dir:?}/${pack_name}"
+    cp -r "$pack" "$dp_dir/$pack_name"
+  done
+  echo "  Platform datapacks synced to world/datapacks/"
 fi
 
 # Custom datapacks from overlay

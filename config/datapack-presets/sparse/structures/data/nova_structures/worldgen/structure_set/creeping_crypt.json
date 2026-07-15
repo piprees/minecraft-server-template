@@ -1,0 +1,15 @@
+{
+ "structures": [
+  {
+   "structure": "nova_structures:creeping_crypt",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "spacing": 100,
+  "separation": 10,
+  "salt": 7498398,
+  "type": "minecraft:random_spread",
+  "frequency": 0.5
+ }
+}

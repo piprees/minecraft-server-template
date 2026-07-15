@@ -1,0 +1,15 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 75474567,
+  "separation": 8,
+  "spacing": 24,
+  "spread_type": "linear"
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:underground_camp",
+   "weight": 1
+  }
+ ]
+}

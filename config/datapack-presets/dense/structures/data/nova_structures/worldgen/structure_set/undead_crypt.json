@@ -1,0 +1,14 @@
+{
+ "structures": [
+  {
+   "structure": "nova_structures:undead_crypt",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "spacing": 70,
+  "separation": 14,
+  "salt": 96586859,
+  "type": "minecraft:random_spread"
+ }
+}

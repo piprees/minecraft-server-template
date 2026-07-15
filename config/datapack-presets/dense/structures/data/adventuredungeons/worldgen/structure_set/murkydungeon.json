@@ -1,0 +1,15 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 98745623,
+  "separation": 8,
+  "spacing": 28,
+  "spread_type": "triangular"
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:murkydungeon",
+   "weight": 1
+  }
+ ]
+}

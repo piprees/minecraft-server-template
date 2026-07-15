@@ -1,0 +1,15 @@
+{
+ "structures": [
+  {
+   "structure": "philipsruins:ocean_ruins",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 937485621,
+  "spacing": 50,
+  "separation": 40,
+  "frequency": 0.7
+ }
+}

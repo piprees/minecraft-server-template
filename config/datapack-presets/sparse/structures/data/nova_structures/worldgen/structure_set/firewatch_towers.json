@@ -1,0 +1,51 @@
+{
+ "structures": [
+  {
+   "structure": "nova_structures:firewatch_tower_birch",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_cherry",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_dark_oak",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_forest",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_jungle",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_savanna",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_mangrove",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_swamp",
+   "weight": 1
+  },
+  {
+   "structure": "nova_structures:firewatch_tower_taiga",
+   "weight": 1
+  }
+ ],
+ "placement": {
+  "exclusion_zone": {
+   "other_set": "minecraft:villages",
+   "chunk_count": 10
+  },
+  "spacing": 50,
+  "separation": 15,
+  "salt": 123,
+  "type": "minecraft:random_spread",
+  "frequency": 0.7
+ }
+}

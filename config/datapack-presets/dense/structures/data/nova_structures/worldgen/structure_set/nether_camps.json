@@ -1,0 +1,30 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 4533232,
+  "separation": 7,
+  "spacing": 14
+ },
+ "structures": [
+  {
+   "structure": "nova_structures:skeleton_camp_crimson",
+   "weight": 2
+  },
+  {
+   "structure": "nova_structures:skeleton_camp_waste",
+   "weight": 2
+  },
+  {
+   "structure": "nova_structures:skeleton_camp_warped",
+   "weight": 2
+  },
+  {
+   "structure": "nova_structures:skeleton_camp_soul",
+   "weight": 2
+  },
+  {
+   "structure": "nova_structures:piglin_camp",
+   "weight": 3
+  }
+ ]
+}

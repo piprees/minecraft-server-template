@@ -1,0 +1,16 @@
+{
+ "placement": {
+  "type": "minecraft:random_spread",
+  "salt": 63464444,
+  "separation": 10,
+  "spacing": 30,
+  "spread_type": "linear",
+  "frequency": 0.5
+ },
+ "structures": [
+  {
+   "structure": "adventuredungeons:ruins_standard",
+   "weight": 1
+  }
+ ]
+}
