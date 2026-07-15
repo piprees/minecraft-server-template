@@ -57,7 +57,7 @@ else
 fi
 
 echo "  Checking Python scripts..."
-for py in scripts/*.py; do
+for py in scripts/*.py scripts/seed/*.py; do
   [[ -f "$py" ]] || continue
   if python3 -m py_compile "$py" 2> /dev/null; then
     echo "  ✓ $py syntax OK"

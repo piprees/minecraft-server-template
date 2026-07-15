@@ -170,7 +170,8 @@ OPT_REJECT_BAD="false"
 OPT_GRID_N=0
 OPT_GRID_PITCH=0
 
-while IFS='|' read -r kind a b c d; do
+# shellcheck disable=SC2034  # _rest absorbs trailing fields some lines carry
+while IFS='|' read -r kind a b c _rest; do
   case "$kind" in
     locate)
       LOCATE_NAMES+=("$a")
@@ -779,11 +780,13 @@ run_dimension_roll() {
 
     # Build the roll config: ONLY the cloned candidates (fast boot), with
     # idle unloading effectively disabled for the measurement window.
+    # Seeds pass as argv — a stdin pipe would be swallowed by the heredoc
+    # that carries the script itself (SC2259).
     local roll_cfg="$WORK_DIR/.roll-multiverse.json"
-    printf '%s\n' "${seeds[@]}" | python3 - "$PROJECT_ROOT/config/multiverse_config.json" "$roll_cfg" "$dim_name" << 'PYEOF'
+    python3 - "$PROJECT_ROOT/config/multiverse_config.json" "$roll_cfg" "$dim_name" "${seeds[@]}" << 'PYEOF'
 import json, sys
 src, dst, name = sys.argv[1], sys.argv[2], sys.argv[3]
-seeds = [int(line) for line in sys.stdin.read().split()]
+seeds = [int(s) for s in sys.argv[4:]]
 cfg = json.load(open(src))
 base = next((d for d in cfg["dimensions"] if d["name"] == name), None)
 if base is None:
