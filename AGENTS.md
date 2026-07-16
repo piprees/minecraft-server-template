@@ -2,6 +2,30 @@
 
 > **Read `README.md` before any task** - it has the architecture, config model, and how-tos. This file is the agent contract: constraints, traps, and access. If you're running this on a production server with player data, mistakes have real consequences: the world and player progress can't be replaced.
 
+## Operating contract
+
+Requests are tasks. Tasks go on a list. Work each task to completion before starting the next. When a task is done, pick up the next open one. When the list is empty, check if anything was deferred and do that.
+
+If a new request arrives mid-task: add it to the list, finish the current task, then pick it up. If the request is urgent and the user says to switch: park the current task with its state noted in the log, switch, come back when the urgent one is done.
+
+Do not ask "should I continue." Continue. Do not ask "what next." Check the list. Do not stop working while there are open tasks.
+
+**Completion standard:** a task is complete when the code is written AND run AND tested. The user could use the output right now without touching it.
+
+**Testing:** every piece of work gets tested in the turn it's built. Read the output. Check the values. If the output is wrong, fix it before reporting it done. For long-running work: run one item, verify the output, then start the batch. Check the first batch result before walking away.
+
+**Logging:** one line to the log after every finding, decision, or error. Before the next action. Format: `HH:MM — <what happened>`. This is how work survives between sessions.
+
+**Bug response:** read the error. Fix the specific failure. Re-run. Verify. Move on. Do not theorise. Do not redesign. Do not guess. Read the error.
+
+**Building:** build on what exists. Extend, fix, and improve existing tools. If something needs replacing, confirm with the user first. Test what you build in the same turn. For anything >50 lines, delegate to a subagent with a requirements checklist and verify every item when it returns.
+
+**Dependencies:** if the plan requires a tool, library, or credential that isn't installed — ask NOW. Not after working around it.
+
+**Feedback:** when corrected, act. In the same turn. When the same thing is asked twice, the first acknowledgement didn't result in it happening. Make it happen.
+
+**Context budget:** every token costs. Work until context is exhausted. Produce deliverables, not infrastructure. Do not idle. Do not ask for permission to continue. Do not pad turns with summaries of what you're about to do. Do the work.
+
 ## Quick reference (read the full file for anything non-trivial)
 
 - Run `./scripts/test-scripts.sh --quick` before pushing.
@@ -125,6 +149,23 @@ See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility
 14. **The mod mirror and packwiz index are build output.**
     - Symptom: Launchers download HTML instead of mod JARs; packwiz auto-update serves stale mods.
     - Cause: `modpack/dist/mods/` and `modpack/dist/packwiz/` are generated and pruned by `build-modpack.sh` - never hand-edit them. Mod downloads route via `mods.DOMAIN/mods/` (a tunnel path-rule straight to pack-web, bypassing nav-proxy) with Modrinth's CDN as the `.mrpack` fallback; launchers hash-verify either source. The packwiz index drives auto-updates for one-click instances on every launch - its `.toml` files must never become edge-cached (they're the update signal; `.toml` isn't in Cloudflare's default cache list, keep it that way). Invariants: `/mods/` in `pack-web.conf` must return a clean 404 (not the site-wide 301-to-homepage) or launchers download HTML instead of falling back, and don't publish this pack ON Modrinth (their upload validation rejects our non-whitelisted mirror URLs).
+
+## Platform-specific traps (macOS local dev)
+
+- **`od -An -td8` on macOS BSD produces single-byte values, not 64-bit longs.** The `8` is interpreted as field width, not byte size. The unsigned variant `-tu8` works correctly. For signed 64-bit random integers, use `python3 -c "import os,struct; print(struct.unpack('<q', os.urandom(8))[0])"`.
+- **`LEVEL_TYPE=flat` on the overworld breaks structure placement in ALL custom dimensions.** The mod's `createDimensionOptions` uses `overworldOpts` as a template. When the overworld is flat, `overworldOpts.chunkGenerator()` is a `FlatChunkGenerator` — the `multi_biome` case checks `instanceof NoiseChunkGenerator`, fails, and falls through to the default branch which copies the flat generator. Confirmed via A/B test: same clone dim, same seed, flat overworld → all locates return "Could not find"; normal overworld → real distances.
+- **`grep -P` does not work on macOS.** Use `grep -oE` (extended regex) instead. This is already documented in Conventions but has caused failures in seed rolling scripts.
+- **`mise exec` required for mod builds.** The `mods/mise.toml` pins `java = "temurin-21"` but a global Java (e.g. 25) takes precedence. Gradle fails with a misleading task-creation error, not a clear wrong-Java message. Use `mise exec -- ./gradlew build`.
+
+## Dimension lifecycle traps
+
+- **Per-dimension seeds only apply at world creation time.** Changing a seed in `multiverse_config.json` has no effect on an existing dimension — the seed baked into level data at creation persists. Production is fine (v3 cutover wipes the world). Local dev: wipe `data/world` to test seed changes.
+- **`dev-up.sh` skip-if-exists blocks v3 config upgrades.** Config files are seeded with `if [[ ! -f "$dest" ]]` — a consumer upgrading v2→v3 keeps the old `multiverse_config.json` without `noiseSettings`/`structureDensity` fields. Fix: delete `data/config/multiverse_config.json` before `./dev up`, or manually copy the v3 config over.
+- **Template and consumer configs must stay in sync.** `config/multiverse_config.json` (template) is the source of truth. `data/config/multiverse_config.json` (consumer) must be an exact copy. After any config edit: `cp config/multiverse_config.json <consumer>/data/config/multiverse_config.json`. Always copy, never diff-and-decide.
+- **c2me DFC key: verify via log grep, not config file inspection.** The `useDensityFunctionCompiler` key IS read by c2me before c2me strips it from the config file on boot. Log line: `"Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used"` confirms it was applied. The key's absence from `c2me.toml` after boot is expected.
+- **`collective` must not be stripped from seed rolls.** 9+ mods depend on it (healingcampfire, nametagtweaks, nutritiousmilk, etc.). Without it, Fabric fails with `FormattedException` listing all missing deps.
+- **BlueMap/DistantHorizons configs leak into seedtest dirs.** Copying `data/config/` wholesale brings per-dimension state (bluemap map configs, DH per-level configs) that causes 70+ map-loading warnings at boot. Delete `config/bluemap` and `config/DistantHorizons` from seedtest worker dirs after copying.
+- **BlueMap does not auto-discover runtime dimensions.** Dimensions created via `customdim create` are invisible to BlueMap until a map config is written and `bluemap reload` is called. BlueMap discovers dimensions from its config files, not from the server's live dimension registry.
 
 ## Known issues (watch list)
 

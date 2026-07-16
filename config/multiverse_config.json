@@ -170,19 +170,22 @@
       "name": "the_icebound_rift",
       "type": "void",
       "dimensionId": "adventure:the_icebound_rift",
-      "seed": 5964372207964005987
+      "seed": 5964372207964005987,
+      "biome": "minecraft:deep_dark,minecraft:frozen_ocean,minecraft:ice_spikes,terralith:glacial_chasm,terralith:frozen_cliffs,terralith:frostfire_caves,terralith:snowy_cherry_grove"
     },
     {
       "name": "the_sculked_beyond",
       "type": "void",
       "dimensionId": "adventure:the_sculked_beyond",
-      "seed": -356153069817876777
+      "seed": -356153069817876777,
+      "biome": "minecraft:deep_dark,terralith:infested_caves,incendium:withered_forest,terralith:fungal_caves"
     },
     {
       "name": "the_slatemouth",
       "type": "void",
       "dimensionId": "adventure:the_slatemouth",
-      "seed": 194264687702097290
+      "seed": 194264687702097290,
+      "biome": "minecraft:basalt_deltas,minecraft:soul_sand_valley,incendium:toxic_heap,incendium:quartz_flats"
     },
     {
       "name": "the_furnace_halls",

@@ -80,3 +80,4 @@ __pycache__/
 
 # generated jar download cache (gen-structure-presets.py)
 /.cache/
+.seedtest/

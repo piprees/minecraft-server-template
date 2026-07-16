@@ -62,9 +62,7 @@ Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` ha
 
 ### Roll seeds locally (Mac)
 
-Find a great world seed by testing against the real modded server. Rolls
-bank raw measurements; scoring happens at report time against a named
-profile, so re-weighting never requires re-rolling:
+Find a great world seed by testing against the real modded server. Rolls bank raw measurements; scoring happens at report time against a named profile, so re-weighting never requires re-rolling:
 
 ```bash
 ./dev seed-roll --profile overworld-natural    # measure world seeds (resumable)
@@ -251,7 +249,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `modrinth-api.py`         | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
 | `discord-sync.py`         | discord-sync    | Discord bot: `/register`, `/mc` commands, role sync                    |
 | `kuma-provision.py`       | kuma-init       | One-shot Kuma provisioning from kuma-config.json                       |
-| `idle-tasks.sh`           | idle-tasks      | Save/GC/Chunky when the server is empty                         |
+| `idle-tasks.sh`           | idle-tasks      | Save/GC/Chunky when the server is empty                                |
 | `check-updates.sh`        | mod-checker     | Mod update check, HTML status page generation                          |
 
 ### Template-only scripts (for platform development, not shipped)
@@ -426,13 +424,13 @@ See [docs/troubleshooting.md](docs/troubleshooting.md) for the full diagnostic g
 
 ## More documentation
 
-| Topic | Link |
-| --- | --- |
-| Deployment targets & backup alternatives | [docs/deployment.md](docs/deployment.md) |
-| Security hardening | [docs/security.md](docs/security.md) |
-| Credentials & API tokens | [docs/credentials.md](docs/credentials.md) |
-| Server customisation | [docs/customisation.md](docs/customisation.md) |
-| Releasing | [docs/releasing.md](docs/releasing.md) |
+| Topic                                    | Link                                           |
+| ---------------------------------------- | ---------------------------------------------- |
+| Deployment targets & backup alternatives | [docs/deployment.md](docs/deployment.md)       |
+| Security hardening                       | [docs/security.md](docs/security.md)           |
+| Credentials & API tokens                 | [docs/credentials.md](docs/credentials.md)     |
+| Server customisation                     | [docs/customisation.md](docs/customisation.md) |
+| Releasing                                | [docs/releasing.md](docs/releasing.md)         |
 
 ## Changelog
 
