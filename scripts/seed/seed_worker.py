@@ -74,6 +74,7 @@ FLUID_CHECK = {"overworld": (62, "minecraft:water"), "nether": (32, "minecraft:l
 
 ERROR_FILTERS = ("No data fixer registered", "Error loading class",
                  "Block-attached entity at invalid position", "template pool reference")
+CREATE_SUCCESS_RESPONSES = ("Queued dimension", "Created dimension")
 
 
 # ---------------------------------------------------------------------------
@@ -453,7 +454,9 @@ def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     cmd = (f"customdim create {cand} {ctype} {seed} "
            f"{ca['noiseSettings'] or '-'} {ca['structureDensity'] or '-'} {ca['biome'] or '-'}")
     out = rcon.cmd(cmd)
-    if "Queued dimension" not in out:
+    # custom-dimensions has used both messages across released builds. The
+    # follow-up seed query below remains the authoritative readiness check.
+    if not any(message in out for message in CREATE_SUCCESS_RESPONSES):
         log(worker_id, f"  create failed for {cand}: {out[:160]}")
         return False
     # Prove the world answers before measuring.

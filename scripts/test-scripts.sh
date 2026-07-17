@@ -65,6 +65,14 @@ for py in scripts/*.py scripts/seed/*.py; do
   fi
 done
 
+echo "  Running seed-worker regression tests..."
+if python3 -B scripts/seed/test_seed_worker.py; then
+  echo "  ✓ Seed-worker regression tests pass"
+else
+  warn "Seed-worker regression tests failed"
+  PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
 echo "  Validating docker-compose.yml..."
 COMPOSE_ERRORS=0
 if docker compose --profile cloud config --quiet; then
