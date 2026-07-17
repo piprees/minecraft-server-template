@@ -14,6 +14,7 @@ needs ~150 calls; the socket path is ~5-10ms.
 Measurement per candidate (metrics land in .seedtest/worker-<id>.csv,
 long format target,seed,metric,value — target is the REAL dimension name):
   spawn_biome            first matching probe (y 64, then y -32 for caves)
+  spawn_filter_dist      nearest spawn-filter biome (locate; accepted rows)
   structure_<name>_dist  locate structure (-1 = not found)
   biome_<id>_dist        locate biome     (-1 = not found)
   height_rNcM            column surface height at the 3x3 grid point
@@ -45,6 +46,26 @@ from dimension_profiles import build_profile, load_difficulty  # noqa: E402
 
 BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "300"))
 IMAGE = os.environ.get("ROLL_IMAGE", "itzg/minecraft-server:2026.7.0-java21")
+
+# Spawn-gate escalation: attempts per tier before the gate widens. Empirical
+# (2026-07-17, 8k measured candidates): a 4-biome spawn filter against the
+# full overworld source passes an exact-spawn test ~0.1-0.5% of the time —
+# nearest-filter-biome distances cluster at 200-4600 blocks. Grinding that
+# lottery unbounded stalled every worker on its first narrow dimension, so
+# the gate widens instead: <=48 (true namesake spawn), then <=256, then
+# <=768 blocks (short trek), then a forced keeper. Scoring gives full
+# namesake credit only to true spawns; widened acceptances earn partial
+# credit by proximity, so a later cycle can still beat them.
+SPAWN_ATTEMPTS = int(os.environ.get("ROLL_SPAWN_ATTEMPTS", "10"))
+SPAWN_GATE_TIERS = (48, 256, 768)
+
+
+def spawn_gate_for(misses):
+    """(radius, force_accept) for the current miss count in a slot."""
+    tier = misses // SPAWN_ATTEMPTS if SPAWN_ATTEMPTS > 0 else len(SPAWN_GATE_TIERS)
+    if tier >= len(SPAWN_GATE_TIERS):
+        return SPAWN_GATE_TIERS[-1], True
+    return SPAWN_GATE_TIERS[tier], False
 
 # Column-height search ranges per family (nether capped under the roof).
 HEIGHT_RANGE = {"overworld": (-60, 318), "nether": (0, 118), "end": (0, 250)}
@@ -448,13 +469,14 @@ def destroy_candidate(rcon, workdir, ns, cand):
 
 
 def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
-                      force_accept=False):
+                      force_accept=False, spawn_radius=48):
     """Measure one candidate world (dim = full dimension id). Applies the
     spawn filter FIRST: a spawn that misses it returns immediately with a
     rejection row — the caller re-rolls a fresh seed. Namesakes represent
-    SPAWN; the filter is the contract. force_accept measures anyway (the
-    last attempt is always kept so narrow filters still bank candidates —
-    the namesake component simply scores low)."""
+    SPAWN; the filter is the contract, but the caller widens spawn_radius
+    tier by tier (spawn_gate_for) so a narrow filter degrades to "a filter
+    biome within a short trek" instead of stalling the slot. force_accept
+    measures regardless — the namesake component simply scores low."""
     rows = []
     fam = profile["family"] or "overworld"
     lo, hi = profile.get("height_range") or HEIGHT_RANGE[fam]
@@ -472,12 +494,16 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
             if d == 0:
                 break
         if best_d is not None and best_d <= 48:
-            spawn = best_b
-        elif not force_accept:
+            spawn = best_b  # true namesake spawn
+        elif not (force_accept or (best_d is not None and best_d <= spawn_radius)):
             miss = f"{best_b}@{best_d}" if best_b else "unknown"
             rows.append(("spawn_biome", miss))
             rows.append(("rejected", 1))
             return rows, miss, False
+        if best_d is not None:
+            # Proximity credit for the namesake score (widened acceptances
+            # and keepers); true spawns record 0-48 and score full anyway.
+            rows.append(("spawn_filter_dist", best_d))
 
     # Accepted (or keeper): generate the spawn chunk and probe properly —
     # keepers need their real spawn identified for partial namesake credit.
@@ -698,7 +724,7 @@ def fresh_seed(seen):
 
 
 def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
-             csv_fh, gate=True):
+             csv_fh, gate=True, spawn_radius=48):
     """create -> gate -> measure(+render) -> destroy for one candidate.
     Returns (accepted, spawn). Errors are logged and treated as a miss."""
     try:
@@ -707,7 +733,7 @@ def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
             return False, "create-failed"
         rows, spawn, accepted = measure_candidate(
             rcon, wid, container, f"{ns}:{cand}", profile, err_before,
-            force_accept=not gate)
+            force_accept=not gate, spawn_radius=spawn_radius)
         for metric, value in rows:
             csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
         csv_fh.flush()
@@ -778,8 +804,15 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                 counter += 1
                 seed = fresh_seed(seen)
                 cand = f"{item}__r{counter:05d}"
+                radius, force = spawn_gate_for(misses)
+                if misses and misses % SPAWN_ATTEMPTS == 0:
+                    log(wid, f"  {item}: {misses} rejections — "
+                             + ("KEEPER: accepting the next candidate regardless"
+                                if force else
+                                f"widening spawn gate to nearest filter biome <= {radius} blocks"))
                 ok, spawn = roll_one(args, wid, container, rcon, ns, item,
-                                     profile, seed, cand, csv_fh)
+                                     profile, seed, cand, csv_fh,
+                                     gate=not force, spawn_radius=radius)
                 if ok:
                     accepted_total += 1
                     log(wid, f"ACCEPTED #{accepted_total} {item} seed {seed} "
@@ -795,9 +828,6 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                     if rcon is None:
                         time.sleep(20)
                         break
-                if misses % 50 == 0:
-                    log(wid, f"  WARNING {item}: {misses} rejections this slot — "
-                             "spawn filter may be unreachable, still trying")
     log(wid, f"stopping: {accepted_total} accepted candidates this session")
     return 0
 
@@ -822,6 +852,11 @@ def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
     while not should_stop():
         seed = fresh_seed(seen)
         accepted = False
+        radius, force = spawn_gate_for(misses)
+        if misses and misses % SPAWN_ATTEMPTS == 0:
+            log(wid, f"  @worlds: {misses} rejections — "
+                     + ("KEEPER: accepting the next world seed regardless" if force
+                        else f"widening spawn gate to <= {radius} blocks"))
         for name, ctype, gate in present:
             entry = dict(worlds[name])
             entry["type"] = ctype  # clone type for customdim
@@ -830,8 +865,9 @@ def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
                                       "structureDensity": None, "biome": None}
             cand = f"world_{name}__c{cycle:04d}"
             ok, spawn = roll_one(args, wid, container, rcon, ns, name,
-                                 profile, seed, cand, csv_fh, gate=gate)
-            if gate and not ok:
+                                 profile, seed, cand, csv_fh,
+                                 gate=gate and not force, spawn_radius=radius)
+            if gate and not force and not ok:
                 misses += 1
                 log(wid, f"  rejected world seed {seed} (overworld {spawn})")
                 break

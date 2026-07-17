@@ -64,9 +64,21 @@ if ! command -v python3 &> /dev/null; then
   exit 1
 fi
 
+# seed-roll-all banks its measurements under .seedtest/ and scores with
+# score-dimensions.py — when the legacy roll-seeds.sh CSV is absent but
+# roll-all data exists, report from that instead of erroring out.
+SEEDTEST_DIR="$PROJECT_ROOT/.seedtest"
+if [[ ! -f "$CSV" && -f "$SEEDTEST_DIR/measurements.csv" ]]; then
+  echo "Using seed-roll-all results from $SEEDTEST_DIR (no legacy roll-seeds.sh CSV found)."
+  exec python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
+    --config "$PROJECT_ROOT/config/multiverse_config.json" \
+    --seedtest "$SEEDTEST_DIR" \
+    --viewer --open-viewer
+fi
+
 if [[ ! -f "$CSV" ]]; then
   echo "Error: Measurements file not found at $CSV" >&2
-  echo "Run roll-seeds.sh first to bank measurements." >&2
+  echo "Run roll-seeds.sh (or ./dev seed-roll-all) first to bank measurements." >&2
   exit 1
 fi
 

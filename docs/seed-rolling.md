@@ -55,7 +55,12 @@ the scripts.
 - **spawnFilter** — namesakes represent SPAWN. Candidates whose spawn biome
   misses the filter are rejected immediately (cheap: create → probe →
   destroy) and the worker re-rolls a fresh seed; rejected seeds are banked
-  so they never repeat. An empty filter accepts anything.
+  so they never repeat. An empty filter accepts anything. The gate is
+  **adaptive**: after `ROLL_SPAWN_ATTEMPTS` (default 10) misses it widens
+  from "filter biome at spawn (≤48 blocks)" to ≤256, then ≤768 blocks,
+  then force-accepts a keeper — so a narrow filter can never stall a
+  worker. Widened acceptances bank `spawn_filter_dist` and earn partial
+  namesake credit by proximity (always below a true namesake spawn).
 - **wants** — keys are short names from the STRUCTS library
   (`scripts/seed/dimension_profiles.py`, every id verified against the
   shipped jars) or raw `namespace:path` ids. Bands are fractions of the

@@ -245,11 +245,14 @@ def mood_from_difficulty(mult):
 
 
 def rollable(dim):
-    """A dimension is rollable unless it is a void/superflat WITHOUT biomes."""
-    t = dim.get("type")
-    if t in ("void", "superflat"):
-        return bool(dim.get("biome"))
-    return True
+    """Void and superflat dimensions are NOT rollable: they use a flat
+    chunk generator, whose biome field is sampled with zero climate noise —
+    the layout is degenerate AND seed-invariant (verified empirically
+    2026-07-17: locate reports one biome at distance 0 everywhere and the
+    per-block biome never matches the configured list). Rolling seeds for
+    them measures nothing. Restore biome-listed voids here once the mod
+    gives void dims a real (seeded) multi-noise biome field."""
+    return dim.get("type") not in ("void", "superflat")
 
 
 def portal_scales(config):

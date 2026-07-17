@@ -85,13 +85,15 @@ def write_worker_files(seedtest, config, jobs_by_worker, prefix=""):
         (seedtest / f"mvconfig-{prefix}{w}.json").write_text(json.dumps(roll, indent=2))
 
 
-def cmd_manifest(args, config, profiles):
+def cmd_manifest(args, config, profiles, world_profiles=None):
     """Indefinite mode: workers cycle a dimension ROTATION forever (one
     accepted candidate per dim per cycle, unbounded attempts) — the manifest
     is just each worker's rotation. '@worlds' rolls the shared world seed as
     coupled overworld/nether/end clones inside the same container. Seeds are
     generated in-worker (runtime definitions in the mod made pre-written
-    candidate config entries unnecessary)."""
+    candidate config entries unnecessary). @worlds slots only appear when
+    world profiles survive filtering (--dims without world names skips
+    them) and --no-worlds is not set."""
     seedtest = Path(args.seedtest)
     seedtest.mkdir(parents=True, exist_ok=True)
     names = list(profiles)
@@ -103,7 +105,7 @@ def cmd_manifest(args, config, profiles):
     roll["idleUnloadMinutes"] = 9999
     (seedtest / "mvconfig-roll.json").write_text(json.dumps(roll, indent=2))
 
-    has_worlds = bool(config.get("worlds"))
+    has_worlds = bool(world_profiles) and not args.no_worlds
     for w in range(workers):
         rotation = names[w::workers]
         if has_worlds and rotation:
@@ -271,14 +273,20 @@ def score_candidate(profile, rows):
     if rows.get("rejected") == "1":
         return 0.0, {"namesake": 0.0, "variety": 0.0, "terrain": 0.0, "structures": 0.0}
 
-    # Namesake: spawn biome in the spawn filter.
+    # Namesake: spawn biome in the spawn filter. Widened-gate acceptances
+    # (spawn_filter_dist banked by the worker) earn proximity credit —
+    # capped below 1.0 so a true namesake spawn always outranks them.
     spawn = rows.get("spawn_biome", "unknown")
     if spawn in profile["namesake"]:
         parts["namesake"] = 1.0
-    elif spawn != "unknown":
-        parts["namesake"] = 0.55  # identified, on-list-but-not-iconic spawn
     else:
-        parts["namesake"] = 0.0
+        base = 0.55 if spawn != "unknown" else 0.0
+        fdist = rows.get("spawn_filter_dist")
+        if fdist is not None and float(fdist) >= 0:
+            prox = max(0.0, 1.0 - float(fdist) / 1024.0)
+            parts["namesake"] = max(base, 0.3 + 0.6 * prox)
+        else:
+            parts["namesake"] = base
 
     # Variety: fraction of listed biomes locatable nearby. Closer = better.
     found, total = 0.0, 0
@@ -542,6 +550,9 @@ def render_viewer(results, profiles, winners, rejected=None):
             spawn = c["spawn_biome"]
             spawn_html = (f"<b>{html.escape(spawn)}</b>" if spawn in profile["namesake"]
                           else html.escape(spawn))
+            fdist = c["metrics"].get("spawn_filter_dist")
+            if spawn not in profile["namesake"] and fdist is not None and float(fdist) >= 0:
+                spawn_html += f" <span class='meta'>(filter biome {int(float(fdist))} blocks away)</span>"
             out.append(
                 f"<div class='cand{' winner' if win else ''}' title='{html.escape(candidate_tooltip(c), quote=True)}'>"
                 f"<img src='{img}' loading='lazy' onerror=\"this.style.display='none'\">"
@@ -569,6 +580,8 @@ def main():
                     help="manifest: seeds per slot for spawn-filter re-rolls "
                          "(the final attempt is always kept)")
     ap.add_argument("--dims", help="comma-separated subset of dimension names")
+    ap.add_argument("--no-worlds", action="store_true",
+                    help="manifest: no @worlds slots (skip world-seed rolling)")
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--viewer", action="store_true")
     ap.add_argument("--open-viewer", action="store_true")
@@ -595,7 +608,7 @@ def main():
     world_profiles = {w["name"]: profiles[w["name"]] for w in worlds}
 
     if args.command == "manifest":
-        cmd_manifest(args, config, dim_profiles)
+        cmd_manifest(args, config, dim_profiles, world_profiles)
     elif args.command == "world-manifest":
         cmd_world_manifest(args, config, world_profiles)
     elif args.command == "render-manifest":

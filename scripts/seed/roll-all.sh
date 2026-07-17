@@ -39,6 +39,9 @@
 #
 # Environment: ROLL_MEMORY (default 6G/container), RCON_TIMEOUT (300s),
 #              ROLL_IMAGE (itzg image pin — must match seed_worker.py default)
+#              ROLL_SPAWN_ATTEMPTS (default 10; also --spawn-attempts N) —
+#              attempts per gate tier before the spawn gate widens
+#              (<=48 -> <=256 -> <=768 blocks -> forced keeper)
 #
 # Gotchas:
 #   - Requires the fork custom-dimensions jar (customdim + SEED_ROLL_MODE)
@@ -73,7 +76,7 @@ while [[ $# -gt 0 ]]; do
     # --candidates / --world-candidates / --render-top are accepted for
     # backwards compatibility; the roller is indefinite now.
     --candidates | --world-candidates | --render-top) shift 2 ;;
-    --spawn-attempts) shift 2 ;;
+    --spawn-attempts) export ROLL_SPAWN_ATTEMPTS="$2"; shift 2 ;;
     --no-worlds) SKIP_WORLDS=1; shift ;;
     --workers) WORKERS="$2"; shift 2 ;;
     --dims) DIMS="$2"; shift 2 ;;
@@ -300,9 +303,11 @@ prepare_base_dir
 merge_measurements
 rm -f "$STOP_FILE"
 
+NO_WORLDS_FLAG=""
+[[ "$SKIP_WORLDS" == 1 ]] && NO_WORLDS_FLAG="--no-worlds"
 python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
   --config "$CONFIG" --seedtest "$SEEDTEST" \
-  --workers "$WORKERS" ${DIMS:+--dims "$DIMS"}
+  --workers "$WORKERS" ${DIMS:+--dims "$DIMS"} $NO_WORLDS_FLAG
 
 start_reporter
 
