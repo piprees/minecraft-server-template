@@ -647,8 +647,13 @@ def boot(wid, container, workdir, memory, seed="1"):
     """Boot with retries; returns a live Rcon (frozen ticks) or None."""
     rcon = None
     for attempt in range(1, 4):
-        port = start_container(container, workdir, memory, seed=seed)
-        rcon = wait_for_rcon(wid, container, port)
+        try:
+            port = start_container(container, workdir, memory, seed=seed)
+            rcon = wait_for_rcon(wid, container, port)
+        except Exception as e:  # noqa: BLE001 — docker races must not kill the worker
+            log(wid, f"boot attempt {attempt} error: {type(e).__name__}: {e}")
+            rcon = None
+            time.sleep(5)
         if rcon is not None:
             break
         log(wid, f"boot attempt {attempt} failed{' — retrying' if attempt < 3 else ''}")
