@@ -196,6 +196,81 @@ public class DimensionManager {
         return generator;
     }
 
+    // Build a multi-noise source for an arbitrary biome list. Biomes native
+    // to the base source keep their natural placement; every OTHER requested
+    // biome (nether biomes in an overworld dim, cherry groves in the end —
+    // cross-family mixing is the point) is dealt the remaining parameter
+    // regions round-robin, so it genuinely appears in the layout instead of
+    // being silently dropped. Before this, a list with no native matches
+    // (the_crimson_nexus, the_souldrift) fell back to plains.
+    private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
+                                         String biomeList, String dimName) {
+        Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
+                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
+                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+
+        MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
+                ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> nativeEntries = new ArrayList<>();
+        List<MultiNoiseUtil.NoiseHypercube> pool = new ArrayList<>();
+        Set<Identifier> nativeIds = new HashSet<>();
+        for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair : entries.getEntries()) {
+            Identifier id = pair.getSecond().getKey().map(RegistryKey::getValue).orElse(null);
+            if (id != null && allowedIds.contains(id)) {
+                nativeEntries.add(pair);
+                nativeIds.add(id);
+            } else {
+                pool.add(pair.getFirst());
+            }
+        }
+
+        List<RegistryEntry<Biome>> foreign = new ArrayList<>();
+        for (Identifier id : allowedIds) {
+            if (nativeIds.contains(id)) {
+                continue;
+            }
+            Optional<RegistryEntry.Reference<Biome>> entry =
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, id));
+            if (entry.isPresent()) {
+                foreign.add(entry.get());
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} not in the registry — skipped", dimName, id);
+            }
+        }
+
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>(nativeEntries);
+        if (!foreign.isEmpty()) {
+            for (int i = 0; i < pool.size(); i++) {
+                result.add(Pair.of(pool.get(i), foreign.get(i % foreign.size())));
+            }
+        }
+        if (result.isEmpty()) {
+            MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
+            return base;
+        }
+        MultiverseServer.LOGGER.info("Dimension {}: biome source built ({} native, {} mixed-in of {} requested)",
+                dimName, nativeEntries.size(), foreign.size(), allowedIds.size());
+        return MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    // Resolve the biome source for a dimension with a biome list: prefer the
+    // dimension's own family source as the base (natural placements), fall
+    // back to the overworld's. Null biome list -> null (caller keeps base).
+    private BiomeSource resolveListedSource(DimensionDefinition def, Registry<Biome> biomeRegistry,
+                                            ChunkGenerator baseGenerator, ChunkGenerator overworldGenerator) {
+        String biomeList = def.getBiome();
+        if (biomeList == null || biomeList.isEmpty()) {
+            return null;
+        }
+        if (baseGenerator != null && baseGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource base) {
+            return buildMixedSource(base, biomeRegistry, biomeList, def.getName());
+        }
+        if (overworldGenerator != null && overworldGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource owBase) {
+            return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName());
+        }
+        return null;
+    }
+
     private DimensionOptions createDimensionOptions(DimensionDefinition def) {
         MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
         DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
@@ -221,25 +296,11 @@ public class DimensionManager {
                 FlatChunkGenerator flatGen = new FlatChunkGenerator(config);
                 // A void with a biome list keeps the multiverse's biome layout
                 // even though no terrain generates — mob spawning, fog and
-                // ambience still read the biome. Filter the live overworld
-                // multi-noise source exactly like multi_biome does and swap it
-                // into the flat generator via accessor (no ctor takes one).
-                String biomeList = def.getBiome();
-                if (biomeList != null && !biomeList.isEmpty()
-                        && overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
-                        && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
-                    Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
-                            .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
-                            .collect(Collectors.toSet());
-                    MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
-                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
-                            .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
-                            .collect(Collectors.toList());
-                    if (!filtered.isEmpty()) {
-                        ((com.customdimensions.mixin.ChunkGeneratorAccessor) flatGen)
-                                .setBiomeSource(MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered)));
-                        MultiverseServer.LOGGER.info("Void dimension {} using {} biome(s) from config", def.getName(), filtered.size());
-                    }
+                // ambience still read the biome. Any registered biome mixes in.
+                BiomeSource voidSource = this.resolveListedSource(def, biomeRegistry,
+                        null, overworldOpts.chunkGenerator());
+                if (voidSource != null) {
+                    ((com.customdimensions.mixin.ChunkGeneratorAccessor) flatGen).setBiomeSource(voidSource);
                 }
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(flatGen, worldSeed));
             }
@@ -274,81 +335,52 @@ public class DimensionManager {
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "multi_biome" -> {
-                String biomeList = def.getBiome();
-                if (biomeList == null || biomeList.isEmpty()) {
-                    biomeList = "minecraft:plains";
-                }
-                Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
-                        .map(String::trim)
-                        .map(Identifier::tryParse)
-                        .filter(id -> id != null)
-                        .collect(Collectors.toSet());
-
-                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
-                        && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
-                    // Extract biome entries from the live overworld source (includes Terralith)
-                    // and filter to only the allowed biomes
-                    MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
-                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries
-                            .getEntries().stream()
-                            .filter(pair -> {
-                                Identifier biomeId = pair.getSecond().getKey()
-                                        .map(key -> key.getValue())
-                                        .orElse(null);
-                                return biomeId != null && allowedIds.contains(biomeId);
-                            })
-                            .collect(Collectors.toList());
-
-                    if (filtered.isEmpty()) {
-                        MultiverseServer.LOGGER.warn("No matching biomes found for multi_biome dimension {}, falling back to plains", def.getName());
-                        RegistryEntry<Biome> plains = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
-                        filtered.add(Pair.of(MultiNoiseUtil.createNoiseHypercube(0, 0, 0, 0, 0, 0, 0), plains));
+                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
+                    BiomeSource mixed = this.resolveListedSource(def, biomeRegistry,
+                            overworldOpts.chunkGenerator(), overworldOpts.chunkGenerator());
+                    if (mixed == null) {
+                        mixed = noiseGen.getBiomeSource();
                     }
-
-                    MultiNoiseBiomeSource filteredSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
-                    NoiseChunkGenerator newGen = new NoiseChunkGenerator(filteredSource, noiseGen.getSettings());
+                    NoiseChunkGenerator newGen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.NETHER);
-                yield source != null
-                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(source.chunkGenerator(), settingsOverride), worldSeed))
-                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                if (source != null) {
+                    ChunkGenerator gen = source.chunkGenerator();
+                    // A biome list on a nether dim mixes ANY biome into the
+                    // nether's layout (overworld greenery under the roof, end
+                    // crystal fields — cross-family is deliberate).
+                    BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                    if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
+                        gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
+                    }
+                    yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "end" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.END);
-                yield source != null
-                        ? new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(source.chunkGenerator(), settingsOverride), worldSeed))
-                        : new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                if (source != null) {
+                    ChunkGenerator gen = source.chunkGenerator();
+                    BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                    if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
+                        gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
+                    }
+                    yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "sky_islands" -> {
-                // End terrain shape (floating islands) with overworld biomes
+                // End terrain shape (floating islands); biome list mixes from
+                // the full registry (overworld base for natural placements).
                 DimensionOptions endOpts = dimRegistry.get(DimensionOptions.END);
                 if (endOpts != null && endOpts.chunkGenerator() instanceof NoiseChunkGenerator endGen) {
-                    BiomeSource biomeSource;
-                    String biomeList = def.getBiome();
-                    if (biomeList != null && !biomeList.isEmpty()) {
-                        // Custom biome list for the islands
-                        Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
-                                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
-                                .collect(Collectors.toSet());
-                        if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
-                                && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
-                            MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
-                            List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
-                                    .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
-                                    .collect(Collectors.toList());
-                            if (!filtered.isEmpty()) {
-                                biomeSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
-                            } else {
-                                biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
-                            }
-                        } else {
-                            biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
-                        }
-                    } else {
+                    BiomeSource biomeSource = this.resolveListedSource(def, biomeRegistry,
+                            overworldOpts.chunkGenerator(), overworldOpts.chunkGenerator());
+                    if (biomeSource == null) {
                         biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
                     }
                     NoiseChunkGenerator skyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
@@ -357,29 +389,16 @@ public class DimensionManager {
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether_islands" -> {
-                // End terrain shape (floating islands) with nether biomes
+                // End terrain shape (floating islands) with the nether's
+                // dimension type; biome list mixes from the full registry.
                 DimensionOptions endOpts = dimRegistry.get(DimensionOptions.END);
                 DimensionOptions netherOpts = dimRegistry.get(DimensionOptions.NETHER);
                 if (endOpts != null && netherOpts != null && endOpts.chunkGenerator() instanceof NoiseChunkGenerator endGen) {
-                    BiomeSource biomeSource;
-                    String biomeList = def.getBiome();
-                    if (biomeList != null && !biomeList.isEmpty()) {
-                        Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
-                                .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
-                                .collect(Collectors.toSet());
-                        MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) (MultiNoiseBiomeSource) netherOpts.chunkGenerator().getBiomeSource()).invokeGetBiomeEntries();
-                        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
-                                .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
-                                .collect(Collectors.toList());
-                        if (!filtered.isEmpty()) {
-                            biomeSource = MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered));
-                        } else {
-                            biomeSource = netherOpts.chunkGenerator().getBiomeSource();
-                        }
-                    } else {
+                    BiomeSource biomeSource = this.resolveListedSource(def, biomeRegistry,
+                            netherOpts.chunkGenerator(), overworldOpts.chunkGenerator());
+                    if (biomeSource == null) {
                         biomeSource = netherOpts.chunkGenerator().getBiomeSource();
                     }
-                    // Use nether dimension type (ceiling, lava sea, etc.) with end terrain shape
                     NoiseChunkGenerator netherSkyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
                     yield new DimensionOptions(netherOpts.dimensionTypeEntry(), withSeed(withSettings(netherSkyGen, settingsOverride), worldSeed));
                 }

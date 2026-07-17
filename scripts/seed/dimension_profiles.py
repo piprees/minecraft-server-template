@@ -30,126 +30,119 @@ OVERWORLD_FAMILY = {"overworld", "multi_biome", "amplified", "large_biomes", "sk
 NETHER_FAMILY = {"nether", "nether_islands"}
 END_FAMILY = {"end"}
 
-# Placement bands as fractions of the playable radius.
+# Placement bands as fractions of the playable radius — every band fits
+# INSIDE the world. A structure the dimension shouldn't contain is a shun,
+# not a far-away band (a 1024-radius wasteland has no "3000 blocks out").
 BANDS = {
     "near_spawn": (0.00, 0.30),
-    "spread": (0.20, 0.70),
-    "near_border": (0.50, 1.00),
-    "beyond_border": (0.80, 3.00),
+    "spread": (0.15, 0.65),
+    "near_border": (0.45, 1.00),
 }
 
-# structureDensity shifts placement expectations.
+# structureDensity shifts placement expectations of WANTS.
 DENSITY_SHIFT = {
-    "dense": {"near_border": "spread", "beyond_border": "near_border"},
+    "dense": {"near_border": "spread", "spread": "near_spawn"},
     "sparse": {"near_spawn": "spread", "spread": "near_border"},
 }
 
-# Structures that make no sense in a peaceful dimension.
+# Wants that make no sense in a peaceful dimension (dropped there; the
+# peaceful generation overlay strips dungeons anyway).
 HOSTILE_STRUCTURES = {
     "ancient_city", "trial_chambers", "fortress", "bastion", "sanctum",
-    "wda", "mansion", "monument",
+    "coliseum", "mansion", "monument", "pillager_outpost", "bandit_towers",
+    "bandit_village", "illager_fort", "keep_kayra", "infested_temple",
 }
 
-# name -> (locate id, band). Ids verified against the shipped mod set
-# (Dungeons and Taverns uses the nova_structures namespace).
-BATTERY = {
-    "overworld": [
-        ("village", "#minecraft:village", "near_spawn"),
-        ("tavern", "nova_structures:tavern_birch", "near_spawn"),
-        ("mineshaft", "minecraft:mineshaft", "near_spawn"),
-        ("trial_chambers", "minecraft:trial_chambers", "spread"),
-        ("ancient_city", "minecraft:ancient_city", "near_border"),
-        ("monument", "minecraft:monument", "near_border"),
-        ("mansion", "minecraft:mansion", "beyond_border"),
-        ("wda", "dungeons_arise:coliseum", "beyond_border"),
-    ],
-    "nether": [
-        ("fortress", "betterfortresses:fortress", "spread"),
-        ("bastion", "minecraft:bastion_remnant", "spread"),
-        ("sanctum", "incendium:sanctum", "near_border"),
-    ],
-    "end": [
-        ("end_city", "minecraft:end_city", "spread"),
-    ],
-}
-
-# Terrain targets (relief = max-min of grid heights, grain = mean |dh|
-# between adjacent grid points, water = fraction of grid points with
-# water at y=62). Keyed by noiseSettings.
-TERRAIN_TARGETS = {
-    "adventure:compressed": {"relief": (40, 160), "grain": (6, 26), "water": (0.0, 0.30)},
-    "adventure:wide": {"relief": (10, 60), "grain": (0, 6), "water": (0.05, 0.45)},
-    None: {"relief": (18, 90), "grain": (2, 14), "water": (0.0, 0.45)},
-}
-
-# Namesake biome lists. spawn = biomes that would sell the name at 0,0
-# (ordered, most iconic first); the first N are also probed on the grid.
-# Dims with a config biome list use that list for variety measurement;
-# these spawn lists still say which of them should greet you at spawn.
-# Water preference overrides ("high" for sea dims, "none" for dry ones)
-# adjust the terrain water target.
-THEMES = {
-    # --- overworld dims ---
-    "the_claymarsh": {"spawn": ["minecraft:swamp", "minecraft:mangrove_swamp", "terralith:orchid_swamp"], "mood": "serene", "water": "high"},
-    "the_scorched_mesa": {"spawn": ["minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands", "terralith:desert_canyon"], "mood": "dramatic", "water": "none"},
-    "the_gritlands": {"spawn": ["minecraft:desert", "terralith:steppe", "terralith:brushland"], "mood": "desolate", "water": "none"},
-    "the_roothold": {"spawn": ["minecraft:dark_forest", "minecraft:old_growth_spruce_taiga", "terralith:shield"], "mood": "standard"},
-    "the_overgrowth": {"spawn": ["minecraft:jungle", "terralith:cloud_forest", "minecraft:dark_forest"], "mood": "dramatic"},
-    "the_greenreach": {"spawn": ["minecraft:plains", "minecraft:sunflower_plains", "minecraft:meadow", "terralith:blooming_plateau"], "mood": "pastoral"},
-    "the_rosebluff": {"spawn": ["minecraft:cherry_grove", "terralith:sakura_grove", "terralith:white_cliffs"], "mood": "scenic"},
-    "the_greywoods": {"spawn": ["minecraft:dark_forest", "minecraft:taiga", "terralith:birch_taiga"], "mood": "standard"},
-    "the_miredeep": {"spawn": ["minecraft:swamp", "minecraft:mangrove_swamp", "terralith:orchid_swamp"], "mood": "desolate", "water": "high"},
-    "the_verdant_hollow": {"spawn": ["terralith:lush_valley", "minecraft:meadow", "minecraft:forest"], "mood": "pastoral"},
-    "the_whitestone_ford": {"spawn": ["minecraft:river", "terralith:white_cliffs", "minecraft:plains"], "mood": "pastoral", "water": "high"},
-    "the_needlefall": {"spawn": ["minecraft:old_growth_pine_taiga", "minecraft:taiga", "minecraft:grove"], "mood": "dramatic"},
-    "the_chalk_meadows": {"spawn": ["minecraft:meadow", "minecraft:plains", "terralith:blooming_plateau"], "mood": "pastoral"},
-    "the_stonemantle": {"spawn": ["minecraft:stony_peaks", "minecraft:windswept_hills", "terralith:rocky_mountains"], "mood": "dramatic", "water": "none"},
-    "the_ashgrove": {"spawn": ["terralith:ashen_savanna", "terralith:volcanic_peaks", "minecraft:taiga"], "mood": "standard"},
-    "the_crystal_vale": {"spawn": ["terralith:amethyst_rainforest", "terralith:amethyst_canyon", "terralith:emerald_peaks"], "mood": "scenic"},
-    "the_darkpine_depths": {"spawn": ["minecraft:old_growth_spruce_taiga", "minecraft:dark_forest", "terralith:moonlight_grove"], "mood": "standard"},
-    "the_dripping_pines": {"spawn": ["minecraft:old_growth_pine_taiga", "terralith:siberian_taiga", "minecraft:taiga"], "mood": "standard"},
-    "the_ruined_timberland": {"spawn": ["minecraft:forest", "minecraft:birch_forest", "minecraft:dark_forest"], "mood": "adventurous"},
-    "the_shallows": {"spawn": ["minecraft:warm_ocean", "minecraft:lukewarm_ocean", "minecraft:beach"], "mood": "serene", "water": "sea"},
-    "the_lantern_pools": {"spawn": ["minecraft:lush_caves", "terralith:desert_oasis", "minecraft:warm_ocean"], "mood": "serene", "water": "high"},
-    "the_dustbowl": {"spawn": ["minecraft:desert", "terralith:steppe", "terralith:brushland"], "mood": "desolate", "water": "none"},
-    "the_lost_outpost": {"spawn": ["minecraft:savanna", "minecraft:plains", "minecraft:taiga"], "mood": "adventurous"},
-    "the_frozen_strait": {"spawn": ["minecraft:frozen_ocean", "minecraft:deep_frozen_ocean", "minecraft:snowy_beach"], "mood": "desolate", "water": "sea"},
-    "the_glacial_drift": {"spawn": ["minecraft:snowy_plains", "minecraft:ice_spikes", "terralith:glacial_chasm"], "mood": "desolate"},
-    "the_sunken_temple": {"spawn": ["minecraft:warm_ocean", "minecraft:deep_lukewarm_ocean", "minecraft:jungle"], "mood": "adventurous", "water": "sea"},
-    "the_snowbound_isle": {"spawn": ["minecraft:snowy_plains", "minecraft:snowy_taiga", "minecraft:snowy_beach"], "mood": "standard", "water": "high"},
-    "the_abyssal_shrine": {"spawn": ["minecraft:deep_ocean", "minecraft:deep_cold_ocean", "minecraft:deep_lukewarm_ocean"], "mood": "adventurous", "water": "sea"},
-    "the_pale_reach": {"spawn": ["minecraft:snowy_plains", "minecraft:ice_spikes", "terralith:frozen_cliffs"], "mood": "desolate"},
-    "the_violet_spire": {"spawn": ["terralith:amethyst_canyon", "terralith:haze_mountain", "minecraft:jagged_peaks"], "mood": "dramatic"},
-    "the_amplified_reaches": {"spawn": ["minecraft:windswept_hills", "minecraft:jagged_peaks", "minecraft:stony_peaks"], "mood": "dramatic"},
-    "the_endless_expanse": {"spawn": ["minecraft:plains", "minecraft:forest", "minecraft:desert", "minecraft:taiga"], "mood": "standard"},
-    # --- nether dims ---
-    "the_furnace_halls": {"spawn": ["minecraft:nether_wastes", "minecraft:basalt_deltas"], "mood": "adventurous"},
-    "the_bloodroot_wastes": {"spawn": ["minecraft:crimson_forest", "incendium:weeping_valley"], "mood": "standard"},
-    "the_basalt_spires": {"spawn": ["minecraft:basalt_deltas", "incendium:volcanic_deltas"], "mood": "dramatic"},
-    "the_blackstone_keep": {"spawn": ["minecraft:basalt_deltas", "minecraft:nether_wastes"], "mood": "hard"},
-    "the_molten_flats": {"spawn": ["minecraft:nether_wastes", "incendium:infernal_dunes", "incendium:volcanic_deltas"], "mood": "standard"},
-    "the_obsidian_sanctum": {"spawn": ["minecraft:soul_sand_valley", "minecraft:nether_wastes"], "mood": "hard"},
-    "the_ember_fields": {"spawn": ["minecraft:crimson_forest", "minecraft:nether_wastes"], "mood": "standard"},
-    "the_twisted_groves": {"spawn": ["minecraft:warped_forest", "incendium:inverted_forest"], "mood": "standard"},
-    "the_soulfields": {"spawn": ["minecraft:soul_sand_valley", "incendium:ash_barrens"], "mood": "standard"},
-    "the_blighted_maw": {"spawn": ["incendium:toxic_heap", "minecraft:soul_sand_valley", "incendium:withered_forest"], "mood": "hard"},
-    "the_teal_corruption": {"spawn": ["minecraft:warped_forest", "incendium:inverted_forest"], "mood": "standard"},
-    "the_weeping_vault": {"spawn": ["incendium:weeping_valley", "minecraft:crimson_forest"], "mood": "hard"},
-    "the_boneyard": {"spawn": ["minecraft:soul_sand_valley", "incendium:ash_barrens"], "mood": "hard"},
-    "the_buried_age": {"spawn": ["minecraft:nether_wastes", "incendium:quartz_flats"], "mood": "adventurous"},
-    "the_luminous_caverns": {"spawn": ["minecraft:nether_wastes", "incendium:quartz_flats", "minecraft:crimson_forest"], "mood": "serene"},
-    "the_fungal_lanterns": {"spawn": ["minecraft:crimson_forest", "minecraft:warped_forest"], "mood": "serene"},
-    "the_gilded_pit": {"spawn": ["minecraft:nether_wastes", "minecraft:basalt_deltas"], "mood": "hard"},
-    "the_wailing_narrows": {"spawn": ["minecraft:soul_sand_valley", "minecraft:basalt_deltas"], "mood": "standard"},
-    "the_forged_depths": {"spawn": ["minecraft:basalt_deltas", "incendium:volcanic_deltas"], "mood": "hard"},
-    # --- end dims ---
-    "the_end_citadel": {"spawn": ["minecraft:end_highlands", "minecraft:end_midlands"], "mood": "hard"},
-    "the_tiled_expanse": {"spawn": ["minecraft:end_midlands", "minecraft:end_barrens"], "mood": "standard"},
-    "the_pillared_void": {"spawn": ["minecraft:small_end_islands", "minecraft:end_barrens"], "mood": "desolate"},
-    "the_catalyst_maw": {"spawn": ["minecraft:end_highlands", "minecraft:end_midlands"], "mood": "hard"},
-    "the_crumbling_reaches": {"spawn": ["minecraft:end_highlands", "minecraft:end_barrens"], "mood": "hard"},
-    "the_red_monument": {"spawn": ["minecraft:end_barrens", "minecraft:end_midlands"], "mood": "standard"},
-    "the_fractured_halls": {"spawn": ["minecraft:end_highlands", "minecraft:end_midlands"], "mood": "hard"},
+# Short name -> locate id. Every id verified against the worldgen registries
+# extracted from the shipped jars/datapacks (Structory, Philip's Ruins,
+# Explorify, Dungeons Plus, Epic Dungeons, Adventure Dungeons, YUNG's,
+# Dungeons Arise, MNS, MES, MSS, Incendium, Nullscape).
+STRUCTS = {
+    # settlements + civilisation
+    "village": "#minecraft:village", "tavern": "nova_structures:tavern_birch",
+    "farmstead": "explorify:farmstead", "watchtower": "explorify:watchtower/plains",
+    "guide_post_warm": "explorify:guide_post_warm", "guide_post_cold": "explorify:guide_post_cold",
+    "campsite": "explorify:campsite", "dark_settlement": "explorify:dark_forest_settlement",
+    "outcast_grassy": "structory:outcast_villager_grassy", "outcast_desert": "structory:outcast_villager_desert",
+    "pillager_outpost": "minecraft:pillager_outpost", "pillager_lookout": "structory_towers:pillager_lookout",
+    "nomad_outpost": "structory_towers:nomad_outpost", "taiga_outpost": "structory_towers:taiga_outpost",
+    "foraging_outpost": "structory_towers:foraging_outpost", "mirage_outpost": "structory_towers:mirage_outpost",
+    "quarter_outpost": "structory_towers:quarter_outpost", "engineer_tower": "structory_towers:engineer_tower",
+    "firetower": "structory:firetower", "lighthouse": "structory_towers:lighthouse",
+    # ruins + the-world-went-wrong
+    "ruined_portal": "minecraft:ruined_portal", "mineshaft": "minecraft:mineshaft",
+    "ruin_grassy": "structory:ruin_grassy", "swamp_ruin": "structory:swamp_ruin",
+    "jungle_ruin": "structory:jungle_ruin", "forest_ruin": "structory:dense_forest_ruin",
+    "northern_ruin": "structory:northern_ruin", "taiga_ruin": "structory:taiga_ruin_surface",
+    "taiga_ruin_deep": "structory:taiga_ruin_underground",
+    "abandoned_camp": "structory:abandoned_camp", "abandoned_chapel": "structory:abandoned_chapel",
+    "graveyard": "structory:graveyard", "old_manor": "structory:old_manor",
+    "field_ruins": "philipsruins:field_stone_ruins", "badlands_ruins": "philipsruins:badlands_structures",
+    "ancient_ruins": "philipsruins:ancient_ruins", "ancient_crypt": "philipsruins:ancient_crypt",
+    "pumpkin_ruins": "philipsruins:pumpkin_ruins",
+    "mausoleum": "explorify:mausoleum", "ruins": "explorify:ruins",
+    "ruins_desert": "adventuredungeons:ruins_desert", "ruins_snow": "adventuredungeons:ruins_snow",
+    "ruins_standard": "adventuredungeons:ruins_standard",
+    "desert_shrine": "explorify:desert_shrine", "badlands_pyramid": "explorify:badlands_pyramid",
+    "black_spiral": "explorify:black_spiral", "mangrove_hut": "explorify:mangrove_hut",
+    "supply_cache_desert": "explorify:supply_cache/desert",
+    # dungeons
+    "trial_chambers": "minecraft:trial_chambers", "ancient_city": "minecraft:ancient_city",
+    "skeleton_dungeon": "betterdungeons:skeleton_dungeon", "spider_dungeon": "betterdungeons:spider_dungeon",
+    "zombie_dungeon": "betterdungeons:zombie_dungeon",
+    "cold_dungeon": "dungeons_plus:cold_dungeon", "frozen_dungeon": "dungeons_plus:frozen_dungeon",
+    "lush_dungeon": "dungeons_plus:lush_dungeon", "muddy_dungeon": "dungeons_plus:muddy_dungeon",
+    "webbed_dungeon": "dungeons_plus:webbed_dungeon", "infested_dungeon": "dungeons_plus:infested_dungeon",
+    "mouldy_dungeon": "dungeons_plus:mouldy_dungeon", "dusty_tomb": "dungeons_plus:dusty_tomb",
+    "scorched_tomb": "dungeons_plus:scorched_tomb", "deepwater_dungeon": "dungeons_plus:deepwater_dungeon",
+    "ice_dungeon_l": "epic:large_ice_dungeon", "ice_dungeon_m": "epic:medium_ice_dungeon",
+    "sand_dungeon_l": "epic:large_sand_dungeon", "sculk_dungeon": "philipsruins:sculk_dungeon",
+    "bone_dungeon": "philipsruins:bone_dungeon", "underground_camp": "adventuredungeons:underground_camp",
+    "coldlair": "adventuredungeons:coldlair", "murkydungeon": "adventuredungeons:murkydungeon",
+    # epic
+    "coliseum": "dungeons_arise:coliseum", "keep_kayra": "dungeons_arise:keep_kayra",
+    "infested_temple": "dungeons_arise:infested_temple", "abandoned_temple": "dungeons_arise:abandoned_temple",
+    "bandit_towers": "dungeons_arise:bandit_towers", "bandit_village": "dungeons_arise:bandit_village",
+    "illager_fort": "dungeons_arise:illager_fort", "illager_campsite": "dungeons_arise:illager_campsite",
+    "jungle_tree_house": "dungeons_arise:jungle_tree_house", "giant_mushroom": "dungeons_arise:giant_mushroom",
+    "wizard_tower": "structory_towers:wizard_tower", "ancient_temple": "structory_towers:ancient_temple",
+    "relic_temple": "structory_towers:sacred_relic_temple",
+    "mansion": "minecraft:mansion", "monument": "minecraft:monument",
+    # ocean / frozen vanilla
+    "shipwreck": "minecraft:shipwreck", "buried_treasure": "minecraft:buried_treasure",
+    "igloo": "minecraft:igloo", "desert_pyramid": "minecraft:desert_pyramid",
+    "ocean_ruins": "philipsruins:ocean_ruins", "ocean_fortress": "philipsruins:ocean_fortress",
+    "ocean_pillar": "structory_towers:ocean_pillar",
+    # nether
+    "fortress": "betterfortresses:fortress", "bastion": "minecraft:bastion_remnant",
+    "sanctum": "incendium:sanctum", "forbidden_castle": "incendium:forbidden_castle",
+    "piglin_village": "incendium:piglin_village", "nether_reactor": "incendium:nether_reactor",
+    "ruined_lab": "incendium:ruined_lab", "infernal_altar": "incendium:infernal_altar",
+    "nether_tower": "incendium:abandoned_tower", "pipeline": "incendium:pipeline",
+    "giant_skull": "mns:giant_skull", "nether_graveyard": "mns:grave_yard",
+    "crimson_forge": "mns:crimson_forge", "copper_tower": "mns:copper_tower",
+    "blackstone_pillars": "mns:large_blackstone_pillars", "blackstone_walls": "mns:large_blackstone_walls",
+    "nether_bridge": "mns:bridge_1", "crimson_well": "mns:crimson_lava_well",
+    "crimson_fungus": "mns:medium_crimson_fungus", "nether_brick_hall": "mns:large_nether_brick",
+    "warped_greatsword": "structory_towers:warped_greatsword",
+    "warped_outpost": "structory_towers:nether/warped_outpost",
+    "strange_outpost": "structory_towers:nether/strange_outpost",
+    "nether_dungeon": "betterdungeons:small_nether_dungeon",
+    "lost_soul_dungeon": "philipsruins:lost_soul_dungeon", "nether_lava_ruins": "philipsruins:nether_lava_ruins",
+    "start_nether_ruin": "philipsruins:start_nether_ruin",
+    # end
+    "end_city": "minecraft:end_city", "phantom_citadel": "mes:phantom_citadel",
+    "enderkeep": "mes:enderkeep_courtyard", "enderwatch_tower": "mes:enderwatch_tower",
+    "ender_spire": "mes:ender_spire", "monolith": "mes:monolith",
+    "ruined_pillar": "mes:ruined_pillar", "mystical_archway": "mes:mystical_archway",
+    "manuscript_shrine": "mes:manuscript_shrine", "mythic_garden": "mes:mythic_garden",
+    "astral_hideaway": "mes:astral_hideaway", "endscraps": "mes:endscraps",
+    "mega_ship_crashed": "mes:mega_ship_crashed", "mega_ship_deepslate": "mes:mega_ship_crashed_deepslate",
+    "dragon_skeleton": "nullscape:dragon_skeleton", "end_tower": "structory_towers:end/end_tower",
+    "end_ruins": "philipsruins:end_ruins", "end_gate_fortress": "philipsruins:end_gate_fortress",
+    # sky islands (MSS places on the floating islands)
+    "sky_castle_ruin": "mss:castle_ruin", "sky_arena": "mss:arena",
+    "sky_house": "mss:small_oak_house", "sky_volcano": "mss:volcano",
 }
 
 # What each mood is optimising for — shown in the viewer so a human can
@@ -195,6 +188,45 @@ def family_of(dim_type):
     return None  # void / superflat
 
 
+def world_family(dimension_id):
+    """Family for a 'worlds' entry (vanilla + static mod dimensions)."""
+    if dimension_id == "minecraft:the_nether":
+        return "nether"
+    if dimension_id == "minecraft:the_end":
+        return "end"
+    return "overworld"
+
+
+def load_difficulty(config_path):
+    """Per-dimension mob difficulty multipliers from
+    config/configurable-difficulty/configurable-difficulty.json5 (sibling of
+    the multiverse config). Tolerant of // comments; {} when absent."""
+    import json
+    import re
+    from pathlib import Path
+    p = Path(config_path).parent / "configurable-difficulty" / "configurable-difficulty.json5"
+    if not p.exists():
+        return {}
+    text = re.sub(r"^\s*//.*$", "", p.read_text(), flags=re.M)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return {}
+    return data.get("dimensionMultipliers", {})
+
+
+def mood_from_difficulty(mult):
+    if mult <= 0.0:
+        return "serene"
+    if mult <= 0.9:
+        return "scenic"
+    if mult <= 1.2:
+        return "standard"
+    if mult <= 1.7:
+        return "adventurous"
+    return "hard"
+
+
 def rollable(dim):
     """A dimension is rollable unless it is a void/superflat WITHOUT biomes."""
     t = dim.get("type")
@@ -226,54 +258,110 @@ def nether_difficulty(scale):
     return "standard"
 
 
-def build_profile(dim, config):
-    """Full per-dimension profile: measurement plan + scoring parameters."""
+# Terrain targets by noiseSettings flavour (matched on the id's path so
+# consumer preset namespaces work too): relief = max-min of grid heights,
+# grain = mean |dh| between adjacent points, water = wet grid fraction.
+TERRAIN_TARGETS = {
+    "compressed": {"relief": (40, 160), "grain": (6, 26), "water": (0.0, 0.30)},
+    "wide": {"relief": (10, 60), "grain": (0, 6), "water": (0.05, 0.45)},
+    None: {"relief": (18, 90), "grain": (2, 14), "water": (0.0, 0.45)},
+}
+
+
+def terrain_targets_for(noise):
+    key = (noise or "").rsplit(":", 1)[-1] or None
+    return dict(TERRAIN_TARGETS.get(key, TERRAIN_TARGETS[None]))
+
+
+# Generic wants for dimensions with NO seedRoll block (e.g. a consumer's
+# own dimensions before they curate one). Deliberately modest.
+DEFAULT_WANTS = {
+    "overworld": {"village": "near_spawn", "mineshaft": "spread",
+                  "trial_chambers": "spread", "ancient_city": "near_border"},
+    "nether": {"fortress": "spread", "bastion": "spread"},
+    "end": {"end_city": "spread"},
+}
+
+
+def resolve_struct(name):
+    """wants/shuns entries are STRUCTS short names or raw '<ns>:<path>' ids."""
+    return STRUCTS.get(name, name if ":" in name else None)
+
+
+def build_profile(dim, config, difficulty=None):
+    """Full per-dimension profile from the dimension's config entry — the
+    'seedRoll' block (mood/spawnFilter/water/wants/shuns/description) is the
+    single source of truth; sensible generics cover entries without one.
+    Handles both runtime dimensions and 'worlds' entries (vanilla + static
+    mod dimensions, marked by is_world/scale on the entry)."""
     name = dim["name"]
-    dim_type = dim.get("type")
-    fam = family_of(dim_type)
-    scales = portal_scales(config)
-    scale = scales.get(name, 1.0)
+    is_world = "type" not in dim  # worlds entries have dimensionId only
+    dim_type = dim.get("type", "world")
+    if is_world:
+        fam = world_family(dim.get("dimensionId", ""))
+        scale = float(dim.get("scale", 1.0))
+    else:
+        fam = family_of(dim_type)
+        scale = portal_scales(config).get(name, 1.0)
     radius = DEFAULT_BORDER_RADIUS / scale
     density = dim.get("structureDensity")
     peaceful = dim.get("hostileSpawning") is False
     noise = dim.get("noiseSettings")
-    theme = THEMES.get(name, {})
+    sr = dim.get("seedRoll") or {}
     config_biomes = [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
 
-    mood = theme.get("mood", "standard")
-    if fam == "nether" and mood == "standard":
-        mood = nether_difficulty(scale)
-    if peaceful:
-        mood = "serene"
-    if density == "dense" and mood in ("standard", "adventurous"):
-        mood = "adventurous"
+    # Mob difficulty (configurable-difficulty.json5) is the tiebreaker for
+    # mood when the config doesn't set one, and always shown in the viewer.
+    dim_id = dim.get("dimensionId", "")
+    mob_difficulty = (difficulty or {}).get(dim_id)
 
-    # Spawn probe list: namesake first, then (for listed dims) the config
-    # biomes so a non-namesake-but-listed spawn still identifies itself.
-    spawn_probes = list(theme.get("spawn", []))
+    mood = sr.get("mood", "standard")
+    if mood not in MOOD_WEIGHTS:
+        mood = "standard"
+    if "mood" not in sr:
+        if mob_difficulty is not None:
+            mood = mood_from_difficulty(mob_difficulty)
+        elif fam == "nether":
+            mood = nether_difficulty(scale)
+        if peaceful:
+            mood = "serene"
+        elif density == "dense" and mood in ("standard", "adventurous"):
+            mood = "adventurous"
+
+    # Spawn identity: the seedRoll spawnFilter (candidates whose spawn misses
+    # it are rejected); probes also cover the config list so a listed-but-
+    # off-filter spawn still identifies itself in the data.
+    namesake = list(sr.get("spawnFilter") or config_biomes[:4])
+    spawn_probes = list(namesake)
     for b in config_biomes:
         if b not in spawn_probes:
             spawn_probes.append(b)
-    namesake = set(theme.get("spawn", []) or config_biomes[:4])
 
     # Biome variety battery: locate biome for listed biomes (voids,
-    # multi_biome, islands); otherwise the namesake list. Locate biome is
+    # multi_biome, islands); otherwise the spawn filter. Locate biome is
     # ~1s per call, so long lists are sampled evenly down to 8.
-    variety_biomes = config_biomes if config_biomes else list(theme.get("spawn", []))[:4]
+    variety_biomes = config_biomes if config_biomes else namesake[:4]
     if len(variety_biomes) > 8:
         step = len(variety_biomes) / 8.0
         variety_biomes = [variety_biomes[int(i * step)] for i in range(8)]
 
-    # Structure battery with bands shifted by density; peaceful drops
-    # hostile structures.
+    # Structure battery: wants (band-scored, density-shifted; peaceful drops
+    # hostile ones) + shuns (presence inside the radius costs points).
+    wants = sr.get("wants") if ("wants" in sr or "shuns" in sr) else DEFAULT_WANTS.get(fam or "", {})
     battery = []
-    if fam:
-        for sname, sid, band in BATTERY[fam]:
-            if peaceful and sname in HOSTILE_STRUCTURES:
-                continue
-            battery.append((sname, sid, shifted_band(band, density)))
+    for sname, band in (wants or {}).items():
+        sid = resolve_struct(sname)
+        if sid is None or band not in BANDS:
+            continue
+        if peaceful and sname in HOSTILE_STRUCTURES:
+            continue
+        battery.append((sname, sid, shifted_band(band, density), "want"))
+    for sname in sr.get("shuns", []):
+        sid = resolve_struct(sname)
+        if sid is not None:
+            battery.append((sname, sid, None, "shun"))
 
-    terrain = dict(TERRAIN_TARGETS.get(noise, TERRAIN_TARGETS[None]))
+    terrain = terrain_targets_for(noise)
     # Mood modulation: hard/dramatic want more violence, serene less.
     if mood in ("hard", "dramatic"):
         lo, hi = terrain["relief"]
@@ -284,7 +372,7 @@ def build_profile(dim, config):
         lo, hi = terrain["relief"]
         terrain["relief"] = (lo * 0.7, hi * 0.8)
     # Water preference overrides.
-    wpref = theme.get("water")
+    wpref = sr.get("water")
     if wpref == "sea":
         terrain["water"] = (0.5, 1.0)
     elif wpref == "high":
@@ -293,20 +381,30 @@ def build_profile(dim, config):
         terrain["water"] = (0.0, 0.10)
 
     is_void = dim_type == "void"
-    is_islands = dim_type in ("sky_islands", "nether_islands")
+    is_islands = dim_type in ("sky_islands", "nether_islands") \
+        or dim.get("dimensionId") == "paradise_lost:paradise_lost"
 
     weights = dict(MOOD_WEIGHTS[mood])
     if is_void:
         # No terrain in a void — variety and namesake carry the score.
         weights = {"namesake": 30, "variety": 55, "terrain": 15, "structures": 0}
+    elif mob_difficulty is not None and mob_difficulty >= 2.0:
+        # Very dangerous worlds must be WORTH IT: structures matter more.
+        weights["structures"] += 10
+        weights["namesake"] = max(5, weights["namesake"] - 5)
+        weights["variety"] = max(5, weights["variety"] - 5)
 
     return {
         "name": name,
-        "blurb": MOOD_BLURBS[mood] + (" (Void: no terrain generates, but the biome layout"
-                                      " is real — variety and namesake carry the score.)"
-                                      if is_void else ""),
+        "blurb": sr.get("description")
+        or MOOD_BLURBS[mood] + (" (Void: no terrain generates, but the biome layout"
+                                " is real — variety and namesake carry the score.)"
+                                if is_void else ""),
         "type": dim_type,
         "family": fam,
+        "is_world": is_world,
+        "dimension_id": dim.get("dimensionId", ""),
+        "mob_difficulty": mob_difficulty,
         "scale": scale,
         "radius": radius,
         "density": density,

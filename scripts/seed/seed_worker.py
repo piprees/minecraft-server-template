@@ -41,7 +41,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dimension_profiles import build_profile  # noqa: E402
+from dimension_profiles import build_profile, load_difficulty  # noqa: E402
 
 BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "300"))
 IMAGE = os.environ.get("ROLL_IMAGE", "itzg/minecraft-server:2026.7.0-java21")
@@ -60,9 +60,9 @@ ERROR_FILTERS = ("No data fixer registered", "Error loading class",
 # CENTRED and ignores --cropOffset on some macOS builds — it silently
 # produced blank thumbnails from the empty middle of the tile.
 # ---------------------------------------------------------------------------
-def crop_png(src, dst, x0, y0, w, h):
+def _png_rows(data):
+    """-> (rows, width, height, ctype, bpp) for an 8-bit RGB/RGBA PNG."""
     import zlib
-    data = Path(src).read_bytes()
     if data[:8] != b"\x89PNG\r\n\x1a\n":
         raise ValueError("not a PNG")
     pos, width, height, ctype, idat = 8, 0, 0, 0, b""
@@ -108,6 +108,12 @@ def crop_png(src, dst, x0, y0, w, h):
                 line[i] = (line[i] + pr) & 0xFF
         rows.append(bytes(line))
         prev = line
+    return rows, width, height, ctype, bpp
+
+
+def crop_png(src, dst, x0, y0, w, h):
+    import zlib
+    rows, _width, height, ctype, bpp = _png_rows(Path(src).read_bytes())
     out = bytearray()
     for r in range(y0, min(y0 + h, height)):
         out += b"\x00" + rows[r][x0 * bpp:(x0 + w) * bpp]
@@ -122,6 +128,26 @@ def crop_png(src, dst, x0, y0, w, h):
         + chunk(b"IDAT", zlib.compress(bytes(out), 6)) + chunk(b"IEND", b""))
 
 
+def png_hole_fraction(path, w, h):
+    """Fraction of unrendered pixels (transparent, or pure black in RGB) in
+    the top-left w x h of a tile — the no-holes-no-black-squares check."""
+    try:
+        rows, _width, height, ctype, bpp = _png_rows(Path(path).read_bytes())
+    except (ValueError, OSError):
+        return 1.0
+    holes = total = 0
+    for r in range(min(h, height)):
+        row = rows[r]
+        for c in range(min(w, len(row) // bpp)):
+            total += 1
+            px = row[c * bpp:(c + 1) * bpp]
+            if ctype == 6 and px[3] == 0:
+                holes += 1
+            elif px[0] == 0 and px[1] == 0 and px[2] == 0:
+                holes += 1
+    return holes / total if total else 1.0
+
+
 def log(worker_id, msg):
     print(f"[W{worker_id}] {msg}", flush=True)
 
@@ -130,7 +156,12 @@ def log(worker_id, msg):
 # Minimal Source-RCON client
 # ---------------------------------------------------------------------------
 class Rcon:
-    def __init__(self, host, port, password, timeout=15.0):
+    # Command responses can take a long time when N servers world-create
+    # simultaneously on a contended host — 15s killed a whole 8-worker fleet.
+    CMD_TIMEOUT = float(os.environ.get("ROLL_RCON_CMD_TIMEOUT", "120"))
+
+    def __init__(self, host, port, password, timeout=None):
+        timeout = timeout if timeout is not None else self.CMD_TIMEOUT
         self.addr = (host, port)
         self.password = password
         self.timeout = timeout
@@ -220,7 +251,7 @@ def fabric_pin_env(workdir):
             "-e", f"FABRIC_LAUNCHER_VERSION={m.group(2)}"]
 
 
-def start_container(name, workdir, memory):
+def start_container(name, workdir, memory, seed="1"):
     docker("rm", "-f", name, check=False)
     mem_gb = int(memory[:-1]) if memory.endswith("G") else 0
     java_mem = f"{mem_gb - 1}G" if mem_gb > 2 else memory
@@ -230,7 +261,7 @@ def start_container(name, workdir, memory):
            "--log-opt", "max-size=5m", "--log-opt", "max-file=1",
            "-p", "127.0.0.1:0:25575",
            "-e", "EULA=TRUE", "-e", "TYPE=FABRIC", "-e", "VERSION=1.21.1",
-           "-e", "SEED=1", "-e", f"MEMORY={java_mem}",
+           "-e", f"SEED={seed}", "-e", f"MEMORY={java_mem}",
            "-e", "ENABLE_RCON=TRUE", "-e", "RCON_PASSWORD=seedroll",
            "-e", "ONLINE_MODE=FALSE", "-e", "ENABLE_AUTOPAUSE=FALSE",
            "-e", "OVERRIDE_SERVER_PROPERTIES=true",
@@ -246,7 +277,7 @@ def start_container(name, workdir, memory):
 
 
 def wait_for_rcon(worker_id, name, port):
-    rcon = Rcon("127.0.0.1", port, "seedroll")
+    rcon = Rcon("127.0.0.1", port, "seedroll", timeout=10.0)
     start = time.time()
     last = ""
     while time.time() - start < BOOT_TIMEOUT:
@@ -256,6 +287,9 @@ def wait_for_rcon(worker_id, name, port):
         try:
             rcon.connect()
             rcon.cmd("list")
+            # Boot probing used a short timeout; commands get the long one.
+            rcon.timeout = Rcon.CMD_TIMEOUT
+            rcon.sock.settimeout(rcon.timeout)
             log(worker_id, f"server ready ({int(time.time() - start)}s)")
             return rcon
         except (OSError, ConnectionError):
@@ -367,8 +401,14 @@ def destroy_candidate(rcon, workdir, ns, cand):
     shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
 
 
-def measure_candidate(rcon, worker_id, container, ns, cand, profile, seed, err_before):
-    dim = f"{ns}:{cand}"
+def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
+                      force_accept=False):
+    """Measure one candidate world (dim = full dimension id). Applies the
+    spawn filter FIRST: a spawn that misses it returns immediately with a
+    rejection row — the caller re-rolls a fresh seed. Namesakes represent
+    SPAWN; the filter is the contract. force_accept measures anyway (the
+    last attempt is always kept so narrow filters still bank candidates —
+    the namesake component simply scores low)."""
     rows = []
 
     # if-biome sampling at an ungenerated chunk is unreliable — generate the
@@ -381,7 +421,11 @@ def measure_candidate(rcon, worker_id, container, ns, cand, profile, seed, err_b
     rows.append(("spawn_biome", spawn))
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
 
-    for sname, sid, _band in profile["battery"]:
+    if profile["namesake"] and spawn not in profile["namesake"] and not force_accept:
+        rows.append(("rejected", 1))
+        return rows, spawn, False
+
+    for sname, sid, _band, _kind in profile["battery"]:
         d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"))
         rows.append((f"structure_{sname}_dist", d))
 
@@ -403,7 +447,7 @@ def measure_candidate(rcon, worker_id, container, ns, cand, profile, seed, err_b
             rcon.cmd(f"execute in {dim} run forceload remove {x} {z}")
 
     rows.append(("errors", max(0, error_count(container) - err_before)))
-    return rows, spawn
+    return rows, spawn, True
 
 
 # Per-family BlueMap map settings, mirroring BlueMap's stock dimension
@@ -447,41 +491,42 @@ def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, di
         + MAP_LIGHTING.get(family, MAP_LIGHTING["overworld"]))
     rcon.cmd("bluemap reload")
     time.sleep(3)
-    upd = rcon.cmd(f"bluemap force-update {cand}")
-    if "not" in upd.lower() and "found" in upd.lower():
-        rcon.cmd(f"bluemap update {cand}")
 
+    # Renders must be COMPLETE — no holes, no unrendered squares. Chunk gen
+    # and the BlueMap update are both async, so re-flush + re-update until
+    # the cropped thumbnail passes the hole check (bounded attempts).
     tiles = Path(workdir) / "bluemap" / "web" / "maps" / cand / "tiles"
     origin_tile = tiles / "1" / "x0" / "z0.png"
-    deadline = time.time() + 120
-    picked = None
-    while time.time() < deadline:
-        if origin_tile.exists():
-            time.sleep(4)  # let the write finish
-            picked = origin_tile
+    picked = False
+    hole_ok = 0.02 if family == "overworld" else 0.10  # nether roof-cut edges
+    for attempt in range(5):
+        rcon.cmd("save-all flush")
+        time.sleep(2)
+        upd = rcon.cmd(f"bluemap force-update {cand}")
+        if "not" in upd.lower() and "found" in upd.lower():
+            rcon.cmd(f"bluemap update {cand}")
+        deadline = time.time() + 60
+        while time.time() < deadline and not origin_tile.exists():
+            time.sleep(4)
+        if not origin_tile.exists():
+            continue
+        time.sleep(4)  # let the write finish
+        try:
+            crop_png(origin_tile, out_png, 0, 0, 145, 145)
+        except (ValueError, OSError):
+            continue
+        holes = png_hole_fraction(out_png, 145, 145)
+        if holes <= hole_ok:
+            picked = True
+            log(worker_id, f"  render saved: {out_png.name} "
+                           f"(attempt {attempt + 1}, holes {holes:.1%})")
             break
-        pngs = sorted(tiles.rglob("*.png"), key=lambda p: p.stat().st_size, reverse=True) \
-            if tiles.exists() else []
-        if pngs:
-            picked = pngs[0]  # keep polling for the origin tile a bit longer
-            time.sleep(4)
-        else:
-            time.sleep(4)
-
-    if picked:
-        if picked == origin_tile:
-            # The render area is the colour half's top-left 144x144 px
-            # (lowres tile = 501px colour map stacked on 501px metadata).
-            try:
-                crop_png(picked, out_png, 0, 0, 145, 145)
-            except (ValueError, OSError) as e:
-                log(worker_id, f"  crop failed ({e}) — keeping full tile")
-                shutil.copy2(picked, out_png)
-        else:
-            shutil.copy2(picked, out_png)
-        log(worker_id, f"  render saved: {out_png.name} <- {picked.relative_to(tiles)}")
-    else:
-        log(worker_id, f"  render TIMEOUT for {cand} (no tiles after 120s)")
+        log(worker_id, f"  render attempt {attempt + 1}: {holes:.0%} holes — regenerating")
+        # Un-rendered chunks are usually still generating; nudge and retry.
+        rcon.cmd(f"execute in {dim} run forceload add 0 0 143 143")
+        time.sleep(10)
+    if not picked:
+        log(worker_id, f"  render INCOMPLETE for {cand} after 5 attempts (kept best effort)")
 
     if os.environ.get("ROLL_RENDER_DEBUG"):
         dbg = out_png.parent / f"{seed}-web-debug"
@@ -494,7 +539,7 @@ def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, di
     shutil.rmtree(Path(workdir) / "bluemap" / "web" / "maps" / cand, ignore_errors=True)
     rcon.cmd("forceload remove all")
     rcon.cmd("bluemap reload")
-    return picked is not None
+    return picked
 
 
 # ---------------------------------------------------------------------------
@@ -530,6 +575,158 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
         shutil.copytree(dp_template, dst, dirs_exist_ok=True)
 
 
+def boot(wid, container, workdir, memory, seed="1"):
+    """Boot with retries; returns a live Rcon (frozen ticks) or None."""
+    rcon = None
+    for attempt in range(1, 4):
+        port = start_container(container, workdir, memory, seed=seed)
+        rcon = wait_for_rcon(wid, container, port)
+        if rcon is not None:
+            break
+        log(wid, f"boot attempt {attempt} failed{' — retrying' if attempt < 3 else ''}")
+    if rcon is not None:
+        rcon.cmd("tick freeze")
+        rcon.cmd("gamerule doMobSpawning false")
+        rcon.cmd("gamerule doDaylightCycle false")
+    return rcon
+
+
+def run_dimension_jobs(args, wid, container, base_config, csv_fh):
+    """Dimension candidates: one long-lived container, customdim per attempt.
+    Each manifest slot carries spare seeds; spawn-filter rejections re-roll
+    to the next seed (rejections are banked so those seeds never repeat)."""
+    ns = base_config.get("namespace", "adventure")
+    dims_by_name = {d["name"]: d for d in base_config["dimensions"]}
+    difficulty = load_difficulty(args.base_config)
+
+    jobs = []
+    for line in Path(args.manifest).read_text().splitlines():
+        if line.strip():
+            dim_name, base, seeds = line.split("|")
+            jobs.append((dim_name, base, [int(s) for s in seeds.split(",")]))
+    if not jobs:
+        log(wid, "nothing to do")
+        return 0
+
+    prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+    log(wid, f"booting container ({len(jobs)} candidate slots, mode {args.mode})")
+    rcon = boot(wid, container, args.workdir, args.memory)
+    if rcon is None:
+        return 1
+
+    done = 0
+    for dim_name, base, seeds in jobs:
+        if not container_running(container):
+            log(wid, "container died — rebooting")
+            rcon = boot(wid, container, args.workdir, args.memory)
+            if rcon is None:
+                return 1
+        profile = build_profile(dims_by_name[dim_name], base_config, difficulty)
+        t0 = time.time()
+        accepted = False
+        rejections = 0
+        for k, seed in enumerate(seeds):
+            cand = f"{base}a{k}"
+            # One slow/broken candidate must never kill the worker.
+            try:
+                err_before = error_count(container)
+                if not create_candidate(rcon, wid, ns, cand, profile, seed):
+                    continue
+                if args.mode in ("measure", "measure+render"):
+                    rows, spawn, accepted = measure_candidate(
+                        rcon, wid, container, f"{ns}:{cand}", profile, err_before,
+                        force_accept=(k == len(seeds) - 1))
+                    for metric, value in rows:
+                        csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
+                    csv_fh.flush()
+                    if not accepted:
+                        rejections += 1
+                        destroy_candidate(rcon, args.workdir, ns, cand)
+                        continue
+                else:
+                    accepted, spawn = True, ""
+                if args.mode in ("render", "measure+render"):
+                    render_candidate(rcon, wid, args.workdir, args.seedtest,
+                                     container, ns, cand, dim_name, seed,
+                                     family=profile["family"] or "overworld")
+                destroy_candidate(rcon, args.workdir, ns, cand)
+            except (OSError, ConnectionError) as e:
+                log(wid, f"  SKIP {dim_name} seed {seed}: {type(e).__name__}: {e}")
+                rcon.close()
+                try:
+                    destroy_candidate(rcon, args.workdir, ns, cand)
+                except (OSError, ConnectionError):
+                    rcon.close()
+                continue
+            if accepted:
+                done += 1
+                rej = f" +{rejections} spawn-rejected" if rejections else ""
+                log(wid, f"[{done}/{len(jobs)}] {dim_name} seed {seed} "
+                         f"({int(time.time() - t0)}s spawn={spawn}{rej})")
+                break
+        if not accepted:
+            log(wid, f"[{done}/{len(jobs)}] {dim_name}: no spawn-filter hit in "
+                     f"{len(seeds)} attempts ({int(time.time() - t0)}s) — banked as rejections")
+    log(wid, f"done: {done}/{len(jobs)} candidate slots")
+    return 0
+
+
+def run_world_jobs(args, wid, container, base_config, csv_fh):
+    """World-seed candidates: every seed is a fresh BOOT (SEED=<s>); all
+    configured worlds are measured per boot. The overworld's spawn filter
+    early-rejects a seed before the expensive full battery."""
+    difficulty = load_difficulty(args.base_config)
+    worlds = base_config.get("worlds", [])
+    if not worlds:
+        log(wid, "no worlds configured")
+        return 0
+    profiles = [(w, build_profile(w, base_config, difficulty)) for w in worlds]
+
+    lines = [ln for ln in Path(args.manifest).read_text().splitlines() if ln.strip()]
+    quota = int(lines[0].split("|")[1])
+    seeds = [int(s) for s in lines[1:]]
+    if not quota or not seeds:
+        log(wid, "nothing to do")
+        return 0
+
+    accepted = 0
+    for seed in seeds:
+        if accepted >= quota:
+            break
+        t0 = time.time()
+        prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+        rcon = boot(wid, container, args.workdir, args.memory, seed=str(seed))
+        if rcon is None:
+            return 1
+        try:
+            # Overworld first — its spawn filter gates the whole seed; the
+            # other worlds are always measured in full (their namesake
+            # component just scores what it finds).
+            for world, profile in profiles:
+                dim = world["dimensionId"]
+                err_before = error_count(container)
+                rows, spawn, ok = measure_candidate(
+                    rcon, wid, container, dim, profile, err_before,
+                    force_accept=(world["name"] != "overworld"))
+                for metric, value in rows:
+                    csv_fh.write(f"{world['name']},{seed},{metric},{value}\n")
+                csv_fh.flush()
+                if not ok and world["name"] == "overworld":
+                    log(wid, f"world seed {seed}: overworld spawn={spawn} — rejected "
+                             f"({int(time.time() - t0)}s)")
+                    break
+            else:
+                accepted += 1
+                log(wid, f"[{accepted}/{quota}] world seed {seed} measured "
+                         f"({int(time.time() - t0)}s)")
+        except (OSError, ConnectionError) as e:
+            log(wid, f"  SKIP world seed {seed}: {type(e).__name__}: {e}")
+        finally:
+            docker("rm", "-f", container, check=False)
+    log(wid, f"done: {accepted}/{quota} world seeds")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--worker-id", required=True)
@@ -538,88 +735,25 @@ def main():
     ap.add_argument("--mvconfig", required=True)
     ap.add_argument("--base-config", required=True)
     ap.add_argument("--seedtest", required=True)
-    ap.add_argument("--mode", choices=["measure", "render", "measure+render"], default="measure")
+    ap.add_argument("--mode", choices=["measure", "render", "measure+render", "world"],
+                    default="measure")
     ap.add_argument("--memory", default=os.environ.get("ROLL_MEMORY", "6G"))
     args = ap.parse_args()
 
     wid = args.worker_id
-    container = f"seedrollall-{wid}{'r' if args.mode == 'render' else ''}"
+    suffix = {"render": "r", "world": "v"}.get(args.mode, "")
+    container = f"seedrollall-{wid}{suffix}"
     base_config = json.loads(Path(args.base_config).read_text())
-    ns = base_config.get("namespace", "adventure")
-    dims_by_name = {d["name"]: d for d in base_config["dimensions"]}
-
-    jobs = []
-    for line in Path(args.manifest).read_text().splitlines():
-        if line.strip():
-            dim_name, cand, seed = line.split("|")
-            jobs.append((dim_name, cand, int(seed)))
-    if not jobs:
-        log(wid, "nothing to do")
-        return 0
 
     csv_path = Path(args.seedtest) / f"worker-{wid}.csv"
     csv_new = not csv_path.exists()
-
-    prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
-    log(wid, f"booting container ({len(jobs)} candidates, mode {args.mode})")
-    rcon = None
-    boots = 0
-    while rcon is None and boots < 3:
-        boots += 1
-        port = start_container(container, args.workdir, args.memory)
-        rcon = wait_for_rcon(wid, container, port)
-        if rcon is None:
-            log(wid, f"boot attempt {boots} failed{' — retrying' if boots < 3 else ''}")
-
     try:
-        if rcon is None:
-            return 1
-        rcon.cmd("tick freeze")
-        rcon.cmd("gamerule doMobSpawning false")
-        rcon.cmd("gamerule doDaylightCycle false")
-
-        done = 0
         with open(csv_path, "a") as csv_fh:
             if csv_new:
                 csv_fh.write("target,seed,metric,value\n")
-            for dim_name, cand, seed in jobs:
-                if not container_running(container):
-                    if boots >= 3:
-                        log(wid, "container died 3x — giving up")
-                        return 1
-                    log(wid, "container died — rebooting")
-                    boots += 1
-                    port = start_container(container, args.workdir, args.memory)
-                    rcon = wait_for_rcon(wid, container, port)
-                    if rcon is None:
-                        return 1
-                    rcon.cmd("tick freeze")
-
-                profile = build_profile(dims_by_name[dim_name], base_config)
-                t0 = time.time()
-                spawn = ""
-                err_before = error_count(container)
-                if not create_candidate(rcon, wid, ns, cand, profile, seed):
-                    continue
-
-                if args.mode in ("measure", "measure+render"):
-                    rows, spawn = measure_candidate(
-                        rcon, wid, container, ns, cand, profile, seed, err_before)
-                    for metric, value in rows:
-                        csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
-                    csv_fh.flush()
-                if args.mode in ("render", "measure+render"):
-                    render_candidate(rcon, wid, args.workdir, args.seedtest,
-                                     container, ns, cand, dim_name, seed,
-                                     family=profile["family"] or "overworld")
-
-                destroy_candidate(rcon, args.workdir, ns, cand)
-                done += 1
-                extra = f" spawn={spawn}" if args.mode != "render" else ""
-                log(wid, f"[{done}/{len(jobs)}] {dim_name} seed {seed} "
-                         f"({int(time.time() - t0)}s{extra})")
-        log(wid, f"done: {done}/{len(jobs)} candidates")
-        return 0
+            if args.mode == "world":
+                return run_world_jobs(args, wid, container, base_config, csv_fh)
+            return run_dimension_jobs(args, wid, container, base_config, csv_fh)
     finally:
         docker("rm", "-f", container, check=False)
 

@@ -6,27 +6,121 @@
       "type": "overworld",
       "dimensionId": "adventure:the_claymarsh",
       "seed": 6273634989319082075,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "natures_spirit:marsh",
+          "minecraft:swamp",
+          "minecraft:mangrove_swamp",
+          "terralith:orchid_swamp",
+          "natures_spirit:bamboo_wetlands"
+        ],
+        "water": "high",
+        "wants": {
+          "swamp_ruin": "spread",
+          "mangrove_hut": "near_spawn",
+          "muddy_dungeon": "near_border",
+          "graveyard": "spread"
+        },
+        "shuns": [
+          "village",
+          "mansion",
+          "trial_chambers",
+          "ancient_city"
+        ],
+        "description": "Quiet wetland wilderness \u2014 reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes."
+      }
     },
     {
       "name": "the_scorched_mesa",
       "type": "overworld",
       "dimensionId": "adventure:the_scorched_mesa",
       "seed": 4022812798061399348,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:painted_mountains",
+          "terralith:bryce_canyon",
+          "minecraft:eroded_badlands",
+          "natures_spirit:stratified_desert",
+          "terralith:desert_canyon"
+        ],
+        "water": "none",
+        "wants": {
+          "badlands_ruins": "spread",
+          "badlands_pyramid": "spread",
+          "dusty_tomb": "near_border",
+          "ruins_desert": "spread"
+        },
+        "shuns": [
+          "village",
+          "mansion",
+          "monument"
+        ],
+        "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere."
+      }
     },
     {
       "name": "the_gritlands",
       "type": "overworld",
       "dimensionId": "adventure:the_gritlands",
       "seed": -3246413584426118916,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "terralith:gravel_desert",
+          "terralith:basalt_cliffs",
+          "terralith:ashen_savanna",
+          "terralith:volcanic_peaks",
+          "minecraft:windswept_gravelly_hills"
+        ],
+        "water": "none",
+        "wants": {
+          "ruined_portal": "near_spawn",
+          "field_ruins": "spread",
+          "mineshaft": "spread",
+          "scorched_tomb": "near_border"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "trial_chambers",
+          "ancient_city",
+          "mansion",
+          "monument",
+          "coliseum"
+        ],
+        "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins \u2014 nobody could live here, and nothing organised survives."
+      }
     },
     {
       "name": "the_roothold",
       "type": "overworld",
       "dimensionId": "adventure:the_roothold",
-      "seed": 6179727709884658474
+      "seed": 6179727709884658474,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "natures_spirit:redwood_forest",
+          "minecraft:dark_forest",
+          "terralith:shield",
+          "minecraft:old_growth_spruce_taiga"
+        ],
+        "wants": {
+          "forest_ruin": "spread",
+          "old_manor": "near_border",
+          "spider_dungeon": "spread",
+          "mansion": "near_border"
+        },
+        "shuns": [
+          "monument",
+          "coliseum"
+        ],
+        "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border."
+      }
     },
     {
       "name": "the_overgrowth",
@@ -34,115 +128,476 @@
       "dimensionId": "adventure:the_overgrowth",
       "seed": -9173041556082421050,
       "noiseSettings": "adventure:compressed",
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:rocky_jungle",
+          "terralith:jungle_mountains",
+          "natures_spirit:tropical_basin",
+          "terralith:cloud_forest",
+          "minecraft:jungle"
+        ],
+        "wants": {
+          "jungle_ruin": "near_spawn",
+          "infested_temple": "spread",
+          "webbed_dungeon": "near_border",
+          "lush_dungeon": "spread"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "mansion",
+          "monument"
+        ],
+        "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain \u2014 the wild reclaimed every wall."
+      }
     },
     {
       "name": "the_greenreach",
       "type": "overworld",
       "dimensionId": "adventure:the_greenreach",
       "seed": 4365588300327455070,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "pastoral",
+        "spawnFilter": [
+          "natures_spirit:prairie",
+          "natures_spirit:marigold_meadows",
+          "minecraft:sunflower_plains",
+          "terralith:blooming_plateau",
+          "minecraft:meadow"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "tavern": "near_spawn",
+          "farmstead": "near_spawn",
+          "watchtower": "spread",
+          "mineshaft": "spread"
+        },
+        "shuns": [
+          "ancient_city",
+          "coliseum",
+          "mansion"
+        ],
+        "description": "The breadbasket. Rolling prairie and sunflowers, villages and taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight."
+      }
     },
     {
       "name": "the_rosebluff",
       "type": "overworld",
       "dimensionId": "adventure:the_rosebluff",
       "seed": 3624185682401255876,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "scenic",
+        "spawnFilter": [
+          "natures_spirit:wisteria_forest",
+          "terralith:sakura_grove",
+          "minecraft:cherry_grove",
+          "terralith:lavender_forest",
+          "terralith:white_cliffs"
+        ],
+        "wants": {
+          "abandoned_chapel": "spread",
+          "guide_post_warm": "near_spawn",
+          "village": "near_border"
+        },
+        "shuns": [
+          "mansion",
+          "monument",
+          "ancient_city",
+          "coliseum"
+        ],
+        "description": "Blossom cliffs over white stone \u2014 wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything."
+      }
     },
     {
       "name": "the_greywoods",
       "type": "overworld",
       "dimensionId": "adventure:the_greywoods",
-      "seed": 6102446688561208171
+      "seed": 6102446688561208171,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "natures_spirit:cedar_thicket",
+          "minecraft:dark_forest",
+          "terralith:birch_taiga",
+          "natures_spirit:fir_forest"
+        ],
+        "wants": {
+          "graveyard": "near_spawn",
+          "abandoned_chapel": "spread",
+          "zombie_dungeon": "spread",
+          "old_manor": "near_border"
+        },
+        "shuns": [
+          "monument",
+          "coliseum"
+        ],
+        "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone."
+      }
     },
     {
       "name": "the_miredeep",
       "type": "overworld",
       "dimensionId": "adventure:the_miredeep",
       "seed": -5252107743259256018,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "terralith:orchid_swamp",
+          "minecraft:mangrove_swamp",
+          "natures_spirit:marsh",
+          "minecraft:swamp"
+        ],
+        "water": "high",
+        "wants": {
+          "swamp_ruin": "spread",
+          "muddy_dungeon": "near_border",
+          "mausoleum": "spread"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "mansion",
+          "trial_chambers",
+          "monument",
+          "coliseum"
+        ],
+        "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company."
+      }
     },
     {
       "name": "the_verdant_hollow",
       "type": "overworld",
       "dimensionId": "adventure:the_verdant_hollow",
       "seed": 6115258093970217788,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "pastoral",
+        "spawnFilter": [
+          "terralith:lush_valley",
+          "natures_spirit:cypress_fields",
+          "terralith:valley_clearing",
+          "minecraft:meadow"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "farmstead": "near_spawn",
+          "tavern": "spread",
+          "giant_mushroom": "spread"
+        },
+        "shuns": [
+          "ancient_city",
+          "coliseum"
+        ],
+        "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical."
+      }
     },
     {
       "name": "the_whitestone_ford",
       "type": "overworld",
       "dimensionId": "adventure:the_whitestone_ford",
       "seed": 4251950210753714448,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "pastoral",
+        "spawnFilter": [
+          "terralith:white_cliffs",
+          "natures_spirit:white_cliffs",
+          "terralith:warm_river",
+          "minecraft:river"
+        ],
+        "water": "high",
+        "wants": {
+          "village": "near_spawn",
+          "farmstead": "near_spawn",
+          "lighthouse": "spread",
+          "watchtower": "spread"
+        },
+        "shuns": [
+          "coliseum",
+          "ancient_city"
+        ],
+        "description": "Wide river country crossed at white cliffs \u2014 fords, lighthouses and farms along the water."
+      }
     },
     {
       "name": "the_needlefall",
       "type": "overworld",
       "dimensionId": "adventure:the_needlefall",
       "seed": -5373530250110192718,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "natures_spirit:fir_forest",
+          "terralith:siberian_taiga",
+          "natures_spirit:coniferous_covert",
+          "minecraft:old_growth_pine_taiga"
+        ],
+        "wants": {
+          "firetower": "near_spawn",
+          "taiga_outpost": "spread",
+          "taiga_ruin": "spread",
+          "cold_dungeon": "near_border"
+        },
+        "shuns": [
+          "monument",
+          "coliseum"
+        ],
+        "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step."
+      }
     },
     {
       "name": "the_chalk_meadows",
       "type": "overworld",
       "dimensionId": "adventure:the_chalk_meadows",
       "seed": 2195798975866015064,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "pastoral",
+        "spawnFilter": [
+          "natures_spirit:heather_fields",
+          "natures_spirit:carnation_fields",
+          "terralith:blooming_plateau",
+          "minecraft:meadow"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "farmstead": "near_spawn",
+          "guide_post_warm": "near_spawn",
+          "tavern": "spread"
+        },
+        "shuns": [
+          "ancient_city",
+          "mansion",
+          "coliseum"
+        ],
+        "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles."
+      }
     },
     {
       "name": "the_stonemantle",
       "type": "overworld",
       "dimensionId": "adventure:the_stonemantle",
       "seed": -2229145286337484445,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:stony_spires",
+          "terralith:rocky_mountains",
+          "minecraft:stony_peaks",
+          "terralith:granite_cliffs"
+        ],
+        "water": "none",
+        "wants": {
+          "mineshaft": "near_spawn",
+          "quarter_outpost": "spread",
+          "engineer_tower": "spread",
+          "ancient_temple": "near_border"
+        },
+        "shuns": [
+          "village",
+          "monument"
+        ],
+        "description": "Craggy quarry country \u2014 bare spires, engineers' towers and old workings in the stone."
+      }
     },
     {
       "name": "the_ashgrove",
       "type": "overworld",
       "dimensionId": "adventure:the_ashgrove",
-      "seed": 6416894595201730599
+      "seed": 6416894595201730599,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "terralith:ashen_savanna",
+          "terralith:volcanic_peaks",
+          "terralith:volcanic_crater"
+        ],
+        "wants": {
+          "abandoned_camp": "near_spawn",
+          "graveyard": "spread",
+          "scorched_tomb": "near_border"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "monument"
+        ],
+        "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire."
+      }
     },
     {
       "name": "the_crystal_vale",
       "type": "overworld",
       "dimensionId": "adventure:the_crystal_vale",
       "seed": 6857879019486337303,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "scenic",
+        "spawnFilter": [
+          "terralith:amethyst_rainforest",
+          "terralith:amethyst_canyon",
+          "terralith:emerald_peaks"
+        ],
+        "wants": {
+          "wizard_tower": "spread",
+          "relic_temple": "near_border",
+          "guide_post_warm": "near_spawn"
+        },
+        "shuns": [
+          "monument",
+          "mansion",
+          "coliseum"
+        ],
+        "description": "Amethyst rainforest and emerald peaks \u2014 a jewel-box world with wizard towers, not war."
+      }
     },
     {
       "name": "the_darkpine_depths",
       "type": "overworld",
       "dimensionId": "adventure:the_darkpine_depths",
-      "seed": 2418931438629928634
+      "seed": 2418931438629928634,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "terralith:moonlight_grove",
+          "minecraft:old_growth_spruce_taiga",
+          "natures_spirit:snowy_fir_forest",
+          "minecraft:dark_forest"
+        ],
+        "wants": {
+          "graveyard": "near_spawn",
+          "old_manor": "spread",
+          "zombie_dungeon": "spread",
+          "mansion": "near_border",
+          "dark_settlement": "spread"
+        },
+        "shuns": [
+          "monument"
+        ],
+        "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in \u2014 the woods keep their own counsel."
+      }
     },
     {
       "name": "the_dripping_pines",
       "type": "overworld",
       "dimensionId": "adventure:the_dripping_pines",
-      "seed": -1075784600836621058
+      "seed": -1075784600836621058,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "terralith:siberian_taiga",
+          "natures_spirit:boreal_taiga",
+          "minecraft:old_growth_pine_taiga"
+        ],
+        "wants": {
+          "foraging_outpost": "near_spawn",
+          "taiga_ruin_deep": "spread",
+          "mouldy_dungeon": "spread"
+        },
+        "shuns": [
+          "monument",
+          "coliseum"
+        ],
+        "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines."
+      }
     },
     {
       "name": "the_ruined_timberland",
       "type": "overworld",
       "dimensionId": "adventure:the_ruined_timberland",
       "seed": -1974596255070611309,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "natures_spirit:aspen_forest",
+          "natures_spirit:maple_woodlands",
+          "minecraft:dark_forest",
+          "minecraft:forest"
+        ],
+        "wants": {
+          "ruins_standard": "near_spawn",
+          "forest_ruin": "near_spawn",
+          "old_manor": "spread",
+          "abandoned_temple": "spread",
+          "skeleton_dungeon": "spread"
+        },
+        "shuns": [
+          "village",
+          "tavern"
+        ],
+        "description": "Autumn woods strewn with ruins \u2014 every clearing has bones of something older. Rich pickings, no living towns."
+      }
     },
     {
       "name": "the_shallows",
       "type": "overworld",
       "dimensionId": "adventure:the_shallows",
       "seed": 5735056219198225107,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "terralith:mirage_isles",
+          "minecraft:warm_ocean",
+          "minecraft:lukewarm_ocean",
+          "natures_spirit:tropical_shores"
+        ],
+        "water": "sea",
+        "wants": {
+          "shipwreck": "near_spawn",
+          "buried_treasure": "near_spawn",
+          "ocean_ruins": "spread",
+          "lighthouse": "spread"
+        },
+        "shuns": [
+          "village",
+          "mansion",
+          "coliseum",
+          "ancient_city",
+          "trial_chambers"
+        ],
+        "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world."
+      }
     },
     {
       "name": "the_lantern_pools",
       "type": "overworld",
       "dimensionId": "adventure:the_lantern_pools",
       "seed": -7749576552491939738,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "terralith:desert_oasis",
+          "terralith:warm_river",
+          "minecraft:lush_caves",
+          "terralith:red_oasis"
+        ],
+        "water": "high",
+        "wants": {
+          "desert_shrine": "spread",
+          "mirage_outpost": "spread",
+          "guide_post_warm": "near_spawn"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "mansion",
+          "monument",
+          "coliseum",
+          "ancient_city",
+          "trial_chambers"
+        ],
+        "description": "Serene oasis pools glowing at dusk. A hermit's paradise \u2014 shrines yes, towns no."
+      }
     },
     {
       "name": "the_dustbowl",
@@ -150,167 +605,545 @@
       "dimensionId": "adventure:the_dustbowl",
       "seed": -4788941127388080412,
       "noiseSettings": "adventure:wide",
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "terralith:ancient_sands",
+          "natures_spirit:drylands",
+          "terralith:steppe",
+          "natures_spirit:scorched_dunes"
+        ],
+        "water": "none",
+        "wants": {
+          "outcast_desert": "spread",
+          "ruins_desert": "spread",
+          "supply_cache_desert": "near_spawn"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "monument",
+          "mansion",
+          "coliseum",
+          "ancient_city",
+          "trial_chambers"
+        ],
+        "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."
+      }
     },
     {
       "name": "the_lost_outpost",
       "type": "overworld",
       "dimensionId": "adventure:the_lost_outpost",
       "seed": 6564334460230090799,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "natures_spirit:oak_savanna",
+          "natures_spirit:golden_wilds",
+          "minecraft:savanna",
+          "terralith:fractured_savanna"
+        ],
+        "wants": {
+          "pillager_outpost": "near_spawn",
+          "pillager_lookout": "near_spawn",
+          "bandit_towers": "spread",
+          "illager_campsite": "spread",
+          "nomad_outpost": "spread"
+        },
+        "shuns": [
+          "monument"
+        ],
+        "description": "Outpost country gone feral \u2014 pillager lookouts, bandit towers and campsites contest every hill."
+      }
     },
     {
       "name": "the_frozen_strait",
       "type": "overworld",
       "dimensionId": "adventure:the_frozen_strait",
       "seed": -6800857166025637730,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "minecraft:frozen_ocean",
+          "minecraft:deep_frozen_ocean",
+          "terralith:ice_marsh",
+          "minecraft:snowy_beach"
+        ],
+        "water": "sea",
+        "wants": {
+          "igloo": "near_spawn",
+          "guide_post_cold": "near_spawn",
+          "ice_dungeon_m": "spread",
+          "frozen_dungeon": "spread"
+        },
+        "shuns": [
+          "village",
+          "mansion",
+          "coliseum"
+        ],
+        "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road."
+      }
     },
     {
       "name": "the_icebound_rift",
       "type": "void",
       "dimensionId": "adventure:the_icebound_rift",
       "seed": 5964372207964005987,
-      "biome": "minecraft:deep_dark,minecraft:frozen_ocean,minecraft:ice_spikes,terralith:glacial_chasm,terralith:frozen_cliffs,terralith:frostfire_caves,terralith:snowy_cherry_grove"
+      "biome": "minecraft:deep_dark,minecraft:frozen_ocean,minecraft:ice_spikes,terralith:glacial_chasm,terralith:frozen_cliffs,terralith:cave/frostfire_caves,terralith:snowy_cherry_grove,nullscape:void_barrens",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:deep_dark",
+          "minecraft:frozen_ocean",
+          "minecraft:ice_spikes",
+          "terralith:glacial_chasm",
+          "terralith:frozen_cliffs",
+          "terralith:cave/frostfire_caves"
+        ],
+        "description": "A void where a frozen world used to be \u2014 the biomes remain, the ground does not. The disintegration finished here."
+      }
     },
     {
       "name": "the_sculked_beyond",
       "type": "void",
       "dimensionId": "adventure:the_sculked_beyond",
       "seed": -356153069817876777,
-      "biome": "minecraft:deep_dark,terralith:infested_caves,incendium:withered_forest,terralith:fungal_caves"
+      "biome": "minecraft:deep_dark,terralith:cave/infested_caves,incendium:withered_forest,terralith:cave/fungal_caves,nullscape:shadowlands,terralith:cave/deep_caves",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:deep_dark",
+          "terralith:cave/infested_caves",
+          "incendium:withered_forest",
+          "terralith:cave/fungal_caves",
+          "nullscape:shadowlands",
+          "terralith:cave/deep_caves"
+        ],
+        "description": "A sculk-eaten void. The deep dark outlived the world it consumed."
+      }
     },
     {
       "name": "the_slatemouth",
       "type": "void",
       "dimensionId": "adventure:the_slatemouth",
       "seed": 194264687702097290,
-      "biome": "minecraft:basalt_deltas,minecraft:soul_sand_valley,incendium:toxic_heap,incendium:quartz_flats"
+      "biome": "minecraft:basalt_deltas,minecraft:soul_sand_valley,incendium:toxic_heap,incendium:quartz_flats,nullscape:void_barrens,terralith:cave/mantle_caves",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:basalt_deltas",
+          "minecraft:soul_sand_valley",
+          "incendium:toxic_heap",
+          "incendium:quartz_flats",
+          "nullscape:void_barrens",
+          "terralith:cave/mantle_caves"
+        ],
+        "description": "A basalt-and-soul void \u2014 the nether's kind of ending, without the nether's mercy."
+      }
     },
     {
       "name": "the_furnace_halls",
       "type": "nether",
       "dimensionId": "adventure:the_furnace_halls",
-      "seed": 9221821359447431546
+      "seed": 9221821359447431546,
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:nether_wastes",
+          "minecraft:basalt_deltas"
+        ],
+        "wants": {
+          "fortress": "near_spawn",
+          "nether_brick_hall": "spread",
+          "nether_reactor": "spread"
+        },
+        "description": "Classic nether halls \u2014 fortress corridors close to spawn, brick and fire all the way down."
+      }
     },
     {
       "name": "the_bloodroot_wastes",
       "type": "nether",
       "dimensionId": "adventure:the_bloodroot_wastes",
-      "seed": 6135847632709183989
+      "seed": 6135847632709183989,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:crimson_forest",
+          "incendium:weeping_valley"
+        ],
+        "wants": {
+          "crimson_fungus": "near_spawn",
+          "crimson_forge": "spread",
+          "fortress": "spread"
+        },
+        "description": "Crimson root-country; forges and fungus in the red haze."
+      }
     },
     {
       "name": "the_basalt_spires",
       "type": "nether",
       "dimensionId": "adventure:the_basalt_spires",
-      "seed": 14268788340776233
+      "seed": 14268788340776233,
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "minecraft:basalt_deltas",
+          "incendium:volcanic_deltas"
+        ],
+        "wants": {
+          "blackstone_pillars": "near_spawn",
+          "bastion": "spread",
+          "nether_bridge": "spread"
+        },
+        "description": "Basalt drama \u2014 pillars, bridges and a bastion in the columns."
+      }
     },
     {
       "name": "the_blackstone_keep",
       "type": "nether",
       "dimensionId": "adventure:the_blackstone_keep",
       "seed": -7942150272453941819,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:basalt_deltas",
+          "minecraft:nether_wastes"
+        ],
+        "wants": {
+          "bastion": "near_spawn",
+          "blackstone_walls": "near_spawn",
+          "forbidden_castle": "spread",
+          "fortress": "spread"
+        },
+        "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive."
+      }
     },
     {
       "name": "the_molten_flats",
       "type": "nether",
       "dimensionId": "adventure:the_molten_flats",
-      "seed": -1580560277501623545
+      "seed": -1580560277501623545,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:nether_wastes",
+          "incendium:infernal_dunes",
+          "incendium:volcanic_deltas"
+        ],
+        "wants": {
+          "pipeline": "spread",
+          "nether_reactor": "near_border",
+          "fortress": "spread",
+          "crimson_well": "near_spawn"
+        },
+        "description": "Industrial lava flats \u2014 pipelines and reactors over the melt."
+      }
     },
     {
       "name": "the_obsidian_sanctum",
       "type": "nether",
       "dimensionId": "adventure:the_obsidian_sanctum",
       "seed": 888677704244175115,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:soul_sand_valley",
+          "minecraft:nether_wastes"
+        ],
+        "wants": {
+          "sanctum": "spread",
+          "infernal_altar": "spread",
+          "forbidden_castle": "near_border",
+          "bastion": "spread"
+        },
+        "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world."
+      }
     },
     {
       "name": "the_ember_fields",
       "type": "nether",
       "dimensionId": "adventure:the_ember_fields",
       "seed": -3172550506937307791,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "biome": "minecraft:crimson_forest,terralith:yellowstone,incendium:infernal_dunes,minecraft:nether_wastes",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:crimson_forest",
+          "terralith:yellowstone",
+          "incendium:infernal_dunes"
+        ],
+        "wants": {
+          "piglin_village": "spread",
+          "crimson_well": "near_spawn",
+          "fortress": "near_border"
+        },
+        "description": "Rolling ember meadows (overworld-shaped nether) \u2014 piglin villages in the geyser fields."
+      }
     },
     {
       "name": "the_twisted_groves",
       "type": "nether",
       "dimensionId": "adventure:the_twisted_groves",
-      "seed": -7247152828326584305
+      "seed": -7247152828326584305,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:warped_forest",
+          "incendium:inverted_forest"
+        ],
+        "wants": {
+          "warped_outpost": "near_spawn",
+          "warped_greatsword": "spread",
+          "fortress": "near_border"
+        },
+        "description": "Warped groves and a greatsword in the fog \u2014 the nether's strange, quiet corner."
+      }
     },
     {
       "name": "the_soulfields",
       "type": "nether",
       "dimensionId": "adventure:the_soulfields",
       "seed": 5882171892785548389,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "biome": "minecraft:soul_sand_valley,incendium:ash_barrens,terralith:ashen_savanna",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:soul_sand_valley",
+          "incendium:ash_barrens",
+          "terralith:ashen_savanna"
+        ],
+        "wants": {
+          "nether_graveyard": "near_spawn",
+          "giant_skull": "spread",
+          "lost_soul_dungeon": "spread"
+        },
+        "description": "Soul-sand meadows and grave fields; the dead are the crop."
+      }
     },
     {
       "name": "the_blighted_maw",
       "type": "nether",
       "dimensionId": "adventure:the_blighted_maw",
       "seed": 7394931452934382410,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "incendium:toxic_heap",
+          "minecraft:soul_sand_valley",
+          "incendium:withered_forest"
+        ],
+        "wants": {
+          "ruined_lab": "spread",
+          "nether_reactor": "spread",
+          "bastion": "spread",
+          "fortress": "spread"
+        },
+        "description": "A toxic, dense little hell \u2014 ruined labs and reactors in the blight. Loot escalates with the danger."
+      }
     },
     {
       "name": "the_teal_corruption",
       "type": "nether",
       "dimensionId": "adventure:the_teal_corruption",
-      "seed": 5801515250367357934
+      "seed": 5801515250367357934,
+      "biome": "minecraft:warped_forest,incendium:inverted_forest,terralith:warped_mesa",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:warped_forest",
+          "incendium:inverted_forest",
+          "terralith:warped_mesa"
+        ],
+        "wants": {
+          "warped_greatsword": "spread",
+          "warped_outpost": "near_spawn",
+          "bastion": "spread"
+        },
+        "description": "Warped corruption spreading over a mesa world \u2014 teal fungus over red rock."
+      }
     },
     {
       "name": "the_weeping_vault",
       "type": "nether",
       "dimensionId": "adventure:the_weeping_vault",
       "seed": -3211735946045942308,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "incendium:weeping_valley",
+          "minecraft:crimson_forest"
+        ],
+        "wants": {
+          "forbidden_castle": "spread",
+          "nether_dungeon": "near_spawn",
+          "sanctum": "near_border",
+          "bastion": "spread"
+        },
+        "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world."
+      }
     },
     {
       "name": "the_boneyard",
       "type": "nether",
       "dimensionId": "adventure:the_boneyard",
-      "seed": 4924327300096628285,
-      "structureDensity": "dense"
+      "seed": 7510794555179130518,
+      "structureDensity": "dense",
+      "biome": "minecraft:soul_sand_valley,incendium:ash_barrens,minecraft:deep_dark,minecraft:basalt_deltas",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:soul_sand_valley",
+          "incendium:ash_barrens"
+        ],
+        "wants": {
+          "giant_skull": "near_spawn",
+          "nether_graveyard": "near_spawn",
+          "fortress": "spread",
+          "bastion": "spread"
+        },
+        "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong."
+      }
     },
     {
       "name": "the_buried_age",
       "type": "nether",
       "dimensionId": "adventure:the_buried_age",
-      "seed": -7522664240615933068
+      "seed": -7522664240615933068,
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:nether_wastes",
+          "incendium:quartz_flats"
+        ],
+        "wants": {
+          "start_nether_ruin": "near_spawn",
+          "nether_lava_ruins": "spread",
+          "nether_tower": "spread",
+          "pipeline": "spread"
+        },
+        "description": "An ancient buried age \u2014 nether ruins and towers of a civilisation the lava took."
+      }
     },
     {
       "name": "the_luminous_caverns",
       "type": "nether",
       "dimensionId": "adventure:the_luminous_caverns",
       "seed": 1126811856535624437,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "biome": "minecraft:lush_caves,incendium:quartz_flats,terralith:cave/thermal_caves,minecraft:crimson_forest",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "minecraft:lush_caves",
+          "incendium:quartz_flats"
+        ],
+        "wants": {
+          "copper_tower": "spread",
+          "strange_outpost": "spread"
+        },
+        "shuns": [
+          "fortress",
+          "bastion",
+          "sanctum"
+        ],
+        "description": "Serene glowing caverns \u2014 lush moss under the nether's roof, quartz light, no armies."
+      }
     },
     {
       "name": "the_fungal_lanterns",
       "type": "nether",
       "dimensionId": "adventure:the_fungal_lanterns",
       "seed": -4891546376175842645,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:mushroom_fields,terralith:cave/fungal_caves",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "minecraft:crimson_forest",
+          "minecraft:warped_forest",
+          "minecraft:mushroom_fields"
+        ],
+        "wants": {
+          "crimson_fungus": "near_spawn",
+          "warped_outpost": "spread"
+        },
+        "shuns": [
+          "fortress",
+          "bastion",
+          "sanctum"
+        ],
+        "description": "Shroomlight groves and mushroom fields \u2014 the nether's gentlest rooms."
+      }
     },
     {
       "name": "the_gilded_pit",
       "type": "nether",
       "dimensionId": "adventure:the_gilded_pit",
       "seed": 1881563837797304477,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:nether_wastes",
+          "minecraft:basalt_deltas"
+        ],
+        "wants": {
+          "bastion": "near_spawn",
+          "crimson_forge": "spread",
+          "sanctum": "near_border"
+        },
+        "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs."
+      }
     },
     {
       "name": "the_wailing_narrows",
       "type": "nether",
       "dimensionId": "adventure:the_wailing_narrows",
-      "seed": -7035356524938563395
+      "seed": -7035356524938563395,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:soul_sand_valley",
+          "minecraft:basalt_deltas"
+        ],
+        "wants": {
+          "nether_bridge": "near_spawn",
+          "fortress": "spread",
+          "giant_skull": "spread"
+        },
+        "description": "Narrow bridged chasms \u2014 quartz spans over the wail."
+      }
     },
     {
       "name": "the_forged_depths",
       "type": "nether",
       "dimensionId": "adventure:the_forged_depths",
       "seed": -4778351741013971258,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:basalt_deltas",
+          "incendium:volcanic_deltas"
+        ],
+        "wants": {
+          "crimson_forge": "near_spawn",
+          "nether_reactor": "spread",
+          "bastion": "spread",
+          "fortress": "spread"
+        },
+        "description": "The forge itself \u2014 crimson forges and reactors in a small brutal deep."
+      }
     },
     {
       "name": "the_glacial_drift",
@@ -318,175 +1151,610 @@
       "dimensionId": "adventure:the_glacial_drift",
       "seed": -5124091447723497048,
       "noiseSettings": "adventure:wide",
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "terralith:glacial_chasm",
+          "natures_spirit:tundra",
+          "natures_spirit:sleeted_slopes",
+          "minecraft:ice_spikes"
+        ],
+        "wants": {
+          "igloo": "near_spawn",
+          "guide_post_cold": "near_spawn",
+          "frozen_dungeon": "spread",
+          "coldlair": "spread",
+          "ice_dungeon_l": "near_border"
+        },
+        "shuns": [
+          "village",
+          "tavern"
+        ],
+        "description": "A vast glacial waste. Igloos and ice dungeons in an emptiness that goes on and on."
+      }
     },
     {
       "name": "the_sunken_temple",
       "type": "overworld",
       "dimensionId": "adventure:the_sunken_temple",
       "seed": -7553093148959622972,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:warm_ocean",
+          "terralith:deep_warm_ocean",
+          "natures_spirit:tropical_woods",
+          "minecraft:jungle"
+        ],
+        "water": "sea",
+        "wants": {
+          "monument": "spread",
+          "ocean_fortress": "spread",
+          "ocean_ruins": "near_spawn",
+          "deepwater_dungeon": "spread",
+          "shipwreck": "near_spawn",
+          "infested_temple": "near_border"
+        },
+        "description": "Temple-hunting waters \u2014 monuments, ocean fortresses and drowned dungeons everywhere you dive."
+      }
     },
     {
       "name": "the_snowbound_isle",
       "type": "overworld",
       "dimensionId": "adventure:the_snowbound_isle",
-      "seed": -6903795762373810598
+      "seed": -6903795762373810598,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "natures_spirit:snowy_fir_forest",
+          "terralith:snowy_cherry_grove",
+          "minecraft:snowy_taiga",
+          "minecraft:snowy_beach"
+        ],
+        "water": "high",
+        "wants": {
+          "igloo": "near_spawn",
+          "taiga_outpost": "spread",
+          "cold_dungeon": "spread",
+          "village": "near_border"
+        },
+        "shuns": [
+          "coliseum"
+        ],
+        "description": "A snowbound island world \u2014 fir forests, cold dungeons, one hardy village."
+      }
     },
     {
       "name": "the_abyssal_shrine",
       "type": "overworld",
       "dimensionId": "adventure:the_abyssal_shrine",
       "seed": -8401790570074108359,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:deep_ocean",
+          "minecraft:deep_cold_ocean",
+          "minecraft:deep_lukewarm_ocean"
+        ],
+        "water": "sea",
+        "wants": {
+          "monument": "near_spawn",
+          "ocean_fortress": "spread",
+          "deepwater_dungeon": "spread",
+          "ocean_pillar": "near_spawn"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "mansion"
+        ],
+        "description": "A tiny abyss with a monument at its heart. Guardians own the water."
+      }
     },
     {
       "name": "the_pale_reach",
       "type": "overworld",
       "dimensionId": "adventure:the_pale_reach",
       "seed": 7588343130126410291,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "terralith:frozen_cliffs",
+          "natures_spirit:tundra",
+          "terralith:wintry_lowlands",
+          "minecraft:ice_spikes"
+        ],
+        "wants": {
+          "ruins_snow": "spread",
+          "igloo": "near_spawn",
+          "frozen_dungeon": "near_border"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "trial_chambers",
+          "mansion",
+          "monument",
+          "coliseum"
+        ],
+        "description": "The pale desolate reach \u2014 snow ruins and little else. Beautiful, briefly."
+      }
     },
     {
       "name": "the_violet_spire",
       "type": "overworld",
       "dimensionId": "adventure:the_violet_spire",
       "seed": -2184852740675444909,
-      "noiseSettings": "adventure:compressed"
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:amethyst_canyon",
+          "terralith:windswept_spires",
+          "terralith:haze_mountain",
+          "natures_spirit:lavender_fields"
+        ],
+        "wants": {
+          "wizard_tower": "near_spawn",
+          "black_spiral": "spread",
+          "relic_temple": "near_border",
+          "mausoleum": "spread"
+        },
+        "shuns": [
+          "village",
+          "monument"
+        ],
+        "description": "Amethyst spires and wizard towers in violet haze \u2014 vertical, arcane, hostile to farmers."
+      }
     },
     {
       "name": "the_amplified_reaches",
       "type": "amplified",
       "dimensionId": "adventure:the_amplified_reaches",
-      "seed": -3604832347219380837
+      "seed": -3604832347219380837,
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:yosemite_cliffs",
+          "terralith:emerald_peaks",
+          "minecraft:jagged_peaks",
+          "terralith:scarlet_mountains"
+        ],
+        "wants": {
+          "firetower": "near_spawn",
+          "engineer_tower": "spread",
+          "ancient_temple": "spread",
+          "keep_kayra": "near_border"
+        },
+        "shuns": [
+          "monument"
+        ],
+        "description": "Amplified madness \u2014 cliffs beyond reason, keeps on the peaks."
+      }
     },
     {
       "name": "the_underdark",
       "type": "multi_biome",
       "dimensionId": "adventure:the_underdark",
       "seed": -3604832347219380837,
-      "biome": "minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,minecraft:mushroom_fields,minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:river,minecraft:crimson_forest,minecraft:warped_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest",
-      "structureDensity": "dense"
+      "biome": "minecraft:lush_caves,minecraft:dripstone_caves,minecraft:deep_dark,minecraft:mangrove_swamp,minecraft:swamp,minecraft:mushroom_fields,minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:river,minecraft:crimson_forest,minecraft:warped_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:cave/deep_caves,terralith:cave/underground_jungle,incendium:withered_forest",
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:deep_dark",
+          "minecraft:mushroom_fields",
+          "terralith:moonlight_grove",
+          "minecraft:dark_forest"
+        ],
+        "wants": {
+          "ancient_city": "spread",
+          "sculk_dungeon": "near_spawn",
+          "trial_chambers": "spread",
+          "underground_camp": "near_spawn",
+          "mineshaft": "near_spawn",
+          "infested_dungeon": "spread"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "farmstead"
+        ],
+        "description": "The deep dark as a surface world \u2014 ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic."
+      }
     },
     {
       "name": "the_canvas",
       "type": "superflat",
       "dimensionId": "adventure:the_canvas",
       "seed": -3604832347219380837,
-      "hostileSpawning": false
+      "hostileSpawning": false,
+      "seedRoll": {
+        "description": "A flat blank canvas for building. Peaceful by decree."
+      }
     },
     {
       "name": "the_blossom_gardens",
       "type": "multi_biome",
       "dimensionId": "adventure:the_blossom_gardens",
       "seed": -3604832347219380837,
-      "biome": "minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:old_growth_birch_forest,minecraft:plains,minecraft:sunflower_plains,minecraft:forest,minecraft:river,minecraft:beach,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley,terralith:temperate_highlands",
+      "biome": "minecraft:cherry_grove,minecraft:meadow,minecraft:flower_forest,minecraft:birch_forest,minecraft:old_growth_birch_forest,minecraft:plains,minecraft:sunflower_plains,minecraft:forest,minecraft:river,minecraft:beach,terralith:lavender_valley,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:moonlight_valley,terralith:moonlight_grove,terralith:blooming_plateau,terralith:lush_valley,terralith:temperate_highlands,natures_spirit:wisteria_forest,natures_spirit:lavender_fields,natures_spirit:carnation_fields,terralith:lavender_forest",
       "hostileSpawning": false,
-      "noiseSettings": "adventure:wide"
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "serene",
+        "spawnFilter": [
+          "minecraft:cherry_grove",
+          "terralith:sakura_grove",
+          "terralith:sakura_valley",
+          "natures_spirit:wisteria_forest"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "tavern": "spread",
+          "farmstead": "near_spawn",
+          "guide_post_warm": "near_spawn",
+          "giant_mushroom": "spread"
+        },
+        "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring."
+      }
     },
     {
       "name": "the_whispering_wilds",
       "type": "multi_biome",
       "dimensionId": "adventure:the_whispering_wilds",
       "seed": -3604832347219380837,
-      "biome": "minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,minecraft:swamp,minecraft:mangrove_swamp,minecraft:taiga,minecraft:jungle,minecraft:sparse_jungle,minecraft:mushroom_fields,minecraft:river,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:orchid_swamp,terralith:shield,terralith:shield_clearing,terralith:birch_taiga",
-      "structureDensity": "sparse"
+      "biome": "minecraft:dark_forest,minecraft:old_growth_spruce_taiga,minecraft:old_growth_pine_taiga,minecraft:swamp,minecraft:mangrove_swamp,minecraft:taiga,minecraft:jungle,minecraft:sparse_jungle,minecraft:mushroom_fields,minecraft:river,terralith:moonlight_grove,terralith:moonlight_valley,terralith:cloud_forest,terralith:orchid_swamp,terralith:shield,terralith:shield_clearing,terralith:birch_taiga,natures_spirit:aspen_forest,natures_spirit:redwood_forest,natures_spirit:cedar_thicket",
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "minecraft:dark_forest",
+          "minecraft:old_growth_spruce_taiga",
+          "terralith:moonlight_grove",
+          "natures_spirit:redwood_forest"
+        ],
+        "wants": {
+          "abandoned_camp": "near_spawn",
+          "forest_ruin": "spread",
+          "firetower": "spread",
+          "campsite": "near_spawn"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "mansion",
+          "coliseum"
+        ],
+        "description": "Untouched wilds that whisper \u2014 redwoods, moon groves, abandoned camps of those who didn't stay."
+      }
     },
     {
       "name": "the_sun_kingdoms",
       "type": "multi_biome",
       "dimensionId": "adventure:the_sun_kingdoms",
       "seed": -3604832347219380837,
-      "biome": "minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,minecraft:wooded_badlands,minecraft:badlands,minecraft:eroded_badlands,minecraft:plains,minecraft:river,minecraft:beach,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:desert_canyon,terralith:hot_shrubland,terralith:fractured_savanna,terralith:red_oasis,terralith:savanna_badlands,terralith:savanna_slopes,terralith:brushland,terralith:steppe,terralith:shrubland",
-      "noiseSettings": "adventure:wide"
+      "biome": "minecraft:savanna,minecraft:savanna_plateau,minecraft:desert,minecraft:wooded_badlands,minecraft:badlands,minecraft:eroded_badlands,minecraft:plains,minecraft:river,minecraft:beach,terralith:arid_highlands,terralith:lush_desert,terralith:desert_oasis,terralith:desert_canyon,terralith:hot_shrubland,terralith:fractured_savanna,terralith:red_oasis,terralith:savanna_badlands,terralith:savanna_slopes,terralith:brushland,terralith:steppe,terralith:shrubland,natures_spirit:stratified_desert,natures_spirit:oak_savanna,terralith:ancient_sands",
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:desert",
+          "minecraft:savanna",
+          "terralith:lush_desert",
+          "terralith:ancient_sands"
+        ],
+        "water": "none",
+        "wants": {
+          "village": "near_spawn",
+          "desert_shrine": "near_spawn",
+          "bandit_village": "spread",
+          "sand_dungeon_l": "spread",
+          "keep_kayra": "near_border"
+        },
+        "description": "Vast desert kingdoms \u2014 walled villages, sand dungeons and a keep on the horizon."
+      }
     },
     {
       "name": "the_frozen_hearth",
       "type": "multi_biome",
       "dimensionId": "adventure:the_frozen_hearth",
       "seed": -3604832347219380837,
-      "biome": "minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,minecraft:snowy_slopes,minecraft:frozen_peaks,minecraft:jagged_peaks,minecraft:old_growth_spruce_taiga,minecraft:taiga,minecraft:river,minecraft:stony_shore,terralith:alpine_grove,terralith:birch_taiga,terralith:rocky_mountains",
-      "noiseSettings": "adventure:wide"
+      "biome": "minecraft:snowy_plains,minecraft:snowy_taiga,minecraft:grove,minecraft:frozen_river,minecraft:ice_spikes,minecraft:snowy_slopes,minecraft:frozen_peaks,minecraft:jagged_peaks,minecraft:old_growth_spruce_taiga,minecraft:taiga,minecraft:river,minecraft:stony_shore,terralith:alpine_grove,terralith:birch_taiga,terralith:rocky_mountains,natures_spirit:tundra,natures_spirit:sleeted_slopes,terralith:wintry_forest",
+      "noiseSettings": "adventure:wide",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:snowy_plains",
+          "minecraft:snowy_taiga",
+          "terralith:alpine_grove",
+          "natures_spirit:tundra"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "igloo": "near_spawn",
+          "taiga_outpost": "spread",
+          "cold_dungeon": "spread",
+          "ice_dungeon_l": "near_border"
+        },
+        "description": "The warm hearth in a frozen world \u2014 snowy villages and taigas with dungeons out in the cold."
+      }
     },
     {
       "name": "the_highland_crossing",
       "type": "multi_biome",
       "dimensionId": "adventure:the_highland_crossing",
       "seed": -3604832347219380837,
-      "biome": "minecraft:windswept_hills,minecraft:windswept_forest,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:meadow,minecraft:plains,minecraft:forest,minecraft:river,minecraft:stony_shore,terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs,terralith:basalt_cliffs,terralith:caldera,terralith:blooming_plateau",
-      "noiseSettings": "adventure:compressed"
+      "biome": "minecraft:windswept_hills,minecraft:windswept_forest,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:meadow,minecraft:plains,minecraft:forest,minecraft:river,minecraft:stony_shore,terralith:highlands,terralith:temperate_highlands,terralith:forested_highlands,terralith:rocky_mountains,terralith:haze_mountain,terralith:white_cliffs,terralith:granite_cliffs,terralith:basalt_cliffs,terralith:caldera,terralith:blooming_plateau,natures_spirit:red_peaks,terralith:yosemite_cliffs,terralith:windswept_spires",
+      "noiseSettings": "adventure:compressed",
+      "seedRoll": {
+        "mood": "dramatic",
+        "spawnFilter": [
+          "terralith:haze_mountain",
+          "terralith:highlands",
+          "terralith:rocky_mountains",
+          "minecraft:windswept_hills"
+        ],
+        "wants": {
+          "guide_post_cold": "near_spawn",
+          "taiga_outpost": "near_spawn",
+          "firetower": "spread",
+          "engineer_tower": "spread",
+          "keep_kayra": "near_border"
+        },
+        "shuns": [
+          "monument"
+        ],
+        "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands."
+      }
     },
     {
       "name": "the_crucible",
       "type": "multi_biome",
       "dimensionId": "adventure:the_crucible",
       "seed": -3604832347219380837,
-      "biome": "minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,minecraft:mangrove_swamp,minecraft:swamp,minecraft:sparse_jungle,minecraft:river,minecraft:beach,minecraft:lush_caves,terralith:cloud_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:mirage_isles,terralith:moonlight_valley",
+      "biome": "minecraft:dark_forest,minecraft:jungle,minecraft:bamboo_jungle,minecraft:mangrove_swamp,minecraft:swamp,minecraft:sparse_jungle,minecraft:river,minecraft:beach,minecraft:lush_caves,terralith:cloud_forest,terralith:orchid_swamp,terralith:moonlight_grove,terralith:mirage_isles,terralith:moonlight_valley,incendium:inverted_forest,terralith:cave/underground_jungle,terralith:tropical_jungle",
       "noiseSettings": "adventure:compressed",
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:jungle",
+          "minecraft:bamboo_jungle",
+          "terralith:cloud_forest",
+          "terralith:tropical_jungle"
+        ],
+        "wants": {
+          "jungle_ruin": "near_spawn",
+          "jungle_tree_house": "near_spawn",
+          "infested_temple": "spread",
+          "webbed_dungeon": "spread",
+          "trial_chambers": "spread"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "farmstead"
+        ],
+        "description": "A compressed jungle gauntlet \u2014 infested temples and webbed dungeons in terrain that fights back. Dense and merciless."
+      }
     },
     {
       "name": "the_gauntlet",
       "type": "multi_biome",
       "dimensionId": "adventure:the_gauntlet",
-      "seed": -3604832347219380837,
-      "biome": "minecraft:windswept_hills,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:jagged_peaks,minecraft:frozen_peaks,minecraft:snowy_slopes,minecraft:grove,minecraft:river,minecraft:deep_dark,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,terralith:haze_mountain,terralith:granite_cliffs,terralith:white_cliffs",
+      "seed": -7771539005296047534,
+      "biome": "minecraft:windswept_hills,minecraft:windswept_gravelly_hills,minecraft:stony_peaks,minecraft:jagged_peaks,minecraft:frozen_peaks,minecraft:snowy_slopes,minecraft:grove,minecraft:river,minecraft:deep_dark,terralith:rocky_mountains,terralith:caldera,terralith:basalt_cliffs,terralith:haze_mountain,terralith:granite_cliffs,terralith:white_cliffs,nullscape:crystal_peaks,incendium:ash_barrens,terralith:windswept_spires",
       "noiseSettings": "adventure:compressed",
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:jagged_peaks",
+          "minecraft:frozen_peaks",
+          "minecraft:stony_peaks",
+          "terralith:caldera"
+        ],
+        "wants": {
+          "wizard_tower": "near_spawn",
+          "ancient_city": "spread",
+          "trial_chambers": "spread",
+          "ice_dungeon_l": "spread",
+          "keep_kayra": "near_border"
+        },
+        "shuns": [
+          "village",
+          "tavern",
+          "farmstead"
+        ],
+        "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep \u2014 every reward guarded. The hardest overworld there is."
+      }
     },
     {
       "name": "the_crimson_nexus",
       "type": "multi_biome",
       "dimensionId": "adventure:the_crimson_nexus",
       "seed": -3604832347219380837,
-      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:nether_wastes,incendium:inverted_forest,incendium:weeping_valley,incendium:withered_forest,incendium:quartz_flats"
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:nether_wastes,incendium:inverted_forest,incendium:weeping_valley,incendium:withered_forest,incendium:quartz_flats,incendium:volcanic_deltas,terralith:warped_mesa",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:crimson_forest",
+          "minecraft:warped_forest",
+          "incendium:inverted_forest"
+        ],
+        "wants": {
+          "fortress": "spread",
+          "crimson_forge": "spread",
+          "piglin_village": "spread",
+          "bastion": "near_border"
+        },
+        "shuns": [
+          "village"
+        ],
+        "description": "Nether biomes on overworld noise \u2014 a nexus where the crimson bleeds through. Fortresses under an open sky."
+      }
     },
     {
       "name": "the_souldrift",
       "type": "multi_biome",
       "dimensionId": "adventure:the_souldrift",
       "seed": -3604832347219380837,
-      "biome": "minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:ash_barrens,incendium:volcanic_deltas,incendium:infernal_dunes,incendium:toxic_heap"
+      "biome": "minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:ash_barrens,incendium:volcanic_deltas,incendium:infernal_dunes,incendium:toxic_heap,nullscape:shadowlands,terralith:cave/mantle_caves",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "minecraft:soul_sand_valley",
+          "minecraft:basalt_deltas",
+          "incendium:ash_barrens"
+        ],
+        "wants": {
+          "nether_graveyard": "near_spawn",
+          "giant_skull": "spread",
+          "lost_soul_dungeon": "spread",
+          "bone_dungeon": "spread"
+        },
+        "shuns": [
+          "village"
+        ],
+        "description": "Soul-sand drifting into shadow \u2014 the nether's graveyard on overworld bones, edged with the end's dark."
+      }
     },
     {
       "name": "the_shattered_skies",
       "type": "sky_islands",
       "dimensionId": "adventure:the_shattered_skies",
       "seed": -3604832347219380837,
-      "biome": "minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,minecraft:cherry_grove,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:alpine_grove,terralith:lush_valley,terralith:lavender_valley,terralith:blooming_plateau,terralith:shrubland"
+      "biome": "minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,minecraft:cherry_grove,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:alpine_grove,terralith:lush_valley,terralith:lavender_valley,terralith:blooming_plateau,terralith:shrubland,terralith:skylands_spring,terralith:skylands_autumn,terralith:mirage_isles",
+      "seedRoll": {
+        "mood": "scenic",
+        "spawnFilter": [
+          "minecraft:cherry_grove",
+          "minecraft:flower_forest",
+          "terralith:skylands_spring",
+          "terralith:blooming_valley"
+        ],
+        "wants": {
+          "sky_house": "near_spawn",
+          "sky_castle_ruin": "spread",
+          "sky_arena": "spread",
+          "sky_volcano": "near_border"
+        },
+        "description": "Floating garden islands \u2014 sakura and skylands adrift in a void slowly winning."
+      }
     },
     {
       "name": "the_burning_archipelago",
       "type": "nether_islands",
       "dimensionId": "adventure:the_burning_archipelago",
       "seed": -3604832347219380837,
-      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:volcanic_deltas,incendium:ash_barrens,incendium:infernal_dunes,incendium:withered_forest"
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:volcanic_deltas,incendium:ash_barrens,incendium:infernal_dunes,incendium:withered_forest,nullscape:void_barrens,terralith:volcanic_peaks",
+      "seedRoll": {
+        "mood": "adventurous",
+        "spawnFilter": [
+          "minecraft:crimson_forest",
+          "incendium:volcanic_deltas",
+          "minecraft:basalt_deltas"
+        ],
+        "wants": {
+          "bastion": "spread",
+          "fortress": "spread",
+          "giant_skull": "spread",
+          "nether_tower": "spread"
+        },
+        "description": "Burning islands in a void sea \u2014 nether archipelago on end-island bones."
+      }
     },
     {
       "name": "the_endless_expanse",
       "type": "large_biomes",
       "dimensionId": "adventure:the_endless_expanse",
-      "seed": -3604832347219380837
+      "seed": -3604832347219380837,
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "natures_spirit:prairie",
+          "terralith:steppe",
+          "natures_spirit:golden_wilds",
+          "minecraft:forest"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "tavern": "spread",
+          "farmstead": "near_spawn",
+          "mineshaft": "near_spawn",
+          "mansion": "near_border",
+          "coliseum": "near_border"
+        },
+        "description": "The endless expanse \u2014 large biomes, big civilisation, room for a coliseum and a mansion at the far edge."
+      }
     },
     {
       "name": "the_end_citadel",
       "type": "end",
       "dimensionId": "adventure:the_end_citadel",
       "seed": 2345324516627475701,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "biome": "minecraft:end_highlands,nullscape:crystal_peaks,minecraft:end_midlands",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:end_highlands",
+          "nullscape:crystal_peaks"
+        ],
+        "wants": {
+          "end_city": "spread",
+          "phantom_citadel": "spread",
+          "enderkeep": "spread",
+          "enderwatch_tower": "near_spawn"
+        },
+        "description": "Citadel country \u2014 end cities and phantom citadels saturate the highlands."
+      }
     },
     {
       "name": "the_tiled_expanse",
       "type": "end",
       "dimensionId": "adventure:the_tiled_expanse",
-      "seed": 3362388695457488365
+      "seed": 3362388695457488365,
+      "biome": "incendium:quartz_flats,minecraft:end_midlands,nullscape:void_barrens",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "incendium:quartz_flats",
+          "nullscape:void_barrens"
+        ],
+        "wants": {
+          "monolith": "spread",
+          "ruined_pillar": "near_spawn",
+          "mystical_archway": "spread",
+          "end_city": "near_border"
+        },
+        "description": "A tiled quartz-and-void expanse \u2014 monoliths and archways in geometric silence."
+      }
     },
     {
       "name": "the_pillared_void",
       "type": "end",
       "dimensionId": "adventure:the_pillared_void",
       "seed": -696349698492342128,
-      "structureDensity": "sparse"
+      "structureDensity": "sparse",
+      "seedRoll": {
+        "mood": "desolate",
+        "spawnFilter": [
+          "nullscape:void_barrens",
+          "minecraft:small_end_islands"
+        ],
+        "wants": {
+          "ender_spire": "spread",
+          "ruined_pillar": "near_spawn",
+          "dragon_skeleton": "spread"
+        },
+        "description": "Lonely pillars in the void \u2014 spires, a dragon's skeleton, nothing else."
+      }
     },
     {
       "name": "the_catalyst_maw",
@@ -494,7 +1762,22 @@
       "dimensionId": "adventure:the_catalyst_maw",
       "seed": 7719368698613726672,
       "noiseSettings": "adventure:compressed",
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "biome": "nullscape:shadowlands,minecraft:deep_dark,minecraft:end_highlands,terralith:cave/deep_caves",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "nullscape:shadowlands",
+          "minecraft:deep_dark"
+        ],
+        "wants": {
+          "mega_ship_crashed": "spread",
+          "endscraps": "near_spawn",
+          "phantom_citadel": "near_border",
+          "end_city": "spread"
+        },
+        "description": "The maw: sculk and shadowland in solid end terrain \u2014 the catalyst is still feeding."
+      }
     },
     {
       "name": "the_crumbling_reaches",
@@ -502,20 +1785,67 @@
       "dimensionId": "adventure:the_crumbling_reaches",
       "seed": -6358345418972121684,
       "noiseSettings": "adventure:compressed",
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "biome": "nullscape:crystal_peaks,nullscape:shadowlands,minecraft:end_highlands,terralith:basalt_cliffs",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "nullscape:crystal_peaks",
+          "nullscape:shadowlands"
+        ],
+        "wants": {
+          "mega_ship_deepslate": "spread",
+          "ruined_pillar": "near_spawn",
+          "end_ruins": "spread",
+          "end_city": "spread"
+        },
+        "description": "Crumbling solid end \u2014 crystal peaks shearing into shadow, crashed ships in the rubble."
+      }
     },
     {
       "name": "the_red_monument",
       "type": "end",
       "dimensionId": "adventure:the_red_monument",
-      "seed": 1348467636973897365
+      "seed": 1348467636973897365,
+      "biome": "terralith:scarlet_mountains,minecraft:crimson_forest,terralith:red_oasis,minecraft:end_barrens",
+      "seedRoll": {
+        "mood": "standard",
+        "spawnFilter": [
+          "terralith:scarlet_mountains",
+          "terralith:red_oasis",
+          "minecraft:crimson_forest"
+        ],
+        "wants": {
+          "monolith": "near_spawn",
+          "manuscript_shrine": "spread",
+          "mythic_garden": "spread",
+          "end_city": "near_border"
+        },
+        "description": "The red monument \u2014 scarlet mountains bleeding into end barrens around a monolith."
+      }
     },
     {
       "name": "the_fractured_halls",
       "type": "end",
       "dimensionId": "adventure:the_fractured_halls",
       "seed": 4989373384118084179,
-      "structureDensity": "dense"
+      "structureDensity": "dense",
+      "biome": "minecraft:end_highlands,nullscape:crystal_peaks,nullscape:shadowlands",
+      "seedRoll": {
+        "mood": "hard",
+        "spawnFilter": [
+          "minecraft:end_highlands",
+          "nullscape:crystal_peaks",
+          "nullscape:shadowlands"
+        ],
+        "wants": {
+          "end_gate_fortress": "spread",
+          "enderkeep": "spread",
+          "end_city": "spread",
+          "astral_hideaway": "near_spawn"
+        },
+        "description": "Fractured halls \u2014 gate fortresses and enderkeeps in broken crystal country."
+      }
     }
   ],
   "portals": [
@@ -1508,5 +2838,96 @@
   "frameOverworld": "minecraft:crying_obsidian",
   "frameNether": "minecraft:obsidian",
   "frameEnd": "minecraft:iron_block",
-  "idleUnloadMinutes": 5
+  "idleUnloadMinutes": 5,
+  "worlds": [
+    {
+      "name": "overworld",
+      "dimensionId": "minecraft:overworld",
+      "scale": 1.0,
+      "seedRoll": {
+        "mood": "standard",
+        "description": "The main overworld \u2014 safe, fairly vanilla spawn with interesting features nearby to kick off the journey; a real world players want to live in, with hard dungeons waiting near the border.",
+        "spawnFilter": [
+          "minecraft:plains",
+          "minecraft:meadow",
+          "minecraft:forest",
+          "minecraft:sunflower_plains",
+          "minecraft:cherry_grove",
+          "terralith:blooming_plateau",
+          "natures_spirit:prairie",
+          "terralith:lush_valley"
+        ],
+        "wants": {
+          "village": "near_spawn",
+          "tavern": "near_spawn",
+          "ruined_portal": "near_spawn",
+          "mineshaft": "spread",
+          "trial_chambers": "spread",
+          "ancient_city": "near_border",
+          "mansion": "near_border",
+          "coliseum": "near_border"
+        },
+        "shuns": []
+      }
+    },
+    {
+      "name": "the_nether",
+      "dimensionId": "minecraft:the_nether",
+      "scale": 8.0,
+      "seedRoll": {
+        "mood": "adventurous",
+        "description": "The nether \u2014 1:8 travel makes its playable disc small, so it earns its keep: fortresses and bastions in reach, Incendium's sanctum near the rim.",
+        "spawnFilter": [
+          "minecraft:nether_wastes",
+          "minecraft:crimson_forest",
+          "minecraft:warped_forest",
+          "incendium:quartz_flats"
+        ],
+        "wants": {
+          "fortress": "spread",
+          "bastion": "spread",
+          "piglin_village": "spread",
+          "sanctum": "near_border"
+        },
+        "shuns": []
+      }
+    },
+    {
+      "name": "the_end",
+      "dimensionId": "minecraft:the_end",
+      "scale": 1.0,
+      "seedRoll": {
+        "mood": "hard",
+        "description": "The end \u2014 endgame space. Cities and citadels within honest reach of the gateways.",
+        "spawnFilter": [],
+        "wants": {
+          "end_city": "spread",
+          "phantom_citadel": "near_border"
+        },
+        "shuns": []
+      }
+    },
+    {
+      "name": "paradise_lost",
+      "dimensionId": "paradise_lost:paradise_lost",
+      "scale": 1.0,
+      "seedRoll": {
+        "mood": "scenic",
+        "description": "Paradise Lost \u2014 the skylands. Serene island heights with towers, vaults and a palace worth the climb.",
+        "spawnFilter": [
+          "paradise_lost:highlands",
+          "paradise_lost:highlands_forest",
+          "paradise_lost:wisteria_woods",
+          "paradise_lost:tradewinds"
+        ],
+        "wants": {
+          "paradise_lost:remains": "near_spawn",
+          "paradise_lost:aurel_tower": "spread",
+          "paradise_lost:vault": "spread",
+          "paradise_lost:palace": "near_border"
+        },
+        "shuns": []
+      }
+    }
+  ]
 }

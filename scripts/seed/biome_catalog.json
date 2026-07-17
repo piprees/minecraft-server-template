@@ -1,0 +1,7673 @@
+{
+ "incendium:ash_barrens": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#5e5c62",
+  "water": "#3f3944",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:ash",
+  "monsters": [
+   "ghast",
+   "magma_cube",
+   "piglin"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "ash_delta",
+   "basalt_blobs",
+   "glowstone",
+   "glowstone_extra",
+   "spring_delta"
+  ]
+ },
+ "incendium:infernal_dunes": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#cf5e00",
+  "fog": "#684e4b",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "blaze",
+   "magma_cube"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_nether",
+   "delta",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_nether",
+   "spring_delta"
+  ]
+ },
+ "incendium:inverted_forest": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#1a051a",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:warped_spore",
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_normal",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_normal",
+   "trees_extra",
+   "trees_step1",
+   "trees_step2",
+   "trees_step2_big",
+   "trees_up_inner",
+   "trees_up_outer",
+   "trees_vines",
+   "warped_forest_vegetation"
+  ]
+ },
+ "incendium:quartz_flats": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#c2c2d0",
+  "fog": "#d1bfc8",
+  "water": "#3f76e4",
+  "grass": "#76ff17",
+  "foliage": "#76ff17",
+  "particle": "minecraft:end_rod",
+  "monsters": [
+   "ghast",
+   "skeleton"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_nether",
+   "brown_mushroom_normal",
+   "glowstone",
+   "glowstone_extra",
+   "ore_gold_deltas",
+   "ore_quartz_deltas",
+   "quartz_crystal",
+   "quartz_delta",
+   "red_mushroom_nether",
+   "red_mushroom_normal"
+  ]
+ },
+ "incendium:toxic_heap": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#6f7234",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:dust",
+  "monsters": [
+   "magma_cube",
+   "phantom"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_nether",
+   "brown_mushroom_normal",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_nether",
+   "red_mushroom_normal",
+   "spike"
+  ]
+ },
+ "incendium:volcanic_deltas": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#7d5c62",
+  "water": "#5d5362",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:white_ash",
+  "monsters": [
+   "blaze",
+   "ghast",
+   "magma_cube"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "basalt_blobs",
+   "brown_mushroom_nether",
+   "delta",
+   "eruption",
+   "glowstone",
+   "glowstone_extra",
+   "large_basalt_columns",
+   "ore_gold_deltas",
+   "ore_quartz_deltas",
+   "red_mushroom_nether",
+   "small_basalt_columns",
+   "spring_delta"
+  ]
+ },
+ "incendium:weeping_valley": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#33261f",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:ash",
+  "monsters": [
+   "enderman",
+   "ghast",
+   "magma_cube",
+   "skeleton"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "basalt_pillar",
+   "glowstone",
+   "glowstone_extra"
+  ]
+ },
+ "incendium:withered_forest": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#c2c2d0",
+  "fog": "#211b2a",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": "#7f848c",
+  "particle": "minecraft:smoke",
+  "monsters": [
+   "magma_cube",
+   "phantom",
+   "wither_skeleton"
+  ],
+  "creatures": [],
+  "features": [
+   "brown_mushroom_nether",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_nether",
+   "spring_delta",
+   "trees"
+  ]
+ },
+ "minecraft:badlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#3f76e4",
+  "grass": "#90814d",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal"
+  ]
+ },
+ "minecraft:bamboo_jungle": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "ocelot",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:basalt_deltas": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#685f70",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:white_ash",
+  "monsters": [
+   "ghast",
+   "magma_cube"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "basalt_blobs",
+   "brown_mushroom_nether",
+   "delta",
+   "glowstone",
+   "glowstone_extra",
+   "large_basalt_columns",
+   "ore_gold_deltas",
+   "ore_quartz_deltas",
+   "red_mushroom_nether",
+   "small_basalt_columns",
+   "spring_delta"
+  ]
+ },
+ "minecraft:beach": {
+  "mod": "server-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "turtle"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "minecraft:birch_forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.6,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#7aa5ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "birch",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:cherry_grove": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#5db7ef",
+  "grass": "#7ad855",
+  "foliage": "#b9e05c",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "bushes",
+   "deltas",
+   "fallen_logs",
+   "glow_lichen",
+   "mushrooms",
+   "pillars",
+   "pink_petals",
+   "rocks",
+   "stone_patches",
+   "trees"
+  ]
+ },
+ "minecraft:cold_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3d57d6",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:crimson_forest": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#330303",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:crimson_spore",
+  "monsters": [
+   "hoglin",
+   "piglin",
+   "zombified_piglin"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_normal",
+   "crimson_forest_vegetation",
+   "flower_tree",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_normal",
+   "tree_log",
+   "trees_up_outer",
+   "trees_vines"
+  ]
+ },
+ "minecraft:dark_forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:deep_cold_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3d57d6",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:deep_dark": {
+  "mod": "server-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "sculk_patch_deep_dark",
+   "sculk_vein",
+   "trees_plains"
+  ]
+ },
+ "minecraft:deep_frozen_ocean": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "iceberg_blue",
+   "iceberg_packed",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:deep_lukewarm_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#45adf2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:deep_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:desert": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms"
+  ]
+ },
+ "minecraft:dripstone_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_plains"
+  ]
+ },
+ "minecraft:end_barrens": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": []
+ },
+ "minecraft:end_highlands": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": [
+   "chorus_quadratic",
+   "chorus_variation",
+   "glowstone_patch",
+   "roots",
+   "tree",
+   "tree2"
+  ]
+ },
+ "minecraft:end_midlands": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": []
+ },
+ "minecraft:eroded_badlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#3f76e4",
+  "grass": "#90814d",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal"
+  ]
+ },
+ "minecraft:flower_forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "birch",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "oak",
+   "trees"
+  ]
+ },
+ "minecraft:forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "birch",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "oak",
+   "trees"
+  ]
+ },
+ "minecraft:frozen_ocean": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "iceberg_blue",
+   "iceberg_packed",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:frozen_peaks": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.7,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "minecraft:frozen_river": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:grove": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": -0.2,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#81a0ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "mushrooms",
+   "spruce",
+   "trees"
+  ]
+ },
+ "minecraft:ice_spikes": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "ice_spike",
+   "red_mushroom_normal",
+   "trees_snowy"
+  ]
+ },
+ "minecraft:jagged_peaks": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.7,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "minecraft:jungle": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "ocelot",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:lukewarm_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#45adf2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:lush_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#77e0f7",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "lush_caves_ceiling_vegetation",
+   "lush_caves_vegetation",
+   "rooted_azalea_tree"
+  ]
+ },
+ "minecraft:mangrove_swamp": {
+  "mod": "server-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3a7a6a",
+  "grass": null,
+  "foliage": "#8db127",
+  "particle": null,
+  "monsters": [
+   "bogged",
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "frog"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "trees_mangrove"
+  ]
+ },
+ "minecraft:meadow": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#0e4ecf",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "donkey",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "glow_lichen",
+   "trees"
+  ]
+ },
+ "minecraft:mushroom_fields": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.9,
+  "downfall": 1.0,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#9a8be4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [],
+  "creatures": [
+   "mooshroom"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_taiga",
+   "destroy_cliff",
+   "glow_lichen",
+   "huge_mushroom_scattered",
+   "mushroom_island_vegetation",
+   "patch_mushroom",
+   "red_mushroom_taiga"
+  ]
+ },
+ "minecraft:nether_wastes": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#330808",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman",
+   "ghast",
+   "magma_cube",
+   "piglin",
+   "zombified_piglin"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_nether",
+   "brown_mushroom_normal",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_nether",
+   "red_mushroom_normal"
+  ]
+ },
+ "minecraft:ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "minecraft:old_growth_birch_forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.6,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#7aa5ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "birch",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:old_growth_pine_taiga": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.3,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7ca3ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#5b8053",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "spruce",
+   "trees"
+  ]
+ },
+ "minecraft:old_growth_spruce_taiga": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.25,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7da3ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#5b8053",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "spruce",
+   "trees"
+  ]
+ },
+ "minecraft:plains": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:river": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "trees_water"
+  ]
+ },
+ "minecraft:savanna": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#c7ba47",
+  "foliage": "#768521",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bonus_trees",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:savanna_plateau": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#bebc40",
+  "foliage": "#719126",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bonus_trees",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:small_end_islands": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": []
+ },
+ "minecraft:snowy_beach": {
+  "mod": "server-1.21.1",
+  "temperature": 0.05,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7fa1ff",
+  "fog": "#c0d8ff",
+  "water": "#3d57d6",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "minecraft:snowy_plains": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7fa1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "trees_snowy"
+  ]
+ },
+ "minecraft:snowy_slopes": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.3,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "minecraft:snowy_taiga": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": -0.5,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#839eff",
+  "fog": "#c0d8ff",
+  "water": "#3d57d6",
+  "grass": "#5b8053",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "spruce",
+   "trees"
+  ]
+ },
+ "minecraft:soul_sand_valley": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#1b4745",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:ash",
+  "monsters": [
+   "enderman",
+   "ghast",
+   "skeleton"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "basalt_pillar",
+   "glowstone",
+   "glowstone_extra"
+  ]
+ },
+ "minecraft:sparse_jungle": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.95,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:stony_peaks": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "minecraft:stony_shore": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "large",
+   "mushrooms",
+   "small"
+  ]
+ },
+ "minecraft:sunflower_plains": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "sunflowers",
+   "trees"
+  ]
+ },
+ "minecraft:swamp": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.8,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#617b64",
+  "grass": null,
+  "foliage": "#6a7039",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "frog",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:taiga": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.25,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7da3ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#6d8a5d",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "spruce",
+   "trees"
+  ]
+ },
+ "minecraft:the_end": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": [
+   "end_spike"
+  ]
+ },
+ "minecraft:the_void": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [],
+  "creatures": [],
+  "features": []
+ },
+ "minecraft:warm_ocean": {
+  "mod": "server-1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water",
+   "warm_ocean_vegetation"
+  ]
+ },
+ "minecraft:warped_forest": {
+  "mod": "Incendium_1.21.x_v5.4.4",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#1a051a",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:warped_spore",
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [
+   "strider"
+  ],
+  "features": [
+   "brown_mushroom_normal",
+   "glowstone",
+   "glowstone_extra",
+   "red_mushroom_normal",
+   "warped_forest_vegetation"
+  ]
+ },
+ "minecraft:windswept_forest": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#57a869",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:windswept_gravelly_hills": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#57a869",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:windswept_hills": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#57a869",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "default",
+   "flowers",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "minecraft:windswept_savanna": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#c7ba47",
+  "foliage": "#768521",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "mushrooms",
+   "trees",
+   "warm"
+  ]
+ },
+ "minecraft:wooded_badlands": {
+  "mod": "Geophilic v3.6.mod",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#90814d",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "mushrooms",
+   "trees"
+  ]
+ },
+ "natures_spirit:alpine_clearings": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.7,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a8cf72",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_fir_placed",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:alpine_highlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.7,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a8cf72",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_fir_placed",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:arid_highlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:arid_savanna": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.1,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e8d578",
+  "foliage": "#a6ae3d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_warm",
+   "glow_lichen",
+   "patch_cactus_scorched",
+   "trees_savanna",
+   "trees_savanna_2"
+  ]
+ },
+ "natures_spirit:aspen_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.45,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#dbd369",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_golden_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:bamboo_wetlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#7ae4ff",
+  "fog": "#b1ecd5",
+  "water": "#6cac7f",
+  "grass": "#5bb431",
+  "foliage": "#4b931a",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "frog",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "brown_mushroom_swamp",
+   "flower_helvola",
+   "flower_swamp",
+   "glow_lichen",
+   "red_mushroom_swamp",
+   "trees_bamboo_wetlands"
+  ]
+ },
+ "natures_spirit:blooming_dunes": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_blooming_dunes_placed",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:blooming_highlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a4d468",
+  "foliage": "#70b44b",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_steppe",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:boreal_taiga": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.15,
+  "downfall": 0.3,
+  "precipitation": false,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#acc181",
+  "foliage": "#aeaf6a",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "boreal_trees_placed",
+   "flower_fir_placed",
+   "glow_lichen",
+   "patch_tundra_red_vegetation"
+  ]
+ },
+ "natures_spirit:carnation_fields": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.94,
+  "downfall": 0.21,
+  "precipitation": true,
+  "sky": "#6fb6ec",
+  "fog": "#c2e4ff",
+  "water": "#46afd2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_carnation_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:cedar_thicket": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.2,
+  "downfall": 0.26,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#d6d85f",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_xeric",
+   "forest_flowers",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:coniferous_covert": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.7,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a8cf72",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "boreal_trees_placed",
+   "brown_mushroom_normal",
+   "flower_fir_placed",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:cypress_fields": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.94,
+  "downfall": 0.21,
+  "precipitation": true,
+  "sky": "#6fb6ec",
+  "fog": "#c2e4ff",
+  "water": "#46afd2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_cypress_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:dusty_slopes": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.5,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:fir_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#b6c288",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_fir_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:floral_ridges": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.85,
+  "downfall": 0.65,
+  "precipitation": true,
+  "sky": "#7ca4ff",
+  "fog": "#c0d8ff",
+  "water": "#3fa5e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_floral_ridge_placed",
+   "forest_flowers",
+   "glow_lichen",
+   "trees_oak_savanna_2"
+  ]
+ },
+ "natures_spirit:flowering_shrubland": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.6,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_flowering_shrubland",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:golden_wilds": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.45,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#e8d578",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_golden_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:heather_fields": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.7,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#a8cf72",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_heather_placed",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:lavender_fields": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.94,
+  "downfall": 0.28,
+  "precipitation": true,
+  "sky": "#6fb6ec",
+  "fog": "#c2e4ff",
+  "water": "#46afd2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_lavender_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:lively_dunes": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_stratified_desert_placed",
+   "glow_lichen",
+   "patch_cactus_dunes",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:maple_woodlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.45,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#e8d578",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_golden_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:marigold_meadows": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.45,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#e8d578",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_golden2_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:marsh": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#617b64",
+  "grass": "#77982f",
+  "foliage": "#6d9622",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "frog",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_swamp",
+   "flower_swamp",
+   "glow_lichen",
+   "red_mushroom_swamp"
+  ]
+ },
+ "natures_spirit:oak_savanna": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.1,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e5ea85",
+  "foliage": "#97ae3d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_oak_savanna",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_oak_savanna",
+   "trees_oak_savanna_2"
+  ]
+ },
+ "natures_spirit:prairie": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.45,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_fir_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:red_peaks": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.4,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:redwood_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.4,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#7ca4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#aebd6d",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_old_growth",
+   "flower_redwood_placed",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_old_growth"
+  ]
+ },
+ "natures_spirit:scorched_dunes": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.1,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e8d578",
+  "foliage": "#a6ae3d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_warm",
+   "glow_lichen",
+   "patch_cactus_scorched",
+   "trees_savanna"
+  ]
+ },
+ "natures_spirit:shrubby_highlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#bfd468",
+  "foliage": "#94b44b",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:shrubland": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.6,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:sleeted_slopes": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.0,
+  "downfall": 1.0,
+  "precipitation": true,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:snowcapped_red_peaks": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.0,
+  "downfall": 1.0,
+  "precipitation": true,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:snowy_fir_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.0,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#b6c288",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_fir_placed",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:snowy_redwood_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.0,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#7ca4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#aebd6d",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_old_growth",
+   "flower_redwood_placed",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:sparse_tropical_woods": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.8,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_helvola",
+   "flower_tropical_woods",
+   "forest_flowers",
+   "glow_lichen",
+   "trees_acacia_sparse"
+  ]
+ },
+ "natures_spirit:stratified_desert": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_stratified_desert_placed",
+   "glow_lichen",
+   "patch_cactus_stratified",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:tropical_basin": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.95,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#32cdae",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_helvola",
+   "flower_sugi_placed",
+   "forest_flowers",
+   "glow_lichen",
+   "trees_acacia_dense"
+  ]
+ },
+ "natures_spirit:tropical_shores": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#45adf2",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "turtle"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:tropical_woods": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.95,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_helvola",
+   "flower_tropical_woods",
+   "forest_flowers",
+   "glow_lichen",
+   "trees_acacia_dense"
+  ]
+ },
+ "natures_spirit:tundra": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.15,
+  "downfall": 0.3,
+  "precipitation": false,
+  "sky": "#95c1e9",
+  "fog": "#d4dff7",
+  "water": "#5a7bdd",
+  "grass": "#e3db87",
+  "foliage": "#9ead52",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "cow",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_fir_placed",
+   "glow_lichen",
+   "patch_tundra_red_vegetation"
+  ]
+ },
+ "natures_spirit:white_cliffs": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.95,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a4c954",
+  "foliage": "#82ba4a",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:windswept_sugi_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.95,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a4c954",
+  "foliage": "#82ba4a",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_sugi_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:wisteria_forest": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 0.85,
+  "downfall": 0.65,
+  "precipitation": true,
+  "sky": "#7ca4ff",
+  "fog": "#c0d8ff",
+  "water": "#3fa5e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flower_wisteria_placed",
+   "forest_flowers",
+   "glow_lichen"
+  ]
+ },
+ "natures_spirit:wooded_drylands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.94,
+  "downfall": 0.17,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:woody_highlands": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 2.0,
+  "downfall": 0.0,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#bfd468",
+  "foliage": "#94b44b",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "cow",
+   "donkey",
+   "horse",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "natures_spirit:xeric_plains": {
+  "mod": "naturespirit-2.2.5-1.21.1",
+  "temperature": 1.2,
+  "downfall": 0.16,
+  "precipitation": false,
+  "sky": "#6eb1ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#e2cc60",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_xeric",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "nullscape:crystal_peaks": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#9883d5",
+  "grass": "#a388d8",
+  "foliage": "#4599d9",
+  "particle": "falling_obsidian_tear",
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": [
+   "crystal"
+  ]
+ },
+ "nullscape:shadowlands": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#9883d5",
+  "grass": "#a388d8",
+  "foliage": "#4599d9",
+  "particle": "minecraft:ash",
+  "monsters": [
+   "enderman",
+   "phantom"
+  ],
+  "creatures": [],
+  "features": [
+   "basalt",
+   "bone_trees1",
+   "pillar",
+   "pillars_coral",
+   "vegetation"
+  ]
+ },
+ "nullscape:void_barrens": {
+  "mod": "Nullscape_1.21.x_v1.2.14",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#000000",
+  "fog": "#a080a0",
+  "water": "#9883d5",
+  "grass": "#a388d8",
+  "foliage": "#4599d9",
+  "particle": null,
+  "monsters": [
+   "enderman"
+  ],
+  "creatures": [],
+  "features": []
+ },
+ "paradise_lost:autumnal_tundra": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.1,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#8ce6ff",
+  "grass": "#cef2e2",
+  "foliage": "#ffe08a",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "trees_mixed",
+   "tundra_spires"
+  ]
+ },
+ "paradise_lost:calcite_craglands": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.4,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#a8dddb",
+  "foliage": "#f1ff99",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa",
+   "paradise_lost:popom"
+  ],
+  "features": [
+   "trees_craglands"
+  ]
+ },
+ "paradise_lost:continental_plateau": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.25,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#8ce6ff",
+  "grass": "#cef2e2",
+  "foliage": "#ffe08a",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "patch_flowers",
+   "patch_plateau_flowering_grass",
+   "trees_plateau"
+  ]
+ },
+ "paradise_lost:highlands": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#a8ddc6",
+  "foliage": "#f1ff99",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa",
+   "paradise_lost:popom"
+  ],
+  "features": [
+   "patch_flowers",
+   "trees_sparse"
+  ]
+ },
+ "paradise_lost:highlands_forest": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#e6edff",
+  "water": "#58e5ff",
+  "grass": "#8cd4b4",
+  "foliage": "#d5e37b",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa",
+   "paradise_lost:popom"
+  ],
+  "features": [
+   "patch_flowers_forest",
+   "trees_scattered"
+  ]
+ },
+ "paradise_lost:highlands_grand_glade": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.4,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#739988",
+  "foliage": "#edff7d",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "trees_sparse"
+  ]
+ },
+ "paradise_lost:highlands_shield": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.6,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0cefe",
+  "fog": "#ffffff",
+  "water": "#4ae4ff",
+  "grass": "#95f0d2",
+  "foliage": "#fae05f",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "patch_flowers",
+   "trees_dense_shield",
+   "trees_shield"
+  ]
+ },
+ "paradise_lost:highlands_thicket": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.4,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#739988",
+  "foliage": "#edff7d",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "patch_flowers_thicket",
+   "trees_thicket"
+  ]
+ },
+ "paradise_lost:tradewinds": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#8dc9af",
+  "foliage": "#f1ff99",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa"
+  ],
+  "features": [
+   "trees_plateau",
+   "trees_sparse"
+  ]
+ },
+ "paradise_lost:wisteria_woods": {
+  "mod": "paradise-lost-2.4.6-beta+1.21.1",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0c0ff",
+  "fog": "#ffffff",
+  "water": "#58e5ff",
+  "grass": "#a5d6c1",
+  "foliage": "#f1ff99",
+  "particle": null,
+  "monsters": [
+   "paradise_lost:envoy"
+  ],
+  "creatures": [
+   "paradise_lost:moa",
+   "paradise_lost:popom"
+  ],
+  "features": [
+   "fallen_lavender_leaves",
+   "patch_flowers_forest",
+   "trees_rainbow_forest"
+  ]
+ },
+ "terrablender:deferred_placeholder": {
+  "mod": "TerraBlender-fabric-1.21.1-4.1.0.8",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": false,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [],
+  "creatures": [],
+  "features": []
+ },
+ "terralith:alpha_islands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#274fff",
+  "grass": "#b0ff7b",
+  "foliage": "#78ff39",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "skeleton",
+   "slime",
+   "spider",
+   "zombie"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "brown_mushroom_normal",
+   "flowers",
+   "flowers_2",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:alpha_islands_winter": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.0,
+  "downfall": 0.75,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#274fff",
+  "grass": "#b0ff7b",
+  "foliage": "#78ff39",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "skeleton",
+   "slime",
+   "spider",
+   "zombie"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "brown_mushroom_normal",
+   "flowers",
+   "flowers_2",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:alpine_grove": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.2,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "trees_tiny"
+  ]
+ },
+ "terralith:alpine_highlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.45,
+  "downfall": 0.1,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "pillar",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:amethyst_canyon": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#cec6ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": "#70d484",
+  "foliage": "#c8a7ff",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "ocelot",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo_light",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:amethyst_rainforest": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#cec6ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": "#70d484",
+  "foliage": "#c8a7ff",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "ocelot",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo_light",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:ancient_sands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#857769",
+  "fog": "#bb9b9d",
+  "water": "#77e0f7",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:falling_dust",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:arid_highlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1.6,
+  "downfall": 0.1,
+  "precipitation": false,
+  "sky": "#75aaff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:ashen_savanna": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76e4",
+  "grass": "#c0bbac",
+  "foliage": "#c2c0a9",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "llama",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "tiny_trees"
+  ]
+ },
+ "terralith:basalt_cliffs": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "basalt_column",
+   "basalt_column_upper",
+   "basaltifier",
+   "brown_mushroom_normal",
+   "crack",
+   "crack_deepslate",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "seed",
+   "seed_deepslate"
+  ]
+ },
+ "terralith:birch_taiga": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.22,
+  "downfall": 0.2,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#8dc876",
+  "foliage": "#f3b437",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_small"
+  ]
+ },
+ "terralith:blooming_plateau": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#0e4ecf",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "donkey",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "flowers",
+   "flowers_white",
+   "glow_lichen",
+   "trees_meadow"
+  ]
+ },
+ "terralith:blooming_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "beaches",
+   "brown_mushroom_normal",
+   "cloud_trees",
+   "flowers",
+   "flowers_white",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_mid",
+   "trees_small",
+   "trees_tall",
+   "trees_tiny"
+  ]
+ },
+ "terralith:brushland": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1.2,
+  "downfall": 0.2,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:bryce_canyon": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#3f76e4",
+  "grass": "#90814d",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal",
+   "trees_old_growth_spruce_taiga"
+  ]
+ },
+ "terralith:caldera": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.45,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#e0e9ff",
+  "water": "#77e0f7",
+  "grass": "#c6d097",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga"
+  ]
+ },
+ "terralith:cave/andesite_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/deep_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.6,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#1f242d",
+  "fog": "#101419",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/diorite_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/frostfire_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#000000",
+  "fog": "#000000",
+  "water": "#1b46d0",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:dust_color_transition",
+  "monsters": [
+   "stray"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "sculk_patch",
+   "trees_plains"
+  ]
+ },
+ "terralith:cave/fungal_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": "#997c5b",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/granite_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/infested_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": "#bbbfc4",
+  "particle": null,
+  "monsters": [
+   "cave_spider",
+   "creeper",
+   "slime",
+   "spider"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/mantle_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": true,
+  "sky": "#000000",
+  "fog": "#000000",
+  "water": "#1b46d0",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:lava",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "basalt_strip",
+   "brown_mushroom_normal",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_plains"
+  ]
+ },
+ "terralith:cave/thermal_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#43e7d6",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/tuff_caves": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:cave/underground_jungle": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#45be90",
+  "grass": null,
+  "foliage": "#87c059",
+  "particle": "minecraft:cherry_leaves",
+  "monsters": [
+   "creeper",
+   "slime",
+   "spider",
+   "witch"
+  ],
+  "creatures": [
+   "frog",
+   "turtle"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "vegetation"
+  ]
+ },
+ "terralith:cloud_forest": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.25,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#d7d8e1",
+  "fog": "#a5b0bd",
+  "water": "#27a4d7",
+  "grass": "#5c9a70",
+  "foliage": "#a5c29c",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees"
+  ]
+ },
+ "terralith:cold_shrubland": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.14,
+  "downfall": 0,
+  "precipitation": true,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76a0",
+  "grass": "#937554",
+  "foliage": "#b99470",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "tiny_trees",
+   "trees_plains"
+  ]
+ },
+ "terralith:deep_warm_ocean": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water",
+   "warm_ocean_vegetation"
+  ]
+ },
+ "terralith:desert_canyon": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#77e0f7",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:desert_oasis": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#45be90",
+  "grass": "#77b338",
+  "foliage": "#4eb338",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:desert_spires": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#45be90",
+  "grass": "#77b338",
+  "foliage": "#4eb338",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "calcite_tip",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:emerald_peaks": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.1,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": "#6783af",
+  "foliage": "#879daf",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "emerald_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:forested_highlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.36,
+  "downfall": 0.2,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": "#ec5448",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flowers",
+   "glow_lichen",
+   "pillar",
+   "red_mushroom_normal",
+   "tall_flowers",
+   "trees",
+   "trees_maple",
+   "trees_mid",
+   "trees_small",
+   "trees_tall",
+   "trees_tiny"
+  ]
+ },
+ "terralith:fractured_savanna": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1.1,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#927c66",
+  "grass": null,
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_med",
+   "trees_savanna",
+   "trees_small",
+   "trees_tall",
+   "trees_tiny"
+  ]
+ },
+ "terralith:frozen_cliffs": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_snowy"
+  ]
+ },
+ "terralith:glacial_chasm": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:granite_cliffs": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_small"
+  ]
+ },
+ "terralith:gravel_beach": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "turtle"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:gravel_desert": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.14,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "polar_bear",
+   "rabbit",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "coral_fans",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:haze_mountain": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.3,
+  "downfall": 0.6,
+  "precipitation": true,
+  "sky": "#d7d8e1",
+  "fog": "#a5b0bd",
+  "water": "#3f76a0",
+  "grass": "#9fa885",
+  "foliage": "#a4af70",
+  "particle": "minecraft:cloud",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "trees_base",
+   "trees_birch",
+   "trees_mid",
+   "trees_top",
+   "trees_windswept_hills"
+  ]
+ },
+ "terralith:highlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flowers",
+   "glow_lichen",
+   "pillar",
+   "red_mushroom_normal",
+   "tall_flowers",
+   "trees"
+  ]
+ },
+ "terralith:hot_shrubland": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#c1d3dc",
+  "fog": "#c7d3d8",
+  "water": "#77e0f7",
+  "grass": "#c3af67",
+  "foliage": "#b9a480",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "tiny_trees",
+   "trees_plains"
+  ]
+ },
+ "terralith:ice_marsh": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.14,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a1bcb1",
+  "fog": "#a2aba8",
+  "water": "#617b72",
+  "grass": "#6a8053",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "bogged",
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "frog",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_swamp",
+   "flower_swamp",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_swamp",
+   "trees_small",
+   "trees_tiny"
+  ]
+ },
+ "terralith:jungle_mountains": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a1bce6",
+  "fog": "#a2bbd2",
+  "water": "#77e0f7",
+  "grass": "#72aa06",
+  "foliage": "#71b406",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "ocelot",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo_light",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_jungle"
+  ]
+ },
+ "terralith:lavender_forest": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#87b2f4",
+  "grass": "#9be0bc",
+  "foliage": "#c8b7ff",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "disk_clay",
+   "flower_flower_forest",
+   "flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:lavender_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#87b2f4",
+  "grass": "#9be0bc",
+  "foliage": "#c8b7ff",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "disk_clay",
+   "flower_flower_forest",
+   "flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:lush_desert": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#77e0f7",
+  "grass": "#dcac56",
+  "foliage": "#836841",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:lush_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": "#70a57b",
+  "foliage": "#f3b437",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees",
+   "trees_birch",
+   "trees_lark"
+  ]
+ },
+ "terralith:mirage_isles": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#c0a8ff",
+  "fog": "#c0d8ff",
+  "water": "#a298e4",
+  "grass": "#2ab2c7",
+  "foliage": "#67e6c8",
+  "particle": "minecraft:end_rod",
+  "monsters": [],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "forest_flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:moonlight_grove": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#92b2e1",
+  "grass": "#9eb2e1",
+  "foliage": "#7cc895",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "amethysts",
+   "blue_disk",
+   "brown_mushroom_normal",
+   "flowers",
+   "glow_lichen",
+   "nylium_disk",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:moonlight_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#79a6ff",
+  "fog": "#c0d8ff",
+  "water": "#92b2e1",
+  "grass": "#9eb2e1",
+  "foliage": "#7cc895",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "amethysts",
+   "blue_disk",
+   "brown_mushroom_normal",
+   "flowers",
+   "glow_lichen",
+   "nylium_disk",
+   "orange_tulips",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:orchid_swamp": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.8,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a1bcb1",
+  "fog": "#a2aba8",
+  "water": "#617b64",
+  "grass": "#5f9b76",
+  "foliage": "#5c8e47",
+  "particle": null,
+  "monsters": [
+   "bogged",
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "frog",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_swamp",
+   "flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_swamp",
+   "trees_small"
+  ]
+ },
+ "terralith:painted_mountains": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "goat",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:red_oasis": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#e2d3b3",
+  "fog": "#e2d7c3",
+  "water": "#45be90",
+  "grass": "#77b338",
+  "foliage": "#4eb338",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:rocky_jungle": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#a1bce6",
+  "fog": "#a2bbd2",
+  "water": "#77e0f7",
+  "grass": "#72aa06",
+  "foliage": "#71b406",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "ocelot",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo_light",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_jungle"
+  ]
+ },
+ "terralith:rocky_mountains": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.3,
+  "downfall": 0.3,
+  "precipitation": false,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:rocky_shrubland": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.14,
+  "downfall": 0,
+  "precipitation": true,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76a0",
+  "grass": "#937554",
+  "foliage": "#b99470",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "flower_plains",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "tiny_trees",
+   "trees_plains"
+  ]
+ },
+ "terralith:sakura_grove": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5c5ff",
+  "fog": "#d2ebff",
+  "water": "#4bb7cf",
+  "grass": "#79cf85",
+  "foliage": "#87c059",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "birch",
+   "birch_sparse",
+   "brown_mushroom_normal",
+   "cherry_trees",
+   "cherry_trees_light",
+   "clay_beaches",
+   "flowers",
+   "glow_lichen",
+   "patch_podzol",
+   "red_mushroom_normal",
+   "sugarcane"
+  ]
+ },
+ "terralith:sakura_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5c5ff",
+  "fog": "#d2ebff",
+  "water": "#4bb7cf",
+  "grass": "#79cf85",
+  "foliage": "#87c059",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "pig",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo",
+   "birch",
+   "birch_sparse",
+   "brown_mushroom_normal",
+   "cherry_trees",
+   "cherry_trees_light",
+   "clay_beaches",
+   "flowers",
+   "glow_lichen",
+   "patch_podzol",
+   "red_mushroom_normal",
+   "sugarcane"
+  ]
+ },
+ "terralith:sandstone_valley": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#45be90",
+  "grass": "#77b338",
+  "foliage": "#4eb338",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "husk",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "camel",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "patch_cactus_desert",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:savanna_badlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#4d76bc",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "llama",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_savanna"
+  ]
+ },
+ "terralith:savanna_slopes": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "llama",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_savanna"
+  ]
+ },
+ "terralith:scarlet_mountains": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.1,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": "#901222",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:shield": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": "#70a57b",
+  "foliage": "#f3b437",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees",
+   "trees_birch",
+   "trees_lark"
+  ]
+ },
+ "terralith:shield_clearing": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": -0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:shrubland": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1.2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#3f76a0",
+  "grass": "#ae9967",
+  "foliage": "#b99470",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cone_trees",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "small_trees",
+   "trees_plains"
+  ]
+ },
+ "terralith:siberian_grove": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.13,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": "#4d836d",
+  "foliage": "#eb8540",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees_new",
+   "trees_new_orange"
+  ]
+ },
+ "terralith:siberian_taiga": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.13,
+  "downfall": 1.2,
+  "precipitation": false,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": "#629e77",
+  "foliage": "#eb8540",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees_new",
+   "trees_new_orange"
+  ]
+ },
+ "terralith:skylands_autumn": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#dfd43d",
+  "foliage": "#f5a821",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "cow",
+   "fox",
+   "goat",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:skylands_spring": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": "#9be6c0",
+  "foliage": "#ffabcc",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "pig",
+   "rabbit"
+  ],
+  "features": [
+   "amethyst_geode",
+   "birch_sparse",
+   "brown_mushroom_normal",
+   "flower_cherry",
+   "flower_default",
+   "flowers",
+   "flowers_extra",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:skylands_summer": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#92c6ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": "#89dd4e",
+  "foliage": "#b4ec4e",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "parrot",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cactus",
+   "glow_lichen",
+   "glowberries",
+   "red_mushroom_normal",
+   "tall_flowers",
+   "trees"
+  ]
+ },
+ "terralith:skylands_winter": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.2,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#6783af",
+  "foliage": "#879daf",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "slime",
+   "spider",
+   "stray",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat",
+   "rabbit",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees"
+  ]
+ },
+ "terralith:snowy_badlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:snowy_cherry_grove": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.1,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7ba4ff",
+  "fog": "#c0d8ff",
+  "water": "#5db7ef",
+  "grass": "#b6db61",
+  "foliage": "#b6db61",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "azalea_bush",
+   "glow_lichen",
+   "rock",
+   "trees_cherry"
+  ]
+ },
+ "terralith:snowy_maple_forest": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.1,
+  "downfall": 0.2,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": "#ec5448",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flowers",
+   "glow_lichen",
+   "pillar",
+   "red_mushroom_normal",
+   "tall_flowers",
+   "trees",
+   "trees_maple_cold",
+   "trees_mid",
+   "trees_small",
+   "trees_tall",
+   "trees_tiny"
+  ]
+ },
+ "terralith:snowy_shield": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.1,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#617b90",
+  "grass": "#70a57b",
+  "foliage": "#f3b437",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees",
+   "trees_birch",
+   "trees_lark"
+  ]
+ },
+ "terralith:steppe": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": -0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:stony_spires": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.7,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#76a8ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "goat",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "azalea_rare",
+   "cliff",
+   "dripstone",
+   "glow_lichen",
+   "grass",
+   "oak_tree",
+   "patch_mushroom_small"
+  ]
+ },
+ "terralith:temperate_highlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.2,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": "#a4bb58",
+  "foliage": "#ec6e37",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "cloud_trees",
+   "flowers",
+   "glow_lichen",
+   "pillar",
+   "red_mushroom_normal",
+   "tall_flowers",
+   "trees_neg",
+   "trees_orange",
+   "trees_pos"
+  ]
+ },
+ "terralith:tropical_jungle": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.95,
+  "downfall": 0.9,
+  "precipitation": true,
+  "sky": "#92c6ff",
+  "fog": "#c0d8ff",
+  "water": "#43d5ee",
+  "grass": "#89dd4e",
+  "foliage": "#b4ec4e",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "ocelot",
+   "panda",
+   "parrot",
+   "pig",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "bamboo_light",
+   "brown_mushroom_normal",
+   "flower_warm",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_hawaii"
+  ]
+ },
+ "terralith:valley_clearing": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": -0.5,
+  "precipitation": true,
+  "sky": "#78a7ff",
+  "fog": "#c0d8ff",
+  "water": "#617b90",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "donkey",
+   "horse",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:volcanic_crater": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#575c66",
+  "fog": "#8b98a3",
+  "water": "#3f76e4",
+  "grass": "#c0bbac",
+  "foliage": "#c2c0a9",
+  "particle": "minecraft:white_ash",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:volcanic_peaks": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 1,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3f76e4",
+  "grass": "#c0bbac",
+  "foliage": "#c2c0a9",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen"
+  ]
+ },
+ "terralith:warm_river": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "precipitation": true,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#77e0f7",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "drowned",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_water"
+  ]
+ },
+ "terralith:warped_mesa": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#c0a8ff",
+  "fog": "#ccb6ed",
+  "water": "#9883d5",
+  "grass": "#beafdd",
+  "foliage": "#448be4",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:white_cliffs": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.4,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "trees_small"
+  ]
+ },
+ "terralith:white_mesa": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 2,
+  "downfall": 0,
+  "precipitation": false,
+  "sky": "#b1d1ff",
+  "fog": "#cde6ff",
+  "water": "#4d76bc",
+  "grass": "#90814d",
+  "foliage": "#9e814d",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "armadillo",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "glow_lichen",
+   "patch_cactus_decorated",
+   "red_mushroom_normal"
+  ]
+ },
+ "terralith:windswept_spires": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.2,
+  "downfall": 0.3,
+  "precipitation": true,
+  "sky": "#7da2ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "llama",
+   "pig",
+   "sheep"
+  ],
+  "features": [
+   "amethyst_geode",
+   "glow_lichen",
+   "ore_diorite_upper",
+   "patch_grass",
+   "spruce_trees",
+   "tall_foliage"
+  ]
+ },
+ "terralith:wintry_forest": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.5,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:white_ash",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees_center",
+   "trees_edge",
+   "trees_giant",
+   "trees_outer"
+  ]
+ },
+ "terralith:wintry_lowlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": -0.5,
+  "downfall": 0.4,
+  "precipitation": true,
+  "sky": "#a5b0bd",
+  "fog": "#d7d8e1",
+  "water": "#3938c9",
+  "grass": null,
+  "foliage": null,
+  "particle": "minecraft:white_ash",
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "trees_center",
+   "trees_edge",
+   "trees_giant",
+   "trees_outer"
+  ]
+ },
+ "terralith:yellowstone": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.24775,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#77a8ff",
+  "fog": "#e0e9ff",
+  "water": "#77e0f7",
+  "grass": "#c6d097",
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "acid_basalt",
+   "amethyst_geode",
+   "birch_trees",
+   "birch_trees_alt",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flower_default",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga",
+   "spruce_trees_big",
+   "spruce_trees_big_alt"
+  ]
+ },
+ "terralith:yosemite_cliffs": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.375,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7da3ff",
+  "fog": "#c0d8ff",
+  "water": "#3f76e4",
+  "grass": null,
+  "foliage": null,
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga"
+  ]
+ },
+ "terralith:yosemite_lowlands": {
+  "mod": "Terralith_1.21.x_v2.6.2",
+  "temperature": 0.25,
+  "downfall": 0.8,
+  "precipitation": true,
+  "sky": "#7da3ff",
+  "fog": "#c0d8ff",
+  "water": "#3647aa",
+  "grass": "#598347",
+  "foliage": "#508231",
+  "particle": null,
+  "monsters": [
+   "creeper",
+   "enderman",
+   "skeleton",
+   "slime",
+   "spider",
+   "witch",
+   "zombie",
+   "zombie_villager"
+  ],
+  "creatures": [
+   "chicken",
+   "cow",
+   "fox",
+   "pig",
+   "rabbit",
+   "sheep",
+   "wolf"
+  ],
+  "features": [
+   "amethyst_geode",
+   "brown_mushroom_normal",
+   "brown_mushroom_taiga",
+   "flowers",
+   "glow_lichen",
+   "red_mushroom_normal",
+   "red_mushroom_taiga"
+  ]
+ }
+}

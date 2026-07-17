@@ -60,16 +60,20 @@ SEEDTEST="$PROJECT_ROOT/.seedtest"
 WORK_BASE="$SEEDTEST/base"
 MEASUREMENTS="$SEEDTEST/measurements.csv"
 
-CANDIDATES=16
+CANDIDATES=12
+WORLD_CANDIDATES=12
 WORKERS=6
 DIMS=""
-RENDER="winners"
+RENDER="all"
 RENDER_TOP=3
 WRITE_CONFIG=1
+SKIP_WORLDS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --candidates) CANDIDATES="$2"; shift 2 ;;
+    --world-candidates) WORLD_CANDIDATES="$2"; shift 2 ;;
+    --no-worlds) SKIP_WORLDS=1; shift ;;
     --workers) WORKERS="$2"; shift 2 ;;
     --dims) DIMS="$2"; shift 2 ;;
     --render) RENDER="$2"; shift 2 ;;
@@ -208,12 +212,37 @@ run_fleet() {
 }
 
 # ---------------------------------------------------------------------------
+# Live report: regenerate viewer.html every 45s while fleets run, so the
+# report can be watched in a browser (it meta-refreshes itself).
+# ---------------------------------------------------------------------------
+REPORTER_PID=""
+start_reporter() {
+  (
+    while true; do
+      sleep 45
+      merge_measurements 2> /dev/null || true
+      python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
+        --config "$CONFIG" --seedtest "$SEEDTEST" \
+        ${DIMS:+--dims "$DIMS"} --viewer > /dev/null 2>&1 || true
+    done
+  ) &
+  REPORTER_PID=$!
+  echo "Live report: $SEEDTEST/viewer.html (regenerates every 45s — open it now)"
+}
+
+stop_reporter() {
+  [[ -n "$REPORTER_PID" ]] && kill "$REPORTER_PID" 2> /dev/null || true
+  REPORTER_PID=""
+}
+
+# ---------------------------------------------------------------------------
 # Finalise (also runs on Ctrl+C): merge -> score -> write config -> viewer
 # ---------------------------------------------------------------------------
 FINALISED=0
 finalise() {
   [[ "$FINALISED" == 1 ]] && return 0
   FINALISED=1
+  stop_reporter
   echo ""
   echo ">>> Finalising: merging measurements + scoring..."
   merge_measurements
@@ -240,6 +269,7 @@ cleanup() {
   trap - INT TERM EXIT
   echo ""
   echo "Stopping workers..."
+  stop_reporter
   local pid
   for pid in $WORKER_PIDS; do kill "$pid" 2> /dev/null || true; done
   sleep 1
@@ -273,10 +303,24 @@ python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
   --config "$CONFIG" --seedtest "$SEEDTEST" \
   --workers "$WORKERS" --candidates "$CANDIDATES" ${DIMS:+--dims "$DIMS"}
 
+start_reporter
+
 MODE="measure"
 [[ "$RENDER" == "all" ]] && MODE="measure+render"
 run_fleet "$MODE" "" "$WORKERS" || echo "WARNING: one or more workers failed — scoring what was measured"
 merge_measurements
+
+# World seeds (overworld/nether/end/paradise_lost share ONE seed; every
+# candidate costs a boot, so the pool is smaller). --dims skips this phase.
+if [[ "$SKIP_WORLDS" == 0 && -z "$DIMS" ]]; then
+  echo ""
+  echo ">>> World-seed pass ($WORLD_CANDIDATES accepted candidates)..."
+  python3 "$SCRIPT_DIR/score-dimensions.py" world-manifest \
+    --config "$CONFIG" --seedtest "$SEEDTEST" \
+    --workers "$WORKERS" --candidates "$WORLD_CANDIDATES" --spawn-attempts 4
+  run_fleet "world" "v" "$WORKERS" || echo "WARNING: world pass incomplete"
+  merge_measurements
+fi
 
 if [[ "$RENDER" == "winners" ]]; then
   echo ""
