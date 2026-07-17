@@ -52,6 +52,16 @@ def fetch(version_id):
                 continue
             if e.code == 404:
                 return None
+            if e.code >= 500:
+                # Modrinth 5xx flapping killed five consecutive CI runs
+                # (2026-07-17): transient server errors get the same
+                # backoff as 429 instead of crashing the seed.
+                print(f"resolve: {e.code} for {version_id}, retrying in "
+                      f"{delay:.0f}s (attempt {attempt + 1}/{MAX_RETRIES})",
+                      file=sys.stderr)
+                time.sleep(delay)
+                delay = min(delay * 2, 60)
+                continue
             raise
         except (urllib.error.URLError, TimeoutError):
             time.sleep(delay)
