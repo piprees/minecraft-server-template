@@ -26,6 +26,7 @@ public class MultiverseConfig {
     private transient MinecraftServer server;
 
     private String namespace;
+    private Long worldSeed;
     private String frameOverworld = "minecraft:crying_obsidian";
     private String frameNether = "minecraft:obsidian";
     private String frameEnd = "minecraft:iron_block";
@@ -57,6 +58,7 @@ public class MultiverseConfig {
                 this.worlds.clear();
                 this.worlds.addAll(loaded.worlds);
                 this.namespace = loaded.namespace;
+                this.worldSeed = loaded.worldSeed;
                 this.frameOverworld = loaded.frameOverworld != null ? loaded.frameOverworld : this.frameOverworld;
                 this.frameNether = loaded.frameNether != null ? loaded.frameNether : this.frameNether;
                 this.frameEnd = loaded.frameEnd != null ? loaded.frameEnd : this.frameEnd;
@@ -134,18 +136,29 @@ public class MultiverseConfig {
     }
 
     /**
-     * Seed override for a static world (nether/end/paradise_lost), by full
-     * dimension id. Always null for minecraft:overworld — the overworld
-     * seed is the save seed and must come from .env SEED at creation.
+     * Seed override for a static world, by full dimension id. The
+     * overworld is driven by the top-level "worldSeed" (config-driven
+     * multiverse — the .env SEED is only a legacy fallback that seeds
+     * level.dat); other worlds by the "seed" on their worlds[] entry.
+     * The config loads at createWorlds HEAD, so the override is active
+     * from the overworld's very first chunk.
      */
     public Long getWorldSeedOverride(String dimensionId) {
         if ("minecraft:overworld".equals(dimensionId)) {
-            return null;
+            return this.worldSeed;
         }
         return this.worlds.stream()
                 .filter(w -> dimensionId.equals(w.getDimensionId()))
                 .map(WorldSeedDefinition::getSeed)
                 .filter(s -> s != null)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /** The worlds[] entry for a given name (e.g. "overworld"), or null. */
+    public WorldSeedDefinition getWorld(String name) {
+        return this.worlds.stream()
+                .filter(w -> name.equals(w.getName()))
                 .findFirst()
                 .orElse(null);
     }

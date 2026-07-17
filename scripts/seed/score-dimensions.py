@@ -77,12 +77,26 @@ def write_worker_files(seedtest, config, jobs_by_worker, prefix=""):
         (seedtest / f"work-{prefix}{w}.txt").write_text(
             "".join(f"{dim['name']}|{base}|{','.join(map(str, seeds))}\n"
                     for dim, base, seeds in jobs))
-        roll = {k: v for k, v in config.items() if k != "dimensions" and k != "portals"}
-        roll["portals"] = []
+        roll = roll_boot_config(config)
         roll["idleUnloadMinutes"] = 9999
         roll["dimensions"] = [candidate_entry(d, f"{base}a{k}", s, ns)
                               for d, base, seeds in jobs for k, s in enumerate(seeds)]
         (seedtest / f"mvconfig-{prefix}{w}.json").write_text(json.dumps(roll, indent=2))
+
+
+def roll_boot_config(config):
+    """A measurement container's boot config: no dimensions/portals, and —
+    critically — no worldSeed / worlds[].seed / spawn. The mod now drives
+    the REAL worlds from those keys, and a roll boot must stay a plain
+    SEED=1 vanilla boot: candidates carry their own runtime seeds, the
+    container's own overworld is never measured."""
+    roll = {k: v for k, v in config.items()
+            if k not in ("dimensions", "portals", "worldSeed")}
+    roll["dimensions"] = []
+    roll["portals"] = []
+    roll["worlds"] = [{k: v for k, v in w.items() if k not in ("seed", "spawn")}
+                      for w in config.get("worlds", [])]
+    return roll
 
 
 def cmd_manifest(args, config, profiles, world_profiles=None):
@@ -99,9 +113,7 @@ def cmd_manifest(args, config, profiles, world_profiles=None):
     names = list(profiles)
     workers = max(1, args.workers)
 
-    roll = {k: v for k, v in config.items() if k not in ("dimensions", "portals")}
-    roll["dimensions"] = []
-    roll["portals"] = []
+    roll = roll_boot_config(config)
     roll["idleUnloadMinutes"] = 9999
     (seedtest / "mvconfig-roll.json").write_text(json.dumps(roll, indent=2))
 
@@ -134,9 +146,7 @@ def cmd_world_manifest(args, config, world_profiles):
     workers = max(1, args.workers)
     seen = set(measured.get("overworld", {}))
 
-    roll = {k: v for k, v in config.items() if k not in ("dimensions", "portals")}
-    roll["dimensions"] = []
-    roll["portals"] = []
+    roll = roll_boot_config(config)
     for w in range(workers):
         quota = needed // workers + (1 if w < needed % workers else 0)
         seeds = []
@@ -426,10 +436,9 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                     dim["seed"] = new_seed
                     changed += 1
         # Real worlds: nether/end/paradise get their winner written onto
-        # the worlds[] entry — the mod's ServerWorldSeedMixin applies it to
-        # the live world. The overworld seed IS the save seed: it can only
-        # come from .env SEED at world creation, so it is recorded as
-        # worldSeed and printed as an instruction, never injected.
+        # the worlds[] entry, the overworld onto the top-level worldSeed —
+        # the mod's ServerWorldSeedMixin drives ALL of them (config-driven
+        # multiverse; .env SEED only seeds level.dat as a legacy fallback).
         for world in fresh.get("worlds", []):
             w = winners.get(world["name"])
             if w and world["name"] != "overworld":
@@ -444,9 +453,10 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
         print(f"config updated: {changed} seeds changed ({cfg_path})"
               + (f"; backup: {backup.name}" if backup else ""))
         if ow is not None:
-            print(f"overworld winner (score {ow['score']:.1f}): {ow['seed']}")
-            print(f"  -> set SEED='{ow['seed']}' in .env, then ./ops github-env-sync")
-            print("     (applies to NEW worlds only — production needs the ./ops reset-seed ritual)")
+            print(f"overworld winner (score {ow['score']:.1f}): {ow['seed']} — "
+                  "config-driven (worldSeed), applies at next boot")
+            print("  NEW chunks generate on it; existing overworld chunks keep the old "
+                  "terrain (wipe the world / ./ops reset-seed ritual to regenerate)")
 
     if args.viewer:
         viewer = Path(args.seedtest) / "viewer.html"

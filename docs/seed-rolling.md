@@ -108,10 +108,18 @@ Winners land differently per world:
   `seed` on the `worlds[]` entry; the mod's `ServerWorldSeedMixin`
   applies it to the live world (fresh chunks generate on the new seed;
   wipe the dimension's region files to regenerate everything).
-- **overworld** — its seed IS the save seed and is never injected. The
-  winner is recorded as `worldSeed` and printed as an instruction:
-  set `SEED=` in `.env`, run `./ops github-env-sync`, and apply with a
-  world reset (`./ops reset-seed` ritual on production).
+- **overworld** — the winner is written as the top-level `worldSeed`
+  and the mod drives overworld generation with it too: the multiverse
+  is **fully config-driven**, and `SEED` in `.env` only seeds level.dat
+  as a legacy fallback. Existing overworld chunks keep their old
+  terrain — wipe the world (`./ops reset-seed` ritual on production)
+  to regenerate everything on the new seed.
+
+The `worlds[]` overworld entry also accepts `"spawn": [x, y, z]` — the
+mod sets the world spawn from it at boot, replacing the `SPAWN_X/Y/Z`
+env enforcement (deploy.sh skips its `setworldspawn` when the config
+carries a spawn). Version-control your seeds AND your spawn point in
+one drop-in config.
 
 ## Scoring model
 

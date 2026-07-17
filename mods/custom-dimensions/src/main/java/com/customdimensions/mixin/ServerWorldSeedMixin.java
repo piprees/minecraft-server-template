@@ -34,10 +34,11 @@ public class ServerWorldSeedMixin {
             }
             return;
         }
-        // Static worlds (nether/end/paradise_lost): a "seed" on the config's
-        // worlds[] entry overrides the save seed, so each real world can run
-        // its own rolled winner. minecraft:overworld is never overridden —
-        // its seed IS the save seed (.env SEED, world reset to change).
+        // Static worlds: the config drives every seed. The overworld takes
+        // the top-level "worldSeed" (config-driven multiverse — .env SEED
+        // only seeds level.dat as a legacy fallback); nether/end/paradise
+        // take the "seed" on their worlds[] entry. Config loads at
+        // createWorlds HEAD, so overrides cover the very first chunk.
         Long worldSeed = MultiverseConfig.getInstance().getWorldSeedOverride(key.getValue().toString());
         if (worldSeed != null) {
             cir.setReturnValue(worldSeed);

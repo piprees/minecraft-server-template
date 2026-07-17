@@ -12,6 +12,7 @@ public class WorldSeedDefinition {
     private String name;
     private String dimensionId;
     private Long seed;
+    private int[] spawn;
 
     public String getName() {
         return this.name;
@@ -23,5 +24,13 @@ public class WorldSeedDefinition {
 
     public Long getSeed() {
         return this.seed;
+    }
+
+    /** Optional [x, y, z] world-spawn point. Applied for the overworld
+     * entry at server start (replaces the SPAWN_X/Y/Z env enforcement);
+     * other worlds share the global spawn in vanilla, so theirs are
+     * stored for tooling only. */
+    public int[] getSpawn() {
+        return this.spawn != null && this.spawn.length == 3 ? this.spawn : null;
     }
 }

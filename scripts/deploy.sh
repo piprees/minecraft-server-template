@@ -868,7 +868,22 @@ if [[ -x "$SCRIPT_DIR/setup-permissions.sh" ]]; then
 fi
 
 # --- Spawn coordinates (betterspawn) -------------------------------------------
-if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Y:-}" && -n "${SPAWN_Z:-}" ]]; then
+# Config-driven spawn wins: when the multiverse config's worlds[] overworld
+# entry carries "spawn": [x, y, z], the custom-dimensions mod applies it at
+# server start — the env enforcement below would fight it, so it only runs
+# when the config has no spawn.
+CONFIG_HAS_SPAWN="$(python3 -c "
+import json, sys
+try:
+    cfg = json.load(open('$SERVER_DIR/data/config/multiverse_config.json'))
+    ow = next((w for w in cfg.get('worlds', []) if w.get('name') == 'overworld'), {})
+    print('yes' if isinstance(ow.get('spawn'), list) and len(ow['spawn']) == 3 else 'no')
+except Exception:
+    print('no')
+" 2> /dev/null || echo no)"
+if [[ "$CONFIG_HAS_SPAWN" == "yes" ]]; then
+  echo "  Spawn: config-driven (worlds[].overworld.spawn — env SPAWN_X/Y/Z ignored)"
+elif [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Y:-}" && -n "${SPAWN_Z:-}" ]]; then
   rcon "setworldspawn ${SPAWN_X} ${SPAWN_Y} ${SPAWN_Z}"
   echo "  Spawn: ${SPAWN_X} ${SPAWN_Y} ${SPAWN_Z}"
 fi

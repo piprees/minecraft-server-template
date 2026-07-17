@@ -6,6 +6,7 @@ import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.dimension.StorageHelper;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -21,6 +22,20 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         FabricLoader.getInstance().getObjectShare().put("customdimensions:init", true);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             DimensionCommands.register(dispatcher));
+        // Config-driven overworld spawn: the worlds[] overworld entry's
+        // "spawn": [x, y, z] replaces the SPAWN_X/Y/Z env enforcement.
+        // Other worlds share the global spawn in vanilla, so only the
+        // overworld entry is applied.
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            com.customdimensions.config.WorldSeedDefinition ow =
+                    MultiverseConfig.getInstance().getWorld("overworld");
+            int[] spawn = ow != null ? ow.getSpawn() : null;
+            if (spawn != null) {
+                server.getOverworld().setSpawnPos(
+                        new net.minecraft.util.math.BlockPos(spawn[0], spawn[1], spawn[2]), 0.0f);
+                LOGGER.info("World spawn set from config: {} {} {}", spawn[0], spawn[1], spawn[2]);
+            }
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             DimensionManager.getInstance().processPendingWorldLoads();
             DimensionManager.getInstance().reconcileOrphansOnce();
