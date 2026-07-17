@@ -227,6 +227,10 @@ prepare_seedtest_dir() {
       cp -a "$LOCAL_DATA/$dir" "$WORK_DIR/"
     fi
   done
+  # Live-server per-dimension state must not ride along: BlueMap map configs
+  # and DistantHorizons per-level configs cause 70+ map-loading warnings at
+  # boot in the roll container (AGENTS.md dimension trap).
+  rm -rf "$WORK_DIR/config/bluemap" "$WORK_DIR/config/DistantHorizons"
 
   # World datapacks (structure tuning) ride along so rolls measure the
   # same worldgen production runs.
@@ -262,7 +266,9 @@ SEEDROLL_EXCLUDE_PATTERNS=(
   "carryon-*"
   "netherportalfix-*"
   "netherportalspread-*"
-  "collective-*"
+  # collective-* must NOT be stripped: 9+ mods depend on it (healingcampfire,
+  # nametagtweaks, nutritiousmilk, ...) and Fabric fails with a
+  # FormattedException listing every missing dep (AGENTS.md dimension trap).
   "FallingTree-*"
   "letmedespawn-*"
   "Almanac-*"
@@ -360,6 +366,7 @@ prepare_worker_dir() {
   for dir in config defaultconfigs moonlight-global-datapacks villagerpacks world-datapacks-template; do
     [[ -d "$WORK_DIR/$dir" ]] && cp -a "$WORK_DIR/$dir" "$worker_dir/"
   done
+  rm -rf "$worker_dir/config/bluemap" "$worker_dir/config/DistantHorizons"
   touch "$worker_dir/.worker-ready"
 }
 
@@ -421,11 +428,14 @@ is_measured() {
 
 # generate_seed        - unsigned 64-bit (world seeds, matches old behaviour)
 # generate_signed_seed - signed 64-bit (dimension config seeds are signed)
+# macOS BSD od interprets the 8 in -td8 as FIELD WIDTH, not byte size, and
+# emits single-byte values (AGENTS.md platform trap) — the unsigned -tu8
+# variant happens to work, the signed one does not. Use python3 for signed.
 generate_seed() {
   od -An -tu8 -N8 /dev/urandom | tr -d ' '
 }
 generate_signed_seed() {
-  od -An -td8 -N8 /dev/urandom | tr -d ' '
+  python3 -c "import os,struct; print(struct.unpack('<q', os.urandom(8))[0])"
 }
 
 container_alive() {
