@@ -75,6 +75,15 @@ Find a great world seed by testing against the real modded server. Rolls bank ra
 
 Pick your favourite from the generated report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env` (dimension seeds go into that dimension's entry in `config/multiverse_config.json`). Profiles live in `scripts/seed/profiles/` — `classic` reproduces the pre-v3 taste.
 
+To roll **every custom dimension at once**, fully automated (parallel containers, per-dimension philosophy-driven scoring, BlueMap renders, winners written straight into `config/multiverse_config.json` with a backup):
+
+```bash
+./dev seed-roll-all                          # 73 dims x 16 candidates, 6 workers
+./dev seed-roll-all --dims the_gauntlet --candidates 8 --workers 1
+```
+
+Everything lands in `.seedtest/` (measurements.csv, renders, viewer.html — opened automatically at the end). Ctrl+C finalises with whatever has been measured so far; re-runs resume.
+
 ## Upgrading
 
 Bump `STACK_VERSION` in `.env` (or leave it as `v1` to track the latest v1.x.y):

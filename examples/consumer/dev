@@ -24,6 +24,7 @@ usage() {
   echo "  rollback Revert to a previous stack bundle version"
   echo "  sync     (deprecated, use ./ops sync) Full local+remote alignment"
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
+  echo "  seed-roll-all Parallel-roll seeds for EVERY dimension, auto-pick winners"
   echo "  seed-report Generate the top-N seed report from results"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
@@ -343,6 +344,13 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/roll-seeds.sh" "$@"
+    ;;
+  seed-roll-all)
+    ensure_env
+    ensure_stack
+    ensure_docker
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/roll-all.sh" "$@"
     ;;
   seed-report)
     ensure_stack

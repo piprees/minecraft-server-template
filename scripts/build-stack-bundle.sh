@@ -63,6 +63,10 @@ MANIFEST=(
   scripts/backup-now.sh
   scripts/reset-seed.sh
   scripts/seed/roll-seeds.sh
+  scripts/seed/roll-all.sh
+  scripts/seed/seed_worker.py
+  scripts/seed/dimension_profiles.py
+  scripts/seed/score-dimensions.py
   scripts/seed/score-seed.sh
   scripts/seed/report-top.sh
   scripts/seed/score-report.py
