@@ -360,10 +360,47 @@ def column_height(rcon, dim, x, z, lo, hi):
     return lo_b
 
 
+def wait_loaded(rcon, dim, x=0, z=0, timeout=90):
+    """forceload add returns before the chunk GENERATES — under fleet load
+    that gap poisoned every probe (biome unknown, heights = build limit).
+    Poll `execute if loaded` until the chunk is real."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if test_ok(rcon.cmd(f"execute in {dim} if loaded {x} 64 {z}")):
+            return True
+        time.sleep(2)
+    return False
+
+
+# Identification fallback so rejections name their REAL spawn biome —
+# needed to audit filter behaviour and to give near-miss candidates their
+# partial namesake credit. Ordered common-first; ~10ms per probe.
+COMMON_BIOMES = [
+    "minecraft:plains", "minecraft:forest", "minecraft:birch_forest",
+    "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:savanna",
+    "minecraft:desert", "minecraft:swamp", "minecraft:jungle",
+    "minecraft:dark_forest", "minecraft:meadow", "minecraft:river",
+    "minecraft:beach", "minecraft:ocean", "minecraft:deep_ocean",
+    "minecraft:cold_ocean", "minecraft:lukewarm_ocean", "minecraft:warm_ocean",
+    "minecraft:frozen_ocean", "minecraft:snowy_plains", "minecraft:windswept_hills",
+    "minecraft:windswept_forest", "minecraft:stony_shore", "minecraft:grove",
+    "minecraft:snowy_slopes", "minecraft:jagged_peaks", "minecraft:stony_peaks",
+    "minecraft:badlands", "minecraft:cherry_grove", "minecraft:mangrove_swamp",
+    "minecraft:old_growth_spruce_taiga", "minecraft:old_growth_pine_taiga",
+    "minecraft:sunflower_plains", "minecraft:flower_forest",
+    "minecraft:nether_wastes", "minecraft:crimson_forest", "minecraft:warped_forest",
+    "minecraft:soul_sand_valley", "minecraft:basalt_deltas",
+    "minecraft:the_end", "minecraft:end_highlands", "minecraft:end_midlands",
+    "minecraft:end_barrens", "minecraft:small_end_islands",
+]
+
+
 def detect_spawn_biome(rcon, dim, probes, surface_y=None):
     """Probe the biome a player would actually see at spawn: at the surface
     when there is one (biomes are 3D — y=64 under a mountain can be a cave
-    biome), with sensible fallbacks for voids and open caves."""
+    biome), with sensible fallbacks for voids and open caves. Filter probes
+    first; if none hit, identify against the common list so the row still
+    says what the spawn actually was."""
     ys = []
     if surface_y is not None:
         ys.append(surface_y + 1)
@@ -372,6 +409,12 @@ def detect_spawn_biome(rcon, dim, probes, surface_y=None):
         for biome in probes:
             if test_ok(rcon.cmd(f"execute in {dim} if biome 0 {y} 0 {biome}")):
                 return biome
+    y = ys[0]
+    for biome in COMMON_BIOMES:
+        if biome in probes:
+            continue
+        if test_ok(rcon.cmd(f"execute in {dim} if biome 0 {y} 0 {biome}")):
+            return biome
     return "unknown"
 
 
@@ -416,6 +459,11 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     fam = profile["family"] or "overworld"
     lo, hi = HEIGHT_RANGE[fam]
     rcon.cmd(f"execute in {dim} run forceload add 0 0")
+    if not wait_loaded(rcon, dim, 0, 0):
+        rcon.cmd(f"execute in {dim} run forceload remove 0 0")
+        rows.append(("spawn_biome", "unknown"))
+        rows.append(("rejected", 2))  # probe timeout, not a filter verdict
+        return rows, "unknown(timeout)", False
     surface = column_height(rcon, dim, 0, 0, lo, hi)
     spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
     rows.append(("spawn_biome", spawn))
@@ -439,6 +487,9 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         for c in range(3):
             x, z = (c - 1) * pitch, (r - 1) * pitch
             rcon.cmd(f"execute in {dim} run forceload add {x} {z}")
+            if not wait_loaded(rcon, dim, x, z, timeout=60):
+                rcon.cmd(f"execute in {dim} run forceload remove {x} {z}")
+                continue  # missing point degrades land_fraction, not heights
             h = column_height(rcon, dim, x, z, lo, hi)
             if h is not None:
                 rows.append((f"height_r{r}c{c}", h))
