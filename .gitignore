@@ -81,3 +81,6 @@ __pycache__/
 # generated jar download cache (gen-structure-presets.py)
 /.cache/
 .seedtest/
+
+# Serena semantic-code-intelligence cache
+.serena/
