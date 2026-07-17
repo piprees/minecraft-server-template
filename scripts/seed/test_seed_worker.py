@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Regression tests for seed_worker candidate creation."""
+"""Regression tests for seed-worker candidate outcomes."""
 import unittest
 
-from seed_worker import create_candidate
+from seed_worker import create_candidate, spawn_filter_rejection
 
 
 class FakeRcon:
@@ -39,17 +39,43 @@ class CreateCandidateTests(unittest.TestCase):
             with self.subTest(response=response):
                 rcon = FakeRcon(response)
 
-                self.assertTrue(create_candidate(
-                    rcon, "test", "adventure", "candidate", self.profile, 123))
+                created, reason = create_candidate(
+                    rcon, "test", "adventure", "candidate", self.profile, 123)
+                self.assertTrue(created)
+                self.assertIsNone(reason)
                 self.assertEqual(
                     rcon.commands[-1], "execute in adventure:candidate run seed")
 
     def test_rejects_non_success_response(self):
         rcon = FakeRcon("Failed to create dimension: invalid type")
 
-        self.assertFalse(create_candidate(
-            rcon, "test", "adventure", "candidate", self.profile, 123))
+        created, reason = create_candidate(
+            rcon, "test", "adventure", "candidate", self.profile, 123)
+        self.assertFalse(created)
+        self.assertEqual(reason, "create command rejected: Failed to create dimension: invalid type")
         self.assertEqual(len(rcon.commands), 1)
+
+
+class RejectionReasonTests(unittest.TestCase):
+    def test_spawn_filter_rejection_explains_active_gate(self):
+        reason = spawn_filter_rejection(
+            "minecraft:nether_wastes", 204,
+            ["minecraft:nether_wastes", "minecraft:crimson_forest"], 48)
+
+        self.assertEqual(
+            reason,
+            "spawn filter: nearest configured biome minecraft:nether_wastes at 204 blocks; "
+            "requires one of [minecraft:nether_wastes, minecraft:crimson_forest] "
+            "within 48 blocks")
+
+    def test_spawn_filter_rejection_explains_missing_match(self):
+        reason = spawn_filter_rejection(
+            None, None, ["terralith:bryce_canyon"], 256)
+
+        self.assertEqual(
+            reason,
+            "spawn filter: no configured biome found; requires one of "
+            "[terralith:bryce_canyon] within 256 blocks")
 
 
 if __name__ == "__main__":

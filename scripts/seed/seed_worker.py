@@ -446,6 +446,17 @@ def detect_spawn_biome(rcon, dim, probes, surface_y=None):
 # ---------------------------------------------------------------------------
 # Candidate passes
 # ---------------------------------------------------------------------------
+def spawn_filter_rejection(nearest_biome, nearest_distance, targets, radius):
+    """Explain why a candidate missed its configured spawn gate."""
+    required = ", ".join(targets)
+    if nearest_biome is None:
+        return ("spawn filter: no configured biome found; requires one of "
+                f"[{required}] within {radius} blocks")
+    return (f"spawn filter: nearest configured biome {nearest_biome} at "
+            f"{nearest_distance} blocks; requires one of [{required}] within "
+            f"{radius} blocks")
+
+
 def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     ca = profile["create_args"]
     ctype = ca["type"]
@@ -458,14 +469,14 @@ def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     # follow-up seed query below remains the authoritative readiness check.
     if not any(message in out for message in CREATE_SUCCESS_RESPONSES):
         log(worker_id, f"  create failed for {cand}: {out[:160]}")
-        return False
+        return False, f"create command rejected: {out[:160]}"
     # Prove the world answers before measuring.
     for _ in range(12):
         if "Seed" in rcon.cmd(f"execute in {ns}:{cand} run seed"):
-            return True
+            return True, None
         time.sleep(2)
     log(worker_id, f"  {cand} never became queryable")
-    return False
+    return False, "created dimension never became queryable after 24s"
 
 
 def destroy_candidate(rcon, workdir, ns, cand):
@@ -510,10 +521,11 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         if best_d is not None and best_d <= 48:
             spawn = best_b  # true namesake spawn
         elif not (force_accept or (best_d is not None and best_d <= spawn_radius)):
-            miss = f"{best_b}@{best_d}" if best_b else "unknown"
-            rows.append(("spawn_biome", miss))
+            reason = spawn_filter_rejection(
+                best_b, best_d, profile["namesake"], spawn_radius)
+            rows.append(("spawn_biome", f"{best_b}@{best_d}" if best_b else "unknown"))
             rows.append(("rejected", 1))
-            return rows, miss, False
+            return rows, reason, False
         if best_d is not None:
             # Proximity credit for the namesake score (widened acceptances
             # and keepers); true spawns record 0-48 and score full anyway.
@@ -526,7 +538,7 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         rcon.cmd(f"execute in {dim} run forceload remove 0 0")
         rows.append(("spawn_biome", spawn))
         rows.append(("rejected", 2))  # probe timeout, not a filter verdict
-        return rows, f"{spawn}(timeout)", False
+        return rows, "spawn probe timed out after 90s", False
     surface = column_height(rcon, dim, 0, 0, lo, hi)
     if spawn == "unknown":
         spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
@@ -749,8 +761,9 @@ def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
     Returns (accepted, spawn). Errors are logged and treated as a miss."""
     try:
         err_before = error_count(container)
-        if not create_candidate(rcon, wid, ns, cand, profile, seed):
-            return False, "create-failed"
+        created, reason = create_candidate(rcon, wid, ns, cand, profile, seed)
+        if not created:
+            return False, reason
         rows, spawn, accepted = measure_candidate(
             rcon, wid, container, f"{ns}:{cand}", profile, err_before,
             force_accept=not gate, spawn_radius=spawn_radius)
@@ -857,7 +870,7 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                 log(wid, f"  rejected {target} seed {seed} ({spawn})")
                 # A dead container mid-slot must reboot HERE — the rotation-
                 # level check only runs between dimensions.
-                if spawn in ("error", "create-failed") and not container_running(container):
+                if not container_running(container):
                     log(wid, "container died mid-slot — rebooting")
                     rcon = boot(wid, container, args.workdir, args.memory)
                     if rcon is None:

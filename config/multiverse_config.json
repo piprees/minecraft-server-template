@@ -5,7 +5,7 @@
       "name": "the_claymarsh",
       "type": "overworld",
       "dimensionId": "adventure:the_claymarsh",
-      "seed": 2652259145697934213,
+      "seed": -4254781042587868201,
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "serene",
@@ -36,7 +36,7 @@
       "name": "the_scorched_mesa",
       "type": "overworld",
       "dimensionId": "adventure:the_scorched_mesa",
-      "seed": 3973811648189690216,
+      "seed": -5885483684890712603,
       "noiseSettings": "adventure:compressed",
       "seedRoll": {
         "mood": "dramatic",
@@ -66,7 +66,7 @@
       "name": "the_gritlands",
       "type": "overworld",
       "dimensionId": "adventure:the_gritlands",
-      "seed": -3514523164316373193,
+      "seed": 6451515302540119049,
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "desolate",
@@ -100,7 +100,7 @@
       "name": "the_roothold",
       "type": "overworld",
       "dimensionId": "adventure:the_roothold",
-      "seed": 2447000108415570639,
+      "seed": -1127231349081233614,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
@@ -126,7 +126,7 @@
       "name": "the_overgrowth",
       "type": "overworld",
       "dimensionId": "adventure:the_overgrowth",
-      "seed": -712162925524947580,
+      "seed": 3015051760093781697,
       "noiseSettings": "adventure:compressed",
       "structureDensity": "sparse",
       "seedRoll": {
@@ -157,7 +157,7 @@
       "name": "the_greenreach",
       "type": "overworld",
       "dimensionId": "adventure:the_greenreach",
-      "seed": 2601367292339996423,
+      "seed": 8105748331000661577,
       "noiseSettings": "adventure:wide",
       "seedRoll": {
         "mood": "pastoral",
@@ -187,7 +187,7 @@
       "name": "the_rosebluff",
       "type": "overworld",
       "dimensionId": "adventure:the_rosebluff",
-      "seed": 3624185682401255876,
+      "seed": 4132502889542137435,
       "noiseSettings": "adventure:compressed",
       "seedRoll": {
         "mood": "scenic",
@@ -242,7 +242,7 @@
       "name": "the_miredeep",
       "type": "overworld",
       "dimensionId": "adventure:the_miredeep",
-      "seed": -7079551442584109090,
+      "seed": -278367467270338546,
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "desolate",
@@ -273,7 +273,7 @@
       "name": "the_verdant_hollow",
       "type": "overworld",
       "dimensionId": "adventure:the_verdant_hollow",
-      "seed": -7135676367731545925,
+      "seed": 8520493563399625018,
       "noiseSettings": "adventure:wide",
       "seedRoll": {
         "mood": "pastoral",
@@ -300,7 +300,7 @@
       "name": "the_whitestone_ford",
       "type": "overworld",
       "dimensionId": "adventure:the_whitestone_ford",
-      "seed": 4414865111054462775,
+      "seed": -8759877331682622938,
       "noiseSettings": "adventure:wide",
       "seedRoll": {
         "mood": "pastoral",
@@ -328,7 +328,7 @@
       "name": "the_needlefall",
       "type": "overworld",
       "dimensionId": "adventure:the_needlefall",
-      "seed": 128054666417132966,
+      "seed": -6382007599207638359,
       "noiseSettings": "adventure:compressed",
       "seedRoll": {
         "mood": "dramatic",
@@ -355,7 +355,7 @@
       "name": "the_chalk_meadows",
       "type": "overworld",
       "dimensionId": "adventure:the_chalk_meadows",
-      "seed": 2195798975866015064,
+      "seed": 888786079348736810,
       "noiseSettings": "adventure:wide",
       "seedRoll": {
         "mood": "pastoral",
@@ -462,7 +462,7 @@
       "name": "the_darkpine_depths",
       "type": "overworld",
       "dimensionId": "adventure:the_darkpine_depths",
-      "seed": 2418931438629928634,
+      "seed": 8321122100447703446,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
@@ -488,7 +488,7 @@
       "name": "the_dripping_pines",
       "type": "overworld",
       "dimensionId": "adventure:the_dripping_pines",
-      "seed": -3812644548548193608,
+      "seed": -3544930939946256374,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
@@ -512,7 +512,7 @@
       "name": "the_ruined_timberland",
       "type": "overworld",
       "dimensionId": "adventure:the_ruined_timberland",
-      "seed": -1974596255070611309,
+      "seed": -3173898274248612281,
       "structureDensity": "dense",
       "seedRoll": {
         "mood": "adventurous",
@@ -636,7 +636,7 @@
       "name": "the_lost_outpost",
       "type": "overworld",
       "dimensionId": "adventure:the_lost_outpost",
-      "seed": 6564334460230090799,
+      "seed": -7001159427840009832,
       "structureDensity": "dense",
       "seedRoll": {
         "mood": "adventurous",
@@ -771,7 +771,7 @@
       "name": "the_bloodroot_wastes",
       "type": "nether",
       "dimensionId": "adventure:the_bloodroot_wastes",
-      "seed": 6135847632709183989,
+      "seed": -7196598490213397255,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
@@ -894,7 +894,7 @@
       "name": "the_twisted_groves",
       "type": "nether",
       "dimensionId": "adventure:the_twisted_groves",
-      "seed": -7247152828326584305,
+      "seed": -4696684832744545496,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
@@ -1021,7 +1021,7 @@
       "name": "the_buried_age",
       "type": "nether",
       "dimensionId": "adventure:the_buried_age",
-      "seed": -7522664240615933068,
+      "seed": -27431537388891441,
       "seedRoll": {
         "mood": "adventurous",
         "spawnFilter": [
@@ -1152,7 +1152,7 @@
       "name": "the_glacial_drift",
       "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_glacial_drift",
-      "seed": -5124091447723497048,
+      "seed": 7276819460514288435,
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "desolate",
