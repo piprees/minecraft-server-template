@@ -1159,16 +1159,12 @@
           "terralith:glacial_chasm"
         ],
         "wants": {
+          "para_remains": "near_spawn",
+          "aurel_tower": "spread",
           "igloo": "near_spawn",
-          "guide_post_cold": "near_spawn",
-          "frozen_dungeon": "spread",
-          "coldlair": "spread",
-          "ice_dungeon_l": "near_border"
+          "para_vault": "near_border"
         },
-        "shuns": [
-          "village",
-          "tavern"
-        ],
+        "shuns": [],
         "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void."
       },
       "biome": "paradise_lost:autumnal_tundra,paradise_lost:calcite_craglands,minecraft:ice_spikes,terralith:glacial_chasm,natures_spirit:tundra"
@@ -1187,14 +1183,14 @@
         ],
         "water": "sea",
         "wants": {
+          "para_vault": "spread",
+          "para_palace": "near_border",
           "monument": "spread",
-          "ocean_fortress": "spread",
-          "ocean_ruins": "near_spawn",
           "deepwater_dungeon": "spread",
-          "shipwreck": "near_spawn",
-          "infested_temple": "near_border"
+          "para_remains": "near_spawn"
         },
-        "description": "Temple-hunting across drowned skyland basins \u2014 monuments and fortresses where the water pooled between islands."
+        "description": "Temple-hunting across drowned skyland basins \u2014 monuments and fortresses where the water pooled between islands.",
+        "shuns": []
       },
       "biome": "paradise_lost:tradewinds,paradise_lost:highlands,minecraft:warm_ocean,terralith:deep_warm_ocean,minecraft:jungle"
     },
@@ -1211,14 +1207,12 @@
         ],
         "water": "high",
         "wants": {
-          "igloo": "near_spawn",
-          "taiga_outpost": "spread",
+          "para_remains": "near_spawn",
+          "aurel_tower": "spread",
           "cold_dungeon": "spread",
-          "village": "near_border"
+          "birdcage": "near_border"
         },
-        "shuns": [
-          "coliseum"
-        ],
+        "shuns": [],
         "description": "A snowbound island adrift in the sky \u2014 fir forests and drifts on floating ground."
       },
       "biome": "paradise_lost:autumnal_tundra,paradise_lost:highlands_shield,minecraft:snowy_taiga,natures_spirit:snowy_fir_forest,terralith:snowy_cherry_grove"
@@ -1237,15 +1231,13 @@
         ],
         "water": "sea",
         "wants": {
+          "para_vault": "near_spawn",
           "monument": "near_spawn",
-          "ocean_fortress": "spread",
-          "deepwater_dungeon": "spread",
-          "ocean_pillar": "near_spawn"
+          "para_palace": "spread"
         },
         "shuns": [
           "village",
-          "tavern",
-          "mansion"
+          "tavern"
         ],
         "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows; guardians below, sky above."
       },
@@ -1264,17 +1256,14 @@
           "terralith:frozen_cliffs"
         ],
         "wants": {
-          "ruins_snow": "spread",
-          "igloo": "near_spawn",
+          "para_remains": "spread",
+          "birdcage": "spread",
           "frozen_dungeon": "near_border"
         },
         "shuns": [
           "village",
           "tavern",
-          "trial_chambers",
-          "mansion",
-          "monument",
-          "coliseum"
+          "monument"
         ],
         "description": "The pale desolate reach \u2014 calcite crags floating in white silence."
       },
@@ -1292,10 +1281,10 @@
           "terralith:amethyst_canyon"
         ],
         "wants": {
-          "wizard_tower": "near_spawn",
-          "black_spiral": "spread",
-          "relic_temple": "near_border",
-          "mausoleum": "spread"
+          "aurel_tower": "near_spawn",
+          "birdcage": "spread",
+          "wizard_tower": "spread",
+          "para_palace": "near_border"
         },
         "shuns": [
           "village",

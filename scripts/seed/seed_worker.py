@@ -457,7 +457,7 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     the namesake component simply scores low)."""
     rows = []
     fam = profile["family"] or "overworld"
-    lo, hi = HEIGHT_RANGE[fam]
+    lo, hi = profile.get("height_range") or HEIGHT_RANGE[fam]
 
     # Spawn filter via locate biome — noise-sampled, needs NO chunks, ~1s
     # per probe. Chunk generation per rejection was the fleet's pace killer

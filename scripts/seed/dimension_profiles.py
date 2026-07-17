@@ -143,6 +143,16 @@ STRUCTS = {
     # sky islands (MSS places on the floating islands)
     "sky_castle_ruin": "mss:castle_ruin", "sky_arena": "mss:arena",
     "sky_house": "mss:small_oak_house", "sky_volcano": "mss:volcano",
+    # paradise lost (the skylands family)
+    "para_remains": "paradise_lost:remains", "aurel_tower": "paradise_lost:aurel_tower",
+    "para_vault": "paradise_lost:vault", "para_palace": "paradise_lost:palace",
+    "birdcage": "paradise_lost:birdcage",
+}
+
+# Per-clone-type column search ranges (min_y/height from the dimension_type;
+# paradise islands float well above the overworld ceiling).
+CLONE_HEIGHT_RANGES = {
+    "paradise_lost:paradise_lost": (-60, 440),
 }
 
 # What each mood is optimising for — shown in the viewer so a human can
@@ -427,6 +437,7 @@ def build_profile(dim, config, difficulty=None):
         "weights": weights,
         "is_void": is_void,
         "is_islands": is_islands,
+        "height_range": CLONE_HEIGHT_RANGES.get(dim_type),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
             "type": dim_type,
