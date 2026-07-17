@@ -314,11 +314,14 @@ def build_profile(dim, config, difficulty=None):
     name = dim["name"]
     is_world = "type" not in dim  # worlds entries have dimensionId only
     dim_type = dim.get("type", "world")
+    sr_early = dim.get("seedRoll") or {}
+    # Config dictates everything; type-string heuristics are only fallbacks.
+    fam = sr_early.get("family")
+    if fam not in ("overworld", "nether", "end"):
+        fam = world_family(dim.get("dimensionId", "")) if is_world else family_of(dim_type)
     if is_world:
-        fam = world_family(dim.get("dimensionId", ""))
         scale = float(dim.get("scale", 1.0))
     else:
-        fam = family_of(dim_type)
         scale = portal_scales(config).get(name, 1.0)
     radius = DEFAULT_BORDER_RADIUS / scale
     density = dim.get("structureDensity")
@@ -397,10 +400,15 @@ def build_profile(dim, config, difficulty=None):
     elif wpref == "none":
         terrain["water"] = (0.0, 0.10)
 
-    is_void = dim_type == "void"
-    is_islands = dim_type in ("sky_islands", "nether_islands") \
-        or "paradise_lost" in (dim_type or "") \
-        or dim.get("dimensionId") == "paradise_lost:paradise_lost"
+    terrain_kind = sr.get("terrain")  # config override: solid | islands | void
+    if terrain_kind in ("void", "islands", "solid"):
+        is_void = terrain_kind == "void"
+        is_islands = terrain_kind == "islands"
+    else:
+        is_void = dim_type == "void"
+        is_islands = dim_type in ("sky_islands", "nether_islands") \
+            or "paradise_lost" in (dim_type or "") \
+            or dim.get("dimensionId") == "paradise_lost:paradise_lost"
 
     weights = dict(MOOD_WEIGHTS[mood])
     if is_void:
@@ -437,7 +445,9 @@ def build_profile(dim, config, difficulty=None):
         "weights": weights,
         "is_void": is_void,
         "is_islands": is_islands,
-        "height_range": CLONE_HEIGHT_RANGES.get(dim_type),
+        "height_range": (tuple(sr["heightRange"]) if isinstance(sr.get("heightRange"), list)
+                         and len(sr["heightRange"]) == 2
+                         else CLONE_HEIGHT_RANGES.get(dim_type)),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
             "type": dim_type,

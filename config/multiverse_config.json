@@ -704,7 +704,8 @@
           "terralith:frozen_cliffs",
           "terralith:cave/frostfire_caves"
         ],
-        "description": "A void where a frozen world used to be \u2014 the biomes remain, the ground does not. The disintegration finished here."
+        "description": "A void where a frozen world used to be \u2014 the biomes remain, the ground does not. The disintegration finished here.",
+        "terrain": "void"
       }
     },
     {
@@ -723,7 +724,8 @@
           "nullscape:shadowlands",
           "terralith:cave/deep_caves"
         ],
-        "description": "A sculk-eaten void. The deep dark outlived the world it consumed."
+        "description": "A sculk-eaten void. The deep dark outlived the world it consumed.",
+        "terrain": "void"
       }
     },
     {
@@ -742,7 +744,8 @@
           "nullscape:void_barrens",
           "terralith:cave/mantle_caves"
         ],
-        "description": "A basalt-and-soul void \u2014 the nether's kind of ending, without the nether's mercy."
+        "description": "A basalt-and-soul void \u2014 the nether's kind of ending, without the nether's mercy.",
+        "terrain": "void"
       }
     },
     {
@@ -1165,9 +1168,15 @@
           "para_vault": "near_border"
         },
         "shuns": [],
-        "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void."
+        "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void.",
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:autumnal_tundra,paradise_lost:calcite_craglands,minecraft:ice_spikes,terralith:glacial_chasm,natures_spirit:tundra"
+      "biome": "paradise_lost:autumnal_tundra,paradise_lost:calcite_craglands,minecraft:ice_spikes,terralith:glacial_chasm,natures_spirit:tundra,terralith:skylands_winter,nullscape:void_barrens"
     },
     {
       "name": "the_sunken_temple",
@@ -1190,9 +1199,15 @@
           "para_remains": "near_spawn"
         },
         "description": "Temple-hunting across drowned skyland basins \u2014 monuments and fortresses where the water pooled between islands.",
-        "shuns": []
+        "shuns": [],
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:tradewinds,paradise_lost:highlands,minecraft:warm_ocean,terralith:deep_warm_ocean,minecraft:jungle"
+      "biome": "paradise_lost:tradewinds,paradise_lost:highlands,minecraft:warm_ocean,terralith:deep_warm_ocean,minecraft:jungle,terralith:skylands_summer,terralith:mirage_isles"
     },
     {
       "name": "the_snowbound_isle",
@@ -1213,9 +1228,15 @@
           "birdcage": "near_border"
         },
         "shuns": [],
-        "description": "A snowbound island adrift in the sky \u2014 fir forests and drifts on floating ground."
+        "description": "A snowbound island adrift in the sky \u2014 fir forests and drifts on floating ground.",
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:autumnal_tundra,paradise_lost:highlands_shield,minecraft:snowy_taiga,natures_spirit:snowy_fir_forest,terralith:snowy_cherry_grove"
+      "biome": "paradise_lost:autumnal_tundra,paradise_lost:highlands_shield,minecraft:snowy_taiga,natures_spirit:snowy_fir_forest,terralith:snowy_cherry_grove,terralith:skylands_winter,terralith:frozen_cliffs"
     },
     {
       "name": "the_abyssal_shrine",
@@ -1239,9 +1260,15 @@
           "village",
           "tavern"
         ],
-        "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows; guardians below, sky above."
+        "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows; guardians below, sky above.",
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:continental_plateau,paradise_lost:highlands_grand_glade,minecraft:deep_ocean,minecraft:deep_cold_ocean"
+      "biome": "paradise_lost:continental_plateau,paradise_lost:highlands_grand_glade,minecraft:deep_ocean,minecraft:deep_cold_ocean,nullscape:shadowlands,minecraft:deep_dark"
     },
     {
       "name": "the_pale_reach",
@@ -1265,9 +1292,15 @@
           "tavern",
           "monument"
         ],
-        "description": "The pale desolate reach \u2014 calcite crags floating in white silence."
+        "description": "The pale desolate reach \u2014 calcite crags floating in white silence.",
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:calcite_craglands,terralith:frozen_cliffs,terralith:wintry_lowlands,minecraft:ice_spikes"
+      "biome": "paradise_lost:calcite_craglands,terralith:frozen_cliffs,terralith:wintry_lowlands,minecraft:ice_spikes,nullscape:void_barrens,terralith:skylands_winter"
     },
     {
       "name": "the_violet_spire",
@@ -1290,9 +1323,15 @@
           "village",
           "monument"
         ],
-        "description": "Violet spires in the sky \u2014 wisteria islands and amethyst canyons; vertical, arcane, breathtaking."
+        "description": "Violet spires in the sky \u2014 wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
+        "family": "overworld",
+        "terrain": "islands",
+        "heightRange": [
+          -60,
+          440
+        ]
       },
-      "biome": "paradise_lost:wisteria_woods,terralith:amethyst_canyon,terralith:windswept_spires,natures_spirit:lavender_fields"
+      "biome": "paradise_lost:wisteria_woods,terralith:amethyst_canyon,terralith:windswept_spires,natures_spirit:lavender_fields,nullscape:crystal_peaks,terralith:skylands_spring"
     },
     {
       "name": "the_amplified_reaches",
@@ -1612,7 +1651,7 @@
       "type": "sky_islands",
       "dimensionId": "adventure:the_shattered_skies",
       "seed": -3604832347219380837,
-      "biome": "minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,minecraft:cherry_grove,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:alpine_grove,terralith:lush_valley,terralith:lavender_valley,terralith:blooming_plateau,terralith:shrubland,terralith:skylands_spring,terralith:skylands_autumn,terralith:mirage_isles",
+      "biome": "minecraft:plains,minecraft:forest,minecraft:birch_forest,minecraft:meadow,minecraft:flower_forest,minecraft:cherry_grove,terralith:blooming_valley,terralith:sakura_valley,terralith:sakura_grove,terralith:alpine_grove,terralith:lush_valley,terralith:lavender_valley,terralith:blooming_plateau,terralith:shrubland,terralith:skylands_spring,terralith:skylands_autumn,terralith:mirage_isles,paradise_lost:highlands,paradise_lost:wisteria_woods,paradise_lost:tradewinds",
       "seedRoll": {
         "mood": "scenic",
         "spawnFilter": [
@@ -1627,7 +1666,8 @@
           "sky_arena": "spread",
           "sky_volcano": "near_border"
         },
-        "description": "Floating garden islands \u2014 sakura and skylands adrift in a void slowly winning."
+        "description": "Floating garden islands \u2014 sakura and skylands adrift in a void slowly winning.",
+        "terrain": "islands"
       }
     },
     {
@@ -1635,7 +1675,7 @@
       "type": "nether_islands",
       "dimensionId": "adventure:the_burning_archipelago",
       "seed": -3604832347219380837,
-      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:volcanic_deltas,incendium:ash_barrens,incendium:infernal_dunes,incendium:withered_forest,nullscape:void_barrens,terralith:volcanic_peaks",
+      "biome": "minecraft:crimson_forest,minecraft:warped_forest,minecraft:quartz_bricks_valley,minecraft:basalt_deltas,minecraft:nether_wastes,incendium:volcanic_deltas,incendium:ash_barrens,incendium:infernal_dunes,incendium:withered_forest,nullscape:void_barrens,terralith:volcanic_peaks,paradise_lost:calcite_craglands",
       "seedRoll": {
         "mood": "adventurous",
         "spawnFilter": [
@@ -1649,7 +1689,8 @@
           "giant_skull": "spread",
           "nether_tower": "spread"
         },
-        "description": "Burning islands in a void sea \u2014 nether archipelago on end-island bones."
+        "description": "Burning islands in a void sea \u2014 nether archipelago on end-island bones.",
+        "terrain": "islands"
       }
     },
     {

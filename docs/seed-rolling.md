@@ -70,6 +70,16 @@ the scripts.
   (`config/configurable-difficulty/configurable-difficulty.json5`), the
   nether smaller-is-harder rule, `structureDensity` and `hostileSpawning`.
 - **description** — shown in the viewer; say what the dimension is FOR.
+- **family** (`overworld|nether|end`), **terrain** (`solid|islands|void`),
+  **heightRange** (`[minY, maxY]` for column probes) — explicit scoring
+  identity for clone-typed and unusual dimensions. The config dictates
+  these; type-string heuristics are only fallbacks for entries that omit
+  them.
+
+`type` also accepts any registered dimension id (`"paradise_lost:
+paradise_lost"`) — the mod clones that dimension's generator, and biome
+lists/noiseSettings/seeds apply to the clone like any other type, so whole
+modded world families cross-pollinate with everything else.
 
 Entries without a `seedRoll` block still roll: spawn filter defaults to the
 first biomes of the `biome` list, wants to a modest family battery.
