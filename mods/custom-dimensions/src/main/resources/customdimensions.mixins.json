@@ -4,6 +4,7 @@
   "package": "com.customdimensions.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ChunkGeneratorAccessor",
     "EntityTickPortalMixin",
     "GameEventSuppressionMixin",
     "MinecraftServerAccessor",

@@ -218,7 +218,30 @@ public class DimensionManager {
                 RegistryEntry<Biome> voidBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.THE_VOID));
                 FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), voidBiome, List.of())
                     .with(List.of(), Optional.empty(), voidBiome);
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(new FlatChunkGenerator(config), worldSeed));
+                FlatChunkGenerator flatGen = new FlatChunkGenerator(config);
+                // A void with a biome list keeps the multiverse's biome layout
+                // even though no terrain generates — mob spawning, fog and
+                // ambience still read the biome. Filter the live overworld
+                // multi-noise source exactly like multi_biome does and swap it
+                // into the flat generator via accessor (no ctor takes one).
+                String biomeList = def.getBiome();
+                if (biomeList != null && !biomeList.isEmpty()
+                        && overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen
+                        && noiseGen.getBiomeSource() instanceof MultiNoiseBiomeSource multiSource) {
+                    Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
+                            .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
+                            .collect(Collectors.toSet());
+                    MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries = ((MultiNoiseBiomeSourceAccessor) multiSource).invokeGetBiomeEntries();
+                    List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> filtered = entries.getEntries().stream()
+                            .filter(pair -> pair.getSecond().getKey().map(k -> allowedIds.contains(k.getValue())).orElse(false))
+                            .collect(Collectors.toList());
+                    if (!filtered.isEmpty()) {
+                        ((com.customdimensions.mixin.ChunkGeneratorAccessor) flatGen)
+                                .setBiomeSource(MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(filtered)));
+                        MultiverseServer.LOGGER.info("Void dimension {} using {} biome(s) from config", def.getName(), filtered.size());
+                    }
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(flatGen, worldSeed));
             }
             case "superflat" -> {
                 RegistryEntry<Biome> plainsBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
@@ -421,7 +444,9 @@ public class DimensionManager {
         }
         DimensionDefinition def = MultiverseConfig.getInstance().getDimension(dimName);
         if (def == null) {
-            return null;
+            // Command-created dimensions have no config entry — their options
+            // are already in the registry (registerDimension), load directly.
+            return getOrCreateDimensionDirect(dimName);
         }
 
         RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, def.getDimensionIdentifier());
@@ -609,6 +634,51 @@ public class DimensionManager {
         if (MultiverseConfig.getInstance().getDimension(name) != null) {
             this.pendingWorldLoads.add(name);
         }
+    }
+
+    // Command path: queue a load for a dimension that has no config entry
+    // (its options were registered directly by /customdim create).
+    public void requestWorldLoadDirect(String name) {
+        this.pendingWorldLoads.add(name);
+    }
+
+    public ServerWorld getOrCreateDimensionDirect(String dimName) {
+        if (this.server == null) {
+            return null;
+        }
+        String ns = DimensionDefinition.getNamespace();
+        Identifier dimId = Identifier.of(ns, dimName);
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, dimId);
+        MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) this.server;
+        Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
+
+        ServerWorld existing = worlds.get(worldKey);
+        if (existing != null) {
+            return existing;
+        }
+
+        MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
+        RegistryKey<DimensionOptions> dimOptionsKey = RegistryKey.of(RegistryKeys.DIMENSION, dimId);
+        DimensionOptions options = dimRegistry.get(dimOptionsKey);
+        if (options == null) {
+            MultiverseServer.LOGGER.error("No dimension options registered for {}", dimId);
+            return null;
+        }
+
+        ServerWorld overworld = this.server.getOverworld();
+        SaveProperties saveProperties = serverAccessor.getSaveProperties();
+        ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
+        long worldSeed = overworld.getSeed();
+
+        ServerWorld newWorld = new ServerWorld(
+                this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
+                worldProperties, worldKey, options, NO_OP_WORLD_GEN_PROGRESS,
+                false, worldSeed, List.of(), false, overworld.getRandomSequences());
+
+        worlds.put(worldKey, newWorld);
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
+        MultiverseServer.LOGGER.info("Created runtime world (direct): {}", worldKey.getValue());
+        return newWorld;
     }
 
     public void processPendingWorldLoads() {

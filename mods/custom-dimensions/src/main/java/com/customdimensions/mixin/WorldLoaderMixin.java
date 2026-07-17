@@ -20,8 +20,16 @@ public class WorldLoaderMixin {
         PortalHelper.setServer(server);
         PortalHelper.loadPortalLinks();
         DimensionManager.getInstance().onServerStart(server);
-        DimensionManager.getInstance().registerDimensions();
-        DimensionManager.getInstance().bootCreateDimensions();
+        // SEED_ROLL_MODE: the seed roller boots with a candidate-only config
+        // and drives registration/creation itself via /customdim create —
+        // skipping the boot pass keeps roll boots fast and the registry clean.
+        boolean seedRollMode = "true".equalsIgnoreCase(System.getenv("SEED_ROLL_MODE"));
+        if (seedRollMode) {
+            MultiverseServer.LOGGER.info("SEED_ROLL_MODE active — skipping boot dimension creation (use /customdim create)");
+        } else {
+            DimensionManager.getInstance().registerDimensions();
+            DimensionManager.getInstance().bootCreateDimensions();
+        }
     }
 
     @Inject(method = "shutdown", at = @At("HEAD"))
