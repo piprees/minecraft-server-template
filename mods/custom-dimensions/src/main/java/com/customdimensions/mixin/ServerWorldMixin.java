@@ -32,6 +32,7 @@ public class ServerWorldMixin {
     private void onTick(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> worldKey = world.getRegistryKey();
+        PortalHelper.restoreZones(world);
 
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(worldKey);
         if (!sourceZones.isEmpty()) {

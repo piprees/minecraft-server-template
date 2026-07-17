@@ -453,7 +453,7 @@ def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     cmd = (f"customdim create {cand} {ctype} {seed} "
            f"{ca['noiseSettings'] or '-'} {ca['structureDensity'] or '-'} {ca['biome'] or '-'}")
     out = rcon.cmd(cmd)
-    if "Created dimension" not in out:
+    if "Queued dimension" not in out:
         log(worker_id, f"  create failed for {cand}: {out[:160]}")
         return False
     # Prove the world answers before measuring.
@@ -467,6 +467,14 @@ def create_candidate(rcon, worker_id, ns, cand, profile, seed):
 
 def destroy_candidate(rcon, workdir, ns, cand):
     rcon.cmd(f"customdim destroy {cand}")
+    for _ in range(12):
+        response = rcon.cmd(f"execute in {ns}:{cand} run seed")
+        if "Unknown" in response or "not found" in response.lower():
+            break
+        time.sleep(2)
+    else:
+        log("worker", f"  {cand} remained queryable after queued destroy; preserving files")
+        return
     # destroy unloads the world but leaves files — reclaim the disk.
     shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
 

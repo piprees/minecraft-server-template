@@ -5,27 +5,16 @@
 1. Ensure `main` is clean and CI is green.
 2. Review the conventional-commit history since the last release to determine the semver bump:
    - `fix:` → patch, `feat:` → minor, `BREAKING CHANGE:` / `!` → major.
-3. Run the release workflow (it builds the bundle, creates the release as a
-   draft with assets attached, then publishes — the only order compatible
-   with immutable releases):
+3. Run the release workflow (it builds the bundle, creates the release as a draft with assets attached, then publishes — the only order compatible with immutable releases):
    ```bash
    gh workflow run release.yml -f version=vX.Y.Z
    ```
 
-Do NOT use `gh release create` directly: with immutable releases enabled,
-assets can't be attached after publish, so the bundle upload fails.
+Do NOT use `gh release create` directly: with immutable releases enabled, assets can't be attached after publish, so the bundle upload fails.
 
-A failed or deleted release burns its tag forever — immutable releases
-reserve the tag name permanently, even after deletion. If a release fails,
-fix the cause and cut the NEXT patch version; never retry the same one.
+A published immutable release burns its tag forever — GitHub does not permit the tag to be reused, even if the release is deleted. If a release fails, fix the cause and cut the **NEXT patch version**; never retry the same tag.
 
-**If a release ships without a bundle:** delete it and re-cut (the only fix for an immutable release):
-
-```bash
-gh release delete vX.Y.Z --yes
-git push origin :refs/tags/vX.Y.Z
-gh workflow run release.yml -f version=vX.Y.Z
-```
+**If a published release ships without a bundle:** treat it as broken and cut the next patch version with the complete asset set. Do not delete and re-cut the same tag. Draft releases are mutable until publication, so verify every asset on the draft before publishing it.
 
 ## Release notes and changelog
 

@@ -69,7 +69,8 @@ Health & logs:
 
 Server control:
   status [svc]                Container status (all, or one service)
-  start|stop|restart <svc>    Manage one service (mc, nav-proxy, pack-web...)
+  start|stop|restart <svc>    Manage one sidecar (nav-proxy, pack-web...;
+                              never mc — use a full deploy or Discord /mc restart)
   shutdown                    Power off the cloud VPS (saves costs)
   startup                     Power on a stopped cloud VPS
   reboot                      Reboot the cloud VPS

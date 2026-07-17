@@ -103,8 +103,8 @@ See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility
 - **Never use `gh release create` directly** — use `gh workflow run release.yml -f version=vX.Y.Z`.
 - **Never push to `main` while release.yml is in progress.** The image builds (publish.yml) use concurrency group `publish-${{ github.ref }}` with `cancel-in-progress: true`, and a push-triggered build shares the group with the release's builds — the push CANCELS the release's in-flight image builds mid-push, leaving the release published but its version-tagged images missing (2026-07-13: a docs push cancelled the discord-sync 2.14.0 image; production pulls version tags via `IMAGE_TAG="${STACK_VERSION#v}"`). Recovery: `gh run rerun <release-run-id> --failed` rebuilds only the cancelled jobs — the release/tag themselves are unaffected if the "Build bundle and publish release" job succeeded.
 - Releases are **immutable**: assets can't be attached after publish, so `gh release create` produces a broken release with no bundle.
-- A failed or deleted release **burns its tag forever** (immutable releases reserve the tag name permanently). Fix the cause and cut the NEXT patch version.
-- If a release ships without a bundle: `gh release delete vX.Y.Z --yes && git push origin :refs/tags/vX.Y.Z`, then re-cut.
+- A published immutable release tag cannot be reused, even after deleting the release. Fix the cause and cut the **NEXT patch version**.
+- If a published release ships without a bundle, treat it as broken and cut the next patch version with complete assets. Do not delete and re-cut the same tag. Draft releases are mutable until publication, so validate all assets before publishing.
 
 ## Architecture traps (each of these has caused a real incident)
 
@@ -122,7 +122,8 @@ See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility
    - Cause: `MODRINTH_PROJECTS` is gone: it made itzg re-resolve ~160 versions through api.modrinth.com on every sync boot and 429-crash-looped mc whenever the mod list changed. The seed container's `resolve-mods.py` resolves pins to direct URLs (cached forever in the stack-mods volume — version IDs are immutable) and mc uses `MODS_FILE`/`DATAPACKS_FILE`, downloading only files missing from `data/mods/`. Stale jars are pruned by deploy.sh/dev-up.sh against `mods-manifest.txt` — in-house `local-mods/` jars are exempt. Hand-added jars in `data/mods/` will be pruned; ship them via `overlay/mods-extra.txt` or `local-mods/` instead. A failed required resolution fails the seed and blocks the boot loudly.
 5. **Whitelist as a door lock.**
    - Symptom: Players can't join after a failed deploy; "You are not whitelisted" despite having the role.
-   - Cause: deploy.sh clears the whitelist to block joins during restart and restores it after. If a deploy dies mid-way, players may be locked out - the itzg image restores from env on next boot, or restore manually via RCON.
+   - Cause: deploy.sh must clear the whitelist to block joins during restart and restore it after. If a deploy dies mid-way, players may be locked out - the itzg image restores from env on next boot, or restore manually via RCON.
+   - Current enforcement gap: `service.sh` still permits raw `mc` service operations. Treat `./ops start|stop|restart mc` as prohibited until the service-boundary fix lands; use deploy.sh or Discord `/mc restart` only.
 6. **Kuma is config-driven.**
    - Symptom: Monitors deleted in the Kuma UI reappear after deploy.
    - Cause: `config/uptime-kuma/kuma-config.json` is authoritative; kuma-init re-syncs every deploy and resurrects monitors deleted only via the UI. `KUMA_API_KEY` is a socket.io **session token** (`kuma-token.sh --remote`), not the Prometheus API key.
@@ -308,7 +309,7 @@ These actions are allowed but carry irreversible consequences — pause and ask 
 | Grant extra claims | - | `docker exec -i mc rcon-cli "lp user NAME permission set xaero.pac_max_claims N"` |
 | Trigger a backup | - | `./ops backup` |
 | Restore from backup | - | [README → Backups](README.md#backups) |
-| Restart a sidecar | - | `./ops restart <name>` (force-recreates; refuses mc) |
+| Restart a sidecar | - | `./ops restart <name>` (force-recreates; `mc` is prohibited) |
 | Check mod updates | - | `./scripts/check-updates.sh` (weekly PR: `gh workflow run mod-updates.yml`) |
 | Update MC version | `.env` + re-pin | Big job — [README → Update Minecraft version](README.md#update-minecraft-version) |
 | Manual deploy | - | `ssh -i ~/.ssh/mc_deploy_key deploy@$DROPLET_HOST 'cd ~/server && .stack/current/stack/scripts/deploy.sh --non-interactive'` (deploy.sh ships in the bundle — there is no `~/server/scripts/`) |

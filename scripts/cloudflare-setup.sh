@@ -18,11 +18,12 @@
 # Usage:
 #   ./scripts/cloudflare-setup.sh
 #   ./scripts/cloudflare-setup.sh --non-interactive
+#   ./scripts/cloudflare-setup.sh --local-host
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "$SCRIPT_DIR/lib.sh"   # PROJECT_DIR (CONSUMER_DIR-aware), sed_i, log/warn/die
+source "$SCRIPT_DIR/lib.sh" # PROJECT_DIR (CONSUMER_DIR-aware), sed_i, log/warn/die
 cd "$PROJECT_DIR"
 
 # --- load .env ----------------------------------------------------------------
@@ -41,7 +42,14 @@ fi
 
 TUNNEL_NAME="${CLOUDFLARE_TUNNEL_NAME:-mc-${BRAND_SLUG:-adventure}}"
 export NON_INTERACTIVE=0
-[[ "${1:-}" == "--non-interactive" ]] && export NON_INTERACTIVE=1
+LOCAL_HOST=0
+for arg in "$@"; do
+  case "$arg" in
+    --non-interactive) export NON_INTERACTIVE=1 ;;
+    --local-host) LOCAL_HOST=1 ;;
+    *) die "Usage: cloudflare-setup.sh [--non-interactive] [--local-host]" ;;
+  esac
+done
 
 # Cloudflare free tier rate-limits at ~4 req/s. Pause between API calls.
 cf_sleep() { sleep 1.5; }
@@ -57,12 +65,12 @@ cf_api() {
         "https://api.cloudflare.com/client/v4${path}" \
         -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
         -H "Content-Type: application/json" \
-        --data "$data" 2>/dev/null)
+        --data "$data" 2> /dev/null)
     else
       response=$(curl -s -w "\n%{http_code}" -X "$method" \
         "https://api.cloudflare.com/client/v4${path}" \
         -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-        -H "Content-Type: application/json" 2>/dev/null)
+        -H "Content-Type: application/json" 2> /dev/null)
     fi
     local http_code body
     http_code=$(echo "$response" | tail -1)
@@ -79,6 +87,17 @@ cf_api() {
   echo '{"success":false,"errors":[{"message":"rate limited after retries"}]}'
 }
 
+cf_required() {
+  local label="$1"
+  shift
+  local body
+  body=$(cf_api "$@")
+  if ! printf '%s' "$body" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("success") else 1)' 2> /dev/null; then
+    die "Cloudflare ${label} failed: ${body}"
+  fi
+  printf '%s\n' "$body"
+}
+
 # --- check cloudflared --------------------------------------------------------
 if ! command -v cloudflared &> /dev/null; then
   echo "cloudflared not found. Install with: brew install cloudflared"
@@ -90,14 +109,17 @@ fi
 export CLOUDFLARE_API_TOKEN
 
 # =============================================================================
-# 1. Get the droplet's public IP
+# 1. Get the server's public IP
 # =============================================================================
-echo "=== 1. Detecting droplet public IP ==="
+echo "=== 1. Detecting server public IP ==="
 
 DROPLET_IP="${DROPLET_HOST:-}"
 if [[ -z "$DROPLET_IP" ]]; then
-  # Try to detect from the machine we're running on
-  DROPLET_IP=$(curl -s -4 https://ifconfig.me 2> /dev/null || true)
+  if [[ $LOCAL_HOST -eq 1 ]]; then
+    DROPLET_IP=$(curl -s -4 https://ifconfig.me 2> /dev/null || true)
+  else
+    die "Set DROPLET_HOST for cloud hosting, or pass --local-host for home hosting."
+  fi
 fi
 
 if [[ -z "$DROPLET_IP" ]]; then
@@ -114,16 +136,16 @@ echo "=== 2. DNS A record: mc.${DOMAIN} > ${DROPLET_IP} ==="
 
 # Check if it already exists
 EXISTING_A=$(cf_api GET "/zones/${CLOUDFLARE_ZONE_ID}/dns_records?type=A&name=mc.${DOMAIN}" \
-  | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2>/dev/null || true)
+  | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2> /dev/null || true)
 
 A_DATA="{\"type\":\"A\",\"name\":\"mc\",\"content\":\"${DROPLET_IP}\",\"ttl\":1,\"proxied\":false}"
 if [[ -n "$EXISTING_A" ]]; then
   echo "  Updating existing A record..."
-  cf_api PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_A}" "$A_DATA" \
+  cf_required "A record update" PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_A}" "$A_DATA" \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  OK' if d.get('success') else '  FAILED: '+str(d.get('errors','')))"
 else
   echo "  Creating A record..."
-  cf_api POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$A_DATA" \
+  cf_required "A record creation" POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$A_DATA" \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  OK' if d.get('success') else '  FAILED: '+str(d.get('errors','')))"
 fi
 
@@ -134,17 +156,17 @@ echo ""
 echo "=== 3. SRV record: _minecraft._tcp.mc.${DOMAIN} > port ${SERVER_PORT} ==="
 
 EXISTING_SRV=$(cf_api GET "/zones/${CLOUDFLARE_ZONE_ID}/dns_records?type=SRV&name=_minecraft._tcp.mc.${DOMAIN}" \
-  | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2>/dev/null || true)
+  | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2> /dev/null || true)
 
 SRV_DATA="{\"type\":\"SRV\",\"name\":\"_minecraft._tcp.mc\",\"data\":{\"service\":\"_minecraft\",\"proto\":\"_tcp\",\"name\":\"mc.${DOMAIN}\",\"priority\":0,\"weight\":5,\"port\":${SERVER_PORT},\"target\":\"mc.${DOMAIN}\"},\"ttl\":1}"
 
 if [[ -n "$EXISTING_SRV" ]]; then
   echo "  Updating existing SRV record..."
-  cf_api PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_SRV}" "$SRV_DATA" \
+  cf_required "SRV record update" PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_SRV}" "$SRV_DATA" \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  OK' if d.get('success') else '  FAILED: '+str(d.get('errors','')))"
 else
   echo "  Creating SRV record..."
-  cf_api POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$SRV_DATA" \
+  cf_required "SRV record creation" POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$SRV_DATA" \
     | python3 -c "import sys,json; d=json.load(sys.stdin); print('  OK' if d.get('success') else '  FAILED: '+str(d.get('errors','')))"
 fi
 
@@ -156,7 +178,7 @@ echo "=== 4. Cloudflare Tunnel: ${TUNNEL_NAME} ==="
 
 # Check if tunnel already exists (via API, not cloudflared CLI)
 TUNNEL_ID=$(cf_api GET "/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel?name=${TUNNEL_NAME}&is_deleted=false" \
-  | python3 -c "import sys,json; r=json.load(sys.stdin).get('result',[]); print(r[0]['id'] if r else '')" 2>/dev/null || true)
+  | python3 -c "import sys,json; r=json.load(sys.stdin).get('result',[]); print(r[0]['id'] if r else '')" 2> /dev/null || true)
 
 if [[ -n "$TUNNEL_ID" ]]; then
   echo "  Tunnel '$TUNNEL_NAME' already exists: $TUNNEL_ID"
@@ -165,11 +187,11 @@ else
   TUNNEL_SECRET=$(head -c 32 /dev/urandom | base64)
   CREATE_RESULT=$(cf_api POST "/accounts/${CLOUDFLARE_ACCOUNT_ID}/cfd_tunnel" \
     "{\"name\":\"${TUNNEL_NAME}\",\"tunnel_secret\":\"${TUNNEL_SECRET}\"}")
-  TUNNEL_ID=$(echo "$CREATE_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result']['id'] if d.get('success') else '')" 2>/dev/null || true)
+  TUNNEL_ID=$(echo "$CREATE_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['result']['id'] if d.get('success') else '')" 2> /dev/null || true)
 
   if [[ -z "$TUNNEL_ID" ]]; then
     echo "  ERROR: Failed to create tunnel."
-    echo "$CREATE_RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('errors',''))" 2>/dev/null
+    echo "$CREATE_RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('errors',''))" 2> /dev/null
     exit 1
   fi
   echo "  Created tunnel: $TUNNEL_ID"
@@ -218,7 +240,7 @@ R2_BUCKET="${R2_BUCKET:-}"
 if [[ -n "$R2_ACCOUNT_ID" && -n "$R2_BUCKET" ]]; then
   # Check if bucket already exists
   EXISTING_BUCKETS=$(cf_api GET "/accounts/${R2_ACCOUNT_ID}/r2/buckets" \
-    | python3 -c "import sys,json; print(' '.join(b['name'] for b in json.load(sys.stdin).get('result',{}).get('buckets',[])))" 2>/dev/null || true)
+    | python3 -c "import sys,json; print(' '.join(b['name'] for b in json.load(sys.stdin).get('result',{}).get('buckets',[])))" 2> /dev/null || true)
 
   if echo "$EXISTING_BUCKETS" | grep -qw "${R2_BUCKET}"; then
     echo "  ✓ Bucket '${R2_BUCKET}' already exists"
@@ -226,12 +248,12 @@ if [[ -n "$R2_ACCOUNT_ID" && -n "$R2_BUCKET" ]]; then
     echo "  Creating R2 bucket '${R2_BUCKET}'..."
     # Valid location hints: wnam, enam, weur, eeur, apac, oc, auto
     R2_BODY=$(cf_api POST "/accounts/${R2_ACCOUNT_ID}/r2/buckets" "{\"name\":\"${R2_BUCKET}\",\"locationHint\":\"${R2_LOCATION_HINT:-weur}\"}")
-    R2_SUCCESS=$(echo "$R2_BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('success',False))" 2>/dev/null || echo "False")
+    R2_SUCCESS=$(echo "$R2_BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('success',False))" 2> /dev/null || echo "False")
     if [[ "$R2_SUCCESS" == "True" ]]; then
       echo "  ✓ Bucket '${R2_BUCKET}' created (${R2_LOCATION_HINT:-weur})"
     else
       echo "  WARNING: Bucket creation failed."
-      echo "$R2_BODY" | python3 -c "import sys,json; print('  '+str(json.load(sys.stdin).get('errors','')))" 2>/dev/null
+      echo "$R2_BODY" | python3 -c "import sys,json; print('  '+str(json.load(sys.stdin).get('errors','')))" 2> /dev/null
       echo "  Create it manually: Dashboard > R2 > Create Bucket"
     fi
   fi
@@ -298,15 +320,15 @@ for SUBDOMAIN in map pack status mods; do
   echo "  Setting ${SUBDOMAIN}.${DOMAIN} > ${TUNNEL_ID}.cfargotunnel.com"
 
   EXISTING_CNAME=$(cf_api GET "/zones/${CLOUDFLARE_ZONE_ID}/dns_records?type=CNAME&name=${SUBDOMAIN}.${DOMAIN}" \
-    | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2>/dev/null || true)
+    | python3 -c "import sys,json; r=json.load(sys.stdin)['result']; print(r[0]['id'] if r else '')" 2> /dev/null || true)
 
   CNAME_DATA="{\"type\":\"CNAME\",\"name\":\"${SUBDOMAIN}\",\"content\":\"${TUNNEL_ID}.cfargotunnel.com\",\"ttl\":1,\"proxied\":true}"
 
   if [[ -n "$EXISTING_CNAME" ]]; then
-    cf_api PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_CNAME}" "$CNAME_DATA" \
+    cf_required "${SUBDOMAIN} CNAME update" PUT "/zones/${CLOUDFLARE_ZONE_ID}/dns_records/${EXISTING_CNAME}" "$CNAME_DATA" \
       | python3 -c "import sys,json; d=json.load(sys.stdin); print('    OK' if d.get('success') else '    FAILED: '+str(d.get('errors','')))"
   else
-    cf_api POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$CNAME_DATA" \
+    cf_required "${SUBDOMAIN} CNAME creation" POST "/zones/${CLOUDFLARE_ZONE_ID}/dns_records" "$CNAME_DATA" \
       | python3 -c "import sys,json; d=json.load(sys.stdin); print('    OK' if d.get('success') else '    FAILED: '+str(d.get('errors','')))"
   fi
 done
@@ -329,8 +351,8 @@ else
   sleep 5
   # Substitute real values into wrangler config before deploying
   WORKER_NAME="${BRAND_SLUG:-adventure}-maintenance"
-  sed_i "s/\"adventure-maintenance\"/\"${WORKER_NAME}\"/" "$WORKER_DIR/wrangler.jsonc" 2>/dev/null || true
-  if grep -q 'example\.com' "$WORKER_DIR/wrangler.jsonc" 2>/dev/null; then
+  sed_i "s/\"adventure-maintenance\"/\"${WORKER_NAME}\"/" "$WORKER_DIR/wrangler.jsonc" 2> /dev/null || true
+  if grep -q 'example\.com' "$WORKER_DIR/wrangler.jsonc" 2> /dev/null; then
     sed_i "s/example\.com/${DOMAIN}/g" "$WORKER_DIR/wrangler.jsonc"
   fi
   echo "  Worker: ${WORKER_NAME}, domain: ${DOMAIN}"
@@ -365,13 +387,13 @@ if [[ -n "${DROPLET_HOST:-}" ]]; then
   DEPLOY_USER="${DEPLOY_USER:-deploy}"
   echo ""
   echo "  Syncing tunnel config to server and restarting cloudflared..."
-  ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" 'mkdir -p ~/server/cloudflared' 2>/dev/null || true
-  scp -i "$DEPLOY_KEY" "$CRED_DIR/config.yml" "${DEPLOY_USER}@${DROPLET_HOST}:~/server/cloudflared/config.yml" 2>/dev/null || true
-  scp -i "$DEPLOY_KEY" "$CRED_DIR/${TUNNEL_ID}.json" "${DEPLOY_USER}@${DROPLET_HOST}:~/server/cloudflared/${TUNNEL_ID}.json" 2>/dev/null || true
+  ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" 'mkdir -p ~/server/cloudflared' 2> /dev/null || true
+  scp -i "$DEPLOY_KEY" "$CRED_DIR/config.yml" "${DEPLOY_USER}@${DROPLET_HOST}:~/server/cloudflared/config.yml" 2> /dev/null || true
+  scp -i "$DEPLOY_KEY" "$CRED_DIR/${TUNNEL_ID}.json" "${DEPLOY_USER}@${DROPLET_HOST}:~/server/cloudflared/${TUNNEL_ID}.json" 2> /dev/null || true
   # The cloudflared container runs as nonroot uid 65532 - files scp'd as the
   # deploy user with tight modes are unreadable inside the container.
   ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" \
-    "sudo chown 65532:65532 ~/server/cloudflared/config.yml ~/server/cloudflared/${TUNNEL_ID}.json && sudo chmod 400 ~/server/cloudflared/${TUNNEL_ID}.json && sudo chmod 444 ~/server/cloudflared/config.yml" 2>/dev/null || true
+    "sudo chown 65532:65532 ~/server/cloudflared/config.yml ~/server/cloudflared/${TUNNEL_ID}.json && sudo chmod 400 ~/server/cloudflared/${TUNNEL_ID}.json && sudo chmod 444 ~/server/cloudflared/config.yml" 2> /dev/null || true
   ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY" "${DEPLOY_USER}@${DROPLET_HOST}" \
     "cd ~/server && docker compose --project-directory . -f .stack/current/stack/docker-compose.yml --profile cloud up -d --force-recreate --no-deps cloudflared 2>/dev/null" \
     && echo "  cloudflared restarted with new config." \

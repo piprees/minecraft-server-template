@@ -12,8 +12,9 @@
 #   ./dev start nav-proxy
 #   ./dev stop uptime-kuma
 #
-# For mc, prefer deploy.sh (handles countdowns, kicks, config sync, whitelist).
-# This script does a raw docker compose start/stop/restart — no safety dance.
+# MC lifecycle is intentionally excluded: deploy.sh (or Discord /mc restart)
+# owns the countdown, save, allowlist and config choreography. This script
+# only performs raw Compose operations for named sidecars.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -48,7 +49,8 @@ usage() {
   echo "  restart  Force-recreate a service"
   echo "  status   Show container status (all if no service named)"
   echo ""
-  echo "Services: mc ${SERVICES[*]}"
+  echo "Mutable services: ${SERVICES[*]}"
+  echo "Read-only status also accepts: mc"
 }
 
 if [[ -z "$ACTION" || "$ACTION" == "help" || "$ACTION" == "--help" ]]; then
@@ -99,6 +101,30 @@ if [[ ${#targets[@]} -eq 0 && "$ACTION" != "status" ]]; then
   usage
   exit 1
 fi
+
+is_sidecar() {
+  local candidate="$1"
+  local service
+  for service in "${SERVICES[@]}"; do
+    [[ "$service" == "$candidate" ]] && return 0
+  done
+  return 1
+}
+
+validate_targets() {
+  local target
+  for target in "${targets[@]}"; do
+    if [[ "$target" == "mc" ]]; then
+      if [[ "$ACTION" == "status" ]]; then
+        continue
+      fi
+      die "Refusing raw MC lifecycle operation. Use deploy.sh or Discord /mc restart."
+    fi
+    is_sidecar "$target" || die "Unknown sidecar: $target"
+  done
+}
+
+validate_targets
 
 case "$ACTION" in
   start)

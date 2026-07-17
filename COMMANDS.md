@@ -192,18 +192,15 @@ minecraft.command.gamemode.*      # all gamemode access
 
 ### BlueMap (web map)
 
-BlueMap runs as a standalone sidecar container (`bluemap`), not a server mod —
-there are no `/bluemap` in-game or RCON commands. It watches the world files
-and updates the map automatically; players never appear on it. Manage it with
-Docker (or `./ops map ...` from your Mac):
+BlueMap runs as a standalone sidecar container (`bluemap`), not a server mod — there are no `/bluemap` in-game or RCON commands. It watches the world files and updates the map automatically; players never appear on it. Manage it with Docker (or `./ops map ...` from your Mac):
 
-| Task | Command |
-| --- | --- |
-| Render status + recent activity | `docker logs bluemap --tail 15` |
-| Container health | `docker inspect bluemap --format '{{.State.Health.Status}}'` |
-| Restart the renderer (re-scans all maps) | `docker restart bluemap` |
-| Force re-render everything | `./ops map render` (see [Map rendering](#map-rendering)) |
-| Purge one map's render data | stop the sidecar, delete `data/bluemap/web/maps/<map>/`, start it |
+| Task                                     | Command                                                           |
+| ---------------------------------------- | ----------------------------------------------------------------- |
+| Render status + recent activity          | `docker logs bluemap --tail 15`                                   |
+| Container health                         | `docker inspect bluemap --format '{{.State.Health.Status}}'`      |
+| Restart the renderer (re-scans all maps) | `docker restart bluemap`                                          |
+| Force re-render everything               | `./ops map render` (see [Map rendering](#map-rendering))          |
+| Purge one map's render data              | stop the sidecar, delete `data/bluemap/web/maps/<map>/`, start it |
 
 ### Chunky (chunk pre-generation)
 
@@ -454,7 +451,7 @@ All `/mc` commands are audit-logged to `#minecraft`. Commands that target a play
 
 | Command | Description |
 | --- | --- |
-| `/mc tempban <player> [minutes]` | Temporarily ban a player (default 10 min, max 1440). Auto-pardons when the timer expires |
+| `/mc tempban <player> [minutes]` | Temporarily ban a player (default 10 min, max 1440). Auto-pardons when the timer expires; pending timers survive bot restarts |
 | `/mc pardon <player>` | Unban a player and cancel any pending tempban timer |
 
 #### Maintenance
@@ -477,7 +474,7 @@ All `/mc` commands are audit-logged to `#minecraft`. Commands that target a play
 | `/mc give <player> <item> [count]` | Give an item (e.g. `diamond_sword`, `minecraft:golden_apple`) | Max 64 per call |
 | `/mc effect <player> <effect> <seconds> [amplifier]` | Apply a status effect (e.g. `speed`, `minecraft:strength`) | Max 3600s, amplifier 0-5 |
 | `/mc enchant <player> <enchantment> [level]` | Enchant the item the player is holding (above vanilla limits) | Max level 255 |
-| `/mc gamemode <player> <mode> [minutes]` | Change game mode (auto-reverts to survival if minutes given) | Max 60 min auto-revert |
+| `/mc gamemode <player> <mode> [minutes]` | Change game mode (auto-reverts to survival if minutes given; pending timers survive bot restarts) | Max 60 min auto-revert |
 | `/mc xp <player> <amount>` | Give experience levels | Max 100 levels |
 | `/mc claims <player> <count>` | Set a player's maximum claim chunks | Max 128 |
 

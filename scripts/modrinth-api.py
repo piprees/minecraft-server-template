@@ -24,7 +24,16 @@ import time
 import urllib.parse
 
 
+class APIError:
+    """A request failure distinct from a valid empty Modrinth response."""
+
+    def __init__(self, message):
+        self.message = message
+
+
 class ModrinthAPI:
+    MAX_RETRIES = 3
+
     def __init__(self):
         ctx = ssl.create_default_context()
         self.conn = http.client.HTTPSConnection(
@@ -41,32 +50,37 @@ class ModrinthAPI:
         if self.remaining <= 5:
             time.sleep(2)
 
-        try:
-            self.conn.request("GET", path, headers=self.headers)
-            resp = self.conn.getresponse()
-            body = resp.read().decode()
+        for attempt in range(1, self.MAX_RETRIES + 1):
+            try:
+                self.conn.request("GET", path, headers=self.headers)
+                resp = self.conn.getresponse()
+                body = resp.read().decode()
 
-            self.remaining = int(resp.getheader("X-Ratelimit-Remaining", "300"))
+                self.remaining = int(resp.getheader("X-Ratelimit-Remaining", "300"))
 
-            if resp.status == 200:
-                self.retries = 0
-                return json.loads(body)
+                if resp.status == 200:
+                    self.retries = 0
+                    return json.loads(body)
 
-            if resp.status == 429:
-                reset = int(resp.getheader("X-Ratelimit-Reset", "5"))
-                self.retries += 1
-                if self.retries > 3:
-                    print(f"  [api] Giving up after 3 rate-limit retries", file=sys.stderr)
-                    return None
-                print(f"  [api] Rate limited, waiting {reset + 1}s...", file=sys.stderr)
-                time.sleep(reset + 1)
-                return self.get(path)
+                if resp.status == 429:
+                    reset = int(resp.getheader("X-Ratelimit-Reset", "5"))
+                    if attempt == self.MAX_RETRIES:
+                        return APIError("rate limited after retries")
+                    print(f"  [api] Rate limited, waiting {reset + 1}s...", file=sys.stderr)
+                    time.sleep(reset + 1)
+                    continue
 
-            return None
+                return APIError(f"HTTP {resp.status}")
 
-        except (http.client.HTTPException, ConnectionError, OSError):
-            self._reconnect()
-            return None
+            except (http.client.HTTPException, ConnectionError, OSError) as error:
+                if attempt == self.MAX_RETRIES:
+                    return APIError(f"connection failed after retries: {error}")
+                delay = attempt
+                print(f"  [api] Connection failed, retrying in {delay}s ({attempt}/{self.MAX_RETRIES})...", file=sys.stderr)
+                self._reconnect()
+                time.sleep(delay)
+
+        return APIError("request exhausted retries")
 
     def _reconnect(self):
         try:
@@ -106,8 +120,12 @@ def cmd_pin(api, fallback_versions):
             continue
 
         found = False
+        api_error = None
         for try_ver in fallback_versions:
             data = api.get_versions(slug, try_ver)
+            if isinstance(data, APIError):
+                api_error = data.message
+                break
             if data and isinstance(data, list) and len(data) > 0:
                 ver = data[0]
                 deps = [
@@ -131,7 +149,9 @@ def cmd_pin(api, fallback_versions):
                 found = True
                 break
 
-        if not found:
+        if api_error:
+            print(json.dumps({"slug": slug, "status": "api-error", "error": api_error}), flush=True)
+        elif not found:
             print(json.dumps({"slug": slug, "status": "none"}), flush=True)
 
 
@@ -147,20 +167,30 @@ def cmd_check(api, mc_version, skip_newest=False):
 
         # Compatible versions for our MC version
         compat = api.get_versions(slug, mc_version)
-        if not compat or not isinstance(compat, list):
+        compat_error = compat.message if isinstance(compat, APIError) else ""
+        if compat_error:
+            compat = []
+        elif not compat or not isinstance(compat, list):
             compat = []
 
         # Fallback to major version (e.g. 1.21 if 1.21.1 returned nothing)
         if not compat and mc_major != mc_version:
             compat = api.get_versions(slug, mc_major)
-            if not compat or not isinstance(compat, list):
+            if isinstance(compat, APIError):
+                compat_error = compat.message
+                compat = []
+            elif not compat or not isinstance(compat, list):
                 compat = []
 
         # Newest Fabric build for any MC version (skip in fast mode)
         newest_data = []
+        newest_error = ""
         if not skip_newest:
             newest_data = api.get_newest(slug)
-            if not newest_data or not isinstance(newest_data, list):
+            if isinstance(newest_data, APIError):
+                newest_error = newest_data.message
+                newest_data = []
+            elif not newest_data or not isinstance(newest_data, list):
                 newest_data = []
 
         # Determine pinned version info
@@ -190,7 +220,9 @@ def cmd_check(api, mc_version, skip_newest=False):
             newest_id = newest_data[0].get("id", "")
 
         # Status (when skip_newest, treat missing compat as not-found)
-        if not compat and not newest_data and not skip_newest:
+        if compat_error or newest_error:
+            status = "api-error"
+        elif not compat and not newest_data and not skip_newest:
             status = "not-found"
         elif not compat and skip_newest:
             status = "not-found"
@@ -217,6 +249,7 @@ def cmd_check(api, mc_version, skip_newest=False):
                     "newest_id": newest_id,
                     "newest_mc": newest_mc_str,
                     "status": status,
+                    "error": compat_error or newest_error,
                     "url": f"https://modrinth.com/mod/{slug}",
                 }
             ),
@@ -236,7 +269,7 @@ def main():
 
     # Preflight check
     test = api.get_versions("fabric-api", mc_version)
-    if test is None:
+    if isinstance(test, APIError):
         print("ERROR: Modrinth API is unreachable", file=sys.stderr)
         sys.exit(1)
     print(f"  Modrinth API connected ({api.remaining} requests remaining)", file=sys.stderr)

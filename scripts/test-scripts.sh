@@ -40,41 +40,64 @@ log "Phase 1: Static analysis"
 echo "  Checking shell scripts..."
 SHELL_ERRORS=0
 SHELL_TOTAL=0
-for script in scripts/*.sh scripts/seed/*.sh; do
-  [[ -f "$script" ]] || continue
+while IFS= read -r -d '' script; do
   SHELL_TOTAL=$((SHELL_TOTAL + 1))
-  if shellcheck --severity=warning "$script" > /dev/null 2>&1; then
-    :
-  else
+  if ! shellcheck --severity=warning "$script"; then
     SHELL_ERRORS=$((SHELL_ERRORS + 1))
   fi
-done
+done < <(find scripts docker examples/consumer -type f \( -name '*.sh' -o -name dev -o -name ops \) -print0)
 SHELL_PASS=$((SHELL_TOTAL - SHELL_ERRORS))
 if [[ $SHELL_ERRORS -eq 0 ]]; then
   echo "  ✓ All $SHELL_TOTAL shell scripts pass ShellCheck"
 else
-  echo "  ✓ $SHELL_PASS/$SHELL_TOTAL pass, $SHELL_ERRORS have warnings (run shellcheck individually to see)"
+  warn "$SHELL_PASS/$SHELL_TOTAL pass; $SHELL_ERRORS have ShellCheck warnings"
 fi
 
 echo "  Checking Python scripts..."
+PYTHON_ERRORS=0
 for py in scripts/*.py scripts/seed/*.py; do
   [[ -f "$py" ]] || continue
-  if python3 -m py_compile "$py" 2> /dev/null; then
+  if python3 -B -m py_compile "$py"; then
     echo "  ✓ $py syntax OK"
   else
     warn "$py has syntax errors"
+    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
   fi
 done
 
 echo "  Validating docker-compose.yml..."
-docker compose --profile cloud config --quiet 2> /dev/null && echo "  ✓ Cloud profile valid" || warn "Cloud profile invalid"
-docker compose --profile local config --quiet 2> /dev/null && echo "  ✓ Local profile valid" || warn "Local profile invalid"
+COMPOSE_ERRORS=0
+if docker compose --profile cloud config --quiet; then
+  echo "  ✓ Cloud profile valid"
+else
+  warn "Cloud profile invalid"
+  COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
+fi
+if docker compose --profile local config --quiet; then
+  echo "  ✓ Local profile valid"
+else
+  warn "Local profile invalid"
+  COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
+fi
 
 echo "  Checking YAML files..."
+YAML_ERRORS=0
 if command -v yamllint &> /dev/null; then
-  yamllint -d relaxed docker-compose.yml .github/workflows/*.yml 2> /dev/null && echo "  ✓ YAML lint clean" || warn "YAML lint issues"
+  if yamllint -c .yamllint.yml docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml; then
+    echo "  ✓ YAML lint clean"
+  else
+    warn "YAML lint issues"
+    YAML_ERRORS=$((YAML_ERRORS + 1))
+  fi
 else
-  echo "  ⊘ yamllint not installed, skipping"
+  warn "yamllint is required; install it before running this check"
+  YAML_ERRORS=1
+fi
+
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+if [[ $STATIC_ERRORS -gt 0 ]]; then
+  echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
+  exit 1
 fi
 
 if [[ $QUICK -eq 1 ]]; then

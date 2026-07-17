@@ -69,6 +69,7 @@ RCON_PASSWORD = os.environ["RCON_PASSWORD"]
 SYNC_INTERVAL = int(os.environ.get("SYNC_INTERVAL", "60"))
 DATA_PATH = Path(os.environ.get("DATA_PATH", "/data/discord-players.json"))
 LINKED_PLAYERS_PATH = Path("/data/DiscordIntegration-Data/LinkedPlayers.json")
+PENDING_ACTIONS_PATH = Path("/data/discord-pending-actions.json")
 
 PLAYER_ROLE = "Player"
 ADMIN_ROLE = "Admin"
@@ -171,6 +172,7 @@ def sanitise_message(text: str, max_len: int = 200) -> str:
 _cooldowns: dict[str, float] = {}
 _pending_pardons: dict[str, asyncio.Task] = {}
 _pending_gamemode: dict[str, asyncio.Task] = {}
+_state_lock = asyncio.Lock()
 
 
 def check_cooldown(key: str, seconds: int) -> int | None:
@@ -432,6 +434,23 @@ async def resolve_mc_uuid(username: str) -> str | None:
 
 # === DCIntegration LinkedPlayers ==============================================
 
+def quarantine_corrupt_json(path: Path, error: Exception) -> None:
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    quarantine = path.with_name(f"{path.name}.corrupt.{timestamp}")
+    try:
+        path.replace(quarantine)
+        log.error("Quarantined corrupt JSON %s as %s: %s", path, quarantine, error)
+    except OSError as quarantine_error:
+        log.error("Could not quarantine corrupt JSON %s: %s", path, quarantine_error)
+
+
+def atomic_write_json(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(json.dumps(value, indent=2) + "\n")
+    temporary.replace(path)
+
+
 def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = False) -> None:
     if not LINKED_PLAYERS_PATH.parent.exists():
         LINKED_PLAYERS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -440,8 +459,9 @@ def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = F
     if LINKED_PLAYERS_PATH.exists():
         try:
             links = json.loads(LINKED_PLAYERS_PATH.read_text())
-        except (json.JSONDecodeError, ValueError):
-            links = []
+        except (json.JSONDecodeError, ValueError) as error:
+            quarantine_corrupt_json(LINKED_PLAYERS_PATH, error)
+            raise RuntimeError("Linked player data was corrupt and has been quarantined") from error
 
     links = [entry for entry in links if entry.get("discordID") != discord_id]
 
@@ -459,7 +479,7 @@ def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = F
             },
         })
 
-    LINKED_PLAYERS_PATH.write_text(json.dumps(links, indent=2) + "\n")
+    atomic_write_json(LINKED_PLAYERS_PATH, links)
     log.info("Updated LinkedPlayers.json - %d entries", len(links))
 
 
@@ -467,13 +487,92 @@ def update_linked_players(discord_id: str, mc_uuid: str | None, remove: bool = F
 
 def load_mappings() -> dict[str, str]:
     if DATA_PATH.exists():
-        return json.loads(DATA_PATH.read_text())
+        try:
+            return json.loads(DATA_PATH.read_text())
+        except (json.JSONDecodeError, ValueError) as error:
+            quarantine_corrupt_json(DATA_PATH, error)
+            return {}
     return {}
 
 
 def save_mappings(mappings: dict[str, str]) -> None:
-    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    DATA_PATH.write_text(json.dumps(mappings, indent=2) + "\n")
+    atomic_write_json(DATA_PATH, mappings)
+
+
+def load_pending_actions() -> list[dict[str, object]]:
+    if not PENDING_ACTIONS_PATH.exists():
+        return []
+    try:
+        actions = json.loads(PENDING_ACTIONS_PATH.read_text())
+        return actions if isinstance(actions, list) else []
+    except (json.JSONDecodeError, ValueError) as error:
+        quarantine_corrupt_json(PENDING_ACTIONS_PATH, error)
+        return []
+
+
+def save_pending_actions(actions: list[dict[str, object]]) -> None:
+    atomic_write_json(PENDING_ACTIONS_PATH, actions)
+
+
+def action_key(kind: str, player: str) -> str:
+    return f"{kind}:{player.lower()}"
+
+
+async def persist_pending_action(kind: str, player: str, due_at: float) -> None:
+    key = action_key(kind, player)
+    async with _state_lock:
+        actions = [a for a in load_pending_actions() if a.get("key") != key]
+        actions.append({"key": key, "kind": kind, "player": player, "due_at": due_at})
+        save_pending_actions(actions)
+
+
+async def remove_pending_action(key: str) -> None:
+    async with _state_lock:
+        save_pending_actions([a for a in load_pending_actions() if a.get("key") != key])
+
+
+async def run_pending_action(action: dict[str, object]) -> None:
+    kind = str(action["kind"])
+    player = str(action["player"])
+    due_at = float(action["due_at"])
+    delay = max(0.0, due_at - time.time())
+    if delay:
+        await asyncio.sleep(delay)
+    command = f"pardon {player}" if kind == "pardon" else f"gamemode survival {player}"
+    result = await async_rcon(command)
+    if result is None:
+        log.warning("Pending %s for %s was not confirmed; retaining for retry", kind, player)
+        return
+    await remove_pending_action(str(action["key"]))
+    if kind == "pardon":
+        _pending_pardons.pop(player.lower(), None)
+        await audit_msg(f"Auto-pardoned **{player}** (temp-ban expired)")
+    else:
+        _pending_gamemode.pop(player.lower(), None)
+        await audit_msg(f"Reverted **{player}** to survival (timed gamemode expired)")
+
+
+def schedule_pending_action(action: dict[str, object]) -> None:
+    player = str(action["player"])
+    task = asyncio.create_task(run_pending_action(action))
+    if action["kind"] == "pardon":
+        previous = _pending_pardons.pop(player.lower(), None)
+        if previous:
+            previous.cancel()
+        _pending_pardons[player.lower()] = task
+    else:
+        previous = _pending_gamemode.pop(player.lower(), None)
+        if previous:
+            previous.cancel()
+        _pending_gamemode[player.lower()] = task
+
+
+async def restore_pending_actions() -> None:
+    for action in load_pending_actions():
+        if {"key", "kind", "player", "due_at"}.issubset(action):
+            schedule_pending_action(action)
+        else:
+            log.warning("Ignoring malformed pending Discord action: %r", action)
 
 
 def member_roles(member: discord.Member) -> set[str]:
@@ -510,6 +609,7 @@ class SyncBot(discord.Client):
         if self._sync_task is None:
             self._sync_task = asyncio.create_task(self._sync_loop())
             asyncio.create_task(self._command_log_watcher())
+            await restore_pending_actions()
 
     async def _sync_loop(self) -> None:
         await self.wait_until_ready()
@@ -856,19 +956,14 @@ async def mc_tempban(interaction: discord.Interaction, player: str, minutes: int
     )
     await audit(interaction, f"temp-banned **{player}** for **{minutes}** minutes")
 
-    # Cancel any existing pardon timer for this player
-    existing = _pending_pardons.pop(player.lower(), None)
-    if existing:
-        existing.cancel()
-
-    async def auto_pardon() -> None:
-        await asyncio.sleep(minutes * 60)
-        await async_rcon(f"pardon {player}")
-        _pending_pardons.pop(player.lower(), None)
-        await audit_msg(f"Auto-pardoned **{player}** (temp-ban expired)")
-        log.info("Auto-pardoned %s after %d minutes", player, minutes)
-
-    _pending_pardons[player.lower()] = asyncio.create_task(auto_pardon())
+    due_at = time.time() + minutes * 60
+    await persist_pending_action("pardon", player, due_at)
+    schedule_pending_action({
+        "key": action_key("pardon", player),
+        "kind": "pardon",
+        "player": player,
+        "due_at": due_at,
+    })
 
 
 # --- /mc pardon ---------------------------------------------------------------
@@ -884,6 +979,7 @@ async def mc_pardon(interaction: discord.Interaction, player: str) -> None:
     existing = _pending_pardons.pop(player.lower(), None)
     if existing:
         existing.cancel()
+    await remove_pending_action(action_key("pardon", player))
     await async_rcon(f"pardon {player}")
     await interaction.response.send_message(f"Pardoned **{player}**.", ephemeral=True)
     await audit(interaction, f"pardoned **{player}**")
@@ -1216,26 +1312,25 @@ async def mc_gamemode(
         await interaction.response.send_message(f"**{player}** is not online.", ephemeral=True)
         return
 
-    # Cancel any existing gamemode revert for this player
-    existing = _pending_gamemode.pop(player.lower(), None)
-    if existing:
-        existing.cancel()
-
     if minutes is not None and mode.value != "survival":
         minutes = max(1, min(60, minutes))
-
-        async def auto_revert() -> None:
-            await asyncio.sleep(minutes * 60)
-            await async_rcon(f"gamemode survival {player}")
-            _pending_gamemode.pop(player.lower(), None)
-            await audit_msg(f"Reverted **{player}** to survival (timed gamemode expired)")
-
-        _pending_gamemode[player.lower()] = asyncio.create_task(auto_revert())
+        due_at = time.time() + minutes * 60
+        await persist_pending_action("gamemode", player, due_at)
+        schedule_pending_action({
+            "key": action_key("gamemode", player),
+            "kind": "gamemode",
+            "player": player,
+            "due_at": due_at,
+        })
         await interaction.response.send_message(
             f"Set **{player}** to **{mode.name}** for **{minutes}** minutes.", ephemeral=True
         )
         await audit(interaction, f"set **{player}** to **{mode.name}** for **{minutes}** minutes")
     else:
+        existing = _pending_gamemode.pop(player.lower(), None)
+        if existing:
+            existing.cancel()
+        await remove_pending_action(action_key("gamemode", player))
         await interaction.response.send_message(
             f"Set **{player}** to **{mode.name}**.", ephemeral=True
         )
@@ -1341,38 +1436,38 @@ async def register(interaction: discord.Interaction, minecraft_username: str) ->
         )
         return
 
-    mappings = load_mappings()
     discord_id = str(interaction.user.id)
+    await interaction.response.defer(ephemeral=True)
 
-    existing_name = mappings.get(discord_id)
-    if existing_name and existing_name.lower() == minecraft_username.lower():
-        await interaction.response.send_message(
-            f"You're already registered as **{existing_name}**.",
-            ephemeral=True,
-        )
-        return
+    async with _state_lock:
+        mappings = load_mappings()
+        existing_name = mappings.get(discord_id)
+        if existing_name and existing_name.lower() == minecraft_username.lower():
+            await interaction.followup.send(f"You're already registered as **{existing_name}**.")
+            return
 
-    for uid, name in mappings.items():
-        if name.lower() == minecraft_username.lower() and uid != discord_id:
-            await interaction.response.send_message(
-                f"**{minecraft_username}** is already registered to another Discord user.",
-                ephemeral=True,
+        for uid, name in mappings.items():
+            if name.lower() == minecraft_username.lower() and uid != discord_id:
+                await interaction.followup.send(
+                    f"**{minecraft_username}** is already registered to another Discord user."
+                )
+                return
+
+        mc_uuid = await resolve_mc_uuid(minecraft_username)
+        if mc_uuid is None:
+            await interaction.followup.send(
+                f"**{minecraft_username}** wasn't found on Mojang's servers. "
+                "Check the spelling - it must be your Java Edition username."
             )
             return
 
-    await interaction.response.defer(ephemeral=True)
-
-    mc_uuid = await resolve_mc_uuid(minecraft_username)
-    if mc_uuid is None:
-        await interaction.followup.send(
-            f"**{minecraft_username}** wasn't found on Mojang's servers. "
-            "Check the spelling - it must be your Java Edition username.",
-        )
-        return
-
-    mappings[discord_id] = minecraft_username
-    save_mappings(mappings)
-    update_linked_players(discord_id, mc_uuid)
+        mappings[discord_id] = minecraft_username
+        save_mappings(mappings)
+        try:
+            update_linked_players(discord_id, mc_uuid)
+        except RuntimeError as error:
+            await interaction.followup.send(f"Registration was not saved safely: {error}")
+            return
     log.info("Registered: %s (%s) -> %s (UUID: %s)", interaction.user, discord_id, minecraft_username, mc_uuid)
 
     await interaction.followup.send(
@@ -1385,19 +1480,25 @@ async def register(interaction: discord.Interaction, minecraft_username: str) ->
 
 @bot.tree.command(name="unregister", description="Remove your Minecraft username link")
 async def unregister(interaction: discord.Interaction) -> None:
-    mappings = load_mappings()
     discord_id = str(interaction.user.id)
 
-    mc_name = mappings.pop(discord_id, None)
-    if mc_name is None:
-        await interaction.response.send_message(
-            "You don't have a Minecraft username registered.",
-            ephemeral=True,
-        )
-        return
-
-    save_mappings(mappings)
-    update_linked_players(discord_id, mc_uuid=None, remove=True)
+    async with _state_lock:
+        mappings = load_mappings()
+        mc_name = mappings.pop(discord_id, None)
+        if mc_name is None:
+            await interaction.response.send_message(
+                "You don't have a Minecraft username registered.",
+                ephemeral=True,
+            )
+            return
+        save_mappings(mappings)
+        try:
+            update_linked_players(discord_id, mc_uuid=None, remove=True)
+        except RuntimeError as error:
+            await interaction.response.send_message(
+                f"Unregistration was not saved safely: {error}", ephemeral=True
+            )
+            return
     await async_rcon(f"whitelist remove {mc_name}")
     await async_rcon(f"deop {mc_name}")
     log.info("Unregistered: %s (%s) was %s", interaction.user, discord_id, mc_name)

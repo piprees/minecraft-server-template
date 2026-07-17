@@ -22,6 +22,7 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 **Mappings:** Yarn (human-readable) in source, intermediary in compiled JARs. Fabric Loom handles this — never write intermediary names (`class_XXXX`, `method_XXXX`) in source code.
 
 **Mixins:**
+
 - Every mixin class must be listed in `<modid>.mixins.json`. Unlisted mixins silently don't apply and cause ClassCastExceptions when accessor interfaces are used.
 - `@Accessor` and `@Invoker` interfaces go in the same `mixins` array as `@Mixin` classes.
 - Always verify your mixin targets exist on the class you're targeting in 1.21.1 — methods move between classes across MC versions. Check Yarn mappings or use `yarn-mappings-viewer`.
@@ -29,12 +30,13 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - Test with the full server mod stack, not just vanilla — other mods' mixins can transform your target classes.
 
 **Portal system (custom-dimensions):**
+
 - Portal frames are built from configurable blocks and ignited with configurable items.
 - The flood-fill algorithm scans up to 128 blocks in a plane (X or Z axis) bounded by frame blocks.
 - Portal zones are validated every tick — if the frame breaks, the portal clears.
 - Coordinate scaling applies to the portal center position when creating the target-side portal.
 - Player origins are tracked by UUID for return trips.
-- All portal state persists to `config/portal_links.json` inside the server data directory.
+- Target-side return links persist to `config/portal_links.json` inside the server data directory. **Current limitation:** source portal zones are process-local and must not be assumed to survive restart until route persistence is implemented; exercise a restart round-trip in the local verification loop.
 - **Placing NETHER_PORTAL blocks: frames first, portal blocks last with `Block.NOTIFY_LISTENERS | Block.FORCE_STATE`.** Vanilla `NetherPortalBlock` re-validates its shape on any neighbour update and pops to air unless framed by OBSIDIAN specifically — with `NOTIFY_ALL`, a custom-framed portal self-destructs during its own placement (each block's update pops the previous one). This shipped silently for months: arrival teleports are coordinate-based so traversal "worked" while the return portal never existed (found 2026-07-13 by the Carpet-bot loop below).
 - **Arrival placement comes from the target column's heightmap** (`findSurfaceY`, scaled centre, chunk force-generated first) — never from offsets against `getBottomY()`, and never trust `World.getTopY` on an unloaded chunk (it silently returns bottomY).
 
@@ -153,7 +155,7 @@ docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentMo
 
 Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production only). Then verify **outcomes, not script output**:
 
-- Script counters count commands *sent*, not commands that *succeeded* — a brigadier parse error still increments "Created: 74". Check the persisted result instead (e.g. count entries in `data/config/multiverse_config.json`) and spot-check entities via RCON.
+- Script counters count commands _sent_, not commands that _succeeded_ — a brigadier parse error still increments "Created: 74". Check the persisted result instead (e.g. count entries in `data/config/multiverse_config.json`) and spot-check entities via RCON.
 - Snapshot production state, never stream: `docker logs mc --tail 50`, `docker inspect mc --format '... RestartCount ...'`. A RestartCount above 0 means a crash you haven't explained yet.
 - Under deploy load (world creation, Chunky, mod sync) RCON responses can time out and come back empty — treat an empty response as a failure to re-check, never as success.
 - If production's persisted mod state predates a format/namespace change, stop mc, delete the state file, and re-run `deploy.sh` — deploys recreate everything idempotently.

@@ -80,7 +80,10 @@ for ((i = MINOR - 1; i >= 0; i--)); do
 done
 
 echo "Target: $TARGET_VERSION"
-FALLBACK_CSV=$(IFS=,; echo "${FALLBACK_VERSIONS[*]}")
+FALLBACK_CSV=$(
+  IFS=,
+  echo "${FALLBACK_VERSIONS[*]}"
+)
 echo "Fallback chain: ${FALLBACK_VERSIONS[*]}"
 echo ""
 
@@ -93,7 +96,7 @@ SLUGS_ONLY=()
 
 while IFS= read -r line; do
   stripped="${line%%#*}"
-  stripped="$(echo "$stripped" | xargs 2>/dev/null || echo "")"
+  stripped="$(echo "$stripped" | xargs 2> /dev/null || echo "")"
 
   if [[ -z "$stripped" ]] || [[ "$stripped" == datapack:* ]] || [[ "$stripped" == resourcepack:* ]]; then
     LINE_TYPES+=("passthrough")
@@ -133,12 +136,12 @@ for i in "${!LINE_TYPES[@]}"; do
   result=$(echo "$API_RESULTS" | sed -n "$((slug_idx + 1))p")
   slug_idx=$((slug_idx + 1))
 
-  status=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','none'))" 2>/dev/null || echo "none")
+  status=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','none'))" 2> /dev/null || echo "none")
 
   if [[ "$status" == "found" ]]; then
-    ver_id=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2>/dev/null)
-    ver_num=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])" 2>/dev/null)
-    matched_ver=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['matched'])" 2>/dev/null)
+    ver_id=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])" 2> /dev/null)
+    ver_num=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])" 2> /dev/null)
+    matched_ver=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin)['matched'])" 2> /dev/null)
 
     if [[ "$matched_ver" == "$TARGET_VERSION" ]]; then
       echo "  $slug - ✓ $ver_num (exact $TARGET_VERSION)"
@@ -146,6 +149,10 @@ for i in "${!LINE_TYPES[@]}"; do
       echo "  $slug - ~ $ver_num (fallback $matched_ver)"
     fi
     OUTPUT_LINES+=("${slug}:${ver_id}${LINE_SUFFIXES[$i]}")
+  elif [[ "$status" == "api-error" ]]; then
+    error=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error','unknown API error'))" 2> /dev/null || echo "unknown API error")
+    echo "  $slug - ? API error ($error) - keeping as-is"
+    OUTPUT_LINES+=("${LINE_ORIGINALS[$i]}")
   else
     echo "  $slug - ✗ no 1.21.x build found - keeping as-is"
     OUTPUT_LINES+=("# FIXME: no 1.21.x build - $slug")

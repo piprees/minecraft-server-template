@@ -1,8 +1,12 @@
+.env
+.stack/
+modpack-dist/
+seed-report-*.md
+
 # === Secrets - never commit ===
 .env
 *.env.local
 config/server.local.env
-.impeccable
 
 # === Server data - large, generated, personal ===
 # Root-anchored: mod jars carry their datapacks in src/main/resources/data/,
@@ -84,3 +88,6 @@ __pycache__/
 
 # Serena semantic-code-intelligence cache
 .serena/
+
+# === Impeccable cache ===
+.impeccable

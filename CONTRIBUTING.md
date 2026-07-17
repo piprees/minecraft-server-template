@@ -27,7 +27,13 @@ The local profile disables online-mode and whitelist, so you can connect at `loc
 
 ## Quality gates
 
-Run this before opening a PR:
+Lefthook runs the static checks below automatically before commits that change scripts, Docker entrypoints, Compose, or CI configuration. Install the repository hook once after cloning:
+
+```bash
+lefthook install
+```
+
+Run the same gate manually before opening a PR:
 
 ```bash
 ./scripts/test-scripts.sh --quick
@@ -35,11 +41,12 @@ Run this before opening a PR:
 
 This checks:
 
-- **ShellCheck** (severity: warning) on all shell scripts
+- **ShellCheck** (severity: warning) on all scripts, Docker entrypoints, and consumer dispatchers
 - **py_compile** on all Python scripts
 - **docker compose config** validation for both profiles
+- **yamllint** using [`.yamllint.yml`](.yamllint.yml)
 
-CI runs the same checks plus yamllint. PRs that fail lint won't be merged.
+The quick gate fails on every issue; it never turns a failed static check into a warning. CI runs the same checks and also verifies bundle references and Python dependency health. PRs that fail lint won't be merged.
 
 ## Commit conventions
 

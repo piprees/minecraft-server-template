@@ -114,9 +114,70 @@ trap resume_autopause EXIT
 # while .skip-pause-deploying exists but treats a stale mtime (default
 # >60min) as a dead deploy and cleans it up — the touch keeps hours-long
 # dimension passes recognised as live.
-rcon() {
+rcon_best_effort() {
   docker exec mc sh -c 'touch /data/.skip-pause-deploying' 2> /dev/null || true
-  timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null || true
+  if ! timeout 30 docker exec mc rcon-cli "$@" 2> /dev/null; then
+    echo "  Warning: optional RCON command failed: $*" >&2
+  fi
+}
+
+# Preserve best-effort behaviour for notifications and optional integrations.
+rcon() {
+  rcon_best_effort "$@"
+}
+
+rcon_verified() {
+  local label="$1"
+  shift
+  local attempt output
+  for attempt in 1 2; do
+    docker exec mc sh -c 'touch /data/.skip-pause-deploying' 2> /dev/null || true
+    output=$(timeout 30 docker exec mc rcon-cli "$@" 2>&1) && {
+      printf '%s\n' "$output"
+      return 0
+    }
+    echo "  Warning: ${label} failed (attempt ${attempt}/2): ${output}" >&2
+    sleep 2
+  done
+  echo "ERROR: ${label} could not be confirmed" >&2
+  return 1
+}
+
+whitelist_list() {
+  rcon_verified "read whitelist" "whitelist list"
+}
+
+clear_whitelist() {
+  local list_output players player
+  rcon_verified "enable whitelist enforcement" "whitelist on" > /dev/null
+  list_output=$(whitelist_list)
+  players="${list_output#*: }"
+  if [[ "$players" == "$list_output" || "$players" == "" ]]; then
+    players=""
+  fi
+  IFS=',' read -ra WHITELIST_ENTRIES <<< "$players"
+  for player in "${WHITELIST_ENTRIES[@]}"; do
+    player="$(echo "$player" | xargs)"
+    [[ -z "$player" ]] && continue
+    rcon_verified "remove whitelisted player $player" "whitelist remove $player" > /dev/null
+  done
+  list_output=$(whitelist_list)
+  if ! echo "$list_output" | grep -qE 'There are (0|no) whitelisted players'; then
+    echo "ERROR: whitelist was not empty after removal: $list_output" >&2
+    return 1
+  fi
+}
+
+restore_whitelist() {
+  local player
+  if [[ -n "${WHITELIST:-}" ]]; then
+    IFS=',' read -ra WL_ARRAY <<< "$WHITELIST"
+    for player in "${WL_ARRAY[@]}"; do
+      player="$(echo "$player" | xargs)"
+      [[ -n "$player" ]] && rcon_verified "restore whitelisted player $player" "whitelist add $player" > /dev/null
+    done
+  fi
+  rcon_verified "restore whitelist enforcement" "whitelist on" > /dev/null
 }
 
 # Kuma maintenance window for the whole deploy: monitors show "maintenance"
@@ -215,8 +276,8 @@ if server_alive; then
   # =========================================================================
   echo ""
   echo "==> Blocking new connections..."
-  rcon "whitelist off"
-  rcon "whitelist on"
+  docker stop discord-sync 2> /dev/null || true
+  clear_whitelist
   echo "  New connections blocked (whitelist cleared)"
 
   # =========================================================================
@@ -527,8 +588,10 @@ if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$SERVER_DIR/data/config/Discord-Integra
     sed -i 's|useServerNameForConsole = false|useServerNameForConsole = true|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
     sed -i 's|serverStarting = true|serverStarting = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
-    # CRITICAL: [commands] enabled = false (invariant 3)
-    sed -i '/^\[commands\]/,/adminRoleIDs/ s|enabled = true|enabled = false|' "$SERVER_DIR/data/config/Discord-Integration.toml" 2> /dev/null || true
+    # CRITICAL: discord-sync owns slash commands. The helper edits only the
+    # [commands] enabled value and refuses an ambiguous/generated schema.
+    python3 "$SCRIPT_DIR/ensure-discord-command-owner.py" \
+      "$SERVER_DIR/data/config/Discord-Integration.toml"
   fi
 fi
 if [[ -f "$SERVER_DIR/data/DiscordIntegration-Data/Messages.toml" ]]; then
@@ -544,30 +607,38 @@ fi
 # mods-manifest.txt; the mc container's MODS_FILE downloads only missing
 # files (no Modrinth API at boot). Removal is our job: delete managed jars
 # that are no longer expected. In-house jars from the bundle are exempt.
-MANIFEST=$(docker run --rm -v "$(docker volume ls -q | grep stack-mods | head -1)":/m:ro alpine cat /m/mods-manifest.txt 2> /dev/null || echo "")
-LOCAL_MANIFEST=$(cat "$SERVER_DIR/data/mods/.local-mods-manifest" 2> /dev/null || echo "")
-if [[ -n "$MANIFEST" ]]; then
-  echo ""
-  echo "==> Pruning stale mod jars..."
-  PRUNED=0
-  for jar in "$SERVER_DIR"/data/mods/*.jar; do
-    [[ -f "$jar" ]] || continue
-    base=$(basename "$jar")
-    if grep -qxF "$base" <<< "$MANIFEST"; then
-      continue
-    fi
-    if grep -qxF "$base" <<< "$LOCAL_MANIFEST"; then
-      continue
-    fi
-    if [[ -f "$STACK_DIR/local-mods/$base" ]]; then
-      continue
-    fi
-    rm -f "$jar"
-    PRUNED=$((PRUNED + 1))
-    echo "  pruned: $base"
-  done
-  echo "  $PRUNED stale jar(s) removed"
+SEED_CONTAINER="${CONTAINER_PREFIX:-}seed"
+STACK_MODS_VOLUME=$(docker inspect "$SEED_CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "/out/mods"}}{{.Name}}{{end}}{{end}}' 2> /dev/null || true)
+if [[ -z "$STACK_MODS_VOLUME" ]]; then
+  echo "ERROR: could not resolve the stack-mods volume from $SEED_CONTAINER" >&2
+  exit 1
 fi
+MANIFEST=$(docker run --rm -v "${STACK_MODS_VOLUME}:/m:ro" alpine cat /m/mods-manifest.txt 2> /dev/null || echo "")
+LOCAL_MANIFEST=$(cat "$SERVER_DIR/data/mods/.local-mods-manifest" 2> /dev/null || echo "")
+if [[ -z "$MANIFEST" ]]; then
+  echo "ERROR: seed completed without a mods-manifest.txt; refusing to prune mod jars" >&2
+  exit 1
+fi
+echo ""
+echo "==> Pruning stale mod jars..."
+PRUNED=0
+for jar in "$SERVER_DIR"/data/mods/*.jar; do
+  [[ -f "$jar" ]] || continue
+  base=$(basename "$jar")
+  if grep -qxF "$base" <<< "$MANIFEST"; then
+    continue
+  fi
+  if grep -qxF "$base" <<< "$LOCAL_MANIFEST"; then
+    continue
+  fi
+  if [[ -f "$STACK_DIR/local-mods/$base" ]]; then
+    continue
+  fi
+  rm -f "$jar"
+  PRUNED=$((PRUNED + 1))
+  echo "  pruned: $base"
+done
+echo "  $PRUNED stale jar(s) removed"
 
 # =============================================================================
 # 11. Start the stack
@@ -649,14 +720,8 @@ echo "  Quiet-boot mode active (spawning/ticking off until deploy completes)"
 # healthy — hours before a long dimension pass finishes. Empty the list
 # again until step 15 restores it; ops bypass the vanilla whitelist, so
 # admins can still get in to inspect a live deploy.
-if [[ -n "${WHITELIST:-}" ]]; then
-  IFS=',' read -ra WL_BOOT_ARRAY <<< "$WHITELIST"
-  for player in "${WL_BOOT_ARRAY[@]}"; do
-    player="$(echo "$player" | xargs)"
-    [[ -n "$player" ]] && rcon "whitelist remove $player" &> /dev/null
-  done
-fi
-rcon "whitelist on"
+docker stop discord-sync 2> /dev/null || true
+clear_whitelist
 echo "  Whitelist emptied until deploy completes (ops can still join)"
 
 # =============================================================================
@@ -761,7 +826,8 @@ echo "  Dimensions activated (nether, end, paradise lost)"
 MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
 SETUP_MARKERS_DIR="$SERVER_DIR/data/.dimension-setup"
 if [[ -f "$MULTIVERSE_CONFIG" ]]; then
-  DIM_DATA=$(python3 - "$MULTIVERSE_CONFIG" << 'PYEOF'
+  DIM_DATA=$(
+    python3 - "$MULTIVERSE_CONFIG" << 'PYEOF'
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
@@ -893,14 +959,8 @@ fi
 # =============================================================================
 echo ""
 echo "==> Restoring whitelist..."
-if [[ -n "${WHITELIST:-}" ]]; then
-  IFS=',' read -ra WL_ARRAY <<< "$WHITELIST"
-  for player in "${WL_ARRAY[@]}"; do
-    player="$(echo "$player" | xargs)"
-    [[ -n "$player" ]] && rcon "whitelist add $player" &> /dev/null
-  done
-fi
-rcon "whitelist on"
+restore_whitelist
+docker start discord-sync 2> /dev/null || true
 echo "  Whitelist restored, connections open"
 
 # =============================================================================

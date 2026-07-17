@@ -546,6 +546,7 @@ public class DimensionManager {
         );
 
         worlds.put(worldKey, newWorld);
+        lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
         // Fabric contract for dynamic world registration: mods that add a
         // ServerWorld outside createWorlds MUST fire LOAD, or every mod that
         // builds a per-level map from this event (Distant Horizons, BlueMap,
@@ -738,6 +739,7 @@ public class DimensionManager {
                 false, worldSeed, List.of(), false, overworld.getRandomSequences());
 
         worlds.put(worldKey, newWorld);
+        lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
         MultiverseServer.LOGGER.info("Created runtime world (direct): {}", worldKey.getValue());
         return newWorld;

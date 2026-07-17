@@ -166,7 +166,7 @@ jobs:
 
           # Tectonic parses config/tectonic.json SILENTLY — a malformed file
           # logs one line and falls back to factory defaults. Fail loudly here.
-          if echo "$LOG" | grep -qi "Couldn't load tectonic config"; then
+          if grep -qiF -- "Couldn't load tectonic config" <<<"$LOG"; then
             echo "::error::Tectonic fell back to factory defaults — config/tectonic.json failed to parse"
             exit 1
           fi
@@ -189,15 +189,15 @@ jobs:
           }
 
           # noiseSettings resolution (registry lookup of the jar-baked presets).
-          echo "$LOG" | grep -q "Dimension the_smoke_wide uses noise settings adventure:wide" || {
+          grep -qF -- "Dimension the_smoke_wide uses noise settings adventure:wide" <<<"$LOG" || {
             echo "::error::noiseSettings adventure:wide was not applied"
             exit 1
           }
-          echo "$LOG" | grep -q "Dimension the_smoke_compressed uses noise settings adventure:compressed" || {
+          grep -qF -- "Dimension the_smoke_compressed uses noise settings adventure:compressed" <<<"$LOG" || {
             echo "::error::noiseSettings adventure:compressed was not applied"
             exit 1
           }
-          if echo "$LOG" | grep -q "not found in the noise_settings registry"; then
+          if grep -qF -- "not found in the noise_settings registry" <<<"$LOG"; then
             echo "::error::a noiseSettings id failed registry lookup"
             exit 1
           fi
@@ -205,15 +205,15 @@ jobs:
           # Per-dimension structure control: the fixture gives
           # the_smoke_compressed structureDensity=dense, and
           # the_blossom_gardens is peaceful (hostileSpawning:false).
-          echo "$LOG" | grep -q "Dimension the_smoke_compressed structure profile: density=dense" || {
+          grep -qF -- "Dimension the_smoke_compressed structure profile: density=dense" <<<"$LOG" || {
             echo "::error::structureDensity=dense was not applied to the_smoke_compressed"
             exit 1
           }
-          echo "$LOG" | grep -q "Dimension the_blossom_gardens structure profile: density=normal+peaceful" || {
+          grep -qF -- "Dimension the_blossom_gardens structure profile: density=normal+peaceful" <<<"$LOG" || {
             echo "::error::peaceful structure overlay was not applied to the_blossom_gardens"
             exit 1
           }
-          echo "$LOG" | grep -q "Loaded .* structure-set themes" || {
+          grep -qE -- "Loaded .* structure-set themes" <<<"$LOG" || {
             echo "::error::structure theme map failed to load from the jar"
             exit 1
           }

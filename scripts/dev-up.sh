@@ -9,6 +9,7 @@
 #   CONSUMER_DIR=/path/to/consumer dev-up.sh up
 #   CONSUMER_DIR=/path/to/consumer dev-up.sh down
 #   CONSUMER_DIR=/path/to/consumer dev-up.sh logs
+#   CONSUMER_DIR=/path/to/consumer dev-up.sh refresh-config
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,7 +39,9 @@ case "$ACTION" in
   down | stop)
     # Load env for COMPOSE_PROJECT_NAME
     if [[ -f "$CONSUMER_DIR/.env" ]]; then
-      set -a; source "$CONSUMER_DIR/.env"; set +a
+      set -a
+      source "$CONSUMER_DIR/.env"
+      set +a
     fi
     BRAND_SLUG="${BRAND_SLUG:-myserver}"
     COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-$BRAND_SLUG}"
@@ -56,7 +59,9 @@ case "$ACTION" in
   logs)
     # Load env for COMPOSE_PROJECT_NAME
     if [[ -f "$CONSUMER_DIR/.env" ]]; then
-      set -a; source "$CONSUMER_DIR/.env"; set +a
+      set -a
+      source "$CONSUMER_DIR/.env"
+      set +a
     fi
     BRAND_SLUG="${BRAND_SLUG:-myserver}"
     COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-$BRAND_SLUG}"
@@ -70,10 +75,78 @@ case "$ACTION" in
       --profile local logs -f mc
     exit 0
     ;;
+  refresh-config)
+    BUNDLE_CONFIG="$STACK_DIR/config"
+    local_data_cfg="$CONSUMER_DIR/data/config"
+    timestamp="$(date '+%Y%m%d-%H%M%S')"
+    if [[ -d "$local_data_cfg" ]]; then
+      cp -R "$local_data_cfg" "${local_data_cfg}.bak.${timestamp}"
+      echo "Backed up data/config to data/config.bak.${timestamp}"
+    fi
+    mkdir -p "$local_data_cfg"
+
+    if [[ ! -d "$BUNDLE_CONFIG" ]]; then
+      echo "Platform config directory not found: $BUNDLE_CONFIG" >&2
+      exit 1
+    fi
+
+    echo "Refreshing platform defaults into data/config/..."
+    cd "$BUNDLE_CONFIG"
+    find . -type f \
+      -not -path './nginx/*' \
+      -not -path './datapacks/*' \
+      -not -path './datapack-presets/*' \
+      -not -path './uptime-kuma/*' \
+      -not -path './cloudflare/*' \
+      -not -path './cloudflared/*' \
+      -not -name 'modrinth-mods.txt' \
+      -not -name 'modrinth-mods.pinned.txt' \
+      -not -name 'messages.json' \
+      -not -name '1password.env' \
+      | while IFS= read -r f; do
+        dest="$local_data_cfg/${f#./}"
+        mkdir -p "$(dirname "$dest")"
+        cp "$f" "$dest"
+        printf '  platform: %s\n' "${f#./}"
+      done
+    cd "$CONSUMER_DIR"
+
+    if [[ -d "$CONSUMER_DIR/overlay/config" ]]; then
+      echo "Reapplying consumer overlay..."
+      cd "$CONSUMER_DIR/overlay/config"
+      find . -type f | while IFS= read -r f; do
+        dest="$local_data_cfg/${f#./}"
+        mkdir -p "$(dirname "$dest")"
+        cp "$f" "$dest"
+        printf '  overlay: %s\n' "${f#./}"
+      done
+      cd "$CONSUMER_DIR"
+    fi
+
+    C2ME_TOML="$local_data_cfg/c2me.toml"
+    python3 - "$C2ME_TOML" << 'PYEOF'
+import os, re, sys
+p = sys.argv[1]
+section = "[vanillaWorldGenOptimizations]"
+key = "useDensityFunctionCompiler"
+s = open(p).read() if os.path.exists(p) else ""
+if key in s:
+    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
+elif section in s:
+    updated = s.replace(section, section + "\n\t%s = false" % key)
+else:
+    updated = s + "\n%s\n\t%s = false\n" % (section, key)
+if updated != s:
+    with open(p, "w") as f:
+        f.write(updated)
+PYEOF
+    echo "Config refresh complete. Review changes against data/config.bak.${timestamp}."
+    exit 0
+    ;;
   up | start)
     ;;
   *)
-    echo "Usage: dev-up.sh [up|down|logs]"
+    echo "Usage: dev-up.sh [up|down|logs|refresh-config]"
     exit 1
     ;;
 esac
@@ -111,10 +184,10 @@ fi
 # data/mods included: Docker creates missing bind-mount paths as root, and
 # mod-checker's read-only ./data/mods mount would leave it unwritable for mc.
 mkdir -p "$CONSUMER_DIR/data/mods" \
-         "$CONSUMER_DIR/data/config" \
-         "$CONSUMER_DIR/modpack-dist" \
-         "$CONSUMER_DIR/overlay" \
-         "$CONSUMER_DIR/backups"
+  "$CONSUMER_DIR/data/config" \
+  "$CONSUMER_DIR/modpack-dist" \
+  "$CONSUMER_DIR/overlay" \
+  "$CONSUMER_DIR/backups"
 
 # --- Auto-generate RCON password if blank -------------------------------------
 if [[ -z "${RCON_PASSWORD:-}" ]]; then
@@ -168,12 +241,12 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     -not -name 'messages.json' \
     -not -name '1password.env' \
     | while IFS= read -r f; do
-    dest="$local_data_cfg/${f#./}"
-    if [[ ! -f "$dest" ]]; then
-      mkdir -p "$(dirname "$dest")"
-      cp "$f" "$dest"
-    fi
-  done
+      dest="$local_data_cfg/${f#./}"
+      if [[ ! -f "$dest" ]]; then
+        mkdir -p "$(dirname "$dest")"
+        cp "$f" "$dest"
+      fi
+    done
   cd "$CONSUMER_DIR"
 fi
 
@@ -295,7 +368,7 @@ import json, sys
 m = json.load(open(sys.argv[1]))
 for k, v in m.items():
     print(f'{k}|{v}')
-" "$MAP_FILE" 2>/dev/null)
+" "$MAP_FILE" 2> /dev/null)
     break
   fi
 done

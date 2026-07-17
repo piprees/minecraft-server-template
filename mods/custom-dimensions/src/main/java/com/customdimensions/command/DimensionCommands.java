@@ -8,11 +8,8 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.argument.IdentifierArgumentType;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -114,19 +111,9 @@ public class DimensionCommands {
             mgr.rememberRuntimeDefinition(def);
             mgr.registerDimension(def);
             mgr.requestWorldLoadDirect(name);
-            mgr.processPendingWorldLoads();
-
-            ServerWorld world = mgr.getServer().getWorld(
-                RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ns, name)));
-
-            if (world != null) {
-                source.sendFeedback(() -> Text.literal(
-                    "Created dimension '" + name + "' (type: " + type + ", seed: " + seed + ")"), true);
-                return 1;
-            } else {
-                source.sendError(Text.literal("Dimension registered but world creation failed: " + name));
-                return 0;
-            }
+            source.sendFeedback(() -> Text.literal(
+                "Queued dimension '" + name + "' (type: " + type + ", seed: " + seed + ")"), true);
+            return 1;
         } catch (Exception e) {
             MultiverseServer.LOGGER.error("Failed to create dimension via command: {}", name, e);
             source.sendError(Text.literal("Failed to create dimension: " + e.getMessage()));
@@ -139,10 +126,9 @@ public class DimensionCommands {
         DimensionManager mgr = DimensionManager.getInstance();
 
         mgr.requestWorldUnload(name);
-        mgr.processPendingWorldUnloads();
         mgr.forgetRuntimeDefinition(name);
 
-        source.sendFeedback(() -> Text.literal("Destroyed dimension '" + name + "'"), true);
+        source.sendFeedback(() -> Text.literal("Queued destruction of dimension '" + name + "'"), true);
         return 1;
     }
 

@@ -54,6 +54,7 @@ MANIFEST=(
   scripts/doctor.sh
   scripts/game-log.sh
   scripts/patch-mod-data.py
+  scripts/ensure-discord-command-owner.py
   scripts/filter-datapacks.py
   scripts/live-logs.sh
   scripts/live-stats.sh
@@ -135,13 +136,53 @@ rsync -a \
   --exclude='modrinth-mods.pinned.txt' \
   "$PROJECT_DIR/config/" "$STAGING_DIR/stack/config/"
 
-# Include built in-house mod JARs (produced by CI before this script runs)
+# Include declared in-house mod JARs (produced by CI before this script runs).
+# The manifest is the single source of truth for release delivery; a bundle
+# missing a platform mod must fail before it can reach a consumer.
 LOCAL_MODS="$DIST_DIR/local-mods"
-if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
-  mkdir -p "$STAGING_DIR/stack/local-mods"
-  cp "$LOCAL_MODS"/*.jar "$STAGING_DIR/stack/local-mods/"
-  echo "  Included $(ls "$LOCAL_MODS"/*.jar | wc -l | tr -d ' ') in-house mod JAR(s)"
-fi
+LOCAL_MODS_MANIFEST="$PROJECT_DIR/mods/local-mods.manifest"
+[[ -f "$LOCAL_MODS_MANIFEST" ]] || {
+  echo "ERROR: missing local mods manifest" >&2
+  exit 1
+}
+[[ -d "$LOCAL_MODS" ]] || {
+  echo "ERROR: missing built local mods directory: $LOCAL_MODS" >&2
+  exit 1
+}
+
+expected_count=0
+while IFS='|' read -r jar_name project_name refmap_name; do
+  [[ -z "$jar_name" || "$jar_name" == \#* ]] && continue
+  expected_count=$((expected_count + 1))
+  [[ -n "$project_name" && -n "$refmap_name" ]] || {
+    echo "ERROR: invalid local mod manifest row: $jar_name" >&2
+    exit 1
+  }
+  [[ -f "$LOCAL_MODS/$jar_name" ]] || {
+    echo "ERROR: missing declared local mod JAR: $jar_name" >&2
+    exit 1
+  }
+done < "$LOCAL_MODS_MANIFEST"
+
+for jar_path in "$LOCAL_MODS"/*.jar; do
+  [[ -f "$jar_path" ]] || continue
+  jar_name="$(basename "$jar_path")"
+  if ! awk -F'|' -v jar="$jar_name" '$1 == jar { found=1 } END { exit !found }' "$LOCAL_MODS_MANIFEST"; then
+    echo "ERROR: undeclared local mod JAR: $jar_name" >&2
+    exit 1
+  fi
+done
+
+[[ $expected_count -gt 0 ]] || {
+  echo "ERROR: local mods manifest is empty" >&2
+  exit 1
+}
+mkdir -p "$STAGING_DIR/stack/local-mods"
+while IFS='|' read -r jar_name project_name refmap_name; do
+  [[ -z "$jar_name" || "$jar_name" == \#* ]] && continue
+  cp "$LOCAL_MODS/$jar_name" "$STAGING_DIR/stack/local-mods/$jar_name"
+done < "$LOCAL_MODS_MANIFEST"
+echo "  Included $expected_count declared in-house mod JAR(s)"
 
 mkdir -p "$DIST_DIR"
 

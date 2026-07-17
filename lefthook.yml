@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    static-analysis:
+      glob: '{scripts/**,docker/**,examples/consumer/dev,examples/consumer/ops,docker-compose.yml,.github/workflows/**,config/cloudflared/config.yml}'
+      run: ./scripts/test-scripts.sh --quick
+      fail_text: 'Static analysis failed. Fix the reported issues before committing.'

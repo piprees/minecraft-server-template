@@ -21,6 +21,7 @@ usage() {
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
+  echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
   echo "  rollback Revert to a previous stack bundle version"
   echo "  sync     (deprecated, use ./ops sync) Full local+remote alignment"
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
@@ -303,6 +304,11 @@ case "$CMD" in
     echo ""
     echo "Stack and images updated."
     echo "Tip: run 'git diff' to see what changed in synced scaffold files."
+    ;;
+  refresh-config)
+    ensure_stack
+    export CONSUMER_DIR
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" refresh-config
     ;;
   rollback)
     if [[ ! -d "$CONSUMER_DIR/.stack" ]]; then

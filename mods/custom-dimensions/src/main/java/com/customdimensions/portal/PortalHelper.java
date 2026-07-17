@@ -3,6 +3,9 @@ package com.customdimensions.portal;
 import com.customdimensions.config.PortalDefinition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -28,6 +31,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +56,10 @@ public class PortalHelper {
     // their world from then on. Unclaimed entries survive restarts.
     private static final Map<BlockPos, PortalReturnTarget> LEGACY_PORTAL_TARGETS = new HashMap<>();
     private static final Map<RegistryKey<World>, List<PortalZone>> PORTAL_ZONES = new HashMap<>();
+    // Source zones are restored lazily: a persisted route can be parsed at
+    // boot without forcing its source world to load. ServerWorldMixin claims
+    // and validates the route on the world's first tick.
+    private static final Map<RegistryKey<World>, List<PortalZone>> PENDING_ZONES = new HashMap<>();
     private static final Map<String, Boolean> PLAYER_IN_ZONE = new HashMap<>();
     private static final Map<UUID, PlayerOrigin> PLAYER_ORIGINS = new HashMap<>();
     private static final Map<RegistryKey<World>, Map<BlockPos, Integer>> PORTAL_FRAMES = new HashMap<>();
@@ -65,7 +74,7 @@ public class PortalHelper {
         if (portalLinksPath == null) {
             return;
         }
-        ArrayList<Map<String, Object>> links = new ArrayList<>();
+        ArrayList<Object> links = new ArrayList<>();
         for (Map.Entry<RegistryKey<World>, Map<BlockPos, PortalReturnTarget>> worldEntry : PORTAL_TARGETS.entrySet()) {
             for (Map.Entry<BlockPos, PortalReturnTarget> entry : worldEntry.getValue().entrySet()) {
                 Map<String, Object> link = linkJson(entry.getKey(), entry.getValue());
@@ -78,12 +87,29 @@ public class PortalHelper {
         for (Map.Entry<BlockPos, PortalReturnTarget> entry : LEGACY_PORTAL_TARGETS.entrySet()) {
             links.add(linkJson(entry.getKey(), entry.getValue()));
         }
+        for (List<PortalZone> zones : PORTAL_ZONES.values()) {
+            for (PortalZone zone : zones) {
+                links.add(StoredPortalZone.from(zone));
+            }
+        }
+        for (List<PortalZone> zones : PENDING_ZONES.values()) {
+            for (PortalZone zone : zones) {
+                links.add(StoredPortalZone.from(zone));
+            }
+        }
         try {
             Files.createDirectories(portalLinksPath.getParent());
-            try (BufferedWriter writer = Files.newBufferedWriter(portalLinksPath)) {
+            Path temporary = portalLinksPath.resolveSibling("." + portalLinksPath.getFileName() + ".tmp");
+            try (BufferedWriter writer = Files.newBufferedWriter(temporary)) {
                 GSON.toJson(links, writer);
             }
-        } catch (IOException ignored) {
+            try {
+                Files.move(temporary, portalLinksPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, portalLinksPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            System.err.println("[customdimensions] Failed to save portal links: " + e.getMessage());
         }
     }
 
@@ -105,33 +131,47 @@ public class PortalHelper {
     public static void loadPortalLinks() {
         PORTAL_TARGETS.clear();
         LEGACY_PORTAL_TARGETS.clear();
+        PORTAL_ZONES.clear();
+        PENDING_ZONES.clear();
         if (portalLinksPath == null || !Files.exists(portalLinksPath)) {
             return;
         }
         try (BufferedReader reader = Files.newBufferedReader(portalLinksPath)) {
-            List<Map<String, Object>> links = GSON.fromJson(reader, new TypeToken<List<Map<String, Object>>>() {}.getType());
+            List<JsonElement> links = GSON.fromJson(reader, new TypeToken<List<JsonElement>>() {}.getType());
             if (links == null) {
                 return;
             }
-            for (Map<String, Object> link : links) {
-                int x = ((Number) link.get("x")).intValue();
-                int y = ((Number) link.get("y")).intValue();
-                int z = ((Number) link.get("z")).intValue();
-                RegistryKey<World> sourceWorld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of((String) link.get("targetWorld")));
-                int sourceY = link.containsKey("sourceY") ? ((Number) link.get("sourceY")).intValue() : y;
-                int color = link.containsKey("color") ? ((Number) link.get("color")).intValue() : 0x8844FF;
-                int cooldown = link.containsKey("cooldown") ? ((Number) link.get("cooldown")).intValue() : 40;
-                String particleType = (String) link.get("particleType");
-                PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType);
-                String portalWorld = (String) link.get("portalWorld");
-                if (portalWorld != null) {
-                    RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
-                    PORTAL_TARGETS.computeIfAbsent(worldKey, k -> new HashMap<>()).put(new BlockPos(x, y, z), target);
-                } else {
-                    LEGACY_PORTAL_TARGETS.put(new BlockPos(x, y, z), target);
+            for (JsonElement element : links) {
+                try {
+                    JsonObject link = element.getAsJsonObject();
+                    if (link.has("recordType") && "source-zone-v1".equals(link.get("recordType").getAsString())) {
+                        StoredPortalZone stored = GSON.fromJson(link, StoredPortalZone.class);
+                        PortalZone zone = stored.toPortalZone();
+                        PENDING_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
+                        continue;
+                    }
+                    int x = link.get("x").getAsInt();
+                    int y = link.get("y").getAsInt();
+                    int z = link.get("z").getAsInt();
+                    RegistryKey<World> sourceWorld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(link.get("targetWorld").getAsString()));
+                    int sourceY = link.has("sourceY") ? link.get("sourceY").getAsInt() : y;
+                    int color = link.has("color") ? link.get("color").getAsInt() : 0x8844FF;
+                    int cooldown = link.has("cooldown") ? link.get("cooldown").getAsInt() : 40;
+                    String particleType = link.has("particleType") ? link.get("particleType").getAsString() : null;
+                    PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType);
+                    String portalWorld = link.has("portalWorld") ? link.get("portalWorld").getAsString() : null;
+                    if (portalWorld != null) {
+                        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
+                        PORTAL_TARGETS.computeIfAbsent(worldKey, k -> new HashMap<>()).put(new BlockPos(x, y, z), target);
+                    } else {
+                        LEGACY_PORTAL_TARGETS.put(new BlockPos(x, y, z), target);
+                    }
+                } catch (RuntimeException e) {
+                    System.err.println("[customdimensions] Ignoring malformed portal record: " + e.getMessage());
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException | JsonParseException e) {
+            System.err.println("[customdimensions] Failed to load portal links; preserving file for repair: " + e.getMessage());
         }
     }
 
@@ -175,6 +215,7 @@ public class PortalHelper {
 
     public static void registerZone(PortalZone zone) {
         PORTAL_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
+        savePortalLinks();
     }
 
     public static void removeZone(PortalZone zone) {
@@ -186,6 +227,22 @@ public class PortalHelper {
 
     public static List<PortalZone> getSourceZones(RegistryKey<World> world) {
         return PORTAL_ZONES.getOrDefault(world, Collections.emptyList());
+    }
+
+    public static void restoreZones(ServerWorld world) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        List<PortalZone> pending = PENDING_ZONES.remove(worldKey);
+        if (pending == null) {
+            return;
+        }
+        for (PortalZone zone : pending) {
+            if (isZoneValid(world, zone)) {
+                PORTAL_ZONES.computeIfAbsent(worldKey, k -> new ArrayList<>()).add(zone);
+            } else {
+                System.err.println("[customdimensions] Dropped invalid persisted portal route in " + worldKey.getValue());
+            }
+        }
+        savePortalLinks();
     }
 
     public static boolean isInsideZone(BlockPos pos, PortalZone zone) {
@@ -585,6 +642,67 @@ public class PortalHelper {
             this.color = color;
             this.cooldown = cooldown;
             this.particleType = particleType;
+        }
+    }
+
+    public static class StoredPosition {
+        int x;
+        int y;
+        int z;
+
+        StoredPosition() {
+        }
+
+        StoredPosition(BlockPos position) {
+            this.x = position.getX();
+            this.y = position.getY();
+            this.z = position.getZ();
+        }
+
+        BlockPos toBlockPos() {
+            return new BlockPos(x, y, z);
+        }
+    }
+
+    public static class StoredPortalZone {
+        String recordType = "source-zone-v1";
+        String sourceWorld;
+        String targetWorld;
+        String axis;
+        PortalDefinition definition;
+        List<StoredPosition> interior;
+
+        StoredPortalZone() {
+        }
+
+        static StoredPortalZone from(PortalZone zone) {
+            StoredPortalZone stored = new StoredPortalZone();
+            stored.sourceWorld = zone.sourceWorld.getValue().toString();
+            stored.targetWorld = zone.targetWorld.getValue().toString();
+            stored.axis = zone.axis.name();
+            stored.definition = zone.definition;
+            stored.interior = zone.interior.stream().map(StoredPosition::new).toList();
+            return stored;
+        }
+
+        PortalZone toPortalZone() {
+            if (sourceWorld == null || targetWorld == null || axis == null || definition == null || interior == null || interior.isEmpty()) {
+                throw new IllegalArgumentException("missing source route fields");
+            }
+            Set<BlockPos> blocks = new HashSet<>();
+            for (StoredPosition position : interior) {
+                blocks.add(position.toBlockPos());
+            }
+            if (blocks.size() > MAX_PORTAL_BLOCKS) {
+                throw new IllegalArgumentException("source route exceeds portal size limit");
+            }
+            return new PortalZone(
+                    blocks,
+                    definition,
+                    Direction.Axis.valueOf(axis),
+                    RegistryKey.of(RegistryKeys.WORLD, Identifier.of(sourceWorld)),
+                    RegistryKey.of(RegistryKeys.WORLD, Identifier.of(targetWorld))
+            );
         }
     }
 

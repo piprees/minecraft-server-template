@@ -58,30 +58,47 @@ jobs:
         # so every mixin fails on a production server (intermediary names) and
         # the server crash-loops at boot.
         run: |
-          cd mods/custom-dimensions
-          gradle build
-          mkdir -p ../../dist/local-mods
-          JAR=$(find build/libs -name 'customdimensions-*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
-          cp "$JAR" ../../dist/local-mods/customdimensions.jar
+          mkdir -p dist/local-mods
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            (
+              cd "mods/$PROJECT"
+              gradle build
+              JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
+              cp "$JAR" "../../dist/local-mods/$JAR_NAME"
+            )
+          done < mods/local-mods.manifest
 
       - name: Verify mod JAR is remapped
         # Guards against the empty/unremapped jar failure mode: the jar must
         # contain compiled classes and the mixin refmap Loom generates during
         # remapping. An unremapped or empty jar ships a production crash loop.
         run: |
-          JAR=dist/local-mods/customdimensions.jar
-          if ! unzip -l "$JAR" | grep -q 'customdimensions-refmap.json'; then
-            echo "::error::$JAR is missing customdimensions-refmap.json — remapJar produced an unremapped or empty jar"
-            exit 1
-          fi
-          CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
-          if [[ "$CLASSES" -lt 10 ]]; then
-            echo "::error::$JAR contains only $CLASSES classes — remapJar output looks empty"
-            exit 1
-          fi
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            JAR="dist/local-mods/$JAR_NAME"
+            if ! unzip -l "$JAR" | grep -q "$REF_MAP"; then
+              echo "::error::$JAR is missing $REF_MAP — remapJar produced an unremapped or empty jar"
+              exit 1
+            fi
+            CLASSES=$(unzip -l "$JAR" | grep -c '\.class$' || true)
+            if [[ "$CLASSES" -lt 10 ]]; then
+              echo "::error::$JAR contains only $CLASSES classes — remapJar output looks empty"
+              exit 1
+            fi
+          done < mods/local-mods.manifest
 
       - name: Build bundle
         run: ./scripts/build-stack-bundle.sh "${{ inputs.version }}"
+
+      - name: Verify declared local mods are in the bundle
+        run: |
+          BUNDLE="dist/stack-${{ inputs.version }}.tar.gz"
+          while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
+            [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
+            tar -tzf "$BUNDLE" | grep -qx "stack/local-mods/$JAR_NAME" \
+              || { echo "::error::Bundle is missing $JAR_NAME"; exit 1; }
+          done < mods/local-mods.manifest
 
       - name: Install git-cliff
         run: |

@@ -40,10 +40,9 @@ jobs:
             echo "To cut a release correctly:"
             echo "  gh workflow run release.yml -f version=$TAG"
             echo ""
-            echo "This release cannot be fixed (immutable). You must delete it and re-cut:"
-            echo "  gh release delete $TAG --yes"
-            echo "  git push origin :refs/tags/$TAG"
-            echo "  gh workflow run release.yml -f version=$TAG"
+            echo "Published immutable release tags cannot be reused."
+            echo "Fix the cause and cut the next patch version with complete assets."
+            echo "See docs/releasing.md for the canonical recovery procedure."
             exit 1
           fi
 

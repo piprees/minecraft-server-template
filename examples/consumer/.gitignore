@@ -1,14 +1,93 @@
 .env
 .stack/
-data/
 modpack-dist/
-backups/
-.setup-state/
-seedtest-data/
-seed-results.csv
-seed-errors.log
 seed-report-*.md
+
+# === Secrets - never commit ===
+.env
+*.env.local
+config/server.local.env
+
+# === Server data - large, generated, personal ===
+# Root-anchored: mod jars carry their datapacks in src/main/resources/data/,
+# which an unanchored data/ silently swallowed.
+/data/
+!config/datapacks/**/data/
+backups/
+
+# === Backup copies made by scripts ===
+*.bak.*
+
+# === Cloudflare tunnel credentials ===
+config/cloudflared/*.json
+config/cloudflared/cert.pem
+
+# === Restic ===
+restic-password.txt
+
+# === Seed-rolling artefacts ===
+seedtest-data/
+seedtest-data-*/
+seedtest-data-*/*
+scripts/seed/seed-errors.log
+scripts/seed/seed-errors.log.lock
+scripts/seed/seed-results.csv
+scripts/seed/seed-results.csv.lock
+scripts/seed/seed-report-top25.md
+
+__pycache__
+*/__pycache__/*
+
+# === Built modpack files ===
+modpack/*.mrpack
+modpack/dist/
+
+# === Stack bundle build output ===
+dist/
+
+# === Asset cache (Docker images, mod JARs, offline bundles) ===
 cache/
-config/cloudflared/
+
+# === In-house mod build artifacts ===
+mods/*/build/
+mods/*/.gradle/
+mods/*/run/
+mods/*/.fabric/
+
+# === Built mod JARs (produced by CI, never committed) ===
+dist/local-mods/
+
+# === Mod development scratch ===
+scratch/
+
+# === OS / editor junk ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# === Docker override (local dev only, created by --offline mode) ===
+docker-compose.override.yml
+
+# === Claude Code / AI agent state ===
 .github/.hooks-state/
+.claude/
+docker-compose.modrinth.yml
+config/nginx/nav-proxy-local.conf
+
+# === Setup wizard state ===
+.setup-state/
+
+pivot/
+__pycache__/
+
+# generated jar download cache (gen-structure-presets.py)
+/.cache/
 .seedtest/
+
+# Serena semantic-code-intelligence cache
+.serena/
+
+# === Impeccable cache ===
+.impeccable
