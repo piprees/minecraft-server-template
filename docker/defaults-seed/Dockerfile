@@ -8,6 +8,8 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
 RUN apk add --no-cache bash rsync python3
 
 COPY config/modrinth-mods.txt /defaults/modrinth-mods.txt
+# Committed resolve cache: known pins need zero Modrinth API calls
+COPY config/modrinth-resolve-cache.json /defaults/modrinth-resolve-cache.json
 
 COPY config/log4j2-adventure.xml /defaults/config/log4j2-adventure.xml
 COPY config/tectonic.json        /defaults/config/tectonic.json

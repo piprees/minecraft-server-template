@@ -72,11 +72,22 @@ def fetch(version_id):
 def main(list_path, out_dir):
     cache_path = os.path.join(out_dir, ".resolve-cache.json")
     cache = {}
+    # Repo-committed cache first (baked into the seed image): known pins
+    # resolve with ZERO API calls — survives full Modrinth outages
+    # (2026-07-17 took the API down for hours mid-release). The volume
+    # cache then overlays anything learned at runtime.
+    repo_cache = os.environ.get("MODRINTH_RESOLVE_CACHE",
+                                "/defaults/modrinth-resolve-cache.json")
+    if os.path.exists(repo_cache):
+        try:
+            cache.update(json.load(open(repo_cache)))
+        except (json.JSONDecodeError, OSError):
+            pass
     if os.path.exists(cache_path):
         try:
-            cache = json.load(open(cache_path))
+            cache.update(json.load(open(cache_path)))
         except (json.JSONDecodeError, OSError):
-            cache = {}
+            pass
 
     entries = []
     for raw in open(list_path):
