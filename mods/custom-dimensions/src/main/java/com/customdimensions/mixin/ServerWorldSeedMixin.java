@@ -27,12 +27,20 @@ public class ServerWorldSeedMixin {
     private void customdimensions$perDimensionSeed(CallbackInfoReturnable<Long> cir) {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> key = world.getRegistryKey();
-        if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
+        if (DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
+            DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getValue().getPath());
+            if (def != null && def.getSeed() != null) {
+                cir.setReturnValue(def.getSeed());
+            }
             return;
         }
-        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getValue().getPath());
-        if (def != null && def.getSeed() != null) {
-            cir.setReturnValue(def.getSeed());
+        // Static worlds (nether/end/paradise_lost): a "seed" on the config's
+        // worlds[] entry overrides the save seed, so each real world can run
+        // its own rolled winner. minecraft:overworld is never overridden —
+        // its seed IS the save seed (.env SEED, world reset to change).
+        Long worldSeed = MultiverseConfig.getInstance().getWorldSeedOverride(key.getValue().toString());
+        if (worldSeed != null) {
+            cir.setReturnValue(worldSeed);
         }
     }
 }

@@ -93,15 +93,25 @@ modded world families cross-pollinate with everything else.
 Entries without a `seedRoll` block still roll: spawn filter defaults to the
 first biomes of the `biome` list, wants to a modest family battery.
 
-## Worlds (the shared world seed)
+## Worlds (the four real worlds)
 
 `config/multiverse_config.json` has a top-level `worlds` array for the
-dimensions that share the vanilla world seed. One candidate seed = one
-container boot (`SEED=<candidate>`), all four worlds measured per boot, the
-overworld's spawnFilter gates the seed. The combined score weights the
-overworld at 0.5 (override per world with `seedRoll.weight`). The winner
-lands in the config as `worldSeed` and is printed as the `.env` `SEED=`
-line — applying it needs a world reset (`./ops reset-seed`).
+dimensions the mod doesn't create (overworld / the_nether / the_end /
+paradise_lost). Each rolls **independently** as a `fake_<world>` runtime
+clone (no container reboots — an overworld-type clone with seed S
+generates identically to a world booted with `SEED=S`), placed FIRST in
+the worker rotations so they measure before the dimension slots.
+
+Winners land differently per world:
+
+- **the_nether / the_end / paradise_lost** — the winner is written as
+  `seed` on the `worlds[]` entry; the mod's `ServerWorldSeedMixin`
+  applies it to the live world (fresh chunks generate on the new seed;
+  wipe the dimension's region files to regenerate everything).
+- **overworld** — its seed IS the save seed and is never injected. The
+  winner is recorded as `worldSeed` and printed as an instruction:
+  set `SEED=` in `.env`, run `./ops github-env-sync`, and apply with a
+  world reset (`./ops reset-seed` ritual on production).
 
 ## Scoring model
 

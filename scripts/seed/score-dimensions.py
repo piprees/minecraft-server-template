@@ -105,15 +105,16 @@ def cmd_manifest(args, config, profiles, world_profiles=None):
     roll["idleUnloadMinutes"] = 9999
     (seedtest / "mvconfig-roll.json").write_text(json.dumps(roll, indent=2))
 
-    has_worlds = bool(world_profiles) and not args.no_worlds
+    # The four real worlds roll as INDEPENDENT clone slots (@world:<name>),
+    # placed FIRST in the rotations — the old trailing @worlds slot starved
+    # behind 12 dimension slots and never measured a single world seed.
+    world_items = [] if args.no_worlds else [f"@world:{n}" for n in (world_profiles or {})]
     for w in range(workers):
-        rotation = names[w::workers]
-        if has_worlds and rotation:
-            rotation.append("@worlds")
+        rotation = world_items[w::workers] + names[w::workers]
         (seedtest / f"work-{w}.txt").write_text(
             "\n".join(rotation) + ("\n" if rotation else ""))
-    print(f"manifest: {len(names)} dims split across {workers} workers, "
-          f"indefinite rotation{' + @worlds slots' if has_worlds else ''}")
+    print(f"manifest: {len(names)} dims + {len(world_items)} world slots "
+          f"split across {workers} workers, indefinite rotation")
 
 
 def cmd_world_manifest(args, config, world_profiles):
@@ -149,38 +150,6 @@ def cmd_world_manifest(args, config, world_profiles):
         (seedtest / f"mvconfig-v{w}.json").write_text(json.dumps(roll, indent=2))
     print(f"world manifest: {needed} world seeds needed "
           f"(x{args.spawn_attempts} pool) across {workers} workers")
-
-
-def world_weight(world):
-    sr = world.get("seedRoll") or {}
-    if "weight" in sr:
-        return float(sr["weight"])
-    return 0.5 if world["name"] == "overworld" else 0.5
-
-
-def pick_world_seed(results, world_profiles, config):
-    """Combined score per world seed across all configured worlds."""
-    if not world_profiles:
-        return None, {}
-    weights = {w["name"]: world_weight(w) for w in config.get("worlds", [])}
-    combined = {}
-    base = results.get("overworld", results.get(next(iter(world_profiles)), []))
-    for cand in base:
-        seed = cand["seed"]
-        total, wsum = 0.0, 0.0
-        for wname in world_profiles:
-            weight = weights.get(wname, 0.5)
-            score = next((c["score"] for c in results.get(wname, [])
-                          if c["seed"] == seed), None)
-            if score is not None:
-                total += score * weight
-                wsum += weight
-        if wsum:
-            combined[seed] = round(total / wsum, 2)
-    if not combined:
-        return None, {}
-    best = max(combined, key=lambda s: combined[s])
-    return best, combined
 
 
 def cmd_render_manifest(args, config, profiles):
@@ -423,17 +392,18 @@ def load_overrides(seedtest):
 def cmd_finalise(args, config, profiles, world_profiles=None):
     results, rejected = score_all(config, profiles, args.csv)
     world_profiles = world_profiles or {}
-    # Dimension winners exclude worlds (worlds share one seed, picked below).
-    winners = {d: c[0] for d, c in results.items() if c and d not in world_profiles}
+    # Every target — dimensions AND the four real worlds — has an
+    # independent winner (worlds are rolled as fake_* clones; each real
+    # world gets its own best seed rather than one coupled compromise).
+    winners = {d: c[0] for d, c in results.items() if c}
     # Human picks (viewer server) pin over the score ranking.
     overrides = load_overrides(args.seedtest)
     for d, seed in overrides.items():
         cand = next((c for c in results.get(d, []) if c["seed"] == seed), None)
-        if cand is not None and d not in world_profiles:
+        if cand is not None:
             cand = dict(cand)
             cand["pinned"] = True
             winners[d] = cand
-    world_seed, world_scores = pick_world_seed(results, world_profiles, config)
 
     if args.write_config and winners:
         cfg_path = Path(args.config)
@@ -455,14 +425,28 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                 if dim.get("seed") != new_seed:
                     dim["seed"] = new_seed
                     changed += 1
-        if world_seed is not None:
-            fresh["worldSeed"] = int(world_seed)
+        # Real worlds: nether/end/paradise get their winner written onto
+        # the worlds[] entry — the mod's ServerWorldSeedMixin applies it to
+        # the live world. The overworld seed IS the save seed: it can only
+        # come from .env SEED at world creation, so it is recorded as
+        # worldSeed and printed as an instruction, never injected.
+        for world in fresh.get("worlds", []):
+            w = winners.get(world["name"])
+            if w and world["name"] != "overworld":
+                new_seed = int(w["seed"])
+                if world.get("seed") != new_seed:
+                    world["seed"] = new_seed
+                    changed += 1
+        ow = winners.get("overworld")
+        if ow is not None:
+            fresh["worldSeed"] = int(ow["seed"])
         cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
         print(f"config updated: {changed} seeds changed ({cfg_path})"
               + (f"; backup: {backup.name}" if backup else ""))
-        if world_seed is not None:
-            print(f"world seed winner (combined {world_scores[world_seed]:.1f}): {world_seed}")
-            print(f"  -> set SEED='{world_seed}' in .env (world reset required to apply)")
+        if ow is not None:
+            print(f"overworld winner (score {ow['score']:.1f}): {ow['seed']}")
+            print(f"  -> set SEED='{ow['seed']}' in .env, then ./ops github-env-sync")
+            print("     (applies to NEW worlds only — production needs the ./ops reset-seed ritual)")
 
     if args.viewer:
         viewer = Path(args.seedtest) / "viewer.html"

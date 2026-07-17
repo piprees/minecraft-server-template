@@ -21,6 +21,7 @@ public class MultiverseConfig {
 
     private final List<DimensionDefinition> dimensions = new ArrayList<>();
     private final List<PortalDefinition> portals = new ArrayList<>();
+    private final List<WorldSeedDefinition> worlds = new ArrayList<>();
     private transient Path configPath;
     private transient MinecraftServer server;
 
@@ -53,6 +54,8 @@ public class MultiverseConfig {
                 this.dimensions.addAll(loaded.dimensions);
                 this.portals.clear();
                 this.portals.addAll(loaded.portals);
+                this.worlds.clear();
+                this.worlds.addAll(loaded.worlds);
                 this.namespace = loaded.namespace;
                 this.frameOverworld = loaded.frameOverworld != null ? loaded.frameOverworld : this.frameOverworld;
                 this.frameNether = loaded.frameNether != null ? loaded.frameNether : this.frameNether;
@@ -128,6 +131,23 @@ public class MultiverseConfig {
 
     public int getIdleUnloadMinutes() {
         return this.idleUnloadMinutes;
+    }
+
+    /**
+     * Seed override for a static world (nether/end/paradise_lost), by full
+     * dimension id. Always null for minecraft:overworld — the overworld
+     * seed is the save seed and must come from .env SEED at creation.
+     */
+    public Long getWorldSeedOverride(String dimensionId) {
+        if ("minecraft:overworld".equals(dimensionId)) {
+            return null;
+        }
+        return this.worlds.stream()
+                .filter(w -> dimensionId.equals(w.getDimensionId()))
+                .map(WorldSeedDefinition::getSeed)
+                .filter(s -> s != null)
+                .findFirst()
+                .orElse(null);
     }
 
 }

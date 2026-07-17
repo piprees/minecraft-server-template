@@ -806,29 +806,44 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                     base_config, seen, csv_fh, cycle)
                 continue
 
-            profile = build_profile(dims_by_name[item], base_config, difficulty)
+            if item.startswith("@world:"):
+                # One REAL world (overworld/nether/end/paradise_lost) rolled
+                # independently as a runtime clone — a fake_<world> candidate
+                # generates identically to that world booted on the seed.
+                wname = item.split(":", 1)[1]
+                world = worlds.get(wname)
+                if world is None:
+                    log(wid, f"  unknown world '{wname}' — skipping")
+                    continue
+                profile = build_profile(world, base_config, difficulty)
+                profile["create_args"] = {"type": world_clone_type(world), "noiseSettings": None,
+                                          "structureDensity": None, "biome": None}
+                target, cand_base = wname, f"fake_{wname}"
+            else:
+                profile = build_profile(dims_by_name[item], base_config, difficulty)
+                target, cand_base = item, item
             t0 = time.time()
             misses = 0
             while not should_stop():
                 counter += 1
                 seed = fresh_seed(seen)
-                cand = f"{item}__r{counter:05d}"
+                cand = f"{cand_base}__r{counter:05d}"
                 radius, force = spawn_gate_for(misses)
                 if misses and misses % SPAWN_ATTEMPTS == 0:
-                    log(wid, f"  {item}: {misses} rejections — "
+                    log(wid, f"  {target}: {misses} rejections — "
                              + ("KEEPER: accepting the next candidate regardless"
                                 if force else
                                 f"widening spawn gate to nearest filter biome <= {radius} blocks"))
-                ok, spawn = roll_one(args, wid, container, rcon, ns, item,
+                ok, spawn = roll_one(args, wid, container, rcon, ns, target,
                                      profile, seed, cand, csv_fh,
                                      gate=not force, spawn_radius=radius)
                 if ok:
                     accepted_total += 1
-                    log(wid, f"ACCEPTED #{accepted_total} {item} seed {seed} "
+                    log(wid, f"ACCEPTED #{accepted_total} {target} seed {seed} "
                              f"spawn={spawn} (+{misses} rejected, {int(time.time() - t0)}s)")
                     break
                 misses += 1
-                log(wid, f"  rejected {item} seed {seed} ({spawn})")
+                log(wid, f"  rejected {target} seed {seed} ({spawn})")
                 # A dead container mid-slot must reboot HERE — the rotation-
                 # level check only runs between dimensions.
                 if spawn in ("error", "create-failed") and not container_running(container):
@@ -839,6 +854,17 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                         break
     log(wid, f"stopping: {accepted_total} accepted candidates this session")
     return 0
+
+
+# Clone type per real world: native types for the vanilla three, generic
+# dimension-id clone for static mod dimensions (paradise_lost etc.).
+WORLD_CLONE_TYPES = {"minecraft:overworld": "overworld",
+                     "minecraft:the_nether": "nether",
+                     "minecraft:the_end": "end"}
+
+
+def world_clone_type(world):
+    return WORLD_CLONE_TYPES.get(world.get("dimensionId"), world.get("dimensionId"))
 
 
 def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
