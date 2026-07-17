@@ -1,0 +1,90 @@
+{
+ "aquifers_enabled": false,
+ "default_block": {
+  "Name": "minecraft:air"
+ },
+ "default_fluid": {
+  "Name": "minecraft:air"
+ },
+ "disable_mob_generation": false,
+ "legacy_random_source": false,
+ "noise": {
+  "min_y": -64,
+  "height": 512,
+  "size_horizontal": 1,
+  "size_vertical": 1
+ },
+ "noise_router": {
+  "temperature": "adventure:wide/minecraft/overworld/noise_router/temperature",
+  "vegetation": "adventure:wide/minecraft/overworld/noise_router/vegetation",
+  "continents": "adventure:wide/minecraft/overworld/noise_router/continents",
+  "erosion": "adventure:wide/minecraft/overworld/noise_router/erosion",
+  "depth": "adventure:wide/minecraft/overworld/noise_router/depth",
+  "ridges": "adventure:wide/minecraft/overworld/noise_router/ridges",
+  "barrier": 0,
+  "fluid_level_floodedness": 0,
+  "fluid_level_spread": 0,
+  "lava": 0,
+  "vein_toggle": 0,
+  "vein_ridged": 0,
+  "vein_gap": 0,
+  "initial_density_without_jaggedness": -1,
+  "final_density": -1
+ },
+ "ore_veins_enabled": false,
+ "sea_level": -64,
+ "spawn_target": [
+  {
+   "continentalness": [
+    -0.11,
+    1.0
+   ],
+   "depth": 0.0,
+   "erosion": [
+    -1.0,
+    1.0
+   ],
+   "humidity": [
+    -1.0,
+    1.0
+   ],
+   "offset": 0.0,
+   "temperature": [
+    -1.0,
+    1.0
+   ],
+   "weirdness": [
+    -1.0,
+    -0.16
+   ]
+  },
+  {
+   "continentalness": [
+    -0.11,
+    1.0
+   ],
+   "depth": 0.0,
+   "erosion": [
+    -1.0,
+    1.0
+   ],
+   "humidity": [
+    -1.0,
+    1.0
+   ],
+   "offset": 0.0,
+   "temperature": [
+    -1.0,
+    1.0
+   ],
+   "weirdness": [
+    0.16,
+    1.0
+   ]
+  }
+ ],
+ "surface_rule": {
+  "type": "minecraft:sequence",
+  "sequence": []
+ }
+}

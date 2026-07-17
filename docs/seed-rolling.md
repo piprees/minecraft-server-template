@@ -3,12 +3,16 @@
 `./dev seed-roll-all` rolls candidate seeds for **every configured
 dimension AND the shared world seed** (overworld / the_nether / the_end /
 paradise_lost), **indefinitely**: workers cycle their dimensions forever
-(one accepted candidate per dimension per cycle, unbounded attempts per
-acceptance), report every acceptance and rejection live on the console,
-and regenerate the self-refreshing `.seedtest/viewer.html` every 45s.
-**Ctrl+C finalises** — winners are scored and written into the config
-(timestamped backup) from everything measured so far. Re-runs resume;
-accepted candidates persist and rejected seeds are never re-tried.
+(one accepted candidate per dimension per cycle, attempts bounded by the
+adaptive spawn gate below), report every acceptance and rejection live on
+the console, and **auto-write the current winners into the config every
+45s** (one timestamped backup per session; `--no-write` disables).
+The live viewer is served at `http://127.0.0.1:8765/viewer.html` —
+**"☆ make winner" pins your own pick** over the score ranking (saved to
+`.seedtest/winner-overrides.json`, honoured by every later finalise).
+**Ctrl+C finalises** the same way. Re-runs resume; accepted candidates
+persist and rejected seeds are never re-tried. Void/superflat dimensions
+are skipped (no worldgen to roll).
 
 ```bash
 ./dev seed-roll-all                          # everything, 6x parallel, renders

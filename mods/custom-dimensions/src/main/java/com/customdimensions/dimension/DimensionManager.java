@@ -296,19 +296,33 @@ public class DimensionManager {
 
         return switch (type) {
             case "void" -> {
+                // A void with a biome list keeps a REAL biome layout even
+                // though no terrain generates — mob spawning, fog and
+                // ambience still read the biome. This must be a NOISE
+                // generator: a flat generator samples the multi-noise
+                // source with zero climate noise, collapsing the layout to
+                // one biome everywhere and ignoring the seed (verified
+                // empirically 2026-07-17). adventure:void ships in the jar
+                // datapack — overworld climate router, final_density -1.
+                BiomeSource voidSource = this.resolveListedSource(def, biomeRegistry,
+                        null, overworldOpts.chunkGenerator());
+                Registry<ChunkGeneratorSettings> nsRegistry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+                Optional<? extends RegistryEntry<ChunkGeneratorSettings>> voidSettings =
+                        nsRegistry.getEntry(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS,
+                                Identifier.of("adventure", "void")));
+                if (voidSource != null && voidSettings.isPresent()) {
+                    NoiseChunkGenerator voidGen = new NoiseChunkGenerator(voidSource, voidSettings.get());
+                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(voidGen, worldSeed));
+                }
+                // Fallback (no biome list, or preset missing from the jar):
+                // the old flat THE_VOID generator.
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: void fallback to flat generator (biome list: {}, adventure:void present: {})",
+                        def.getName(), def.getBiome() != null, voidSettings.isPresent());
                 RegistryEntry<Biome> voidBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.THE_VOID));
                 FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), voidBiome, List.of())
                     .with(List.of(), Optional.empty(), voidBiome);
-                FlatChunkGenerator flatGen = new FlatChunkGenerator(config);
-                // A void with a biome list keeps the multiverse's biome layout
-                // even though no terrain generates — mob spawning, fog and
-                // ambience still read the biome. Any registered biome mixes in.
-                BiomeSource voidSource = this.resolveListedSource(def, biomeRegistry,
-                        null, overworldOpts.chunkGenerator());
-                if (voidSource != null) {
-                    ((com.customdimensions.mixin.ChunkGeneratorAccessor) flatGen).setBiomeSource(voidSource);
-                }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(flatGen, worldSeed));
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(new FlatChunkGenerator(config), worldSeed));
             }
             case "superflat" -> {
                 RegistryEntry<Biome> plainsBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
