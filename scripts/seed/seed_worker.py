@@ -779,6 +779,14 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                     break
                 misses += 1
                 log(wid, f"  rejected {item} seed {seed} ({spawn})")
+                # A dead container mid-slot must reboot HERE — the rotation-
+                # level check only runs between dimensions.
+                if spawn in ("error", "create-failed") and not container_running(container):
+                    log(wid, "container died mid-slot — rebooting")
+                    rcon = boot(wid, container, args.workdir, args.memory)
+                    if rcon is None:
+                        time.sleep(20)
+                        break
                 if misses % 50 == 0:
                     log(wid, f"  WARNING {item}: {misses} rejections this slot — "
                              "spawn filter may be unreachable, still trying")
