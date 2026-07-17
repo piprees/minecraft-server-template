@@ -409,17 +409,43 @@ def print_summary(results, profiles, rejected=None):
 # ---------------------------------------------------------------------------
 # Finalise: write winners + viewer
 # ---------------------------------------------------------------------------
+def load_overrides(seedtest):
+    """Human winner picks from the viewer server: {dim: seed-string}."""
+    p = Path(seedtest) / "winner-overrides.json"
+    if not p.exists():
+        return {}
+    try:
+        return {k: str(v) for k, v in json.loads(p.read_text()).items() if v}
+    except (json.JSONDecodeError, AttributeError):
+        return {}
+
+
 def cmd_finalise(args, config, profiles, world_profiles=None):
     results, rejected = score_all(config, profiles, args.csv)
     world_profiles = world_profiles or {}
     # Dimension winners exclude worlds (worlds share one seed, picked below).
     winners = {d: c[0] for d, c in results.items() if c and d not in world_profiles}
+    # Human picks (viewer server) pin over the score ranking.
+    overrides = load_overrides(args.seedtest)
+    for d, seed in overrides.items():
+        cand = next((c for c in results.get(d, []) if c["seed"] == seed), None)
+        if cand is not None and d not in world_profiles:
+            cand = dict(cand)
+            cand["pinned"] = True
+            winners[d] = cand
     world_seed, world_scores = pick_world_seed(results, world_profiles, config)
 
     if args.write_config and winners:
         cfg_path = Path(args.config)
-        backup = cfg_path.with_name(cfg_path.name + f".bak.{time.strftime('%Y%m%d-%H%M%S')}")
-        shutil.copy2(cfg_path, backup)
+        # Live auto-write runs every 45s — one timestamped backup per roll
+        # session (marker cleared by roll-all at start), not hundreds.
+        marker = Path(args.seedtest) / ".config-backed-up"
+        if not marker.exists():
+            backup = cfg_path.with_name(cfg_path.name + f".bak.{time.strftime('%Y%m%d-%H%M%S')}")
+            shutil.copy2(cfg_path, backup)
+            marker.touch()
+        else:
+            backup = None
         fresh = json.loads(cfg_path.read_text())
         changed = 0
         for dim in fresh["dimensions"]:
@@ -432,7 +458,8 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
         if world_seed is not None:
             fresh["worldSeed"] = int(world_seed)
         cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
-        print(f"config updated: {changed} seeds changed ({cfg_path}); backup: {backup.name}")
+        print(f"config updated: {changed} seeds changed ({cfg_path})"
+              + (f"; backup: {backup.name}" if backup else ""))
         if world_seed is not None:
             print(f"world seed winner (combined {world_scores[world_seed]:.1f}): {world_seed}")
             print(f"  -> set SEED='{world_seed}' in .env (world reset required to apply)")
@@ -490,6 +517,10 @@ def render_viewer(results, profiles, winners, rejected=None):
     .spawn { font-size: .75rem; color: #9aa; margin-top: .3rem; }
     .spawn b { color: #a8d8a0; font-weight: 600; }
     .badge { display: inline-block; font-size: .7rem; padding: .05rem .45rem; border-radius: 99px; background: #2c313a; margin-right: .3rem; }
+    .pick { display: none; margin-top: .4rem; font-size: .72rem; padding: .2rem .6rem; border-radius: 6px;
+            border: 1px solid #3a4150; background: #232833; color: #c8d2dc; cursor: pointer; }
+    .pick:hover { border-color: #d4a020; color: #ffd850; }
+    body.live .pick { display: inline-block; }
     """
     out = ["<!doctype html><meta charset='utf-8'><title>Seed roll results</title>",
            # Live report: the roller regenerates this file during the run.
@@ -553,15 +584,41 @@ def render_viewer(results, profiles, winners, rejected=None):
             fdist = c["metrics"].get("spawn_filter_dist")
             if spawn not in profile["namesake"] and fdist is not None and float(fdist) >= 0:
                 spawn_html += f" <span class='meta'>(filter biome {int(float(fdist))} blocks away)</span>"
+            pinned = bool(winners.get(name, {}).get("pinned")) and win
+            crown = (" 📌" if pinned else " 🏆") if win else ""
+            pick_btn = ("" if win else
+                        f"<button class='pick' data-dim='{html.escape(name, quote=True)}' "
+                        f"data-seed='{c['seed']}'>☆ make winner</button>")
             out.append(
                 f"<div class='cand{' winner' if win else ''}' title='{html.escape(candidate_tooltip(c), quote=True)}'>"
                 f"<img src='{img}' loading='lazy' onerror=\"this.style.display='none'\">"
-                f"<div class='score'>{c['score']:.1f}{' 🏆' if win else ''}</div>"
+                f"<div class='score'>{c['score']:.1f}{crown}</div>"
                 f"<div class='seed'>{c['seed']}</div>"
                 f"<div class='bars'>{bars}</div>"
                 f"<div class='spawn'>spawn: {spawn_html}</div>"
+                f"{pick_btn}"
                 "</div>")
         out.append("</div>")
+    # Winner picking works when served by viewer-server.py (POST /pick →
+    # winner-overrides.json → finalise --write-config). On file:// the
+    # buttons stay hidden — there's nothing to POST to.
+    out.append("""
+<script>
+if (location.protocol !== 'file:') {
+  document.body.classList.add('live');
+  document.body.addEventListener('click', async (e) => {
+    const b = e.target.closest('.pick');
+    if (!b) return;
+    b.disabled = true; b.textContent = 'saving…';
+    const res = await fetch('/pick', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({dim: b.dataset.dim, seed: b.dataset.seed}),
+    }).catch(() => null);
+    if (res && res.ok) location.reload();
+    else { b.disabled = false; b.textContent = '☆ make winner (failed)'; }
+  });
+}
+</script>""")
     return "\n".join(out)
 
 

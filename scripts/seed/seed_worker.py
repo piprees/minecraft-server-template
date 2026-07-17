@@ -302,6 +302,9 @@ def wait_for_rcon(worker_id, name, port):
     start = time.time()
     last = ""
     while time.time() - start < BOOT_TIMEOUT:
+        if should_stop():
+            log(worker_id, "stop requested during boot — abandoning")
+            return None
         if not container_running(name):
             log(worker_id, "container died during boot")
             return None
@@ -520,10 +523,14 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
 
     for sname, sid, _band, _kind in profile["battery"]:
+        if should_stop():  # partial rows score as a reject; exit fast
+            return rows, spawn, False
         d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"))
         rows.append((f"structure_{sname}_dist", d))
 
     for biome in profile["variety_biomes"]:
+        if should_stop():
+            return rows, spawn, False
         d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {biome}"))
         rows.append((f"biome_{biome}_dist", d))
 
@@ -531,6 +538,8 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     pitch = profile["grid_pitch"]
     for r in range(3):
         for c in range(3):
+            if should_stop():
+                return rows, spawn, False
             x, z = (c - 1) * pitch, (r - 1) * pitch
             rcon.cmd(f"execute in {dim} run forceload add {x} {z}")
             if not wait_loaded(rcon, dim, x, z, timeout=60):

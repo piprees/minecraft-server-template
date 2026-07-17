@@ -11,10 +11,12 @@
 # RCON socket). Scoring is per-dimension and philosophy-driven
 # (scripts/seed/dimension_profiles.py).
 #
-# On completion — or on Ctrl+C — it merges the per-worker CSVs, renders the
-# top candidates per dimension (BlueMap), auto-picks the best seed per
-# dimension, WRITES the winners into config/multiverse_config.json (with a
-# .bak.TIMESTAMP backup), generates .seedtest/viewer.html and opens it.
+# Winners are AUTO-WRITTEN into config/multiverse_config.json as the roll
+# goes (every 45s, one .bak.TIMESTAMP backup per session; --no-write
+# disables). The live viewer is served on http://127.0.0.1:8765/viewer.html
+# (viewer-server.py) where '☆ make winner' pins a human pick over the score
+# ranking (persisted in .seedtest/winner-overrides.json). Completion — or
+# Ctrl+C — merges the per-worker CSVs and finalises the same way.
 #
 # Runs INDEFINITELY: workers cycle their dimension rotation (one accepted
 # candidate per dimension per cycle, unbounded attempts per acceptance) and
@@ -217,23 +219,38 @@ launch_worker() {
 # report can be watched in a browser (it meta-refreshes itself).
 # ---------------------------------------------------------------------------
 REPORTER_PID=""
+VIEWER_PID=""
 start_reporter() {
+  # Winners auto-write AS THE ROLL GOES (--no-write disables): the config
+  # always holds the current best per dimension, and human picks from the
+  # viewer (POST /pick) pin over the ranking.
+  local write_flag=""
+  [[ "$WRITE_CONFIG" == 1 ]] && write_flag="--write-config"
   (
     while true; do
       sleep 45
       merge_measurements 2> /dev/null || true
+      # shellcheck disable=SC2086
       python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
         --config "$CONFIG" --seedtest "$SEEDTEST" \
-        ${DIMS:+--dims "$DIMS"} --viewer > /dev/null 2>&1 || true
+        ${DIMS:+--dims "$DIMS"} $write_flag --viewer > /dev/null 2>&1 || true
     done
   ) &
   REPORTER_PID=$!
-  echo "Live report: $SEEDTEST/viewer.html (regenerates every 45s — open it now)"
+  # shellcheck disable=SC2086
+  python3 "$SCRIPT_DIR/viewer-server.py" \
+    --config "$CONFIG" --seedtest "$SEEDTEST" \
+    --port "${ROLL_VIEWER_PORT:-8765}" $write_flag &
+  VIEWER_PID=$!
+  echo "Live report: http://127.0.0.1:${ROLL_VIEWER_PORT:-8765}/viewer.html"
+  echo "  (regenerates every 45s; '☆ make winner' pins your pick into the config)"
 }
 
 stop_reporter() {
   [[ -n "$REPORTER_PID" ]] && kill "$REPORTER_PID" 2> /dev/null || true
+  [[ -n "$VIEWER_PID" ]] && kill "$VIEWER_PID" 2> /dev/null || true
   REPORTER_PID=""
+  VIEWER_PID=""
 }
 
 # ---------------------------------------------------------------------------
@@ -272,12 +289,26 @@ cleanup() {
   echo "Stopping workers (finalising with everything measured so far)..."
   touch "$STOP_FILE"
   stop_reporter
-  pkill -TERM -f "seed_worker.py" 2> /dev/null || true
   local pid
   for pid in $WORKER_PIDS; do kill "$pid" 2> /dev/null || true; done
-  sleep 2
-  docker ps -a --format '{{.Names}}' | grep '^seedrollall-' \
-    | xargs -I{} docker rm -f {} 2> /dev/null || true
+  pkill -TERM -f "seed_worker.py" 2> /dev/null || true
+  # Workers finish their current RCON call before noticing the stop file —
+  # give them a bounded grace period, then KILL stragglers. Orphaned
+  # workers previously kept REBOOTING containers after Ctrl+C (2026-07-17:
+  # a runaway fleet needed a host reboot), so this must be watertight.
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+    pgrep -f "seed_worker.py" > /dev/null 2>&1 || break
+    sleep 2
+  done
+  pkill -KILL -f "seed_worker.py" 2> /dev/null || true
+  # Container teardown AFTER the processes that respawn them are gone;
+  # retry — a container mid-boot can survive the first rm.
+  for _ in 1 2 3; do
+    docker ps -a --format '{{.Names}}' | grep '^seedrollall-' \
+      | xargs -I{} docker rm -f {} 2> /dev/null || true
+    docker ps -a --format '{{.Names}}' | grep -q '^seedrollall-' || break
+    sleep 2
+  done
   finalise
   exit "$code"
 }
@@ -302,6 +333,9 @@ echo ""
 prepare_base_dir
 merge_measurements
 rm -f "$STOP_FILE"
+# Fresh backup marker per session: the first auto-write this run takes one
+# timestamped config backup, later 45s re-writes don't spam .bak files.
+rm -f "$SEEDTEST/.config-backed-up"
 
 NO_WORLDS_FLAG=""
 [[ "$SKIP_WORLDS" == 1 ]] && NO_WORLDS_FLAG="--no-worlds"
