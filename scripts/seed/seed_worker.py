@@ -453,25 +453,42 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     last attempt is always kept so narrow filters still bank candidates —
     the namesake component simply scores low)."""
     rows = []
-
-    # if-biome sampling at an ungenerated chunk is unreliable — generate the
-    # spawn chunk first (locate biome/structure need no chunks, this does).
     fam = profile["family"] or "overworld"
     lo, hi = HEIGHT_RANGE[fam]
+
+    # Spawn filter via locate biome — noise-sampled, needs NO chunks, ~1s
+    # per probe. Chunk generation per rejection was the fleet's pace killer
+    # (~60-90s each under contention); rejections are now nearly free.
+    spawn = "unknown"
+    if profile["namesake"]:
+        best_b, best_d = None, None
+        for b in profile["namesake"]:
+            d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {b}"))
+            if d >= 0 and (best_d is None or d < best_d):
+                best_b, best_d = b, d
+            if d == 0:
+                break
+        if best_d is not None and best_d <= 48:
+            spawn = best_b
+        elif not force_accept:
+            miss = f"{best_b}@{best_d}" if best_b else "unknown"
+            rows.append(("spawn_biome", miss))
+            rows.append(("rejected", 1))
+            return rows, miss, False
+
+    # Accepted (or keeper): generate the spawn chunk and probe properly —
+    # keepers need their real spawn identified for partial namesake credit.
     rcon.cmd(f"execute in {dim} run forceload add 0 0")
     if not wait_loaded(rcon, dim, 0, 0):
         rcon.cmd(f"execute in {dim} run forceload remove 0 0")
-        rows.append(("spawn_biome", "unknown"))
+        rows.append(("spawn_biome", spawn))
         rows.append(("rejected", 2))  # probe timeout, not a filter verdict
-        return rows, "unknown(timeout)", False
+        return rows, f"{spawn}(timeout)", False
     surface = column_height(rcon, dim, 0, 0, lo, hi)
-    spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
+    if spawn == "unknown":
+        spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
     rows.append(("spawn_biome", spawn))
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
-
-    if profile["namesake"] and spawn not in profile["namesake"] and not force_accept:
-        rows.append(("rejected", 1))
-        return rows, spawn, False
 
     for sname, sid, _band, _kind in profile["battery"]:
         d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"))
