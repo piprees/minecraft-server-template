@@ -107,6 +107,9 @@ public class DimensionCommands {
         }
 
         try {
+            // Runtime definitions feed the seed/density/peaceful mixins for
+            // candidates that have no config entry.
+            mgr.rememberRuntimeDefinition(def);
             mgr.registerDimension(def);
             mgr.requestWorldLoadDirect(name);
             mgr.processPendingWorldLoads();
@@ -135,6 +138,7 @@ public class DimensionCommands {
 
         mgr.requestWorldUnload(name);
         mgr.processPendingWorldUnloads();
+        mgr.forgetRuntimeDefinition(name);
 
         source.sendFeedback(() -> Text.literal("Destroyed dimension '" + name + "'"), true);
         return 1;

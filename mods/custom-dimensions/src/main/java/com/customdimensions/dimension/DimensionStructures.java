@@ -52,7 +52,7 @@ public final class DimensionStructures {
         if (!DimensionDefinition.getNamespace().equals(key.getNamespace())) {
             return null;
         }
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(key.getPath());
+        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getPath());
         if (def == null) {
             return null;
         }

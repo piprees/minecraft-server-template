@@ -97,6 +97,12 @@ public class DimensionManager {
     // world sat in the server's worlds map until restart — the idle unloader
     // skips any world with no config entry.
     private final Set<String> pendingWorldUnloads = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    // Definitions registered at runtime via /customdim create for dimensions
+    // that have NO config entry. The seed/density/peaceful mixins consult
+    // this after the config so command-created candidates get their real
+    // seed (without it they silently clone the main world).
+    private final Map<String, DimensionDefinition> runtimeDefinitions =
+            new java.util.concurrent.ConcurrentHashMap<>();
     private boolean bootReconciled = false;
 
     public static DimensionManager getInstance() {
@@ -687,7 +693,9 @@ public class DimensionManager {
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
         ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
-        long worldSeed = overworld.getSeed();
+        DimensionDefinition runtimeDef = this.runtimeDefinitions.get(dimName);
+        long worldSeed = runtimeDef != null && runtimeDef.getSeed() != null
+                ? runtimeDef.getSeed() : overworld.getSeed();
 
         ServerWorld newWorld = new ServerWorld(
                 this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
@@ -740,6 +748,20 @@ public class DimensionManager {
 
     public boolean dimensionExists(String name) {
         return MultiverseConfig.getInstance().getDimension(name) != null;
+    }
+
+    // Config first, then runtime (command-created) definitions.
+    public DimensionDefinition resolveDefinition(String name) {
+        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(name);
+        return def != null ? def : this.runtimeDefinitions.get(name);
+    }
+
+    public void rememberRuntimeDefinition(DimensionDefinition def) {
+        this.runtimeDefinitions.put(def.getName(), def);
+    }
+
+    public void forgetRuntimeDefinition(String name) {
+        this.runtimeDefinitions.remove(name);
     }
 
     public MinecraftServer getServer() {

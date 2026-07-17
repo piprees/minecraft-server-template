@@ -30,7 +30,7 @@ public class ServerWorldSeedMixin {
         if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
             return;
         }
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(key.getValue().getPath());
+        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getValue().getPath());
         if (def != null && def.getSeed() != null) {
             cir.setReturnValue(def.getSeed());
         }

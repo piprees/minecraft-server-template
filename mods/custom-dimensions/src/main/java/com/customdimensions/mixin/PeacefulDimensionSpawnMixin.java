@@ -25,7 +25,7 @@ public class PeacefulDimensionSpawnMixin {
         if (!DimensionDefinition.getNamespace().equals(world.getRegistryKey().getValue().getNamespace())) {
             return;
         }
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(world.getRegistryKey().getValue().getPath());
+        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(world.getRegistryKey().getValue().getPath());
         if (def != null && !def.isHostileSpawningEnabled()) {
             cir.setReturnValue(true);
         }

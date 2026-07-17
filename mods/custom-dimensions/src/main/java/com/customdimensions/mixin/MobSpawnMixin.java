@@ -27,7 +27,7 @@ public class MobSpawnMixin {
         if (!DimensionDefinition.getNamespace().equals(worldKey.getValue().getNamespace())) {
             return;
         }
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(worldKey.getValue().getPath());
+        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(worldKey.getValue().getPath());
         if (def != null && !def.isHostileSpawningEnabled()) {
             ci.cancel();
         }
