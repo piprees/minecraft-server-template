@@ -86,34 +86,32 @@ def write_worker_files(seedtest, config, jobs_by_worker, prefix=""):
 
 
 def cmd_manifest(args, config, profiles):
+    """Indefinite mode: workers cycle a dimension ROTATION forever (one
+    accepted candidate per dim per cycle, unbounded attempts) — the manifest
+    is just each worker's rotation. '@worlds' rolls the shared world seed as
+    coupled overworld/nether/end clones inside the same container. Seeds are
+    generated in-worker (runtime definitions in the mod made pre-written
+    candidate config entries unnecessary)."""
     seedtest = Path(args.seedtest)
     seedtest.mkdir(parents=True, exist_ok=True)
-    measured = load_measurements(args.csv)
-    dims_by_name = {d["name"]: d for d in config["dimensions"]}
+    names = list(profiles)
     workers = max(1, args.workers)
 
-    jobs_by_worker = {w: [] for w in range(workers)}
-    total = 0
-    for i, name in enumerate(profiles):
-        # Only fully-measured (spawn-accepted) candidates count toward the
-        # target; each slot carries spare seeds so the worker can re-roll
-        # past spawn-filter rejections.
-        seen = set(measured.get(name, {}))
-        done = sum(1 for rows in measured.get(name, {}).values() if "errors" in rows)
-        needed = max(0, args.candidates - done)
-        w = i % workers
-        for c in range(needed):
-            seeds = []
-            while len(seeds) < args.spawn_attempts:
-                s = random_signed_seed()
-                if str(s) not in seen:
-                    seen.add(str(s))
-                    seeds.append(s)
-            jobs_by_worker[w].append((dims_by_name[name], f"{name}__c{c:02d}", seeds))
-            total += 1
-    write_worker_files(seedtest, config, jobs_by_worker)
-    print(f"manifest: {total} candidate slots x{args.spawn_attempts} spawn attempts "
-          f"across {workers} workers ({len(profiles)} dims, target {args.candidates}/dim)")
+    roll = {k: v for k, v in config.items() if k not in ("dimensions", "portals")}
+    roll["dimensions"] = []
+    roll["portals"] = []
+    roll["idleUnloadMinutes"] = 9999
+    (seedtest / "mvconfig-roll.json").write_text(json.dumps(roll, indent=2))
+
+    has_worlds = bool(config.get("worlds"))
+    for w in range(workers):
+        rotation = names[w::workers]
+        if has_worlds and rotation:
+            rotation.append("@worlds")
+        (seedtest / f"work-{w}.txt").write_text(
+            "\n".join(rotation) + ("\n" if rotation else ""))
+    print(f"manifest: {len(names)} dims split across {workers} workers, "
+          f"indefinite rotation{' + @worlds slots' if has_worlds else ''}")
 
 
 def cmd_world_manifest(args, config, world_profiles):

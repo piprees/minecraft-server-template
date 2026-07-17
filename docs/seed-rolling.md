@@ -1,21 +1,29 @@
 # Seed rolling — the all-dimensions roller
 
-`./dev seed-roll-all` measures candidate seeds for **every configured
+`./dev seed-roll-all` rolls candidate seeds for **every configured
 dimension AND the shared world seed** (overworld / the_nether / the_end /
-paradise_lost), scores them per-dimension against the philosophy encoded in
-`config/multiverse_config.json`, writes the winners back into the config
-(with a timestamped backup), and produces a reviewable
-`.seedtest/viewer.html` with spawn-area renders.
+paradise_lost), **indefinitely**: workers cycle their dimensions forever
+(one accepted candidate per dimension per cycle, unbounded attempts per
+acceptance), report every acceptance and rejection live on the console,
+and regenerate the self-refreshing `.seedtest/viewer.html` every 45s.
+**Ctrl+C finalises** — winners are scored and written into the config
+(timestamped backup) from everything measured so far. Re-runs resume;
+accepted candidates persist and rejected seeds are never re-tried.
 
 ```bash
-./dev seed-roll-all                                   # everything, 8x parallel
-./dev seed-roll-all --dims the_gauntlet --candidates 8 --workers 1
-./dev seed-roll-all --no-worlds --render off --no-write   # dims, measure-only
+./dev seed-roll-all                          # everything, 6x parallel, renders
+./dev seed-roll-all --dims the_gauntlet --workers 1   # focused session
+./dev seed-roll-all --render off --no-write           # measure + score only
 ```
 
-All state lives under `.seedtest/` in the consumer repo. Ctrl+C finalises
-with whatever has been measured; re-runs resume (accepted candidates are
-never re-rolled, rejected seeds are never re-tried).
+Crashes are survivable by design: a broken candidate is logged and skipped,
+a dead container is rebooted (unlimited retries), a dead worker process is
+respawned by the orchestrator. The world seed rolls in parallel with the
+dimensions — overworld/nether/end candidates are measured as runtime clones
+inside the same containers (an overworld-type clone with seed S generates
+identically to a world booted with SEED=S), gated by the overworld's spawn
+filter; a dedicated boot stream covers paradise_lost (static mod dimension)
+and prioritises seeds the clone stream already accepted.
 
 ## One source of truth: `seedRoll` in multiverse_config.json
 

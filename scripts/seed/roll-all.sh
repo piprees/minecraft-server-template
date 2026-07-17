@@ -16,24 +16,26 @@
 # dimension, WRITES the winners into config/multiverse_config.json (with a
 # .bak.TIMESTAMP backup), generates .seedtest/viewer.html and opens it.
 #
+# Runs INDEFINITELY: workers cycle their dimension rotation (one accepted
+# candidate per dimension per cycle, unbounded attempts per acceptance) and
+# roll the shared world seed as parallel clones; a dedicated boot stream
+# covers paradise_lost. Every acceptance/rejection is reported live; the
+# viewer regenerates every 45s; Ctrl+C finalises with everything measured.
+#
 # Usage:
-#   ./roll-all.sh                                  # all dims, 16 candidates, 6 workers
-#   ./roll-all.sh --dims the_gauntlet,the_boneyard --candidates 4 --workers 1
-#   ./roll-all.sh --render all                     # render every candidate (slow)
+#   ./roll-all.sh                                  # everything, 6 workers
+#   ./roll-all.sh --dims the_gauntlet --workers 1  # focused session
 #   ./roll-all.sh --render off --no-write          # measure + score only
 #   ./roll-all.sh --clean                          # rebuild worker dirs from data/
 #
 # Options:
-#   --candidates N   target measured candidates per dimension (default 16;
-#                    resumable — already-measured candidates count)
 #   --workers N      parallel containers (default 6; ~6G memory each)
-#   --dims a,b,c     roll a subset of dimensions
-#   --render MODE    winners (default: top --render-top per dim after
-#                    scoring) | all (inline, slow) | off
-#   --render-top N   renders per dimension in winners mode (default 3)
+#   --dims a,b,c     roll a subset of dimensions (skips the world streams)
+#   --render MODE    all (default: render every accepted candidate) | off
+#   --no-worlds      skip the world-seed boot stream
 #   --no-write       don't write winners into multiverse_config.json
 #   --fresh          discard previous measurements first
-#   --clean          rebuild seedtest-all worker dirs from data/
+#   --clean          rebuild seedtest worker dirs from data/
 #
 # Environment: ROLL_MEMORY (default 6G/container), RCON_TIMEOUT (300s),
 #              ROLL_IMAGE (itzg image pin — must match seed_worker.py default)
@@ -60,24 +62,22 @@ SEEDTEST="$PROJECT_ROOT/.seedtest"
 WORK_BASE="$SEEDTEST/base"
 MEASUREMENTS="$SEEDTEST/measurements.csv"
 
-CANDIDATES=12
-WORLD_CANDIDATES=12
 WORKERS=6
 DIMS=""
 RENDER="all"
-RENDER_TOP=3
 WRITE_CONFIG=1
 SKIP_WORLDS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --candidates) CANDIDATES="$2"; shift 2 ;;
-    --world-candidates) WORLD_CANDIDATES="$2"; shift 2 ;;
+    # --candidates / --world-candidates / --render-top are accepted for
+    # backwards compatibility; the roller is indefinite now.
+    --candidates | --world-candidates | --render-top) shift 2 ;;
+    --spawn-attempts) shift 2 ;;
     --no-worlds) SKIP_WORLDS=1; shift ;;
     --workers) WORKERS="$2"; shift 2 ;;
     --dims) DIMS="$2"; shift 2 ;;
     --render) RENDER="$2"; shift 2 ;;
-    --render-top) RENDER_TOP="$2"; shift 2 ;;
     --no-write) WRITE_CONFIG=0; shift ;;
     --fresh) rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv; shift ;;
     --clean) rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]*; shift ;;
@@ -179,36 +179,34 @@ merge_measurements() {
 }
 
 # ---------------------------------------------------------------------------
-# Worker fleets
+# Worker fleets — indefinite: each worker cycles its rotation until the
+# stop file appears (Ctrl+C); a crashed worker process is logged and
+# respawned so the roll survives anything short of the host dying.
 # ---------------------------------------------------------------------------
 WORKER_PIDS=""
+STOP_FILE="$SEEDTEST/.stop"
 
-run_fleet() {
-  local mode="$1" prefix="$2" nworkers="$3"
-  WORKER_PIDS=""
-  local w
-  for w in $(seq 0 $((nworkers - 1))); do
-    local manifest="$SEEDTEST/work-${prefix}${w}.txt"
-    local mvconfig="$SEEDTEST/mvconfig-${prefix}${w}.json"
-    [[ -s "$manifest" ]] || continue
-    prepare_worker_dir "$w"
-    python3 "$SCRIPT_DIR/seed_worker.py" \
-      --worker-id "$w" \
-      --workdir "$SEEDTEST/w$w" \
-      --manifest "$manifest" \
-      --mvconfig "$mvconfig" \
-      --base-config "$CONFIG" \
-      --seedtest "$SEEDTEST" \
-      --mode "$mode" \
-      --memory "$ROLL_MEMORY" &
-    WORKER_PIDS="$WORKER_PIDS $!"
-  done
-  local pid rc=0
-  for pid in $WORKER_PIDS; do
-    wait "$pid" || rc=1
-  done
-  WORKER_PIDS=""
-  return "$rc"
+launch_worker() {
+  local wid="$1" mode="$2" manifest="$3"
+  prepare_worker_dir "$wid"
+  (
+    while [[ ! -f "$STOP_FILE" ]]; do
+      python3 "$SCRIPT_DIR/seed_worker.py" \
+        --worker-id "$wid" \
+        --workdir "$SEEDTEST/w$wid" \
+        --manifest "$manifest" \
+        --mvconfig "$SEEDTEST/mvconfig-roll.json" \
+        --base-config "$CONFIG" \
+        --seedtest "$SEEDTEST" \
+        --mode "$mode" \
+        --memory "$ROLL_MEMORY" || true
+      if [[ ! -f "$STOP_FILE" ]]; then
+        echo "[W$wid] worker process exited — respawning in 10s"
+        sleep 10
+      fi
+    done
+  ) &
+  WORKER_PIDS="$WORKER_PIDS $!"
 }
 
 # ---------------------------------------------------------------------------
@@ -268,11 +266,13 @@ cleanup() {
   local code=$?
   trap - INT TERM EXIT
   echo ""
-  echo "Stopping workers..."
+  echo "Stopping workers (finalising with everything measured so far)..."
+  touch "$STOP_FILE"
   stop_reporter
+  pkill -TERM -f "seed_worker.py" 2> /dev/null || true
   local pid
   for pid in $WORKER_PIDS; do kill "$pid" 2> /dev/null || true; done
-  sleep 1
+  sleep 2
   docker ps -a --format '{{.Names}}' | grep '^seedrollall-' \
     | xargs -I{} docker rm -f {} 2> /dev/null || true
   finalise
@@ -288,8 +288,8 @@ echo ""
 echo "=============================================="
 echo "  Multiverse seed roller (all dimensions)"
 echo "=============================================="
-echo "  Candidates/dim: $CANDIDATES   Workers: $WORKERS"
-echo "  Render:         $RENDER (top $RENDER_TOP)"
+echo "  Mode:           indefinite (Ctrl+C to finish)   Workers: $WORKERS"
+echo "  Render:         $RENDER (every accepted candidate)"
 echo "  Memory:         $ROLL_MEMORY per container"
 echo "  Config:         $CONFIG"
 echo "  Output:         $SEEDTEST"
@@ -298,37 +298,29 @@ echo ""
 
 prepare_base_dir
 merge_measurements
+rm -f "$STOP_FILE"
 
 python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
   --config "$CONFIG" --seedtest "$SEEDTEST" \
-  --workers "$WORKERS" --candidates "$CANDIDATES" ${DIMS:+--dims "$DIMS"}
+  --workers "$WORKERS" ${DIMS:+--dims "$DIMS"}
 
 start_reporter
 
-MODE="measure"
-[[ "$RENDER" == "all" ]] && MODE="measure+render"
-run_fleet "$MODE" "" "$WORKERS" || echo "WARNING: one or more workers failed — scoring what was measured"
-merge_measurements
+MODE="measure+render"
+[[ "$RENDER" == "off" ]] && MODE="measure"
 
-# World seeds (overworld/nether/end/paradise_lost share ONE seed; every
-# candidate costs a boot, so the pool is smaller). --dims skips this phase.
+for w in $(seq 0 $((WORKERS - 1))); do
+  [[ -s "$SEEDTEST/work-$w.txt" ]] && launch_worker "$w" "$MODE" "$SEEDTEST/work-$w.txt"
+done
+# Dedicated boot stream: rolls world seeds with real boots so paradise_lost
+# (static mod dimension) gets per-seed data; prefers seeds the clone stream
+# already accepted for the overworld.
 if [[ "$SKIP_WORLDS" == 0 && -z "$DIMS" ]]; then
-  echo ""
-  echo ">>> World-seed pass ($WORLD_CANDIDATES accepted candidates)..."
-  python3 "$SCRIPT_DIR/score-dimensions.py" world-manifest \
-    --config "$CONFIG" --seedtest "$SEEDTEST" \
-    --workers "$WORKERS" --candidates "$WORLD_CANDIDATES" --spawn-attempts 4
-  run_fleet "world" "v" "$WORKERS" || echo "WARNING: world pass incomplete"
-  merge_measurements
+  launch_worker "p0" "world" "$SEEDTEST/work-0.txt"
 fi
 
-if [[ "$RENDER" == "winners" ]]; then
-  echo ""
-  echo ">>> Winners render pass (top $RENDER_TOP per dimension)..."
-  python3 "$SCRIPT_DIR/score-dimensions.py" render-manifest \
-    --config "$CONFIG" --seedtest "$SEEDTEST" \
-    --workers "$WORKERS" --top "$RENDER_TOP" ${DIMS:+--dims "$DIMS"}
-  run_fleet "render" "r" "$WORKERS" || echo "WARNING: render pass incomplete"
-fi
-
+echo ""
+echo "Rolling indefinitely across $WORKERS workers (+world boot stream)."
+echo "Watch: $SEEDTEST/viewer.html — Ctrl+C finalises with everything measured."
+wait
 finalise

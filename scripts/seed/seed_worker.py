@@ -659,139 +659,242 @@ def boot(wid, container, workdir, memory, seed="1"):
     return rcon
 
 
+STOP_FILE = None  # set in main from --seedtest
+
+
+def should_stop():
+    return STOP_FILE is not None and STOP_FILE.exists()
+
+
+def load_seen_seeds(seedtest):
+    """Seeds already banked (any target) — never re-roll them."""
+    seen = set()
+    for f in Path(seedtest).glob("*.csv"):
+        try:
+            for line in f.read_text().splitlines():
+                parts = line.split(",", 2)
+                if len(parts) >= 2:
+                    seen.add(parts[1])
+        except OSError:
+            pass
+    return seen
+
+
+def fresh_seed(seen):
+    import struct as _s
+    while True:
+        s = _s.unpack("<q", os.urandom(8))[0]
+        if str(s) not in seen:
+            seen.add(str(s))
+            return s
+
+
+def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
+             csv_fh, gate=True):
+    """create -> gate -> measure(+render) -> destroy for one candidate.
+    Returns (accepted, spawn). Errors are logged and treated as a miss."""
+    try:
+        err_before = error_count(container)
+        if not create_candidate(rcon, wid, ns, cand, profile, seed):
+            return False, "create-failed"
+        rows, spawn, accepted = measure_candidate(
+            rcon, wid, container, f"{ns}:{cand}", profile, err_before,
+            force_accept=not gate)
+        for metric, value in rows:
+            csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
+        csv_fh.flush()
+        if accepted and args.mode in ("render", "measure+render"):
+            render_candidate(rcon, wid, args.workdir, args.seedtest,
+                             container, ns, cand, dim_name, seed,
+                             family=profile["family"] or "overworld")
+        destroy_candidate(rcon, args.workdir, ns, cand)
+        return accepted, spawn
+    except Exception as e:  # noqa: BLE001 — a candidate must never kill the worker
+        log(wid, f"  ERROR {dim_name} seed {seed}: {type(e).__name__}: {e} — recovering")
+        rcon.close()
+        try:
+            destroy_candidate(rcon, args.workdir, ns, cand)
+        except Exception:  # noqa: BLE001
+            rcon.close()
+        return False, "error"
+
+
 def run_dimension_jobs(args, wid, container, base_config, csv_fh):
-    """Dimension candidates: one long-lived container, customdim per attempt.
-    Each manifest slot carries spare seeds; spawn-filter rejections re-roll
-    to the next seed (rejections are banked so those seeds never repeat)."""
+    """INDEFINITE roll: cycle this worker's dimensions forever, one accepted
+    candidate per dimension per cycle, unbounded attempts, every event
+    reported live. Ctrl+C (via the orchestrator's stop file / SIGTERM)
+    finalises with whatever exists. '@worlds' in the rotation rolls a
+    coupled world-seed slot (overworld gate -> nether + end clones)."""
     ns = base_config.get("namespace", "adventure")
     dims_by_name = {d["name"]: d for d in base_config["dimensions"]}
+    worlds = {w["name"]: w for w in base_config.get("worlds", [])}
     difficulty = load_difficulty(args.base_config)
 
-    jobs = []
-    for line in Path(args.manifest).read_text().splitlines():
-        if line.strip():
-            dim_name, base, seeds = line.split("|")
-            jobs.append((dim_name, base, [int(s) for s in seeds.split(",")]))
-    if not jobs:
+    rotation = [ln.strip() for ln in Path(args.manifest).read_text().splitlines() if ln.strip()]
+    if not rotation:
         log(wid, "nothing to do")
         return 0
 
+    seen = load_seen_seeds(args.seedtest)
     prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
-    log(wid, f"booting container ({len(jobs)} candidate slots, mode {args.mode})")
+    log(wid, f"rolling {', '.join(rotation)} — indefinitely (Ctrl+C to finish)")
     rcon = boot(wid, container, args.workdir, args.memory)
     if rcon is None:
         return 1
 
-    done = 0
-    for dim_name, base, seeds in jobs:
-        if not container_running(container):
-            log(wid, "container died — rebooting")
-            rcon = boot(wid, container, args.workdir, args.memory)
-            if rcon is None:
-                return 1
-        profile = build_profile(dims_by_name[dim_name], base_config, difficulty)
-        t0 = time.time()
-        accepted = False
-        rejections = 0
-        for k, seed in enumerate(seeds):
-            cand = f"{base}a{k}"
-            # One slow/broken candidate must never kill the worker.
-            try:
-                err_before = error_count(container)
-                if not create_candidate(rcon, wid, ns, cand, profile, seed):
-                    continue
-                if args.mode in ("measure", "measure+render"):
-                    rows, spawn, accepted = measure_candidate(
-                        rcon, wid, container, f"{ns}:{cand}", profile, err_before,
-                        force_accept=(k == len(seeds) - 1))
-                    for metric, value in rows:
-                        csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
-                    csv_fh.flush()
-                    if not accepted:
-                        rejections += 1
-                        destroy_candidate(rcon, args.workdir, ns, cand)
-                        continue
-                else:
-                    accepted, spawn = True, ""
-                if args.mode in ("render", "measure+render"):
-                    render_candidate(rcon, wid, args.workdir, args.seedtest,
-                                     container, ns, cand, dim_name, seed,
-                                     family=profile["family"] or "overworld")
-                destroy_candidate(rcon, args.workdir, ns, cand)
-            except (OSError, ConnectionError) as e:
-                log(wid, f"  SKIP {dim_name} seed {seed}: {type(e).__name__}: {e}")
-                rcon.close()
-                try:
-                    destroy_candidate(rcon, args.workdir, ns, cand)
-                except (OSError, ConnectionError):
-                    rcon.close()
-                continue
-            if accepted:
-                done += 1
-                rej = f" +{rejections} spawn-rejected" if rejections else ""
-                log(wid, f"[{done}/{len(jobs)}] {dim_name} seed {seed} "
-                         f"({int(time.time() - t0)}s spawn={spawn}{rej})")
+    accepted_total = 0
+    cycle = 0
+    counter = 0
+    while not should_stop():
+        cycle += 1
+        for item in rotation:
+            if should_stop():
                 break
-        if not accepted:
-            log(wid, f"[{done}/{len(jobs)}] {dim_name}: no spawn-filter hit in "
-                     f"{len(seeds)} attempts ({int(time.time() - t0)}s) — banked as rejections")
-    log(wid, f"done: {done}/{len(jobs)} candidate slots")
+            if not container_running(container):
+                log(wid, "container died — rebooting (unlimited retries)")
+                rcon = boot(wid, container, args.workdir, args.memory)
+                if rcon is None:
+                    time.sleep(20)
+                    continue
+
+            if item == "@worlds":
+                accepted_total += roll_world_slot(
+                    args, wid, container, rcon, ns, worlds, difficulty,
+                    base_config, seen, csv_fh, cycle)
+                continue
+
+            profile = build_profile(dims_by_name[item], base_config, difficulty)
+            t0 = time.time()
+            misses = 0
+            while not should_stop():
+                counter += 1
+                seed = fresh_seed(seen)
+                cand = f"{item}__r{counter:05d}"
+                ok, spawn = roll_one(args, wid, container, rcon, ns, item,
+                                     profile, seed, cand, csv_fh)
+                if ok:
+                    accepted_total += 1
+                    log(wid, f"ACCEPTED #{accepted_total} {item} seed {seed} "
+                             f"spawn={spawn} (+{misses} rejected, {int(time.time() - t0)}s)")
+                    break
+                misses += 1
+                log(wid, f"  rejected {item} seed {seed} ({spawn})")
+                if misses % 50 == 0:
+                    log(wid, f"  WARNING {item}: {misses} rejections this slot — "
+                             "spawn filter may be unreachable, still trying")
+    log(wid, f"stopping: {accepted_total} accepted candidates this session")
+    return 0
+
+
+def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
+                    base_config, seen, csv_fh, cycle):
+    """One coupled world-seed candidate INSIDE the long-lived container:
+    the shared world seed is rolled as runtime clones (an overworld-type
+    dimension with seed S generates identically to a world booted with
+    SEED=S), so world attempts parallelise with everything else. The
+    overworld clone's spawn filter gates the seed; the nether and end
+    clones are then measured on the same seed. paradise_lost can't be
+    cloned (static mod dimension) — the dedicated boot stream covers it."""
+    order = [("overworld", "overworld", True), ("the_nether", "nether", False),
+             ("the_end", "end", False)]
+    present = [(n, t, g) for n, t, g in order if n in worlds]
+    if not present:
+        return 0
+    t0 = time.time()
+    misses = 0
+    while not should_stop():
+        seed = fresh_seed(seen)
+        accepted = False
+        for name, ctype, gate in present:
+            entry = dict(worlds[name])
+            entry["type"] = ctype  # clone type for customdim
+            profile = build_profile(worlds[name], base_config, difficulty)
+            profile["create_args"] = {"type": ctype, "noiseSettings": None,
+                                      "structureDensity": None, "biome": None}
+            cand = f"world_{name}__c{cycle:04d}"
+            ok, spawn = roll_one(args, wid, container, rcon, ns, name,
+                                 profile, seed, cand, csv_fh, gate=gate)
+            if gate and not ok:
+                misses += 1
+                log(wid, f"  rejected world seed {seed} (overworld {spawn})")
+                break
+            accepted = True
+        if accepted:
+            log(wid, f"ACCEPTED world seed {seed} "
+                     f"(+{misses} rejected, {int(time.time() - t0)}s)")
+            return 1
     return 0
 
 
 def run_world_jobs(args, wid, container, base_config, csv_fh):
-    """World-seed candidates: every seed is a fresh BOOT (SEED=<s>); all
-    configured worlds are measured per boot. The overworld's spawn filter
-    early-rejects a seed before the expensive full battery."""
+    """The boot stream: INDEFINITELY roll world seeds with a fresh BOOT per
+    candidate (SEED=<s>) measuring ALL configured worlds — this is the only
+    way paradise_lost (a static mod dimension) gets per-seed data. Prefers
+    seeds the clone stream already accepted for the overworld but that lack
+    paradise rows, so the combined pick converges on fully-measured seeds."""
     difficulty = load_difficulty(args.base_config)
     worlds = base_config.get("worlds", [])
     if not worlds:
         log(wid, "no worlds configured")
         return 0
     profiles = [(w, build_profile(w, base_config, difficulty)) for w in worlds]
+    seen = load_seen_seeds(args.seedtest)
 
-    lines = [ln for ln in Path(args.manifest).read_text().splitlines() if ln.strip()]
-    quota = int(lines[0].split("|")[1])
-    seeds = [int(s) for s in lines[1:]]
-    if not quota or not seeds:
-        log(wid, "nothing to do")
-        return 0
+    def preferred_seeds():
+        """Overworld-accepted seeds without paradise_lost rows."""
+        import csv as _csv
+        ow, para = set(), set()
+        for f in Path(args.seedtest).glob("*.csv"):
+            try:
+                with open(f, newline="") as fh:
+                    for row in _csv.reader(fh):
+                        if len(row) != 4:
+                            continue
+                        if row[0] == "overworld" and row[2] == "errors":
+                            ow.add(row[1])
+                        elif row[0] == "paradise_lost":
+                            para.add(row[1])
+            except OSError:
+                pass
+        return [int(s) for s in ow - para]
 
+    boots = 0
     accepted = 0
-    for seed in seeds:
-        if accepted >= quota:
-            break
+    while not should_stop():
+        queue = preferred_seeds()
+        seed = queue[0] if queue else fresh_seed(seen)
+        gated = not queue  # preferred seeds already passed the overworld gate
         t0 = time.time()
+        boots += 1
         prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
         rcon = boot(wid, container, args.workdir, args.memory, seed=str(seed))
         if rcon is None:
-            return 1
+            log(wid, "world boot failed — retrying with a fresh seed")
+            time.sleep(10)
+            continue
         try:
-            # Overworld first — its spawn filter gates the whole seed; the
-            # other worlds are always measured in full (their namesake
-            # component just scores what it finds).
             for world, profile in profiles:
                 dim = world["dimensionId"]
                 err_before = error_count(container)
                 rows, spawn, ok = measure_candidate(
                     rcon, wid, container, dim, profile, err_before,
-                    force_accept=(world["name"] != "overworld"))
+                    force_accept=(world["name"] != "overworld" or not gated))
                 for metric, value in rows:
                     csv_fh.write(f"{world['name']},{seed},{metric},{value}\n")
                 csv_fh.flush()
                 if not ok and world["name"] == "overworld":
-                    log(wid, f"world seed {seed}: overworld spawn={spawn} — rejected "
-                             f"({int(time.time() - t0)}s)")
+                    log(wid, f"  rejected world seed {seed} (overworld {spawn}, "
+                             f"{int(time.time() - t0)}s)")
                     break
             else:
                 accepted += 1
-                log(wid, f"[{accepted}/{quota}] world seed {seed} measured "
-                         f"({int(time.time() - t0)}s)")
-        except (OSError, ConnectionError) as e:
-            log(wid, f"  SKIP world seed {seed}: {type(e).__name__}: {e}")
+                log(wid, f"ACCEPTED world seed {seed} incl. paradise_lost "
+                         f"({int(time.time() - t0)}s, boot #{boots})")
+        except Exception as e:  # noqa: BLE001
+            log(wid, f"  ERROR world seed {seed}: {type(e).__name__}: {e} — recovering")
         finally:
             docker("rm", "-f", container, check=False)
-    log(wid, f"done: {accepted}/{quota} world seeds")
+    log(wid, f"stopping: {accepted} world seeds this session")
     return 0
 
 
@@ -812,6 +915,12 @@ def main():
     suffix = {"render": "r", "world": "v"}.get(args.mode, "")
     container = f"seedrollall-{wid}{suffix}"
     base_config = json.loads(Path(args.base_config).read_text())
+
+    global STOP_FILE
+    STOP_FILE = Path(args.seedtest) / ".stop"
+    import signal
+    signal.signal(signal.SIGTERM, lambda *_: STOP_FILE.touch())
+    signal.signal(signal.SIGINT, lambda *_: STOP_FILE.touch())
 
     csv_path = Path(args.seedtest) / f"worker-{wid}.csv"
     csv_new = not csv_path.exists()
