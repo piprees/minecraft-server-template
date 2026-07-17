@@ -73,6 +73,28 @@ else
   PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
 fi
 
+echo "  Checking seed-roll bundle dependencies..."
+BUNDLE_ERRORS=0
+SEED_RUNTIME_FILES=$(grep -hoE '\$SCRIPT_DIR/[[:alnum:]_.-]+\.(py|sh)' scripts/seed/roll-*.sh \
+  | sed 's#\$SCRIPT_DIR/#scripts/seed/#' | sort -u)
+for bundle_file in $SEED_RUNTIME_FILES; do
+  [[ "$bundle_file" == *.py ]] || continue
+  while IFS= read -r module; do
+    local_module="scripts/seed/$module.py"
+    [[ -f "$local_module" ]] && SEED_RUNTIME_FILES="$SEED_RUNTIME_FILES $local_module"
+  done < <(sed -nE 's/^from ([[:alnum:]_]+) import .*/\1/p; s/^import ([[:alnum:]_]+).*/\1/p' \
+    "$bundle_file")
+done
+for bundle_file in $(printf '%s\n' $SEED_RUNTIME_FILES | sort -u); do
+  if ! grep -Fxq "  $bundle_file" scripts/build-stack-bundle.sh; then
+    warn "Seed-roll dependency missing from bundle manifest: $bundle_file"
+    BUNDLE_ERRORS=$((BUNDLE_ERRORS + 1))
+  fi
+done
+if [[ $BUNDLE_ERRORS -eq 0 ]]; then
+  echo "  ✓ All seed-roll dependencies are bundled"
+fi
+
 echo "  Validating docker-compose.yml..."
 COMPOSE_ERRORS=0
 if docker compose --profile cloud config --quiet; then
@@ -102,7 +124,7 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + BUNDLE_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

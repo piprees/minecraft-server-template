@@ -71,6 +71,7 @@ MANIFEST=(
   scripts/seed/score-seed.sh
   scripts/seed/report-top.sh
   scripts/seed/score-report.py
+  scripts/seed/viewer-server.py
   scripts/seed/profiles/classic.profile
   scripts/seed/profiles/overworld-natural.profile
   scripts/seed/profiles/dim-hard-overworld.profile
