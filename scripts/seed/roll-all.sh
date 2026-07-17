@@ -312,12 +312,8 @@ MODE="measure+render"
 for w in $(seq 0 $((WORKERS - 1))); do
   [[ -s "$SEEDTEST/work-$w.txt" ]] && launch_worker "$w" "$MODE" "$SEEDTEST/work-$w.txt"
 done
-# Dedicated boot stream: rolls world seeds with real boots so paradise_lost
-# (static mod dimension) gets per-seed data; prefers seeds the clone stream
-# already accepted for the overworld.
-if [[ "$SKIP_WORLDS" == 0 && -z "$DIMS" ]]; then
-  launch_worker "p0" "world" "$SEEDTEST/work-0.txt"
-fi
+# All four worlds (incl. paradise_lost — generic dimension cloning) roll as
+# runtime clones inside the @worlds rotation slots; no boot stream needed.
 
 echo ""
 echo "Rolling indefinitely across $WORKERS workers (+world boot stream)."

@@ -43,7 +43,9 @@ public class DimensionCommands {
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(CommandManager.literal("create")
                     .then(CommandManager.argument("name", StringArgumentType.word())
-                        .then(CommandManager.argument("type", StringArgumentType.word())
+                        // string(): bare words parse as before; clone types
+                        // carry a colon and arrive quoted ("ns:path").
+                        .then(CommandManager.argument("type", StringArgumentType.string())
                             .then(CommandManager.argument("seed", LongArgumentType.longArg())
                                 .executes(ctx -> create(ctx,
                                     StringArgumentType.getString(ctx, "name"),

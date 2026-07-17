@@ -185,6 +185,13 @@ def family_of(dim_type):
         return "nether"
     if dim_type in END_FAMILY:
         return "end"
+    if dim_type and ":" in dim_type:
+        # Generic clone types (ns:path): family guess from the id.
+        if "nether" in dim_type:
+            return "nether"
+        if "end" in dim_type:
+            return "end"
+        return "overworld"
     return None  # void / superflat
 
 
@@ -382,6 +389,7 @@ def build_profile(dim, config, difficulty=None):
 
     is_void = dim_type == "void"
     is_islands = dim_type in ("sky_islands", "nether_islands") \
+        or "paradise_lost" in (dim_type or "") \
         or dim.get("dimensionId") == "paradise_lost:paradise_lost"
 
     weights = dict(MOOD_WEIGHTS[mood])

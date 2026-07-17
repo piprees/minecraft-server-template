@@ -434,7 +434,28 @@ public class DimensionManager {
                 MultiverseServer.LOGGER.warn("Large biomes preset not found, falling back to overworld");
                 yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
-            default -> new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+            default -> {
+                // A type containing ':' clones ANY registered dimension —
+                // modded datapack dimensions included (paradise_lost:
+                // paradise_lost is a vanilla noise generator with its own
+                // noise settings, so per-dimension seeds and biome mixing
+                // work exactly like nether/end clones).
+                if (type != null && type.contains(":")) {
+                    Identifier srcId = Identifier.tryParse(type);
+                    DimensionOptions source = srcId == null ? null
+                            : dimRegistry.get(RegistryKey.of(RegistryKeys.DIMENSION, srcId));
+                    if (source != null) {
+                        ChunkGenerator gen = source.chunkGenerator();
+                        BiomeSource mixed = this.resolveListedSource(def, biomeRegistry, gen, overworldOpts.chunkGenerator());
+                        if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
+                            gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
+                        }
+                        yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                    }
+                    MultiverseServer.LOGGER.warn("Dimension {}: clone source '{}' not registered — falling back to overworld", def.getName(), type);
+                }
+                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+            }
         };
     }
 

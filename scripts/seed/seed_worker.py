@@ -423,7 +423,10 @@ def detect_spawn_biome(rcon, dim, probes, surface_y=None):
 # ---------------------------------------------------------------------------
 def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     ca = profile["create_args"]
-    cmd = (f"customdim create {cand} {ca['type']} {seed} "
+    ctype = ca["type"]
+    if ":" in ctype:
+        ctype = f'"{ctype}"'  # clone types (ns:path) need brigadier quoting
+    cmd = (f"customdim create {cand} {ctype} {seed} "
            f"{ca['noiseSettings'] or '-'} {ca['structureDensity'] or '-'} {ca['biome'] or '-'}")
     out = rcon.cmd(cmd)
     if "Created dimension" not in out:
@@ -805,11 +808,12 @@ def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
     the shared world seed is rolled as runtime clones (an overworld-type
     dimension with seed S generates identically to a world booted with
     SEED=S), so world attempts parallelise with everything else. The
-    overworld clone's spawn filter gates the seed; the nether and end
-    clones are then measured on the same seed. paradise_lost can't be
-    cloned (static mod dimension) — the dedicated boot stream covers it."""
+    overworld clone's spawn filter gates the seed; the nether, end and
+    paradise_lost clones (generic ns:path clone type — Paradise Lost is a
+    plain datapack noise dimension) are measured on the same seed."""
     order = [("overworld", "overworld", True), ("the_nether", "nether", False),
-             ("the_end", "end", False)]
+             ("the_end", "end", False),
+             ("paradise_lost", "paradise_lost:paradise_lost", False)]
     present = [(n, t, g) for n, t, g in order if n in worlds]
     if not present:
         return 0

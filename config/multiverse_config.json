@@ -1147,18 +1147,16 @@
     },
     {
       "name": "the_glacial_drift",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_glacial_drift",
       "seed": -5124091447723497048,
-      "noiseSettings": "adventure:wide",
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "desolate",
         "spawnFilter": [
-          "terralith:glacial_chasm",
-          "natures_spirit:tundra",
-          "natures_spirit:sleeted_slopes",
-          "minecraft:ice_spikes"
+          "paradise_lost:autumnal_tundra",
+          "paradise_lost:calcite_craglands",
+          "terralith:glacial_chasm"
         ],
         "wants": {
           "igloo": "near_spawn",
@@ -1171,22 +1169,21 @@
           "village",
           "tavern"
         ],
-        "description": "A vast glacial waste. Igloos and ice dungeons in an emptiness that goes on and on."
-      }
+        "description": "A glacial drift among the skylands \u2014 frozen paradise islands calving into the void."
+      },
+      "biome": "paradise_lost:autumnal_tundra,paradise_lost:calcite_craglands,minecraft:ice_spikes,terralith:glacial_chasm,natures_spirit:tundra"
     },
     {
       "name": "the_sunken_temple",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_sunken_temple",
       "seed": -7553093148959622972,
       "structureDensity": "dense",
       "seedRoll": {
         "mood": "adventurous",
         "spawnFilter": [
-          "minecraft:warm_ocean",
-          "terralith:deep_warm_ocean",
-          "natures_spirit:tropical_woods",
-          "minecraft:jungle"
+          "paradise_lost:tradewinds",
+          "paradise_lost:highlands"
         ],
         "water": "sea",
         "wants": {
@@ -1197,21 +1194,20 @@
           "shipwreck": "near_spawn",
           "infested_temple": "near_border"
         },
-        "description": "Temple-hunting waters \u2014 monuments, ocean fortresses and drowned dungeons everywhere you dive."
-      }
+        "description": "Temple-hunting across drowned skyland basins \u2014 monuments and fortresses where the water pooled between islands."
+      },
+      "biome": "paradise_lost:tradewinds,paradise_lost:highlands,minecraft:warm_ocean,terralith:deep_warm_ocean,minecraft:jungle"
     },
     {
       "name": "the_snowbound_isle",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_snowbound_isle",
       "seed": -6903795762373810598,
       "seedRoll": {
         "mood": "standard",
         "spawnFilter": [
-          "natures_spirit:snowy_fir_forest",
-          "terralith:snowy_cherry_grove",
-          "minecraft:snowy_taiga",
-          "minecraft:snowy_beach"
+          "paradise_lost:autumnal_tundra",
+          "natures_spirit:snowy_fir_forest"
         ],
         "water": "high",
         "wants": {
@@ -1223,21 +1219,21 @@
         "shuns": [
           "coliseum"
         ],
-        "description": "A snowbound island world \u2014 fir forests, cold dungeons, one hardy village."
-      }
+        "description": "A snowbound island adrift in the sky \u2014 fir forests and drifts on floating ground."
+      },
+      "biome": "paradise_lost:autumnal_tundra,paradise_lost:highlands_shield,minecraft:snowy_taiga,natures_spirit:snowy_fir_forest,terralith:snowy_cherry_grove"
     },
     {
       "name": "the_abyssal_shrine",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_abyssal_shrine",
       "seed": -8401790570074108359,
       "structureDensity": "dense",
       "seedRoll": {
         "mood": "adventurous",
         "spawnFilter": [
-          "minecraft:deep_ocean",
-          "minecraft:deep_cold_ocean",
-          "minecraft:deep_lukewarm_ocean"
+          "paradise_lost:continental_plateau",
+          "paradise_lost:highlands_grand_glade"
         ],
         "water": "sea",
         "wants": {
@@ -1251,22 +1247,21 @@
           "tavern",
           "mansion"
         ],
-        "description": "A tiny abyss with a monument at its heart. Guardians own the water."
-      }
+        "description": "A shrine over the abyss \u2014 plateau islands ringing deep drowned hollows; guardians below, sky above."
+      },
+      "biome": "paradise_lost:continental_plateau,paradise_lost:highlands_grand_glade,minecraft:deep_ocean,minecraft:deep_cold_ocean"
     },
     {
       "name": "the_pale_reach",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_pale_reach",
       "seed": 7588343130126410291,
       "structureDensity": "sparse",
       "seedRoll": {
         "mood": "desolate",
         "spawnFilter": [
-          "terralith:frozen_cliffs",
-          "natures_spirit:tundra",
-          "terralith:wintry_lowlands",
-          "minecraft:ice_spikes"
+          "paradise_lost:calcite_craglands",
+          "terralith:frozen_cliffs"
         ],
         "wants": {
           "ruins_snow": "spread",
@@ -1281,22 +1276,20 @@
           "monument",
           "coliseum"
         ],
-        "description": "The pale desolate reach \u2014 snow ruins and little else. Beautiful, briefly."
-      }
+        "description": "The pale desolate reach \u2014 calcite crags floating in white silence."
+      },
+      "biome": "paradise_lost:calcite_craglands,terralith:frozen_cliffs,terralith:wintry_lowlands,minecraft:ice_spikes"
     },
     {
       "name": "the_violet_spire",
-      "type": "overworld",
+      "type": "paradise_lost:paradise_lost",
       "dimensionId": "adventure:the_violet_spire",
       "seed": -2184852740675444909,
-      "noiseSettings": "adventure:compressed",
       "seedRoll": {
         "mood": "dramatic",
         "spawnFilter": [
-          "terralith:amethyst_canyon",
-          "terralith:windswept_spires",
-          "terralith:haze_mountain",
-          "natures_spirit:lavender_fields"
+          "paradise_lost:wisteria_woods",
+          "terralith:amethyst_canyon"
         ],
         "wants": {
           "wizard_tower": "near_spawn",
@@ -1308,8 +1301,9 @@
           "village",
           "monument"
         ],
-        "description": "Amethyst spires and wizard towers in violet haze \u2014 vertical, arcane, hostile to farmers."
-      }
+        "description": "Violet spires in the sky \u2014 wisteria islands and amethyst canyons; vertical, arcane, breathtaking."
+      },
+      "biome": "paradise_lost:wisteria_woods,terralith:amethyst_canyon,terralith:windswept_spires,natures_spirit:lavender_fields"
     },
     {
       "name": "the_amplified_reaches",
@@ -2929,5 +2923,6 @@
         "shuns": []
       }
     }
-  ]
+  ],
+  "worldSeed": 4955897124001752590
 }
