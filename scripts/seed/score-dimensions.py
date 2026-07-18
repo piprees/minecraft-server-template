@@ -12,9 +12,9 @@ Subcommands (all take --config <multiverse_config.json> and --seedtest <dir>):
             Already-measured (dim,seed) pairs in the merged CSV count toward
             --candidates, so re-runs only roll the remainder.
             Options: --workers N --candidates N --dims a,b,c
-  render-manifest
-            Same outputs (work-r<w>.txt / mvconfig-r<w>.json) for the
-            winners-render pass: the top --top candidates per dimension.
+    render-manifest
+                        Write finite work-r<w>.txt files for the winners-render pass:
+                        the top --top measured candidates per target.
   score     Score every measured candidate; prints a ranked table and writes
             .seedtest/scores.json.
   finalise  score + pick winners + write them into the config (with .bak),
@@ -165,18 +165,22 @@ def cmd_world_manifest(args, config, world_profiles):
 def cmd_render_manifest(args, config, profiles):
     seedtest = Path(args.seedtest)
     results, _rejected = score_all(config, profiles, args.csv)
-    dims_by_name = {d["name"]: d for d in config["dimensions"]}
+    sources = {d["name"]: d for d in config["dimensions"]}
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
     workers = max(1, args.workers)
     renders = seedtest / "renders"
 
     jobs = []
     for name, cands in results.items():
+        if name not in sources:
+            continue
         for j, c in enumerate(cands[: args.top]):
             if (renders / name / f"{c['seed']}.png").exists():
                 continue
-            jobs.append((dims_by_name[name], f"{name}__r{j:02d}", [int(c["seed"])]))
-    jobs_by_worker = {w: jobs[w::workers] for w in range(workers)}
-    write_worker_files(seedtest, config, jobs_by_worker, prefix="r")
+            jobs.append((name, c["seed"]))
+    for w in range(workers):
+        (seedtest / f"work-r{w}.txt").write_text(
+            "".join(f"{name}|{seed}\n" for name, seed in jobs[w::workers]))
     print(f"render manifest: {len(jobs)} candidates (top {args.top}/dim) across {workers} workers")
 
 
@@ -435,6 +439,10 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                 if dim.get("seed") != new_seed:
                     dim["seed"] = new_seed
                     changed += 1
+                sx = w["metrics"].get("spawn_x")
+                sz = w["metrics"].get("spawn_z")
+                if sx is not None and sz is not None:
+                    dim["spawn"] = [int(float(sx)), 64, int(float(sz))]
         # Real worlds: nether/end/paradise get their winner written onto
         # the worlds[] entry, the overworld onto the top-level worldSeed —
         # the mod's ServerWorldSeedMixin drives ALL of them (config-driven
@@ -446,9 +454,20 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                 if world.get("seed") != new_seed:
                     world["seed"] = new_seed
                     changed += 1
+                sx = w["metrics"].get("spawn_x")
+                sz = w["metrics"].get("spawn_z")
+                if sx is not None and sz is not None:
+                    world["spawn"] = [int(float(sx)), 64, int(float(sz))]
         ow = winners.get("overworld")
         if ow is not None:
             fresh["worldSeed"] = int(ow["seed"])
+            sx = ow["metrics"].get("spawn_x")
+            sz = ow["metrics"].get("spawn_z")
+            if sx is not None and sz is not None:
+                ow_entry = next((w for w in fresh.get("worlds", [])
+                                 if w["name"] == "overworld"), None)
+                if ow_entry is not None:
+                    ow_entry["spawn"] = [int(float(sx)), 64, int(float(sz))]
         cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
         print(f"config updated: {changed} seeds changed ({cfg_path})"
               + (f"; backup: {backup.name}" if backup else ""))
@@ -663,7 +682,7 @@ def main():
     elif args.command == "world-manifest":
         cmd_world_manifest(args, config, world_profiles)
     elif args.command == "render-manifest":
-        cmd_render_manifest(args, config, dim_profiles)
+        cmd_render_manifest(args, config, profiles)
     elif args.command == "score":
         cmd_score(args, config, profiles)
     else:

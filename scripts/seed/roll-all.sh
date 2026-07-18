@@ -6,7 +6,6 @@
 # Boots N Docker containers in SEED_ROLL_MODE (the custom-dimensions mod
 # skips boot-time dimension creation), splits the rollable dimensions from
 # config/multiverse_config.json across them, and measures M candidate seeds
-# per dimension via `customdim create -> measure -> customdim destroy`
 # (scripts/seed/seed_worker.py does the per-candidate work over a native
 # RCON socket). Scoring is per-dimension and philosophy-driven
 # (scripts/seed/dimension_profiles.py).
@@ -25,15 +24,17 @@
 # viewer regenerates every 45s; Ctrl+C finalises with everything measured.
 #
 # Usage:
-#   ./roll-all.sh                                  # everything, 6 workers
+#   ./roll-all.sh                                  # everything, 3 workers
 #   ./roll-all.sh --dims the_gauntlet --workers 1  # focused session
 #   ./roll-all.sh --render off --no-write          # measure + score only
+#   ./roll-all.sh --render all                     # render every accepted seed
 #   ./roll-all.sh --clean                          # rebuild worker dirs from data/
 #
 # Options:
-#   --workers N      parallel containers (default 6; ~6G memory each)
+#   --workers N      parallel containers (default 3; ~6G memory each)
 #   --dims a,b,c     roll a subset of dimensions (skips the world streams)
-#   --render MODE    all (default: render every accepted candidate) | off
+#   --render MODE    shortlist (default: render top candidates at finalise) | all | off
+#   --render-top N   shortlisted candidates to render per target (default 3)
 #   --no-worlds      skip the world-seed boot stream
 #   --no-write       don't write winners into multiverse_config.json
 #   --fresh          discard previous measurements first
@@ -41,9 +42,8 @@
 #
 # Environment: ROLL_MEMORY (default 6G/container), RCON_TIMEOUT (300s),
 #              ROLL_IMAGE (itzg image pin — must match seed_worker.py default)
-#              ROLL_SPAWN_ATTEMPTS (default 10; also --spawn-attempts N) —
-#              attempts per gate tier before the spawn gate widens
-#              (<=48 -> <=256 -> <=768 blocks -> forced keeper)
+#              ROLL_SPAWN_GATE_RADIUS (default 768) — max distance to a
+#              configured spawn biome; closer candidates score higher
 #
 # Gotchas:
 #   - Requires the fork custom-dimensions jar (customdim + SEED_ROLL_MODE)
@@ -67,39 +67,92 @@ SEEDTEST="$PROJECT_ROOT/.seedtest"
 WORK_BASE="$SEEDTEST/base"
 MEASUREMENTS="$SEEDTEST/measurements.csv"
 
-WORKERS=6
+WORKERS="${ROLL_WORKERS:-3}"
 DIMS=""
-RENDER="all"
+RENDER="${ROLL_RENDER:-shortlist}"
+RENDER_TOP="${ROLL_RENDER_TOP:-3}"
+RENDER_WORKERS="${ROLL_RENDER_WORKERS:-1}"
 WRITE_CONFIG=1
 SKIP_WORLDS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    # --candidates / --world-candidates / --render-top are accepted for
+    # --candidates / --world-candidates are accepted for
     # backwards compatibility; the roller is indefinite now.
-    --candidates | --world-candidates | --render-top) shift 2 ;;
-    --spawn-attempts) export ROLL_SPAWN_ATTEMPTS="$2"; shift 2 ;;
-    --no-worlds) SKIP_WORLDS=1; shift ;;
-    --workers) WORKERS="$2"; shift 2 ;;
-    --dims) DIMS="$2"; shift 2 ;;
-    --render) RENDER="$2"; shift 2 ;;
-    --no-write) WRITE_CONFIG=0; shift ;;
-    --fresh) rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv; shift ;;
-    --clean) rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]*; shift ;;
-    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+    --candidates | --world-candidates) shift 2 ;;
+    --render-top)
+      RENDER_TOP="$2"
+      shift 2
+      ;;
+    --no-worlds)
+      SKIP_WORLDS=1
+      shift
+      ;;
+    --workers)
+      WORKERS="$2"
+      shift 2
+      ;;
+    --dims)
+      DIMS="$2"
+      shift 2
+      ;;
+    --render)
+      RENDER="$2"
+      shift 2
+      ;;
+    --no-write)
+      WRITE_CONFIG=0
+      shift
+      ;;
+    --fresh)
+      rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv
+      shift
+      ;;
+    --clean)
+      rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]*
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
   esac
 done
+
+if [[ "$RENDER" != "shortlist" && "$RENDER" != "all" && "$RENDER" != "off" ]]; then
+  echo "Error: --render must be shortlist, all, or off" >&2
+  exit 1
+fi
+if ! printf '%s\n' "$RENDER_TOP" | grep -qE '^[1-9][0-9]*$'; then
+  echo "Error: --render-top must be a positive integer" >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Preflight
 # ---------------------------------------------------------------------------
-command -v docker > /dev/null || { echo "Error: docker not found" >&2; exit 1; }
-command -v python3 > /dev/null || { echo "Error: python3 required" >&2; exit 1; }
-[[ -f "$CONFIG" ]] || { echo "Error: $CONFIG not found" >&2; exit 1; }
+command -v docker > /dev/null || {
+  echo "Error: docker not found" >&2
+  exit 1
+}
+command -v python3 > /dev/null || {
+  echo "Error: python3 required" >&2
+  exit 1
+}
+[[ -f "$CONFIG" ]] || {
+  echo "Error: $CONFIG not found" >&2
+  exit 1
+}
 ls "$LOCAL_DATA/mods/"*.jar > /dev/null 2>&1 \
-  || { echo "Error: no mods in data/mods — run ./dev up first" >&2; exit 1; }
+  || {
+    echo "Error: no mods in data/mods — run ./dev up first" >&2
+    exit 1
+  }
 ls "$LOCAL_DATA"/mods/customdimensions*.jar > /dev/null 2>&1 \
-  || { echo "Error: customdimensions jar missing from data/mods" >&2; exit 1; }
+  || {
+    echo "Error: customdimensions jar missing from data/mods" >&2
+    exit 1
+  }
 
 mkdir -p "$SEEDTEST"
 
@@ -253,6 +306,34 @@ stop_reporter() {
   VIEWER_PID=""
 }
 
+render_shortlist() {
+  [[ "$RENDER" == "shortlist" ]] || return 0
+  echo ">>> Rendering top $RENDER_TOP candidate(s) per target (one worker at a time)..."
+  python3 "$SCRIPT_DIR/score-dimensions.py" render-manifest \
+    --config "$CONFIG" --seedtest "$SEEDTEST" --workers "$RENDER_WORKERS" \
+    --top "$RENDER_TOP" ${DIMS:+--dims "$DIMS"}
+  local pids="" w manifest
+  for w in $(seq 0 $((RENDER_WORKERS - 1))); do
+    manifest="$SEEDTEST/work-r$w.txt"
+    [[ -s "$manifest" ]] || continue
+    prepare_worker_dir "r$w"
+    python3 "$SCRIPT_DIR/seed_worker.py" \
+      --worker-id "r$w" \
+      --workdir "$SEEDTEST/wr$w" \
+      --manifest "$manifest" \
+      --mvconfig "$SEEDTEST/mvconfig-roll.json" \
+      --base-config "$CONFIG" \
+      --seedtest "$SEEDTEST" \
+      --mode shortlist \
+      --memory "$ROLL_MEMORY" &
+    pids="$pids $!"
+  done
+  local pid
+  for pid in $pids; do
+    wait "$pid" || true
+  done
+}
+
 # ---------------------------------------------------------------------------
 # Finalise (also runs on Ctrl+C): merge -> score -> write config -> viewer
 # ---------------------------------------------------------------------------
@@ -269,11 +350,16 @@ finalise() {
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
+    ${DIMS:+--dims "$DIMS"} $write_flag --viewer || true
+  render_shortlist
+  # Rendered thumbnails are now present; regenerate and open the viewer.
+  python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
+    --config "$CONFIG" --seedtest "$SEEDTEST" \
     ${DIMS:+--dims "$DIMS"} $write_flag --viewer --open-viewer || true
   # Consumer copy must mirror the template config exactly (AGENTS.md).
   if [[ "$WRITE_CONFIG" == 1 && -f "$LOCAL_DATA/config/multiverse_config.json" ]]; then
     cp "$LOCAL_DATA/config/multiverse_config.json" \
-       "$LOCAL_DATA/config/multiverse_config.json.bak.$(date +%Y%m%d-%H%M%S)"
+      "$LOCAL_DATA/config/multiverse_config.json.bak.$(date +%Y%m%d-%H%M%S)"
     cp "$CONFIG" "$LOCAL_DATA/config/multiverse_config.json"
     echo "Synced data/config/multiverse_config.json (backup kept)"
   fi
@@ -323,7 +409,8 @@ echo "=============================================="
 echo "  Multiverse seed roller (all dimensions)"
 echo "=============================================="
 echo "  Mode:           indefinite (Ctrl+C to finish)   Workers: $WORKERS"
-echo "  Render:         $RENDER (every accepted candidate)"
+echo "  Render:         $RENDER"
+[[ "$RENDER" == "shortlist" ]] && echo "  Render shortlist: top $RENDER_TOP per target"
 echo "  Memory:         $ROLL_MEMORY per container"
 echo "  Config:         $CONFIG"
 echo "  Output:         $SEEDTEST"
@@ -345,8 +432,8 @@ python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
 
 start_reporter
 
-MODE="measure+render"
-[[ "$RENDER" == "off" ]] && MODE="measure"
+MODE="measure"
+[[ "$RENDER" == "all" ]] && MODE="measure+render"
 
 for w in $(seq 0 $((WORKERS - 1))); do
   [[ -s "$SEEDTEST/work-$w.txt" ]] && launch_worker "$w" "$MODE" "$SEEDTEST/work-$w.txt"

@@ -47,25 +47,18 @@ from dimension_profiles import build_profile, load_difficulty  # noqa: E402
 BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "300"))
 IMAGE = os.environ.get("ROLL_IMAGE", "itzg/minecraft-server:2026.7.0-java21")
 
-# Spawn-gate escalation: attempts per tier before the gate widens. Empirical
-# (2026-07-17, 8k measured candidates): a 4-biome spawn filter against the
-# full overworld source passes an exact-spawn test ~0.1-0.5% of the time —
-# nearest-filter-biome distances cluster at 200-4600 blocks. Grinding that
-# lottery unbounded stalled every worker on its first narrow dimension, so
-# the gate widens instead: <=48 (true namesake spawn), then <=256, then
-# <=768 blocks (short trek), then a forced keeper. Scoring gives full
-# namesake credit only to true spawns; widened acceptances earn partial
-# credit by proximity, so a later cycle can still beat them.
-SPAWN_ATTEMPTS = int(os.environ.get("ROLL_SPAWN_ATTEMPTS", "10"))
-SPAWN_GATE_TIERS = (48, 256, 768)
+# A candidate only needs a namesake biome within a short expedition from
+# spawn. The score already gives true spawns full credit and nearby biomes
+# proportionally less, so escalating gates merely starved the shortlist.
+SPAWN_GATE_RADIUS = int(os.environ.get("ROLL_SPAWN_GATE_RADIUS", "768"))
+RCON_CLOSE_RECREATE_AFTER = int(os.environ.get("ROLL_RCON_CLOSE_RECREATE_AFTER", "2"))
+RCON_BACKOFF_BASE = float(os.environ.get("ROLL_RCON_BACKOFF_BASE", "5"))
+RCON_BACKOFF_MAX = float(os.environ.get("ROLL_RCON_BACKOFF_MAX", "60"))
 
 
-def spawn_gate_for(misses):
-    """(radius, force_accept) for the current miss count in a slot."""
-    tier = misses // SPAWN_ATTEMPTS if SPAWN_ATTEMPTS > 0 else len(SPAWN_GATE_TIERS)
-    if tier >= len(SPAWN_GATE_TIERS):
-        return SPAWN_GATE_TIERS[-1], True
-    return SPAWN_GATE_TIERS[tier], False
+def spawn_gate_for(_misses):
+    """Fixed acceptance radius; proximity remains a ranking signal."""
+    return SPAWN_GATE_RADIUS, False
 
 # Column-height search ranges per family (nether capped under the roof).
 HEIGHT_RANGE = {"overworld": (-60, 318), "nether": (0, 118), "end": (0, 250)}
@@ -177,10 +170,19 @@ def log(worker_id, msg):
 # ---------------------------------------------------------------------------
 # Minimal Source-RCON client
 # ---------------------------------------------------------------------------
+class RconTimeout(TimeoutError):
+    """The server did not answer one command before its hard deadline."""
+
+
+class RconClosed(ConnectionError):
+    """The server closed the RCON socket before replying."""
+
+
 class Rcon:
-    # Command responses can take a long time when N servers world-create
-    # simultaneously on a contended host — 15s killed a whole 8-worker fleet.
-    CMD_TIMEOUT = float(os.environ.get("ROLL_RCON_CMD_TIMEOUT", "120"))
+    # `locate` is synchronous on the server thread. Closing the socket does
+    # not cancel it, so time out at 60s and let the worker recreate the
+    # throwaway container rather than queue more work behind a stalled locate.
+    CMD_TIMEOUT = float(os.environ.get("ROLL_RCON_CMD_TIMEOUT", "60"))
 
     def __init__(self, host, port, password, timeout=None):
         timeout = timeout if timeout is not None else self.CMD_TIMEOUT
@@ -191,12 +193,24 @@ class Rcon:
         self._id = 0
 
     def connect(self):
-        self.close()
-        self.sock = socket.create_connection(self.addr, timeout=self.timeout)
-        self._send(3, self.password)
-        rid, _typ, _body = self._recv()
-        if rid == -1:
-            raise ConnectionError("RCON auth failed")
+        try:
+            self.close()
+            self.sock = socket.create_connection(self.addr, timeout=self.timeout)
+            self._send(3, self.password)
+            rid, _typ, _body = self._recv()
+            if rid == -1:
+                raise ConnectionError("RCON auth failed")
+        except RconTimeout:
+            raise
+        except RconClosed:
+            raise
+        except socket.timeout as exc:
+            self.close()
+            raise RconTimeout(
+                f"RCON connection timed out after {int(self.timeout)}s") from exc
+        except (OSError, ConnectionError) as exc:
+            self.close()
+            raise RconClosed(str(exc)) from exc
 
     def close(self):
         if self.sock:
@@ -230,19 +244,22 @@ class Rcon:
         return rid, typ, data[8:-2].decode("utf-8", "replace")
 
     def cmd(self, command):
-        """Run a command, reconnecting once on a broken socket."""
-        for attempt in (0, 1):
-            try:
-                if self.sock is None:
-                    self.connect()
-                self._send(2, command)
-                _rid, _typ, body = self._recv()
-                return body
-            except (OSError, ConnectionError):
-                self.close()
-                if attempt:
-                    raise
-        return ""
+        """Run one command without retrying an indeterminate side effect."""
+        try:
+            if self.sock is None:
+                self.connect()
+            self._send(2, command)
+            _rid, _typ, body = self._recv()
+            return body
+        except (RconTimeout, RconClosed):
+            raise
+        except socket.timeout as exc:
+            self.close()
+            raise RconTimeout(
+                f"RCON command timed out after {int(self.timeout)}s") from exc
+        except (OSError, ConnectionError) as exc:
+            self.close()
+            raise RconClosed(str(exc)) from exc
 
 
 # ---------------------------------------------------------------------------
@@ -337,11 +354,84 @@ def error_count(name):
     return n
 
 
+def worker_backoff(failures):
+    """Bounded exponential backoff for a worker whose RCON became unhealthy."""
+    return min(RCON_BACKOFF_BASE * (2 ** max(0, failures - 1)), RCON_BACKOFF_MAX)
+
+
+def file_tail(path, lines=120):
+    try:
+        return "\n".join(Path(path).read_text(errors="replace").splitlines()[-lines:]) + "\n"
+    except OSError:
+        return ""
+
+
+def capture_rcon_diagnostic(args, worker_id, container, dim_name, seed, failure):
+    """Preserve post-mortem evidence before a timed-out worker is recreated."""
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    diag_dir = Path(args.seedtest) / "diagnostics" / f"worker-{worker_id}"
+    diag_dir.mkdir(parents=True, exist_ok=True)
+    stem = diag_dir / f"{stamp}-{dim_name}-{seed}"
+    state = docker("inspect", "-f", "{{json .State}}", container,
+                   check=False).stdout.strip()
+    container_log = docker("logs", "--tail", "120", container,
+                           check=False).stdout
+    (stem.with_suffix(".json")).write_text(json.dumps({
+        "timestamp": stamp,
+        "worker": worker_id,
+        "container": container,
+        "dimension": dim_name,
+        "seed": seed,
+        "failure": type(failure).__name__,
+        "message": str(failure),
+        "container_state": state,
+    }, indent=2) + "\n")
+    (stem.with_suffix(".container.log")).write_text(container_log)
+    (stem.with_suffix(".game.log")).write_text(
+        file_tail(Path(args.workdir) / "logs" / "latest.log"))
+    return stem
+
+
+def record_abandoned_seed(args, worker_id, dim_name, seed, reason):
+    """Keep an unhealthy-worker seed out of later sessions without scoring it."""
+    path = Path(args.seedtest) / f"abandoned-worker-{worker_id}.csv"
+    new_file = not path.exists()
+    with path.open("a") as fh:
+        if new_file:
+            fh.write("target,seed,reason\n")
+        fh.write(f"{dim_name},{seed},{reason}\n")
+
+
+def rcon_failure_reason(reason):
+    return reason in ("rcon-timeout", "rcon-closed")
+
+
+def recover_rcon(args, worker_id, container, rcon, failures, reason):
+    """Reconnect one closed socket; recreate immediately on timeout or repeat."""
+    delay = worker_backoff(failures)
+    if reason == "rcon-closed" and failures < RCON_CLOSE_RECREATE_AFTER:
+        log(worker_id, f"  RCON closed once — checking health after {delay:.0f}s")
+        time.sleep(delay)
+        try:
+            rcon.connect()
+            rcon.cmd("list")
+            log(worker_id, "  RCON health check recovered; continuing")
+            return rcon, 0
+        except (RconTimeout, RconClosed):
+            failures += 1
+            delay = worker_backoff(failures)
+
+    log(worker_id, f"  recreating unhealthy container after {delay:.0f}s backoff")
+    docker("rm", "-f", container, check=False)
+    time.sleep(delay)
+    return boot(worker_id, container, args.workdir, args.memory), failures
+
+
 # ---------------------------------------------------------------------------
 # Measurement primitives
 # ---------------------------------------------------------------------------
-def parse_distance(output):
-    """'... (123 blocks away)' -> 123, else -1."""
+def parse_distance(output, cap=None):
+    """'... (123 blocks away)' -> 123, else -1. Distances beyond cap are -1."""
     if not output or "could not" in output.lower():
         return -1
     marker = " blocks away"
@@ -350,9 +440,23 @@ def parse_distance(output):
         return -1
     start = output.rfind("(", 0, idx)
     try:
-        return int(output[start + 1:idx])
+        d = int(output[start + 1:idx])
+        if cap is not None and d > cap:
+            return -1
+        return d
     except (ValueError, IndexError):
         return -1
+
+
+def parse_locate_coords(output):
+    """Extract [x, y, z] from 'is at [x y z]' locate response, or None."""
+    if not output or "could not" in output.lower():
+        return None
+    import re
+    m = re.search(r'\[(-?\d+)[, ]+(-?\d+)[, ]+(-?\d+)\]', output)
+    if m:
+        return [int(m.group(1)), int(m.group(2)), int(m.group(3))]
+    return None
 
 
 def test_ok(output):
@@ -498,10 +602,9 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     """Measure one candidate world (dim = full dimension id). Applies the
     spawn filter FIRST: a spawn that misses it returns immediately with a
     rejection row — the caller re-rolls a fresh seed. Namesakes represent
-    SPAWN; the filter is the contract, but the caller widens spawn_radius
-    tier by tier (spawn_gate_for) so a narrow filter degrades to "a filter
-    biome within a short trek" instead of stalling the slot. force_accept
-    measures regardless — the namesake component simply scores low."""
+    SPAWN; the fixed spawn radius defines a reasonable expedition from 0,0.
+    True spawns score highest; nearby accepted candidates receive proximity
+    credit, so candidate quality is ranked rather than ratcheted by retries."""
     rows = []
     fam = profile["family"] or "overworld"
     lo, hi = profile.get("height_range") or HEIGHT_RANGE[fam]
@@ -510,26 +613,34 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     # per probe. Chunk generation per rejection was the fleet's pace killer
     # (~60-90s each under contention); rejections are now nearly free.
     spawn = "unknown"
+    spawn_coords = None
+    cap = profile.get("locate_cap")
     if profile["namesake"]:
-        best_b, best_d = None, None
+        best_b, best_d, best_coords = None, None, None
         for b in profile["namesake"]:
-            d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {b}"))
+            out = rcon.cmd(f"execute in {dim} run locate biome {b}")
+            d = parse_distance(out, cap=cap)
+            coords = parse_locate_coords(out)
             if d >= 0 and (best_d is None or d < best_d):
-                best_b, best_d = b, d
+                best_b, best_d, best_coords = b, d, coords
             if d == 0:
                 break
         if best_d is not None and best_d <= 48:
-            spawn = best_b  # true namesake spawn
+            spawn = best_b
+            spawn_coords = best_coords
         elif not (force_accept or (best_d is not None and best_d <= spawn_radius)):
             reason = spawn_filter_rejection(
                 best_b, best_d, profile["namesake"], spawn_radius)
             rows.append(("spawn_biome", f"{best_b}@{best_d}" if best_b else "unknown"))
             rows.append(("rejected", 1))
             return rows, reason, False
+        else:
+            spawn_coords = best_coords
         if best_d is not None:
-            # Proximity credit for the namesake score (widened acceptances
-            # and keepers); true spawns record 0-48 and score full anyway.
             rows.append(("spawn_filter_dist", best_d))
+    if spawn_coords:
+        rows.append(("spawn_x", spawn_coords[0]))
+        rows.append(("spawn_z", spawn_coords[2]))
 
     # Accepted (or keeper): generate the spawn chunk and probe properly —
     # keepers need their real spawn identified for partial namesake credit.
@@ -545,16 +656,32 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     rows.append(("spawn_biome", spawn))
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
 
+    # Endgame near-spawn rejection: hard/dense dims opt out.
+    safe_r = profile.get("endgame_safe_radius", 0)
+    if safe_r > 0:
+        for sname, sid in profile.get("endgame_battery", []):
+            if should_stop():
+                return rows, spawn, False
+            out = rcon.cmd(f"execute in {dim} run locate structure {sid}")
+            d = parse_distance(out, cap=cap)
+            if 0 <= d < safe_r:
+                rows.append(("rejected", 3))
+                rows.append(("endgame_too_close", f"{sname}@{d}"))
+                reason = (f"endgame structure {sname} at {d} blocks "
+                          f"(safe zone {safe_r}); rejected")
+                log(worker_id, f"  {reason}")
+                return rows, reason, False
+
     for sname, sid, _band, _kind in profile["battery"]:
-        if should_stop():  # partial rows score as a reject; exit fast
+        if should_stop():
             return rows, spawn, False
-        d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"))
+        d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"), cap=cap)
         rows.append((f"structure_{sname}_dist", d))
 
     for biome in profile["variety_biomes"]:
         if should_stop():
             return rows, spawn, False
-        d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {biome}"))
+        d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {biome}"), cap=cap)
         rows.append((f"biome_{biome}_dist", d))
 
     fy, fluid = FLUID_CHECK[fam]
@@ -758,7 +885,7 @@ def fresh_seed(seen):
 def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
              csv_fh, gate=True, spawn_radius=48):
     """create -> gate -> measure(+render) -> destroy for one candidate.
-    Returns (accepted, spawn). Errors are logged and treated as a miss."""
+    Returns (accepted, outcome). Infrastructure failures are not seed misses."""
     try:
         err_before = error_count(container)
         created, reason = create_candidate(rcon, wid, ns, cand, profile, seed)
@@ -776,6 +903,18 @@ def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
                              family=profile["family"] or "overworld")
         destroy_candidate(rcon, args.workdir, ns, cand)
         return accepted, spawn
+    except RconTimeout as exc:
+        diagnostic = capture_rcon_diagnostic(
+            args, wid, container, dim_name, seed, exc)
+        log(wid, f"  RCON timeout for {dim_name} seed {seed}; diagnostic: {diagnostic.name}")
+        rcon.close()
+        return False, "rcon-timeout"
+    except RconClosed as exc:
+        diagnostic = capture_rcon_diagnostic(
+            args, wid, container, dim_name, seed, exc)
+        log(wid, f"  RCON closed for {dim_name} seed {seed}; diagnostic: {diagnostic.name}")
+        rcon.close()
+        return False, "rcon-closed"
     except Exception as e:  # noqa: BLE001 — a candidate must never kill the worker
         log(wid, f"  ERROR {dim_name} seed {seed}: {type(e).__name__}: {e} — recovering")
         rcon.close()
@@ -812,6 +951,7 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
     accepted_total = 0
     cycle = 0
     counter = 0
+    rcon_failures = 0
     while not should_stop():
         cycle += 1
         for item in rotation:
@@ -825,9 +965,10 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                     continue
 
             if item == "@worlds":
-                accepted_total += roll_world_slot(
+                accepted, rcon = roll_world_slot(
                     args, wid, container, rcon, ns, worlds, difficulty,
                     base_config, seen, csv_fh, cycle)
+                accepted_total += accepted
                 continue
 
             if item.startswith("@world:"):
@@ -852,20 +993,27 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                 counter += 1
                 seed = fresh_seed(seen)
                 cand = f"{cand_base}__r{counter:05d}"
-                radius, force = spawn_gate_for(misses)
-                if misses and misses % SPAWN_ATTEMPTS == 0:
-                    log(wid, f"  {target}: {misses} rejections — "
-                             + ("KEEPER: accepting the next candidate regardless"
-                                if force else
-                                f"widening spawn gate to nearest filter biome <= {radius} blocks"))
+                radius, _force = spawn_gate_for(misses)
                 ok, spawn = roll_one(args, wid, container, rcon, ns, target,
                                      profile, seed, cand, csv_fh,
-                                     gate=not force, spawn_radius=radius)
+                                     spawn_radius=radius)
                 if ok:
+                    rcon_failures = 0
                     accepted_total += 1
                     log(wid, f"ACCEPTED #{accepted_total} {target} seed {seed} "
                              f"spawn={spawn} (+{misses} rejected, {int(time.time() - t0)}s)")
                     break
+                if rcon_failure_reason(spawn):
+                    rcon_failures += 1
+                    record_abandoned_seed(args, wid, target, seed, spawn)
+                    log(wid, f"  abandoned {target} seed {seed} ({spawn}; not scored)")
+                    rcon, rcon_failures = recover_rcon(
+                        args, wid, container, rcon, rcon_failures, spawn)
+                    if rcon is None:
+                        log(wid, "worker recovery failed — retrying after cooldown")
+                        time.sleep(worker_backoff(max(1, rcon_failures)))
+                        break
+                    continue
                 misses += 1
                 log(wid, f"  rejected {target} seed {seed} ({spawn})")
                 # A dead container mid-slot must reboot HERE — the rotation-
@@ -877,6 +1025,67 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                         time.sleep(20)
                         break
     log(wid, f"stopping: {accepted_total} accepted candidates this session")
+    return 0
+
+
+def run_shortlist_jobs(args, wid, container, base_config):
+    """Render finite, already-scored jobs from `target|seed` manifest rows."""
+    ns = base_config.get("namespace", "adventure")
+    dims = {d["name"]: d for d in base_config["dimensions"]}
+    worlds = {w["name"]: w for w in base_config.get("worlds", [])}
+    difficulty = load_difficulty(args.base_config)
+    jobs = []
+    for line in Path(args.manifest).read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            target, seed = line.split("|", 1)
+            jobs.append((target, int(seed)))
+        except ValueError:
+            log(wid, f"  invalid shortlist job: {line!r}")
+    if not jobs:
+        return 0
+
+    prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+    rcon = boot(wid, container, args.workdir, args.memory)
+    if rcon is None:
+        return 1
+    rcon_failures = 0
+    for index, (target, seed) in enumerate(jobs):
+        if target in dims:
+            profile = build_profile(dims[target], base_config, difficulty)
+        elif target in worlds:
+            world = worlds[target]
+            profile = build_profile(world, base_config, difficulty)
+            profile["create_args"] = {"type": world_clone_type(world), "noiseSettings": None,
+                                      "structureDensity": None, "biome": None}
+        else:
+            log(wid, f"  unknown shortlist target: {target}")
+            continue
+        cand = f"shortlist_{target}__r{index:05d}"
+        try:
+            created, reason = create_candidate(rcon, wid, ns, cand, profile, seed)
+            if not created:
+                log(wid, f"  shortlist render skipped {target} seed {seed} ({reason})")
+                continue
+            render_candidate(rcon, wid, args.workdir, args.seedtest, container,
+                             ns, cand, target, seed, family=profile["family"] or "overworld")
+            destroy_candidate(rcon, args.workdir, ns, cand)
+            rcon_failures = 0
+        except (RconTimeout, RconClosed) as exc:
+            reason = "rcon-timeout" if isinstance(exc, RconTimeout) else "rcon-closed"
+            diagnostic = capture_rcon_diagnostic(
+                args, wid, container, target, seed, exc)
+            log(wid, f"  shortlist RCON failure for {target} seed {seed}; "
+                     f"diagnostic: {diagnostic.name}")
+            rcon_failures += 1
+            rcon, rcon_failures = recover_rcon(
+                args, wid, container, rcon, rcon_failures, reason)
+            if rcon is None:
+                return 1
+        except Exception as exc:  # noqa: BLE001 — one render must not abort the batch
+            log(wid, f"  shortlist render error {target} seed {seed}: "
+                     f"{type(exc).__name__}: {exc}")
     return 0
 
 
@@ -908,14 +1117,11 @@ def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
         return 0
     t0 = time.time()
     misses = 0
+    rcon_failures = 0
     while not should_stop():
         seed = fresh_seed(seen)
         accepted = False
-        radius, force = spawn_gate_for(misses)
-        if misses and misses % SPAWN_ATTEMPTS == 0:
-            log(wid, f"  @worlds: {misses} rejections — "
-                     + ("KEEPER: accepting the next world seed regardless" if force
-                        else f"widening spawn gate to <= {radius} blocks"))
+        radius, _force = spawn_gate_for(misses)
         for name, ctype, gate in present:
             entry = dict(worlds[name])
             entry["type"] = ctype  # clone type for customdim
@@ -925,17 +1131,32 @@ def roll_world_slot(args, wid, container, rcon, ns, worlds, difficulty,
             cand = f"world_{name}__c{cycle:04d}"
             ok, spawn = roll_one(args, wid, container, rcon, ns, name,
                                  profile, seed, cand, csv_fh,
-                                 gate=gate and not force, spawn_radius=radius)
-            if gate and not force and not ok:
+                                 gate=gate, spawn_radius=radius)
+            if ok:
+                rcon_failures = 0
+                accepted = True
+                continue
+            if rcon_failure_reason(spawn):
+                rcon_failures += 1
+                record_abandoned_seed(args, wid, name, seed, spawn)
+                log(wid, f"  abandoned world seed {seed} ({spawn}; not scored)")
+                rcon, rcon_failures = recover_rcon(
+                    args, wid, container, rcon, rcon_failures, spawn)
+                if rcon is None:
+                    return 0, rcon
+                break
+            if gate:
                 misses += 1
                 log(wid, f"  rejected world seed {seed} (overworld {spawn})")
-                break
-            accepted = True
+            else:
+                log(wid, f"  incomplete world seed {seed} ({name} {spawn})")
+            accepted = False
+            break
         if accepted:
             log(wid, f"ACCEPTED world seed {seed} "
                      f"(+{misses} rejected, {int(time.time() - t0)}s)")
-            return 1
-    return 0
+            return 1, rcon
+    return 0, rcon
 
 
 def run_world_jobs(args, wid, container, base_config, csv_fh):
@@ -1018,7 +1239,7 @@ def main():
     ap.add_argument("--mvconfig", required=True)
     ap.add_argument("--base-config", required=True)
     ap.add_argument("--seedtest", required=True)
-    ap.add_argument("--mode", choices=["measure", "render", "measure+render", "world"],
+    ap.add_argument("--mode", choices=["measure", "render", "measure+render", "shortlist", "world"],
                     default="measure")
     ap.add_argument("--memory", default=os.environ.get("ROLL_MEMORY", "6G"))
     args = ap.parse_args()
@@ -1042,6 +1263,8 @@ def main():
                 csv_fh.write("target,seed,metric,value\n")
             if args.mode == "world":
                 return run_world_jobs(args, wid, container, base_config, csv_fh)
+            if args.mode == "shortlist":
+                return run_shortlist_jobs(args, wid, container, base_config)
             return run_dimension_jobs(args, wid, container, base_config, csv_fh)
     finally:
         docker("rm", "-f", container, check=False)

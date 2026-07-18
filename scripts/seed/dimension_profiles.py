@@ -53,6 +53,52 @@ HOSTILE_STRUCTURES = {
     "bandit_village", "illager_fort", "keep_kayra", "infested_temple",
 }
 
+# Endgame / boss-tier structures that should NOT appear near spawn in
+# normal dimensions — structures whose presence near spawn means the
+# adventure is over before it starts. Hard/compressed/dense dimensions
+# opt out via seedRoll.allowEndgameNearSpawn or mood=hard.
+# NOT included: fortress, bastion, end_city (mid-game infrastructure).
+# Rebuilt from mods/.ideas/structure-sets-extracted.csv (377 sets audited).
+ENDGAME_STRUCTURES = {
+    # vanilla climax
+    "ancient_city", "trial_chambers", "mansion", "monument",
+    # dungeons arise — mega-dungeons and hostile fortifications
+    "coliseum", "keep_kayra", "infested_temple",
+    "bandit_towers", "bandit_village", "illager_fort",
+    # dungeons arise — flying ships and boss encounters
+    "heavenly_rider", "heavenly_conqueror", "heavenly_challenger",
+    "typhon", "shiraz_palace", "plague_asylum", "mechanical_nest",
+    "kisegi_sanctuary", "thornborn_towers",
+    "undead_pirate_ship", "illager_corsair", "illager_galley",
+    "ceryneian_hind", "scorched_mines", "foundry",
+    # incendium nether endgame
+    "sanctum", "forbidden_castle", "nether_reactor",
+    # moogs nether/reimagined boss structures
+    "mns_nether_tower", "nether_temple",
+    # end climax (MES)
+    "phantom_citadel", "enderkeep", "end_gate_fortress",
+    # end mega ships (MES)
+    "mega_ship_crashed", "mega_ship_deepslate",
+    # epic dungeons (large tiers only)
+    "ice_dungeon_l", "sand_dungeon_l",
+    # boss-tier towers and temples
+    "ancient_crypt", "ancient_temple", "relic_temple", "wizard_tower",
+    # ocean endgame
+    "ocean_fortress",
+    # sky islands endgame
+    "sky_arena", "sky_castle_ruin", "sky_castle_tower",
+    # dungeons and taverns mega-dungeons (sp >= 100)
+    "creeping_crypt", "undead_crypt", "illager_hideout",
+    "shrine_tower", "trident_trial", "lone_citadel", "stray_fort",
+    "illager_manor",
+    # philip's ruins mega crypt
+    "antiquus_crypta",
+    # friends & foes boss encounter
+    "iceologer_citadel",
+}
+
+ENDGAME_SAFE_MOODS = {"hard", "adventurous"}
+
 # Short name -> locate id. Every id verified against the worldgen registries
 # extracted from the shipped jars/datapacks (Structory, Philip's Ruins,
 # Explorify, Dungeons Plus, Epic Dungeons, Adventure Dungeons, YUNG's,
@@ -108,6 +154,39 @@ STRUCTS = {
     "wizard_tower": "structory_towers:wizard_tower", "ancient_temple": "structory_towers:ancient_temple",
     "relic_temple": "structory_towers:sacred_relic_temple",
     "mansion": "minecraft:mansion", "monument": "minecraft:monument",
+    "heavenly_rider": "dungeons_arise:heavenly_rider",
+    "heavenly_conqueror": "dungeons_arise:heavenly_conqueror",
+    "heavenly_challenger": "dungeons_arise:heavenly_challenger",
+    "typhon": "dungeons_arise:typhon", "shiraz_palace": "dungeons_arise:shiraz_palace",
+    "plague_asylum": "dungeons_arise:plague_asylum",
+    "mechanical_nest": "dungeons_arise:mechanical_nest",
+    "kisegi_sanctuary": "dungeons_arise:kisegi_sanctuary",
+    "thornborn_towers": "dungeons_arise:thornborn_towers",
+    "undead_pirate_ship": "dungeons_arise:undead_pirate_ship",
+    "illager_corsair": "dungeons_arise:illager_corsair",
+    "illager_galley": "dungeons_arise:illager_galley",
+    "ceryneian_hind": "dungeons_arise:ceryneian_hind",
+    "scorched_mines": "dungeons_arise:scorched_mines",
+    "mining_complex": "dungeons_arise:mining_complex",
+    "foundry": "dungeons_arise:foundry",
+    # dungeons and taverns boss/mega structures
+    "creeping_crypt": "nova_structures:creeping_crypt",
+    "undead_crypt": "nova_structures:undead_crypt",
+    "illager_hideout": "nova_structures:illager_hideout",
+    "shrine_tower": "nova_structures:shrine_tower",
+    "trident_trial": "nova_structures:trident_trial_monument",
+    "lone_citadel": "nova_structures:lone_citadel",
+    "stray_fort": "nova_structures:stray_fort",
+    "illager_manor": "nova_structures:illager_manor",
+    # friends & foes
+    "iceologer_citadel": "friendsandfoes:citadel",
+    # moogs nether/reimagined boss structures
+    "mns_nether_tower": "mns:nether_tower",
+    "nether_temple": "mtr:nether_temple",
+    # philip's ruins mega crypt
+    "antiquus_crypta": "philipsruins:antiquus_crypta",
+    # sky islands castle tower
+    "sky_castle_tower": "mss:castle_tower",
     # ocean / frozen vanilla
     "shipwreck": "minecraft:shipwreck", "buried_treasure": "minecraft:buried_treasure",
     "igloo": "minecraft:igloo", "desert_pyramid": "minecraft:desert_pyramid",
@@ -426,6 +505,19 @@ def build_profile(dim, config, difficulty=None):
         weights["namesake"] = max(5, weights["namesake"] - 5)
         weights["variety"] = max(5, weights["variety"] - 5)
 
+    # Endgame near-spawn safety: hard/dense dims want endgame close;
+    # everything else rejects candidates with endgame inside a protected zone.
+    allow_endgame = sr.get("allowEndgameNearSpawn", False) \
+        or mood in ENDGAME_SAFE_MOODS \
+        or density == "dense"
+    endgame_safe_radius = 0 if allow_endgame else max(256, int(0.15 * radius))
+    endgame_battery = []
+    if not allow_endgame:
+        for sname in ENDGAME_STRUCTURES:
+            sid = resolve_struct(sname)
+            if sid and sname not in (wants or {}):
+                endgame_battery.append((sname, sid))
+
     return {
         "name": name,
         "blurb": sr.get("description")
@@ -454,6 +546,9 @@ def build_profile(dim, config, difficulty=None):
         "height_range": (tuple(sr["heightRange"]) if isinstance(sr.get("heightRange"), list)
                          and len(sr["heightRange"]) == 2
                          else CLONE_HEIGHT_RANGES.get(dim_type)),
+        "endgame_safe_radius": endgame_safe_radius,
+        "endgame_battery": endgame_battery,
+        "locate_cap": int(radius + 1000),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
             "type": dim_type,

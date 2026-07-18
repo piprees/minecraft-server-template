@@ -1,0 +1,378 @@
+mod_source,structure_set_id,theme,structures,spacing,separation,frequency,dimensions,rarity_class
+DungeonsArise-1.21.1-2.1.68-fabric-release.jar,dungeons_arise:minor_structures,maritime,dungeons_arise:fishing_hut(w=1); dungeons_arise:wishing_well(w=1); dungeons_arise:jungle_tree_house(w=1); dungeons_arise:bathhouse(w=1); dungeons_arise:abandoned_temple(w=1); dungeons_arise:lighthouse(w=1),45,40,1.0,overworld,uncommon
+Epic Dungeons 1.2.2.jar,epic:large_dungeons,dungeon,epic:large_dungeon(w=1); epic:large_ice_dungeon(w=1); epic:large_sand_dungeon(w=1),61,60,1.0,overworld,endgame
+Epic Dungeons 1.2.2.jar,epic:medium_dungeons,dungeon,epic:medium_sand_dungeon(w=1); epic:medium_ice_dungeon(w=1); epic:medium_plains_dungeon(w=1),45,31,1.0,overworld,uncommon
+Epic Dungeons 1.2.2.jar,epic:small_dungeons,dungeon,epic:small_ice_dungeon(w=1); epic:small_plains_dungeon(w=1); epic:small_sand_dungeon(w=1),31,4,1.0,overworld,common
+Explorify v1.6.5.mod.jar,explorify:badlands_pyramids,landmark,explorify:badlands_pyramid(w=1),32,12,0.75,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:black_spirals,landmark,explorify:black_spiral(w=1),40,18,1.0,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:campsites,settlement,explorify:campsite(w=1),32,16,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:dark_forest_settlements,settlement,explorify:dark_forest_settlement(w=1),32,16,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:desert_shrines,landmark,explorify:desert_shrine(w=1),24,8,1.0,overworld,common
+Explorify v1.6.5.mod.jar,explorify:end_shipwrecks,maritime,explorify:end_shipwreck(w=1),24,6,0.5,end,uncommon
+Explorify v1.6.5.mod.jar,explorify:farmsteads,settlement,explorify:farmstead(w=1),38,28,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:guide_posts,landmark,explorify:guide_post_cold(w=1); explorify:guide_post_warm(w=1),32,10,0.75,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:mangrove_huts,settlement,explorify:mangrove_hut(w=1),28,12,1.0,overworld,common
+Explorify v1.6.5.mod.jar,explorify:mausoleums,landmark,explorify:mausoleum(w=1),48,16,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:ruins,ruins,explorify:ruins(w=1),48,24,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:supply_caches,loot,explorify:supply_cache/birch(w=1); explorify:supply_cache/dark(w=1); explorify:supply_cache/desert(w=1); explorify:supply_cache/forest(w=1); explorify:supply_cache/jungle(w=1); explorify:supply_cache/mangrove(w=1); explorify:supply_cache/taiga(w=1),32,20,0.75,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:taverns,settlement,explorify:tavern(w=1),36,18,0.8,overworld,uncommon
+Explorify v1.6.5.mod.jar,explorify:watchtowers,landmark,explorify:watchtower/plains(w=1); explorify:watchtower/taiga(w=1); explorify:watchtower/savanna(w=1),48,24,0.75,overworld,uncommon
+Incendium_1.21.x_v5.4.4.jar,incendium:greater_structures,dungeon,incendium:sanctum(w=5); incendium:forbidden_castle(w=5); incendium:nether_reactor(w=3),30,16,1.0,nether,endgame
+Incendium_1.21.x_v5.4.4.jar,incendium:lesser_structures,settlement,incendium:quartz_kitchen(w=2); incendium:abandoned_tower(w=3); incendium:pipeline(w=2); incendium:piglin_village(w=2); incendium:infernal_altar(w=2); incendium:ruined_lab(w=4),20,12,1.0,nether,common
+Incendium_1.21.x_v5.4.4.jar,minecraft:nether_complexes,dungeon,minecraft:fortress(w=2); minecraft:bastion_remnant(w=3),16,8,1.0,nether,common
+MoogsEndStructures-1.21-2.0.3.jar,mes:astral_hideaway,landmark,mes:astral_hideaway(w=1),40,18,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:astral_meteorite,landmark,mes:astral_meteorite(w=1),27,12,1.0,end,common
+MoogsEndStructures-1.21-2.0.3.jar,mes:ender_spire,landmark,mes:ender_spire(w=1),46,38,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:enderbloom_grove,landmark,mes:enderbloom_grove(w=1),36,12,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:enderkeep_courtyard,landmark,mes:enderkeep_courtyard(w=1),44,25,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:enderpin_spikes,landmark,mes:enderpin_spikes(w=1),31,8,1.0,end,common
+MoogsEndStructures-1.21-2.0.3.jar,mes:enderskog,landmark,mes:enderskog(w=1),52,22,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:enderwatch_tower,landmark,mes:enderwatch_tower(w=1),42,12,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:endscraps,landmark,mes:endscraps(w=1),37,7,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:manuscript_shrine,landmark,mes:manuscript_shrine(w=1),41,27,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship,maritime,mes:mega_ship(w=1),77,15,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_basic,maritime,mes:mega_ship_basic(w=1),80,60,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_crashed,maritime,mes:mega_ship_crashed(w=1),75,46,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_crashed_2,maritime,mes:mega_ship_crashed_2(w=1),72,48,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_crashed_deepslate,maritime,mes:mega_ship_crashed_deepslate(w=1),79,52,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_deepslate,maritime,mes:mega_ship_deepslate(w=1),88,65,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_deepslate_2,maritime,mes:mega_ship_deepslate_2(w=1),82,46,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:mega_ship_deepslate_3,maritime,mes:mega_ship_deepslate_3(w=1),84,52,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:monolith,landmark,mes:monolith(w=1),36,21,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:mystical_archway,deco,mes:mystical_archway(w=1),44,32,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:mythic_garden,deco,mes:mythic_garden(w=1),38,27,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:phantom_citadel,landmark,mes:phantom_citadel(w=1),31,14,1.0,end,endgame
+MoogsEndStructures-1.21-2.0.3.jar,mes:placid_prairie,landmark,mes:placid_prairie(w=1),32,22,1.0,end,uncommon
+MoogsEndStructures-1.21-2.0.3.jar,mes:ruined_pillar,ruins,mes:ruined_pillar(w=1),12,7,1.0,end,common
+MoogsEndStructures-1.21-2.0.3.jar,mes:starlight_voyager,maritime,mes:starlight_voyager(w=1),32,17,1.0,end,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_1,deco,mns:bridge_1(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_2,deco,mns:bridge_2(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_3,deco,mns:bridge_3(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_4,deco,mns:bridge_4(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_5,deco,mns:bridge_5(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:bridge_6,deco,mns:bridge_6(w=1),90,70,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:circle_blackstone,landmark,mns:circle_blackstone(w=1),22,15,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:circle_nether_brick,landmark,mns:circle_nether_brick(w=1),23,11,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:copper_tower,landmark,mns:copper_tower(w=1),72,37,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:crimson_forge,landmark,mns:crimson_forge(w=1),24,19,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:crimson_lava_well,deco,mns:crimson_lava_well(w=1),24,19,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:giant_skull,landmark,mns:giant_skull(w=1),54,46,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:grave_yard,landmark,mns:grave_yard(w=1),36,22,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:large_blackstone_pillars,landmark,mns:large_blackstone_pillars(w=1),27,18,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:large_blackstone_walls,landmark,mns:large_blackstone_walls(w=1),29,11,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:large_house_1,settlement,mns:large_house_1(w=1),42,38,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:large_nether_brick,landmark,mns:large_nether_brick(w=1),32,16,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:lava_pool,landmark,mns:lava_pool(w=1),41,26,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:leafy_rubble,landmark,mns:leafy_rubble(w=1),22,15,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_blackstone,landmark,mns:medium_blackstone(w=1),23,18,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_crimson_fungus,landmark,mns:medium_crimson_fungus(w=1); mns:medium_crimson_fungus_2(w=1),24,19,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_crimson_well,deco,mns:medium_crimson_well(w=1),22,12,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_house,settlement,mns:medium_house(w=1),43,34,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_house_2,settlement,mns:medium_house_2(w=1),44,36,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_warped_fungus,landmark,mns:medium_warped_fungus(w=1); mns:medium_warped_fungus_2(w=1),28,13,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:medium_warped_well,deco,mns:medium_warped_well(w=1),24,14,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:mega_arenas,landmark,mns:small_arena(w=5); mns:large_arena(w=3); mns:dragon_arena(w=1),150,100,1.0,nether,endgame
+MoogsNetherStructures-1.21-3.0.0.jar,mns:mega_fortress,landmark,mns:mega_fortress(w=1),116,76,1.0,nether,endgame
+MoogsNetherStructures-1.21-3.0.0.jar,mns:nether_tower,landmark,mns:nether_tower(w=1),115,56,1.0,nether,very_rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:nether_wart_farm,settlement,mns:nether_wart_farm(w=1),85,25,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:ruined_portal,ruins,mns:ruined_portal(w=1),30,28,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:sandy_skull,landmark,mns:sandy_skull(w=1),40,36,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:shrine,landmark,mns:shrine(w=1); mns:smoking_shrine(w=1),24,17,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:small_nether_brick,deco,mns:small_nether_brick(w=1),24,20,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:soul_fire,landmark,mns:soul_fire(w=1),25,16,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:sword,landmark,mns:sword(w=1),45,42,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:train,landmark,mns:train(w=1),65,50,1.0,nether,rare
+MoogsNetherStructures-1.21-3.0.0.jar,mns:very_small_blackstone,deco,mns:very_small_blackstone(w=1); mns:very_small_blackstone_2(w=1); mns:very_small_blackstone_3(w=1); mns:very_small_blackstone_4(w=1),23,12,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:very_small_nether_brick,deco,mns:very_small_nether_brick(w=1); mns:very_small_nether_brick_2(w=1); mns:very_small_nether_brick_3(w=1),22,12,1.0,nether,common
+MoogsNetherStructures-1.21-3.0.0.jar,mns:warped_dome,landmark,mns:warped_dome(w=1),42,38,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:warped_house,settlement,mns:warped_house(w=1),42,38,1.0,nether,uncommon
+MoogsNetherStructures-1.21-3.0.0.jar,mns:warped_pool,landmark,mns:warped_pool(w=1),33,21,1.0,nether,uncommon
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:arena,landmark,mss:arena(w=1),158,92,1.0,overworld,endgame
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:birch_river,landmark,mss:birch_river(w=1),96,34,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:calcite_house,settlement,mss:calcite_house(w=1),68,27,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:castle_ruin,ruins,mss:castle_ruin(w=1),107,56,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:castle_tower,landmark,mss:castle_tower(w=1),114,52,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:cherry_river,landmark,mss:cherry_river(w=1),53,17,1.0,overworld,uncommon
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:desert_pyramid,ruins,mss:desert_pyramid(w=1),80,42,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:desert_well,deco,mss:desert_well(w=1),66,15,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:diorite_house,settlement,mss:diorite_house(w=1),156,97,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:frozen_pond,landmark,mss:frozen_pond(w=1),94,31,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:jungle,landmark,mss:jungle(w=1),72,36,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:large_tower,landmark,mss:large_tower(w=1),140,96,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:leaf_hollow,landmark,mss:leaf_hollow(w=1),104,62,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:mangrove,landmark,mss:mangrove(w=1),68,32,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:muddy_water_hole,landmark,mss:muddy_water_hole(w=1),132,72,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:mushroom,landmark,mss:mushroom(w=1),124,48,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:nether_portal,landmark,mss:nether_portal(w=1),99,52,1.0,nether,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:palm_island,landmark,mss:palm_island(w=1),102,46,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:red_sand,landmark,mss:red_sand(w=1),142,72,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:small_deepslate_house,settlement,mss:small_deepslate_house(w=1),124,36,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:small_oak_house,settlement,mss:small_oak_house(w=1),105,35,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:small_pond,deco,mss:small_pond(w=1),92,18,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:small_tower,landmark,mss:small_tower(w=1),108,46,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:spruce_huts,settlement,mss:spruce_huts(w=1),134,48,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:taiga,landmark,mss:taiga(w=1),95,42,1.0,overworld,rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_1,landmark,mss:tree_1(w=1),147,73,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_2,landmark,mss:tree_2(w=1),148,74,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_3,landmark,mss:tree_3(w=1),176,68,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_4,landmark,mss:tree_4(w=1),159,82,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_5,landmark,mss:tree_5(w=1),175,99,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_6,landmark,mss:tree_6(w=1),182,67,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_7,landmark,mss:tree_7(w=1),186,82,1.0,overworld,legendary
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:tree_8,landmark,mss:tree_8(w=1),156,64,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:volcano,landmark,mss:volcano(w=1),158,78,1.0,overworld,very_rare
+MoogsSoaringStructures-1.21-2.1.2.jar,mss:white_house,settlement,mss:white_house(w=1),145,92,1.0,overworld,very_rare
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:badlands_temple,landmark,mtr:badlands_temple(w=1),55,6,1.0,overworld,uncommon
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:desert_temple,landmark,mtr:desert_temple(w=1),50,8,1.0,overworld,uncommon
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:jungle_temple,landmark,mtr:jungle_temple(w=1),50,30,1.0,overworld,uncommon
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:nether_temple,landmark,mtr:nether_temple(w=1),150,40,1.0,nether,very_rare
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:ocean_temple,maritime,mtr:ocean_temple(w=1),60,30,1.0,overworld,rare
+MoogsTemplesReimagined-1.21-1.1.3.jar,mtr:stronghold,dungeon,mtr:stronghold(w=1),150,90,1.0,overworld,endgame
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:acacia_log_pile,landmark,mvs:acacia_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:acacia_tree,landmark,mvs:acacia_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:azelea_house,settlement,mvs:azelea_house(w=1),35,31,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:barn,landmark,mvs:barn(w=1),31,26,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:beach_bar,landmark,mvs:beach_bar(w=1),48,20,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:bee_dome,landmark,mvs:bee_dome(w=1),34,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:bench,deco,mvs:bench(w=1),18,14,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:big_oak_tree,landmark,mvs:big_oak_tree(w=1),39,26,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:birch_log_pile,landmark,mvs:birch_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:birch_tree,landmark,mvs:birch_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:boulder,landmark,mvs:boulder(w=1),35,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:campsite,settlement,mvs:campsite(w=1),37,30,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:cart,landmark,mvs:cart(w=1),34,26,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:cartographer_tower,landmark,mvs:cartographer_tower(w=1),83,46,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:castle_ruins,ruins,mvs:castle_ruins(w=1),45,30,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:cathedral,landmark,mvs:cathedral(w=1),105,98,1.0,overworld,very_rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:cherry_tree,landmark,mvs:cherry_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:crimson_enchanting_table,landmark,mvs:crimson_enchanting_table(w=1),77,58,1.0,nether,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:crystal,landmark,mvs:crystal(w=1),112,62,1.0,overworld,very_rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dark_oak_log_pile,landmark,mvs:dark_oak_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dark_oak_tree,landmark,mvs:dark_oak_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_acacia,landmark,mvs:dead_tree_acacia(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_birch,landmark,mvs:dead_tree_birch(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_cherry,landmark,mvs:dead_tree_cherry(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_dark_oak,landmark,mvs:dead_tree_dark_oak(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_jungle,landmark,mvs:dead_tree_jungle(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_mangrove,landmark,mvs:dead_tree_mangrove(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:dead_tree_oak,landmark,mvs:dead_tree_oak(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:deepslate_house,settlement,mvs:deepslate_house(w=1),42,34,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:desert_house,settlement,mvs:desert_house(w=1),48,22,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:desert_pump,landmark,mvs:desert_pump(w=1),32,8,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:diorite_and_deepslate_house,settlement,mvs:diorite_and_deepslate_house(w=1),44,34,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:diorite_tower,landmark,mvs:diorite_tower(w=1),50,38,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:duck,landmark,mvs:duck(w=1),94,46,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:fire_camp,settlement,mvs:fire_camp(w=1),32,17,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:floating_islands,landmark,mvs:floating_islands(w=1),76,38,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:flower_hole,deco,mvs:flower_hole(w=1),46,28,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:fox_hut,settlement,mvs:fox_hut(w=1),48,8,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:gallows,landmark,mvs:gallows(w=1),36,28,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:haystack,landmark,mvs:haystack(w=1),16,7,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:horse_campsite,settlement,mvs:horse_campsite(w=1),19,17,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:horse_pen,landmark,mvs:horse_pen(w=1),38,26,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:house,settlement,mvs:house(w=1),38,31,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:jungle_log_pile,landmark,mvs:jungle_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:jungle_palm_tree,landmark,mvs:jungle_palm_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:jungle_tower,landmark,mvs:jungle_tower(w=1),96,80,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:jungle_tree,landmark,mvs:jungle_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:lamp_chest,loot,mvs:lamp_chest(w=1),45,14,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:large_cart_1,landmark,mvs:large_cart_1(w=1),56,20,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:large_cart_2,landmark,mvs:large_cart_2(w=1),56,20,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:large_floating_island,landmark,mvs:large_floating_island(w=1),65,49,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:large_mushroom,landmark,mvs:large_mushroom(w=1),98,36,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:large_warped_tower,landmark,mvs:large_warped_tower(w=1),51,28,1.0,nether,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:lecturn_garden,deco,mvs:lecturn_garden(w=1),36,16,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:log_ruin,ruins,mvs:log_ruin(w=1),55,30,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:medium_bamboo_cart,landmark,mvs:medium_bamboo_cart(w=1),12,8,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:medium_igloo_1,ruins,mvs:medium_igloo_1(w=1),27,21,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:medium_oak_lantern,deco,mvs:medium_oak_lantern(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:mine_with_campsite,settlement,mvs:mine_with_campsite(w=1),48,31,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:mud_brick_house_1,settlement,mvs:mud_brick_house_1(w=1),46,32,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:mushroom_pond,landmark,mvs:mushroom_pond(w=1),48,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:mushroom_statue,landmark,mvs:mushroom_statue(w=1),92,16,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:mushroom_well,deco,mvs:mushroom_well(w=1),84,18,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:nether_devil,landmark,mvs:nether_devil(w=1),64,16,1.0,nether,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:nether_well,deco,mvs:nether_well(w=1),48,30,1.0,nether,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:oak_log_pile,landmark,mvs:oak_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:oak_tree,landmark,mvs:oak_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:ocean_tower,maritime,mvs:ocean_tower(w=1),35,20,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:other_wells,landmark,mvs:small_well(w=1); mvs:small_copper_well(w=1); mvs:small_tower_well(w=1); mvs:well(w=1); mvs:rare_well(w=1); mvs:rocky_well(w=1); mvs:oak_well(w=1); mvs:birch_well(w=1); mvs:dark_oak_well(w=1); mvs:spruce_well(w=1); mvs:jungle_well(w=1); mvs:acacia_well(w=1),24,18,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:out_house,settlement,mvs:out_house(w=1),48,30,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:paths,landmark,mvs:paths(w=1),35,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:pile,landmark,mvs:pile(w=1),13,7,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:prismarine_house_1,settlement,mvs:prismarine_house_1(w=1),44,32,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:prismarine_house_2,settlement,mvs:prismarine_house_2(w=1),44,32,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:railway,landmark,mvs:railway(w=1),46,27,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:rare_well,deco,mvs:rare_well(w=1),68,38,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:red_tower,landmark,mvs:red_tower(w=1),76,14,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:ruined_beacon,ruins,mvs:ruined_beacon(w=1),75,60,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:shed,landmark,mvs:shed(w=1),38,23,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_acacia_lantern,deco,mvs:small_acacia_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_bamboo_lantern,deco,mvs:small_bamboo_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_birch_lantern,deco,mvs:small_birch_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_campfire_lantern,settlement,mvs:small_campfire_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_cherry_lantern,deco,mvs:small_cherry_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_dark_oak_lantern,deco,mvs:small_dark_oak_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_igloo,ruins,mvs:small_igloo(w=1),31,26,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_jungle_lantern,deco,mvs:small_jungle_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_mangrove_lantern,deco,mvs:small_mangrove_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_oak_lantern,deco,mvs:small_oak_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_oak_pond,deco,mvs:small_oak_pond(w=1),35,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_pillager_tower,landmark,mvs:small_pillager_tower(w=1),34,28,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_ruin,ruins,mvs:small_ruin(w=1),38,26,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_ship,maritime,mvs:small_ship(w=1),34,28,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_spruce_lantern,deco,mvs:small_spruce_lantern(w=1),24,12,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_swamp_house,settlement,mvs:small_swamp_house(w=1),78,20,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:small_tower_well,landmark,mvs:small_tower_well(w=1),23,15,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:snowy_dog_hut,settlement,mvs:snowy_dog_hut(w=1),28,24,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:snowy_fossil,ruins,mvs:snowy_fossil(w=1),26,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:spruce_log_pile,landmark,mvs:spruce_log_pile(w=1),26,16,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:spruce_tree,landmark,mvs:spruce_tree(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:stalls,landmark,mvs:red_stall(w=1); mvs:orange_stall(w=1); mvs:pink_stall(w=1); mvs:blue_stall(w=1),32,16,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:statue_ruins,ruins,mvs:statue_ruins(w=1),38,30,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:stone_fountain,deco,mvs:stone_fountain(w=1),36,12,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:stone_pillars,landmark,mvs:stone_pillars(w=1),42,36,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:stone_rock,landmark,mvs:stone_rock(w=1),18,13,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:sunzi_gate,landmark,mvs:sunzi_gate(w=1),54,20,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:tall_house,settlement,mvs:tall_house(w=1),42,34,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:tree_monument,landmark,mvs:tree_monument(w=1),76,65,1.0,overworld,rare
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:villager_statue,settlement,mvs:villager_statue(w=1),56,40,1.0,overworld,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:warped_house,settlement,mvs:warped_house(w=1),48,30,1.0,nether,uncommon
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:wheat_grain_bin,landmark,mvs:wheat_grain_bin(w=1),26,14,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:windmill,settlement,mvs:windmill(w=1),26,14,1.0,overworld,common
+MoogsVoyagerStructures-1.21-5.0.14.jar,mvs:wooden_wheat_farm,settlement,mvs:wooden_wheat_farm(w=1),26,14,1.0,overworld,common
+Nullscape_1.21.x_v1.2.14.jar,minecraft:end_cities,settlement,minecraft:end_city(w=1),26,18,1.0,end,common
+Nullscape_1.21.x_v1.2.14.jar,nullscape:dragon_skeleton,landmark,nullscape:dragon_skeleton(w=1),22,12,1.0,end,common
+Nullscape_1.21.x_v1.2.14.jar,nullscape:rift,landmark,nullscape:rift(w=1),20,12,1.0,end,common
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:ancient_crypt,dungeon,philipsruins:ancient_crypt(w=1),80,50,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:ancient_ruins,ruins,philipsruins:ancient_ruins(w=1),60,30,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:antiquus_crypta,dungeon,philipsruins:antiquus_crypta(w=1),90,40,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:desert_structures,dungeon,philipsruins:badlands_start_dungeon(w=1); philipsruins:badlands_structures(w=1); philipsruins:desert_structures(w=1),39,15,1.0,overworld,uncommon
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:end_ruins,ruins,philipsruins:end_ruins(w=1); philipsruins:end_gate_fortress(w=1),35,25,1.0,nether,uncommon
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:field_stone_ruins,ruins,philipsruins:field_stone_ruins(w=1),75,35,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:field_stone_ruins_rocks,ruins,philipsruins:field_stone_ruins_rocks(w=1),40,27,1.0,overworld,uncommon
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:level_one_ruins,ruins,philipsruins:level_one_ruins(w=1),75,40,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:level_three_ruins,ruins,philipsruins:level_three_ruins(w=1),85,45,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:level_two_ruins,ruins,philipsruins:level_two_ruins(w=1); philipsruins:level_two_ruins_pool(w=1),80,50,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:lost_soul_city,settlement,philipsruins:lost_soul_city(w=1),80,65,1.0,overworld,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:nether_ruins,ruins,philipsruins:start_nether_ruin(w=1),310,90,1.0,nether,legendary
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:nether_structures,dungeon,philipsruins:start_nether_dungeon(w=1); philipsruins:sealedruinedghaststatue1(w=1); philipsruins:nether_lava_ruins(w=1),30,25,1.0,nether,common
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:ocean_fortress_main,maritime,philipsruins:ocean_fortress(w=1),70,50,1.0,nether,rare
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:ocean_ruins,maritime,philipsruins:ocean_ruins(w=1),50,40,1.0,overworld,uncommon
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:pumpkin_ruins,ruins,philipsruins:pumpkin_ruins(w=1),50,40,1.0,overworld,uncommon
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:rare_ruin,ruins,philipsruins:rare_ruin(w=1),360,130,1.0,overworld,legendary
+Philips-Ruins1.21.1-1.9-Fabric.jar,philipsruins:underground_structures,dungeon,philipsruins:lost_soul_dungeon(w=1); philipsruins:bone_dungeon(w=1); philipsruins:underground_structures(w=1); philipsruins:sculk_dungeon(w=1),60,35,1.0,overworld,rare
+Structory_26.1_v1.3.16.jar,structory:mid_rare_ruin,dungeon,structory:taiga_ruin_surface(w=1); structory:taiga_ruin_underground(w=1); structory:northern_ruin(w=1),30,16,0.7,overworld,uncommon
+Structory_26.1_v1.3.16.jar,structory:old_manor,ruins,structory:old_manor(w=3); structory:dense_forest_ruin(w=1),42,16,1.0,overworld,uncommon
+Structory_26.1_v1.3.16.jar,structory:outcast_villager,settlement,structory:abandoned_chapel(w=5); structory:graveyard(w=2); structory:abandoned_camp(w=3); structory:outcast_villager_grassy(w=8); structory:ruin_grassy(w=8); structory:firetower(w=4); structory:outcast_villager_desert(w=4); structory:boat(w=4),44,14,1.0,overworld,uncommon
+Structory_26.1_v1.3.16.jar,structory:ruin,ruins,structory:jungle_ruin(w=1),30,10,1.0,overworld,common
+Structory_26.1_v1.3.16.jar,structory:ruin_quiet,ruins,structory:swamp_ruin(w=1),23,10,1.0,overworld,common
+Structory_Towers_26.1_v1.0.16.jar,structory_towers:end_towers,landmark,structory_towers:end/end_tower(w=1),82,10,0.4,end,very_rare
+Structory_Towers_26.1_v1.0.16.jar,structory_towers:nether_towers,settlement,structory_towers:nether/strange_outpost(w=5); structory_towers:nether/warped_outpost(w=6); structory_towers:nether/fortress_tower(w=3),33,10,0.9,nether,uncommon
+Terralith_1.21.x_v2.6.2.jar,terralith:rare_dungeon,dungeon,terralith:spire(w=1),36,28,1.0,overworld,uncommon
+Terralith_1.21.x_v2.6.2.jar,terralith:rare_village,settlement,terralith:fortified_village(w=1); terralith:fortified_desert_village(w=1),46,18,1.0,overworld,uncommon
+Terralith_1.21.x_v2.6.2.jar,terralith:regular,settlement,terralith:witch_hut(w=1); terralith:desert_outpost(w=1); terralith:valley_lodge(w=1); terralith:glacial_hut(w=1); terralith:igloo(w=1),27,15,1.0,overworld,common
+Terralith_1.21.x_v2.6.2.jar,terralith:rubble,landmark,terralith:rubble_forest(w=1); terralith:rubble_taiga(w=1); terralith:rubble_jungle(w=1); terralith:rubble_mesa(w=1); terralith:rubble_mountain(w=1); terralith:rubble_desert(w=1),26,20,1.0,overworld,common
+YungsBetterDesertTemples-1.21.1-Fabric-4.1.5.jar,betterdeserttemples:desert_temples,landmark,betterdeserttemples:desert_temple(w=1),30,20,1.0,overworld,common
+YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar,betterdungeons:skeleton_dungeons,dungeon,betterdungeons:skeleton_dungeon(w=1),46,23,1.0,overworld,uncommon
+YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar,betterdungeons:small_nether_dungeons,dungeon,betterdungeons:small_nether_dungeon(w=1),16,10,1.0,nether,common
+YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar,betterdungeons:spider_dungeons,dungeon,betterdungeons:spider_dungeon(w=1),44,22,1.0,overworld,uncommon
+YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar,betterdungeons:zombie_dungeons,dungeon,betterdungeons:zombie_dungeon(w=1),48,24,1.0,overworld,uncommon
+YungsBetterJungleTemples-1.21.1-Fabric-3.1.2.jar,betterjungletemples:jungle_temples,landmark,betterjungletemples:jungle_temple(w=1),24,8,1.0,overworld,common
+YungsBetterMineshafts-1.21.1-Fabric-5.1.1.jar,bettermineshafts:mineshafts,dungeon,bettermineshafts:mineshaft_acacia(w=1); bettermineshafts:mineshaft_desert(w=1); bettermineshafts:mineshaft_ice(w=1); bettermineshafts:mineshaft_jungle(w=1); bettermineshafts:mineshaft_lush(w=1); bettermineshafts:mineshaft_mesa(w=1); bettermineshafts:mineshaft_mushroom(w=1); bettermineshafts:mineshaft_oak(w=1); bettermineshafts:mineshaft_red_desert(w=1); bettermineshafts:mineshaft_spruce(w=1); bettermineshafts:mineshaft_spruce_snowy(w=1); bettermineshafts:mineshaft_overgrown(w=1); bettermineshafts:mineshaft_dripstone(w=1),1,0,0.003,overworld,common
+YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar,betterfortresses:fortress,landmark,betterfortresses:fortress(w=1),30,20,1.0,nether,common
+YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar,betteroceanmonuments:ocean_monument,maritime,betteroceanmonuments:ocean_monument(w=1),50,20,1.0,overworld,uncommon
+YungsBetterStrongholds-1.21.1-Fabric-5.1.3.jar,betterstrongholds:stronghold,dungeon,betterstrongholds:stronghold(w=1),85,50,1.0,overworld,endgame
+YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar,betterwitchhuts:witch_circle,settlement,betterwitchhuts:witch_circle(w=1),40,10,1.0,overworld,uncommon
+YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar,betterwitchhuts:witch_hut,settlement,betterwitchhuts:witch_hut(w=1),30,8,1.0,overworld,common
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:bygonedungeon,dungeon,adventuredungeons:bygonedungeon(w=1),40,12,1.0,overworld,uncommon
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:coldlair,dungeon,adventuredungeons:coldlair(w=1),40,12,1.0,overworld,uncommon
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:murkydungeon,dungeon,adventuredungeons:murkydungeon(w=1),40,12,1.0,overworld,uncommon
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:ruins_desert,dungeon,adventuredungeons:ruins_desert(w=1),30,10,1.0,overworld,common
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:ruins_snow,dungeon,adventuredungeons:ruins_snow(w=1),30,10,1.0,overworld,common
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:ruins_standard,dungeon,adventuredungeons:ruins_standard(w=1),30,10,1.0,overworld,common
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:trialrooms,dungeon,adventuredungeons:trialrooms(w=1),35,12,1.0,overworld,uncommon
+adventuredungeons-fabric-1.21-1.3.1.jar,adventuredungeons:underground_camp,settlement,adventuredungeons:underground_camp(w=1),35,12,1.0,overworld,uncommon
+datapack:structures,ati_structures:aboveground_large,settlement,ati_structures:ancient_temple(w=1); ati_structures:desert_outpost(w=1); ati_structures:fortified_temple(w=1); ati_structures:granite_fort(w=1); ati_structures:herobrine_stronghold(w=1); ati_structures:jungle_settlement(w=1); ati_structures:manor(w=1); ati_structures:marble_chateau(w=1); ati_structures:old_fort(w=1); ati_structures:quarry(w=1); ati_structures:sinking_temple(w=1); ati_structures:tavern(w=1); ati_structures:villager_inn(w=1); ati_structures:woodland_keep(w=1); ati_structures:ruined_castle(w=1); ati_structures:arachnid_dwelling(w=1); ati_structures:steam_house(w=1); ati_structures:jungle_grotto(w=1); ati_structures:castillo(w=1); ati_structures:ati_stoneworks(w=1); ati_structures:old_residence(w=1); ati_structures:catalonian_castle(w=1),70,69,0.85,overworld,endgame
+datapack:structures,ati_structures:aboveground_medium,maritime,ati_structures:dark_tower(w=1); ati_structures:dojo(w=1); ati_structures:monastery_tower(w=1); ati_structures:small_keep(w=1); ati_structures:illager_tower(w=1); ati_structures:mosque(w=1); ati_structures:lighthouse(w=1); ati_structures:overgrown_outpost(w=1); ati_structures:wither_keep(w=1); ati_structures:dark_keep(w=1),55,3,0.85,overworld,rare
+datapack:structures,ati_structures:rare,settlement,ati_structures:gnome_hut(w=1); ati_structures:warden_monument(w=1); ati_structures:ancient_vessel(w=1),111,99,0.85,overworld,very_rare
+datapack:structures,ati_structures:underground_small,maritime,ati_structures:underwater_dungeon(w=1); ati_structures:silverfish_nest(w=1); ati_structures:sculk_deposit(w=1); ati_structures:rotting_temple_underground(w=1); ati_structures:pufferfish_cave(w=1),15,10,0.6,overworld,common
+datapack:structures,betterdungeons:small_dungeons,dungeon,betterdungeons:small_dungeon(w=1),10,6,0.6,overworld,common
+datapack:structures,dungeons_arise:major_structures,maritime,dungeons_arise:bandit_village(w=1); dungeons_arise:ceryneian_hind(w=1); dungeons_arise:coliseum(w=1); dungeons_arise:heavenly_rider(w=1); dungeons_arise:heavenly_conqueror(w=1); dungeons_arise:illager_campsite(w=3); dungeons_arise:illager_corsair(w=2); dungeons_arise:illager_fort(w=1); dungeons_arise:illager_galley(w=2); dungeons_arise:illager_windmill(w=1); dungeons_arise:merchant_campsite(w=3); dungeons_arise:monastery(w=1); dungeons_arise:mushroom_house(w=2); dungeons_arise:mushroom_mines(w=1); dungeons_arise:mushroom_village(w=1); dungeons_arise:scorched_mines(w=1); dungeons_arise:small_blimp(w=3); dungeons_arise:typhon(w=1); dungeons_arise:undead_pirate_ship(w=1); dungeons_arise:greenwood_pub(w=2); dungeons_arise:aviary(w=1); dungeons_arise:bandit_towers(w=1); dungeons_arise:foundry(w=1); dungeons_arise:heavenly_challenger(w=1); dungeons_arise:thornborn_towers(w=1); dungeons_arise:infested_temple(w=1); dungeons_arise:mining_complex(w=1); dungeons_arise:plague_asylum(w=1); dungeons_arise:shiraz_palace(w=1); dungeons_arise:keep_kayra(w=1); dungeons_arise:mechanical_nest(w=1); dungeons_arise:kisegi_sanctuary(w=1),50,45,0.5,overworld,endgame
+datapack:structures,dungeons_plus:dungeons,dungeon,dungeons_plus:mouldy_dungeon(w=20); dungeons_plus:muddy_dungeon(w=20); dungeons_plus:infested_dungeon(w=20); dungeons_plus:deepwater_dungeon(w=20); dungeons_plus:cold_dungeon(w=20); dungeons_plus:frozen_dungeon(w=20); dungeons_plus:webbed_dungeon(w=20); dungeons_plus:lush_dungeon(w=20); dungeons_plus:dusty_tomb(w=20); dungeons_plus:scorched_tomb(w=20),8,3,0.5,overworld,common
+datapack:structures,minecraft:villages,settlement,minecraft:village_plains(w=1); minecraft:village_desert(w=1); minecraft:village_savanna(w=1); minecraft:village_snowy(w=1); minecraft:village_taiga(w=1),26,8,1.0,overworld,common
+datapack:structures,nova_structures:deepslate_camp,settlement,nova_structures:deepslate_camp(w=1),15,7,0.7,overworld,common
+datapack:structures,nova_structures:villages_birch,settlement,nova_structures:village_birch(w=1),26,8,1.0,overworld,common
+datapack:structures,nova_structures:villages_jungle,settlement,nova_structures:village_jungle(w=1),26,8,1.0,overworld,common
+datapack:structures,nova_structures:villages_swamp,settlement,nova_structures:village_swamp(w=1),26,8,1.0,overworld,common
+datapack:structures,philipsruins:ancient_dungeon,dungeon,philipsruins:ancient_dungeon(w=1),10,3,0.5,overworld,common
+datapack:structures,philipsruins:ancient_towers,ruins,philipsruins:ancient_towers(w=1),50,40,0.85,overworld,uncommon
+datapack:structures,structory_towers:rare_towers,settlement,structory_towers:sacred_relic_temple(w=1); structory_towers:quarter_outpost(w=1); structory_towers:mirage_outpost(w=1); structory_towers:pillager_lookout(w=1),55,16,0.5312,overworld,rare
+datapack:structures,structory_towers:towers,maritime,structory_towers:ancient_temple(w=1); structory_towers:engineer_tower(w=1); structory_towers:farmer_outpost(w=1); structory_towers:foraging_outpost(w=1); structory_towers:great_toadstool(w=1); structory_towers:lighthouse(w=1); structory_towers:nomad_outpost(w=1); structory_towers:ocean_pillar(w=1); structory_towers:overgrown_mangrove(w=1); structory_towers:quarter_outpost(w=1); structory_towers:small_firetower(w=1); structory_towers:taiga_outpost(w=1); structory_towers:wizard_tower(w=1),40,10,0.6162,overworld,uncommon
+datapack:structures,structory_towers:ultra_rare_towers,landmark,structory_towers:warped_greatsword(w=1),80,42,0.5737,nether,very_rare
+datapack:structures,terralith:mage,dungeon,terralith:mage_tower(w=1); terralith:mage_complex(w=1); terralith:mage_tower_summer(w=1); terralith:mage_tower_autumn(w=1); terralith:mage_tower_winter(w=1); terralith:mage_tower_spring(w=1),28,16,0.85,overworld,common
+datapack:structures,terralith:underground,maritime,terralith:underground/oak_cabin(w=11); terralith:underground/giant_bee_hive(w=2); terralith:underground/mining_outpost(w=13); terralith:underground/old_refinery(w=5); terralith:underground/sunken_tower(w=5),11,3,0.7,overworld,common
+datapack:structures,terralith:underground_dungeon,dungeon,terralith:underground/frosted_dungeon(w=1),9,6,0.6,overworld,common
+deadly-deadly-dungeon-1.0.4.jar,ddd:dddtowers,landmark,ddd:monolithic_tower(w=1); ddd:monolithic_tower(w=1),43,32,1.0,overworld,uncommon
+deadly-deadly-dungeon-1.0.4.jar,ddd:dddungeons,dungeon,ddd:minor_dungeon_plains(w=1); ddd:minor_dungeon_plains(w=7); ddd:spider_lair(w=2); ddd:minor_dungeon_desert(w=1); ddd:minor_dungeon_desert(w=7); ddd:minor_dungeon_frozen(w=1); ddd:minor_dungeon_frozen(w=9),50,40,1.0,overworld,uncommon
+dungeons+-1.10.1.jar,dungeons_plus:ruins,dungeon,dungeons_plus:dungeon_ruins(w=1),18,10,0.5,overworld,common
+dungeons-and-taverns-v4.4.4.jar,minecraft:woodland_mansions,landmark,minecraft:mansion(w=1); nova_structures:illager_manor(w=1),80,20,1.0,overworld,endgame
+dungeons-and-taverns-v4.4.4.jar,nova_structures:badlands_miner_outpost,settlement,nova_structures:badlands_miner_outpost(w=1),60,12,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:badlands_miner_outpost_mineshafts,settlement,minecraft:mineshaft_mesa(w=1),60,12,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:bunker,landmark,nova_structures:bunker(w=1),50,10,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:conduit_ruin,ruins,nova_structures:conduit_ruin(w=1),140,90,1.0,overworld,very_rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:creeping_crypt,dungeon,nova_structures:creeping_crypt(w=1),100,10,1.0,overworld,very_rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:desert_ruins,ruins,nova_structures:desert_ruins(w=1),80,12,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:end_castle,landmark,nova_structures:end_castle(w=1),0,0,1.0,end,common
+dungeons-and-taverns-v4.4.4.jar,nova_structures:end_lighthouses,maritime,nova_structures:end_lighthouse(w=1),40,22,1.0,end,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:end_ship,maritime,nova_structures:end_ship(w=1),40,10,0.25,end,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:firewatch_towers,landmark,nova_structures:firewatch_tower_birch(w=1); nova_structures:firewatch_tower_cherry(w=1); nova_structures:firewatch_tower_dark_oak(w=1); nova_structures:firewatch_tower_forest(w=1); nova_structures:firewatch_tower_jungle(w=1); nova_structures:firewatch_tower_savanna(w=1); nova_structures:firewatch_tower_mangrove(w=1); nova_structures:firewatch_tower_swamp(w=1); nova_structures:firewatch_tower_taiga(w=1),50,15,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:illager_camp,settlement,nova_structures:illager_camp(w=1),50,32,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:illager_hideout,landmark,nova_structures:illager_hideout(w=1),200,12,1.0,overworld,legendary
+dungeons-and-taverns-v4.4.4.jar,nova_structures:jungle_ruins,ruins,nova_structures:jungle_ruins(w=1),80,12,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:mangrove_witch_hut,settlement,nova_structures:mangrove_witch_hut(w=1),32,8,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:nether_camps,settlement,nova_structures:skeleton_camp_crimson(w=2); nova_structures:skeleton_camp_waste(w=2); nova_structures:skeleton_camp_warped(w=2); nova_structures:skeleton_camp_soul(w=2); nova_structures:piglin_camp(w=3),20,10,1.0,nether,common
+dungeons-and-taverns-v4.4.4.jar,nova_structures:nether_skeleton_towers,landmark,nova_structures:nether_skeleton_tower_waste(w=1); nova_structures:nether_skeleton_tower_warped(w=1); nova_structures:nether_skeleton_tower_crimson(w=1); nova_structures:nether_skeleton_tower_soul(w=1),40,20,1.0,nether,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:nether_structures,settlement,nova_structures:nether_port(w=20); nova_structures:nether_keep(w=10); nova_structures:hamlet(w=40); nova_structures:piglin_outstation(w=20); nova_structures:piglin_donjon(w=5),85,40,1.0,nether,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:remnants,settlement,nova_structures:remnant_bee_keeper(w=1); nova_structures:remnant_big_remnant(w=1); nova_structures:remnant_big_remnant_2(w=1); nova_structures:remnant_big_remnant_3(w=1); nova_structures:remnant_bridge_remnant(w=1); nova_structures:remnant_birch_graveyard(w=1); nova_structures:remnant_bunny_base(w=1); nova_structures:remnant_desert_remnant(w=1); nova_structures:remnant_forest_smith(w=1); nova_structures:remnant_frog_ranch(w=1); nova_structures:remnant_graveyard(w=1); nova_structures:remnant_medium_remnant(w=1); nova_structures:remnant_medium_remnant_2(w=1); nova_structures:remnant_miner_hut(w=1); nova_structures:remnant_mud_brick_constructor(w=1); nova_structures:remnant_ominous_shop(w=1); nova_structures:remnant_ruin_farmer(w=1); nova_structures:remnant_ruin_smith(w=1); nova_structures:remnant_sawmill(w=1); nova_structures:remnant_school_remnant(w=1); nova_structures:remnant_taiga_castle(w=1); nova_structures:remnant_woodland_hud(w=1); nova_structures:remnant_zombie_horse_ranch(w=1); nova_structures:remnant_classic_village(w=1),120,30,1.0,overworld,endgame
+dungeons-and-taverns-v4.4.4.jar,nova_structures:ruin_town,settlement,nova_structures:ruin_town(w=1),72,30,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:shrine_tower,landmark,nova_structures:shrine_tower(w=1),600,312,1.0,overworld,legendary
+dungeons-and-taverns-v4.4.4.jar,nova_structures:shrines,landmark,nova_structures:shrine_combat_tier_1(w=20); nova_structures:shrine_combat_tier_2(w=20); nova_structures:shrine_combat_tier_3(w=50); nova_structures:shrine_combat_tier_4(w=40); nova_structures:shrine_combat_tier_5(w=30),50,26,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:stray_fort,landmark,nova_structures:stray_fort(w=9); nova_structures:lone_citadel(w=1),100,16,1.0,overworld,endgame
+dungeons-and-taverns-v4.4.4.jar,nova_structures:swamp_structure,landmark,nova_structures:witch_villa(w=3); nova_structures:toxic_lair(w=1),80,20,1.0,overworld,rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:taverns,settlement,nova_structures:tavern_acacia(w=1); nova_structures:tavern_birch(w=1); nova_structures:tavern_cherry(w=1); nova_structures:tavern_dark_oak(w=1); nova_structures:tavern_desert(w=1); nova_structures:tavern_jungle(w=1); nova_structures:tavern_mangrove(w=1); nova_structures:tavern_oak(w=1); nova_structures:tavern_snowy(w=1); nova_structures:tavern_spruce(w=1); nova_structures:tavern_swamp(w=1),40,15,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:trident_trial_monument,landmark,nova_structures:trident_trial_monument(w=1),200,190,1.0,overworld,legendary
+dungeons-and-taverns-v4.4.4.jar,nova_structures:undead_crypt,dungeon,nova_structures:undead_crypt(w=1),100,20,1.0,overworld,very_rare
+dungeons-and-taverns-v4.4.4.jar,nova_structures:underground_house,settlement,nova_structures:underground_house(w=1),20,10,1.0,overworld,common
+dungeons-and-taverns-v4.4.4.jar,nova_structures:wells,deco,nova_structures:well_spruce(w=1); nova_structures:well_birch(w=1); nova_structures:well_dark_oak(w=1); nova_structures:well_jungle(w=1); nova_structures:well_oak(w=1); nova_structures:well_savana(w=1),40,15,1.0,overworld,uncommon
+dungeons-and-taverns-v4.4.4.jar,nova_structures:wild_ruin,ruins,nova_structures:wild_ruin(w=1),27,18,1.0,overworld,common
+friendsandfoes-fabric-4.0.26+mc1.21.1.jar,friendsandfoes:citadel,landmark,friendsandfoes:citadel(w=1),16,8,1.0,overworld,endgame
+friendsandfoes-fabric-4.0.26+mc1.21.1.jar,friendsandfoes:iceologer_cabin,landmark,friendsandfoes:iceologer_cabin(w=1),40,10,1.0,overworld,uncommon
+friendsandfoes-fabric-4.0.26+mc1.21.1.jar,friendsandfoes:illusioner_shack,landmark,friendsandfoes:illusioner_shack(w=1),40,10,1.0,overworld,uncommon
+friendsandfoes-fabric-4.0.26+mc1.21.1.jar,friendsandfoes:illusioner_training_grounds,landmark,friendsandfoes:illusioner_training_grounds(w=1),40,10,1.0,overworld,uncommon
+paradise-lost-2.4.6-beta+1.21.1.jar,paradise_lost:aurel_tower,landmark,paradise_lost:aurel_tower(w=1),28,7,1.0,overworld,common
+paradise-lost-2.4.6-beta+1.21.1.jar,paradise_lost:birdcage,landmark,paradise_lost:birdcage(w=1),60,18,1.0,overworld,rare
+paradise-lost-2.4.6-beta+1.21.1.jar,paradise_lost:palace,landmark,paradise_lost:palace(w=1),70,23,1.0,overworld,rare
+paradise-lost-2.4.6-beta+1.21.1.jar,paradise_lost:remains,landmark,paradise_lost:remains(w=1),24,6,1.0,overworld,common
+paradise-lost-2.4.6-beta+1.21.1.jar,paradise_lost:vault,dungeon,paradise_lost:vault(w=1),40,16,1.0,overworld,uncommon
+supplementaries-fabric-1.21.1-3.7.7.jar,supplementaries:galleons,landmark,supplementaries:galleon(w=1),31,19,1.0,overworld,common
+supplementaries-fabric-1.21.1-3.7.7.jar,supplementaries:road_signs,deco,supplementaries:road_sign(w=1),19,10,1.0,overworld,common
+t_and_t-neoforge-fabric-1.13.9+1.21.1.jar,towns_and_towers:other,maritime,towns_and_towers:mimic_desert(w=1); towns_and_towers:wreckage_ocean(w=1),32,16,1.0,overworld,uncommon
+t_and_t-neoforge-fabric-1.13.9+1.21.1.jar,towns_and_towers:towers,maritime,towns_and_towers:pillager_outpost_badlands(w=5); towns_and_towers:pillager_outpost_beach(w=5); towns_and_towers:pillager_outpost_birch_forest(w=5); towns_and_towers:pillager_outpost_desert(w=5); towns_and_towers:pillager_outpost_flower_forest(w=5); towns_and_towers:pillager_outpost_forest(w=5); towns_and_towers:pillager_outpost_grove(w=5); towns_and_towers:pillager_outpost_jungle(w=5); towns_and_towers:pillager_outpost_meadow(w=5); towns_and_towers:pillager_outpost_mushroom_fields(w=5); towns_and_towers:pillager_outpost_ocean(w=2); towns_and_towers:pillager_outpost_old_growth_taiga(w=5); towns_and_towers:pillager_outpost_savanna(w=5); towns_and_towers:pillager_outpost_savanna_plateau(w=5); towns_and_towers:pillager_outpost_snowy_beach(w=5); towns_and_towers:pillager_outpost_snowy_plains(w=5); towns_and_towers:pillager_outpost_snowy_slopes(w=5); towns_and_towers:pillager_outpost_sparse_jungle(w=5); towns_and_towers:pillager_outpost_sunflower_plains(w=5); towns_and_towers:pillager_outpost_swamp(w=5); towns_and_towers:pillager_outpost_taiga(w=5); towns_and_towers:pillager_outpost_snowy_taiga(w=5); towns_and_towers:pillager_outpost_wooded_badlands(w=5); towns_and_towers:exclusives/pillager_outpost_mediterranean(w=5); towns_and_towers:exclusives/pillager_outpost_tudor(w=5); towns_and_towers:exclusives/pillager_outpost_classic(w=5); towns_and_towers:exclusives/pillager_outpost_oriental(w=5); towns_and_towers:exclusives/pillager_outpost_swedish(w=5); towns_and_towers:exclusives/pillager_outpost_iberian(w=5); towns_and_towers:exclusives/pillager_outpost_rustic(w=5); towns_and_towers:exclusives/pillager_outpost_nilotic(w=5),48,12,0.2,overworld,very_rare
+t_and_t-neoforge-fabric-1.13.9+1.21.1.jar,towns_and_towers:towns,maritime,towns_and_towers:village_badlands(w=5); towns_and_towers:village_beach(w=5); towns_and_towers:village_birch_forest(w=5); towns_and_towers:village_flower_forest(w=5); towns_and_towers:village_forest(w=5); towns_and_towers:village_snowy_slopes(w=5); towns_and_towers:village_jungle(w=5); towns_and_towers:village_meadow(w=5); towns_and_towers:village_mushroom_fields(w=5); towns_and_towers:village_ocean(w=2); towns_and_towers:village_old_growth_taiga(w=5); towns_and_towers:village_grove(w=5); towns_and_towers:village_savanna_plateau(w=5); towns_and_towers:village_sunflower_plains(w=5); towns_and_towers:village_snowy_taiga(w=5); towns_and_towers:village_sparse_jungle(w=5); towns_and_towers:village_swamp(w=5); towns_and_towers:village_wooded_badlands(w=5); towns_and_towers:exclusives/village_mediterranean(w=5); towns_and_towers:exclusives/village_swedish(w=5); towns_and_towers:exclusives/village_tudor(w=5); towns_and_towers:exclusives/village_wandering_trader_camp(w=5); towns_and_towers:exclusives/village_classic(w=5); towns_and_towers:exclusives/village_rustic(w=5); towns_and_towers:exclusives/village_iberian(w=5); towns_and_towers:exclusives/village_nilotic(w=5); towns_and_towers:exclusives/village_piglin(w=5),51,12,1.0,nether,uncommon
+vanilla,minecraft:ancient_cities,settlement,minecraft:ancient_city(w=1),24,8,1.0,overworld,endgame
+vanilla,minecraft:buried_treasures,dungeon,minecraft:buried_treasure(w=1),1,0,0.01,overworld,common
+vanilla,minecraft:desert_pyramids,ruins,minecraft:desert_pyramid(w=1),32,8,1.0,overworld,uncommon
+vanilla,minecraft:igloos,ruins,minecraft:igloo(w=1),32,8,1.0,overworld,uncommon
+vanilla,minecraft:jungle_temples,ruins,minecraft:jungle_pyramid(w=1),32,8,1.0,overworld,uncommon
+vanilla,minecraft:mineshafts,dungeon,minecraft:mineshaft(w=1); minecraft:mineshaft_mesa(w=1),1,0,0.004,overworld,common
+vanilla,minecraft:nether_fossils,ruins,minecraft:nether_fossil(w=1),2,1,1.0,nether,common
+vanilla,minecraft:ocean_monuments,maritime,minecraft:monument(w=1),32,5,1.0,overworld,uncommon
+vanilla,minecraft:ocean_ruins,maritime,minecraft:ocean_ruin_cold(w=1); minecraft:ocean_ruin_warm(w=1),20,8,1.0,overworld,common
+vanilla,minecraft:pillager_outposts,settlement,minecraft:pillager_outpost(w=1),32,8,0.2,overworld,rare
+vanilla,minecraft:ruined_portals,maritime,minecraft:ruined_portal(w=1); minecraft:ruined_portal_desert(w=1); minecraft:ruined_portal_jungle(w=1); minecraft:ruined_portal_swamp(w=1); minecraft:ruined_portal_mountain(w=1); minecraft:ruined_portal_ocean(w=1); minecraft:ruined_portal_nether(w=1),40,15,1.0,nether,uncommon
+vanilla,minecraft:shipwrecks,maritime,minecraft:shipwreck(w=1); minecraft:shipwreck_beached(w=1),24,4,1.0,overworld,common
+vanilla,minecraft:strongholds,dungeon,minecraft:stronghold(w=1),0,0,1.0,overworld,endgame
+vanilla,minecraft:swamp_huts,settlement,minecraft:swamp_hut(w=1),32,8,1.0,overworld,uncommon
+vanilla,minecraft:trail_ruins,ruins,minecraft:trail_ruins(w=1),34,8,1.0,overworld,uncommon
+vanilla,minecraft:trial_chambers,dungeon,minecraft:trial_chambers(w=1),34,12,1.0,overworld,endgame
