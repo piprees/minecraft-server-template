@@ -27,7 +27,10 @@
     "spawnFilter": [
       "terralith:ashen_savanna",
       "terralith:volcanic_peaks",
-      "terralith:volcanic_crater"
+      "terralith:volcanic_crater",
+      "minecraft:savanna",
+      "terralith:savanna_badlands",
+      "minecraft:badlands"
     ],
     "wants": {
       "abandoned_camp": "near_spawn",

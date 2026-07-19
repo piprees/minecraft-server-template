@@ -35,7 +35,10 @@
     "mood": "standard",
     "spawnFilter": [
       "paradise_lost:autumnal_tundra",
-      "natures_spirit:snowy_fir_forest"
+      "natures_spirit:snowy_fir_forest",
+      "minecraft:snowy_taiga",
+      "minecraft:snowy_plains",
+      "minecraft:snowy_slopes"
     ],
     "water": "high",
     "wants": {

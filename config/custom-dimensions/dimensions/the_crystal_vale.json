@@ -30,7 +30,10 @@
     "spawnFilter": [
       "terralith:amethyst_rainforest",
       "terralith:amethyst_canyon",
-      "terralith:emerald_peaks"
+      "terralith:emerald_peaks",
+      "minecraft:grove",
+      "minecraft:meadow",
+      "terralith:moonlight_grove"
     ],
     "wants": {
       "wizard_tower": "spread",

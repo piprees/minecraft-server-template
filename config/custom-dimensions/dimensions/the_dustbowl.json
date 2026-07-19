@@ -30,7 +30,10 @@
       "terralith:ancient_sands",
       "natures_spirit:drylands",
       "terralith:steppe",
-      "natures_spirit:scorched_dunes"
+      "natures_spirit:scorched_dunes",
+      "minecraft:desert",
+      "minecraft:badlands",
+      "terralith:arid_highlands"
     ],
     "water": "none",
     "wants": {

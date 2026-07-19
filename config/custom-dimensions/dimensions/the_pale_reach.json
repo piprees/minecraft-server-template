@@ -35,7 +35,10 @@
     "mood": "desolate",
     "spawnFilter": [
       "paradise_lost:calcite_craglands",
-      "terralith:frozen_cliffs"
+      "terralith:frozen_cliffs",
+      "minecraft:snowy_slopes",
+      "minecraft:frozen_peaks",
+      "minecraft:ice_spikes"
     ],
     "wants": {
       "para_remains": "spread",

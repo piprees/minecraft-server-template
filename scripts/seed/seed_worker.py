@@ -44,8 +44,27 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dimension_profiles import build_profile, load_config, load_difficulty  # noqa: E402
 
-BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "300"))
-IMAGE = os.environ.get("ROLL_IMAGE", "itzg/minecraft-server:2026.7.0-java21")
+BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "120"))
+_BASE_IMAGE = "itzg/minecraft-server:2026.7.0-java21"
+_WARM_IMAGE = "seedroll:warm"
+
+
+def _resolve_image():
+    """Use the warm image if it exists locally; fall back to base."""
+    explicit = os.environ.get("ROLL_IMAGE")
+    if explicit:
+        return explicit
+    try:
+        r = subprocess.run(["docker", "image", "inspect", _WARM_IMAGE],
+                           capture_output=True, check=False)
+        if r.returncode == 0:
+            return _WARM_IMAGE
+    except OSError:
+        pass
+    return _BASE_IMAGE
+
+
+IMAGE = _resolve_image()
 
 # A candidate only needs a namesake biome within a short expedition from
 # spawn. The score already gives true spawns full credit and nearby biomes
@@ -302,15 +321,16 @@ def start_container(name, workdir, memory, seed="1"):
            "-p", "127.0.0.1:0:25575",
            "-e", "EULA=TRUE", "-e", "TYPE=FABRIC", "-e", "VERSION=1.21.1",
            "-e", f"SEED={seed}", "-e", f"MEMORY={java_mem}",
+           "-e", "USE_AIKAR_FLAGS=false",
+           "-e", "JVM_XX_OPTS=-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch",
            "-e", "ENABLE_RCON=TRUE", "-e", "RCON_PASSWORD=seedroll",
            "-e", "ONLINE_MODE=FALSE", "-e", "ENABLE_AUTOPAUSE=FALSE",
            "-e", "OVERRIDE_SERVER_PROPERTIES=true",
-           # Synchronous customdim create + locate can exceed the 60s watchdog
-           # tick limit — the watchdog killed a manual test server. This is a
-           # throwaway measurement server; disable it.
            "-e", "MAX_TICK_TIME=-1",
            "-e", "SEED_ROLL_MODE=true",
            "-e", "VIEW_DISTANCE=6", "-e", "SIMULATION_DISTANCE=4",
+           "-e", "LEVEL_TYPE=minecraft:flat",
+           "-e", "GENERATE_STRUCTURES=false",
            "-v", f"{workdir}:/data", IMAGE)
     port = docker("port", name, "25575").stdout.strip().rsplit(":", 1)[-1]
     return int(port)
@@ -657,21 +677,6 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
     rows.append(("spawn_biome", spawn))
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
-
-    # Endgame near-spawn check: proximity penalised in scoring, not rejected.
-    safe_r = profile.get("endgame_safe_radius", 0)
-    if safe_r > 0:
-        for sname, sid in profile.get("endgame_battery", []):
-            if should_stop():
-                return rows, spawn, False
-            out = rcon.cmd(f"execute in {dim} run locate structure {sid}")
-            d = parse_distance(out, cap=cap)
-            rows.append((f"endgame_{sname}_dist", d))
-            if 0 <= d < safe_r:
-                rows.append(("endgame_too_close", f"{sname}@{d}"))
-                log(worker_id, f"  endgame structure {sname} at {d} blocks "
-                               f"(safe zone {safe_r}); penalised in scoring")
-                break
 
     for sname, sid, _band, _kind in profile["battery"]:
         if should_stop():

@@ -732,8 +732,10 @@ def build_profile(dim, config, difficulty=None):
         weights["variety"] = max(5, weights["variety"] - 5)
 
     # Endgame near-spawn safety: hard/dense dims want endgame close;
-    # everything else rejects candidates with endgame inside a protected
+    # everything else penalises candidates with endgame inside a protected
     # zone. The structures.endgame block overrides the heuristics.
+    # Endgame structures are merged INTO the battery as shuns with
+    # minDistance=safe_r — one pass, one set of locates, scoring handles it.
     endgame_cfg = struct_block.get("endgame") or {}
     if endgame_cfg.get("allow") is not None:
         allow_endgame = bool(endgame_cfg["allow"])
@@ -747,12 +749,11 @@ def build_profile(dim, config, difficulty=None):
         endgame_safe_radius = int(endgame_cfg["safeRadius"])
     else:
         endgame_safe_radius = max(256, int(0.15 * radius))
-    endgame_battery = []
     if not allow_endgame:
         for sname in ENDGAME_STRUCTURES:
             sid = resolve_struct(sname)
             if sid and sname not in (wants or {}):
-                endgame_battery.append((sname, sid))
+                battery.append((sname, sid, float(endgame_safe_radius), "endgame"))
 
     return {
         "name": name,
@@ -783,7 +784,6 @@ def build_profile(dim, config, difficulty=None):
                          and len(sr["heightRange"]) == 2
                          else CLONE_HEIGHT_RANGES.get(dim_type)),
         "endgame_safe_radius": endgame_safe_radius,
-        "endgame_battery": endgame_battery,
         "locate_cap": int(radius + 1000),
         "grid_pitch": grid_pitch(radius),
         "create_args": {

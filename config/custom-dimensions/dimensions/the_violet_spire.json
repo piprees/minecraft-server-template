@@ -34,7 +34,10 @@
     "mood": "dramatic",
     "spawnFilter": [
       "paradise_lost:wisteria_woods",
-      "terralith:amethyst_canyon"
+      "terralith:amethyst_canyon",
+      "minecraft:cherry_grove",
+      "minecraft:flower_forest",
+      "terralith:moonlight_grove"
     ],
     "wants": {
       "aurel_tower": "near_spawn",

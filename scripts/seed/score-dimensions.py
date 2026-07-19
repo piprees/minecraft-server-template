@@ -315,19 +315,27 @@ def score_candidate(profile, rows):
             parts["terrain"] *= 0.5  # unexpectedly voidy/ocean-swallowed
 
     # Structures: wants judged by their block range, shuns by distance.
+    # Endgame entries are scored separately as a flat penalty (not averaged
+    # into the battery — 50+ endgame shuns would dilute the signal).
     if profile["battery"]:
         ss, n = 0.0, 0
+        endgame_penalty = 0.0
         for name, _sid, spec, kind in profile["battery"]:
             v = rows.get(f"structure_{name}_dist")
             d = float(v) if v is not None else None
-            if kind == "shun":
+            if kind == "endgame":
+                if d is not None and 0 <= d < spec:
+                    endgame_penalty += 8.0 * (1.0 - d / spec)
+            elif kind == "shun":
                 ss += shun_score(d, profile["radius"], spec)
+                n += 1
             else:
                 ss += want_score(d, spec[0], spec[1], profile["radius"])
-            n += 1
+                n += 1
         parts["structures"] = ss / n if n else 0.0
     else:
         parts["structures"] = 0.0
+        endgame_penalty = 0.0
 
     w = profile["weights"]
     wsum = sum(w.values()) or 1
@@ -336,15 +344,7 @@ def score_candidate(profile, rows):
     # Errors are a straight penalty.
     errs = float(rows.get("errors", 0) or 0)
     total_score -= min(10.0, errs * 0.5)
-
-    # Endgame proximity penalty: structures too close to spawn.
-    safe_r = profile.get("endgame_safe_radius", 0)
-    if safe_r > 0:
-        for metric, value in rows.items():
-            if metric.startswith("endgame_") and metric.endswith("_dist"):
-                d = float(value)
-                if 0 <= d < safe_r:
-                    total_score -= 8.0 * (1.0 - d / safe_r)
+    total_score -= min(15.0, endgame_penalty)
 
     return round(max(total_score, 0.0), 2), {k: round(v, 3) for k, v in parts.items()}
 

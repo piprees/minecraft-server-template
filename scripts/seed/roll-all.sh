@@ -31,7 +31,7 @@
 #   ./roll-all.sh --clean                          # rebuild worker dirs from data/
 #
 # Options:
-#   --workers N      parallel containers (default 3; ~6G memory each)
+#   --workers N      parallel containers (default 3; ~10G memory each)
 #   --dims a,b,c     roll a subset of dimensions (skips the world streams)
 #   --render MODE    shortlist (default: render top candidates at finalise) | all | off
 #   --render-top N   shortlisted candidates to render per target (default 3)
@@ -40,7 +40,7 @@
 #   --fresh          discard previous measurements first
 #   --clean          rebuild seedtest worker dirs from data/
 #
-# Environment: ROLL_MEMORY (default 6G/container), RCON_TIMEOUT (300s),
+# Environment: ROLL_MEMORY (default 10G/container), RCON_TIMEOUT (120s),
 #              ROLL_IMAGE (itzg image pin — must match seed_worker.py default)
 #              ROLL_SPAWN_GATE_RADIUS (default 768) — max distance to a
 #              configured spawn biome; closer candidates score higher
@@ -54,7 +54,7 @@
 # =============================================================================
 set -euo pipefail
 
-ROLL_MEMORY="${ROLL_MEMORY:-6G}"
+ROLL_MEMORY="${ROLL_MEMORY:-10G}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
