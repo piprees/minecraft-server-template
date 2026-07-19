@@ -312,8 +312,13 @@ def fabric_pin_env(workdir):
 
 def start_container(name, workdir, memory, seed="1"):
     docker("rm", "-f", name, check=False)
+    for _ in range(10):
+        r = docker("inspect", name, check=False, capture=True)
+        if r.returncode != 0:
+            break
+        time.sleep(0.5)
     mem_gb = int(memory[:-1]) if memory.endswith("G") else 0
-    java_mem = f"{mem_gb - 1}G" if mem_gb > 2 else memory
+    java_mem = f"{mem_gb - 3}G" if mem_gb > 4 else memory
     # When a warm image exists, mount only per-seed state (world/) and the
     # session-constant roll config. Everything else (mods, libraries, Fabric,
     # defaultconfigs) is baked into the image and stays cached.
@@ -626,7 +631,145 @@ def destroy_candidate(rcon, workdir, ns, cand):
     shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
 
 
+ASYNC_LOCATE_POLL_INTERVAL = 3  # seconds between locate-result polls
+ASYNC_LOCATE_TIMEOUT = 130  # max wait for all pending locates (> mod-side 120s)
+
+
+def _parse_async_result(output):
+    """Parse a locate-result response. Returns (status, distance, x, y, z).
+    status is one of: 'pending', 'done', 'not_found', 'timed_out', 'error', 'unknown'."""
+    if not output or "locate:" not in output:
+        return ("error", -1, 0, 0, 0)
+    parts = output.split()
+    # format: "locate:<uuid> <status> [distance x y z]"
+    if len(parts) < 2:
+        return ("error", -1, 0, 0, 0)
+    status = parts[1]
+    if status == "done" and len(parts) >= 6:
+        try:
+            return ("done", int(parts[2]), int(parts[3]), int(parts[4]), int(parts[5]))
+        except (ValueError, IndexError):
+            return ("done", -1, 0, 0, 0)
+    return (status, -1, 0, 0, 0)
+
+
+def _poll_async_locates(rcon, worker_id, pending, cap=None):
+    """Poll all pending async locates until done or timed out.
+    pending: {uuid_str: short_name}. Returns [(short_name, distance), ...]."""
+    results = []
+    remaining = dict(pending)
+    deadline = time.time() + ASYNC_LOCATE_TIMEOUT
+    while remaining and time.time() < deadline:
+        if should_stop():
+            break
+        done_this_round = []
+        for uuid_str, sname in remaining.items():
+            try:
+                out = rcon.cmd(f"customdim locate-result {uuid_str}")
+            except (RconTimeout, RconClosed):
+                # RCON failure — record -1 for all remaining and bail
+                for sn in remaining.values():
+                    results.append((sn, -1))
+                return results
+            status, dist, _x, _y, _z = _parse_async_result(out)
+            if status == "pending":
+                continue
+            if status == "done":
+                if cap is not None and dist > cap:
+                    dist = -1
+                results.append((sname, dist))
+            elif status == "not_found":
+                results.append((sname, -1))
+            else:
+                results.append((sname, -1))
+            done_this_round.append(uuid_str)
+        for u in done_this_round:
+            del remaining[u]
+        if remaining:
+            time.sleep(ASYNC_LOCATE_POLL_INTERVAL)
+    # Anything still pending after deadline gets -1
+    for sname in remaining.values():
+        log(worker_id, f"  async locate timed out for {sname}")
+        results.append((sname, -1))
+    return results
+
+
 MAX_CONSECUTIVE_TIMEOUTS = 3
+
+# ---------------------------------------------------------------------------
+# Pure-Python structure placement (no server needed)
+# ---------------------------------------------------------------------------
+_STRUCTURE_SETS = None
+_STRUCT_TO_SETS = None
+
+
+def _load_structure_sets_once(seedtest_path=None):
+    """Load structure set configs from mod JARs + vanilla server jar (once)."""
+    global _STRUCTURE_SETS, _STRUCT_TO_SETS
+    if _STRUCTURE_SETS is not None:
+        return
+    from structure_placement import load_structure_sets
+    seedtest = Path(seedtest_path) if seedtest_path else Path(".seedtest")
+    extract_dir = seedtest / ".structure_sets"
+    if not extract_dir.exists():
+        import zipfile
+        extract_dir.mkdir(parents=True, exist_ok=True)
+        base = seedtest / "base"
+        for jar_path in list((base / "mods").glob("*.jar")) + list((base / "versions").rglob("*.jar")):
+            try:
+                with zipfile.ZipFile(jar_path) as zf:
+                    for name in zf.namelist():
+                        if "worldgen/structure_set" in name and name.endswith(".json"):
+                            zf.extract(name, extract_dir)
+            except (zipfile.BadZipFile, OSError):
+                pass
+        # Also from datapacks
+        dp = base / "world-datapacks-template"
+        if dp.is_dir():
+            for f in dp.rglob("*/worldgen/structure_set/*.json"):
+                rel = f.relative_to(dp)
+                dest = extract_dir / "data" / rel
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(f, dest)
+    _STRUCTURE_SETS = load_structure_sets(str(extract_dir))
+    _STRUCT_TO_SETS = {}
+    for set_id, cfg in _STRUCTURE_SETS.items():
+        for s in cfg["structures"]:
+            _STRUCT_TO_SETS.setdefault(s["id"], []).append(set_id)
+
+
+def _find_structure_set(structure_id):
+    """Find the structure set config for a given structure locate ID.
+    Handles tags (#minecraft:village -> find any set with a village_* structure)
+    and direct IDs."""
+    _load_structure_sets_once()
+    clean_id = structure_id.lstrip("#")
+    # Direct match: structure ID in a set
+    if clean_id in _STRUCT_TO_SETS:
+        set_id = _STRUCT_TO_SETS[clean_id][0]
+        return _STRUCTURE_SETS[set_id]
+    # Tag match: #minecraft:village -> look for sets containing village_*
+    if structure_id.startswith("#"):
+        tag_path = clean_id.split(":")[-1] if ":" in clean_id else clean_id
+        for sid, cfg in _STRUCTURE_SETS.items():
+            for s in cfg["structures"]:
+                if tag_path in s["id"]:
+                    return cfg
+    # Set ID match: the battery might already use set IDs
+    if clean_id in _STRUCTURE_SETS:
+        return _STRUCTURE_SETS[clean_id]
+    return None
+
+
+def _resolve_candidate_seed(rcon, dim):
+    """Get the seed of the candidate dimension via RCON."""
+    import re
+    try:
+        out = rcon.cmd(f"execute in {dim} run seed")
+        m = re.search(r'\[(-?\d+)\]', out)
+        return int(m.group(1)) if m else None
+    except (RconTimeout, RconClosed):
+        return None
 
 
 def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
@@ -671,17 +814,45 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     spawn_coords = None
     cap = profile.get("locate_cap")
     if profile["namesake"]:
-        best_b, best_d, best_coords = None, None, None
+        # Fire all namesake biome locates via async protocol (off server
+        # thread — vanilla locate biome blocks the server thread and caused
+        # RCON socket closures on slow biomes like terralith:blooming_plateau).
+        import re as _re
+        pending_biomes = {}  # uuid -> biome_id
         for b in profile["namesake"]:
-            out = safe_cmd(f"execute in {dim} run locate biome {b}")
-            if out is None:
-                continue
-            d = parse_distance(out, cap=cap)
-            coords = parse_locate_coords(out)
-            if d >= 0 and (best_d is None or d < best_d):
-                best_b, best_d, best_coords = b, d, coords
-            if d == 0:
-                break
+            out = safe_cmd(f"customdim locate biome {dim} {b} 60")
+            if out and "locate:" in out and "pending" in out:
+                m = _re.search(r'locate:([0-9a-f-]{36})\s+pending', out)
+                if m:
+                    pending_biomes[m.group(1)] = b
+        best_b, best_d, best_coords = None, None, None
+        if pending_biomes:
+            remaining = dict(pending_biomes)
+            deadline = time.time() + 70
+            while remaining and time.time() < deadline:
+                if should_stop():
+                    break
+                done_this_round = []
+                for uuid_str, biome_id in remaining.items():
+                    try:
+                        out = rcon.cmd(f"customdim locate-result {uuid_str}")
+                    except (RconTimeout, RconClosed):
+                        remaining.clear()
+                        break
+                    status, dist, x, _y, z = _parse_async_result(out)
+                    if status == "pending":
+                        continue
+                    done_this_round.append(uuid_str)
+                    if status == "done":
+                        if cap is not None and dist > cap:
+                            dist = -1
+                        if dist >= 0 and (best_d is None or dist < best_d):
+                            best_b, best_d = biome_id, dist
+                            best_coords = [x, 0, z]
+                for u in done_this_round:
+                    del remaining[u]
+                if remaining:
+                    time.sleep(ASYNC_LOCATE_POLL_INTERVAL)
         if best_d is not None and best_d <= 48:
             spawn = best_b
             spawn_coords = best_coords
@@ -711,19 +882,43 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     rows.append(("spawn_biome", spawn))
     safe_cmd(f"execute in {dim} run forceload remove 0 0")
 
-    # Structure locates are disabled: each one blocks the server thread
-    # generating structure starts for ~40k chunk positions (100-chunk search
-    # radius × 130 structure mods). This takes minutes per call in a fresh
-    # runtime dimension. Needs the mod's async locate command to re-enable.
-    # Record -1 (not found) so scoring degrades gracefully.
+    # Structure placement via pure Python — no server thread, no RCON.
+    # Computes WHERE structures can generate from the seed + structure set
+    # configs (spacing/separation/salt), matching vanilla's algorithm.
+    from structure_placement import nearest_structure
+    dim_seed = _resolve_candidate_seed(rcon, dim)
     for sname, sid, _band, _kind in profile["battery"]:
-        rows.append((f"structure_{sname}_dist", -1))
+        set_cfg = _find_structure_set(sid)
+        if set_cfg and dim_seed is not None:
+            result = nearest_structure(
+                dim_seed, set_cfg["spacing"], set_cfg["separation"],
+                set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
+                frequency=set_cfg.get("frequency", 1.0))
+            dist = result[0] if result else -1
+            if cap is not None and dist > cap:
+                dist = -1
+        else:
+            dist = -1
+        rows.append((f"structure_{sname}_dist", dist))
 
+    # Variety biome locates — also async to avoid server-thread freezes.
+    pending_variety = {}
     for biome in profile["variety_biomes"]:
         if should_stop():
             return rows, spawn, False
-        d = safe_locate(f"execute in {dim} run locate biome {biome}", cap=cap)
-        rows.append((f"biome_{biome}_dist", d))
+        out = safe_cmd(f"customdim locate biome {dim} {biome} 60")
+        if out and "locate:" in out and "pending" in out:
+            import re as _re
+            m = _re.search(r'locate:([0-9a-f-]{36})\s+pending', out)
+            if m:
+                pending_variety[m.group(1)] = biome
+                continue
+        rows.append((f"biome_{biome}_dist", -1))
+
+    if pending_variety:
+        variety_results = _poll_async_locates(rcon, worker_id, pending_variety, cap)
+        for biome_id, dist in variety_results:
+            rows.append((f"biome_{biome_id}_dist", dist))
 
     fy, fluid = FLUID_CHECK[fam]
     pitch = profile["grid_pitch"]
@@ -901,14 +1096,15 @@ def boot(wid, container, workdir, memory, seed="1"):
         rcon.cmd("tick freeze")
         rcon.cmd("gamerule doMobSpawning false")
         rcon.cmd("gamerule doDaylightCycle false")
+        rcon.cmd("gamerule spawnChunkRadius 0")
         # Prime worldgen caches. First customdim create per type lazily
         # initializes noise routers + structure registries. Failures are
         # non-fatal — per-call resilience in measure_candidate handles
         # slow locates if the warmup doesn't complete.
         saved_timeout = rcon.timeout
-        rcon.timeout = 180
+        rcon.timeout = 45
         if rcon.sock:
-            rcon.sock.settimeout(180)
+            rcon.sock.settimeout(45)
         warmed = 0
         for wtype in ("overworld", "nether", "end", '"paradise_lost:paradise_lost"'):
             try:
@@ -1346,6 +1542,7 @@ def main():
 
     global STOP_FILE
     STOP_FILE = Path(args.seedtest) / ".stop"
+    _load_structure_sets_once(args.seedtest)
     import signal
     signal.signal(signal.SIGTERM, lambda *_: STOP_FILE.touch())
     signal.signal(signal.SIGINT, lambda *_: STOP_FILE.touch())

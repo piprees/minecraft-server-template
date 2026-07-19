@@ -196,7 +196,7 @@ ledger-* styled-chat-* essential_commands-* NoChatReports-* packetfixer-*
 sound-physics-remastered-* appleskin-* bettercombat-* player-animation-lib-*
 carryon-* netherportalfix-* netherportalspread-* FallingTree-*
 letmedespawn-* Almanac-* fabric-seasons-* open-parties-and-claims-*
-chipped-* DramaticDoors-* handcrafted-*"
+chipped-* DramaticDoors-* handcrafted-* c2me-*"
 
 prepare_base_dir() {
   if [[ -f "$WORK_BASE/.ready" ]]; then
@@ -453,5 +453,28 @@ done
 echo ""
 echo "Rolling indefinitely across $WORKERS workers (+world boot stream)."
 echo "Watch: $SEEDTEST/viewer.html — Ctrl+C finalises with everything measured."
+
+# Status ticker: print a summary line every 30s so the terminal isn't silent.
+while true; do
+  sleep 30
+  [[ -f "$STOP_FILE" ]] && break
+  # Count completed seeds (rows with metric=errors) and CSV totals
+  completed=0 rows=0 abandoned=0
+  for csv in "$SEEDTEST"/worker-*.csv; do
+    [[ -f "$csv" ]] || continue
+    rows=$((rows + $(wc -l < "$csv")))
+    completed=$((completed + $(grep -c "^[^,]*,[^,]*,errors," "$csv" 2>/dev/null || echo 0)))
+  done
+  for csv in "$SEEDTEST"/abandoned-worker-*.csv; do
+    [[ -f "$csv" ]] || continue
+    abandoned=$((abandoned + $(wc -l < "$csv") - 1))  # minus header
+  done
+  containers=$(docker ps --filter "name=seedrollall-" --format '{{.Names}}' 2>/dev/null | wc -l | tr -d ' ')
+  printf "\033[2m[status] %s — %d seeds measured, %d rows, %d abandoned, %s containers healthy\033[0m\n" \
+    "$(date +%H:%M:%S)" "$completed" "$rows" "$abandoned" "$containers"
+done &
+STATUS_PID=$!
+
 wait
+kill "$STATUS_PID" 2>/dev/null || true
 finalise

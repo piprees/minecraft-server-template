@@ -67,6 +67,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
     }
 
     public static void onServerStopping(MinecraftServer server) {
+        com.customdimensions.command.LocateManager.getInstance().shutdown();
         StorageHelper.shutdown();
         LOGGER.info("CustomDimensions shutdown complete");
     }

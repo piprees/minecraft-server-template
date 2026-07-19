@@ -5,14 +5,21 @@ import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.argument.IdentifierArgumentType;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
+
+import java.util.UUID;
 
 /**
  * Operator commands for runtime dimension lifecycle — the seed roller's
@@ -22,16 +29,18 @@ import net.minecraft.util.Identifier;
  *   /customdim create <name> <type> <seed> [noiseSettings] [structureDensity] [biome]
  *   /customdim destroy <name>
  *   /customdim list
+ *   /customdim locate biome <dimension> <biome_id> [timeout]
+ *   /customdim locate structure <dimension> <structure_id> [timeout]
+ *   /customdim locate-result <uuid>
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
  * absent; an unknown noise id falls back to the type default by design).
  *
- * NOTE: the seed/structure-density/peaceful mixins resolve dimensions by
- * NAME in multiverse_config.json — a command-created dimension only gets
- * its per-dimension seed when a config entry with the same name exists
- * (the roller writes candidate entries into the boot config for exactly
- * this reason).
+ * The locate commands run off the server thread and return a UUID
+ * immediately. Poll locate-result to get the answer. Designed for the
+ * seed roller's bulk measurement — each call would otherwise block the
+ * server thread for minutes with 130+ structure mods.
  */
 public class DimensionCommands {
 
@@ -41,8 +50,6 @@ public class DimensionCommands {
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(CommandManager.literal("create")
                     .then(CommandManager.argument("name", StringArgumentType.word())
-                        // string(): bare words parse as before; clone types
-                        // carry a colon and arrive quoted ("ns:path").
                         .then(CommandManager.argument("type", StringArgumentType.string())
                             .then(CommandManager.argument("seed", LongArgumentType.longArg())
                                 .executes(ctx -> create(ctx,
@@ -78,6 +85,24 @@ public class DimensionCommands {
                         .executes(ctx -> destroy(ctx, StringArgumentType.getString(ctx, "name")))))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
+                .then(CommandManager.literal("locate")
+                    .then(CommandManager.literal("biome")
+                        .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                            .then(CommandManager.argument("biome_id", IdentifierArgumentType.identifier())
+                                .executes(ctx -> locateBiome(ctx, 120))
+                                .then(CommandManager.argument("timeout", IntegerArgumentType.integer(1, 600))
+                                    .executes(ctx -> locateBiome(ctx,
+                                        IntegerArgumentType.getInteger(ctx, "timeout")))))))
+                    .then(CommandManager.literal("structure")
+                        .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                            .then(CommandManager.argument("structure_id", StringArgumentType.string())
+                                .executes(ctx -> locateStructure(ctx, 120))
+                                .then(CommandManager.argument("timeout", IntegerArgumentType.integer(1, 600))
+                                    .executes(ctx -> locateStructure(ctx,
+                                        IntegerArgumentType.getInteger(ctx, "timeout"))))))))
+                .then(CommandManager.literal("locate-result")
+                    .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .executes(DimensionCommands::locateResult)))
         );
     }
 
@@ -107,8 +132,6 @@ public class DimensionCommands {
         }
 
         try {
-            // Runtime definitions feed the seed/density/peaceful mixins for
-            // candidates that have no config entry.
             mgr.rememberRuntimeDefinition(def);
             mgr.registerDimension(def);
             mgr.requestWorldLoadDirect(name);
@@ -147,5 +170,59 @@ public class DimensionCommands {
         int finalCount = count;
         source.sendFeedback(() -> Text.literal(finalCount + " custom dimension(s) loaded"), false);
         return count;
+    }
+
+    private static ServerWorld resolveWorld(CommandContext<ServerCommandSource> ctx) {
+        Identifier dimId = IdentifierArgumentType.getIdentifier(ctx, "dimension");
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, dimId);
+        return ctx.getSource().getServer().getWorld(worldKey);
+    }
+
+    private static int locateBiome(CommandContext<ServerCommandSource> ctx, int timeout) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal("Dimension not loaded"));
+            return 0;
+        }
+        Identifier biomeId = IdentifierArgumentType.getIdentifier(ctx, "biome_id");
+        UUID id = LocateManager.getInstance().submitBiomeLocate(world, biomeId, timeout);
+        source.sendFeedback(() -> Text.literal("locate:" + id + " pending"), false);
+        return 1;
+    }
+
+    private static int locateStructure(CommandContext<ServerCommandSource> ctx, int timeout) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal("Dimension not loaded"));
+            return 0;
+        }
+        String rawId = StringArgumentType.getString(ctx, "structure_id");
+        boolean isTag = rawId.startsWith("#");
+        String cleanId = isTag ? rawId.substring(1) : rawId;
+        Identifier structureId = Identifier.tryParse(cleanId);
+        if (structureId == null) {
+            source.sendError(Text.literal("Invalid structure identifier: " + rawId));
+            return 0;
+        }
+        UUID id = LocateManager.getInstance().submitStructureLocate(world, structureId, isTag, timeout);
+        source.sendFeedback(() -> Text.literal("locate:" + id + " pending"), false);
+        return 1;
+    }
+
+    private static int locateResult(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        String uuidStr = StringArgumentType.getString(ctx, "uuid");
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal("Invalid UUID: " + uuidStr));
+            return 0;
+        }
+        String result = LocateManager.getInstance().formatResult(uuid);
+        source.sendFeedback(() -> Text.literal(result), false);
+        return 1;
     }
 }
