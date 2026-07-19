@@ -100,15 +100,16 @@ jobs:
               || { echo "::error::Bundle is missing $JAR_NAME"; exit 1; }
           done < mods/local-mods.manifest
 
-      - name: Install git-cliff
-        run: |
-          curl -sSfL https://github.com/orhun/git-cliff/releases/download/v2.13.1/git-cliff-2.13.1-x86_64-unknown-linux-gnu.tar.gz \
-            | tar -xz -C /usr/local/bin --strip-components=1 git-cliff-2.13.1/git-cliff
+      - name: Generate release notes
+        uses: orhun/git-cliff-action@v4.8.0
+        with:
+          version: v2.13.1
+          args: --latest --strip header -o dist/RELEASE_NOTES.md
 
-      - name: Generate changelog
+      - name: Generate full changelog
+        # git-cliff is already on PATH from the previous action step
         run: |
           git fetch --tags --force
-          git-cliff --latest --strip header -o dist/RELEASE_NOTES.md
           git-cliff -o CHANGELOG.md
 
       - name: Create draft release with assets, then publish
