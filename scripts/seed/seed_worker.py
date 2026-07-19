@@ -870,22 +870,29 @@ def boot(wid, container, workdir, memory, seed="1"):
         rcon.cmd("tick freeze")
         rcon.cmd("gamerule doMobSpawning false")
         rcon.cmd("gamerule doDaylightCycle false")
-        # Prime worldgen caches: first customdim create for each type
-        # lazily initializes noise routers + structure registries (60-90s).
-        # Do it here (expected) rather than during measurement (timeout).
+        # Prime worldgen caches for every dimension family. First customdim
+        # create per type lazily initializes noise routers + structure
+        # registries (60-90s each). Do it here with a long timeout rather
+        # than during measurement where it triggers abandonment.
         saved_timeout = rcon.timeout
-        rcon.timeout = 120
+        rcon.timeout = 180
         if rcon.sock:
-            rcon.sock.settimeout(120)
-        try:
-            rcon.cmd("customdim create _warmup overworld 1 - - -")
-            rcon.cmd("customdim destroy _warmup")
-            log(wid, "  worldgen caches primed")
-        except (RconTimeout, RconClosed) as exc:
-            log(wid, f"  worldgen warmup slow ({type(exc).__name__}) — continuing")
-            rcon.close()
-            rcon = Rcon("127.0.0.1", port, "seedroll")
-            rcon.connect()
+            rcon.sock.settimeout(180)
+        for wtype in ("overworld", "nether", "end", '"paradise_lost:paradise_lost"'):
+            try:
+                rcon.cmd(f"customdim create _warmup {wtype} 1 - - -")
+                time.sleep(1)
+                rcon.cmd("customdim destroy _warmup")
+                time.sleep(1)
+            except (RconTimeout, RconClosed):
+                log(wid, f"  warmup {wtype} timed out — reconnecting")
+                rcon.close()
+                rcon = Rcon("127.0.0.1", port, "seedroll")
+                rcon.timeout = 180
+                rcon.connect()
+                if rcon.sock:
+                    rcon.sock.settimeout(180)
+        log(wid, "  worldgen caches primed (all types)")
         rcon.timeout = saved_timeout
         if rcon.sock:
             rcon.sock.settimeout(saved_timeout)
