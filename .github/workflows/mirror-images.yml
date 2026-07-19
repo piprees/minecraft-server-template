@@ -1,0 +1,53 @@
+name: Mirror Docker Hub Images
+
+# Mirror third-party Docker Hub images to GHCR to avoid Docker Hub rate
+# limits and outages. The compose file references these mirrors via
+# MIRROR_REGISTRY (defaults to ghcr.io/piprees/mirrors).
+#
+# Runs weekly and on manual dispatch. Each image is pulled from Docker Hub,
+# retagged under ghcr.io/piprees/mirrors/<source>:<tag>, and pushed.
+#
+# To add an image: append to the matrix below and update docker-compose.yml.
+# To override the mirror at deploy time: set MIRROR_REGISTRY in .env.
+
+on:
+  schedule:
+    # Weekly on Sundays at 04:00 UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+jobs:
+  mirror:
+    name: Mirror images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - source: itzg/minecraft-server:2026.7.0-java21
+          - source: itzg/mc-backup:2026.7.0
+          - source: minio/minio:RELEASE.2025-09-07T16-13-09Z
+          - source: minio/mc:RELEASE.2025-08-13T08-35-41Z
+          - source: louislam/uptime-kuma:2.4.0
+          - source: nginx:1.30.3-alpine
+          - source: cloudflare/cloudflared:2026.6.1
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull, retag, push
+        run: |
+          SOURCE="${{ matrix.source }}"
+          TARGET="ghcr.io/piprees/mirrors/${SOURCE}"
+          echo "Mirroring ${SOURCE} → ${TARGET}"
+          docker pull "${SOURCE}"
+          docker tag "${SOURCE}" "${TARGET}"
+          docker push "${TARGET}"
