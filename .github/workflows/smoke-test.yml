@@ -263,12 +263,24 @@ jobs:
             exit 1
           fi
 
+      - name: Restore Carpet mod cache
+        uses: actions/cache@v6
+        with:
+          path: .cache/carpet-ci.jar
+          key: carpet-1.21-1.4.147-v240613
+
+      - name: Download Carpet mod (cache miss only)
+        run: |
+          if [[ ! -f .cache/carpet-ci.jar ]]; then
+            mkdir -p .cache
+            CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
+            curl -sL -o .cache/carpet-ci.jar "$CARPET_URL"
+          fi
+
       - name: Spawn a fake player (Carpet bot) and verify world generation
         run: |
           echo "Installing Carpet for fake-player support..."
-          CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
-          curl -sL -o /tmp/carpet-ci.jar "$CARPET_URL"
-          docker cp /tmp/carpet-ci.jar mc:/data/mods/carpet-ci.jar
+          docker cp .cache/carpet-ci.jar mc:/data/mods/carpet-ci.jar
           # Full stop+start (not restart): the itzg entrypoint re-scans
           # /data/mods/ on start, and Fabric rebuilds its mod list. A plain
           # restart reuses the cached mod list from the first boot.
