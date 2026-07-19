@@ -267,6 +267,46 @@ The four public pages share one design system but have **no shared stylesheet** 
 
 OG/meta tags are also injected per-domain by `nav-proxy.conf` (`sub_filter '<title>'`). Kuma's own markup can only be restyled via the `customCSS` in `kuma-config.json` - you can't edit its HTML.
 
+## Network dependency model
+
+Every external network call is either eliminated, cached, or made failure-tolerant. Nothing should break due to an API timeout or CDN outage at runtime.
+
+### Operations that need network
+
+| When | What calls out | Mitigated by |
+| --- | --- | --- |
+| **CI image build** | Docker Hub (base images), PyPI (`pip install`), APK repos (`apk add`) | GHCR mirrors for Docker Hub images (`mirror-images.yml`, weekly sync); PyPI/APK pins make builds deterministic; network is always available in CI runners |
+| **CI deploy** | GitHub API (stack version resolution), GHCR (image pulls), SSH to server | `stack-pull.sh` retries 3x with exponential backoff + falls back to `.stack/.resolved-cache` then local `.stack/` dirs; GHCR mirrors avoid Docker Hub rate limits |
+| **CI release** | GitHub API (release creation), GHCR (image push), git-cliff (installed via `orhun/git-cliff-action`) | `git-cliff-action` handles download/caching internally; release creation is inherently online |
+| **CI smoke test** | Modrinth CDN (mod JARs on cache miss), Carpet mod JAR | Mod JARs cached by `actions/cache` keyed on `modrinth-mods.txt` hash; Carpet JAR cached by `actions/cache` keyed on version |
+| **First consumer boot** | GitHub API (version resolution), GitHub Releases (bundle download), Modrinth CDN (mod JARs on first seed) | `stack-pull.sh` retry + cache fallback; mod JARs cached in `stack-mods` volume after first resolution (version IDs are immutable) |
+| **Modpack build** | Modrinth API (version resolution for resource/shader packs) | `modrinth-resolve-cache.json` committed in repo — zero API calls on cache hit for known pins |
+| **Discord webhooks** | Discord API | All webhook calls use `\|\| true` (fire and forget) — a Discord outage never blocks a deploy or boot |
+
+### Operations that are fully offline
+
+| When | Why |
+| --- | --- |
+| **Server boot (after first seed)** | Mod JARs are cached in `data/mods/` and `stack-mods` volume; `MODS_FILE`/`DATAPACKS_FILE` downloads only missing files from CDN URLs (all already present after first run). No Modrinth API calls at boot. |
+| **Server runtime** | All gameplay, RCON, autopause, idle-tasks, BlueMap rendering, Discord bot commands — everything runs locally |
+| **Seed rolling** | Uses a warm Docker image (`defaults-seed`); no itzg entrypoint, no network calls |
+| **Config changes** | Edit `.env` or `overlay/` files, `./dev up` — no downloads needed (seed container uses baked-in defaults from the image) |
+| **Local dev after first boot** | All images, mods, and configs are cached locally |
+| **Stack bundle re-use** | `stack-pull.sh` is idempotent — if the resolved version is already in `.stack/<version>/`, no download occurs |
+
+### How each dependency is mitigated
+
+- **Docker Hub images:** mirrored to `ghcr.io/piprees/mirrors/` weekly by `mirror-images.yml`; compose references use `${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}` so consumers can override with `docker.io` if needed
+- **Modrinth API:** eliminated from boot path (trap #4); seed container resolves pins to direct CDN URLs cached in the `stack-mods` volume; `modrinth-resolve-cache.json` committed for the modpack build
+- **Modrinth CDN (mod JARs):** cached in `data/mods/` after first download; CI caches via `actions/cache` keyed on `modrinth-mods.txt` hash
+- **GitHub API (version resolution):** `stack-pull.sh` retries 3x with exponential backoff (2s/4s/8s), then falls back to `.stack/.resolved-cache` (last successful resolution), then scans `.stack/` directories
+- **GitHub Releases (bundle download):** `stack-pull.sh` retries downloads 3x; bundles are cached in `.stack/<version>/` and never re-downloaded
+- **git-cliff binary:** installed via `orhun/git-cliff-action` (handles download, caching, and platform detection internally)
+- **Carpet mod (smoke test):** cached via `actions/cache` keyed on version string
+- **PyPI packages:** pinned to exact versions (`==`) so builds are deterministic and only needed at image build time
+- **Discord webhooks:** all `|| true` — fire and forget, never block on failure
+- **Stack bundle (`scripts/`, `config/`):** cached in `.stack/`; only downloaded on version change
+
 ## Confirm before proceeding
 
 These actions are allowed but carry irreversible consequences — pause and ask a human before executing:
