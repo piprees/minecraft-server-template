@@ -749,11 +749,10 @@ def build_profile(dim, config, difficulty=None):
         endgame_safe_radius = int(endgame_cfg["safeRadius"])
     else:
         endgame_safe_radius = max(256, int(0.15 * radius))
-    if not allow_endgame:
-        for sname in ENDGAME_STRUCTURES:
-            sid = resolve_struct(sname)
-            if sid and sname not in (wants or {}):
-                battery.append((sname, sid, float(endgame_safe_radius), "endgame"))
+    # Endgame structures are NOT in the battery — each locate blocks the
+    # server thread for up to 120s, and 50+ entries would take hours per
+    # seed. Endgame proximity requires the mod's async locate command
+    # (future work). For now, only config wants+shuns are measured.
 
     return {
         "name": name,
