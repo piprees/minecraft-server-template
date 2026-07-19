@@ -96,6 +96,7 @@ docker run -d --name "$CONTAINER_NAME" \
   -e "SEED_ROLL_MODE=true" \
   -e "VIEW_DISTANCE=6" -e "SIMULATION_DISTANCE=4" \
   -e "GENERATE_STRUCTURES=false" \
+  -e "SPAWN_CHUNK_RADIUS=0" \
   -v "$WARM_DIR:/data" \
   "$BASE_IMAGE"
 

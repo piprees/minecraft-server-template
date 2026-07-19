@@ -330,6 +330,7 @@ def start_container(name, workdir, memory, seed="1"):
            "-e", "SEED_ROLL_MODE=true",
            "-e", "VIEW_DISTANCE=6", "-e", "SIMULATION_DISTANCE=4",
            "-e", "GENERATE_STRUCTURES=false",
+           "-e", "SPAWN_CHUNK_RADIUS=0",
            "-v", f"{workdir}:/data", IMAGE)
     port = docker("port", name, "25575").stdout.strip().rsplit(":", 1)[-1]
     return int(port)
