@@ -31,6 +31,8 @@ REPO="piprees/minecraft-server-template"
 API_URL="https://api.github.com/repos/${REPO}/releases"
 STACK_DIR=".stack"
 
+RESOLVED_CACHE="${STACK_DIR}/.resolved-cache"
+
 _sha256() {
   if command -v shasum > /dev/null 2>&1; then
     shasum -a 256 "$@"
@@ -42,17 +44,36 @@ _sha256() {
   fi
 }
 
+# Retry a command up to MAX_RETRIES times with exponential backoff.
+# Usage: _retry <command> [args...]
+_retry() {
+  local max_retries=3 attempt=1 delay=2
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+    if [[ $attempt -ge $max_retries ]]; then
+      return 1
+    fi
+    echo "  Retry $attempt/$max_retries failed, waiting ${delay}s..." >&2
+    sleep "$delay"
+    attempt=$((attempt + 1))
+    delay=$((delay * 2))
+  done
+}
+
 # Auth order: GITHUB_TOKEN env var (CI / headless), gh CLI (workstation),
 # unauthenticated (public repo). A token also avoids API rate limits in CI.
+# Each method is retried up to 3 times with exponential backoff.
 _fetch_releases() {
   if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-    curl -fsSL --connect-timeout 10 --max-time 30 \
+    _retry curl -fsSL --connect-timeout 10 --max-time 30 \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" "$API_URL" 2>/dev/null && return 0
   fi
   if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
-    gh api "/repos/${REPO}/releases" 2>/dev/null && return 0
+    _retry gh api "/repos/${REPO}/releases" 2>/dev/null && return 0
   fi
-  curl -fsSL --connect-timeout 10 --max-time 30 "$API_URL" 2>/dev/null
+  _retry curl -fsSL --connect-timeout 10 --max-time 30 "$API_URL" 2>/dev/null
 }
 
 _resolve_version() {
@@ -93,28 +114,49 @@ _resolve_version() {
 _download_asset() {
   local tag="$1" filename="$2" dest="$3"
   # With a token, resolve the asset id and download via the API (works for
-  # private repos and avoids rate limits).
+  # private repos and avoids rate limits). Each method retried 3x with backoff.
   if [[ -n "${GITHUB_TOKEN:-}" ]]; then
     local asset_id
-    asset_id=$(curl -fsSL --connect-timeout 10 --max-time 30 \
+    asset_id=$(_retry curl -fsSL --connect-timeout 10 --max-time 30 \
       -H "Authorization: Bearer ${GITHUB_TOKEN}" \
       "${API_URL}/tags/${tag}" 2>/dev/null \
       | grep -B3 "\"name\": *\"${filename}\"" | grep -oE '"id": *[0-9]+' | head -1 | grep -oE '[0-9]+') || true
     if [[ -n "$asset_id" ]]; then
-      curl -fSL --connect-timeout 10 --max-time 120 \
+      _retry curl -fSL --connect-timeout 10 --max-time 120 \
         -H "Authorization: Bearer ${GITHUB_TOKEN}" \
         -H "Accept: application/octet-stream" \
         -o "$dest" "https://api.github.com/repos/${REPO}/releases/assets/${asset_id}" && return 0
     fi
   fi
   if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
-    gh release download "$tag" --repo "$REPO" --pattern "$filename" --dir "$(dirname "$dest")" 2>/dev/null \
+    _retry gh release download "$tag" --repo "$REPO" --pattern "$filename" --dir "$(dirname "$dest")" 2>/dev/null \
       && [[ -f "$(dirname "$dest")/$filename" ]] \
       && mv "$(dirname "$dest")/$filename" "$dest" \
       && return 0
   fi
   local url="https://github.com/${REPO}/releases/download/${tag}/${filename}"
-  curl -fSL --connect-timeout 10 --max-time 120 -o "$dest" "$url"
+  _retry curl -fSL --connect-timeout 10 --max-time 120 -o "$dest" "$url"
+}
+
+# Save the last successful resolution so offline runs can use it.
+_save_resolved_cache() {
+  local pin="$1" resolved="$2"
+  mkdir -p "$STACK_DIR"
+  echo "${pin}=${resolved}" > "$RESOLVED_CACHE"
+}
+
+# Look up the last successful resolution for a given pin.
+_load_resolved_cache() {
+  local pin="$1"
+  [[ -f "$RESOLVED_CACHE" ]] || return 1
+  local cached_pin cached_resolved
+  cached_pin=$(cut -d= -f1 "$RESOLVED_CACHE" 2>/dev/null) || return 1
+  cached_resolved=$(cut -d= -f2- "$RESOLVED_CACHE" 2>/dev/null) || return 1
+  if [[ "$cached_pin" = "$pin" && -n "$cached_resolved" ]]; then
+    echo "$cached_resolved"
+    return 0
+  fi
+  return 1
 }
 
 if [[ -z "${STACK_VERSION:-}" ]] && [[ -f ".env" ]]; then
@@ -130,33 +172,41 @@ echo "Resolving STACK_VERSION=${STACK_VERSION}..."
 RESOLVED=""
 if RESOLVED=$(_resolve_version "$STACK_VERSION"); then
   echo "Resolved to ${RESOLVED}"
+  _save_resolved_cache "$STACK_VERSION" "$RESOLVED"
 else
-  echo "WARNING: GitHub API unavailable, checking local cache..." >&2
-  pin="${STACK_VERSION#v}"
-  [[ "$pin" == "latest" ]] && pin=""
-  best=""
-  if [[ -d "$STACK_DIR" ]]; then
-    best=$(
-      for dir in "$STACK_DIR"/v*/; do
-        [[ -d "$dir" ]] && basename "$dir" || true
-      done | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | \
-      while IFS= read -r tag_bare; do
-        if [[ -z "$pin" ]]; then
-          echo "v$tag_bare"
-        elif [[ "$pin" == *.*.* ]]; then
-          [[ "$tag_bare" = "$pin" ]] && echo "v$tag_bare" || true
-        else
-          [[ "$tag_bare" = "$pin".* ]] && echo "v$tag_bare" || true
-        fi
-      done | tail -1
-    ) || true
+  echo "WARNING: GitHub API unavailable after retries, checking fallbacks..." >&2
+  # Fallback 1: the resolved-cache file from the last successful API call
+  if cached=$(_load_resolved_cache "$STACK_VERSION"); then
+    echo "Using last-known resolution from cache: ${cached}"
+    RESOLVED="$cached"
+  else
+    # Fallback 2: scan .stack/ directories for matching versions
+    pin="${STACK_VERSION#v}"
+    [[ "$pin" == "latest" ]] && pin=""
+    best=""
+    if [[ -d "$STACK_DIR" ]]; then
+      best=$(
+        for dir in "$STACK_DIR"/v*/; do
+          [[ -d "$dir" ]] && basename "$dir" || true
+        done | sed 's/^v//' | sort -t. -k1,1n -k2,2n -k3,3n | \
+        while IFS= read -r tag_bare; do
+          if [[ -z "$pin" ]]; then
+            echo "v$tag_bare"
+          elif [[ "$pin" == *.*.* ]]; then
+            [[ "$tag_bare" = "$pin" ]] && echo "v$tag_bare" || true
+          else
+            [[ "$tag_bare" = "$pin".* ]] && echo "v$tag_bare" || true
+          fi
+        done | tail -1
+      ) || true
+    fi
+    if [[ -z "$best" ]]; then
+      echo "ERROR: no cached version matches ${STACK_VERSION} and GitHub API is unavailable" >&2
+      exit 1
+    fi
+    RESOLVED="$best"
+    echo "Using cached bundle ${RESOLVED}"
   fi
-  if [[ -z "$best" ]]; then
-    echo "ERROR: no cached version matches ${STACK_VERSION} and GitHub API is unavailable" >&2
-    exit 1
-  fi
-  RESOLVED="$best"
-  echo "Using cached ${RESOLVED}"
 fi
 
 VERSION_BARE="${RESOLVED#v}"
