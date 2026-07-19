@@ -861,7 +861,10 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
     # Legacy monolith must not exist — the mod would warn.
     (cfg / "multiverse_config.json").unlink(missing_ok=True)
 
-    (cfg / "c2me.toml").write_text(
+    c2me = cfg / "c2me.toml"
+    if c2me.is_dir():
+        shutil.rmtree(c2me)
+    c2me.write_text(
         "[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n")
 
     bm = cfg / "bluemap"
