@@ -54,6 +54,7 @@ SPAWN_GATE_RADIUS = int(os.environ.get("ROLL_SPAWN_GATE_RADIUS", "768"))
 RCON_CLOSE_RECREATE_AFTER = int(os.environ.get("ROLL_RCON_CLOSE_RECREATE_AFTER", "2"))
 RCON_BACKOFF_BASE = float(os.environ.get("ROLL_RCON_BACKOFF_BASE", "5"))
 RCON_BACKOFF_MAX = float(os.environ.get("ROLL_RCON_BACKOFF_MAX", "60"))
+SKIP_AFTER_MISSES = int(os.environ.get("ROLL_SKIP_AFTER_MISSES", "15"))
 
 
 def spawn_gate_for(_misses):
@@ -599,12 +600,13 @@ def destroy_candidate(rcon, workdir, ns, cand):
 
 def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
                       force_accept=False, spawn_radius=48):
-    """Measure one candidate world (dim = full dimension id). Applies the
-    spawn filter FIRST: a spawn that misses it returns immediately with a
-    rejection row — the caller re-rolls a fresh seed. Namesakes represent
-    SPAWN; the fixed spawn radius defines a reasonable expedition from 0,0.
-    True spawns score highest; nearby accepted candidates receive proximity
-    credit, so candidate quality is ranked rather than ratcheted by retries."""
+    """Measure one candidate world (dim = full dimension id). The spawn
+    filter rejects ONLY when no namesake biome exists at all (locate returns
+    not-found for every configured biome). Seeds with a far biome are
+    accepted and fully measured — spawn proximity is a SCORING signal, not a
+    gate. Endgame structures near spawn are penalised in scoring, not
+    rejected. This ensures seeds are always captured as scorable candidates
+    rather than silently discarded."""
     rows = []
     fam = profile["family"] or "overworld"
     lo, hi = profile.get("height_range") or HEIGHT_RANGE[fam]
@@ -628,10 +630,10 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         if best_d is not None and best_d <= 48:
             spawn = best_b
             spawn_coords = best_coords
-        elif not (force_accept or (best_d is not None and best_d <= spawn_radius)):
+        elif not force_accept and best_d is None:
             reason = spawn_filter_rejection(
-                best_b, best_d, profile["namesake"], spawn_radius)
-            rows.append(("spawn_biome", f"{best_b}@{best_d}" if best_b else "unknown"))
+                None, None, profile["namesake"], spawn_radius)
+            rows.append(("spawn_biome", "unknown"))
             rows.append(("rejected", 1))
             return rows, reason, False
         else:
@@ -656,7 +658,7 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     rows.append(("spawn_biome", spawn))
     rcon.cmd(f"execute in {dim} run forceload remove 0 0")
 
-    # Endgame near-spawn rejection: hard/dense dims opt out.
+    # Endgame near-spawn check: proximity penalised in scoring, not rejected.
     safe_r = profile.get("endgame_safe_radius", 0)
     if safe_r > 0:
         for sname, sid in profile.get("endgame_battery", []):
@@ -664,13 +666,12 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
                 return rows, spawn, False
             out = rcon.cmd(f"execute in {dim} run locate structure {sid}")
             d = parse_distance(out, cap=cap)
+            rows.append((f"endgame_{sname}_dist", d))
             if 0 <= d < safe_r:
-                rows.append(("rejected", 3))
                 rows.append(("endgame_too_close", f"{sname}@{d}"))
-                reason = (f"endgame structure {sname} at {d} blocks "
-                          f"(safe zone {safe_r}); rejected")
-                log(worker_id, f"  {reason}")
-                return rows, reason, False
+                log(worker_id, f"  endgame structure {sname} at {d} blocks "
+                               f"(safe zone {safe_r}); penalised in scoring")
+                break
 
     for sname, sid, _band, _kind in profile["battery"]:
         if should_stop():
@@ -1021,6 +1022,10 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
                     continue
                 misses += 1
                 log(wid, f"  rejected {target} seed {seed} ({spawn})")
+                if misses >= SKIP_AFTER_MISSES:
+                    log(wid, f"  skipping {target} after {misses} consecutive "
+                             f"rejections — will retry next cycle")
+                    break
                 # A dead container mid-slot must reboot HERE — the rotation-
                 # level check only runs between dimensions.
                 if not container_running(container):

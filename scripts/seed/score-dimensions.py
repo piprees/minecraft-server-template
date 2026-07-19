@@ -336,6 +336,16 @@ def score_candidate(profile, rows):
     # Errors are a straight penalty.
     errs = float(rows.get("errors", 0) or 0)
     total_score -= min(10.0, errs * 0.5)
+
+    # Endgame proximity penalty: structures too close to spawn.
+    safe_r = profile.get("endgame_safe_radius", 0)
+    if safe_r > 0:
+        for metric, value in rows.items():
+            if metric.startswith("endgame_") and metric.endswith("_dist"):
+                d = float(value)
+                if 0 <= d < safe_r:
+                    total_score -= 8.0 * (1.0 - d / safe_r)
+
     return round(max(total_score, 0.0), 2), {k: round(v, 3) for k, v in parts.items()}
 
 
