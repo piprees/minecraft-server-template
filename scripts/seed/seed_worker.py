@@ -923,11 +923,12 @@ def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
         return False, "rcon-closed"
     except Exception as e:  # noqa: BLE001 — a candidate must never kill the worker
         log(wid, f"  ERROR {dim_name} seed {seed}: {type(e).__name__}: {e} — recovering")
-        rcon.close()
-        try:
-            destroy_candidate(rcon, args.workdir, ns, cand)
-        except Exception:  # noqa: BLE001
+        if rcon is not None:
             rcon.close()
+            try:
+                destroy_candidate(rcon, args.workdir, ns, cand)
+            except Exception:  # noqa: BLE001
+                pass
         return False, "error"
 
 
@@ -963,7 +964,7 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
         for item in rotation:
             if should_stop():
                 break
-            if not container_running(container):
+            if rcon is None or not container_running(container):
                 log(wid, "container died — rebooting (unlimited retries)")
                 rcon = boot(wid, container, args.workdir, args.memory)
                 if rcon is None:
