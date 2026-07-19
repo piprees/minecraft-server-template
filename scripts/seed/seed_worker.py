@@ -626,29 +626,56 @@ def destroy_candidate(rcon, workdir, ns, cand):
     shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
 
 
+MAX_CONSECUTIVE_TIMEOUTS = 3
+
+
 def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
                       force_accept=False, spawn_radius=48):
     """Measure one candidate world (dim = full dimension id). The spawn
     filter rejects ONLY when no namesake biome exists at all (locate returns
     not-found for every configured biome). Seeds with a far biome are
     accepted and fully measured — spawn proximity is a SCORING signal, not a
-    gate. Endgame structures near spawn are penalised in scoring, not
-    rejected. This ensures seeds are always captured as scorable candidates
-    rather than silently discarded."""
+    gate. Individual RCON timeouts record -1 and continue; only consecutive
+    failures (container genuinely sick) abort the seed."""
     rows = []
     fam = profile["family"] or "overworld"
     lo, hi = profile.get("height_range") or HEIGHT_RANGE[fam]
+    consecutive_timeouts = 0
 
-    # Spawn filter via locate biome — noise-sampled, needs NO chunks, ~1s
-    # per probe. Chunk generation per rejection was the fleet's pace killer
-    # (~60-90s each under contention); rejections are now nearly free.
+    def safe_cmd(cmd):
+        """Run an RCON command, reconnecting on timeout. Returns the response
+        or None if the call timed out (caller decides what -1/skip means)."""
+        nonlocal rcon, consecutive_timeouts
+        try:
+            result = rcon.cmd(cmd)
+            consecutive_timeouts = 0
+            return result
+        except (RconTimeout, RconClosed) as exc:
+            consecutive_timeouts += 1
+            log(worker_id, f"  RCON {type(exc).__name__} on: {cmd[:80]}... "
+                           f"({consecutive_timeouts}/{MAX_CONSECUTIVE_TIMEOUTS})")
+            if consecutive_timeouts >= MAX_CONSECUTIVE_TIMEOUTS:
+                raise
+            try:
+                rcon.close()
+                rcon.connect()
+            except (RconTimeout, RconClosed):
+                raise exc
+            return None
+
+    def safe_locate(cmd, cap=None):
+        out = safe_cmd(cmd)
+        return parse_distance(out, cap=cap) if out is not None else -1
+
     spawn = "unknown"
     spawn_coords = None
     cap = profile.get("locate_cap")
     if profile["namesake"]:
         best_b, best_d, best_coords = None, None, None
         for b in profile["namesake"]:
-            out = rcon.cmd(f"execute in {dim} run locate biome {b}")
+            out = safe_cmd(f"execute in {dim} run locate biome {b}")
+            if out is None:
+                continue
             d = parse_distance(out, cap=cap)
             coords = parse_locate_coords(out)
             if d >= 0 and (best_d is None or d < best_d):
@@ -672,30 +699,28 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         rows.append(("spawn_x", spawn_coords[0]))
         rows.append(("spawn_z", spawn_coords[2]))
 
-    # Accepted (or keeper): generate the spawn chunk and probe properly —
-    # keepers need their real spawn identified for partial namesake credit.
-    rcon.cmd(f"execute in {dim} run forceload add 0 0")
+    safe_cmd(f"execute in {dim} run forceload add 0 0")
     if not wait_loaded(rcon, dim, 0, 0):
-        rcon.cmd(f"execute in {dim} run forceload remove 0 0")
+        safe_cmd(f"execute in {dim} run forceload remove 0 0")
         rows.append(("spawn_biome", spawn))
-        rows.append(("rejected", 2))  # probe timeout, not a filter verdict
+        rows.append(("rejected", 2))
         return rows, "spawn probe timed out after 90s", False
     surface = column_height(rcon, dim, 0, 0, lo, hi)
     if spawn == "unknown":
         spawn = detect_spawn_biome(rcon, dim, profile["spawn_probes"], surface)
     rows.append(("spawn_biome", spawn))
-    rcon.cmd(f"execute in {dim} run forceload remove 0 0")
+    safe_cmd(f"execute in {dim} run forceload remove 0 0")
 
     for sname, sid, _band, _kind in profile["battery"]:
         if should_stop():
             return rows, spawn, False
-        d = parse_distance(rcon.cmd(f"execute in {dim} run locate structure {sid}"), cap=cap)
+        d = safe_locate(f"execute in {dim} run locate structure {sid}", cap=cap)
         rows.append((f"structure_{sname}_dist", d))
 
     for biome in profile["variety_biomes"]:
         if should_stop():
             return rows, spawn, False
-        d = parse_distance(rcon.cmd(f"execute in {dim} run locate biome {biome}"), cap=cap)
+        d = safe_locate(f"execute in {dim} run locate biome {biome}", cap=cap)
         rows.append((f"biome_{biome}_dist", d))
 
     fy, fluid = FLUID_CHECK[fam]
@@ -705,16 +730,17 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
             if should_stop():
                 return rows, spawn, False
             x, z = (c - 1) * pitch, (r - 1) * pitch
-            rcon.cmd(f"execute in {dim} run forceload add {x} {z}")
+            safe_cmd(f"execute in {dim} run forceload add {x} {z}")
             if not wait_loaded(rcon, dim, x, z, timeout=60):
-                rcon.cmd(f"execute in {dim} run forceload remove {x} {z}")
-                continue  # missing point degrades land_fraction, not heights
+                safe_cmd(f"execute in {dim} run forceload remove {x} {z}")
+                continue
             h = column_height(rcon, dim, x, z, lo, hi)
             if h is not None:
                 rows.append((f"height_r{r}c{c}", h))
-            wet = test_ok(rcon.cmd(f"execute in {dim} if block {x} {fy} {z} {fluid}"))
+            out = safe_cmd(f"execute in {dim} if block {x} {fy} {z} {fluid}")
+            wet = test_ok(out) if out else False
             rows.append((f"water_r{r}c{c}", 1 if wet else 0))
-            rcon.cmd(f"execute in {dim} run forceload remove {x} {z}")
+            safe_cmd(f"execute in {dim} run forceload remove {x} {z}")
 
     rows.append(("errors", max(0, error_count(container) - err_before)))
     return rows, spawn, True
