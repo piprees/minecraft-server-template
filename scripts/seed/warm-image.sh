@@ -15,8 +15,8 @@
 # =============================================================================
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+# PROJECT_ROOT: CONSUMER_DIR if set (./dev passes it), else pwd (run from project root).
+PROJECT_ROOT="${CONSUMER_DIR:-$(pwd)}"
 SEEDTEST="$PROJECT_ROOT/.seedtest"
 WORK_BASE="$SEEDTEST/base"
 
@@ -34,8 +34,9 @@ if [[ "$FORCE" == 0 ]] && docker image inspect "$WARM_IMAGE" > /dev/null 2>&1; t
 fi
 
 if [[ ! -f "$WORK_BASE/.ready" ]]; then
-  echo "Error: $WORK_BASE not prepared — run roll-all.sh once first (or ./dev seed-roll)" >&2
+  echo "Error: $WORK_BASE not prepared — run ./dev seed-roll-all once first" >&2
   echo "  (it creates the base dir with stripped mods + configs)" >&2
+  echo "  Hint: run this script from your project root, or set CONSUMER_DIR" >&2
   exit 1
 fi
 
@@ -94,7 +95,6 @@ docker run -d --name "$CONTAINER_NAME" \
   -e "MAX_TICK_TIME=-1" \
   -e "SEED_ROLL_MODE=true" \
   -e "VIEW_DISTANCE=6" -e "SIMULATION_DISTANCE=4" \
-  -e "LEVEL_TYPE=minecraft:flat" \
   -e "GENERATE_STRUCTURES=false" \
   -v "$WARM_DIR:/data" \
   "$BASE_IMAGE"

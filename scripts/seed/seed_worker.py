@@ -329,7 +329,6 @@ def start_container(name, workdir, memory, seed="1"):
            "-e", "MAX_TICK_TIME=-1",
            "-e", "SEED_ROLL_MODE=true",
            "-e", "VIEW_DISTANCE=6", "-e", "SIMULATION_DISTANCE=4",
-           "-e", "LEVEL_TYPE=minecraft:flat",
            "-e", "GENERATE_STRUCTURES=false",
            "-v", f"{workdir}:/data", IMAGE)
     port = docker("port", name, "25575").stdout.strip().rsplit(":", 1)[-1]
