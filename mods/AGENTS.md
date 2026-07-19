@@ -75,17 +75,25 @@ If the persisted state format changed (config schema, namespace, IDs), delete th
 
 ### 3. Exercise via RCON, headless
 
-Dimensions are now created automatically at boot from `config/multiverse_config.json` — there are no `/dimension create` or `/portal link` commands. Verify via RCON that dimensions loaded correctly:
+Dimensions are now created automatically at boot from `config/custom-dimensions/` (one file per dimension; the monolithic `config/multiverse_config.json` remains a deprecated fallback) — there are no `/dimension create` or `/portal link` commands. Verify via RCON that dimensions loaded correctly:
 
 ```bash
-# Namespace comes from multiverse_config.json ("namespace" field, default "adventure")
-NS=$(python3 -c "import json; print(json.load(open('data/config/multiverse_config.json')).get('namespace','adventure'))")
+# Namespace comes from custom-dimensions/settings.json (default "adventure";
+# legacy fallback: multiverse_config.json "namespace" field)
+NS=$(python3 -c "
+import json, os
+p = 'data/config/custom-dimensions/settings.json'
+if os.path.exists(p):
+    print(json.load(open(p)).get('namespace', 'adventure'))
+else:
+    print(json.load(open('data/config/multiverse_config.json')).get('namespace', 'adventure'))
+")
 docker exec -i mc rcon-cli "execute in ${NS}:the_blossom_gardens run seed"   # proves dimension was created from config
 docker exec -i mc rcon-cli "execute in ${NS}:the_canvas run seed"
 docker exec mc cat /data/logs/latest.log | grep -i "registered dimension\|Created runtime" | tail -10
 ```
 
-To add/change dimensions: edit `config/multiverse_config.json`, commit, deploy. The mod reads the config at boot, creates missing worlds, and reconciles orphans (any `<namespace>:*` world not in the config is unloaded).
+To add/change dimensions: edit (or add) `config/custom-dimensions/dimensions/<slug>.json`, commit, deploy. The mod reads the directory at boot, creates missing worlds, and reconciles orphans (any managed-namespace world not in the config is unloaded). Consumers override via `overlay/config/custom-dimensions/dimensions/` — full replace, `"overrides"` deep-merge, or empty `{}` to skip a dimension entirely.
 
 ### 3b. Player-dependent paths: drive a Carpet fake player (local only)
 
@@ -188,6 +196,14 @@ MultiverseServer (entrypoint)
 │   └── registers portal zone
 ├── EntityTickPortalMixin → vanilla portal override
 │   └── redirects teleportation for custom portals
+├── MobAttributeMixin → per-dimension difficulty (MobEntity.initialize TAIL)
+│   └── DifficultyManager: mobMultiplier x depth factor as persistent
+│       attribute modifiers (hostile mobs only; 0x = peaceful no-op);
+│       player luck via JOIN/world-change events
+├── WorldBorderManager → borders.player as the vanilla border per world
+│   (SERVER_STARTED, overworld first — vanilla's border syncer trap)
+├── DimensionTypeBuilder → "environment" block registers {ns}:{slug}_type
+│   (invalid heights fall back to the base type, never a crash)
 ├── ServerChunkLoadingManagerMixin → per-dimension structure density
 │   └── rebuilds the world's StructurePlacementCalculator with rescaled
 │       UNREGISTERED placement copies (DimensionStructures) — the global

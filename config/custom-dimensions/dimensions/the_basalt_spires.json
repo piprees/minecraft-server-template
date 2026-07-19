@@ -1,0 +1,39 @@
+{
+  "type": "nether",
+  "description": "Basalt drama — pillars, bridges and a bastion in the columns.",
+  "seed": 14268788340776233,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:basalt",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "5B4B4B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:ash",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "incendium:volcanic_deltas"
+    ],
+    "wants": {
+      "blackstone_pillars": "near_spawn",
+      "bastion": "spread",
+      "nether_bridge": "spread"
+    },
+    "description": "Basalt drama — pillars, bridges and a bastion in the columns."
+  }
+}

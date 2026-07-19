@@ -1,0 +1,51 @@
+{
+  "type": "nether",
+  "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms.",
+  "seed": -4891546376175842645,
+  "biomes": [
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:mushroom_fields",
+    "terralith:cave/fungal_caves"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:shroomlight",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "DFA040",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:mycelium",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "minecraft:warped_forest",
+      "minecraft:mushroom_fields"
+    ],
+    "wants": {
+      "crimson_fungus": "near_spawn",
+      "warped_outpost": "spread"
+    },
+    "shuns": [
+      "fortress",
+      "bastion",
+      "sanctum"
+    ],
+    "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms."
+  }
+}

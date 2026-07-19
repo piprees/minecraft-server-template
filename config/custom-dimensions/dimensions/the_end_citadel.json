@@ -1,0 +1,46 @@
+{
+  "type": "end",
+  "description": "Citadel country — end cities and phantom citadels saturate the highlands.",
+  "seed": 2345324516627475701,
+  "biomes": [
+    "minecraft:end_highlands",
+    "nullscape:crystal_peaks",
+    "minecraft:end_midlands"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:end_stone_bricks",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "D8DF90",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:end_highlands",
+      "nullscape:crystal_peaks"
+    ],
+    "wants": {
+      "end_city": "spread",
+      "phantom_citadel": "spread",
+      "enderkeep": "spread",
+      "enderwatch_tower": "near_spawn"
+    },
+    "description": "Citadel country — end cities and phantom citadels saturate the highlands."
+  }
+}

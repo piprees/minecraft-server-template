@@ -1,0 +1,52 @@
+{
+  "type": "overworld",
+  "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else.",
+  "seed": -4788941127388080412,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:packed_mud",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "C8A870",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "terralith:ancient_sands",
+      "natures_spirit:drylands",
+      "terralith:steppe",
+      "natures_spirit:scorched_dunes"
+    ],
+    "water": "none",
+    "wants": {
+      "outcast_desert": "spread",
+      "ruins_desert": "spread",
+      "supply_cache_desert": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument",
+      "mansion",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ],
+    "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."
+  }
+}

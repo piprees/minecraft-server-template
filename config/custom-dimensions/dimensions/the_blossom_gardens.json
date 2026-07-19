@@ -1,0 +1,71 @@
+{
+  "type": "multi_biome",
+  "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring.",
+  "seed": -3604832347219380837,
+  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:cherry_grove",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:birch_forest",
+    "minecraft:old_growth_birch_forest",
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "minecraft:forest",
+    "minecraft:river",
+    "minecraft:beach",
+    "terralith:lavender_valley",
+    "terralith:blooming_valley",
+    "terralith:sakura_valley",
+    "terralith:sakura_grove",
+    "terralith:moonlight_valley",
+    "terralith:moonlight_grove",
+    "terralith:blooming_plateau",
+    "terralith:lush_valley",
+    "terralith:temperate_highlands",
+    "natures_spirit:wisteria_forest",
+    "natures_spirit:lavender_fields",
+    "natures_spirit:carnation_fields",
+    "terralith:lavender_forest"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 3.0,
+    "hostileSpawning": false
+  },
+  "portal": {
+    "frameBlock": "minecraft:cherry_planks",
+    "igniterItem": "minecraft:cherry_sapling",
+    "color": "FFB7C5",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:cherry_leaves",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:cherry_grove",
+      "terralith:sakura_grove",
+      "terralith:sakura_valley",
+      "natures_spirit:wisteria_forest"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "farmstead": "near_spawn",
+      "guide_post_warm": "near_spawn",
+      "giant_mushroom": "spread"
+    },
+    "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring."
+  }
+}

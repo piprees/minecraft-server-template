@@ -1,0 +1,39 @@
+{
+  "type": "nether",
+  "description": "Crimson root-country; forges and fungus in the red haze.",
+  "seed": -7196598490213397255,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:crimson_nylium",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "C83B3B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:crimson_spore",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "incendium:weeping_valley"
+    ],
+    "wants": {
+      "crimson_fungus": "near_spawn",
+      "crimson_forge": "spread",
+      "fortress": "spread"
+    },
+    "description": "Crimson root-country; forges and fungus in the red haze."
+  }
+}

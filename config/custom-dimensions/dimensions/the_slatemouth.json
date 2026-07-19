@@ -1,0 +1,46 @@
+{
+  "type": "void",
+  "description": "A basalt-and-soul void — the nether's kind of ending, without the nether's mercy.",
+  "seed": 194264687702097290,
+  "biomes": [
+    "minecraft:basalt_deltas",
+    "minecraft:soul_sand_valley",
+    "incendium:toxic_heap",
+    "incendium:quartz_flats",
+    "nullscape:void_barrens",
+    "terralith:cave/mantle_caves"
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:deepslate",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "4B5B6B",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "minecraft:soul_sand_valley",
+      "incendium:toxic_heap",
+      "incendium:quartz_flats",
+      "nullscape:void_barrens",
+      "terralith:cave/mantle_caves"
+    ],
+    "description": "A basalt-and-soul void — the nether's kind of ending, without the nether's mercy.",
+    "terrain": "void"
+  }
+}

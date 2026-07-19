@@ -1,0 +1,69 @@
+{
+  "type": "multi_biome",
+  "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless.",
+  "seed": -3604832347219380837,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "minecraft:dark_forest",
+    "minecraft:jungle",
+    "minecraft:bamboo_jungle",
+    "minecraft:mangrove_swamp",
+    "minecraft:swamp",
+    "minecraft:sparse_jungle",
+    "minecraft:river",
+    "minecraft:beach",
+    "minecraft:lush_caves",
+    "terralith:cloud_forest",
+    "terralith:orchid_swamp",
+    "terralith:moonlight_grove",
+    "terralith:mirage_isles",
+    "terralith:moonlight_valley",
+    "incendium:inverted_forest",
+    "terralith:cave/underground_jungle",
+    "terralith:tropical_jungle"
+  ],
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 1.5
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:copper_block",
+    "igniterItem": "minecraft:diamond",
+    "color": "8BAF5B",
+    "lightLevel": 11,
+    "scale": 4.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:jungle",
+      "minecraft:bamboo_jungle",
+      "terralith:cloud_forest",
+      "terralith:tropical_jungle"
+    ],
+    "wants": {
+      "jungle_ruin": "near_spawn",
+      "jungle_tree_house": "near_spawn",
+      "infested_temple": "spread",
+      "webbed_dungeon": "spread",
+      "trial_chambers": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead"
+    ],
+    "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless."
+  }
+}

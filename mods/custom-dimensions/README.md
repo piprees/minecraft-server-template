@@ -15,7 +15,10 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Bidirectional travel** -- target-side portals are built automatically; stepping in returns you
 - **Idle dimension unloading** -- empty dimensions are saved and unloaded after a configurable idle period (default 5 min), re-created on demand
 - **Per-dimension mob control** -- disable hostile mob spawning per dimension for peaceful pocket worlds
-- **Persistent config** -- dimensions, portals, and settings saved to `multiverse_config.json`; portal link state saved to `portal_links.json`
+- **Per-dimension difficulty** -- `difficulty.mobMultiplier` scales hostile mob health/damage/armor at spawn (attribute modifiers, persisted in NBT); optional `depthScaling` makes mobs harder underground; `playerLuck` boosts loot quality while inside the dimension (absorbed from the configurable-difficulty mod)
+- **Per-dimension world borders** -- `borders.player` sets each world's vanilla border at boot (replaces the deploy-time ChunkyBorder dance); `borders.generation` is tooling metadata for Chunky/BlueMap bounds
+- **Custom dimension types** -- an `environment` block (fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks, respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight, ambientLight) registers a per-dimension `DimensionType` as `{ns}:{slug}_type`; unset fields inherit the base type (skyColor/fogColor are client-side and configurator-only)
+- **Per-dimension config files** -- one self-contained JSON per dimension under `config/custom-dimensions/dimensions/` (portal, difficulty, borders, seedRoll included); global defaults in `settings.json`; consumer overlays merge/replace/skip per file. The monolithic `multiverse_config.json` still loads as a deprecated fallback. Portal link state saved to `portal_links.json`
 
 ## Requirements
 
@@ -118,41 +121,67 @@ Removes a dimension definition from the config. Does not delete world files.
 
 All configuration is stored inside the server's data directory under `config/`.
 
-### `multiverse_config.json`
+### `custom-dimensions/` (v4 — preferred)
+
+One file per dimension; the slug comes from the filename. Base-world
+filenames (`overworld.json`, `the_nether.json`, `the_end.json`,
+`paradise_lost.json`) override existing worlds (seed/spawn) instead of
+creating new ones — `"seed": "env"` reads the `SEED` environment variable.
+
+```
+config/custom-dimensions/
+├── settings.json              # namespace, idleUnloadMinutes, frames, defaults
+├── dimensions/
+│   ├── cherry_pocket.json     # one self-contained file per dimension
+│   ├── overworld.json         # base-world override (seed, spawn)
+│   └── ...
+└── overlay/dimensions/        # consumer overrides (staged by deploy.sh/dev-up.sh
+                               # from overlay/config/custom-dimensions/)
+```
+
+`dimensions/cherry_pocket.json`:
 
 ```json
 {
-  "dimensions": [
-    {
-      "name": "cherry_pocket",
-      "type": "single_biome",
-      "dimensionId": "minecraft:cherry_pocket",
-      "seed": 98765,
-      "biome": "minecraft:cherry_grove",
-      "hostileSpawning": false
-    }
-  ],
-  "portals": [
-    {
-      "id": "cherry",
-      "frameBlock": "minecraft:cherry_blossom",
-      "igniterItem": "minecraft:cherry_blossom_petals",
-      "targetDimension": "minecraft:cherry_pocket",
-      "color": "FF9EC6",
-      "lightLevel": 8,
-      "scale": 1.0,
-      "cooldown": 40,
-      "igniteSound": "block.portal.trigger",
-      "enterSound": "block.portal.travel",
-      "exitSound": "block.portal.travel"
-    }
-  ],
-  "frameOverworld": "minecraft:crying_obsidian",
-  "frameNether": "minecraft:obsidian",
-  "frameEnd": "minecraft:iron_block",
-  "idleUnloadMinutes": 5
+  "type": "single_biome",
+  "seed": 98765,
+  "biomes": ["minecraft:cherry_grove"],
+  "difficulty": { "hostileSpawning": false },
+  "portal": {
+    "frameBlock": "minecraft:cherry_blossom",
+    "igniterItem": "minecraft:cherry_blossom_petals",
+    "color": "FF9EC6",
+    "lightLevel": 8,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": { "ignite": "block.portal.trigger", "enter": "block.portal.travel", "exit": "block.portal.travel" }
+  }
 }
 ```
+
+`settings.json`:
+
+```json
+{
+  "namespace": "adventure",
+  "idleUnloadMinutes": 5,
+  "frames": { "overworld": "minecraft:crying_obsidian", "nether": "minecraft:obsidian", "end": "minecraft:iron_block" },
+  "defaults": { "frameBlock": "minecraft:crying_obsidian", "borders": { "player": 8192, "generation": 8192 }, "difficulty": { "mobMultiplier": 1.0 } }
+}
+```
+
+Consumer overlay resolution (files in `overlay/dimensions/`): a file with a
+top-level `"overrides"` object deep-merges over the platform default; a file
+without one replaces the platform default entirely; an empty `{}` skips the
+dimension; overlay-only files are consumer-added dimensions namespaced by the
+`BRAND_SLUG` environment variable.
+
+### `multiverse_config.json` (deprecated fallback)
+
+The pre-v4 monolithic format (top-level `dimensions[]` + `portals[]` +
+`worlds[]` arrays) still loads when `config/custom-dimensions/` does not
+exist, with a deprecation warning. Migrate with
+`scripts/migrate-to-v4-config.sh`.
 
 ### `portal_links.json`
 

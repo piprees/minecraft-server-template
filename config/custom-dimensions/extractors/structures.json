@@ -1,0 +1,4865 @@
+{
+  "count": 377,
+  "structure_sets": {
+    "adventuredungeons:bygonedungeon": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:bygonedungeon"
+      ],
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "adventuredungeons:coldlair": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:coldlair"
+      ],
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "adventuredungeons:murkydungeon": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:murkydungeon"
+      ],
+      "spacing": 40,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "adventuredungeons:ruins_desert": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:ruins_desert"
+      ],
+      "spacing": 30,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "adventuredungeons:ruins_snow": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:ruins_snow"
+      ],
+      "spacing": 30,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "adventuredungeons:ruins_standard": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:ruins_standard"
+      ],
+      "spacing": 30,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "adventuredungeons:trialrooms": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "adventuredungeons:trialrooms"
+      ],
+      "spacing": 35,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "adventuredungeons:underground_camp": {
+      "source": "adventuredungeons-fabric-1.21-1.3.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "adventuredungeons:underground_camp"
+      ],
+      "spacing": 35,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "ati_structures:aboveground_large": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "ati_structures:ancient_temple",
+        "ati_structures:desert_outpost",
+        "ati_structures:fortified_temple",
+        "ati_structures:granite_fort",
+        "ati_structures:herobrine_stronghold",
+        "ati_structures:jungle_settlement",
+        "ati_structures:manor",
+        "ati_structures:marble_chateau",
+        "ati_structures:old_fort",
+        "ati_structures:quarry",
+        "ati_structures:sinking_temple",
+        "ati_structures:tavern",
+        "ati_structures:villager_inn",
+        "ati_structures:woodland_keep",
+        "ati_structures:ruined_castle",
+        "ati_structures:arachnid_dwelling",
+        "ati_structures:steam_house",
+        "ati_structures:jungle_grotto",
+        "ati_structures:castillo",
+        "ati_structures:ati_stoneworks",
+        "ati_structures:old_residence",
+        "ati_structures:catalonian_castle"
+      ],
+      "spacing": 70,
+      "separation": 69,
+      "frequency": 0.85,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "ati_structures:aboveground_medium": {
+      "source": "datapack:structures",
+      "theme": "maritime",
+      "structures": [
+        "ati_structures:dark_tower",
+        "ati_structures:dojo",
+        "ati_structures:monastery_tower",
+        "ati_structures:small_keep",
+        "ati_structures:illager_tower",
+        "ati_structures:mosque",
+        "ati_structures:lighthouse",
+        "ati_structures:overgrown_outpost",
+        "ati_structures:wither_keep",
+        "ati_structures:dark_keep"
+      ],
+      "spacing": 55,
+      "separation": 3,
+      "frequency": 0.85,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "ati_structures:rare": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "ati_structures:gnome_hut",
+        "ati_structures:warden_monument",
+        "ati_structures:ancient_vessel"
+      ],
+      "spacing": 111,
+      "separation": 99,
+      "frequency": 0.85,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "ati_structures:underground_small": {
+      "source": "datapack:structures",
+      "theme": "maritime",
+      "structures": [
+        "ati_structures:underwater_dungeon",
+        "ati_structures:silverfish_nest",
+        "ati_structures:sculk_deposit",
+        "ati_structures:rotting_temple_underground",
+        "ati_structures:pufferfish_cave"
+      ],
+      "spacing": 15,
+      "separation": 10,
+      "frequency": 0.6,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterdeserttemples:desert_temples": {
+      "source": "YungsBetterDesertTemples-1.21.1-Fabric-4.1.5.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterdeserttemples:desert_temple"
+      ],
+      "spacing": 30,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterdungeons:skeleton_dungeons": {
+      "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "betterdungeons:skeleton_dungeon"
+      ],
+      "spacing": 46,
+      "separation": 23,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterdungeons:small_dungeons": {
+      "source": "datapack:structures",
+      "theme": "dungeon",
+      "structures": [
+        "betterdungeons:small_dungeon"
+      ],
+      "spacing": 10,
+      "separation": 6,
+      "frequency": 0.6,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betterdungeons:small_nether_dungeons": {
+      "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "betterdungeons:small_nether_dungeon"
+      ],
+      "spacing": 16,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "betterdungeons:spider_dungeons": {
+      "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "betterdungeons:spider_dungeon"
+      ],
+      "spacing": 44,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterdungeons:zombie_dungeons": {
+      "source": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "betterdungeons:zombie_dungeon"
+      ],
+      "spacing": 48,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterfortresses:fortress": {
+      "source": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterfortresses:fortress"
+      ],
+      "spacing": 30,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "betterjungletemples:jungle_temples": {
+      "source": "YungsBetterJungleTemples-1.21.1-Fabric-3.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "betterjungletemples:jungle_temple"
+      ],
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "bettermineshafts:mineshafts": {
+      "source": "YungsBetterMineshafts-1.21.1-Fabric-5.1.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "bettermineshafts:mineshaft_acacia",
+        "bettermineshafts:mineshaft_desert",
+        "bettermineshafts:mineshaft_ice",
+        "bettermineshafts:mineshaft_jungle",
+        "bettermineshafts:mineshaft_lush",
+        "bettermineshafts:mineshaft_mesa",
+        "bettermineshafts:mineshaft_mushroom",
+        "bettermineshafts:mineshaft_oak",
+        "bettermineshafts:mineshaft_red_desert",
+        "bettermineshafts:mineshaft_spruce",
+        "bettermineshafts:mineshaft_spruce_snowy",
+        "bettermineshafts:mineshaft_overgrown",
+        "bettermineshafts:mineshaft_dripstone"
+      ],
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 0.003,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "betteroceanmonuments:ocean_monument": {
+      "source": "YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar",
+      "theme": "maritime",
+      "structures": [
+        "betteroceanmonuments:ocean_monument"
+      ],
+      "spacing": 50,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterstrongholds:stronghold": {
+      "source": "YungsBetterStrongholds-1.21.1-Fabric-5.1.3.jar",
+      "theme": "dungeon",
+      "structures": [
+        "betterstrongholds:stronghold"
+      ],
+      "spacing": 85,
+      "separation": 50,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "betterwitchhuts:witch_circle": {
+      "source": "YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "betterwitchhuts:witch_circle"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "betterwitchhuts:witch_hut": {
+      "source": "YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar",
+      "theme": "settlement",
+      "structures": [
+        "betterwitchhuts:witch_hut"
+      ],
+      "spacing": 30,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "ddd:dddtowers": {
+      "source": "deadly-deadly-dungeon-1.0.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "ddd:monolithic_tower",
+        "ddd:monolithic_tower"
+      ],
+      "spacing": 43,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "ddd:dddungeons": {
+      "source": "deadly-deadly-dungeon-1.0.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "ddd:minor_dungeon_plains",
+        "ddd:minor_dungeon_plains",
+        "ddd:spider_lair",
+        "ddd:minor_dungeon_desert",
+        "ddd:minor_dungeon_desert",
+        "ddd:minor_dungeon_frozen",
+        "ddd:minor_dungeon_frozen"
+      ],
+      "spacing": 50,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "dungeons_arise:major_structures": {
+      "source": "datapack:structures",
+      "theme": "maritime",
+      "structures": [
+        "dungeons_arise:bandit_village",
+        "dungeons_arise:ceryneian_hind",
+        "dungeons_arise:coliseum",
+        "dungeons_arise:heavenly_rider",
+        "dungeons_arise:heavenly_conqueror",
+        "dungeons_arise:illager_campsite",
+        "dungeons_arise:illager_corsair",
+        "dungeons_arise:illager_fort",
+        "dungeons_arise:illager_galley",
+        "dungeons_arise:illager_windmill",
+        "dungeons_arise:merchant_campsite",
+        "dungeons_arise:monastery",
+        "dungeons_arise:mushroom_house",
+        "dungeons_arise:mushroom_mines",
+        "dungeons_arise:mushroom_village",
+        "dungeons_arise:scorched_mines",
+        "dungeons_arise:small_blimp",
+        "dungeons_arise:typhon",
+        "dungeons_arise:undead_pirate_ship",
+        "dungeons_arise:greenwood_pub",
+        "dungeons_arise:aviary",
+        "dungeons_arise:bandit_towers",
+        "dungeons_arise:foundry",
+        "dungeons_arise:heavenly_challenger",
+        "dungeons_arise:thornborn_towers",
+        "dungeons_arise:infested_temple",
+        "dungeons_arise:mining_complex",
+        "dungeons_arise:plague_asylum",
+        "dungeons_arise:shiraz_palace",
+        "dungeons_arise:keep_kayra",
+        "dungeons_arise:mechanical_nest",
+        "dungeons_arise:kisegi_sanctuary"
+      ],
+      "spacing": 50,
+      "separation": 45,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "dungeons_arise:minor_structures": {
+      "source": "DungeonsArise-1.21.1-2.1.68-fabric-release.jar",
+      "theme": "maritime",
+      "structures": [
+        "dungeons_arise:fishing_hut",
+        "dungeons_arise:wishing_well",
+        "dungeons_arise:jungle_tree_house",
+        "dungeons_arise:bathhouse",
+        "dungeons_arise:abandoned_temple",
+        "dungeons_arise:lighthouse"
+      ],
+      "spacing": 45,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "dungeons_plus:dungeons": {
+      "source": "datapack:structures",
+      "theme": "dungeon",
+      "structures": [
+        "dungeons_plus:mouldy_dungeon",
+        "dungeons_plus:muddy_dungeon",
+        "dungeons_plus:infested_dungeon",
+        "dungeons_plus:deepwater_dungeon",
+        "dungeons_plus:cold_dungeon",
+        "dungeons_plus:frozen_dungeon",
+        "dungeons_plus:webbed_dungeon",
+        "dungeons_plus:lush_dungeon",
+        "dungeons_plus:dusty_tomb",
+        "dungeons_plus:scorched_tomb"
+      ],
+      "spacing": 8,
+      "separation": 3,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "dungeons_plus:ruins": {
+      "source": "dungeons+-1.10.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "dungeons_plus:dungeon_ruins"
+      ],
+      "spacing": 18,
+      "separation": 10,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "epic:large_dungeons": {
+      "source": "Epic Dungeons 1.2.2.jar",
+      "theme": "dungeon",
+      "structures": [
+        "epic:large_dungeon",
+        "epic:large_ice_dungeon",
+        "epic:large_sand_dungeon"
+      ],
+      "spacing": 61,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "epic:medium_dungeons": {
+      "source": "Epic Dungeons 1.2.2.jar",
+      "theme": "dungeon",
+      "structures": [
+        "epic:medium_sand_dungeon",
+        "epic:medium_ice_dungeon",
+        "epic:medium_plains_dungeon"
+      ],
+      "spacing": 45,
+      "separation": 31,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "epic:small_dungeons": {
+      "source": "Epic Dungeons 1.2.2.jar",
+      "theme": "dungeon",
+      "structures": [
+        "epic:small_ice_dungeon",
+        "epic:small_plains_dungeon",
+        "epic:small_sand_dungeon"
+      ],
+      "spacing": 31,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "explorify:badlands_pyramids": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:badlands_pyramid"
+      ],
+      "spacing": 32,
+      "separation": 12,
+      "frequency": 0.75,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:black_spirals": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:black_spiral"
+      ],
+      "spacing": 40,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:campsites": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "settlement",
+      "structures": [
+        "explorify:campsite"
+      ],
+      "spacing": 32,
+      "separation": 16,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:dark_forest_settlements": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "settlement",
+      "structures": [
+        "explorify:dark_forest_settlement"
+      ],
+      "spacing": 32,
+      "separation": 16,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:desert_shrines": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:desert_shrine"
+      ],
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "explorify:end_shipwrecks": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "maritime",
+      "structures": [
+        "explorify:end_shipwreck"
+      ],
+      "spacing": 24,
+      "separation": 6,
+      "frequency": 0.5,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "explorify:farmsteads": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "settlement",
+      "structures": [
+        "explorify:farmstead"
+      ],
+      "spacing": 38,
+      "separation": 28,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:guide_posts": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:guide_post_cold",
+        "explorify:guide_post_warm"
+      ],
+      "spacing": 32,
+      "separation": 10,
+      "frequency": 0.75,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:mangrove_huts": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "settlement",
+      "structures": [
+        "explorify:mangrove_hut"
+      ],
+      "spacing": 28,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "explorify:mausoleums": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:mausoleum"
+      ],
+      "spacing": 48,
+      "separation": 16,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:ruins": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "ruins",
+      "structures": [
+        "explorify:ruins"
+      ],
+      "spacing": 48,
+      "separation": 24,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:supply_caches": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "loot",
+      "structures": [
+        "explorify:supply_cache/birch",
+        "explorify:supply_cache/dark",
+        "explorify:supply_cache/desert",
+        "explorify:supply_cache/forest",
+        "explorify:supply_cache/jungle",
+        "explorify:supply_cache/mangrove",
+        "explorify:supply_cache/taiga"
+      ],
+      "spacing": 32,
+      "separation": 20,
+      "frequency": 0.75,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:taverns": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "settlement",
+      "structures": [
+        "explorify:tavern"
+      ],
+      "spacing": 36,
+      "separation": 18,
+      "frequency": 0.8,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "explorify:watchtowers": {
+      "source": "Explorify v1.6.5.mod.jar",
+      "theme": "landmark",
+      "structures": [
+        "explorify:watchtower/plains",
+        "explorify:watchtower/taiga",
+        "explorify:watchtower/savanna"
+      ],
+      "spacing": 48,
+      "separation": 24,
+      "frequency": 0.75,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "friendsandfoes:citadel": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "friendsandfoes:citadel"
+      ],
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "friendsandfoes:iceologer_cabin": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "friendsandfoes:iceologer_cabin"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "friendsandfoes:illusioner_shack": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "friendsandfoes:illusioner_shack"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "friendsandfoes:illusioner_training_grounds": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "friendsandfoes:illusioner_training_grounds"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "incendium:greater_structures": {
+      "source": "Incendium_1.21.x_v5.4.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "incendium:sanctum",
+        "incendium:forbidden_castle",
+        "incendium:nether_reactor"
+      ],
+      "spacing": 30,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "endgame"
+    },
+    "incendium:lesser_structures": {
+      "source": "Incendium_1.21.x_v5.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "incendium:quartz_kitchen",
+        "incendium:abandoned_tower",
+        "incendium:pipeline",
+        "incendium:piglin_village",
+        "incendium:infernal_altar",
+        "incendium:ruined_lab"
+      ],
+      "spacing": 20,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mes:astral_hideaway": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:astral_hideaway"
+      ],
+      "spacing": 40,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:astral_meteorite": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:astral_meteorite"
+      ],
+      "spacing": 27,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "mes:ender_spire": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:ender_spire"
+      ],
+      "spacing": 46,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:enderbloom_grove": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:enderbloom_grove"
+      ],
+      "spacing": 36,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:enderkeep_courtyard": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:enderkeep_courtyard"
+      ],
+      "spacing": 44,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:enderpin_spikes": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:enderpin_spikes"
+      ],
+      "spacing": 31,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "mes:enderskog": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:enderskog"
+      ],
+      "spacing": 52,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:enderwatch_tower": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:enderwatch_tower"
+      ],
+      "spacing": 42,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:endscraps": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:endscraps"
+      ],
+      "spacing": 37,
+      "separation": 7,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:manuscript_shrine": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:manuscript_shrine"
+      ],
+      "spacing": 41,
+      "separation": 27,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:mega_ship": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship"
+      ],
+      "spacing": 77,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_basic": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_basic"
+      ],
+      "spacing": 80,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_crashed": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_crashed"
+      ],
+      "spacing": 75,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_crashed_2": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_crashed_2"
+      ],
+      "spacing": 72,
+      "separation": 48,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_crashed_deepslate": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_crashed_deepslate"
+      ],
+      "spacing": 79,
+      "separation": 52,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_deepslate": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_deepslate"
+      ],
+      "spacing": 88,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_deepslate_2": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_deepslate_2"
+      ],
+      "spacing": 82,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:mega_ship_deepslate_3": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:mega_ship_deepslate_3"
+      ],
+      "spacing": 84,
+      "separation": 52,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:monolith": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:monolith"
+      ],
+      "spacing": 36,
+      "separation": 21,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:mystical_archway": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "deco",
+      "structures": [
+        "mes:mystical_archway"
+      ],
+      "spacing": 44,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:mythic_garden": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "deco",
+      "structures": [
+        "mes:mythic_garden"
+      ],
+      "spacing": 38,
+      "separation": 27,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:phantom_citadel": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:phantom_citadel"
+      ],
+      "spacing": 31,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "endgame"
+    },
+    "mes:placid_prairie": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mes:placid_prairie"
+      ],
+      "spacing": 32,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "mes:ruined_pillar": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "ruins",
+      "structures": [
+        "mes:ruined_pillar"
+      ],
+      "spacing": 12,
+      "separation": 7,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "mes:starlight_voyager": {
+      "source": "MoogsEndStructures-1.21-2.0.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mes:starlight_voyager"
+      ],
+      "spacing": 32,
+      "separation": 17,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "minecraft:ancient_cities": {
+      "source": "vanilla",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:ancient_city"
+      ],
+      "spacing": 24,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "minecraft:buried_treasures": {
+      "source": "vanilla",
+      "theme": "dungeon",
+      "structures": [
+        "minecraft:buried_treasure"
+      ],
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 0.01,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "minecraft:desert_pyramids": {
+      "source": "vanilla",
+      "theme": "ruins",
+      "structures": [
+        "minecraft:desert_pyramid"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:end_cities": {
+      "source": "Nullscape_1.21.x_v1.2.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:end_city"
+      ],
+      "spacing": 26,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "minecraft:igloos": {
+      "source": "vanilla",
+      "theme": "ruins",
+      "structures": [
+        "minecraft:igloo"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:jungle_temples": {
+      "source": "vanilla",
+      "theme": "ruins",
+      "structures": [
+        "minecraft:jungle_pyramid"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:mineshafts": {
+      "source": "vanilla",
+      "theme": "dungeon",
+      "structures": [
+        "minecraft:mineshaft",
+        "minecraft:mineshaft_mesa"
+      ],
+      "spacing": 1,
+      "separation": 0,
+      "frequency": 0.004,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "minecraft:nether_complexes": {
+      "source": "Incendium_1.21.x_v5.4.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "minecraft:fortress",
+        "minecraft:bastion_remnant"
+      ],
+      "spacing": 16,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "minecraft:nether_fossils": {
+      "source": "vanilla",
+      "theme": "ruins",
+      "structures": [
+        "minecraft:nether_fossil"
+      ],
+      "spacing": 2,
+      "separation": 1,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "minecraft:ocean_monuments": {
+      "source": "vanilla",
+      "theme": "maritime",
+      "structures": [
+        "minecraft:monument"
+      ],
+      "spacing": 32,
+      "separation": 5,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:ocean_ruins": {
+      "source": "vanilla",
+      "theme": "maritime",
+      "structures": [
+        "minecraft:ocean_ruin_cold",
+        "minecraft:ocean_ruin_warm"
+      ],
+      "spacing": 20,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "minecraft:pillager_outposts": {
+      "source": "vanilla",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:pillager_outpost"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 0.2,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "minecraft:ruined_portals": {
+      "source": "vanilla",
+      "theme": "maritime",
+      "structures": [
+        "minecraft:ruined_portal",
+        "minecraft:ruined_portal_desert",
+        "minecraft:ruined_portal_jungle",
+        "minecraft:ruined_portal_swamp",
+        "minecraft:ruined_portal_mountain",
+        "minecraft:ruined_portal_ocean",
+        "minecraft:ruined_portal_nether"
+      ],
+      "spacing": 40,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "minecraft:shipwrecks": {
+      "source": "vanilla",
+      "theme": "maritime",
+      "structures": [
+        "minecraft:shipwreck",
+        "minecraft:shipwreck_beached"
+      ],
+      "spacing": 24,
+      "separation": 4,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "minecraft:strongholds": {
+      "source": "vanilla",
+      "theme": "dungeon",
+      "structures": [
+        "minecraft:stronghold"
+      ],
+      "spacing": 0,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "minecraft:swamp_huts": {
+      "source": "vanilla",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:swamp_hut"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:trail_ruins": {
+      "source": "vanilla",
+      "theme": "ruins",
+      "structures": [
+        "minecraft:trail_ruins"
+      ],
+      "spacing": 34,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "minecraft:trial_chambers": {
+      "source": "vanilla",
+      "theme": "dungeon",
+      "structures": [
+        "minecraft:trial_chambers"
+      ],
+      "spacing": 34,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "minecraft:villages": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:village_plains",
+        "minecraft:village_desert",
+        "minecraft:village_savanna",
+        "minecraft:village_snowy",
+        "minecraft:village_taiga"
+      ],
+      "spacing": 26,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "minecraft:woodland_mansions": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "minecraft:mansion",
+        "nova_structures:illager_manor"
+      ],
+      "spacing": 80,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "mns:bridge_1": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_1"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:bridge_2": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_2"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:bridge_3": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_3"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:bridge_4": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_4"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:bridge_5": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_5"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:bridge_6": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:bridge_6"
+      ],
+      "spacing": 90,
+      "separation": 70,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:circle_blackstone": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:circle_blackstone"
+      ],
+      "spacing": 22,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:circle_nether_brick": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:circle_nether_brick"
+      ],
+      "spacing": 23,
+      "separation": 11,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:copper_tower": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:copper_tower"
+      ],
+      "spacing": 72,
+      "separation": 37,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:crimson_forge": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:crimson_forge"
+      ],
+      "spacing": 24,
+      "separation": 19,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:crimson_lava_well": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:crimson_lava_well"
+      ],
+      "spacing": 24,
+      "separation": 19,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:giant_skull": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:giant_skull"
+      ],
+      "spacing": 54,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:grave_yard": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:grave_yard"
+      ],
+      "spacing": 36,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:large_blackstone_pillars": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:large_blackstone_pillars"
+      ],
+      "spacing": 27,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:large_blackstone_walls": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:large_blackstone_walls"
+      ],
+      "spacing": 29,
+      "separation": 11,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:large_house_1": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "settlement",
+      "structures": [
+        "mns:large_house_1"
+      ],
+      "spacing": 42,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:large_nether_brick": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:large_nether_brick"
+      ],
+      "spacing": 32,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:lava_pool": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:lava_pool"
+      ],
+      "spacing": 41,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:leafy_rubble": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:leafy_rubble"
+      ],
+      "spacing": 22,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:medium_blackstone": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:medium_blackstone"
+      ],
+      "spacing": 23,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:medium_crimson_fungus": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:medium_crimson_fungus",
+        "mns:medium_crimson_fungus_2"
+      ],
+      "spacing": 24,
+      "separation": 19,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:medium_crimson_well": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:medium_crimson_well"
+      ],
+      "spacing": 22,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:medium_house": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "settlement",
+      "structures": [
+        "mns:medium_house"
+      ],
+      "spacing": 43,
+      "separation": 34,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:medium_house_2": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "settlement",
+      "structures": [
+        "mns:medium_house_2"
+      ],
+      "spacing": 44,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:medium_warped_fungus": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:medium_warped_fungus",
+        "mns:medium_warped_fungus_2"
+      ],
+      "spacing": 28,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:medium_warped_well": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:medium_warped_well"
+      ],
+      "spacing": 24,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:mega_arenas": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:small_arena",
+        "mns:large_arena",
+        "mns:dragon_arena"
+      ],
+      "spacing": 150,
+      "separation": 100,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "endgame"
+    },
+    "mns:mega_fortress": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:mega_fortress"
+      ],
+      "spacing": 116,
+      "separation": 76,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "endgame"
+    },
+    "mns:nether_tower": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:nether_tower"
+      ],
+      "spacing": 115,
+      "separation": 56,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "very_rare"
+    },
+    "mns:nether_wart_farm": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "settlement",
+      "structures": [
+        "mns:nether_wart_farm"
+      ],
+      "spacing": 85,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:ruined_portal": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "ruins",
+      "structures": [
+        "mns:ruined_portal"
+      ],
+      "spacing": 30,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:sandy_skull": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:sandy_skull"
+      ],
+      "spacing": 40,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:shrine": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:shrine",
+        "mns:smoking_shrine"
+      ],
+      "spacing": 24,
+      "separation": 17,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:small_nether_brick": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:small_nether_brick"
+      ],
+      "spacing": 24,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:soul_fire": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:soul_fire"
+      ],
+      "spacing": 25,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:sword": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:sword"
+      ],
+      "spacing": 45,
+      "separation": 42,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:train": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:train"
+      ],
+      "spacing": 65,
+      "separation": 50,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mns:very_small_blackstone": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:very_small_blackstone",
+        "mns:very_small_blackstone_2",
+        "mns:very_small_blackstone_3",
+        "mns:very_small_blackstone_4"
+      ],
+      "spacing": 23,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:very_small_nether_brick": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "deco",
+      "structures": [
+        "mns:very_small_nether_brick",
+        "mns:very_small_nether_brick_2",
+        "mns:very_small_nether_brick_3"
+      ],
+      "spacing": 22,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "mns:warped_dome": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:warped_dome"
+      ],
+      "spacing": 42,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:warped_house": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "settlement",
+      "structures": [
+        "mns:warped_house"
+      ],
+      "spacing": 42,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mns:warped_pool": {
+      "source": "MoogsNetherStructures-1.21-3.0.0.jar",
+      "theme": "landmark",
+      "structures": [
+        "mns:warped_pool"
+      ],
+      "spacing": 33,
+      "separation": 21,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mss:arena": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:arena"
+      ],
+      "spacing": 158,
+      "separation": 92,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "mss:birch_river": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:birch_river"
+      ],
+      "spacing": 96,
+      "separation": 34,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:calcite_house": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:calcite_house"
+      ],
+      "spacing": 68,
+      "separation": 27,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:castle_ruin": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "ruins",
+      "structures": [
+        "mss:castle_ruin"
+      ],
+      "spacing": 107,
+      "separation": 56,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:castle_tower": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:castle_tower"
+      ],
+      "spacing": 114,
+      "separation": 52,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:cherry_river": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:cherry_river"
+      ],
+      "spacing": 53,
+      "separation": 17,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mss:desert_pyramid": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "ruins",
+      "structures": [
+        "mss:desert_pyramid"
+      ],
+      "spacing": 80,
+      "separation": 42,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:desert_well": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "deco",
+      "structures": [
+        "mss:desert_well"
+      ],
+      "spacing": 66,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:diorite_house": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:diorite_house"
+      ],
+      "spacing": 156,
+      "separation": 97,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:frozen_pond": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:frozen_pond"
+      ],
+      "spacing": 94,
+      "separation": 31,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:jungle": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:jungle"
+      ],
+      "spacing": 72,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:large_tower": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:large_tower"
+      ],
+      "spacing": 140,
+      "separation": 96,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:leaf_hollow": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:leaf_hollow"
+      ],
+      "spacing": 104,
+      "separation": 62,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:mangrove": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:mangrove"
+      ],
+      "spacing": 68,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:muddy_water_hole": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:muddy_water_hole"
+      ],
+      "spacing": 132,
+      "separation": 72,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:mushroom": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:mushroom"
+      ],
+      "spacing": 124,
+      "separation": 48,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:nether_portal": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:nether_portal"
+      ],
+      "spacing": 99,
+      "separation": 52,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mss:palm_island": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:palm_island"
+      ],
+      "spacing": 102,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:red_sand": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:red_sand"
+      ],
+      "spacing": 142,
+      "separation": 72,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:small_deepslate_house": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:small_deepslate_house"
+      ],
+      "spacing": 124,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:small_oak_house": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:small_oak_house"
+      ],
+      "spacing": 105,
+      "separation": 35,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:small_pond": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "deco",
+      "structures": [
+        "mss:small_pond"
+      ],
+      "spacing": 92,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:small_tower": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:small_tower"
+      ],
+      "spacing": 108,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:spruce_huts": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:spruce_huts"
+      ],
+      "spacing": 134,
+      "separation": 48,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:taiga": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:taiga"
+      ],
+      "spacing": 95,
+      "separation": 42,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mss:tree_1": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_1"
+      ],
+      "spacing": 147,
+      "separation": 73,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_2": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_2"
+      ],
+      "spacing": 148,
+      "separation": 74,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_3": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_3"
+      ],
+      "spacing": 176,
+      "separation": 68,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_4": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_4"
+      ],
+      "spacing": 159,
+      "separation": 82,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_5": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_5"
+      ],
+      "spacing": 175,
+      "separation": 99,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_6": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_6"
+      ],
+      "spacing": 182,
+      "separation": 67,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:tree_7": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_7"
+      ],
+      "spacing": 186,
+      "separation": 82,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
+    "mss:tree_8": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:tree_8"
+      ],
+      "spacing": 156,
+      "separation": 64,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:volcano": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "mss:volcano"
+      ],
+      "spacing": 158,
+      "separation": 78,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mss:white_house": {
+      "source": "MoogsSoaringStructures-1.21-2.1.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "mss:white_house"
+      ],
+      "spacing": 145,
+      "separation": 92,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mtr:badlands_temple": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mtr:badlands_temple"
+      ],
+      "spacing": 55,
+      "separation": 6,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mtr:desert_temple": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mtr:desert_temple"
+      ],
+      "spacing": 50,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mtr:jungle_temple": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mtr:jungle_temple"
+      ],
+      "spacing": 50,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mtr:nether_temple": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "landmark",
+      "structures": [
+        "mtr:nether_temple"
+      ],
+      "spacing": 150,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "very_rare"
+    },
+    "mtr:ocean_temple": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "maritime",
+      "structures": [
+        "mtr:ocean_temple"
+      ],
+      "spacing": 60,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mtr:stronghold": {
+      "source": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+      "theme": "dungeon",
+      "structures": [
+        "mtr:stronghold"
+      ],
+      "spacing": 150,
+      "separation": 90,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "mvs:acacia_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:acacia_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:acacia_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:acacia_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:azelea_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:azelea_house"
+      ],
+      "spacing": 35,
+      "separation": 31,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:barn": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:barn"
+      ],
+      "spacing": 31,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:beach_bar": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:beach_bar"
+      ],
+      "spacing": 48,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:bee_dome": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:bee_dome"
+      ],
+      "spacing": 34,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:bench": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:bench"
+      ],
+      "spacing": 18,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:big_oak_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:big_oak_tree"
+      ],
+      "spacing": 39,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:birch_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:birch_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:birch_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:birch_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:boulder": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:boulder"
+      ],
+      "spacing": 35,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:campsite": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:campsite"
+      ],
+      "spacing": 37,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:cart": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:cart"
+      ],
+      "spacing": 34,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:cartographer_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:cartographer_tower"
+      ],
+      "spacing": 83,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:castle_ruins": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:castle_ruins"
+      ],
+      "spacing": 45,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:cathedral": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:cathedral"
+      ],
+      "spacing": 105,
+      "separation": 98,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mvs:cherry_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:cherry_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:crimson_enchanting_table": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:crimson_enchanting_table"
+      ],
+      "spacing": 77,
+      "separation": 58,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mvs:crystal": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:crystal"
+      ],
+      "spacing": 112,
+      "separation": 62,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "mvs:dark_oak_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dark_oak_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dark_oak_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dark_oak_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_acacia": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_acacia"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_birch": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_birch"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_cherry": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_cherry"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_dark_oak": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_dark_oak"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_jungle": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_jungle"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_mangrove": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_mangrove"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:dead_tree_oak": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:dead_tree_oak"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:deepslate_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:deepslate_house"
+      ],
+      "spacing": 42,
+      "separation": 34,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:desert_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:desert_house"
+      ],
+      "spacing": 48,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:desert_pump": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:desert_pump"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:diorite_and_deepslate_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:diorite_and_deepslate_house"
+      ],
+      "spacing": 44,
+      "separation": 34,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:diorite_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:diorite_tower"
+      ],
+      "spacing": 50,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:duck": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:duck"
+      ],
+      "spacing": 94,
+      "separation": 46,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:fire_camp": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:fire_camp"
+      ],
+      "spacing": 32,
+      "separation": 17,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:floating_islands": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:floating_islands"
+      ],
+      "spacing": 76,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:flower_hole": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:flower_hole"
+      ],
+      "spacing": 46,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:fox_hut": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:fox_hut"
+      ],
+      "spacing": 48,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:gallows": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:gallows"
+      ],
+      "spacing": 36,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:haystack": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:haystack"
+      ],
+      "spacing": 16,
+      "separation": 7,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:horse_campsite": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:horse_campsite"
+      ],
+      "spacing": 19,
+      "separation": 17,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:horse_pen": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:horse_pen"
+      ],
+      "spacing": 38,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:house"
+      ],
+      "spacing": 38,
+      "separation": 31,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:jungle_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:jungle_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:jungle_palm_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:jungle_palm_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:jungle_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:jungle_tower"
+      ],
+      "spacing": 96,
+      "separation": 80,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:jungle_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:jungle_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:lamp_chest": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "loot",
+      "structures": [
+        "mvs:lamp_chest"
+      ],
+      "spacing": 45,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:large_cart_1": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:large_cart_1"
+      ],
+      "spacing": 56,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:large_cart_2": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:large_cart_2"
+      ],
+      "spacing": 56,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:large_floating_island": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:large_floating_island"
+      ],
+      "spacing": 65,
+      "separation": 49,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:large_mushroom": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:large_mushroom"
+      ],
+      "spacing": 98,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:large_warped_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:large_warped_tower"
+      ],
+      "spacing": 51,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mvs:lecturn_garden": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:lecturn_garden"
+      ],
+      "spacing": 36,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:log_ruin": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:log_ruin"
+      ],
+      "spacing": 55,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:medium_bamboo_cart": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:medium_bamboo_cart"
+      ],
+      "spacing": 12,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:medium_igloo_1": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:medium_igloo_1"
+      ],
+      "spacing": 27,
+      "separation": 21,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:medium_oak_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:medium_oak_lantern"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:mine_with_campsite": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:mine_with_campsite"
+      ],
+      "spacing": 48,
+      "separation": 31,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:mud_brick_house_1": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:mud_brick_house_1"
+      ],
+      "spacing": 46,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:mushroom_pond": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:mushroom_pond"
+      ],
+      "spacing": 48,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:mushroom_statue": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:mushroom_statue"
+      ],
+      "spacing": 92,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:mushroom_well": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:mushroom_well"
+      ],
+      "spacing": 84,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:nether_devil": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:nether_devil"
+      ],
+      "spacing": 64,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "mvs:nether_well": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:nether_well"
+      ],
+      "spacing": 48,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mvs:oak_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:oak_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:oak_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:oak_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:ocean_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "maritime",
+      "structures": [
+        "mvs:ocean_tower"
+      ],
+      "spacing": 35,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:other_wells": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:small_well",
+        "mvs:small_copper_well",
+        "mvs:small_tower_well",
+        "mvs:well",
+        "mvs:rare_well",
+        "mvs:rocky_well",
+        "mvs:oak_well",
+        "mvs:birch_well",
+        "mvs:dark_oak_well",
+        "mvs:spruce_well",
+        "mvs:jungle_well",
+        "mvs:acacia_well"
+      ],
+      "spacing": 24,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:out_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:out_house"
+      ],
+      "spacing": 48,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:paths": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:paths"
+      ],
+      "spacing": 35,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:pile"
+      ],
+      "spacing": 13,
+      "separation": 7,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:prismarine_house_1": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:prismarine_house_1"
+      ],
+      "spacing": 44,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:prismarine_house_2": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:prismarine_house_2"
+      ],
+      "spacing": 44,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:railway": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:railway"
+      ],
+      "spacing": 46,
+      "separation": 27,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:rare_well": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:rare_well"
+      ],
+      "spacing": 68,
+      "separation": 38,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:red_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:red_tower"
+      ],
+      "spacing": 76,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:ruined_beacon": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:ruined_beacon"
+      ],
+      "spacing": 75,
+      "separation": 60,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:shed": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:shed"
+      ],
+      "spacing": 38,
+      "separation": 23,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:small_acacia_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_acacia_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_bamboo_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_bamboo_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_birch_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_birch_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_campfire_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:small_campfire_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_cherry_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_cherry_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_dark_oak_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_dark_oak_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_igloo": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:small_igloo"
+      ],
+      "spacing": 31,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_jungle_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_jungle_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_mangrove_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_mangrove_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_oak_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_oak_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_oak_pond": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_oak_pond"
+      ],
+      "spacing": 35,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:small_pillager_tower": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:small_pillager_tower"
+      ],
+      "spacing": 34,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:small_ruin": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:small_ruin"
+      ],
+      "spacing": 38,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:small_ship": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "maritime",
+      "structures": [
+        "mvs:small_ship"
+      ],
+      "spacing": 34,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:small_spruce_lantern": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:small_spruce_lantern"
+      ],
+      "spacing": 24,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:small_swamp_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:small_swamp_house"
+      ],
+      "spacing": 78,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:small_tower_well": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:small_tower_well"
+      ],
+      "spacing": 23,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:snowy_dog_hut": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:snowy_dog_hut"
+      ],
+      "spacing": 28,
+      "separation": 24,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:snowy_fossil": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:snowy_fossil"
+      ],
+      "spacing": 26,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:spruce_log_pile": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:spruce_log_pile"
+      ],
+      "spacing": 26,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:spruce_tree": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:spruce_tree"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:stalls": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:red_stall",
+        "mvs:orange_stall",
+        "mvs:pink_stall",
+        "mvs:blue_stall"
+      ],
+      "spacing": 32,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:statue_ruins": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "ruins",
+      "structures": [
+        "mvs:statue_ruins"
+      ],
+      "spacing": 38,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:stone_fountain": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "deco",
+      "structures": [
+        "mvs:stone_fountain"
+      ],
+      "spacing": 36,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:stone_pillars": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:stone_pillars"
+      ],
+      "spacing": 42,
+      "separation": 36,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:stone_rock": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:stone_rock"
+      ],
+      "spacing": 18,
+      "separation": 13,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:sunzi_gate": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:sunzi_gate"
+      ],
+      "spacing": 54,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:tall_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:tall_house"
+      ],
+      "spacing": 42,
+      "separation": 34,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:tree_monument": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:tree_monument"
+      ],
+      "spacing": 76,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "mvs:villager_statue": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:villager_statue"
+      ],
+      "spacing": 56,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "mvs:warped_house": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:warped_house"
+      ],
+      "spacing": 48,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "mvs:wheat_grain_bin": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "mvs:wheat_grain_bin"
+      ],
+      "spacing": 26,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:windmill": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:windmill"
+      ],
+      "spacing": 26,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "mvs:wooden_wheat_farm": {
+      "source": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+      "theme": "settlement",
+      "structures": [
+        "mvs:wooden_wheat_farm"
+      ],
+      "spacing": 26,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:badlands_miner_outpost": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:badlands_miner_outpost"
+      ],
+      "spacing": 60,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:badlands_miner_outpost_mineshafts": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "minecraft:mineshaft_mesa"
+      ],
+      "spacing": 60,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:bunker": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:bunker"
+      ],
+      "spacing": 50,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:conduit_ruin": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "ruins",
+      "structures": [
+        "nova_structures:conduit_ruin"
+      ],
+      "spacing": 140,
+      "separation": 90,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "nova_structures:creeping_crypt": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "nova_structures:creeping_crypt"
+      ],
+      "spacing": 100,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "nova_structures:deepslate_camp": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:deepslate_camp"
+      ],
+      "spacing": 15,
+      "separation": 7,
+      "frequency": 0.7,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:desert_ruins": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "ruins",
+      "structures": [
+        "nova_structures:desert_ruins"
+      ],
+      "spacing": 80,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:end_castle": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:end_castle"
+      ],
+      "spacing": 0,
+      "separation": 0,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "nova_structures:end_lighthouses": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "maritime",
+      "structures": [
+        "nova_structures:end_lighthouse"
+      ],
+      "spacing": 40,
+      "separation": 22,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "uncommon"
+    },
+    "nova_structures:end_ship": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "maritime",
+      "structures": [
+        "nova_structures:end_ship"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 0.25,
+      "dimension": "end",
+      "rarity": "rare"
+    },
+    "nova_structures:firewatch_towers": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:firewatch_tower_birch",
+        "nova_structures:firewatch_tower_cherry",
+        "nova_structures:firewatch_tower_dark_oak",
+        "nova_structures:firewatch_tower_forest",
+        "nova_structures:firewatch_tower_jungle",
+        "nova_structures:firewatch_tower_savanna",
+        "nova_structures:firewatch_tower_mangrove",
+        "nova_structures:firewatch_tower_swamp",
+        "nova_structures:firewatch_tower_taiga"
+      ],
+      "spacing": 50,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:illager_camp": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:illager_camp"
+      ],
+      "spacing": 50,
+      "separation": 32,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:illager_hideout": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:illager_hideout"
+      ],
+      "spacing": 200,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
+    "nova_structures:jungle_ruins": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "ruins",
+      "structures": [
+        "nova_structures:jungle_ruins"
+      ],
+      "spacing": 80,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:mangrove_witch_hut": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:mangrove_witch_hut"
+      ],
+      "spacing": 32,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:nether_camps": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:skeleton_camp_crimson",
+        "nova_structures:skeleton_camp_waste",
+        "nova_structures:skeleton_camp_warped",
+        "nova_structures:skeleton_camp_soul",
+        "nova_structures:piglin_camp"
+      ],
+      "spacing": 20,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "nova_structures:nether_skeleton_towers": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:nether_skeleton_tower_waste",
+        "nova_structures:nether_skeleton_tower_warped",
+        "nova_structures:nether_skeleton_tower_crimson",
+        "nova_structures:nether_skeleton_tower_soul"
+      ],
+      "spacing": 40,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "nova_structures:nether_structures": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:nether_port",
+        "nova_structures:nether_keep",
+        "nova_structures:hamlet",
+        "nova_structures:piglin_outstation",
+        "nova_structures:piglin_donjon"
+      ],
+      "spacing": 85,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "nova_structures:remnants": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:remnant_bee_keeper",
+        "nova_structures:remnant_big_remnant",
+        "nova_structures:remnant_big_remnant_2",
+        "nova_structures:remnant_big_remnant_3",
+        "nova_structures:remnant_bridge_remnant",
+        "nova_structures:remnant_birch_graveyard",
+        "nova_structures:remnant_bunny_base",
+        "nova_structures:remnant_desert_remnant",
+        "nova_structures:remnant_forest_smith",
+        "nova_structures:remnant_frog_ranch",
+        "nova_structures:remnant_graveyard",
+        "nova_structures:remnant_medium_remnant",
+        "nova_structures:remnant_medium_remnant_2",
+        "nova_structures:remnant_miner_hut",
+        "nova_structures:remnant_mud_brick_constructor",
+        "nova_structures:remnant_ominous_shop",
+        "nova_structures:remnant_ruin_farmer",
+        "nova_structures:remnant_ruin_smith",
+        "nova_structures:remnant_sawmill",
+        "nova_structures:remnant_school_remnant",
+        "nova_structures:remnant_taiga_castle",
+        "nova_structures:remnant_woodland_hud",
+        "nova_structures:remnant_zombie_horse_ranch",
+        "nova_structures:remnant_classic_village"
+      ],
+      "spacing": 120,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "nova_structures:ruin_town": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:ruin_town"
+      ],
+      "spacing": 72,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:shrine_tower": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:shrine_tower"
+      ],
+      "spacing": 600,
+      "separation": 312,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
+    "nova_structures:shrines": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:shrine_combat_tier_1",
+        "nova_structures:shrine_combat_tier_2",
+        "nova_structures:shrine_combat_tier_3",
+        "nova_structures:shrine_combat_tier_4",
+        "nova_structures:shrine_combat_tier_5"
+      ],
+      "spacing": 50,
+      "separation": 26,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:stray_fort": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:stray_fort",
+        "nova_structures:lone_citadel"
+      ],
+      "spacing": 100,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "endgame"
+    },
+    "nova_structures:swamp_structure": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:witch_villa",
+        "nova_structures:toxic_lair"
+      ],
+      "spacing": 80,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "nova_structures:taverns": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:tavern_acacia",
+        "nova_structures:tavern_birch",
+        "nova_structures:tavern_cherry",
+        "nova_structures:tavern_dark_oak",
+        "nova_structures:tavern_desert",
+        "nova_structures:tavern_jungle",
+        "nova_structures:tavern_mangrove",
+        "nova_structures:tavern_oak",
+        "nova_structures:tavern_snowy",
+        "nova_structures:tavern_spruce",
+        "nova_structures:tavern_swamp"
+      ],
+      "spacing": 40,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:trident_trial_monument": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "landmark",
+      "structures": [
+        "nova_structures:trident_trial_monument"
+      ],
+      "spacing": 200,
+      "separation": 190,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
+    "nova_structures:undead_crypt": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "dungeon",
+      "structures": [
+        "nova_structures:undead_crypt"
+      ],
+      "spacing": 100,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "nova_structures:underground_house": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:underground_house"
+      ],
+      "spacing": 20,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:villages_birch": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:village_birch"
+      ],
+      "spacing": 26,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:villages_jungle": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:village_jungle"
+      ],
+      "spacing": 26,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:villages_swamp": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "nova_structures:village_swamp"
+      ],
+      "spacing": 26,
+      "separation": 8,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nova_structures:wells": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "deco",
+      "structures": [
+        "nova_structures:well_spruce",
+        "nova_structures:well_birch",
+        "nova_structures:well_dark_oak",
+        "nova_structures:well_jungle",
+        "nova_structures:well_oak",
+        "nova_structures:well_savana"
+      ],
+      "spacing": 40,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "nova_structures:wild_ruin": {
+      "source": "dungeons-and-taverns-v4.4.4.jar",
+      "theme": "ruins",
+      "structures": [
+        "nova_structures:wild_ruin"
+      ],
+      "spacing": 27,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "nullscape:dragon_skeleton": {
+      "source": "Nullscape_1.21.x_v1.2.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "nullscape:dragon_skeleton"
+      ],
+      "spacing": 22,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "nullscape:rift": {
+      "source": "Nullscape_1.21.x_v1.2.14.jar",
+      "theme": "landmark",
+      "structures": [
+        "nullscape:rift"
+      ],
+      "spacing": 20,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "end",
+      "rarity": "common"
+    },
+    "paradise_lost:aurel_tower": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "paradise_lost:aurel_tower"
+      ],
+      "spacing": 28,
+      "separation": 7,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "paradise_lost:birdcage": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "paradise_lost:birdcage"
+      ],
+      "spacing": 60,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "paradise_lost:palace": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "paradise_lost:palace"
+      ],
+      "spacing": 70,
+      "separation": 23,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "paradise_lost:remains": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "theme": "landmark",
+      "structures": [
+        "paradise_lost:remains"
+      ],
+      "spacing": 24,
+      "separation": 6,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "paradise_lost:vault": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "theme": "dungeon",
+      "structures": [
+        "paradise_lost:vault"
+      ],
+      "spacing": 40,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:ancient_crypt": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:ancient_crypt"
+      ],
+      "spacing": 80,
+      "separation": 50,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:ancient_dungeon": {
+      "source": "datapack:structures",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:ancient_dungeon"
+      ],
+      "spacing": 10,
+      "separation": 3,
+      "frequency": 0.5,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "philipsruins:ancient_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:ancient_ruins"
+      ],
+      "spacing": 60,
+      "separation": 30,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:ancient_towers": {
+      "source": "datapack:structures",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:ancient_towers"
+      ],
+      "spacing": 50,
+      "separation": 40,
+      "frequency": 0.85,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:antiquus_crypta": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:antiquus_crypta"
+      ],
+      "spacing": 90,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:desert_structures": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:badlands_start_dungeon",
+        "philipsruins:badlands_structures",
+        "philipsruins:desert_structures"
+      ],
+      "spacing": 39,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:end_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:end_ruins",
+        "philipsruins:end_gate_fortress"
+      ],
+      "spacing": 35,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "philipsruins:field_stone_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:field_stone_ruins"
+      ],
+      "spacing": 75,
+      "separation": 35,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:field_stone_ruins_rocks": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:field_stone_ruins_rocks"
+      ],
+      "spacing": 40,
+      "separation": 27,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:level_one_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:level_one_ruins"
+      ],
+      "spacing": 75,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:level_three_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:level_three_ruins"
+      ],
+      "spacing": 85,
+      "separation": 45,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:level_two_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:level_two_ruins",
+        "philipsruins:level_two_ruins_pool"
+      ],
+      "spacing": 80,
+      "separation": 50,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:lost_soul_city": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "settlement",
+      "structures": [
+        "philipsruins:lost_soul_city"
+      ],
+      "spacing": 80,
+      "separation": 65,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "philipsruins:nether_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:start_nether_ruin"
+      ],
+      "spacing": 310,
+      "separation": 90,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "legendary"
+    },
+    "philipsruins:nether_structures": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:start_nether_dungeon",
+        "philipsruins:sealedruinedghaststatue1",
+        "philipsruins:nether_lava_ruins"
+      ],
+      "spacing": 30,
+      "separation": 25,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "common"
+    },
+    "philipsruins:ocean_fortress_main": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "maritime",
+      "structures": [
+        "philipsruins:ocean_fortress"
+      ],
+      "spacing": 70,
+      "separation": 50,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "rare"
+    },
+    "philipsruins:ocean_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "maritime",
+      "structures": [
+        "philipsruins:ocean_ruins"
+      ],
+      "spacing": 50,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:pumpkin_ruins": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:pumpkin_ruins"
+      ],
+      "spacing": 50,
+      "separation": 40,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "philipsruins:rare_ruin": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "ruins",
+      "structures": [
+        "philipsruins:rare_ruin"
+      ],
+      "spacing": 360,
+      "separation": 130,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "legendary"
+    },
+    "philipsruins:underground_structures": {
+      "source": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+      "theme": "dungeon",
+      "structures": [
+        "philipsruins:lost_soul_dungeon",
+        "philipsruins:bone_dungeon",
+        "philipsruins:underground_structures",
+        "philipsruins:sculk_dungeon"
+      ],
+      "spacing": 60,
+      "separation": 35,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "structory:mid_rare_ruin": {
+      "source": "Structory_26.1_v1.3.16.jar",
+      "theme": "dungeon",
+      "structures": [
+        "structory:taiga_ruin_surface",
+        "structory:taiga_ruin_underground",
+        "structory:northern_ruin"
+      ],
+      "spacing": 30,
+      "separation": 16,
+      "frequency": 0.7,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "structory:old_manor": {
+      "source": "Structory_26.1_v1.3.16.jar",
+      "theme": "ruins",
+      "structures": [
+        "structory:old_manor",
+        "structory:dense_forest_ruin"
+      ],
+      "spacing": 42,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "structory:outcast_villager": {
+      "source": "Structory_26.1_v1.3.16.jar",
+      "theme": "settlement",
+      "structures": [
+        "structory:abandoned_chapel",
+        "structory:graveyard",
+        "structory:abandoned_camp",
+        "structory:outcast_villager_grassy",
+        "structory:ruin_grassy",
+        "structory:firetower",
+        "structory:outcast_villager_desert",
+        "structory:boat"
+      ],
+      "spacing": 44,
+      "separation": 14,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "structory:ruin": {
+      "source": "Structory_26.1_v1.3.16.jar",
+      "theme": "ruins",
+      "structures": [
+        "structory:jungle_ruin"
+      ],
+      "spacing": 30,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "structory:ruin_quiet": {
+      "source": "Structory_26.1_v1.3.16.jar",
+      "theme": "ruins",
+      "structures": [
+        "structory:swamp_ruin"
+      ],
+      "spacing": 23,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "structory_towers:end_towers": {
+      "source": "Structory_Towers_26.1_v1.0.16.jar",
+      "theme": "landmark",
+      "structures": [
+        "structory_towers:end/end_tower"
+      ],
+      "spacing": 82,
+      "separation": 10,
+      "frequency": 0.4,
+      "dimension": "end",
+      "rarity": "very_rare"
+    },
+    "structory_towers:nether_towers": {
+      "source": "Structory_Towers_26.1_v1.0.16.jar",
+      "theme": "settlement",
+      "structures": [
+        "structory_towers:nether/strange_outpost",
+        "structory_towers:nether/warped_outpost",
+        "structory_towers:nether/fortress_tower"
+      ],
+      "spacing": 33,
+      "separation": 10,
+      "frequency": 0.9,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    },
+    "structory_towers:rare_towers": {
+      "source": "datapack:structures",
+      "theme": "settlement",
+      "structures": [
+        "structory_towers:sacred_relic_temple",
+        "structory_towers:quarter_outpost",
+        "structory_towers:mirage_outpost",
+        "structory_towers:pillager_lookout"
+      ],
+      "spacing": 55,
+      "separation": 16,
+      "frequency": 0.5312,
+      "dimension": "overworld",
+      "rarity": "rare"
+    },
+    "structory_towers:towers": {
+      "source": "datapack:structures",
+      "theme": "maritime",
+      "structures": [
+        "structory_towers:ancient_temple",
+        "structory_towers:engineer_tower",
+        "structory_towers:farmer_outpost",
+        "structory_towers:foraging_outpost",
+        "structory_towers:great_toadstool",
+        "structory_towers:lighthouse",
+        "structory_towers:nomad_outpost",
+        "structory_towers:ocean_pillar",
+        "structory_towers:overgrown_mangrove",
+        "structory_towers:quarter_outpost",
+        "structory_towers:small_firetower",
+        "structory_towers:taiga_outpost",
+        "structory_towers:wizard_tower"
+      ],
+      "spacing": 40,
+      "separation": 10,
+      "frequency": 0.6162,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "structory_towers:ultra_rare_towers": {
+      "source": "datapack:structures",
+      "theme": "landmark",
+      "structures": [
+        "structory_towers:warped_greatsword"
+      ],
+      "spacing": 80,
+      "separation": 42,
+      "frequency": 0.5737,
+      "dimension": "nether",
+      "rarity": "very_rare"
+    },
+    "supplementaries:galleons": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "theme": "landmark",
+      "structures": [
+        "supplementaries:galleon"
+      ],
+      "spacing": 31,
+      "separation": 19,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "supplementaries:road_signs": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "theme": "deco",
+      "structures": [
+        "supplementaries:road_sign"
+      ],
+      "spacing": 19,
+      "separation": 10,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "terralith:mage": {
+      "source": "datapack:structures",
+      "theme": "dungeon",
+      "structures": [
+        "terralith:mage_tower",
+        "terralith:mage_complex",
+        "terralith:mage_tower_summer",
+        "terralith:mage_tower_autumn",
+        "terralith:mage_tower_winter",
+        "terralith:mage_tower_spring"
+      ],
+      "spacing": 28,
+      "separation": 16,
+      "frequency": 0.85,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "terralith:rare_dungeon": {
+      "source": "Terralith_1.21.x_v2.6.2.jar",
+      "theme": "dungeon",
+      "structures": [
+        "terralith:spire"
+      ],
+      "spacing": 36,
+      "separation": 28,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "terralith:rare_village": {
+      "source": "Terralith_1.21.x_v2.6.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "terralith:fortified_village",
+        "terralith:fortified_desert_village"
+      ],
+      "spacing": 46,
+      "separation": 18,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "terralith:regular": {
+      "source": "Terralith_1.21.x_v2.6.2.jar",
+      "theme": "settlement",
+      "structures": [
+        "terralith:witch_hut",
+        "terralith:desert_outpost",
+        "terralith:valley_lodge",
+        "terralith:glacial_hut",
+        "terralith:igloo"
+      ],
+      "spacing": 27,
+      "separation": 15,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "terralith:rubble": {
+      "source": "Terralith_1.21.x_v2.6.2.jar",
+      "theme": "landmark",
+      "structures": [
+        "terralith:rubble_forest",
+        "terralith:rubble_taiga",
+        "terralith:rubble_jungle",
+        "terralith:rubble_mesa",
+        "terralith:rubble_mountain",
+        "terralith:rubble_desert"
+      ],
+      "spacing": 26,
+      "separation": 20,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "terralith:underground": {
+      "source": "datapack:structures",
+      "theme": "maritime",
+      "structures": [
+        "terralith:underground/oak_cabin",
+        "terralith:underground/giant_bee_hive",
+        "terralith:underground/mining_outpost",
+        "terralith:underground/old_refinery",
+        "terralith:underground/sunken_tower"
+      ],
+      "spacing": 11,
+      "separation": 3,
+      "frequency": 0.7,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "terralith:underground_dungeon": {
+      "source": "datapack:structures",
+      "theme": "dungeon",
+      "structures": [
+        "terralith:underground/frosted_dungeon"
+      ],
+      "spacing": 9,
+      "separation": 6,
+      "frequency": 0.6,
+      "dimension": "overworld",
+      "rarity": "common"
+    },
+    "towns_and_towers:other": {
+      "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar",
+      "theme": "maritime",
+      "structures": [
+        "towns_and_towers:mimic_desert",
+        "towns_and_towers:wreckage_ocean"
+      ],
+      "spacing": 32,
+      "separation": 16,
+      "frequency": 1.0,
+      "dimension": "overworld",
+      "rarity": "uncommon"
+    },
+    "towns_and_towers:towers": {
+      "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar",
+      "theme": "maritime",
+      "structures": [
+        "towns_and_towers:pillager_outpost_badlands",
+        "towns_and_towers:pillager_outpost_beach",
+        "towns_and_towers:pillager_outpost_birch_forest",
+        "towns_and_towers:pillager_outpost_desert",
+        "towns_and_towers:pillager_outpost_flower_forest",
+        "towns_and_towers:pillager_outpost_forest",
+        "towns_and_towers:pillager_outpost_grove",
+        "towns_and_towers:pillager_outpost_jungle",
+        "towns_and_towers:pillager_outpost_meadow",
+        "towns_and_towers:pillager_outpost_mushroom_fields",
+        "towns_and_towers:pillager_outpost_ocean",
+        "towns_and_towers:pillager_outpost_old_growth_taiga",
+        "towns_and_towers:pillager_outpost_savanna",
+        "towns_and_towers:pillager_outpost_savanna_plateau",
+        "towns_and_towers:pillager_outpost_snowy_beach",
+        "towns_and_towers:pillager_outpost_snowy_plains",
+        "towns_and_towers:pillager_outpost_snowy_slopes",
+        "towns_and_towers:pillager_outpost_sparse_jungle",
+        "towns_and_towers:pillager_outpost_sunflower_plains",
+        "towns_and_towers:pillager_outpost_swamp",
+        "towns_and_towers:pillager_outpost_taiga",
+        "towns_and_towers:pillager_outpost_snowy_taiga",
+        "towns_and_towers:pillager_outpost_wooded_badlands",
+        "towns_and_towers:exclusives/pillager_outpost_mediterranean",
+        "towns_and_towers:exclusives/pillager_outpost_tudor",
+        "towns_and_towers:exclusives/pillager_outpost_classic",
+        "towns_and_towers:exclusives/pillager_outpost_oriental",
+        "towns_and_towers:exclusives/pillager_outpost_swedish",
+        "towns_and_towers:exclusives/pillager_outpost_iberian",
+        "towns_and_towers:exclusives/pillager_outpost_rustic",
+        "towns_and_towers:exclusives/pillager_outpost_nilotic"
+      ],
+      "spacing": 48,
+      "separation": 12,
+      "frequency": 0.2,
+      "dimension": "overworld",
+      "rarity": "very_rare"
+    },
+    "towns_and_towers:towns": {
+      "source": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar",
+      "theme": "maritime",
+      "structures": [
+        "towns_and_towers:village_badlands",
+        "towns_and_towers:village_beach",
+        "towns_and_towers:village_birch_forest",
+        "towns_and_towers:village_flower_forest",
+        "towns_and_towers:village_forest",
+        "towns_and_towers:village_snowy_slopes",
+        "towns_and_towers:village_jungle",
+        "towns_and_towers:village_meadow",
+        "towns_and_towers:village_mushroom_fields",
+        "towns_and_towers:village_ocean",
+        "towns_and_towers:village_old_growth_taiga",
+        "towns_and_towers:village_grove",
+        "towns_and_towers:village_savanna_plateau",
+        "towns_and_towers:village_sunflower_plains",
+        "towns_and_towers:village_snowy_taiga",
+        "towns_and_towers:village_sparse_jungle",
+        "towns_and_towers:village_swamp",
+        "towns_and_towers:village_wooded_badlands",
+        "towns_and_towers:exclusives/village_mediterranean",
+        "towns_and_towers:exclusives/village_swedish",
+        "towns_and_towers:exclusives/village_tudor",
+        "towns_and_towers:exclusives/village_wandering_trader_camp",
+        "towns_and_towers:exclusives/village_classic",
+        "towns_and_towers:exclusives/village_rustic",
+        "towns_and_towers:exclusives/village_iberian",
+        "towns_and_towers:exclusives/village_nilotic",
+        "towns_and_towers:exclusives/village_piglin"
+      ],
+      "spacing": 51,
+      "separation": 12,
+      "frequency": 1.0,
+      "dimension": "nether",
+      "rarity": "uncommon"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone.",
+  "seed": -2229145286337484445,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:smooth_stone",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "8B8B9B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "terralith:stony_spires",
+      "terralith:rocky_mountains",
+      "minecraft:stony_peaks",
+      "terralith:granite_cliffs"
+    ],
+    "water": "none",
+    "wants": {
+      "mineshaft": "near_spawn",
+      "quarter_outpost": "spread",
+      "engineer_tower": "spread",
+      "ancient_temple": "near_border"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ],
+    "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone."
+  }
+}

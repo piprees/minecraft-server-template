@@ -101,6 +101,9 @@ services:
 
       # --- World generation ---
       SEED: ${SEED:-}
+      # Consumer namespace for consumer-added dimension files in
+      # overlay/config/custom-dimensions/ (custom-dimensions mod).
+      BRAND_SLUG: ${BRAND_SLUG:-}
 
       # --- Performance ---
       # Keep these modest; Distant Horizons handles far visual range.

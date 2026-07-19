@@ -1,0 +1,58 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
+  "seed": -7553093148959622972,
+  "biomes": [
+    "paradise_lost:tradewinds",
+    "paradise_lost:highlands",
+    "minecraft:warm_ocean",
+    "terralith:deep_warm_ocean",
+    "minecraft:jungle",
+    "terralith:skylands_summer",
+    "terralith:mirage_isles"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:prismarine_bricks",
+    "igniterItem": "minecraft:gold_ingot",
+    "color": "2B7BAF",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "paradise_lost:tradewinds",
+      "paradise_lost:highlands"
+    ],
+    "water": "sea",
+    "wants": {
+      "para_vault": "spread",
+      "para_palace": "near_border",
+      "monument": "spread",
+      "deepwater_dungeon": "spread",
+      "para_remains": "near_spawn"
+    },
+    "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
+    "shuns": [],
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

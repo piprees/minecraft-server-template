@@ -1,7 +1,7 @@
 package com.customdimensions.dimension;
 
 import com.customdimensions.MultiverseServer;
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.mixin.StructurePlacementAccessor;
 import com.customdimensions.mixin.StructurePlacementCalculatorInvoker;
@@ -49,10 +49,10 @@ public final class DimensionStructures {
     public static StructurePlacementCalculator transformed(ServerWorld world, BiomeSource biomeSource,
             NoiseConfig noiseConfig, StructurePlacementCalculator original) {
         Identifier key = world.getRegistryKey().getValue();
-        if (!DimensionDefinition.getNamespace().equals(key.getNamespace())) {
+        if (!MultiverseConfig.getInstance().isManagedNamespace(key.getNamespace())) {
             return null;
         }
-        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getPath());
+        DimensionConfig def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getPath());
         if (def == null) {
             return null;
         }
@@ -120,7 +120,7 @@ public final class DimensionStructures {
                 noiseConfig, biomeSource, original.getStructureSeed(), original.getStructureSeed(), transformed);
     }
 
-    private static String normalizedDensity(DimensionDefinition def) {
+    private static String normalizedDensity(DimensionConfig def) {
         String density = def.getStructureDensity();
         if (density == null || density.isEmpty()) {
             return "normal";

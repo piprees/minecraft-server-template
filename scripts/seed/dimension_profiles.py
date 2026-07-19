@@ -2,9 +2,11 @@
 """dimension_profiles.py — per-dimension seed-roll scoring profiles.
 
 Derives a measurement plan and a scoring profile for every dimension in
-config/multiverse_config.json. This is the single source of truth for
-WHAT gets measured (locate battery, biome probes, terrain grid) and HOW
-candidates are judged (placement bands, terrain targets, weights).
+the v4 config directory (config/custom-dimensions/) or the deprecated
+monolithic config/multiverse_config.json — load_config() accepts either.
+This is the single source of truth for WHAT gets measured (locate
+battery, biome probes, terrain grid) and HOW candidates are judged
+(placement bands, terrain targets, weights).
 
 Philosophy (from the worldgen brief):
   - Dimensions represent their namesake but are never single-biome.
@@ -267,6 +269,126 @@ MOOD_WEIGHTS = {
 }
 
 
+# Base-world filenames in config/custom-dimensions/dimensions/ override
+# existing worlds instead of creating new ones.
+BASE_WORLD_IDS = {
+    "overworld": "minecraft:overworld",
+    "the_nether": "minecraft:the_nether",
+    "the_end": "minecraft:the_end",
+    "paradise_lost": "paradise_lost:paradise_lost",
+}
+
+
+def load_dimension_configs(config_dir):
+    """Scan {config_dir}/dimensions/*.json -> {slug: raw config dict}.
+    The slug comes from the filename (never the JSON), matching the mod's
+    loader. Unparseable files are skipped with a warning, not fatal."""
+    import json
+    import sys
+    from pathlib import Path
+    configs = {}
+    dims_dir = Path(config_dir) / "dimensions"
+    if not dims_dir.is_dir():
+        return configs
+    for f in sorted(dims_dir.glob("*.json")):
+        try:
+            data = json.loads(f.read_text())
+        except json.JSONDecodeError as e:
+            print(f"warning: skipping unparseable {f}: {e}", file=sys.stderr)
+            continue
+        if isinstance(data, dict):
+            configs[f.stem.lower()] = data
+    return configs
+
+
+def load_config(config_path):
+    """A monolith-shaped config dict from either format: a directory
+    (config/custom-dimensions/) is synthesised into the legacy in-memory
+    shape (namespace/dimensions/portals/worlds/worldSeed) so every
+    downstream consumer keeps working; a file is read as-is."""
+    import json
+    from pathlib import Path
+    p = Path(config_path)
+    if p.is_dir():
+        return monolith_from_dir(p)
+    return json.loads(p.read_text())
+
+
+def monolith_from_dir(config_dir):
+    """Synthesise the legacy monolithic shape from the per-file directory."""
+    import json
+    from pathlib import Path
+    p = Path(config_dir)
+    settings = {}
+    settings_file = p / "settings.json"
+    if settings_file.exists():
+        settings = json.loads(settings_file.read_text())
+    ns = settings.get("namespace", "adventure")
+    files = load_dimension_configs(p)
+
+    dimensions, worlds, portals = [], [], []
+    world_seed = None
+    for slug, f in files.items():
+        if slug in BASE_WORLD_IDS:
+            w = {"name": slug, "dimensionId": BASE_WORLD_IDS[slug]}
+            seed = f.get("seed")
+            # "env" sentinel stays env-driven — only numeric seeds carry over.
+            if isinstance(seed, (int, float)) and not isinstance(seed, bool):
+                if slug == "overworld":
+                    world_seed = int(seed)
+                else:
+                    w["seed"] = int(seed)
+            for key in ("spawn", "scale", "seedRoll", "difficulty"):
+                if key in f:
+                    w[key] = f[key]
+            worlds.append(w)
+            continue
+
+        d = {"name": slug, "dimensionId": f.get("dimensionId") or f"{ns}:{slug}"}
+        for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
+                    "seedRoll", "difficulty"):
+            if key in f:
+                d[key] = f[key]
+        biomes = f.get("biomes")
+        if biomes:
+            d["biome"] = ",".join(biomes)
+        elif f.get("biome"):
+            d["biome"] = f["biome"]
+        dif = f.get("difficulty") or {}
+        hostile = dif.get("hostileSpawning", f.get("hostileSpawning"))
+        if hostile is not None:
+            d["hostileSpawning"] = hostile
+        dimensions.append(d)
+
+        portal = f.get("portal")
+        if portal and portal.get("frameBlock"):
+            entry = {"id": slug, "targetDimension": d["dimensionId"]}
+            for key in ("frameBlock", "igniterItem", "color", "lightLevel",
+                        "scale", "cooldown", "particleType"):
+                if key in portal:
+                    entry[key] = portal[key]
+            sounds = portal.get("sounds") or {}
+            entry["igniteSound"] = sounds.get("ignite", portal.get("igniteSound", "block.portal.trigger"))
+            entry["enterSound"] = sounds.get("enter", portal.get("enterSound", "block.portal.travel"))
+            entry["exitSound"] = sounds.get("exit", portal.get("exitSound", "block.portal.travel"))
+            portals.append(entry)
+
+    out = {
+        "namespace": ns,
+        "idleUnloadMinutes": settings.get("idleUnloadMinutes", 5),
+        "dimensions": dimensions,
+        "portals": portals,
+        "worlds": worlds,
+    }
+    frames = settings.get("frames", {})
+    for src, dst in (("overworld", "frameOverworld"), ("nether", "frameNether"), ("end", "frameEnd")):
+        if frames.get(src):
+            out[dst] = frames[src]
+    if world_seed is not None:
+        out["worldSeed"] = world_seed
+    return out
+
+
 def family_of(dim_type):
     if dim_type in OVERWORLD_FAMILY:
         return "overworld"
@@ -296,7 +418,10 @@ def world_family(dimension_id):
 def load_difficulty(config_path):
     """Per-dimension mob difficulty multipliers from
     config/configurable-difficulty/configurable-difficulty.json5 (sibling of
-    the multiverse config). Tolerant of // comments; {} when absent."""
+    the multiverse config file OR the custom-dimensions directory — both
+    live under config/). Tolerant of // comments; {} when absent. v4
+    per-dimension files carry difficulty.mobMultiplier themselves, which
+    wins in build_profile; this is the legacy fallback."""
     import json
     import re
     from pathlib import Path
@@ -333,7 +458,7 @@ def rollable(dim):
     if t == "superflat":
         return False
     if t == "void":
-        return bool(dim.get("biome"))
+        return bool(dim.get("biome") or dim.get("biomes"))
     return True
 
 
@@ -390,35 +515,74 @@ def resolve_struct(name):
     return STRUCTS.get(name, name if ":" in name else None)
 
 
+def want_range(value, radius, density):
+    """A want's placement window in BLOCKS (v4 Phase 6).
+
+    Explicit range objects ({"min": N, "max": M}) are absolute block
+    distances, used as-is (structureDensity shifting only applies to the
+    band-name shorthand — explicit is explicit). Legacy band-name strings
+    ("near_spawn"/"spread"/"near_border") convert via the BANDS fractions
+    of the playable radius, density-shifted as before. None = invalid."""
+    if isinstance(value, dict):
+        try:
+            lo = float(value.get("min", 0))
+            hi = float(value.get("max", radius))
+        except (TypeError, ValueError):
+            return None
+        return (lo, hi) if hi > lo >= 0 else None
+    if isinstance(value, str) and value in BANDS:
+        lo_f, hi_f = BANDS[shifted_band(value, density)]
+        return (lo_f * radius, hi_f * radius)
+    return None
+
+
+def shun_threshold(value, radius):
+    """A shun's minimum-distance threshold in BLOCKS. {"minDistance": N}
+    means "must be at LEAST N away"; 0 (or the legacy bare-name form)
+    means "must not exist anywhere inside the playable radius"."""
+    if isinstance(value, dict):
+        try:
+            dist = float(value.get("minDistance", 0))
+        except (TypeError, ValueError):
+            return radius
+        return dist if dist > 0 else radius
+    return radius
+
+
 def build_profile(dim, config, difficulty=None):
     """Full per-dimension profile from the dimension's config entry — the
     'seedRoll' block (mood/spawnFilter/water/wants/shuns/description) is the
     single source of truth; sensible generics cover entries without one.
-    Handles both runtime dimensions and 'worlds' entries (vanilla + static
-    mod dimensions, marked by is_world/scale on the entry)."""
+    Accepts legacy monolith entries AND raw v4 per-file dicts ("biomes"
+    array, "portal" block, "difficulty" block). Handles both runtime
+    dimensions and base-world entries (no "type" key = base world)."""
     name = dim["name"]
-    is_world = "type" not in dim  # worlds entries have dimensionId only
+    is_world = "type" not in dim  # base-world entries have no type
     dim_type = dim.get("type", "world")
     sr_early = dim.get("seedRoll") or {}
     # Config dictates everything; type-string heuristics are only fallbacks.
     fam = sr_early.get("family")
     if fam not in ("overworld", "nether", "end"):
         fam = world_family(dim.get("dimensionId", "")) if is_world else family_of(dim_type)
+    portal = dim.get("portal") or {}
     if is_world:
         scale = float(dim.get("scale", 1.0))
     else:
-        scale = portal_scales(config).get(name, 1.0)
+        scale = float(portal.get("scale") or portal_scales(config).get(name, 1.0))
     radius = DEFAULT_BORDER_RADIUS / scale
     density = dim.get("structureDensity")
-    peaceful = dim.get("hostileSpawning") is False
+    dim_difficulty = dim.get("difficulty") or {}
+    peaceful = dim_difficulty.get("hostileSpawning", dim.get("hostileSpawning")) is False
     noise = dim.get("noiseSettings")
     sr = dim.get("seedRoll") or {}
-    config_biomes = [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+    config_biomes = list(dim.get("biomes") or []) \
+        or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
 
-    # Mob difficulty (configurable-difficulty.json5) is the tiebreaker for
-    # mood when the config doesn't set one, and always shown in the viewer.
+    # Mob difficulty: the v4 per-dimension difficulty block wins; the
+    # legacy configurable-difficulty.json5 dict is the fallback. Tiebreaker
+    # for mood when the config doesn't set one; always shown in the viewer.
     dim_id = dim.get("dimensionId", "")
-    mob_difficulty = (difficulty or {}).get(dim_id)
+    mob_difficulty = dim_difficulty.get("mobMultiplier", (difficulty or {}).get(dim_id))
 
     mood = sr.get("mood", "standard")
     if mood not in MOOD_WEIGHTS:
@@ -450,21 +614,36 @@ def build_profile(dim, config, difficulty=None):
         step = len(variety_biomes) / 8.0
         variety_biomes = [variety_biomes[int(i * step)] for i in range(8)]
 
-    # Structure battery: wants (band-scored, density-shifted; peaceful drops
-    # hostile ones) + shuns (presence inside the radius costs points).
-    wants = sr.get("wants") if ("wants" in sr or "shuns" in sr) else DEFAULT_WANTS.get(fam or "", {})
+    # Structure battery (v4 Phase 6): the top-level "structures" block wins
+    # (wants/shuns as explicit block-distance ranges); the legacy seedRoll
+    # wants/shuns (band names / bare lists) remain fully supported. Wants
+    # are range-scored (peaceful drops hostile ones); shuns cost the point
+    # when the structure sits closer than its minimum distance.
+    struct_block = dim.get("structures") or {}
+    if struct_block.get("wants") is not None:
+        wants = struct_block["wants"]
+    elif "wants" in sr or "shuns" in sr:
+        wants = sr.get("wants")
+    else:
+        wants = DEFAULT_WANTS.get(fam or "", {})
+    if struct_block.get("shuns") is not None:
+        shuns = struct_block["shuns"]
+    else:
+        shuns = sr.get("shuns", [])
     battery = []
-    for sname, band in (wants or {}).items():
+    for sname, value in (wants or {}).items():
         sid = resolve_struct(sname)
-        if sid is None or band not in BANDS:
+        rng = want_range(value, radius, density)
+        if sid is None or rng is None:
             continue
         if peaceful and sname in HOSTILE_STRUCTURES:
             continue
-        battery.append((sname, sid, shifted_band(band, density), "want"))
-    for sname in sr.get("shuns", []):
+        battery.append((sname, sid, rng, "want"))
+    shun_items = shuns.items() if isinstance(shuns, dict) else [(s, None) for s in (shuns or [])]
+    for sname, value in shun_items:
         sid = resolve_struct(sname)
         if sid is not None:
-            battery.append((sname, sid, None, "shun"))
+            battery.append((sname, sid, shun_threshold(value, radius), "shun"))
 
     terrain = terrain_targets_for(noise)
     # Mood modulation: hard/dramatic want more violence, serene less.
@@ -506,11 +685,21 @@ def build_profile(dim, config, difficulty=None):
         weights["variety"] = max(5, weights["variety"] - 5)
 
     # Endgame near-spawn safety: hard/dense dims want endgame close;
-    # everything else rejects candidates with endgame inside a protected zone.
-    allow_endgame = sr.get("allowEndgameNearSpawn", False) \
-        or mood in ENDGAME_SAFE_MOODS \
-        or density == "dense"
-    endgame_safe_radius = 0 if allow_endgame else max(256, int(0.15 * radius))
+    # everything else rejects candidates with endgame inside a protected
+    # zone. The structures.endgame block overrides the heuristics.
+    endgame_cfg = struct_block.get("endgame") or {}
+    if endgame_cfg.get("allow") is not None:
+        allow_endgame = bool(endgame_cfg["allow"])
+    else:
+        allow_endgame = sr.get("allowEndgameNearSpawn", False) \
+            or mood in ENDGAME_SAFE_MOODS \
+            or density == "dense"
+    if allow_endgame:
+        endgame_safe_radius = 0
+    elif endgame_cfg.get("safeRadius") is not None:
+        endgame_safe_radius = int(endgame_cfg["safeRadius"])
+    else:
+        endgame_safe_radius = max(256, int(0.15 * radius))
     endgame_battery = []
     if not allow_endgame:
         for sname in ENDGAME_STRUCTURES:
@@ -554,6 +743,6 @@ def build_profile(dim, config, difficulty=None):
             "type": dim_type,
             "noiseSettings": noise,
             "structureDensity": density,
-            "biome": dim.get("biome"),
+            "biome": ",".join(config_biomes) if config_biomes else None,
         },
     }

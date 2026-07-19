@@ -1,5 +1,15 @@
 # Custom Dimensions v4 — Unified Configuration & Seed Rolling
 
+> **Implementation status (2026-07-19): ALL PHASES COMPLETE.**
+>
+> - **Phase 0** ✅ extractors: `scripts/extract-{biomes,blocks,entities}.py` + JSON output from `extract-structure-sets.py` → `config/custom-dimensions/extractors/` (229 biomes, 14 203 blocks, 210 entities, 377 structure sets; excluded from runtime sync/image)
+> - **Phase 1** ✅ config directory: `DimensionConfig`/`DimensionConfigLoader`, overlay resolution (replace/`"overrides"`/`{}`-skip/consumer-added via `BRAND_SLUG`), legacy monolith fallback with deprecation warning, `scripts/migrate-to-v4-config.sh` (idempotent), 78 files generated, boot parity + overlay modes verified live on elfydd
+> - **Phase 2** ✅ difficulty absorbed: `DifficultyManager` + `MobAttributeMixin` (persistent attribute modifiers at `MobEntity.initialize` TAIL, hostile-only, 0×=no-op), overworld-only `depthScaling` (verified live: modifier 0.484375 at y=−60), `playerLuck` via JOIN/world-change events; `configurable-difficulty` removed from `modrinth-mods.txt` (json5 kept as migration input)
+> - **Phase 3** ✅ borders mod-owned: `WorldBorderManager` (SERVER_STARTED overworld-first for the vanilla border-syncer trap + LOAD for runtime dims), per-dim radii baked by migration (8192/scale); deploy.sh RCON worldborder/ChunkyBorder dance removed, BlueMap bounds from `borders.generation`
+> - **Phase 4** ✅ dimension types: `DimensionTypeBuilder` registers `{ns}:{slug}_type` from the `environment` block (unset fields inherit base; invalid heights fall back, never crash; skyColor/fogColor are client-side → configurator metadata only)
+> - **Phase 5** ✅ candidate storage: `scripts/seed/candidates.py` (`candidates/{slug}.json`: measurements + scores keyed by config hash + winner/pinned + rejected/abandoned), worker CSV spools merge at finalise (no locking), legacy `measurements.csv` auto-imports, `./dev seed-rescore` + `./dev seed-status`, pinned winners survive re-scoring
+> - **Phase 6** ✅ ranges: `structures.wants`/`shuns` as `{min,max}`/`{minDistance}` block distances (band names still convert via BANDS; explicit ranges skip density shifting), `structures.endgame {allow, safeRadius}` overrides
+
 ## Problem Statement
 
 The current custom-dimensions system has too many moving parts:
@@ -66,65 +76,71 @@ Each dimension file is a complete, self-contained description. Example `the_clay
 ```jsonc
 {
   // === Identity ===
-  "type": "overworld",                    // overworld | nether | end | void | superflat | multi_biome | sky_islands | nether_islands | "ns:clone_type"
+  "type": "overworld", // overworld | nether | end | void | superflat | multi_biome | sky_islands | nether_islands | "ns:clone_type"
   "description": "Quiet wetland wilderness — reed beds, drowned ruins, things half-sunk in the clay.",
 
   // === World Generation ===
-  "seed": -4254781042587868201,           // or "env" to read from SEED env var (base worlds only)
-  "spawn": [128, 64, -45],               // dimension spawn point (written by seed roller, or manual)
-  "noiseSettings": "adventure:wide",      // custom noise preset (null = type default)
-  "biomes": [                             // biome list for multi_biome/void types
+  "seed": -4254781042587868201, // or "env" to read from SEED env var (base worlds only)
+  "spawn": [128, 64, -45], // dimension spawn point (written by seed roller, or manual)
+  "noiseSettings": "adventure:wide", // custom noise preset (null = type default)
+  "biomes": [
+    // biome list for multi_biome/void types
     "natures_spirit:marsh",
     "minecraft:swamp",
-    "minecraft:mangrove_swamp"
+    "minecraft:mangrove_swamp",
   ],
 
   // === World Borders ===
   "borders": {
-    "player": 8192,                       // in-game world border radius (0 = no border)
-    "generation": 8192                    // chunky/tool generation limit (0 = no limit, independent of player border)
+    "player": 8192, // in-game world border radius (0 = no border)
+    "generation": 8192, // chunky/tool generation limit (0 = no limit, independent of player border)
   },
 
   // === Difficulty ===
   "difficulty": {
-    "hostileSpawning": true,              // false = peaceful dimension (no hostile mobs at all)
-    "mobMultiplier": 1.8,                 // overall difficulty multiplier
-    "attributes": {                       // fine-grained control (all optional, default to global settings)
+    "hostileSpawning": true, // false = peaceful dimension (no hostile mobs at all)
+    "mobMultiplier": 1.8, // overall difficulty multiplier
+    "attributes": {
+      // fine-grained control (all optional, default to global settings)
       "health": true,
       "damage": true,
       "armor": true,
       "speed": false,
-      "knockback": false
+      "knockback": false,
     },
-    "playerLuck": 0.8,                    // loot quality multiplier (1.0 = normal)
-    "depthScaling": {                     // mobs harder underground (null = inherit global)
+    "playerLuck": 0.8, // loot quality multiplier (1.0 = normal)
+    "depthScaling": {
+      // mobs harder underground (null = inherit global)
       "enabled": true,
       "startY": 64,
       "endY": -64,
       "minMultiplier": 1.0,
-      "maxMultiplier": 1.5
-    }
+      "maxMultiplier": 1.5,
+    },
   },
 
   // === Structures ===
-  "structureDensity": "sparse",           // dense | normal | sparse (shifts placement bands)
+  "structureDensity": "sparse", // dense | normal | sparse (shifts placement bands)
   "structures": {
-    "wants": {                            // structures that SHOULD appear, with placement ranges
-      "swamp_ruin": { "min": 0, "max": 2000 },           // absolute block distances
+    "wants": {
+      // structures that SHOULD appear, with placement ranges
+      "swamp_ruin": { "min": 0, "max": 2000 }, // absolute block distances
       "mangrove_hut": { "min": 0, "max": 800 },
       "muddy_dungeon": { "min": 2000, "max": 8192 },
-      "graveyard": { "min": 500, "max": 4000 }
+      "graveyard": { "min": 500, "max": 4000 },
     },
-    "shuns": {                            // structures that should NOT appear near spawn
+    "shuns": {
+      // structures that should NOT appear near spawn
       "village": { "minDistance": 4000 }, // must be at LEAST this far
-      "mansion": { "minDistance": 0 },    // must not exist at all inside radius (0 = anywhere)
+      "mansion": { "minDistance": 0 }, // must not exist at all inside radius (0 = anywhere)
       "trial_chambers": { "minDistance": 0 },
-      "ancient_city": { "minDistance": 0 }
+      "ancient_city": { "minDistance": 0 },
     },
-    "endgame": {                          // override endgame near-spawn protection
-      "allow": false,                     // true = allow endgame structures near spawn
-      "safeRadius": 1228                  // auto-calculated from borders if not set
-    }
+    "endgame": {
+      // override endgame near-spawn protection
+      "allow": false, // true = allow endgame structures near spawn
+      "safeRadius": 1228, // auto-calculated from borders if not set
+    },
   },
 
   // === Portal ===
@@ -133,50 +149,51 @@ Each dimension file is a complete, self-contained description. Example `the_clay
     "igniterItem": "minecraft:amethyst_shard",
     "color": "9B8B7A",
     "lightLevel": 11,
-    "scale": 8.0,                         // coordinate scaling (nether = 8, end = 1, etc.)
-    "cooldown": 40,                       // ticks before re-entry
+    "scale": 8.0, // coordinate scaling (nether = 8, end = 1, etc.)
+    "cooldown": 40, // ticks before re-entry
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
-      "exit": "block.portal.travel"
-    }
+      "exit": "block.portal.travel",
+    },
   },
 
   // === Skybox & Dimension Type ===
   "environment": {
-    "skyColor": "#7BA4FF",                // null = inherit from type
+    "skyColor": "#7BA4FF", // null = inherit from type
     "fogColor": "#C0D8FF",
-    "ambientLight": 0.0,                  // 0.0-1.0
-    "fixedTime": null,                    // null = normal day/night cycle; 6000 = permanent noon; 18000 = permanent midnight
+    "ambientLight": 0.0, // 0.0-1.0
+    "fixedTime": null, // null = normal day/night cycle; 6000 = permanent noon; 18000 = permanent midnight
     "hasCeiling": false,
     "hasSkylight": true,
-    "ultraWarm": false,                   // nether-style water evaporation
-    "natural": true,                      // compass/clock work normally
+    "ultraWarm": false, // nether-style water evaporation
+    "natural": true, // compass/clock work normally
     "bedWorks": true,
     "respawnAnchorWorks": false,
     "piglinSafe": false,
     "hasRaids": true,
     "minY": -64,
     "height": 384,
-    "logicalHeight": 384
+    "logicalHeight": 384,
   },
 
   // === Seed Rolling ===
   "seedRoll": {
-    "mood": "serene",                     // weighting archetype for scoring
-    "spawnFilter": [                      // biomes that qualify as a good spawn
+    "mood": "serene", // weighting archetype for scoring
+    "spawnFilter": [
+      // biomes that qualify as a good spawn
       "natures_spirit:marsh",
       "minecraft:swamp",
       "minecraft:mangrove_swamp",
       "terralith:orchid_swamp",
-      "natures_spirit:bamboo_wetlands"
+      "natures_spirit:bamboo_wetlands",
     ],
-    "spawnRadius": 768,                   // max distance to nearest spawn-filter biome
-    "water": "high",                      // none | normal | high | sea
-    "locateCap": 9192,                    // max distance for structure/biome locates (radius + 1000)
-    "terrain": null,                      // solid | islands | void (auto-detected if null)
-    "heightRange": null                   // [minY, maxY] for column probes (auto-detected if null)
-  }
+    "spawnRadius": 768, // max distance to nearest spawn-filter biome
+    "water": "high", // none | normal | high | sea
+    "locateCap": 9192, // max distance for structure/biome locates (radius + 1000)
+    "terrain": null, // solid | islands | void (auto-detected if null)
+    "heightRange": null, // [minY, maxY] for column probes (auto-detected if null)
+  },
 }
 ```
 
@@ -305,6 +322,7 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: Scripts that pull every biome, structure, block, and entity from installed mod JARs into machine-readable JSON. These feed the configurator and validate dimension configs.
 
 **Files**:
+
 - `scripts/extract-structure-sets.py` — **already done** (377 structure sets extracted)
 - `scripts/extract-biomes.py` — new: scan all JARs for `worldgen/biome/*.json`, extract biome ID, category, temperature, precipitation, mob spawns, features
 - `scripts/extract-blocks.py` — new: scan all JARs for block registries, extract block ID, material, hardness, tool requirements
@@ -325,6 +343,7 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: Replace `multiverse_config.json` with per-dimension files in `config/custom-dimensions/dimensions/`. The mod reads the directory; scripts read/write per-file. Backwards-compatible: if the old monolithic config exists and no directory does, fall back to it.
 
 **Mod changes**:
+
 - `MultiverseConfig.java` → `DimensionConfigLoader.java`: scan `config/custom-dimensions/dimensions/*.json`, deserialise each into a `DimensionConfig` (new unified class replacing `DimensionDefinition` + `PortalDefinition` + `WorldSeedDefinition`)
 - `DimensionConfig.java`: new class with every field from the schema above. Optional fields use `@SerializedName` + null defaults. Getter methods compute derived values (e.g. `getLocateCap()` returns `borders.generation + 1000` if not explicitly set)
 - `settings.json` loader: reads global defaults, merges under each dimension's config
@@ -333,12 +352,14 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 - The `"seed": "env"` sentinel for base worlds
 
 **Script changes**:
+
 - `scripts/seed/dimension_profiles.py` → read from per-file configs instead of monolithic JSON
 - `scripts/seed/score-dimensions.py` → read/write per-file, candidate storage in `candidates/`
 - `scripts/seed/seed_worker.py` → write measurements to candidate files
 - Migration script: `scripts/migrate-to-v4-config.sh` — splits `multiverse_config.json` + `configurable-difficulty.json5` into per-dimension files
 
-**Verification**: 
+**Verification**:
+
 - Migration script produces identical runtime behaviour (diff the mod's boot log)
 - `./dev seed-roll-all` reads from and writes to new locations
 - Consumer overlay resolution tested with Elfydd
@@ -356,6 +377,7 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: The custom-dimensions mod reads `difficulty` from each dimension's config and applies mob attribute modifiers directly, replacing the `configurable-difficulty` mod entirely.
 
 **Mod changes**:
+
 - New `DifficultyManager.java`: reads difficulty config per dimension, applies attribute modifiers to mobs at spawn time
 - New `MobAttributeMixin.java`: hooks `LivingEntity` spawn events, applies per-dimension health/damage/armor/speed/knockback scaling
 - New `PlayerLuckMixin.java`: hooks loot table resolution, applies per-dimension luck modifier
@@ -364,11 +386,13 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 - Config: read from `DimensionConfig.difficulty` (loaded in Phase 1)
 
 **Script changes**:
+
 - Migration script updates: merge `configurable-difficulty.json5` multipliers into per-dimension configs
 - Remove `configurable-difficulty` from `modrinth-mods.txt` (the external mod)
 - Update `deploy.sh` to stop copying the old difficulty config
 
 **Verification**:
+
 - Boot with custom-dimensions only (no configurable-difficulty mod)
 - RCON: spawn a zombie in a 2.0x dimension, verify doubled health via `data get entity @e[type=zombie,limit=1]`
 - Verify peaceful dimensions still block hostile spawns
@@ -387,17 +411,20 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: The mod sets world borders per dimension at boot, from config. Remove ChunkyBorder's border-setting role (keep ChunkyBorder for pre-generation only).
 
 **Mod changes**:
+
 - New `WorldBorderManager.java`: on dimension creation/load, set the vanilla `WorldBorder` from `config.borders.player`
 - Hook: `ServerWorldEvents.LOAD` → set border for the loaded world
 - The `borders.generation` value is NOT applied as a world border — it's metadata for tools (Chunky, BlueMap render bounds)
 - `deploy.sh`: read `borders.generation` from dimension configs for Chunky/BlueMap bounds instead of hardcoded `PREGEN_BORDER_RADIUS`
 
 **Script changes**:
+
 - `deploy.sh`: replace the RCON world-border dance with reading from dimension configs
 - `deploy.sh`: ChunkyBorder setup reads `borders.generation` per dimension instead of computing from `PLAYER_BORDER_RADIUS`
 - Keep ChunkyBorder mod for pre-generation; just remove its border-setting responsibility
 
 **Verification**:
+
 - Boot, enter a dimension, verify world border matches config
 - Change border in config, restart, verify it updated
 - Verify Chunky pre-generation still respects generation bounds
@@ -416,12 +443,14 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: Each dimension can have custom sky colour, fog, ambient light, fixed time, ceiling, etc. via the `environment` config block. The mod creates custom `DimensionType` registry entries at runtime.
 
 **Mod changes**:
+
 - `DimensionManager.createDimensionOptions()`: if `environment` is set, create a custom `DimensionType` from the config instead of cloning overworld/nether/end
 - New `DimensionTypeBuilder.java`: constructs `DimensionType` from config fields (sky colour, fog, ambient light, fixed time, ceiling, min_y, height, logical_height, ultraWarm, natural, bedWorks, respawnAnchorWorks, piglinSafe, hasRaids)
 - Registry: each custom dimension type gets registered as `{namespace}:{dimension_name}_type`
 - Fallback: if `environment` is null/absent, clone from the base type as today
 
 **Verification**:
+
 - Create a dimension with `"fixedTime": 18000` (permanent midnight), verify in-game
 - Create a dimension with custom sky/fog colours, verify visually
 - Verify dimensions without `environment` block still work (regression)
@@ -439,8 +468,9 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: The seed roller reads dimension configs from the per-file directory, writes candidates to `candidates/`, supports config-hash-based score invalidation, and recomputes scores without re-rolling.
 
 **Script changes**:
+
 - `dimension_profiles.py`: `build_profile()` reads from `DimensionConfig`-shaped dicts (structure wants/shuns now use `{ "min": N, "max": M }` ranges instead of band names)
-- `score-dimensions.py`: 
+- `score-dimensions.py`:
   - Read candidates from `candidates/{slug}.json` instead of flat CSVs
   - Write scores keyed by config hash
   - `rescore` subcommand: recompute all scores for existing measurements without re-rolling
@@ -451,10 +481,12 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 - Backwards compat: if `.seedtest/measurements.csv` exists, import into candidate files on first run
 
 **New features**:
+
 - `./dev seed-rescore` — recompute scores for all candidates using current configs (no Docker, no RCON, instant)
 - `./dev seed-status` — show candidate counts, winner scores, config staleness per dimension
 
 **Verification**:
+
 - Roll seeds, verify candidates written to correct files
 - Change a dimension's structure wants, run rescore, verify scores update without re-rolling
 - Import existing `.seedtest/measurements.csv` into candidate format
@@ -472,6 +504,7 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 **Goal**: Replace the band-name system (`near_spawn`, `spread`, `near_border`) with explicit block-distance ranges. This makes configs self-documenting and removes the STRUCTS short-name indirection.
 
 **Changes**:
+
 - Dimension configs use `{ "min": 0, "max": 2000 }` for wants and `{ "minDistance": 4000 }` for shuns
 - Structure IDs can be either short names (looked up in STRUCTS) or full `namespace:path` locate IDs
 - `dimension_profiles.py`: `build_profile()` converts range objects to scoring parameters directly
@@ -479,6 +512,7 @@ When the config changes (biomes, structures, difficulty, etc.), the `configHash`
 - Backwards compat: if a want value is a string (`"spread"`), convert to the equivalent range using the existing BANDS fractions
 
 **Verification**:
+
 - Score a candidate with the new range format, compare against old band format — scores should be equivalent for matching ranges
 - Verify backwards compat with old string-band configs
 

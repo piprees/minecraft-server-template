@@ -1,0 +1,46 @@
+{
+  "type": "overworld",
+  "description": "Outpost country gone feral — pillager lookouts, bandit towers and campsites contest every hill.",
+  "seed": -7001159427840009832,
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:mossy_stone_bricks",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "6B8B5B",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "natures_spirit:oak_savanna",
+      "natures_spirit:golden_wilds",
+      "minecraft:savanna",
+      "terralith:fractured_savanna"
+    ],
+    "wants": {
+      "pillager_outpost": "near_spawn",
+      "pillager_lookout": "near_spawn",
+      "bandit_towers": "spread",
+      "illager_campsite": "spread",
+      "nomad_outpost": "spread"
+    },
+    "shuns": [
+      "monument"
+    ],
+    "description": "Outpost country gone feral — pillager lookouts, bandit towers and campsites contest every hill."
+  }
+}

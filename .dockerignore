@@ -47,3 +47,5 @@ Thumbs.db
 __pycache__/
 **/__pycache__/
 *.bak.*
+config/custom-dimensions/extractors/
+config/custom-dimensions/candidates/

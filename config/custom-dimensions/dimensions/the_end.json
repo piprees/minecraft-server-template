@@ -1,0 +1,20 @@
+{
+  "scale": 1.0,
+  "borders": {
+    "player": 4096,
+    "generation": 4096
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "description": "The end — endgame space. Cities and citadels within honest reach of the gateways.",
+    "spawnFilter": [],
+    "wants": {
+      "end_city": "spread",
+      "phantom_citadel": "near_border"
+    },
+    "shuns": []
+  }
+}

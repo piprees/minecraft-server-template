@@ -1,0 +1,44 @@
+{
+  "type": "nether",
+  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock.",
+  "seed": 5801515250367357934,
+  "biomes": [
+    "minecraft:warped_forest",
+    "incendium:inverted_forest",
+    "terralith:warped_mesa"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3
+  },
+  "portal": {
+    "frameBlock": "minecraft:warped_wart_block",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "1BAFAF",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:warped_forest",
+      "incendium:inverted_forest",
+      "terralith:warped_mesa"
+    ],
+    "wants": {
+      "warped_greatsword": "spread",
+      "warped_outpost": "near_spawn",
+      "bastion": "spread"
+    },
+    "description": "Warped corruption spreading over a mesa world — teal fungus over red rock."
+  }
+}

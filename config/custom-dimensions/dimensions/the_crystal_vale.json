@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war.",
+  "seed": 6857879019486337303,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:amethyst_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "9B6BC8",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:enchant",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "terralith:amethyst_rainforest",
+      "terralith:amethyst_canyon",
+      "terralith:emerald_peaks"
+    ],
+    "wants": {
+      "wizard_tower": "spread",
+      "relic_temple": "near_border",
+      "guide_post_warm": "near_spawn"
+    },
+    "shuns": [
+      "monument",
+      "mansion",
+      "coliseum"
+    ],
+    "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war."
+  }
+}

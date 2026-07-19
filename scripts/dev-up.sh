@@ -99,6 +99,8 @@ case "$ACTION" in
       -not -path './uptime-kuma/*' \
       -not -path './cloudflare/*' \
       -not -path './cloudflared/*' \
+      -not -path './custom-dimensions/extractors/*' \
+      -not -path './custom-dimensions/candidates/*' \
       -not -name 'modrinth-mods.txt' \
       -not -name 'modrinth-mods.pinned.txt' \
       -not -name 'messages.json' \
@@ -114,13 +116,23 @@ case "$ACTION" in
     if [[ -d "$CONSUMER_DIR/overlay/config" ]]; then
       echo "Reapplying consumer overlay..."
       cd "$CONSUMER_DIR/overlay/config"
-      find . -type f | while IFS= read -r f; do
+      # custom-dimensions overlays are routed to the mod's overlay dir —
+      # they must never clobber the platform dimension files (the mod
+      # resolves replace/"overrides"/empty-{} itself).
+      find . -type f -not -path './custom-dimensions/*' | while IFS= read -r f; do
         dest="$local_data_cfg/${f#./}"
         mkdir -p "$(dirname "$dest")"
         cp "$f" "$dest"
         printf '  overlay: %s\n' "${f#./}"
       done
       cd "$CONSUMER_DIR"
+      if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
+        rm -rf "$local_data_cfg/custom-dimensions/overlay"
+        mkdir -p "$local_data_cfg/custom-dimensions/overlay"
+        cp -R "$CONSUMER_DIR/overlay/config/custom-dimensions/." \
+          "$local_data_cfg/custom-dimensions/overlay/"
+        echo "  overlay: custom-dimensions/ -> custom-dimensions/overlay/"
+      fi
     fi
 
     C2ME_TOML="$local_data_cfg/c2me.toml"
@@ -236,6 +248,8 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     -not -path './uptime-kuma/*' \
     -not -path './cloudflare/*' \
     -not -path './cloudflared/*' \
+    -not -path './custom-dimensions/extractors/*' \
+    -not -path './custom-dimensions/candidates/*' \
     -not -name 'modrinth-mods.txt' \
     -not -name 'modrinth-mods.pinned.txt' \
     -not -name 'messages.json' \
@@ -248,6 +262,18 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
       fi
     done
   cd "$CONSUMER_DIR"
+fi
+
+# v4 dimension overlay for the custom-dimensions mod (mirrors deploy.sh):
+# overlay/config/custom-dimensions/ -> data/config/custom-dimensions/overlay/
+# — the mod resolves replace/"overrides"/empty-{} against the platform
+# dimensions/ itself, so overlay files never clobber the defaults.
+if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
+  rm -rf "$CONSUMER_DIR/data/config/custom-dimensions/overlay"
+  mkdir -p "$CONSUMER_DIR/data/config/custom-dimensions/overlay"
+  cp -R "$CONSUMER_DIR/overlay/config/custom-dimensions/." \
+    "$CONSUMER_DIR/data/config/custom-dimensions/overlay/"
+  echo "  Dimension overlay staged at data/config/custom-dimensions/overlay/"
 fi
 
 # --- Sync platform datapacks into the world -----------------------------------

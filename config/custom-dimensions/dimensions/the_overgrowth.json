@@ -1,0 +1,51 @@
+{
+  "type": "overworld",
+  "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall.",
+  "seed": 3015051760093781697,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:mossy_cobblestone",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "4A8B3F",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:spore_blossom_air",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "terralith:rocky_jungle",
+      "terralith:jungle_mountains",
+      "natures_spirit:tropical_basin",
+      "terralith:cloud_forest",
+      "minecraft:jungle"
+    ],
+    "wants": {
+      "jungle_ruin": "near_spawn",
+      "infested_temple": "spread",
+      "webbed_dungeon": "near_border",
+      "lush_dungeon": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "monument"
+    ],
+    "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall."
+  }
+}

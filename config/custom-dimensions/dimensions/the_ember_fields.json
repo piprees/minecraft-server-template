@@ -1,0 +1,47 @@
+{
+  "type": "nether",
+  "description": "Rolling ember meadows (overworld-shaped nether) — piglin villages in the geyser fields.",
+  "seed": -3172550506937307791,
+  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:crimson_forest",
+    "terralith:yellowstone",
+    "incendium:infernal_dunes",
+    "minecraft:nether_wastes"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:magma_block",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "FF5B1B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:flame",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "terralith:yellowstone",
+      "incendium:infernal_dunes"
+    ],
+    "wants": {
+      "piglin_village": "spread",
+      "crimson_well": "near_spawn",
+      "fortress": "near_border"
+    },
+    "description": "Rolling ember meadows (overworld-shaped nether) — piglin villages in the geyser fields."
+  }
+}

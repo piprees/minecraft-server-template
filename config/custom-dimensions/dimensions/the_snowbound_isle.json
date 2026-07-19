@@ -1,0 +1,56 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",
+  "seed": -6903795762373810598,
+  "biomes": [
+    "paradise_lost:autumnal_tundra",
+    "paradise_lost:highlands_shield",
+    "minecraft:snowy_taiga",
+    "natures_spirit:snowy_fir_forest",
+    "terralith:snowy_cherry_grove",
+    "terralith:skylands_winter",
+    "terralith:frozen_cliffs"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8
+  },
+  "portal": {
+    "frameBlock": "minecraft:snow_block",
+    "igniterItem": "minecraft:gold_ingot",
+    "color": "C8E0F0",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "paradise_lost:autumnal_tundra",
+      "natures_spirit:snowy_fir_forest"
+    ],
+    "water": "high",
+    "wants": {
+      "para_remains": "near_spawn",
+      "aurel_tower": "spread",
+      "cold_dungeon": "spread",
+      "birdcage": "near_border"
+    },
+    "shuns": [],
+    "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

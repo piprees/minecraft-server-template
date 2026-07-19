@@ -197,7 +197,9 @@ betterspawn:I0Kiorjk
 starter-kit:OUsoZwOx
 
 # === difficulty ===
-configurable-difficulty:nEy5XFzJ
+# configurable-difficulty was absorbed into the custom-dimensions mod
+# (v4 Phase 2): per-dimension DimensionConfig.difficulty drives mob
+# attribute scaling, depth scaling, and player luck.
 attributefix?:XwbErf6s
 
 # === server defaults ===

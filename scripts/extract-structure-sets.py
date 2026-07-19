@@ -7,6 +7,7 @@ Sources:
   3. Vanilla JAR:   elfydd/data/versions/1.21.1/server-1.21.1.jar
 
 Output: mods/.ideas/structure-sets-extracted.csv
+        config/custom-dimensions/extractors/structures.json  (v4 Phase 0)
 """
 
 import csv
@@ -24,6 +25,7 @@ MODS_DIR = ELFYDD_DIR / "data" / "mods"
 VANILLA_JAR = ELFYDD_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"
 OUTPUT_CSV = PLATFORM_DIR / "mods" / ".ideas" / "structure-sets-extracted.csv"
+OUTPUT_JSON = PLATFORM_DIR / "config" / "custom-dimensions" / "extractors" / "structures.json"
 
 # ── Dimension inference ──────────────────────────────────────────────
 
@@ -296,6 +298,26 @@ def main():
         writer.writerows(final)
 
     print(f"\nWrote {len(final)} structure sets to {OUTPUT_CSV}")
+
+    # Machine-readable mirror for the v4 config tree (Phase 0 extractors).
+    OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+    sets_json = {}
+    for r in final:
+        sets_json[r["structure_set_id"]] = {
+            "source": r["mod_source"],
+            "theme": r["theme"],
+            "structures": [s.split("(w=")[0] for s in r["structures"].split("; ") if s],
+            "spacing": r["spacing"],
+            "separation": r["separation"],
+            "frequency": r["frequency"],
+            "dimension": r["dimensions"],
+            "rarity": r["rarity_class"],
+        }
+    with open(OUTPUT_JSON, "w") as f:
+        json.dump({"count": len(sets_json),
+                   "structure_sets": dict(sorted(sets_json.items()))}, f, indent=2)
+        f.write("\n")
+    print(f"Wrote {len(sets_json)} structure sets to {OUTPUT_JSON}")
 
     # Summary
     by_source = {}

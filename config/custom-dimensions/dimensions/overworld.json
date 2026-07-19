@@ -1,0 +1,43 @@
+{
+  "seed": 4955897124001752590,
+  "scale": 1.0,
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 1.5
+    },
+    "mobMultiplier": 1.0
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "description": "The main overworld — safe, fairly vanilla spawn with interesting features nearby to kick off the journey; a real world players want to live in, with hard dungeons waiting near the border.",
+    "spawnFilter": [
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:sunflower_plains",
+      "minecraft:cherry_grove",
+      "terralith:blooming_plateau",
+      "natures_spirit:prairie",
+      "terralith:lush_valley"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "near_spawn",
+      "ruined_portal": "near_spawn",
+      "mineshaft": "spread",
+      "trial_chambers": "spread",
+      "ancient_city": "near_border",
+      "mansion": "near_border",
+      "coliseum": "near_border"
+    },
+    "shuns": []
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "Violet spires in the sky — wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
+  "seed": -2184852740675444909,
+  "biomes": [
+    "paradise_lost:wisteria_woods",
+    "terralith:amethyst_canyon",
+    "terralith:windswept_spires",
+    "natures_spirit:lavender_fields",
+    "nullscape:crystal_peaks",
+    "terralith:skylands_spring"
+  ],
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:purpur_block",
+    "igniterItem": "minecraft:diamond",
+    "color": "9B5BB0",
+    "lightLevel": 11,
+    "scale": 12.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "paradise_lost:wisteria_woods",
+      "terralith:amethyst_canyon"
+    ],
+    "wants": {
+      "aurel_tower": "near_spawn",
+      "birdcage": "spread",
+      "wizard_tower": "spread",
+      "para_palace": "near_border"
+    },
+    "shuns": [
+      "village",
+      "monument"
+    ],
+    "description": "Violet spires in the sky — wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "type": "nether",
+  "description": "Narrow bridged chasms — quartz spans over the wail.",
+  "seed": -7035356524938563395,
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:quartz_bricks",
+    "igniterItem": "minecraft:diamond",
+    "color": "B0C8E0",
+    "lightLevel": 11,
+    "scale": 12.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "nether_bridge": "near_spawn",
+      "fortress": "spread",
+      "giant_skull": "spread"
+    },
+    "description": "Narrow bridged chasms — quartz spans over the wail."
+  }
+}

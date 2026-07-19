@@ -1,0 +1,63 @@
+{
+  "type": "multi_biome",
+  "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold.",
+  "seed": -3604832347219380837,
+  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:snowy_plains",
+    "minecraft:snowy_taiga",
+    "minecraft:grove",
+    "minecraft:frozen_river",
+    "minecraft:ice_spikes",
+    "minecraft:snowy_slopes",
+    "minecraft:frozen_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:taiga",
+    "minecraft:river",
+    "minecraft:stony_shore",
+    "terralith:alpine_grove",
+    "terralith:birch_taiga",
+    "terralith:rocky_mountains",
+    "natures_spirit:tundra",
+    "natures_spirit:sleeted_slopes",
+    "terralith:wintry_forest"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3
+  },
+  "portal": {
+    "frameBlock": "minecraft:lapis_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "6B9BD0",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:snowy_plains",
+      "minecraft:snowy_taiga",
+      "terralith:alpine_grove",
+      "natures_spirit:tundra"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "igloo": "near_spawn",
+      "taiga_outpost": "spread",
+      "cold_dungeon": "spread",
+      "ice_dungeon_l": "near_border"
+    },
+    "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold."
+  }
+}

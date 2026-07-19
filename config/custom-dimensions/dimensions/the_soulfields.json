@@ -1,0 +1,46 @@
+{
+  "type": "nether",
+  "description": "Soul-sand meadows and grave fields; the dead are the crop.",
+  "seed": 5882171892785548389,
+  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "incendium:ash_barrens",
+    "terralith:ashen_savanna"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:soul_soil",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "3BAFCF",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:soul_fire_flame",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "incendium:ash_barrens",
+      "terralith:ashen_savanna"
+    ],
+    "wants": {
+      "nether_graveyard": "near_spawn",
+      "giant_skull": "spread",
+      "lost_soul_dungeon": "spread"
+    },
+    "description": "Soul-sand meadows and grave fields; the dead are the crop."
+  }
+}

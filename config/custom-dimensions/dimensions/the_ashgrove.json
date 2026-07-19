@@ -1,0 +1,44 @@
+{
+  "type": "overworld",
+  "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
+  "seed": 6416894595201730599,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:tuff",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "7B8B6B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "terralith:ashen_savanna",
+      "terralith:volcanic_peaks",
+      "terralith:volcanic_crater"
+    ],
+    "wants": {
+      "abandoned_camp": "near_spawn",
+      "graveyard": "spread",
+      "scorched_tomb": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire."
+  }
+}

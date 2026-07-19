@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "The forge itself — crimson forges and reactors in a small brutal deep.",
+  "seed": -4778351741013971258,
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:deepslate_bricks",
+    "igniterItem": "minecraft:diamond",
+    "color": "6B7B8B",
+    "lightLevel": 11,
+    "scale": 12.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "incendium:volcanic_deltas"
+    ],
+    "wants": {
+      "crimson_forge": "near_spawn",
+      "nether_reactor": "spread",
+      "bastion": "spread",
+      "fortress": "spread"
+    },
+    "description": "The forge itself — crimson forges and reactors in a small brutal deep."
+  }
+}

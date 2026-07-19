@@ -1,0 +1,47 @@
+{
+  "type": "end",
+  "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith.",
+  "seed": 1348467636973897365,
+  "biomes": [
+    "terralith:scarlet_mountains",
+    "minecraft:crimson_forest",
+    "terralith:red_oasis",
+    "minecraft:end_barrens"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:red_sandstone",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "C87040",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "terralith:scarlet_mountains",
+      "terralith:red_oasis",
+      "minecraft:crimson_forest"
+    ],
+    "wants": {
+      "monolith": "near_spawn",
+      "manuscript_shrine": "spread",
+      "mythic_garden": "spread",
+      "end_city": "near_border"
+    },
+    "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith."
+  }
+}

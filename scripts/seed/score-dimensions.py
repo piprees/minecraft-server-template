@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """score-dimensions.py — plan, score, and finalise parallel dimension seed rolls.
 
-Subcommands (all take --config <multiverse_config.json> and --seedtest <dir>):
+Subcommands (all take --config and --seedtest <dir>). --config accepts the
+v4 config directory (config/custom-dimensions/) or, backwards-compatibly,
+the deprecated monolithic multiverse_config.json; directory mode writes
+winners into the individual dimensions/{slug}.json files.
 
   manifest  Split dimensions across workers and generate, per worker:
               .seedtest/work-<w>.txt      dim|candidateName|seed lines
@@ -20,9 +23,16 @@ Subcommands (all take --config <multiverse_config.json> and --seedtest <dir>):
   finalise  score + pick winners + write them into the config (with .bak),
             generate .seedtest/viewer.html, print the summary table.
             Options: --write-config --viewer --open-viewer
+  rescore   Recompute all scores from banked measurements against the
+            CURRENT configs — no Docker, no re-rolling (directory mode).
+  status    Candidate-bank status: counts, winners, score freshness.
 
-Measurement CSV is long-format (target,seed,metric,value) merged from the
-per-worker files by roll-all.sh. Metrics per candidate:
+Measurement storage (v4 Phase 5, directory mode): canonical store is
+{config}/candidates/{slug}.json (measurements + scores keyed by config
+hash + winner + rejected/abandoned seeds). Workers spool to
+.seedtest/worker-*.csv; every finalise/rescore folds the spools into the
+store. A legacy .seedtest/measurements.csv is read as an import source.
+Worker CSV metrics per candidate:
   spawn_biome            first matching probe biome id (or "unknown")
   biome_<id>_dist        locate biome distance (-1 = not found)
   structure_<name>_dist  locate structure distance (-1 = not found)
@@ -43,7 +53,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dimension_profiles import BANDS, build_profile, load_difficulty, rollable  # noqa: E402
+import candidates  # noqa: E402
+from dimension_profiles import build_profile, load_config, load_difficulty, rollable  # noqa: E402
 
 LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 
@@ -140,11 +151,14 @@ def cmd_world_manifest(args, config, world_profiles):
             (seedtest / f"work-v{w}.txt").write_text("")
         print("world manifest: no worlds configured")
         return
-    measured = load_measurements(args.csv)
+    measured = gather_measurements(args)
     accepted = sum(1 for rows in measured.get("overworld", {}).values() if "errors" in rows)
     needed = max(0, args.candidates - accepted)
     workers = max(1, args.workers)
     seen = set(measured.get("overworld", {}))
+    cfg = Path(args.config)
+    if cfg.is_dir():
+        seen |= candidates.seen_seeds(cfg)
 
     roll = roll_boot_config(config)
     for w in range(workers):
@@ -164,7 +178,7 @@ def cmd_world_manifest(args, config, world_profiles):
 
 def cmd_render_manifest(args, config, profiles):
     seedtest = Path(args.seedtest)
-    results, _rejected = score_all(config, profiles, args.csv)
+    results, _rejected = score_all(profiles, gather_measurements(args))
     sources = {d["name"]: d for d in config["dimensions"]}
     sources.update({w["name"]: w for w in config.get("worlds", [])})
     workers = max(1, args.workers)
@@ -199,16 +213,12 @@ def window_score(value, lo, hi):
     return max(0.0, 1.0 - (value - hi) / width)
 
 
-def band_blocks(band, radius):
-    lo_f, hi_f = BANDS[band]
-    return lo_f * radius, hi_f * radius
-
-
-def want_score(dist, band, radius):
-    """A structure that BELONGS, judged by its placement band (clamped to
-    the playable radius). Bands beyond locate's search horizon can't be
-    confirmed — absence is compatible, presence hugging spawn is not."""
-    lo, hi = band_blocks(band, radius)
+def want_score(dist, lo, hi, radius):
+    """A structure that BELONGS, judged by its placement range in blocks
+    (v4 Phase 6: explicit {min,max} ranges; band names convert to ranges in
+    build_profile). Clamped to the playable radius. Ranges beyond locate's
+    search horizon can't be confirmed — absence is compatible, presence
+    hugging spawn is not."""
     hi = min(hi, radius)
     if lo >= LOCATE_HORIZON:
         if dist is None or dist < 0:
@@ -219,10 +229,13 @@ def want_score(dist, band, radius):
     return window_score(dist, lo, hi)
 
 
-def shun_score(dist, radius):
-    """A structure that has NO BUSINESS here: presence inside the playable
-    radius costs the point; absence (or beyond the border) earns it."""
-    return 0.0 if (dist is not None and 0 <= dist < radius) else 1.0
+def shun_score(dist, radius, min_distance=None):
+    """A structure that has NO BUSINESS here (or not this close): presence
+    closer than the threshold costs the point; absence (or beyond it)
+    earns it. The threshold is minDistance when set, else the playable
+    radius (legacy "must not exist inside the world" semantics)."""
+    threshold = min_distance if min_distance else radius
+    return 0.0 if (dist is not None and 0 <= dist < threshold) else 1.0
 
 
 def terrain_metrics(rows):
@@ -301,16 +314,16 @@ def score_candidate(profile, rows):
         if land < 0.5 and profile["terrain"]["water"][1] < 0.5:
             parts["terrain"] *= 0.5  # unexpectedly voidy/ocean-swallowed
 
-    # Structures: wants judged by band, shuns judged by absence.
+    # Structures: wants judged by their block range, shuns by distance.
     if profile["battery"]:
         ss, n = 0.0, 0
-        for name, _sid, band, kind in profile["battery"]:
+        for name, _sid, spec, kind in profile["battery"]:
             v = rows.get(f"structure_{name}_dist")
             d = float(v) if v is not None else None
             if kind == "shun":
-                ss += shun_score(d, profile["radius"])
+                ss += shun_score(d, profile["radius"], spec)
             else:
-                ss += want_score(d, band, profile["radius"])
+                ss += want_score(d, spec[0], spec[1], profile["radius"])
             n += 1
         parts["structures"] = ss / n if n else 0.0
     else:
@@ -327,9 +340,9 @@ def score_candidate(profile, rows):
 
 
 def load_measurements(csv_path):
-    """-> {dim: {seed: {metric: value}}}"""
+    """-> {dim: {seed: {metric: value}}} from one long-format CSV."""
     data = defaultdict(lambda: defaultdict(dict))
-    if not Path(csv_path).exists():
+    if not csv_path or not Path(csv_path).exists():
         return data
     with open(csv_path, newline="") as fh:
         reader = csv.reader(fh)
@@ -341,11 +354,76 @@ def load_measurements(csv_path):
     return data
 
 
-def score_all(config, profiles, csv_path):
+def gather_measurements(args):
+    """Canonical measurement view -> {dim: {seed: rows}}.
+
+    Directory mode reads the candidate store first, then folds in any
+    un-merged worker spools (worker-*.csv) and the legacy
+    .seedtest/measurements.csv (one-time import path: persist_candidates
+    writes everything back to the store, after which the CSVs are inert).
+    Legacy monolith mode uses just the CSVs."""
+    data = defaultdict(lambda: defaultdict(dict))
+    cfg = Path(args.config) if getattr(args, "config", None) else None
+    if cfg is not None and cfg.is_dir():
+        cdir = candidates.candidates_dir(cfg)
+        if cdir.is_dir():
+            for f in sorted(cdir.glob("*.json")):
+                store = candidates.load_store(f)
+                slug = f.stem
+                for seed, cand in store["candidates"].items():
+                    data[slug][seed].update(cand.get("measurements", {}))
+                for seed in store["rejected"]:
+                    data[slug][seed].setdefault("rejected", "1")
+    sources = [Path(args.csv)] if getattr(args, "csv", None) else []
+    sources += sorted(Path(args.seedtest).glob("worker-*.csv"))
+    for src in sources:
+        for dim, seeds in load_measurements(src).items():
+            for seed, rows in seeds.items():
+                data[dim][seed].update(rows)
+    return data
+
+
+def load_abandoned(seedtest):
+    """abandoned-worker-*.csv (target,seed,reason) -> {dim: {seed: reason}}."""
+    out = defaultdict(dict)
+    for f in sorted(Path(seedtest).glob("abandoned-worker-*.csv")):
+        with open(f, newline="") as fh:
+            for row in csv.reader(fh):
+                if len(row) >= 3 and row[0] != "target":
+                    out[row[0]][row[1]] = row[2]
+    return out
+
+
+def persist_candidates(args, config, profiles, results, data, winners=None):
+    """Directory mode: fold everything into candidates/{slug}.json — raw
+    measurements, rejects, abandoned seeds, scores keyed by the current
+    config hash, and the winner (pinned flag preserved for human picks)."""
+    cfg = Path(args.config)
+    cdir = candidates.candidates_dir(cfg)
+    sources = {d["name"]: d for d in config.get("dimensions", [])}
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
+    abandoned = load_abandoned(args.seedtest)
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    for name in profiles:
+        store = candidates.load_store(cdir / f"{name}.json")
+        store["configHash"] = candidates.config_hash(sources.get(name))
+        for seed, rows in data.get(name, {}).items():
+            candidates.merge_rows(store, seed, rows)
+        for seed, reason in abandoned.get(name, {}).items():
+            store["abandoned"].setdefault(str(seed), reason)
+        for c in results.get(name, []):
+            candidates.record_score(store, c["seed"], store["configHash"],
+                                    c["score"], c["parts"], now)
+        if winners and name in winners:
+            store["winner"] = winners[name]["seed"]
+            store["winnerPinned"] = bool(winners[name].get("pinned"))
+        candidates.save_store(cdir / f"{name}.json", store)
+
+
+def score_all(profiles, data):
     """-> (results {dim: [accepted candidates ranked]}, rejected {dim: n}).
-    Spawn-filter rejects are banked in the CSV (their seeds never re-roll)
-    but they are not candidates."""
-    data = load_measurements(csv_path)
+    Spawn-filter rejects are banked (their seeds never re-roll) but they
+    are not candidates."""
     results, rejected = {}, {}
     for name, profile in profiles.items():
         cands = []
@@ -365,14 +443,70 @@ def score_all(config, profiles, csv_path):
 
 
 def cmd_score(args, config, profiles):
-    results, rejected = score_all(config, profiles, args.csv)
+    data = gather_measurements(args)
+    results, rejected = score_all(profiles, data)
     out = Path(args.seedtest) / "scores.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     slim = {d: [{k: c[k] for k in ("seed", "score", "parts", "spawn_biome")}
                 for c in cands] for d, cands in results.items()}
     out.write_text(json.dumps(slim, indent=2))
+    if Path(args.config).is_dir():
+        persist_candidates(args, config, profiles, results, data)
     print_summary(results, profiles, rejected)
     print(f"\nscores written to {out}")
+
+
+def cmd_rescore(args, config, profiles):
+    """Recompute every candidate's score against the CURRENT configs —
+    no Docker, no RCON, no re-rolling. Measurements are seed-specific and
+    stay valid across config changes; scores are keyed by config hash, so
+    a config edit only makes scores stale, and this refreshes them."""
+    cfg = Path(args.config)
+    if not cfg.is_dir():
+        sys.exit("rescore needs the v4 config directory (config/custom-dimensions)")
+    data = gather_measurements(args)
+    results, rejected = score_all(profiles, data)
+    persist_candidates(args, config, profiles, results, data)
+    print_summary(results, profiles, rejected)
+    total = sum(len(c) for c in results.values())
+    print(f"\nrescored {total} candidate(s) across {len(profiles)} target(s) "
+          f"into {candidates.candidates_dir(cfg)}")
+
+
+def cmd_status(args, config, profiles):
+    """Candidate-bank status per target: counts, winner, score freshness."""
+    cfg = Path(args.config)
+    if not cfg.is_dir():
+        sys.exit("status needs the v4 config directory (config/custom-dimensions)")
+    cdir = candidates.candidates_dir(cfg)
+    sources = {d["name"]: d for d in config.get("dimensions", [])}
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
+    print(f"{'dimension':30} {'cands':>5} {'rej':>4} {'aband':>5} "
+          f"{'winner':>21} {'score':>6}  state")
+    print("-" * 96)
+    stale_count = 0
+    for name in profiles:
+        store = candidates.load_store(cdir / f"{name}.json")
+        chash = candidates.config_hash(sources.get(name))
+        winner = store["winner"]
+        wscore = "-"
+        state = "no candidates"
+        if store["candidates"]:
+            state = "fresh" if store["configHash"] == chash else "STALE (config changed — run seed-rescore)"
+            if state != "fresh":
+                stale_count += 1
+        if winner and winner in store["candidates"]:
+            score = store["candidates"][winner].get("scores", {}).get(chash)
+            if score:
+                wscore = f"{score['total']:.1f}"
+            else:
+                state = "STALE (winner unscored for current config — run seed-rescore)"
+        pin = " 📌" if store["winnerPinned"] else ""
+        print(f"{name:30} {len(store['candidates']):>5} {len(store['rejected']):>4} "
+              f"{len(store['abandoned']):>5} {winner or '-':>21} {wscore:>6}  {state}{pin}")
+    if stale_count:
+        print(f"\n{stale_count} target(s) have stale scores — ./dev seed-rescore refreshes "
+              "them from banked measurements (no re-rolling)")
 
 
 def print_summary(results, profiles, rejected=None):
@@ -403,13 +537,106 @@ def load_overrides(seedtest):
         return {}
 
 
+def session_backup(seedtest, make_backup):
+    """One timestamped backup per roll session (live auto-write runs every
+    45s — marker cleared by roll-all at start), not hundreds."""
+    marker = Path(seedtest) / ".config-backed-up"
+    if marker.exists():
+        return None
+    backup = make_backup(time.strftime("%Y%m%d-%H%M%S"))
+    marker.touch()
+    return backup
+
+
+def write_winner(data, winner):
+    """Apply one winner's seed + spawn to a config dict. -> changed?"""
+    changed = False
+    new_seed = int(winner["seed"])
+    if data.get("seed") != new_seed:
+        data["seed"] = new_seed
+        changed = True
+    sx = winner["metrics"].get("spawn_x")
+    sz = winner["metrics"].get("spawn_z")
+    if sx is not None and sz is not None:
+        data["spawn"] = [int(float(sx)), 64, int(float(sz))]
+    return changed
+
+
+def write_winners_to_dir(config_dir, winners, seedtest):
+    """v4 directory mode: each winner lands in its own dimensions/{slug}.json
+    (base worlds included — overworld.json carries the overworld seed)."""
+    dims_dir = Path(config_dir) / "dimensions"
+    backup = session_backup(seedtest, lambda ts: shutil.copytree(
+        dims_dir, Path(seedtest) / f"dimensions.bak.{ts}"))
+    changed = 0
+    for name, w in winners.items():
+        f = dims_dir / f"{name}.json"
+        if not f.exists():
+            continue
+        data = json.loads(f.read_text())
+        if write_winner(data, w):
+            changed += 1
+        f.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    return changed, backup
+
+
+def write_winners_to_monolith(cfg_path, winners, seedtest):
+    """Legacy mode: dimensions[] get seed+spawn, worlds[] likewise, and the
+    overworld winner lands on the top-level worldSeed — the mod's
+    ServerWorldSeedMixin drives ALL of them (config-driven multiverse;
+    .env SEED only seeds level.dat as a legacy fallback)."""
+    def make_backup(ts):
+        dst = cfg_path.with_name(cfg_path.name + f".bak.{ts}")
+        shutil.copy2(cfg_path, dst)
+        return dst
+
+    backup = session_backup(seedtest, make_backup)
+    fresh = json.loads(cfg_path.read_text())
+    changed = 0
+    for dim in fresh["dimensions"]:
+        w = winners.get(dim["name"])
+        if w and write_winner(dim, w):
+            changed += 1
+    for world in fresh.get("worlds", []):
+        w = winners.get(world["name"])
+        if w and world["name"] != "overworld" and write_winner(world, w):
+            changed += 1
+    ow = winners.get("overworld")
+    if ow is not None:
+        fresh["worldSeed"] = int(ow["seed"])
+        sx = ow["metrics"].get("spawn_x")
+        sz = ow["metrics"].get("spawn_z")
+        if sx is not None and sz is not None:
+            ow_entry = next((w for w in fresh.get("worlds", [])
+                             if w["name"] == "overworld"), None)
+            if ow_entry is not None:
+                ow_entry["spawn"] = [int(float(sx)), 64, int(float(sz))]
+    cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
+    return changed, backup, ow
+
+
 def cmd_finalise(args, config, profiles, world_profiles=None):
-    results, rejected = score_all(config, profiles, args.csv)
+    data = gather_measurements(args)
+    results, rejected = score_all(profiles, data)
     world_profiles = world_profiles or {}
+    dir_mode = Path(args.config).is_dir()
     # Every target — dimensions AND the four real worlds — has an
     # independent winner (worlds are rolled as fake_* clones; each real
     # world gets its own best seed rather than one coupled compromise).
     winners = {d: c[0] for d, c in results.items() if c}
+    # Pinned winners in the candidate files (previous human picks) beat the
+    # score ranking; a FRESH pick from the viewer (below) beats both.
+    if dir_mode:
+        cdir = candidates.candidates_dir(Path(args.config))
+        for d in profiles:
+            store = candidates.load_store(cdir / f"{d}.json")
+            if store["winnerPinned"] and store["winner"]:
+                cand = next((c for c in results.get(d, [])
+                             if c["seed"] == store["winner"]), None)
+                if cand is not None:
+                    cand = dict(cand)
+                    cand["pinned"] = True
+                    winners[d] = cand
     # Human picks (viewer server) pin over the score ranking.
     overrides = load_overrides(args.seedtest)
     for d, seed in overrides.items():
@@ -418,62 +645,23 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
             cand = dict(cand)
             cand["pinned"] = True
             winners[d] = cand
+    if dir_mode:
+        persist_candidates(args, config, profiles, results, data, winners)
 
     if args.write_config and winners:
         cfg_path = Path(args.config)
-        # Live auto-write runs every 45s — one timestamped backup per roll
-        # session (marker cleared by roll-all at start), not hundreds.
-        marker = Path(args.seedtest) / ".config-backed-up"
-        if not marker.exists():
-            backup = cfg_path.with_name(cfg_path.name + f".bak.{time.strftime('%Y%m%d-%H%M%S')}")
-            shutil.copy2(cfg_path, backup)
-            marker.touch()
+        if cfg_path.is_dir():
+            changed, backup = write_winners_to_dir(cfg_path, winners, args.seedtest)
+            print(f"config updated: {changed} seeds changed ({cfg_path / 'dimensions'})"
+                  + (f"; backup: {backup}" if backup else ""))
+            ow = winners.get("overworld")
         else:
-            backup = None
-        fresh = json.loads(cfg_path.read_text())
-        changed = 0
-        for dim in fresh["dimensions"]:
-            w = winners.get(dim["name"])
-            if w:
-                new_seed = int(w["seed"])
-                if dim.get("seed") != new_seed:
-                    dim["seed"] = new_seed
-                    changed += 1
-                sx = w["metrics"].get("spawn_x")
-                sz = w["metrics"].get("spawn_z")
-                if sx is not None and sz is not None:
-                    dim["spawn"] = [int(float(sx)), 64, int(float(sz))]
-        # Real worlds: nether/end/paradise get their winner written onto
-        # the worlds[] entry, the overworld onto the top-level worldSeed —
-        # the mod's ServerWorldSeedMixin drives ALL of them (config-driven
-        # multiverse; .env SEED only seeds level.dat as a legacy fallback).
-        for world in fresh.get("worlds", []):
-            w = winners.get(world["name"])
-            if w and world["name"] != "overworld":
-                new_seed = int(w["seed"])
-                if world.get("seed") != new_seed:
-                    world["seed"] = new_seed
-                    changed += 1
-                sx = w["metrics"].get("spawn_x")
-                sz = w["metrics"].get("spawn_z")
-                if sx is not None and sz is not None:
-                    world["spawn"] = [int(float(sx)), 64, int(float(sz))]
-        ow = winners.get("overworld")
-        if ow is not None:
-            fresh["worldSeed"] = int(ow["seed"])
-            sx = ow["metrics"].get("spawn_x")
-            sz = ow["metrics"].get("spawn_z")
-            if sx is not None and sz is not None:
-                ow_entry = next((w for w in fresh.get("worlds", [])
-                                 if w["name"] == "overworld"), None)
-                if ow_entry is not None:
-                    ow_entry["spawn"] = [int(float(sx)), 64, int(float(sz))]
-        cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
-        print(f"config updated: {changed} seeds changed ({cfg_path})"
-              + (f"; backup: {backup.name}" if backup else ""))
+            changed, backup, ow = write_winners_to_monolith(cfg_path, winners, args.seedtest)
+            print(f"config updated: {changed} seeds changed ({cfg_path})"
+                  + (f"; backup: {backup.name}" if backup else ""))
         if ow is not None:
             print(f"overworld winner (score {ow['score']:.1f}): {ow['seed']} — "
-                  "config-driven (worldSeed), applies at next boot")
+                  "config-driven, applies at next boot")
             print("  NEW chunks generate on it; existing overworld chunks keep the old "
                   "terrain (wipe the world / ./ops reset-seed ritual to regenerate)")
 
@@ -488,10 +676,9 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
     return 0
 
 
-def band_label(profile, band):
-    from dimension_profiles import BANDS
-    lo, hi = BANDS[band]
-    return f"{int(lo * profile['radius'])}–{int(hi * profile['radius'])}"
+def range_label(profile, spec):
+    lo, hi = spec
+    return f"{int(lo)}–{int(min(hi, profile['radius']))}"
 
 
 def candidate_tooltip(c):
@@ -566,9 +753,9 @@ def render_viewer(results, profiles, winners, rejected=None):
 
         t = profile["terrain"]
         w = profile["weights"]
-        wants = ", ".join(f"{n} ({band_label(profile, band)})"
-                          for n, _sid, band, kind in profile["battery"] if kind == "want")
-        shuns = ", ".join(n for n, _sid, _band, kind in profile["battery"] if kind == "shun")
+        wants = ", ".join(f"{n} ({range_label(profile, spec)})"
+                          for n, _sid, spec, kind in profile["battery"] if kind == "want")
+        shuns = ", ".join(n for n, _sid, _spec, kind in profile["battery"] if kind == "shun")
         spawn_filter = ", ".join(profile["namesake"]) or "any"
         out.append(
             "<div class='criteria'>"
@@ -639,8 +826,10 @@ if (location.protocol !== 'file:') {
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("command", choices=["manifest", "world-manifest", "render-manifest",
-                                        "score", "finalise"])
-    ap.add_argument("--config", required=True)
+                                        "score", "finalise", "rescore", "status"])
+    ap.add_argument("--config", required=True,
+                    help="config/custom-dimensions/ directory (v4) or the "
+                         "deprecated monolithic multiverse_config.json")
     ap.add_argument("--seedtest", required=True)
     ap.add_argument("--csv", help="measurements CSV (default <seedtest>/measurements.csv)")
     ap.add_argument("--workers", type=int, default=1)
@@ -659,7 +848,7 @@ def main():
     if not args.csv:
         args.csv = os.path.join(args.seedtest, "measurements.csv")
 
-    config = json.loads(Path(args.config).read_text())
+    config = load_config(args.config)
     difficulty = load_difficulty(args.config)
     dims = [d for d in config["dimensions"] if rollable(d)]
     worlds = config.get("worlds", [])
@@ -685,6 +874,10 @@ def main():
         cmd_render_manifest(args, config, profiles)
     elif args.command == "score":
         cmd_score(args, config, profiles)
+    elif args.command == "rescore":
+        cmd_rescore(args, config, profiles)
+    elif args.command == "status":
+        cmd_status(args, config, profiles)
     else:
         sys.exit(cmd_finalise(args, config, profiles, world_profiles))
 

@@ -1,0 +1,50 @@
+{
+  "type": "nether",
+  "description": "Serene glowing caverns — lush moss under the nether's roof, quartz light, no armies.",
+  "seed": 1126811856535624437,
+  "biomes": [
+    "minecraft:lush_caves",
+    "incendium:quartz_flats",
+    "terralith:cave/thermal_caves",
+    "minecraft:crimson_forest"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.5
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:glowstone",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "FFD850",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "minecraft:lush_caves",
+      "incendium:quartz_flats"
+    ],
+    "wants": {
+      "copper_tower": "spread",
+      "strange_outpost": "spread"
+    },
+    "shuns": [
+      "fortress",
+      "bastion",
+      "sanctum"
+    ],
+    "description": "Serene glowing caverns — lush moss under the nether's roof, quartz light, no armies."
+  }
+}

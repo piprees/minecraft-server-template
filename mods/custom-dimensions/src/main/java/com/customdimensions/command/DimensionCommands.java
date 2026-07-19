@@ -1,7 +1,8 @@
 package com.customdimensions.command;
 
 import com.customdimensions.MultiverseServer;
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
+import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -90,10 +91,10 @@ public class DimensionCommands {
         ServerCommandSource source = ctx.getSource();
         DimensionManager mgr = DimensionManager.getInstance();
 
-        String ns = DimensionDefinition.getNamespace();
-        String dimId = ns + ":" + name;
-
-        DimensionDefinition def = new DimensionDefinition(name, type, dimId);
+        DimensionConfig def = new DimensionConfig();
+        def.setName(name);
+        def.setNamespace(MultiverseConfig.getInstance().getNamespace());
+        def.setType(type);
         def.setSeed(seed);
         if (!unset(noiseSettings)) {
             def.setNoiseSettings(noiseSettings);
@@ -134,12 +135,11 @@ public class DimensionCommands {
 
     private static int list(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
-        String ns = DimensionDefinition.getNamespace();
         var worlds = ((com.customdimensions.mixin.MinecraftServerAccessor) ctx.getSource().getServer()).getWorlds();
 
         int count = 0;
         for (var key : worlds.keySet()) {
-            if (ns.equals(key.getValue().getNamespace())) {
+            if (MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
                 source.sendFeedback(() -> Text.literal("  " + key.getValue()), false);
                 count++;
             }

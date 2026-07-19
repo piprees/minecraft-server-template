@@ -1,0 +1,43 @@
+{
+  "type": "large_biomes",
+  "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge.",
+  "seed": -3604832347219380837,
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:raw_iron_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "9B9BAF",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "natures_spirit:prairie",
+      "terralith:steppe",
+      "natures_spirit:golden_wilds",
+      "minecraft:forest"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "tavern": "spread",
+      "farmstead": "near_spawn",
+      "mineshaft": "near_spawn",
+      "mansion": "near_border",
+      "coliseum": "near_border"
+    },
+    "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge."
+  }
+}

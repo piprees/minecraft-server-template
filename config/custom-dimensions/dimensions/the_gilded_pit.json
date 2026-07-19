@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs.",
+  "seed": 1881563837797304477,
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:gilded_blackstone",
+    "igniterItem": "minecraft:diamond",
+    "color": "D4A020",
+    "lightLevel": 11,
+    "scale": 12.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "bastion": "near_spawn",
+      "crimson_forge": "spread",
+      "sanctum": "near_border"
+    },
+    "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs."
+  }
+}

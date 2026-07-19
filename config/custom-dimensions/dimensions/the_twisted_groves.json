@@ -1,0 +1,39 @@
+{
+  "type": "nether",
+  "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner.",
+  "seed": -4696684832744545496,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3
+  },
+  "portal": {
+    "frameBlock": "minecraft:warped_nylium",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "1B8B7B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:warped_spore",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:warped_forest",
+      "incendium:inverted_forest"
+    ],
+    "wants": {
+      "warped_outpost": "near_spawn",
+      "warped_greatsword": "spread",
+      "fortress": "near_border"
+    },
+    "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner."
+  }
+}

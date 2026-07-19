@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns.",
+  "seed": -3173898274248612281,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:chiseled_stone_bricks",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "8B7B5B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "natures_spirit:aspen_forest",
+      "natures_spirit:maple_woodlands",
+      "minecraft:dark_forest",
+      "minecraft:forest"
+    ],
+    "wants": {
+      "ruins_standard": "near_spawn",
+      "forest_ruin": "near_spawn",
+      "old_manor": "spread",
+      "abandoned_temple": "spread",
+      "skeleton_dungeon": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ],
+    "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns."
+  }
+}

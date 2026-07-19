@@ -1,0 +1,65 @@
+{
+  "type": "sky_islands",
+  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
+  "seed": -3604832347219380837,
+  "biomes": [
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "minecraft:meadow",
+    "minecraft:flower_forest",
+    "minecraft:cherry_grove",
+    "terralith:blooming_valley",
+    "terralith:sakura_valley",
+    "terralith:sakura_grove",
+    "terralith:alpine_grove",
+    "terralith:lush_valley",
+    "terralith:lavender_valley",
+    "terralith:blooming_plateau",
+    "terralith:shrubland",
+    "terralith:skylands_spring",
+    "terralith:skylands_autumn",
+    "terralith:mirage_isles",
+    "paradise_lost:highlands",
+    "paradise_lost:wisteria_woods",
+    "paradise_lost:tradewinds"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:quartz_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "B0D8F0",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "minecraft:cherry_grove",
+      "minecraft:flower_forest",
+      "terralith:skylands_spring",
+      "terralith:blooming_valley"
+    ],
+    "wants": {
+      "sky_house": "near_spawn",
+      "sky_castle_ruin": "spread",
+      "sky_arena": "spread",
+      "sky_volcano": "near_border"
+    },
+    "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
+    "terrain": "islands"
+  }
+}

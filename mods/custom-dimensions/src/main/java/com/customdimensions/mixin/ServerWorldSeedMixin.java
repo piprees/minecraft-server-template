@@ -1,6 +1,6 @@
 package com.customdimensions.mixin;
 
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * what seeds NoiseConfig (terrain noise, aquifers, ore RNG), structure
  * placement, and feature generation. Without this mixin every custom
  * dimension generates as a clone of the main world regardless of the
- * seed stored on its DimensionDefinition.
+ * seed stored on its DimensionConfig.
  *
  * Only worlds in the adventure: namespace with an explicit seed are
  * overridden; everything else falls through to vanilla.
@@ -27,18 +27,19 @@ public class ServerWorldSeedMixin {
     private void customdimensions$perDimensionSeed(CallbackInfoReturnable<Long> cir) {
         ServerWorld world = (ServerWorld) (Object) this;
         RegistryKey<World> key = world.getRegistryKey();
-        if (DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
-            DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getValue().getPath());
+        if (MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
+            DimensionConfig def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getValue().getPath());
             if (def != null && def.getSeed() != null) {
                 cir.setReturnValue(def.getSeed());
             }
             return;
         }
-        // Static worlds: the config drives every seed. The overworld takes
-        // the top-level "worldSeed" (config-driven multiverse — .env SEED
-        // only seeds level.dat as a legacy fallback); nether/end/paradise
-        // take the "seed" on their worlds[] entry. Config loads at
-        // createWorlds HEAD, so overrides cover the very first chunk.
+        // Static worlds: the config drives every seed. Each base-world file
+        // (overworld.json, the_nether.json, the_end.json, paradise_lost.json)
+        // carries its own "seed" — "env" reads the SEED environment variable
+        // (.env SEED otherwise only seeds level.dat as a legacy fallback).
+        // Config loads at createWorlds HEAD, so overrides cover the very
+        // first chunk.
         Long worldSeed = MultiverseConfig.getInstance().getWorldSeedOverride(key.getValue().toString());
         if (worldSeed != null) {
             cir.setReturnValue(worldSeed);

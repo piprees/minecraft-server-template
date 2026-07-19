@@ -1,0 +1,38 @@
+{
+  "type": "nether",
+  "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down.",
+  "seed": 9221821359447431546,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:chiseled_nether_bricks",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "FF6B2B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:basalt_deltas"
+    ],
+    "wants": {
+      "fortress": "near_spawn",
+      "nether_brick_hall": "spread",
+      "nether_reactor": "spread"
+    },
+    "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down."
+  }
+}

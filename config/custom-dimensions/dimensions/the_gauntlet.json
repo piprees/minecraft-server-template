@@ -1,0 +1,70 @@
+{
+  "type": "multi_biome",
+  "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is.",
+  "seed": -7771539005296047534,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "minecraft:windswept_hills",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:stony_peaks",
+    "minecraft:jagged_peaks",
+    "minecraft:frozen_peaks",
+    "minecraft:snowy_slopes",
+    "minecraft:grove",
+    "minecraft:river",
+    "minecraft:deep_dark",
+    "terralith:rocky_mountains",
+    "terralith:caldera",
+    "terralith:basalt_cliffs",
+    "terralith:haze_mountain",
+    "terralith:granite_cliffs",
+    "terralith:white_cliffs",
+    "nullscape:crystal_peaks",
+    "incendium:ash_barrens",
+    "terralith:windswept_spires"
+  ],
+  "borders": {
+    "player": 2048,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 3.0,
+    "playerLuck": 2.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:oxidized_copper",
+    "igniterItem": "minecraft:diamond",
+    "color": "7B8B9B",
+    "lightLevel": 11,
+    "scale": 4.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:jagged_peaks",
+      "minecraft:frozen_peaks",
+      "minecraft:stony_peaks",
+      "terralith:caldera"
+    ],
+    "wants": {
+      "wizard_tower": "near_spawn",
+      "ancient_city": "spread",
+      "trial_chambers": "spread",
+      "ice_dungeon_l": "spread",
+      "keep_kayra": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead"
+    ],
+    "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is."
+  }
+}

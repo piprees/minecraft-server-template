@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water.",
+  "seed": -8759877331682622938,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:polished_diorite",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "D4CFC8",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "terralith:white_cliffs",
+      "natures_spirit:white_cliffs",
+      "terralith:warm_river",
+      "minecraft:river"
+    ],
+    "water": "high",
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "lighthouse": "spread",
+      "watchtower": "spread"
+    },
+    "shuns": [
+      "coliseum",
+      "ancient_city"
+    ],
+    "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water."
+  }
+}

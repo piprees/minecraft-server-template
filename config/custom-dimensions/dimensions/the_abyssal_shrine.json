@@ -1,0 +1,58 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows; guardians below, sky above.",
+  "seed": -8401790570074108359,
+  "biomes": [
+    "paradise_lost:continental_plateau",
+    "paradise_lost:highlands_grand_glade",
+    "minecraft:deep_ocean",
+    "minecraft:deep_cold_ocean",
+    "nullscape:shadowlands",
+    "minecraft:deep_dark"
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:dark_prismarine",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "1B3B6B",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "paradise_lost:continental_plateau",
+      "paradise_lost:highlands_grand_glade"
+    ],
+    "water": "sea",
+    "wants": {
+      "para_vault": "near_spawn",
+      "monument": "near_spawn",
+      "para_palace": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern"
+    ],
+    "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows; guardians below, sky above.",
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

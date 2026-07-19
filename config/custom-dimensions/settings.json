@@ -1,0 +1,27 @@
+{
+  "namespace": "adventure",
+  "idleUnloadMinutes": 5,
+  "frames": {
+    "overworld": "minecraft:crying_obsidian",
+    "nether": "minecraft:obsidian",
+    "end": "minecraft:iron_block"
+  },
+  "defaults": {
+    "frameBlock": "minecraft:crying_obsidian",
+    "borders": {
+      "player": 8192,
+      "generation": 8192
+    },
+    "difficulty": {
+      "mobMultiplier": 1.0,
+      "attributes": {
+        "health": true,
+        "damage": true,
+        "armor": true,
+        "speed": false,
+        "knockback": false
+      },
+      "playerLuck": 1.0
+    }
+  }
+}

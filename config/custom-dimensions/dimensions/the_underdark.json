@@ -1,0 +1,70 @@
+{
+  "type": "multi_biome",
+  "description": "The deep dark as a surface world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic.",
+  "seed": -3604832347219380837,
+  "biomes": [
+    "minecraft:lush_caves",
+    "minecraft:dripstone_caves",
+    "minecraft:deep_dark",
+    "minecraft:mangrove_swamp",
+    "minecraft:swamp",
+    "minecraft:mushroom_fields",
+    "minecraft:dark_forest",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:river",
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "terralith:orchid_swamp",
+    "terralith:moonlight_grove",
+    "terralith:moonlight_valley",
+    "terralith:cloud_forest",
+    "terralith:cave/deep_caves",
+    "terralith:cave/underground_jungle",
+    "incendium:withered_forest"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:brown_mushroom_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "2B6B4B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:spore_blossom_air",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "minecraft:mushroom_fields",
+      "terralith:moonlight_grove",
+      "minecraft:dark_forest"
+    ],
+    "wants": {
+      "ancient_city": "spread",
+      "sculk_dungeon": "near_spawn",
+      "trial_chambers": "spread",
+      "underground_camp": "near_spawn",
+      "mineshaft": "near_spawn",
+      "infested_dungeon": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead"
+    ],
+    "description": "The deep dark as a surface world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "scale": 8.0,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.3
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "description": "The nether — 1:8 travel makes its playable disc small, so it earns its keep: fortresses and bastions in reach, Incendium's sanctum near the rim.",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "minecraft:crimson_forest",
+      "minecraft:warped_forest",
+      "incendium:quartz_flats"
+    ],
+    "wants": {
+      "fortress": "spread",
+      "bastion": "spread",
+      "piglin_village": "spread",
+      "sanctum": "near_border"
+    },
+    "shuns": []
+  }
+}

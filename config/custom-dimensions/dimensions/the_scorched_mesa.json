@@ -1,0 +1,49 @@
+{
+  "type": "overworld",
+  "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere.",
+  "seed": -5885483684890712603,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:terracotta",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "CC6B3D",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "terralith:painted_mountains",
+      "terralith:bryce_canyon",
+      "minecraft:eroded_badlands",
+      "natures_spirit:stratified_desert",
+      "terralith:desert_canyon"
+    ],
+    "water": "none",
+    "wants": {
+      "badlands_ruins": "spread",
+      "badlands_pyramid": "spread",
+      "dusty_tomb": "near_border",
+      "ruins_desert": "spread"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "monument"
+    ],
+    "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere."
+  }
+}

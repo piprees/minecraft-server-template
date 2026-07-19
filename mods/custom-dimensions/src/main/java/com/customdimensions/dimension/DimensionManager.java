@@ -1,7 +1,7 @@
 package com.customdimensions.dimension;
 
 import com.customdimensions.MultiverseServer;
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.mixin.MinecraftServerAccessor;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
@@ -101,7 +101,7 @@ public class DimensionManager {
     // that have NO config entry. The seed/density/peaceful mixins consult
     // this after the config so command-created candidates get their real
     // seed (without it they silently clone the main world).
-    private final Map<String, DimensionDefinition> runtimeDefinitions =
+    private final Map<String, DimensionConfig> runtimeDefinitions =
             new java.util.concurrent.ConcurrentHashMap<>();
     private boolean bootReconciled = false;
 
@@ -147,7 +147,7 @@ public class DimensionManager {
             accessor.setFrozen(false);
         }
         try {
-            for (DimensionDefinition def : MultiverseConfig.getInstance().getDimensions()) {
+            for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
                 if (dimRegistry.contains(key)) {
                     continue;
@@ -171,7 +171,7 @@ public class DimensionManager {
     // inside this mod's jar datapack. Additive: unset or unknown ids keep the
     // dimension's current generator settings — an unknown id must never turn
     // a boot into a crash loop, so it logs and falls back instead.
-    private RegistryEntry<ChunkGeneratorSettings> resolveNoiseSettingsOverride(DimensionDefinition def) {
+    private RegistryEntry<ChunkGeneratorSettings> resolveNoiseSettingsOverride(DimensionConfig def) {
         String id = def.getNoiseSettings();
         if (id == null || id.isEmpty()) {
             return null;
@@ -190,6 +190,14 @@ public class DimensionManager {
         }
         MultiverseServer.LOGGER.info("Dimension {} uses noise settings {}", def.getName(), id);
         return entry.get();
+    }
+
+    // Custom dimension type from the "environment" block (v4 Phase 4): the
+    // dimension's type entry is its registered {ns}:{slug}_type when an
+    // environment is configured, else the base type it would clone anyway.
+    private RegistryEntry<net.minecraft.world.dimension.DimensionType> typeEntryFor(
+            DimensionConfig def, RegistryEntry<net.minecraft.world.dimension.DimensionType> base) {
+        return DimensionTypeBuilder.typeEntryFor(this.server, def, base);
     }
 
     // Swap a noise generator's ChunkGeneratorSettings while keeping its biome
@@ -262,7 +270,7 @@ public class DimensionManager {
     // Resolve the biome source for a dimension with a biome list: prefer the
     // dimension's own family source as the base (natural placements), fall
     // back to the overworld's. Null biome list -> null (caller keeps base).
-    private BiomeSource resolveListedSource(DimensionDefinition def, Registry<Biome> biomeRegistry,
+    private BiomeSource resolveListedSource(DimensionConfig def, Registry<Biome> biomeRegistry,
                                             ChunkGenerator baseGenerator, ChunkGenerator overworldGenerator) {
         String biomeList = def.getBiome();
         if (biomeList == null || biomeList.isEmpty()) {
@@ -277,7 +285,7 @@ public class DimensionManager {
         return null;
     }
 
-    private DimensionOptions createDimensionOptions(DimensionDefinition def) {
+    private DimensionOptions createDimensionOptions(DimensionConfig def) {
         MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
         DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
         Registry<Biome> biomeRegistry = regManager.get(RegistryKeys.BIOME);
@@ -312,7 +320,7 @@ public class DimensionManager {
                                 Identifier.of("adventure", "void")));
                 if (voidSource != null && voidSettings.isPresent()) {
                     NoiseChunkGenerator voidGen = new NoiseChunkGenerator(voidSource, voidSettings.get());
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(voidGen, worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(voidGen, worldSeed));
                 }
                 // Fallback (no biome list, or preset missing from the jar):
                 // the old flat THE_VOID generator.
@@ -322,7 +330,7 @@ public class DimensionManager {
                 RegistryEntry<Biome> voidBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.THE_VOID));
                 FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), voidBiome, List.of())
                     .with(List.of(), Optional.empty(), voidBiome);
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(new FlatChunkGenerator(config), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(new FlatChunkGenerator(config), worldSeed));
             }
             case "superflat" -> {
                 RegistryEntry<Biome> plainsBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
@@ -333,7 +341,7 @@ public class DimensionManager {
                 );
                 FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), plainsBiome, List.of())
                     .with(layers, Optional.empty(), plainsBiome);
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(new FlatChunkGenerator(config), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(new FlatChunkGenerator(config), worldSeed));
             }
             case "single_biome" -> {
                 String biomeId = def.getBiome();
@@ -350,9 +358,9 @@ public class DimensionManager {
                 if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
                     RegistryEntry<ChunkGeneratorSettings> settings = noiseGen.getSettings();
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(fixedSource, settings);
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(newGen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "multi_biome" -> {
                 if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
@@ -362,9 +370,9 @@ public class DimensionManager {
                         mixed = noiseGen.getBiomeSource();
                     }
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(newGen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.NETHER);
@@ -377,9 +385,9 @@ public class DimensionManager {
                     if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                         gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     }
-                    yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, source.dimensionTypeEntry()), withSeed(withSettings(gen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "end" -> {
                 DimensionOptions source = dimRegistry.get(DimensionOptions.END);
@@ -389,9 +397,9 @@ public class DimensionManager {
                     if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                         gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     }
-                    yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, source.dimensionTypeEntry()), withSeed(withSettings(gen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "sky_islands" -> {
                 // End terrain shape (floating islands); biome list mixes from
@@ -404,9 +412,9 @@ public class DimensionManager {
                         biomeSource = overworldOpts.chunkGenerator().getBiomeSource();
                     }
                     NoiseChunkGenerator skyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
-                    yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(skyGen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(skyGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether_islands" -> {
                 // End terrain shape (floating islands) with the nether's
@@ -420,9 +428,9 @@ public class DimensionManager {
                         biomeSource = netherOpts.chunkGenerator().getBiomeSource();
                     }
                     NoiseChunkGenerator netherSkyGen = new NoiseChunkGenerator(biomeSource, endGen.getSettings());
-                    yield new DimensionOptions(netherOpts.dimensionTypeEntry(), withSeed(withSettings(netherSkyGen, settingsOverride), worldSeed));
+                    yield new DimensionOptions(this.typeEntryFor(def, netherOpts.dimensionTypeEntry()), withSeed(withSettings(netherSkyGen, settingsOverride), worldSeed));
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "amplified" -> {
                 Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
@@ -430,11 +438,11 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
+                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Amplified preset not found, falling back to overworld");
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "large_biomes" -> {
                 Registry<WorldPreset> presetRegistry = regManager.get(RegistryKeys.WORLD_PRESET);
@@ -442,11 +450,11 @@ public class DimensionManager {
                 if (preset != null) {
                     Optional<DimensionOptions> presetOpts = preset.getOverworld();
                     if (presetOpts.isPresent()) {
-                        yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
+                        yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(presetOpts.get().chunkGenerator(), settingsOverride), worldSeed));
                     }
                 }
                 MultiverseServer.LOGGER.warn("Large biomes preset not found, falling back to overworld");
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             default -> {
                 // A type containing ':' clones ANY registered dimension —
@@ -464,11 +472,11 @@ public class DimensionManager {
                         if (mixed != null && gen instanceof NoiseChunkGenerator noiseGen) {
                             gen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                         }
-                        yield new DimensionOptions(source.dimensionTypeEntry(), withSeed(withSettings(gen, settingsOverride), worldSeed));
+                        yield new DimensionOptions(this.typeEntryFor(def, source.dimensionTypeEntry()), withSeed(withSettings(gen, settingsOverride), worldSeed));
                     }
                     MultiverseServer.LOGGER.warn("Dimension {}: clone source '{}' not registered — falling back to overworld", def.getName(), type);
                 }
-                yield new DimensionOptions(overworldOpts.dimensionTypeEntry(), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
         };
     }
@@ -502,7 +510,7 @@ public class DimensionManager {
         if (this.server == null) {
             return null;
         }
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(dimName);
+        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimName);
         if (def == null) {
             // Command-created dimensions have no config entry — their options
             // are already in the registry (registerDimension), load directly.
@@ -557,7 +565,7 @@ public class DimensionManager {
         return newWorld;
     }
 
-    public void registerDimension(DimensionDefinition def) {
+    public void registerDimension(DimensionConfig def) {
         if (this.server == null) {
             return;
         }
@@ -609,7 +617,7 @@ public class DimensionManager {
             }
             // Namespace first, then path: another mod's dimension whose PATH
             // happens to match one of our names must never be closed by us.
-            if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
+            if (!MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
                 continue;
             }
             if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
@@ -669,7 +677,7 @@ public class DimensionManager {
         }
         for (String name : new ArrayList<>(this.pendingWorldUnloads)) {
             this.pendingWorldUnloads.remove(name);
-            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(DimensionDefinition.getNamespace(), name));
+            RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, this.identifierFor(name));
             if (PROTECTED_DIMENSIONS.contains(key)) {
                 continue;
             }
@@ -707,8 +715,7 @@ public class DimensionManager {
         if (this.server == null) {
             return null;
         }
-        String ns = DimensionDefinition.getNamespace();
-        Identifier dimId = Identifier.of(ns, dimName);
+        Identifier dimId = this.identifierFor(dimName);
         RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, dimId);
         MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) this.server;
         Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
@@ -729,7 +736,7 @@ public class DimensionManager {
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
         ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
-        DimensionDefinition runtimeDef = this.runtimeDefinitions.get(dimName);
+        DimensionConfig runtimeDef = this.runtimeDefinitions.get(dimName);
         long worldSeed = runtimeDef != null && runtimeDef.getSeed() != null
                 ? runtimeDef.getSeed() : overworld.getSeed();
 
@@ -756,7 +763,7 @@ public class DimensionManager {
     }
 
     public void bootCreateDimensions() {
-        for (DimensionDefinition def : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
             this.requestWorldLoad(def.getName());
         }
     }
@@ -772,7 +779,7 @@ public class DimensionManager {
             if (PROTECTED_DIMENSIONS.contains(key)) {
                 continue;
             }
-            if (!DimensionDefinition.getNamespace().equals(key.getValue().getNamespace())) {
+            if (!MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
                 continue;
             }
             String path = key.getValue().getPath();
@@ -788,13 +795,23 @@ public class DimensionManager {
     }
 
     // Config first, then runtime (command-created) definitions.
-    public DimensionDefinition resolveDefinition(String name) {
-        DimensionDefinition def = MultiverseConfig.getInstance().getDimension(name);
+    public DimensionConfig resolveDefinition(String name) {
+        DimensionConfig def = MultiverseConfig.getInstance().getDimension(name);
         return def != null ? def : this.runtimeDefinitions.get(name);
     }
 
-    public void rememberRuntimeDefinition(DimensionDefinition def) {
+    public void rememberRuntimeDefinition(DimensionConfig def) {
         this.runtimeDefinitions.put(def.getName(), def);
+    }
+
+    // Identifier for a dimension slug: the config's own namespace when a
+    // definition exists (consumer-added dims may live under BRAND_SLUG),
+    // otherwise the platform namespace.
+    private Identifier identifierFor(String name) {
+        DimensionConfig def = this.resolveDefinition(name);
+        return def != null
+                ? def.getDimensionIdentifier()
+                : Identifier.of(MultiverseConfig.getInstance().getNamespace(), name);
     }
 
     public void forgetRuntimeDefinition(String name) {

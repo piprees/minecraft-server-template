@@ -1,0 +1,47 @@
+{
+  "type": "end",
+  "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country.",
+  "seed": 4989373384118084179,
+  "biomes": [
+    "minecraft:end_highlands",
+    "nullscape:crystal_peaks",
+    "nullscape:shadowlands"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:cracked_stone_bricks",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "8B8B7B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:end_highlands",
+      "nullscape:crystal_peaks",
+      "nullscape:shadowlands"
+    ],
+    "wants": {
+      "end_gate_fortress": "spread",
+      "enderkeep": "spread",
+      "end_city": "spread",
+      "astral_hideaway": "near_spawn"
+    },
+    "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country."
+  }
+}

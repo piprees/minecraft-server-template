@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "Industrial lava flats — pipelines and reactors over the melt.",
+  "seed": -1580560277501623545,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:smooth_basalt",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "FF8B2B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "incendium:infernal_dunes",
+      "incendium:volcanic_deltas"
+    ],
+    "wants": {
+      "pipeline": "spread",
+      "nether_reactor": "near_border",
+      "fortress": "spread",
+      "crimson_well": "near_spawn"
+    },
+    "description": "Industrial lava flats — pipelines and reactors over the melt."
+  }
+}

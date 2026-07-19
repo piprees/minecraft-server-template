@@ -42,7 +42,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from dimension_profiles import build_profile, load_difficulty  # noqa: E402
+from dimension_profiles import build_profile, load_config, load_difficulty  # noqa: E402
 
 BOOT_TIMEOUT = int(os.environ.get("RCON_TIMEOUT", "300"))
 IMAGE = os.environ.get("ROLL_IMAGE", "itzg/minecraft-server:2026.7.0-java21")
@@ -859,8 +859,10 @@ def should_stop():
     return STOP_FILE is not None and STOP_FILE.exists()
 
 
-def load_seen_seeds(seedtest):
-    """Seeds already banked (any target) — never re-roll them."""
+def load_seen_seeds(seedtest, base_config_path=None):
+    """Seeds already banked (any target) — never re-roll them. Sources:
+    worker CSV spools + legacy measurements.csv, and (v4 directory mode)
+    the candidate store's measured/rejected/abandoned seeds."""
     seen = set()
     for f in Path(seedtest).glob("*.csv"):
         try:
@@ -870,6 +872,9 @@ def load_seen_seeds(seedtest):
                     seen.add(parts[1])
         except OSError:
             pass
+    if base_config_path and Path(base_config_path).is_dir():
+        import candidates
+        seen |= candidates.seen_seeds(base_config_path)
     return seen
 
 
@@ -941,7 +946,7 @@ def run_dimension_jobs(args, wid, container, base_config, csv_fh):
         log(wid, "nothing to do")
         return 0
 
-    seen = load_seen_seeds(args.seedtest)
+    seen = load_seen_seeds(args.seedtest, args.base_config)
     prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
     log(wid, f"rolling {', '.join(rotation)} — indefinitely (Ctrl+C to finish)")
     rcon = boot(wid, container, args.workdir, args.memory)
@@ -1171,7 +1176,7 @@ def run_world_jobs(args, wid, container, base_config, csv_fh):
         log(wid, "no worlds configured")
         return 0
     profiles = [(w, build_profile(w, base_config, difficulty)) for w in worlds]
-    seen = load_seen_seeds(args.seedtest)
+    seen = load_seen_seeds(args.seedtest, args.base_config)
 
     def preferred_seeds():
         """Overworld-accepted seeds without paradise_lost rows."""
@@ -1247,7 +1252,8 @@ def main():
     wid = args.worker_id
     suffix = {"render": "r", "world": "v"}.get(args.mode, "")
     container = f"seedrollall-{wid}{suffix}"
-    base_config = json.loads(Path(args.base_config).read_text())
+    # --base-config: the v4 config directory or the legacy monolithic file.
+    base_config = load_config(args.base_config)
 
     global STOP_FILE
     STOP_FILE = Path(args.seedtest) / ".stop"

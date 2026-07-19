@@ -1,0 +1,58 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "The pale desolate reach — calcite crags floating in white silence.",
+  "seed": 7588343130126410291,
+  "biomes": [
+    "paradise_lost:calcite_craglands",
+    "terralith:frozen_cliffs",
+    "terralith:wintry_lowlands",
+    "minecraft:ice_spikes",
+    "nullscape:void_barrens",
+    "terralith:skylands_winter"
+  ],
+  "borders": {
+    "player": 683,
+    "generation": 683
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:end_stone",
+    "igniterItem": "minecraft:diamond",
+    "color": "E0D8C0",
+    "lightLevel": 11,
+    "scale": 12.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "paradise_lost:calcite_craglands",
+      "terralith:frozen_cliffs"
+    ],
+    "wants": {
+      "para_remains": "spread",
+      "birdcage": "spread",
+      "frozen_dungeon": "near_border"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "monument"
+    ],
+    "description": "The pale desolate reach — calcite crags floating in white silence.",
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

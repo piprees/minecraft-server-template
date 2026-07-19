@@ -1,0 +1,50 @@
+{
+  "type": "overworld",
+  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company.",
+  "seed": -278367467270338546,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:mud",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "5A6B4A",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "terralith:orchid_swamp",
+      "minecraft:mangrove_swamp",
+      "natures_spirit:marsh",
+      "minecraft:swamp"
+    ],
+    "water": "high",
+    "wants": {
+      "swamp_ruin": "spread",
+      "muddy_dungeon": "near_border",
+      "mausoleum": "spread"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "trial_chambers",
+      "monument",
+      "coliseum"
+    ],
+    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company."
+  }
+}

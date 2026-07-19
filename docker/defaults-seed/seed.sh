@@ -4,7 +4,15 @@ set -euo pipefail
 rsync -a --delete /defaults/config/ /out/config/
 
 if [[ -d /overlay/config ]]; then
-  rsync -a /overlay/config/ /out/config/
+  # custom-dimensions overlays must NOT clobber the platform dimension
+  # files: the mod merges overlay/ against dimensions/ itself (full
+  # replace vs "overrides" vs empty-{} skip), so consumer files land in
+  # custom-dimensions/overlay/ instead of over the defaults.
+  rsync -a --exclude=custom-dimensions /overlay/config/ /out/config/
+  if [[ -d /overlay/config/custom-dimensions ]]; then
+    mkdir -p /out/config/custom-dimensions/overlay
+    rsync -a /overlay/config/custom-dimensions/ /out/config/custom-dimensions/overlay/
+  fi
 fi
 
 defaults_file="/defaults/modrinth-mods.txt"

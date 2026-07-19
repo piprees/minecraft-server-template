@@ -1,0 +1,46 @@
+{
+  "type": "overworld",
+  "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step.",
+  "seed": -6382007599207638359,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:podzol",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "8B6B3D",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "natures_spirit:fir_forest",
+      "terralith:siberian_taiga",
+      "natures_spirit:coniferous_covert",
+      "minecraft:old_growth_pine_taiga"
+    ],
+    "wants": {
+      "firetower": "near_spawn",
+      "taiga_outpost": "spread",
+      "taiga_ruin": "spread",
+      "cold_dungeon": "near_border"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ],
+    "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step."
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "type": "overworld",
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world.",
+  "seed": 5735056219198225107,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "portal": {
+    "frameBlock": "minecraft:prismarine",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "3BAFAF",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "terralith:mirage_isles",
+      "minecraft:warm_ocean",
+      "minecraft:lukewarm_ocean",
+      "natures_spirit:tropical_shores"
+    ],
+    "water": "sea",
+    "wants": {
+      "shipwreck": "near_spawn",
+      "buried_treasure": "near_spawn",
+      "ocean_ruins": "spread",
+      "lighthouse": "spread"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ],
+    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world."
+  }
+}

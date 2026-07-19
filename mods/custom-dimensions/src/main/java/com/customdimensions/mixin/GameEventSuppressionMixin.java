@@ -1,6 +1,6 @@
 package com.customdimensions.mixin;
 
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.MultiverseConfig;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
@@ -32,7 +32,7 @@ public class GameEventSuppressionMixin {
     @Inject(method = "emitGameEvent(Lnet/minecraft/registry/entry/RegistryEntry;Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/world/event/GameEvent$Emitter;)V", at = @At("HEAD"), cancellable = true)
     private void customdimensions$skipGameEventsInEmptyWorlds(RegistryEntry<GameEvent> event, Vec3d emitterPos, GameEvent.Emitter emitter, CallbackInfo ci) {
         ServerWorld world = (ServerWorld) (Object) this;
-        if (!DimensionDefinition.getNamespace().equals(world.getRegistryKey().getValue().getNamespace())) {
+        if (!MultiverseConfig.getInstance().isManagedNamespace(world.getRegistryKey().getValue().getNamespace())) {
             return;
         }
         if (world.getPlayers().isEmpty()) {

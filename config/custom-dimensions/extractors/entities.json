@@ -1,0 +1,1641 @@
+{
+  "count": 210,
+  "hostile_count": 28,
+  "note": "Static JAR scan: names from lang keys, spawn groups from biome spawner tables. Health/damage are code-side.",
+  "by_namespace": {
+    "minecraft": 133,
+    "crittersandcompanions": 17,
+    "creeperoverhaul": 16,
+    "supplementaries": 14,
+    "friendsandfoes": 11,
+    "paradise_lost": 6,
+    "vinery": 4,
+    "handcrafted": 2,
+    "lootr": 2,
+    "untitledduckmod": 2,
+    "farmersdelight": 1,
+    "artifacts": 1,
+    "guardvillagers": 1
+  },
+  "entities": {
+    "artifacts:mimic": {
+      "source": "artifacts-fabric-13.2.1.jar",
+      "name": "Mimic",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:badlands_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Badlands Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:bamboo_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Bamboo Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:beach_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Beach Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:birch_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Birch Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:cave_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Cave Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:dark_oak_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Dark Oak Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:desert_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Desert Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:dripstone_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Dripstone Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:hills_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Hills Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:jungle_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Jungle Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:mushroom_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Mushroom Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:ocean_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Ocean Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:savannah_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Savannah Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:snowy_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Snowy Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:spruce_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Spruce Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "creeperoverhaul:swamp_creeper": {
+      "source": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+      "name": "Swamp Creeper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:dragonfly": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Dragonfly",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:dumbo_octopus": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Dumbo Octopus",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:ferret": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Ferret",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:grappling_hook": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Grappling Hook",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:jumping_spider": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Jumping Spider",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:koi_fish": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Koi Fish",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:ladybug": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Ladybug",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:leaf_insect": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Leaf Insect",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:otter": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Otter",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:red_panda": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Red Panda",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:roly_poly": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Roly-Poly",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:sea_bunny": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Sea Bunny",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:shima_enaga": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Shima Enaga",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:snail": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Snail",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:stag_beetle": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Stag Beetle",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:stick_bug": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Stick Bug",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "crittersandcompanions:weevil": {
+      "source": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+      "name": "Weevil",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "farmersdelight:rotten_tomato": {
+      "source": "FarmersDelight-1.21.1-3.3.3+refabricated.jar",
+      "name": "Rotten Tomato",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:copper_golem": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Copper Golem",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:crab": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Crab",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:glare": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Glare",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:iceologer": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Iceologer",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:illusioner": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Illusioner",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:mauler": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Mauler",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:moobloom": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Moobloom",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:player_illusion": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Player Illusion",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:rascal": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Rascal",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:tuff_golem": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Tuff Golem",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "friendsandfoes:wildfire": {
+      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "name": "Wildfire",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "guardvillagers:guard": {
+      "source": "guardvillagers-2.1.2-1.21.1.jar",
+      "name": "Guard",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "handcrafted:fancy_painting": {
+      "source": "handcrafted-fabric-1.21.1-4.0.3.jar",
+      "name": "Fancy Painting",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "handcrafted:seat": {
+      "source": "handcrafted-fabric-1.21.1-4.0.3.jar",
+      "name": "Seat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "lootr:item_frame": {
+      "source": "lootr-fabric-1.21.1-1.11.37.121.jar",
+      "name": "Item Frame with Loot",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "lootr:lootr_minecart": {
+      "source": "lootr-fabric-1.21.1-1.11.37.121.jar",
+      "name": "Minecart with Loot Chest",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:allay": {
+      "source": "server-1.21.1.jar",
+      "name": "Allay",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:area_effect_cloud": {
+      "source": "server-1.21.1.jar",
+      "name": "Area Effect Cloud",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:armadillo": {
+      "source": "server-1.21.1.jar",
+      "name": "Armadillo",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 54,
+          "min_weight": 1,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:armor_stand": {
+      "source": "server-1.21.1.jar",
+      "name": "Armor Stand",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:arrow": {
+      "source": "server-1.21.1.jar",
+      "name": "Arrow",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:axolotl": {
+      "source": "server-1.21.1.jar",
+      "name": "Axolotl",
+      "spawn_groups": {
+        "axolotls": {
+          "biomes": 4,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:bat": {
+      "source": "server-1.21.1.jar",
+      "name": "Bat",
+      "spawn_groups": {
+        "ambient": {
+          "biomes": 550,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:bee": {
+      "source": "server-1.21.1.jar",
+      "name": "Bee",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:blaze": {
+      "source": "server-1.21.1.jar",
+      "name": "Blaze",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 6,
+          "min_weight": 20,
+          "max_weight": 20
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:block_display": {
+      "source": "server-1.21.1.jar",
+      "name": "Block Display",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:boat": {
+      "source": "server-1.21.1.jar",
+      "name": "Boat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:bogged": {
+      "source": "server-1.21.1.jar",
+      "name": "Bogged",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 12,
+          "min_weight": 30,
+          "max_weight": 30
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:breeze": {
+      "source": "server-1.21.1.jar",
+      "name": "Breeze",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:breeze_wind_charge": {
+      "source": "server-1.21.1.jar",
+      "name": "Wind Charge",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:camel": {
+      "source": "server-1.21.1.jar",
+      "name": "Camel",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 11,
+          "min_weight": 1,
+          "max_weight": 1
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:cat": {
+      "source": "server-1.21.1.jar",
+      "name": "Cat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:cave_spider": {
+      "source": "server-1.21.1.jar",
+      "name": "Cave Spider",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 5,
+          "min_weight": 20,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:chest_boat": {
+      "source": "server-1.21.1.jar",
+      "name": "Boat with Chest",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:chest_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with Chest",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:chicken": {
+      "source": "server-1.21.1.jar",
+      "name": "Chicken",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 380,
+          "min_weight": 10,
+          "max_weight": 50
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:cod": {
+      "source": "server-1.21.1.jar",
+      "name": "Cod",
+      "spawn_groups": {
+        "water_ambient": {
+          "biomes": 15,
+          "min_weight": 8,
+          "max_weight": 15
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:command_block_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with Command Block",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:cow": {
+      "source": "server-1.21.1.jar",
+      "name": "Cow",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 340,
+          "min_weight": 8,
+          "max_weight": 8
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:creeper": {
+      "source": "server-1.21.1.jar",
+      "name": "Creeper",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 548,
+          "min_weight": 20,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:dolphin": {
+      "source": "server-1.21.1.jar",
+      "name": "Dolphin",
+      "spawn_groups": {
+        "water_creature": {
+          "biomes": 15,
+          "min_weight": 1,
+          "max_weight": 2
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:donkey": {
+      "source": "server-1.21.1.jar",
+      "name": "Donkey",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 101,
+          "min_weight": 1,
+          "max_weight": 1
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:dragon_fireball": {
+      "source": "server-1.21.1.jar",
+      "name": "Dragon Fireball",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:drowned": {
+      "source": "server-1.21.1.jar",
+      "name": "Drowned",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 44,
+          "min_weight": 1,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:egg": {
+      "source": "server-1.21.1.jar",
+      "name": "Thrown Egg",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:elder_guardian": {
+      "source": "server-1.21.1.jar",
+      "name": "Elder Guardian",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:end_crystal": {
+      "source": "server-1.21.1.jar",
+      "name": "End Crystal",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:ender_dragon": {
+      "source": "server-1.21.1.jar",
+      "name": "Ender Dragon",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:ender_pearl": {
+      "source": "server-1.21.1.jar",
+      "name": "Thrown Ender Pearl",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:enderman": {
+      "source": "server-1.21.1.jar",
+      "name": "Enderman",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 583,
+          "min_weight": 1,
+          "max_weight": 1000
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:endermite": {
+      "source": "server-1.21.1.jar",
+      "name": "Endermite",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:evoker": {
+      "source": "server-1.21.1.jar",
+      "name": "Evoker",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:evoker_fangs": {
+      "source": "server-1.21.1.jar",
+      "name": "Evoker Fangs",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:experience_bottle": {
+      "source": "server-1.21.1.jar",
+      "name": "Thrown Bottle o' Enchanting",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:experience_orb": {
+      "source": "server-1.21.1.jar",
+      "name": "Experience Orb",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:eye_of_ender": {
+      "source": "server-1.21.1.jar",
+      "name": "Eye of Ender",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:falling_block": {
+      "source": "server-1.21.1.jar",
+      "name": "Falling Block",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:falling_block_type": {
+      "source": "server-1.21.1.jar",
+      "name": "Falling %s",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:fireball": {
+      "source": "server-1.21.1.jar",
+      "name": "Fireball",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:firework_rocket": {
+      "source": "server-1.21.1.jar",
+      "name": "Firework Rocket",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:fishing_bobber": {
+      "source": "server-1.21.1.jar",
+      "name": "Fishing Bobber",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:fox": {
+      "source": "server-1.21.1.jar",
+      "name": "Fox",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 72,
+          "min_weight": 1,
+          "max_weight": 8
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:frog": {
+      "source": "server-1.21.1.jar",
+      "name": "Frog",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 20,
+          "min_weight": 10,
+          "max_weight": 50
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:furnace_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with Furnace",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:ghast": {
+      "source": "server-1.21.1.jar",
+      "name": "Ghast",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 24,
+          "min_weight": 20,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:giant": {
+      "source": "server-1.21.1.jar",
+      "name": "Giant",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:glow_item_frame": {
+      "source": "server-1.21.1.jar",
+      "name": "Glow Item Frame",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:glow_squid": {
+      "source": "server-1.21.1.jar",
+      "name": "Glow Squid",
+      "spawn_groups": {
+        "underground_water_creature": {
+          "biomes": 551,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:goat": {
+      "source": "server-1.21.1.jar",
+      "name": "Goat",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 17,
+          "min_weight": 4,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:guardian": {
+      "source": "server-1.21.1.jar",
+      "name": "Guardian",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:hoglin": {
+      "source": "server-1.21.1.jar",
+      "name": "Hoglin",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 4,
+          "min_weight": 9,
+          "max_weight": 9
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:hopper_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with Hopper",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:horse": {
+      "source": "server-1.21.1.jar",
+      "name": "Horse",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 87,
+          "min_weight": 1,
+          "max_weight": 5
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:husk": {
+      "source": "server-1.21.1.jar",
+      "name": "Husk",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 34,
+          "min_weight": 80,
+          "max_weight": 80
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:illusioner": {
+      "source": "server-1.21.1.jar",
+      "name": "Illusioner",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:interaction": {
+      "source": "server-1.21.1.jar",
+      "name": "Interaction",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:iron_golem": {
+      "source": "server-1.21.1.jar",
+      "name": "Iron Golem",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:item": {
+      "source": "server-1.21.1.jar",
+      "name": "Item",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:item_display": {
+      "source": "server-1.21.1.jar",
+      "name": "Item Display",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:item_frame": {
+      "source": "server-1.21.1.jar",
+      "name": "Item Frame",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:killer_bunny": {
+      "source": "server-1.21.1.jar",
+      "name": "The Killer Bunny",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:leash_knot": {
+      "source": "server-1.21.1.jar",
+      "name": "Leash Knot",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:lightning_bolt": {
+      "source": "server-1.21.1.jar",
+      "name": "Lightning Bolt",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:llama": {
+      "source": "server-1.21.1.jar",
+      "name": "Llama",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 52,
+          "min_weight": 5,
+          "max_weight": 8
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:llama_spit": {
+      "source": "server-1.21.1.jar",
+      "name": "Llama Spit",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:magma_cube": {
+      "source": "server-1.21.1.jar",
+      "name": "Magma Cube",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 26,
+          "min_weight": 2,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:marker": {
+      "source": "server-1.21.1.jar",
+      "name": "Marker",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:mooshroom": {
+      "source": "server-1.21.1.jar",
+      "name": "Mooshroom",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 3,
+          "min_weight": 8,
+          "max_weight": 8
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:mule": {
+      "source": "server-1.21.1.jar",
+      "name": "Mule",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:ocelot": {
+      "source": "server-1.21.1.jar",
+      "name": "Ocelot",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 23,
+          "min_weight": 2,
+          "max_weight": 2
+        },
+        "creature": {
+          "biomes": 6,
+          "min_weight": 2,
+          "max_weight": 2
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:ominous_item_spawner": {
+      "source": "server-1.21.1.jar",
+      "name": "Ominous Item Spawner",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:painting": {
+      "source": "server-1.21.1.jar",
+      "name": "Painting",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:panda": {
+      "source": "server-1.21.1.jar",
+      "name": "Panda",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 29,
+          "min_weight": 1,
+          "max_weight": 80
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:parched": {
+      "source": null,
+      "name": null,
+      "spawn_groups": {
+        "monster": {
+          "biomes": 1,
+          "min_weight": 50,
+          "max_weight": 50
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:parrot": {
+      "source": "server-1.21.1.jar",
+      "name": "Parrot",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 33,
+          "min_weight": 6,
+          "max_weight": 100
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:phantom": {
+      "source": "server-1.21.1.jar",
+      "name": "Phantom",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 8,
+          "min_weight": 5,
+          "max_weight": 10
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:pig": {
+      "source": "server-1.21.1.jar",
+      "name": "Pig",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 352,
+          "min_weight": 1,
+          "max_weight": 100
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:piglin": {
+      "source": "server-1.21.1.jar",
+      "name": "Piglin",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 11,
+          "min_weight": 5,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:piglin_brute": {
+      "source": "server-1.21.1.jar",
+      "name": "Piglin Brute",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:pillager": {
+      "source": "server-1.21.1.jar",
+      "name": "Pillager",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:player": {
+      "source": "server-1.21.1.jar",
+      "name": "Player",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:polar_bear": {
+      "source": "server-1.21.1.jar",
+      "name": "Polar Bear",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 23,
+          "min_weight": 1,
+          "max_weight": 1
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:potion": {
+      "source": "server-1.21.1.jar",
+      "name": "Potion",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:pufferfish": {
+      "source": "server-1.21.1.jar",
+      "name": "Pufferfish",
+      "spawn_groups": {
+        "water_ambient": {
+          "biomes": 7,
+          "min_weight": 5,
+          "max_weight": 15
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:rabbit": {
+      "source": "server-1.21.1.jar",
+      "name": "Rabbit",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 172,
+          "min_weight": 2,
+          "max_weight": 12
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:ravager": {
+      "source": "server-1.21.1.jar",
+      "name": "Ravager",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 2,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:salmon": {
+      "source": "server-1.21.1.jar",
+      "name": "Salmon",
+      "spawn_groups": {
+        "water_ambient": {
+          "biomes": 24,
+          "min_weight": 5,
+          "max_weight": 15
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:sheep": {
+      "source": "server-1.21.1.jar",
+      "name": "Sheep",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 367,
+          "min_weight": 2,
+          "max_weight": 12
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:shulker": {
+      "source": "server-1.21.1.jar",
+      "name": "Shulker",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:shulker_bullet": {
+      "source": "server-1.21.1.jar",
+      "name": "Shulker Bullet",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:silverfish": {
+      "source": "server-1.21.1.jar",
+      "name": "Silverfish",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:skeleton": {
+      "source": "server-1.21.1.jar",
+      "name": "Skeleton",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 555,
+          "min_weight": 20,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:skeleton_horse": {
+      "source": "server-1.21.1.jar",
+      "name": "Skeleton Horse",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:slime": {
+      "source": "server-1.21.1.jar",
+      "name": "Slime",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 567,
+          "min_weight": 1,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:small_fireball": {
+      "source": "server-1.21.1.jar",
+      "name": "Small Fireball",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:sniffer": {
+      "source": "server-1.21.1.jar",
+      "name": "Sniffer",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:snow_golem": {
+      "source": "server-1.21.1.jar",
+      "name": "Snow Golem",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:snowball": {
+      "source": "server-1.21.1.jar",
+      "name": "Snowball",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:spawner_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with Monster Spawner",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:spectral_arrow": {
+      "source": "server-1.21.1.jar",
+      "name": "Spectral Arrow",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:spider": {
+      "source": "server-1.21.1.jar",
+      "name": "Spider",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 548,
+          "min_weight": 10,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:squid": {
+      "source": "server-1.21.1.jar",
+      "name": "Squid",
+      "spawn_groups": {
+        "water_creature": {
+          "biomes": 39,
+          "min_weight": 1,
+          "max_weight": 10
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:stray": {
+      "source": "server-1.21.1.jar",
+      "name": "Stray",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 23,
+          "min_weight": 50,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:strider": {
+      "source": "server-1.21.1.jar",
+      "name": "Strider",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 41,
+          "min_weight": 60,
+          "max_weight": 60
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:tadpole": {
+      "source": "server-1.21.1.jar",
+      "name": "Tadpole",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:text_display": {
+      "source": "server-1.21.1.jar",
+      "name": "Text Display",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:tnt": {
+      "source": "server-1.21.1.jar",
+      "name": "Primed TNT",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:tnt_minecart": {
+      "source": "server-1.21.1.jar",
+      "name": "Minecart with TNT",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:trader_llama": {
+      "source": "server-1.21.1.jar",
+      "name": "Trader Llama",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:trident": {
+      "source": "server-1.21.1.jar",
+      "name": "Trident",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:tropical_fish": {
+      "source": "server-1.21.1.jar",
+      "name": "Tropical Fish",
+      "spawn_groups": {
+        "water_ambient": {
+          "biomes": 14,
+          "min_weight": 5,
+          "max_weight": 25
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:turtle": {
+      "source": "server-1.21.1.jar",
+      "name": "Turtle",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 8,
+          "min_weight": 5,
+          "max_weight": 50
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:vex": {
+      "source": "server-1.21.1.jar",
+      "name": "Vex",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 2,
+          "min_weight": 10,
+          "max_weight": 10
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:villager": {
+      "source": "server-1.21.1.jar",
+      "name": "Villager",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:vindicator": {
+      "source": "server-1.21.1.jar",
+      "name": "Vindicator",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 2,
+          "min_weight": 30,
+          "max_weight": 30
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:wandering_trader": {
+      "source": "server-1.21.1.jar",
+      "name": "Wandering Trader",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:warden": {
+      "source": "server-1.21.1.jar",
+      "name": "Warden",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:wind_charge": {
+      "source": "server-1.21.1.jar",
+      "name": "Wind Charge",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:witch": {
+      "source": "server-1.21.1.jar",
+      "name": "Witch",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 545,
+          "min_weight": 5,
+          "max_weight": 30
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:wither": {
+      "source": "server-1.21.1.jar",
+      "name": "Wither",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:wither_skeleton": {
+      "source": "server-1.21.1.jar",
+      "name": "Wither Skeleton",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 3,
+          "min_weight": 50,
+          "max_weight": 50
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:wither_skull": {
+      "source": "server-1.21.1.jar",
+      "name": "Wither Skull",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:wolf": {
+      "source": "server-1.21.1.jar",
+      "name": "Wolf",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 152,
+          "min_weight": 1,
+          "max_weight": 8
+        }
+      },
+      "category": "passive"
+    },
+    "minecraft:zoglin": {
+      "source": "server-1.21.1.jar",
+      "name": "Zoglin",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "minecraft:zombie": {
+      "source": "server-1.21.1.jar",
+      "name": "Zombie",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 546,
+          "min_weight": 19,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:zombie_horse": {
+      "source": "server-1.21.1.jar",
+      "name": "Zombie Horse",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 6,
+          "min_weight": 5,
+          "max_weight": 5
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:zombie_villager": {
+      "source": "server-1.21.1.jar",
+      "name": "Zombie Villager",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 544,
+          "min_weight": 1,
+          "max_weight": 25
+        }
+      },
+      "category": "hostile"
+    },
+    "minecraft:zombified_piglin": {
+      "source": "server-1.21.1.jar",
+      "name": "Zombified Piglin",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 8,
+          "min_weight": 1,
+          "max_weight": 100
+        }
+      },
+      "category": "hostile"
+    },
+    "paradise_lost:envoy": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Envoy",
+      "spawn_groups": {
+        "monster": {
+          "biomes": 10,
+          "min_weight": 50,
+          "max_weight": 50
+        }
+      },
+      "category": "hostile"
+    },
+    "paradise_lost:floating_block": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Floating Block",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "paradise_lost:moa": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Moa",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 10,
+          "min_weight": 4,
+          "max_weight": 6
+        }
+      },
+      "category": "passive"
+    },
+    "paradise_lost:popom": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Popom",
+      "spawn_groups": {
+        "creature": {
+          "biomes": 4,
+          "min_weight": 3,
+          "max_weight": 6
+        }
+      },
+      "category": "passive"
+    },
+    "paradise_lost:quint": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Quint",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "paradise_lost:sentinel": {
+      "source": "paradise-lost-2.4.6-beta+1.21.1.jar",
+      "name": "Calcified Sentinel",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:brick_projectile": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Brick Projectile",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:cannon_boat": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Cannon Boat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:cannonball": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Cannonball",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:dispenser_minecart": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Minecart with Dispenser",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:falling_ash": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Falling Ash",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:falling_lantern": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Falling Lantern",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:falling_urn": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Falling Urn",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:hat_stand": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Hat Stand",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:plunderer": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Plunderer",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:red_merchant": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Red Merchant",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:rope_arrow": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Rope Arrow",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:slimeball_projectile": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Slimeball Projectile",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:slingshot_projectile": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Slingshot Projectile",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "supplementaries:throwable_brick": {
+      "source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+      "name": "Brick Projectile",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "untitledduckmod:duck": {
+      "source": "untitledduckmod-1.6.0-fabric-1.21.1.jar",
+      "name": "Duck",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "untitledduckmod:goose": {
+      "source": "untitledduckmod-1.6.0-fabric-1.21.1.jar",
+      "name": "Goose",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "vinery:dark_cherry_boat": {
+      "source": "letsdo-vinery-fabric-1.5.3.jar",
+      "name": "Dark Cherry Boat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "vinery:dark_cherry_chest_boat": {
+      "source": "letsdo-vinery-fabric-1.5.3.jar",
+      "name": "Dark Cherry Boat",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "vinery:mule": {
+      "source": "letsdo-vinery-fabric-1.5.3.jar",
+      "name": "Mule",
+      "spawn_groups": {},
+      "category": "unknown"
+    },
+    "vinery:wandering_winemaker": {
+      "source": "letsdo-vinery-fabric-1.5.3.jar",
+      "name": "Wandering Winemaker",
+      "spawn_groups": {},
+      "category": "unknown"
+    }
+  }
+}

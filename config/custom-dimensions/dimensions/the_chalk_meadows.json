@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles.",
+  "seed": 888786079348736810,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:calcite",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "C8D8C0",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "natures_spirit:heather_fields",
+      "natures_spirit:carnation_fields",
+      "terralith:blooming_plateau",
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "guide_post_warm": "near_spawn",
+      "tavern": "spread"
+    },
+    "shuns": [
+      "ancient_city",
+      "mansion",
+      "coliseum"
+    ],
+    "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles."
+  }
+}

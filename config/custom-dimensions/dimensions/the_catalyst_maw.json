@@ -1,0 +1,49 @@
+{
+  "type": "end",
+  "description": "The maw: sculk and shadowland in solid end terrain — the catalyst is still feeding.",
+  "seed": 7719368698613726672,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "nullscape:shadowlands",
+    "minecraft:deep_dark",
+    "minecraft:end_highlands",
+    "terralith:cave/deep_caves"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 1.8
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:sculk_catalyst",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "1B5B6B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "nullscape:shadowlands",
+      "minecraft:deep_dark"
+    ],
+    "wants": {
+      "mega_ship_crashed": "spread",
+      "endscraps": "near_spawn",
+      "phantom_citadel": "near_border",
+      "end_city": "spread"
+    },
+    "description": "The maw: sculk and shadowland in solid end terrain — the catalyst is still feeding."
+  }
+}

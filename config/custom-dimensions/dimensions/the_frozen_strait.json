@@ -1,0 +1,49 @@
+{
+  "type": "overworld",
+  "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road.",
+  "seed": -6800857166025637730,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:packed_ice",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "7BB8DF",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "particleType": "minecraft:snowflake",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "minecraft:frozen_ocean",
+      "minecraft:deep_frozen_ocean",
+      "terralith:ice_marsh",
+      "minecraft:snowy_beach"
+    ],
+    "water": "sea",
+    "wants": {
+      "igloo": "near_spawn",
+      "guide_post_cold": "near_spawn",
+      "ice_dungeon_m": "spread",
+      "frozen_dungeon": "spread"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "coliseum"
+    ],
+    "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road."
+  }
+}

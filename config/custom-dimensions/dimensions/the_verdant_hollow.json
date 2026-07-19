@@ -1,0 +1,47 @@
+{
+  "type": "overworld",
+  "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical.",
+  "seed": 8520493563399625018,
+  "noiseSettings": "adventure:wide",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:moss_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "3DAF6B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "particleType": "minecraft:spore_blossom_air",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "pastoral",
+    "spawnFilter": [
+      "terralith:lush_valley",
+      "natures_spirit:cypress_fields",
+      "terralith:valley_clearing",
+      "minecraft:meadow"
+    ],
+    "wants": {
+      "village": "near_spawn",
+      "farmstead": "near_spawn",
+      "tavern": "spread",
+      "giant_mushroom": "spread"
+    },
+    "shuns": [
+      "ancient_city",
+      "coliseum"
+    ],
+    "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical."
+  }
+}

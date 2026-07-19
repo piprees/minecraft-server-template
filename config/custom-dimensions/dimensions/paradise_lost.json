@@ -1,0 +1,27 @@
+{
+  "scale": 1.0,
+  "borders": {
+    "player": 4096,
+    "generation": 4096
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "seedRoll": {
+    "mood": "scenic",
+    "description": "Paradise Lost — the skylands. Serene island heights with towers, vaults and a palace worth the climb.",
+    "spawnFilter": [
+      "paradise_lost:highlands",
+      "paradise_lost:highlands_forest",
+      "paradise_lost:wisteria_woods",
+      "paradise_lost:tradewinds"
+    ],
+    "wants": {
+      "paradise_lost:remains": "near_spawn",
+      "paradise_lost:aurel_tower": "spread",
+      "paradise_lost:vault": "spread",
+      "paradise_lost:palace": "near_border"
+    },
+    "shuns": []
+  }
+}

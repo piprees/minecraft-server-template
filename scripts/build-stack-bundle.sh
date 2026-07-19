@@ -63,6 +63,8 @@ MANIFEST=(
   scripts/map-render.sh
   scripts/backup-now.sh
   scripts/reset-seed.sh
+  scripts/migrate-to-v4-config.sh
+  scripts/seed/candidates.py
   scripts/seed/roll-seeds.sh
   scripts/seed/roll-all.sh
   scripts/seed/seed_worker.py

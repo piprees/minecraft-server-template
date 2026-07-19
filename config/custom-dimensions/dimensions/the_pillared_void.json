@@ -1,0 +1,40 @@
+{
+  "type": "end",
+  "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else.",
+  "seed": -696349698492342128,
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:polished_basalt",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "4B4B5B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "nullscape:void_barrens",
+      "minecraft:small_end_islands"
+    ],
+    "wants": {
+      "ender_spire": "spread",
+      "ruined_pillar": "near_spawn",
+      "dragon_skeleton": "spread"
+    },
+    "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else."
+  }
+}

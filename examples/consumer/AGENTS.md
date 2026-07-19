@@ -43,7 +43,7 @@ The bundle puller lives in the bundle itself (`.stack/current/stack/scripts/stac
 
 The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-edit `data/mods/`**: it's managed (Modrinth sync + bundle installs) and your changes will be overwritten.
 
-The custom-dimensions mod reads the platform's dimension and portal definitions from `config/multiverse_config.json` at boot and creates all dimensions automatically — no RCON commands needed. That config is repo-owned and deploy-seeded; the mod never writes to it. Consumer overlays can override it via `overlay/config/multiverse_config.json`. Full architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
+The custom-dimensions mod reads per-dimension config files from `config/custom-dimensions/dimensions/` at boot and creates all dimensions automatically — no RCON commands needed. Those configs are repo-owned and deploy-seeded; the mod never writes to them. Consumers customise via `overlay/config/custom-dimensions/dimensions/{slug}.json`: a file with a top-level `"overrides"` object deep-merges over the platform default, a file without one replaces it entirely, an empty `{}` disables that dimension, and a new filename adds a consumer dimension (namespaced by `BRAND_SLUG`). Full architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
 
 ## Production access
 
@@ -95,7 +95,7 @@ Before pushing: check no CI run is in progress (`gh run list --limit 3`), check 
 | Add a client mod | Not here — PR to the template repo | — |
 | Change game rules | Not here — PR to the template repo | — |
 | Change permissions | Not here — PR to the template repo | — |
-| Add/change custom dimensions | Not here — PR to the template repo (`config/multiverse_config.json` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | — |
+| Add/change custom dimensions | `overlay/config/custom-dimensions/dimensions/` (add/override/disable per file); platform defaults via PR to the template repo (`config/custom-dimensions/` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | `./dev up` or push |
 
 ## Safety rules
 

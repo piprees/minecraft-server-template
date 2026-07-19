@@ -1,0 +1,45 @@
+{
+  "type": "overworld",
+  "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone.",
+  "seed": 7966179322634150228,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:polished_andesite",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "7A8B7A",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "natures_spirit:cedar_thicket",
+      "minecraft:dark_forest",
+      "terralith:birch_taiga",
+      "natures_spirit:fir_forest"
+    ],
+    "wants": {
+      "graveyard": "near_spawn",
+      "abandoned_chapel": "spread",
+      "zombie_dungeon": "spread",
+      "old_manor": "near_border"
+    },
+    "shuns": [
+      "monument",
+      "coliseum"
+    ],
+    "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone."
+  }
+}

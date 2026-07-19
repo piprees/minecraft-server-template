@@ -1,0 +1,70 @@
+{
+  "type": "multi_biome",
+  "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon.",
+  "seed": -3604832347219380837,
+  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:savanna",
+    "minecraft:savanna_plateau",
+    "minecraft:desert",
+    "minecraft:wooded_badlands",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "minecraft:plains",
+    "minecraft:river",
+    "minecraft:beach",
+    "terralith:arid_highlands",
+    "terralith:lush_desert",
+    "terralith:desert_oasis",
+    "terralith:desert_canyon",
+    "terralith:hot_shrubland",
+    "terralith:fractured_savanna",
+    "terralith:red_oasis",
+    "terralith:savanna_badlands",
+    "terralith:savanna_slopes",
+    "terralith:brushland",
+    "terralith:steppe",
+    "terralith:shrubland",
+    "natures_spirit:stratified_desert",
+    "natures_spirit:oak_savanna",
+    "terralith:ancient_sands"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:sandstone",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "D4B050",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:desert",
+      "minecraft:savanna",
+      "terralith:lush_desert",
+      "terralith:ancient_sands"
+    ],
+    "water": "none",
+    "wants": {
+      "village": "near_spawn",
+      "desert_shrine": "near_spawn",
+      "bandit_village": "spread",
+      "sand_dungeon_l": "spread",
+      "keep_kayra": "near_border"
+    },
+    "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon."
+  }
+}

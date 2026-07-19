@@ -1,0 +1,70 @@
+{
+  "type": "multi_biome",
+  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands.",
+  "seed": -3604832347219380837,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "minecraft:windswept_hills",
+    "minecraft:windswept_forest",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:stony_peaks",
+    "minecraft:meadow",
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:river",
+    "minecraft:stony_shore",
+    "terralith:highlands",
+    "terralith:temperate_highlands",
+    "terralith:forested_highlands",
+    "terralith:rocky_mountains",
+    "terralith:haze_mountain",
+    "terralith:white_cliffs",
+    "terralith:granite_cliffs",
+    "terralith:basalt_cliffs",
+    "terralith:caldera",
+    "terralith:blooming_plateau",
+    "natures_spirit:red_peaks",
+    "terralith:yosemite_cliffs",
+    "terralith:windswept_spires"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2
+  },
+  "portal": {
+    "frameBlock": "minecraft:raw_copper_block",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "B08B5B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "terralith:haze_mountain",
+      "terralith:highlands",
+      "terralith:rocky_mountains",
+      "minecraft:windswept_hills"
+    ],
+    "wants": {
+      "guide_post_cold": "near_spawn",
+      "taiga_outpost": "near_spawn",
+      "firetower": "spread",
+      "engineer_tower": "spread",
+      "keep_kayra": "near_border"
+    },
+    "shuns": [
+      "monument"
+    ],
+    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands."
+  }
+}

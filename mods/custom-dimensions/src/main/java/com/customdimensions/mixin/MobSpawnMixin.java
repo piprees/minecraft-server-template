@@ -1,6 +1,6 @@
 package com.customdimensions.mixin;
 
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.registry.RegistryKey;
@@ -24,10 +24,10 @@ public class MobSpawnMixin {
         // Namespace guard: definitions are looked up by path, and a foreign
         // dimension whose path matches one of our names must not inherit its
         // spawn suppression.
-        if (!DimensionDefinition.getNamespace().equals(worldKey.getValue().getNamespace())) {
+        if (!MultiverseConfig.getInstance().isManagedNamespace(worldKey.getValue().getNamespace())) {
             return;
         }
-        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(worldKey.getValue().getPath());
+        DimensionConfig def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(worldKey.getValue().getPath());
         if (def != null && !def.isHostileSpawningEnabled()) {
             ci.cancel();
         }

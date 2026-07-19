@@ -1,0 +1,54 @@
+{
+  "type": "multi_biome",
+  "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Fortresses under an open sky.",
+  "seed": -3604832347219380837,
+  "biomes": [
+    "minecraft:crimson_forest",
+    "minecraft:warped_forest",
+    "minecraft:nether_wastes",
+    "incendium:inverted_forest",
+    "incendium:weeping_valley",
+    "incendium:withered_forest",
+    "incendium:quartz_flats",
+    "incendium:volcanic_deltas",
+    "terralith:warped_mesa"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:nether_bricks",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "AF2B2B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "minecraft:warped_forest",
+      "incendium:inverted_forest"
+    ],
+    "wants": {
+      "fortress": "spread",
+      "crimson_forge": "spread",
+      "piglin_village": "spread",
+      "bastion": "near_border"
+    },
+    "shuns": [
+      "village"
+    ],
+    "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Fortresses under an open sky."
+  }
+}

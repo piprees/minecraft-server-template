@@ -59,7 +59,14 @@ ROLL_MEMORY="${ROLL_MEMORY:-6G}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-CONFIG="$PROJECT_ROOT/config/multiverse_config.json"
+# v4 config directory preferred; the monolithic file remains the deprecated
+# fallback. score-dimensions.py / seed_worker.py accept either as --config.
+CONFIG_DIR="$PROJECT_ROOT/config/custom-dimensions"
+if [[ -d "$CONFIG_DIR/dimensions" ]]; then
+  CONFIG="$CONFIG_DIR"
+else
+  CONFIG="$PROJECT_ROOT/config/multiverse_config.json"
+fi
 LOCAL_DATA="$PROJECT_ROOT/data"
 # EVERYTHING seedtest-related (measurements, renders, viewer, worker boot
 # dirs) lives under .seedtest/ — nothing else lands in the consumer repo.
@@ -105,7 +112,10 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --fresh)
-      rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv
+      # Discards SPOOLS (worker CSVs + legacy measurements.csv). The
+      # candidate bank (config/custom-dimensions/candidates/) persists —
+      # delete it by hand for a true from-zero reset.
+      rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv "$SEEDTEST"/abandoned-worker-*.csv
       shift
       ;;
     --clean)
@@ -139,7 +149,7 @@ command -v python3 > /dev/null || {
   echo "Error: python3 required" >&2
   exit 1
 }
-[[ -f "$CONFIG" ]] || {
+[[ -f "$CONFIG" || -d "$CONFIG" ]] || {
   echo "Error: $CONFIG not found" >&2
   exit 1
 }
@@ -196,6 +206,9 @@ prepare_base_dir() {
   rm -rf "$WORK_BASE/mods/luckperms"
   # Per-dimension state from the live server breaks fresh rolls (AGENTS.md).
   rm -rf "$WORK_BASE/config/bluemap" "$WORK_BASE/config/DistantHorizons"
+  # Roll boots must use the generated mvconfig (legacy single-file format);
+  # a copied custom-dimensions/ directory would win and boot all 74 dims.
+  rm -rf "$WORK_BASE/config/custom-dimensions"
   echo "  $(ls "$WORK_BASE/mods/"*.jar | wc -l | tr -d ' ') mod JARs ($removed stripped)"
   touch "$WORK_BASE/.ready"
 }
@@ -221,21 +234,11 @@ prepare_worker_dir() {
 }
 
 # ---------------------------------------------------------------------------
-# CSV merge (dedup exact rows; header once)
-# ---------------------------------------------------------------------------
-merge_measurements() {
-  {
-    echo "target,seed,metric,value"
-    for f in "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv; do
-      # Unmatched globs / missing files must not trip set -e -o pipefail
-      # (grep also exits 1 on a fully-filtered file).
-      [[ -f "$f" ]] || continue
-      grep -v '^target,seed,metric,value$' "$f" || true
-    done | awk '!seen[$0]++'
-  } > "$MEASUREMENTS.tmp"
-  mv "$MEASUREMENTS.tmp" "$MEASUREMENTS"
-}
-
+# Measurement storage (v4 Phase 5): score-dimensions.py reads the worker
+# CSV spools directly and persists everything into per-dimension candidate
+# files (config/custom-dimensions/candidates/{slug}.json) on every
+# finalise — the old merged measurements.csv is gone (a leftover one is
+# still read as a one-time import source).
 # ---------------------------------------------------------------------------
 # Worker fleets — indefinite: each worker cycles its rotation until the
 # stop file appears (Ctrl+C); a crashed worker process is logged and
@@ -282,7 +285,6 @@ start_reporter() {
   (
     while true; do
       sleep 45
-      merge_measurements 2> /dev/null || true
       # shellcheck disable=SC2086
       python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
         --config "$CONFIG" --seedtest "$SEEDTEST" \
@@ -343,8 +345,7 @@ finalise() {
   FINALISED=1
   stop_reporter
   echo ""
-  echo ">>> Finalising: merging measurements + scoring..."
-  merge_measurements
+  echo ">>> Finalising: merging worker spools into candidates + scoring..."
   local write_flag=""
   [[ "$WRITE_CONFIG" == 1 ]] && write_flag="--write-config"
   # shellcheck disable=SC2086
@@ -357,14 +358,28 @@ finalise() {
     --config "$CONFIG" --seedtest "$SEEDTEST" \
     ${DIMS:+--dims "$DIMS"} $write_flag --viewer --open-viewer || true
   # Consumer copy must mirror the template config exactly (AGENTS.md).
-  if [[ "$WRITE_CONFIG" == 1 && -f "$LOCAL_DATA/config/multiverse_config.json" ]]; then
+  if [[ "$WRITE_CONFIG" == 1 && -d "$CONFIG" && -d "$LOCAL_DATA/config/custom-dimensions" ]]; then
+    # Directory mode: replace dimensions/ + settings.json, leave overlay/ alone.
+    STAMP="$(date +%Y%m%d-%H%M%S)"
+    cp -R "$LOCAL_DATA/config/custom-dimensions/dimensions" \
+      "$LOCAL_DATA/config/custom-dimensions/dimensions.bak.$STAMP"
+    rm -rf "$LOCAL_DATA/config/custom-dimensions/dimensions"
+    cp -R "$CONFIG/dimensions" "$LOCAL_DATA/config/custom-dimensions/dimensions"
+    [[ -f "$CONFIG/settings.json" ]] \
+      && cp "$CONFIG/settings.json" "$LOCAL_DATA/config/custom-dimensions/settings.json"
+    echo "Synced data/config/custom-dimensions/ (backup: dimensions.bak.$STAMP)"
+  elif [[ "$WRITE_CONFIG" == 1 && -f "$CONFIG" && -f "$LOCAL_DATA/config/multiverse_config.json" ]]; then
     cp "$LOCAL_DATA/config/multiverse_config.json" \
       "$LOCAL_DATA/config/multiverse_config.json.bak.$(date +%Y%m%d-%H%M%S)"
     cp "$CONFIG" "$LOCAL_DATA/config/multiverse_config.json"
     echo "Synced data/config/multiverse_config.json (backup kept)"
   fi
   echo ""
-  echo "Artefacts: $MEASUREMENTS"
+  if [[ -d "$CONFIG" ]]; then
+    echo "Artefacts: $CONFIG/candidates/ (measurements + scores + winners)"
+  else
+    echo "Artefacts: $MEASUREMENTS"
+  fi
   echo "           $SEEDTEST/viewer.html"
 }
 
@@ -418,7 +433,6 @@ echo "=============================================="
 echo ""
 
 prepare_base_dir
-merge_measurements
 rm -f "$STOP_FILE"
 # Fresh backup marker per session: the first auto-write this run takes one
 # timestamped config backup, later 45s re-writes don't spam .bak files.

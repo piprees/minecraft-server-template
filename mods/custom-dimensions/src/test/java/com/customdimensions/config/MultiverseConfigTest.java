@@ -1,165 +1,147 @@
 package com.customdimensions.config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Runtime API behaviour of MultiverseConfig over both load paths: the v4
+ * directory format and the deprecated monolithic multiverse_config.json.
+ */
 class MultiverseConfigTest {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    @Test
-    void gsonRoundTripPreservesDimensions() {
-        String json = """
-                {"dimensions":[{"name":"test_world","type":"overworld","dimensionId":"minecraft:test_world","seed":42,"biome":"minecraft:plains","hostileSpawning":false,"noiseSettings":"adventure:wide"}]}
-                """;
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertEquals(1, loaded.getDimensions().size());
-        DimensionDefinition loadedDim = loaded.getDimension("test_world");
-        assertNotNull(loadedDim);
-        assertEquals("test_world", loadedDim.getName());
-        assertEquals("overworld", loadedDim.getType());
-        assertEquals(42L, loadedDim.getSeed());
-        assertEquals("minecraft:plains", loadedDim.getBiome());
-        assertFalse(loadedDim.isHostileSpawningEnabled());
-        assertEquals("adventure:wide", loadedDim.getNoiseSettings());
-    }
-
-    @Test
-    void noiseSettingsAbsentStaysNull() {
-        String json = """
-                {"dimensions":[{"name":"plain","type":"overworld","dimensionId":"adventure:plain","seed":1}]}
-                """;
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-        assertNull(loaded.getDimension("plain").getNoiseSettings());
-    }
-
-    @Test
-    void gsonRoundTripPreservesPortals() {
-        String json = """
-                {"portals":[{"id":"nether_gate","frameBlock":"minecraft:obsidian","igniterItem":"minecraft:flint_and_steel","targetDimension":"minecraft:the_nether","color":"AA0000","lightLevel":11,"scale":0.125,"cooldown":80}]}
-                """;
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertEquals(1, loaded.getPortals().size());
-        PortalDefinition loadedPortal = loaded.getPortal("nether_gate");
-        assertNotNull(loadedPortal);
-        assertEquals("nether_gate", loadedPortal.getId());
-        assertEquals("minecraft:obsidian", loadedPortal.getFrameBlock());
-        assertEquals("minecraft:flint_and_steel", loadedPortal.getIgniterItem());
-        assertEquals("minecraft:the_nether", loadedPortal.getTargetDimension());
-        assertEquals("AA0000", loadedPortal.getColor());
-        assertEquals(11, loadedPortal.getLightLevel());
-        assertEquals(0.125, loadedPortal.getScale());
-        assertEquals(80, loadedPortal.getCooldown());
-    }
-
-    @Test
-    void gsonRoundTripPreservesSoundFields() {
-        String json = """
-                {"portals":[{"id":"sound_test","frameBlock":"minecraft:stone","igniterItem":"minecraft:stick","targetDimension":"minecraft:overworld","color":"FFFFFF","lightLevel":0}]}
-                """;
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        PortalDefinition loadedPortal = loaded.getPortal("sound_test");
-        assertNotNull(loadedPortal);
-        assertEquals("block.portal.trigger", loadedPortal.getIgniteSound());
-        assertEquals("block.portal.travel", loadedPortal.getEnterSound());
-        assertEquals("block.portal.travel", loadedPortal.getExitSound());
-    }
-
-    @Test
-    void gsonRoundTripPreservesFrameBlocks() {
+    private MultiverseConfig fromLegacy(Path dir, String json) throws IOException {
+        Path legacy = dir.resolve("multiverse_config.json");
+        Files.writeString(legacy, json);
         MultiverseConfig config = new MultiverseConfig();
-        String json = GSON.toJson(config);
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertEquals("minecraft:crying_obsidian", loaded.getFrameOverworld());
-        assertEquals("minecraft:obsidian", loaded.getFrameNether());
-        assertEquals("minecraft:iron_block", loaded.getFrameEnd());
+        config.applyLoadResult(DimensionConfigLoader.loadLegacyWithSettings(legacy));
+        return config;
     }
 
-    @Test
-    void gsonRoundTripPreservesIdleUnloadMinutes() {
+    private MultiverseConfig fromDirectory(Path dir) {
         MultiverseConfig config = new MultiverseConfig();
-        String json = GSON.toJson(config);
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertEquals(5, loaded.getIdleUnloadMinutes());
+        config.applyLoadResult(DimensionConfigLoader.loadAllWithSettings(dir, dir.resolve("overlay")));
+        return config;
     }
 
     @Test
-    void fileRoundTripWorks(@TempDir Path tempDir) throws IOException {
-        Path configFile = tempDir.resolve("test_config.json");
-
-        String json = """
-                {"dimensions":[{"name":"dim1","type":"void","dimensionId":"minecraft:dim1"}],"portals":[{"id":"p1","frameBlock":"minecraft:gold_block","igniterItem":"minecraft:blaze_rod","targetDimension":"minecraft:dim1","color":"FFD700","lightLevel":8}]}
-                """;
-        try (BufferedWriter writer = Files.newBufferedWriter(configFile)) {
-            writer.write(json);
-        }
-
-        MultiverseConfig loaded;
-        try (BufferedReader reader = Files.newBufferedReader(configFile)) {
-            loaded = GSON.fromJson(reader, MultiverseConfig.class);
-        }
-
-        assertNotNull(loaded.getDimension("dim1"));
-        assertEquals("void", loaded.getDimension("dim1").getType());
-        assertNotNull(loaded.getPortal("p1"));
-        assertEquals("minecraft:gold_block", loaded.getPortal("p1").getFrameBlock());
+    void legacyDimensionsResolveThroughPublicApi(@TempDir Path dir) throws IOException {
+        MultiverseConfig config = fromLegacy(dir, """
+                {"namespace":"adventure",
+                 "dimensions":[{"name":"test_world","type":"overworld","dimensionId":"adventure:test_world",
+                                "seed":42,"biome":"minecraft:plains","hostileSpawning":false,
+                                "noiseSettings":"adventure:wide"}],
+                 "portals":[],"worlds":[]}
+                """);
+        assertEquals(1, config.getDimensions().size());
+        DimensionConfig dim = config.getDimension("test_world");
+        assertNotNull(dim);
+        assertEquals("test_world", dim.getName());
+        assertEquals("overworld", dim.getType());
+        assertEquals(42L, dim.getSeed());
+        assertEquals("minecraft:plains", dim.getBiome());
+        assertFalse(dim.isHostileSpawningEnabled());
+        assertEquals("adventure:wide", dim.getNoiseSettings());
+        assertTrue(config.getDimensionNames().contains("test_world"));
     }
 
     @Test
-    void getDimensionNamesReturnsAllNames() {
-        String json = """
-                {"dimensions":[{"name":"alpha","type":"overworld"},{"name":"beta","type":"nether"}]}
-                """;
-        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
-
-        var names = config.getDimensionNames();
-        assertEquals(2, names.size());
-        assertTrue(names.contains("alpha"));
-        assertTrue(names.contains("beta"));
-    }
-
-    @Test
-    void getPortalByIgniterFindsMatch() {
-        String json = """
-                {"portals":[{"id":"p1","frameBlock":"minecraft:obsidian","igniterItem":"minecraft:blaze_rod","targetDimension":"minecraft:the_nether","color":"AA0000","lightLevel":0}]}
-                """;
-        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertTrue(config.getPortalByIgniter("minecraft:blaze_rod").isPresent());
+    void legacyPortalsBecomePortalViews(@TempDir Path dir) throws IOException {
+        MultiverseConfig config = fromLegacy(dir, """
+                {"dimensions":[{"name":"nether_gate","type":"nether","dimensionId":"adventure:nether_gate"}],
+                 "portals":[{"id":"nether_gate","frameBlock":"minecraft:obsidian",
+                             "igniterItem":"minecraft:flint_and_steel","targetDimension":"adventure:nether_gate",
+                             "color":"AA0000","lightLevel":11,"scale":0.125,"cooldown":80}],
+                 "worlds":[]}
+                """);
+        assertEquals(1, config.getPortals().size());
+        PortalDefinition portal = config.getPortal("nether_gate");
+        assertNotNull(portal);
+        assertEquals("minecraft:obsidian", portal.getFrameBlock());
+        assertEquals(0.125, portal.getScale());
+        assertEquals(80, portal.getCooldown());
+        assertTrue(config.getPortalByIgniter("minecraft:flint_and_steel").isPresent());
         assertFalse(config.getPortalByIgniter("minecraft:stick").isPresent());
+        // default sounds fill in
+        assertEquals("block.portal.trigger", portal.getIgniteSound());
+        assertEquals("block.portal.travel", portal.getEnterSound());
     }
 
     @Test
-    void nullSeedSurvivesRoundTrip() {
-        String json = """
-                {"dimensions":[{"name":"test","type":"overworld","dimensionId":"minecraft:test"}]}
-                """;
-        MultiverseConfig loaded = GSON.fromJson(json, MultiverseConfig.class);
-
-        assertNull(loaded.getDimension("test").getSeed());
+    void frameAndIdleDefaultsSurviveEmptyConfig(@TempDir Path dir) throws IOException {
+        MultiverseConfig config = fromLegacy(dir, "{\"dimensions\":[],\"portals\":[],\"worlds\":[]}");
+        assertEquals("minecraft:crying_obsidian", config.getFrameOverworld());
+        assertEquals("minecraft:obsidian", config.getFrameNether());
+        assertEquals("minecraft:iron_block", config.getFrameEnd());
+        assertEquals(5, config.getIdleUnloadMinutes());
+        assertNotNull(config.getDefaultPortalForFrameBlock("minecraft:crying_obsidian"));
+        assertNull(config.getDefaultPortalForFrameBlock("minecraft:dirt"));
     }
 
     @Test
-    void namespaceFieldDeserializes() {
-        String json = """
-                {"namespace":"custom_ns","dimensions":[]}
-                """;
-        MultiverseConfig config = GSON.fromJson(json, MultiverseConfig.class);
+    void worldSeedOverridesResolveByDimensionId(@TempDir Path dir) throws IOException {
+        MultiverseConfig config = fromLegacy(dir, """
+                {"worldSeed":4955897124001752590,
+                 "dimensions":[],"portals":[],
+                 "worlds":[{"name":"overworld","dimensionId":"minecraft:overworld"},
+                           {"name":"the_nether","dimensionId":"minecraft:the_nether","seed":111},
+                           {"name":"the_end","dimensionId":"minecraft:the_end"}]}
+                """);
+        assertEquals(4955897124001752590L, config.getWorldSeedOverride("minecraft:overworld"));
+        assertEquals(111L, config.getWorldSeedOverride("minecraft:the_nether"));
+        assertNull(config.getWorldSeedOverride("minecraft:the_end"));
+        assertNull(config.getWorldSeedOverride("adventure:nowhere"));
+        assertNotNull(config.getWorld("overworld"));
+        assertNull(config.getWorld("the_claymarsh"));
+        // base worlds never appear as custom dimensions
+        assertNull(config.getDimension("overworld"));
+        assertTrue(config.getDimensions().isEmpty());
+    }
 
-        assertNotNull(config);
+    @Test
+    void directoryFormatLoadsAndTracksNamespaces(@TempDir Path dir) throws IOException {
+        Files.createDirectories(dir.resolve("dimensions"));
+        Files.writeString(dir.resolve("settings.json"),
+                "{\"namespace\":\"adventure\",\"idleUnloadMinutes\":9}");
+        Files.writeString(dir.resolve("dimensions/the_claymarsh.json"),
+                "{\"type\":\"overworld\",\"seed\":1,\"portal\":{\"frameBlock\":\"minecraft:clay\",\"igniterItem\":\"minecraft:stick\"}}");
+        Files.writeString(dir.resolve("dimensions/overworld.json"),
+                "{\"seed\":77,\"spawn\":[1,64,2]}");
+        Files.createDirectories(dir.resolve("overlay/dimensions"));
+        Files.writeString(dir.resolve("overlay/dimensions/consumer_dim.json"),
+                "{\"type\":\"overworld\",\"seed\":5}");
+
+        MultiverseConfig config = fromDirectory(dir);
+        assertEquals(9, config.getIdleUnloadMinutes());
+        assertEquals(2, config.getDimensions().size());
+        assertEquals(77L, config.getWorldSeedOverride("minecraft:overworld"));
+        assertArrayEquals(new int[]{1, 64, 2}, config.getWorld("overworld").getSpawn());
+        assertEquals(1, config.getPortals().size());
+        assertEquals("adventure:the_claymarsh", config.getPortal("the_claymarsh").getTargetDimension());
+        assertTrue(config.isManagedNamespace("adventure"));
+        assertFalse(config.isManagedNamespace("minecraft"));
+    }
+
+    @Test
+    void envSeedSentinelFlowsThroughWorldSeedOverride(@TempDir Path dir) throws IOException {
+        Files.createDirectories(dir.resolve("dimensions"));
+        Files.writeString(dir.resolve("dimensions/overworld.json"), "{\"seed\":\"env\"}");
+        MultiverseConfig config = fromDirectory(dir);
+        // Resolution depends on the SEED env var; with it unset the override is null.
+        String env = System.getenv("SEED");
+        Long expected = null;
+        if (env != null && !env.isBlank()) {
+            try {
+                expected = Long.parseLong(env.trim());
+            } catch (NumberFormatException e) {
+                expected = (long) env.trim().hashCode();
+            }
+        }
+        assertEquals(expected, config.getWorldSeedOverride("minecraft:overworld"));
     }
 }

@@ -1,0 +1,50 @@
+{
+  "type": "overworld",
+  "description": "Quiet wetland wilderness — reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes.",
+  "seed": -4254781042587868201,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:clay",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "9B8B7A",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "natures_spirit:marsh",
+      "minecraft:swamp",
+      "minecraft:mangrove_swamp",
+      "terralith:orchid_swamp",
+      "natures_spirit:bamboo_wetlands"
+    ],
+    "water": "high",
+    "wants": {
+      "swamp_ruin": "spread",
+      "mangrove_hut": "near_spawn",
+      "muddy_dungeon": "near_border",
+      "graveyard": "spread"
+    },
+    "shuns": [
+      "village",
+      "mansion",
+      "trial_chambers",
+      "ancient_city"
+    ],
+    "description": "Quiet wetland wilderness — reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes."
+  }
+}

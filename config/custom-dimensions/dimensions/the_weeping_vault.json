@@ -1,0 +1,41 @@
+{
+  "type": "nether",
+  "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world.",
+  "seed": -3211735946045942308,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.5
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:crying_obsidian",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "6B3B8B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "incendium:weeping_valley",
+      "minecraft:crimson_forest"
+    ],
+    "wants": {
+      "forbidden_castle": "spread",
+      "nether_dungeon": "near_spawn",
+      "sanctum": "near_border",
+      "bastion": "spread"
+    },
+    "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world."
+  }
+}

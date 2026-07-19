@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive.",
+  "seed": -7942150272453941819,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.5
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:blackstone",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "3B3B4B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "bastion": "near_spawn",
+      "blackstone_walls": "near_spawn",
+      "forbidden_castle": "spread",
+      "fortress": "spread"
+    },
+    "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive."
+  }
+}

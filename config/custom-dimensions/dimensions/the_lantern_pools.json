@@ -1,0 +1,51 @@
+{
+  "type": "overworld",
+  "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no.",
+  "seed": -7749576552491939738,
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:sea_lantern",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "4BCFCF",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "terralith:desert_oasis",
+      "terralith:warm_river",
+      "minecraft:lush_caves",
+      "terralith:red_oasis"
+    ],
+    "water": "high",
+    "wants": {
+      "desert_shrine": "spread",
+      "mirage_outpost": "spread",
+      "guide_post_warm": "near_spawn"
+    },
+    "shuns": [
+      "village",
+      "tavern",
+      "mansion",
+      "monument",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ],
+    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world.",
+  "seed": 888677704244175115,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:obsidian",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "4B2B6B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:nether_wastes"
+    ],
+    "wants": {
+      "sanctum": "spread",
+      "infernal_altar": "spread",
+      "forbidden_castle": "near_border",
+      "bastion": "spread"
+    },
+    "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world."
+  }
+}

@@ -1,6 +1,6 @@
 package com.customdimensions.mixin;
 
-import com.customdimensions.config.DimensionDefinition;
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.SpawnGroup;
@@ -22,10 +22,10 @@ public class PeacefulDimensionSpawnMixin {
         ServerWorld world = (ServerWorld) (Object) this;
         // Same namespace guard as MobSpawnMixin: path lookups must never
         // match foreign dimensions.
-        if (!DimensionDefinition.getNamespace().equals(world.getRegistryKey().getValue().getNamespace())) {
+        if (!MultiverseConfig.getInstance().isManagedNamespace(world.getRegistryKey().getValue().getNamespace())) {
             return;
         }
-        DimensionDefinition def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(world.getRegistryKey().getValue().getPath());
+        DimensionConfig def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(world.getRegistryKey().getValue().getPath());
         if (def != null && !def.isHostileSpawningEnabled()) {
             cir.setReturnValue(true);
         }

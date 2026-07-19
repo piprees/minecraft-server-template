@@ -1,36 +1,47 @@
 package com.customdimensions.config;
 
 import com.customdimensions.MultiverseServer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+/**
+ * The mod's runtime view of the dimension configuration.
+ *
+ * v4: reads the per-dimension directory config/custom-dimensions/
+ * (settings.json + dimensions/*.json + overlay/) via DimensionConfigLoader.
+ * Backwards compatible: when the directory is absent and the old monolithic
+ * config/multiverse_config.json exists, that is converted instead (with a
+ * deprecation warning).
+ *
+ * The public API surface is unchanged in shape — getDimension/getDimensions,
+ * getPortal/getPortals, getWorld, getWorldSeedOverride — but everything now
+ * resolves against a single Map&lt;String, DimensionConfig&gt;.
+ */
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final String FILE_NAME = "multiverse_config.json";
+    private static final String LEGACY_FILE_NAME = "multiverse_config.json";
+    private static final String CONFIG_DIR_NAME = "custom-dimensions";
 
-    private final List<DimensionDefinition> dimensions = new ArrayList<>();
-    private final List<PortalDefinition> portals = new ArrayList<>();
-    private final List<WorldSeedDefinition> worlds = new ArrayList<>();
-    private transient Path configPath;
+    private transient Path configRoot;
     private transient MinecraftServer server;
 
-    private String namespace;
-    private Long worldSeed;
-    private String frameOverworld = "minecraft:crying_obsidian";
-    private String frameNether = "minecraft:obsidian";
-    private String frameEnd = "minecraft:iron_block";
-    private int idleUnloadMinutes = 5;
+    /** Every configured entry, keyed by slug — base worlds included. */
+    private Map<String, DimensionConfig> configs = new LinkedHashMap<>();
+    /** Portal views for the custom dimensions that declare one. */
+    private List<PortalDefinition> portals = new ArrayList<>();
+    private DimensionConfigLoader.Settings settings = new DimensionConfigLoader.Settings();
+    /** Namespaces this mod owns (platform namespace + consumer BRAND_SLUG). */
+    private Set<String> managedNamespaces = new LinkedHashSet<>(List.of("adventure"));
 
     public static MultiverseConfig getInstance() {
         return INSTANCE;
@@ -38,51 +49,76 @@ public class MultiverseConfig {
 
     public void setServer(MinecraftServer server) {
         this.server = server;
-        this.configPath = server.getRunDirectory().resolve("config").resolve(FILE_NAME);
+        this.configRoot = server.getRunDirectory().resolve("config");
     }
 
     public void load() {
-        if (this.configPath == null) {
+        if (this.configRoot == null) {
             return;
         }
-        if (!Files.exists(this.configPath)) {
+        Path configDir = this.configRoot.resolve(CONFIG_DIR_NAME);
+        Path legacyFile = this.configRoot.resolve(LEGACY_FILE_NAME);
+        DimensionConfigLoader.LoadResult result;
+        if (Files.isDirectory(configDir.resolve("dimensions"))) {
+            result = DimensionConfigLoader.loadAllWithSettings(configDir, configDir.resolve("overlay"));
+            MultiverseServer.LOGGER.info("Loaded {} dimension config(s) from {}",
+                    result.dimensions().size(), configDir);
+        } else if (Files.exists(legacyFile)) {
+            MultiverseServer.LOGGER.warn(
+                    "DEPRECATED: reading the monolithic {} — migrate to config/custom-dimensions/ "
+                    + "with scripts/migrate-to-v4-config.sh (the old format will be removed "
+                    + "after one release cycle)", LEGACY_FILE_NAME);
+            result = DimensionConfigLoader.loadLegacyWithSettings(legacyFile);
+        } else {
             return;
         }
-        try (BufferedReader reader = Files.newBufferedReader(this.configPath)) {
-            MultiverseConfig loaded = GSON.fromJson(reader, MultiverseConfig.class);
-            if (loaded != null) {
-                this.dimensions.clear();
-                this.dimensions.addAll(loaded.dimensions);
-                this.portals.clear();
-                this.portals.addAll(loaded.portals);
-                this.worlds.clear();
-                this.worlds.addAll(loaded.worlds);
-                this.namespace = loaded.namespace;
-                this.worldSeed = loaded.worldSeed;
-                this.frameOverworld = loaded.frameOverworld != null ? loaded.frameOverworld : this.frameOverworld;
-                this.frameNether = loaded.frameNether != null ? loaded.frameNether : this.frameNether;
-                this.frameEnd = loaded.frameEnd != null ? loaded.frameEnd : this.frameEnd;
-                this.idleUnloadMinutes = loaded.idleUnloadMinutes > 0 ? loaded.idleUnloadMinutes : this.idleUnloadMinutes;
+        this.applyLoadResult(result);
+    }
+
+    /** Also the test seam: apply a LoadResult without a live server. */
+    void applyLoadResult(DimensionConfigLoader.LoadResult result) {
+        this.settings = result.settings();
+        this.configs = new LinkedHashMap<>(result.dimensions());
+        this.portals = new ArrayList<>();
+        this.managedNamespaces = new LinkedHashSet<>();
+        this.managedNamespaces.add(this.settings.namespace);
+        for (DimensionConfig config : this.configs.values()) {
+            if (!config.isBaseWorld()) {
+                this.managedNamespaces.add(config.getNamespace());
+                if (config.hasPortal()) {
+                    this.portals.add(config.toPortalDefinition());
+                }
             }
-            DimensionDefinition.setNamespace(this.namespace != null ? this.namespace : "adventure");
-        } catch (IOException | com.google.gson.JsonParseException e) {
-            MultiverseServer.LOGGER.error("Failed to load config — file left for inspection: {}", this.configPath, e);
         }
     }
 
-    public DimensionDefinition getDimension(String name) {
-        return this.dimensions.stream()
-                .filter(d -> d.getName().equals(name))
-                .findFirst()
-                .orElse(null);
+    /** The platform namespace (settings.json / legacy "namespace" field). */
+    public String getNamespace() {
+        return this.settings.namespace;
     }
 
-    public List<DimensionDefinition> getDimensions() {
-        return Collections.unmodifiableList(new ArrayList<>(this.dimensions));
+    /**
+     * True when this mod owns dimensions in the given namespace — the
+     * platform namespace plus any consumer (BRAND_SLUG) namespace in use.
+     * The mixins' path-based definition lookups must never match another
+     * mod's dimensions, so they gate on this first.
+     */
+    public boolean isManagedNamespace(String namespace) {
+        return this.managedNamespaces.contains(namespace);
+    }
+
+    /** A CUSTOM dimension by slug (base worlds resolve via getWorld). */
+    public DimensionConfig getDimension(String name) {
+        DimensionConfig config = this.configs.get(name);
+        return config != null && !config.isBaseWorld() ? config : null;
+    }
+
+    public List<DimensionConfig> getDimensions() {
+        return this.configs.values().stream().filter(c -> !c.isBaseWorld()).toList();
     }
 
     public List<String> getDimensionNames() {
-        return this.dimensions.stream().map(DimensionDefinition::getName).toList();
+        return this.getDimensions().stream().map(DimensionConfig::getName).toList();
     }
 
     public PortalDefinition getPortal(String id) {
@@ -107,60 +143,54 @@ public class MultiverseConfig {
     }
 
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {
-        if (blockId.equals(this.frameOverworld)) {
-            return new PortalDefinition("default_overworld", this.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
+        if (blockId.equals(this.settings.frameOverworld)) {
+            return new PortalDefinition("default_overworld", this.settings.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);
         }
-        if (blockId.equals(this.frameNether)) {
-            return new PortalDefinition("default_nether", this.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
+        if (blockId.equals(this.settings.frameNether)) {
+            return new PortalDefinition("default_nether", this.settings.frameNether, "", "minecraft:the_nether", "#AA0000", 0);
         }
-        if (blockId.equals(this.frameEnd)) {
-            return new PortalDefinition("default_end", this.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
+        if (blockId.equals(this.settings.frameEnd)) {
+            return new PortalDefinition("default_end", this.settings.frameEnd, "", "minecraft:the_end", "#00AA00", 0);
         }
         return null;
     }
 
     public String getFrameOverworld() {
-        return this.frameOverworld;
+        return this.settings.frameOverworld;
     }
 
     public String getFrameNether() {
-        return this.frameNether;
+        return this.settings.frameNether;
     }
 
     public String getFrameEnd() {
-        return this.frameEnd;
+        return this.settings.frameEnd;
     }
 
     public int getIdleUnloadMinutes() {
-        return this.idleUnloadMinutes;
+        return this.settings.idleUnloadMinutes;
     }
 
     /**
-     * Seed override for a static world, by full dimension id. The
-     * overworld is driven by the top-level "worldSeed" (config-driven
-     * multiverse — the .env SEED is only a legacy fallback that seeds
-     * level.dat); other worlds by the "seed" on their worlds[] entry.
-     * The config loads at createWorlds HEAD, so the override is active
-     * from the overworld's very first chunk.
+     * Seed override for a static world, by full dimension id ("minecraft:
+     * overworld" etc.). Driven by the base-world files (overworld.json,
+     * the_nether.json, ...); "seed": "env" reads the SEED environment
+     * variable. The config loads at createWorlds HEAD, so the override is
+     * active from the overworld's very first chunk.
      */
     public Long getWorldSeedOverride(String dimensionId) {
-        if ("minecraft:overworld".equals(dimensionId)) {
-            return this.worldSeed;
-        }
-        return this.worlds.stream()
-                .filter(w -> dimensionId.equals(w.getDimensionId()))
-                .map(WorldSeedDefinition::getSeed)
+        return this.configs.values().stream()
+                .filter(DimensionConfig::isBaseWorld)
+                .filter(c -> dimensionId.equals(c.getDimensionId()))
+                .map(DimensionConfig::getSeed)
                 .filter(s -> s != null)
                 .findFirst()
                 .orElse(null);
     }
 
-    /** The worlds[] entry for a given name (e.g. "overworld"), or null. */
-    public WorldSeedDefinition getWorld(String name) {
-        return this.worlds.stream()
-                .filter(w -> name.equals(w.getName()))
-                .findFirst()
-                .orElse(null);
+    /** The base-world config for a given name (e.g. "overworld"), or null. */
+    public DimensionConfig getWorld(String name) {
+        DimensionConfig config = this.configs.get(name);
+        return config != null && config.isBaseWorld() ? config : null;
     }
-
 }

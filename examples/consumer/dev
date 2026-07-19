@@ -27,6 +27,8 @@ usage() {
   echo "  seed-roll   Batch-test world seeds locally (resumable)"
   echo "  seed-roll-all Parallel-roll seeds for EVERY dimension, auto-pick winners"
   echo "  seed-report Generate the top-N seed report from results"
+  echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
+  echo "  seed-status Candidate-bank status: counts, winners, score freshness"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
@@ -362,6 +364,17 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/report-top.sh" "$@"
+    ;;
+  seed-rescore | seed-status)
+    # v4 candidate bank: rescore = recompute scores from banked measurements
+    # against the CURRENT configs (no Docker, no re-rolling); status = per-
+    # dimension candidate counts, winners, and score freshness.
+    ensure_stack
+    export CONSUMER_DIR
+    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
+    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/$STACK_SCRIPTS/../config/custom-dimensions"
+    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
+      --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
     ;;
   cache)
     ensure_env

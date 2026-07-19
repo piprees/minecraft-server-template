@@ -1,0 +1,48 @@
+{
+  "type": "overworld",
+  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything.",
+  "seed": 4132502889542137435,
+  "noiseSettings": "adventure:compressed",
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:polished_granite",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "C28B7A",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "scenic",
+    "spawnFilter": [
+      "natures_spirit:wisteria_forest",
+      "terralith:sakura_grove",
+      "minecraft:cherry_grove",
+      "terralith:lavender_forest",
+      "terralith:white_cliffs"
+    ],
+    "wants": {
+      "abandoned_chapel": "spread",
+      "guide_post_warm": "near_spawn",
+      "village": "near_border"
+    },
+    "shuns": [
+      "mansion",
+      "monument",
+      "ancient_city",
+      "coliseum"
+    ],
+    "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything."
+  }
+}

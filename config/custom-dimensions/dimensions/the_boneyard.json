@@ -1,0 +1,46 @@
+{
+  "type": "nether",
+  "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong.",
+  "seed": 7510794555179130518,
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "incendium:ash_barrens",
+    "minecraft:deep_dark",
+    "minecraft:basalt_deltas"
+  ],
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "structureDensity": "dense",
+  "portal": {
+    "frameBlock": "minecraft:bone_block",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "D8C8A0",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "incendium:ash_barrens"
+    ],
+    "wants": {
+      "giant_skull": "near_spawn",
+      "nether_graveyard": "near_spawn",
+      "fortress": "spread",
+      "bastion": "spread"
+    },
+    "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong."
+  }
+}

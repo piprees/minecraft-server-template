@@ -1,0 +1,45 @@
+{
+  "type": "end",
+  "description": "A tiled quartz-and-void expanse — monoliths and archways in geometric silence.",
+  "seed": 3362388695457488365,
+  "biomes": [
+    "incendium:quartz_flats",
+    "minecraft:end_midlands",
+    "nullscape:void_barrens"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:deepslate_tiles",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "6B7B90",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "incendium:quartz_flats",
+      "nullscape:void_barrens"
+    ],
+    "wants": {
+      "monolith": "spread",
+      "ruined_pillar": "near_spawn",
+      "mystical_archway": "spread",
+      "end_city": "near_border"
+    },
+    "description": "A tiled quartz-and-void expanse — monoliths and archways in geometric silence."
+  }
+}

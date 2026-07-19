@@ -2,12 +2,15 @@ package com.customdimensions;
 
 import com.customdimensions.command.DimensionCommands;
 import com.customdimensions.config.MultiverseConfig;
+import com.customdimensions.dimension.DifficultyManager;
 import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.dimension.StorageHelper;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
@@ -27,7 +30,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // Other worlds share the global spawn in vanilla, so only the
         // overworld entry is applied.
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            com.customdimensions.config.WorldSeedDefinition ow =
+            com.customdimensions.config.DimensionConfig ow =
                     MultiverseConfig.getInstance().getWorld("overworld");
             int[] spawn = ow != null ? ow.getSpawn() : null;
             if (spawn != null) {
@@ -35,7 +38,20 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                         new net.minecraft.util.math.BlockPos(spawn[0], spawn[1], spawn[2]), 0.0f);
                 LOGGER.info("World spawn set from config: {} {} {}", spawn[0], spawn[1], spawn[2]);
             }
+            // Per-dimension world borders (borders.player) — after
+            // createWorlds so vanilla's overworld border-load can't clobber
+            // them (see WorldBorderManager for the syncer trap).
+            com.customdimensions.dimension.WorldBorderManager.applyAll(server);
         });
+        // Runtime-created dimensions get their border the moment they load.
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register(
+            (server, world) -> com.customdimensions.dimension.WorldBorderManager.onWorldLoad(world));
+        // Per-dimension player luck (DimensionConfig.difficulty.playerLuck):
+        // re-applied whenever a player joins or changes world.
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+            DifficultyManager.applyPlayerLuck(handler.player));
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(
+            (player, origin, destination) -> DifficultyManager.applyPlayerLuck(player));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             DimensionManager.getInstance().processPendingWorldLoads();
             DimensionManager.getInstance().reconcileOrphansOnce();

@@ -20,6 +20,8 @@ COPY config/update-check-mute.txt /defaults/config/update-check-mute.txt
 COPY config/uptime-kuma/  /defaults/config/uptime-kuma/
 COPY config/nginx/        /defaults/config/nginx/
 COPY config/datapacks/    /defaults/config/datapacks/
+# v4 per-dimension configs (custom-dimensions mod): settings.json + dimensions/
+COPY config/custom-dimensions/ /defaults/config/custom-dimensions/
 
 COPY modpack/adventure.mrpack.json /defaults/config/modpack-manifest.json
 

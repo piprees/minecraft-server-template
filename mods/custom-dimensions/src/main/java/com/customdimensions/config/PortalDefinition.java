@@ -109,6 +109,18 @@ public class PortalDefinition {
         return this.igniteSound != null ? this.igniteSound : "block.portal.trigger";
     }
 
+    public void setIgniteSound(String igniteSound) {
+        this.igniteSound = igniteSound;
+    }
+
+    public void setEnterSound(String enterSound) {
+        this.enterSound = enterSound;
+    }
+
+    public void setExitSound(String exitSound) {
+        this.exitSound = exitSound;
+    }
+
     public String getEnterSound() {
         return this.enterSound != null ? this.enterSound : "block.portal.travel";
     }

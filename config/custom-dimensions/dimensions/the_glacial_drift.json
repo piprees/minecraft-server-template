@@ -1,0 +1,58 @@
+{
+  "type": "paradise_lost:paradise_lost",
+  "description": "A glacial drift among the skylands — frozen paradise islands calving into the void.",
+  "seed": 7276819460514288435,
+  "biomes": [
+    "paradise_lost:autumnal_tundra",
+    "paradise_lost:calcite_craglands",
+    "minecraft:ice_spikes",
+    "terralith:glacial_chasm",
+    "natures_spirit:tundra",
+    "terralith:skylands_winter",
+    "nullscape:void_barrens"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 0.8
+  },
+  "structureDensity": "sparse",
+  "portal": {
+    "frameBlock": "minecraft:ice",
+    "igniterItem": "minecraft:gold_ingot",
+    "color": "90C8E8",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:snowflake",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "desolate",
+    "spawnFilter": [
+      "paradise_lost:autumnal_tundra",
+      "paradise_lost:calcite_craglands",
+      "terralith:glacial_chasm"
+    ],
+    "wants": {
+      "para_remains": "near_spawn",
+      "aurel_tower": "spread",
+      "igloo": "near_spawn",
+      "para_vault": "near_border"
+    },
+    "shuns": [],
+    "description": "A glacial drift among the skylands — frozen paradise islands calving into the void.",
+    "family": "overworld",
+    "terrain": "islands",
+    "heightRange": [
+      -60,
+      440
+    ]
+  }
+}

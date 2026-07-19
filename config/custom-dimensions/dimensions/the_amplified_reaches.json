@@ -1,0 +1,44 @@
+{
+  "type": "amplified",
+  "description": "Amplified madness — cliffs beyond reason, keeps on the peaks.",
+  "seed": -3604832347219380837,
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.2
+  },
+  "portal": {
+    "frameBlock": "minecraft:cracked_deepslate",
+    "igniterItem": "minecraft:amethyst_shard",
+    "color": "5B6B7B",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "dramatic",
+    "spawnFilter": [
+      "terralith:yosemite_cliffs",
+      "terralith:emerald_peaks",
+      "minecraft:jagged_peaks",
+      "terralith:scarlet_mountains"
+    ],
+    "wants": {
+      "firetower": "near_spawn",
+      "engineer_tower": "spread",
+      "ancient_temple": "spread",
+      "keep_kayra": "near_border"
+    },
+    "shuns": [
+      "monument"
+    ],
+    "description": "Amplified madness — cliffs beyond reason, keeps on the peaks."
+  }
+}

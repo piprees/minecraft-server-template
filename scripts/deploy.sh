@@ -386,6 +386,8 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
     -not -path './uptime-kuma/*' \
     -not -path './cloudflare/*' \
     -not -path './cloudflared/*' \
+    -not -path './custom-dimensions/extractors/*' \
+      -not -path './custom-dimensions/candidates/*' \
     -not -name 'modrinth-mods.txt' \
     -not -name 'modrinth-mods.pinned.txt' \
     -not -name 'messages.json' \
@@ -422,18 +424,34 @@ fi
 
 # Copy consumer overlay config files to data/config/ (overrides).
 # These REPLACE defaults — the consumer's overlay is authoritative.
+# EXCEPTION: overlay/config/custom-dimensions/ must not clobber the
+# platform dimension files — the custom-dimensions mod resolves overlays
+# itself (full replace vs "overrides" merge vs empty-{} skip), so consumer
+# files are routed to data/config/custom-dimensions/overlay/ instead.
 if [[ -d "$SERVER_DIR/overlay/config" ]]; then
   echo ""
   echo "==> Applying overlay config to data/config/..."
   local_data_cfg="$SERVER_DIR/data/config"
   mkdir -p "$local_data_cfg"
   cd "$SERVER_DIR/overlay/config"
-  find . -type f | while IFS= read -r f; do
+  find . -type f -not -path './custom-dimensions/*' | while IFS= read -r f; do
     dest="$local_data_cfg/${f#./}"
     mkdir -p "$(dirname "$dest")"
     cp "$f" "$dest"
   done
   cd "$SERVER_DIR"
+  if [[ -d "$SERVER_DIR/overlay/config/custom-dimensions" ]]; then
+    rm -rf "$local_data_cfg/custom-dimensions/overlay"
+    mkdir -p "$local_data_cfg/custom-dimensions/overlay"
+    cd "$SERVER_DIR/overlay/config/custom-dimensions"
+    find . -type f | while IFS= read -r f; do
+      dest="$local_data_cfg/custom-dimensions/overlay/${f#./}"
+      mkdir -p "$(dirname "$dest")"
+      cp "$f" "$dest"
+    done
+    cd "$SERVER_DIR"
+    echo "  Dimension overlay staged at data/config/custom-dimensions/overlay/"
+  fi
   echo "  Overlay config applied to data/config/"
 fi
 
@@ -736,14 +754,29 @@ pause_backups
 # 14. World borders + game rules + permissions
 # =============================================================================
 
-# PREGEN_BORDER_RADIUS = master radius for tooling (BlueMap, Chunky, DH).
-# PLAYER_BORDER_RADIUS = in-game barrier. Defaults to PREGEN_BORDER_RADIUS.
+# World borders are MOD-OWNED since v4 Phase 3: the custom-dimensions mod
+# sets every world's vanilla border from its config's borders.player at
+# boot (WorldBorderManager) — the old RCON worldborder/ChunkyBorder dance
+# is gone, and ChunkyBorder is pre-generation-only now. Tooling bounds
+# (BlueMap render masks) come from borders.generation in the dimension
+# configs, with the old env vars as fallback for legacy monolith setups.
 : "${PREGEN_BORDER_RADIUS:=8192}"
-: "${PLAYER_BORDER_RADIUS:=${PREGEN_BORDER_RADIUS}}"
 
-# Template BlueMap render bounds from PREGEN_BORDER_RADIUS
-BM_NETHER_RADIUS=$((PREGEN_BORDER_RADIUS / 8))
-for bm_map in world:$PREGEN_BORDER_RADIUS world_the_nether:$BM_NETHER_RADIUS; do
+bm_generation_radius() {
+  # borders.generation for a base-world config file, or the fallback.
+  local file="$SERVER_DIR/data/config/custom-dimensions/dimensions/$1.json" fallback="$2"
+  python3 -c "
+import json, sys
+try:
+    print(int(json.load(open('$file')).get('borders', {}).get('generation') or $fallback))
+except Exception:
+    print($fallback)
+" 2> /dev/null || echo "$fallback"
+}
+
+BM_WORLD_RADIUS=$(bm_generation_radius overworld "$PREGEN_BORDER_RADIUS")
+BM_NETHER_RADIUS=$(bm_generation_radius the_nether $((PREGEN_BORDER_RADIUS / 8)))
+for bm_map in world:$BM_WORLD_RADIUS world_the_nether:$BM_NETHER_RADIUS; do
   bm_file="$SERVER_DIR/data/config/bluemap/maps/${bm_map%%:*}.conf"
   bm_radius="${bm_map##*:}"
   if [[ -f "$bm_file" ]]; then
@@ -754,46 +787,8 @@ for bm_map in world:$PREGEN_BORDER_RADIUS world_the_nether:$BM_NETHER_RADIUS; do
     sed -i "s/^\( *\)max-z: .*/\1max-z: ${bm_radius}/" "$bm_file"
   fi
 done
-echo "  BlueMap render bounds: overworld +/-${PREGEN_BORDER_RADIUS}, nether +/-${BM_NETHER_RADIUS}"
-
-PLAYER_BORDER_DIAMETER=$((PLAYER_BORDER_RADIUS * 2))
-NETHER_PLAYER_RADIUS=$((PLAYER_BORDER_RADIUS / 8))
-END_RADIUS=4096
-PARADISE_LOST_RADIUS=4096
-
-# Vanilla border (overworld only)
-rcon "worldborder center 0 0"
-rcon "worldborder set $PLAYER_BORDER_DIAMETER"
-echo "  Vanilla border: ${PLAYER_BORDER_DIAMETER} diameter (${PLAYER_BORDER_RADIUS} radius)"
-
-# ChunkyBorder per-dimension borders (idempotent)
-rcon "chunky world minecraft:overworld"
-rcon "chunky center 0 0"
-rcon "chunky radius $PLAYER_BORDER_RADIUS"
-rcon "chunky shape square"
-rcon "chunky border add"
-echo "  ChunkyBorder overworld: ${PLAYER_BORDER_RADIUS} radius"
-
-rcon "chunky world minecraft:the_nether"
-rcon "chunky center 0 0"
-rcon "chunky radius $NETHER_PLAYER_RADIUS"
-rcon "chunky shape square"
-rcon "chunky border add"
-echo "  ChunkyBorder nether: ${NETHER_PLAYER_RADIUS} radius (1:8 ratio)"
-
-rcon "chunky world minecraft:the_end"
-rcon "chunky center 0 0"
-rcon "chunky radius $END_RADIUS"
-rcon "chunky shape square"
-rcon "chunky border add"
-echo "  ChunkyBorder end: ${END_RADIUS} radius"
-
-rcon "chunky world paradise_lost:paradise_lost"
-rcon "chunky center 0 0"
-rcon "chunky radius $PARADISE_LOST_RADIUS"
-rcon "chunky shape square"
-rcon "chunky border add"
-echo "  ChunkyBorder paradise lost: ${PARADISE_LOST_RADIUS} radius"
+echo "  BlueMap render bounds: overworld +/-${BM_WORLD_RADIUS}, nether +/-${BM_NETHER_RADIUS} (from dimension configs)"
+echo "  World borders: mod-owned (borders.player in config/custom-dimensions/)"
 
 # --- Activate all dimensions (so Chunky can pre-generate them) ----------------
 # Dimensions don't create region files until a chunk is loaded in them.
@@ -823,20 +818,40 @@ echo "  Dimensions activated (nether, end, paradise lost)"
 # the time — idle-tasks doesn't pre-generate them, deploy.sh doesn't
 # forceload them, and once this one-time setup is done, nothing here ever
 # touches them again.
-MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
+# v4 directory preferred; the monolithic file is the deprecated fallback.
+MULTIVERSE_CONFIG="$STACK_DIR/config/custom-dimensions"
+[[ -d "$MULTIVERSE_CONFIG/dimensions" ]] || MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
 SETUP_MARKERS_DIR="$SERVER_DIR/data/.dimension-setup"
-if [[ -f "$MULTIVERSE_CONFIG" ]]; then
+if [[ -e "$MULTIVERSE_CONFIG" ]]; then
   DIM_DATA=$(
     python3 - "$MULTIVERSE_CONFIG" << 'PYEOF'
 import json, sys
-with open(sys.argv[1]) as f:
-    data = json.load(f)
-ns = data.get("namespace", "adventure")
-scales = {p["id"]: int(p.get("scale", 1)) for p in data.get("portals", [])}
-print(ns)
-for d in data.get("dimensions", []):
-    name = d["name"]
-    print("%s|%d" % (name, scales.get(name, 1)))
+from pathlib import Path
+src = Path(sys.argv[1])
+base_worlds = {"overworld", "the_nether", "the_end", "paradise_lost"}
+if src.is_dir():
+    settings = {}
+    sf = src / "settings.json"
+    if sf.exists():
+        settings = json.load(open(sf))
+    print(settings.get("namespace", "adventure"))
+    for f in sorted((src / "dimensions").glob("*.json")):
+        if f.stem in base_worlds:
+            continue
+        try:
+            d = json.load(open(f))
+        except Exception:
+            continue
+        scale = int((d.get("portal") or {}).get("scale") or 1)
+        print("%s|%d" % (f.stem, scale))
+else:
+    data = json.load(open(src))
+    ns = data.get("namespace", "adventure")
+    scales = {p["id"]: int(p.get("scale", 1)) for p in data.get("portals", [])}
+    print(ns)
+    for d in data.get("dimensions", []):
+        name = d["name"]
+        print("%s|%d" % (name, scales.get(name, 1)))
 PYEOF
   )
   DIM_NAMESPACE=$(echo "$DIM_DATA" | head -1)
@@ -862,20 +877,8 @@ PYEOF
       continue
     fi
 
-    case "$scale" in
-      1) dim_radius=$PLAYER_BORDER_RADIUS ;;
-      4) dim_radius=$((PLAYER_BORDER_RADIUS / 4)) ;;
-      8) dim_radius=$((PLAYER_BORDER_RADIUS / 8)) ;;
-      12) dim_radius=$((PLAYER_BORDER_RADIUS / 12)) ;;
-      16) dim_radius=$((PLAYER_BORDER_RADIUS / 16)) ;;
-      *) dim_radius=$((PLAYER_BORDER_RADIUS / scale)) ;;
-    esac
-    rcon "chunky world ${DIM_NAMESPACE}:$name"
-    rcon "chunky center 0 0"
-    rcon "chunky radius $dim_radius"
-    rcon "chunky shape square"
-    rcon "chunky border add"
-
+    # Borders are mod-owned (borders.player) since v4 Phase 3 — the old
+    # per-dimension ChunkyBorder dance is gone.
     if [[ -d "$BM_MAPS_DIR" ]]; then
       for bm_conf in "$BM_MAPS_DIR"/*"$name"*.conf; do
         [[ -f "$bm_conf" ]] || continue
@@ -886,7 +889,7 @@ PYEOF
     fi
     touch "$SETUP_MARKERS_DIR/$name"
     NEW_COUNT=$((NEW_COUNT + 1))
-    echo "    ${DIM_NAMESPACE}:$name — loaded once, border radius $dim_radius (scale 1:$scale)"
+    echo "    ${DIM_NAMESPACE}:$name — loaded once (scale 1:$scale, border mod-owned)"
   done <<< "$(echo "$DIM_DATA" | tail -n +2)"
   echo "  $NEW_COUNT dimension(s) newly configured, $SKIPPED_COUNT already set up (untouched)"
 fi
@@ -939,10 +942,15 @@ fi
 # server start — the env enforcement below would fight it, so it only runs
 # when the config has no spawn.
 CONFIG_HAS_SPAWN="$(python3 -c "
-import json, sys
+import json, os
 try:
-    cfg = json.load(open('$SERVER_DIR/data/config/multiverse_config.json'))
-    ow = next((w for w in cfg.get('worlds', []) if w.get('name') == 'overworld'), {})
+    ow = {}
+    v4 = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
+    if os.path.exists(v4):
+        ow = json.load(open(v4))
+    else:
+        cfg = json.load(open('$SERVER_DIR/data/config/multiverse_config.json'))
+        ow = next((w for w in cfg.get('worlds', []) if w.get('name') == 'overworld'), {})
     print('yes' if isinstance(ow.get('spawn'), list) and len(ow['spawn']) == 3 else 'no')
 except Exception:
     print('no')

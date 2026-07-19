@@ -1,0 +1,48 @@
+{
+  "type": "void",
+  "description": "A sculk-eaten void. The deep dark outlived the world it consumed.",
+  "seed": -356153069817876777,
+  "biomes": [
+    "minecraft:deep_dark",
+    "terralith:cave/infested_caves",
+    "incendium:withered_forest",
+    "terralith:cave/fungal_caves",
+    "nullscape:shadowlands",
+    "terralith:cave/deep_caves"
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 3.0,
+    "playerLuck": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:sculk",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "0B4B5B",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "particleType": "minecraft:sculk_soul",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "terralith:cave/infested_caves",
+      "incendium:withered_forest",
+      "terralith:cave/fungal_caves",
+      "nullscape:shadowlands",
+      "terralith:cave/deep_caves"
+    ],
+    "description": "A sculk-eaten void. The deep dark outlived the world it consumed.",
+    "terrain": "void"
+  }
+}

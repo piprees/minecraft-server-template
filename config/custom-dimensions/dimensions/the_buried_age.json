@@ -1,0 +1,40 @@
+{
+  "type": "nether",
+  "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took.",
+  "seed": -27431537388891441,
+  "borders": {
+    "player": 1024,
+    "generation": 1024
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:ancient_debris",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "5B3B2B",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "minecraft:nether_wastes",
+      "incendium:quartz_flats"
+    ],
+    "wants": {
+      "start_nether_ruin": "near_spawn",
+      "nether_lava_ruins": "spread",
+      "nether_tower": "spread",
+      "pipeline": "spread"
+    },
+    "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "type": "void",
+  "description": "A void where a frozen world used to be — the biomes remain, the ground does not. The disintegration finished here.",
+  "seed": 5964372207964005987,
+  "biomes": [
+    "minecraft:deep_dark",
+    "minecraft:frozen_ocean",
+    "minecraft:ice_spikes",
+    "terralith:glacial_chasm",
+    "terralith:frozen_cliffs",
+    "terralith:cave/frostfire_caves",
+    "terralith:snowy_cherry_grove",
+    "nullscape:void_barrens"
+  ],
+  "borders": {
+    "player": 512,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 2.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:blue_ice",
+    "igniterItem": "minecraft:netherite_scrap",
+    "color": "5BE0F0",
+    "lightLevel": 11,
+    "scale": 16.0,
+    "cooldown": 40,
+    "particleType": "minecraft:snowflake",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:deep_dark",
+      "minecraft:frozen_ocean",
+      "minecraft:ice_spikes",
+      "terralith:glacial_chasm",
+      "terralith:frozen_cliffs",
+      "terralith:cave/frostfire_caves"
+    ],
+    "description": "A void where a frozen world used to be — the biomes remain, the ground does not. The disintegration finished here.",
+    "terrain": "void"
+  }
+}

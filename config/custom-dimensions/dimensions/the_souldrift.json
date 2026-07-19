@@ -1,0 +1,54 @@
+{
+  "type": "multi_biome",
+  "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark.",
+  "seed": -3604832347219380837,
+  "biomes": [
+    "minecraft:quartz_bricks_valley",
+    "minecraft:basalt_deltas",
+    "minecraft:nether_wastes",
+    "incendium:ash_barrens",
+    "incendium:volcanic_deltas",
+    "incendium:infernal_dunes",
+    "incendium:toxic_heap",
+    "nullscape:shadowlands",
+    "terralith:cave/mantle_caves"
+  ],
+  "borders": {
+    "player": 8192,
+    "generation": 8192
+  },
+  "difficulty": {
+    "mobMultiplier": 1.8
+  },
+  "portal": {
+    "frameBlock": "minecraft:polished_blackstone_bricks",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "8B9BAF",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
+  "seedRoll": {
+    "mood": "standard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:basalt_deltas",
+      "incendium:ash_barrens"
+    ],
+    "wants": {
+      "nether_graveyard": "near_spawn",
+      "giant_skull": "spread",
+      "lost_soul_dungeon": "spread",
+      "bone_dungeon": "spread"
+    },
+    "shuns": [
+      "village"
+    ],
+    "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark."
+  }
+}
