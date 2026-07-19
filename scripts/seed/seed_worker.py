@@ -899,29 +899,35 @@ def boot(wid, container, workdir, memory, seed="1"):
         rcon.cmd("tick freeze")
         rcon.cmd("gamerule doMobSpawning false")
         rcon.cmd("gamerule doDaylightCycle false")
-        # Prime worldgen caches for every dimension family. First customdim
-        # create per type lazily initializes noise routers + structure
-        # registries (60-90s each). Do it here with a long timeout rather
-        # than during measurement where it triggers abandonment.
+        # Prime worldgen caches. First customdim create per type lazily
+        # initializes noise routers + structure registries. Failures are
+        # non-fatal — per-call resilience in measure_candidate handles
+        # slow locates if the warmup doesn't complete.
         saved_timeout = rcon.timeout
         rcon.timeout = 180
         if rcon.sock:
             rcon.sock.settimeout(180)
+        warmed = 0
         for wtype in ("overworld", "nether", "end", '"paradise_lost:paradise_lost"'):
             try:
                 rcon.cmd(f"customdim create _warmup {wtype} 1 - - -")
                 time.sleep(1)
                 rcon.cmd("customdim destroy _warmup")
                 time.sleep(1)
+                warmed += 1
             except (RconTimeout, RconClosed):
-                log(wid, f"  warmup {wtype} timed out — reconnecting")
-                rcon.close()
-                rcon = Rcon("127.0.0.1", port, "seedroll")
-                rcon.timeout = 180
-                rcon.connect()
-                if rcon.sock:
-                    rcon.sock.settimeout(180)
-        log(wid, "  worldgen caches primed (all types)")
+                log(wid, f"  warmup {wtype} timed out — skipping")
+                try:
+                    rcon.close()
+                    rcon = Rcon("127.0.0.1", port, "seedroll")
+                    rcon.timeout = 180
+                    rcon.connect()
+                    if rcon.sock:
+                        rcon.sock.settimeout(180)
+                except (RconTimeout, RconClosed, OSError):
+                    log(wid, f"  reconnect failed after {wtype} warmup — continuing with {warmed} types")
+                    break
+        log(wid, f"  worldgen caches primed ({warmed}/4 types)")
         rcon.timeout = saved_timeout
         if rcon.sock:
             rcon.sock.settimeout(saved_timeout)
