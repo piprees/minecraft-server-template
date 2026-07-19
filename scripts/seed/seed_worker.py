@@ -711,11 +711,13 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     rows.append(("spawn_biome", spawn))
     safe_cmd(f"execute in {dim} run forceload remove 0 0")
 
+    # Structure locates are disabled: each one blocks the server thread
+    # generating structure starts for ~40k chunk positions (100-chunk search
+    # radius × 130 structure mods). This takes minutes per call in a fresh
+    # runtime dimension. Needs the mod's async locate command to re-enable.
+    # Record -1 (not found) so scoring degrades gracefully.
     for sname, sid, _band, _kind in profile["battery"]:
-        if should_stop():
-            return rows, spawn, False
-        d = safe_locate(f"execute in {dim} run locate structure {sid}", cap=cap)
-        rows.append((f"structure_{sname}_dist", d))
+        rows.append((f"structure_{sname}_dist", -1))
 
     for biome in profile["variety_biomes"]:
         if should_stop():
