@@ -202,7 +202,7 @@ class Rcon:
     # `locate` is synchronous on the server thread. Closing the socket does
     # not cancel it, so time out at 60s and let the worker recreate the
     # throwaway container rather than queue more work behind a stalled locate.
-    CMD_TIMEOUT = float(os.environ.get("ROLL_RCON_CMD_TIMEOUT", "60"))
+    CMD_TIMEOUT = float(os.environ.get("ROLL_RCON_CMD_TIMEOUT", "120"))
 
     def __init__(self, host, port, password, timeout=None):
         timeout = timeout if timeout is not None else self.CMD_TIMEOUT
