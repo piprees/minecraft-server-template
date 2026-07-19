@@ -36,7 +36,8 @@
 #   --render MODE    on (default: render each accepted seed inline) | off
 #   --no-worlds      skip the world-seed boot stream
 #   --no-write       don't write winners into dimension configs
-#   --fresh          discard previous measurements first
+#   --fresh          discard worker CSV spools (candidate bank persists)
+#   --reset          wipe ALL seed data: candidates, scores, measurements, renders
 #   --clean          rebuild seedtest worker dirs from data/
 #
 # Environment: ROLL_MEMORY (default 10G/container), RCON_TIMEOUT (120s),
@@ -125,10 +126,19 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --fresh)
-      # Discards SPOOLS (worker CSVs + legacy measurements.csv). The
-      # candidate bank (config/custom-dimensions/candidates/) persists —
-      # delete it by hand for a true from-zero reset.
       rm -f "$MEASUREMENTS" "$SEEDTEST"/worker-*.csv "$SEEDTEST"/abandoned-worker-*.csv
+      shift
+      ;;
+    --reset)
+      echo "Resetting ALL seed data (candidates, scores, measurements, renders)..."
+      rm -rf "$SEEDTEST"
+      if [[ -d "$CONFIG" ]]; then
+        rm -rf "$CONFIG/candidates"
+      fi
+      if [[ -d "$LOCAL_DATA/config/custom-dimensions/candidates" ]]; then
+        rm -rf "$LOCAL_DATA/config/custom-dimensions/candidates"
+      fi
+      echo "  Done. Next roll starts from zero."
       shift
       ;;
     --clean)
