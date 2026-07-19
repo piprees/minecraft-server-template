@@ -29,7 +29,6 @@ import java.util.Set;
  */
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();
-    private static final String LEGACY_FILE_NAME = "multiverse_config.json";
     private static final String CONFIG_DIR_NAME = "custom-dimensions";
 
     private transient Path configRoot;
@@ -57,21 +56,14 @@ public class MultiverseConfig {
             return;
         }
         Path configDir = this.configRoot.resolve(CONFIG_DIR_NAME);
-        Path legacyFile = this.configRoot.resolve(LEGACY_FILE_NAME);
-        DimensionConfigLoader.LoadResult result;
-        if (Files.isDirectory(configDir.resolve("dimensions"))) {
-            result = DimensionConfigLoader.loadAllWithSettings(configDir, configDir.resolve("overlay"));
-            MultiverseServer.LOGGER.info("Loaded {} dimension config(s) from {}",
-                    result.dimensions().size(), configDir);
-        } else if (Files.exists(legacyFile)) {
-            MultiverseServer.LOGGER.warn(
-                    "DEPRECATED: reading the monolithic {} — migrate to config/custom-dimensions/ "
-                    + "with scripts/migrate-to-v4-config.sh (the old format will be removed "
-                    + "after one release cycle)", LEGACY_FILE_NAME);
-            result = DimensionConfigLoader.loadLegacyWithSettings(legacyFile);
-        } else {
+        if (!Files.isDirectory(configDir.resolve("dimensions"))) {
+            MultiverseServer.LOGGER.info("No config/custom-dimensions/dimensions/ found — no dimensions to load");
             return;
         }
+        DimensionConfigLoader.LoadResult result =
+                DimensionConfigLoader.loadAllWithSettings(configDir, configDir.resolve("overlay"));
+        MultiverseServer.LOGGER.info("Loaded {} dimension config(s) from {}",
+                result.dimensions().size(), configDir);
         this.applyLoadResult(result);
     }
 

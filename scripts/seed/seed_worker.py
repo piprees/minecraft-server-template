@@ -314,6 +314,17 @@ def start_container(name, workdir, memory, seed="1"):
     docker("rm", "-f", name, check=False)
     mem_gb = int(memory[:-1]) if memory.endswith("G") else 0
     java_mem = f"{mem_gb - 1}G" if mem_gb > 2 else memory
+    # When a warm image exists, mount only per-seed state (world/) and the
+    # session-constant roll config. Everything else (mods, libraries, Fabric,
+    # defaultconfigs) is baked into the image and stays cached.
+    image = IMAGE
+    if image == _WARM_IMAGE:
+        mounts = ["-v", f"{workdir}/world:/data/world",
+                  "-v", f"{workdir}/config/custom-dimensions:/data/config/custom-dimensions",
+                  "-v", f"{workdir}/config/c2me.toml:/data/config/c2me.toml",
+                  "-v", f"{workdir}/config/bluemap:/data/config/bluemap"]
+    else:
+        mounts = ["-v", f"{workdir}:/data"]
     docker("run", "-d", "--name", name,
            *fabric_pin_env(workdir),
            "--memory", memory,
@@ -322,7 +333,7 @@ def start_container(name, workdir, memory, seed="1"):
            "-e", "EULA=TRUE", "-e", "TYPE=FABRIC", "-e", "VERSION=1.21.1",
            "-e", f"SEED={seed}", "-e", f"MEMORY={java_mem}",
            "-e", "USE_AIKAR_FLAGS=false",
-           "-e", "JVM_XX_OPTS=-XX:+UseZGC -XX:+ZGenerational -XX:+AlwaysPreTouch",
+           "-e", "JVM_XX_OPTS=-XX:+UseZGC -XX:+ZGenerational",
            "-e", "ENABLE_RCON=TRUE", "-e", "RCON_PASSWORD=seedroll",
            "-e", "ONLINE_MODE=FALSE", "-e", "ENABLE_AUTOPAUSE=FALSE",
            "-e", "OVERRIDE_SERVER_PROPERTIES=true",
@@ -331,13 +342,14 @@ def start_container(name, workdir, memory, seed="1"):
            "-e", "VIEW_DISTANCE=6", "-e", "SIMULATION_DISTANCE=4",
            "-e", "GENERATE_STRUCTURES=false",
            "-e", "SPAWN_CHUNK_RADIUS=0",
-           "-v", f"{workdir}:/data", IMAGE)
+           *mounts, image)
     port = docker("port", name, "25575").stdout.strip().rsplit(":", 1)[-1]
     return int(port)
 
 
 def wait_for_rcon(worker_id, name, port):
-    rcon = Rcon("127.0.0.1", port, "seedroll", timeout=10.0)
+    """Wait for server readiness using rcon-cli (itzg built-in), then open
+    the persistent TCP socket for bulk measurement commands."""
     start = time.time()
     last = ""
     while time.time() - start < BOOT_TIMEOUT:
@@ -347,16 +359,12 @@ def wait_for_rcon(worker_id, name, port):
         if not container_running(name):
             log(worker_id, "container died during boot")
             return None
-        try:
-            rcon.connect()
-            rcon.cmd("list")
-            # Boot probing used a short timeout; commands get the long one.
-            rcon.timeout = Rcon.CMD_TIMEOUT
-            rcon.sock.settimeout(rcon.timeout)
+        r = docker("exec", name, "rcon-cli", "list", check=False)
+        if r.returncode == 0 and "players" in (r.stdout or "").lower():
             log(worker_id, f"server ready ({int(time.time() - start)}s)")
+            rcon = Rcon("127.0.0.1", port, "seedroll")
+            rcon.connect()
             return rcon
-        except (OSError, ConnectionError):
-            pass
         line = docker("logs", "--tail", "1", name, check=False).stdout.strip()[:110]
         if line and line != last:
             last = line
@@ -810,19 +818,26 @@ def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, di
 def prepare_boot_dir(workdir, mvconfig, seedtest):
     workdir = Path(workdir)
     shutil.rmtree(workdir / "world", ignore_errors=True)
+    (workdir / "world").mkdir(parents=True, exist_ok=True)
     (workdir / "server.properties").unlink(missing_ok=True)
 
     cfg = workdir / "config"
     cfg.mkdir(exist_ok=True)
-    shutil.copy2(mvconfig, cfg / "multiverse_config.json")
-    # c2me's density-function compiler ignores per-dimension seeds — every
-    # candidate would silently clone the main world (mods/AGENTS.md).
+    # v4 config: minimal settings.json + empty dimensions dir. The mod
+    # reads config/custom-dimensions/ at boot; SEED_ROLL_MODE skips
+    # dimension creation, so only the namespace matters.
+    cd = cfg / "custom-dimensions"
+    shutil.rmtree(cd, ignore_errors=True)
+    (cd / "dimensions").mkdir(parents=True)
+    settings = json.loads(Path(mvconfig).read_text()) if Path(mvconfig).exists() else {}
+    (cd / "settings.json").write_text(json.dumps(
+        {"namespace": settings.get("namespace", "adventure")}, indent=2) + "\n")
+    # Legacy monolith must not exist — the mod would warn.
+    (cfg / "multiverse_config.json").unlink(missing_ok=True)
+
     (cfg / "c2me.toml").write_text(
         "[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n")
 
-    # Fresh BlueMap config: accept-download + no default maps (candidate map
-    # configs are written per render). Stale per-dimension state from the live
-    # server must not ride along (AGENTS.md trap).
     bm = cfg / "bluemap"
     shutil.rmtree(bm, ignore_errors=True)
     (bm / "maps").mkdir(parents=True)
@@ -855,6 +870,25 @@ def boot(wid, container, workdir, memory, seed="1"):
         rcon.cmd("tick freeze")
         rcon.cmd("gamerule doMobSpawning false")
         rcon.cmd("gamerule doDaylightCycle false")
+        # Prime worldgen caches: first customdim create for each type
+        # lazily initializes noise routers + structure registries (60-90s).
+        # Do it here (expected) rather than during measurement (timeout).
+        saved_timeout = rcon.timeout
+        rcon.timeout = 120
+        if rcon.sock:
+            rcon.sock.settimeout(120)
+        try:
+            rcon.cmd("customdim create _warmup overworld 1 - - -")
+            rcon.cmd("customdim destroy _warmup")
+            log(wid, "  worldgen caches primed")
+        except (RconTimeout, RconClosed) as exc:
+            log(wid, f"  worldgen warmup slow ({type(exc).__name__}) — continuing")
+            rcon.close()
+            rcon = Rcon("127.0.0.1", port, "seedroll")
+            rcon.connect()
+        rcon.timeout = saved_timeout
+        if rcon.sock:
+            rcon.sock.settimeout(saved_timeout)
     return rcon
 
 

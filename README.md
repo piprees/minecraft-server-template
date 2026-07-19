@@ -103,7 +103,7 @@ Each GitHub release `vX.Y.Z` on this repo:
 
 ### Compatibility promise
 
-- **Major** (`v1` → `v2`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided.
+- **Major** (`v1` → `v2`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided, but likely breaking.
 - **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
 - **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 

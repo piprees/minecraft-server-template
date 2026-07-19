@@ -65,11 +65,12 @@ The `Updates` workflow (`.github/workflows/update.yml`) does the same thing week
 ### Roll seeds locally
 
 ```bash
-./dev seed-roll --profile overworld-natural    # measure seeds (resumable)
-./dev seed-report --profile overworld-natural  # score + top-N report
+./dev seed-roll                # parallel-roll seeds for every dimension
+./dev seed-rescore             # recompute scores vs current configs (no Docker)
+./dev seed-status              # candidate counts, winners, score freshness
 ```
 
-Rolls bank raw measurements; scoring happens at report time against a named profile (`classic`, `overworld-natural`, or the `dim-*` archetypes), so trying a different taste never requires re-rolling. Roll a single custom dimension's seed with `./dev seed-roll --dimension <name> --profile <dim profile>`. Pick your favourite from the report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env` (dimension seeds go into that dimension's entry in the multiverse config).
+Rolls indefinitely (Ctrl+C to finish). Winners are auto-written into the config; the live viewer at `http://127.0.0.1:8765/viewer.html` lets you pick manually. Measurements are banked — rescoring against updated configs never requires re-rolling.
 
 ### Cache assets for offline use
 
@@ -235,8 +236,9 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev pin` | Re-pin `overlay/mods-extra.txt` to latest mod builds |
 | `./dev update` | Pull the latest stack bundle + Docker images |
 | `./dev sync` | Update everything: local down, update, env sync to GitHub, server update, local up |
-| `./dev seed-roll` | Batch-test world seeds locally (resumable) |
-| `./dev seed-report` | Generate the top-N seed report from results |
+| `./dev seed-roll` | Parallel-roll seeds for every dimension, auto-pick winners |
+| `./dev seed-rescore` | Recompute candidate scores vs current configs (no re-rolling) |
+| `./dev seed-status` | Candidate-bank status: counts, winners, score freshness |
 | `./dev cache` | Snapshot Docker images, mod JARs, offline client bundles |
 | `./dev start <service>` | Start a stopped local service |
 | `./dev stop <service>` | Stop a running local service |

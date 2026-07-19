@@ -5,12 +5,12 @@
 #
 # Boots N Docker containers in SEED_ROLL_MODE (the custom-dimensions mod
 # skips boot-time dimension creation), splits the rollable dimensions from
-# config/multiverse_config.json across them, and measures M candidate seeds
+# config/custom-dimensions/ across them, and measures M candidate seeds
 # (scripts/seed/seed_worker.py does the per-candidate work over a native
 # RCON socket). Scoring is per-dimension and philosophy-driven
 # (scripts/seed/dimension_profiles.py).
 #
-# Winners are AUTO-WRITTEN into config/multiverse_config.json as the roll
+# Winners are AUTO-WRITTEN into config/custom-dimensions/dimensions/ as the roll
 # goes (every 45s, one .bak.TIMESTAMP backup per session; --no-write
 # disables). The live viewer is served on http://127.0.0.1:8765/viewer.html
 # (viewer-server.py) where '☆ make winner' pins a human pick over the score
@@ -33,10 +33,9 @@
 # Options:
 #   --workers N      parallel containers (default 3; ~10G memory each)
 #   --dims a,b,c     roll a subset of dimensions (skips the world streams)
-#   --render MODE    shortlist (default: render top candidates at finalise) | all | off
-#   --render-top N   shortlisted candidates to render per target (default 3)
+#   --render MODE    on (default: render each accepted seed inline) | off
 #   --no-worlds      skip the world-seed boot stream
-#   --no-write       don't write winners into multiverse_config.json
+#   --no-write       don't write winners into dimension configs
 #   --fresh          discard previous measurements first
 #   --clean          rebuild seedtest worker dirs from data/
 #
@@ -83,7 +82,10 @@ elif [[ -d "$LOCAL_DATA/config/custom-dimensions/dimensions" ]]; then
   echo "Consumer mode: rolling against $CONFIG"
   echo "  Winners will be written to overlay/config/custom-dimensions/dimensions/ as \"overrides\" files"
 else
-  CONFIG="$PROJECT_ROOT/config/multiverse_config.json"
+  echo "Error: no dimension config found — expected one of:" >&2
+  echo "  $CONFIG_DIR/dimensions/  (platform checkout)" >&2
+  echo "  $LOCAL_DATA/config/custom-dimensions/dimensions/  (consumer — run ./dev up first)" >&2
+  exit 1
 fi
 # EVERYTHING seedtest-related (measurements, renders, viewer, worker boot
 # dirs) lives under .seedtest/ — nothing else lands in the consumer repo.
@@ -93,9 +95,7 @@ MEASUREMENTS="$SEEDTEST/measurements.csv"
 
 WORKERS="${ROLL_WORKERS:-3}"
 DIMS=""
-RENDER="${ROLL_RENDER:-shortlist}"
-RENDER_TOP="${ROLL_RENDER_TOP:-3}"
-RENDER_WORKERS="${ROLL_RENDER_WORKERS:-1}"
+RENDER="${ROLL_RENDER:-on}"
 WRITE_CONFIG=1
 SKIP_WORLDS=0
 
@@ -104,10 +104,6 @@ while [[ $# -gt 0 ]]; do
     # --candidates / --world-candidates are accepted for
     # backwards compatibility; the roller is indefinite now.
     --candidates | --world-candidates) shift 2 ;;
-    --render-top)
-      RENDER_TOP="$2"
-      shift 2
-      ;;
     --no-worlds)
       SKIP_WORLDS=1
       shift
@@ -146,12 +142,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$RENDER" != "shortlist" && "$RENDER" != "all" && "$RENDER" != "off" ]]; then
-  echo "Error: --render must be shortlist, all, or off" >&2
-  exit 1
-fi
-if ! printf '%s\n' "$RENDER_TOP" | grep -qE '^[1-9][0-9]*$'; then
-  echo "Error: --render-top must be a positive integer" >&2
+if [[ "$RENDER" != "on" && "$RENDER" != "off" ]]; then
+  echo "Error: --render must be on or off" >&2
   exit 1
 fi
 
@@ -166,11 +158,8 @@ command -v python3 > /dev/null || {
   echo "Error: python3 required" >&2
   exit 1
 }
-[[ -f "$CONFIG" || -d "$CONFIG" ]] || {
-  echo "Error: no dimension config found — expected one of:" >&2
-  echo "  $CONFIG_DIR/dimensions/  (platform checkout)" >&2
-  echo "  $LOCAL_DATA/config/custom-dimensions/dimensions/  (consumer — run ./dev up first)" >&2
-  echo "  $PROJECT_ROOT/config/multiverse_config.json  (deprecated monolith)" >&2
+[[ -d "$CONFIG" ]] || {
+  echo "Error: config directory not found: $CONFIG" >&2
   exit 1
 }
 ls "$LOCAL_DATA/mods/"*.jar > /dev/null 2>&1 \
@@ -328,34 +317,6 @@ stop_reporter() {
   VIEWER_PID=""
 }
 
-render_shortlist() {
-  [[ "$RENDER" == "shortlist" ]] || return 0
-  echo ">>> Rendering top $RENDER_TOP candidate(s) per target (one worker at a time)..."
-  python3 "$SCRIPT_DIR/score-dimensions.py" render-manifest \
-    --config "$CONFIG" --seedtest "$SEEDTEST" --workers "$RENDER_WORKERS" \
-    --top "$RENDER_TOP" ${DIMS:+--dims "$DIMS"}
-  local pids="" w manifest
-  for w in $(seq 0 $((RENDER_WORKERS - 1))); do
-    manifest="$SEEDTEST/work-r$w.txt"
-    [[ -s "$manifest" ]] || continue
-    prepare_worker_dir "r$w"
-    python3 "$SCRIPT_DIR/seed_worker.py" \
-      --worker-id "r$w" \
-      --workdir "$SEEDTEST/wr$w" \
-      --manifest "$manifest" \
-      --mvconfig "$SEEDTEST/mvconfig-roll.json" \
-      --base-config "$CONFIG" \
-      --seedtest "$SEEDTEST" \
-      --mode shortlist \
-      --memory "$ROLL_MEMORY" &
-    pids="$pids $!"
-  done
-  local pid
-  for pid in $pids; do
-    wait "$pid" || true
-  done
-}
-
 # ---------------------------------------------------------------------------
 # Finalise (also runs on Ctrl+C): merge -> score -> write config -> viewer
 # ---------------------------------------------------------------------------
@@ -369,11 +330,7 @@ finalise() {
   local write_flag=""
   [[ "$WRITE_CONFIG" == 1 ]] && write_flag="--write-config"
   # shellcheck disable=SC2086
-  python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
-    --config "$CONFIG" --seedtest "$SEEDTEST" \
-    ${DIMS:+--dims "$DIMS"} $write_flag $WINNER_FLAG --viewer || true
-  render_shortlist
-  # Rendered thumbnails are now present; regenerate and open the viewer.
+  # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
     ${DIMS:+--dims "$DIMS"} $write_flag $WINNER_FLAG --viewer --open-viewer || true
@@ -401,11 +358,6 @@ finalise() {
     [[ -f "$CONFIG/settings.json" ]] \
       && cp "$CONFIG/settings.json" "$LOCAL_DATA/config/custom-dimensions/settings.json"
     echo "Synced data/config/custom-dimensions/ (backup: dimensions.bak.$STAMP)"
-  elif [[ "$WRITE_CONFIG" == 1 && -f "$CONFIG" && -f "$LOCAL_DATA/config/multiverse_config.json" ]]; then
-    cp "$LOCAL_DATA/config/multiverse_config.json" \
-      "$LOCAL_DATA/config/multiverse_config.json.bak.$(date +%Y%m%d-%H%M%S)"
-    cp "$CONFIG" "$LOCAL_DATA/config/multiverse_config.json"
-    echo "Synced data/config/multiverse_config.json (backup kept)"
   fi
   echo ""
   if [[ -d "$CONFIG" ]]; then
@@ -458,7 +410,6 @@ echo "  Multiverse seed roller (all dimensions)"
 echo "=============================================="
 echo "  Mode:           indefinite (Ctrl+C to finish)   Workers: $WORKERS"
 echo "  Render:         $RENDER"
-[[ "$RENDER" == "shortlist" ]] && echo "  Render shortlist: top $RENDER_TOP per target"
 echo "  Memory:         $ROLL_MEMORY per container"
 echo "  Config:         $CONFIG"
 echo "  Output:         $SEEDTEST"
@@ -466,6 +417,7 @@ echo "=============================================="
 echo ""
 
 prepare_base_dir
+
 rm -f "$STOP_FILE"
 # Fresh backup marker per session: the first auto-write this run takes one
 # timestamped config backup, later 45s re-writes don't spam .bak files.
@@ -479,8 +431,8 @@ python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
 
 start_reporter
 
-MODE="measure"
-[[ "$RENDER" == "all" ]] && MODE="measure+render"
+MODE="measure+render"
+[[ "$RENDER" == "off" ]] && MODE="measure"
 
 for w in $(seq 0 $((WORKERS - 1))); do
   [[ -s "$SEEDTEST/work-$w.txt" ]] && launch_worker "$w" "$MODE" "$SEEDTEST/work-$w.txt"
