@@ -314,8 +314,48 @@ def load_config(config_path):
     return json.loads(p.read_text())
 
 
+def _deep_merge(base, over):
+    """Recursive dict merge, `over` wins — mirrors the mod's deepMerge."""
+    out = dict(base)
+    for key, value in over.items():
+        if isinstance(out.get(key), dict) and isinstance(value, dict):
+            out[key] = _deep_merge(out[key], value)
+        else:
+            out[key] = value
+    return out
+
+
+def resolve_overlay(platform, overlay, namespace):
+    """Consumer overlay resolution, mirroring the mod's DimensionConfigLoader:
+    empty {} -> skip; top-level "overrides" -> deep-merge over the platform
+    default; anything else -> full replace; overlay-only slugs are
+    consumer-added (namespaced by BRAND_SLUG when set). -> {slug: (dict, ns)}"""
+    import os
+    consumer_ns = os.environ.get("BRAND_SLUG") or namespace
+    resolved = {}
+    for slug, data in platform.items():
+        over = overlay.get(slug)
+        if over is None:
+            resolved[slug] = (data, namespace)
+        elif not over:
+            continue  # empty {} — dimension disabled by the consumer
+        elif isinstance(over.get("overrides"), dict):
+            resolved[slug] = (_deep_merge(data, over["overrides"]), namespace)
+        else:
+            resolved[slug] = (over, namespace)
+    for slug, over in overlay.items():
+        if slug in platform or not over:
+            continue
+        body = over["overrides"] if isinstance(over.get("overrides"), dict) else over
+        resolved[slug] = (body, consumer_ns)
+    return resolved
+
+
 def monolith_from_dir(config_dir):
-    """Synthesise the legacy monolithic shape from the per-file directory."""
+    """Synthesise the legacy monolithic shape from the per-file directory.
+    A staged consumer overlay at {config_dir}/overlay/dimensions (the layout
+    deploy.sh/dev-up.sh produce inside data/config/custom-dimensions) is
+    resolved exactly like the mod does at boot."""
     import json
     from pathlib import Path
     p = Path(config_dir)
@@ -325,6 +365,12 @@ def monolith_from_dir(config_dir):
         settings = json.loads(settings_file.read_text())
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
+    overlay_files = load_dimension_configs(p / "overlay")
+    namespaces = {}
+    if overlay_files:
+        resolved = resolve_overlay(files, overlay_files, ns)
+        files = {slug: data for slug, (data, _ns) in resolved.items()}
+        namespaces = {slug: dim_ns for slug, (_data, dim_ns) in resolved.items()}
 
     dimensions, worlds, portals = [], [], []
     world_seed = None
@@ -344,7 +390,8 @@ def monolith_from_dir(config_dir):
             worlds.append(w)
             continue
 
-        d = {"name": slug, "dimensionId": f.get("dimensionId") or f"{ns}:{slug}"}
+        d = {"name": slug,
+             "dimensionId": f.get("dimensionId") or f"{namespaces.get(slug, ns)}:{slug}"}
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
                     "seedRoll", "difficulty"):
             if key in f:

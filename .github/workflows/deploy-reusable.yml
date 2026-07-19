@@ -242,7 +242,6 @@ jobs:
           V_SPAWN_Y: ${{ vars.SPAWN_Y }}
           V_SPAWN_Z: ${{ vars.SPAWN_Z }}
           V_PREGEN_BORDER_RADIUS: ${{ vars.PREGEN_BORDER_RADIUS }}
-          V_PLAYER_BORDER_RADIUS: ${{ vars.PLAYER_BORDER_RADIUS }}
           V_BACKUP_INTERVAL: ${{ vars.BACKUP_INTERVAL }}
           V_CLOUD_PROVIDER: ${{ vars.CLOUD_PROVIDER }}
           V_IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
@@ -297,8 +296,9 @@ jobs:
             emit SPAWN_X "$V_SPAWN_X"
             emit SPAWN_Y "$V_SPAWN_Y"
             emit SPAWN_Z "$V_SPAWN_Z"
+            # PLAYER_BORDER_RADIUS removed in v3: borders are mod-owned
+            # (borders.player in config/custom-dimensions/dimensions/*.json)
             emit PREGEN_BORDER_RADIUS "${V_PREGEN_BORDER_RADIUS:-8192}"
-            emit PLAYER_BORDER_RADIUS "${V_PLAYER_BORDER_RADIUS:-8192}"
             emit BACKUP_INTERVAL "${V_BACKUP_INTERVAL:-12h}"
             emit CLOUD_PROVIDER "${V_CLOUD_PROVIDER:-hetzner}"
             emit IMAGE_REGISTRY "${V_IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}"

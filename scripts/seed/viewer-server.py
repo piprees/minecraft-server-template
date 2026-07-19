@@ -82,11 +82,15 @@ def main():
     ap.add_argument("--seedtest", required=True)
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--write-config", action="store_true")
+    ap.add_argument("--winner-overlay",
+                    help="consumer mode passthrough to score-dimensions finalise")
     args = ap.parse_args()
 
     finalise_args = ["--config", args.config, "--seedtest", args.seedtest, "--viewer"]
     if args.write_config:
         finalise_args.append("--write-config")
+    if args.winner_overlay:
+        finalise_args += ["--winner-overlay", args.winner_overlay]
 
     handler = partial(ViewerHandler, directory=args.seedtest)
     ViewerHandler.seedtest = args.seedtest

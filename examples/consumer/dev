@@ -371,8 +371,12 @@ case "$CMD" in
     # dimension candidate counts, winners, and score freshness.
     ensure_stack
     export CONSUMER_DIR
+    # Same resolution as roll-all.sh: full local copy first (platform
+    # checkouts), else the merged view the server boots (bundle defaults +
+    # staged overlay under data/) — that is also where the candidate bank
+    # lives for consumers.
     SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/$STACK_SCRIPTS/../config/custom-dimensions"
+    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
     exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
       --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
     ;;

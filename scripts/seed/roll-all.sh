@@ -59,15 +59,32 @@ ROLL_MEMORY="${ROLL_MEMORY:-6G}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
-# v4 config directory preferred; the monolithic file remains the deprecated
-# fallback. score-dimensions.py / seed_worker.py accept either as --config.
+LOCAL_DATA="$PROJECT_ROOT/data"
+
+# v4 config resolution (score-dimensions.py / seed_worker.py accept any of
+# these as --config):
+#   1. $PROJECT_ROOT/config/custom-dimensions — a platform checkout (or a
+#      consumer keeping a full local copy). Winners write straight into
+#      those dimension files.
+#   2. $LOCAL_DATA/config/custom-dimensions — CONSUMER MODE: the merged
+#      view the server actually boots (bundle defaults + staged overlay,
+#      seeded by ./dev up). Winners write into the consumer repo's
+#      overlay/config/custom-dimensions/ as {"overrides"} files — the
+#      bundle's platform files are replaced on every update, so the
+#      overlay is the only durable consumer-owned home for them.
+#   3. The deprecated monolithic multiverse_config.json.
 CONFIG_DIR="$PROJECT_ROOT/config/custom-dimensions"
+WINNER_FLAG=""
 if [[ -d "$CONFIG_DIR/dimensions" ]]; then
   CONFIG="$CONFIG_DIR"
+elif [[ -d "$LOCAL_DATA/config/custom-dimensions/dimensions" ]]; then
+  CONFIG="$LOCAL_DATA/config/custom-dimensions"
+  WINNER_FLAG="--winner-overlay $PROJECT_ROOT/overlay/config/custom-dimensions"
+  echo "Consumer mode: rolling against $CONFIG"
+  echo "  Winners will be written to overlay/config/custom-dimensions/dimensions/ as \"overrides\" files"
 else
   CONFIG="$PROJECT_ROOT/config/multiverse_config.json"
 fi
-LOCAL_DATA="$PROJECT_ROOT/data"
 # EVERYTHING seedtest-related (measurements, renders, viewer, worker boot
 # dirs) lives under .seedtest/ — nothing else lands in the consumer repo.
 SEEDTEST="$PROJECT_ROOT/.seedtest"
@@ -150,7 +167,10 @@ command -v python3 > /dev/null || {
   exit 1
 }
 [[ -f "$CONFIG" || -d "$CONFIG" ]] || {
-  echo "Error: $CONFIG not found" >&2
+  echo "Error: no dimension config found — expected one of:" >&2
+  echo "  $CONFIG_DIR/dimensions/  (platform checkout)" >&2
+  echo "  $LOCAL_DATA/config/custom-dimensions/dimensions/  (consumer — run ./dev up first)" >&2
+  echo "  $PROJECT_ROOT/config/multiverse_config.json  (deprecated monolith)" >&2
   exit 1
 }
 ls "$LOCAL_DATA/mods/"*.jar > /dev/null 2>&1 \
@@ -288,14 +308,14 @@ start_reporter() {
       # shellcheck disable=SC2086
       python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
         --config "$CONFIG" --seedtest "$SEEDTEST" \
-        ${DIMS:+--dims "$DIMS"} $write_flag --viewer > /dev/null 2>&1 || true
+        ${DIMS:+--dims "$DIMS"} $write_flag $WINNER_FLAG --viewer > /dev/null 2>&1 || true
     done
   ) &
   REPORTER_PID=$!
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/viewer-server.py" \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
-    --port "${ROLL_VIEWER_PORT:-8765}" $write_flag &
+    --port "${ROLL_VIEWER_PORT:-8765}" $write_flag $WINNER_FLAG &
   VIEWER_PID=$!
   echo "Live report: http://127.0.0.1:${ROLL_VIEWER_PORT:-8765}/viewer.html"
   echo "  (regenerates every 45s; '☆ make winner' pins your pick into the config)"
@@ -351,14 +371,27 @@ finalise() {
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
-    ${DIMS:+--dims "$DIMS"} $write_flag --viewer || true
+    ${DIMS:+--dims "$DIMS"} $write_flag $WINNER_FLAG --viewer || true
   render_shortlist
   # Rendered thumbnails are now present; regenerate and open the viewer.
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
-    ${DIMS:+--dims "$DIMS"} $write_flag --viewer --open-viewer || true
-  # Consumer copy must mirror the template config exactly (AGENTS.md).
-  if [[ "$WRITE_CONFIG" == 1 && -d "$CONFIG" && -d "$LOCAL_DATA/config/custom-dimensions" ]]; then
+    ${DIMS:+--dims "$DIMS"} $write_flag $WINNER_FLAG --viewer --open-viewer || true
+  # Consumer mode: restage the freshly written overlay into the merged view
+  # so the NEXT local boot (and re-rolls) pick the winners up immediately.
+  if [[ "$WRITE_CONFIG" == 1 && -n "$WINNER_FLAG" \
+    && -d "$PROJECT_ROOT/overlay/config/custom-dimensions" ]]; then
+    rm -rf "$LOCAL_DATA/config/custom-dimensions/overlay"
+    mkdir -p "$LOCAL_DATA/config/custom-dimensions/overlay"
+    cp -R "$PROJECT_ROOT/overlay/config/custom-dimensions/." \
+      "$LOCAL_DATA/config/custom-dimensions/overlay/"
+    echo "Restaged overlay into data/config/custom-dimensions/overlay/"
+  fi
+  # Platform checkout: consumer copy must mirror the template config exactly
+  # (AGENTS.md). Never runs in consumer mode — CONFIG *is* the data copy.
+  if [[ "$WRITE_CONFIG" == 1 && -d "$CONFIG" && -z "$WINNER_FLAG" \
+    && "$CONFIG" != "$LOCAL_DATA/config/custom-dimensions" \
+    && -d "$LOCAL_DATA/config/custom-dimensions" ]]; then
     # Directory mode: replace dimensions/ + settings.json, leave overlay/ alone.
     STAMP="$(date +%Y%m%d-%H%M%S)"
     cp -R "$LOCAL_DATA/config/custom-dimensions/dimensions" \

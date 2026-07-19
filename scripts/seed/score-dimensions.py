@@ -562,6 +562,38 @@ def write_winner(data, winner):
     return changed
 
 
+def write_winners_to_overlay(overlay_root, winners, seedtest):
+    """Consumer mode: winners land in the consumer repo's overlay as
+    {"overrides": {"seed", "spawn"}} files — the durable consumer-owned
+    artefact (bundle platform files are replaced on every update). Existing
+    overlay files keep their shape: an "overrides" file gets its keys
+    updated; a full-replace file gets top-level seed/spawn; an empty {}
+    (dimension disabled) is left alone."""
+    dims_dir = Path(overlay_root) / "dimensions"
+    backup = None
+    if dims_dir.is_dir():
+        backup = session_backup(seedtest, lambda ts: shutil.copytree(
+            dims_dir, Path(seedtest) / f"overlay-dimensions.bak.{ts}"))
+    dims_dir.mkdir(parents=True, exist_ok=True)
+    changed = 0
+    for name, w in winners.items():
+        f = dims_dir / f"{name}.json"
+        data = {}
+        if f.exists():
+            try:
+                data = json.loads(f.read_text())
+            except json.JSONDecodeError:
+                data = {}
+            if data == {}:
+                continue  # consumer disabled this dimension — never resurrect
+        target = data.setdefault("overrides", {}) \
+            if ("overrides" in data or not data) else data
+        if write_winner(target, w):
+            changed += 1
+        f.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    return changed, backup
+
+
 def write_winners_to_dir(config_dir, winners, seedtest):
     """v4 directory mode: each winner lands in its own dimensions/{slug}.json
     (base worlds included — overworld.json carries the overworld seed)."""
@@ -651,9 +683,15 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
     if args.write_config and winners:
         cfg_path = Path(args.config)
         if cfg_path.is_dir():
-            changed, backup = write_winners_to_dir(cfg_path, winners, args.seedtest)
-            print(f"config updated: {changed} seeds changed ({cfg_path / 'dimensions'})"
-                  + (f"; backup: {backup}" if backup else ""))
+            if getattr(args, "winner_overlay", None):
+                changed, backup = write_winners_to_overlay(args.winner_overlay, winners, args.seedtest)
+                print(f"overlay updated: {changed} seeds changed "
+                      f"({Path(args.winner_overlay) / 'dimensions'} — \"overrides\" files)"
+                      + (f"; backup: {backup}" if backup else ""))
+            else:
+                changed, backup = write_winners_to_dir(cfg_path, winners, args.seedtest)
+                print(f"config updated: {changed} seeds changed ({cfg_path / 'dimensions'})"
+                      + (f"; backup: {backup}" if backup else ""))
             ow = winners.get("overworld")
         else:
             changed, backup, ow = write_winners_to_monolith(cfg_path, winners, args.seedtest)
@@ -830,6 +868,10 @@ def main():
     ap.add_argument("--config", required=True,
                     help="config/custom-dimensions/ directory (v4) or the "
                          "deprecated monolithic multiverse_config.json")
+    ap.add_argument("--winner-overlay",
+                    help="consumer mode: write winners as {\"overrides\"} files "
+                         "into this overlay/config/custom-dimensions/ directory "
+                         "instead of editing the platform dimension files")
     ap.add_argument("--seedtest", required=True)
     ap.add_argument("--csv", help="measurements CSV (default <seedtest>/measurements.csv)")
     ap.add_argument("--workers", type=int, default=1)

@@ -92,6 +92,35 @@ class MonolithFromDirTests(unittest.TestCase):
             self.assertNotIn("worldSeed", cfg)
             self.assertNotIn("seed", cfg["worlds"][0])
 
+    def test_staged_overlay_is_resolved_like_the_mod(self):
+        import os
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.dict(os.environ, {"BRAND_SLUG": "mybrand"}):
+            write_tree(tmp, {
+                "settings.json": {"namespace": "adventure"},
+                "dimensions/kept.json": {"type": "overworld", "seed": 1},
+                "dimensions/merged.json": {"type": "overworld", "seed": 2,
+                                           "structureDensity": "sparse"},
+                "dimensions/replaced.json": {"type": "overworld", "seed": 3},
+                "dimensions/skipped.json": {"type": "overworld", "seed": 4},
+                "overlay/dimensions/merged.json": {"overrides": {"seed": 22}},
+                "overlay/dimensions/replaced.json": {"type": "nether", "seed": 33},
+                "overlay/dimensions/skipped.json": {},
+                "overlay/dimensions/added.json": {"type": "overworld", "seed": 55},
+            })
+            cfg = monolith_from_dir(tmp)
+            dims = {d["name"]: d for d in cfg["dimensions"]}
+            self.assertEqual(dims["kept"]["seed"], 1)
+            self.assertEqual(dims["merged"]["seed"], 22)
+            self.assertEqual(dims["merged"]["structureDensity"], "sparse")  # merge keeps siblings
+            self.assertEqual(dims["replaced"]["type"], "nether")
+            self.assertNotIn("structureDensity", dims["replaced"])
+            self.assertNotIn("skipped", dims)
+            self.assertEqual(dims["added"]["seed"], 55)
+            # consumer-added dimensions are namespaced by BRAND_SLUG
+            self.assertEqual(dims["added"]["dimensionId"], "mybrand:added")
+
     def test_load_config_dispatches_on_path_type(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.make_tree(tmp)

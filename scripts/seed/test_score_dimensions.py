@@ -210,6 +210,39 @@ class CandidatePipelineTests(unittest.TestCase):
             self.assertFalse(store["winnerPinned"])
 
 
+class WinnerOverlayWritebackTests(unittest.TestCase):
+    def test_consumer_overlay_writeback_shapes(self):
+        winners = {
+            "fresh": {"seed": "11", "metrics": {"spawn_x": "1", "spawn_z": "2"}},
+            "merged": {"seed": "22", "metrics": {}},
+            "owned": {"seed": "33", "metrics": {}},
+            "disabled": {"seed": "44", "metrics": {}},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            overlay = Path(tmp) / "overlay" / "custom-dimensions"
+            dims = overlay / "dimensions"
+            dims.mkdir(parents=True)
+            (dims / "merged.json").write_text(json.dumps(
+                {"overrides": {"difficulty": {"mobMultiplier": 1.5}}}))
+            (dims / "owned.json").write_text(json.dumps({"type": "nether", "seed": 1}))
+            (dims / "disabled.json").write_text("{}")
+            seedtest = Path(tmp) / "seedtest"
+            seedtest.mkdir()
+
+            changed, _ = score_dimensions.write_winners_to_overlay(overlay, winners, seedtest)
+
+            self.assertEqual(changed, 3)
+            fresh = json.loads((dims / "fresh.json").read_text())
+            self.assertEqual(fresh, {"overrides": {"seed": 11, "spawn": [1, 64, 2]}})
+            merged = json.loads((dims / "merged.json").read_text())
+            self.assertEqual(merged["overrides"]["seed"], 22)
+            self.assertEqual(merged["overrides"]["difficulty"], {"mobMultiplier": 1.5})
+            owned = json.loads((dims / "owned.json").read_text())
+            self.assertEqual(owned["seed"], 33)          # full-replace file: top-level
+            self.assertEqual(owned["type"], "nether")
+            self.assertEqual((dims / "disabled.json").read_text(), "{}")  # never resurrected
+
+
 class WinnerWritebackTests(unittest.TestCase):
     def test_directory_mode_writes_seed_and_spawn_per_file(self):
         import json
