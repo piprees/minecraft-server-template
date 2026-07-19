@@ -25,14 +25,16 @@ config/cloudflared/cert.pem
 # === Restic ===
 restic-password.txt
 
+# === Logs ===
+logs/
+*.log
+*.lock
+
 # === Seed-rolling artefacts ===
 seedtest-data/
 seedtest-data-*/
 seedtest-data-*/*
-scripts/seed/seed-errors.log
-scripts/seed/seed-errors.log.lock
 scripts/seed/seed-results.csv
-scripts/seed/seed-results.csv.lock
 scripts/seed/seed-report-top25.md
 
 __pycache__

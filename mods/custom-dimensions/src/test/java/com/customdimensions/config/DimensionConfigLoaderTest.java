@@ -158,7 +158,7 @@ class DimensionConfigLoaderTest {
         assertEquals("elfydd", s.namespace);
         assertEquals("minecraft:gold_block", s.frameOverworld);
         assertEquals("minecraft:obsidian", s.frameNether);
-        assertEquals("minecraft:iron_block", s.frameEnd);
+        assertEquals("minecraft:end_stone_bricks", s.frameEnd);
     }
 
     // --- legacy conversion ----------------------------------------------------

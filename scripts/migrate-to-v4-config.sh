@@ -74,12 +74,12 @@ settings = {
     "namespace": cfg.get("namespace", "adventure"),
     "idleUnloadMinutes": cfg.get("idleUnloadMinutes", 5),
     "frames": {
-        "overworld": cfg.get("frameOverworld", "minecraft:crying_obsidian"),
+        "overworld": cfg.get("frameOverworld", "minecraft:mossy_stone_bricks"),
         "nether": cfg.get("frameNether", "minecraft:obsidian"),
-        "end": cfg.get("frameEnd", "minecraft:iron_block"),
+        "end": cfg.get("frameEnd", "minecraft:end_stone_bricks"),
     },
     "defaults": {
-        "frameBlock": cfg.get("frameOverworld", "minecraft:crying_obsidian"),
+        "frameBlock": cfg.get("frameOverworld", "minecraft:mossy_stone_bricks"),
         "borders": {"player": 8192, "generation": 8192},
         "difficulty": {
             "mobMultiplier": 1.0,

@@ -75,11 +75,11 @@ class MultiverseConfigTest {
     @Test
     void frameAndIdleDefaultsSurviveEmptyConfig(@TempDir Path dir) throws IOException {
         MultiverseConfig config = fromLegacy(dir, "{\"dimensions\":[],\"portals\":[],\"worlds\":[]}");
-        assertEquals("minecraft:crying_obsidian", config.getFrameOverworld());
+        assertEquals("minecraft:mossy_stone_bricks", config.getFrameOverworld());
         assertEquals("minecraft:obsidian", config.getFrameNether());
-        assertEquals("minecraft:iron_block", config.getFrameEnd());
+        assertEquals("minecraft:end_stone_bricks", config.getFrameEnd());
         assertEquals(5, config.getIdleUnloadMinutes());
-        assertNotNull(config.getDefaultPortalForFrameBlock("minecraft:crying_obsidian"));
+        assertNotNull(config.getDefaultPortalForFrameBlock("minecraft:mossy_stone_bricks"));
         assertNull(config.getDefaultPortalForFrameBlock("minecraft:dirt"));
     }
 

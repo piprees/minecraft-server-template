@@ -1,4 +1,4 @@
-[01:38:18] [Test worker/ERROR]: Failed to parse JSON file: /var/folders/1w/qyzxwc6s7wnbfk2yb4md2t5w0000gn/T/junit-1869718172138768158/dimensions/broken.json
+[02:44:40] [Test worker/ERROR]: Failed to parse JSON file: /var/folders/1w/qyzxwc6s7wnbfk2yb4md2t5w0000gn/T/junit-12262313970287554000/dimensions/broken.json
 com.google.gson.JsonSyntaxException: com.google.gson.stream.MalformedJsonException: Expected ':' at line 1 column 7 path $.not
 	at com.google.gson.internal.Streams.parse(Streams.java:61) ~[gson-2.10.1.jar:?]
 	at com.google.gson.JsonParser.parseReader(JsonParser.java:102) ~[gson-2.10.1.jar:?]
@@ -96,21 +96,21 @@ Caused by: com.google.gson.stream.MalformedJsonException: Expected ':' at line 1
 	at com.google.gson.internal.bind.TypeAdapters$28.read(TypeAdapters.java:725) ~[gson-2.10.1.jar:?]
 	at com.google.gson.internal.Streams.parse(Streams.java:49) ~[gson-2.10.1.jar:?]
 	... 87 more
-[01:38:18] [Test worker/WARN]: Dimension file unreadable or not an object — skipped: /var/folders/1w/qyzxwc6s7wnbfk2yb4md2t5w0000gn/T/junit-1869718172138768158/dimensions/broken.json
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default
-[01:38:18] [Test worker/INFO]: Dimension a: platform default
-[01:38:18] [Test worker/INFO]: Dimension b: platform default
-[01:38:18] [Test worker/INFO]: Dimension c: platform default
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: replaced by consumer overlay
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: skipped by consumer overlay (empty {})
-[01:38:18] [Test worker/INFO]: Dimension the_gauntlet: platform default
-[01:38:18] [Test worker/INFO]: Dimension my_dimension: consumer-added
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default
-[01:38:18] [Test worker/INFO]: Dimension my_dimension: consumer-added
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default + consumer overrides
-[01:38:18] [Test worker/INFO]: Dimension overworld: platform default
-[01:38:18] [Test worker/INFO]: Dimension the_claymarsh: platform default
-[01:38:18] [Test worker/INFO]: Dimension consumer_dim: consumer-added
-[01:38:18] [Test worker/INFO]: Dimension overworld: platform default
+[02:44:40] [Test worker/WARN]: Dimension file unreadable or not an object — skipped: /var/folders/1w/qyzxwc6s7wnbfk2yb4md2t5w0000gn/T/junit-12262313970287554000/dimensions/broken.json
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default
+[02:44:40] [Test worker/INFO]: Dimension a: platform default
+[02:44:40] [Test worker/INFO]: Dimension b: platform default
+[02:44:40] [Test worker/INFO]: Dimension c: platform default
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: replaced by consumer overlay
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: skipped by consumer overlay (empty {})
+[02:44:40] [Test worker/INFO]: Dimension the_gauntlet: platform default
+[02:44:40] [Test worker/INFO]: Dimension my_dimension: consumer-added
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default
+[02:44:40] [Test worker/INFO]: Dimension my_dimension: consumer-added
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default + consumer overrides
+[02:44:40] [Test worker/INFO]: Dimension overworld: platform default
+[02:44:40] [Test worker/INFO]: Dimension the_claymarsh: platform default
+[02:44:40] [Test worker/INFO]: Dimension consumer_dim: consumer-added
+[02:44:40] [Test worker/INFO]: Dimension overworld: platform default

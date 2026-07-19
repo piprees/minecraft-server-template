@@ -123,10 +123,7 @@ All configuration is stored inside the server's data directory under `config/`.
 
 ### `custom-dimensions/` (v4 — preferred)
 
-One file per dimension; the slug comes from the filename. Base-world
-filenames (`overworld.json`, `the_nether.json`, `the_end.json`,
-`paradise_lost.json`) override existing worlds (seed/spawn) instead of
-creating new ones — `"seed": "env"` reads the `SEED` environment variable.
+One file per dimension; the slug comes from the filename. Base-world filenames (`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json`) override existing worlds (seed/spawn) instead of creating new ones — `"seed": "env"` reads the `SEED` environment variable.
 
 ```
 config/custom-dimensions/
@@ -165,23 +162,24 @@ config/custom-dimensions/
 {
   "namespace": "adventure",
   "idleUnloadMinutes": 5,
-  "frames": { "overworld": "minecraft:crying_obsidian", "nether": "minecraft:obsidian", "end": "minecraft:iron_block" },
-  "defaults": { "frameBlock": "minecraft:crying_obsidian", "borders": { "player": 8192, "generation": 8192 }, "difficulty": { "mobMultiplier": 1.0 } }
+  "frames": {
+    "overworld": "minecraft:mossy_stone_bricks",
+    "nether": "minecraft:obsidian",
+    "end": "minecraft:end_stone_bricks"
+  },
+  "defaults": {
+    "frameBlock": "minecraft:crying_obsidian",
+    "borders": { "player": 8192, "generation": 8192 },
+    "difficulty": { "mobMultiplier": 1.0 }
+  }
 }
 ```
 
-Consumer overlay resolution (files in `overlay/dimensions/`): a file with a
-top-level `"overrides"` object deep-merges over the platform default; a file
-without one replaces the platform default entirely; an empty `{}` skips the
-dimension; overlay-only files are consumer-added dimensions namespaced by the
-`BRAND_SLUG` environment variable.
+Consumer overlay resolution (files in `overlay/dimensions/`): a file with a top-level `"overrides"` object deep-merges over the platform default; a file without one replaces the platform default entirely; an empty `{}` skips the dimension; overlay-only files are consumer-added dimensions namespaced by the `BRAND_SLUG` environment variable.
 
 ### `multiverse_config.json` (deprecated fallback)
 
-The pre-v4 monolithic format (top-level `dimensions[]` + `portals[]` +
-`worlds[]` arrays) still loads when `config/custom-dimensions/` does not
-exist, with a deprecation warning. Migrate with
-`scripts/migrate-to-v4-config.sh`.
+The pre-v4 monolithic format (top-level `dimensions[]` + `portals[]` + `worlds[]` arrays) still loads when `config/custom-dimensions/` does not exist, with a deprecation warning. Migrate with `scripts/migrate-to-v4-config.sh`.
 
 ### `portal_links.json`
 

@@ -2,12 +2,12 @@
   "namespace": "adventure",
   "idleUnloadMinutes": 5,
   "frames": {
-    "overworld": "minecraft:crying_obsidian",
+    "overworld": "minecraft:mossy_stone_bricks",
     "nether": "minecraft:obsidian",
-    "end": "minecraft:iron_block"
+    "end": "minecraft:end_stone_bricks"
   },
   "defaults": {
-    "frameBlock": "minecraft:crying_obsidian",
+    "frameBlock": "minecraft:mossy_stone_bricks",
     "borders": {
       "player": 8192,
       "generation": 8192

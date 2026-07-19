@@ -51,9 +51,9 @@ public final class DimensionConfigLoader {
     public static class Settings {
         public String namespace = "adventure";
         public int idleUnloadMinutes = 5;
-        public String frameOverworld = "minecraft:crying_obsidian";
+        public String frameOverworld = "minecraft:mossy_stone_bricks";
         public String frameNether = "minecraft:obsidian";
-        public String frameEnd = "minecraft:iron_block";
+        public String frameEnd = "minecraft:end_stone_bricks";
         /** Raw "defaults" block, merged under every dimension. */
         public JsonObject defaults = new JsonObject();
     }
