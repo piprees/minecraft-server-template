@@ -54,7 +54,7 @@
 # =============================================================================
 set -euo pipefail
 
-ROLL_MEMORY="${ROLL_MEMORY:-10G}"
+ROLL_MEMORY="${ROLL_MEMORY:-6G}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
@@ -94,7 +94,7 @@ SEEDTEST="$PROJECT_ROOT/.seedtest"
 WORK_BASE="$SEEDTEST/base"
 MEASUREMENTS="$SEEDTEST/measurements.csv"
 
-WORKERS="${ROLL_WORKERS:-3}"
+WORKERS="${ROLL_WORKERS:-2}"
 DIMS=""
 RENDER="${ROLL_RENDER:-on}"
 WRITE_CONFIG=1
