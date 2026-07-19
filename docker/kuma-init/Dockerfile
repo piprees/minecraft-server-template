@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=${REPO_URL} \
       org.opencontainers.image.description="One-shot Uptime Kuma provisioner from config" \
       org.opencontainers.image.licenses="MIT"
 
-RUN pip install --no-cache-dir 'uptime-kuma-api>=1.2.1'
+RUN pip install --no-cache-dir 'uptime-kuma-api==1.2.1'
 
 COPY scripts/kuma-provision.py /app/
 COPY scripts/kuma-maintenance.py /app/
