@@ -151,8 +151,9 @@ warmup() {
     nether_count=$(python3 -c "
 import json
 params = json.load(open('$biome_params'))
-print(sum(1 for e in params if any(x in e['biome'] for x in
-    ['nether_wastes','crimson_forest','warped_forest','soul_sand','basalt_deltas'])))
+tagged = sum(1 for e in params if 'family' in e)
+nether = sum(1 for e in params if e.get('family') == 'nether')
+print(nether if tagged > 0 else 0)
 " 2>/dev/null || echo 0)
     [[ "$nether_count" -lt 5 ]] && need_warmup=1
   else
