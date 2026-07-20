@@ -8,9 +8,9 @@
 #      params per dimension family from a short-lived MC server boot (~90s).
 #   2. ROLL: fast_roller.py — pure Python structure screening + biome/terrain
 #      scoring. Thousands of candidates/sec. No Docker, no RCON.
-#   3. RENDER: top N per dimension get heightmap thumbnails via a short-lived
-#      MC server (forceload + save-all) + pure-Python map_renderer.py.
-#      No BlueMap, no external tools.
+#   3. RENDER: top N per dimension get flat top-down map images via a
+#      short-lived MC server (forceload + save-all) + unmined-cli (native,
+#      ~1s/render). No Docker render containers needed.
 #
 # Usage:
 #   ./roll-all.sh                            # full run
@@ -26,7 +26,8 @@
 #   ROLL_POOL        tier-1 pool per dimension (default 5000)
 #   ROLL_COUNT       candidates to keep per dimension (default 100)
 #   ROLL_RENDER_TOP  candidates to render per dimension (default 10)
-#   ROLL_RENDER_SIZE render thumbnail size in blocks (default 256)
+#   ROLL_RENDER_SIZE render area in blocks (default 512)
+#   ROLL_RENDER_ZOOM unmined-cli zoom level (default 0; -1=wider, 1=closer)
 # =============================================================================
 set -euo pipefail
 
@@ -34,7 +35,7 @@ ROLL_MEMORY="${ROLL_MEMORY:-10G}"
 ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
 ROLL_RENDER_TOP="${ROLL_RENDER_TOP:-10}"
-ROLL_RENDER_SIZE="${ROLL_RENDER_SIZE:-256}"
+ROLL_RENDER_SIZE="${ROLL_RENDER_SIZE:-512}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
@@ -222,7 +223,7 @@ roll() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 3: Render — MC server + pure-Python map_renderer.py
+# Phase 3: Render — MC server + unmined-cli (flat top-down map)
 # ---------------------------------------------------------------------------
 render() {
   command -v docker > /dev/null || {
@@ -233,9 +234,30 @@ render() {
     echo "Skipping renders: customdimensions jar missing"
     return 0
   }
+  # unmined-cli renders on the host (no Docker) — check it exists
+  if [[ -z "${UNMINED_CLI:-}" ]]; then
+    UNMINED_CLI=$(find "$HOME/.unmined" -name "unmined-cli" -type f 2>/dev/null | sort -r | head -1)
+  fi
+  if [[ ! -x "${UNMINED_CLI:-}" ]]; then
+    echo "Skipping renders: unmined-cli not found (install to ~/.unmined/ or set UNMINED_CLI)"
+    return 0
+  fi
+  export UNMINED_CLI
 
   echo ""
   echo "=== Rendering top $ROLL_RENDER_TOP candidates per dimension ==="
+  echo "  unmined-cli: $UNMINED_CLI"
+  echo "  render size: ${ROLL_RENDER_SIZE} blocks, zoom ${ROLL_RENDER_ZOOM:-0}"
+
+  # Clear old renders so the manifest doesn't skip broken BlueMap tiles
+  if [[ -d "$SEEDTEST/renders" ]]; then
+    local old_count
+    old_count=$(find "$SEEDTEST/renders" -name "*.png" -type f 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$old_count" -gt 0 ]]; then
+      echo "  Clearing $old_count existing renders (re-rendering with unmined-cli)"
+      rm -rf "$SEEDTEST/renders"
+    fi
+  fi
 
   # Generate render manifest
   # shellcheck disable=SC2086

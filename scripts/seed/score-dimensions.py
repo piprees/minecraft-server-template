@@ -772,7 +772,7 @@ def render_viewer(results, profiles, winners, rejected=None):
            "shape; <b>structures</b> = each structure lands in its placement band (distances relative to "
            "the playable radius = world border ÷ portal scale). Winners (gold) are written into "
            "multiverse_config.json. Hover a candidate for raw locate distances. Thumbnails are the "
-           "spawn-area top-down render (144×144 blocks from 0,0).</p>"]
+           "spawn-area top-down render (unmined-cli, 512 blocks from 0,0).</p>"]
     for name, profile in profiles.items():
         cands = results.get(name, [])
         out.append(f"<h2>{html.escape(name)}</h2>")

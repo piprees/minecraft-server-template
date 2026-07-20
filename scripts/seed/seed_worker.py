@@ -23,8 +23,8 @@ long format target,seed,metric,value — target is the REAL dimension name):
   errors                 new filtered ERROR log lines during this candidate
 
 Render mode (--mode render) creates each candidate, forceloads a spawn
-square, saves, writes a BlueMap map config, waits for tiles, and copies one
-to .seedtest/renders/<dim>/<seed>.png. --mode measure+render does both.
+square, saves, then unmined-cli renders a flat top-down map image to
+.seedtest/renders/<dim>/<seed>.png. --mode measure+render does both.
 
 Gotchas honoured (AGENTS.md): c2me DFC forced off via config; world dirs
 of destroyed candidates are deleted from disk (destroy keeps files);
@@ -617,7 +617,7 @@ def create_candidate(rcon, worker_id, ns, cand, profile, seed):
     return False, "created dimension never became queryable after 24s"
 
 
-def destroy_candidate(rcon, workdir, ns, cand):
+def destroy_candidate(rcon, workdir, ns, cand, keep_files=False):
     rcon.cmd(f"customdim destroy {cand}")
     for _ in range(12):
         response = rcon.cmd(f"execute in {ns}:{cand} run seed")
@@ -627,8 +627,8 @@ def destroy_candidate(rcon, workdir, ns, cand):
     else:
         log("worker", f"  {cand} remained queryable after queued destroy; preserving files")
         return
-    # destroy unloads the world but leaves files — reclaim the disk.
-    shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
+    if not keep_files:
+        shutil.rmtree(Path(workdir) / "world" / "dimensions" / ns / cand, ignore_errors=True)
 
 
 ASYNC_LOCATE_POLL_INTERVAL = 3  # seconds between locate-result polls
@@ -1008,107 +1008,126 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
 
 
 
-_BLUEMAP_IMAGE = "ghcr.io/bluemap-minecraft/bluemap:latest"
+# ---------------------------------------------------------------------------
+# Render via unmined-cli — flat top-down map, runs natively on macOS (~1s).
+# Replaces the broken BlueMap Docker approach that produced unusable tiles.
+# ---------------------------------------------------------------------------
+_UNMINED_CLI = None
 
-_BLUEMAP_NETHER = ('sky-light: 0\nambient-light: 0.6\n'
-                   'remove-caves-below-y: 127\n'
-                   'cave-detection-uses-block-light: true\n'
-                   'sky-color: "#290000"\nvoid-color: "#150000"\n')
-_BLUEMAP_END = ('sky-light: 0\nambient-light: 0.6\n'
-                'sky-color: "#080010"\nvoid-color: "#080010"\n')
-_BLUEMAP_OVERWORLD = 'sky-light: 1\nambient-light: 0.1\n'
+
+def _find_unmined_cli():
+    """Auto-detect the unmined-cli binary. Checks UNMINED_CLI env, then the
+    standard install location under ~/.unmined/."""
+    global _UNMINED_CLI
+    if _UNMINED_CLI is not None:
+        return _UNMINED_CLI if _UNMINED_CLI != "" else None
+    env = os.environ.get("UNMINED_CLI")
+    if env and Path(env).is_file():
+        _UNMINED_CLI = env
+        return _UNMINED_CLI
+    home = Path.home()
+    for candidate in sorted(home.glob(".unmined/unmined-cli_*/unmined-cli"), reverse=True):
+        if candidate.is_file():
+            _UNMINED_CLI = str(candidate)
+            return _UNMINED_CLI
+    _UNMINED_CLI = ""
+    return None
+
+
+NETHER_FAMILIES = {"nether", "nether_islands"}
 
 
 def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, dim_name, seed,
-                     family="overworld", render_size=256):
-    """Render a candidate via BlueMap CLI with mod textures.
-    MC server forceloads + saves chunks. BlueMap CLI container renders
-    with -n <mods> for modded block textures. ~10-30s per candidate."""
+                     family="overworld", render_size=512):
+    """Render a candidate via unmined-cli (flat top-down map).
+    MC server forceloads + saves chunks around spawn, then unmined-cli
+    renders the region files directly on the host — no Docker needed,
+    ~1s per render. Works for all 74+ dimension families."""
     dim = f"{ns}:{cand}"
     out_png = Path(seedtest) / "renders" / dim_name / f"{seed}.png"
     out_png.parent.mkdir(parents=True, exist_ok=True)
 
+    unmined = _find_unmined_cli()
+    if not unmined:
+        log(worker_id, "  unmined-cli not found — skipping render "
+            "(install to ~/.unmined/ or set UNMINED_CLI)")
+        return False
+
+    render_size = int(os.environ.get("ROLL_RENDER_SIZE", str(render_size)))
     half = render_size // 2
+
+    # tick freeze blocks chunk generation. Sprint clears the accumulated
+    # tick debt (prevents an unfreeze catch-up burst that starves RCON),
+    # then unfreeze enables normal ticking so forceloaded chunks generate.
+    rcon.cmd("tick sprint 200")
+    time.sleep(2)
+    rcon.cmd("tick unfreeze")
     rcon.cmd(f"execute in {dim} run forceload add {-half} {-half} {half - 1} {half - 1}")
-    time.sleep(12)
+    corners = [(-half, -half), (-half, half - 1), (half - 1, -half), (half - 1, half - 1), (0, 0)]
+    gen_deadline = time.time() + 120
+    loaded = 0
+    while time.time() < gen_deadline:
+        loaded = sum(1 for x, z in corners
+                     if test_ok(rcon.cmd(f"execute in {dim} if loaded {x} 64 {z}")))
+        if loaded >= len(corners):
+            break
+        time.sleep(3)
+    if loaded < len(corners):
+        log(worker_id, f"  only {loaded}/{len(corners)} corner chunks loaded after 120s")
     rcon.cmd("save-all flush")
-    time.sleep(3)
+    time.sleep(5)
+    rcon.cmd("tick freeze")
 
-    # BlueMap config
-    bm_cfg = Path(workdir) / "bluemap-render"
-    bm_data = Path(workdir) / "bluemap-data"
-    shutil.rmtree(bm_cfg, ignore_errors=True)
-    shutil.rmtree(bm_data, ignore_errors=True)
-    (bm_cfg / "maps").mkdir(parents=True)
-    (bm_cfg / "storages").mkdir(parents=True)
-    bm_data.mkdir(parents=True)
+    world_path = Path(workdir) / "world"
+    region_dir = world_path / "dimensions" / ns / cand / "region"
+    # macOS Docker VirtioFS can delay bind-mount sync — pull from container.
+    if not (region_dir.is_dir() and any(region_dir.glob("*.mca"))):
+        r = docker("exec", container, "ls",
+                   f"/data/world/dimensions/{ns}/{cand}/region/", check=False)
+        if r.returncode == 0 and ".mca" in (r.stdout or ""):
+            region_dir.mkdir(parents=True, exist_ok=True)
+            docker("cp", f"{container}:/data/world/dimensions/{ns}/{cand}/region/.",
+                   str(region_dir), check=False)
+            log(worker_id, f"  region files pulled from container (VirtioFS lag)")
+    if not (region_dir.is_dir() and any(region_dir.glob("*.mca"))):
+        log(worker_id, f"  no region files for {cand} — skipping render")
+        rcon.cmd(f"execute in {dim} run forceload remove all")
+        return False
 
-    (bm_cfg / "core.conf").write_text(
-        'accept-download: true\ndata: "/data"\nmetrics: false\n'
-        'scan-for-mod-resources: false\nrender-thread-count: 4\n')
-    (bm_cfg / "webserver.conf").write_text("enabled: false\n")
-    (bm_cfg / "storages" / "file.conf").write_text(
-        'storage-type: file\nroot: "/data/web/maps"\n')
+    zoom = int(os.environ.get("ROLL_RENDER_ZOOM", "0"))
+    world_path = str(world_path)
 
-    lighting = {"nether": _BLUEMAP_NETHER, "end": _BLUEMAP_END}.get(
-        family, _BLUEMAP_OVERWORLD)
-    (bm_cfg / "maps" / f"{cand}.conf").write_text(
-        f'world: "/world"\ndimension: "{dim}"\nname: "{cand}"\n'
-        f'sorting: 0\nstart-pos: {{ x: 0, z: 0 }}\n'
-        f'render-mask: [ {{ min-x: {-half}, max-x: {half}, '
-        f'min-z: {-half}, max-z: {half} }} ]\n'
-        'min-inhabited-time: 0\nrender-edges: true\n'
-        'enable-hires: true\nenable-perspective-view: false\n'
-        'enable-flat-view: true\nenable-free-flight-view: false\n'
-        'storage: "file"\nignore-missing-light-data: true\nmarker-sets: {}\n'
-        + lighting)
+    cmd = [unmined, "image", "render",
+           f"--world={world_path}",
+           f"--output={out_png}",
+           f"--dimension={dim}",
+           f"--area=b({-half},{-half},{render_size},{render_size})",
+           f"--zoom={zoom}",
+           "--trim",
+           "--shadows=true",
+           "--textures=true",
+           "-c",
+           "--log-level=warning"]
 
-    # Locate the mods directory (the worker dir has mods/ from prepare_base_dir)
-    mods_dir = Path(workdir) / "mods"
-    mods_flag = ["-n", "/mods"] if mods_dir.is_dir() else []
+    if family in NETHER_FAMILIES:
+        cmd.append("--topY=127")
 
-    bm_container = f"{container}-bm"
-    docker("rm", "-f", bm_container, check=False)
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if r.returncode == 0 and out_png.exists() and out_png.stat().st_size > 500:
+            kb = out_png.stat().st_size // 1024
+            log(worker_id, f"  render saved: {out_png.name} ({kb}KB)")
+            rcon.cmd(f"execute in {dim} run forceload remove all")
+            return True
+        stderr = (r.stderr or r.stdout or "")[:200]
+        log(worker_id, f"  unmined-cli exit {r.returncode}: {stderr}")
+    except subprocess.TimeoutExpired:
+        log(worker_id, "  unmined-cli timed out (60s)")
+    except OSError as e:
+        log(worker_id, f"  unmined-cli error: {e}")
 
-    r = docker("run", "--rm", "--name", bm_container,
-               "-v", f"{workdir}/world:/world:ro",
-               "-v", f"{bm_cfg}:/config",
-               "-v", f"{bm_data}:/data",
-               *(["-v", f"{mods_dir}:/mods:ro"] if mods_dir.is_dir() else []),
-               _BLUEMAP_IMAGE,
-               "-c", "/config",
-               *mods_flag,
-               "-v", "1.21.1",
-               "-r", "-f",
-               "-m", cand,
-               check=False, capture=True)
-
-    picked = False
-    if r.returncode == 0:
-        # Find the largest tile (most terrain data) from the lowres level
-        tiles_dir = bm_data / "web" / "maps" / cand / "tiles" / "1"
-        best_tile = None
-        best_size = 0
-        if tiles_dir.exists():
-            for tile_file in tiles_dir.rglob("*.png"):
-                sz = tile_file.stat().st_size
-                if sz > best_size:
-                    best_size = sz
-                    best_tile = tile_file
-        if best_tile and best_size > 1000:
-            shutil.copy2(best_tile, out_png)
-            picked = True
-            log(worker_id, f"  render saved: {out_png.name} ({best_size // 1024}KB)")
-        elif not best_tile:
-            log(worker_id, f"  render: no tiles produced for {cand}")
-    else:
-        stderr = (r.stderr or r.stdout or "")[:300]
-        log(worker_id, f"  bluemap exit {r.returncode}: {stderr}")
-
-    shutil.rmtree(bm_cfg, ignore_errors=True)
-    shutil.rmtree(bm_data, ignore_errors=True)
-    rcon.cmd("forceload remove all")
-    return picked
+    rcon.cmd(f"execute in {dim} run forceload remove all")
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -1437,7 +1456,7 @@ def run_shortlist_jobs(args, wid, container, base_config):
                 continue
             render_candidate(rcon, wid, args.workdir, args.seedtest, container,
                              ns, cand, target, seed, family=profile["family"] or "overworld")
-            destroy_candidate(rcon, args.workdir, ns, cand)
+            destroy_candidate(rcon, args.workdir, ns, cand, keep_files=True)
             rcon_failures = 0
         except (RconTimeout, RconClosed) as exc:
             reason = "rcon-timeout" if isinstance(exc, RconTimeout) else "rcon-closed"
