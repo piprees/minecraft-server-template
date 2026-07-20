@@ -195,32 +195,15 @@ print('  Done.')
     fi
     echo "  Dumping biome params for ALL families (one-time, ~90s server boot)..."
     prepare_base_dir
-    local WARMUP_DIR="$SEEDTEST/warmup"
-    rm -rf "$WARMUP_DIR"
-    local WORK_BASE="$SEEDTEST/base"
-    mkdir -p "$WARMUP_DIR/mods"
-    for jar in "$WORK_BASE/mods/"*.jar; do
-      ln "$jar" "$WARMUP_DIR/mods/" 2> /dev/null || cp "$jar" "$WARMUP_DIR/mods/"
-    done
-    local item
-    for item in .fabric libraries versions .install-fabric.env eula.txt; do
-      [[ -e "$WORK_BASE/$item" ]] && cp -a "$WORK_BASE/$item" "$WARMUP_DIR/"
-    done
-    cp "$WORK_BASE"/fabric-server-mc.*.jar "$WARMUP_DIR/" 2> /dev/null || true
-    local dir
-    for dir in config defaultconfigs moonlight-global-datapacks villagerpacks world-datapacks-template; do
-      [[ -d "$WORK_BASE/$dir" ]] && cp -a "$WORK_BASE/$dir" "$WARMUP_DIR/"
-    done
 
     python3 "$SCRIPT_DIR/warmup_biomes.py" \
-      --workdir "$WARMUP_DIR" \
+      --workdir "$SEEDTEST/base" \
       --mvconfig "$SEEDTEST/mvconfig-roll.json" \
       --seedtest "$SEEDTEST" \
       --output "$biome_params" \
       --memory "$ROLL_MEMORY" || {
         echo "  ERROR: biome param dump failed — seed scoring will be incomplete" >&2
       }
-    rm -rf "$WARMUP_DIR"
 
     docker ps -a --format '{{.Names}}' | grep '^seedrollall-warmup' \
       | xargs -I{} docker rm -f {} 2> /dev/null || true
