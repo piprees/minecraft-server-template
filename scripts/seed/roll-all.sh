@@ -146,8 +146,8 @@ warmup() {
   [[ ! -d "$SEEDTEST/.structure_sets" ]] && need_warmup=1
 
   local biome_params="$SCRIPT_DIR/biome_params.json"
+  local nether_count=0
   if [[ -f "$biome_params" ]]; then
-    local nether_count
     nether_count=$(python3 -c "
 import json
 params = json.load(open('$biome_params'))
