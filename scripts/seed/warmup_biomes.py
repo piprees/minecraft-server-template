@@ -69,9 +69,8 @@ def main():
 
     ns = "adventure"
     all_entries = []
-    seen_biomes = set()
 
-    for dim_id, create_type, family_name in FAMILIES:
+    for dim_id, create_type, _family_name in FAMILIES:
         if create_type is not None:
             out = rcon.cmd(f"customdim create {dim_id} {create_type} 1 - - -")
             if "Queued" not in (out or "") and "Created" not in (out or ""):
@@ -89,11 +88,7 @@ def main():
             dump_dim = dim_id
 
         entries = dump_family(rcon, dump_dim, args.workdir)
-        for e in entries:
-            key = (e["biome"], tuple(e["temperature"]), tuple(e["humidity"]))
-            if key not in seen_biomes:
-                seen_biomes.add(key)
-                all_entries.append(e)
+        all_entries.extend(entries)
 
         if create_type is not None:
             rcon.cmd(f"customdim destroy {dim_id}")

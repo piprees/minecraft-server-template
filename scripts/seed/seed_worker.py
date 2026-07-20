@@ -1437,6 +1437,7 @@ def run_shortlist_jobs(args, wid, container, base_config):
     if rcon is None:
         return 1
     rcon_failures = 0
+    rendered = 0
     for index, (target, seed) in enumerate(jobs):
         if should_stop():
             break
@@ -1450,6 +1451,14 @@ def run_shortlist_jobs(args, wid, container, base_config):
         else:
             log(wid, f"  unknown shortlist target: {target}")
             continue
+        # Restart the server every 15 renders to prevent memory exhaustion.
+        if rendered > 0 and rendered % 15 == 0:
+            log(wid, f"  restarting server after {rendered} renders (memory housekeeping)")
+            docker("rm", "-f", container, check=False)
+            prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+            rcon = boot(wid, container, args.workdir, args.memory)
+            if rcon is None:
+                return 1
         cand = f"shortlist_{target}__r{index:05d}"
         try:
             created, reason = create_candidate(rcon, wid, ns, cand, profile, seed)
@@ -1458,14 +1467,14 @@ def run_shortlist_jobs(args, wid, container, base_config):
                 continue
             render_candidate(rcon, wid, args.workdir, args.seedtest, container,
                              ns, cand, target, seed, family=profile["family"] or "overworld")
-            destroy_candidate(rcon, args.workdir, ns, cand, keep_files=True)
+            destroy_candidate(rcon, args.workdir, ns, cand)
             rcon_failures = 0
+            rendered += 1
+            if index < len(jobs) - 1:
+                log(wid, f"  [{rendered}/{len(jobs)}]")
         except (RconTimeout, RconClosed) as exc:
             reason = "rcon-timeout" if isinstance(exc, RconTimeout) else "rcon-closed"
-            diagnostic = capture_rcon_diagnostic(
-                args, wid, container, target, seed, exc)
-            log(wid, f"  shortlist RCON failure for {target} seed {seed}; "
-                     f"diagnostic: {diagnostic.name}")
+            log(wid, f"  RCON failure for {target} seed {seed} ({reason})")
             rcon_failures += 1
             rcon, rcon_failures = recover_rcon(
                 args, wid, container, rcon, rcon_failures, reason)
@@ -1474,6 +1483,7 @@ def run_shortlist_jobs(args, wid, container, base_config):
         except Exception as exc:  # noqa: BLE001 — one render must not abort the batch
             log(wid, f"  shortlist render error {target} seed {seed}: "
                      f"{type(exc).__name__}: {exc}")
+    log(wid, f"  rendered {rendered}/{len(jobs)} candidates")
     return 0
 
 
