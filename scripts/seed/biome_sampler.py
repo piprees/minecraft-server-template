@@ -405,6 +405,32 @@ class BiomeSampler:
                 climate[param_name] = 0.0
         return climate
 
+    def biome_and_climate(self, x, z):
+        """Return (biome_id, climate_dict) in one pass — no double computation."""
+        climate = self.sample_climate(x, z)
+        point = (climate["temperature"], climate["humidity"],
+                 climate["continentalness"], climate["erosion"],
+                 climate["depth"], climate["weirdness"])
+        best_biome = "unknown"
+        best_dist = float('inf')
+        for biome_id, ranges, offset in self._entries:
+            dist_sq = 0.0
+            for i in range(6):
+                val = point[i]
+                lo, hi = ranges[i]
+                if val < lo:
+                    d = lo - val
+                elif val > hi:
+                    d = val - hi
+                else:
+                    d = 0.0
+                dist_sq += d * d
+            dist_sq += offset * offset
+            if dist_sq < best_dist:
+                best_dist = dist_sq
+                best_biome = biome_id
+        return best_biome, climate
+
     def biome_at(self, x, z):
         """Return the biome ID at world coordinates (x, z)."""
         climate = self.sample_climate(x, z)

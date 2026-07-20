@@ -237,93 +237,28 @@ roll() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 3: Render — MC server + unmined-cli (flat top-down map)
+# Phase 3: Render — pure-Python biome maps (no MC server, no Docker)
 # ---------------------------------------------------------------------------
 render() {
-  command -v docker > /dev/null || {
-    echo "Skipping renders: docker not available"
-    return 0
-  }
-  ls "$LOCAL_DATA"/mods/customdimensions*.jar > /dev/null 2>&1 || {
-    echo "Skipping renders: customdimensions jar missing"
-    return 0
-  }
-  # unmined-cli renders on the host (no Docker) — check it exists
-  if [[ -z "${UNMINED_CLI:-}" ]]; then
-    UNMINED_CLI=$(find "$HOME/.unmined" -name "unmined-cli" -type f 2>/dev/null | sort -r | head -1)
-  fi
-  if [[ ! -x "${UNMINED_CLI:-}" ]]; then
-    echo "Skipping renders: unmined-cli not found (install to ~/.unmined/ or set UNMINED_CLI)"
-    return 0
-  fi
-  export UNMINED_CLI
-
   echo ""
   echo "=== Rendering top $ROLL_RENDER_TOP candidates per dimension ==="
-  echo "  unmined-cli: $UNMINED_CLI"
-  echo "  render size: ${ROLL_RENDER_SIZE} blocks, zoom ${ROLL_RENDER_ZOOM:-0}"
 
-  # Clear old renders so the manifest doesn't skip broken BlueMap tiles
-  if [[ -d "$SEEDTEST/renders" ]]; then
-    local old_count
-    old_count=$(find "$SEEDTEST/renders" -name "*.png" -type f 2>/dev/null | wc -l | tr -d ' ')
-    if [[ "$old_count" -gt 0 ]]; then
-      echo "  Clearing $old_count existing renders (re-rendering with unmined-cli)"
-      rm -rf "$SEEDTEST/renders"
-    fi
+  local biome_params="$SCRIPT_DIR/biome_params.json"
+  if [[ ! -f "$biome_params" ]]; then
+    echo "  ERROR: biome_params.json not found — run warmup first" >&2
+    return 1
   fi
 
-  # Generate render manifest
   # shellcheck disable=SC2086
-  python3 "$SCRIPT_DIR/score-dimensions.py" render-manifest \
-    --config "$CONFIG" --seedtest "$SEEDTEST" --workers 1 \
-    --top "$ROLL_RENDER_TOP" ${DIMS:+--dims "$DIMS"} || true
-
-  if [[ ! -s "$SEEDTEST/work-r0.txt" ]]; then
-    echo "  All top candidates already have renders."
-    return 0
-  fi
-
-  RENDER_COUNT=$(wc -l < "$SEEDTEST/work-r0.txt" | tr -d ' ')
-  echo "  $RENDER_COUNT candidates to render"
-
-  prepare_base_dir
-
-  # Prepare render worker dir
-  local RENDER_DIR="$SEEDTEST/wr"
-  if [[ ! -f "$RENDER_DIR/.ready" ]]; then
-    local WORK_BASE="$SEEDTEST/base"
-    mkdir -p "$RENDER_DIR/mods"
-    local jar
-    for jar in "$WORK_BASE/mods/"*.jar; do
-      ln "$jar" "$RENDER_DIR/mods/" 2> /dev/null || cp "$jar" "$RENDER_DIR/mods/"
-    done
-    local item
-    for item in .fabric libraries versions .install-fabric.env eula.txt; do
-      [[ -e "$WORK_BASE/$item" ]] && cp -a "$WORK_BASE/$item" "$RENDER_DIR/"
-    done
-    cp "$WORK_BASE"/fabric-server-mc.*.jar "$RENDER_DIR/" 2> /dev/null || true
-    local dir
-    for dir in config defaultconfigs moonlight-global-datapacks villagerpacks world-datapacks-template; do
-      [[ -d "$WORK_BASE/$dir" ]] && cp -a "$WORK_BASE/$dir" "$RENDER_DIR/"
-    done
-    touch "$RENDER_DIR/.ready"
-  fi
-
-  rm -f "$SEEDTEST/.stop"
-  python3 "$SCRIPT_DIR/seed_worker.py" \
-    --worker-id "r" \
-    --workdir "$RENDER_DIR" \
-    --manifest "$SEEDTEST/work-r0.txt" \
-    --mvconfig "$SEEDTEST/mvconfig-roll.json" \
-    --base-config "$CONFIG" \
+  python3 "$SCRIPT_DIR/biome_renderer.py" batch \
+    --config "$CONFIG" \
     --seedtest "$SEEDTEST" \
-    --mode shortlist \
-    --memory "$ROLL_MEMORY" || true
-
-  # Cleanup containers
-  docker ps -a --format '{{.Names}}' | grep '^seedrollall-' \
-    | xargs -I{} docker rm -f {} 2> /dev/null || true
+    --biome-params "$biome_params" \
+    --top "$ROLL_RENDER_TOP" \
+    --size "${ROLL_RENDER_SIZE:-512}" \
+    --scale 8 \
+    --sample-res 128 \
+    ${DIMS:+--dims "$DIMS"} || true
 
   echo "=== Renders complete ==="
 }

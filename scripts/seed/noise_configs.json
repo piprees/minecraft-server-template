@@ -1,27 +1,227 @@
 {
   "overworld": {
-    "temperature":     {"noise_id": "minecraft:temperature",     "first_octave": -10, "amplitudes": [1.5, 0.0, 1.0, 0.0, 0.0, 0.0], "xz_scale": 0.25},
-    "humidity":        {"noise_id": "minecraft:vegetation",      "first_octave": -8,  "amplitudes": [1.0, 1.0, 0.0, 0.0, 0.0, 0.0], "xz_scale": 0.25},
-    "continentalness": {"noise_id": "minecraft:continentalness", "first_octave": -9,  "amplitudes": [1.0, 1.0, 2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0], "xz_scale": 0.25},
-    "erosion":         {"noise_id": "minecraft:erosion",         "first_octave": -9,  "amplitudes": [1.0, 1.0, 0.0, 1.0, 1.0], "xz_scale": 0.25},
-    "weirdness":       {"noise_id": "minecraft:ridge",           "first_octave": -7,  "amplitudes": [1.0, 2.0, 1.0, 0.0, 0.0, 0.0], "xz_scale": 0.25}
+    "temperature": {
+      "noise_id": "minecraft:temperature",
+      "first_octave": -10,
+      "amplitudes": [
+        1.5,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.25
+    },
+    "humidity": {
+      "noise_id": "minecraft:vegetation",
+      "first_octave": -8,
+      "amplitudes": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.25
+    },
+    "continentalness": {
+      "noise_id": "minecraft:continentalness",
+      "first_octave": -9,
+      "amplitudes": [
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "xz_scale": 0.25
+    },
+    "erosion": {
+      "noise_id": "minecraft:erosion",
+      "first_octave": -9,
+      "amplitudes": [
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "xz_scale": 0.25
+    },
+    "weirdness": {
+      "noise_id": "minecraft:ridge",
+      "first_octave": -7,
+      "amplitudes": [
+        1.0,
+        2.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.25
+    }
   },
   "nether": {
-    "temperature": {"noise_id": "incendium:climate/temperature", "first_octave": -8, "amplitudes": [1, 1], "xz_scale": 0.25},
-    "humidity":    {"noise_id": "incendium:climate/humidity",     "first_octave": -8, "amplitudes": [1, 1], "xz_scale": 0.25},
-    "erosion":     {"noise_id": "incendium:climate/erosion",      "first_octave": -8, "amplitudes": [1, 1, 0.5, 2.25], "xz_scale": 0.19},
-    "weirdness":   {"noise_id": "incendium:climate/weirdness",    "first_octave": -7, "amplitudes": [1, 1, 1.25, 0.75], "xz_scale": 0.225}
+    "temperature": {
+      "noise_id": "incendium:climate/temperature",
+      "first_octave": -8,
+      "amplitudes": [
+        1,
+        1
+      ],
+      "xz_scale": 0.25
+    },
+    "humidity": {
+      "noise_id": "incendium:climate/humidity",
+      "first_octave": -8,
+      "amplitudes": [
+        1,
+        1
+      ],
+      "xz_scale": 0.25
+    },
+    "erosion": {
+      "noise_id": "incendium:climate/erosion",
+      "first_octave": -8,
+      "amplitudes": [
+        1,
+        1,
+        0.5,
+        2.25
+      ],
+      "xz_scale": 0.19
+    },
+    "weirdness": {
+      "noise_id": "incendium:climate/weirdness",
+      "first_octave": -7,
+      "amplitudes": [
+        1,
+        1,
+        1.25,
+        0.75
+      ],
+      "xz_scale": 0.225
+    }
   },
   "end": {
-    "temperature": {"noise_id": "nullscape:terrain/temperature", "first_octave": -11, "amplitudes": [1.5, 0, 1, 0, 0, 0], "xz_scale": 0.25},
-    "humidity":    {"noise_id": "nullscape:terrain/vegetation",   "first_octave": -10, "amplitudes": [1, 1, 0, 0, 0, 0], "xz_scale": 0.25},
-    "erosion":     {"noise_id": "minecraft:erosion",              "first_octave": -9,  "amplitudes": [1.0, 1.0, 0.0, 1.0, 1.0], "xz_scale": 0.25},
-    "weirdness":   {"noise_id": "minecraft:ridge",                "first_octave": -7,  "amplitudes": [1.0, 2.0, 1.0, 0.0, 0.0, 0.0], "xz_scale": 0.25}
+    "temperature": {
+      "noise_id": "nullscape:terrain/temperature",
+      "first_octave": -11,
+      "amplitudes": [
+        1.5,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "xz_scale": 0.25
+    },
+    "humidity": {
+      "noise_id": "nullscape:terrain/vegetation",
+      "first_octave": -10,
+      "amplitudes": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "xz_scale": 0.25
+    },
+    "erosion": {
+      "noise_id": "minecraft:erosion",
+      "first_octave": -9,
+      "amplitudes": [
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "xz_scale": 0.25
+    },
+    "weirdness": {
+      "noise_id": "minecraft:ridge",
+      "first_octave": -7,
+      "amplitudes": [
+        1.0,
+        2.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.25
+    },
+    "continentalness": {
+      "noise_id": "nullscape:terrain/continentalness",
+      "first_octave": -9,
+      "amplitudes": [
+        1.125,
+        1.125,
+        2.25,
+        3,
+        1
+      ],
+      "xz_scale": 0.25
+    }
   },
   "paradise_lost": {
-    "temperature": {"noise_id": "paradise_lost:generator/temperature", "first_octave": -9, "amplitudes": [1.5, 0.0, 1.0, 0.0, 0.0, 0.0], "xz_scale": 0.28},
-    "humidity":    {"noise_id": "paradise_lost:generator/vegetation",   "first_octave": -8, "amplitudes": [1.0, 1.0, 0.0, 0.0, 0.0, 0.0], "xz_scale": 0.33},
-    "erosion":     {"noise_id": "paradise_lost:generator/erosion",      "first_octave": -9, "amplitudes": [1, 1, 1, 1], "xz_scale": 1.0},
-    "weirdness":   {"noise_id": "paradise_lost:generator/ridges",       "first_octave": -6, "amplitudes": [1, 1, 1], "xz_scale": 1.0}
+    "temperature": {
+      "noise_id": "paradise_lost:generator/temperature",
+      "first_octave": -9,
+      "amplitudes": [
+        1.5,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.28
+    },
+    "humidity": {
+      "noise_id": "paradise_lost:generator/vegetation",
+      "first_octave": -8,
+      "amplitudes": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "xz_scale": 0.33
+    },
+    "erosion": {
+      "noise_id": "paradise_lost:generator/erosion",
+      "first_octave": -9,
+      "amplitudes": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "xz_scale": 1.0
+    },
+    "weirdness": {
+      "noise_id": "paradise_lost:generator/ridges",
+      "first_octave": -6,
+      "amplitudes": [
+        1,
+        1,
+        1
+      ],
+      "xz_scale": 1.0
+    }
   }
 }
