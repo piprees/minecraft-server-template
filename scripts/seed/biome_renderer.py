@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""biome_renderer.py — Generate biome map images from seeds, no MC server.
+"""biome_renderer.py — Generate terrain-aware biome map images from seeds, no MC server.
 
 Uses the BiomeSampler (modded multinoise reimplementation) to sample biomes
-on a dense grid, then writes a PNG with Minecraft's biome colour palette.
+on a dense grid, then renders a terrain map using:
+  - Surface-block colours from surface_rules.py (MC map colours per biome)
+  - Spline-based terrain heights from terrain_height.py (Terralith's offset spline)
+  - Water depth shading from continentalness thresholds
+  - Vegetation density overlay per biome
+  - Hillshade from computed terrain heights
+
 ~0.5-2s per 1024x1024 image depending on the noise config complexity.
 
 Usage:
-    python3 biome_renderer.py --seed 12345 --output map.png
-    python3 biome_renderer.py --seed 12345 --family nether --output nether.png
-    python3 biome_renderer.py --batch candidates.json --config <dir> --output-dir renders/
+    python3 biome_renderer.py render --seed 12345 --output map.png
+    python3 biome_renderer.py render --seed 12345 --family nether --output nether.png
+    python3 biome_renderer.py batch --config <dir> --seedtest <dir>
 """
 import argparse
-import json
 import struct
 import sys
 import zlib
@@ -19,6 +24,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from biome_sampler import BiomeSampler, load_noise_configs  # noqa: E402
+from surface_rules import surface_and_density  # noqa: E402
+from terrain_height import TerrainEvaluator, SPLINES_PATH  # noqa: E402
 
 BIOME_COLOURS = {
     "minecraft:ocean": (0, 0, 112), "minecraft:deep_ocean": (0, 0, 80),
@@ -150,92 +157,132 @@ def write_png(path, pixels, width, height):
     Path(path).write_bytes(out)
 
 
+_terrain_evaluator = None
+
+
+def _get_terrain_evaluator():
+    global _terrain_evaluator
+    if _terrain_evaluator is None and SPLINES_PATH.exists():
+        _terrain_evaluator = TerrainEvaluator()
+    return _terrain_evaluator
+
+
+SEA_LEVEL = 63
+
+
 def render_biome_map(seed, biome_params_path, output_path,
                      noise_config=None, family=None, biome_filter=None,
                      size=1024, blocks_per_pixel=4,
                      sample_resolution=256):
-    """Render a biome map image.
+    """Render a terrain-aware biome map image.
 
     Samples biomes at sample_resolution×sample_resolution internally,
-    then scales up to the output size. This is how Chunkbase works —
-    biomes are coarse (1 per 4 blocks in MC), so oversampling is waste.
+    then scales up to the output size. Uses surface-block colours,
+    spline-based terrain heights, water depth shading, and vegetation
+    density for a terrain-like appearance.
     """
     sampler = BiomeSampler(int(seed), biome_params_path,
                            noise_config=noise_config, family=family,
                            biome_filter=biome_filter)
+
+    use_spline_heights = (family in (None, "overworld") and
+                          _get_terrain_evaluator() is not None)
+    evaluator = _get_terrain_evaluator() if use_spline_heights else None
 
     total_blocks = size * blocks_per_pixel
     half = total_blocks // 2
     sample_step = total_blocks // sample_resolution
     upscale = size // sample_resolution
 
-    # Sample biomes + climate in one pass (no double computation)
     grid = []
     climates = []
+    heights = []
     for sy in range(sample_resolution):
         row = []
         crow = []
+        hrow = []
         z = -half + sy * sample_step
         for sx in range(sample_resolution):
             x = -half + sx * sample_step
             biome, climate = sampler.biome_and_climate(x, z)
-            row.append((biome, biome_colour(biome)))
+            (surf_col, density) = surface_and_density(biome)
+            id_col = biome_colour(biome)
+            # Blend: 55% surface-block + 45% biome-identity for readability
+            colour = (
+                int(surf_col[0] * 0.55 + id_col[0] * 0.45),
+                int(surf_col[1] * 0.55 + id_col[1] * 0.45),
+                int(surf_col[2] * 0.55 + id_col[2] * 0.45),
+            )
+            row.append((biome, colour, density))
             crow.append(climate)
+            cont = climate.get("continentalness", 0.0)
+            ero = climate.get("erosion", 0.0)
+            weird = climate.get("weirdness", 0.0)
+            if evaluator is not None:
+                h = evaluator.surface_height(cont, ero, weird)
+            else:
+                h = cont * 40.0 - ero * 20.0 + 63.0
+            hrow.append(h)
         grid.append(row)
         climates.append(crow)
+        heights.append(hrow)
 
-    # Build height + shade + texture arrays
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
         for px in range(size):
             sx = min(px // upscale, sample_resolution - 1)
-            biome_id, (r, g, b) = grid[sy][sx]
+            biome_id, (r, g, b), veg_density = grid[sy][sx]
             c = climates[sy][sx]
             cont = c.get("continentalness", 0.0)
-            ero = c.get("erosion", 0.0)
             weird = c.get("weirdness", 0.0)
-            temp = c.get("temperature", 0.0)
+            h = heights[sy][sx]
 
-            # Height from continentalness + erosion
-            h = cont * 0.7 - ero * 0.3
+            # Hillshade from terrain heights
+            hn = heights[max(0, sy - 1)][sx]
+            hs = heights[min(sample_resolution - 1, sy + 1)][sx]
+            he = heights[sy][min(sample_resolution - 1, sx + 1)]
+            hw = heights[sy][max(0, sx - 1)]
 
-            # Hillshade from neighbouring cells
-            def h_at(dy, dx):
-                ny = max(0, min(sample_resolution - 1, sy + dy))
-                nx = max(0, min(sample_resolution - 1, sx + dx))
-                nc = climates[ny][nx]
-                return nc.get("continentalness", 0.0) * 0.7 - nc.get("erosion", 0.0) * 0.3
-
-            dzdx = (h_at(0, 1) - h_at(0, -1)) * 6.0
-            dzdy = (h_at(1, 0) - h_at(-1, 0)) * 6.0
+            dzdx = (he - hw) * 0.12
+            dzdy = (hs - hn) * 0.12
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
             light = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
-            shade = 0.5 + 0.5 * max(-1.0, min(1.0, light))
+            shade = 0.6 + 0.4 * max(-1.0, min(1.0, light))
 
-            # Temperature tint: warm biomes slightly warmer hue, cold slightly cooler
-            temp_shift = max(-0.15, min(0.15, temp * 0.08))
-            r = max(0, min(255, int(r * (1 + temp_shift))))
-            g = max(0, min(255, int(g * (1 - abs(temp_shift) * 0.3))))
-            b = max(0, min(255, int(b * (1 - temp_shift))))
+            # Weirdness micro-texture
+            weird_tex = 1.0 + weird * 0.03
+            r = int(r * weird_tex)
+            g = int(g * weird_tex)
+            b = int(b * weird_tex)
 
-            # Weirdness micro-texture: adds vegetation-like variation
-            weird_tex = 1.0 + weird * 0.06
-            r = max(0, min(255, int(r * weird_tex)))
-            g = max(0, min(255, int(g * weird_tex)))
-            b = max(0, min(255, int(b * weird_tex)))
+            # Vegetation density (blend towards dark green, not black)
+            if veg_density < 1.0:
+                canopy_r, canopy_g, canopy_b = 20, 40, 10
+                f = veg_density
+                r = int(r * (0.3 + 0.7 * f) + canopy_r * (1 - f))
+                g = int(g * (0.4 + 0.6 * f) + canopy_g * (1 - f))
+                b = int(b * (0.3 + 0.7 * f) + canopy_b * (1 - f))
 
-            # Water depth: oceans darker towards center
-            if "ocean" in biome_id or "river" in biome_id:
-                depth = max(0.6, 1.0 + cont * 0.3)
-                r = max(0, min(255, int(r * depth)))
-                g = max(0, min(255, int(g * depth)))
-                b = max(0, min(255, int(b * depth)))
+            # Water depth gradient
+            is_water = "ocean" in biome_id or "river" in biome_id
+            if is_water:
+                if cont < -0.455:
+                    depth_factor = 0.65 + 0.2 * max(0, (cont + 1.05) / 0.595)
+                elif cont < -0.19:
+                    depth_factor = 0.80 + 0.15 * max(0, (cont + 0.455) / 0.265)
+                else:
+                    depth_factor = 0.95
+                depth_factor = max(0.55, min(1.0, depth_factor))
+                r = int(r * depth_factor)
+                g = int(g * depth_factor)
+                b = int(b * depth_factor)
 
-            # Apply hillshade
-            r = max(0, min(255, int(r * shade)))
-            g = max(0, min(255, int(g * shade)))
-            b = max(0, min(255, int(b * shade)))
+            # Apply hillshade (strongly reduced on water)
+            final_shade = 0.85 + 0.15 * shade if is_water else shade
+            r = max(0, min(255, int(r * final_shade)))
+            g = max(0, min(255, int(g * final_shade)))
+            b = max(0, min(255, int(b * final_shade)))
 
             off = (py * size + px) * 3
             pixels[off] = r
@@ -275,12 +322,11 @@ def batch_render(config_path, seedtest_path, biome_params_path,
     import multiprocessing
     import time
 
-    from dimension_profiles import load_config, load_difficulty, build_profile, rollable, family_of
+    from dimension_profiles import load_config, load_difficulty, build_profile, rollable
     import candidates as cmod
 
     config = load_config(config_path)
     difficulty = load_difficulty(config_path)
-    configs = load_noise_configs()
 
     dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
     worlds = {w["name"]: w for w in config.get("worlds", [])}

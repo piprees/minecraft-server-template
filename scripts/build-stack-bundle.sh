@@ -74,6 +74,16 @@ MANIFEST=(
   scripts/seed/report-top.sh
   scripts/seed/score-report.py
   scripts/seed/viewer-server.py
+  scripts/seed/biome_renderer.py
+  scripts/seed/biome_sampler.py
+  scripts/seed/fast_roller.py
+  scripts/seed/structure_placement.py
+  scripts/seed/surface_rules.py
+  scripts/seed/terrain_height.py
+  scripts/seed/warmup_biomes.py
+  scripts/seed/terrain_splines.json
+  scripts/seed/biome_params.json
+  scripts/seed/noise_configs.json
   scripts/seed/profiles/classic.profile
   scripts/seed/profiles/overworld-natural.profile
   scripts/seed/profiles/dim-hard-overworld.profile

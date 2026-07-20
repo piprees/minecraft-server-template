@@ -343,20 +343,23 @@ class BiomeSampler:
         if noise_config is None:
             noise_config = load_noise_configs().get("overworld", _OVERWORLD_FALLBACK)
 
-        # Pre-parse ranges for fast lookup, filtered by family then biome list
+        # Pre-parse ranges into flat tuples for fast lookup.
+        # _entries: list of (biome_id, lo0,hi0,lo1,hi1,...,lo5,hi5, offset_sq)
+        # Flat layout avoids per-iteration tuple/list indexing overhead.
         self._entries = []
         for entry in self.biome_table:
             if family and entry.get("family") and entry["family"] != family:
                 continue
             if biome_filter and entry["biome"] not in biome_filter:
                 continue
-            ranges = []
+            flat = []
             for param in ("temperature", "humidity", "continentalness",
                           "erosion", "depth", "weirdness"):
                 lo, hi = entry[param]
-                ranges.append((lo, hi))
+                flat.append(lo)
+                flat.append(hi)
             offset = entry.get("offset", 0.0)
-            self._entries.append((entry["biome"], ranges, offset))
+            self._entries.append((entry["biome"], tuple(flat), offset * offset))
 
         # Create noise samplers from the world seed
         rng = Xoroshiro128PlusPlus(seed)
@@ -408,56 +411,72 @@ class BiomeSampler:
     def biome_and_climate(self, x, z):
         """Return (biome_id, climate_dict) in one pass — no double computation."""
         climate = self.sample_climate(x, z)
-        point = (climate["temperature"], climate["humidity"],
-                 climate["continentalness"], climate["erosion"],
-                 climate["depth"], climate["weirdness"])
+        t = climate["temperature"]
+        h = climate["humidity"]
+        c = climate["continentalness"]
+        e = climate["erosion"]
+        dp = climate["depth"]
+        w = climate["weirdness"]
         best_biome = "unknown"
         best_dist = float('inf')
-        for biome_id, ranges, offset in self._entries:
-            dist_sq = 0.0
-            for i in range(6):
-                val = point[i]
-                lo, hi = ranges[i]
-                if val < lo:
-                    d = lo - val
-                elif val > hi:
-                    d = val - hi
-                else:
-                    d = 0.0
-                dist_sq += d * d
-            dist_sq += offset * offset
-            if dist_sq < best_dist:
-                best_dist = dist_sq
+        for biome_id, flat, off_sq in self._entries:
+            # Unrolled 6D distance with early exit — skip entries that
+            # can't beat the current best after checking 2 parameters.
+            d = off_sq
+            v = t
+            if v < flat[0]:
+                v = flat[0] - v
+                d += v * v
+            elif v > flat[1]:
+                v = v - flat[1]
+                d += v * v
+            v = h
+            if v < flat[2]:
+                v = flat[2] - v
+                d += v * v
+            elif v > flat[3]:
+                v = v - flat[3]
+                d += v * v
+            if d >= best_dist:
+                continue
+            v = c
+            if v < flat[4]:
+                v = flat[4] - v
+                d += v * v
+            elif v > flat[5]:
+                v = v - flat[5]
+                d += v * v
+            v = e
+            if v < flat[6]:
+                v = flat[6] - v
+                d += v * v
+            elif v > flat[7]:
+                v = v - flat[7]
+                d += v * v
+            if d >= best_dist:
+                continue
+            v = dp
+            if v < flat[8]:
+                v = flat[8] - v
+                d += v * v
+            elif v > flat[9]:
+                v = v - flat[9]
+                d += v * v
+            v = w
+            if v < flat[10]:
+                v = flat[10] - v
+                d += v * v
+            elif v > flat[11]:
+                v = v - flat[11]
+                d += v * v
+            if d < best_dist:
+                best_dist = d
                 best_biome = biome_id
         return best_biome, climate
 
     def biome_at(self, x, z):
         """Return the biome ID at world coordinates (x, z)."""
-        climate = self.sample_climate(x, z)
-        point = (climate["temperature"], climate["humidity"],
-                 climate["continentalness"], climate["erosion"],
-                 climate["depth"], climate["weirdness"])
-
-        best_biome = "unknown"
-        best_dist = float('inf')
-
-        for biome_id, ranges, offset in self._entries:
-            dist_sq = 0.0
-            for i in range(6):
-                val = point[i]
-                lo, hi = ranges[i]
-                if val < lo:
-                    d = lo - val
-                elif val > hi:
-                    d = val - hi
-                else:
-                    d = 0.0
-                dist_sq += d * d
-            dist_sq += offset * offset
-            if dist_sq < best_dist:
-                best_dist = dist_sq
-                best_biome = biome_id
-        return best_biome
+        return self.biome_and_climate(x, z)[0]
 
     def locate_biome(self, biome_id, radius=6400, step=64, origin_x=0, origin_z=0):
         """Find the nearest instance of biome_id within radius of origin.
