@@ -84,6 +84,12 @@ FAMILY_NOISE = {
     "end": "end", None: "overworld",
 }
 
+# Clone-type families that need a specific noise config despite family_of()
+# returning "overworld" (paradise_lost is a mod dimension with its own noise).
+_TYPE_NOISE_OVERRIDE = {
+    "paradise_lost:paradise_lost": "paradise_lost",
+}
+
 
 def _cont_to_height(cont):
     for i in range(len(_CONT_TO_HEIGHT) - 1):
@@ -244,41 +250,23 @@ def _process_dimension(task):
     survivors = tier1[:keep_count]
     tier1_ms = (time.time() - t0) * 1000
 
-    # Tier 2: full biome+terrain on survivors
+    # Tier 2: full biome+terrain on survivors — ALL families use biome
+    # sampling when biome_params.json has entries for their biomes.
     fam = profile["family"] or "overworld"
-    # BiomeSampler only works for overworld-family dimensions — the
-    # biome_params.json is dumped from the overworld biome source.
-    # Nether/end/paradise_lost have different parameter tables.
-    can_sample_biomes = fam == "overworld"
-
-    if can_sample_biomes:
-        noise_config = noise_configs.get("overworld")
-        config_biomes = profile.get("create_args", {}).get("biome")
-        biome_filter = set(config_biomes.split(",")) if config_biomes else None
-    else:
-        noise_config = None
-        biome_filter = None
+    dim_type = profile.get("type", "")
+    noise_family = _TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
+    noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
+    config_biomes = profile.get("create_args", {}).get("biome")
+    biome_filter = set(config_biomes.split(",")) if config_biomes else None
 
     results = []
     accepted = 0
     rejected = 0
     for _t1_score, seed, struct_dists in survivors:
-        if can_sample_biomes:
-            sampler = BiomeSampler(seed, biome_params_path,
-                                   noise_config=noise_config,
-                                   biome_filter=biome_filter)
-            rows, ok = tier2_measure(seed, profile, sampler)
-        else:
-            # Non-overworld: accept all tier-1 survivors, structure-only
-            rows = []
-            spawn = profile["namesake"][0] if profile["namesake"] else "unknown"
-            rows.append(("spawn_biome", spawn))
-            rows.append(("spawn_x", 0))
-            rows.append(("spawn_z", 0))
-            if profile["namesake"]:
-                rows.append(("spawn_filter_dist", 0))
-            rows.append(("errors", 0))
-            ok = True
+        sampler = BiomeSampler(seed, biome_params_path,
+                               noise_config=noise_config,
+                               biome_filter=biome_filter)
+        rows, ok = tier2_measure(seed, profile, sampler)
 
         # Merge structure distances into rows
         for sname, sid, _band, _kind in profile["battery"]:
