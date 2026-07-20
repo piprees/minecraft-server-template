@@ -29,7 +29,9 @@
       "natures_spirit:fir_forest",
       "terralith:siberian_taiga",
       "natures_spirit:coniferous_covert",
-      "minecraft:old_growth_pine_taiga"
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:taiga",
+      "minecraft:snowy_taiga"
     ],
     "wants": {
       "firetower": "near_spawn",

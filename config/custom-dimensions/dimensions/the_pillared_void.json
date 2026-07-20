@@ -28,7 +28,9 @@
     "mood": "desolate",
     "spawnFilter": [
       "nullscape:void_barrens",
-      "minecraft:small_end_islands"
+      "minecraft:small_end_islands",
+      "minecraft:end_barrens",
+      "minecraft:the_end"
     ],
     "wants": {
       "ender_spire": "spread",
