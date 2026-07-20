@@ -5,20 +5,19 @@ Boots a short-lived MC server, creates one dimension per family (nether,
 end, paradise_lost), dumps biome params via RCON, and merges them into
 biome_params.json. Runs once during warmup; cached for all future rolls.
 
-Usage (called by roll-all.sh warmup):
-    python3 warmup_biomes.py --workdir <dir> --output <biome_params.json> --memory 10G
+Uses docker exec rcon-cli for ALL RCON commands — the Python RCON socket
+enters a bad state after the boot warmup's create/destroy cycle.
 """
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from seed_worker import (  # noqa: E402
-    boot, docker, log, prepare_boot_dir, RconTimeout, RconClosed,
-)
+from seed_worker import boot, docker, prepare_boot_dir  # noqa: E402
 
 FAMILIES = [
     ("minecraft:overworld", None, "overworld"),
@@ -28,19 +27,16 @@ FAMILIES = [
 ]
 
 
-def dump_family(rcon, dim_id, workdir, container=None):
-    """Run dump-biome-params for one dimension, return the JSON entries.
-    Uses docker exec rcon-cli to avoid RCON socket state issues."""
-    if container:
-        r = docker("exec", container, "rcon-cli",
-                   f"customdim dump-biome-params {dim_id}", check=False)
-        out = r.stdout or ""
-    else:
-        try:
-            out = rcon.cmd(f"customdim dump-biome-params {dim_id}")
-        except (RconTimeout, RconClosed) as exc:
-            print(f"  RCON error dumping {dim_id}: {exc}", flush=True)
-            return []
+def rcon(container, cmd):
+    """Run one RCON command via docker exec rcon-cli (fresh connection)."""
+    r = subprocess.run(
+        ["docker", "exec", container, "rcon-cli", cmd],
+        capture_output=True, text=True, timeout=30)
+    return r.stdout.strip()
+
+
+def dump_family(container, dim_id, workdir):
+    out = rcon(container, f"customdim dump-biome-params {dim_id}")
     if "Dumped" not in out:
         print(f"  dump-biome-params {dim_id} failed: {out[:120]}", flush=True)
         return []
@@ -62,28 +58,27 @@ def main():
     ap.add_argument("--memory", default=os.environ.get("ROLL_MEMORY", "10G"))
     args = ap.parse_args()
 
-    wid = "warmup"
     container = "seedrollall-warmup-biomes"
-
     prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
     print("  Booting MC server for biome param dump...", flush=True)
-    rcon = boot(wid, container, args.workdir, args.memory)
-    if rcon is None:
+    rcon_obj = boot("warmup", container, args.workdir, args.memory)
+    if rcon_obj is None:
         print("  ERROR: server boot failed", flush=True)
         docker("rm", "-f", container, check=False)
         return 1
+    rcon_obj.close()
 
     ns = "adventure"
     all_entries = []
 
     for dim_id, create_type, family_tag in FAMILIES:
         if create_type is not None:
-            out = rcon.cmd(f"customdim create {dim_id} {create_type} 1 - - -")
-            if "Queued" not in (out or "") and "Created" not in (out or ""):
+            out = rcon(container, f"customdim create {dim_id} {create_type} 1 - - -")
+            if "Queued" not in out and "Created" not in out:
                 print(f"  failed to create {dim_id}: {out[:120]}", flush=True)
                 continue
             for _ in range(12):
-                if "Seed" in rcon.cmd(f"execute in {ns}:{dim_id} run seed"):
+                if "Seed" in rcon(container, f"execute in {ns}:{dim_id} run seed"):
                     break
                 time.sleep(2)
             else:
@@ -93,13 +88,13 @@ def main():
         else:
             dump_dim = dim_id
 
-        entries = dump_family(rcon, dump_dim, args.workdir, container=container)
+        entries = dump_family(container, dump_dim, args.workdir)
         for e in entries:
             e["family"] = family_tag
         all_entries.extend(entries)
 
         if create_type is not None:
-            rcon.cmd(f"customdim destroy {dim_id}")
+            rcon(container, f"customdim destroy {dim_id}")
             time.sleep(1)
 
     docker("rm", "-f", container, check=False)
@@ -112,15 +107,7 @@ def main():
 
     families = {}
     for e in all_entries:
-        b = e["biome"]
-        if any(x in b for x in ("nether", "crimson", "warped", "soul_sand", "basalt")):
-            families.setdefault("nether", set()).add(b)
-        elif any(x in b for x in ("the_end", "end_", "small_end")):
-            families.setdefault("end", set()).add(b)
-        elif "paradise" in b or "aurel" in b:
-            families.setdefault("paradise_lost", set()).add(b)
-        else:
-            families.setdefault("overworld", set()).add(b)
+        families.setdefault(e.get("family", "?"), set()).add(e["biome"])
 
     print(f"  Merged: {len(all_entries)} entries "
           f"({', '.join(f'{k}: {len(v)}' for k, v in sorted(families.items()))})",
