@@ -442,10 +442,14 @@ def rcon_failure_reason(reason):
 
 def recover_rcon(args, worker_id, container, rcon, failures, reason):
     """Reconnect one closed socket; recreate immediately on timeout or repeat."""
+    if should_stop():
+        return None, failures
     delay = worker_backoff(failures)
     if reason == "rcon-closed" and failures < RCON_CLOSE_RECREATE_AFTER:
         log(worker_id, f"  RCON closed once — checking health after {delay:.0f}s")
         time.sleep(delay)
+        if should_stop():
+            return None, failures
         try:
             rcon.connect()
             rcon.cmd("list")
@@ -455,6 +459,8 @@ def recover_rcon(args, worker_id, container, rcon, failures, reason):
             failures += 1
             delay = worker_backoff(failures)
 
+    if should_stop():
+        return None, failures
     log(worker_id, f"  recreating unhealthy container after {delay:.0f}s backoff")
     docker("rm", "-f", container, check=False)
     time.sleep(delay)
@@ -1061,23 +1067,16 @@ def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, di
     rcon.cmd("tick sprint 200")
     time.sleep(2)
     rcon.cmd("tick unfreeze")
-    # Prime the dimension's chunk system with a single chunk first — the
-    # modded server blocks for minutes on a 1024-chunk forceload from cold.
+    # Prime with center chunk, then forceload the full area.
     rcon.cmd(f"execute in {dim} run forceload add 0 0")
-    if not wait_loaded(rcon, dim, 0, 0, timeout=60):
+    if not wait_loaded(rcon, dim, 0, 0, timeout=45):
         log(worker_id, f"  center chunk never loaded for {cand}")
         rcon.cmd(f"execute in {dim} run forceload remove all")
         return False
-    # Now expand to the full render area — the chunk system is warm.
     rcon.cmd(f"execute in {dim} run forceload add {-half} {-half} {half - 1} {half - 1}")
-    far_corner = (half - 16, half - 16)
-    gen_deadline = time.time() + 90
-    while time.time() < gen_deadline:
-        if test_ok(rcon.cmd(f"execute in {dim} if loaded {far_corner[0]} 64 {far_corner[1]}")):
-            break
-        time.sleep(3)
+    time.sleep(20)
     rcon.cmd("save-all flush")
-    time.sleep(5)
+    time.sleep(4)
 
     world_path = Path(workdir) / "world"
     region_dir = world_path / "dimensions" / ns / cand / "region"
@@ -1439,6 +1438,8 @@ def run_shortlist_jobs(args, wid, container, base_config):
         return 1
     rcon_failures = 0
     for index, (target, seed) in enumerate(jobs):
+        if should_stop():
+            break
         if target in dims:
             profile = build_profile(dims[target], base_config, difficulty)
         elif target in worlds:
