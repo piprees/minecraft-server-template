@@ -171,51 +171,72 @@ def render_biome_map(seed, biome_params_path, output_path,
 
     # Sample biomes + climate in one pass (no double computation)
     grid = []
-    heights = []
+    climates = []
     for sy in range(sample_resolution):
         row = []
-        hrow = []
+        crow = []
         z = -half + sy * sample_step
         for sx in range(sample_resolution):
             x = -half + sx * sample_step
             biome, climate = sampler.biome_and_climate(x, z)
-            row.append(biome_colour(biome))
-            cont = climate.get("continentalness", 0.0)
-            ero = climate.get("erosion", 0.0)
-            h = cont * 0.7 - ero * 0.3
-            hrow.append(h)
+            row.append((biome, biome_colour(biome)))
+            crow.append(climate)
         grid.append(row)
-        heights.append(hrow)
+        climates.append(crow)
 
-    # Hillshade: strong NW light, amplified gradient for visible terrain
-    shade = []
-    z_factor = 8.0
-    for sy in range(sample_resolution):
-        srow = []
-        for sx in range(sample_resolution):
-            dzdx = (heights[sy][min(sx + 1, sample_resolution - 1)]
-                    - heights[sy][max(sx - 1, 0)]) * z_factor
-            dzdy = (heights[min(sy + 1, sample_resolution - 1)][sx]
-                    - heights[max(sy - 1, 0)][sx]) * z_factor
-            slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
-            light_dir = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
-            light = 0.55 + 0.45 * max(-1.0, min(1.0, light_dir))
-            srow.append(light)
-        srow.append(srow[-1])
-        shade.append(srow)
-    shade.append(shade[-1])
-
-    # Scale up to output size with nearest-neighbour + shading
+    # Build height + shade + texture arrays
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
         for px in range(size):
             sx = min(px // upscale, sample_resolution - 1)
-            r, g, b = grid[sy][sx]
-            s = shade[sy][sx]
-            r = max(0, min(255, int(r * s)))
-            g = max(0, min(255, int(g * s)))
-            b = max(0, min(255, int(b * s)))
+            biome_id, (r, g, b) = grid[sy][sx]
+            c = climates[sy][sx]
+            cont = c.get("continentalness", 0.0)
+            ero = c.get("erosion", 0.0)
+            weird = c.get("weirdness", 0.0)
+            temp = c.get("temperature", 0.0)
+
+            # Height from continentalness + erosion
+            h = cont * 0.7 - ero * 0.3
+
+            # Hillshade from neighbouring cells
+            def h_at(dy, dx):
+                ny = max(0, min(sample_resolution - 1, sy + dy))
+                nx = max(0, min(sample_resolution - 1, sx + dx))
+                nc = climates[ny][nx]
+                return nc.get("continentalness", 0.0) * 0.7 - nc.get("erosion", 0.0) * 0.3
+
+            dzdx = (h_at(0, 1) - h_at(0, -1)) * 6.0
+            dzdy = (h_at(1, 0) - h_at(-1, 0)) * 6.0
+            slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
+            light = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
+            shade = 0.5 + 0.5 * max(-1.0, min(1.0, light))
+
+            # Temperature tint: warm biomes slightly warmer hue, cold slightly cooler
+            temp_shift = max(-0.15, min(0.15, temp * 0.08))
+            r = max(0, min(255, int(r * (1 + temp_shift))))
+            g = max(0, min(255, int(g * (1 - abs(temp_shift) * 0.3))))
+            b = max(0, min(255, int(b * (1 - temp_shift))))
+
+            # Weirdness micro-texture: adds vegetation-like variation
+            weird_tex = 1.0 + weird * 0.06
+            r = max(0, min(255, int(r * weird_tex)))
+            g = max(0, min(255, int(g * weird_tex)))
+            b = max(0, min(255, int(b * weird_tex)))
+
+            # Water depth: oceans darker towards center
+            if "ocean" in biome_id or "river" in biome_id:
+                depth = max(0.6, 1.0 + cont * 0.3)
+                r = max(0, min(255, int(r * depth)))
+                g = max(0, min(255, int(g * depth)))
+                b = max(0, min(255, int(b * depth)))
+
+            # Apply hillshade
+            r = max(0, min(255, int(r * shade)))
+            g = max(0, min(255, int(g * shade)))
+            b = max(0, min(255, int(b * shade)))
+
             off = (py * size + px) * 3
             pixels[off] = r
             pixels[off + 1] = g
