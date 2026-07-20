@@ -697,6 +697,62 @@ def _poll_async_locates(rcon, worker_id, pending, cap=None):
 MAX_CONSECUTIVE_TIMEOUTS = 3
 
 # ---------------------------------------------------------------------------
+# Server-side biome grid: one RCON call samples BiomeSource.getBiome() at a
+# grid of points (no chunk generation, uses the full noise router including
+# mod transforms). Replaces ALL individual biome locate calls.
+# ---------------------------------------------------------------------------
+def _sample_biome_grid(rcon, dim, workdir, radius=768, step=64):
+    """Call sample-biome-grid on the server; read the CSV result.
+    Returns {(x, z): biome_id} or None on failure."""
+    try:
+        out = rcon.cmd(f"customdim sample-biome-grid {dim} {radius} {step}")
+        if not out or "grid" not in out:
+            return None
+    except (RconTimeout, RconClosed):
+        return None
+    grid_path = Path(workdir) / "config" / "custom-dimensions" / "biome_grid.csv"
+    if not grid_path.exists():
+        return None
+    grid = {}
+    for line in grid_path.read_text().splitlines():
+        parts = line.split(",", 2)
+        if len(parts) == 3:
+            try:
+                grid[(int(parts[0]), int(parts[1]))] = parts[2]
+            except ValueError:
+                continue
+    return grid if grid else None
+
+
+def _grid_spawn_filter(grid, namesake_biomes, radius):
+    """Check if any namesake biome exists in the grid within radius.
+    Returns (biome_id, distance, x, z) or (None, None, None, None)."""
+    import math
+    best = None
+    best_dist_sq = float('inf')
+    for (x, z), biome in grid.items():
+        if biome in namesake_biomes:
+            dist_sq = x * x + z * z
+            if dist_sq <= radius * radius and dist_sq < best_dist_sq:
+                best_dist_sq = dist_sq
+                best = (biome, int(math.sqrt(dist_sq)), x, z)
+    return best if best else (None, None, None, None)
+
+
+def _grid_locate_biome(grid, biome_id):
+    """Find nearest instance of biome_id in the grid from origin.
+    Returns distance or -1."""
+    import math
+    best = -1
+    for (x, z), b in grid.items():
+        if b == biome_id:
+            dist = int(math.sqrt(x * x + z * z))
+            if best < 0 or dist < best:
+                best = dist
+    return best
+
+
+# ---------------------------------------------------------------------------
 # Pure-Python structure placement (no server needed)
 # ---------------------------------------------------------------------------
 _STRUCTURE_SETS = None
@@ -773,7 +829,7 @@ def _resolve_candidate_seed(rcon, dim):
 
 
 def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
-                      force_accept=False, spawn_radius=48):
+                      force_accept=False, spawn_radius=48, args_workdir=None):
     """Measure one candidate world (dim = full dimension id). The spawn
     filter rejects ONLY when no namesake biome exists at all (locate returns
     not-found for every configured biome). Seeds with a far biome are
@@ -813,49 +869,60 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     spawn = "unknown"
     spawn_coords = None
     cap = profile.get("locate_cap")
+
+    # Server-side biome grid: one RCON call samples BiomeSource.getBiome()
+    # at a grid of points. Uses the server's full noise router (including
+    # mod transforms like Terralith splines) — accurate for ALL dimension
+    # families. No chunk generation needed, ~1s server-side.
+    biome_grid = _sample_biome_grid(rcon, dim, args_workdir,
+                                    radius=spawn_radius, step=64)
+
     if profile["namesake"]:
-        # Fire all namesake biome locates via async protocol (off server
-        # thread — vanilla locate biome blocks the server thread and caused
-        # RCON socket closures on slow biomes like terralith:blooming_plateau).
-        import re as _re
-        pending_biomes = {}  # uuid -> biome_id
-        for b in profile["namesake"]:
-            out = safe_cmd(f"customdim locate biome {dim} {b} 60")
-            if out and "locate:" in out and "pending" in out:
-                m = _re.search(r'locate:([0-9a-f-]{36})\s+pending', out)
-                if m:
-                    pending_biomes[m.group(1)] = b
-        best_b, best_d, best_coords = None, None, None
-        if pending_biomes:
-            remaining = dict(pending_biomes)
-            deadline = time.time() + 70
-            while remaining and time.time() < deadline:
-                if should_stop():
-                    break
-                done_this_round = []
-                for uuid_str, biome_id in remaining.items():
-                    try:
-                        out = rcon.cmd(f"customdim locate-result {uuid_str}")
-                    except (RconTimeout, RconClosed):
-                        remaining.clear()
+        best_b, best_d, best_x, best_z = None, None, None, None
+        if biome_grid:
+            namesake_set = set(profile["namesake"])
+            best_b, best_d, best_x, best_z = _grid_spawn_filter(
+                biome_grid, namesake_set, spawn_radius)
+        else:
+            # Fallback: RCON async locate (original path)
+            import re as _re
+            pending_biomes = {}
+            for b in profile["namesake"]:
+                out = safe_cmd(f"customdim locate biome {dim} {b} 60")
+                if out and "locate:" in out and "pending" in out:
+                    m = _re.search(r'locate:([0-9a-f-]{36})\s+pending', out)
+                    if m:
+                        pending_biomes[m.group(1)] = b
+            if pending_biomes:
+                remaining = dict(pending_biomes)
+                deadline = time.time() + 70
+                while remaining and time.time() < deadline:
+                    if should_stop():
                         break
-                    status, dist, x, _y, z = _parse_async_result(out)
-                    if status == "pending":
-                        continue
-                    done_this_round.append(uuid_str)
-                    if status == "done":
-                        if cap is not None and dist > cap:
-                            dist = -1
-                        if dist >= 0 and (best_d is None or dist < best_d):
-                            best_b, best_d = biome_id, dist
-                            best_coords = [x, 0, z]
-                for u in done_this_round:
-                    del remaining[u]
-                if remaining:
-                    time.sleep(ASYNC_LOCATE_POLL_INTERVAL)
+                    done_this_round = []
+                    for uuid_str, biome_id in remaining.items():
+                        try:
+                            out = rcon.cmd(f"customdim locate-result {uuid_str}")
+                        except (RconTimeout, RconClosed):
+                            remaining.clear()
+                            break
+                        status, dist, x, _y, z = _parse_async_result(out)
+                        if status == "pending":
+                            continue
+                        done_this_round.append(uuid_str)
+                        if status == "done":
+                            if cap is not None and dist > cap:
+                                dist = -1
+                            if dist >= 0 and (best_d is None or dist < best_d):
+                                best_b, best_d = biome_id, dist
+                                best_x, best_z = x, z
+                    for u in done_this_round:
+                        del remaining[u]
+                    if remaining:
+                        time.sleep(ASYNC_LOCATE_POLL_INTERVAL)
         if best_d is not None and best_d <= 48:
             spawn = best_b
-            spawn_coords = best_coords
+            spawn_coords = [best_x, 0, best_z]
         elif not force_accept and best_d is None:
             reason = spawn_filter_rejection(
                 None, None, profile["namesake"], spawn_radius)
@@ -863,12 +930,17 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
             rows.append(("rejected", 1))
             return rows, reason, False
         else:
-            spawn_coords = best_coords
+            if best_x is not None:
+                spawn_coords = [best_x, 0, best_z]
         if best_d is not None:
             rows.append(("spawn_filter_dist", best_d))
     if spawn_coords:
         rows.append(("spawn_x", spawn_coords[0]))
         rows.append(("spawn_z", spawn_coords[2]))
+
+    # Spawn biome from grid (no chunk gen needed)
+    if spawn == "unknown" and biome_grid and (0, 0) in biome_grid:
+        spawn = biome_grid[(0, 0)]
 
     safe_cmd(f"execute in {dim} run forceload add 0 0")
     if not wait_loaded(rcon, dim, 0, 0):
@@ -883,8 +955,6 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     safe_cmd(f"execute in {dim} run forceload remove 0 0")
 
     # Structure placement via pure Python — no server thread, no RCON.
-    # Computes WHERE structures can generate from the seed + structure set
-    # configs (spacing/separation/salt), matching vanilla's algorithm.
     from structure_placement import nearest_structure
     dim_seed = _resolve_candidate_seed(rcon, dim)
     for sname, sid, _band, _kind in profile["battery"]:
@@ -901,24 +971,18 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
             dist = -1
         rows.append((f"structure_{sname}_dist", dist))
 
-    # Variety biome locates — also async to avoid server-thread freezes.
-    pending_variety = {}
+    # Variety biome distances from the grid (already sampled, no extra RCON).
+    # For biomes beyond the grid radius, a wider grid would be needed —
+    # record -1 (not found within grid) rather than falling back to slow
+    # RCON locate which was the original bottleneck.
     for biome in profile["variety_biomes"]:
         if should_stop():
             return rows, spawn, False
-        out = safe_cmd(f"customdim locate biome {dim} {biome} 60")
-        if out and "locate:" in out and "pending" in out:
-            import re as _re
-            m = _re.search(r'locate:([0-9a-f-]{36})\s+pending', out)
-            if m:
-                pending_variety[m.group(1)] = biome
-                continue
-        rows.append((f"biome_{biome}_dist", -1))
-
-    if pending_variety:
-        variety_results = _poll_async_locates(rcon, worker_id, pending_variety, cap)
-        for biome_id, dist in variety_results:
-            rows.append((f"biome_{biome_id}_dist", dist))
+        if biome_grid:
+            dist = _grid_locate_biome(biome_grid, biome)
+        else:
+            dist = -1
+        rows.append((f"biome_{biome}_dist", dist))
 
     fy, fluid = FLUID_CHECK[fam]
     pitch = profile["grid_pitch"]
@@ -943,95 +1007,107 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     return rows, spawn, True
 
 
-# Per-family BlueMap map settings, mirroring BlueMap's stock dimension
-# configs: the nether renders pitch black without a roof cut (max-y) and
-# ambient light; the end needs ambient light too.
-MAP_LIGHTING = {
-    "overworld": 'sky-light: 1\nambient-light: 0.1\n',
-    "nether": ('sky-light: 0\nambient-light: 0.6\nmax-y: 100\n'
-               'remove-caves: true\ncave-detection-uses-block-light: true\n'
-               'sky-color: "#290000"\nvoid-color: "#150000"\n'),
-    "end": ('sky-light: 0\nambient-light: 0.6\n'
-            'sky-color: "#080010"\nvoid-color: "#080010"\n'),
-}
+
+_BLUEMAP_IMAGE = "ghcr.io/bluemap-minecraft/bluemap:latest"
+
+_BLUEMAP_NETHER = ('sky-light: 0\nambient-light: 0.6\n'
+                   'remove-caves-below-y: 127\n'
+                   'cave-detection-uses-block-light: true\n'
+                   'sky-color: "#290000"\nvoid-color: "#150000"\n')
+_BLUEMAP_END = ('sky-light: 0\nambient-light: 0.6\n'
+                'sky-color: "#080010"\nvoid-color: "#080010"\n')
+_BLUEMAP_OVERWORLD = 'sky-light: 1\nambient-light: 0.1\n'
 
 
 def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, dim_name, seed,
-                     family="overworld"):
+                     family="overworld", render_size=256):
+    """Render a candidate via BlueMap CLI with mod textures.
+    MC server forceloads + saves chunks. BlueMap CLI container renders
+    with -n <mods> for modded block textures. ~10-30s per candidate."""
     dim = f"{ns}:{cand}"
     out_png = Path(seedtest) / "renders" / dim_name / f"{seed}.png"
     out_png.parent.mkdir(parents=True, exist_ok=True)
 
-    # Blocks 0..144 sit entirely inside lowres tile 1/x0/z0 (500x500 px,
-    # 1px/block) — hires tiles are .prbm meshes, so the PNG thumbnail has
-    # to come from a lowres tile, and staying inside ONE tile avoids
-    # compositing. 10x10 chunks to generate.
-    rcon.cmd(f"execute in {dim} run forceload add 0 0 143 143")
-    # Chunk generation runs off-thread; give it a bounded window then flush
-    # regions to disk (BlueMap reads region files, not live chunks).
-    time.sleep(10)
+    half = render_size // 2
+    rcon.cmd(f"execute in {dim} run forceload add {-half} {-half} {half - 1} {half - 1}")
+    time.sleep(12)
     rcon.cmd("save-all flush")
-    time.sleep(2)
-
-    conf = Path(workdir) / "config" / "bluemap" / "maps" / f"{cand}.conf"
-    conf.parent.mkdir(parents=True, exist_ok=True)
-    conf.write_text(
-        f'world: "world"\ndimension: "{dim}"\nname: "{cand}"\nsorting: 100\n'
-        'render-mask: [ { min-x: 0, max-x: 144, min-z: 0, max-z: 144 } ]\n'
-        'min-inhabited-time: 0\nrender-edges: true\nenable-hires: false\n'
-        'enable-perspective-view: false\nenable-free-flight-view: false\n'
-        'storage: "file"\nignore-missing-light-data: true\nmarker-sets: {}\n'
-        + MAP_LIGHTING.get(family, MAP_LIGHTING["overworld"]))
-    rcon.cmd("bluemap reload")
     time.sleep(3)
 
-    # Renders must be COMPLETE — no holes, no unrendered squares. Chunk gen
-    # and the BlueMap update are both async, so re-flush + re-update until
-    # the cropped thumbnail passes the hole check (bounded attempts).
-    tiles = Path(workdir) / "bluemap" / "web" / "maps" / cand / "tiles"
-    origin_tile = tiles / "1" / "x0" / "z0.png"
-    picked = False
-    hole_ok = 0.02 if family == "overworld" else 0.10  # nether roof-cut edges
-    for attempt in range(5):
-        rcon.cmd("save-all flush")
-        time.sleep(2)
-        upd = rcon.cmd(f"bluemap force-update {cand}")
-        if "not" in upd.lower() and "found" in upd.lower():
-            rcon.cmd(f"bluemap update {cand}")
-        deadline = time.time() + 60
-        while time.time() < deadline and not origin_tile.exists():
-            time.sleep(4)
-        if not origin_tile.exists():
-            continue
-        time.sleep(4)  # let the write finish
-        try:
-            crop_png(origin_tile, out_png, 0, 0, 145, 145)
-        except (ValueError, OSError):
-            continue
-        holes = png_hole_fraction(out_png, 145, 145)
-        if holes <= hole_ok:
-            picked = True
-            log(worker_id, f"  render saved: {out_png.name} "
-                           f"(attempt {attempt + 1}, holes {holes:.1%})")
-            break
-        log(worker_id, f"  render attempt {attempt + 1}: {holes:.0%} holes — regenerating")
-        # Un-rendered chunks are usually still generating; nudge and retry.
-        rcon.cmd(f"execute in {dim} run forceload add 0 0 143 143")
-        time.sleep(10)
-    if not picked:
-        log(worker_id, f"  render INCOMPLETE for {cand} after 5 attempts (kept best effort)")
+    # BlueMap config
+    bm_cfg = Path(workdir) / "bluemap-render"
+    bm_data = Path(workdir) / "bluemap-data"
+    shutil.rmtree(bm_cfg, ignore_errors=True)
+    shutil.rmtree(bm_data, ignore_errors=True)
+    (bm_cfg / "maps").mkdir(parents=True)
+    (bm_cfg / "storages").mkdir(parents=True)
+    bm_data.mkdir(parents=True)
 
-    if os.environ.get("ROLL_RENDER_DEBUG"):
-        dbg = out_png.parent / f"{seed}-web-debug"
-        shutil.rmtree(dbg, ignore_errors=True)
-        web_map = Path(workdir) / "bluemap" / "web" / "maps" / cand
-        if web_map.exists():
-            shutil.copytree(web_map, dbg)
-        log(worker_id, f"  debug web copy: {dbg}")
-    conf.unlink(missing_ok=True)
-    shutil.rmtree(Path(workdir) / "bluemap" / "web" / "maps" / cand, ignore_errors=True)
+    (bm_cfg / "core.conf").write_text(
+        'accept-download: true\ndata: "/data"\nmetrics: false\n'
+        'scan-for-mod-resources: false\nrender-thread-count: 4\n')
+    (bm_cfg / "webserver.conf").write_text("enabled: false\n")
+    (bm_cfg / "storages" / "file.conf").write_text(
+        'storage-type: file\nroot: "/data/web/maps"\n')
+
+    lighting = {"nether": _BLUEMAP_NETHER, "end": _BLUEMAP_END}.get(
+        family, _BLUEMAP_OVERWORLD)
+    (bm_cfg / "maps" / f"{cand}.conf").write_text(
+        f'world: "/world"\ndimension: "{dim}"\nname: "{cand}"\n'
+        f'sorting: 0\nstart-pos: {{ x: 0, z: 0 }}\n'
+        f'render-mask: [ {{ min-x: {-half}, max-x: {half}, '
+        f'min-z: {-half}, max-z: {half} }} ]\n'
+        'min-inhabited-time: 0\nrender-edges: true\n'
+        'enable-hires: true\nenable-perspective-view: false\n'
+        'enable-flat-view: true\nenable-free-flight-view: false\n'
+        'storage: "file"\nignore-missing-light-data: true\nmarker-sets: {}\n'
+        + lighting)
+
+    # Locate the mods directory (the worker dir has mods/ from prepare_base_dir)
+    mods_dir = Path(workdir) / "mods"
+    mods_flag = ["-n", "/mods"] if mods_dir.is_dir() else []
+
+    bm_container = f"{container}-bm"
+    docker("rm", "-f", bm_container, check=False)
+
+    r = docker("run", "--rm", "--name", bm_container,
+               "-v", f"{workdir}/world:/world:ro",
+               "-v", f"{bm_cfg}:/config",
+               "-v", f"{bm_data}:/data",
+               *(["-v", f"{mods_dir}:/mods:ro"] if mods_dir.is_dir() else []),
+               _BLUEMAP_IMAGE,
+               "-c", "/config",
+               *mods_flag,
+               "-v", "1.21.1",
+               "-r", "-f",
+               "-m", cand,
+               check=False, capture=True)
+
+    picked = False
+    if r.returncode == 0:
+        # Find the largest tile (most terrain data) from the lowres level
+        tiles_dir = bm_data / "web" / "maps" / cand / "tiles" / "1"
+        best_tile = None
+        best_size = 0
+        if tiles_dir.exists():
+            for tile_file in tiles_dir.rglob("*.png"):
+                sz = tile_file.stat().st_size
+                if sz > best_size:
+                    best_size = sz
+                    best_tile = tile_file
+        if best_tile and best_size > 1000:
+            shutil.copy2(best_tile, out_png)
+            picked = True
+            log(worker_id, f"  render saved: {out_png.name} ({best_size // 1024}KB)")
+        elif not best_tile:
+            log(worker_id, f"  render: no tiles produced for {cand}")
+    else:
+        stderr = (r.stderr or r.stdout or "")[:300]
+        log(worker_id, f"  bluemap exit {r.returncode}: {stderr}")
+
+    shutil.rmtree(bm_cfg, ignore_errors=True)
+    shutil.rmtree(bm_data, ignore_errors=True)
     rcon.cmd("forceload remove all")
-    rcon.cmd("bluemap reload")
     return picked
 
 
@@ -1178,7 +1254,8 @@ def roll_one(args, wid, container, rcon, ns, dim_name, profile, seed, cand,
             return False, reason
         rows, spawn, accepted = measure_candidate(
             rcon, wid, container, f"{ns}:{cand}", profile, err_before,
-            force_accept=not gate, spawn_radius=spawn_radius)
+            force_accept=not gate, spawn_radius=spawn_radius,
+            args_workdir=args.workdir)
         for metric, value in rows:
             csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
         csv_fh.flush()
@@ -1501,7 +1578,8 @@ def run_world_jobs(args, wid, container, base_config, csv_fh):
                 err_before = error_count(container)
                 rows, spawn, ok = measure_candidate(
                     rcon, wid, container, dim, profile, err_before,
-                    force_accept=(world["name"] != "overworld" or not gated))
+                    force_accept=(world["name"] != "overworld" or not gated),
+                    args_workdir=args.workdir)
                 for metric, value in rows:
                     csv_fh.write(f"{world['name']},{seed},{metric},{value}\n")
                 csv_fh.flush()
@@ -1543,6 +1621,7 @@ def main():
     global STOP_FILE
     STOP_FILE = Path(args.seedtest) / ".stop"
     _load_structure_sets_once(args.seedtest)
+    log(wid, "biome grid: server-side sampling via sample-biome-grid")
     import signal
     signal.signal(signal.SIGTERM, lambda *_: STOP_FILE.touch())
     signal.signal(signal.SIGINT, lambda *_: STOP_FILE.touch())

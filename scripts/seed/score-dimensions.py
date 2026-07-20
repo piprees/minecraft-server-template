@@ -809,7 +809,7 @@ def render_viewer(results, profiles, winners, rejected=None):
             out.append("<p class='meta'>No candidates measured.</p>")
             continue
         out.append("<div class='cands'>")
-        for c in cands:
+        for c in cands[:10]:
             win = winners.get(name, {}).get("seed") == c["seed"]
             img = f"renders/{name}/{c['seed']}.png"
             bars = "".join(
