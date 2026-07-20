@@ -28,14 +28,20 @@ FAMILIES = [
 ]
 
 
-def dump_family(rcon, dim_id, workdir):
-    """Run dump-biome-params for one dimension, return the JSON entries."""
-    try:
-        out = rcon.cmd(f"customdim dump-biome-params {dim_id}")
-    except (RconTimeout, RconClosed) as exc:
-        print(f"  RCON error dumping {dim_id}: {exc}", flush=True)
-        return []
-    if "Dumped" not in (out or ""):
+def dump_family(rcon, dim_id, workdir, container=None):
+    """Run dump-biome-params for one dimension, return the JSON entries.
+    Uses docker exec rcon-cli to avoid RCON socket state issues."""
+    if container:
+        r = docker("exec", container, "rcon-cli",
+                   f"customdim dump-biome-params {dim_id}", check=False)
+        out = r.stdout or ""
+    else:
+        try:
+            out = rcon.cmd(f"customdim dump-biome-params {dim_id}")
+        except (RconTimeout, RconClosed) as exc:
+            print(f"  RCON error dumping {dim_id}: {exc}", flush=True)
+            return []
+    if "Dumped" not in out:
         print(f"  dump-biome-params {dim_id} failed: {out[:120]}", flush=True)
         return []
     params_path = Path(workdir) / "config" / "custom-dimensions" / "biome_params.json"
@@ -87,7 +93,7 @@ def main():
         else:
             dump_dim = dim_id
 
-        entries = dump_family(rcon, dump_dim, args.workdir)
+        entries = dump_family(rcon, dump_dim, args.workdir, container=container)
         for e in entries:
             e["family"] = family_tag
         all_entries.extend(entries)
