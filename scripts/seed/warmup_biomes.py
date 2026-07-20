@@ -21,7 +21,7 @@ from seed_worker import (  # noqa: E402
 )
 
 FAMILIES = [
-    ("minecraft:overworld", None, None),
+    ("minecraft:overworld", None, "overworld"),
     ("_warmup_nether", "nether", "nether"),
     ("_warmup_end", "end", "end"),
     ("_warmup_paradise", '"paradise_lost:paradise_lost"', "paradise_lost"),
@@ -70,7 +70,7 @@ def main():
     ns = "adventure"
     all_entries = []
 
-    for dim_id, create_type, _family_name in FAMILIES:
+    for dim_id, create_type, family_tag in FAMILIES:
         if create_type is not None:
             out = rcon.cmd(f"customdim create {dim_id} {create_type} 1 - - -")
             if "Queued" not in (out or "") and "Created" not in (out or ""):
@@ -88,6 +88,8 @@ def main():
             dump_dim = dim_id
 
         entries = dump_family(rcon, dump_dim, args.workdir)
+        for e in entries:
+            e["family"] = family_tag
         all_entries.extend(entries)
 
         if create_type is not None:

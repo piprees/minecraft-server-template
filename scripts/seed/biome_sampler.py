@@ -324,7 +324,7 @@ def load_noise_configs():
 # ---------------------------------------------------------------------------
 class BiomeSampler:
     def __init__(self, seed, biome_params_path, noise_config=None,
-                 biome_filter=None):
+                 biome_filter=None, family=None):
         """Create a biome sampler for one seed.
 
         Args:
@@ -334,6 +334,8 @@ class BiomeSampler:
                           amplitudes, xz_scale}} — defaults to overworld
             biome_filter: optional set of biome IDs to restrict the lookup
                           table (matches the mod's per-dimension biome list)
+            family: optional family tag to filter entries by source dimension
+                    family (e.g. "nether", "end", "paradise_lost")
         """
         self.seed = seed
         self.biome_table = json.loads(Path(biome_params_path).read_text())
@@ -341,9 +343,11 @@ class BiomeSampler:
         if noise_config is None:
             noise_config = load_noise_configs().get("overworld", _OVERWORLD_FALLBACK)
 
-        # Pre-parse ranges for fast lookup, optionally filtered
+        # Pre-parse ranges for fast lookup, filtered by family then biome list
         self._entries = []
         for entry in self.biome_table:
+            if family and entry.get("family") and entry["family"] != family:
+                continue
             if biome_filter and entry["biome"] not in biome_filter:
                 continue
             ranges = []

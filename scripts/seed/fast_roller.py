@@ -265,7 +265,8 @@ def _process_dimension(task):
     for _t1_score, seed, struct_dists in survivors:
         sampler = BiomeSampler(seed, biome_params_path,
                                noise_config=noise_config,
-                               biome_filter=biome_filter)
+                               biome_filter=biome_filter,
+                               family=noise_family)
         rows, ok = tier2_measure(seed, profile, sampler)
 
         # Merge structure distances into rows
