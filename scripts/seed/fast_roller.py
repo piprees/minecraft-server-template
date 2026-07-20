@@ -173,6 +173,7 @@ def tier2_measure(seed, profile, sampler):
         # always place the expected biomes — accept them ungated rather
         # than rejecting every candidate.
         sampler_biomes = {e[0] for e in sampler._entries}
+        # multi_biome dims mix families — namesake biomes may not exist in this noise config
         namesake_in_sampler = namesake_set & sampler_biomes
         if namesake_in_sampler:
             result = sampler.spawn_filter(namesake_set, radius=768, step=256)

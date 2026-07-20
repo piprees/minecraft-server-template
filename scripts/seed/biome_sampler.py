@@ -351,6 +351,7 @@ class BiomeSampler:
         # mix biomes from different families on one noise config.
         self._entries = []
         for entry in self.biome_table:
+            # biome_filter wins: multi_biome dims mix families on one noise config
             if biome_filter:
                 if entry["biome"] not in biome_filter:
                     continue
@@ -441,6 +442,7 @@ class BiomeSampler:
             elif v > flat[3]:
                 v = v - flat[3]
                 d += v * v
+            # Prune: 2 params already exceed best → skip remaining 4
             if d >= best_dist:
                 continue
             v = c

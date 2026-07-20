@@ -207,7 +207,7 @@ def render_biome_map(seed, biome_params_path, output_path,
             biome, climate = sampler.biome_and_climate(x, z)
             (surf_col, density) = surface_and_density(biome)
             id_col = biome_colour(biome)
-            # Blend: 55% surface-block + 45% biome-identity for readability
+            # 55/45: pure surface makes grass biomes identical; pure identity loses terrain character
             colour = (
                 int(surf_col[0] * 0.55 + id_col[0] * 0.45),
                 int(surf_col[1] * 0.55 + id_col[1] * 0.45),
@@ -222,15 +222,15 @@ def render_biome_map(seed, biome_params_path, output_path,
             if evaluator is not None:
                 h = evaluator.surface_height(cont, ero, weird)
             elif family == "nether":
-                h = max(8.0, min(120.0, 64.0 + ero * 25.0 + rf * 15.0))
+                h = max(8.0, min(120.0, 64.0 + ero * 25.0 + rf * 15.0))  # compressed cave ceiling/floor
             elif family == "end":
                 if cont < -0.1:
-                    h = 0.0
+                    h = 0.0  # void between islands
                 else:
                     lf = min(1.0, (cont + 0.1) / 0.3)
                     h = max(5.0, min(120.0, (50.0 + cont * 40.0 + rf * 20.0 - ero * 10.0) * lf))
             elif family == "paradise_lost":
-                h = max(10.0, min(140.0, 80.0 + ero * 25.0 + rf * 20.0))
+                h = max(10.0, min(140.0, 80.0 + ero * 25.0 + rf * 20.0))  # elevated skylands
             else:
                 h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + rf * 15.0))
             hrow.append(h)

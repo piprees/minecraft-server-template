@@ -183,6 +183,7 @@ class TerrainEvaluator:
         params = self._params(continentalness, erosion, weirdness)
         spline_value = _eval_compiled(self._offset, params)
         offset = OFFSET_BIAS + spline_value
+        # Derived from depth(Y) = 1.5 - 3*(Y+64)/384; at surface offset+depth=0
         return int(128 * (1 + offset))
 
     def factor(self, continentalness, erosion, weirdness):
