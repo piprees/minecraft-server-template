@@ -167,6 +167,10 @@ This requires Docker Desktop and the full mod stack. See `spike/08-biome-params-
 | `biome_sampler.py` optimisation | DONE | 2.4× faster nearest-neighbour with early-exit pruning |
 | `biome_params.json` | DONE | Recovered from stack bundle (1803 entries, 177 biomes, 4 families) |
 | Visual verification | DONE | Overworld + nether renders tested with full biome data |
+| Per-family terrain heights | DONE | Nether, end, paradise_lost height functions with ridges_folded |
+| BiomeSampler filter fix | DONE | biome_filter overrides family filter for multi_biome dims |
+| fast_roller spawn gate fix | DONE | Lenient gate when namesake biomes aren't in sampler |
+| 5 missing dimension candidates | DONE | 27 candidates generated, 13 renders produced |
 
 ## Files to Create/Modify
 
