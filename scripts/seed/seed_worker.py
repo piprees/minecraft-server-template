@@ -1057,26 +1057,27 @@ def render_candidate(rcon, worker_id, workdir, seedtest, container, ns, cand, di
     half = render_size // 2
 
     # tick freeze blocks chunk generation. Sprint clears the accumulated
-    # tick debt (prevents an unfreeze catch-up burst that starves RCON),
-    # then unfreeze enables normal ticking so forceloaded chunks generate.
+    # tick debt, unfreeze enables normal ticking for chunk generation.
     rcon.cmd("tick sprint 200")
     time.sleep(2)
     rcon.cmd("tick unfreeze")
+    # Prime the dimension's chunk system with a single chunk first — the
+    # modded server blocks for minutes on a 1024-chunk forceload from cold.
+    rcon.cmd(f"execute in {dim} run forceload add 0 0")
+    if not wait_loaded(rcon, dim, 0, 0, timeout=60):
+        log(worker_id, f"  center chunk never loaded for {cand}")
+        rcon.cmd(f"execute in {dim} run forceload remove all")
+        return False
+    # Now expand to the full render area — the chunk system is warm.
     rcon.cmd(f"execute in {dim} run forceload add {-half} {-half} {half - 1} {half - 1}")
-    corners = [(-half, -half), (-half, half - 1), (half - 1, -half), (half - 1, half - 1), (0, 0)]
-    gen_deadline = time.time() + 120
-    loaded = 0
+    far_corner = (half - 16, half - 16)
+    gen_deadline = time.time() + 90
     while time.time() < gen_deadline:
-        loaded = sum(1 for x, z in corners
-                     if test_ok(rcon.cmd(f"execute in {dim} if loaded {x} 64 {z}")))
-        if loaded >= len(corners):
+        if test_ok(rcon.cmd(f"execute in {dim} if loaded {far_corner[0]} 64 {far_corner[1]}")):
             break
         time.sleep(3)
-    if loaded < len(corners):
-        log(worker_id, f"  only {loaded}/{len(corners)} corner chunks loaded after 120s")
     rcon.cmd("save-all flush")
     time.sleep(5)
-    rcon.cmd("tick freeze")
 
     world_path = Path(workdir) / "world"
     region_dir = world_path / "dimensions" / ns / cand / "region"
