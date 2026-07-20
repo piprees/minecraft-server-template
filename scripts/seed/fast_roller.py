@@ -168,18 +168,26 @@ def tier2_measure(seed, profile, sampler):
 
     if profile["namesake"]:
         namesake_set = set(profile["namesake"])
-        result = sampler.spawn_filter(namesake_set, radius=768, step=256)
-        best_b, best_d, best_x, best_z = result
-
-        if best_b is not None and best_d >= 0:
-            if best_d <= 48:
-                spawn = best_b
-            spawn_x, spawn_z = best_x, best_z
-            rows.append(("spawn_filter_dist", best_d))
+        # Check if any namesake biome is representable by the sampler.
+        # multi_biome dims with nether biomes on overworld noise can't
+        # always place the expected biomes — accept them ungated rather
+        # than rejecting every candidate.
+        sampler_biomes = {e[0] for e in sampler._entries}
+        namesake_in_sampler = namesake_set & sampler_biomes
+        if namesake_in_sampler:
+            result = sampler.spawn_filter(namesake_set, radius=768, step=256)
+            best_b, best_d, best_x, best_z = result
+            if best_b is not None and best_d >= 0:
+                if best_d <= 48:
+                    spawn = best_b
+                spawn_x, spawn_z = best_x, best_z
+                rows.append(("spawn_filter_dist", best_d))
+            else:
+                rows.append(("spawn_biome", "unknown"))
+                rows.append(("rejected", 1))
+                return rows, False
         else:
-            rows.append(("spawn_biome", "unknown"))
-            rows.append(("rejected", 1))
-            return rows, False
+            rows.append(("spawn_filter_dist", 0))
 
     if spawn == "unknown":
         spawn = sampler.biome_at(0, 0)

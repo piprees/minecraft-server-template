@@ -346,11 +346,15 @@ class BiomeSampler:
         # Pre-parse ranges into flat tuples for fast lookup.
         # _entries: list of (biome_id, lo0,hi0,lo1,hi1,...,lo5,hi5, offset_sq)
         # Flat layout avoids per-iteration tuple/list indexing overhead.
+        # When biome_filter is set (dimension has an explicit biome list),
+        # it takes precedence over the family filter — multi_biome dimensions
+        # mix biomes from different families on one noise config.
         self._entries = []
         for entry in self.biome_table:
-            if family and entry.get("family") and entry["family"] != family:
-                continue
-            if biome_filter and entry["biome"] not in biome_filter:
+            if biome_filter:
+                if entry["biome"] not in biome_filter:
+                    continue
+            elif family and entry.get("family") and entry["family"] != family:
                 continue
             flat = []
             for param in ("temperature", "humidity", "continentalness",

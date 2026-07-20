@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from biome_sampler import BiomeSampler, load_noise_configs  # noqa: E402
 from surface_rules import surface_and_density  # noqa: E402
-from terrain_height import TerrainEvaluator, SPLINES_PATH  # noqa: E402
+from terrain_height import TerrainEvaluator, SPLINES_PATH, ridges_folded  # noqa: E402
 
 BIOME_COLOURS = {
     "minecraft:ocean": (0, 0, 112), "minecraft:deep_ocean": (0, 0, 80),
@@ -185,9 +185,9 @@ def render_biome_map(seed, biome_params_path, output_path,
                            noise_config=noise_config, family=family,
                            biome_filter=biome_filter)
 
-    use_spline_heights = (family in (None, "overworld") and
-                          _get_terrain_evaluator() is not None)
-    evaluator = _get_terrain_evaluator() if use_spline_heights else None
+    evaluator = (_get_terrain_evaluator()
+                 if family in (None, "overworld") and _get_terrain_evaluator() is not None
+                 else None)
 
     total_blocks = size * blocks_per_pixel
     half = total_blocks // 2
@@ -218,10 +218,21 @@ def render_biome_map(seed, biome_params_path, output_path,
             cont = climate.get("continentalness", 0.0)
             ero = climate.get("erosion", 0.0)
             weird = climate.get("weirdness", 0.0)
+            rf = ridges_folded(weird)
             if evaluator is not None:
                 h = evaluator.surface_height(cont, ero, weird)
+            elif family == "nether":
+                h = max(8.0, min(120.0, 64.0 + ero * 25.0 + rf * 15.0))
+            elif family == "end":
+                if cont < -0.1:
+                    h = 0.0
+                else:
+                    lf = min(1.0, (cont + 0.1) / 0.3)
+                    h = max(5.0, min(120.0, (50.0 + cont * 40.0 + rf * 20.0 - ero * 10.0) * lf))
+            elif family == "paradise_lost":
+                h = max(10.0, min(140.0, 80.0 + ero * 25.0 + rf * 20.0))
             else:
-                h = cont * 40.0 - ero * 20.0 + 63.0
+                h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + rf * 15.0))
             hrow.append(h)
         grid.append(row)
         climates.append(crow)
@@ -238,14 +249,15 @@ def render_biome_map(seed, biome_params_path, output_path,
             weird = c.get("weirdness", 0.0)
             h = heights[sy][sx]
 
-            # Hillshade from terrain heights
+            # Hillshade from terrain heights (stronger for compressed dimensions)
             hn = heights[max(0, sy - 1)][sx]
             hs = heights[min(sample_resolution - 1, sy + 1)][sx]
             he = heights[sy][min(sample_resolution - 1, sx + 1)]
             hw = heights[sy][max(0, sx - 1)]
 
-            dzdx = (he - hw) * 0.12
-            dzdy = (hs - hn) * 0.12
+            shade_k = 0.18 if family == "end" else (0.15 if family in ("nether", "paradise_lost") else 0.12)
+            dzdx = (he - hw) * shade_k
+            dzdy = (hs - hn) * shade_k
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
             light = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
             shade = 0.6 + 0.4 * max(-1.0, min(1.0, light))
@@ -263,6 +275,11 @@ def render_biome_map(seed, biome_params_path, output_path,
                 r = int(r * (0.3 + 0.7 * f) + canopy_r * (1 - f))
                 g = int(g * (0.4 + 0.6 * f) + canopy_g * (1 - f))
                 b = int(b * (0.3 + 0.7 * f) + canopy_b * (1 - f))
+
+            # End void rendering
+            if family == "end" and h < 1.0:
+                r, g, b = 8, 5, 15
+                shade = 1.0
 
             # Water depth gradient
             is_water = "ocean" in biome_id or "river" in biome_id
