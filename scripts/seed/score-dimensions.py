@@ -730,6 +730,34 @@ def candidate_tooltip(c):
     return " | ".join(lines)
 
 
+_NETHER_BIOMES = {"minecraft:nether_wastes", "minecraft:soul_sand_valley",
+                   "minecraft:crimson_forest", "minecraft:warped_forest",
+                   "minecraft:basalt_deltas"}
+_END_BIOMES = {"minecraft:the_end", "minecraft:end_highlands",
+               "minecraft:end_midlands", "minecraft:end_barrens",
+               "minecraft:small_end_islands"}
+
+
+def _biome_groups(profile):
+    """Derive biome group tags from a dimension's actual biome content."""
+    groups = set()
+    all_biomes = set(profile.get("namesake", []))
+    all_biomes.update(profile.get("variety_biomes", []))
+    all_biomes.update(profile.get("spawn_probes", []))
+    for b in all_biomes:
+        if b.startswith("paradise_lost:"):
+            groups.add("paradise_lost")
+        elif b.startswith("incendium:") or b in _NETHER_BIOMES:
+            groups.add("nether")
+        elif b.startswith("nullscape:") or b in _END_BIOMES:
+            groups.add("end")
+        elif b.startswith(("terralith:", "natures_spirit:", "minecraft:")):
+            groups.add("overworld")
+    if not groups:
+        groups.add(profile.get("family") or "overworld")
+    return sorted(groups)
+
+
 def _score_colour(score):
     if score > 70:
         return "#6ec96e"
@@ -747,7 +775,10 @@ def render_viewer(results, profiles, winners, rejected=None):
 
     total_dims = len(profiles)
     total_cands = sum(len(c) for c in results.values())
-    families = sorted({p.get("family") or "Other" for p in profiles.values()})
+    all_groups = set()
+    for p in profiles.values():
+        all_groups.update(_biome_groups(p))
+    biome_groups = sorted(all_groups)
     types = sorted({p["type"] for p in profiles.values()})
     moods = sorted({p["mood"] for p in profiles.values()})
 
@@ -755,7 +786,7 @@ def render_viewer(results, profiles, winners, rejected=None):
         "<button class='family-btn{}' data-family='{}'>{}</button>".format(
             " active" if f == "All" else "",
             html.escape(f, quote=True), html.escape(f))
-        for f in ["All"] + families)
+        for f in ["All"] + biome_groups)
     type_opts = "<option value=''>All types</option>" + "".join(
         "<option>{}</option>".format(html.escape(t)) for t in types)
     mood_opts = "<option value=''>All moods</option>" + "".join(
@@ -782,7 +813,8 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
     """Render one dimension as a card (compact) + expandable detail panel."""
     best_score = cands[0]["score"] if cands else 0
     n_cands = len(cands)
-    family = html.escape(profile.get("family") or "other", quote=True)
+    groups = _biome_groups(profile)
+    family = html.escape(" ".join(groups), quote=True)
     ptype = html.escape(profile["type"], quote=True)
     pmood = html.escape(profile["mood"], quote=True)
     # Flagged = anything below green (score < 70) or no candidates

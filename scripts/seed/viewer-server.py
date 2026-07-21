@@ -226,8 +226,37 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         self._respond_json({"ok": True, "path": str(target)})
 
     def _handle_preview(self):
-        self._respond_json({"ok": False,
-                            "error": "Docker preview not implemented yet"})
+        """High-res biome render (1024×1024, full sample resolution).
+        Runs biome_renderer.py in the foreground — takes ~5-12s."""
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+            seed = str(body["seed"])
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim, seed}")
+            return
+
+        out_dir = Path(self.seedtest) / "renders" / dim
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"{seed}.hires.png"
+
+        biome_params = str(SCRIPT_DIR / "biome_params.json")
+        if not Path(biome_params).exists():
+            self._respond_json({"ok": False, "error": "biome_params.json not found"})
+            return
+
+        r = subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
+             "render", "--seed", seed, "--output", str(out_path),
+             "--biome-params", biome_params,
+             "--size", "1024", "--scale", "4"],
+            capture_output=True, text=True, timeout=60)
+        if r.returncode == 0 and out_path.exists():
+            rel = f"renders/{dim}/{seed}.hires.png"
+            self._respond_json({"ok": True, "path": rel})
+        else:
+            self._respond_json({"ok": False,
+                                "error": (r.stderr or r.stdout or "render failed")[:200]})
 
 
 def main():

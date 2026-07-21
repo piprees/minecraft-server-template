@@ -228,7 +228,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
     // Filter
     var cards = Array.from(document.querySelectorAll('.dim-card'));
     cards.forEach(function(c) {
-      var fam = state.family === 'All' || c.dataset.family === state.family;
+      var groups = (c.dataset.family || '').split(' ');
+      var fam = state.family === 'All' || groups.indexOf(state.family) >= 0;
       var typ = !state.type || c.dataset.type === state.type;
       var moo = !state.mood || c.dataset.mood === state.mood;
       var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0;
@@ -314,6 +315,26 @@ body.live .pick, body.live .action-btn { display: inline-block; }
       postJSON('/edit-config', {dim: edit.dataset.dim}).then(function(res) {
         edit.textContent = (res && res.ok) ? 'Opened' : 'Failed';
         setTimeout(function() { edit.disabled = false; edit.textContent = 'Edit'; }, 2500);
+      });
+      return;
+    }
+
+    var preview = e.target.closest('.action-btn.preview');
+    if (preview) {
+      preview.disabled = true; preview.textContent = 'Rendering…';
+      postJSON('/preview', {dim: preview.dataset.dim, seed: preview.dataset.seed}).then(function(res) {
+        if (!res || !res.ok) { preview.textContent = 'Failed'; return res && res.json ? res.json() : null; }
+        return res.json();
+      }).then(function(data) {
+        if (!data) return;
+        if (data.ok && data.path) {
+          var img = preview.closest('.cand').querySelector('img');
+          if (img) { img.src = data.path; img.style.display = ''; }
+          preview.textContent = 'Hi-res loaded';
+        } else {
+          preview.textContent = data.error || 'Failed';
+        }
+        setTimeout(function() { preview.disabled = false; preview.textContent = 'Preview'; }, 5000);
       });
       return;
     }
