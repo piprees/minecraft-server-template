@@ -614,7 +614,7 @@ def _render_one(task):
 
 def batch_render(config_path, seedtest_path, biome_params_path,
                  top=10, size=512, scale=16, sample_resolution=128,
-                 workers=0, dims_filter=None, shortlist=False):
+                 workers=0, dims_filter=None, shortlist=False, suffix=""):
     """Render biome maps for top-N candidates per dimension. No MC server."""
     import multiprocessing
     import time
@@ -651,7 +651,7 @@ def batch_render(config_path, seedtest_path, biome_params_path,
         fam = profile.get("family", "overworld")
 
         for _score, seed in scored[:top]:
-            out = renders_dir / name / f"{seed}.png"
+            out = renders_dir / name / f"{seed}{suffix}.png"
             if out.exists():
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
@@ -758,6 +758,8 @@ def main():
     batch.add_argument("--dims", help="Comma-separated dimension names")
     batch.add_argument("--shortlist", action="store_true",
                        help="Also render shortlisted candidates at both normal and highres")
+    batch.add_argument("--suffix", default="",
+                       help="Filename suffix before .png (e.g. '_hires')")
 
     args = ap.parse_args()
 
@@ -780,7 +782,7 @@ def main():
                             top=args.top, size=args.size, scale=args.scale,
                             sample_resolution=args.sample_res,
                             workers=args.workers, dims_filter=args.dims,
-                            shortlist=args.shortlist)
+                            shortlist=args.shortlist, suffix=args.suffix)
     else:
         ap.print_help()
 
