@@ -1019,6 +1019,9 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='seed'>{}</div>"
         "<span class='cand-toggle'>more</span>"
         "<div class='cand-detail'>"
+        "<span class='cand-toggle cand-close'>&times; close</span>"
+        "<div class='score' style='color:{}'>{:.1f}{}</div>"
+        "<div class='seed'>{}</div>"
         "<div class='bars'>{}</div>"
         "<div class='spawn'>spawn: {}</div>"
         "{}{}{}"
@@ -1029,6 +1032,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             html.escape(candidate_tooltip(c), quote=True),
             img, hires,
             html.escape(dim_name),
+            sc, c["score"], crown, c["seed"],
             sc, c["score"], crown, c["seed"],
             bars, spawn_html, pick_btn, shortlist_btn, create_dim_btn)
 

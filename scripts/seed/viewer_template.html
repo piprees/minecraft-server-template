@@ -112,7 +112,7 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 
 /* --- Candidate cards --- */
 .all-cands {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: grid; grid-template-columns: repeat(5, 1fr);
   gap: .6rem; margin-top: .5rem;
 }
 .cand {
@@ -134,7 +134,11 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
   font-size: .68rem; color: #777; margin-top: .15rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cand-detail { display: none; margin-top: .25rem; }
+.cand-detail {
+  display: none; position: absolute; inset: 0; z-index: 10;
+  background: rgba(24,27,32,.95); border-radius: 8px;
+  padding: .5rem; overflow-y: auto;
+}
 .cand.show-detail .cand-detail { display: block; }
 .cand-toggle {
   font-size: .65rem; color: #5b8dd0; cursor: pointer; margin-top: .2rem;

@@ -39,7 +39,7 @@ _jobs = {}
 _jobs_lock = threading.Lock()
 
 
-def _collect_render_tasks(config_path, seedtest, top=20):
+def _collect_render_tasks(config_path, seedtest, top=10):
     """Build render tasks for top-N candidates per dimension (matches viewer)."""
     from dimension_profiles import load_config, load_difficulty, build_profile, rollable
     import candidates as cmod
