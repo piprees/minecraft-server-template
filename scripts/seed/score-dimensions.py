@@ -1058,10 +1058,10 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                     tip, "&#x2705;", html.escape(pretty), int(d))))
             elif d < lo:
                 struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close)".format(
-                    tip, "&#xFE0F;", html.escape(pretty), int(d))))
+                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d))))
             else:
                 struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too far)".format(
-                    tip, "&#xFE0F;", html.escape(pretty), int(d))))
+                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d))))
     struct_items.sort(key=lambda x: x[0])
     struct_html = ("<div class='struct-list'>{}</div>".format(
         "".join("<div>{}</div>".format(s) for _, s in struct_items))
