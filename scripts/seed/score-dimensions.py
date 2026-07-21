@@ -762,440 +762,183 @@ def _flag_badge(score, n_cands):
 
 def render_viewer(results, profiles, winners, rejected=None):
     rejected = rejected or {}
+    template = (Path(__file__).resolve().parent / "viewer_template.html").read_text()
 
-    # Summary stats.
     total_dims = len(profiles)
     total_cands = sum(len(c) for c in results.values())
-    total_rendered = 0
-    for name, cands in results.items():
-        total_rendered += sum(1 for c in cands if True)  # counted below per-render
-    # Count renders with actual image files isn't possible here; use candidate count.
-    families = sorted({p.get("family") or "other" for p in profiles.values()})
+    families = sorted({p.get("family") or "Other" for p in profiles.values()})
     types = sorted({p["type"] for p in profiles.values()})
     moods = sorted({p["mood"] for p in profiles.values()})
 
-    css = """
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; }
-    body { font: 14px/1.5 -apple-system, sans-serif; background: #14161a; color: #e6e6e6;
-           margin: 0; padding: 0 2rem 2rem; }
-    h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
-    .summary { color: #9aa; font-size: .88rem; margin: .2rem 0 .8rem; }
-    .summary b { color: #c8d2dc; font-weight: 600; }
-
-    /* Sticky filter bar */
-    .filter-bar { position: sticky; top: 0; z-index: 100; background: #14161a;
-                  border-bottom: 1px solid #262b33; padding: .6rem 0; display: flex;
-                  flex-wrap: wrap; gap: .5rem; align-items: center; }
-    .filter-bar select, .filter-bar input { font: inherit; font-size: .82rem;
-        background: #1d2026; color: #e6e6e6; border: 1px solid #2c313a;
-        border-radius: 6px; padding: .25rem .5rem; outline: none; }
-    .filter-bar select:focus, .filter-bar input:focus { border-color: #5b8dd0; }
-    .filter-bar label { font-size: .82rem; color: #9aa; cursor: pointer; user-select: none; }
-    .filter-bar label input[type=checkbox] { margin-right: .3rem; }
-    .family-btns { display: flex; gap: 0; }
-    .family-btn { font: inherit; font-size: .78rem; padding: .2rem .6rem;
-                  background: #1d2026; color: #9aa; border: 1px solid #2c313a;
-                  cursor: pointer; transition: all .15s; }
-    .family-btn:first-child { border-radius: 6px 0 0 6px; }
-    .family-btn:last-child { border-radius: 0 6px 6px 0; }
-    .family-btn + .family-btn { border-left: none; }
-    .family-btn.active { background: #2a3545; color: #8fb4d8; border-color: #5b8dd0; }
-    .family-btn:hover { background: #252a33; }
-
-    .dim-section { margin: 1.2rem 0; }
-    .dim-section.hidden { display: none; }
-    .dim-header { cursor: pointer; user-select: none; display: flex; align-items: baseline;
-                  gap: .5rem; margin: 0; padding: .3rem 0; border-bottom: 1px solid #333; }
-    .dim-header h2 { font-size: 1.15rem; margin: 0; flex: 1; }
-    .dim-header .toggle-icon { color: #666; font-size: .8rem; transition: transform .2s; }
-    .dim-header .toggle-icon.collapsed { transform: rotate(-90deg); }
-    .dim-body { overflow: hidden; }
-    .dim-body.collapsed { display: none; }
-
-    .meta { color: #9aa; font-size: .85rem; margin: .2rem 0; }
-    .blurb { color: #cbd; font-size: .88rem; margin: .3rem 0; max-width: 70rem; }
-    .criteria { font-size: .78rem; color: #9aa; background: #191c21; border: 1px solid #262b33;
-                border-radius: 8px; padding: .5rem .8rem; margin: .5rem 0 .8rem; max-width: 70rem; }
-    .criteria b { color: #c8d2dc; font-weight: 600; }
-    .cands { display: flex; flex-wrap: wrap; gap: .8rem; }
-    .cand { background: #1d2026; border: 1px solid #2c313a; border-radius: 8px; padding: .6rem; width: 220px; }
-    .cand.winner { border-color: #d4a020; box-shadow: 0 0 0 1px #d4a020; }
-    .cand img { width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
-                object-fit: cover; image-rendering: pixelated; }
-    .score { font-size: 1.2rem; font-weight: 700; }
-    .winner .score { color: #ffd850; }
-    .seed { font-family: ui-monospace, monospace; font-size: .78rem; word-break: break-all; color: #8fb4d8; }
-    .bars { margin-top: .35rem; }
-    .bar { display: grid; grid-template-columns: 5.2rem 1fr 2.2rem; gap: .4rem; align-items: center;
-           font-size: .72rem; color: #9aa; margin-bottom: .15rem; }
-    .bar .track { height: 5px; background: #2c313a; border-radius: 3px; overflow: hidden; }
-    .bar .fill { height: 100%; background: #5b8dd0; }
-    .winner .bar .fill { background: #d4a020; }
-    .spawn { font-size: .75rem; color: #9aa; margin-top: .3rem; }
-    .spawn b { color: #a8d8a0; font-weight: 600; }
-    .badge { display: inline-block; font-size: .7rem; padding: .05rem .45rem; border-radius: 99px;
-             background: #2c313a; margin-right: .3rem; }
-    .flag-badge { display: inline-block; font-size: .7rem; padding: .1rem .5rem; border-radius: 99px;
-                  margin-left: .4rem; font-weight: 600; }
-    .flag-badge.amber { background: #3a2e10; color: #e8a735; }
-    .flag-badge.red { background: #3a1515; color: #e05252; }
-    .pick, .action-btn { display: none; margin-top: .4rem; font-size: .72rem; padding: .2rem .6rem;
-            border-radius: 6px; border: 1px solid #3a4150; background: #232833;
-            color: #c8d2dc; cursor: pointer; }
-    .pick:hover, .action-btn:hover { border-color: #d4a020; color: #ffd850; }
-    body.live .pick, body.live .action-btn { display: inline-block; }
-    .action-btn { margin-right: .3rem; }
-    .action-btn.reroll { border-color: #3a5070; }
-    .action-btn.reroll:hover { border-color: #5b8dd0; color: #8fb4d8; }
-    .action-btn.edit { border-color: #3a5040; }
-    .action-btn.edit:hover { border-color: #5bd060; color: #a8d8a0; }
-    .action-btn.preview { border-color: #504050; }
-    .action-btn.preview:hover { border-color: #a060d0; color: #c8a0e8; }
-    .dim-actions { margin: .5rem 0; }
-    .show-more { font: inherit; font-size: .78rem; padding: .3rem .8rem; border-radius: 6px;
-                 border: 1px solid #2c313a; background: #1d2026; color: #9aa; cursor: pointer;
-                 margin-top: .5rem; }
-    .show-more:hover { border-color: #5b8dd0; color: #8fb4d8; }
-    .cand-count { font-size: .78rem; color: #666; margin-top: .3rem; }
-    """
-    out = ["<!doctype html><meta charset='utf-8'><title>Seed roll results</title>",
-           "<meta http-equiv='refresh' content='30'>",
-           f"<style>{css}</style>"]
-
-    # Filter bar.
     family_btns = "".join(
         "<button class='family-btn{}' data-family='{}'>{}</button>".format(
             " active" if f == "All" else "",
             html.escape(f, quote=True), html.escape(f))
         for f in ["All"] + families)
     type_opts = "<option value=''>All types</option>" + "".join(
-        f"<option>{html.escape(t)}</option>" for t in types)
+        "<option>{}</option>".format(html.escape(t)) for t in types)
     mood_opts = "<option value=''>All moods</option>" + "".join(
-        f"<option>{html.escape(m)}</option>" for m in moods)
-    out.append(
-        "<div class='filter-bar' id='filter-bar'>"
-        f"<div class='family-btns'>{family_btns}</div>"
-        f"<select id='f-type'>{type_opts}</select>"
-        f"<select id='f-mood'>{mood_opts}</select>"
-        "<input id='f-search' type='text' placeholder='Search dimensions...' style='width:14rem'>"
-        "<label><input type='checkbox' id='f-flagged'> Flagged only</label>"
-        "</div>")
+        "<option>{}</option>".format(html.escape(m)) for m in moods)
+    summary = ("<b>{}</b> dimensions &middot; <b>{}</b> candidates &middot; "
+               "Generated {}").format(total_dims, total_cands,
+                                      time.strftime("%Y-%m-%d %H:%M"))
 
-    # Summary line.
-    out.append(
-        "<h1>Multiverse seed roll — results</h1>"
-        f"<p class='summary'><b>{total_dims}</b> dimensions · "
-        f"<b>{total_cands}</b> candidates · "
-        f"Generated {time.strftime('%Y-%m-%d %H:%M')}</p>"
-        f"<p class='meta'>Scores are 0–100, per-dimension. "
-        "Components: <b>namesake</b> = spawn biome sells the dimension's name; <b>variety</b> = listed "
-        "biomes actually present nearby; <b>terrain</b> = relief/grain/water vs the dimension's target "
-        "shape; <b>structures</b> = each structure lands in its placement band. "
-        "Winners (gold) are written into the config. Hover a candidate for raw locate distances.</p>")
-
+    dims_html = []
     for name, profile in profiles.items():
-        cands = results.get(name, [])
-        best_score = cands[0]["score"] if cands else 0
-        n_cands = len(cands)
-        rej_count = rejected.get(name, 0)
-        family = html.escape(profile.get("family") or "other", quote=True)
-        ptype = html.escape(profile["type"], quote=True)
-        pmood = html.escape(profile["mood"], quote=True)
-        flagged = "1" if (n_cands == 0 or best_score < 50) else "0"
-        htint = _header_tint(best_score if n_cands else 0)
-        score_col = _score_colour(best_score) if n_cands else "#e05252"
-        flag_html = _flag_badge(best_score, n_cands)
+        dims_html.append(_render_dim_section(
+            name, profile, results.get(name, []),
+            winners, rejected.get(name, 0)))
 
-        out.append(
-            f"<div class='dim-section' data-family='{family}' data-type='{ptype}' "
-            f"data-mood='{pmood}' data-flagged='{flagged}' data-name='{html.escape(name, quote=True)}'>")
-        out.append(
-            f"<div class='dim-header' data-dim='{html.escape(name, quote=True)}'"
-            f"{' style=\"' + htint + '\"' if htint else ''}>"
-            f"<span class='toggle-icon'>&#9660;</span>"
-            f"<h2>{html.escape(name)}</h2>"
-            f"<span style='color:{score_col};font-weight:700;font-size:.95rem'>"
-            f"{best_score:.1f}</span>{flag_html}"
-            f"<span class='meta' style='margin:0'>{n_cands} candidates</span>"
-            "</div>")
-        out.append("<div class='dim-body'>")
+    return (template
+            .replace("{{FAMILY_BUTTONS}}", family_btns)
+            .replace("{{TYPE_OPTIONS}}", type_opts)
+            .replace("{{MOOD_OPTIONS}}", mood_opts)
+            .replace("{{SUMMARY_STATS}}", summary)
+            .replace("{{DIMENSIONS_HTML}}", "\n".join(dims_html)))
 
-        out.append("<div class='meta'>"
-                   f"<span class='badge'>{profile['type']}</span>"
-                   f"<span class='badge'>scale {profile['scale']:g} "
-                   f"→ playable radius {int(profile['radius'])}</span>"
-                   f"<span class='badge'>{profile['mood']}</span>"
-                   + (f"<span class='badge'>{profile['density']} structures</span>"
-                      if profile['density'] else "")
-                   + ("<span class='badge'>peaceful</span>" if profile['peaceful'] else "")
-                   + (f"<span class='badge'>mob difficulty "
-                      f"×{profile['mob_difficulty']:g}</span>"
-                      if profile.get('mob_difficulty') is not None else "")
-                   + ("<span class='badge'>world seed</span>"
-                      if profile.get('is_world') else "")
-                   + (f"<span class='badge'>{profile['noise']}</span>"
-                      if profile['noise'] else "")
-                   + (f"<span class='badge'>{rej_count} spawn-rejected</span>"
-                      if rej_count else "")
-                   + "</div>")
-        out.append(f"<div class='blurb'>{html.escape(profile['blurb'])}</div>")
 
-        t = profile["terrain"]
-        w = profile["weights"]
-        wants = ", ".join(f"{n} ({range_label(profile, spec)})"
-                          for n, _sid, spec, kind in profile["battery"]
-                          if kind == "want")
-        shuns = ", ".join(n for n, _sid, _spec, kind in profile["battery"]
-                          if kind == "shun")
-        spawn_filter = ", ".join(profile["namesake"]) or "any"
-        out.append(
-            "<div class='criteria'>"
-            f"<b>Spawn filter</b> {html.escape(spawn_filter)}<br>"
-            f"<b>Wants (blocks from 0,0)</b> "
-            f"{html.escape(wants) or 'none (void — biomes only)'}<br>"
-            + (f"<b>Should not appear</b> {html.escape(shuns)}<br>"
-               if shuns else "")
-            + f"<b>Weights</b> namesake {w['namesake']} · variety {w['variety']}"
-              f" · terrain {w['terrain']} · structures {w['structures']}<br>"
-            f"<b>Terrain targets</b> relief "
-            f"{int(t['relief'][0])}–{int(t['relief'][1])} · "
-            f"grain {t['grain'][0]:.0f}–{t['grain'][1]:.0f} · "
-            f"water {t['water'][0]:.0%}–{t['water'][1]:.0%}"
-            "</div>")
+def _render_dim_section(name, profile, cands, winners, rej_count):
+    best_score = cands[0]["score"] if cands else 0
+    n_cands = len(cands)
+    family = html.escape(profile.get("family") or "Other", quote=True)
+    ptype = html.escape(profile["type"], quote=True)
+    pmood = html.escape(profile["mood"], quote=True)
+    flagged = "1" if (n_cands == 0 or best_score < 50) else "0"
+    htint = _header_tint(best_score if n_cands else 0)
+    score_col = _score_colour(best_score) if n_cands else "#e05252"
+    flag_html = _flag_badge(best_score, n_cands)
+    esc_name = html.escape(name, quote=True)
 
-        # Per-dimension action buttons (live server only).
-        out.append(
-            "<div class='dim-actions'>"
-            f"<button class='action-btn reroll' data-dim='{html.escape(name, quote=True)}'>"
-            "Re-roll</button>"
-            f"<button class='action-btn edit' data-dim='{html.escape(name, quote=True)}'>"
-            "Edit config</button>"
-            "</div>")
+    out = []
+    out.append(
+        "<div class='dim-section' data-family='{}' data-type='{}' "
+        "data-mood='{}' data-flagged='{}' data-name='{}'>".format(
+            family, ptype, pmood, flagged, esc_name))
+    style_attr = " style=\"{}\"".format(htint) if htint else ""
+    out.append(
+        "<div class='dim-header' data-dim='{}'{}>"
+        "<span class='toggle-icon'>&#9660;</span>"
+        "<h2>{}</h2>"
+        "<span class='dim-score' style='color:{}'>{:.1f}</span>{}"
+        "<span class='dim-count'>{} candidates</span>"
+        "</div>".format(esc_name, style_attr, html.escape(name),
+                        score_col, best_score, flag_html, n_cands))
+    out.append("<div class='dim-body'>")
 
-        if not cands:
-            out.append("<p class='meta'>No candidates measured.</p>")
-            out.append("</div></div>")
-            continue
+    badges = "<span class='badge'>{}</span>".format(profile["type"])
+    badges += "<span class='badge'>scale {:g} &rarr; playable radius {}</span>".format(
+        profile["scale"], int(profile["radius"]))
+    badges += "<span class='badge'>{}</span>".format(profile["mood"])
+    if profile["density"]:
+        badges += "<span class='badge'>{} structures</span>".format(profile["density"])
+    if profile["peaceful"]:
+        badges += "<span class='badge'>peaceful</span>"
+    if profile.get("mob_difficulty") is not None:
+        badges += "<span class='badge'>mob difficulty &times;{:g}</span>".format(
+            profile["mob_difficulty"])
+    if profile.get("is_world"):
+        badges += "<span class='badge'>world seed</span>"
+    if profile["noise"]:
+        badges += "<span class='badge'>{}</span>".format(profile["noise"])
+    if rej_count:
+        badges += "<span class='badge'>{} spawn-rejected</span>".format(rej_count)
+    out.append("<div class='meta'>{}</div>".format(badges))
+    out.append("<div class='blurb'>{}</div>".format(html.escape(profile["blurb"])))
 
-        # Show top 3 by default, up to 20 expandable.
-        default_show = 3
-        max_show = min(20, n_cands)
-        out.append(f"<div class='cands' data-dim='{html.escape(name, quote=True)}'>")
-        for idx, c in enumerate(cands[:max_show]):
-            win = winners.get(name, {}).get("seed") == c["seed"]
-            img = f"renders/{name}/{c['seed']}.png"
-            bars = "".join(
-                f"<div class='bar'><span>{k}</span><span class='track'>"
-                f"<span class='fill' style='width:{v * 100:.0f}%'></span></span>"
-                f"<span>{v:.2f}</span></div>"
-                for k, v in c["parts"].items())
-            spawn = c["spawn_biome"]
-            spawn_html = (f"<b>{html.escape(spawn)}</b>"
-                          if spawn in profile["namesake"]
-                          else html.escape(spawn))
-            fdist = c["metrics"].get("spawn_filter_dist")
-            if (spawn not in profile["namesake"]
-                    and fdist is not None and float(fdist) >= 0):
-                spawn_html += (f" <span class='meta'>(filter biome "
-                               f"{int(float(fdist))} blocks away)</span>")
-            pinned = bool(winners.get(name, {}).get("pinned")) and win
-            crown = (" 📌" if pinned else " 🏆") if win else ""
-            sc = _score_colour(c["score"])
-            hidden = ' style="display:none"' if idx >= default_show else ''
-            pick_btn = ("" if win else
-                        f"<button class='pick' data-dim='"
-                        f"{html.escape(name, quote=True)}' "
-                        f"data-seed='{c['seed']}'>make winner</button>")
-            preview_btn = (f"<button class='action-btn preview' "
-                           f"data-dim='{html.escape(name, quote=True)}' "
-                           f"data-seed='{c['seed']}'>Preview</button>")
-            out.append(
-                f"<div class='cand{' winner' if win else ''} cand-item'"
-                f" data-idx='{idx}'{hidden}"
-                f" title='{html.escape(candidate_tooltip(c), quote=True)}'>"
-                f"<img src='{img}' loading='lazy' "
-                f"onerror=\"this.style.display='none'\">"
-                f"<div class='score' style='color:{sc}'>"
-                f"{c['score']:.1f}{crown}</div>"
-                f"<div class='seed'>{c['seed']}</div>"
-                f"<div class='bars'>{bars}</div>"
-                f"<div class='spawn'>spawn: {spawn_html}</div>"
-                f"{pick_btn}{preview_btn}"
-                "</div>")
-        out.append("</div>")
-        if max_show > default_show:
-            out.append(
-                f"<button class='show-more' data-dim='{html.escape(name, quote=True)}' "
-                f"data-total='{max_show}' data-showing='{default_show}'>"
-                f"Show {max_show - default_show} more</button>")
-        out.append(f"<p class='cand-count'>{default_show} of {n_cands} candidates</p>")
+    t = profile["terrain"]
+    w = profile["weights"]
+    wants = ", ".join("{} ({})".format(n, range_label(profile, spec))
+                      for n, _sid, spec, kind in profile["battery"]
+                      if kind == "want")
+    shuns = ", ".join(n for n, _sid, _spec, kind in profile["battery"]
+                      if kind == "shun")
+    spawn_filter = ", ".join(profile["namesake"]) or "any"
+    criteria = "<b>Spawn filter</b> {}<br>".format(html.escape(spawn_filter))
+    criteria += "<b>Wants (blocks from 0,0)</b> {}<br>".format(
+        html.escape(wants) or "none (void &mdash; biomes only)")
+    if shuns:
+        criteria += "<b>Should not appear</b> {}<br>".format(html.escape(shuns))
+    criteria += ("<b>Weights</b> namesake {} &middot; variety {} "
+                 "&middot; terrain {} &middot; structures {}<br>").format(
+                     w["namesake"], w["variety"], w["terrain"], w["structures"])
+    criteria += ("<b>Terrain targets</b> relief {}&ndash;{} &middot; "
+                 "grain {:.0f}&ndash;{:.0f} &middot; "
+                 "water {:.0%}&ndash;{:.0%}").format(
+                     int(t["relief"][0]), int(t["relief"][1]),
+                     t["grain"][0], t["grain"][1],
+                     t["water"][0], t["water"][1])
+    out.append("<div class='criteria'>{}</div>".format(criteria))
+
+    out.append(
+        "<div class='dim-actions'>"
+        "<button class='action-btn reroll' data-dim='{}'>Re-roll</button>"
+        "<button class='action-btn edit' data-dim='{}'>Edit config</button>"
+        "</div>".format(esc_name, esc_name))
+
+    if not cands:
+        out.append("<p class='meta'>No candidates measured.</p>")
         out.append("</div></div>")
+        return "\n".join(out)
 
-    out.append("""
-<script>
-(function() {
-  const live = location.protocol !== 'file:';
-  if (live) document.body.classList.add('live');
-
-  // --- Filter state from URL hash ---
-  function readHash() {
-    const p = new URLSearchParams(location.hash.slice(1));
-    return { family: p.get('family') || 'All', type: p.get('type') || '',
-             mood: p.get('mood') || '', search: p.get('q') || '',
-             flagged: p.get('flagged') === '1' };
-  }
-  function writeHash(s) {
-    const p = new URLSearchParams();
-    if (s.family !== 'All') p.set('family', s.family);
-    if (s.type) p.set('type', s.type);
-    if (s.mood) p.set('mood', s.mood);
-    if (s.search) p.set('q', s.search);
-    if (s.flagged) p.set('flagged', '1');
-    history.replaceState(null, '', '#' + p.toString());
-  }
-
-  let state = readHash();
-  const typeEl = document.getElementById('f-type');
-  const moodEl = document.getElementById('f-mood');
-  const searchEl = document.getElementById('f-search');
-  const flaggedEl = document.getElementById('f-flagged');
-
-  function applyState() {
-    document.querySelectorAll('.family-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.family === state.family);
-    });
-    typeEl.value = state.type;
-    moodEl.value = state.mood;
-    searchEl.value = state.search;
-    flaggedEl.checked = state.flagged;
-    const q = state.search.toLowerCase();
-    document.querySelectorAll('.dim-section').forEach(s => {
-      const fam = state.family === 'All' || s.dataset.family === state.family;
-      const typ = !state.type || s.dataset.type === state.type;
-      const moo = !state.mood || s.dataset.mood === state.mood;
-      const txt = !q || s.dataset.name.toLowerCase().includes(q);
-      const flg = !state.flagged || s.dataset.flagged === '1';
-      s.classList.toggle('hidden', !(fam && typ && moo && txt && flg));
-    });
-    writeHash(state);
-  }
-
-  document.querySelectorAll('.family-btn').forEach(b => {
-    b.addEventListener('click', () => { state.family = b.dataset.family; applyState(); });
-  });
-  typeEl.addEventListener('change', () => { state.type = typeEl.value; applyState(); });
-  moodEl.addEventListener('change', () => { state.mood = moodEl.value; applyState(); });
-  searchEl.addEventListener('input', () => { state.search = searchEl.value; applyState(); });
-  flaggedEl.addEventListener('change', () => { state.flagged = flaggedEl.checked; applyState(); });
-  applyState();
-
-  // --- Collapsible dimension headers ---
-  document.querySelectorAll('.dim-header').forEach(h => {
-    h.addEventListener('click', () => {
-      const body = h.nextElementSibling;
-      const icon = h.querySelector('.toggle-icon');
-      body.classList.toggle('collapsed');
-      icon.classList.toggle('collapsed');
-    });
-  });
-
-  // --- Expandable candidate lists (sessionStorage) ---
-  document.querySelectorAll('.show-more').forEach(btn => {
-    const dim = btn.dataset.dim;
-    const total = parseInt(btn.dataset.total);
-    const stored = sessionStorage.getItem('expand-' + dim);
-    if (stored === '1') expandDim(btn, dim, total);
-
-    btn.addEventListener('click', () => {
-      expandDim(btn, dim, total);
-      sessionStorage.setItem('expand-' + dim, '1');
-    });
-  });
-
-  function expandDim(btn, dim, total) {
-    const container = document.querySelector('.cands[data-dim="' + dim + '"]');
-    container.querySelectorAll('.cand-item').forEach(c => { c.style.display = ''; });
-    btn.style.display = 'none';
-    const countEl = btn.nextElementSibling;
-    if (countEl) countEl.textContent = total + ' of ' + countEl.textContent.split('of')[1];
-  }
-
-  // --- Winner picking + action buttons (live server only) ---
-  if (!live) return;
-
-  async function postJSON(url, data) {
-    return fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(data) }).catch(() => null);
-  }
-
-  document.body.addEventListener('click', async (e) => {
-    // Winner pick
-    const pick = e.target.closest('.pick');
-    if (pick) {
-      pick.disabled = true; pick.textContent = 'saving...';
-      const res = await postJSON('/pick', {dim: pick.dataset.dim, seed: pick.dataset.seed});
-      if (res && res.ok) location.reload();
-      else { pick.disabled = false; pick.textContent = 'make winner (failed)'; }
-      return;
-    }
-
-    // Re-roll
-    const reroll = e.target.closest('.action-btn.reroll');
-    if (reroll) {
-      reroll.disabled = true; reroll.textContent = 'Rolling... (est. ~5s)';
-      const res = await postJSON('/reroll', {dim: reroll.dataset.dim, pool: 5000, count: 100});
-      if (res && res.ok) {
-        const data = await res.json();
-        reroll.textContent = 'Rolling... (' + data.job_id + ')';
-        pollJob(data.job_id, reroll);
-      } else { reroll.disabled = false; reroll.textContent = 'Re-roll (failed)'; }
-      return;
-    }
-
-    // Edit config
-    const edit = e.target.closest('.action-btn.edit');
-    if (edit) {
-      edit.disabled = true; edit.textContent = 'Opening...';
-      const res = await postJSON('/edit-config', {dim: edit.dataset.dim});
-      if (res && res.ok) { edit.textContent = 'Opened'; setTimeout(() => {
-        edit.disabled = false; edit.textContent = 'Edit config'; }, 3000);
-      } else { edit.disabled = false; edit.textContent = 'Edit config (failed)'; }
-      return;
-    }
-
-    // Preview
-    const preview = e.target.closest('.action-btn.preview');
-    if (preview) {
-      preview.disabled = true; preview.textContent = 'Loading...';
-      const res = await postJSON('/preview', {dim: preview.dataset.dim, seed: preview.dataset.seed});
-      if (res) {
-        const data = await res.json();
-        preview.textContent = data.ok ? 'Done' : (data.error || 'Not available');
-      } else { preview.textContent = 'Failed'; }
-      setTimeout(() => { preview.disabled = false; preview.textContent = 'Preview'; }, 4000);
-      return;
-    }
-  });
-
-  function pollJob(jobId, btn) {
-    const iv = setInterval(async () => {
-      const res = await fetch('/job/' + jobId).catch(() => null);
-      if (!res || !res.ok) return;
-      const data = await res.json();
-      if (data.status === 'done') {
-        clearInterval(iv); btn.textContent = 'Done — reloading...';
-        setTimeout(() => location.reload(), 1000);
-      } else if (data.status === 'failed') {
-        clearInterval(iv); btn.disabled = false; btn.textContent = 'Re-roll (job failed)';
-      } else {
-        btn.textContent = 'Rolling... (' + (data.elapsed || '?') + 's)';
-      }
-    }, 3000);
-  }
-})();
-</script>""")
+    default_show = 3
+    max_show = min(20, n_cands)
+    out.append("<div class='cands' data-dim='{}'>".format(esc_name))
+    for idx, c in enumerate(cands[:max_show]):
+        out.append(_render_candidate(idx, c, name, profile, winners, default_show))
+    out.append("</div>")
+    if max_show > default_show:
+        out.append(
+            "<button class='show-more' data-dim='{}' "
+            "data-total='{}' data-showing='{}'>"
+            "Show {} more</button>".format(
+                esc_name, max_show, default_show, max_show - default_show))
+    out.append("<p class='cand-count'>{} of {} candidates</p>".format(
+        min(default_show, n_cands), n_cands))
+    out.append("</div></div>")
     return "\n".join(out)
+
+
+def _render_candidate(idx, c, dim_name, profile, winners, default_show):
+    esc_dim = html.escape(dim_name, quote=True)
+    win = winners.get(dim_name, {}).get("seed") == c["seed"]
+    img = "renders/{}/{}.png".format(dim_name, c["seed"])
+    bars = "".join(
+        "<div class='bar'><span>{}</span><span class='track'>"
+        "<span class='fill' style='width:{:.0f}%'></span></span>"
+        "<span>{:.2f}</span></div>".format(k, v * 100, v)
+        for k, v in c["parts"].items())
+    spawn = c["spawn_biome"]
+    spawn_html = ("<b>{}</b>".format(html.escape(spawn))
+                  if spawn in profile["namesake"]
+                  else html.escape(spawn))
+    fdist = c["metrics"].get("spawn_filter_dist")
+    if (spawn not in profile["namesake"]
+            and fdist is not None and float(fdist) >= 0):
+        spawn_html += (" <span class='meta'>(filter biome "
+                       "{} blocks away)</span>".format(int(float(fdist))))
+    pinned = bool(winners.get(dim_name, {}).get("pinned")) and win
+    crown = (" &#x1F4CC;" if pinned else " &#x1F3C6;") if win else ""
+    sc = _score_colour(c["score"])
+    hidden = ' style="display:none"' if idx >= default_show else ""
+    pick_btn = ("" if win else
+                "<button class='pick' data-dim='{}' "
+                "data-seed='{}'>make winner</button>".format(esc_dim, c["seed"]))
+    preview_btn = ("<button class='action-btn preview' "
+                   "data-dim='{}' data-seed='{}'>Preview</button>".format(
+                       esc_dim, c["seed"]))
+    return (
+        "<div class='cand{} cand-item' data-idx='{}'{} title='{}'>"
+        "<img src='{}' loading='lazy' onerror=\"this.style.display='none'\">"
+        "<div class='score' style='color:{}'>{:.1f}{}</div>"
+        "<div class='seed'>{}</div>"
+        "<div class='bars'>{}</div>"
+        "<div class='spawn'>spawn: {}</div>"
+        "{}{}"
+        "</div>").format(
+            " winner" if win else "", idx, hidden,
+            html.escape(candidate_tooltip(c), quote=True),
+            img, sc, c["score"], crown, c["seed"],
+            bars, spawn_html, pick_btn, preview_btn)
 
 
 # ---------------------------------------------------------------------------
