@@ -27,6 +27,7 @@ usage() {
   echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
   echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
   echo "  seed-status Candidate-bank status: counts, winners, score freshness"
+  echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
@@ -366,6 +367,18 @@ case "$CMD" in
     [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
     exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
       --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
+    ;;
+  seed-viewer)
+    ensure_stack
+    export CONSUMER_DIR
+    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
+    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
+    VIEWER_ARGS=(--config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest")
+    # Consumer mode: pass overlay path so re-roll writes winners there
+    if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
+      VIEWER_ARGS+=(--write-config --winner-overlay "$CONSUMER_DIR/overlay/config/custom-dimensions")
+    fi
+    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/viewer-server.py" "${VIEWER_ARGS[@]}" "$@"
     ;;
   cache)
     ensure_env
