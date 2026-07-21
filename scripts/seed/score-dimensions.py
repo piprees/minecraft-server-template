@@ -1027,39 +1027,39 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                         "<span>grain <b>{:.1f}</b></span>"
                         "<span>water <b>{:.0%}</b></span>"
                         "</div>".format(relief, grain, water))
-    # Structure hit/miss table
-    struct_rows = []
+    # Structure hit/miss list — sorted by distance from spawn
+    struct_items = []
     for sname, _sid, spec, kind in profile.get("battery", []):
         v = c["metrics"].get(f"structure_{sname}_dist")
         d = float(v) if v is not None else -1
+        pretty = sname.replace("_", " ").title()
         if kind == "shun":
+            tip = "Avoid: should not appear nearby"
             if d < 0:
-                icon, dist_str = "&#x2705;", "absent"
+                struct_items.append((9999, "<span title='{}'>{}</span> {} — absent".format(
+                    tip, "&#x2705;", html.escape(pretty))))
             else:
-                icon, dist_str = "&#x274C;", f"{int(d)} blocks"
-            struct_rows.append(
-                "<div class='struct-row'><span>{}</span>"
-                "<span class='meta'>avoid</span>"
-                "<span>{}</span><span>{}</span></div>".format(
-                    icon, html.escape(sname), dist_str))
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({})".format(
+                    tip, "&#x274C;", html.escape(pretty), int(d))))
         else:
             lo, hi = spec
+            tip = "Wanted: {}-{} blocks from spawn".format(int(lo), int(hi))
             if d < 0:
-                icon, dist_str = "&#x274C;", "not found"
+                struct_items.append((9998, "<span title='{}'>{}</span> {} — not found".format(
+                    tip, "&#x274C;", html.escape(pretty))))
             elif lo <= d <= hi:
-                icon, dist_str = "&#x2705;", f"{int(d)} blocks"
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({})".format(
+                    tip, "&#x2705;", html.escape(pretty), int(d))))
             elif d < lo:
-                icon, dist_str = "&#x26A0;", f"{int(d)} blocks (too close)"
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close)".format(
+                    tip, "&#x26A0;", html.escape(pretty), int(d))))
             else:
-                icon, dist_str = "&#x26A0;", f"{int(d)} blocks (too far)"
-            struct_rows.append(
-                "<div class='struct-row'><span>{}</span>"
-                "<span>{}</span>"
-                "<span class='meta'>{}-{}</span>"
-                "<span>{}</span></div>".format(
-                    icon, html.escape(sname), int(lo), int(hi), dist_str))
-    struct_html = ("<div class='struct-table'>{}</div>".format(
-        "".join(struct_rows)) if struct_rows else "")
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too far)".format(
+                    tip, "&#x26A0;", html.escape(pretty), int(d))))
+    struct_items.sort(key=lambda x: x[0])
+    struct_html = ("<div class='struct-list'>{}</div>".format(
+        "".join("<div>{}</div>".format(s) for _, s in struct_items))
+        if struct_items else "")
     spawn = c["spawn_biome"]
     spawn_html = ("<b>{}</b>".format(html.escape(spawn))
                   if spawn in profile["namesake"]
@@ -1088,25 +1088,24 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Fork dimension</button>".format(
                           esc_dim, c["seed"]))
-    # Biome distances
-    biome_rows = []
-    for metric, value in sorted(c["metrics"].items()):
+    # Biome distances — sorted by distance from spawn
+    biome_items = []
+    for metric, value in c["metrics"].items():
         if metric.startswith("biome_") and metric.endswith("_dist"):
-            bname = metric[6:-5].replace("_", " ")
+            bname = metric[6:-5].replace("_", " ").title()
             d = float(value)
             if d >= 0:
-                biome_rows.append("<div class='struct-row'>"
-                                  "<span>&#x2705;</span><span>{}</span>"
-                                  "<span></span><span>{} blocks</span></div>".format(
-                                      html.escape(bname), int(d)))
+                biome_items.append((d, "<div>&#x2705; {} ({})</div>".format(
+                    html.escape(bname), int(d))))
             else:
-                biome_rows.append("<div class='struct-row'>"
-                                  "<span>&#x274C;</span><span>{}</span>"
-                                  "<span></span><span>not found</span></div>".format(
-                                      html.escape(bname)))
-    biome_html = ("<div class='struct-table'><div style='font-size:.6rem;"
-                  "color:var(--text-heading);margin-bottom:.15rem'>Biomes</div>"
-                  "{}</div>".format("".join(biome_rows)) if biome_rows else "")
+                biome_items.append((9999, "<div>&#x274C; {} — not found</div>".format(
+                    html.escape(bname))))
+    biome_items.sort(key=lambda x: x[0])
+    biome_html = ("<div class='struct-list' style='margin-top:.4rem'>"
+                  "<div style='font-size:.65rem;color:var(--text-heading);"
+                  "margin-bottom:.1rem'>Biomes</div>"
+                  "{}</div>".format("".join(s for _, s in biome_items))
+                  if biome_items else "")
 
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     return (

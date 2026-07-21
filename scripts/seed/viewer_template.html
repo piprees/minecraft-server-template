@@ -169,13 +169,9 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
   border-top: 1px solid #1a1d22;
 }
 .terrain-summary b { color: var(--text-heading); }
-.struct-table { margin-top: .3rem; font-size: .65rem; }
-.struct-row {
-  display: grid; grid-template-columns: 1.2rem 1fr auto auto;
-  gap: .2rem; align-items: center; color: var(--text-muted); padding: .1rem 0;
-  border-bottom: 1px solid #1a1d22;
-}
-.struct-row:last-child { border-bottom: none; }
+.struct-table, .struct-list { margin-top: .3rem; font-size: .72rem; color: var(--text-muted); }
+.struct-list div { padding: .1rem 0; }
+.struct-list span[title] { cursor: help; }
 .bars { margin-top: .25rem; }
 .bar {
   display: grid; grid-template-columns: 4.5rem 1fr 2.2rem; gap: .3rem;
