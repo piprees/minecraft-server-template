@@ -40,7 +40,7 @@ _jobs_lock = threading.Lock()
 
 
 def _collect_render_tasks(config_path, seedtest, top=20):
-    """Build render tasks for candidates visible in the viewer (top-N + shortlisted)."""
+    """Build render tasks for top-N candidates per dimension (matches viewer)."""
     from dimension_profiles import load_config, load_difficulty, build_profile, rollable
     import candidates as cmod
 
@@ -51,18 +51,6 @@ def _collect_render_tasks(config_path, seedtest, top=20):
     all_targets = {**worlds, **dims}
     cdir = cmod.candidates_dir(Path(config_path))
     renders_dir = Path(seedtest) / "renders"
-
-    # Shortlist
-    sl_seeds = {}
-    sl_path = Path(seedtest) / "shortlist.json"
-    if sl_path.exists():
-        try:
-            for key in json.loads(sl_path.read_text()):
-                parts = key.split("/", 1)
-                if len(parts) == 2:
-                    sl_seeds.setdefault(parts[0], set()).add(parts[1])
-        except (json.JSONDecodeError, OSError):
-            pass
 
     family_noise = {"overworld": "overworld", "nether": "nether",
                     "end": "end", "paradise_lost": "paradise_lost"}
@@ -77,17 +65,14 @@ def _collect_render_tasks(config_path, seedtest, top=20):
         fam = profile.get("family", "overworld")
         noise_family = type_override.get(dim_type, family_noise.get(fam, "overworld"))
 
-        # Top-N by score (matches viewer's display limit)
         scored = []
         for seed_str, cand in store["candidates"].items():
             best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
             if best > 0:
                 scored.append((best, seed_str))
         scored.sort(reverse=True)
-        visible = {s for _, s in scored[:top]}
-        visible |= sl_seeds.get(name, set())
 
-        for seed_str in visible:
+        for _, seed_str in scored[:top]:
             out_normal = renders_dir / name / f"{seed_str}.png"
             if not out_normal.exists():
                 normal_tasks.append((seed_str, name, noise_family, str(out_normal), 512, 16))
