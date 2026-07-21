@@ -643,19 +643,18 @@ body.show-borders .border-label { display: block; }
   });
 
   // --- World border overlays ---
-  // Render coverage: size * effective_scale blocks. Default normal: 1024 * 8 = 8192.
-  // For scaled dims: effective_scale = base_scale / dim_scale, so coverage = size * base / dim_scale.
-  var RENDER_SIZE = 1024, BASE_SCALE = 8;
+  // Find the largest diameter across all dimensions for relative scaling
+  var maxDiameter = 0;
+  document.querySelectorAll('.dim-card').forEach(function(card) {
+    var r = parseFloat(card.dataset.radius || 0);
+    if (r * 2 > maxDiameter) maxDiameter = r * 2;
+  });
   document.querySelectorAll('.dim-card').forEach(function(card) {
     var radius = parseFloat(card.dataset.radius || 0);
-    var dimScale = parseFloat(card.dataset.dimScale || 1);
     if (!radius) return;
-    var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
     var diameter = radius * 2;
-    // Scale factor: how much to shrink the image so the border = container edge
-    // If border < coverage: image shrinks (e.g. 0.5 = border is half the render)
-    // If border >= coverage: no shrink needed (border at or beyond edge)
-    var imgScale = Math.min(1, diameter / coverage);
+    // Scale relative to the largest dimension — shows true relative size
+    var imgScale = Math.max(0.05, diameter / maxDiameter);
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
       if (wrap.classList.contains('img-wrap')) return;
