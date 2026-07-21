@@ -1086,6 +1086,26 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Fork dimension</button>".format(
                           esc_dim, c["seed"]))
+    # Biome distances
+    biome_rows = []
+    for metric, value in sorted(c["metrics"].items()):
+        if metric.startswith("biome_") and metric.endswith("_dist"):
+            bname = metric[6:-5].replace("_", " ")
+            d = float(value)
+            if d >= 0:
+                biome_rows.append("<div class='struct-row'>"
+                                  "<span>&#x2705;</span><span>{}</span>"
+                                  "<span></span><span>{} blocks</span></div>".format(
+                                      html.escape(bname), int(d)))
+            else:
+                biome_rows.append("<div class='struct-row'>"
+                                  "<span>&#x274C;</span><span>{}</span>"
+                                  "<span></span><span>not found</span></div>".format(
+                                      html.escape(bname)))
+    biome_html = ("<div class='struct-table'><div style='font-size:.6rem;"
+                  "color:var(--text-heading);margin-bottom:.15rem'>Biomes</div>"
+                  "{}</div>".format("".join(biome_rows)) if biome_rows else "")
+
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
@@ -1095,14 +1115,9 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
-        "<span class='cand-toggle'>more</span>"
-        "<div class='cand-detail'>"
-        "<span class='cand-toggle cand-close'>&times; close</span>"
-        "<div class='score' style='color:{}'>{:.1f}{}</div>"
-        "<div class='seed'>{}</div>"
+        "<div class='cand-detail' style='display:none'>"
         "<div class='bars'>{}</div>"
-        "{}"
-        "{}"
+        "{}{}{}"
         "<div class='spawn'>spawn: {}</div>"
         "{}{}{}"
         "</div>"
@@ -1113,8 +1128,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             img, hires,
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],
-            sc, c["score"], crown, c["seed"],
-            bars, terrain_html, struct_html,
+            bars, terrain_html, struct_html, biome_html,
             spawn_html, pick_btn, shortlist_btn, create_dim_btn)
 
 

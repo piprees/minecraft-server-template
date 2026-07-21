@@ -163,18 +163,6 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
   font-size: .68rem; color: var(--text-muted); margin-top: .15rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cand-detail {
-  display: none; position: absolute; inset: 0; z-index: 10;
-  background: rgba(24,27,32,.95); border-radius: var(--radius);
-  padding: .5rem; overflow-y: auto;
-}
-.cand.show-detail .cand-detail { display: block; }
-.cand-toggle {
-  font-size: .72rem; color: var(--accent); cursor: pointer; margin-top: .2rem;
-  user-select: none; display: inline-block; padding: .15rem .4rem;
-  border-radius: var(--radius-sm);
-}
-.cand-toggle:hover { color: var(--accent-hover); background: rgba(91,141,208,.1); }
 .terrain-summary {
   display: flex; gap: .6rem; font-size: .65rem; color: var(--text-muted);
   margin-top: .3rem; padding: .2rem 0;
@@ -305,17 +293,44 @@ body.show-borders .border-overlay { display: block; }
   padding: 0 .2rem; border-radius: 2px; line-height: 1.3;
 }
 
-/* --- Image lightbox --- */
+/* --- Candidate detail lightbox --- */
 .cand img, img.winner-img { cursor: zoom-in; }
 #lightbox {
   display: none; position: fixed; inset: 0; z-index: 999;
-  background: rgba(0,0,0,.85); cursor: zoom-out;
-  justify-content: center; align-items: center;
+  background: rgba(0,0,0,.85);
+  justify-content: center; align-items: center; padding: 2rem;
 }
 #lightbox.open { display: flex; }
-#lightbox img {
-  max-width: 95vw; max-height: 95vh; border-radius: var(--radius-sm);
-  image-rendering: pixelated; box-shadow: 0 0 40px rgba(0,0,0,.5);
+#lightbox .lb-inner {
+  display: flex; gap: 1.5rem; max-width: 1200px; width: 100%;
+  max-height: 90vh; background: var(--bg-card); border-radius: var(--radius);
+  overflow: hidden; position: relative;
+}
+#lightbox .lb-image {
+  flex: 0 0 auto; max-width: 55%; display: flex; align-items: center;
+  background: #101216;
+}
+#lightbox .lb-image img {
+  width: 100%; height: auto; image-rendering: pixelated; display: block;
+}
+#lightbox .lb-info {
+  flex: 1; padding: 1rem; overflow-y: auto; min-width: 0;
+  font-size: .82rem; color: var(--text);
+}
+#lightbox .lb-info .score { font-size: 1.4rem; font-weight: 700; margin-bottom: .2rem; }
+#lightbox .lb-info .seed { font-family: ui-monospace, monospace; font-size: .75rem;
+  color: var(--accent-hover); word-break: break-all; margin-bottom: .5rem; }
+#lightbox .lb-info .dim-label { font-size: .75rem; color: var(--text-muted); margin-bottom: .3rem; }
+#lightbox .lb-close {
+  position: absolute; top: .6rem; right: .8rem; font-size: 1.4rem;
+  color: #888; cursor: pointer; line-height: 1; padding: .3rem;
+  z-index: 10;
+}
+#lightbox .lb-close:hover { color: var(--text); }
+@media (max-width: 800px) {
+  #lightbox .lb-inner { flex-direction: column; max-height: 95vh; }
+  #lightbox .lb-image { max-width: 100%; }
+  #lightbox { padding: .5rem; }
 }
 
 /* --- Responsive --- */
@@ -377,34 +392,58 @@ body.show-borders .border-overlay { display: block; }
   <input type="hidden" id="cd-seed">
 </dialog>
 
-<div id="lightbox"><img></div>
+<div id="lightbox">
+  <div class="lb-inner">
+    <span class="lb-close">&times;</span>
+    <div class="lb-image"><img></div>
+    <div class="lb-info"></div>
+  </div>
+</div>
 
 <script>
 (function() {
   var live = location.protocol !== 'file:';
 
-  // --- Image lightbox (hires with fallback to normal) ---
+  // --- Candidate detail lightbox ---
   var lb = document.getElementById('lightbox');
-  var lbImg = lb.querySelector('img');
+  var lbImg = lb.querySelector('.lb-image img');
+  var lbInfo = lb.querySelector('.lb-info');
   document.addEventListener('click', function(e) {
     var img = e.target.closest('.cand img, img.winner-img');
     if (img && img.closest('.compact')) img = null;
-    if (img) {
-      e.stopPropagation();
-      var hires = img.dataset.hires;
-      if (hires) {
-        var probe = new Image();
-        probe.onload = function() { lbImg.src = hires; };
-        probe.onerror = function() { lbImg.src = img.src; };
-        probe.src = hires;
-      } else {
-        lbImg.src = img.src;
-      }
-      lbImg.src = img.src;
-      lb.classList.add('open');
+    if (!img) return;
+    e.stopPropagation();
+    // Set image (normal first, then hires)
+    lbImg.src = img.src;
+    var hires = img.dataset.hires;
+    if (hires) {
+      var probe = new Image();
+      probe.onload = function() { lbImg.src = hires; };
+      probe.src = hires;
     }
+    // Populate info panel from the candidate card
+    var cand = img.closest('.cand');
+    if (cand) {
+      var scoreEl = cand.querySelector('.score');
+      var seedEl = cand.querySelector('.seed');
+      var dimLabel = cand.dataset.dim || '';
+      var detail = cand.querySelector('.cand-detail');
+      var infoHtml = "<div class='dim-label'>" + dimLabel + "</div>";
+      if (scoreEl) infoHtml += "<div class='score'>" + scoreEl.innerHTML + "</div>";
+      if (seedEl) infoHtml += "<div class='seed'>" + seedEl.textContent + "</div>";
+      if (detail) infoHtml += detail.innerHTML;
+      lbInfo.innerHTML = infoHtml;
+    } else {
+      lbInfo.innerHTML = '';
+    }
+    lb.classList.add('open');
   });
-  lb.addEventListener('click', function() { lb.classList.remove('open'); });
+  lb.querySelector('.lb-close').addEventListener('click', function(e) {
+    e.stopPropagation(); lb.classList.remove('open');
+  });
+  lb.addEventListener('click', function(e) {
+    if (e.target === lb) lb.classList.remove('open');
+  });
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       if (lb.classList.contains('open')) { lb.classList.remove('open'); return; }
@@ -629,16 +668,6 @@ body.show-borders .border-overlay { display: block; }
   grid.addEventListener('click', function(e) {
     var close = e.target.closest('.close-btn');
     if (close) { close.closest('.dim-card').classList.remove('expanded'); }
-  });
-
-  // --- Candidate detail toggle ---
-  document.addEventListener('click', function(e) {
-    var tog = e.target.closest('.cand-toggle');
-    if (tog) {
-      e.stopPropagation();
-      tog.closest('.cand').classList.toggle('show-detail');
-      tog.textContent = tog.closest('.cand').classList.contains('show-detail') ? 'close' : 'details';
-    }
   });
 
   // --- Action buttons (live server only) ---
