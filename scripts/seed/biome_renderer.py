@@ -219,18 +219,34 @@ def render_biome_map(seed, biome_params_path, output_path,
             ero = climate.get("erosion", 0.0)
             weird = climate.get("weirdness", 0.0)
             rf = ridges_folded(weird)
+            temp = climate.get("temperature", 0.0)
+            humid = climate.get("humidity", 0.0)
             if evaluator is not None:
                 h = evaluator.surface_height(cont, ero, weird)
-            elif family == "nether":
-                h = max(8.0, min(120.0, 64.0 + ero * 25.0 + rf * 15.0))  # compressed cave ceiling/floor
-            elif family == "end":
-                if cont < -0.1:
-                    h = 0.0  # void between islands
-                else:
-                    lf = min(1.0, (cont + 0.1) / 0.3)
-                    h = max(5.0, min(120.0, (50.0 + cont * 40.0 + rf * 20.0 - ero * 10.0) * lf))
-            elif family == "paradise_lost":
-                h = max(10.0, min(140.0, 80.0 + ero * 25.0 + rf * 20.0))  # elevated skylands
+            elif family in ("nether", "end", "paradise_lost"):
+                # Non-overworld: noise ranges are narrow (±0.2 for nether
+                # erosion), so amplify by 3× before shaping to fill the
+                # height range. Squared-sign preserves direction and
+                # creates sharper peaks than linear.
+                def _amp(v):
+                    v3 = v * 3.0
+                    return v3 * abs(v3)
+                if family == "nether":
+                    # Lava lakes (low) to ceiling pillars (high)
+                    h = 64.0 + _amp(ero) * 40.0 + _amp(rf) * 30.0 + _amp(temp) * 15.0 + _amp(humid) * 10.0
+                    h = max(8.0, min(120.0, h))
+                elif family == "end":
+                    if cont < -0.15:
+                        h = 0.0  # void between islands
+                    elif cont < 0.05:
+                        edge = (cont + 0.15) / 0.2
+                        h = edge * edge * 50.0 + rf * 20.0 * edge
+                    else:
+                        h = 55.0 + _amp(ero) * 30.0 + _amp(rf) * 25.0 + _amp(temp) * 12.0
+                        h = max(5.0, min(120.0, h))
+                else:  # paradise_lost
+                    h = 80.0 + _amp(ero) * 35.0 + _amp(rf) * 30.0 + _amp(temp) * 12.0 + _amp(humid) * 8.0
+                    h = max(10.0, min(160.0, h))
             else:
                 h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + rf * 15.0))
             hrow.append(h)
@@ -255,7 +271,7 @@ def render_biome_map(seed, biome_params_path, output_path,
             he = heights[sy][min(sample_resolution - 1, sx + 1)]
             hw = heights[sy][max(0, sx - 1)]
 
-            shade_k = 0.18 if family == "end" else (0.15 if family in ("nether", "paradise_lost") else 0.12)
+            shade_k = 0.25 if family == "end" else (0.20 if family in ("nether", "paradise_lost") else 0.12)
             dzdx = (he - hw) * shade_k
             dzdy = (hs - hn) * shade_k
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
