@@ -864,7 +864,9 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     best = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
     shortlist_set = shortlist_set or set()
     is_hidden = bool(dim_config and dim_config.get("hidden"))
-    best_shortlisted = "1" if (best and (name, best["seed"]) in shortlist_set) else "0"
+    # Dim card is shortlisted if ANY seed for this dimension is in the shortlist
+    any_shortlisted = any(d == name for d, _ in shortlist_set) if shortlist_set else False
+    best_shortlisted = "1" if any_shortlisted else "0"
     img_html = ""
     spawn_html = ""
     if best:
@@ -997,17 +999,22 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                           esc_dim, c["seed"]))
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     return (
-        "<div class='cand{} cand-item' data-idx='{}'{}{} title='{}'>"
+        "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
+        "data-dim='{}'{}{} title='{}'>"
         "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.style.display='none'\">"
+        "<div class='cand-dim-label'>{}</div>"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='bars'>{}</div>"
         "<div class='spawn'>spawn: {}</div>"
         "{}{}{}"
         "</div>").format(
-            " winner" if win else "", idx, hidden, shortlisted_attr,
+            " winner" if win else "", idx, c["score"],
+            esc_dim, hidden, shortlisted_attr,
             html.escape(candidate_tooltip(c), quote=True),
-            img, hires, sc, c["score"], crown, c["seed"],
+            img, hires,
+            html.escape(dim_name),
+            sc, c["score"], crown, c["seed"],
             bars, spawn_html, pick_btn, shortlist_btn, create_dim_btn)
 
 
