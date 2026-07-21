@@ -87,6 +87,17 @@
       ],
       "xz_scale": 0.25
     },
+    "continentalness": {
+      "noise_id": "incendium:climate/continentalness",
+      "first_octave": -8,
+      "amplitudes": [
+        1,
+        1,
+        0.5,
+        2.25
+      ],
+      "xz_scale": 0.25
+    },
     "erosion": {
       "noise_id": "incendium:climate/erosion",
       "first_octave": -8,

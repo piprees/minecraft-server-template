@@ -227,37 +227,10 @@ def render_biome_map(seed, biome_params_path, output_path,
             cont = climate.get("continentalness", 0.0)
             ero = climate.get("erosion", 0.0)
             weird = climate.get("weirdness", 0.0)
-            rf = ridges_folded(weird)
-            temp = climate.get("temperature", 0.0)
-            humid = climate.get("humidity", 0.0)
-            if evaluator is not None and eval_family == "overworld":
-                # Overworld: Terralith spline produces excellent terrain
-                h = evaluator.surface_height(cont, ero, weird, family="overworld")
-            elif eval_family in ("nether", "end", "paradise_lost"):
-                # Mod splines expect their own noise generators' output range,
-                # not our BiomeSampler's noise — amplified formula gives better
-                # visual detail than a flat spline result.
-                def _amp(v):
-                    v3 = v * 3.0
-                    return v3 * abs(v3)
-                if eval_family == "nether":
-                    h = max(8.0, min(120.0, 64.0 + _amp(ero) * 40.0 + _amp(rf) * 30.0 + _amp(temp) * 15.0 + _amp(humid) * 10.0))
-                elif eval_family == "end":
-                    if cont < -0.15:
-                        h = 0.0
-                    elif cont < 0.05:
-                        edge = (cont + 0.15) / 0.2
-                        h = edge * edge * 50.0 + rf * 20.0 * edge
-                    else:
-                        h = max(5.0, min(120.0, 55.0 + _amp(ero) * 30.0 + _amp(rf) * 25.0 + _amp(temp) * 12.0))
-                else:
-                    # Paradise Lost delegates to overworld spline
-                    if evaluator is not None:
-                        h = evaluator.surface_height(cont, ero, weird, family="paradise_lost")
-                    else:
-                        h = max(10.0, min(160.0, 80.0 + _amp(ero) * 35.0 + _amp(rf) * 30.0 + _amp(temp) * 12.0 + _amp(humid) * 8.0))
+            if evaluator is not None and evaluator.has_family(eval_family):
+                h = evaluator.surface_height(cont, ero, weird, family=eval_family)
             else:
-                h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + rf * 15.0))
+                h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + ridges_folded(weird) * 15.0))
             hrow.append(h)
         grid.append(row)
         climates.append(crow)
