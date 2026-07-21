@@ -634,15 +634,24 @@ def main():
 
         now_str = time.strftime("%H:%M:%S")
         mono = time.monotonic()
-        for key, tasks in [("render-normal", normal_tasks), ("render-hires", hires_tasks)]:
+
+        def _sequential_renders():
+            _run_render_pass("render-normal", normal_tasks, biome_params)
             with _jobs_lock:
-                _jobs[key] = {"status": "running", "rendered": 0, "total": 0,
-                              "started": now_str, "started_mono": mono}
-            t = threading.Thread(target=_run_render_pass, daemon=True,
-                                 args=(key, tasks, biome_params))
-            t.start()
+                _jobs["render-hires"] = {"status": "running", "rendered": 0, "total": 0,
+                                         "started": time.strftime("%H:%M:%S"),
+                                         "started_mono": time.monotonic()}
+            _run_render_pass("render-hires", hires_tasks, biome_params)
+
+        with _jobs_lock:
+            _jobs["render-normal"] = {"status": "running", "rendered": 0, "total": 0,
+                                      "started": now_str, "started_mono": mono}
+            _jobs["render-hires"] = {"status": "queued", "rendered": 0,
+                                     "total": len(hires_tasks)}
+        t = threading.Thread(target=_sequential_renders, daemon=True)
+        t.start()
         print(f"background renders: {len(normal_tasks)} normal + "
-              f"{len(hires_tasks)} hires queued", flush=True)
+              f"{len(hires_tasks)} hires queued (sequential)", flush=True)
 
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)

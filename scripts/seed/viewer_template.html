@@ -641,6 +641,8 @@ body.ungrouped .cand-dim-label { display: block; }
           parts.push('Rendering: ' + (d.normal.rendered||0) + '/' + (d.normal.total||'?'));
         if (d.hires && d.hires.status === 'running')
           parts.push('Hires: ' + (d.hires.rendered||0) + '/' + (d.hires.total||'?'));
+        if (d.hires && d.hires.status === 'queued')
+          parts.push('Hires: queued (' + (d.hires.total||'?') + ')');
         if (parts.length) {
           statusEl.textContent = '· ' + parts.join(' · ');
         } else {
