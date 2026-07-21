@@ -14,6 +14,12 @@ clears the override (back to the score ranking). Picks persist in
 <seedtest>/winner-overrides.json and are honoured by every later
 finalise, including roll-all's end-of-run one.
 
+Additional endpoints (require the live server):
+  POST /reroll     — re-roll a dimension's candidates in background
+  GET  /job/<id>   — poll a background job's status
+  POST /edit-config — open a dimension's config in VS Code
+  POST /preview    — (stub) detailed candidate preview
+
 Gotchas: binds 127.0.0.1 only — this is a local tool, not a web app.
 Started/stopped by roll-all.sh alongside the live reporter; safe to run
 standalone after a roll too (./dev seed-report leaves the data behind).
@@ -22,28 +28,121 @@ import argparse
 import json
 import subprocess
 import sys
+import threading
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+_jobs = {}
+_jobs_lock = threading.Lock()
+
+
+def _find_dim_config(config_path, dim):
+    """Find the JSON file for a dimension in the config directory or
+    monolith config. Returns (path, is_overlay) or (None, False)."""
+    cfg = Path(config_path)
+    if cfg.is_dir():
+        f = cfg / "dimensions" / f"{dim}.json"
+        if f.exists():
+            return f, False
+    else:
+        return cfg, False
+    return None, False
+
+
+def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
+    """Background worker: fast-roll, render, re-finalise."""
+    try:
+        # Fast roll.
+        r = subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "fast_roller.py"),
+             "--config", config, "--seedtest", seedtest,
+             "--dims", dim, "--count", str(count),
+             "--tier1-pool", str(pool)],
+            capture_output=True, text=True, timeout=300)
+        if r.returncode != 0:
+            with _jobs_lock:
+                _jobs[job_id]["status"] = "failed"
+                _jobs[job_id]["error"] = r.stderr[:500]
+            return
+
+        # Render top candidates.
+        subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
+             "batch", "--config", config, "--seedtest", seedtest,
+             "--dims", dim, "--top", "10"],
+            capture_output=True, text=True, timeout=300)
+
+        # Re-finalise.
+        subprocess.run(
+            [sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+             "finalise", *finalise_args],
+            capture_output=True, text=True, timeout=120)
+
+        with _jobs_lock:
+            j = _jobs[job_id]
+            j["status"] = "done"
+            j["elapsed"] = int(time.monotonic() - j["started_mono"])
+    except Exception as exc:
+        with _jobs_lock:
+            _jobs[job_id]["status"] = "failed"
+            _jobs[job_id]["error"] = str(exc)[:500]
 
 
 class ViewerHandler(SimpleHTTPRequestHandler):
     # Set by main()
     seedtest = ""
+    config_path = ""
     finalise_args: list = []
+    winner_overlay = ""
 
     def log_message(self, format, *args):  # noqa: A002 — quiet server
         pass
 
-    def do_POST(self):
-        if self.path != "/pick":
-            self.send_error(404)
+    def _read_json(self):
+        length = int(self.headers.get("Content-Length", 0))
+        return json.loads(self.rfile.read(length) or b"{}")
+
+    def _respond_json(self, payload, status=200):
+        data = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        if self.path.startswith("/job/"):
+            job_id = self.path[5:]
+            with _jobs_lock:
+                job = _jobs.get(job_id)
+            if not job:
+                self._respond_json({"error": "unknown job"}, 404)
+                return
+            out = {k: v for k, v in job.items() if k != "started_mono"}
+            if job["status"] == "running":
+                out["elapsed"] = int(time.monotonic() - job["started_mono"])
+            self._respond_json(out)
             return
+        super().do_GET()
+
+    def do_POST(self):
+        if self.path == "/pick":
+            self._handle_pick()
+        elif self.path == "/reroll":
+            self._handle_reroll()
+        elif self.path == "/edit-config":
+            self._handle_edit_config()
+        elif self.path == "/preview":
+            self._handle_preview()
+        else:
+            self.send_error(404)
+
+    def _handle_pick(self):
         try:
-            length = int(self.headers.get("Content-Length", 0))
-            body = json.loads(self.rfile.read(length) or b"{}")
+            body = self._read_json()
             dim = str(body["dim"])
             seed = body.get("seed")
         except (ValueError, KeyError, json.JSONDecodeError):
@@ -63,17 +162,72 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         tmp.write_text(json.dumps(overrides, indent=2) + "\n")
         tmp.replace(overrides_path)
 
-        # Re-finalise so the pick lands in the config + viewer immediately.
         r = subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
                            "finalise", *self.finalise_args],
                           capture_output=True, text=True)
-        payload = json.dumps({"ok": r.returncode == 0, "dim": dim,
-                              "seed": seed, "overrides": overrides}).encode()
-        self.send_response(200 if r.returncode == 0 else 500)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(payload)))
-        self.end_headers()
-        self.wfile.write(payload)
+        self._respond_json({"ok": r.returncode == 0, "dim": dim,
+                            "seed": seed, "overrides": overrides},
+                           200 if r.returncode == 0 else 500)
+
+    def _handle_reroll(self):
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+            pool = int(body.get("pool", 5000))
+            count = int(body.get("count", 100))
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim}")
+            return
+
+        job_id = f"reroll-{dim}-{int(time.time())}"
+        with _jobs_lock:
+            _jobs[job_id] = {"status": "running", "dim": dim,
+                             "started": time.strftime("%H:%M:%S"),
+                             "started_mono": time.monotonic()}
+
+        t = threading.Thread(
+            target=_run_reroll, daemon=True,
+            args=(job_id, dim, self.config_path, self.seedtest,
+                  self.finalise_args, pool, count))
+        t.start()
+        self._respond_json({"ok": True, "job_id": job_id})
+
+    def _handle_edit_config(self):
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim}")
+            return
+
+        # Try overlay first, then platform config.
+        target = None
+        if self.winner_overlay:
+            overlay_path = Path(self.winner_overlay) / "dimensions" / f"{dim}.json"
+            if overlay_path.exists():
+                target = overlay_path
+            else:
+                src, _ = _find_dim_config(self.config_path, dim)
+                if src and src.is_file():
+                    overlay_path.parent.mkdir(parents=True, exist_ok=True)
+                    if Path(self.config_path).is_dir():
+                        import shutil
+                        shutil.copy2(src, overlay_path)
+                    target = overlay_path
+        if not target:
+            target, _ = _find_dim_config(self.config_path, dim)
+
+        if not target or not target.exists():
+            self._respond_json({"ok": False, "error": f"config not found for {dim}"}, 404)
+            return
+
+        subprocess.Popen(["code", str(target)],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self._respond_json({"ok": True, "path": str(target)})
+
+    def _handle_preview(self):
+        self._respond_json({"ok": False,
+                            "error": "Docker preview not implemented yet"})
 
 
 def main():
@@ -94,7 +248,9 @@ def main():
 
     handler = partial(ViewerHandler, directory=args.seedtest)
     ViewerHandler.seedtest = args.seedtest
+    ViewerHandler.config_path = args.config
     ViewerHandler.finalise_args = finalise_args
+    ViewerHandler.winner_overlay = args.winner_overlay or ""
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)
     try:
