@@ -111,10 +111,13 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .dim-actions { margin: .5rem 0; }
 
 /* --- Candidate cards --- */
-.all-cands { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .5rem; }
+.all-cands {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: .6rem; margin-top: .5rem;
+}
 .cand {
   background: #181b20; border: 1px solid #2c313a; border-radius: 8px;
-  padding: .5rem; width: 200px; position: relative;
+  padding: .5rem; width: 100%; position: relative;
 }
 .cand.winner { border-color: #d4a020; box-shadow: 0 0 0 1px #d4a020; }
 .cand img {
@@ -171,7 +174,7 @@ body.shortlist-filter .cand:not([data-shortlisted]) { display: none; }
 /* Ungrouped mode: flat grid of all candidates */
 #ungrouped-grid {
   display: none;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: .6rem; margin-top: .6rem;
 }
 body.ungrouped #grid { display: none; }
@@ -221,6 +224,19 @@ body.ungrouped .cand-dim-label { display: block; }
 }
 .dialog-actions button:hover { border-color: #5b8dd0; }
 .dialog-actions .primary { background: #2a3545; color: #8fb4d8; }
+
+/* --- Image lightbox --- */
+.cand img, .dim-card .compact img { cursor: zoom-in; }
+#lightbox {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,.85); cursor: zoom-out;
+  justify-content: center; align-items: center;
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 95vw; max-height: 95vh; border-radius: 6px;
+  image-rendering: pixelated; box-shadow: 0 0 40px rgba(0,0,0,.5);
+}
 </style>
 
 <!-- Filter bar -->
@@ -266,9 +282,27 @@ body.ungrouped .cand-dim-label { display: block; }
   <input type="hidden" id="cd-seed">
 </dialog>
 
+<div id="lightbox"><img></div>
+
 <script>
 (function() {
   var live = location.protocol !== 'file:';
+
+  // --- Image lightbox ---
+  var lb = document.getElementById('lightbox');
+  var lbImg = lb.querySelector('img');
+  document.addEventListener('click', function(e) {
+    var img = e.target.closest('.cand img, .compact img, img.winner-img');
+    if (img) {
+      e.stopPropagation();
+      lbImg.src = img.dataset.hires || img.src;
+      lb.classList.add('open');
+    }
+  });
+  lb.addEventListener('click', function() { lb.classList.remove('open'); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && lb.classList.contains('open')) lb.classList.remove('open');
+  });
   if (live) document.body.classList.add('live');
 
   // --- Filter + sort state from URL hash ---

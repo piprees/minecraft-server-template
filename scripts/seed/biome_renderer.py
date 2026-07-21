@@ -266,11 +266,13 @@ def render_biome_map(seed, biome_params_path, output_path,
         if struct_sets_dir:
             sets = load_structure_sets(str(struct_sets_dir))
             struct_mat = {
-                "village": (104, 104, 104),     # cobblestone grey
+                "village": (104, 104, 104),     # cobblestone
                 "pillager": (60, 60, 60),       # dark stone
                 "mansion": (90, 60, 30),        # dark oak planks
                 "monument": (70, 130, 130),     # prismarine
-                "temple": (180, 170, 140),       # sandstone
+                "temple": (180, 170, 140),      # sandstone
+                "jungle_temple": (80, 90, 50),  # mossy cobblestone
+                "desert_pyramid": (210, 195, 145), # sandstone
                 "fortress": (55, 10, 10),       # nether brick
                 "stronghold": (80, 80, 80),     # stone brick
                 "mineshaft": (100, 72, 36),     # oak planks
@@ -280,6 +282,20 @@ def render_biome_map(seed, biome_params_path, output_path,
                 "end_city": (200, 160, 200),    # purpur
                 "witch": (60, 80, 30),          # swamp hut
                 "igloo": (220, 220, 220),       # snow
+                "ancient_city": (20, 20, 30),   # deepslate
+                "trail_ruins": (140, 100, 60),  # terracotta
+                "outpost": (100, 72, 36),       # oak planks
+                "ocean_ruin": (70, 100, 80),    # mossy stone
+                "dungeon": (80, 80, 80),        # cobblestone
+                "treasure": (180, 170, 140),    # sandstone
+                "sanctum": (100, 60, 60),       # deepslate
+                "tower": (104, 104, 104),       # stone
+                "citadel": (80, 60, 40),        # dark planks
+                "keep": (50, 50, 50),           # blackstone
+                "shrine": (130, 110, 80),       # stone brick
+                "camp": (100, 72, 36),          # planks
+                "ruin": (90, 90, 80),           # cracked stone
+                "vault": (60, 50, 50),          # deepslate
             }
             for set_id, cfg in sets.items():
                 col = (128, 128, 128)
