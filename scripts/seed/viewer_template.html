@@ -49,7 +49,7 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .dim-card {
   background: #1d2026; border: 1px solid #2c313a; border-radius: 8px;
   padding: .5rem; cursor: pointer; transition: border-color .12s;
-  position: relative;
+  position: relative; overflow: hidden; min-width: 0;
 }
 .dim-card:hover { border-color: #4a5568; }
 .dim-card.expanded { border-color: #5b8dd0; grid-column: 1 / -1; cursor: default; }
@@ -118,11 +118,12 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .cand {
   background: #181b20; border: 1px solid #2c313a; border-radius: 8px;
   padding: .5rem; width: 100%; position: relative;
+  overflow: hidden; min-width: 0;
 }
 .cand.winner { border-color: #d4a020; box-shadow: 0 0 0 1px #d4a020; }
 .cand img {
   width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
-  object-fit: cover; image-rendering: pixelated;
+  object-fit: cover; image-rendering: pixelated; display: block;
 }
 .cand .score { font-size: 1rem; font-weight: 700; }
 .cand .seed {
@@ -133,6 +134,13 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
   font-size: .68rem; color: #777; margin-top: .15rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.cand-detail { display: none; margin-top: .25rem; }
+.cand.show-detail .cand-detail { display: block; }
+.cand-toggle {
+  font-size: .65rem; color: #5b8dd0; cursor: pointer; margin-top: .2rem;
+  user-select: none; display: inline-block;
+}
+.cand-toggle:hover { color: #8fb4d8; }
 .bars { margin-top: .25rem; }
 .bar {
   display: grid; grid-template-columns: 4.5rem 1fr 1.8rem; gap: .3rem;
@@ -141,7 +149,8 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .bar .track { height: 3px; background: #2c313a; border-radius: 2px; overflow: hidden; }
 .bar .fill { height: 100%; background: #5b8dd0; }
 .cand.winner .bar .fill { background: #d4a020; }
-.spawn { font-size: .7rem; color: #9aa; margin-top: .2rem; }
+.spawn { font-size: .7rem; color: #9aa; margin-top: .2rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spawn b { color: #a8d8a0; font-weight: 600; }
 
 /* --- Buttons --- */
@@ -498,6 +507,16 @@ body.ungrouped .cand-dim-label { display: block; }
   grid.addEventListener('click', function(e) {
     var close = e.target.closest('.close-btn');
     if (close) { close.closest('.dim-card').classList.remove('expanded'); }
+  });
+
+  // --- Candidate detail toggle ---
+  document.addEventListener('click', function(e) {
+    var tog = e.target.closest('.cand-toggle');
+    if (tog) {
+      e.stopPropagation();
+      tog.closest('.cand').classList.toggle('show-detail');
+      tog.textContent = tog.closest('.cand').classList.contains('show-detail') ? 'less' : 'more';
+    }
   });
 
   // --- Action buttons (live server only) ---
