@@ -248,7 +248,7 @@ body.ungrouped .cand-dim-label { display: block; }
 .cand .hires-badge.visible, .dim-card .hires-badge.visible { display: block; }
 
 /* --- Image lightbox --- */
-.cand img, .dim-card .compact img { cursor: zoom-in; }
+.cand img, img.winner-img { cursor: zoom-in; }
 #lightbox {
   display: none; position: fixed; inset: 0; z-index: 999;
   background: rgba(0,0,0,.85); cursor: zoom-out;
@@ -314,7 +314,8 @@ body.ungrouped .cand-dim-label { display: block; }
   var lb = document.getElementById('lightbox');
   var lbImg = lb.querySelector('img');
   document.addEventListener('click', function(e) {
-    var img = e.target.closest('.cand img, .compact img, img.winner-img');
+    var img = e.target.closest('.cand img, img.winner-img');
+    if (img && img.closest('.compact')) img = null;
     if (img) {
       e.stopPropagation();
       var hires = img.dataset.hires;
