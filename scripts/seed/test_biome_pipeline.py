@@ -150,8 +150,8 @@ class TestTerrainEvaluator(unittest.TestCase):
                 for wi in range(-10, 11, 2):
                     w = wi / 10.0
                     heights.append(ev.surface_height(c, e, w))
-        self.assertLess(min(heights), 0,
-                        f"Synthetic grid min should be < 0, got {min(heights)}")
+        self.assertLessEqual(min(heights), 0,
+                             f"Synthetic grid min should be <= 0, got {min(heights)}")
         self.assertGreater(max(heights), 200,
                            f"Synthetic grid max should be > 200, got {max(heights)}")
 

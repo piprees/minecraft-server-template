@@ -64,6 +64,15 @@ _COORD_IDX = {
 
 _FAMILIES_WITH_SPLINES = ("overworld", "nether", "end")
 
+# Per-family offset clamping: extreme negative values in nether/end splines
+# represent void/lava (no solid terrain), not meaningful surface heights.
+# Clamping prevents 2800-block height jumps that produce noisy hillshade.
+_FAMILY_OFFSET_CLAMP = {
+    "overworld": (-1.0, 2.0),
+    "nether": (-1.0, 1.0),
+    "end": (-1.5, 1.5),
+}
+
 
 # ---------------------------------------------------------------------------
 # Spline extraction from raw density function JSON
@@ -248,11 +257,22 @@ class TerrainEvaluator:
     def surface_height(self, continentalness, erosion, weirdness, family="overworld"):
         """Compute approximate surface Y from climate parameters."""
         if family == "paradise_lost":
+            # Paradise_lost delegates to the overworld spline but its weirdness
+            # noise has xz_scale=1.0 (64-block wavelength). The ridges_folded
+            # transform creates 4× the frequency (~16 blocks), which aliases at
+            # standard sample resolution. Suppress weirdness to use erosion-only
+            # terrain variation — biome colours provide the visual detail.
             family = "overworld"
+            weirdness = 0.0
         offset_tree, _ = self._families[family]
         params = self._params(continentalness, erosion, weirdness)
         spline_value = _eval_compiled(offset_tree, params)
         offset = OFFSET_BIAS + spline_value
+        lo, hi = _FAMILY_OFFSET_CLAMP.get(family, (-1.0, 2.0))
+        if offset < lo:
+            offset = lo
+        elif offset > hi:
+            offset = hi
         return int(128 * (1 + offset))
 
     def factor(self, continentalness, erosion, weirdness, family="overworld"):
