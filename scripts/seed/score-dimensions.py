@@ -815,14 +815,26 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
         "data-mood='{}' data-flagged='{}' data-name='{}'>".format(
             family, ptype, pmood, flagged, esc_name))
     style_attr = " style=\"{}\"".format(htint) if htint else ""
+    winner_seed = winners.get(name, {}).get("seed")
+    winner_cand = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
+    wp_html = ""
+    if winner_cand:
+        wp_img = "renders/{}/{}.png".format(name, winner_cand["seed"])
+        wp_spawn = html.escape(winner_cand.get("spawn_biome", ""), quote=True)
+        wp_html = (
+            "<div class='winner-preview'>"
+            "<img src='{}' onerror=\"this.style.display='none'\">"
+            "<div><div class='wp-seed'>{}</div>"
+            "<div class='wp-spawn'>{}</div></div>"
+            "</div>".format(wp_img, winner_cand["seed"], wp_spawn))
     out.append(
         "<div class='dim-header' data-dim='{}'{}>"
         "<span class='toggle-icon'>&#9660;</span>"
         "<h2>{}</h2>"
         "<span class='dim-score' style='color:{}'>{:.1f}</span>{}"
-        "<span class='dim-count'>{} candidates</span>"
+        "<span class='dim-count'>{} candidates</span>{}"
         "</div>".format(esc_name, style_attr, html.escape(name),
-                        score_col, best_score, flag_html, n_cands))
+                        score_col, best_score, flag_html, n_cands, wp_html))
     out.append("<div class='dim-body'>")
 
     badges = "<span class='badge'>{}</span>".format(profile["type"])

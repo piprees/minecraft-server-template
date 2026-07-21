@@ -1,7 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Seed roll results</title>
-<meta http-equiv="refresh" content="30">
 <style>
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
@@ -56,13 +55,29 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .dim-header h2 { font-size: 1.1rem; margin: 0; flex: 1; font-weight: 600; }
 .dim-header .toggle-icon {
   color: #555; font-size: .7rem; transition: transform .15s; flex-shrink: 0;
+  transform: rotate(-90deg);
 }
-.dim-header .toggle-icon.collapsed { transform: rotate(-90deg); }
 .dim-header .dim-score { font-weight: 700; font-size: .95rem; }
 .dim-header .dim-count { color: #666; font-size: .8rem; }
+.dim-header .winner-preview {
+  display: flex; align-items: center; gap: .5rem; margin-left: auto;
+}
+.dim-header .winner-preview img {
+  width: 36px; height: 36px; border-radius: 4px; object-fit: cover;
+  image-rendering: pixelated; border: 1px solid #d4a020;
+}
+.dim-header .winner-preview .wp-seed {
+  font-family: ui-monospace, monospace; font-size: .7rem; color: #8fb4d8;
+}
+.dim-header .winner-preview .wp-spawn {
+  font-size: .68rem; color: #9aa;
+}
+.dim-section:not(.expanded) .winner-preview { display: flex; }
+.dim-section.expanded .winner-preview { display: none; }
 
-.dim-body { }
-.dim-body.collapsed { display: none; }
+.dim-body { display: none; }
+.dim-section.expanded .dim-body { display: block; }
+.dim-section.expanded .toggle-icon { transform: rotate(0deg); }
 
 /* --- Metadata badges --- */
 .meta { color: #9aa; font-size: .85rem; margin: .2rem 0; }
@@ -222,13 +237,11 @@ Winners (gold) are written into the config. Hover a candidate for raw locate dis
   flaggedEl.addEventListener('change', function() { state.flagged = flaggedEl.checked; applyState(); });
   applyState();
 
-  // --- Collapsible dimension headers ---
+  // --- Collapsible dimension headers (collapsed by default) ---
   document.querySelectorAll('.dim-header').forEach(function(h) {
-    h.addEventListener('click', function() {
-      var body = h.nextElementSibling;
-      var icon = h.querySelector('.toggle-icon');
-      body.classList.toggle('collapsed');
-      icon.classList.toggle('collapsed');
+    h.addEventListener('click', function(e) {
+      if (e.target.closest('.action-btn, .pick')) return;
+      h.closest('.dim-section').classList.toggle('expanded');
     });
   });
 
