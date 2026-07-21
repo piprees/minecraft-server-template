@@ -883,7 +883,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if best:
         img = "renders/{}/{}.png".format(name, best["seed"])
         hires = "renders/{}/{}.hires.png".format(name, best["seed"])
-        img_html = "<img src='{}' data-hires='{}' loading='lazy'>".format(img, hires)
+        img_html = "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.onerror=null;this.src=''\">".format(img, hires)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
             html.escape(best.get("spawn_biome", "")))
 
@@ -917,8 +917,8 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     # Detail header: winner image + info side by side
     out.append("<div class='detail-header'>")
     if best:
-        out.append("<img class='winner-img' src='renders/{}/{}.png'>".format(
-            name, best["seed"]))
+        out.append("<img class='winner-img' src='renders/{}/{}.png' "
+                   "onerror=\"this.onerror=null;this.src=''\">".format(name, best["seed"]))
     out.append("<div class='detail-info'>")
     out.append("<h2>{}</h2>".format(html.escape(name)))
     out.append("<div class='blurb'>{}</div>".format(html.escape(profile["blurb"])))
@@ -1012,7 +1012,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
-        "<img src='{}' data-hires='{}' loading='lazy'>"
+        "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.onerror=null;this.src=''\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
