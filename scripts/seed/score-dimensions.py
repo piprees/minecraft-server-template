@@ -960,11 +960,11 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     # All candidates
     if cands:
         out.append("<div class='all-cands'>")
-        for idx, c in enumerate(cands[:20]):
-            out.append(_render_candidate(idx, c, name, profile, winners, 20, shortlist_set))
+        for idx, c in enumerate(cands[:10]):
+            out.append(_render_candidate(idx, c, name, profile, winners, 10, shortlist_set))
         out.append("</div>")
-        if n_cands > 20:
-            out.append("<p class='cand-count'>Showing 20 of {}</p>".format(n_cands))
+        if n_cands > 10:
+            out.append("<p class='cand-count'>Showing 10 of {}</p>".format(n_cands))
     else:
         out.append("<p class='meta'>No candidates measured.</p>")
 
