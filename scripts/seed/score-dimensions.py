@@ -1048,8 +1048,10 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                 icon, dist_str = "&#x274C;", "not found"
             elif lo <= d <= hi:
                 icon, dist_str = "&#x2705;", f"{int(d)} blocks"
+            elif d < lo:
+                icon, dist_str = "&#x26A0;", f"{int(d)} blocks (too close)"
             else:
-                icon, dist_str = "&#x26A0;", f"{int(d)} blocks"
+                icon, dist_str = "&#x26A0;", f"{int(d)} blocks (too far)"
             struct_rows.append(
                 "<div class='struct-row'><span>{}</span>"
                 "<span>{}</span>"
