@@ -39,6 +39,86 @@ _jobs = {}
 _jobs_lock = threading.Lock()
 
 
+def _collect_render_tasks(config_path, seedtest):
+    """Build the full list of render tasks for all candidates."""
+    from dimension_profiles import load_config, load_difficulty, build_profile, rollable
+    import candidates as cmod
+
+    config = load_config(config_path)
+    difficulty = load_difficulty(config_path)
+    dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
+    worlds = {w["name"]: w for w in config.get("worlds", [])}
+    all_targets = {**worlds, **dims}
+    cdir = cmod.candidates_dir(Path(config_path))
+    renders_dir = Path(seedtest) / "renders"
+
+    family_noise = {"overworld": "overworld", "nether": "nether",
+                    "end": "end", "paradise_lost": "paradise_lost"}
+    type_override = {"paradise_lost:paradise_lost": "paradise_lost"}
+
+    normal_tasks = []
+    hires_tasks = []
+    for name, dim in all_targets.items():
+        profile = build_profile(dim, config, difficulty)
+        store = cmod.load_store(cdir / f"{name}.json")
+        dim_type = dim.get("type", "")
+        fam = profile.get("family", "overworld")
+        noise_family = type_override.get(dim_type, family_noise.get(fam, "overworld"))
+
+        for seed_str in store["candidates"]:
+            out_normal = renders_dir / name / f"{seed_str}.png"
+            if not out_normal.exists():
+                normal_tasks.append((seed_str, name, noise_family, str(out_normal), 512, 16))
+            out_hires = renders_dir / name / f"{seed_str}_hires.png"
+            if not out_hires.exists():
+                hires_tasks.append((seed_str, name, noise_family, str(out_hires), 1024, 8))
+
+    return normal_tasks, hires_tasks
+
+
+def _run_render_pass(job_key, tasks, biome_params):
+    """Render worker for one resolution pass (normal or hires)."""
+    try:
+        with _jobs_lock:
+            _jobs[job_key]["total"] = len(tasks)
+
+        if not tasks:
+            with _jobs_lock:
+                _jobs[job_key]["status"] = "done"
+            return
+
+        rendered = 0
+        for seed_str, _dim, noise_fam, out_path, sz, sc in tasks:
+            Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+            try:
+                r = subprocess.run(
+                    [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
+                     "render", "--seed", seed_str, "--output", out_path,
+                     "--biome-params", biome_params,
+                     "--family", noise_fam,
+                     "--size", str(sz), "--scale", str(sc)],
+                    capture_output=True, text=True, timeout=120)
+                if r.returncode == 0:
+                    rendered += 1
+            except Exception:
+                pass
+            with _jobs_lock:
+                _jobs[job_key]["rendered"] = rendered
+                _jobs[job_key]["elapsed"] = int(
+                    time.monotonic() - _jobs[job_key]["started_mono"])
+
+        with _jobs_lock:
+            j = _jobs[job_key]
+            j["status"] = "done"
+            j["rendered"] = rendered
+            j["elapsed"] = int(time.monotonic() - j["started_mono"])
+        print(f"{job_key}: {rendered}/{len(tasks)} complete", flush=True)
+    except Exception as exc:
+        with _jobs_lock:
+            _jobs[job_key]["status"] = "failed"
+            _jobs[job_key]["error"] = str(exc)[:500]
+
+
 def _find_dim_config(config_path, dim):
     """Find the JSON file for a dimension in the config directory or
     monolith config. Returns (path, is_overlay) or (None, False)."""
@@ -124,6 +204,21 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             out = {k: v for k, v in job.items() if k != "started_mono"}
             if job["status"] == "running":
                 out["elapsed"] = int(time.monotonic() - job["started_mono"])
+            self._respond_json(out)
+            return
+        if self.path == "/render-status":
+            with _jobs_lock:
+                normal = _jobs.get("render-normal")
+                hires = _jobs.get("render-hires")
+            out = {}
+            for key, job in [("normal", normal), ("hires", hires)]:
+                if not job:
+                    out[key] = {"status": "idle"}
+                else:
+                    j = {k: v for k, v in job.items() if k != "started_mono"}
+                    if job["status"] == "running":
+                        j["elapsed"] = int(time.monotonic() - job["started_mono"])
+                    out[key] = j
             self._respond_json(out)
             return
         super().do_GET()
@@ -485,6 +580,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
 
 
 def main():
+    import shutil
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--seedtest", required=True)
@@ -492,6 +589,8 @@ def main():
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--winner-overlay",
                     help="consumer mode passthrough to score-dimensions finalise")
+    ap.add_argument("--refresh", action="store_true",
+                    help="wipe existing renders and regenerate all in background")
     args = ap.parse_args()
 
     finalise_args = ["--config", args.config, "--seedtest", args.seedtest, "--viewer"]
@@ -500,11 +599,44 @@ def main():
     if args.winner_overlay:
         finalise_args += ["--winner-overlay", args.winner_overlay]
 
+    # --refresh: wipe all renders so they regenerate
+    renders_dir = Path(args.seedtest) / "renders"
+    if args.refresh and renders_dir.exists():
+        shutil.rmtree(renders_dir)
+        print("renders wiped (--refresh)", flush=True)
+
+    # Re-finalise to regenerate viewer.html with current scores
+    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                   "finalise", *finalise_args],
+                  capture_output=True, text=True)
+
     handler = partial(ViewerHandler, directory=args.seedtest)
     ViewerHandler.seedtest = args.seedtest
     ViewerHandler.config_path = args.config
     ViewerHandler.finalise_args = finalise_args
     ViewerHandler.winner_overlay = args.winner_overlay or ""
+
+    # Start two background render threads: normal-res first, hires in parallel
+    biome_params = str(SCRIPT_DIR / "biome_params.json")
+    if Path(biome_params).exists():
+        try:
+            normal_tasks, hires_tasks = _collect_render_tasks(args.config, args.seedtest)
+        except Exception as e:
+            print(f"render task collection failed: {e}", flush=True)
+            normal_tasks, hires_tasks = [], []
+
+        now_str = time.strftime("%H:%M:%S")
+        mono = time.monotonic()
+        for key, tasks in [("render-normal", normal_tasks), ("render-hires", hires_tasks)]:
+            with _jobs_lock:
+                _jobs[key] = {"status": "running", "rendered": 0, "total": 0,
+                              "started": now_str, "started_mono": mono}
+            t = threading.Thread(target=_run_render_pass, daemon=True,
+                                 args=(key, tasks, biome_params))
+            t.start()
+        print(f"background renders: {len(normal_tasks)} normal + "
+              f"{len(hires_tasks)} hires queued", flush=True)
+
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)
     try:

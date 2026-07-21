@@ -1013,6 +1013,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
         "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.style.display='none'\">"
+        "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"

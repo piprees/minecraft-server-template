@@ -225,6 +225,15 @@ body.ungrouped .cand-dim-label { display: block; }
 .dialog-actions button:hover { border-color: #5b8dd0; }
 .dialog-actions .primary { background: #2a3545; color: #8fb4d8; }
 
+/* --- Hires indicator --- */
+.cand .hires-badge, .dim-card .hires-badge {
+  position: absolute; top: .6rem; left: .6rem; font-size: .55rem;
+  background: rgba(91,141,208,.85); color: #fff; padding: .1rem .3rem;
+  border-radius: 3px; font-weight: 700; letter-spacing: .5px;
+  pointer-events: none; display: none;
+}
+.cand .hires-badge.visible, .dim-card .hires-badge.visible { display: block; }
+
 /* --- Image lightbox --- */
 .cand img, .dim-card .compact img { cursor: zoom-in; }
 #lightbox {
@@ -259,7 +268,7 @@ body.ungrouped .cand-dim-label { display: block; }
 </div>
 
 <h1>Multiverse seed roll — results</h1>
-<p class="summary">{{SUMMARY_STATS}}</p>
+<p class="summary">{{SUMMARY_STATS}} <span id="render-status" style="color:#5b8dd0"></span></p>
 
 <!-- Grouped mode: dimension cards -->
 <div class="grid" id="grid">
@@ -463,10 +472,14 @@ body.ungrouped .cand-dim-label { display: block; }
   hiddenEl.addEventListener('change', function() { state.showHidden = hiddenEl.checked; applyState(); });
   applyState();
 
-  // --- Hi-res image upgrade ---
+  // --- Hi-res image upgrade + HD badge ---
   document.querySelectorAll('img[data-hires]').forEach(function(img) {
     var hi = new Image();
-    hi.onload = function() { img.src = hi.src; };
+    hi.onload = function() {
+      img.src = hi.src;
+      var badge = img.parentElement.querySelector('.hires-badge');
+      if (badge) badge.classList.add('visible');
+    };
     hi.src = img.dataset.hires;
   });
 
@@ -597,6 +610,33 @@ body.ungrouped .cand-dim-label { display: block; }
       }).catch(function() {});
     }, 2000);
   }
+
+  // --- Render status polling + hires indicator ---
+  (function pollRenders() {
+    if (!live) return;
+    var statusEl = document.getElementById('render-status');
+    var iv = setInterval(function() {
+      fetch('/render-status').then(function(r) { return r.json(); }).then(function(d) {
+        var parts = [];
+        if (d.normal && d.normal.status === 'running')
+          parts.push('Rendering: ' + (d.normal.rendered||0) + '/' + (d.normal.total||'?'));
+        if (d.hires && d.hires.status === 'running')
+          parts.push('Hires: ' + (d.hires.rendered||0) + '/' + (d.hires.total||'?'));
+        if (parts.length) {
+          statusEl.textContent = '· ' + parts.join(' · ');
+        } else {
+          statusEl.textContent = '';
+          clearInterval(iv);
+          // Upgrade any images that now have hires versions
+          document.querySelectorAll('img[data-hires]').forEach(function(img) {
+            var hi = new Image();
+            hi.onload = function() { img.src = hi.src; };
+            hi.src = img.dataset.hires + '?t=' + Date.now();
+          });
+        }
+      }).catch(function() {});
+    }, 5000);
+  })();
 
   // --- Create dimension modal ---
   document.getElementById('cd-cancel').addEventListener('click', function() {
