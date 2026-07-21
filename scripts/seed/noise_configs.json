@@ -213,6 +213,18 @@
       ],
       "xz_scale": 0.33
     },
+    "continentalness": {
+      "noise_id": "paradise_lost:generator/elevation",
+      "first_octave": -8,
+      "amplitudes": [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      "xz_scale": 1.0
+    },
     "erosion": {
       "noise_id": "paradise_lost:generator/erosion",
       "first_octave": -9,
@@ -225,12 +237,12 @@
       "xz_scale": 1.0
     },
     "weirdness": {
-      "noise_id": "paradise_lost:generator/ridges",
-      "first_octave": -6,
+      "noise_id": "paradise_lost:generator/weirdness",
+      "first_octave": -10,
       "amplitudes": [
         1,
-        1,
-        1
+        0,
+        0
       ],
       "xz_scale": 1.0
     }

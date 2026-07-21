@@ -238,56 +238,6 @@ def render_biome_map(seed, biome_params_path, output_path,
         climates.append(crow)
         heights.append(hrow)
 
-    # Spatial smoothing for non-overworld: box filter removes high-frequency
-    # noise from spline transitions (nether void/lava boundaries) and
-    # aliased weirdness noise (paradise_lost xz_scale=1.0).
-    _SMOOTH_RADIUS = {"nether": 2, "end": 1, "paradise_lost": 6}
-    sr = _SMOOTH_RADIUS.get(family, 0)
-    if sr > 0:
-        smoothed = [[0.0] * sample_resolution for _ in range(sample_resolution)]
-        for sy in range(sample_resolution):
-            for sx in range(sample_resolution):
-                total = 0.0
-                count = 0
-                y0 = max(0, sy - sr)
-                y1 = min(sample_resolution, sy + sr + 1)
-                x0 = max(0, sx - sr)
-                x1 = min(sample_resolution, sx + sr + 1)
-                for ny in range(y0, y1):
-                    for nx in range(x0, x1):
-                        total += heights[ny][nx]
-                        count += 1
-                smoothed[sy][sx] = total / count
-        heights = smoothed
-
-    # Biome colour anti-aliasing for high-frequency families: paradise_lost's
-    # weirdness noise (xz_scale=1.0, 64-block wavelength) oscillates faster
-    # than the sample grid (16-block steps), causing biome aliasing. A large
-    # box filter on the colour grid smooths the mottled texture.
-    _COLOUR_SMOOTH_RADIUS = {"paradise_lost": 6}
-    csr = _COLOUR_SMOOTH_RADIUS.get(family, 0)
-    if csr > 0:
-        smoothed_grid = []
-        for sy in range(sample_resolution):
-            row = []
-            for sx in range(sample_resolution):
-                tr, tg, tb, td = 0, 0, 0, 0.0
-                count = 0
-                y0 = max(0, sy - csr)
-                y1 = min(sample_resolution, sy + csr + 1)
-                x0 = max(0, sx - csr)
-                x1 = min(sample_resolution, sx + csr + 1)
-                for ny in range(y0, y1):
-                    for nx in range(x0, x1):
-                        _, (cr, cg, cb), d = grid[ny][nx]
-                        tr += cr; tg += cg; tb += cb; td += d
-                        count += 1
-                row.append((grid[sy][sx][0],
-                            (tr // count, tg // count, tb // count),
-                            td / count))
-            smoothed_grid.append(row)
-        grid = smoothed_grid
-
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
@@ -305,7 +255,7 @@ def render_biome_map(seed, biome_params_path, output_path,
             he = heights[sy][min(sample_resolution - 1, sx + 1)]
             hw = heights[sy][max(0, sx - 1)]
 
-            shade_k = 0.10 if family == "end" else (0.08 if family in ("nether", "paradise_lost") else 0.12)
+            shade_k = 0.15 if family in ("end", "nether", "paradise_lost") else 0.12
             dzdx = (he - hw) * shade_k
             dzdy = (hs - hn) * shade_k
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
@@ -326,12 +276,15 @@ def render_biome_map(seed, biome_params_path, output_path,
                 g = int(g * (0.4 + 0.6 * f) + canopy_g * (1 - f))
                 b = int(b * (0.3 + 0.7 * f) + canopy_b * (1 - f))
 
-            # Void/lava rendering for non-overworld
-            if family == "end" and h < 5.0:
+            # Void/lava floor for non-overworld dimensions
+            if family == "end" and h < 1.0:
                 r, g, b = 8, 5, 15
                 shade = 1.0
-            elif family == "nether" and h < 5.0:
+            elif family == "nether" and h < 1.0:
                 r, g, b = 60, 20, 5
+                shade = 1.0
+            elif family == "paradise_lost" and h < 40:
+                r, g, b = 160, 190, 220
                 shade = 1.0
 
             # Water depth gradient
