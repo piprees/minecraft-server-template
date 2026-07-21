@@ -226,7 +226,14 @@ def want_score(dist, lo, hi, radius):
         return 0.2 if dist < radius * 0.3 else 1.0
     if dist is None or dist < 0:
         return 0.0 if hi <= LOCATE_HORIZON else 0.6
-    return window_score(dist, lo, hi)
+    base = window_score(dist, lo, hi)
+    # Comfort bonus: found well inside the wanted range → up to 1.1x.
+    if base > 0 and dist is not None and dist >= 0 and lo <= dist <= hi:
+        centre = (lo + hi) / 2
+        half_width = max((hi - lo) / 2, 1)
+        comfort = 1.0 - abs(dist - centre) / half_width
+        base *= 1.0 + 0.1 * comfort
+    return base
 
 
 def shun_score(dist, radius, min_distance=None):
@@ -286,12 +293,16 @@ def score_candidate(profile, rows):
 
     # Variety: fraction of listed biomes locatable nearby. Closer = better.
     found, total = 0.0, 0
+    half_r = profile["radius"] / 2
     for metric, value in rows.items():
         if metric.startswith("biome_") and metric.endswith("_dist"):
             total += 1
             d = float(value)
             if d >= 0:
-                found += 1.0 if d <= profile["radius"] else 0.6
+                contrib = 1.0 if d <= profile["radius"] else 0.6
+                if d <= half_r:
+                    contrib *= 1.05
+                found += contrib
     parts["variety"] = (found / total) if total else 0.5
     if total and found == 1 and total > 2:
         parts["variety"] *= 0.7  # verging on single-biome — penalise

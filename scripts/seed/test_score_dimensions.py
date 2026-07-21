@@ -40,7 +40,14 @@ class RangeScoringTests(unittest.TestCase):
     """v4 Phase 6: explicit block-range want/shun scoring."""
 
     def test_want_score_inside_range_is_full(self):
-        self.assertEqual(score_dimensions.want_score(500, 0, 2000, 8192), 1.0)
+        # Inside the range: base 1.0 + comfort bonus (up to 1.1x at centre)
+        self.assertGreaterEqual(score_dimensions.want_score(500, 0, 2000, 8192), 1.0)
+        self.assertLessEqual(score_dimensions.want_score(500, 0, 2000, 8192), 1.1)
+        # Dead centre gets the maximum 1.1x bonus
+        self.assertAlmostEqual(score_dimensions.want_score(1000, 0, 2000, 8192), 1.1)
+        # At the edge of the range: no bonus (1.0)
+        self.assertAlmostEqual(score_dimensions.want_score(0, 0, 2000, 8192), 1.0)
+        self.assertAlmostEqual(score_dimensions.want_score(2000, 0, 2000, 8192), 1.0)
         self.assertLess(score_dimensions.want_score(4000, 0, 2000, 8192), 1.0)
 
     def test_want_score_absence_beyond_horizon_is_soft(self):
@@ -218,6 +225,10 @@ class WinnerOverlayWritebackTests(unittest.TestCase):
             "owned": {"seed": "33", "metrics": {}},
             "disabled": {"seed": "44", "metrics": {}},
         }
+        platform_sources = {
+            "fresh": {"type": "overworld", "name": "fresh",
+                      "dimensionId": "adventure:fresh", "seed": 0},
+        }
         with tempfile.TemporaryDirectory() as tmp:
             overlay = Path(tmp) / "overlay" / "custom-dimensions"
             dims = overlay / "dimensions"
@@ -229,11 +240,16 @@ class WinnerOverlayWritebackTests(unittest.TestCase):
             seedtest = Path(tmp) / "seedtest"
             seedtest.mkdir()
 
-            changed, _ = score_dimensions.write_winners_to_overlay(overlay, winners, seedtest)
+            changed, _ = score_dimensions.write_winners_to_overlay(
+                overlay, winners, seedtest, platform_sources=platform_sources)
 
             self.assertEqual(changed, 3)
             fresh = json.loads((dims / "fresh.json").read_text())
-            self.assertEqual(fresh, {"overrides": {"seed": 11, "spawn": [1, 64, 2]}})
+            # New files get the full platform default with seed+spawn updated
+            self.assertEqual(fresh["seed"], 11)
+            self.assertEqual(fresh["spawn"], [1, 64, 2])
+            self.assertEqual(fresh["type"], "overworld")
+            self.assertNotIn("overrides", fresh)
             merged = json.loads((dims / "merged.json").read_text())
             self.assertEqual(merged["overrides"]["seed"], 22)
             self.assertEqual(merged["overrides"]["difficulty"], {"mobMultiplier": 1.5})
