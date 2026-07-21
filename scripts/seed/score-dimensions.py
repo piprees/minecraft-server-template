@@ -732,7 +732,7 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                   "terrain (wipe the world / ./ops reset-seed ritual to regenerate)")
 
     if args.viewer:
-        viewer = Path(args.seedtest) / "viewer.html"
+        viewer = Path(args.seedtest) / "index.html"
         viewer.write_text(render_viewer(
             results, profiles, winners, rejected,
             seedtest=args.seedtest, dim_configs=all_sources))
@@ -1133,10 +1133,14 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='score-parts'>{}</div>"
         "</div>"
         "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
+        "<div style='font-size:.65rem;color:var(--text-heading);margin-bottom:.1rem'>Scoring</div>"
         "<div class='bars'>{}</div>"
+        "<div style='font-size:.65rem;color:var(--text-heading);margin:.3rem 0 .1rem'>Terrain</div>"
         "{}"
         "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
-        "{}{}"
+        "<div style='font-size:.65rem;color:var(--text-heading);margin-bottom:.1rem'>Structures</div>"
+        "{}"
+        "<div>{}</div>"
         "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
         "<div class='seed' style='margin-bottom:.3rem'>{}</div>"
         "<div class='spawn'>spawn: {}</div>"

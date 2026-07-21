@@ -542,7 +542,7 @@ def main():
     ViewerHandler.winner_overlay = args.winner_overlay or ""
 
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
-    print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)
+    print(f"viewer server: http://127.0.0.1:{args.port}/", flush=True)
 
     # Serve in a background thread so batch renders can run with the server up
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)

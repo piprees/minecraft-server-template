@@ -501,7 +501,7 @@ body.show-borders .border-label { display: block; }
 
   // --- Filter + sort state from URL hash ---
   function readHash() {
-    var p = new URLSearchParams(location.hash.slice(1));
+    var p = new URLSearchParams(location.search.slice(1));
     return {
       family: p.get('family') || 'All', type: p.get('type') || '',
       mood: p.get('mood') || '', search: p.get('q') || '',
@@ -521,7 +521,8 @@ body.show-borders .border-label { display: block; }
     if (s.ungrouped) p.set('ungrouped', '1');
     if (s.showHidden) p.set('hidden', '1');
     if (s.sort !== 'name') p.set('sort', s.sort);
-    history.replaceState(null, '', '#' + p.toString());
+    var qs = p.toString();
+    history.replaceState(null, '', qs ? '?' + qs : location.pathname);
   }
 
   var state = readHash();
