@@ -308,6 +308,105 @@ def render_biome_map(seed, biome_params_path, output_path,
     return size
 
 
+def overlay_structures(png_path, seed, dim_name, config_path, size, blocks_per_pixel):
+    """Draw structure markers on an existing render PNG. Uses structure_placement
+    to compute positions, then draws coloured dots with labels at the edge."""
+    from structure_placement import load_structure_sets, nearest_structure
+    from dimension_profiles import load_config, load_difficulty, build_profile
+
+    config = load_config(config_path)
+    difficulty = load_difficulty(config_path)
+    all_dims = {d["name"]: d for d in config.get("dimensions", [])}
+    all_dims.update({w["name"]: w for w in config.get("worlds", [])})
+    if dim_name not in all_dims:
+        return
+
+    profile = build_profile(all_dims[dim_name], config, difficulty)
+    struct_sets_dir = Path(config_path).parent.parent / ".seedtest" / ".structure_sets"
+    if not struct_sets_dir.exists():
+        return
+
+    struct_sets = load_structure_sets(str(struct_sets_dir))
+    struct_to_sets = {}
+    for set_id, cfg in struct_sets.items():
+        for s in cfg["structures"]:
+            struct_to_sets.setdefault(s["id"], []).append(set_id)
+
+    total_blocks = size * blocks_per_pixel
+    half = total_blocks // 2
+
+    # Read existing PNG pixels
+    data = Path(png_path).read_bytes()
+    if not data.startswith(b"\x89PNG"):
+        return
+
+    import zlib as _zlib
+    pos = 8
+    width = height = 0
+    idat = b""
+    while pos < len(data):
+        length = struct.unpack(">I", data[pos:pos + 4])[0]
+        tag = data[pos + 4:pos + 8]
+        body = data[pos + 8:pos + 8 + length]
+        if tag == b"IHDR":
+            width, height = struct.unpack(">II", body[:8])
+        elif tag == b"IDAT":
+            idat += body
+        elif tag == b"IEND":
+            break
+        pos += 12 + length
+
+    raw = _zlib.decompress(idat)
+    pixels = bytearray(width * height * 3)
+    for y in range(height):
+        off = y * (width * 3 + 1) + 1
+        pixels[y * width * 3:(y + 1) * width * 3] = raw[off:off + width * 3]
+
+    # Plot structure markers
+    colours = [(255, 80, 80), (80, 200, 255), (255, 200, 50), (80, 255, 120),
+               (200, 120, 255), (255, 160, 80), (120, 200, 200), (200, 200, 100)]
+    markers = []
+    for i, (sname, sid, _spec, kind) in enumerate(profile["battery"]):
+        clean = sid.lstrip("#")
+        set_cfg = None
+        if clean in struct_to_sets:
+            set_cfg = struct_sets[struct_to_sets[clean][0]]
+        elif clean in struct_sets:
+            set_cfg = struct_sets[clean]
+        if not set_cfg:
+            continue
+
+        result = nearest_structure(
+            int(seed), set_cfg["spacing"], set_cfg["separation"],
+            set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
+            frequency=set_cfg.get("frequency", 1.0), search_radius=30)
+        if not result:
+            continue
+        dist, bx, bz = result
+        # Convert block coords to pixel coords
+        px = int((bx + half) / total_blocks * width)
+        py = int((bz + half) / total_blocks * height)
+        if 0 <= px < width and 0 <= py < height:
+            col = colours[i % len(colours)]
+            markers.append((px, py, sname, col, kind))
+
+    # Draw markers: filled circles with dark border, sized for visibility
+    for mx, my, _name, col, kind in markers:
+        r_dot = 6 if kind == "want" else 4
+        for dy in range(-r_dot - 1, r_dot + 2):
+            for dx in range(-r_dot - 1, r_dot + 2):
+                nx, ny = mx + dx, my + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    dist_sq = dx * dx + dy * dy
+                    off = (ny * width + nx) * 3
+                    if dist_sq <= r_dot * r_dot:
+                        pixels[off:off + 3] = bytes(col)
+                    elif dist_sq <= (r_dot + 1) * (r_dot + 1):
+                        pixels[off:off + 3] = bytes([20, 20, 20])
+
+    write_png(png_path, bytes(pixels), width, height)
+
+
 FAMILY_NOISE = {
     "overworld": "overworld", "nether": "nether", "end": "end",
     "paradise_lost": "paradise_lost", None: "overworld",

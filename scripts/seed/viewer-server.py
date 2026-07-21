@@ -226,8 +226,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         self._respond_json({"ok": True, "path": str(target)})
 
     def _handle_preview(self):
-        """High-res biome render (1024×1024, full sample resolution).
-        Runs biome_renderer.py in the foreground — takes ~5-12s."""
+        """Hi-res 16km biome render (1024×1024). ~10-30s depending on family."""
         try:
             body = self._read_json()
             dim = str(body["dim"])
@@ -245,13 +244,37 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             self._respond_json({"ok": False, "error": "biome_params.json not found"})
             return
 
+        # Resolve the dimension's family from config
+        family = "overworld"
+        try:
+            from dimension_profiles import load_config, load_difficulty, build_profile
+            config = load_config(self.config_path)
+            difficulty = load_difficulty(self.config_path)
+            all_dims = {d["name"]: d for d in config.get("dimensions", [])}
+            all_dims.update({w["name"]: w for w in config.get("worlds", [])})
+            if dim in all_dims:
+                profile = build_profile(all_dims[dim], config, difficulty)
+                family = profile.get("family") or "overworld"
+        except Exception:
+            pass
+
+        # Map family to noise family (same as biome_renderer + fast_roller)
+        noise_family = {"paradise_lost": "paradise_lost"}.get(family, family)
+
         r = subprocess.run(
             [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
              "render", "--seed", seed, "--output", str(out_path),
              "--biome-params", biome_params,
-             "--size", "1024", "--scale", "4"],
-            capture_output=True, text=True, timeout=60)
+             "--family", noise_family,
+             "--size", "1024", "--scale", "16"],
+            capture_output=True, text=True, timeout=120)
         if r.returncode == 0 and out_path.exists():
+            # Overlay structure markers on the hi-res render
+            try:
+                from biome_renderer import overlay_structures
+                overlay_structures(str(out_path), seed, dim, self.config_path, 1024, 16)
+            except Exception:
+                pass
             rel = f"renders/{dim}/{seed}.hires.png"
             self._respond_json({"ok": True, "path": rel})
         else:
