@@ -563,13 +563,13 @@ def write_winner(data, winner):
     return changed
 
 
-def write_winners_to_overlay(overlay_root, winners, seedtest):
-    """Consumer mode: winners land in the consumer repo's overlay as
-    {"overrides": {"seed", "spawn"}} files — the durable consumer-owned
-    artefact (bundle platform files are replaced on every update). Existing
-    overlay files keep their shape: an "overrides" file gets its keys
-    updated; a full-replace file gets top-level seed/spawn; an empty {}
-    (dimension disabled) is left alone."""
+def write_winners_to_overlay(overlay_root, winners, seedtest,
+                             platform_sources=None):
+    """Consumer mode: winners land in the consumer repo's overlay. New
+    files get the FULL platform default (seed + spawn updated); existing
+    files are patched in place — 'overrides' files keep their shape,
+    full-replace files get top-level seed/spawn, empty {} (disabled) are
+    left alone."""
     dims_dir = Path(overlay_root) / "dimensions"
     backup = None
     if dims_dir.is_dir():
@@ -579,7 +579,6 @@ def write_winners_to_overlay(overlay_root, winners, seedtest):
     changed = 0
     for name, w in winners.items():
         f = dims_dir / f"{name}.json"
-        data = {}
         if f.exists():
             try:
                 data = json.loads(f.read_text())
@@ -587,8 +586,14 @@ def write_winners_to_overlay(overlay_root, winners, seedtest):
                 data = {}
             if data == {}:
                 continue  # consumer disabled this dimension — never resurrect
-        target = data.setdefault("overrides", {}) \
-            if ("overrides" in data or not data) else data
+            if "overrides" in data:
+                target = data["overrides"]
+            else:
+                target = data
+        else:
+            src = (platform_sources or {}).get(name, {})
+            data = {k: v for k, v in src.items()}
+            target = data
         if write_winner(target, w):
             changed += 1
         f.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
@@ -681,11 +686,16 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
     if dir_mode:
         persist_candidates(args, config, profiles, results, data, winners)
 
+    all_sources = {d["name"]: d for d in config.get("dimensions", [])}
+    all_sources.update({w["name"]: w for w in config.get("worlds", [])})
+
     if args.write_config and winners:
         cfg_path = Path(args.config)
         if cfg_path.is_dir():
             if getattr(args, "winner_overlay", None):
-                changed, backup = write_winners_to_overlay(args.winner_overlay, winners, args.seedtest)
+                changed, backup = write_winners_to_overlay(
+                    args.winner_overlay, winners, args.seedtest,
+                    platform_sources=all_sources)
                 print(f"overlay updated: {changed} seeds changed "
                       f"({Path(args.winner_overlay) / 'dimensions'} — \"overrides\" files)"
                       + (f"; backup: {backup}" if backup else ""))
@@ -706,7 +716,9 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
 
     if args.viewer:
         viewer = Path(args.seedtest) / "viewer.html"
-        viewer.write_text(render_viewer(results, profiles, winners, rejected))
+        viewer.write_text(render_viewer(
+            results, profiles, winners, rejected,
+            seedtest=args.seedtest, dim_configs=all_sources))
         print(f"viewer: {viewer}")
         if args.open_viewer and sys.platform == "darwin":
             subprocess.run(["open", str(viewer)], check=False)
@@ -769,8 +781,16 @@ def _score_colour(score):
 
 
 
-def render_viewer(results, profiles, winners, rejected=None):
+def render_viewer(results, profiles, winners, rejected=None,
+                  seedtest=None, dim_configs=None):
     rejected = rejected or {}
+    dim_configs = dim_configs or {}
+    hires_set = set()
+    if seedtest:
+        renders = Path(seedtest) / "renders"
+        if renders.is_dir():
+            for hp in renders.glob("*/*.hires.png"):
+                hires_set.add((hp.parent.name, hp.name.replace(".hires.png", "")))
     template = (Path(__file__).resolve().parent / "viewer_template.html").read_text()
 
     total_dims = len(profiles)
@@ -799,7 +819,9 @@ def render_viewer(results, profiles, winners, rejected=None):
     for name, profile in profiles.items():
         dims_html.append(_render_dim_section(
             name, profile, results.get(name, []),
-            winners, rejected.get(name, 0)))
+            winners, rejected.get(name, 0),
+            hires_set=hires_set,
+            dim_config=dim_configs.get(name)))
 
     return (template
             .replace("{{FAMILY_BUTTONS}}", family_btns)
@@ -809,7 +831,8 @@ def render_viewer(results, profiles, winners, rejected=None):
             .replace("{{DIMENSIONS_HTML}}", "\n".join(dims_html)))
 
 
-def _render_dim_section(name, profile, cands, winners, rej_count):
+def _render_dim_section(name, profile, cands, winners, rej_count,
+                        hires_set=None, dim_config=None):
     """Render one dimension as a card (compact) + expandable detail panel."""
     best_score = cands[0]["score"] if cands else 0
     n_cands = len(cands)
@@ -832,6 +855,9 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
     # Winner/best candidate for the compact card face
     winner_seed = winners.get(name, {}).get("seed")
     best = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
+    hires_set = hires_set or set()
+    is_hidden = bool(dim_config and dim_config.get("hidden"))
+    best_shortlisted = "1" if (best and (name, best["seed"]) in hires_set) else "0"
     img_html = ""
     spawn_html = ""
     if best:
@@ -845,8 +871,10 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
     out.append(
         "<div class='dim-card' data-family='{}' data-type='{}' "
         "data-mood='{}' data-flagged='{}' data-name='{}' "
-        "data-score='{:.1f}' data-cands='{}'>".format(
-            family, ptype, pmood, flagged, esc_name, best_score, n_cands))
+        "data-score='{:.1f}' data-cands='{}' data-shortlisted='{}'{}>".format(
+            family, ptype, pmood, flagged, esc_name, best_score, n_cands,
+            best_shortlisted,
+            " data-hidden='1'" if is_hidden else ""))
     out.append(flag_dot)
 
     # Compact face (visible when not expanded)
@@ -904,14 +932,16 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
         "<div class='dim-actions'>"
         "<button class='action-btn reroll' data-dim='{}'>Re-roll</button>"
         "<button class='action-btn edit' data-dim='{}'>Edit</button>"
-        "</div>".format(esc_name, esc_name))
+        "<button class='action-btn hide' data-dim='{}'>Hide</button>"
+        "<button class='action-btn remove' data-dim='{}'>Remove</button>"
+        "</div>".format(esc_name, esc_name, esc_name, esc_name))
     out.append("</div></div>")  # close detail-info + detail-header
 
     # All candidates
     if cands:
         out.append("<div class='all-cands'>")
         for idx, c in enumerate(cands[:20]):
-            out.append(_render_candidate(idx, c, name, profile, winners, 20))
+            out.append(_render_candidate(idx, c, name, profile, winners, 20, hires_set))
         out.append("</div>")
         if n_cands > 20:
             out.append("<p class='cand-count'>Showing 20 of {}</p>".format(n_cands))
@@ -923,8 +953,10 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
     return "\n".join(out)
 
 
-def _render_candidate(idx, c, dim_name, profile, winners, default_show):
+def _render_candidate(idx, c, dim_name, profile, winners, default_show,
+                      hires_set=None):
     esc_dim = html.escape(dim_name, quote=True)
+    shortlisted = (dim_name, c["seed"]) in (hires_set or set())
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
     hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
@@ -950,21 +982,25 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show):
                 "<button class='pick' data-dim='{}' "
                 "data-seed='{}'>make winner</button>".format(esc_dim, c["seed"]))
     preview_btn = ("<button class='action-btn preview' "
-                   "data-dim='{}' data-seed='{}'>Preview</button>".format(
+                   "data-dim='{}' data-seed='{}'>Shortlist</button>".format(
                        esc_dim, c["seed"]))
+    create_dim_btn = ("<button class='action-btn create-dim' "
+                      "data-dim='{}' data-seed='{}'>Create Dimension</button>".format(
+                          esc_dim, c["seed"]))
+    shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     return (
-        "<div class='cand{} cand-item' data-idx='{}'{} title='{}'>"
+        "<div class='cand{} cand-item' data-idx='{}'{}{} title='{}'>"
         "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.style.display='none'\">"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='bars'>{}</div>"
         "<div class='spawn'>spawn: {}</div>"
-        "{}{}"
+        "{}{}{}"
         "</div>").format(
-            " winner" if win else "", idx, hidden,
+            " winner" if win else "", idx, hidden, shortlisted_attr,
             html.escape(candidate_tooltip(c), quote=True),
             img, hires, sc, c["score"], crown, c["seed"],
-            bars, spawn_html, pick_btn, preview_btn)
+            bars, spawn_html, pick_btn, preview_btn, create_dim_btn)
 
 
 # ---------------------------------------------------------------------------

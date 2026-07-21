@@ -137,6 +137,12 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             self._handle_edit_config()
         elif self.path == "/preview":
             self._handle_preview()
+        elif self.path == "/create-dimension":
+            self._handle_create_dimension()
+        elif self.path == "/hide-dimension":
+            self._handle_hide_dimension()
+        elif self.path == "/remove-dimension":
+            self._handle_remove_dimension()
         else:
             self.send_error(404)
 
@@ -280,6 +286,139 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         else:
             self._respond_json({"ok": False,
                                 "error": (r.stderr or r.stdout or "render failed")[:200]})
+
+    def _handle_create_dimension(self):
+        try:
+            body = self._read_json()
+            parent_dim = str(body["parent_dim"])
+            seed = str(body["seed"])
+            name = str(body["name"])
+            description = str(body.get("description", ""))[:300]
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {parent_dim, seed, name}")
+            return
+
+        import re
+        if not re.match(r'^[a-z][a-z0-9_]*$', name):
+            self._respond_json({"ok": False, "error": "Name must be snake_case"}, 400)
+            return
+
+        parent_path, _ = _find_dim_config(self.config_path, parent_dim)
+        if not parent_path or not parent_path.exists():
+            self._respond_json({"ok": False, "error": f"Parent config not found: {parent_dim}"}, 404)
+            return
+
+        cfg = Path(self.config_path)
+        if cfg.is_dir():
+            parent_data = json.loads(parent_path.read_text())
+        else:
+            full = json.loads(parent_path.read_text())
+            parent_data = next((d for d in full.get("dimensions", [])
+                                if d["name"] == parent_dim), None)
+            if not parent_data:
+                self._respond_json({"ok": False, "error": "Dimension not found in config"}, 404)
+                return
+
+        new_data = dict(parent_data)
+        new_data["name"] = name
+        new_data["seed"] = int(seed)
+        new_data["description"] = description
+        new_data["parentDimension"] = parent_dim
+        ns = new_data.get("dimensionId", "").split(":")[0] or "adventure"
+        new_data["dimensionId"] = f"{ns}:{name}"
+
+        if self.winner_overlay:
+            out_dir = Path(self.winner_overlay) / "dimensions"
+        elif cfg.is_dir():
+            out_dir = cfg / "dimensions"
+        else:
+            self._respond_json({"ok": False, "error": "Cannot create in monolith mode"}, 400)
+            return
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"{name}.json"
+        if out_path.exists():
+            self._respond_json({"ok": False, "error": f"'{name}' already exists"}, 409)
+            return
+
+        out_path.write_text(json.dumps(new_data, indent=2, ensure_ascii=False) + "\n")
+
+        try:
+            sys.path.insert(0, str(SCRIPT_DIR))
+            import candidates as cand_mod
+            src_cdir = cand_mod.candidates_dir(cfg if cfg.is_dir() else cfg.parent)
+            src_store_path = src_cdir / f"{parent_dim}.json"
+            if src_store_path.exists():
+                src_store = cand_mod.load_store(src_store_path)
+                seed_str = str(seed)
+                if seed_str in src_store["candidates"]:
+                    dst_base = Path(self.winner_overlay) if self.winner_overlay else cfg
+                    dst_cdir = cand_mod.candidates_dir(dst_base)
+                    dst_cdir.mkdir(parents=True, exist_ok=True)
+                    dst_store = cand_mod.load_store(dst_cdir / f"{name}.json")
+                    cand_mod.merge_rows(dst_store, seed_str,
+                                        src_store["candidates"][seed_str].get("measurements", {}))
+                    cand_mod.save_store(dst_cdir / f"{name}.json", dst_store)
+        except Exception:
+            pass
+
+        self._respond_json({"ok": True, "path": str(out_path)})
+
+    def _handle_hide_dimension(self):
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim}")
+            return
+
+        path = self._resolve_dim_config(dim)
+        if not path:
+            self._respond_json({"ok": False, "error": f"Config not found: {dim}"}, 404)
+            return
+
+        data = json.loads(path.read_text())
+        data["hidden"] = True
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+
+        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                       "finalise", *self.finalise_args],
+                      capture_output=True, text=True)
+        self._respond_json({"ok": True})
+
+    def _handle_remove_dimension(self):
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim}")
+            return
+
+        path = self._resolve_dim_config(dim)
+        if not path:
+            self._respond_json({"ok": False, "error": f"Config not found: {dim}"}, 404)
+            return
+
+        data = json.loads(path.read_text())
+        data["hidden"] = True
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+
+        removed_path = path.with_suffix(".json.removed")
+        path.rename(removed_path)
+
+        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                       "finalise", *self.finalise_args],
+                      capture_output=True, text=True)
+        self._respond_json({"ok": True, "path": str(removed_path)})
+
+    def _resolve_dim_config(self, dim):
+        """Find the best config file for a dimension (overlay takes priority)."""
+        if self.winner_overlay:
+            p = Path(self.winner_overlay) / "dimensions" / f"{dim}.json"
+            if p.exists():
+                return p
+        path, _ = _find_dim_config(self.config_path, dim)
+        return path if path and path.exists() else None
 
 
 def main():

@@ -155,6 +155,54 @@ body.live .pick, body.live .action-btn { display: inline-block; }
   color: #666; cursor: pointer; line-height: 1; padding: .2rem;
 }
 .close-btn:hover { color: #e6e6e6; }
+
+/* Shortlisted candidate indicator */
+.cand { position: relative; }
+.cand[data-shortlisted="1"]::after {
+  content: '\2605'; position: absolute; top: .3rem; right: .3rem;
+  color: #d4a020; font-size: .85rem; line-height: 1;
+}
+
+/* Hidden dimension cards */
+.dim-card[data-hidden="1"] { opacity: .45; }
+.dim-card[data-hidden="1"]:hover { opacity: .7; }
+
+/* Extra action buttons */
+.action-btn.hide:hover { border-color: #e8a735; color: #e8a735; }
+.action-btn.remove { color: #c55; }
+.action-btn.remove:hover { border-color: #e05252; color: #e05252; }
+.action-btn.create-dim:hover { border-color: #8fb4d8; color: #8fb4d8; }
+
+/* Create dimension dialog */
+#create-dim-dialog {
+  background: #1d2026; color: #e6e6e6; border: 1px solid #3a4150;
+  border-radius: 10px; padding: 1.2rem; max-width: 380px; width: 90vw;
+}
+#create-dim-dialog::backdrop { background: rgba(0,0,0,.6); }
+#create-dim-dialog h3 { margin: 0 0 .8rem; font-size: 1rem; }
+#create-dim-dialog label {
+  display: block; font-size: .82rem; color: #9aa; margin-bottom: .6rem;
+}
+#create-dim-dialog input[type=text], #create-dim-dialog textarea {
+  display: block; width: 100%; margin-top: .2rem;
+  font: inherit; font-size: .82rem; background: #14161a; color: #e6e6e6;
+  border: 1px solid #2c313a; border-radius: 6px; padding: .35rem .5rem;
+}
+#create-dim-dialog textarea { height: 4rem; resize: vertical; }
+#create-dim-dialog input:focus, #create-dim-dialog textarea:focus {
+  border-color: #5b8dd0; outline: none;
+}
+.cd-error { color: #e05252; font-size: .75rem; min-height: 1.1em; margin-bottom: .3rem; }
+.dialog-actions {
+  display: flex; gap: .5rem; justify-content: flex-end; margin-top: .6rem;
+}
+.dialog-actions button {
+  font: inherit; font-size: .8rem; padding: .3rem .8rem;
+  border-radius: 6px; cursor: pointer; border: 1px solid #3a4150;
+  background: #232833; color: #c8d2dc;
+}
+.dialog-actions button:hover { border-color: #5b8dd0; }
+.dialog-actions .primary { background: #2a3545; color: #8fb4d8; }
 </style>
 
 <!-- Filter bar -->
@@ -171,6 +219,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
   </select>
   <input id="f-search" type="text" placeholder="Search…" style="width:12rem">
   <label><input type="checkbox" id="f-flagged"> Flagged only</label>
+  <label><input type="checkbox" id="f-shortlisted"> Shortlisted</label>
+  <label><input type="checkbox" id="f-hidden"> Show hidden</label>
 </div>
 
 <h1>Multiverse seed roll — results</h1>
@@ -180,6 +230,19 @@ body.live .pick, body.live .action-btn { display: inline-block; }
 <div class="grid" id="grid">
 {{DIMENSIONS_HTML}}
 </div>
+
+<dialog id="create-dim-dialog">
+  <h3>Create dimension</h3>
+  <label>Name<input type="text" id="cd-name" required></label>
+  <div class="cd-error" id="cd-name-error"></div>
+  <label>Description<textarea id="cd-desc" maxlength="300"></textarea></label>
+  <div class="dialog-actions">
+    <button type="button" id="cd-cancel">Cancel</button>
+    <button type="button" id="cd-create" class="primary">Create</button>
+  </div>
+  <input type="hidden" id="cd-parent-dim">
+  <input type="hidden" id="cd-seed">
+</dialog>
 
 <script>
 (function() {
@@ -192,7 +255,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
     return {
       family: p.get('family') || 'All', type: p.get('type') || '',
       mood: p.get('mood') || '', search: p.get('q') || '',
-      flagged: p.get('flagged') === '1', sort: p.get('sort') || 'name'
+      flagged: p.get('flagged') === '1', shortlisted: p.get('shortlisted') === '1',
+      showHidden: p.get('hidden') === '1', sort: p.get('sort') || 'name'
     };
   }
   function writeHash(s) {
@@ -202,6 +266,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
     if (s.mood) p.set('mood', s.mood);
     if (s.search) p.set('q', s.search);
     if (s.flagged) p.set('flagged', '1');
+    if (s.shortlisted) p.set('shortlisted', '1');
+    if (s.showHidden) p.set('hidden', '1');
     if (s.sort !== 'name') p.set('sort', s.sort);
     history.replaceState(null, '', '#' + p.toString());
   }
@@ -212,6 +278,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
   var sortEl = document.getElementById('f-sort');
   var searchEl = document.getElementById('f-search');
   var flaggedEl = document.getElementById('f-flagged');
+  var shortlistedEl = document.getElementById('f-shortlisted');
+  var hiddenEl = document.getElementById('f-hidden');
   var grid = document.getElementById('grid');
 
   function applyState() {
@@ -223,6 +291,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
     sortEl.value = state.sort;
     searchEl.value = state.search;
     flaggedEl.checked = state.flagged;
+    shortlistedEl.checked = state.shortlisted;
+    hiddenEl.checked = state.showHidden;
     var q = state.search.toLowerCase();
 
     // Filter
@@ -234,7 +304,9 @@ body.live .pick, body.live .action-btn { display: inline-block; }
       var moo = !state.mood || c.dataset.mood === state.mood;
       var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0;
       var flg = !state.flagged || c.dataset.flagged === '1';
-      c.classList.toggle('hidden', !(fam && typ && moo && txt && flg));
+      var shl = !state.shortlisted || c.dataset.shortlisted === '1';
+      var hid = state.showHidden || c.dataset.hidden !== '1';
+      c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && shl && hid));
     });
 
     // Sort
@@ -261,6 +333,8 @@ body.live .pick, body.live .action-btn { display: inline-block; }
   sortEl.addEventListener('change', function() { state.sort = sortEl.value; applyState(); });
   searchEl.addEventListener('input', function() { state.search = searchEl.value; applyState(); });
   flaggedEl.addEventListener('change', function() { state.flagged = flaggedEl.checked; applyState(); });
+  shortlistedEl.addEventListener('change', function() { state.shortlisted = shortlistedEl.checked; applyState(); });
+  hiddenEl.addEventListener('change', function() { state.showHidden = hiddenEl.checked; applyState(); });
   applyState();
 
   // --- Hi-res image upgrade: swap src to .hires.png if it exists ---
@@ -326,6 +400,39 @@ body.live .pick, body.live .action-btn { display: inline-block; }
       return;
     }
 
+    var createDim = e.target.closest('.action-btn.create-dim');
+    if (createDim) {
+      var dlg = document.getElementById('create-dim-dialog');
+      document.getElementById('cd-parent-dim').value = createDim.dataset.dim;
+      document.getElementById('cd-seed').value = createDim.dataset.seed;
+      document.getElementById('cd-name').value = createDim.dataset.dim + '_fork';
+      document.getElementById('cd-desc').value = '';
+      document.getElementById('cd-name-error').textContent = '';
+      document.getElementById('cd-create').disabled = false;
+      document.getElementById('cd-create').textContent = 'Create';
+      dlg.showModal();
+      return;
+    }
+    var hideBtn = e.target.closest('.action-btn.hide');
+    if (hideBtn) {
+      hideBtn.disabled = true; hideBtn.textContent = 'Hiding…';
+      postJSON('/hide-dimension', {dim: hideBtn.dataset.dim}).then(function(res) {
+        if (res && res.ok) location.reload();
+        else { hideBtn.disabled = false; hideBtn.textContent = 'Hide (failed)'; }
+      });
+      return;
+    }
+    var removeBtn = e.target.closest('.action-btn.remove');
+    if (removeBtn) {
+      if (!confirm('Remove dimension “' + removeBtn.dataset.dim + '”? The config file will be renamed with a .removed suffix.')) return;
+      removeBtn.disabled = true; removeBtn.textContent = 'Removing…';
+      postJSON('/remove-dimension', {dim: removeBtn.dataset.dim}).then(function(res) {
+        if (res && res.ok) location.reload();
+        else { removeBtn.disabled = false; removeBtn.textContent = 'Remove (failed)'; }
+      });
+      return;
+    }
+
     var preview = e.target.closest('.action-btn.preview');
     if (preview) {
       preview.disabled = true; preview.textContent = 'Rendering…';
@@ -341,7 +448,7 @@ body.live .pick, body.live .action-btn { display: inline-block; }
         } else {
           preview.textContent = data.error || 'Failed';
         }
-        setTimeout(function() { preview.disabled = false; preview.textContent = 'Preview'; }, 5000);
+        setTimeout(function() { preview.disabled = false; preview.textContent = 'Shortlist'; }, 5000);
       });
       return;
     }
@@ -356,5 +463,40 @@ body.live .pick, body.live .action-btn { display: inline-block; }
       }).catch(function() {});
     }, 2000);
   }
+
+  // --- Create dimension modal ---
+  document.getElementById('cd-cancel').addEventListener('click', function() {
+    document.getElementById('create-dim-dialog').close();
+  });
+  document.getElementById('cd-create').addEventListener('click', function() {
+    var nameEl = document.getElementById('cd-name');
+    var descEl = document.getElementById('cd-desc');
+    var errEl = document.getElementById('cd-name-error');
+    var name = nameEl.value.trim();
+    if (!/^[a-z][a-z0-9_]*$/.test(name)) {
+      errEl.textContent = 'Must be snake_case: start with a letter, only a-z, 0-9, _';
+      return;
+    }
+    errEl.textContent = '';
+    var btn = document.getElementById('cd-create');
+    btn.disabled = true; btn.textContent = 'Creating…';
+    postJSON('/create-dimension', {
+      parent_dim: document.getElementById('cd-parent-dim').value,
+      seed: document.getElementById('cd-seed').value,
+      name: name,
+      description: descEl.value.trim()
+    }).then(function(res) {
+      if (!res || !res.ok) return res && res.json ? res.json() : null;
+      return res.json();
+    }).then(function(data) {
+      if (data && data.ok) {
+        document.getElementById('create-dim-dialog').close();
+        location.reload();
+      } else {
+        errEl.textContent = (data && data.error) || 'Failed';
+        btn.disabled = false; btn.textContent = 'Create';
+      }
+    });
+  });
 })();
 </script>
