@@ -601,8 +601,7 @@ body.show-borders .border-overlay { display: block; }
     if (!radius) return;
     var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
     var diameter = radius * 2;
-    var pct = Math.min(100, (diameter / coverage) * 100);
-    var offset = (100 - pct) / 2;
+    var pct = (diameter / coverage) * 100;
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
       if (wrap.classList.contains('img-wrap')) return;
@@ -610,14 +609,23 @@ body.show-borders .border-overlay { display: block; }
       div.className = 'img-wrap';
       img.parentNode.insertBefore(div, img);
       div.appendChild(img);
-      var ov = document.createElement('div');
-      ov.className = 'border-overlay';
-      ov.style.cssText = 'left:'+offset+'%;top:'+offset+'%;width:'+pct+'%;height:'+pct+'%';
-      var lbl = document.createElement('div');
-      lbl.className = 'border-label';
-      lbl.textContent = radius + 'b';
-      ov.appendChild(lbl);
-      div.appendChild(ov);
+      if (pct < 90) {
+        var offset = (100 - pct) / 2;
+        var ov = document.createElement('div');
+        ov.className = 'border-overlay';
+        ov.style.cssText = 'left:'+offset+'%;top:'+offset+'%;width:'+pct+'%;height:'+pct+'%';
+        var lbl = document.createElement('div');
+        lbl.className = 'border-label';
+        lbl.textContent = radius + 'b';
+        ov.appendChild(lbl);
+        div.appendChild(ov);
+      } else {
+        var lbl = document.createElement('div');
+        lbl.className = 'border-label';
+        lbl.style.cssText = 'position:absolute;bottom:2px;right:4px';
+        lbl.textContent = radius + 'b — extends beyond view';
+        div.appendChild(lbl);
+      }
     });
   });
 
