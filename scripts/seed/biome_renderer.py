@@ -660,16 +660,31 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                           str(out), size, scale, sample_resolution))
 
     if shortlist:
+        import json as _json
         hires_size = size * 2
-        hires_scale = scale // 2
+        hires_scale = max(scale // 2, 1)
         hires_sample_res = min(sample_resolution * 2, hires_size)
+        # Shortlist lives in shortlist.json (managed by viewer-server), keyed as "dim/seed"
+        sl_path = Path(seedtest_path) / "shortlist.json"
+        sl_entries = {}
+        if sl_path.exists():
+            try:
+                sl_data = _json.loads(sl_path.read_text())
+                for key, val in sl_data.items():
+                    parts = key.split("/", 1)
+                    if len(parts) == 2:
+                        sl_entries.setdefault(parts[0], set()).add(parts[1])
+            except (_json.JSONDecodeError, OSError):
+                pass
+        # Also check candidate store for shortlisted flag (belt and braces)
         for name, dim in all_targets.items():
             profile = build_profile(dim, config, difficulty)
             store = cmod.load_store(cdir / f"{name}.json")
             dim_type = dim.get("type", "")
             fam = profile.get("family", "overworld")
+            sl_seeds = sl_entries.get(name, set())
             for seed_str, cand in store["candidates"].items():
-                if not cand.get("shortlisted"):
+                if seed_str not in sl_seeds and not cand.get("shortlisted"):
                     continue
                 out = renders_dir / name / f"{seed_str}.png"
                 if not out.exists() and (name, seed_str) not in queued_normal:
