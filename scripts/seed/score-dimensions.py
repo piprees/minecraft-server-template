@@ -214,26 +214,32 @@ def window_score(value, lo, hi):
 
 
 def want_score(dist, lo, hi, radius):
-    """A structure that BELONGS, judged by its placement range in blocks
-    (v4 Phase 6: explicit {min,max} ranges; band names convert to ranges in
-    build_profile). Clamped to the playable radius. Ranges beyond locate's
-    search horizon can't be confirmed — absence is compatible, presence
-    hugging spawn is not."""
+    """A structure that BELONGS, judged by its placement range in blocks.
+
+    Scoring:
+      - Inside [lo, hi]: 1.0 + up to 0.1 comfort bonus at centre
+      - Too close (dist < lo): proportional to dist/lo (0 at spawn, 1.0 at lo)
+      - Too far (dist > hi): linear falloff over one range-width past hi
+      - Not found, range within horizon: 0.0
+      - Not found, range beyond horizon: 0.8 (absence is compatible)
+    """
     hi = min(hi, radius)
-    if lo >= LOCATE_HORIZON:
-        if dist is None or dist < 0:
-            return 0.8
-        return 0.2 if dist < radius * 0.3 else 1.0
     if dist is None or dist < 0:
+        if lo >= LOCATE_HORIZON:
+            return 0.8
         return 0.0 if hi <= LOCATE_HORIZON else 0.6
-    base = window_score(dist, lo, hi)
-    # Comfort bonus: found well inside the wanted range → up to 1.1x.
-    if base > 0 and dist is not None and dist >= 0 and lo <= dist <= hi:
+    # Too close: linear ramp from 0 at spawn to 1.0 at the range minimum
+    if dist < lo:
+        return dist / max(lo, 1)
+    # Inside the wanted range: 1.0 + comfort bonus
+    if dist <= hi:
         centre = (lo + hi) / 2
         half_width = max((hi - lo) / 2, 1)
         comfort = 1.0 - abs(dist - centre) / half_width
-        base *= 1.0 + 0.1 * comfort
-    return base
+        return 1.0 + 0.1 * comfort
+    # Too far: linear falloff
+    width = max(hi - lo, 1)
+    return max(0.0, 1.0 - (dist - hi) / width)
 
 
 def shun_score(dist, radius, min_distance=None):
@@ -1052,10 +1058,10 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                     tip, "&#x2705;", html.escape(pretty), int(d))))
             elif d < lo:
                 struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close)".format(
-                    tip, "&#x26A0;", html.escape(pretty), int(d))))
+                    tip, "&#xFE0F;", html.escape(pretty), int(d))))
             else:
                 struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too far)".format(
-                    tip, "&#x26A0;", html.escape(pretty), int(d))))
+                    tip, "&#xFE0F;", html.escape(pretty), int(d))))
     struct_items.sort(key=lambda x: x[0])
     struct_html = ("<div class='struct-list'>{}</div>".format(
         "".join("<div>{}</div>".format(s) for _, s in struct_items))
