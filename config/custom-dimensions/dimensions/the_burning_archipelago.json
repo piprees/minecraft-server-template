@@ -5,7 +5,6 @@
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
-    "minecraft:quartz_bricks_valley",
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
     "incendium:volcanic_deltas",
@@ -38,11 +37,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "minecraft:crimson_forest",
-      "incendium:volcanic_deltas",
-      "minecraft:basalt_deltas"
-    ],
+    "spawnFilter": ["minecraft:crimson_forest", "incendium:volcanic_deltas", "minecraft:basalt_deltas"],
     "wants": {
       "bastion": "spread",
       "fortress": "spread",

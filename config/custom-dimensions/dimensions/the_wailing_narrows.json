@@ -24,10 +24,7 @@
   },
   "seedRoll": {
     "mood": "standard",
-    "spawnFilter": [
-      "minecraft:soul_sand_valley",
-      "minecraft:basalt_deltas"
-    ],
+    "spawnFilter": ["minecraft:soul_sand_valley", "minecraft:basalt_deltas"],
     "wants": {
       "nether_bridge": "near_spawn",
       "fortress": "spread",
