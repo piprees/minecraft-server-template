@@ -118,7 +118,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
     def handle_one_request(self):
         try:
             super().handle_one_request()
-        except BrokenPipeError:
+        except (BrokenPipeError, ConnectionResetError):
             pass
 
     def _read_json(self):
@@ -265,7 +265,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
 
         out_dir = Path(self.seedtest) / "renders" / dim
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{seed}.hires.png"
+        out_path = out_dir / f"{seed}_hires.png"
 
         biome_params = str(SCRIPT_DIR / "biome_params.json")
         if not Path(biome_params).exists():
@@ -303,7 +303,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 overlay_structures(str(out_path), seed, dim, self.config_path, 1024, 16)
             except Exception:
                 pass
-            rel = f"renders/{dim}/{seed}.hires.png"
+            rel = f"renders/{dim}/{seed}_hires.png"
             self._respond_json({"ok": True, "path": rel})
         else:
             self._respond_json({"ok": False,
@@ -337,7 +337,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
 
         # Render hi-res if not already done
-        hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}.hires.png"
+        hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}_hires.png"
         if not hires_path.exists():
             biome_params = str(SCRIPT_DIR / "biome_params.json")
             family = "overworld"
@@ -368,7 +368,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 pass
 
         self._respond_json({"ok": True, "shortlisted": True,
-                            "hires": f"renders/{dim}/{seed}.hires.png"})
+                            "hires": f"renders/{dim}/{seed}_hires.png"})
 
     def _handle_create_dimension(self):
         try:

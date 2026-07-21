@@ -901,7 +901,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     spawn_html = ""
     if best:
         img = "renders/{}/{}.png".format(name, best["seed"])
-        hires = "renders/{}/{}.hires.png".format(name, best["seed"])
+        hires = "renders/{}/{}_hires.png".format(name, best["seed"])
         img_html = "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.onerror=null\">".format(img, hires)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
             html.escape(best.get("spawn_biome", "")))
@@ -1009,7 +1009,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     shortlisted = (dim_name, c["seed"]) in (shortlist_set or set())
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
-    hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
+    hires = "renders/{}/{}_hires.png".format(dim_name, c["seed"])
     _axis_labels = {"namesake": "spawn", "variety": "variety",
                     "terrain": "terrain", "structures": "structures"}
     def _bar_col(v):
