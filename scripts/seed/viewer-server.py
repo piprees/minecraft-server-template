@@ -535,6 +535,13 @@ def main():
     ViewerHandler.finalise_args = finalise_args
     ViewerHandler.winner_overlay = args.winner_overlay or ""
 
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+    print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)
+
+    # Serve in a background thread so batch renders can run with the server up
+    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+
     # Render top candidates via multiprocessing batch (fast, output to CLI)
     biome_params = str(SCRIPT_DIR / "biome_params.json")
     if Path(biome_params).exists():
@@ -544,10 +551,9 @@ def main():
                       1024, 8, 256, "Rendering hires (1024px)",
                       suffix="_hires")
 
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
-    print(f"viewer server: http://127.0.0.1:{args.port}/viewer.html", flush=True)
+    print("\nRenders complete. Server running — Ctrl+C to stop.", flush=True)
     try:
-        server.serve_forever()
+        server_thread.join()
     except KeyboardInterrupt:
         pass
 
