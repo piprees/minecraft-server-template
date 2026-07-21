@@ -459,6 +459,8 @@ def world_family(dimension_id):
         return "nether"
     if dimension_id == "minecraft:the_end":
         return "end"
+    if dimension_id == "paradise_lost:paradise_lost":
+        return "paradise_lost"
     return "overworld"
 
 
@@ -609,7 +611,7 @@ def build_profile(dim, config, difficulty=None):
     sr_early = dim.get("seedRoll") or {}
     # Config dictates everything; type-string heuristics are only fallbacks.
     fam = sr_early.get("family")
-    if fam not in ("overworld", "nether", "end"):
+    if fam not in ("overworld", "nether", "end", "paradise_lost"):
         fam = world_family(dim.get("dimensionId", "")) if is_world else family_of(dim_type)
     portal = dim.get("portal") or {}
     if is_world:

@@ -3,7 +3,7 @@
   "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark.",
   "seed": -3604832347219380837,
   "biomes": [
-    "minecraft:quartz_bricks_valley",
+    "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
     "incendium:ash_barrens",
@@ -38,7 +38,9 @@
     "spawnFilter": [
       "minecraft:soul_sand_valley",
       "minecraft:basalt_deltas",
-      "incendium:ash_barrens"
+      "incendium:ash_barrens",
+      "minecraft:nether_wastes",
+      "nullscape:shadowlands"
     ],
     "wants": {
       "nether_graveyard": "near_spawn",
