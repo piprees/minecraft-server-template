@@ -721,8 +721,8 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                     rendered += 1
                 else:
                     failed += 1
-                if (rendered + failed) % 50 == 0:
-                    print(f"  [{rendered + failed}/{len(tasks)}] {rendered} ok, {failed} failed")
+                if (rendered + failed) % 10 == 0 or rendered + failed == len(tasks):
+                    print(f"  [{rendered + failed}/{len(tasks)}] {rendered} ok, {failed} failed", flush=True)
     else:
         for task in tasks:
             dim_name, seed, result = _render_one(task)
