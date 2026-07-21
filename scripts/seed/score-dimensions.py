@@ -1108,6 +1108,9 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                   if biome_items else "")
 
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
+    # Inline score summary for the detail panel header
+    score_parts = " | ".join("{} {:.0%}".format(
+        _axis_labels.get(k, k).title(), v) for k, v in c["parts"].items())
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
@@ -1117,10 +1120,21 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='cand-detail' style='display:none'>"
+        "<div class='lb-header'>"
+        "<div class='dim-label'>{}</div>"
+        "<div class='spawn'><b>{}</b></div>"
+        "<div class='score' style='color:{}'>{:.1f}{}</div>"
+        "<div class='score-parts'>{}</div>"
+        "</div>"
+        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
         "<div class='bars'>{}</div>"
-        "{}{}{}"
+        "{}"
+        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
+        "{}{}"
+        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
+        "<div class='seed' style='margin-bottom:.3rem'>{}</div>"
         "<div class='spawn'>spawn: {}</div>"
-        "{}{}{}"
+        "<div class='lb-actions'>{}{}{}</div>"
         "</div>"
         "</div>").format(
             " winner" if win else "", idx, c["score"],
@@ -1129,8 +1143,15 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             img, hires,
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],
-            bars, terrain_html, struct_html, biome_html,
-            spawn_html, pick_btn, shortlist_btn, create_dim_btn)
+            html.escape(dim_name),
+            html.escape(spawn),
+            sc, c["score"], crown,
+            score_parts,
+            bars, terrain_html,
+            struct_html, biome_html,
+            c["seed"],
+            spawn_html,
+            pick_btn, shortlist_btn, create_dim_btn)
 
 
 # ---------------------------------------------------------------------------

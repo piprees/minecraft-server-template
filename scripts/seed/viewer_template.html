@@ -318,10 +318,17 @@ body.show-borders .border-label { display: block; }
   flex: 1; padding: 1rem; overflow-y: auto; min-width: 0;
   font-size: .82rem; color: var(--text);
 }
-#lightbox .lb-info .score { font-size: 1.4rem; font-weight: 700; margin-bottom: .2rem; }
-#lightbox .lb-info .seed { font-family: ui-monospace, monospace; font-size: .75rem;
-  color: var(--accent-hover); word-break: break-all; margin-bottom: .5rem; }
-#lightbox .lb-info .dim-label { font-size: .75rem; color: var(--text-muted); margin-bottom: .3rem; }
+#lightbox .lb-header .dim-label { font-size: .75rem; color: var(--text-muted); }
+#lightbox .lb-header .spawn { font-size: .95rem; margin: .1rem 0; }
+#lightbox .lb-header .spawn b { color: #a8d8a0; }
+#lightbox .lb-header .score { font-size: 1.4rem; font-weight: 700; margin: .1rem 0; }
+#lightbox .lb-header .score-parts { font-size: .72rem; color: var(--text-muted); margin-bottom: .2rem; }
+#lightbox .lb-info .seed { font-family: ui-monospace, monospace; font-size: .7rem;
+  color: var(--accent-hover); word-break: break-all; }
+#lightbox .lb-actions { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+#lightbox .lb-actions .pick, #lightbox .lb-actions .action-btn {
+  display: inline-block; margin-top: 0;
+}
 #lightbox .lb-close {
   position: absolute; top: .6rem; right: .8rem; font-size: 1.4rem;
   color: #888; cursor: pointer; line-height: 1; padding: .3rem;
@@ -414,26 +421,22 @@ body.show-borders .border-label { display: block; }
     if (img && img.closest('.compact')) img = null;
     if (!img) return;
     e.stopPropagation();
-    // Set image (normal first, then hires)
-    lbImg.src = img.src;
+    // Always try hires first, fall back to normal
     var hires = img.dataset.hires;
     if (hires) {
+      lbImg.src = img.src;
       var probe = new Image();
       probe.onload = function() { lbImg.src = hires; };
+      probe.onerror = function() { lbImg.src = img.src; };
       probe.src = hires;
+    } else {
+      lbImg.src = img.src;
     }
-    // Populate info panel from the candidate card
+    // Populate info panel from the candidate's hidden detail div
     var cand = img.closest('.cand');
     if (cand) {
-      var scoreEl = cand.querySelector('.score');
-      var seedEl = cand.querySelector('.seed');
-      var dimLabel = cand.dataset.dim || '';
       var detail = cand.querySelector('.cand-detail');
-      var infoHtml = "<div class='dim-label'>" + dimLabel + "</div>";
-      if (scoreEl) infoHtml += "<div class='score'>" + scoreEl.innerHTML + "</div>";
-      if (seedEl) infoHtml += "<div class='seed'>" + seedEl.textContent + "</div>";
-      if (detail) infoHtml += detail.innerHTML;
-      lbInfo.innerHTML = infoHtml;
+      lbInfo.innerHTML = detail ? detail.innerHTML : '';
     } else {
       lbInfo.innerHTML = '';
     }
