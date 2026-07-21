@@ -115,6 +115,12 @@ class ViewerHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):  # noqa: A002 — quiet server
         pass
 
+    def handle_one_request(self):
+        try:
+            super().handle_one_request()
+        except BrokenPipeError:
+            pass
+
     def _read_json(self):
         length = int(self.headers.get("Content-Length", 0))
         return json.loads(self.rfile.read(length) or b"{}")
