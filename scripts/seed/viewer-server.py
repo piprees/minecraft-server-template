@@ -139,6 +139,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             self._handle_preview()
         elif self.path == "/create-dimension":
             self._handle_create_dimension()
+        elif self.path == "/shortlist":
+            self._handle_shortlist()
         elif self.path == "/hide-dimension":
             self._handle_hide_dimension()
         elif self.path == "/remove-dimension":
@@ -286,6 +288,67 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         else:
             self._respond_json({"ok": False,
                                 "error": (r.stderr or r.stdout or "render failed")[:200]})
+
+    def _handle_shortlist(self):
+        """Toggle a candidate on/off the shortlist. Also renders hi-res if adding."""
+        try:
+            body = self._read_json()
+            dim = str(body["dim"])
+            seed = str(body["seed"])
+            action = body.get("action", "toggle")
+        except (ValueError, KeyError, json.JSONDecodeError):
+            self.send_error(400, "expected JSON {dim, seed}")
+            return
+
+        sl_path = Path(self.seedtest) / "shortlist.json"
+        try:
+            shortlist = json.loads(sl_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            shortlist = {}
+
+        key = f"{dim}/{seed}"
+        if action == "remove" or (action == "toggle" and key in shortlist):
+            shortlist.pop(key, None)
+            sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
+            self._respond_json({"ok": True, "shortlisted": False})
+            return
+
+        shortlist[key] = {"dim": dim, "seed": seed, "added": time.strftime("%Y-%m-%dT%H:%M:%S")}
+        sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
+
+        # Render hi-res if not already done
+        hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}.hires.png"
+        if not hires_path.exists():
+            biome_params = str(SCRIPT_DIR / "biome_params.json")
+            family = "overworld"
+            try:
+                from dimension_profiles import load_config, load_difficulty, build_profile
+                config = load_config(self.config_path)
+                difficulty = load_difficulty(self.config_path)
+                all_dims = {d["name"]: d for d in config.get("dimensions", [])}
+                all_dims.update({w["name"]: w for w in config.get("worlds", [])})
+                if dim in all_dims:
+                    profile = build_profile(all_dims[dim], config, difficulty)
+                    family = profile.get("family") or "overworld"
+            except Exception:
+                pass
+            noise_family = {"paradise_lost": "paradise_lost"}.get(family, family)
+            hires_path.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(
+                [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
+                 "render", "--seed", seed, "--output", str(hires_path),
+                 "--biome-params", biome_params,
+                 "--family", noise_family,
+                 "--size", "1024", "--scale", "16"],
+                capture_output=True, text=True, timeout=120)
+            try:
+                from biome_renderer import overlay_structures
+                overlay_structures(str(hires_path), seed, dim, self.config_path, 1024, 16)
+            except Exception:
+                pass
+
+        self._respond_json({"ok": True, "shortlisted": True,
+                            "hires": f"renders/{dim}/{seed}.hires.png"})
 
     def _handle_create_dimension(self):
         try:

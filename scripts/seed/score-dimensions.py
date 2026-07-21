@@ -785,12 +785,19 @@ def render_viewer(results, profiles, winners, rejected=None,
                   seedtest=None, dim_configs=None):
     rejected = rejected or {}
     dim_configs = dim_configs or {}
-    hires_set = set()
+    # Shortlist: persistent set from shortlist.json (managed by viewer-server)
+    shortlist_set = set()
     if seedtest:
-        renders = Path(seedtest) / "renders"
-        if renders.is_dir():
-            for hp in renders.glob("*/*.hires.png"):
-                hires_set.add((hp.parent.name, hp.name.replace(".hires.png", "")))
+        sl_path = Path(seedtest) / "shortlist.json"
+        if sl_path.exists():
+            try:
+                sl = json.loads(sl_path.read_text())
+                for key in sl:
+                    parts = key.split("/", 1)
+                    if len(parts) == 2:
+                        shortlist_set.add((parts[0], parts[1]))
+            except (json.JSONDecodeError, OSError):
+                pass
     template = (Path(__file__).resolve().parent / "viewer_template.html").read_text()
 
     total_dims = len(profiles)
@@ -820,7 +827,7 @@ def render_viewer(results, profiles, winners, rejected=None,
         dims_html.append(_render_dim_section(
             name, profile, results.get(name, []),
             winners, rejected.get(name, 0),
-            hires_set=hires_set,
+            shortlist_set=shortlist_set,
             dim_config=dim_configs.get(name)))
 
     return (template
@@ -832,7 +839,7 @@ def render_viewer(results, profiles, winners, rejected=None,
 
 
 def _render_dim_section(name, profile, cands, winners, rej_count,
-                        hires_set=None, dim_config=None):
+                        shortlist_set=None, dim_config=None):
     """Render one dimension as a card (compact) + expandable detail panel."""
     best_score = cands[0]["score"] if cands else 0
     n_cands = len(cands)
@@ -855,9 +862,9 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     # Winner/best candidate for the compact card face
     winner_seed = winners.get(name, {}).get("seed")
     best = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
-    hires_set = hires_set or set()
+    shortlist_set = shortlist_set or set()
     is_hidden = bool(dim_config and dim_config.get("hidden"))
-    best_shortlisted = "1" if (best and (name, best["seed"]) in hires_set) else "0"
+    best_shortlisted = "1" if (best and (name, best["seed"]) in shortlist_set) else "0"
     img_html = ""
     spawn_html = ""
     if best:
@@ -941,7 +948,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if cands:
         out.append("<div class='all-cands'>")
         for idx, c in enumerate(cands[:20]):
-            out.append(_render_candidate(idx, c, name, profile, winners, 20, hires_set))
+            out.append(_render_candidate(idx, c, name, profile, winners, 20, shortlist_set))
         out.append("</div>")
         if n_cands > 20:
             out.append("<p class='cand-count'>Showing 20 of {}</p>".format(n_cands))
@@ -954,9 +961,9 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
 
 
 def _render_candidate(idx, c, dim_name, profile, winners, default_show,
-                      hires_set=None):
+                      shortlist_set=None):
     esc_dim = html.escape(dim_name, quote=True)
-    shortlisted = (dim_name, c["seed"]) in (hires_set or set())
+    shortlisted = (dim_name, c["seed"]) in (shortlist_set or set())
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
     hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
@@ -980,10 +987,11 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     hidden = ' style="display:none"' if idx >= default_show else ""
     pick_btn = ("" if win else
                 "<button class='pick' data-dim='{}' "
-                "data-seed='{}'>make winner</button>".format(esc_dim, c["seed"]))
-    preview_btn = ("<button class='action-btn preview' "
-                   "data-dim='{}' data-seed='{}'>Shortlist</button>".format(
-                       esc_dim, c["seed"]))
+                "data-seed='{}'>Make Winner</button>".format(esc_dim, c["seed"]))
+    sl_label = "Unshortlist" if shortlisted else "Shortlist"
+    shortlist_btn = ("<button class='action-btn shortlist' "
+                     "data-dim='{}' data-seed='{}'>{}</button>".format(
+                         esc_dim, c["seed"], sl_label))
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Create Dimension</button>".format(
                           esc_dim, c["seed"]))
@@ -1000,7 +1008,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             " winner" if win else "", idx, hidden, shortlisted_attr,
             html.escape(candidate_tooltip(c), quote=True),
             img, hires, sc, c["score"], crown, c["seed"],
-            bars, spawn_html, pick_btn, preview_btn, create_dim_btn)
+            bars, spawn_html, pick_btn, shortlist_btn, create_dim_btn)
 
 
 # ---------------------------------------------------------------------------

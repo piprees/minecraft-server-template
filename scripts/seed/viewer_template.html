@@ -433,22 +433,33 @@ body.live .pick, body.live .action-btn { display: inline-block; }
       return;
     }
 
-    var preview = e.target.closest('.action-btn.preview');
-    if (preview) {
-      preview.disabled = true; preview.textContent = 'Rendering…';
-      postJSON('/preview', {dim: preview.dataset.dim, seed: preview.dataset.seed}).then(function(res) {
-        if (!res || !res.ok) { preview.textContent = 'Failed'; return res && res.json ? res.json() : null; }
+    var slBtn = e.target.closest('.action-btn.shortlist');
+    if (slBtn) {
+      var isShortlisted = slBtn.closest('.cand').dataset.shortlisted === '1';
+      var action = isShortlisted ? 'remove' : 'add';
+      slBtn.disabled = true;
+      slBtn.textContent = isShortlisted ? 'Removing…' : 'Shortlisting…';
+      postJSON('/shortlist', {dim: slBtn.dataset.dim, seed: slBtn.dataset.seed, action: action}).then(function(res) {
+        if (!res || !res.ok) { slBtn.disabled = false; slBtn.textContent = 'Failed'; return; }
         return res.json();
       }).then(function(data) {
         if (!data) return;
-        if (data.ok && data.path) {
-          var img = preview.closest('.cand').querySelector('img');
-          if (img) { img.src = data.path; img.style.display = ''; }
-          preview.textContent = 'Hi-res loaded';
+        var cand = slBtn.closest('.cand');
+        if (data.shortlisted) {
+          cand.dataset.shortlisted = '1';
+          slBtn.textContent = 'Unshortlist';
+          if (data.hires) {
+            var img = cand.querySelector('img');
+            if (img) { img.src = data.hires; img.style.display = ''; }
+          }
+          // Also update the parent dim-card's shortlist status
+          var card = cand.closest('.dim-card');
+          if (card) card.dataset.shortlisted = '1';
         } else {
-          preview.textContent = data.error || 'Failed';
+          cand.dataset.shortlisted = '0';
+          slBtn.textContent = 'Shortlist';
         }
-        setTimeout(function() { preview.disabled = false; preview.textContent = 'Shortlist'; }, 5000);
+        slBtn.disabled = false;
       });
       return;
     }
