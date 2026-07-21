@@ -10,29 +10,149 @@ Usage:
     python3 surface_rules.py --format csv # CSV output
 """
 
-# MC map colours (official base colours × shade variant 0.86 for normal brightness)
+# MC MaterialColor base colours (shade variant 2 = ×1.0, the brightest).
+# Source: net.minecraft.world.level.material.MapColor in 1.21.1.
+# We store at ×0.86 (shade 1, "normal") to match MC's default map rendering.
 SURFACE_COLOURS = {
-    "grass":        (109, 153, 48),
-    "sand":         (212, 200, 140),
-    "red_sand":     (168, 88, 35),
-    "stone":        (96, 96, 96),
-    "snow":         (230, 230, 230),
-    "mycelium":     (109, 54, 153),
-    "podzol":       (111, 74, 42),
-    "mud":          (92, 75, 57),
-    "gravel":       (120, 120, 120),
-    "water":        (70, 100, 220),
-    "water_warm":   (80, 190, 230),
-    "water_cold":   (55, 80, 195),
-    "water_frozen": (150, 160, 210),
-    "netherrack":   (112, 2, 0),
-    "crimson_nylium": (153, 51, 51),
-    "warped_nylium":  (76, 127, 153),
-    "soul_sand":    (80, 60, 40),
-    "basalt":       (60, 60, 60),
-    "end_stone":    (200, 200, 140),
-    "void":         (20, 20, 30),
+    "grass":          (109, 153, 48),   # MaterialColor.GRASS × 0.86
+    "sand":           (213, 201, 140),  # MaterialColor.SAND × 0.86
+    "red_sand":       (168, 88, 36),    # MaterialColor.COLOR_ORANGE × 0.86
+    "stone":          (104, 104, 104),  # MaterialColor.STONE × 0.86
+    "snow":           (220, 220, 220),  # MaterialColor.SNOW × 0.86
+    "mycelium":       (128, 94, 168),   # MaterialColor.COLOR_PURPLE × 0.86
+    "podzol":         (111, 74, 42),    # MaterialColor.PODZOL × 0.86
+    "mud":            (92, 75, 57),     # MaterialColor.COLOR_BROWN-ish
+    "gravel":         (109, 109, 109),  # MaterialColor.STONE variant
+    "water":          (55, 55, 220),    # MaterialColor.WATER × 0.86
+    "water_warm":     (55, 150, 220),   # warm bias
+    "water_cold":     (40, 40, 195),    # cold bias
+    "water_frozen":   (150, 160, 210),  # ice tint
+    "netherrack":     (112, 2, 0),      # MaterialColor.NETHER × 0.86
+    "crimson_nylium": (148, 63, 63),    # MaterialColor.CRIMSON_NYLIUM × 0.86
+    "warped_nylium":  (22, 126, 134),   # MaterialColor.WARPED_NYLIUM × 0.86
+    "soul_sand":      (80, 60, 40),     # MaterialColor.COLOR_BROWN × 0.86
+    "basalt":         (60, 60, 60),     # MaterialColor.DEEPSLATE × 0.86
+    "end_stone":      (213, 201, 140),  # MaterialColor.SAND × 0.86 (end_stone uses SAND)
+    "void":           (20, 20, 30),
 }
+
+# MC MaterialColor shade multipliers (applied to base colour)
+MC_SHADE_DARK = 0.71    # height < north neighbour
+MC_SHADE_NORMAL = 0.86  # height == north neighbour (our base)
+MC_SHADE_BRIGHT = 1.0   # height > north neighbour
+
+# Leaf block colours (MaterialColor.PLANT × biome grass tint).
+# These are the top-down colours you see in unmined for tree canopies.
+LEAF_COLOURS = {
+    "oak":       (55, 113, 37),
+    "birch":     (108, 140, 55),
+    "spruce":    (40, 75, 32),
+    "dark_oak":  (40, 90, 28),
+    "jungle":    (48, 130, 34),
+    "acacia":    (90, 130, 42),
+    "cherry":    (220, 140, 175),
+    "mangrove":  (55, 95, 35),
+    "azalea":    (70, 115, 45),
+    "pale_oak":  (145, 155, 140),
+    # Nether
+    "crimson":   (148, 20, 20),
+    "warped":    (20, 110, 110),
+    # Paradise Lost / modded
+    "wisteria":  (155, 115, 180),
+    "highlands": (60, 120, 50),
+}
+TRUNK_COLOUR = (100, 72, 36)
+
+# Per-biome tree type mix and canopy coverage (0.0 = no trees, 1.0 = solid canopy).
+# Format: (coverage, [(tree_type, weight), ...])
+BIOME_TREES = {
+    # Overworld forests
+    "minecraft:forest":              (0.75, [("oak", 4), ("birch", 1)]),
+    "minecraft:flower_forest":       (0.65, [("oak", 3), ("birch", 2)]),
+    "minecraft:birch_forest":        (0.70, [("birch", 1)]),
+    "minecraft:old_growth_birch_forest": (0.75, [("birch", 1)]),
+    "minecraft:dark_forest":         (0.88, [("dark_oak", 4), ("oak", 1)]),
+    "minecraft:taiga":               (0.65, [("spruce", 1)]),
+    "minecraft:snowy_taiga":         (0.60, [("spruce", 1)]),
+    "minecraft:old_growth_pine_taiga": (0.78, [("spruce", 1)]),
+    "minecraft:old_growth_spruce_taiga": (0.82, [("spruce", 1)]),
+    "minecraft:jungle":              (0.90, [("jungle", 1)]),
+    "minecraft:sparse_jungle":       (0.45, [("jungle", 1)]),
+    "minecraft:bamboo_jungle":       (0.85, [("jungle", 1)]),
+    "minecraft:cherry_grove":        (0.55, [("cherry", 1)]),
+    "minecraft:grove":               (0.50, [("spruce", 1)]),
+    "minecraft:windswept_forest":    (0.55, [("oak", 1), ("spruce", 1)]),
+    "minecraft:savanna":             (0.15, [("acacia", 1)]),
+    "minecraft:savanna_plateau":     (0.20, [("acacia", 1)]),
+    "minecraft:windswept_savanna":   (0.10, [("acacia", 1)]),
+    "minecraft:swamp":               (0.40, [("oak", 1)]),
+    "minecraft:mangrove_swamp":      (0.80, [("mangrove", 1)]),
+    "minecraft:wooded_badlands":     (0.35, [("oak", 1)]),
+    "minecraft:pale_garden":         (0.75, [("pale_oak", 1)]),
+    "minecraft:meadow":              (0.08, [("oak", 1)]),
+    "minecraft:plains":              (0.04, [("oak", 1)]),
+    "minecraft:sunflower_plains":    (0.04, [("oak", 1)]),
+    # Terralith
+    "terralith:forested_highlands":  (0.70, [("spruce", 2), ("oak", 1)]),
+    "terralith:cloud_forest":        (0.80, [("oak", 2), ("spruce", 1)]),
+    "terralith:alpine_highlands":    (0.35, [("spruce", 1)]),
+    "terralith:siberian_taiga":      (0.72, [("spruce", 1)]),
+    "terralith:shield":              (0.65, [("spruce", 2), ("birch", 1)]),
+    "terralith:shield_clearing":     (0.30, [("spruce", 1), ("birch", 1)]),
+    "terralith:lush_valley":         (0.50, [("oak", 2), ("birch", 1)]),
+    "terralith:lavender_valley":     (0.40, [("birch", 1)]),
+    "terralith:sakura_grove":        (0.60, [("cherry", 1)]),
+    "terralith:sakura_valley":       (0.55, [("cherry", 1)]),
+    "terralith:moonlight_grove":     (0.65, [("dark_oak", 1)]),
+    "terralith:moonlight_valley":    (0.55, [("dark_oak", 1)]),
+    "terralith:amethyst_canyon":     (0.50, [("oak", 1)]),
+    "terralith:amethyst_rainforest": (0.85, [("jungle", 2), ("oak", 1)]),
+    "terralith:birch_taiga":         (0.65, [("birch", 2), ("spruce", 1)]),
+    "terralith:temperate_highlands": (0.35, [("oak", 1), ("spruce", 1)]),
+    "terralith:highlands":           (0.25, [("oak", 1)]),
+    "terralith:brushland":           (0.12, [("acacia", 1)]),
+    "terralith:hot_shrubland":       (0.08, [("acacia", 1)]),
+    "terralith:orchid_swamp":        (0.45, [("oak", 1), ("mangrove", 1)]),
+    "terralith:snowy_cherry_grove":  (0.50, [("cherry", 1)]),
+    "terralith:desert_oasis":        (0.25, [("jungle", 1)]),
+    "terralith:yellowstone":         (0.30, [("spruce", 1)]),
+    # Nature's Spirit
+    "natures_spirit:fir_forest":     (0.70, [("spruce", 1)]),
+    "natures_spirit:coniferous_covert": (0.65, [("spruce", 1)]),
+    # Nether
+    "minecraft:crimson_forest":      (0.70, [("crimson", 1)]),
+    "minecraft:warped_forest":       (0.70, [("warped", 1)]),
+    "incendium:withered_forest":     (0.60, [("crimson", 1)]),
+    "incendium:inverted_forest":     (0.65, [("warped", 1)]),
+    # Paradise Lost
+    "paradise_lost:highlands_forest": (0.70, [("highlands", 1)]),
+    "paradise_lost:wisteria_woods":  (0.75, [("wisteria", 1)]),
+    "paradise_lost:highlands_shield": (0.30, [("highlands", 1)]),
+    "paradise_lost:highlands":       (0.15, [("highlands", 1)]),
+}
+
+
+def tree_canopy(biome_id):
+    """Return (coverage, [(leaf_colour, weight), ...]) or None for non-treed biomes."""
+    if biome_id in BIOME_TREES:
+        coverage, types = BIOME_TREES[biome_id]
+        return coverage, [(LEAF_COLOURS.get(t, LEAF_COLOURS["oak"]), w) for t, w in types]
+    bid = biome_id.lower()
+    if "jungle" in bid and "sparse" not in bid:
+        return 0.85, [(LEAF_COLOURS["jungle"], 1)]
+    if "dark_forest" in bid or "dark" in bid and "forest" in bid:
+        return 0.85, [(LEAF_COLOURS["dark_oak"], 1)]
+    if "taiga" in bid or "spruce" in bid or "pine" in bid or "fir" in bid:
+        return 0.65, [(LEAF_COLOURS["spruce"], 1)]
+    if "forest" in bid or "grove" in bid or "woods" in bid:
+        return 0.65, [(LEAF_COLOURS["oak"], 3), (LEAF_COLOURS["birch"], 1)]
+    if "cherry" in bid or "sakura" in bid:
+        return 0.55, [(LEAF_COLOURS["cherry"], 1)]
+    if "swamp" in bid or "mangrove" in bid:
+        return 0.50, [(LEAF_COLOURS["mangrove"], 1)]
+    if "savanna" in bid:
+        return 0.15, [(LEAF_COLOURS["acacia"], 1)]
+    return None
 
 # Biome ID → surface type. Checked before keyword fallback.
 _BIOME_SURFACE = {

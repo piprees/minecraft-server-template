@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from biome_sampler import BiomeSampler, load_noise_configs  # noqa: E402
-from surface_rules import surface_and_density  # noqa: E402
+from surface_rules import surface_and_density, tree_canopy, TRUNK_COLOUR  # noqa: E402
 from terrain_height import TerrainEvaluator, SPLINES_PATH, ridges_folded  # noqa: E402
 
 BIOME_COLOURS = {
@@ -180,6 +180,14 @@ def _evaluator_for_family(family):
 SEA_LEVEL = 63
 
 
+def _pixel_hash(seed, x, z):
+    """Fast deterministic hash for per-pixel decisions (tree placement etc)."""
+    v = ((seed * 6364136223846793005 + 1442695040888963407)
+         ^ (x * 73856093) ^ (z * 19349663)) & 0xFFFFFFFF
+    v = ((v >> 16) ^ v) * 0x45d9f3b & 0xFFFFFFFF
+    return v
+
+
 def render_biome_map(seed, biome_params_path, output_path,
                      noise_config=None, family=None, biome_filter=None,
                      size=1024, blocks_per_pixel=4,
@@ -216,15 +224,9 @@ def render_biome_map(seed, biome_params_path, output_path,
         for sx in range(sample_resolution):
             x = -half + sx * sample_step
             biome, climate = sampler.biome_and_climate(x, z)
-            (surf_col, density) = surface_and_density(biome)
-            id_col = biome_colour(biome)
-            # 55/45: pure surface makes grass biomes identical; pure identity loses terrain character
-            colour = (
-                int(surf_col[0] * 0.55 + id_col[0] * 0.45),
-                int(surf_col[1] * 0.55 + id_col[1] * 0.45),
-                int(surf_col[2] * 0.55 + id_col[2] * 0.45),
-            )
-            row.append((biome, colour, density))
+            (surf_col, _density) = surface_and_density(biome)
+            canopy = tree_canopy(biome)
+            row.append((biome, surf_col, canopy))
             crow.append(climate)
             cont = climate.get("continentalness", 0.0)
             ero = climate.get("erosion", 0.0)
@@ -249,142 +251,219 @@ def render_biome_map(seed, biome_params_path, output_path,
     is_end = family == "end"
     is_pl = family == "paradise_lost"
 
+    iseed = int(seed)
+
+    # Pre-compute structure footprints as pixel-coordinate rectangles
+    struct_pixels = {}
+    try:
+        from structure_placement import load_structure_sets, nearest_structure
+        struct_sets_dir = None
+        for candidate in (Path.cwd() / ".seedtest" / ".structure_sets",
+                          Path.cwd().parent / ".seedtest" / ".structure_sets"):
+            if candidate.exists():
+                struct_sets_dir = candidate
+                break
+        if struct_sets_dir:
+            sets = load_structure_sets(str(struct_sets_dir))
+            struct_mat = {
+                "village": (104, 104, 104),     # cobblestone grey
+                "pillager": (60, 60, 60),       # dark stone
+                "mansion": (90, 60, 30),        # dark oak planks
+                "monument": (70, 130, 130),     # prismarine
+                "temple": (180, 170, 140),       # sandstone
+                "fortress": (55, 10, 10),       # nether brick
+                "stronghold": (80, 80, 80),     # stone brick
+                "mineshaft": (100, 72, 36),     # oak planks
+                "shipwreck": (90, 60, 30),      # planks
+                "ruined_portal": (40, 10, 40),  # obsidian
+                "bastion": (30, 30, 30),        # blackstone
+                "end_city": (200, 160, 200),    # purpur
+                "witch": (60, 80, 30),          # swamp hut
+                "igloo": (220, 220, 220),       # snow
+            }
+            for set_id, cfg in sets.items():
+                col = (128, 128, 128)
+                footprint_r = 3
+                for keyword, kcol in struct_mat.items():
+                    if keyword in set_id:
+                        col = kcol
+                        if keyword == "village":
+                            footprint_r = 8
+                        elif keyword in ("mansion", "monument", "fortress", "bastion"):
+                            footprint_r = 5
+                        break
+                result = nearest_structure(
+                    iseed, cfg["spacing"], cfg["separation"], cfg["salt"],
+                    spread_type=cfg.get("spread_type", "linear"),
+                    frequency=cfg.get("frequency", 1.0), search_radius=20)
+                if result:
+                    _, bx, bz = result
+                    cx = int((bx + half) / total_blocks * size)
+                    cy = int((bz + half) / total_blocks * size)
+                    for dy in range(-footprint_r, footprint_r + 1):
+                        for dx in range(-footprint_r, footprint_r + 1):
+                            npx, npy = cx + dx, cy + dy
+                            if 0 <= npx < size and 0 <= npy < size:
+                                struct_pixels[(npx, npy)] = col
+    except ImportError:
+        pass
+
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
         for px in range(size):
             sx = min(px // upscale, sample_resolution - 1)
-            biome_id, (r, g, b), veg_density = grid[sy][sx]
+            biome_id, (r, g, b), canopy_info = grid[sy][sx]
             c = climates[sy][sx]
             cont = c.get("continentalness", 0.0)
-            weird = c.get("weirdness", 0.0)
             h = heights[sy][sx]
 
-            # Hillshade: directional light + ambient occlusion from slope magnitude
+            # Block coordinates for this pixel (for deterministic hashing)
+            bx = -half + px * blocks_per_pixel
+            bz = -half + py * blocks_per_pixel
+
+            # --- Tree canopy simulation ---
+            # Per-pixel decision: is the top block leaves, trunk, or ground?
+            is_canopy = False
+            if canopy_info is not None and h > 1:
+                coverage, leaf_types = canopy_info
+                ph = _pixel_hash(iseed, bx, bz)
+                pct = (ph & 0xFF) / 255.0
+                if pct < coverage:
+                    is_canopy = True
+                    # Pick tree type from weighted list
+                    total_w = sum(w for _, w in leaf_types)
+                    pick = ((ph >> 8) & 0xFF) % total_w
+                    leaf_col = leaf_types[0][0]
+                    acc = 0
+                    for col, w in leaf_types:
+                        acc += w
+                        if pick < acc:
+                            leaf_col = col
+                            break
+                    # Per-crown colour variation (simulates individual trees)
+                    crown_var = ((ph >> 16) & 0xF) - 7
+                    r = max(0, min(255, leaf_col[0] + crown_var))
+                    g = max(0, min(255, leaf_col[1] + crown_var * 2))
+                    b = max(0, min(255, leaf_col[2] + crown_var))
+                elif pct < coverage + 0.03:
+                    # Trunk pixel (rare, ~3%)
+                    r, g, b = TRUNK_COLOUR
+
+            # --- Coral in warm shallow water ---
+            is_water = "ocean" in biome_id or "river" in biome_id
+            if is_water and "warm" in biome_id and cont > -0.3:
+                ph = _pixel_hash(iseed, bx + 999, bz + 999)
+                if (ph & 0xFF) < 25:
+                    coral_idx = (ph >> 8) % 5
+                    coral_cols = [(210, 80, 120), (200, 170, 50), (100, 50, 180),
+                                  (40, 150, 200), (220, 100, 140)]
+                    r, g, b = coral_cols[coral_idx]
+
+            # --- MC-style height shading ---
             hn = heights[max(0, sy - 1)][sx]
-            hs = heights[min(sample_resolution - 1, sy + 1)][sx]
+            h_diff = h - hn
+            if is_water or h < 1:
+                shade = 1.0
+            elif h_diff > 1.5:
+                shade = 1.0   # MC shade 2: brighter (higher than north)
+            elif h_diff < -1.5:
+                shade = 0.82  # MC shade 0: darker (lower than north)
+            else:
+                shade = 0.92  # MC shade 1: normal
+
+            # Enhanced hillshade: blend MC discrete shading with directional light
+            hs_s = heights[min(sample_resolution - 1, sy + 1)][sx]
             he = heights[sy][min(sample_resolution - 1, sx + 1)]
             hw = heights[sy][max(0, sx - 1)]
-
             shade_k = 0.15 if not is_ow else 0.12
             dzdx = (he - hw) * shade_k
-            dzdy = (hs - hn) * shade_k
+            dzdy = (hs_s - hn) * shade_k
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
             light = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
-            shade = 0.6 + 0.4 * max(-1.0, min(1.0, light))
-            # Ambient occlusion: steep slopes darken regardless of light angle
+            dir_shade = 0.6 + 0.4 * max(-1.0, min(1.0, light))
             ao = 1.0 - min(0.15, slope * 0.08)
-            shade *= ao
+            # 60% MC shading + 40% directional for depth
+            shade = shade * 0.6 + dir_shade * ao * 0.4
 
-            # Weirdness micro-texture
-            weird_tex = 1.0 + weird * 0.03
-            r = int(r * weird_tex)
-            g = int(g * weird_tex)
-            b = int(b * weird_tex)
-
-            # Vegetation density (blend towards dark green, not black)
-            if veg_density < 1.0:
-                canopy_r, canopy_g, canopy_b = 20, 40, 10
-                f = veg_density
-                r = int(r * (0.3 + 0.7 * f) + canopy_r * (1 - f))
-                g = int(g * (0.4 + 0.6 * f) + canopy_g * (1 - f))
-                b = int(b * (0.3 + 0.7 * f) + canopy_b * (1 - f))
-
-            # Hypsometric tinting: height-based colour temperature shift
-            if h > 0:
+            # --- Hypsometric tinting ---
+            if h > 0 and not is_water:
                 ht = (h - h_min) / h_range
                 if is_ow:
-                    r = int(r * (0.95 + 0.10 * ht))
-                    g = int(g * (0.97 + 0.06 * ht))
-                    b = int(b * (1.0 + 0.12 * ht))
-                elif is_nether:
-                    warmth = 1.0 + 0.08 * (1.0 - ht)
-                    r = int(r * warmth)
-                elif is_end or is_pl:
                     r = int(r * (0.96 + 0.08 * ht))
-                    g = int(g * (0.96 + 0.08 * ht))
-                    b = int(b * (0.98 + 0.10 * ht))
+                    g = int(g * (0.97 + 0.06 * ht))
+                    b = int(b * (1.0 + 0.10 * ht))
+                elif is_nether:
+                    r = int(r * (1.0 + 0.06 * (1.0 - ht)))
+                elif is_end or is_pl:
+                    f = 0.97 + 0.06 * ht
+                    r = int(r * f); g = int(g * f); b = int(b * (f + 0.02))
 
-            # Snow line: overworld peaks above ~180Y get snow tint
-            if is_ow and h > 170:
+            # --- Snow line ---
+            if is_ow and h > 170 and not is_canopy:
                 snow_t = min(1.0, (h - 170) / 60.0)
                 snow_t *= snow_t
                 r = int(r * (1.0 - snow_t * 0.4) + 235 * snow_t * 0.4)
                 g = int(g * (1.0 - snow_t * 0.3) + 240 * snow_t * 0.3)
                 b = int(b * (1.0 - snow_t * 0.3) + 250 * snow_t * 0.3)
 
-            # Void/lava floor for non-overworld dimensions
+            # --- Void/lava ---
             is_void = False
             if is_end and h < 1.0:
-                r, g, b = 8, 5, 15
-                shade = 1.0
-                is_void = True
+                r, g, b = 8, 5, 15; shade = 1.0; is_void = True
             elif is_nether and h < 1.0:
-                r, g, b = 60, 20, 5
-                shade = 1.0
-                is_void = True
+                r, g, b = 60, 20, 5; shade = 1.0; is_void = True
             elif is_pl and h < 40:
-                r, g, b = 160, 190, 220
-                shade = 1.0
-                is_void = True
+                r, g, b = 160, 190, 220; shade = 1.0; is_void = True
 
-            # Void edge glow: brighten terrain pixels adjacent to void
+            # --- Void edge glow ---
             if not is_void and (is_end or is_nether or is_pl):
-                adj_void = False
                 for dy2, dx2 in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                     ny, nx = sy + dy2, sx + dx2
                     if 0 <= ny < sample_resolution and 0 <= nx < sample_resolution:
                         ah = heights[ny][nx]
                         if (is_end and ah < 1.0) or (is_nether and ah < 1.0) or (is_pl and ah < 40):
-                            adj_void = True
+                            if is_end:
+                                r = min(255, int(r * 0.7 + 80 * 0.3))
+                                g = min(255, int(g * 0.7 + 60 * 0.3))
+                                b = min(255, int(b * 0.6 + 140 * 0.4))
+                            elif is_nether:
+                                r = min(255, int(r * 0.6 + 200 * 0.4))
+                                g = min(255, int(g * 0.7 + 80 * 0.3))
+                                b = min(255, int(b * 0.8 + 20 * 0.2))
+                            else:
+                                r = min(255, int(r * 0.7 + 200 * 0.3))
+                                g = min(255, int(g * 0.7 + 220 * 0.3))
+                                b = min(255, int(b * 0.7 + 240 * 0.3))
                             break
-                if adj_void:
-                    if is_end:
-                        r = min(255, int(r * 0.7 + 80 * 0.3))
-                        g = min(255, int(g * 0.7 + 60 * 0.3))
-                        b = min(255, int(b * 0.6 + 140 * 0.4))
-                    elif is_nether:
-                        r = min(255, int(r * 0.6 + 200 * 0.4))
-                        g = min(255, int(g * 0.7 + 80 * 0.3))
-                        b = min(255, int(b * 0.8 + 20 * 0.2))
-                    elif is_pl:
-                        r = min(255, int(r * 0.7 + 200 * 0.3))
-                        g = min(255, int(g * 0.7 + 220 * 0.3))
-                        b = min(255, int(b * 0.7 + 240 * 0.3))
 
-            # Water depth gradient
-            is_water = "ocean" in biome_id or "river" in biome_id
+            # --- Water depth ---
             if is_water:
                 if cont < -0.455:
-                    depth_factor = 0.65 + 0.2 * max(0, (cont + 1.05) / 0.595)
+                    df = 0.65 + 0.2 * max(0, (cont + 1.05) / 0.595)
                 elif cont < -0.19:
-                    depth_factor = 0.80 + 0.15 * max(0, (cont + 0.455) / 0.265)
+                    df = 0.80 + 0.15 * max(0, (cont + 0.455) / 0.265)
                 else:
-                    depth_factor = 0.95
-                depth_factor = max(0.55, min(1.0, depth_factor))
-                r = int(r * depth_factor)
-                g = int(g * depth_factor)
-                b = int(b * depth_factor)
+                    df = 0.95
+                df = max(0.55, min(1.0, df))
+                r = int(r * df); g = int(g * df); b = int(b * df)
 
-            # Contour lines: subtle darkening at regular height intervals
+            # --- Structure footprints ---
+            sp = struct_pixels.get((px, py))
+            if sp is not None:
+                r, g, b = sp
+
+            # --- Contour lines ---
             if not is_water and not is_void and h > 10:
-                contour_interval = 20 if is_ow else 15
-                contour_band = h % contour_interval
-                if contour_band < 1.5 or contour_band > contour_interval - 1.5:
-                    r = int(r * 0.88)
-                    g = int(g * 0.88)
-                    b = int(b * 0.88)
+                ci = 20 if is_ow else 15
+                cb = h % ci
+                if cb < 1.5 or cb > ci - 1.5:
+                    r = int(r * 0.88); g = int(g * 0.88); b = int(b * 0.88)
 
-            # Apply hillshade (strongly reduced on water and void)
-            if is_void:
-                final_shade = 1.0
-            elif is_water:
-                final_shade = 0.85 + 0.15 * shade
-            else:
-                final_shade = shade
-            r = max(0, min(255, int(r * final_shade)))
-            g = max(0, min(255, int(g * final_shade)))
-            b = max(0, min(255, int(b * final_shade)))
+            # --- Final shade ---
+            r = max(0, min(255, int(r * shade)))
+            g = max(0, min(255, int(g * shade)))
+            b = max(0, min(255, int(b * shade)))
 
             off = (py * size + px) * 3
             pixels[off] = r
