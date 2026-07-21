@@ -650,6 +650,9 @@ def batch_render(config_path, seedtest_path, biome_params_path,
         dim_type = dim.get("type", "")
         fam = profile.get("family", "overworld")
 
+        dim_scale = profile.get("scale", 1.0)
+        effective_scale = max(1, int(scale / dim_scale))
+
         for _score, seed in scored[:top]:
             out = renders_dir / name / f"{seed}{suffix}.png"
             if out.exists():
@@ -657,7 +660,7 @@ def batch_render(config_path, seedtest_path, biome_params_path,
             out.parent.mkdir(parents=True, exist_ok=True)
             queued_normal.add((name, seed))
             tasks.append((int(seed), name, fam, dim_type, biome_params_path,
-                          str(out), size, scale, sample_resolution))
+                          str(out), size, effective_scale, sample_resolution))
 
     if shortlist:
         import json as _json
@@ -683,6 +686,9 @@ def batch_render(config_path, seedtest_path, biome_params_path,
             dim_type = dim.get("type", "")
             fam = profile.get("family", "overworld")
             sl_seeds = sl_entries.get(name, set())
+            dim_scale = profile.get("scale", 1.0)
+            eff_scale = max(1, int(scale / dim_scale))
+            eff_hires_scale = max(1, int(hires_scale / dim_scale))
             for seed_str, cand in store["candidates"].items():
                 if seed_str not in sl_seeds and not cand.get("shortlisted"):
                     continue
@@ -690,12 +696,12 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 if not out.exists() and (name, seed_str) not in queued_normal:
                     out.parent.mkdir(parents=True, exist_ok=True)
                     tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
-                                  str(out), size, scale, sample_resolution))
+                                  str(out), size, eff_scale, sample_resolution))
                 out_hires = renders_dir / name / f"{seed_str}_hires.png"
                 if not out_hires.exists():
                     out_hires.parent.mkdir(parents=True, exist_ok=True)
                     tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
-                                  str(out_hires), hires_size, hires_scale, hires_sample_res))
+                                  str(out_hires), hires_size, eff_hires_scale, hires_sample_res))
 
     if not tasks:
         print("All candidates already have renders.")
