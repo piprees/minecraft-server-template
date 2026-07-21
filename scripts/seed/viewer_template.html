@@ -796,7 +796,7 @@ body.show-borders .border-label { display: block; }
     var slBtn = e.target.closest('.action-btn.shortlist');
     if (slBtn) {
       var cand = slBtn.closest('.cand');
-      var isShortlisted = cand.dataset.shortlisted === '1';
+      var isShortlisted = cand ? cand.dataset.shortlisted === '1' : slBtn.textContent.indexOf('Remove') >= 0;
       slBtn.disabled = true;
       slBtn.textContent = isShortlisted ? 'Removing…' : 'Shortlisting…';
       postJSON('/shortlist', {dim: slBtn.dataset.dim, seed: slBtn.dataset.seed, action: isShortlisted ? 'remove' : 'add'}).then(function(res) {
@@ -805,11 +805,10 @@ body.show-borders .border-label { display: block; }
       }).then(function(data) {
         if (!data) return;
         if (data.shortlisted) {
-          cand.dataset.shortlisted = '1';
+          if (cand) cand.dataset.shortlisted = '1';
           slBtn.textContent = 'Remove from shortlist';
-          if (data.hires) { var img = cand.querySelector('img'); if (img) img.src = data.hires; }
         } else {
-          delete cand.dataset.shortlisted;
+          if (cand) delete cand.dataset.shortlisted;
           slBtn.textContent = 'Shortlist';
         }
         slBtn.disabled = false;
