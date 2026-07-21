@@ -486,16 +486,48 @@ body.ungrouped .cand-dim-label { display: block; }
   hiddenEl.addEventListener('change', function() { state.showHidden = hiddenEl.checked; applyState(); });
   applyState();
 
-  // --- Hi-res image upgrade + HD badge ---
-  document.querySelectorAll('img[data-hires]').forEach(function(img) {
-    var hi = new Image();
-    hi.onload = function() {
-      img.src = hi.src;
-      var badge = img.parentElement.querySelector('.hires-badge');
-      if (badge) badge.classList.add('visible');
-    };
-    hi.src = img.dataset.hires;
-  });
+  // --- Image auto-refresh: retry missing images + upgrade to hires ---
+  (function autoRefreshImages() {
+    var pending = new Set();
+    document.querySelectorAll('img[data-hires]').forEach(function(img) {
+      pending.add(img);
+    });
+    function tick() {
+      if (!pending.size) return;
+      pending.forEach(function(img) {
+        var src = img.dataset.hires || img.src;
+        if (!img.naturalWidth || !img.src) {
+          // Normal-res not loaded yet — retry it
+          var normalSrc = img.src || img.dataset.hires.replace('_hires', '');
+          var probe = new Image();
+          probe.onload = function() {
+            img.src = normalSrc.split('?')[0] + '?t=' + Date.now();
+            tryHires(img);
+          };
+          probe.src = normalSrc.split('?')[0] + '?t=' + Date.now();
+        } else {
+          tryHires(img);
+        }
+      });
+    }
+    function tryHires(img) {
+      var hires = img.dataset.hires;
+      if (!hires) { pending.delete(img); return; }
+      var hi = new Image();
+      hi.onload = function() {
+        img.src = hi.src;
+        var badge = img.parentElement && img.parentElement.querySelector('.hires-badge');
+        if (badge) badge.classList.add('visible');
+        pending.delete(img);
+      };
+      hi.src = hires.split('?')[0] + '?t=' + Date.now();
+    }
+    tick();
+    var iv = setInterval(function() {
+      tick();
+      if (!pending.size) clearInterval(iv);
+    }, 10000);
+  })();
 
   // --- Card expand/collapse ---
   grid.addEventListener('click', function(e) {
