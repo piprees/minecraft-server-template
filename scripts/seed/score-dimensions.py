@@ -1086,13 +1086,13 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     hidden = ' style="display:none"' if idx >= default_show else ""
     pick_btn = ("" if win else
                 "<button class='pick' data-dim='{}' "
-                "data-seed='{}'>Use this seed</button>".format(esc_dim, c["seed"]))
+                "data-seed='{}'>Use this seed <kbd>U</kbd></button>".format(esc_dim, c["seed"]))
     sl_label = "Remove from shortlist" if shortlisted else "Shortlist"
     shortlist_btn = ("<button class='action-btn shortlist' "
-                     "data-dim='{}' data-seed='{}'>{}</button>".format(
+                     "data-dim='{}' data-seed='{}'>{} <kbd>X</kbd></button>".format(
                          esc_dim, c["seed"], sl_label))
     create_dim_btn = ("<button class='action-btn create-dim' "
-                      "data-dim='{}' data-seed='{}'>Fork dimension</button>".format(
+                      "data-dim='{}' data-seed='{}'>Fork dimension <kbd>F</kbd></button>".format(
                           esc_dim, c["seed"]))
     # Biome distances — sorted by distance from spawn
     biome_items = []

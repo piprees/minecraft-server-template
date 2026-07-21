@@ -193,6 +193,11 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .pick:hover, .action-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold-bright); }
 body.live .pick, body.live .action-btn { display: inline-block; }
 .action-btn { margin-right: .2rem; }
+kbd {
+  font: inherit; font-size: .65em; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15); border-radius: 3px;
+  padding: .05em .3em; margin-left: .3em; vertical-align: baseline;
+}
 .action-btn.reroll:hover { border-color: var(--accent); color: var(--accent-hover); }
 .action-btn.edit:hover { border-color: #5bd060; color: #a8d8a0; }
 
@@ -421,26 +426,14 @@ body.show-borders .border-label { display: block; }
     if (img && img.closest('.compact')) img = null;
     if (!img) return;
     e.stopPropagation();
-    // Always try hires first, fall back to normal
-    var hires = img.dataset.hires;
-    if (hires) {
-      lbImg.src = img.src;
-      var probe = new Image();
-      probe.onload = function() { lbImg.src = hires; };
-      probe.onerror = function() { lbImg.src = img.src; };
-      probe.src = hires;
-    } else {
-      lbImg.src = img.src;
-    }
-    // Populate info panel from the candidate's hidden detail div
     var cand = img.closest('.cand');
     if (cand) {
-      var detail = cand.querySelector('.cand-detail');
-      lbInfo.innerHTML = detail ? detail.innerHTML : '';
+      openCandInLightbox(cand);
     } else {
+      lbImg.src = img.src;
       lbInfo.innerHTML = '';
+      lb.classList.add('open');
     }
-    lb.classList.add('open');
   });
   lb.querySelector('.lb-close').addEventListener('click', function(e) {
     e.stopPropagation(); lb.classList.remove('open');
@@ -448,11 +441,60 @@ body.show-borders .border-label { display: block; }
   lb.addEventListener('click', function(e) {
     if (e.target === lb) lb.classList.remove('open');
   });
+  // Track current candidate for arrow nav
+  var lbCurrentCand = null;
+  function getVisibleCands() {
+    var expanded = document.querySelector('.dim-card.expanded');
+    if (expanded) return Array.from(expanded.querySelectorAll('.cand[data-idx]')).filter(function(c) { return c.style.display !== 'none'; });
+    if (document.body.classList.contains('ungrouped')) return Array.from(ugGrid.querySelectorAll('.cand'));
+    return [];
+  }
+  function openCandInLightbox(cand) {
+    if (!cand) return;
+    lbCurrentCand = cand;
+    var img = cand.querySelector('img');
+    if (!img) return;
+    lbImg.src = img.src;
+    var hires = img.dataset.hires;
+    if (hires) { var p = new Image(); p.onload = function() { lbImg.src = hires; }; p.src = hires; }
+    var detail = cand.querySelector('.cand-detail');
+    lbInfo.innerHTML = detail ? detail.innerHTML : '';
+    lb.classList.add('open');
+  }
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       if (lb.classList.contains('open')) { lb.classList.remove('open'); return; }
       var expanded = document.querySelector('.dim-card.expanded');
       if (expanded) expanded.classList.remove('expanded');
+      return;
+    }
+    if (!lb.classList.contains('open')) return;
+    // Arrow keys: navigate between candidates
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      var cands = getVisibleCands();
+      if (!cands.length || !lbCurrentCand) return;
+      var idx = cands.indexOf(lbCurrentCand);
+      if (idx < 0) return;
+      var next = e.key === 'ArrowRight' ? cands[idx + 1] : cands[idx - 1];
+      if (next) openCandInLightbox(next);
+      return;
+    }
+    // Keyboard shortcuts for actions
+    if (e.key === 'u' || e.key === 'U') {
+      var btn = lbInfo.querySelector('.pick');
+      if (btn) btn.click();
+      return;
+    }
+    if (e.key === 'x' || e.key === 'X') {
+      var btn = lbInfo.querySelector('.action-btn.shortlist');
+      if (btn) btn.click();
+      return;
+    }
+    if (e.key === 'f' || e.key === 'F') {
+      var btn = lbInfo.querySelector('.action-btn.create-dim');
+      if (btn) btn.click();
+      return;
     }
   });
   if (live) document.body.classList.add('live');
