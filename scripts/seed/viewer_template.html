@@ -9,17 +9,14 @@ body {
   background: #14161a; color: #e6e6e6; margin: 0; padding: 0 2rem 2rem;
 }
 
-/* --- Header & summary --- */
 h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
-.summary { color: #9aa; font-size: .88rem; margin: .2rem 0 .8rem; }
+.summary { color: #9aa; font-size: .85rem; margin: .2rem 0 .6rem; }
 .summary b { color: #c8d2dc; font-weight: 600; }
-.intro { color: #9aa; font-size: .82rem; margin: 0 0 .6rem; max-width: 72rem; line-height: 1.55; }
-.intro b { color: #c8d2dc; font-weight: 600; }
 
-/* --- Sticky filter bar --- */
+/* --- Sticky filter/sort bar --- */
 .filter-bar {
   position: sticky; top: 0; z-index: 100; background: #14161a;
-  border-bottom: 1px solid #262b33; padding: .6rem 0;
+  border-bottom: 1px solid #262b33; padding: .5rem 0;
   display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
 }
 .filter-bar select, .filter-bar input[type=text] {
@@ -43,153 +40,159 @@ h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
 .family-btn.active { background: #2a3545; color: #8fb4d8; border-color: #5b8dd0; }
 .family-btn:hover { background: #252a33; }
 
-/* --- Dimension sections --- */
-.dim-section { margin: 1rem 0; }
-.dim-section.hidden { display: none; }
-
-.dim-header {
-  cursor: pointer; user-select: none;
-  display: flex; align-items: baseline; gap: .5rem;
-  margin: 0; padding: .3rem 0; border-bottom: 1px solid #2c313a;
+/* --- Winner card grid --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: .6rem; margin-top: .6rem;
 }
-.dim-header h2 { font-size: 1.1rem; margin: 0; flex: 1; font-weight: 600; }
-.dim-header .toggle-icon {
-  color: #555; font-size: .7rem; transition: transform .15s; flex-shrink: 0;
-  transform: rotate(-90deg);
-}
-.dim-header .dim-score { font-weight: 700; font-size: .95rem; }
-.dim-header .dim-count { color: #666; font-size: .8rem; }
-.dim-header .winner-preview {
-  display: flex; align-items: center; gap: .5rem; margin-left: auto;
-}
-.dim-header .winner-preview img {
-  width: 36px; height: 36px; border-radius: 4px; object-fit: cover;
-  image-rendering: pixelated; border: 1px solid #d4a020;
-}
-.dim-header .winner-preview .wp-seed {
-  font-family: ui-monospace, monospace; font-size: .7rem; color: #8fb4d8;
-}
-.dim-header .winner-preview .wp-spawn {
-  font-size: .68rem; color: #9aa;
-}
-.dim-section:not(.expanded) .winner-preview { display: flex; }
-.dim-section.expanded .winner-preview { display: none; }
-
-.dim-body { display: none; }
-.dim-section.expanded .dim-body { display: block; }
-.dim-section.expanded .toggle-icon { transform: rotate(0deg); }
-
-/* --- Metadata badges --- */
-.meta { color: #9aa; font-size: .85rem; margin: .2rem 0; }
-.blurb { color: #bcd; font-size: .85rem; margin: .3rem 0; max-width: 70rem; }
-.criteria {
-  font-size: .78rem; color: #9aa; background: #191c21; border: 1px solid #262b33;
-  border-radius: 8px; padding: .5rem .8rem; margin: .5rem 0 .8rem; max-width: 70rem;
-}
-.criteria b { color: #c8d2dc; font-weight: 600; }
-.badge {
-  display: inline-block; font-size: .7rem; padding: .05rem .45rem;
-  border-radius: 99px; background: #2c313a; margin-right: .3rem;
-}
-
-/* --- Flag badges --- */
-.flag-badge {
-  display: inline-block; font-size: .68rem; padding: .1rem .5rem;
-  border-radius: 99px; margin-left: .4rem; font-weight: 600;
-}
-.flag-badge.amber { background: #3a2e10; color: #e8a735; }
-.flag-badge.red { background: #3a1515; color: #e05252; }
-
-/* --- Candidate cards --- */
-.cands { display: flex; flex-wrap: wrap; gap: .7rem; }
-.cand {
+.dim-card {
   background: #1d2026; border: 1px solid #2c313a; border-radius: 8px;
-  padding: .5rem; width: 220px;
+  padding: .5rem; cursor: pointer; transition: border-color .12s;
+  position: relative;
+}
+.dim-card:hover { border-color: #4a5568; }
+.dim-card.expanded { border-color: #5b8dd0; grid-column: 1 / -1; cursor: default; }
+.dim-card.hidden { display: none; }
+.dim-card img {
+  width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
+  object-fit: cover; image-rendering: pixelated;
+}
+.dim-card.expanded img.winner-img { width: 200px; }
+.dim-card .dim-name {
+  font-size: .88rem; font-weight: 600; margin-top: .3rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dim-card .dim-meta {
+  font-size: .72rem; color: #777; margin-top: .1rem;
+  display: flex; gap: .4rem; align-items: center;
+}
+.dim-card .dim-score { font-weight: 700; font-size: 1rem; }
+.dim-card .dim-spawn { font-size: .7rem; color: #9aa; margin-top: .15rem; }
+.dim-card .dim-spawn b { color: #a8d8a0; font-weight: 600; }
+
+/* Score colours */
+.score-green { color: #5bd060; }
+.score-default { color: #e6e6e6; }
+.score-amber { color: #e8a735; }
+.score-red { color: #e05252; }
+
+/* Flag dot on card corner */
+.flag-dot {
+  position: absolute; top: .4rem; right: .4rem;
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.flag-dot.amber { background: #e8a735; }
+.flag-dot.red { background: #e05252; }
+
+/* Badge */
+.badge {
+  display: inline-block; font-size: .65rem; padding: .05rem .4rem;
+  border-radius: 99px; background: #2c313a; color: #9aa;
+}
+
+/* --- Expanded detail panel --- */
+.detail { display: none; margin-top: .6rem; }
+.dim-card.expanded .detail { display: block; }
+.dim-card.expanded .compact { display: none; }
+
+.detail-header {
+  display: flex; gap: 1rem; align-items: flex-start; margin-bottom: .6rem;
+}
+.detail-info { flex: 1; min-width: 0; }
+.detail-info h2 { font-size: 1.1rem; margin: 0 0 .2rem; }
+.detail-info .blurb { color: #bcd; font-size: .82rem; margin: .2rem 0; }
+.detail-info .criteria {
+  font-size: .75rem; color: #9aa; background: #191c21; border: 1px solid #262b33;
+  border-radius: 6px; padding: .4rem .6rem; margin-top: .4rem;
+}
+.detail-info .criteria b { color: #c8d2dc; font-weight: 600; }
+
+.dim-actions { margin: .5rem 0; }
+
+/* --- Candidate cards inside expanded --- */
+.all-cands { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .5rem; }
+.cand {
+  background: #181b20; border: 1px solid #2c313a; border-radius: 8px;
+  padding: .5rem; width: 200px;
 }
 .cand.winner { border-color: #d4a020; box-shadow: 0 0 0 1px #d4a020; }
 .cand img {
   width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
   object-fit: cover; image-rendering: pixelated;
 }
-.score { font-size: 1.15rem; font-weight: 700; }
-.winner .score { color: #ffd850; }
-.seed {
-  font-family: ui-monospace, "SFMono-Regular", monospace;
-  font-size: .75rem; word-break: break-all; color: #8fb4d8;
+.cand .score { font-size: 1rem; font-weight: 700; }
+.cand .winner .score { color: #ffd850; }
+.cand .seed {
+  font-family: ui-monospace, monospace; font-size: .7rem;
+  word-break: break-all; color: #8fb4d8;
 }
-.bars { margin-top: .3rem; }
+.bars { margin-top: .25rem; }
 .bar {
-  display: grid; grid-template-columns: 5rem 1fr 2rem; gap: .35rem;
-  align-items: center; font-size: .7rem; color: #9aa; margin-bottom: .12rem;
+  display: grid; grid-template-columns: 4.5rem 1fr 1.8rem; gap: .3rem;
+  align-items: center; font-size: .68rem; color: #9aa; margin-bottom: .1rem;
 }
-.bar .track { height: 4px; background: #2c313a; border-radius: 2px; overflow: hidden; }
+.bar .track { height: 3px; background: #2c313a; border-radius: 2px; overflow: hidden; }
 .bar .fill { height: 100%; background: #5b8dd0; }
-.winner .bar .fill { background: #d4a020; }
-.spawn { font-size: .75rem; color: #9aa; margin-top: .25rem; }
+.cand.winner .bar .fill { background: #d4a020; }
+.spawn { font-size: .7rem; color: #9aa; margin-top: .2rem; }
 .spawn b { color: #a8d8a0; font-weight: 600; }
 
 /* --- Buttons --- */
 .pick, .action-btn {
-  display: none; margin-top: .35rem; font-size: .72rem; padding: .2rem .55rem;
-  border-radius: 6px; border: 1px solid #3a4150; background: #232833;
+  display: none; margin-top: .3rem; font-size: .7rem; padding: .18rem .5rem;
+  border-radius: 5px; border: 1px solid #3a4150; background: #232833;
   color: #c8d2dc; cursor: pointer;
 }
 .pick:hover, .action-btn:hover { border-color: #d4a020; color: #ffd850; }
 body.live .pick, body.live .action-btn { display: inline-block; }
-
-.action-btn { margin-right: .25rem; }
-.action-btn.reroll { border-color: #3a5070; }
+.action-btn { margin-right: .2rem; }
 .action-btn.reroll:hover { border-color: #5b8dd0; color: #8fb4d8; }
-.action-btn.edit { border-color: #3a5040; }
 .action-btn.edit:hover { border-color: #5bd060; color: #a8d8a0; }
-.action-btn.preview { border-color: #504050; }
-.action-btn.preview:hover { border-color: #a060d0; color: #c8a0e8; }
 
-.dim-actions { margin: .4rem 0; }
-
-.show-more {
-  font: inherit; font-size: .78rem; padding: .25rem .7rem; border-radius: 6px;
-  border: 1px solid #2c313a; background: #1d2026; color: #9aa;
-  cursor: pointer; margin-top: .4rem;
+.close-btn {
+  position: absolute; top: .4rem; right: .4rem; font-size: 1rem;
+  color: #666; cursor: pointer; line-height: 1; padding: .2rem;
 }
-.show-more:hover { border-color: #5b8dd0; color: #8fb4d8; }
-.cand-count { font-size: .78rem; color: #555; margin-top: .25rem; }
+.close-btn:hover { color: #e6e6e6; }
 </style>
 
 <!-- Filter bar -->
-<div class="filter-bar" id="filter-bar">
+<div class="filter-bar">
   <div class="family-btns">{{FAMILY_BUTTONS}}</div>
   <select id="f-type">{{TYPE_OPTIONS}}</select>
   <select id="f-mood">{{MOOD_OPTIONS}}</select>
-  <input id="f-search" type="text" placeholder="Search dimensions..." style="width:14rem">
+  <select id="f-sort">
+    <option value="name">Sort: Name</option>
+    <option value="score-desc">Sort: Score ↓</option>
+    <option value="score-asc">Sort: Score ↑</option>
+    <option value="family">Sort: Family</option>
+    <option value="candidates">Sort: Candidates ↓</option>
+  </select>
+  <input id="f-search" type="text" placeholder="Search…" style="width:12rem">
   <label><input type="checkbox" id="f-flagged"> Flagged only</label>
 </div>
 
-<!-- Header -->
 <h1>Multiverse seed roll — results</h1>
 <p class="summary">{{SUMMARY_STATS}}</p>
-<p class="intro">Scores are 0–100, per-dimension.
-Components: <b>namesake</b> = spawn biome sells the dimension's name;
-<b>variety</b> = listed biomes actually present nearby;
-<b>terrain</b> = relief/grain/water vs the dimension's target shape;
-<b>structures</b> = each structure lands in its placement band.
-Winners (gold) are written into the config. Hover a candidate for raw locate distances.</p>
 
-<!-- Dimension sections (generated by Python) -->
+<!-- Card grid (generated by Python) -->
+<div class="grid" id="grid">
 {{DIMENSIONS_HTML}}
+</div>
 
 <script>
 (function() {
   var live = location.protocol !== 'file:';
   if (live) document.body.classList.add('live');
 
-  // --- Filter state from URL hash ---
+  // --- Filter + sort state from URL hash ---
   function readHash() {
     var p = new URLSearchParams(location.hash.slice(1));
     return {
       family: p.get('family') || 'All', type: p.get('type') || '',
       mood: p.get('mood') || '', search: p.get('q') || '',
-      flagged: p.get('flagged') === '1'
+      flagged: p.get('flagged') === '1', sort: p.get('sort') || 'name'
     };
   }
   function writeHash(s) {
@@ -199,14 +202,17 @@ Winners (gold) are written into the config. Hover a candidate for raw locate dis
     if (s.mood) p.set('mood', s.mood);
     if (s.search) p.set('q', s.search);
     if (s.flagged) p.set('flagged', '1');
+    if (s.sort !== 'name') p.set('sort', s.sort);
     history.replaceState(null, '', '#' + p.toString());
   }
 
   var state = readHash();
   var typeEl = document.getElementById('f-type');
   var moodEl = document.getElementById('f-mood');
+  var sortEl = document.getElementById('f-sort');
   var searchEl = document.getElementById('f-search');
   var flaggedEl = document.getElementById('f-flagged');
+  var grid = document.getElementById('grid');
 
   function applyState() {
     document.querySelectorAll('.family-btn').forEach(function(b) {
@@ -214,17 +220,35 @@ Winners (gold) are written into the config. Hover a candidate for raw locate dis
     });
     typeEl.value = state.type;
     moodEl.value = state.mood;
+    sortEl.value = state.sort;
     searchEl.value = state.search;
     flaggedEl.checked = state.flagged;
     var q = state.search.toLowerCase();
-    document.querySelectorAll('.dim-section').forEach(function(s) {
-      var fam = state.family === 'All' || s.dataset.family === state.family;
-      var typ = !state.type || s.dataset.type === state.type;
-      var moo = !state.mood || s.dataset.mood === state.mood;
-      var txt = !q || s.dataset.name.toLowerCase().indexOf(q) >= 0;
-      var flg = !state.flagged || s.dataset.flagged === '1';
-      s.classList.toggle('hidden', !(fam && typ && moo && txt && flg));
+
+    // Filter
+    var cards = Array.from(document.querySelectorAll('.dim-card'));
+    cards.forEach(function(c) {
+      var fam = state.family === 'All' || c.dataset.family === state.family;
+      var typ = !state.type || c.dataset.type === state.type;
+      var moo = !state.mood || c.dataset.mood === state.mood;
+      var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0;
+      var flg = !state.flagged || c.dataset.flagged === '1';
+      c.classList.toggle('hidden', !(fam && typ && moo && txt && flg));
     });
+
+    // Sort
+    var visible = cards.filter(function(c) { return !c.classList.contains('hidden'); });
+    visible.sort(function(a, b) {
+      switch (state.sort) {
+        case 'score-desc': return parseFloat(b.dataset.score) - parseFloat(a.dataset.score);
+        case 'score-asc': return parseFloat(a.dataset.score) - parseFloat(b.dataset.score);
+        case 'family': return (a.dataset.family || '').localeCompare(b.dataset.family || '') || a.dataset.name.localeCompare(b.dataset.name);
+        case 'candidates': return parseInt(b.dataset.cands) - parseInt(a.dataset.cands);
+        default: return a.dataset.name.localeCompare(b.dataset.name);
+      }
+    });
+    visible.forEach(function(c) { grid.appendChild(c); });
+
     writeHash(state);
   }
 
@@ -233,40 +257,29 @@ Winners (gold) are written into the config. Hover a candidate for raw locate dis
   });
   typeEl.addEventListener('change', function() { state.type = typeEl.value; applyState(); });
   moodEl.addEventListener('change', function() { state.mood = moodEl.value; applyState(); });
+  sortEl.addEventListener('change', function() { state.sort = sortEl.value; applyState(); });
   searchEl.addEventListener('input', function() { state.search = searchEl.value; applyState(); });
   flaggedEl.addEventListener('change', function() { state.flagged = flaggedEl.checked; applyState(); });
   applyState();
 
-  // --- Collapsible dimension headers (collapsed by default) ---
-  document.querySelectorAll('.dim-header').forEach(function(h) {
-    h.addEventListener('click', function(e) {
-      if (e.target.closest('.action-btn, .pick')) return;
-      h.closest('.dim-section').classList.toggle('expanded');
-    });
+  // --- Card expand/collapse ---
+  grid.addEventListener('click', function(e) {
+    if (e.target.closest('.action-btn, .pick, .close-btn, .cand')) return;
+    var card = e.target.closest('.dim-card');
+    if (!card) return;
+    if (card.classList.contains('expanded')) return;
+    document.querySelectorAll('.dim-card.expanded').forEach(function(c) { c.classList.remove('expanded'); });
+    card.classList.add('expanded');
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
-  // --- Expandable candidate lists (sessionStorage) ---
-  document.querySelectorAll('.show-more').forEach(function(btn) {
-    var dim = btn.dataset.dim;
-    var total = parseInt(btn.dataset.total);
-    var stored = sessionStorage.getItem('expand-' + dim);
-    if (stored === '1') expandDim(btn, dim, total);
-
-    btn.addEventListener('click', function() {
-      expandDim(btn, dim, total);
-      sessionStorage.setItem('expand-' + dim, '1');
-    });
+  // Close buttons
+  grid.addEventListener('click', function(e) {
+    var close = e.target.closest('.close-btn');
+    if (close) { close.closest('.dim-card').classList.remove('expanded'); }
   });
 
-  function expandDim(btn, dim, total) {
-    var container = document.querySelector('.cands[data-dim="' + dim + '"]');
-    container.querySelectorAll('.cand-item').forEach(function(c) { c.style.display = ''; });
-    btn.style.display = 'none';
-    var countEl = btn.nextElementSibling;
-    if (countEl) countEl.textContent = total + ' of' + countEl.textContent.split('of')[1];
-  }
-
-  // --- Winner picking + action buttons (live server only) ---
+  // --- Action buttons (live server only) ---
   if (!live) return;
 
   function postJSON(url, data) {
@@ -276,78 +289,44 @@ Winners (gold) are written into the config. Hover a candidate for raw locate dis
     }).catch(function() { return null; });
   }
 
-  document.body.addEventListener('click', function(e) {
-    // Winner pick
+  grid.addEventListener('click', function(e) {
     var pick = e.target.closest('.pick');
     if (pick) {
       pick.disabled = true; pick.textContent = 'saving…';
       postJSON('/pick', {dim: pick.dataset.dim, seed: pick.dataset.seed}).then(function(res) {
         if (res && res.ok) location.reload();
-        else { pick.disabled = false; pick.textContent = 'make winner (failed)'; }
+        else { pick.disabled = false; pick.textContent = 'pick (failed)'; }
       });
       return;
     }
-
-    // Re-roll
     var reroll = e.target.closest('.action-btn.reroll');
     if (reroll) {
-      reroll.disabled = true; reroll.textContent = 'Rolling… (est. ~5s)';
+      reroll.disabled = true; reroll.textContent = 'Rolling…';
       postJSON('/reroll', {dim: reroll.dataset.dim, pool: 5000, count: 100}).then(function(res) {
-        if (res && res.ok) {
-          res.json().then(function(data) {
-            reroll.textContent = 'Rolling… (' + data.job_id + ')';
-            pollJob(data.job_id, reroll);
-          });
-        } else { reroll.disabled = false; reroll.textContent = 'Re-roll (failed)'; }
+        if (res && res.ok) res.json().then(function(d) { pollJob(d.job_id, reroll); });
+        else { reroll.disabled = false; reroll.textContent = 'Re-roll (failed)'; }
       });
       return;
     }
-
-    // Edit config
     var edit = e.target.closest('.action-btn.edit');
     if (edit) {
       edit.disabled = true; edit.textContent = 'Opening…';
       postJSON('/edit-config', {dim: edit.dataset.dim}).then(function(res) {
-        if (res && res.ok) {
-          edit.textContent = 'Opened';
-          setTimeout(function() { edit.disabled = false; edit.textContent = 'Edit config'; }, 3000);
-        } else { edit.disabled = false; edit.textContent = 'Edit config (failed)'; }
-      });
-      return;
-    }
-
-    // Preview
-    var preview = e.target.closest('.action-btn.preview');
-    if (preview) {
-      preview.disabled = true; preview.textContent = 'Loading…';
-      postJSON('/preview', {dim: preview.dataset.dim, seed: preview.dataset.seed}).then(function(res) {
-        if (res) {
-          res.json().then(function(data) {
-            preview.textContent = data.ok ? 'Done' : (data.error || 'Not available');
-          });
-        } else { preview.textContent = 'Failed'; }
-        setTimeout(function() { preview.disabled = false; preview.textContent = 'Preview'; }, 4000);
+        edit.textContent = (res && res.ok) ? 'Opened' : 'Failed';
+        setTimeout(function() { edit.disabled = false; edit.textContent = 'Edit'; }, 2500);
       });
       return;
     }
   });
 
-  function pollJob(jobId, btn) {
+  function pollJob(id, btn) {
     var iv = setInterval(function() {
-      fetch('/job/' + jobId).catch(function() { return null; }).then(function(res) {
-        if (!res || !res.ok) return;
-        res.json().then(function(data) {
-          if (data.status === 'done') {
-            clearInterval(iv); btn.textContent = 'Done — reloading…';
-            setTimeout(function() { location.reload(); }, 1000);
-          } else if (data.status === 'failed') {
-            clearInterval(iv); btn.disabled = false; btn.textContent = 'Re-roll (job failed)';
-          } else {
-            btn.textContent = 'Rolling… (' + (data.elapsed || '?') + 's)';
-          }
-        });
-      });
-    }, 3000);
+      fetch('/job/' + id).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.status === 'done') { clearInterval(iv); btn.textContent = 'Done'; setTimeout(function() { location.reload(); }, 800); }
+        else if (d.status === 'failed') { clearInterval(iv); btn.disabled = false; btn.textContent = 'Re-roll (failed)'; }
+        else { btn.textContent = 'Rolling… ' + (d.elapsed || '') + 's'; }
+      }).catch(function() {});
+    }, 2000);
   }
 })();
 </script>

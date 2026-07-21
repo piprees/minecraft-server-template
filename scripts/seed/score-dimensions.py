@@ -740,25 +740,6 @@ def _score_colour(score):
     return "#e05252"
 
 
-def _header_tint(score):
-    if score > 70:
-        return "border-left:3px solid #3a7a3a;padding-left:.6rem"
-    if score >= 50:
-        return ""
-    if score >= 30:
-        return "border-left:3px solid #8a6a20;padding-left:.6rem"
-    return "border-left:3px solid #8a2020;padding-left:.6rem"
-
-
-def _flag_badge(score, n_cands):
-    if n_cands == 0:
-        return "<span class='flag-badge red'>no candidates</span>"
-    if score < 30:
-        return "<span class='flag-badge red'>needs attention</span>"
-    if score < 50:
-        return "<span class='flag-badge amber'>low score</span>"
-    return ""
-
 
 def render_viewer(results, profiles, winners, rejected=None):
     rejected = rejected or {}
@@ -798,115 +779,114 @@ def render_viewer(results, profiles, winners, rejected=None):
 
 
 def _render_dim_section(name, profile, cands, winners, rej_count):
+    """Render one dimension as a card (compact) + expandable detail panel."""
     best_score = cands[0]["score"] if cands else 0
     n_cands = len(cands)
-    family = html.escape(profile.get("family") or "Other", quote=True)
+    family = html.escape(profile.get("family") or "other", quote=True)
     ptype = html.escape(profile["type"], quote=True)
     pmood = html.escape(profile["mood"], quote=True)
-    flagged = "1" if (n_cands == 0 or best_score < 50) else "0"
-    htint = _header_tint(best_score if n_cands else 0)
+    # Flagged = anything below green (score < 70) or no candidates
+    flagged = "1" if (n_cands == 0 or best_score < 70) else "0"
     score_col = _score_colour(best_score) if n_cands else "#e05252"
-    flag_html = _flag_badge(best_score, n_cands)
     esc_name = html.escape(name, quote=True)
+
+    # Flag dot colour
+    flag_dot = ""
+    if n_cands == 0 or best_score < 30:
+        flag_dot = "<div class='flag-dot red'></div>"
+    elif best_score < 50:
+        flag_dot = "<div class='flag-dot amber'></div>"
+
+    # Winner/best candidate for the compact card face
+    winner_seed = winners.get(name, {}).get("seed")
+    best = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
+    img_html = ""
+    spawn_html = ""
+    if best:
+        img = "renders/{}/{}.png".format(name, best["seed"])
+        img_html = "<img src='{}' loading='lazy' onerror=\"this.style.display='none'\">".format(img)
+        spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
+            html.escape(best.get("spawn_biome", "")))
 
     out = []
     out.append(
-        "<div class='dim-section' data-family='{}' data-type='{}' "
-        "data-mood='{}' data-flagged='{}' data-name='{}'>".format(
-            family, ptype, pmood, flagged, esc_name))
-    style_attr = " style=\"{}\"".format(htint) if htint else ""
-    winner_seed = winners.get(name, {}).get("seed")
-    winner_cand = next((c for c in cands if c["seed"] == winner_seed), cands[0] if cands else None)
-    wp_html = ""
-    if winner_cand:
-        wp_img = "renders/{}/{}.png".format(name, winner_cand["seed"])
-        wp_spawn = html.escape(winner_cand.get("spawn_biome", ""), quote=True)
-        wp_html = (
-            "<div class='winner-preview'>"
-            "<img src='{}' onerror=\"this.style.display='none'\">"
-            "<div><div class='wp-seed'>{}</div>"
-            "<div class='wp-spawn'>{}</div></div>"
-            "</div>".format(wp_img, winner_cand["seed"], wp_spawn))
-    out.append(
-        "<div class='dim-header' data-dim='{}'{}>"
-        "<span class='toggle-icon'>&#9660;</span>"
-        "<h2>{}</h2>"
-        "<span class='dim-score' style='color:{}'>{:.1f}</span>{}"
-        "<span class='dim-count'>{} candidates</span>{}"
-        "</div>".format(esc_name, style_attr, html.escape(name),
-                        score_col, best_score, flag_html, n_cands, wp_html))
-    out.append("<div class='dim-body'>")
+        "<div class='dim-card' data-family='{}' data-type='{}' "
+        "data-mood='{}' data-flagged='{}' data-name='{}' "
+        "data-score='{:.1f}' data-cands='{}'>".format(
+            family, ptype, pmood, flagged, esc_name, best_score, n_cands))
+    out.append(flag_dot)
 
-    badges = "<span class='badge'>{}</span>".format(profile["type"])
-    badges += "<span class='badge'>scale {:g} &rarr; playable radius {}</span>".format(
-        profile["scale"], int(profile["radius"]))
-    badges += "<span class='badge'>{}</span>".format(profile["mood"])
-    if profile["density"]:
-        badges += "<span class='badge'>{} structures</span>".format(profile["density"])
-    if profile["peaceful"]:
-        badges += "<span class='badge'>peaceful</span>"
-    if profile.get("mob_difficulty") is not None:
-        badges += "<span class='badge'>mob difficulty &times;{:g}</span>".format(
-            profile["mob_difficulty"])
-    if profile.get("is_world"):
-        badges += "<span class='badge'>world seed</span>"
-    if profile["noise"]:
-        badges += "<span class='badge'>{}</span>".format(profile["noise"])
-    if rej_count:
-        badges += "<span class='badge'>{} spawn-rejected</span>".format(rej_count)
-    out.append("<div class='meta'>{}</div>".format(badges))
+    # Compact face (visible when not expanded)
+    out.append("<div class='compact'>")
+    out.append(img_html)
+    out.append("<div class='dim-name'>{}</div>".format(html.escape(name)))
+    out.append("<div class='dim-meta'>"
+               "<span class='dim-score' style='color:{}'>{:.1f}</span>"
+               "<span class='badge'>{}</span>"
+               "<span class='badge'>{}</span>"
+               "<span>{} cands</span>"
+               "</div>".format(score_col, best_score, ptype, pmood, n_cands))
+    out.append(spawn_html)
+    out.append("</div>")
+
+    # Detail panel (visible when expanded)
+    out.append("<div class='detail'>")
+    out.append("<span class='close-btn'>&times;</span>")
+
+    # Detail header: winner image + info side by side
+    out.append("<div class='detail-header'>")
+    if best:
+        out.append("<img class='winner-img' src='renders/{}/{}.png' "
+                   "onerror=\"this.style.display='none'\">".format(name, best["seed"]))
+    out.append("<div class='detail-info'>")
+    out.append("<h2>{}</h2>".format(html.escape(name)))
     out.append("<div class='blurb'>{}</div>".format(html.escape(profile["blurb"])))
 
-    t = profile["terrain"]
+    # Badges
+    badges = "<span class='badge'>{}</span>".format(profile["type"])
+    badges += "<span class='badge'>{}</span>".format(profile["mood"])
+    badges += "<span class='badge'>radius {}</span>".format(int(profile["radius"]))
+    if profile["density"]:
+        badges += "<span class='badge'>{}</span>".format(profile["density"])
+    if profile["peaceful"]:
+        badges += "<span class='badge'>peaceful</span>"
+    if rej_count:
+        badges += "<span class='badge'>{} rejected</span>".format(rej_count)
+    out.append("<div class='meta'>{}</div>".format(badges))
+
+    # Criteria
     w = profile["weights"]
     wants = ", ".join("{} ({})".format(n, range_label(profile, spec))
                       for n, _sid, spec, kind in profile["battery"]
                       if kind == "want")
-    shuns = ", ".join(n for n, _sid, _spec, kind in profile["battery"]
-                      if kind == "shun")
     spawn_filter = ", ".join(profile["namesake"]) or "any"
     criteria = "<b>Spawn filter</b> {}<br>".format(html.escape(spawn_filter))
-    criteria += "<b>Wants (blocks from 0,0)</b> {}<br>".format(
-        html.escape(wants) or "none (void &mdash; biomes only)")
-    if shuns:
-        criteria += "<b>Should not appear</b> {}<br>".format(html.escape(shuns))
-    criteria += ("<b>Weights</b> namesake {} &middot; variety {} "
-                 "&middot; terrain {} &middot; structures {}<br>").format(
-                     w["namesake"], w["variety"], w["terrain"], w["structures"])
-    criteria += ("<b>Terrain targets</b> relief {}&ndash;{} &middot; "
-                 "grain {:.0f}&ndash;{:.0f} &middot; "
-                 "water {:.0%}&ndash;{:.0%}").format(
-                     int(t["relief"][0]), int(t["relief"][1]),
-                     t["grain"][0], t["grain"][1],
-                     t["water"][0], t["water"][1])
+    criteria += "<b>Wants</b> {}<br>".format(
+        html.escape(wants) or "none")
+    criteria += ("<b>Weights</b> N{} V{} T{} S{}").format(
+        w["namesake"], w["variety"], w["terrain"], w["structures"])
     out.append("<div class='criteria'>{}</div>".format(criteria))
 
     out.append(
         "<div class='dim-actions'>"
         "<button class='action-btn reroll' data-dim='{}'>Re-roll</button>"
-        "<button class='action-btn edit' data-dim='{}'>Edit config</button>"
+        "<button class='action-btn edit' data-dim='{}'>Edit</button>"
         "</div>".format(esc_name, esc_name))
+    out.append("</div></div>")  # close detail-info + detail-header
 
-    if not cands:
+    # All candidates
+    if cands:
+        out.append("<div class='all-cands'>")
+        for idx, c in enumerate(cands[:20]):
+            out.append(_render_candidate(idx, c, name, profile, winners, 20))
+        out.append("</div>")
+        if n_cands > 20:
+            out.append("<p class='cand-count'>Showing 20 of {}</p>".format(n_cands))
+    else:
         out.append("<p class='meta'>No candidates measured.</p>")
-        out.append("</div></div>")
-        return "\n".join(out)
 
-    default_show = 3
-    max_show = min(20, n_cands)
-    out.append("<div class='cands' data-dim='{}'>".format(esc_name))
-    for idx, c in enumerate(cands[:max_show]):
-        out.append(_render_candidate(idx, c, name, profile, winners, default_show))
-    out.append("</div>")
-    if max_show > default_show:
-        out.append(
-            "<button class='show-more' data-dim='{}' "
-            "data-total='{}' data-showing='{}'>"
-            "Show {} more</button>".format(
-                esc_name, max_show, default_show, max_show - default_show))
-    out.append("<p class='cand-count'>{} of {} candidates</p>".format(
-        min(default_show, n_cands), n_cands))
-    out.append("</div></div>")
+    out.append("</div>")  # close detail
+    out.append("</div>")  # close dim-card
     return "\n".join(out)
 
 
