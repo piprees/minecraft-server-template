@@ -26,8 +26,8 @@
 #   ROLL_POOL        tier-1 pool per dimension (default 5000)
 #   ROLL_COUNT       candidates to keep per dimension (default 100)
 #   ROLL_RENDER_TOP  candidates to render per dimension (default 10)
-#   ROLL_RENDER_SIZE render area in blocks (default 512)
-#   ROLL_RENDER_ZOOM unmined-cli zoom level (default 0; -1=wider, 1=closer)
+#   ROLL_RENDER_SIZE render pixel size (default 512)
+#   ROLL_RENDER_SCALE blocks per pixel (default 16; 8K view at size 512)
 # =============================================================================
 set -euo pipefail
 
@@ -36,6 +36,7 @@ ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
 ROLL_RENDER_TOP="${ROLL_RENDER_TOP:-10}"
 ROLL_RENDER_SIZE="${ROLL_RENDER_SIZE:-512}"
+ROLL_RENDER_SCALE="${ROLL_RENDER_SCALE:-16}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
@@ -256,8 +257,9 @@ render() {
     --biome-params "$biome_params" \
     --top "$ROLL_RENDER_TOP" \
     --size "${ROLL_RENDER_SIZE:-512}" \
-    --scale 8 \
+    --scale "$ROLL_RENDER_SCALE" \
     --sample-res 128 \
+    --shortlist \
     ${DIMS:+--dims "$DIMS"} || true
 
   echo "=== Renders complete ==="

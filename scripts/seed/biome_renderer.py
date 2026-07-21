@@ -238,6 +238,17 @@ def render_biome_map(seed, biome_params_path, output_path,
         climates.append(crow)
         heights.append(hrow)
 
+    # Height stats for hypsometric tinting
+    all_h = [h for row in heights for h in row if h > 0]
+    h_min = min(all_h) if all_h else 0
+    h_max = max(all_h) if all_h else 200
+    h_range = max(h_max - h_min, 1)
+
+    is_ow = family in (None, "overworld")
+    is_nether = family == "nether"
+    is_end = family == "end"
+    is_pl = family == "paradise_lost"
+
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
@@ -249,18 +260,21 @@ def render_biome_map(seed, biome_params_path, output_path,
             weird = c.get("weirdness", 0.0)
             h = heights[sy][sx]
 
-            # Hillshade from terrain heights (stronger for compressed dimensions)
+            # Hillshade: directional light + ambient occlusion from slope magnitude
             hn = heights[max(0, sy - 1)][sx]
             hs = heights[min(sample_resolution - 1, sy + 1)][sx]
             he = heights[sy][min(sample_resolution - 1, sx + 1)]
             hw = heights[sy][max(0, sx - 1)]
 
-            shade_k = 0.15 if family in ("end", "nether", "paradise_lost") else 0.12
+            shade_k = 0.15 if not is_ow else 0.12
             dzdx = (he - hw) * shade_k
             dzdy = (hs - hn) * shade_k
             slope = (dzdx * dzdx + dzdy * dzdy) ** 0.5
             light = (-dzdx * 0.7 - dzdy * 0.7) / max(slope, 0.01)
             shade = 0.6 + 0.4 * max(-1.0, min(1.0, light))
+            # Ambient occlusion: steep slopes darken regardless of light angle
+            ao = 1.0 - min(0.15, slope * 0.08)
+            shade *= ao
 
             # Weirdness micro-texture
             weird_tex = 1.0 + weird * 0.03
@@ -276,16 +290,67 @@ def render_biome_map(seed, biome_params_path, output_path,
                 g = int(g * (0.4 + 0.6 * f) + canopy_g * (1 - f))
                 b = int(b * (0.3 + 0.7 * f) + canopy_b * (1 - f))
 
+            # Hypsometric tinting: height-based colour temperature shift
+            if h > 0:
+                ht = (h - h_min) / h_range
+                if is_ow:
+                    r = int(r * (0.95 + 0.10 * ht))
+                    g = int(g * (0.97 + 0.06 * ht))
+                    b = int(b * (1.0 + 0.12 * ht))
+                elif is_nether:
+                    warmth = 1.0 + 0.08 * (1.0 - ht)
+                    r = int(r * warmth)
+                elif is_end or is_pl:
+                    r = int(r * (0.96 + 0.08 * ht))
+                    g = int(g * (0.96 + 0.08 * ht))
+                    b = int(b * (0.98 + 0.10 * ht))
+
+            # Snow line: overworld peaks above ~180Y get snow tint
+            if is_ow and h > 170:
+                snow_t = min(1.0, (h - 170) / 60.0)
+                snow_t *= snow_t
+                r = int(r * (1.0 - snow_t * 0.4) + 235 * snow_t * 0.4)
+                g = int(g * (1.0 - snow_t * 0.3) + 240 * snow_t * 0.3)
+                b = int(b * (1.0 - snow_t * 0.3) + 250 * snow_t * 0.3)
+
             # Void/lava floor for non-overworld dimensions
-            if family == "end" and h < 1.0:
+            is_void = False
+            if is_end and h < 1.0:
                 r, g, b = 8, 5, 15
                 shade = 1.0
-            elif family == "nether" and h < 1.0:
+                is_void = True
+            elif is_nether and h < 1.0:
                 r, g, b = 60, 20, 5
                 shade = 1.0
-            elif family == "paradise_lost" and h < 40:
+                is_void = True
+            elif is_pl and h < 40:
                 r, g, b = 160, 190, 220
                 shade = 1.0
+                is_void = True
+
+            # Void edge glow: brighten terrain pixels adjacent to void
+            if not is_void and (is_end or is_nether or is_pl):
+                adj_void = False
+                for dy2, dx2 in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                    ny, nx = sy + dy2, sx + dx2
+                    if 0 <= ny < sample_resolution and 0 <= nx < sample_resolution:
+                        ah = heights[ny][nx]
+                        if (is_end and ah < 1.0) or (is_nether and ah < 1.0) or (is_pl and ah < 40):
+                            adj_void = True
+                            break
+                if adj_void:
+                    if is_end:
+                        r = min(255, int(r * 0.7 + 80 * 0.3))
+                        g = min(255, int(g * 0.7 + 60 * 0.3))
+                        b = min(255, int(b * 0.6 + 140 * 0.4))
+                    elif is_nether:
+                        r = min(255, int(r * 0.6 + 200 * 0.4))
+                        g = min(255, int(g * 0.7 + 80 * 0.3))
+                        b = min(255, int(b * 0.8 + 20 * 0.2))
+                    elif is_pl:
+                        r = min(255, int(r * 0.7 + 200 * 0.3))
+                        g = min(255, int(g * 0.7 + 220 * 0.3))
+                        b = min(255, int(b * 0.7 + 240 * 0.3))
 
             # Water depth gradient
             is_water = "ocean" in biome_id or "river" in biome_id
@@ -301,8 +366,22 @@ def render_biome_map(seed, biome_params_path, output_path,
                 g = int(g * depth_factor)
                 b = int(b * depth_factor)
 
-            # Apply hillshade (strongly reduced on water)
-            final_shade = 0.85 + 0.15 * shade if is_water else shade
+            # Contour lines: subtle darkening at regular height intervals
+            if not is_water and not is_void and h > 10:
+                contour_interval = 20 if is_ow else 15
+                contour_band = h % contour_interval
+                if contour_band < 1.5 or contour_band > contour_interval - 1.5:
+                    r = int(r * 0.88)
+                    g = int(g * 0.88)
+                    b = int(b * 0.88)
+
+            # Apply hillshade (strongly reduced on water and void)
+            if is_void:
+                final_shade = 1.0
+            elif is_water:
+                final_shade = 0.85 + 0.15 * shade
+            else:
+                final_shade = shade
             r = max(0, min(255, int(r * final_shade)))
             g = max(0, min(255, int(g * final_shade)))
             b = max(0, min(255, int(b * final_shade)))
@@ -439,8 +518,8 @@ def _render_one(task):
 
 
 def batch_render(config_path, seedtest_path, biome_params_path,
-                 top=10, size=512, scale=8, sample_resolution=128,
-                 workers=0, dims_filter=None):
+                 top=10, size=512, scale=16, sample_resolution=128,
+                 workers=0, dims_filter=None, shortlist=False):
     """Render biome maps for top-N candidates per dimension. No MC server."""
     import multiprocessing
     import time
@@ -461,6 +540,7 @@ def batch_render(config_path, seedtest_path, biome_params_path,
     cdir = cmod.candidates_dir(Path(config_path))
     renders_dir = Path(seedtest_path) / "renders"
     tasks = []
+    queued_normal = set()
 
     for name, dim in all_targets.items():
         profile = build_profile(dim, config, difficulty)
@@ -480,8 +560,32 @@ def batch_render(config_path, seedtest_path, biome_params_path,
             if out.exists():
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
+            queued_normal.add((name, seed))
             tasks.append((int(seed), name, fam, dim_type, biome_params_path,
                           str(out), size, scale, sample_resolution))
+
+    if shortlist:
+        hires_size = size * 2
+        hires_scale = scale // 2
+        hires_sample_res = min(sample_resolution * 2, hires_size)
+        for name, dim in all_targets.items():
+            profile = build_profile(dim, config, difficulty)
+            store = cmod.load_store(cdir / f"{name}.json")
+            dim_type = dim.get("type", "")
+            fam = profile.get("family", "overworld")
+            for seed_str, cand in store["candidates"].items():
+                if not cand.get("shortlisted"):
+                    continue
+                out = renders_dir / name / f"{seed_str}.png"
+                if not out.exists() and (name, seed_str) not in queued_normal:
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
+                                  str(out), size, scale, sample_resolution))
+                out_hires = renders_dir / name / f"{seed_str}_hires.png"
+                if not out_hires.exists():
+                    out_hires.parent.mkdir(parents=True, exist_ok=True)
+                    tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
+                                  str(out_hires), hires_size, hires_scale, hires_sample_res))
 
     if not tasks:
         print("All candidates already have renders.")
@@ -527,7 +631,7 @@ def main():
     single.add_argument("--output", required=True)
     single.add_argument("--family", default="overworld")
     single.add_argument("--size", type=int, default=1024)
-    single.add_argument("--scale", type=int, default=4)
+    single.add_argument("--scale", type=int, default=8)
     single.add_argument("--biome-params",
                         default=str(Path(__file__).resolve().parent / "biome_params.json"))
 
@@ -538,10 +642,12 @@ def main():
                        default=str(Path(__file__).resolve().parent / "biome_params.json"))
     batch.add_argument("--top", type=int, default=10)
     batch.add_argument("--size", type=int, default=512)
-    batch.add_argument("--scale", type=int, default=8)
+    batch.add_argument("--scale", type=int, default=16)
     batch.add_argument("--sample-res", type=int, default=128)
     batch.add_argument("--workers", type=int, default=0)
     batch.add_argument("--dims", help="Comma-separated dimension names")
+    batch.add_argument("--shortlist", action="store_true",
+                       help="Also render shortlisted candidates at both normal and highres")
 
     args = ap.parse_args()
 
@@ -563,7 +669,8 @@ def main():
         return batch_render(args.config, args.seedtest, args.biome_params,
                             top=args.top, size=args.size, scale=args.scale,
                             sample_resolution=args.sample_res,
-                            workers=args.workers, dims_filter=args.dims)
+                            workers=args.workers, dims_filter=args.dims,
+                            shortlist=args.shortlist)
     else:
         ap.print_help()
 
