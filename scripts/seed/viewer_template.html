@@ -444,10 +444,20 @@ body.show-borders .border-label { display: block; }
   // Track current candidate for arrow nav
   var lbCurrentCand = null;
   function getVisibleCands() {
+    var src;
     var expanded = document.querySelector('.dim-card.expanded');
-    if (expanded) return Array.from(expanded.querySelectorAll('.cand[data-idx]')).filter(function(c) { return c.style.display !== 'none'; });
-    if (document.body.classList.contains('ungrouped')) return Array.from(ugGrid.querySelectorAll('.cand'));
-    return [];
+    if (document.body.classList.contains('ungrouped')) {
+      src = ugGrid.querySelectorAll('.cand');
+    } else if (expanded) {
+      src = expanded.querySelectorAll('.cand[data-idx]');
+    } else {
+      return [];
+    }
+    return Array.from(src).filter(function(c) {
+      if (c.style.display === 'none') return false;
+      if (c.offsetParent === null) return false;
+      return true;
+    });
   }
   function openCandInLightbox(cand) {
     if (!cand) return;
