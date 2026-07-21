@@ -157,3 +157,36 @@ Dispatched, awaiting results. Will cover: all button labels, filter labels, stat
 8. Two-tier expanded view (winner prominent, alternatives toggle)
 9. `loading="lazy"` on images
 10. Focus indicators
+
+---
+
+## Report 3: UX Copy Clarify (Sable) — 34 Rewrites
+
+### P0 — Blocking comprehension
+
+1. Bar label `namesake` → `spawn biome` (display-name map, not key rename)
+2. Weight notation `N30 V25 T25 S20` → `Score mix: spawn 30% · variety 25% · terrain 25% · structures 20%`
+3. Raw scores `0.85` → `85%` (format `{:.0%}` instead of `{:.2f}`)
+4. Add scoring legend at top of page (2-line explainer with colour key)
+
+### P1 — High friction
+
+5. `Make Winner` → `Use this seed`
+6. `No candidates measured.` → `No seeds tested yet. Run ./dev seed-roll to start.`
+7. `pick (failed)` → `Could not save — server not responding`
+8-12. All error states: explain cause, suggest recovery
+13. Remove confirm: add "and all its candidate data? This cannot be undone."
+14. `Flagged` → `Below threshold`
+15. `shun` → `avoid`
+16. `Spawn filter` → `Target spawn biomes`
+17. `Wants` → `Structures nearby` + add "blocks" to ranges
+
+### P2 — Polish
+
+18-34. Page title, heading, "cands" → "seeds tested", "Ungrouped" → "Flat view",
+"Unshortlist" → "Remove from shortlist", radius units, spawn label, trophy/pin tooltips,
+sort labels, dialog title, validation message, summary stats text.
+
+### Proposed Scoring Legend
+
+Compact block below summary: explains 4 axes in plain English + colour key (green/default/amber/red with thresholds).

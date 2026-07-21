@@ -740,7 +740,7 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
 
 def range_label(profile, spec):
     lo, hi = spec
-    return f"{int(lo)}–{int(min(hi, profile['radius']))}"
+    return f"{int(lo)}–{int(min(hi, profile['radius']))} blocks"
 
 
 def candidate_tooltip(c):
@@ -829,9 +829,22 @@ def render_viewer(results, profiles, winners, rejected=None,
         "<option>{}</option>".format(html.escape(t)) for t in types)
     mood_opts = "<option value=''>All moods</option>" + "".join(
         "<option>{}</option>".format(html.escape(m)) for m in moods)
-    summary = ("<b>{}</b> dimensions &middot; <b>{}</b> candidates &middot; "
+    summary = ("<b>{}</b> dimensions &middot; <b>{}</b> seeds tested &middot; "
                "Generated {}").format(total_dims, total_cands,
                                       time.strftime("%Y-%m-%d %H:%M"))
+    legend = ("<div style='font-size:.75rem;color:#9aa;background:#191c21;"
+              "border:1px solid #262b33;border-radius:6px;padding:.35rem .7rem;"
+              "margin:.4rem 0 .2rem;line-height:1.6'>"
+              "<b style=\"color:#c8d2dc\">Score</b> (0–100) rates each seed: "
+              "<b style=\"color:#c8d2dc\">spawn</b> (correct starting biome), "
+              "<b style=\"color:#c8d2dc\">variety</b> (biome diversity), "
+              "<b style=\"color:#c8d2dc\">terrain</b> (landscape shape), "
+              "<b style=\"color:#c8d2dc\">structures</b> (buildings at right distances). "
+              "<span style='color:#6ec96e'>&#9632;</span>&nbsp;good&nbsp;(&gt;70) "
+              "<span style='color:#e6e6e6'>&#9632;</span>&nbsp;OK&nbsp;(50–70) "
+              "<span style='color:#e8a735'>&#9632;</span>&nbsp;weak&nbsp;(30–50) "
+              "<span style='color:#e05252'>&#9632;</span>&nbsp;poor&nbsp;(&lt;30)"
+              "</div>")
 
     dims_html = []
     for name, profile in profiles.items():
@@ -845,7 +858,7 @@ def render_viewer(results, profiles, winners, rejected=None,
             .replace("{{FAMILY_BUTTONS}}", family_btns)
             .replace("{{TYPE_OPTIONS}}", type_opts)
             .replace("{{MOOD_OPTIONS}}", mood_opts)
-            .replace("{{SUMMARY_STATS}}", summary)
+            .replace("{{SUMMARY_STATS}}", summary + legend)
             .replace("{{DIMENSIONS_HTML}}", "\n".join(dims_html)))
 
 
@@ -905,7 +918,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
                "<span class='dim-score' style='color:{}'>{:.1f}</span>"
                "<span class='badge'>{}</span>"
                "<span class='badge'>{}</span>"
-               "<span>{} cands</span>"
+               "<span>{} seeds</span>"
                "</div>".format(score_col, best_score, ptype, pmood, n_cands))
     blurb = profile.get("blurb", "")
     if blurb:
@@ -930,13 +943,13 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     # Badges
     badges = "<span class='badge'>{}</span>".format(profile["type"])
     badges += "<span class='badge'>{}</span>".format(profile["mood"])
-    badges += "<span class='badge'>radius {}</span>".format(int(profile["radius"]))
+    badges += "<span class='badge'>{}b play area</span>".format(int(profile["radius"]))
     if profile["density"]:
         badges += "<span class='badge'>{}</span>".format(profile["density"])
     if profile["peaceful"]:
         badges += "<span class='badge'>peaceful</span>"
     if rej_count:
-        badges += "<span class='badge'>{} rejected</span>".format(rej_count)
+        badges += "<span class='badge'>{} spawn-rejected</span>".format(rej_count)
     out.append("<div class='meta'>{}</div>".format(badges))
 
     # Criteria
@@ -945,10 +958,10 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
                       for n, _sid, spec, kind in profile["battery"]
                       if kind == "want")
     spawn_filter = ", ".join(profile["namesake"]) or "any"
-    criteria = "<b>Spawn filter</b> {}<br>".format(html.escape(spawn_filter))
-    criteria += "<b>Wants</b> {}<br>".format(
+    criteria = "<b>Target spawn biomes</b> {}<br>".format(html.escape(spawn_filter))
+    criteria += "<b>Structures nearby</b> {}<br>".format(
         html.escape(wants) or "none")
-    criteria += ("<b>Weights</b> N{} V{} T{} S{}").format(
+    criteria += ("<b>Score mix</b> spawn {}% · variety {}% · terrain {}% · structures {}%").format(
         w["namesake"], w["variety"], w["terrain"], w["structures"])
     out.append("<div class='criteria'>{}</div>".format(criteria))
 
@@ -971,7 +984,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
         if n_cands > 10:
             out.append("<p class='cand-count'>Showing 10 of {}</p>".format(n_cands))
     else:
-        out.append("<p class='meta'>No candidates measured.</p>")
+        out.append("<p class='meta'>No seeds tested yet. Re-roll to generate candidates.</p>")
 
     out.append("</div>")  # close detail
     out.append("</div>")  # close dim-card
@@ -985,10 +998,12 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
     hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
+    _axis_labels = {"namesake": "spawn", "variety": "variety",
+                    "terrain": "terrain", "structures": "structures"}
     bars = "".join(
         "<div class='bar'><span>{}</span><span class='track'>"
         "<span class='fill' style='width:{:.0f}%'></span></span>"
-        "<span>{:.2f}</span></div>".format(k, v * 100, v)
+        "<span>{:.0%}</span></div>".format(_axis_labels.get(k, k), v * 100, v)
         for k, v in c["parts"].items())
     # Terrain summary
     relief, grain, water, _land = terrain_metrics(c["metrics"])
@@ -1012,7 +1027,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                 icon, dist_str = "&#x274C;", f"{int(d)} blocks"
             struct_rows.append(
                 "<div class='struct-row'><span>{}</span>"
-                "<span class='meta'>shun</span>"
+                "<span class='meta'>avoid</span>"
                 "<span>{}</span><span>{}</span></div>".format(
                     icon, html.escape(sname), dist_str))
         else:
@@ -1051,13 +1066,13 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     hidden = ' style="display:none"' if idx >= default_show else ""
     pick_btn = ("" if win else
                 "<button class='pick' data-dim='{}' "
-                "data-seed='{}'>Make Winner</button>".format(esc_dim, c["seed"]))
-    sl_label = "Unshortlist" if shortlisted else "Shortlist"
+                "data-seed='{}'>Use this seed</button>".format(esc_dim, c["seed"]))
+    sl_label = "Remove from shortlist" if shortlisted else "Shortlist"
     shortlist_btn = ("<button class='action-btn shortlist' "
                      "data-dim='{}' data-seed='{}'>{}</button>".format(
                          esc_dim, c["seed"], sl_label))
     create_dim_btn = ("<button class='action-btn create-dim' "
-                      "data-dim='{}' data-seed='{}'>Create Dimension</button>".format(
+                      "data-dim='{}' data-seed='{}'>Fork dimension</button>".format(
                           esc_dim, c["seed"]))
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     return (
