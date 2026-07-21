@@ -836,7 +836,8 @@ def _render_dim_section(name, profile, cands, winners, rej_count):
     spawn_html = ""
     if best:
         img = "renders/{}/{}.png".format(name, best["seed"])
-        img_html = "<img src='{}' loading='lazy' onerror=\"this.style.display='none'\">".format(img)
+        hires = "renders/{}/{}.hires.png".format(name, best["seed"])
+        img_html = "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.style.display='none'\">".format(img, hires)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
             html.escape(best.get("spawn_biome", "")))
 
@@ -926,6 +927,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show):
     esc_dim = html.escape(dim_name, quote=True)
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
+    hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
     bars = "".join(
         "<div class='bar'><span>{}</span><span class='track'>"
         "<span class='fill' style='width:{:.0f}%'></span></span>"
@@ -952,7 +954,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show):
                        esc_dim, c["seed"]))
     return (
         "<div class='cand{} cand-item' data-idx='{}'{} title='{}'>"
-        "<img src='{}' loading='lazy' onerror=\"this.style.display='none'\">"
+        "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.style.display='none'\">"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='bars'>{}</div>"
@@ -961,7 +963,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show):
         "</div>").format(
             " winner" if win else "", idx, hidden,
             html.escape(candidate_tooltip(c), quote=True),
-            img, sc, c["score"], crown, c["seed"],
+            img, hires, sc, c["score"], crown, c["seed"],
             bars, spawn_html, pick_btn, preview_btn)
 
 

@@ -121,7 +121,7 @@ class TestTerrainEvaluator(unittest.TestCase):
 
     def test_loads_from_json(self):
         ev = self.TerrainEvaluator()
-        self.assertIsNotNone(ev._offset)
+        self.assertTrue(ev.has_family("overworld"))
 
     def test_sea_level_height(self):
         ev = self.TerrainEvaluator()
@@ -356,6 +356,8 @@ class TestBiomeRenderer(unittest.TestCase):
 
         heights_by_family = {}
         for fam in ("overworld", "nether", "end"):
+            if not evaluator.has_family(fam):
+                continue
             nc = configs.get(fam, configs.get("overworld"))
             sampler = BiomeSampler(TEST_SEED, str(BIOME_PARAMS),
                                    noise_config=nc, family=fam)
@@ -366,19 +368,7 @@ class TestBiomeRenderer(unittest.TestCase):
                     c = climate.get("continentalness", 0.0)
                     e = climate.get("erosion", 0.0)
                     w = climate.get("weirdness", 0.0)
-                    if fam == "overworld":
-                        h = evaluator.surface_height(c, e, w)
-                    elif fam == "nether":
-                        rf = ridges_folded(w)
-                        h = max(8.0, min(120.0, 64.0 + e * 25.0 + rf * 15.0))
-                    else:
-                        rf = ridges_folded(w)
-                        if c < -0.1:
-                            h = 0.0
-                        else:
-                            lf = min(1.0, (c + 0.1) / 0.3)
-                            h = max(5.0, min(120.0,
-                                    (50.0 + c * 40.0 + rf * 20.0 - e * 10.0) * lf))
+                    h = evaluator.surface_height(c, e, w, family=fam)
                     h_list.append(h)
             heights_by_family[fam] = (min(h_list), max(h_list),
                                        sum(h_list) / len(h_list))

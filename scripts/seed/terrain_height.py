@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
-"""terrain_height.py -- Evaluate Terralith's terrain height from climate parameters.
+"""terrain_height.py -- Evaluate terrain height from climate parameters.
 
-Evaluates the nested cubic Hermite spline tree from Terralith's offset.json
-to compute approximate surface height. For new terrain (no blending):
+Evaluates nested cubic Hermite spline trees extracted from modded density
+function JSON to compute approximate surface height per dimension family:
 
-    offset = -0.5037500262260437 + spline(continentalness, erosion, ridges)
+  - overworld (Terralith): offset + factor splines
+  - nether (Incendium): offset + factor splines
+  - end (Nullscape): offset + factor splines
+  - paradise_lost: delegates to overworld spline (no custom splines)
+
+For all families the surface height formula is the same:
+
+    offset = -0.5037500262260437 + spline(continentalness, erosion, weirdness)
     surface_Y = int(128 * (1 + offset))
 
-Derived from MC's Y-clamped gradient: depth(Y) = 1.5 - 3*(Y+64)/384.
-At the surface, offset + depth = 0, so Y = 128 * (1 + offset).
-This gives Y=63 at sea level (offset ~ -0.5037, spline ~ 0).
-
-Where ridges_folded = -(abs(abs(weirdness) - 0.6666667) - 0.3333334)
-
-The spline is a 3+ level nested cubic Hermite spline tree extracted from
-Terralith's density function JSON. Some branches go 4 levels deep with
-self-referencing coordinates (e.g. a ridges spline whose leaf values
-reference continentalness or erosion again).
+The overworld spline uses ridges_folded (a transform of weirdness) as a
+coordinate; nether and end splines use raw weirdness directly.
 
 Usage:
-    python3 terrain_height.py --extract              # parse raw JSON, save terrain_splines.json
+    python3 terrain_height.py --extract              # extract from mod JARs, save terrain_splines.json
     python3 terrain_height.py                        # test with synthetic climate grid
     python3 terrain_height.py <seed> [x z]           # compute height at (x, z) for seed
 """
@@ -33,12 +32,28 @@ SPLINES_PATH = SCRIPT_DIR / "terrain_splines.json"
 
 OFFSET_BIAS = -0.5037500262260437
 
-COORD_MAP = {
-    "overworld/continents": "continentalness",
-    "overworld/erosion": "erosion",
-    "overworld/ridges_folded": "ridges_folded",
-    "overworld/ridges": "weirdness",
+COORD_MAPS = {
+    "overworld": {
+        "overworld/continents": "continentalness",
+        "overworld/erosion": "erosion",
+        "overworld/ridges_folded": "ridges_folded",
+        "overworld/ridges": "weirdness",
+    },
+    "nether": {
+        "incendium:climate/continentalness": "continentalness",
+        "incendium:climate/erosion": "erosion",
+        "incendium:climate/weirdness": "weirdness",
+        "incendium:climate/purity": "purity",
+    },
+    "end": {
+        "nullscape:base/continents": "continentalness",
+        "minecraft:overworld/continents": "continentalness",
+        "minecraft:overworld/erosion": "erosion",
+        "minecraft:overworld/ridges_folded": "ridges_folded",
+        "minecraft:overworld/ridges": "weirdness",
+    },
 }
+COORD_MAP = COORD_MAPS["overworld"]
 
 _COORD_IDX = {
     "continentalness": 0,
@@ -47,36 +62,64 @@ _COORD_IDX = {
     "weirdness": 3,
 }
 
+_FAMILIES_WITH_SPLINES = ("overworld", "nether", "end")
+
 
 # ---------------------------------------------------------------------------
 # Spline extraction from raw density function JSON
 # ---------------------------------------------------------------------------
 
-def _extract_spline(node):
+def _extract_spline(node, coord_map=None):
+    if coord_map is None:
+        coord_map = COORD_MAP
     if isinstance(node, (int, float)):
         return float(node)
-    coord = COORD_MAP.get(node["coordinate"], node["coordinate"])
+    coord = coord_map.get(node["coordinate"], node["coordinate"])
     points = []
     for pt in node["points"]:
-        value = _extract_spline(pt["value"])
+        value = _extract_spline(pt["value"], coord_map)
         points.append([pt["location"], pt["derivative"], value])
     return {"c": coord, "p": points}
 
 
-def _extract_density_function_spline(df_json):
-    """Extract the spline node from a density function JSON tree.
+def _find_spline_node(obj):
+    """Recursively find the first minecraft:spline node in a density function tree."""
+    if isinstance(obj, (int, float, str, bool)) or obj is None:
+        return None
+    if isinstance(obj, list):
+        for x in obj:
+            r = _find_spline_node(x)
+            if r is not None:
+                return r
+        return None
+    if isinstance(obj, dict):
+        if obj.get("type") == "minecraft:spline":
+            return obj["spline"]
+        for v in obj.values():
+            r = _find_spline_node(v)
+            if r is not None:
+                return r
+    return None
 
-    offset.json: flat_cache > cache_2d > add(mul(blend_offset, ...), mul(add(bias, spline), blend_alpha))
-    factor.json: flat_cache > cache_2d > add(mul(10, ...), mul(spline, blend_alpha))
-    """
-    inner = df_json["argument"]["argument"]["argument2"]["argument1"]
-    if inner["type"] == "minecraft:add":
-        spline_node = inner["argument2"]["spline"]
-    elif inner["type"] == "minecraft:spline":
-        spline_node = inner["spline"]
-    else:
-        raise ValueError(f"Unexpected node type: {inner['type']}")
-    return _extract_spline(spline_node)
+
+def _extract_density_function_spline(df_json, coord_map=None):
+    """Extract the spline node from a density function JSON tree."""
+    spline_node = _find_spline_node(df_json)
+    if spline_node is None:
+        raise ValueError("No minecraft:spline node found in density function")
+    return _extract_spline(spline_node, coord_map)
+
+
+def _extract_family(offset_path, factor_path, coord_map):
+    """Extract offset and factor splines for one dimension family."""
+    with open(offset_path) as f:
+        offset_df = json.load(f)
+    result = {"offset": _extract_density_function_spline(offset_df, coord_map)}
+    if factor_path and Path(factor_path).exists():
+        with open(factor_path) as f:
+            factor_df = json.load(f)
+        result["factor"] = _extract_density_function_spline(factor_df, coord_map)
+    return result
 
 
 def extract_splines(offset_json_path, factor_json_path=None):
@@ -166,35 +209,67 @@ def ridges_folded(weirdness):
 
 
 class TerrainEvaluator:
-    """Fast terrain height evaluator using compiled spline trees."""
+    """Fast terrain height evaluator using compiled spline trees.
+
+    Loads per-family splines (overworld, nether, end) and evaluates terrain
+    height using the correct coordinate transform for each family.
+    """
 
     def __init__(self, spline_data=None, splines_path=None):
         if spline_data is None:
             spline_data = load_splines(splines_path)
-        self._offset = _compile_spline(spline_data["offset"])
-        self._factor = _compile_spline(spline_data.get("factor", 0.0))
+        # Support both legacy flat format and new per-family format
+        if "overworld" in spline_data:
+            self._families = {}
+            for fam in _FAMILIES_WITH_SPLINES:
+                if fam in spline_data:
+                    fam_data = spline_data[fam]
+                    self._families[fam] = (
+                        _compile_spline(fam_data["offset"]),
+                        _compile_spline(fam_data.get("factor", 0.0)),
+                    )
+        else:
+            self._families = {
+                "overworld": (
+                    _compile_spline(spline_data["offset"]),
+                    _compile_spline(spline_data.get("factor", 0.0)),
+                ),
+            }
+
+    def has_family(self, family):
+        if family == "paradise_lost":
+            return "overworld" in self._families
+        return family in self._families
 
     def _params(self, continentalness, erosion, weirdness):
         rf = -(abs(abs(weirdness) - 0.6666667) - 0.3333334)
         return (continentalness, erosion, rf, weirdness)
 
-    def surface_height(self, continentalness, erosion, weirdness):
+    def surface_height(self, continentalness, erosion, weirdness, family="overworld"):
         """Compute approximate surface Y from climate parameters."""
+        if family == "paradise_lost":
+            family = "overworld"
+        offset_tree, _ = self._families[family]
         params = self._params(continentalness, erosion, weirdness)
-        spline_value = _eval_compiled(self._offset, params)
+        spline_value = _eval_compiled(offset_tree, params)
         offset = OFFSET_BIAS + spline_value
-        # Derived from depth(Y) = 1.5 - 3*(Y+64)/384; at surface offset+depth=0
         return int(128 * (1 + offset))
 
-    def factor(self, continentalness, erosion, weirdness):
+    def factor(self, continentalness, erosion, weirdness, family="overworld"):
         """Compute the factor (vertical stretch) from climate parameters."""
+        if family == "paradise_lost":
+            family = "overworld"
+        _, factor_tree = self._families[family]
         params = self._params(continentalness, erosion, weirdness)
-        return _eval_compiled(self._factor, params)
+        return _eval_compiled(factor_tree, params)
 
-    def offset_raw(self, continentalness, erosion, weirdness):
+    def offset_raw(self, continentalness, erosion, weirdness, family="overworld"):
         """Return the raw offset value (before Y conversion)."""
+        if family == "paradise_lost":
+            family = "overworld"
+        offset_tree, _ = self._families[family]
         params = self._params(continentalness, erosion, weirdness)
-        spline_value = _eval_compiled(self._offset, params)
+        spline_value = _eval_compiled(offset_tree, params)
         return OFFSET_BIAS + spline_value
 
 
@@ -202,30 +277,100 @@ class TerrainEvaluator:
 # CLI
 # ---------------------------------------------------------------------------
 
+def extract_all_from_jars(mods_dir):
+    """Extract splines from all mod JARs into per-family structure.
+
+    Expected JARs:
+      - Terralith: overworld offset/factor in data/minecraft/worldgen/density_function/overworld/
+      - Incendium: nether depth/factor in data/incendium/worldgen/density_function/climate/
+      - Nullscape: end depth in data/nullscape/worldgen/density_function/depth.json,
+                   end factor in data/nullscape/worldgen/density_function/base/factor.json
+    """
+    import tempfile
+    import zipfile
+
+    mods_dir = Path(mods_dir)
+    result = {}
+
+    # Terralith (overworld)
+    terralith_jars = list(mods_dir.glob("Terralith*.jar"))
+    if terralith_jars:
+        jar = terralith_jars[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            with zipfile.ZipFile(jar) as zf:
+                for name in ("data/minecraft/worldgen/density_function/overworld/offset.json",
+                             "data/minecraft/worldgen/density_function/overworld/factor.json"):
+                    if name in zf.namelist():
+                        zf.extract(name, tmp)
+            offset_path = Path(tmp) / "data/minecraft/worldgen/density_function/overworld/offset.json"
+            factor_path = Path(tmp) / "data/minecraft/worldgen/density_function/overworld/factor.json"
+            if offset_path.exists():
+                result["overworld"] = _extract_family(
+                    offset_path, factor_path, COORD_MAPS["overworld"])
+                print(f"  overworld: extracted from {jar.name}")
+
+    # Incendium (nether)
+    incendium_jars = list(mods_dir.glob("Incendium*.jar"))
+    if incendium_jars:
+        jar = incendium_jars[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            with zipfile.ZipFile(jar) as zf:
+                for name in ("data/incendium/worldgen/density_function/climate/depth.json",
+                             "data/incendium/worldgen/density_function/climate/factor.json"):
+                    if name in zf.namelist():
+                        zf.extract(name, tmp)
+            depth_path = Path(tmp) / "data/incendium/worldgen/density_function/climate/depth.json"
+            factor_path = Path(tmp) / "data/incendium/worldgen/density_function/climate/factor.json"
+            if depth_path.exists():
+                result["nether"] = _extract_family(
+                    depth_path, factor_path, COORD_MAPS["nether"])
+                print(f"  nether: extracted from {jar.name}")
+
+    # Nullscape (end)
+    nullscape_jars = list(mods_dir.glob("Nullscape*.jar"))
+    if nullscape_jars:
+        jar = nullscape_jars[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            with zipfile.ZipFile(jar) as zf:
+                for name in ("data/nullscape/worldgen/density_function/depth.json",
+                             "data/nullscape/worldgen/density_function/base/factor.json"):
+                    if name in zf.namelist():
+                        zf.extract(name, tmp)
+            depth_path = Path(tmp) / "data/nullscape/worldgen/density_function/depth.json"
+            factor_path = Path(tmp) / "data/nullscape/worldgen/density_function/base/factor.json"
+            if depth_path.exists():
+                result["end"] = _extract_family(
+                    depth_path, factor_path, COORD_MAPS["end"])
+                print(f"  end: extracted from {jar.name}")
+
+    return result
+
+
 if __name__ == "__main__":
     import time
 
     if len(sys.argv) >= 2 and sys.argv[1] == "--extract":
-        scratchpad = Path(__file__).resolve().parent / ".." / ".."
-        raw_dir = Path("/private/tmp/claude-501/-Users-pip-Projects-minecraft-server-template"
-                       "/4df14a25-f10e-44dc-b6e3-634f06f857f9/scratchpad"
-                       "/terralith_splines/data/minecraft/worldgen/density_function/overworld")
-        offset_path = raw_dir / "offset.json"
-        factor_path = raw_dir / "factor.json"
-
-        if not offset_path.exists():
-            print(f"Error: {offset_path} not found", file=sys.stderr)
+        mods_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+        if mods_dir and mods_dir.is_dir():
+            print("Extracting splines from mod JARs...")
+            splines = extract_all_from_jars(mods_dir)
+        else:
+            print("Usage: terrain_height.py --extract <mods_dir>", file=sys.stderr)
+            print("  mods_dir: directory containing Terralith, Incendium, Nullscape JARs",
+                  file=sys.stderr)
             sys.exit(1)
 
-        splines = extract_splines(
-            offset_path,
-            factor_path if factor_path.exists() else None)
+        if not splines:
+            print("Error: no splines extracted", file=sys.stderr)
+            sys.exit(1)
 
         with open(SPLINES_PATH, 'w') as f:
             json.dump(splines, f, separators=(',', ':'))
 
         size = SPLINES_PATH.stat().st_size
-        print(f"Extracted splines to {SPLINES_PATH} ({size:,} bytes)")
+        print(f"Wrote {SPLINES_PATH} ({size:,} bytes)")
+        for fam, data in splines.items():
+            print(f"  {fam}: offset + {'factor' if 'factor' in data else 'no factor'}")
         sys.exit(0)
 
     if not SPLINES_PATH.exists():
@@ -268,28 +413,23 @@ if __name__ == "__main__":
         print("Testing terrain height evaluator (synthetic climate grid)")
         print()
 
-        t0 = time.time()
-        heights = []
-        for ci in range(-10, 11):
-            c = ci / 10.0
-            for ei in range(-10, 11):
-                e = ei / 10.0
-                for wi in range(-10, 11):
-                    w = wi / 10.0
-                    h = evaluator.surface_height(c, e, w)
-                    heights.append(h)
-        elapsed = time.time() - t0
+        for fam in ("overworld", "nether", "end"):
+            if not evaluator.has_family(fam):
+                continue
+            t0 = time.time()
+            heights = []
+            for ci in range(-10, 11):
+                c = ci / 10.0
+                for ei in range(-10, 11):
+                    e = ei / 10.0
+                    for wi in range(-10, 11):
+                        w = wi / 10.0
+                        h = evaluator.surface_height(c, e, w, family=fam)
+                        heights.append(h)
+            elapsed = time.time() - t0
 
-        print(f"Evaluated {len(heights):,} points in {elapsed * 1000:.1f}ms "
-              f"({elapsed / len(heights) * 1e6:.1f} us/point)")
-        print(f"Height range: {min(heights)} - {max(heights)}")
-        print(f"Mean height: {sum(heights) / len(heights):.1f}")
-
-        buckets = {}
-        for h in heights:
-            bucket = (h // 10) * 10
-            buckets[bucket] = buckets.get(bucket, 0) + 1
-        print("\nHeight distribution:")
-        for bucket in sorted(buckets):
-            bar = '#' * (buckets[bucket] // 5)
-            print(f"  {bucket:4d}-{bucket + 9:4d}: {buckets[bucket]:4d} {bar}")
+            print(f"[{fam}] {len(heights):,} points in {elapsed * 1000:.1f}ms "
+                  f"({elapsed / len(heights) * 1e6:.1f} us/point)")
+            print(f"  Height range: {min(heights)} - {max(heights)}")
+            print(f"  Mean: {sum(heights) / len(heights):.1f}")
+            print()

@@ -263,6 +263,13 @@ body.live .pick, body.live .action-btn { display: inline-block; }
   flaggedEl.addEventListener('change', function() { state.flagged = flaggedEl.checked; applyState(); });
   applyState();
 
+  // --- Hi-res image upgrade: swap src to .hires.png if it exists ---
+  document.querySelectorAll('img[data-hires]').forEach(function(img) {
+    var hi = new Image();
+    hi.onload = function() { img.src = hi.src; };
+    hi.src = img.dataset.hires;
+  });
+
   // --- Card expand/collapse ---
   grid.addEventListener('click', function(e) {
     if (e.target.closest('.action-btn, .pick, .close-btn, .cand')) return;
