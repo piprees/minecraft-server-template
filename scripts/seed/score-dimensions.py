@@ -904,9 +904,11 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     out.append(
         "<div class='dim-card' data-family='{}' data-type='{}' "
         "data-mood='{}' data-flagged='{}' data-name='{}' "
-        "data-score='{:.1f}' data-cands='{}' data-shortlisted='{}'{}>".format(
+        "data-score='{:.1f}' data-cands='{}' data-shortlisted='{}' "
+        "data-radius='{}' data-dim-scale='{}'{}>".format(
             family, ptype, pmood, flagged, esc_name, best_score, n_cands,
             best_shortlisted,
+            int(profile["radius"]), profile.get("scale", 1.0),
             " data-hidden='1'" if is_hidden else ""))
     out.append(flag_dot)
 
