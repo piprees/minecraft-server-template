@@ -907,6 +907,10 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
                "<span class='badge'>{}</span>"
                "<span>{} cands</span>"
                "</div>".format(score_col, best_score, ptype, pmood, n_cands))
+    blurb = profile.get("blurb", "")
+    if blurb:
+        out.append("<div class='dim-blurb'>{}</div>".format(
+            html.escape(blurb[:80] + ("…" if len(blurb) > 80 else ""))))
     out.append(spawn_html)
     out.append("</div>")
 
@@ -961,7 +965,8 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if cands:
         out.append("<div class='all-cands'>")
         for idx, c in enumerate(cands[:10]):
-            out.append(_render_candidate(idx, c, name, profile, winners, 10, shortlist_set))
+            out.append(_render_candidate(idx, c, name, profile, winners, 10,
+                                         shortlist_set))
         out.append("</div>")
         if n_cands > 10:
             out.append("<p class='cand-count'>Showing 10 of {}</p>".format(n_cands))
@@ -985,10 +990,56 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<span class='fill' style='width:{:.0f}%'></span></span>"
         "<span>{:.2f}</span></div>".format(k, v * 100, v)
         for k, v in c["parts"].items())
+    # Terrain summary
+    relief, grain, water, _land = terrain_metrics(c["metrics"])
+    t = profile.get("terrain", {})
+    terrain_html = ""
+    if relief > 0 or grain > 0:
+        terrain_html = ("<div class='terrain-summary'>"
+                        "<span>relief <b>{:.0f}</b></span>"
+                        "<span>grain <b>{:.1f}</b></span>"
+                        "<span>water <b>{:.0%}</b></span>"
+                        "</div>".format(relief, grain, water))
+    # Structure hit/miss table
+    struct_rows = []
+    for sname, _sid, spec, kind in profile.get("battery", []):
+        v = c["metrics"].get(f"structure_{sname}_dist")
+        d = float(v) if v is not None else -1
+        if kind == "shun":
+            if d < 0:
+                icon, dist_str = "&#x2705;", "absent"
+            else:
+                icon, dist_str = "&#x274C;", f"{int(d)} blocks"
+            struct_rows.append(
+                "<div class='struct-row'><span>{}</span>"
+                "<span class='meta'>shun</span>"
+                "<span>{}</span><span>{}</span></div>".format(
+                    icon, html.escape(sname), dist_str))
+        else:
+            lo, hi = spec
+            if d < 0:
+                icon, dist_str = "&#x274C;", "not found"
+            elif lo <= d <= hi:
+                icon, dist_str = "&#x2705;", f"{int(d)} blocks"
+            else:
+                icon, dist_str = "&#x26A0;", f"{int(d)} blocks"
+            struct_rows.append(
+                "<div class='struct-row'><span>{}</span>"
+                "<span>{}</span>"
+                "<span class='meta'>{}-{}</span>"
+                "<span>{}</span></div>".format(
+                    icon, html.escape(sname), int(lo), int(hi), dist_str))
+    struct_html = ("<div class='struct-table'>{}</div>".format(
+        "".join(struct_rows)) if struct_rows else "")
     spawn = c["spawn_biome"]
     spawn_html = ("<b>{}</b>".format(html.escape(spawn))
                   if spawn in profile["namesake"]
                   else html.escape(spawn))
+    sx = c["metrics"].get("spawn_x")
+    sz = c["metrics"].get("spawn_z")
+    if sx is not None and sz is not None:
+        spawn_html += " <span class='meta'>({}, {})</span>".format(
+            int(float(sx)), int(float(sz)))
     fdist = c["metrics"].get("spawn_filter_dist")
     if (spawn not in profile["namesake"]
             and fdist is not None and float(fdist) >= 0):
@@ -1023,6 +1074,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='bars'>{}</div>"
+        "{}"
+        "{}"
         "<div class='spawn'>spawn: {}</div>"
         "{}{}{}"
         "</div>"
@@ -1034,7 +1087,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],
             sc, c["score"], crown, c["seed"],
-            bars, spawn_html, pick_btn, shortlist_btn, create_dim_btn)
+            bars, terrain_html, struct_html,
+            spawn_html, pick_btn, shortlist_btn, create_dim_btn)
 
 
 # ---------------------------------------------------------------------------
