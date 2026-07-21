@@ -613,7 +613,7 @@ def _render_one(task):
 
 
 def batch_render(config_path, seedtest_path, biome_params_path,
-                 top=10, size=512, scale=16, sample_resolution=128,
+                 top=10, size=1024, scale=8, sample_resolution=256,
                  workers=0, dims_filter=None, shortlist=False, suffix=""):
     """Render biome maps for top-N candidates per dimension. No MC server."""
     import multiprocessing
@@ -751,9 +751,9 @@ def main():
     batch.add_argument("--biome-params",
                        default=str(Path(__file__).resolve().parent / "biome_params.json"))
     batch.add_argument("--top", type=int, default=10)
-    batch.add_argument("--size", type=int, default=512)
-    batch.add_argument("--scale", type=int, default=16)
-    batch.add_argument("--sample-res", type=int, default=128)
+    batch.add_argument("--size", type=int, default=1024)
+    batch.add_argument("--scale", type=int, default=8)
+    batch.add_argument("--sample-res", type=int, default=256)
     batch.add_argument("--workers", type=int, default=0)
     batch.add_argument("--dims", help="Comma-separated dimension names")
     batch.add_argument("--shortlist", action="store_true",

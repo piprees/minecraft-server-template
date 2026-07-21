@@ -546,9 +546,9 @@ def main():
     biome_params = str(SCRIPT_DIR / "biome_params.json")
     if Path(biome_params).exists():
         _batch_render(args.config, args.seedtest, biome_params,
-                      512, 16, 128, "Rendering normal-res (512px)")
+                      1024, 8, 256, "Rendering normal-res (1024px)")
         _batch_render(args.config, args.seedtest, biome_params,
-                      1024, 8, 256, "Rendering hires (1024px)",
+                      2048, 16, 512, "Rendering hires (2048px)",
                       suffix="_hires")
 
     print("\nRenders complete. Server running — Ctrl+C to stop.", flush=True)
