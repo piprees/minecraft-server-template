@@ -1,42 +1,34 @@
 #!/usr/bin/env bash
 # =============================================================================
-# roll-all.sh — Seed roller: pure-Python scoring + MC server renders
+# roll-all.sh — Seed roller: pure-Python scoring
 # =============================================================================
 #
-# Three phases:
+# Two phases:
 #   1. WARMUP (one-time): extract structure sets from mod JARs, dump biome
 #      params per dimension family from a short-lived MC server boot (~90s).
 #   2. ROLL: fast_roller.py — pure Python structure screening + biome/terrain
 #      scoring. Thousands of candidates/sec. No Docker, no RCON.
-#   3. RENDER: top N per dimension get flat top-down map images via a
-#      short-lived MC server (forceload + save-all) + unmined-cli (native,
-#      ~1s/render). No Docker render containers needed.
+#
+# Rendering is handled by the viewer: ./dev seed-viewer (background threads
+# render all top candidates on startup; --refresh to wipe and regenerate).
 #
 # Usage:
 #   ./roll-all.sh                            # full run
 #   ./roll-all.sh --pool 10000 --count 200   # bigger screening pool
 #   ./roll-all.sh --dims the_gauntlet        # single dimension
-#   ./roll-all.sh --no-render                # skip renders
-#   ./roll-all.sh --render-only              # skip rolling, render top candidates
 #   ./roll-all.sh --no-write                 # don't write winners to configs
 #   ./roll-all.sh --reset                    # wipe all seed data
 #
 # Environment:
-#   ROLL_MEMORY      memory per render container (default 10G)
+#   ROLL_MEMORY      memory per warmup container (default 10G)
 #   ROLL_POOL        tier-1 pool per dimension (default 5000)
 #   ROLL_COUNT       candidates to keep per dimension (default 100)
-#   ROLL_RENDER_TOP  candidates to render per dimension (default 10)
-#   ROLL_RENDER_SIZE render pixel size (default 512)
-#   ROLL_RENDER_SCALE blocks per pixel (default 16; 8K view at size 512)
 # =============================================================================
 set -euo pipefail
 
 ROLL_MEMORY="${ROLL_MEMORY:-10G}"
 ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
-ROLL_RENDER_TOP="${ROLL_RENDER_TOP:-10}"
-ROLL_RENDER_SIZE="${ROLL_RENDER_SIZE:-512}"
-ROLL_RENDER_SCALE="${ROLL_RENDER_SCALE:-16}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
@@ -60,19 +52,13 @@ fi
 SEEDTEST="$PROJECT_ROOT/.seedtest"
 DIMS=""
 WRITE_CONFIG=1
-DO_RENDER=1
-RENDER_ONLY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --pool)        ROLL_POOL="$2"; shift 2 ;;
     --count)       ROLL_COUNT="$2"; shift 2 ;;
-    --render-top)  ROLL_RENDER_TOP="$2"; shift 2 ;;
-    --render-size) ROLL_RENDER_SIZE="$2"; shift 2 ;;
     --dims)        DIMS="$2"; shift 2 ;;
     --no-write)    WRITE_CONFIG=0; shift ;;
-    --no-render)   DO_RENDER=0; shift ;;
-    --render-only) RENDER_ONLY=1; shift ;;
     --reset)
       echo "Resetting ALL seed data..."
       rm -rf "$SEEDTEST"
@@ -88,8 +74,8 @@ while [[ $# -gt 0 ]]; do
     --fast) shift ;;
     --fast-count | --fast-pool | --candidates | --world-candidates | --workers)
       shift 2 ;;
-    --no-worlds | --fresh) shift ;;
-    --render) shift 2 ;;
+    --no-worlds | --fresh | --no-render | --render-only) shift ;;
+    --render | --render-top | --render-size) shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
@@ -101,7 +87,7 @@ command -v python3 > /dev/null || { echo "Error: python3 required" >&2; exit 1; 
 [[ -d "$CONFIG" ]] || { echo "Error: config not found: $CONFIG" >&2; exit 1; }
 mkdir -p "$SEEDTEST"
 
-# Mod strip patterns (render workers only)
+# Mod strip patterns (warmup container — strip client-only / unnecessary mods)
 STRIP_PATTERNS="DistantHorizons-* dcintegration-* voicechat-* LuckPerms-*
 ledger-* styled-chat-* essential_commands-* NoChatReports-* packetfixer-*
 sound-physics-remastered-* appleskin-* bettercombat-* player-animation-lib-*
@@ -238,34 +224,6 @@ roll() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 3: Render — pure-Python biome maps (no MC server, no Docker)
-# ---------------------------------------------------------------------------
-render() {
-  echo ""
-  echo "=== Rendering top $ROLL_RENDER_TOP candidates per dimension ==="
-
-  local biome_params="$SCRIPT_DIR/biome_params.json"
-  if [[ ! -f "$biome_params" ]]; then
-    echo "  ERROR: biome_params.json not found — run warmup first" >&2
-    return 1
-  fi
-
-  # shellcheck disable=SC2086
-  python3 "$SCRIPT_DIR/biome_renderer.py" batch \
-    --config "$CONFIG" \
-    --seedtest "$SEEDTEST" \
-    --biome-params "$biome_params" \
-    --top "$ROLL_RENDER_TOP" \
-    --size "${ROLL_RENDER_SIZE:-512}" \
-    --scale "$ROLL_RENDER_SCALE" \
-    --sample-res 128 \
-    --shortlist \
-    ${DIMS:+--dims "$DIMS"} || true
-
-  echo "=== Renders complete ==="
-}
-
-# ---------------------------------------------------------------------------
 # Finalise: write winners + generate viewer
 # ---------------------------------------------------------------------------
 finalise() {
@@ -290,18 +248,14 @@ finalise() {
 # ===========================================================================
 # Main
 # ===========================================================================
-if [[ "$RENDER_ONLY" == 1 ]]; then
-  render
-  finalise
-else
-  warmup
-  roll
-  [[ "$DO_RENDER" == 1 ]] && render
-  finalise
-fi
+warmup
+roll
+finalise
 
 echo ""
 echo "Artefacts:"
 echo "  Candidates: $CONFIG/candidates/"
 echo "  Viewer:     $SEEDTEST/viewer.html"
-echo "  Renders:    $SEEDTEST/renders/"
+echo ""
+echo "To view results and render maps: ./dev seed-viewer"
+echo "  (renders all top candidates in background; --refresh to regenerate)"
