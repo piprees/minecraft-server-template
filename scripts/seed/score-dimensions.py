@@ -957,10 +957,14 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     wants = ", ".join("{} ({})".format(n, range_label(profile, spec))
                       for n, _sid, spec, kind in profile["battery"]
                       if kind == "want")
+    shuns = ", ".join(n for n, _sid, _spec, kind in profile["battery"]
+                      if kind == "shun")
     spawn_filter = ", ".join(profile["namesake"]) or "any"
     criteria = "<b>Target spawn biomes</b> {}<br>".format(html.escape(spawn_filter))
     criteria += "<b>Structures nearby</b> {}<br>".format(
         html.escape(wants) or "none")
+    if shuns:
+        criteria += "<b>Avoids</b> {}<br>".format(html.escape(shuns))
     criteria += ("<b>Score mix</b> spawn {}% · variety {}% · terrain {}% · structures {}%").format(
         w["namesake"], w["variety"], w["terrain"], w["structures"])
     out.append("<div class='criteria'>{}</div>".format(criteria))
@@ -1000,10 +1004,16 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     hires = "renders/{}/{}.hires.png".format(dim_name, c["seed"])
     _axis_labels = {"namesake": "spawn", "variety": "variety",
                     "terrain": "terrain", "structures": "structures"}
+    def _bar_col(v):
+        if v >= 0.7: return "#6ec96e"
+        if v >= 0.5: return "#5b8dd0"
+        if v >= 0.3: return "#e8a735"
+        return "#e05252"
     bars = "".join(
         "<div class='bar'><span>{}</span><span class='track'>"
-        "<span class='fill' style='width:{:.0f}%'></span></span>"
-        "<span>{:.0%}</span></div>".format(_axis_labels.get(k, k), v * 100, v)
+        "<span class='fill' style='width:{:.0f}%;background:{}'></span></span>"
+        "<span>{:.0%}</span></div>".format(
+            _axis_labels.get(k, k), v * 100, _bar_col(v), v)
         for k, v in c["parts"].items())
     # Terrain summary
     relief, grain, water, _land = terrain_metrics(c["metrics"])
