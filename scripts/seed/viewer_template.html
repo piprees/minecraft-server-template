@@ -333,7 +333,11 @@ body.ungrouped .cand-dim-label { display: block; }
   });
   lb.addEventListener('click', function() { lb.classList.remove('open'); });
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && lb.classList.contains('open')) lb.classList.remove('open');
+    if (e.key === 'Escape') {
+      if (lb.classList.contains('open')) { lb.classList.remove('open'); return; }
+      var expanded = document.querySelector('.dim-card.expanded');
+      if (expanded) expanded.classList.remove('expanded');
+    }
   });
   if (live) document.body.classList.add('live');
 
