@@ -311,7 +311,8 @@ def render_biome_map(seed, biome_params_path, output_path,
 
 
 FAMILY_NOISE = {
-    "overworld": "overworld", "nether": "nether", "end": "end", None: "overworld",
+    "overworld": "overworld", "nether": "nether", "end": "end",
+    "paradise_lost": "paradise_lost", None: "overworld",
 }
 TYPE_NOISE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
 

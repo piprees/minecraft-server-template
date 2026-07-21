@@ -81,7 +81,8 @@ _CONT_TO_HEIGHT = [
 
 FAMILY_NOISE = {
     "overworld": "overworld", "nether": "nether",
-    "end": "end", None: "overworld",
+    "end": "end", "paradise_lost": "paradise_lost",
+    None: "overworld",
 }
 
 # Clone-type families that need a specific noise config despite family_of()
