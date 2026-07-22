@@ -1,0 +1,56 @@
+{
+  "type": "multi_biome",
+  "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall.",
+  "biomes": [
+    "paradise_lost:wisteria_woods",
+    "minecraft:cherry_grove",
+    "terralith:sakura_grove",
+    "minecraft:meadow",
+    "terralith:lavender_valley",
+    "terralith:blooming_valley",
+    "minecraft:flower_forest",
+    "terralith:moonlight_valley",
+    "terralith:lush_valley"
+  ],
+  "borders": {
+    "player": 256,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.0,
+    "hostileSpawning": false
+  },
+  "portal": {
+    "frameBlock": "minecraft:stripped_mangrove_log",
+    "igniterItem": "minecraft:pink_petals",
+    "color": "D8A0E8",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:cherry_leaves",
+    "sounds": {
+      "ignite": "block.azalea_leaves.place",
+      "enter": "entity.parrot.ambient",
+      "exit": "entity.breeze.idle_air"
+    }
+  },
+  "structures": {
+    "wants": {
+      "guide_post_warm": { "min": 0, "max": 256 },
+      "abandoned_camp": { "min": 0, "max": 256 },
+      "farmstead": { "min": 512, "max": 2048 },
+      "tavern": { "min": 512, "max": 2048 }
+    },
+    "shuns": ["village", "ruined_portal"]
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "spawnFilter": [
+      "paradise_lost:wisteria_woods",
+      "minecraft:cherry_grove",
+      "terralith:sakura_grove"
+    ],
+    "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall."
+  }
+}
