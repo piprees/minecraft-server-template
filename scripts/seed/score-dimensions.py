@@ -616,18 +616,22 @@ def write_winners_to_overlay(overlay_root, winners, seedtest,
             else:
                 target = data
         else:
-            src = None
-            if platform_dir is not None:
-                pf = Path(platform_dir) / "dimensions" / f"{name}.json"
-                if pf.exists():
-                    try:
-                        src = json.loads(pf.read_text())
-                    except json.JSONDecodeError:
-                        src = None
-            if src is None:
-                src = (platform_sources or {}).get(name, {})
-            data = {k: v for k, v in src.items()}
-            target = data
+            # New overlay files are "overrides" (seed/spawn only), never full
+            # copies: a full replace freezes the platform config at write
+            # time, silently masking every later platform-side change (type
+            # conversions, spawnFilter tweaks) — an overlay copy of
+            # the_starwell ate a spawnFilter fix exactly this way 2026-07-22.
+            has_platform = (platform_dir is not None
+                            and (Path(platform_dir) / "dimensions" / f"{name}.json").exists()) \
+                or name in (platform_sources or {})
+            if has_platform:
+                data = {"overrides": {}}
+                target = data["overrides"]
+            else:
+                # Consumer-added dim with no platform default: the overlay IS
+                # the config — keep the full definition.
+                data = {k: v for k, v in (platform_sources or {}).get(name, {}).items()}
+                target = data
         if write_winner(target, w):
             changed += 1
         f.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")

@@ -245,11 +245,13 @@ class WinnerOverlayWritebackTests(unittest.TestCase):
 
             self.assertEqual(changed, 3)
             fresh = json.loads((dims / "fresh.json").read_text())
-            # New files get the full platform default with seed+spawn updated
-            self.assertEqual(fresh["seed"], 11)
-            self.assertEqual(fresh["spawn"], [1, 64, 2])
-            self.assertEqual(fresh["type"], "overworld")
-            self.assertNotIn("overrides", fresh)
+            # New files for platform-known dims are seed/spawn OVERRIDES —
+            # a full copy would freeze the platform config at write time
+            # and mask later platform-side changes.
+            self.assertEqual(fresh["overrides"]["seed"], 11)
+            self.assertEqual(fresh["overrides"]["spawn"], [1, 64, 2])
+            self.assertNotIn("type", fresh)
+            self.assertNotIn("type", fresh["overrides"])
             merged = json.loads((dims / "merged.json").read_text())
             self.assertEqual(merged["overrides"]["seed"], 22)
             self.assertEqual(merged["overrides"]["difficulty"], {"mobMultiplier": 1.5})

@@ -30,9 +30,18 @@
   },
   "structures": {
     "wants": {
-      "monolith": { "min": 0, "max": 256 },
-      "ruined_pillar": { "min": 0, "max": 256 },
-      "mystical_archway": { "min": 256, "max": 512 }
+      "monolith": {
+        "min": 0,
+        "max": 256
+      },
+      "ruined_pillar": {
+        "min": 0,
+        "max": 256
+      },
+      "mystical_archway": {
+        "min": 256,
+        "max": 512
+      }
     },
     "shuns": {}
   },
@@ -41,7 +50,8 @@
     "terrain": "islands",
     "spawnFilter": [
       "terralith:mirage_isles",
-      "terralith:skylands_winter"
+      "terralith:skylands_winter",
+      "nullscape:shadowlands"
     ],
     "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down."
   }
