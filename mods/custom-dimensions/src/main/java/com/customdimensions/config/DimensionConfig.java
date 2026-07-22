@@ -506,6 +506,19 @@ public class DimensionConfig {
         public Integer height;
         @SerializedName("logicalHeight")
         public Integer logicalHeight;
+        // Vanilla dimension-type fields (Tier 1 of the Custom-world-settings
+        // support matrix — see mods/.ideas/vanilla-custom-world-settings.md).
+        @SerializedName("coordinateScale")
+        public Double coordinateScale;
+        @SerializedName("effects")
+        public String effects;
+        @SerializedName("infiniburn")
+        public String infiniburn;
+        // int (constant) or [min, max] (uniform), both within 0..15.
+        @SerializedName("monsterSpawnLightLevel")
+        public JsonElement monsterSpawnLightLevel;
+        @SerializedName("monsterSpawnBlockLightLimit")
+        public Integer monsterSpawnBlockLightLimit;
     }
 
     /**
