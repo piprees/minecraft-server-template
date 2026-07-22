@@ -2,11 +2,26 @@
 
 **Date: 2026-07-22. Audience: the next agent. Assume nothing beyond this
 file + AGENTS.md (both repo roots) + mods/AGENTS.md.** Pip has approved the
-direction below; your job is to implement it. Repo workflow: **commit
-directly to main — no PRs** for working-state changes (Pip's standing
-instruction from today). Docs go in mods/.ideas/. The repo only allows
-squash merges and the gh API token cannot merge PRs touching workflow
-files — irrelevant now that we push main directly, but don't rediscover it.
+direction below; your job is to implement it.
+
+**Repo workflow (Pip's standing directives — do not deviate).** This is a
+three-party shop (Pip + two agents), not a commercial op — keep the
+process light:
+- **No PRs.** Commit directly to main. PRs only for things that genuinely
+  need review, which working-state changes do not.
+- **No git worktrees.** Work in the checkout at
+  ~/Projects/minecraft-server-template directly. Pip finds worktrees
+  confusing and they've caused real friction (stale checkouts, "where is
+  the file?" moments). If two agents need the repo at once, coordinate
+  through Pip instead of isolating.
+- Docs go in mods/.ideas/ on main — no doc PRs either.
+- Never push main while a release.yml run is in progress; check
+  `gh run list --limit 3` first. After any release, refresh the moved
+  major tag: `git fetch origin '+refs/tags/v3:refs/tags/v3'` (a stale
+  copy makes every fetch in that checkout exit non-zero).
+- (Historical quirk, pre-dating the no-PR rule: the repo only allows
+  squash merges, and the gh API token can't merge PRs touching workflow
+  files. Irrelevant now — don't rediscover it.)
 
 ## The vision (Pip's words, condensed)
 
@@ -155,8 +170,9 @@ Java 25 breaks Gradle with a misleading error; mise pins temurin-21).
 Verify the REMAPPED jar (build/libs/, never devlibs): class count +
 refmap, per mods/AGENTS.md. Full local verification loop is MANDATORY
 before any release: install jar into elfydd data/mods, restart mc, RCON
-oracles, soak timed paths. Never `git stash` (shared stack); worktrees for
-isolation; `./scripts/test-scripts.sh --quick` before pushing.
+oracles, soak timed paths. Never `git stash` (shared stack — use a WIP
+commit to park work instead); no worktrees (see directives above);
+`./scripts/test-scripts.sh --quick` before pushing.
 
 ## Sharp edges you will hit
 
