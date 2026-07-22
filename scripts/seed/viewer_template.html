@@ -703,9 +703,12 @@ body.show-borders .img-wrap img { transform-origin: center; }
   });
   document.querySelectorAll('.dim-card').forEach(function(card) {
     var radius = parseFloat(card.dataset.radius || 0);
+    var dimScale = parseFloat(card.dataset.dimScale || 1);
     if (!radius) return;
     var diameter = radius * 2;
     var imgScale = Math.max(0.05, diameter / maxDiameter);
+    var normalCoverage = RENDER_SIZE * Math.max(1, Math.floor(BASE_SCALE / dimScale));
+    var hiresCoverage = Math.round(2048 * 16 / dimScale);
     card.dataset.borderDiameter = diameter;
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
@@ -717,9 +720,9 @@ body.show-borders .img-wrap img { transform-origin: center; }
       div.appendChild(img);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
-      lbl.textContent = coverage + 'b';
-      lbl.dataset.normalCoverage = coverage;
-      lbl.dataset.hiresCoverage = Math.round(2048 * 16 / dimScale);
+      lbl.textContent = normalCoverage + 'b';
+      lbl.dataset.normalCoverage = normalCoverage;
+      lbl.dataset.hiresCoverage = hiresCoverage;
       div.appendChild(lbl);
     });
   });
