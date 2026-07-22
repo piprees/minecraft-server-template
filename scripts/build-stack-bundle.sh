@@ -76,6 +76,7 @@ MANIFEST=(
   scripts/seed/viewer-server.py
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
+  scripts/seed/biome_source_mixing.py
   scripts/seed/fast_roller.py
   scripts/seed/structure_placement.py
   scripts/seed/surface_rules.py
