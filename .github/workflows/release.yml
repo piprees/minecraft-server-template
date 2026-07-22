@@ -171,6 +171,8 @@ jobs:
     name: Container images
     needs: bundle
     uses: ./.github/workflows/publish.yml
+    with:
+      version: ${{ inputs.version }}
     permissions:
       contents: read
       packages: write

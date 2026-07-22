@@ -18,7 +18,17 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver to tag images with (vX.Y.Z) — for backfilling a release"
+        required: false
+        type: string
   workflow_call:
+    inputs:
+      version:
+        description: "Semver to tag images with (vX.Y.Z)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -73,12 +83,17 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          # Semver tags need an explicit value: this workflow never runs on a
+          # tag ref (release.yml calls it from main via workflow_call), so the
+          # ref-derived `type=semver,pattern=...` forms silently produce
+          # NOTHING — every release since the workflow_call refactor shipped
+          # without version-tagged images (found 2026-07-22 via v3.1.1).
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{version}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+            type=semver,pattern={{major}},value=${{ inputs.version }},enable=${{ inputs.version != '' }}
 
       - name: Build and push
         uses: docker/build-push-action@v7
