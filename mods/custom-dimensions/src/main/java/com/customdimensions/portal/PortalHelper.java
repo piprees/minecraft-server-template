@@ -125,6 +125,9 @@ public class PortalHelper {
         if (target.particleType != null) {
             link.put("particleType", target.particleType);
         }
+        if (target.exitMode != null) {
+            link.put("exitMode", target.exitMode);
+        }
         return link;
     }
 
@@ -158,7 +161,8 @@ public class PortalHelper {
                     int color = link.has("color") ? link.get("color").getAsInt() : 0x8844FF;
                     int cooldown = link.has("cooldown") ? link.get("cooldown").getAsInt() : 40;
                     String particleType = link.has("particleType") ? link.get("particleType").getAsString() : null;
-                    PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType);
+                    String exitMode = link.has("exitMode") ? link.get("exitMode").getAsString() : null;
+                    PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType, exitMode);
                     String portalWorld = link.has("portalWorld") ? link.get("portalWorld").getAsString() : null;
                     if (portalWorld != null) {
                         RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
@@ -176,7 +180,11 @@ public class PortalHelper {
     }
 
     public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType) {
-        PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType));
+        registerPortal(portalWorld, keyPos, sourceWorld, sourceY, color, cooldown, particleType, null);
+    }
+
+    public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType, String exitMode) {
+        PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType, exitMode));
     }
 
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
@@ -211,6 +219,12 @@ public class PortalHelper {
 
     public static PlayerOrigin getPlayerOrigin(UUID playerUuid) {
         return PLAYER_ORIGINS.get(playerUuid);
+    }
+
+    // "bed"/"worldSpawn" exits drop the stored origin so a later
+    // "origin"-mode dimension can't resurrect a stale one.
+    public static void clearPlayerOrigin(UUID playerUuid) {
+        PLAYER_ORIGINS.remove(playerUuid);
     }
 
     public static void registerZone(PortalZone zone) {
@@ -264,6 +278,99 @@ public class PortalHelper {
                 world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
         }
+    }
+
+    // First traversal of a single-use zone: arm the countdown once and
+    // persist immediately, so a restart mid-countdown resumes from at most
+    // the full delay (shutdown re-saves the exact remaining ticks).
+    public static void startSingleUseCountdown(PortalZone zone) {
+        if (zone.definition == null || !zone.definition.isSingleUse() || zone.singleUseTicksLeft >= 0) {
+            return;
+        }
+        zone.singleUseTicksLeft = zone.definition.getSingleUseDelayTicks();
+        savePortalLinks();
+    }
+
+    // EntityTickPortalMixin path: a teleport out of a portal block that sits
+    // inside a source zone counts as a traversal of that zone too.
+    public static void startSingleUseCountdownAt(ServerWorld world, BlockPos pos) {
+        for (PortalZone zone : getSourceZones(world.getRegistryKey())) {
+            if (zone.interior.contains(pos)) {
+                startSingleUseCountdown(zone);
+                return;
+            }
+        }
+    }
+
+    /** Countdown hit zero: clear the interior, break the frame per breakMode. */
+    public static void expireSingleUse(ServerWorld world, PortalZone zone) {
+        clearInteriorPortals(world, zone);
+        removeZone(zone);
+        List<BlockPos> frame = collectFramePositions(zone);
+        String mode = zone.definition.getSingleUseBreakMode();
+        if (frame.isEmpty()) {
+            savePortalLinks();
+            return;
+        }
+        if ("partial".equals(mode)) {
+            // Seeded from the zone's min corner so the same frame always
+            // crumbles the same blocks; the rest stays repairable.
+            BlockPos min = frame.get(0);
+            long seed = min.getX() * 341873128712L + min.getY() * 132897987541L + min.getZ();
+            for (int index : PortalDecay.pickPartialIndices(frame.size(), seed)) {
+                decayFrameBlock(world, frame.get(index), zone.definition, true);
+            }
+        } else if ("destroy".equals(mode)) {
+            for (BlockPos p : frame) {
+                world.breakBlock(p, false);
+            }
+        } else {
+            for (BlockPos p : frame) {
+                decayFrameBlock(world, p, zone.definition, false);
+            }
+        }
+        savePortalLinks();
+        com.customdimensions.MultiverseServer.LOGGER.info("Single-use portal expired in {} ({} mode)",
+                zone.sourceWorld.getValue(), mode);
+    }
+
+    // In-plane frame ring, sorted for deterministic partial picks.
+    private static List<BlockPos> collectFramePositions(PortalZone zone) {
+        Set<BlockPos> frame = new HashSet<>();
+        Direction[] planeDirs = planeDirections(zone.axis);
+        for (BlockPos p : zone.interior) {
+            for (Direction dir : planeDirs) {
+                BlockPos neighbor = p.offset(dir);
+                if (!zone.interior.contains(neighbor)) {
+                    frame.add(neighbor);
+                }
+            }
+        }
+        List<BlockPos> sorted = new ArrayList<>(frame);
+        sorted.sort(null);
+        return sorted;
+    }
+
+    // Swap one frame block for its decayed form. Unmapped blocks are removed
+    // in "partial" mode (the pick must visibly break) and left alone in
+    // "decay" mode. The 2001 world event gives break particles + sound.
+    private static void decayFrameBlock(ServerWorld world, BlockPos pos, PortalDefinition definition, boolean removeUnmapped) {
+        BlockState state = world.getBlockState(pos);
+        String blockId = Registries.BLOCK.getId(state.getBlock()).toString();
+        String replacement = PortalDecay.resolve(blockId, definition.getSingleUseDecayMap());
+        if (replacement == null) {
+            if (removeUnmapped) {
+                world.breakBlock(pos, false);
+            }
+            return;
+        }
+        Identifier replacementId = Identifier.tryParse(replacement);
+        Block replacementBlock = replacementId != null ? Registries.BLOCK.get(replacementId) : null;
+        if (replacementBlock == null) {
+            return;
+        }
+        world.syncWorldEvent(2001, pos, Block.getRawIdFromState(state));
+        world.setBlockState(pos, replacementBlock.getDefaultState(), Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
     }
 
     // Fallback arrival height for columns with no surface (void worlds);
@@ -337,6 +444,10 @@ public class PortalHelper {
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY) {
+        createTargetPortal(targetWorld, interior, axis, definition, sourceWorld, sourceY, null);
+    }
+
+    public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY, String exitMode) {
         Identifier frameId = Identifier.of(definition.getFrameBlock());
         Block frameBlock = Registries.BLOCK.get(frameId);
         if (frameBlock == null) {
@@ -386,7 +497,7 @@ public class PortalHelper {
         String particleType = definition.getParticleType();
         RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
         for (BlockPos p : interior) {
-            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType);
+            registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType, exitMode);
         }
         Map<BlockPos, Integer> frames = PORTAL_FRAMES.computeIfAbsent(portalWorld, k -> new HashMap<>());
         for (BlockPos p : interior) {
@@ -631,17 +742,25 @@ public class PortalHelper {
         public final int color;
         public final int cooldown;
         public final String particleType;
+        // "origin" | "bed" | "worldSpawn"; null keeps the legacy behaviour
+        // (origin tracking with sourceWorld/sourceY as the fallback).
+        public final String exitMode;
 
         public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
-            this(sourceWorld, sourceY, color, cooldown, null);
+            this(sourceWorld, sourceY, color, cooldown, null, null);
         }
 
         public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType) {
+            this(sourceWorld, sourceY, color, cooldown, particleType, null);
+        }
+
+        public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType, String exitMode) {
             this.sourceWorld = sourceWorld;
             this.sourceY = sourceY;
             this.color = color;
             this.cooldown = cooldown;
             this.particleType = particleType;
+            this.exitMode = exitMode;
         }
     }
 
@@ -671,6 +790,10 @@ public class PortalHelper {
         String axis;
         PortalDefinition definition;
         List<StoredPosition> interior;
+        // Remaining single-use countdown ticks at save time; absent/null when
+        // the zone has never been traversed. Written at countdown start and
+        // again at shutdown so a restart resumes rather than resets.
+        Integer singleUseTicksLeft;
 
         StoredPortalZone() {
         }
@@ -682,6 +805,9 @@ public class PortalHelper {
             stored.axis = zone.axis.name();
             stored.definition = zone.definition;
             stored.interior = zone.interior.stream().map(StoredPosition::new).toList();
+            if (zone.singleUseTicksLeft >= 0) {
+                stored.singleUseTicksLeft = zone.singleUseTicksLeft;
+            }
             return stored;
         }
 
@@ -696,13 +822,17 @@ public class PortalHelper {
             if (blocks.size() > MAX_PORTAL_BLOCKS) {
                 throw new IllegalArgumentException("source route exceeds portal size limit");
             }
-            return new PortalZone(
+            PortalZone zone = new PortalZone(
                     blocks,
                     definition,
                     Direction.Axis.valueOf(axis),
                     RegistryKey.of(RegistryKeys.WORLD, Identifier.of(sourceWorld)),
                     RegistryKey.of(RegistryKeys.WORLD, Identifier.of(targetWorld))
             );
+            if (singleUseTicksLeft != null && singleUseTicksLeft >= 0) {
+                zone.singleUseTicksLeft = singleUseTicksLeft;
+            }
+            return zone;
         }
     }
 
@@ -722,6 +852,9 @@ public class PortalHelper {
         public final Direction.Axis axis;
         public final RegistryKey<World> sourceWorld;
         public final RegistryKey<World> targetWorld;
+        // Single-use countdown: -1 = never traversed, >0 = ticking down
+        // (decremented by ServerWorldMixin), 0 = expire this tick.
+        public int singleUseTicksLeft = -1;
 
         public PortalZone(Set<BlockPos> interior, PortalDefinition definition, Direction.Axis axis, RegistryKey<World> sourceWorld, RegistryKey<World> targetWorld) {
             this.interior = interior;

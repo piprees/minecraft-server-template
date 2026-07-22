@@ -82,6 +82,9 @@ public class MultiverseConfig {
                 }
             }
         }
+        for (String warning : PortalSafetyValidator.validate(this.configs.values())) {
+            MultiverseServer.LOGGER.warn(warning);
+        }
     }
 
     /** The platform namespace (settings.json / legacy "namespace" field). */

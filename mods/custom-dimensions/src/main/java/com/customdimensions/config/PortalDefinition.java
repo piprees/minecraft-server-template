@@ -5,6 +5,8 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
+import java.util.Map;
+
 public class PortalDefinition {
     private String id;
     private String frameBlock;
@@ -18,6 +20,15 @@ public class PortalDefinition {
     private String igniteSound = "block.portal.trigger";
     private String enterSound = "block.portal.travel";
     private String exitSound = "block.portal.travel";
+    // Anchor + singleUse ride along in portal_links.json zone records (this
+    // whole definition is serialised per zone), so persisted zones keep the
+    // behaviour they were ignited with across restarts.
+    private int[] anchorPos;
+    private String anchorExit;
+    private boolean singleUse;
+    private int singleUseDelayTicks = 200;
+    private String singleUseBreakMode = "decay";
+    private Map<String, String> singleUseDecayMap;
 
     public PortalDefinition() {
     }
@@ -127,6 +138,60 @@ public class PortalDefinition {
 
     public String getExitSound() {
         return this.exitSound != null ? this.exitSound : "block.portal.travel";
+    }
+
+    public boolean hasAnchor() {
+        return this.anchorPos != null && this.anchorPos.length == 3;
+    }
+
+    public int[] getAnchorPos() {
+        return this.anchorPos;
+    }
+
+    public void setAnchorPos(int[] anchorPos) {
+        this.anchorPos = anchorPos;
+    }
+
+    /** Anchor arrival exit mode: "origin" | "bed" | "worldSpawn". */
+    public String getAnchorExit() {
+        return this.anchorExit != null ? this.anchorExit : "origin";
+    }
+
+    public void setAnchorExit(String anchorExit) {
+        this.anchorExit = anchorExit;
+    }
+
+    public boolean isSingleUse() {
+        return this.singleUse;
+    }
+
+    public void setSingleUse(boolean singleUse) {
+        this.singleUse = singleUse;
+    }
+
+    public int getSingleUseDelayTicks() {
+        return this.singleUseDelayTicks > 0 ? this.singleUseDelayTicks : 200;
+    }
+
+    public void setSingleUseDelayTicks(int singleUseDelayTicks) {
+        this.singleUseDelayTicks = singleUseDelayTicks;
+    }
+
+    /** "destroy" | "decay" | "partial". */
+    public String getSingleUseBreakMode() {
+        return this.singleUseBreakMode != null ? this.singleUseBreakMode : "decay";
+    }
+
+    public void setSingleUseBreakMode(String singleUseBreakMode) {
+        this.singleUseBreakMode = singleUseBreakMode;
+    }
+
+    public Map<String, String> getSingleUseDecayMap() {
+        return this.singleUseDecayMap;
+    }
+
+    public void setSingleUseDecayMap(Map<String, String> singleUseDecayMap) {
+        this.singleUseDecayMap = singleUseDecayMap;
     }
 
     public RegistryKey<World> getTargetKey() {

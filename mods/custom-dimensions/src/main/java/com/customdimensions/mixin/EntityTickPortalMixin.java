@@ -8,6 +8,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -58,6 +59,36 @@ public abstract class EntityTickPortalMixin {
             return;
         }
 
+        PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
+        String exitMode = target != null ? target.exitMode : null;
+
+        // Configured exit modes ("bed"/"worldSpawn" — anchor arrivals and
+        // mod-built exit portals) win over UUID origin tracking, and clear
+        // the stored origin so a later origin-mode trip can't resurrect it.
+        if ("bed".equals(exitMode)) {
+            ci.cancel();
+            player.setPortalCooldown(target.cooldown);
+            PortalHelper.clearPlayerOrigin(player.getUuid());
+            PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
+            // alive=true locates the respawn point without consuming anchor
+            // charges; obstruction falls back to world spawn internally.
+            TeleportTarget respawn = player.getRespawnTarget(true, TeleportTarget.NO_OP);
+            player.teleport(respawn.world(), respawn.pos().x, respawn.pos().y, respawn.pos().z,
+                    Set.of(), player.getYaw(), player.getPitch());
+            return;
+        }
+        if ("worldSpawn".equals(exitMode)) {
+            ci.cancel();
+            player.setPortalCooldown(target.cooldown);
+            PortalHelper.clearPlayerOrigin(player.getUuid());
+            PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
+            ServerWorld overworld = serverLevel.getServer().getOverworld();
+            BlockPos spawn = overworld.getSpawnPos();
+            player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                    Set.of(), player.getYaw(), player.getPitch());
+            return;
+        }
+
         RegistryKey<World> targetWorldKey = null;
         double tx = pos.getX() + 0.5;
         double ty = pos.getY();
@@ -72,13 +103,21 @@ public abstract class EntityTickPortalMixin {
         }
 
         int cooldown = 40;
-        if (targetWorldKey == null) {
-            PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(serverLevel.getRegistryKey(), portalBlocks.iterator().next());
-            if (target != null) {
-                targetWorldKey = target.sourceWorld;
-                ty = target.sourceY;
-                cooldown = target.cooldown;
+        if (targetWorldKey == null && target != null) {
+            if ("origin".equals(exitMode)) {
+                // Explicit origin mode with the origin lost (restart) —
+                // never strand: fall back to the overworld spawn.
+                ServerWorld overworld = serverLevel.getServer().getOverworld();
+                BlockPos spawn = overworld.getSpawnPos();
+                ci.cancel();
+                player.setPortalCooldown(target.cooldown);
+                player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                        Set.of(), player.getYaw(), player.getPitch());
+                return;
             }
+            targetWorldKey = target.sourceWorld;
+            ty = target.sourceY;
+            cooldown = target.cooldown;
         }
 
         if (targetWorldKey == null || targetWorldKey == serverLevel.getRegistryKey()) {
@@ -91,6 +130,7 @@ public abstract class EntityTickPortalMixin {
 
         ci.cancel();
         player.setPortalCooldown(cooldown);
+        PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
         player.teleport(targetWorld, tx, ty, tz, Set.of(), player.getYaw(), player.getPitch());
     }
 }

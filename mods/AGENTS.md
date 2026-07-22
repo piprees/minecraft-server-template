@@ -39,8 +39,12 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - Target-side return links persist to `config/portal_links.json` inside the server data directory. **Current limitation:** source portal zones are process-local and must not be assumed to survive restart until route persistence is implemented; exercise a restart round-trip in the local verification loop.
 - **Placing NETHER_PORTAL blocks: frames first, portal blocks last with `Block.NOTIFY_LISTENERS | Block.FORCE_STATE`.** Vanilla `NetherPortalBlock` re-validates its shape on any neighbour update and pops to air unless framed by OBSIDIAN specifically — with `NOTIFY_ALL`, a custom-framed portal self-destructs during its own placement (each block's update pops the previous one). This shipped silently for months: arrival teleports are coordinate-based so traversal "worked" while the return portal never existed (found 2026-07-13 by the Carpet-bot loop below).
 - **Arrival placement comes from the target column's heightmap** (`findSurfaceY`, scaled centre, chunk force-generated first) — never from offsets against `getBottomY()`, and never trust `World.getTopY` on an unloaded chunk (it silently returns bottomY).
+- **Anchor portals** (`portal.anchor`): every source portal lands at one fixed anchor; per-source target portals are suppressed. The anchor arrival portal's return targets carry an `exitMode` (`origin`/`bed`/`worldSpawn`) resolved by `EntityTickPortalMixin` — `bed` uses `getRespawnTarget(true, NO_OP)` (alive=true: locates without consuming respawn-anchor charges).
+- **Single-use portals** (`portal.singleUse`): the countdown lives on the zone (`singleUseTicksLeft`, -1 = unarmed), ticks in `ServerWorldMixin`, and persists in the `portal_links.json` zone record — written at countdown start and shutdown, so restarts resume rather than reset. Decay-map resolution is pure logic in `PortalDecay` (unit-tested).
+- **Exit portals** (`exitPortal`): `ExitPortalManager` builds/rebuilds a frame near dimension spawn, checked every 100 ticks from the world tick with a chunk-loaded guard (never sync-load a chunk just to inspect it). `PortalSafetyValidator` WARNs at boot (fingerprint tone: never crash, never auto-fix) when singleUse/anchor dims lack one.
+- **Portal config is NOT creation-time-only** — unlike worldgen it re-reads every boot, so anchor/singleUse/exitPortal changes apply to existing dimensions without a wipe.
 
-**Feature ideas** live in `mods/.ideas/` as individual markdown files — not in this document.
+**Feature ideas** live in `~/Projects/minecraft-server-template/mods/.ideas` as individual markdown files — not in this document.
 
 ## Verification loop
 

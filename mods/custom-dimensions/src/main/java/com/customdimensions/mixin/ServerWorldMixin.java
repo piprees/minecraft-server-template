@@ -41,12 +41,23 @@ public class ServerWorldMixin {
             List<PortalHelper.PortalZone> snapshot = new ArrayList<>(sourceZones);
             List<PortalHelper.PortalZone> zones = new ArrayList<>();
             for (PortalHelper.PortalZone zone : snapshot) {
-                if (PortalHelper.isZoneValid(world, zone)) {
-                    zones.add(zone);
+                if (!PortalHelper.isZoneValid(world, zone)) {
+                    PortalHelper.clearInteriorPortals(world, zone);
+                    PortalHelper.removeZone(zone);
                     continue;
                 }
-                PortalHelper.clearInteriorPortals(world, zone);
-                PortalHelper.removeZone(zone);
+                // Single-use countdown, armed at first traversal and resumed
+                // from portal_links.json after a restart (-1 = never traversed).
+                if (zone.singleUseTicksLeft >= 0) {
+                    if (zone.singleUseTicksLeft > 0) {
+                        zone.singleUseTicksLeft--;
+                    }
+                    if (zone.singleUseTicksLeft == 0) {
+                        PortalHelper.expireSingleUse(world, zone);
+                        continue;
+                    }
+                }
+                zones.add(zone);
             }
 
             for (PortalHelper.PortalZone zone : zones) {
@@ -96,6 +107,17 @@ public class ServerWorldMixin {
 
                     try {
                         PortalDefinition def = zone.definition;
+
+                        // Anchor dimensions: every source portal lands at one
+                        // fixed position and no per-source target portal is
+                        // ever created — the single anchor arrival portal is
+                        // built on first arrival and rebuilt if broken.
+                        if (def.hasAnchor()) {
+                            teleportToAnchor(world, targetWorld, player, zone, def, pos);
+                            PortalHelper.startSingleUseCountdown(zone);
+                            continue playerLoop;
+                        }
+
                         double scale = def.getScale();
                         int portalCenterX = 0;
                         int portalCenterZ = 0;
@@ -142,6 +164,7 @@ public class ServerWorldMixin {
                             double landY = isHorizontal ? existing.getY() + 1 : existing.getY();
                             player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
                             playPortalSound(targetWorld, existing, def.getExitSound());
+                            PortalHelper.startSingleUseCountdown(zone);
                             continue playerLoop;
                         }
 
@@ -154,6 +177,7 @@ public class ServerWorldMixin {
                         double landY = isHorizontal ? surfaceY + 1 : surfaceY;
                         player.teleport(targetWorld, targetCenterX + 0.5, landY, targetCenterZ + 0.5, Set.of(), player.getYaw(), player.getPitch());
                         playPortalSound(targetWorld, new BlockPos(targetCenterX, (int) landY, targetCenterZ), def.getExitSound());
+                        PortalHelper.startSingleUseCountdown(zone);
                     } catch (Exception e) {
                         MultiverseServer.LOGGER.error("Failed portal teleport for player {} in {}", player.getName().getString(), worldKey.getValue(), e);
                     }
@@ -164,12 +188,72 @@ public class ServerWorldMixin {
 
         PortalHelper.spawnTargetPortalParticles(world);
 
+        // Exit portals: periodic exists/rebuild check for dimensions that
+        // declare one (block placement from a world tick is safe; only the
+        // worlds-map mutation rule below applies here).
+        com.customdimensions.portal.ExitPortalManager.tick(world);
+
         DimensionManager.getInstance().updatePlayerPresence(worldKey, !world.getPlayers().isEmpty());
 
         // Idle unload is driven by ServerTickEvents.END_SERVER_TICK (see
         // MultiverseServer) — never from here: this injection runs inside
         // MinecraftServer.tickWorlds' iteration of the worlds map, and
         // removing worlds mid-iteration is a ConcurrentModificationException.
+    }
+
+    // Anchor arrival: skip scaled-coordinate mapping entirely, surface-resolve
+    // the anchor column, and reuse (or rebuild) the one anchor arrival portal.
+    // Its return targets carry the anchor's exit mode ("origin"/"bed"/
+    // "worldSpawn") — EntityTickPortalMixin resolves them on the way out.
+    private static void teleportToAnchor(ServerWorld world, ServerWorld targetWorld,
+            ServerPlayerEntity player, PortalHelper.PortalZone zone, PortalDefinition def, BlockPos pos) {
+        int[] anchor = def.getAnchorPos();
+        int anchorX = anchor[0];
+        int anchorZ = anchor[2];
+        int surfaceY = PortalHelper.findSurfaceY(targetWorld, anchorX, anchorZ);
+
+        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, zone.axis);
+        if (existing == null && zone.axis != Direction.Axis.Y) {
+            // A previous arrival may have built the portal on the other
+            // horizontal axis (first source's shape wins) — reuse it.
+            Direction.Axis other = zone.axis == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;
+            existing = PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, other);
+        }
+
+        boolean isHorizontal = zone.axis == Direction.Axis.Y;
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        if (existing == null) {
+            // Rebuild from this zone's shape, translated onto the anchor.
+            int minX = Integer.MAX_VALUE;
+            int minY = Integer.MAX_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            for (BlockPos p : zone.interior) {
+                minX = Math.min(minX, p.getX());
+                minY = Math.min(minY, p.getY());
+                minZ = Math.min(minZ, p.getZ());
+            }
+            HashSet<BlockPos> anchorInterior = new HashSet<>();
+            for (BlockPos p : zone.interior) {
+                anchorInterior.add(new BlockPos(
+                        anchorX + (p.getX() - minX),
+                        surfaceY + (p.getY() - minY),
+                        anchorZ + (p.getZ() - minZ)));
+            }
+            PortalHelper.createTargetPortal(targetWorld, anchorInterior, zone.axis, def, worldKey, pos.getY(), def.getAnchorExit());
+            MultiverseServer.LOGGER.info("Created anchor portal in {} at ({}, {}, {})",
+                    zone.targetWorld.getValue(), anchorX, surfaceY, anchorZ);
+        }
+
+        playPortalSound(world, pos, def.getEnterSound());
+        player.setPortalCooldown(def.getCooldown());
+        PortalHelper.setPlayerOrigin(player.getUuid(), worldKey, pos);
+        double landX = (existing != null ? existing.getX() : anchorX) + 0.5;
+        double landY = existing != null
+                ? (isHorizontal ? existing.getY() + 1 : existing.getY())
+                : (isHorizontal ? surfaceY + 1 : surfaceY);
+        double landZ = (existing != null ? existing.getZ() : anchorZ) + 0.5;
+        player.teleport(targetWorld, landX, landY, landZ, Set.of(), player.getYaw(), player.getPitch());
+        playPortalSound(targetWorld, BlockPos.ofFloored(landX, landY, landZ), def.getExitSound());
     }
 
     private static void playPortalSound(ServerWorld world, BlockPos pos, String soundName) {

@@ -22,11 +22,20 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.respawn_anchor.charge",
       "enter": "entity.enderman.teleport",
       "exit": "entity.enderman.teleport"
     }
+  },
+  "exitPortal": {
+    "enabled": true,
+    "pos": "spawn",
+    "target": "bed"
   },
   "structures": {
     "wants": {

@@ -13,6 +13,9 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Per-portal cooldown** -- configurable teleport cooldown (0-200 ticks) per portal link
 - **Portal sound effects** -- configurable ignition, entry, and exit sounds per portal (JSON config only)
 - **Bidirectional travel** -- target-side portals are built automatically; stepping in returns you
+- **Anchor portals** -- `portal.anchor` gives a dimension one fixed landing (End-gateway style): every source portal arrives at the anchor, no per-source target portal is ever built, and the exit mode (`origin` | `bed` | `worldSpawn`) decides where leaving takes you
+- **Single-use portals** -- `portal.singleUse` starts a countdown at first traversal, then the frame breaks (`destroy` | `decay` | `partial`); the countdown persists in `portal_links.json` and survives restarts
+- **Exit portals** -- `exitPortal` builds a mod-maintained frame near dimension spawn as a guaranteed way home (rebuilt if broken); config validation WARNs at boot when a strandable dimension (singleUse or anchor) lacks one
 - **Idle dimension unloading** -- empty dimensions are saved and unloaded after a configurable idle period (default 5 min), re-created on demand
 - **Per-dimension mob control** -- disable hostile mob spawning per dimension for peaceful pocket worlds
 - **Per-dimension difficulty** -- `difficulty.mobMultiplier` scales hostile mob health/damage/armor at spawn (attribute modifiers, persisted in NBT); optional `depthScaling` makes mobs harder underground; `playerLuck` boosts loot quality while inside the dimension (absorbed from the configurable-difficulty mod)
@@ -176,6 +179,33 @@ config/custom-dimensions/
 ```
 
 Consumer overlay resolution (files in `overlay/dimensions/`): a file with a top-level `"overrides"` object deep-merges over the platform default; a file without one replaces the platform default entirely; an empty `{}` skips the dimension; overlay-only files are consumer-added dimensions namespaced by the `BRAND_SLUG` environment variable.
+
+### Anchor, single-use, and exit portals
+
+Unlike worldgen config (creation-time-only, baked into `level.dat`), the whole portal block — anchor, singleUse, exitPortal included — is re-read every boot, so these features apply to existing dimensions without a world wipe.
+
+```json
+{
+  "portal": {
+    "frameBlock": "minecraft:crying_obsidian",
+    "igniterItem": "minecraft:ender_eye",
+    "anchor": { "pos": "spawn", "exit": "bed" },
+    "singleUse": {
+      "enabled": true,
+      "delaySeconds": 10,
+      "breakMode": "decay",
+      "decayMap": { "minecraft:obsidian": "minecraft:crying_obsidian" }
+    }
+  },
+  "exitPortal": { "enabled": true, "pos": "spawn", "target": "bed" }
+}
+```
+
+**`portal.anchor`** — every source portal for this dimension lands at one fixed position; no per-source target portal or `portal_links.json` return entry is written. `pos` is `[x, y, z]` or `"spawn"` (the dimension's `spawn`, falling back to the border centre); Y is surface-resolved on arrival. `exit` controls the anchor arrival portal: `"origin"` (default — back where you came from, fast travel preserved), `"bed"` (your respawn point, obstruction-checked, never consumes respawn-anchor charges), or `"worldSpawn"`. `"bed"` is still a fast-travel primitive (enter anywhere, exit at your bed) — use `"origin"` when denying travel advantage matters.
+
+**`portal.singleUse`** — the countdown starts at the source portal's first traversal and persists with the zone, so a restart resumes it. On expiry the interior clears and the frame breaks per `breakMode`: `"destroy"` (blocks removed, no drops), `"decay"` (each frame block swapped via the decay map — defaults cover obsidian→crying_obsidian, the cracked-brick families, `*_log`→stripped, `*_planks`→air; `decayMap` entries override), or `"partial"` (1–2 deterministically-picked frame blocks decay; the frame looks — and is — repairable and re-ignitable). The igniter is not refunded.
+
+**`exitPortal`** — the mod builds a small frame (the dimension's own `frameBlock`) at a deterministic offset from `pos` (`"spawn"` or `[x, y, z]`), registered as a permanent exit targeting the overworld with `target` semantics (`"bed"` default | `"worldSpawn"` | `"origin"`), and rebuilds it whenever it's found broken. Boot validation logs a WARN (never a crash, never an auto-fix) for any dimension with `singleUse.enabled` or an `anchor` but no exit portal — stranding by config is a bug, not a feature.
 
 ### `multiverse_config.json` (deprecated fallback)
 

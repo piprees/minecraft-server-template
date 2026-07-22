@@ -205,6 +205,83 @@ class DimensionConfigTest {
     }
 
     @Test
+    void anchorBlockPlumbsIntoPortalDefinition() {
+        DimensionConfig config = parse("the_starwell", """
+                {"portal":{"frameBlock":"minecraft:crying_obsidian",
+                  "anchor":{"pos":[12,70,-8],"exit":"bed"}}}
+                """);
+        PortalDefinition def = config.toPortalDefinition();
+        assertTrue(def.hasAnchor());
+        assertArrayEquals(new int[]{12, 70, -8}, def.getAnchorPos());
+        assertEquals("bed", def.getAnchorExit());
+    }
+
+    @Test
+    void anchorSpawnSentinelUsesDimensionSpawnThenBorderCentre() {
+        DimensionConfig withSpawn = parse("d", """
+                {"spawn":[100,64,200],
+                 "portal":{"frameBlock":"b","anchor":{"pos":"spawn"}}}
+                """);
+        assertArrayEquals(new int[]{100, 64, 200}, withSpawn.toPortalDefinition().getAnchorPos());
+        DimensionConfig withoutSpawn = parse("d", """
+                {"portal":{"frameBlock":"b","anchor":{}}}
+                """);
+        PortalDefinition def = withoutSpawn.toPortalDefinition();
+        assertArrayEquals(new int[]{0, 64, 0}, def.getAnchorPos());
+        assertEquals("origin", def.getAnchorExit());
+    }
+
+    @Test
+    void noAnchorBlockMeansNoAnchor() {
+        DimensionConfig config = parse("d", "{\"portal\":{\"frameBlock\":\"b\"}}");
+        assertFalse(config.toPortalDefinition().hasAnchor());
+    }
+
+    @Test
+    void singleUseBlockPlumbsIntoPortalDefinition() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"b",
+                  "singleUse":{"enabled":true,"delaySeconds":30,"breakMode":"partial",
+                    "decayMap":{"minecraft:obsidian":"minecraft:blackstone"}}}}
+                """);
+        PortalDefinition def = config.toPortalDefinition();
+        assertTrue(def.isSingleUse());
+        assertEquals(600, def.getSingleUseDelayTicks());
+        assertEquals("partial", def.getSingleUseBreakMode());
+        assertEquals("minecraft:blackstone", def.getSingleUseDecayMap().get("minecraft:obsidian"));
+    }
+
+    @Test
+    void singleUseDefaultsAndDisabledState() {
+        DimensionConfig bare = parse("d", """
+                {"portal":{"frameBlock":"b","singleUse":{"enabled":true}}}
+                """);
+        PortalDefinition def = bare.toPortalDefinition();
+        assertEquals(200, def.getSingleUseDelayTicks());
+        assertEquals("decay", def.getSingleUseBreakMode());
+        DimensionConfig off = parse("d", """
+                {"portal":{"frameBlock":"b","singleUse":{"enabled":false,"delaySeconds":30}}}
+                """);
+        assertFalse(off.toPortalDefinition().isSingleUse());
+        assertFalse(parse("d", "{\"portal\":{\"frameBlock\":\"b\"}}").toPortalDefinition().isSingleUse());
+    }
+
+    @Test
+    void exitPortalBlockDeserialisesWithDefaults() {
+        DimensionConfig config = parse("d", """
+                {"exitPortal":{"enabled":true,"pos":[5,64,5],"target":"worldSpawn"}}
+                """);
+        assertTrue(config.hasExitPortal());
+        assertArrayEquals(new int[]{5, 64, 5}, config.getExitPortal().getExplicitPos());
+        assertEquals("worldSpawn", config.getExitPortal().getTargetMode());
+        DimensionConfig defaults = parse("d", "{\"exitPortal\":{\"enabled\":true}}");
+        assertNull(defaults.getExitPortal().getExplicitPos());
+        assertEquals("bed", defaults.getExitPortal().getTargetMode());
+        assertFalse(parse("d", "{}").hasExitPortal());
+        assertFalse(parse("d", "{\"exitPortal\":{\"enabled\":false}}").hasExitPortal());
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

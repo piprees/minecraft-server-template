@@ -78,6 +78,8 @@ public class DimensionConfig {
     private Structures structures;
     @SerializedName("portal")
     private Portal portal;
+    @SerializedName("exitPortal")
+    private ExitPortal exitPortal;
     @SerializedName("environment")
     private Environment environment;
     @SerializedName("seedRoll")
@@ -311,9 +313,23 @@ public class DimensionConfig {
         return this.portal != null && this.portal.frameBlock != null;
     }
 
+    public ExitPortal getExitPortal() {
+        return this.exitPortal;
+    }
+
+    /** True when the mod must build and maintain an exit portal near spawn. */
+    public boolean hasExitPortal() {
+        return this.exitPortal != null && !Boolean.FALSE.equals(this.exitPortal.enabled);
+    }
+
     /**
      * Runtime portal view for PortalHelper and the ignition/travel mixins.
      * The portal id is the dimension slug; the target is this dimension.
+     *
+     * Unlike worldgen config (creation-time-only, baked into level.dat),
+     * everything here — anchor, singleUse, sounds, scale — is re-read every
+     * boot, so portal behaviour changes apply to existing dimensions
+     * without a world wipe.
      */
     public PortalDefinition toPortalDefinition() {
         if (this.portal == null) {
@@ -332,6 +348,16 @@ public class DimensionConfig {
         def.setIgniteSound(this.portal.getIgniteSound());
         def.setEnterSound(this.portal.getEnterSound());
         def.setExitSound(this.portal.getExitSound());
+        if (this.portal.anchor != null) {
+            def.setAnchorPos(this.portal.anchor.resolvePos(this.getSpawn()));
+            def.setAnchorExit(this.portal.anchor.getExit());
+        }
+        if (this.portal.singleUse != null && Boolean.TRUE.equals(this.portal.singleUse.enabled)) {
+            def.setSingleUse(true);
+            def.setSingleUseDelayTicks(this.portal.singleUse.getDelaySeconds() * 20);
+            def.setSingleUseBreakMode(this.portal.singleUse.getBreakMode());
+            def.setSingleUseDecayMap(this.portal.singleUse.decayMap);
+        }
         return def;
     }
 
@@ -443,6 +469,10 @@ public class DimensionConfig {
         public String enterSound;
         @SerializedName("exitSound")
         public String exitSound;
+        @SerializedName("anchor")
+        public Anchor anchor;
+        @SerializedName("singleUse")
+        public SingleUse singleUse;
 
         public String getIgniteSound() {
             if (this.sounds != null && this.sounds.ignite != null) {
@@ -463,6 +493,98 @@ public class DimensionConfig {
                 return this.sounds.exit;
             }
             return this.exitSound != null ? this.exitSound : "block.portal.travel";
+        }
+    }
+
+    /**
+     * End-gateway-style fixed landing: every source portal for this
+     * dimension arrives at one anchor position and no per-source target
+     * portal is ever built. Boot-re-read like the rest of the portal block.
+     */
+    public static class Anchor {
+        /** [x, y, z], or the string "spawn" (also the default when absent). */
+        @SerializedName("pos")
+        public JsonElement pos;
+        /** Exit mode for the anchor arrival portal: "origin" | "bed" | "worldSpawn". */
+        @SerializedName("exit")
+        public String exit;
+
+        public String getExit() {
+            return this.exit != null && !this.exit.isBlank() ? this.exit : "origin";
+        }
+
+        /**
+         * Anchor position as [x, y, z]: an explicit array wins; "spawn" (or
+         * absent) uses the dimension's configured spawn, falling back to the
+         * border centre (0, 64, 0). Y is a hint only — arrival surfaces via
+         * findSurfaceY on the anchor column.
+         */
+        public int[] resolvePos(int[] dimensionSpawn) {
+            if (this.pos != null && this.pos.isJsonArray() && this.pos.getAsJsonArray().size() == 3) {
+                return new int[]{
+                        this.pos.getAsJsonArray().get(0).getAsInt(),
+                        this.pos.getAsJsonArray().get(1).getAsInt(),
+                        this.pos.getAsJsonArray().get(2).getAsInt()};
+            }
+            return dimensionSpawn != null ? dimensionSpawn.clone() : new int[]{0, 64, 0};
+        }
+    }
+
+    /**
+     * The way shuts behind you: a countdown starts at the source portal's
+     * first traversal, then the frame breaks per breakMode. The countdown
+     * persists with the zone in portal_links.json (survives restarts).
+     */
+    public static class SingleUse {
+        @SerializedName("enabled")
+        public Boolean enabled;
+        /** Seconds from first traversal to frame break (default 10). */
+        @SerializedName("delaySeconds")
+        public Integer delaySeconds;
+        /** "destroy" | "decay" | "partial" (default "decay"). */
+        @SerializedName("breakMode")
+        public String breakMode;
+        /** Frame block id -> decayed block id; merged over PortalDecay defaults. */
+        @SerializedName("decayMap")
+        public Map<String, String> decayMap;
+
+        public int getDelaySeconds() {
+            return this.delaySeconds != null && this.delaySeconds > 0 ? this.delaySeconds : 10;
+        }
+
+        public String getBreakMode() {
+            return this.breakMode != null && !this.breakMode.isBlank() ? this.breakMode : "decay";
+        }
+    }
+
+    /**
+     * Mod-built, mod-maintained way home: a frame near dimension spawn,
+     * registered as a permanent exit zone targeting the overworld, rebuilt
+     * if broken. The counterweight to anchor/singleUse stranding.
+     */
+    public static class ExitPortal {
+        @SerializedName("enabled")
+        public Boolean enabled;
+        /** [x, y, z], or "spawn" (default) for spawn + a deterministic offset. */
+        @SerializedName("pos")
+        public JsonElement pos;
+        /** Exit mode: "bed" (default) | "worldSpawn" | "origin". */
+        @SerializedName("target")
+        public String target;
+
+        public String getTargetMode() {
+            return this.target != null && !this.target.isBlank() ? this.target : "bed";
+        }
+
+        /** Explicit [x, y, z] when configured, null for the "spawn" default. */
+        public int[] getExplicitPos() {
+            if (this.pos != null && this.pos.isJsonArray() && this.pos.getAsJsonArray().size() == 3) {
+                return new int[]{
+                        this.pos.getAsJsonArray().get(0).getAsInt(),
+                        this.pos.getAsJsonArray().get(1).getAsInt(),
+                        this.pos.getAsJsonArray().get(2).getAsInt()};
+            }
+            return null;
         }
     }
 
