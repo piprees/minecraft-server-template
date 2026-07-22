@@ -2,6 +2,7 @@ package com.customdimensions.mixin;
 
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
+import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -107,6 +108,7 @@ public class PortalIgnitionMixin {
             RegistryKey<World> worldKey = serverWorld.getRegistryKey();
             PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
             PortalHelper.registerZone(zone);
+            prewarmTarget(def);
             PortalHelper.spawnParticles(serverWorld, zone);
             playIgniteSound(serverWorld, clickedPos, def);
 
@@ -153,6 +155,7 @@ public class PortalIgnitionMixin {
                     RegistryKey<World> worldKey = serverWorld.getRegistryKey();
                     PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
                     PortalHelper.registerZone(zone);
+                    prewarmTarget(def);
                     PortalHelper.spawnParticles(serverWorld, zone);
                     playIgniteSound(serverWorld, candidate, def);
 
@@ -163,6 +166,17 @@ public class PortalIgnitionMixin {
                     return;
                 }
             }
+        }
+    }
+
+    // Pre-warm the target dimension the moment its portal ignites — world
+    // creation takes seconds under load, and deferring it to first entry made
+    // the player's first traversal eat that delay (queued via END_SERVER_TICK,
+    // never created synchronously from here: tick-loop threading rule).
+    private static void prewarmTarget(PortalDefinition def) {
+        RegistryKey<World> target = def.getTargetKey();
+        if (target != null) {
+            DimensionManager.getInstance().requestWorldLoad(target.getValue().getPath());
         }
     }
 

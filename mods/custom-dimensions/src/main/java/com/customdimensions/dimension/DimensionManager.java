@@ -147,17 +147,22 @@ public class DimensionManager {
             accessor.setFrozen(false);
         }
         try {
+            // Per-dim isolation: one broken config must not abort registration
+            // of every dimension after it (2026-07-22: a seed-less config NPE'd
+            // here and silently took an unrelated new dimension down with it).
             for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
                 if (dimRegistry.contains(key)) {
                     continue;
                 }
-                DimensionOptions options = this.createDimensionOptions(def);
-                dimRegistry.add(key, options, RegistryEntryInfo.DEFAULT);
-                MultiverseServer.LOGGER.info("Registered dimension: {}", key);
+                try {
+                    DimensionOptions options = this.createDimensionOptions(def);
+                    dimRegistry.add(key, options, RegistryEntryInfo.DEFAULT);
+                    MultiverseServer.LOGGER.info("Registered dimension: {}", key);
+                } catch (Exception e) {
+                    MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
+                }
             }
-        } catch (Exception e) {
-            MultiverseServer.LOGGER.error("Failed to register dimensions", e);
         } finally {
             if (wasFrozen) {
                 accessor.setFrozen(true);
@@ -290,7 +295,16 @@ public class DimensionManager {
         DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
         Registry<Biome> biomeRegistry = regManager.get(RegistryKeys.BIOME);
         String type = def.getType();
-        long worldSeed = def.getSeed() != null ? def.getSeed() : this.server.getOverworld().getSeed();
+        // Registration runs at beforeCreateWorlds, when getOverworld() is still
+        // null — fall back to the save's generator seed for seed-less configs.
+        long worldSeed;
+        if (def.getSeed() != null) {
+            worldSeed = def.getSeed();
+        } else {
+            ServerWorld overworld = this.server.getOverworld();
+            worldSeed = overworld != null ? overworld.getSeed()
+                    : this.server.getSaveProperties().getGeneratorOptions().getSeed();
+        }
         RegistryEntry<ChunkGeneratorSettings> settingsOverride = this.resolveNoiseSettingsOverride(def);
         if (settingsOverride != null && ("void".equals(type) || "superflat".equals(type))) {
             MultiverseServer.LOGGER.warn(
@@ -372,6 +386,33 @@ public class DimensionManager {
                     NoiseChunkGenerator newGen = new NoiseChunkGenerator(mixed, noiseGen.getSettings());
                     yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(newGen, settingsOverride), worldSeed));
                 }
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+            }
+            case "cave" -> {
+                // Fully underground world: vanilla still ships the
+                // minecraft:caves generator settings (bedrock roof at the top,
+                // no sky access, sea/lava level 32 — verified live 2026-07-22
+                // via a fixture using the noiseSettings override). Biome list
+                // mixes as usual; an explicit noiseSettings still wins.
+                BiomeSource caveSource = this.resolveListedSource(def, biomeRegistry,
+                        overworldOpts.chunkGenerator(), overworldOpts.chunkGenerator());
+                if (caveSource == null) {
+                    caveSource = overworldOpts.chunkGenerator().getBiomeSource();
+                }
+                if (settingsOverride != null) {
+                    NoiseChunkGenerator caveGen = new NoiseChunkGenerator(caveSource, settingsOverride);
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(caveGen, worldSeed));
+                }
+                Registry<ChunkGeneratorSettings> nsRegistry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+                Optional<? extends RegistryEntry<ChunkGeneratorSettings>> caveSettings =
+                        nsRegistry.getEntry(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS,
+                                Identifier.of("minecraft", "caves")));
+                if (caveSettings.isPresent()) {
+                    NoiseChunkGenerator caveGen = new NoiseChunkGenerator(caveSource, caveSettings.get());
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(caveGen, worldSeed));
+                }
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: minecraft:caves noise settings not found — falling back to overworld generator", def.getName());
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "nether" -> {

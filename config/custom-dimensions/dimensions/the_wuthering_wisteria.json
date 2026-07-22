@@ -42,7 +42,7 @@
       "farmstead": { "min": 512, "max": 2048 },
       "tavern": { "min": 512, "max": 2048 }
     },
-    "shuns": ["village", "ruined_portal"]
+    "shuns": { "village": {}, "ruined_portal": {} }
   },
   "seedRoll": {
     "mood": "serene",
