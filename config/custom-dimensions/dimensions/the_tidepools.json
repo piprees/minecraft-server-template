@@ -1,0 +1,50 @@
+{
+  "type": "multi_biome",
+  "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water.",
+  "biomes": [
+    "minecraft:beach",
+    "minecraft:stony_shore",
+    "terralith:granite_cliffs",
+    "minecraft:lukewarm_ocean"
+  ],
+  "borders": {
+    "player": 256,
+    "generation": 2048
+  },
+  "difficulty": {
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.0,
+    "hostileSpawning": false
+  },
+  "portal": {
+    "frameBlock": "minecraft:prismarine_bricks",
+    "igniterItem": "minecraft:nautilus_shell",
+    "color": "4FC3D0",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:bubble_pop",
+    "sounds": {
+      "ignite": "item.bucket.empty",
+      "enter": "ambient.underwater.enter",
+      "exit": "ambient.underwater.exit"
+    }
+  },
+  "structures": {
+    "wants": {
+      "shipwreck": { "min": 0, "max": 256 },
+      "buried_treasure": { "min": 0, "max": 256 },
+      "ocean_ruins": { "min": 256, "max": 2048 }
+    },
+    "shuns": { "village": {}, "monument": {} }
+  },
+  "seedRoll": {
+    "mood": "serene",
+    "water": "high",
+    "spawnFilter": [
+      "minecraft:beach",
+      "minecraft:stony_shore"
+    ],
+    "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water."
+  }
+}

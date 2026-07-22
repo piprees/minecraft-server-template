@@ -30,7 +30,9 @@ Used by score-dimensions.py (plan / score / finalise). No CLI here.
 DEFAULT_BORDER_RADIUS = 8192
 
 # Families share a locate battery (structure id -> band).
-OVERWORLD_FAMILY = {"overworld", "multi_biome", "amplified", "large_biomes", "sky_islands"}
+# "cave" rides the overworld family: minecraft:caves samples the overworld
+# climate router, so biome measurement + locate batteries behave overworld-ish.
+OVERWORLD_FAMILY = {"overworld", "multi_biome", "amplified", "large_biomes", "sky_islands", "cave"}
 NETHER_FAMILY = {"nether", "nether_islands"}
 END_FAMILY = {"end"}
 

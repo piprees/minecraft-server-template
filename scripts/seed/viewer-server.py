@@ -642,6 +642,10 @@ def main():
                 noise_fam = TYPE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
                 nc = noise_configs.get(noise_fam, noise_configs.get("overworld"))
 
+                config_biomes = list(dim.get("biomes") or []) \
+                    or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+                biome_filter = config_biomes if config_biomes else None
+
                 scored = []
                 for seed_str, cand in store["candidates"].items():
                     best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
@@ -656,7 +660,8 @@ def main():
                     if "biome_survey" in cand:
                         continue
                     sampler = BiomeSampler(int(seed_str), biome_params,
-                                          noise_config=nc, family=noise_fam)
+                                          noise_config=nc, family=noise_fam,
+                                          biome_filter=biome_filter)
                     biome_map = {}
                     for bx in range(-radius, radius + 1, step):
                         for bz in range(-radius, radius + 1, step):

@@ -1,6 +1,6 @@
 {
-  "type": "multi_biome",
-  "description": "The deep dark as a surface world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic.",
+  "type": "cave",
+  "description": "The deep dark as an endless cavern world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic.",
   "seed": -3604832347219380837,
   "biomes": [
     "minecraft:lush_caves",
@@ -17,7 +17,6 @@
     "terralith:orchid_swamp",
     "terralith:moonlight_grove",
     "terralith:moonlight_valley",
-    "terralith:cloud_forest",
     "terralith:cave/deep_caves",
     "terralith:cave/underground_jungle",
     "incendium:withered_forest"
@@ -65,6 +64,6 @@
       "tavern",
       "farmstead"
     ],
-    "description": "The deep dark as a surface world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic."
+    "description": "The deep dark as an endless cavern world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic."
   }
 }

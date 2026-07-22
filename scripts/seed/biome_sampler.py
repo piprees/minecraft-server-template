@@ -346,17 +346,24 @@ class BiomeSampler:
         # Pre-parse ranges into flat tuples for fast lookup.
         # _entries: list of (biome_id, lo0,hi0,lo1,hi1,...,lo5,hi5, offset_sq)
         # Flat layout avoids per-iteration tuple/list indexing overhead.
-        # When biome_filter is set (dimension has an explicit biome list),
-        # it takes precedence over the family filter — multi_biome dimensions
-        # mix biomes from different families on one noise config.
+        #
+        # When biome_filter is provided (dimension has an explicit biome list),
+        # use the mod's exact mixed-source semantics: native biomes keep their
+        # climate regions, foreign biomes are assigned unclaimed regions
+        # round-robin, and biomes not in the list are dropped entirely.
+        if biome_filter:
+            from biome_source_mixing import build_mixed_entries
+            biome_list = list(biome_filter) if not isinstance(biome_filter, list) else biome_filter
+            source_entries = build_mixed_entries(
+                self.biome_table, biome_list, family_filter=family or "overworld")
+        else:
+            source_entries = None
+
         self._entries = []
-        for entry in self.biome_table:
-            # biome_filter wins: multi_biome dims mix families on one noise config
-            if biome_filter:
-                if entry["biome"] not in biome_filter:
+        for entry in (source_entries if source_entries is not None else self.biome_table):
+            if source_entries is None:
+                if family and entry.get("family") and entry["family"] != family:
                     continue
-            elif family and entry.get("family") and entry["family"] != family:
-                continue
             flat = []
             for param in ("temperature", "humidity", "continentalness",
                           "erosion", "depth", "weirdness"):

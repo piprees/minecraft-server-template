@@ -1,6 +1,6 @@
 {
-  "type": "nether",
-  "description": "Serene glowing caverns — lush moss under the nether's roof, quartz light, no armies.",
+  "type": "cave",
+  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies.",
   "seed": 1126811856535624437,
   "biomes": [
     "minecraft:lush_caves",
@@ -45,6 +45,6 @@
       "bastion",
       "sanctum"
     ],
-    "description": "Serene glowing caverns — lush moss under the nether's roof, quartz light, no armies."
+    "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies."
   }
 }

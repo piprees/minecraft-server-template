@@ -1,0 +1,45 @@
+{
+  "type": "cave",
+  "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark.",
+  "biomes": [
+    "minecraft:basalt_deltas",
+    "terralith:cave/thermal_caves",
+    "incendium:quartz_flats"
+  ],
+  "borders": {
+    "player": 256,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:polished_blackstone",
+    "igniterItem": "minecraft:blaze_rod",
+    "color": "E8641E",
+    "lightLevel": 13,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:small_flame",
+    "sounds": {
+      "ignite": "item.firecharge.use",
+      "enter": "block.blastfurnace.fire_crackle",
+      "exit": "block.fire.extinguish"
+    }
+  },
+  "structures": {
+    "wants": {
+      "mining_complex": { "min": 0, "max": 256 }
+    },
+    "shuns": {}
+  },
+  "seedRoll": {
+    "mood": "adventurous",
+    "spawnFilter": [
+      "terralith:cave/thermal_caves",
+      "incendium:quartz_flats"
+    ],
+    "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark."
+  }
+}

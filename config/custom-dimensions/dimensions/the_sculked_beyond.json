@@ -1,6 +1,6 @@
 {
-  "type": "void",
-  "description": "A sculk-eaten void. The deep dark outlived the world it consumed.",
+  "type": "cave",
+  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on.",
   "seed": -356153069817876777,
   "biomes": [
     "minecraft:deep_dark",
@@ -42,7 +42,6 @@
       "nullscape:shadowlands",
       "terralith:cave/deep_caves"
     ],
-    "description": "A sculk-eaten void. The deep dark outlived the world it consumed.",
-    "terrain": "void"
+    "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on."
   }
 }

@@ -188,8 +188,45 @@ def _pixel_hash(seed, x, z):
     return v
 
 
+# --- Island and cave dimension type constants ---
+ISLAND_TYPES = frozenset({"sky_islands", "nether_islands", "paradise_lost:paradise_lost"})
+CAVE_TYPES = frozenset({"cave"})
+
+
+def _island_noise(seed, x, z, scale=200):
+    """Seeded 2D value noise for island mask generation.
+
+    Multiple octaves of smoothed pixel hash produce 0-1 values.
+    Same seed produces the same mask; different seeds differ.
+    """
+    val = 0.0
+    amp = 1.0
+    freq = 1.0 / scale
+    for octave in range(4):
+        ix = int(x * freq) if x * freq >= 0 else int(x * freq) - 1
+        iz = int(z * freq) if z * freq >= 0 else int(z * freq) - 1
+        fx = x * freq - ix
+        fz = z * freq - iz
+        fx = fx * fx * (3 - 2 * fx)
+        fz = fz * fz * (3 - 2 * fz)
+        v00 = (_pixel_hash(seed + octave * 7919, ix, iz) & 0xFFFF) / 65535.0
+        v10 = (_pixel_hash(seed + octave * 7919, ix + 1, iz) & 0xFFFF) / 65535.0
+        v01 = (_pixel_hash(seed + octave * 7919, ix, iz + 1) & 0xFFFF) / 65535.0
+        v11 = (_pixel_hash(seed + octave * 7919, ix + 1, iz + 1) & 0xFFFF) / 65535.0
+        v0 = v00 * (1 - fx) + v10 * fx
+        v1 = v01 * (1 - fx) + v11 * fx
+        val += (v0 * (1 - fz) + v1 * fz) * amp
+        amp *= 0.5
+        freq *= 2.0
+    return val / 1.875
+
+
+ISLAND_THRESHOLD = 0.55
+
+
 def render_biome_map(seed, biome_params_path, output_path,
-                     noise_config=None, family=None, biome_filter=None,
+                     noise_config=None, family=None, dim_type=None,
+                     biome_filter=None,
                      size=1024, blocks_per_pixel=4,
                      sample_resolution=256):
     """Render a terrain-aware biome map image.
@@ -250,6 +287,8 @@ def render_biome_map(seed, biome_params_path, output_path,
     is_nether = family == "nether"
     is_end = family == "end"
     is_pl = family == "paradise_lost"
+    is_islands = dim_type in ISLAND_TYPES
+    is_cave = dim_type in CAVE_TYPES
 
     iseed = int(seed)
 
@@ -338,10 +377,15 @@ def render_biome_map(seed, biome_params_path, output_path,
             bx = -half + px * blocks_per_pixel
             bz = -half + py * blocks_per_pixel
 
+            # --- Island mask ---
+            island_void = False
+            if is_islands:
+                island_void = _island_noise(iseed, bx, bz) < ISLAND_THRESHOLD
+
             # --- Tree canopy simulation ---
             # Per-pixel decision: is the top block leaves, trunk, or ground?
             is_canopy = False
-            if canopy_info is not None and h > 1:
+            if canopy_info is not None and h > 1 and not island_void and not is_cave:
                 coverage, leaf_types = canopy_info
                 ph = _pixel_hash(iseed, bx, bz)
                 pct = (ph & 0xFF) / 255.0
@@ -368,6 +412,8 @@ def render_biome_map(seed, biome_params_path, output_path,
 
             # --- Coral in warm shallow water ---
             is_water = "ocean" in biome_id or "river" in biome_id
+            if is_islands or is_cave:
+                is_water = False
             if is_water and "warm" in biome_id and cont > -0.3:
                 ph = _pixel_hash(iseed, bx + 999, bz + 999)
                 if (ph & 0xFF) < 25:
@@ -416,7 +462,7 @@ def render_biome_map(seed, biome_params_path, output_path,
                     r = int(r * f); g = int(g * f); b = int(b * (f + 0.02))
 
             # --- Snow line ---
-            if is_ow and h > 170 and not is_canopy:
+            if is_ow and h > 170 and not is_canopy and not is_islands and not is_cave:
                 snow_t = min(1.0, (h - 170) / 60.0)
                 snow_t *= snow_t
                 r = int(r * (1.0 - snow_t * 0.4) + 235 * snow_t * 0.4)
@@ -431,9 +477,11 @@ def render_biome_map(seed, biome_params_path, output_path,
                 r, g, b = 60, 20, 5; shade = 1.0; is_void = True
             elif is_pl and h < 40:
                 r, g, b = 160, 190, 220; shade = 1.0; is_void = True
+            elif is_islands and island_void:
+                r, g, b = 8, 5, 15; shade = 1.0; is_void = True
 
             # --- Void edge glow ---
-            if not is_void and (is_end or is_nether or is_pl):
+            if not is_void and (is_end or is_nether or is_pl) and not is_islands:
                 for dy2, dx2 in ((-1, 0), (1, 0), (0, -1), (0, 1)):
                     ny, nx = sy + dy2, sx + dx2
                     if 0 <= ny < sample_resolution and 0 <= nx < sample_resolution:
@@ -453,6 +501,16 @@ def render_biome_map(seed, biome_params_path, output_path,
                                 b = min(255, int(b * 0.7 + 240 * 0.3))
                             break
 
+            # --- Island void edge glow ---
+            if not is_void and is_islands:
+                for dby, dbx in ((-blocks_per_pixel, 0), (blocks_per_pixel, 0),
+                                  (0, -blocks_per_pixel), (0, blocks_per_pixel)):
+                    if _island_noise(iseed, bx + dbx, bz + dby) < ISLAND_THRESHOLD:
+                        r = min(255, int(r * 0.7 + 80 * 0.3))
+                        g = min(255, int(g * 0.7 + 60 * 0.3))
+                        b = min(255, int(b * 0.6 + 140 * 0.4))
+                        break
+
             # --- Water depth ---
             if is_water:
                 if cont < -0.455:
@@ -464,13 +522,32 @@ def render_biome_map(seed, biome_params_path, output_path,
                 df = max(0.55, min(1.0, df))
                 r = int(r * df); g = int(g * df); b = int(b * df)
 
+            # --- Cave darkening and texture ---
+            if is_cave and not is_void:
+                ph_cave = _pixel_hash(iseed, bx + 12345, bz + 67890)
+                mottled = 0.25 + 0.10 * ((ph_cave & 0xFF) / 255.0)
+                r = int(r * mottled)
+                g = int(g * mottled)
+                b = int(b * mottled)
+                rock_r, rock_g, rock_b = 35, 32, 30
+                blend = 0.3 + 0.2 * (((ph_cave >> 8) & 0xFF) / 255.0)
+                r = int(r * (1 - blend) + rock_r * blend)
+                g = int(g * (1 - blend) + rock_g * blend)
+                b = int(b * (1 - blend) + rock_b * blend)
+                # Subtle contour-like patterns suggesting cave passages
+                passage = _island_noise(iseed + 999, bx, bz, scale=80)
+                if 0.48 < passage < 0.52:
+                    r = min(255, r + 8)
+                    g = min(255, g + 6)
+                    b = min(255, b + 5)
+
             # --- Structure footprints ---
             sp = struct_pixels.get((px, py))
             if sp is not None:
                 r, g, b = sp
 
             # --- Contour lines ---
-            if not is_water and not is_void and h > 10:
+            if not is_water and not is_void and not is_cave and h > 10:
                 ci = 20 if is_ow else 15
                 cb = h % ci
                 if cb < 1.5 or cb > ci - 1.5:
@@ -593,18 +670,25 @@ FAMILY_NOISE = {
     "overworld": "overworld", "nether": "nether", "end": "end",
     "paradise_lost": "paradise_lost", None: "overworld",
 }
-TYPE_NOISE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
+TYPE_NOISE_OVERRIDE = {
+    "paradise_lost:paradise_lost": "paradise_lost",
+    "sky_islands": "overworld",
+    "nether_islands": "nether",
+}
 
 
 def _render_one(task):
     """Multiprocessing worker: render one candidate."""
-    seed, dim_name, family, dim_type, biome_params_path, output_path, size, scale, sample_res = task
+    (seed, dim_name, family, dim_type, biome_csv, biome_params_path,
+     output_path, size, scale, sample_res) = task
     configs = load_noise_configs()
     noise_family = TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
     noise_config = configs.get(noise_family, configs.get("overworld"))
+    biome_filter = [b.strip() for b in biome_csv.split(",") if b.strip()] if biome_csv else None
     try:
         render_biome_map(seed, biome_params_path, output_path,
                          noise_config=noise_config, family=noise_family,
+                         dim_type=dim_type, biome_filter=biome_filter,
                          size=size, blocks_per_pixel=scale,
                          sample_resolution=sample_res)
         return dim_name, seed, True
@@ -659,8 +743,8 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
             queued_normal.add((name, seed))
-            tasks.append((int(seed), name, fam, dim_type, biome_params_path,
-                          str(out), size, effective_scale, sample_resolution))
+            tasks.append((int(seed), name, fam, dim_type, dim.get("biome") or None,
+                          biome_params_path, str(out), size, effective_scale, sample_resolution))
 
     if shortlist:
         import json as _json
@@ -695,13 +779,13 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 out = renders_dir / name / f"{seed_str}.png"
                 if not out.exists() and (name, seed_str) not in queued_normal:
                     out.parent.mkdir(parents=True, exist_ok=True)
-                    tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
-                                  str(out), size, eff_scale, sample_resolution))
+                    tasks.append((int(seed_str), name, fam, dim_type, dim.get("biome") or None,
+                                  biome_params_path, str(out), size, eff_scale, sample_resolution))
                 out_hires = renders_dir / name / f"{seed_str}_hires.png"
                 if not out_hires.exists():
                     out_hires.parent.mkdir(parents=True, exist_ok=True)
-                    tasks.append((int(seed_str), name, fam, dim_type, biome_params_path,
-                                  str(out_hires), hires_size, eff_hires_scale, hires_sample_res))
+                    tasks.append((int(seed_str), name, fam, dim_type, dim.get("biome") or None,
+                                  biome_params_path, str(out_hires), hires_size, eff_hires_scale, hires_sample_res))
 
     if not tasks:
         print("All candidates already have renders.")

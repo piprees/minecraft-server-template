@@ -1,0 +1,48 @@
+{
+  "type": "sky_islands",
+  "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down.",
+  "biomes": [
+    "terralith:mirage_isles",
+    "terralith:skylands_winter",
+    "nullscape:shadowlands"
+  ],
+  "borders": {
+    "player": 256,
+    "generation": 512
+  },
+  "difficulty": {
+    "mobMultiplier": 0.5,
+    "playerLuck": 2.0
+  },
+  "portal": {
+    "frameBlock": "minecraft:crying_obsidian",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "9B7BD8",
+    "lightLevel": 13,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "block.respawn_anchor.charge",
+      "enter": "entity.enderman.teleport",
+      "exit": "entity.enderman.teleport"
+    }
+  },
+  "structures": {
+    "wants": {
+      "monolith": { "min": 0, "max": 256 },
+      "ruined_pillar": { "min": 0, "max": 256 },
+      "mystical_archway": { "min": 256, "max": 512 }
+    },
+    "shuns": {}
+  },
+  "seedRoll": {
+    "mood": "scenic",
+    "terrain": "islands",
+    "spawnFilter": [
+      "terralith:mirage_isles",
+      "terralith:skylands_winter"
+    ],
+    "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down."
+  }
+}
