@@ -664,9 +664,12 @@ body.show-borders .border-label { display: block; }
     if (!radius) return;
     var diameter = radius * 2;
     var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
-    // If border < render coverage: shrink image so border fills the container
-    // If border >= coverage: image stays full (border extends beyond render)
-    var imgScale = Math.max(0.05, Math.min(1, diameter / coverage));
+    // Shrink the terrain image so the border ring = container edge.
+    // coverage/diameter = fraction of the border the render covers.
+    // If render < border: image shrinks (terrain is a patch inside the border)
+    // If render > border: image also shrinks (border is smaller than terrain)
+    // Either way: border ring = container edge, image scales proportionally.
+    var imgScale = Math.max(0.05, Math.min(1, coverage / diameter));
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
       if (wrap.classList.contains('img-wrap')) return;
@@ -681,7 +684,7 @@ body.show-borders .border-label { display: block; }
       div.appendChild(ring);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
-      lbl.textContent = diameter + 'b border' + (diameter >= coverage ? ' (extends beyond view)' : '');
+      lbl.textContent = diameter + 'b border';
       div.appendChild(lbl);
     });
   });
