@@ -356,7 +356,7 @@ def score_candidate(profile, rows):
     errs = float(rows.get("errors", 0) or 0)
     total_score -= min(10.0, errs * 0.5)
 
-    return round(max(total_score, 0.0), 2), {k: round(v, 3) for k, v in parts.items()}
+    return round(max(0.0, min(100.0, total_score)), 2), {k: round(v, 3) for k, v in parts.items()}
 
 
 def load_measurements(csv_path):
