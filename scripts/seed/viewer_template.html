@@ -654,18 +654,19 @@ body.show-borders .border-label { display: block; }
   });
 
   // --- World border overlays ---
-  // Find the largest diameter across all dimensions for relative scaling
-  var maxDiameter = 0;
-  document.querySelectorAll('.dim-card').forEach(function(card) {
-    var r = parseFloat(card.dataset.radius || 0);
-    if (r * 2 > maxDiameter) maxDiameter = r * 2;
-  });
+  // Scale each image so the border = container edge. The render covers
+  // RENDER_SIZE * BASE_SCALE / dimScale blocks. If the border (diameter)
+  // is smaller than that, the image shrinks. If bigger, it stays full.
+  var RENDER_SIZE = 1024, BASE_SCALE = 8;
   document.querySelectorAll('.dim-card').forEach(function(card) {
     var radius = parseFloat(card.dataset.radius || 0);
+    var dimScale = parseFloat(card.dataset.dimScale || 1);
     if (!radius) return;
     var diameter = radius * 2;
-    // Scale relative to the largest dimension — shows true relative size
-    var imgScale = Math.max(0.05, diameter / maxDiameter);
+    var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
+    // If border < render coverage: shrink image so border fills the container
+    // If border >= coverage: image stays full (border extends beyond render)
+    var imgScale = Math.max(0.05, Math.min(1, diameter / coverage));
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
       if (wrap.classList.contains('img-wrap')) return;
@@ -680,7 +681,7 @@ body.show-borders .border-label { display: block; }
       div.appendChild(ring);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
-      lbl.textContent = (radius * 2) + 'b diameter';
+      lbl.textContent = diameter + 'b border' + (diameter >= coverage ? ' (extends beyond view)' : '');
       div.appendChild(lbl);
     });
   });
