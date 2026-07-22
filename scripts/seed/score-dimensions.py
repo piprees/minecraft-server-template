@@ -733,6 +733,18 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
             print("  NEW chunks generate on it; existing overworld chunks keep the old "
                   "terrain (wipe the world / ./ops reset-seed ritual to regenerate)")
 
+    # Inject enriched data (structure_all, biome_survey) into scored results
+    if dir_mode:
+        cdir_enrich = candidates.candidates_dir(Path(args.config))
+        for name in profiles:
+            store = candidates.load_store(cdir_enrich / f"{name}.json")
+            for c in results.get(name, []):
+                cand_entry = store["candidates"].get(c["seed"], {})
+                if "structure_all" in cand_entry:
+                    c["structure_all"] = cand_entry["structure_all"]
+                if "biome_survey" in cand_entry:
+                    c["biome_survey"] = cand_entry["biome_survey"]
+
     if args.viewer:
         viewer = Path(args.seedtest) / "index.html"
         viewer.write_text(render_viewer(
@@ -1026,34 +1038,43 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                         "<span>water <b>{:.0%}</b></span>"
                         "</div>".format(relief, grain, water))
     # Structure hit/miss list — sorted by distance from spawn
+    # Use enriched structure_all data if available, fall back to nearest-only
+    struct_all = c.get("structure_all", {})
     struct_items = []
     for sname, _sid, spec, kind in profile.get("battery", []):
         v = c["metrics"].get(f"structure_{sname}_dist")
         d = float(v) if v is not None else -1
         pretty = sname.replace("_", " ").title()
+        all_hits = struct_all.get(sname, [])
+        count_str = " <span class='meta'>({})</span>".format(len(all_hits)) if len(all_hits) > 1 else ""
         if kind == "shun":
             tip = "Avoid: should not appear nearby"
-            if d < 0:
+            if d < 0 and not all_hits:
                 struct_items.append((9999, "<span title='{}'>{}</span> {} — absent".format(
                     tip, "&#x2705;", html.escape(pretty))))
             else:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({})".format(
-                    tip, "&#x274C;", html.escape(pretty), int(d))))
+                n = len(all_hits) if all_hits else 1
+                struct_items.append((d if d >= 0 else 0, "<span title='{}'>{}</span> {} ({}){}".format(
+                    tip, "&#x274C;", html.escape(pretty), int(d) if d >= 0 else "found",
+                    " <span class='meta'>({} total)</span>".format(n) if n > 1 else "")))
         else:
             lo, hi = spec
             tip = "Wanted: {}-{} blocks from spawn".format(int(lo), int(hi))
-            if d < 0:
+            if d < 0 and not all_hits:
                 struct_items.append((9998, "<span title='{}'>{}</span> {} — not found".format(
                     tip, "&#x274C;", html.escape(pretty))))
-            elif lo <= d <= hi:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({})".format(
-                    tip, "&#x2705;", html.escape(pretty), int(d))))
-            elif d < lo:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close)".format(
-                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d))))
+            elif d >= 0 and lo <= d <= hi:
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({}){}".format(
+                    tip, "&#x2705;", html.escape(pretty), int(d), count_str)))
+            elif d >= 0 and d < lo:
+                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close){}".format(
+                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d), count_str)))
             else:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too far)".format(
-                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d))))
+                struct_items.append((d if d >= 0 else 9998,
+                    "<span title='{}'>{}</span> {} ({}{}){}".format(
+                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty),
+                    int(d) if d >= 0 else "?", ", too far" if d >= 0 else "",
+                    count_str)))
     struct_items.sort(key=lambda x: x[0])
     struct_html = ("<div class='section-header'>Structures</div>"
                    "<div class='struct-list'>{}</div>".format(
@@ -1087,22 +1108,33 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Fork dimension <kbd>F</kbd></button>".format(
                           esc_dim, c["seed"]))
-    # Biome distances — sorted by distance from spawn
+    # Biome list — use survey data (all unique biomes found) if available,
+    # fall back to the variety-biome distance metrics
+    biome_survey = c.get("biome_survey", {})
     biome_items = []
-    for metric, value in c["metrics"].items():
-        if metric.startswith("biome_") and metric.endswith("_dist"):
-            bname = metric[6:-5].replace("_", " ").title()
-            d = float(value)
-            if d >= 0:
-                biome_items.append((d, "<div>&#x2705; {} ({})</div>".format(
-                    html.escape(bname), int(d))))
-            else:
-                biome_items.append((9999, "<div>&#x274C; {} — not found</div>".format(
-                    html.escape(bname))))
+    if biome_survey:
+        for biome_id, (dist, bx, bz) in biome_survey.items():
+            pretty = biome_id.split(":")[-1].replace("_", " ").title()
+            ns = biome_id.split(":")[0].title() if ":" in biome_id else ""
+            label = f"{ns}:{pretty}" if ns else pretty
+            biome_items.append((dist, "<div>&#x2705; {} ({})</div>".format(
+                html.escape(label), int(dist))))
+    else:
+        for metric, value in c["metrics"].items():
+            if metric.startswith("biome_") and metric.endswith("_dist"):
+                bname = metric[6:-5].replace("_", " ").title()
+                d = float(value)
+                if d >= 0:
+                    biome_items.append((d, "<div>&#x2705; {} ({})</div>".format(
+                        html.escape(bname), int(d))))
+                else:
+                    biome_items.append((9999, "<div>&#x274C; {} — not found</div>".format(
+                        html.escape(bname))))
     biome_items.sort(key=lambda x: x[0])
-    biome_html = ("<div class='section-header'>Biomes</div>"
+    biome_html = ("<div class='section-header'>Biomes ({})</div>"
                   "<div class='struct-list'>"
-                  "{}</div>".format("".join(s for _, s in biome_items))
+                  "{}</div>".format(len(biome_items),
+                      "".join(s for _, s in biome_items))
                   if biome_items else "")
 
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""

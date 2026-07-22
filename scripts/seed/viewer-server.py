@@ -622,6 +622,56 @@ def main():
                 cmod.save_store(cdir / f"{name}.json", store)
 
         print(f"Enriched {enriched} candidates with full structure data", flush=True)
+
+        # Biome survey: sample a grid within the border, record all unique biomes + positions
+        print("=== Surveying biomes ===", flush=True)
+        from biome_sampler import BiomeSampler, load_noise_configs
+        noise_configs = load_noise_configs()
+        biome_params = str(SCRIPT_DIR / "biome_params.json")
+        if Path(biome_params).exists():
+            FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
+                            "end": "end", "paradise_lost": "paradise_lost"}
+            TYPE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
+            bio_enriched = 0
+            for name, dim in all_targets.items():
+                profile = build_profile(dim, config, difficulty)
+                store = cmod.load_store(cdir / f"{name}.json")
+                radius = int(profile["radius"])
+                dim_type = dim.get("type", "")
+                fam = profile.get("family", "overworld")
+                noise_fam = TYPE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
+                nc = noise_configs.get(noise_fam, noise_configs.get("overworld"))
+
+                scored = []
+                for seed_str, cand in store["candidates"].items():
+                    best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
+                    if best > 0:
+                        scored.append((best, seed_str))
+                scored.sort(reverse=True)
+
+                changed = False
+                step = max(64, radius // 32)
+                for _, seed_str in scored[:10]:
+                    cand = store["candidates"][seed_str]
+                    if "biome_survey" in cand:
+                        continue
+                    sampler = BiomeSampler(int(seed_str), biome_params,
+                                          noise_config=nc, family=noise_fam)
+                    biome_map = {}
+                    for bx in range(-radius, radius + 1, step):
+                        for bz in range(-radius, radius + 1, step):
+                            biome = sampler.biome_at(bx, bz)
+                            if biome not in biome_map:
+                                dist = int((bx * bx + bz * bz) ** 0.5)
+                                biome_map[biome] = [dist, bx, bz]
+                    cand["biome_survey"] = biome_map
+                    changed = True
+                    bio_enriched += 1
+
+                if changed:
+                    cmod.save_store(cdir / f"{name}.json", store)
+
+            print(f"Surveyed biomes for {bio_enriched} candidates", flush=True)
     except Exception as e:
         print(f"Structure enumeration failed: {e}", flush=True)
 
