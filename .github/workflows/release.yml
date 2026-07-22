@@ -129,16 +129,31 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit CHANGELOG.md
+        # Best-effort AFTER the release is published: main can move during a
+        # release (another merge landing mid-run made this push non-fast-
+        # forward and failed the whole job — v3.1.0, 2026-07-22 — which
+        # skipped the images job and shipped a release with no version-tagged
+        # images). Rebase-and-retry, and never fail the job over a changelog.
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
-          git diff --cached --quiet || git commit -m "chore: update CHANGELOG.md for ${{ inputs.version }}"
-          git push origin HEAD:main
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update CHANGELOG.md for ${{ inputs.version }}"
+            for attempt in 1 2 3; do
+              git push origin HEAD:main && break
+              echo "push rejected (attempt $attempt) — rebasing onto moved main"
+              git pull --rebase origin main
+            done
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Advance major tag
+        # Also best-effort: consumers resolve symbolic pins via the releases
+        # API, not this tag — it must never block the images job.
+        continue-on-error: true
         run: |
           MAJOR=$(echo "${{ inputs.version }}" | grep -oE '^v[0-9]+')
           if [[ -n "$MAJOR" ]]; then
