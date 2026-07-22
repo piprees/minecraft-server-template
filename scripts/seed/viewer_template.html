@@ -287,7 +287,7 @@ body.ungrouped .cand-dim-label { display: block; }
 body.show-borders .img-wrap img { transform-origin: center; }
 .border-ring {
   display: none; position: absolute; border: 2px solid rgba(255,60,60,.8);
-  pointer-events: none; z-index: 5; inset: 0;
+  pointer-events: none; z-index: 5;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.4);
 }
 body.show-borders .border-ring { display: block; }
@@ -469,6 +469,27 @@ body.show-borders .border-label { display: block; }
     if (hires) { var p = new Image(); p.onload = function() { lbImg.src = hires; }; p.src = hires; }
     var detail = cand.querySelector('.cand-detail');
     lbInfo.innerHTML = detail ? detail.innerHTML : '';
+    // Add border overlay to lightbox image if borders enabled
+    var lbImageDiv = lb.querySelector('.lb-image');
+    var existingRing = lbImageDiv.querySelector('.border-ring');
+    if (existingRing) existingRing.remove();
+    var existingLbl = lbImageDiv.querySelector('.border-label');
+    if (existingLbl) existingLbl.remove();
+    if (document.body.classList.contains('show-borders')) {
+      var dimCard = cand.closest('.dim-card');
+      if (dimCard && dimCard.dataset.borderPct) {
+        var ring = document.createElement('div');
+        ring.className = 'border-ring';
+        ring.style.cssText = 'display:block;left:'+dimCard.dataset.borderOffset+'%;top:'+dimCard.dataset.borderOffset+'%;width:'+dimCard.dataset.borderPct+'%;height:'+dimCard.dataset.borderPct+'%';
+        lbImageDiv.style.position = 'relative';
+        lbImageDiv.appendChild(ring);
+        var lbl = document.createElement('div');
+        lbl.className = 'border-label';
+        lbl.style.display = 'block';
+        lbl.textContent = dimCard.dataset.borderDiameter + 'b border';
+        lbImageDiv.appendChild(lbl);
+      }
+    }
     lb.classList.add('open');
   }
   document.addEventListener('keydown', function(e) {
@@ -664,12 +685,16 @@ body.show-borders .border-label { display: block; }
     if (!radius) return;
     var diameter = radius * 2;
     var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
-    // Shrink the terrain image so the border ring = container edge.
-    // coverage/diameter = fraction of the border the render covers.
-    // If render < border: image shrinks (terrain is a patch inside the border)
-    // If render > border: image also shrinks (border is smaller than terrain)
-    // Either way: border ring = container edge, image scales proportionally.
-    var imgScale = Math.max(0.05, Math.min(1, coverage / diameter));
+    // Container represents whichever is larger: render or border.
+    // Image scales to coverage/max, border ring scales to diameter/max.
+    var maxExtent = Math.max(coverage, diameter);
+    var imgScale = Math.max(0.05, coverage / maxExtent);
+    var borderPct = Math.max(5, (diameter / maxExtent) * 100);
+    var borderOffset = (100 - borderPct) / 2;
+    card.dataset.imgScale = imgScale.toFixed(4);
+    card.dataset.borderPct = borderPct.toFixed(1);
+    card.dataset.borderOffset = borderOffset.toFixed(1);
+    card.dataset.borderDiameter = diameter;
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
       if (wrap.classList.contains('img-wrap')) return;
@@ -678,9 +703,10 @@ body.show-borders .border-label { display: block; }
       div.dataset.borderScale = imgScale.toFixed(4);
       img.parentNode.insertBefore(div, img);
       div.appendChild(img);
-      // Border ring = full container edge (the image shrinks to fit inside it)
+      // Border ring positioned proportionally within the container
       var ring = document.createElement('div');
       ring.className = 'border-ring';
+      ring.style.cssText = 'left:'+borderOffset.toFixed(1)+'%;top:'+borderOffset.toFixed(1)+'%;width:'+borderPct.toFixed(1)+'%;height:'+borderPct.toFixed(1)+'%';
       div.appendChild(ring);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
