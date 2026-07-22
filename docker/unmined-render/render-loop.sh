@@ -37,6 +37,7 @@ WORLD_DIR="${WORLD_DIR:-/world}"
 CONFIG_DIR="${CONFIG_DIR:-/config}"
 OUT_DIR="${OUT_DIR:-/web}"
 UNMINED_HOME="${UNMINED_HOME:-/opt/unmined}"
+WEBSHELL_DIR="${WEBSHELL_DIR:-/app/webshell}"
 PREGEN_BORDER_RADIUS="${PREGEN_BORDER_RADIUS:-8192}"
 UNMINED_INTERVAL="${UNMINED_INTERVAL:-0}"
 UNMINED_ZOOMOUT="${UNMINED_ZOOMOUT:-6}"
@@ -98,22 +99,85 @@ render_one() {
   return 0
 }
 
-# Landing page: one link per rendered map.
-write_index() {
-  idx="$OUT_DIR/index.html"
-  {
-    printf '<!doctype html>\n<html lang="en"><meta charset="utf-8">\n'
-    printf '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-    printf '<title>World Maps</title>\n'
-    printf '<style>body{font-family:system-ui,sans-serif;background:#0c1319;color:#c5cdd8;margin:2rem auto;max-width:40rem;padding:0 1rem}h1{font-size:1.3rem}a{color:#7db3e8;text-decoration:none;display:block;padding:.35rem .5rem;border-radius:6px}a:hover{background:#1c2835}</style>\n'
-    printf '<h1>World Maps</h1>\n'
-    for d in "$OUT_DIR"/maps/*/; do
-      [[ -f "$d/index.html" ]] || continue
-      n=$(basename "$d")
-      printf '<a href="maps/%s/">%s</a>\n' "$n" "$n"
-    done
-  } > "$idx.tmp"
-  mv "$idx.tmp" "$idx"
+# Config file for a map name (base worlds use their v4 config slugs).
+config_file_for() {
+  case "$1" in
+    nether) echo "$CONFIG_DIR/dimensions/the_nether.json" ;;
+    end) echo "$CONFIG_DIR/dimensions/the_end.json" ;;
+    *) echo "$CONFIG_DIR/dimensions/$1.json" ;;
+  esac
+}
+
+# Spawn marker for one map: the dimension's spawn point labelled with its
+# name. This file is the dynamic-marker hook — anything may rewrite it
+# between renders (structures, POIs, sign data); the shell fetches it with
+# ?v=<render stamp> and merges it into the uNmINeD marker layer.
+write_markers() {
+  name="$1"
+  cfg="$(config_file_for "$name")"
+  pretty=$(jq -rn --arg s "$name" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")')
+  spawn="[0, 64, 0]"
+  if [[ -f "$cfg" ]]; then
+    s=$(jq -c '(.spawn // .overrides.spawn // empty)' "$cfg" 2>/dev/null || true)
+    [[ -n "$s" ]] && spawn="$s"
+  fi
+  jq -n --arg text "$pretty" --arg img "/maps/$name/custom.pin.png" --argjson spawn "$spawn" '[{
+      x: $spawn[0], z: $spawn[2], text: $text,
+      image: $img, imageAnchor: [0.5, 1], imageScale: 0.5,
+      font: "bold 14px system-ui", textColor: "#ffffff",
+      textStrokeColor: "#000000", textStrokeWidth: 3, offsetY: 16
+    }]' > "$OUT_DIR/maps/$name/markers.json"
+}
+
+# Manifest consumed by the web shell (served no-cache): one entry per
+# rendered map with a version stamp (epoch of the last render) that busts
+# the edge cache for that dimension's tiles and metadata.
+write_manifest() {
+  tmp="$OUT_DIR/.manifest-entries"
+  : > "$tmp"
+  for d in "$OUT_DIR"/maps/*/; do
+    [[ -f "$d/unmined.map.properties.js" ]] || continue
+    name=$(basename "$d")
+    marker="$d/.last-render"
+    ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
+    cfg="$(config_file_for "$name")"
+    dim_type="overworld"
+    spawn="null"
+    if [[ -f "$cfg" ]]; then
+      dim_type=$(jq -r '(.type // .overrides.type // "overworld")' "$cfg" 2>/dev/null || echo overworld)
+      spawn=$(jq -c '(.spawn // .overrides.spawn // null)' "$cfg" 2>/dev/null || echo null)
+    fi
+    case "$name:$dim_type" in
+      nether:*|*:*nether*) family="nether" ;;
+      end:*|*:*end*|*:void) family="end" ;;
+      *paradise*) family="paradise_lost" ;;
+      *) family="overworld" ;;
+    esac
+    jq -n --arg slug "$name" --arg type "$dim_type" --arg family "$family" \
+      --argjson spawn "$spawn" --argjson ver "$ver" \
+      --arg pretty "$(jq -rn --arg s "$name" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")')" \
+      '{slug: $slug, name: $pretty, type: $type, family: $family,
+        spawn: $spawn, version: $ver, renderedAt: $ver}' >> "$tmp"
+  done
+  jq -s '{generated: now | floor, dimensions: sort_by(.slug)}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
+  mv "$OUT_DIR/manifest.json.tmp" "$OUT_DIR/manifest.json"
+  rm -f "$tmp"
+}
+
+# Install the SPA shell (index.html/app.js/app.css) and shared uNmINeD
+# assets (lib/, unmined.js — identical in every map dir) at the web root.
+install_shell() {
+  if [[ -d "$WEBSHELL_DIR" ]]; then
+    cp "$WEBSHELL_DIR"/index.html "$WEBSHELL_DIR"/app.js "$WEBSHELL_DIR"/app.css "$OUT_DIR/"
+  fi
+  for d in "$OUT_DIR"/maps/*/; do
+    if [[ -d "$d/lib" && -f "$d/unmined.js" ]]; then
+      rm -rf "${OUT_DIR:?}/lib"
+      cp -r "$d/lib" "$OUT_DIR/lib"
+      cp "$d/unmined.js" "$OUT_DIR/unmined.js"
+      break
+    fi
+  done
 }
 
 render_all() {
@@ -135,7 +199,12 @@ render_all() {
       render_one "$slug" "$ns:$slug" "$dimdir/region" "$radius" && rendered=$((rendered + 1)) || true
     done
   done
-  write_index
+  for d in "$OUT_DIR"/maps/*/; do
+    [[ -f "$d/unmined.map.properties.js" ]] || continue
+    write_markers "$(basename "$d")"
+  done
+  install_shell
+  write_manifest
   log "pass complete: $rendered map(s) considered"
 }
 

@@ -1,0 +1,88 @@
+/* map.DOMAIN shell — sidebar + map view. The site nav bar (44px, fixed) is
+   injected by nav-proxy; every fixed element below starts at top: 44px. */
+:root {
+  --nav-h: 44px;
+  --sidebar-w: 240px;
+  --bg-page: #0c1319;
+  --bg-panel: #080d12;
+  --border: #1c2835;
+  --text: #c5cdd8;
+  --text-muted: #7a8999;
+  --accent: #5a9a70;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg-page); color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif; font-size: .9rem;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --- Sidebar toggle ------------------------------------------------------ */
+#sidebar-toggle {
+  position: fixed; top: calc(var(--nav-h) + 8px); left: 8px; z-index: 1001;
+  font: inherit; font-size: 1rem; line-height: 1; padding: .45rem .6rem;
+  background: var(--bg-panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+}
+#sidebar-toggle:hover { border-color: var(--accent); }
+#sidebar-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Sidebar -------------------------------------------------------------- */
+#sidebar {
+  position: fixed; top: var(--nav-h); bottom: 0; left: 0; z-index: 1000;
+  width: var(--sidebar-w); overflow-y: auto;
+  background: var(--bg-panel); border-right: 1px solid var(--border);
+  padding: 3.2rem .6rem 1rem;
+  transition: transform .2s ease;
+}
+body.sidebar-closed #sidebar { transform: translateX(-100%); }
+#sidebar h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-muted); margin: 0 0 .4rem .4rem; }
+#sidebar-hint { font-size: .72rem; color: var(--text-muted); margin: 0 0 .6rem .4rem; }
+#dim-list { list-style: none; margin: 0; padding: 0; }
+#dim-list a {
+  display: block; padding: .4rem .6rem; border-radius: 6px;
+  color: var(--text); text-decoration: none;
+}
+#dim-list a:hover { background: #10161d; }
+#dim-list a[aria-current="page"] { background: #14202b; color: #a8d8a0; }
+#dim-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#dim-list .dim-when { display: block; font-size: .68rem; color: var(--text-muted); }
+
+/* --- Map view -------------------------------------------------------------- */
+#view {
+  position: fixed; top: var(--nav-h); right: 0; bottom: 0;
+  left: var(--sidebar-w); transition: left .2s ease;
+}
+body.sidebar-closed #view { left: 0; }
+#map { position: absolute; inset: 0; transition: background-color .25s ease; }
+#fade {
+  position: absolute; inset: 0; z-index: 50; opacity: 0;
+  pointer-events: none; transition: opacity .25s ease;
+}
+#fade.active { opacity: 1; }
+#map-empty {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  padding: 1rem;
+}
+#map-empty h1 { font-size: 1.3rem; margin: 0 0 .4rem; }
+#map-empty p { color: var(--text-muted); max-width: 30rem; margin: 0; }
+
+/* OpenLayers zoom control sits under our toggle when the sidebar is closed */
+#view .ol-zoom { top: .5em; left: auto; right: .5em; }
+
+@media (prefers-reduced-motion: reduce) {
+  #sidebar, #view, #fade, #map { transition: none; }
+}
+
+@media (max-width: 700px) {
+  #view { left: 0; }
+  #sidebar { box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+}

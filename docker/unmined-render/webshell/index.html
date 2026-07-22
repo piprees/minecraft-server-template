@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>World Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- OpenLayers + helpers (shared copies installed by render-loop.sh) -->
+    <link rel="stylesheet" href="/lib/ol.css">
+    <link rel="stylesheet" href="/lib/ol-contextmenu.css">
+    <link rel="stylesheet" href="/lib/toastify-js.min.css">
+    <link rel="stylesheet" href="/app.css">
+    <script src="/lib/ol.js"></script>
+    <script src="/lib/ol-contextmenu.iife.js"></script>
+    <script src="/lib/toastify-js.js"></script>
+    <script src="/unmined.js"></script>
+</head>
+<body>
+    <button id="sidebar-toggle" type="button" aria-expanded="true"
+        aria-controls="sidebar" title="Toggle dimension list">
+        <span aria-hidden="true">&#9776;</span>
+        <span class="visually-hidden">Toggle dimension list</span>
+    </button>
+
+    <aside id="sidebar" aria-label="Explored dimensions">
+        <h2>Dimensions</h2>
+        <p id="sidebar-hint">Worlds appear here once someone has explored them.</p>
+        <nav aria-label="Dimension maps"><ul id="dim-list"></ul></nav>
+    </aside>
+
+    <div id="view">
+        <div id="map" aria-label="World map"></div>
+        <div id="fade" aria-hidden="true"></div>
+        <div id="map-empty" hidden>
+            <h1>No maps yet</h1>
+            <p>Maps appear after the first render pass — explore a dimension
+               and check back soon.</p>
+        </div>
+    </div>
+
+    <p id="map-status" class="visually-hidden" aria-live="polite"></p>
+
+    <script src="/app.js"></script>
+</body>
+</html>

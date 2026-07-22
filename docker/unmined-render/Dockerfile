@@ -33,6 +33,7 @@ RUN case "$TARGETARCH" in \
     && /opt/unmined/unmined-cli image help 2>&1 | grep -q render
 
 COPY docker/unmined-render/render-loop.sh /app/render-loop.sh
+COPY docker/unmined-render/webshell/ /app/webshell/
 RUN chmod +x /app/render-loop.sh
 
 ENTRYPOINT ["/app/render-loop.sh"]
