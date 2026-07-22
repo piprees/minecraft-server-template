@@ -480,19 +480,18 @@ body.show-borders .img-wrap img { transform-origin: center; }
       var bDiam = parseFloat(dimCard.dataset.borderDiameter);
       var dScale = parseFloat(dimCard.dataset.dimScale || 1);
       var hiresCoverage = 2048 * 16 / dScale;
+      var lbl = document.createElement('div');
+      lbl.className = 'border-label';
+      lbl.textContent = hiresCoverage + 'b render · ' + bDiam + 'b border';
+      lbImageDiv.style.position = 'relative';
+      lbImageDiv.appendChild(lbl);
       if (hiresCoverage > bDiam) {
         var pct = (bDiam / hiresCoverage) * 100;
         var off = (100 - pct) / 2;
         var ring = document.createElement('div');
         ring.className = 'border-ring';
         ring.style.cssText = 'display:block;left:'+off.toFixed(1)+'%;top:'+off.toFixed(1)+'%;width:'+pct.toFixed(1)+'%;height:'+pct.toFixed(1)+'%';
-        lbImageDiv.style.position = 'relative';
         lbImageDiv.appendChild(ring);
-        var lbl = document.createElement('div');
-        lbl.className = 'border-label';
-        lbl.style.display = 'block';
-        lbl.textContent = bDiam + 'b border';
-        lbImageDiv.appendChild(lbl);
       }
     }
     lb.classList.add('open');
