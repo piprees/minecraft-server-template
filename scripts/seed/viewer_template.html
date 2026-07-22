@@ -709,7 +709,9 @@ body.show-borders .img-wrap img { transform-origin: center; }
       div.appendChild(img);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
-      lbl.textContent = diameter + 'b';
+      lbl.textContent = coverage + 'b';
+      lbl.dataset.normalCoverage = coverage;
+      lbl.dataset.hiresCoverage = Math.round(2048 * 16 / dimScale);
       div.appendChild(lbl);
     });
   });
@@ -737,8 +739,13 @@ body.show-borders .img-wrap img { transform-origin: center; }
       var hi = new Image();
       hi.onload = function() {
         img.src = hi.src;
-        var badge = img.parentElement && img.parentElement.querySelector('.hires-badge');
-        if (badge) badge.classList.add('visible');
+        var wrap = img.parentElement;
+        if (wrap) {
+          var badge = wrap.querySelector('.hires-badge');
+          if (badge) badge.classList.add('visible');
+          var lbl = wrap.querySelector('.border-label');
+          if (lbl && lbl.dataset.hiresCoverage) lbl.textContent = lbl.dataset.hiresCoverage + 'b';
+        }
         pending.delete(img);
       };
       hi.src = hires.split('?')[0] + '?t=' + Date.now();
