@@ -1119,16 +1119,15 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='seed'>{}</div>"
         "<div class='cand-detail' style='display:none'>"
         "<div class='lb-header'>"
-        "<div class='dim-label'>{}</div>"
+        "<div class='lb-title'><span class='dim-label'>{}</span>"
+        " <span class='score' style='color:{}'>{:.1f}{}</span>"
+        " <span class='seed'>{}</span></div>"
         "<div class='spawn'><b>{}</b></div>"
-        "<div class='score' style='color:{}'>{:.1f}{}</div>"
         "<div class='score-parts'>{}</div>"
         "</div>"
-        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
         "{}"
         "{}"
         "<div>{}</div>"
-        "<div class='seed' style='margin:.3rem 0'>{}</div>"
         "<div class='lb-actions'>{}{}{}</div>"
         "</div>"
         "</div>").format(
@@ -1139,11 +1138,11 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],
             html.escape(dim_name),
-            html.escape(spawn),
             sc, c["score"], crown,
+            c["seed"],
+            html.escape(spawn),
             score_parts,
             terrain_html, struct_html, biome_html,
-            c["seed"],
             pick_btn, shortlist_btn, create_dim_btn)
 
 
