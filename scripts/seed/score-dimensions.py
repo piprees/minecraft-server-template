@@ -1014,23 +1014,13 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     hires = "renders/{}/{}_hires.png".format(dim_name, c["seed"])
     _axis_labels = {"namesake": "spawn", "variety": "variety",
                     "terrain": "terrain", "structures": "structures"}
-    def _bar_col(v):
-        if v >= 0.7: return "#6ec96e"
-        if v >= 0.5: return "#5b8dd0"
-        if v >= 0.3: return "#e8a735"
-        return "#e05252"
-    bars = "".join(
-        "<div class='bar'><span>{}</span><span class='track'>"
-        "<span class='fill' style='width:{:.0f}%;background:{}'></span></span>"
-        "<span>{:.0%}</span></div>".format(
-            _axis_labels.get(k, k), v * 100, _bar_col(v), v)
-        for k, v in c["parts"].items())
     # Terrain summary
     relief, grain, water, _land = terrain_metrics(c["metrics"])
     t = profile.get("terrain", {})
     terrain_html = ""
     if relief > 0 or grain > 0:
-        terrain_html = ("<div class='terrain-summary'>"
+        terrain_html = ("<div class='section-header'>Terrain</div>"
+                        "<div class='terrain-summary'>"
                         "<span>relief <b>{:.0f}</b></span>"
                         "<span>grain <b>{:.1f}</b></span>"
                         "<span>water <b>{:.0%}</b></span>"
@@ -1065,7 +1055,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                 struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too far)".format(
                     tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d))))
     struct_items.sort(key=lambda x: x[0])
-    struct_html = ("<div class='struct-list'>{}</div>".format(
+    struct_html = ("<div class='section-header'>Structures</div>"
+                   "<div class='struct-list'>{}</div>".format(
         "".join("<div>{}</div>".format(s) for _, s in struct_items))
         if struct_items else "")
     spawn = c["spawn_biome"]
@@ -1109,9 +1100,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                 biome_items.append((9999, "<div>&#x274C; {} — not found</div>".format(
                     html.escape(bname))))
     biome_items.sort(key=lambda x: x[0])
-    biome_html = ("<div class='struct-list' style='margin-top:.4rem'>"
-                  "<div style='font-size:.65rem;color:var(--text-heading);"
-                  "margin-bottom:.1rem'>Biomes</div>"
+    biome_html = ("<div class='section-header'>Biomes</div>"
+                  "<div class='struct-list'>"
                   "{}</div>".format("".join(s for _, s in biome_items))
                   if biome_items else "")
 
@@ -1135,17 +1125,10 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='score-parts'>{}</div>"
         "</div>"
         "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
-        "<div style='font-size:.65rem;color:var(--text-heading);margin-bottom:.1rem'>Scoring</div>"
-        "<div class='bars'>{}</div>"
-        "<div style='font-size:.65rem;color:var(--text-heading);margin:.3rem 0 .1rem'>Terrain</div>"
         "{}"
-        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
-        "<div style='font-size:.65rem;color:var(--text-heading);margin-bottom:.1rem'>Structures</div>"
         "{}"
         "<div>{}</div>"
-        "<hr style='border:none;border-top:1px solid var(--border);margin:.4rem 0'>"
-        "<div class='seed' style='margin-bottom:.3rem'>{}</div>"
-        "<div class='spawn'>spawn: {}</div>"
+        "<div class='seed' style='margin:.3rem 0'>{}</div>"
         "<div class='lb-actions'>{}{}{}</div>"
         "</div>"
         "</div>").format(
@@ -1159,10 +1142,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             html.escape(spawn),
             sc, c["score"], crown,
             score_parts,
-            bars, terrain_html,
-            struct_html, biome_html,
+            terrain_html, struct_html, biome_html,
             c["seed"],
-            spawn_html,
             pick_btn, shortlist_btn, create_dim_btn)
 
 
