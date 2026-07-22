@@ -228,9 +228,11 @@ def want_score(dist, lo, hi, radius):
         if lo >= LOCATE_HORIZON:
             return 0.8
         return 0.0 if hi <= LOCATE_HORIZON else 0.6
-    # Too close: linear ramp from 0 at spawn to 1.0 at the range minimum
+    # Too close: scales from -0.5 at spawn to 1.0 at the range minimum.
+    # Being found WAY too close actively penalises the total, not just zeros out.
     if dist < lo:
-        return dist / max(lo, 1)
+        t = dist / max(lo, 1)
+        return t * 1.5 - 0.5
     # Inside the wanted range: 1.0 + comfort bonus
     if dist <= hi:
         centre = (lo + hi) / 2
