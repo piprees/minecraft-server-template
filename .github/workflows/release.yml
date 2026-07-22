@@ -106,11 +106,17 @@ jobs:
           version: v2.13.1
           args: --latest --strip header -o dist/RELEASE_NOTES.md
 
+      - name: Fetch tags for changelog
+        run: git fetch --tags --force
+
       - name: Generate full changelog
-        # git-cliff is already on PATH from the previous action step
-        run: |
-          git fetch --tags --force
-          git-cliff -o CHANGELOG.md
+        # Must go through the action: git-cliff-action downloads the binary
+        # into its own step and does NOT leave it on PATH — a bare git-cliff
+        # in a run step fails with exit 127 (broke the first v3.1.0 cut).
+        uses: orhun/git-cliff-action@v4.8.0
+        with:
+          version: v2.13.1
+          args: -o CHANGELOG.md
 
       - name: Create draft release with assets, then publish
         run: |
