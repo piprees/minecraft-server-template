@@ -13,24 +13,27 @@ FROM debian:bookworm-slim
 
 ARG TARGETARCH
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl unzip jq \
+    && apt-get install -y --no-install-recommends ca-certificates curl jq \
     && rm -rf /var/lib/apt/lists/*
 
-# Map Docker arch to uNmINeD's naming (amd64 -> x64). The archive is a zip
-# despite the download name. Keep the CLI's own directory layout intact —
-# it resolves its native libraries and templates relative to the binary.
+# Map Docker arch to uNmINeD's naming (amd64 -> x64). The LINUX downloads
+# are tar.gz (the macOS ones are zips — that mismatch broke the first CI
+# build). Keep the CLI's own directory layout intact — it resolves its
+# native libraries and templates relative to the binary.
 RUN case "$TARGETARCH" in \
         amd64) UNMINED_ARCH=x64 ;; \
         arm64) UNMINED_ARCH=arm64 ;; \
         *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
     esac \
-    && curl -fsSL "https://unmined.net/download/unmined-cli-linux-${UNMINED_ARCH}-dev/" -o /tmp/unmined.zip \
-    && unzip -q /tmp/unmined.zip -d /opt \
-    && rm /tmp/unmined.zip \
+    && curl -fsSL "https://unmined.net/download/unmined-cli-linux-${UNMINED_ARCH}-dev/" -o /tmp/unmined.tar.gz \
+    && tar -xzf /tmp/unmined.tar.gz -C /opt \
+    && rm /tmp/unmined.tar.gz \
     && mv /opt/unmined-cli_* /opt/unmined \
     && chmod +x /opt/unmined/unmined-cli \
-    # Help exits 1 by design — assert the binary runs and lists its verbs.
-    && /opt/unmined/unmined-cli image help 2>&1 | grep -q render
+    # Structural check only: executing the .NET binary here would run under
+    # QEMU for the non-host arch. render-loop.sh self-checks at runtime.
+    && test -x /opt/unmined/unmined-cli \
+    && test -d /opt/unmined/library
 
 COPY docker/unmined-render/render-loop.sh /app/render-loop.sh
 COPY docker/unmined-render/webshell/ /app/webshell/
