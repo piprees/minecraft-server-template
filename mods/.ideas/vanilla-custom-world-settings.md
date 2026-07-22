@@ -114,3 +114,71 @@ describing the worlds we actually generate.
    zero worldgen impact) is the easy win.
 5. **`environment` overlay semantics** already give consumers per-dim
    overrides (`"overrides"` deep-merge) — new fields inherit that for free.
+
+## Precision placement — beyond rolling the dice
+
+Question: since the mod owns the dimension pipeline, can we PLACE biomes and
+structures instead of rolling seeds until they land well? Yes — and it
+inverts the roller's job from "search for luck" to "verify constraints".
+
+### Biome patches (medium effort, huge payoff)
+
+A biome source is a pure function (x, y, z) → biome. The mod already swaps
+sources per dimension, so it can WRAP any source with an override layer:
+
+    "biomePatches": [
+      { "biome": "minecraft:cherry_grove", "x": 0, "z": 0, "radius": 96 },
+      { "biome": "terralith:moonlight_grove", "x": 1500, "z": -800, "radius": 200 }
+    ]
+
+Delegate to the wrapped source everywhere except inside patches. Effects:
+correct surface rules, features, mob spawns, grass/water tint inside the
+patch; multi-noise generation everywhere else. The killer app is a
+**guaranteed spawn biome at (0,0)** — which deletes the spawn-filter
+lottery (the 0.1–0.5% acceptance-rate problem from 2026-07-17) entirely.
+Caveats: 1.18+ terrain SHAPE is mostly biome-independent (density
+functions), so a desert patch in mountains is a sandy mountain — patch
+radius should respect terrain mood; blend the edge (1–2 chunk noise jitter
+on the boundary) or patches look stamped.
+
+### Fixed structures (two routes)
+
+1. **Post-gen `/place structure`** (cheap, ships tomorrow): deploy.sh's
+   one-time dimension setup already forceloads a chunk — extend it to run
+   `execute in <dim> run place structure minecraft:ancient_city X Y Z`
+   from a config list. Baked into chunks, survives forever, zero runtime
+   cost. Limitations: placement is "as generated at that spot" (no terrain
+   adaptation beyond the structure's own rules), and it's creation-time
+   only (marker-gated like the rest of one-time setup).
+2. **Custom StructurePlacement type** (proper, medium): register a
+   `customdimensions:fixed` placement that returns exact chunk positions
+   from config. `DimensionStructures` already rebuilds each world's
+   placement calculator with unregistered copies — injecting synthetic
+   placements is the same machinery. This gets real generation-time
+   placement (terrain adaptation, locate support, maps) and composes with
+   structureDensity.
+
+### How deep does it go?
+
+Combining the above with what already exists:
+
+| Layer | Mechanism | Status |
+| --- | --- | --- |
+| Heights, light, effects, spawn rules | environment block | ✅ + Tier 1 |
+| Terrain character | noiseSettings jar presets | ✅ (gen-terrain-presets.py) |
+| Biome mix | biomes list / multi_noise | ✅ |
+| Exact biome at exact spot | biomePatches wrapper | 🟡 medium |
+| Structure density/themes | structureDensity | ✅ |
+| Exact structure at exact spot | /place (v1) or fixed placement (v2) | 🟡 easy / medium |
+| Guaranteed spawn biome | biomePatches at 0,0 | 🟡 falls out |
+| Custom biomes (own colours/features) | jar-baked worldgen/biome JSON | 🟡 medium, client-visible tints work |
+| Terrain shape at exact spots | authored density functions | 🔴 hard, real worldgen authoring |
+| Custom skyboxes beyond the 3 vanilla effects | — | ❌ client mod territory |
+
+So yes: hyper-customisable is genuinely reachable — "multi-biome world,
+cherry grove at spawn, ancient city at 800 north, sky islands preset" is
+all config once biomePatches + fixed structures land. The discipline that
+keeps it honest: every placement feature must ALSO land in the Python
+pipeline (sampler honours patches, locate oracle knows fixed structures),
+and the roller's role shifts to scoring the organic remainder — which
+makes rolls CHEAPER (fewer constraints to luck into), not obsolete.
