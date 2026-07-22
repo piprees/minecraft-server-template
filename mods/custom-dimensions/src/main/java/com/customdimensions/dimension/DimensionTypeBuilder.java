@@ -3,26 +3,42 @@ package com.customdimensions.dimension;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.mixin.SimpleRegistryAccessor;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import net.minecraft.block.Block;
 import net.minecraft.registry.MutableRegistry;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntryInfo;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.intprovider.ConstantIntProvider;
+import net.minecraft.util.math.intprovider.IntProvider;
+import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 
 /**
  * Custom DimensionType entries from the config's "environment" block
  * (v4 Phase 4): fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
  * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight and
- * ambientLight. Every unset field inherits from the dimension's base type
- * (the overworld/nether/end type it would have cloned anyway), so a
- * partial environment block is safe.
+ * ambientLight — plus the Tier 1 vanilla fields (see
+ * mods/.ideas/vanilla-custom-world-settings.md): coordinateScale, effects
+ * (one of the three vanilla dimension effects), infiniburn (block tag),
+ * monsterSpawnLightLevel (int or [min,max]) and
+ * monsterSpawnBlockLightLimit. Every unset field inherits from the
+ * dimension's base type (the overworld/nether/end type it would have
+ * cloned anyway), so a partial environment block is safe.
+ *
+ * coordinateScale here is the VANILLA travel scale (nether-portal maths,
+ * map scaling). The mod's own portal system scales via portal.scale —
+ * setting both double-applies; pick one per dimension.
  *
  * Each custom type registers once as {namespace}:{slug}_type in the
  * dynamic DIMENSION_TYPE registry (unfrozen/refrozen exactly like the
@@ -103,6 +119,66 @@ public final class DimensionTypeBuilder {
                     name, minY, height, logicalHeight);
             return null;
         }
+        double coordinateScale = base.coordinateScale();
+        if (env.coordinateScale != null) {
+            if (env.coordinateScale < 0.00001 || env.coordinateScale > 30000000.0) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: coordinateScale {} outside 0.00001..30000000 — using the base type",
+                        name, env.coordinateScale);
+                return null;
+            }
+            coordinateScale = env.coordinateScale;
+        }
+
+        Identifier effects = base.effects();
+        if (env.effects != null) {
+            Identifier parsed = Identifier.tryParse(env.effects);
+            if (parsed == null || !VALID_EFFECTS.contains(parsed)) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: effects '{}' is not one of minecraft:overworld/the_nether/the_end "
+                        + "(custom effects need a client mod) — using the base type",
+                        name, env.effects);
+                return null;
+            }
+            effects = parsed;
+        }
+
+        TagKey<Block> infiniburn = base.infiniburn();
+        if (env.infiniburn != null) {
+            String raw = env.infiniburn.startsWith("#") ? env.infiniburn.substring(1) : env.infiniburn;
+            Identifier tagId = Identifier.tryParse(raw);
+            if (tagId == null) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: infiniburn '{}' is not a valid block tag id — using the base type",
+                        name, env.infiniburn);
+                return null;
+            }
+            // Tag existence can't be validated at registration time — an
+            // unknown tag simply matches nothing (fire burns out everywhere).
+            infiniburn = TagKey.of(RegistryKeys.BLOCK, tagId);
+        }
+
+        IntProvider spawnLight = base.monsterSettings().monsterSpawnLightTest();
+        if (env.monsterSpawnLightLevel != null) {
+            int[] range = validateSpawnLight(env.monsterSpawnLightLevel, name);
+            if (range == null) {
+                return null;
+            }
+            spawnLight = range[0] == range[1]
+                    ? ConstantIntProvider.create(range[0])
+                    : UniformIntProvider.create(range[0], range[1]);
+        }
+        int spawnBlockLight = base.monsterSettings().monsterSpawnBlockLightLimit();
+        if (env.monsterSpawnBlockLightLimit != null) {
+            if (env.monsterSpawnBlockLightLimit < 0 || env.monsterSpawnBlockLightLimit > 15) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: monsterSpawnBlockLightLimit {} outside 0..15 — using the base type",
+                        name, env.monsterSpawnBlockLightLimit);
+                return null;
+            }
+            spawnBlockLight = env.monsterSpawnBlockLightLimit;
+        }
+
         OptionalLong fixedTime = env.fixedTime != null
                 ? OptionalLong.of(env.fixedTime) : base.fixedTime();
         return new DimensionType(
@@ -111,19 +187,53 @@ public final class DimensionTypeBuilder {
                 env.hasCeiling != null ? env.hasCeiling : base.hasCeiling(),
                 env.ultraWarm != null ? env.ultraWarm : base.ultrawarm(),
                 env.natural != null ? env.natural : base.natural(),
-                base.coordinateScale(),
+                coordinateScale,
                 env.bedWorks != null ? env.bedWorks : base.bedWorks(),
                 env.respawnAnchorWorks != null ? env.respawnAnchorWorks : base.respawnAnchorWorks(),
                 minY,
                 height,
                 logicalHeight,
-                base.infiniburn(),
-                base.effects(),
+                infiniburn,
+                effects,
                 env.ambientLight != null ? env.ambientLight.floatValue() : base.ambientLight(),
                 new DimensionType.MonsterSettings(
                         env.piglinSafe != null ? env.piglinSafe : base.monsterSettings().piglinSafe(),
                         env.hasRaids != null ? env.hasRaids : base.monsterSettings().hasRaids(),
-                        base.monsterSettings().monsterSpawnLightTest(),
-                        base.monsterSettings().monsterSpawnBlockLightLimit()));
+                        spawnLight,
+                        spawnBlockLight));
+    }
+
+    private static final Set<Identifier> VALID_EFFECTS = Set.of(
+            Identifier.of("minecraft", "overworld"),
+            Identifier.of("minecraft", "the_nether"),
+            Identifier.of("minecraft", "the_end"));
+
+    /** int -> {v,v}, [min,max] -> {min,max}; bounded 0..15. Null = invalid
+     * (logged). Pure JSON validation — provider construction stays in
+     * build() because IntProvider class init needs the game bootstrap. */
+    static int[] validateSpawnLight(JsonElement raw, String name) {
+        try {
+            if (raw.isJsonPrimitive() && raw.getAsJsonPrimitive().isNumber()) {
+                int v = raw.getAsInt();
+                if (v >= 0 && v <= 15) {
+                    return new int[] {v, v};
+                }
+            } else if (raw.isJsonArray()) {
+                JsonArray arr = raw.getAsJsonArray();
+                if (arr.size() == 2) {
+                    int min = arr.get(0).getAsInt();
+                    int max = arr.get(1).getAsInt();
+                    if (min >= 0 && max <= 15 && min <= max) {
+                        return new int[] {min, max};
+                    }
+                }
+            }
+        } catch (RuntimeException ignored) {
+            // fall through to the warn below
+        }
+        MultiverseServer.LOGGER.warn(
+                "Dimension {}: monsterSpawnLightLevel must be an int or [min,max] within 0..15 "
+                + "(got {}) — using the base type", name, raw);
+        return null;
     }
 }
