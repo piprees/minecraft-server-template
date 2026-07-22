@@ -334,30 +334,28 @@ def get_chunky_task_info(dim: str) -> dict[str, str] | None:
         return None
 
 
-def get_bluemap_sidecar_status() -> list[str]:
-    """Status lines for the standalone bluemap sidecar container.
+def get_map_render_status() -> list[str]:
+    """Status lines for the unmined-render sidecar container.
 
-    BlueMap runs as a CLI sidecar (no RCON interface); the container's
-    state and recent render log lines are the observable status.
+    uNmINeD renders on an interval (no RCON interface); the container's
+    state and last pass summary from the logs are the observable status.
     """
     try:
         result = subprocess.run(
-            ["docker", "inspect", "bluemap", "--format",
-             "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}"],
+            ["docker", "inspect", "unmined-render", "--format", "{{.State.Status}}"],
             capture_output=True, text=True, timeout=5,
         )
         if result.returncode != 0:
-            return ["    (sidecar not found)"]
+            return ["    (renderer not found)"]
         state = result.stdout.strip() or "unknown"
         lines = [f"    renderer: {state}"]
         logs = subprocess.run(
-            ["docker", "logs", "bluemap", "--tail", "50"],
+            ["docker", "logs", "unmined-render", "--tail", "50"],
             capture_output=True, text=True, timeout=5,
         )
-        progress = re.findall(r"Rendering.*?(\d+(?:\.\d+)?)\s*%|Update finished", logs.stdout + logs.stderr)
-        if progress:
-            last = progress[-1]
-            lines.append(f"    rendering ({last}%)" if last else "    up to date")
+        passes = re.findall(r"pass complete: (\d+) map\(s\) considered", logs.stdout + logs.stderr)
+        if passes:
+            lines.append(f"    last pass: {passes[-1]} map(s)")
         return lines
     except Exception:
         return ["    (unavailable)"]
@@ -838,8 +836,8 @@ async def mc_status(interaction: discord.Interaction) -> None:
                 else:
                     chunky_lines.append(f"    {dim:14s} queued")
 
-    # BlueMap render status (standalone sidecar - queried via Docker, not RCON)
-    bluemap_lines = await asyncio.to_thread(get_bluemap_sidecar_status)
+    # Map render status (unmined-render sidecar - queried via Docker, not RCON)
+    bluemap_lines = await asyncio.to_thread(get_map_render_status)
 
     # Roster from mappings
     mappings = load_mappings()

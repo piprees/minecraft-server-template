@@ -301,7 +301,7 @@ services:
       # --- Exclude regenerable data from backups ---
       # Only world/ and config/ are irreplaceable; everything else is
       # re-downloaded or regenerated on deploy.
-      EXCLUDES: bluemap,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
+      EXCLUDES: bluemap,unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
 
       # --- RCON connection to the game server ---
       RCON_HOST: mc
@@ -386,53 +386,36 @@ services:
       - cloud
 
   # ==========================================================================
-  # bluemap - Standalone BlueMap CLI renderer + map webserver
+  # unmined-render - Scheduled static map renders (uNmINeD CLI)
   # ==========================================================================
-  # Renders the world map and serves the web-app, fully decoupled from the
-  # mc process (the BlueMap Fabric mod is no longer installed). -r renders,
-  # -u watches region files for changes, -w serves the webapp on :8100
-  # (Docker network only - nav-proxy fronts it). The map stays online while
-  # mc is autopaused or restarting.
+  # Renders every base world + on-disk custom dimension to a static web map
+  # (webp tiles, self-contained viewer) in ./data/unmined-web on an interval.
+  # Incremental: only changed regions re-render; unchanged dimensions are
+  # skipped entirely. Renders are clamped to borders.generation (custom
+  # dims) / PREGEN_BORDER_RADIUS (base worlds). nav-proxy serves the output
+  # (SPA shell + tiles) as map.DOMAIN — plain files, edge-cacheable, always
+  # up regardless of mc's state.
   #
-  # Mounts mirror the paths the old in-process mod used, so the existing
-  # configs (data: "bluemap", webroot: "bluemap/web", world: "world") and
-  # all previously rendered tiles carry over unchanged: the CLI resolves
-  # relative config paths against /app.
-  #
-  # data/mods is mounted so modded blocks render with their real textures
-  # (-n). -v pins the resource version to the server's MC version.
-  #
+  # Set UNMINED_INTERVAL=0 to disable (container idles).
   # Both profiles.
   # ==========================================================================
-  bluemap:
-    image: ghcr.io/bluemap-minecraft/bluemap:v5.22
-    container_name: "${CONTAINER_PREFIX:-}bluemap"
-    command: -r -u -w -n /app/mods -v ${MC_VERSION:-1.21.1}
+  unmined-render:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/unmined-render:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}unmined-render"
     environment:
-      # Explicit heap: the JVM's default (25% of the container limit) OOMs
-      # while unpacking the datapack/resource zips at startup.
-      JAVA_TOOL_OPTIONS: "-Xmx1024m"
+      UNMINED_INTERVAL: "${UNMINED_INTERVAL:-6h}"
+      UNMINED_ZOOMOUT: "${UNMINED_ZOOMOUT:-6}"
+      PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"
     volumes:
-      - ./data/config/bluemap:/app/config
-      - ./data/world:/app/world:ro
-      - ./data/bluemap:/app/bluemap
-      - ./data/mods:/app/mods:ro
-    mem_limit: 1536m
+      - ./data/world:/world:ro
+      - ./data/config/custom-dimensions:/config:ro
+      - ./data/unmined-web:/web
+    mem_limit: 1024m
     logging: *default-logging
     restart: unless-stopped
-    depends_on:
-      seed:
-        condition: service_completed_successfully
     profiles:
       - local
       - cloud
-    healthcheck:
-      # Image ships no curl/wget; bash /dev/tcp checks the webserver port.
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8100 && exec 3<&-"]
-      interval: 30s
-      timeout: 5s
-      start_period: 2m
-      retries: 5
 
   # ==========================================================================
   # nav-proxy - Reverse proxy that injects the site nav bar
@@ -449,6 +432,7 @@ services:
     command: /bin/sh -c "mkdir -p /etc/nginx/templates && cp /config-vol/nginx/nav-proxy.conf.template /etc/nginx/templates/default.conf.template && exec /docker-entrypoint.sh nginx -g 'daemon off;'"
     volumes:
       - stack-config:/config-vol:ro
+      - ./data/unmined-web:/unmined-web:ro
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}

@@ -82,7 +82,7 @@ Server control:
 
 World:
   chunky                      Pre-generation progress
-  map render [map]            Force-render BlueMap (all maps or one)
+  map render                  Force a map render pass now (uNmINeD)
   map status|threads <n>      Render progress / thread count
   wipe-chunk <x> <z> [dim]    Regenerate a corrupted chunk
   reset-seed <seed>           Reset the world (triple-confirmed, backup first)

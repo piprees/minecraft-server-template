@@ -5,7 +5,7 @@
 # Sequence: in-game countdown (60s->1s) -> clear whitelist (blocks joins) ->
 # kick all -> save-all flush -> stop mc -> pull images -> re-run seed ->
 # seed mod configs into data/config/ -> apply overlay -> datapacks ->
-# BlueMap defaults (pre-boot, no reload) -> enforce Discord config ->
+# enforce Discord config ->
 # Modrinth sync IF mod list changed -> compose up -> force-recreate sidecars ->
 # wait for RCON (180s) -> world borders -> game rules -> LuckPerms -> spawn ->
 # restore whitelist -> welcome back -> docker prune.
@@ -401,27 +401,6 @@ if [[ -d "$BUNDLE_CONFIG" ]]; then
   echo "  Default configs seeded"
 fi
 
-# BlueMap map configs: force-copy from bundle (not skip-if-exists) and
-# remove auto-generated duplicates. BlueMap creates its own map configs
-# on first boot with names like world_paradise_lost_paradise_lost.conf
-# that duplicate our curated paradise_lost.conf. Force-copy ensures our
-# names and render bounds are applied; removing extras prevents duplicate
-# map entries in the web UI.
-BM_BUNDLE="$STACK_DIR/config/bluemap/maps"
-BM_DATA="$SERVER_DIR/data/config/bluemap/maps"
-if [[ -d "$BM_BUNDLE" && -d "$BM_DATA" ]]; then
-  cp "$BM_BUNDLE"/*.conf "$BM_DATA/" 2> /dev/null || true
-  for f in "$BM_DATA"/*.conf; do
-    [[ -f "$f" ]] || continue
-    basename_f="$(basename "$f")"
-    if [[ ! -f "$BM_BUNDLE/$basename_f" ]]; then
-      rm -f "$f"
-      echo "  Removed auto-generated BlueMap map: $basename_f"
-    fi
-  done
-  echo "  BlueMap map configs applied"
-fi
-
 # Copy consumer overlay config files to data/config/ (overrides).
 # These REPLACE defaults — the consumer's overlay is authoritative.
 # EXCEPTION: overlay/config/custom-dimensions/ must not clobber the
@@ -562,28 +541,6 @@ if [[ -f "$DH_TOML" ]]; then
   echo "  DH distant generation disabled (restored at deploy end)"
 fi
 
-# BlueMap defaults. The config dir is shared with the bluemap sidecar
-# container, which reads it at startup — the sidecar is force-recreated
-# later in this deploy, so edits made here always take effect.
-BLUEMAP_CONF="$SERVER_DIR/data/config/bluemap/core.conf"
-if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
-  sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
-  echo "  BlueMap: auto-accepted resource download."
-fi
-BLUEMAP_WEBAPP="$SERVER_DIR/data/config/bluemap/webapp.conf"
-if [[ -f "$BLUEMAP_WEBAPP" ]]; then
-  sed -i 's/enable-free-flight: true/enable-free-flight: false/' "$BLUEMAP_WEBAPP"
-  sed -i 's/default-to-flat-view: false/default-to-flat-view: true/' "$BLUEMAP_WEBAPP"
-  if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Z:-}" ]]; then
-    sed -i "s/start-pos: {.*}/start-pos: { x: ${SPAWN_X}, z: ${SPAWN_Z} }/" "$BLUEMAP_WEBAPP"
-  fi
-  echo "  BlueMap: webapp defaults set (flat view, free-flight off, centred on spawn)."
-fi
-# Delete the webapp index.html so the sidecar regenerates it on start.
-# BlueMap version upgrades ship new webapp builds but only write them when
-# the index is absent; a stale index silently serves old JS/CSS.
-rm -f "$SERVER_DIR/data/bluemap/web/index.html"
-
 # =============================================================================
 # 9. Enforce Discord integration config (invariant 3)
 # =============================================================================
@@ -685,7 +642,7 @@ pause_backups
 # Keep this list in sync with infra-deploy.sh.
 # shellcheck disable=SC2086
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
-  bluemap nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
+  unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
 
 # Remove any legacy Modrinth override left by pre-v2.12 deploys.
 rm -f "$SERVER_DIR/docker-compose.modrinth.yml"
@@ -758,36 +715,9 @@ pause_backups
 # sets every world's vanilla border from its config's borders.player at
 # boot (WorldBorderManager) — the old RCON worldborder/ChunkyBorder dance
 # is gone, and ChunkyBorder is pre-generation-only now. Tooling bounds
-# (BlueMap render masks) come from borders.generation in the dimension
-# configs, with the old env vars as fallback for legacy monolith setups.
-: "${PREGEN_BORDER_RADIUS:=8192}"
-
-bm_generation_radius() {
-  # borders.generation for a base-world config file, or the fallback.
-  local file="$SERVER_DIR/data/config/custom-dimensions/dimensions/$1.json" fallback="$2"
-  python3 -c "
-import json, sys
-try:
-    print(int(json.load(open('$file')).get('borders', {}).get('generation') or $fallback))
-except Exception:
-    print($fallback)
-" 2> /dev/null || echo "$fallback"
-}
-
-BM_WORLD_RADIUS=$(bm_generation_radius overworld "$PREGEN_BORDER_RADIUS")
-BM_NETHER_RADIUS=$(bm_generation_radius the_nether $((PREGEN_BORDER_RADIUS / 8)))
-for bm_map in world:$BM_WORLD_RADIUS world_the_nether:$BM_NETHER_RADIUS; do
-  bm_file="$SERVER_DIR/data/config/bluemap/maps/${bm_map%%:*}.conf"
-  bm_radius="${bm_map##*:}"
-  if [[ -f "$bm_file" ]]; then
-    # v5.11+ render-mask format: bounds live inside render-mask: [ { ... } ]
-    sed -i "s/^\( *\)min-x: .*/\1min-x: -${bm_radius}/" "$bm_file"
-    sed -i "s/^\( *\)max-x: .*/\1max-x: ${bm_radius}/" "$bm_file"
-    sed -i "s/^\( *\)min-z: .*/\1min-z: -${bm_radius}/" "$bm_file"
-    sed -i "s/^\( *\)max-z: .*/\1max-z: ${bm_radius}/" "$bm_file"
-  fi
-done
-echo "  BlueMap render bounds: overworld +/-${BM_WORLD_RADIUS}, nether +/-${BM_NETHER_RADIUS} (from dimension configs)"
+# come from borders.generation in the dimension configs: the
+# unmined-render sidecar reads them directly, and idle-tasks uses
+# PREGEN_BORDER_RADIUS from the environment.
 echo "  World borders: mod-owned (borders.player in config/custom-dimensions/)"
 
 # --- Activate all dimensions (so Chunky can pre-generate them) ----------------
@@ -807,17 +737,15 @@ done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
 # --- Custom dimensions (from multiverse_config.json) --------------------------
-# One-time setup per dimension: load once, set ChunkyBorder, pin BlueMap to
-# low-res flat view, then freeze that BlueMap map so it does nothing at all
-# until a player actually finds the portal (the mod unfreezes it itself on
-# first visit — see DimensionManager.unfreezeBlueMapOnFirstVisit). Gated on
-# a marker file so each dimension is set up exactly once — a dimension can
-# be added to multiverse_config.json in one deploy and only get this one-time
-# setup in a later one. Namespace comes from the config's "namespace" field
-# (default: "adventure"). These dimensions are meant to sit idle 99.9%+ of
-# the time — idle-tasks doesn't pre-generate them, deploy.sh doesn't
-# forceload them, and once this one-time setup is done, nothing here ever
-# touches them again.
+# One-time setup per dimension: load once so the world exists on disk.
+# Gated on a marker file so each dimension is set up exactly once — a
+# dimension can be added to the config in one deploy and only get this
+# one-time setup in a later one. Namespace comes from the config's
+# "namespace" field (default: "adventure"). These dimensions are meant to
+# sit idle 99.9%+ of the time — idle-tasks doesn't pre-generate them,
+# deploy.sh doesn't forceload them, and once this one-time setup is done,
+# nothing here ever touches them again. (Map rendering is uNmINeD's job
+# now — it picks a dimension up automatically once region files exist.)
 # v4 directory preferred; the monolithic file is the deprecated fallback.
 MULTIVERSE_CONFIG="$STACK_DIR/config/custom-dimensions"
 [[ -d "$MULTIVERSE_CONFIG/dimensions" ]] || MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
@@ -858,7 +786,6 @@ PYEOF
   mkdir -p "$SETUP_MARKERS_DIR"
   echo ""
   echo "==> Setting up new custom dimensions..."
-  BM_MAPS_DIR="$SERVER_DIR/data/config/bluemap/maps"
   NEW_COUNT=0
   SKIPPED_COUNT=0
   while IFS='|' read -r name scale; do
@@ -879,14 +806,6 @@ PYEOF
 
     # Borders are mod-owned (borders.player) since v4 Phase 3 — the old
     # per-dimension ChunkyBorder dance is gone.
-    if [[ -d "$BM_MAPS_DIR" ]]; then
-      for bm_conf in "$BM_MAPS_DIR"/*"$name"*.conf; do
-        [[ -f "$bm_conf" ]] || continue
-        sed -i 's/enable-hires: true/enable-hires: false/' "$bm_conf"
-        sed -i 's/enable-perspective-view: true/enable-perspective-view: false/' "$bm_conf"
-        sed -i 's/enable-free-flight-view: true/enable-free-flight-view: false/' "$bm_conf"
-      done
-    fi
     touch "$SETUP_MARKERS_DIR/$name"
     NEW_COUNT=$((NEW_COUNT + 1))
     echo "    ${DIM_NAMESPACE}:$name — loaded once (scale 1:$scale, border mod-owned)"
