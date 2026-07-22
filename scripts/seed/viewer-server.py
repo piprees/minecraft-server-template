@@ -565,6 +565,66 @@ def main():
                       2048, 16, 512, "Rendering hires (2048px)",
                       suffix="_hires")
 
+    # Enumerate all structure placements within border for top 10 candidates
+    print("\n=== Enumerating structures ===", flush=True)
+    try:
+        from dimension_profiles import load_config, load_difficulty, build_profile, rollable
+        from structure_placement import load_structure_sets, find_all_in_radius
+        import candidates as cmod
+
+        config = load_config(args.config)
+        difficulty = load_difficulty(args.config)
+        dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
+        worlds = {w["name"]: w for w in config.get("worlds", [])}
+        all_targets = {**worlds, **dims}
+        cdir = cmod.candidates_dir(Path(args.config))
+
+        struct_sets_dir = Path(args.seedtest) / ".structure_sets"
+        all_sets = load_structure_sets(str(struct_sets_dir)) if struct_sets_dir.exists() else {}
+
+        enriched = 0
+        for name, dim in all_targets.items():
+            profile = build_profile(dim, config, difficulty)
+            store = cmod.load_store(cdir / f"{name}.json")
+            battery = profile.get("battery", [])
+            if not battery:
+                continue
+            radius = int(profile["radius"])
+
+            scored = []
+            for seed_str, cand in store["candidates"].items():
+                best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
+                if best > 0:
+                    scored.append((best, seed_str))
+            scored.sort(reverse=True)
+
+            changed = False
+            for _, seed_str in scored[:10]:
+                cand = store["candidates"][seed_str]
+                if "structure_all" in cand:
+                    continue
+                sa = {}
+                for sname, sid, spec, kind in battery:
+                    clean = sid.lstrip("#")
+                    cfg = all_sets.get(clean)
+                    if not cfg:
+                        continue
+                    hits = find_all_in_radius(
+                        int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
+                        radius, spread_type=cfg.get("spread_type", "linear"),
+                        frequency=cfg.get("frequency", 1.0))
+                    sa[sname] = [(d, x, z) for d, x, z in hits]
+                cand["structure_all"] = sa
+                changed = True
+                enriched += 1
+
+            if changed:
+                cmod.save_store(cdir / f"{name}.json", store)
+
+        print(f"Enriched {enriched} candidates with full structure data", flush=True)
+    except Exception as e:
+        print(f"Structure enumeration failed: {e}", flush=True)
+
     print("\nRenders complete. Server running — Ctrl+C to stop.", flush=True)
     try:
         server_thread.join()
