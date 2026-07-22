@@ -1,5 +1,5 @@
-<html lang="en">
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <title>Seed Viewer — Multiverse</title>
 <style>
@@ -210,6 +210,7 @@ kbd {
   position: absolute; top: .4rem; right: .4rem; font-size: 1.2rem;
   color: #666; cursor: pointer; line-height: 1; padding: .3rem;
   border-radius: var(--radius-sm);
+  background: none; border: none; font-family: inherit;
 }
 .close-btn:hover { color: var(--text); background: rgba(255,255,255,.05); }
 
@@ -351,6 +352,10 @@ body.show-borders .img-wrap img { transform-origin: center; }
   position: absolute; top: .6rem; right: .8rem; font-size: 1.4rem;
   color: #888; cursor: pointer; line-height: 1; padding: .3rem;
   z-index: 10;
+  background: none; border: none; font-family: inherit;
+}
+#lightbox .lb-close:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
 #lightbox .lb-close:hover { color: var(--text); }
 @media (max-width: 800px) {
@@ -377,16 +382,16 @@ body.show-borders .img-wrap img { transform-origin: center; }
 <!-- Filter bar -->
 <div class="filter-bar">
   <div class="family-btns">{{FAMILY_BUTTONS}}</div>
-  <select id="f-type">{{TYPE_OPTIONS}}</select>
-  <select id="f-mood">{{MOOD_OPTIONS}}</select>
-  <select id="f-sort">
+  <select id="f-type" aria-label="Filter by type">{{TYPE_OPTIONS}}</select>
+  <select id="f-mood" aria-label="Filter by mood">{{MOOD_OPTIONS}}</select>
+  <select id="f-sort" aria-label="Sort order">
     <option value="name">Sort: Name</option>
     <option value="score-desc">Sort: Score ↓</option>
     <option value="score-asc">Sort: Score ↑</option>
     <option value="family">Sort: Family</option>
     <option value="candidates">Sort: Most tested</option>
   </select>
-  <input id="f-search" type="text" placeholder="Search…">
+  <input id="f-search" type="text" placeholder="Search…" aria-label="Search dimensions">
   <label><input type="checkbox" id="f-flagged"> Below threshold</label>
   <label><input type="checkbox" id="f-shortlisted"> Shortlisted</label>
   <label><input type="checkbox" id="f-ungrouped"> Flat view</label>
@@ -396,6 +401,7 @@ body.show-borders .img-wrap img { transform-origin: center; }
 
 <h1>Dimension seed candidates</h1>
 <p class="summary">{{SUMMARY_STATS}}</p>
+<p class="summary" id="progress" aria-live="polite"></p>
 
 <!-- Grouped mode: dimension cards -->
 <div class="grid" id="grid">
@@ -418,9 +424,9 @@ body.show-borders .img-wrap img { transform-origin: center; }
   <input type="hidden" id="cd-seed">
 </dialog>
 
-<div id="lightbox">
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
   <div class="lb-inner">
-    <span class="lb-close">&times;</span>
+    <button type="button" class="lb-close" aria-label="Close">&times;</button>
     <div class="lb-image"><img width="2048" height="2048" loading="eager" decoding="async" style="background:#101216"></div>
     <div class="lb-info"></div>
   </div>
@@ -434,6 +440,19 @@ body.show-borders .img-wrap img { transform-origin: center; }
   var lb = document.getElementById('lightbox');
   var lbImg = lb.querySelector('.lb-image img');
   var lbInfo = lb.querySelector('.lb-info');
+  var lbReturnFocus = null;
+  function lbShow() {
+    if (!lb.classList.contains('open')) {
+      lbReturnFocus = document.activeElement;
+      lb.classList.add('open');
+    }
+    lb.querySelector('.lb-close').focus();
+  }
+  function lbHide() {
+    lb.classList.remove('open');
+    if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus();
+    lbReturnFocus = null;
+  }
   document.addEventListener('click', function(e) {
     var img = e.target.closest('.cand img, img.winner-img');
     if (img && img.closest('.compact')) img = null;
@@ -445,14 +464,14 @@ body.show-borders .img-wrap img { transform-origin: center; }
     } else {
       lbImg.src = img.src;
       lbInfo.innerHTML = '';
-      lb.classList.add('open');
+      lbShow();
     }
   });
   lb.querySelector('.lb-close').addEventListener('click', function(e) {
-    e.stopPropagation(); lb.classList.remove('open');
+    e.stopPropagation(); lbHide();
   });
   lb.addEventListener('click', function(e) {
-    if (e.target === lb) lb.classList.remove('open');
+    if (e.target === lb) lbHide();
   });
   // Track current candidate for arrow nav
   var lbCurrentCand = null;
@@ -508,16 +527,25 @@ body.show-borders .img-wrap img { transform-origin: center; }
         lbImageDiv.appendChild(ring);
       }
     }
-    lb.classList.add('open');
+    lbShow();
   }
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      if (lb.classList.contains('open')) { lb.classList.remove('open'); return; }
+      if (lb.classList.contains('open')) { lbHide(); return; }
       var expanded = document.querySelector('.dim-card.expanded');
-      if (expanded) expanded.classList.remove('expanded');
+      if (expanded) setExpanded(expanded, false);
       return;
     }
     if (!lb.classList.contains('open')) return;
+    // Focus trap: keep Tab inside the dialog while open
+    if (e.key === 'Tab') {
+      var focusables = lb.querySelectorAll('button, [href], input, select, textarea');
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return;
+    }
     // Arrow keys: navigate between candidates
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
@@ -599,6 +627,7 @@ body.show-borders .img-wrap img { transform-origin: center; }
   function buildUngrouped() {
     ugGrid.innerHTML = '';
     var q = state.search.toLowerCase();
+    var clones = [];
     document.querySelectorAll('.dim-card').forEach(function(card) {
       var groups = (card.dataset.family || '').split(' ');
       var fam = state.family === 'All' || groups.indexOf(state.family) >= 0;
@@ -614,12 +643,13 @@ body.show-borders .img-wrap img { transform-origin: center; }
         clone.style.display = '';
         var lbl = clone.querySelector('.cand-dim-label');
         if (lbl) lbl.style.display = 'block';
-        ugGrid.appendChild(clone);
+        clones.push(clone);
       });
     });
-    var items = Array.from(ugGrid.children);
-    items.sort(candSort);
-    items.forEach(function(el) { ugGrid.appendChild(el); });
+    clones.sort(candSort);
+    var frag = document.createDocumentFragment();
+    clones.forEach(function(el) { frag.appendChild(el); });
+    ugGrid.appendChild(frag);
   }
 
   function sortCandsInGroups() {
@@ -630,9 +660,26 @@ body.show-borders .img-wrap img { transform-origin: center; }
     });
   }
 
+  // --- Review progress: dims with a pinned winner, shortlisted seed, or hidden ---
+  function updateProgress() {
+    var cards = document.querySelectorAll('.dim-card');
+    var total = cards.length, done = 0;
+    cards.forEach(function(c) {
+      if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1'
+          || c.dataset.hidden === '1') done++;
+    });
+    var el = document.getElementById('progress');
+    if (!el) return;
+    el.textContent = 'Reviewed ' + done + ' of ' + total + ' dimensions — '
+      + (total - done) + ' still to review (a dimension counts as reviewed '
+      + 'once a seed is pinned or shortlisted, or the dimension is hidden)';
+  }
+
   function applyState() {
     document.querySelectorAll('.family-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.family === state.family);
+      var active = b.dataset.family === state.family;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     typeEl.value = state.type; moodEl.value = state.mood;
     sortEl.value = state.sort; searchEl.value = state.search;
@@ -669,6 +716,7 @@ body.show-borders .img-wrap img { transform-origin: center; }
       visible.forEach(function(c) { grid.appendChild(c); });
       sortCandsInGroups();
     }
+    updateProgress();
     writeHash(state);
   }
 
@@ -768,19 +816,34 @@ body.show-borders .img-wrap img { transform-origin: center; }
   })();
 
   // --- Card expand/collapse ---
+  function setExpanded(card, on) {
+    card.classList.toggle('expanded', on);
+    card.setAttribute('aria-expanded', on ? 'true' : 'false');
+  }
+  function expandCard(card) {
+    if (card.classList.contains('expanded')) return;
+    document.querySelectorAll('.dim-card.expanded').forEach(function(c) { setExpanded(c, false); });
+    setExpanded(card, true);
+    sortCandsInGroups();
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
   grid.addEventListener('click', function(e) {
     if (e.target.closest('.action-btn, .pick, .close-btn, .cand')) return;
     var card = e.target.closest('.dim-card');
     if (!card) return;
-    if (card.classList.contains('expanded')) return;
-    document.querySelectorAll('.dim-card.expanded').forEach(function(c) { c.classList.remove('expanded'); });
-    card.classList.add('expanded');
-    sortCandsInGroups();
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    expandCard(card);
+  });
+  grid.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('.action-btn, .pick, .close-btn, .cand, button, input, select')) return;
+    var card = e.target.closest('.dim-card');
+    if (!card || card.classList.contains('expanded')) return;
+    e.preventDefault();
+    expandCard(card);
   });
   grid.addEventListener('click', function(e) {
     var close = e.target.closest('.close-btn');
-    if (close) { close.closest('.dim-card').classList.remove('expanded'); }
+    if (close) { setExpanded(close.closest('.dim-card'), false); }
   });
 
   // --- Action buttons (live server only) ---
@@ -855,7 +918,9 @@ body.show-borders .img-wrap img { transform-origin: center; }
     }
     var slBtn = e.target.closest('.action-btn.shortlist');
     if (slBtn) {
-      var cand = slBtn.closest('.cand');
+      // In the lightbox the button lives in copied markup — fall back to the
+      // original candidate element so its shortlist state stays in sync.
+      var cand = slBtn.closest('.cand') || lbCurrentCand;
       var isShortlisted = cand ? cand.dataset.shortlisted === '1' : slBtn.textContent.indexOf('Remove') >= 0;
       slBtn.disabled = true;
       slBtn.textContent = isShortlisted ? 'Removing…' : 'Shortlisting…';
@@ -872,6 +937,12 @@ body.show-borders .img-wrap img { transform-origin: center; }
           slBtn.textContent = 'Shortlist';
         }
         slBtn.disabled = false;
+        var cardEl = cand && cand.closest('.dim-card');
+        if (cardEl) {
+          cardEl.dataset.shortlisted =
+            cardEl.querySelector('.cand[data-shortlisted]') ? '1' : '0';
+        }
+        updateProgress();
       });
       return;
     }
