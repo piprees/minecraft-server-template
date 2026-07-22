@@ -78,8 +78,14 @@
     return null;
   }
 
+  // URLs use hyphens (/the-gauntlet); dimension slugs use underscores.
+  // Slugs never contain hyphens (config names are [a-z][a-z0-9_]*), so the
+  // mapping is bijective. Underscore URLs still resolve for old links.
+  function toPath(slug) { return slug.replace(/_/g, '-'); }
+  function fromPath(path) { return path.replace(/-/g, '_'); }
+
   function slugFromPath() {
-    return decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, ''));
+    return fromPath(decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, '')));
   }
 
   function route() {
@@ -93,7 +99,7 @@
     manifest.forEach(function (dim) {
       var li = document.createElement('li');
       var a = document.createElement('a');
-      a.href = '/' + encodeURIComponent(dim.slug);
+      a.href = '/' + encodeURIComponent(toPath(dim.slug));
       a.textContent = dim.name;
       a.dataset.slug = dim.slug;
       if (dim.renderedAt) {
@@ -106,7 +112,7 @@
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
         e.preventDefault();
         if (dim.slug === currentSlug) return;
-        history.pushState(null, '', '/' + encodeURIComponent(dim.slug) + location.hash);
+        history.pushState(null, '', '/' + encodeURIComponent(toPath(dim.slug)) + location.hash);
         loadDimension(dim.slug);
       });
       li.appendChild(a);
