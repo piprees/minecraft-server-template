@@ -696,6 +696,7 @@ body.show-borders .img-wrap img { transform-origin: center; }
   // A 1024b world is 1/16th of a 16384b overworld.
   // No red ring on cards — just relative sizing.
   // Lightbox hires (32K render) gets a red ring at 50% showing the border.
+  var RENDER_SIZE = 1024, BASE_SCALE = 8;
   var maxDiameter = 0;
   document.querySelectorAll('.dim-card').forEach(function(card) {
     var r = parseFloat(card.dataset.radius || 0);

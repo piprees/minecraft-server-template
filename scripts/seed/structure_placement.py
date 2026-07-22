@@ -238,6 +238,42 @@ def load_structure_sets(extract_dir):
     return sets
 
 
+def find_all_in_radius(world_seed, spacing, separation, salt, radius_blocks,
+                       origin_x=0, origin_z=0, spread_type="linear", frequency=1.0):
+    """Find ALL structure placements within radius_blocks of origin.
+    Returns list of (distance, block_x, block_z), sorted by distance."""
+    results = []
+    # Convert block radius to region range
+    region_range = (radius_blocks // (spacing * 16)) + 2
+    origin_chunk_x = origin_x >> 4
+    origin_chunk_z = origin_z >> 4
+    base_region_x = java_floor_div(origin_chunk_x, spacing)
+    base_region_z = java_floor_div(origin_chunk_z, spacing)
+
+    for rx in range(base_region_x - region_range, base_region_x + region_range + 1):
+        for rz in range(base_region_z - region_range, base_region_z + region_range + 1):
+            cx, cz = get_start_chunk(world_seed, rx, rz, spacing, separation, salt, spread_type)
+
+            if frequency < 1.0:
+                fseed = region_seed(world_seed, cx, cz, salt)
+                fseed = (fseed ^ 0x5DEECE66D) & ((1 << 48) - 1)
+                fseed, bits = next_random(fseed)
+                fval = (bits >> 7) / (1 << 24)
+                if fval >= frequency:
+                    continue
+
+            bx = cx * 16 + 8
+            bz = cz * 16 + 8
+            dx = bx - origin_x
+            dz = bz - origin_z
+            dist = int(math.sqrt(dx * dx + dz * dz))
+            if dist <= radius_blocks:
+                results.append((dist, bx, bz))
+
+    results.sort()
+    return results
+
+
 def locate_all(world_seed, structure_sets, search_radius=50, origin_x=0, origin_z=0):
     """Locate the nearest placement for every structure set.
     Returns {set_id: (distance, x, z) or None}."""
