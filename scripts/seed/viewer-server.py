@@ -330,11 +330,19 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         if action == "remove" or (action == "toggle" and key in shortlist):
             shortlist.pop(key, None)
             sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
+            subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                           "finalise", *self.finalise_args],
+                          capture_output=True, text=True)
             self._respond_json({"ok": True, "shortlisted": False})
             return
 
         shortlist[key] = {"dim": dim, "seed": seed, "added": time.strftime("%Y-%m-%dT%H:%M:%S")}
         sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
+
+        # Re-finalise to regenerate index.html with updated shortlist state
+        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                       "finalise", *self.finalise_args],
+                      capture_output=True, text=True)
 
         # Render hi-res if not already done
         hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}_hires.png"
