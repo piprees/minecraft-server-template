@@ -1137,6 +1137,25 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                       "".join(s for _, s in biome_items))
                   if biome_items else "")
 
+    # Dimension meta badges for the lightbox
+    meta_parts = []
+    meta_parts.append("<span class='badge'>{}</span>".format(profile["type"]))
+    meta_parts.append("<span class='badge'>{}</span>".format(profile["mood"]))
+    if profile.get("noise"):
+        meta_parts.append("<span class='badge'>{}</span>".format(profile["noise"]))
+    mob_d = profile.get("mob_difficulty", 1.0)
+    if mob_d != 1.0:
+        col = "#e05252" if mob_d >= 2.0 else ("#e8a735" if mob_d > 1.0 else "#6ec96e")
+        meta_parts.append("<span class='badge' style='color:{}'>{:.1f}x mobs</span>".format(col, mob_d))
+    if profile.get("peaceful"):
+        meta_parts.append("<span class='badge' style='color:#6ec96e'>peaceful</span>")
+    if profile.get("density"):
+        meta_parts.append("<span class='badge'>{}</span>".format(profile["density"]))
+    meta_parts.append("<span class='badge'>{}b border</span>".format(int(profile["radius"] * 2)))
+    if profile.get("scale", 1.0) != 1.0:
+        meta_parts.append("<span class='badge'>{:.0f}x scale</span>".format(profile["scale"]))
+    meta_badges = " ".join(meta_parts)
+
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     # Inline score summary for the detail panel header
     score_parts = " | ".join("{} {:.0%}".format(
@@ -1156,6 +1175,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         " <span class='seed'>{}</span></div>"
         "<div class='spawn'><b>{}</b></div>"
         "<div class='score-parts'>{}</div>"
+        "<div class='lb-meta'>{}</div>"
         "</div>"
         "{}"
         "{}"
@@ -1174,6 +1194,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             c["seed"],
             html.escape(spawn),
             score_parts,
+            meta_badges,
             terrain_html, struct_html, biome_html,
             pick_btn, shortlist_btn, create_dim_btn)
 

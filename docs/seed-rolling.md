@@ -1,18 +1,6 @@
 # Seed rolling — the all-dimensions roller
 
-`./dev seed-roll-all` rolls candidate seeds for **every configured
-dimension AND the shared world seed** (overworld / the_nether / the_end /
-paradise_lost), **indefinitely**: workers cycle their dimensions forever
-(one accepted candidate per dimension per cycle, attempts bounded by the
-adaptive spawn gate below), report every acceptance and rejection live on
-the console, and **auto-write the current winners into the config every
-45s** (one timestamped backup per session; `--no-write` disables).
-The live viewer is served at `http://127.0.0.1:8765/viewer.html` —
-**"☆ make winner" pins your own pick** over the score ranking (saved to
-`.seedtest/winner-overrides.json`, honoured by every later finalise).
-**Ctrl+C finalises** the same way. Re-runs resume; accepted candidates
-persist and rejected seeds are never re-tried. Void/superflat dimensions
-are skipped (no worldgen to roll).
+`./dev seed-roll-all` rolls candidate seeds for **every configured dimension AND the shared world seed** (overworld / the_nether / the_end / paradise_lost), **indefinitely**: workers cycle their dimensions forever (one accepted candidate per dimension per cycle, attempts bounded by the adaptive spawn gate below), report every acceptance and rejection live on the console, and **auto-write the current winners into the config every 45s** (one timestamped backup per session; `--no-write` disables). The live viewer is served at `http://127.0.0.1:8765/viewer.html` — **"Make Winner" pins your own pick** over the score ranking (saved to `.seedtest/winner-overrides.json`, honoured by every later finalise). **Ctrl+C finalises** the same way. Re-runs resume; accepted candidates persist and rejected seeds are never re-tried. Void/superflat dimensions are skipped (no worldgen to roll).
 
 ```bash
 ./dev seed-roll-all                          # everything, 6x parallel, renders
@@ -20,111 +8,58 @@ are skipped (no worldgen to roll).
 ./dev seed-roll-all --render off --no-write           # measure + score only
 ```
 
-Crashes are survivable by design: a broken candidate is logged and skipped,
-a dead container is rebooted (unlimited retries), a dead worker process is
-respawned by the orchestrator. The world seed rolls in parallel with the
-dimensions — overworld/nether/end candidates are measured as runtime clones
-inside the same containers (an overworld-type clone with seed S generates
-identically to a world booted with SEED=S), gated by the overworld's spawn
-filter; a dedicated boot stream covers paradise_lost (static mod dimension)
-and prioritises seeds the clone stream already accepted.
+Crashes are survivable by design: a broken candidate is logged and skipped, a dead container is rebooted (unlimited retries), a dead worker process is respawned by the orchestrator. The world seed rolls in parallel with the dimensions — overworld/nether/end candidates are measured as runtime clones inside the same containers (an overworld-type clone with seed S generates identically to a world booted with SEED=S), gated by the overworld's spawn filter; a dedicated boot stream covers paradise_lost (static mod dimension) and prioritises seeds the clone stream already accepted.
 
 ## One source of truth: `seedRoll` in multiverse_config.json
 
-Every dimension entry (and every `worlds` entry) carries an advisory
-`seedRoll` block — the mod ignores it; the roller and scorer read ONLY this.
-Consumer repos customise their own config copy; nothing is hard-coded in
-the scripts.
+Every dimension entry (and every `worlds` entry) carries an advisory `seedRoll` block — the mod ignores it; the roller and scorer read ONLY this. Consumer repos customise their own config copy; nothing is hard-coded in the scripts.
 
 ```jsonc
 {
   "name": "the_gritlands",
   "type": "overworld",
-  "seed": 123,                       // written by the roller (winner)
+  "seed": 123, // written by the roller (winner)
   "seedRoll": {
-    "mood": "desolate",              // weighting archetype (see below)
+    "mood": "desolate", // weighting archetype (see below)
     "description": "A roughed-up cluster of gravel, basalt and ash ...",
     "spawnFilter": ["terralith:gravel_desert", "terralith:basalt_cliffs"],
-    "water": "none",                 // optional: none | high | sea
-    "wants": {                       // structures that BELONG, by band
+    "water": "none", // optional: none | high | sea
+    "wants": {
+      // structures that BELONG, by band
       "ruined_portal": "near_spawn", //   near_spawn  0–30% of radius
-      "field_ruins": "spread",       //   spread     15–65%
-      "scorched_tomb": "near_border" //   near_border 45–100%
+      "field_ruins": "spread", //   spread     15–65%
+      "scorched_tomb": "near_border", //   near_border 45–100%
     },
-    "shuns": ["village", "tavern", "mansion"]  // presence costs points
-  }
+    "shuns": ["village", "tavern", "mansion"], // presence costs points
+  },
 }
 ```
 
-- **spawnFilter** — namesakes represent SPAWN. Candidates whose spawn biome
-  misses the filter are rejected immediately (cheap: create → probe →
-  destroy) and the worker re-rolls a fresh seed; rejected seeds are banked
-  so they never repeat. An empty filter accepts anything. The gate is
-  **adaptive**: after `ROLL_SPAWN_ATTEMPTS` (default 10) misses it widens
-  from "filter biome at spawn (≤48 blocks)" to ≤256, then ≤768 blocks,
-  then force-accepts a keeper — so a narrow filter can never stall a
-  worker. Widened acceptances bank `spawn_filter_dist` and earn partial
-  namesake credit by proximity (always below a true namesake spawn).
-- **wants** — keys are short names from the STRUCTS library
-  (`scripts/seed/dimension_profiles.py`, every id verified against the
-  shipped jars) or raw `namespace:path` ids. Bands are fractions of the
-  **playable radius** (world border ÷ portal scale) and always fit inside
-  the world; `structureDensity: dense` shifts bands closer, `sparse`
-  further.
-- **shuns** — structures that have no business existing there ("who could
-  live here?"). Found inside the playable radius = 0 for that entry.
-- **mood** — weighting archetype: `hard`, `adventurous`, `dramatic`,
-  `scenic`, `pastoral`, `serene`, `desolate`, `standard`. When omitted it is
-  derived from the mob difficulty multiplier
-  (`config/configurable-difficulty/configurable-difficulty.json5`), the
-  nether smaller-is-harder rule, `structureDensity` and `hostileSpawning`.
+- **spawnFilter** — namesakes represent SPAWN. Candidates whose spawn biome misses the filter are rejected immediately (cheap: create → probe → destroy) and the worker re-rolls a fresh seed; rejected seeds are banked so they never repeat. An empty filter accepts anything. The gate is **adaptive**: after `ROLL_SPAWN_ATTEMPTS` (default 10) misses it widens from "filter biome at spawn (≤48 blocks)" to ≤256, then ≤768 blocks, then force-accepts a keeper — so a narrow filter can never stall a worker. Widened acceptances bank `spawn_filter_dist` and earn partial namesake credit by proximity (always below a true namesake spawn).
+- **wants** — keys are short names from the STRUCTS library (`scripts/seed/dimension_profiles.py`, every id verified against the shipped jars) or raw `namespace:path` ids. Bands are fractions of the **playable radius** (world border ÷ portal scale) and always fit inside the world; `structureDensity: dense` shifts bands closer, `sparse` further.
+- **shuns** — structures that have no business existing there ("who could live here?"). Found inside the playable radius = 0 for that entry.
+- **mood** — weighting archetype: `hard`, `adventurous`, `dramatic`, `scenic`, `pastoral`, `serene`, `desolate`, `standard`. When omitted it is derived from the mob difficulty multiplier (`config/configurable-difficulty/configurable-difficulty.json5`), the nether smaller-is-harder rule, `structureDensity` and `hostileSpawning`.
 - **description** — shown in the viewer; say what the dimension is FOR.
-- **family** (`overworld|nether|end`), **terrain** (`solid|islands|void`),
-  **heightRange** (`[minY, maxY]` for column probes) — explicit scoring
-  identity for clone-typed and unusual dimensions. The config dictates
-  these; type-string heuristics are only fallbacks for entries that omit
-  them.
+- **family** (`overworld|nether|end`), **terrain** (`solid|islands|void`), **heightRange** (`[minY, maxY]` for column probes) — explicit scoring identity for clone-typed and unusual dimensions. The config dictates these; type-string heuristics are only fallbacks for entries that omit them.
 
-`type` also accepts any registered dimension id (`"paradise_lost:
-paradise_lost"`) — the mod clones that dimension's generator, and biome
-lists/noiseSettings/seeds apply to the clone like any other type, so whole
-modded world families cross-pollinate with everything else.
+`type` also accepts any registered dimension id (`"paradise_lost: paradise_lost"`) — the mod clones that dimension's generator, and biome lists/noiseSettings/seeds apply to the clone like any other type, so whole modded world families cross-pollinate with everything else.
 
-Entries without a `seedRoll` block still roll: spawn filter defaults to the
-first biomes of the `biome` list, wants to a modest family battery.
+Entries without a `seedRoll` block still roll: spawn filter defaults to the first biomes of the `biome` list, wants to a modest family battery.
 
 ## Worlds (the four real worlds)
 
-`config/multiverse_config.json` has a top-level `worlds` array for the
-dimensions the mod doesn't create (overworld / the_nether / the_end /
-paradise_lost). Each rolls **independently** as a `fake_<world>` runtime
-clone (no container reboots — an overworld-type clone with seed S
-generates identically to a world booted with `SEED=S`), placed FIRST in
-the worker rotations so they measure before the dimension slots.
+`config/multiverse_config.json` has a top-level `worlds` array for the dimensions the mod doesn't create (overworld / the*nether / the_end / paradise_lost). Each rolls **independently** as a `fake*<world>`runtime clone (no container reboots — an overworld-type clone with seed S generates identically to a world booted with`SEED=S`), placed FIRST in the worker rotations so they measure before the dimension slots.
 
 Winners land differently per world:
 
-- **the_nether / the_end / paradise_lost** — the winner is written as
-  `seed` on the `worlds[]` entry; the mod's `ServerWorldSeedMixin`
-  applies it to the live world (fresh chunks generate on the new seed;
-  wipe the dimension's region files to regenerate everything).
-- **overworld** — the winner is written as the top-level `worldSeed`
-  and the mod drives overworld generation with it too: the multiverse
-  is **fully config-driven**, and `SEED` in `.env` only seeds level.dat
-  as a legacy fallback. Existing overworld chunks keep their old
-  terrain — wipe the world (`./ops reset-seed` ritual on production)
-  to regenerate everything on the new seed.
+- **the_nether / the_end / paradise_lost** — the winner is written as `seed` on the `worlds[]` entry; the mod's `ServerWorldSeedMixin` applies it to the live world (fresh chunks generate on the new seed; wipe the dimension's region files to regenerate everything).
+- **overworld** — the winner is written as the top-level `worldSeed` and the mod drives overworld generation with it too: the multiverse is **fully config-driven**, and `SEED` in `.env` only seeds level.dat as a legacy fallback. Existing overworld chunks keep their old terrain — wipe the world (`./ops reset-seed` ritual on production) to regenerate everything on the new seed.
 
-The `worlds[]` overworld entry also accepts `"spawn": [x, y, z]` — the
-mod sets the world spawn from it at boot, replacing the `SPAWN_X/Y/Z`
-env enforcement (deploy.sh skips its `setworldspawn` when the config
-carries a spawn). Version-control your seeds AND your spawn point in
-one drop-in config.
+The `worlds[]` overworld entry also accepts `"spawn": [x, y, z]` — the mod sets the world spawn from it at boot, replacing the `SPAWN_X/Y/Z` env enforcement (deploy.sh skips its `setworldspawn` when the config carries a spawn). Version-control your seeds AND your spawn point in one drop-in config.
 
 ## Scoring model
 
-Per candidate, 0–100 from four components (weights by mood; mob difficulty
-≥ 2.0 shifts weight into structures — dangerous worlds must be WORTH it):
+Per candidate, 0–100 from four components (weights by mood; mob difficulty ≥ 2.0 shifts weight into structures — dangerous worlds must be WORTH it):
 
 | component | measures |
 | --- | --- |
@@ -133,30 +68,17 @@ Per candidate, 0–100 from four components (weights by mood; mob difficulty
 | terrain | relief / grain / water vs the noiseSettings targets (`compressed` wants violence, `wide` wants rolling; voids must be void, islands must have gaps) |
 | structures | every want in its band, every shun absent |
 
-Cross-family biome mixing is real: the mod builds multi-noise sources from
-the FULL biome registry, so nether/end/cave biomes mix into any dimension
-(and `biome` lists now work on `nether`/`end` types too).
+Cross-family biome mixing is real: the mod builds multi-noise sources from the FULL biome registry, so nether/end/cave biomes mix into any dimension (and `biome` lists now work on `nether`/`end` types too).
 
 ## Pipeline
 
-1. `score-dimensions.py manifest` — splits dims across workers; each
-   candidate slot carries spare seeds for spawn-filter re-rolls; every
-   attempt seed gets a config entry in the worker's roll config (the
-   seed/density/peaceful mixins resolve by config name — without an entry a
-   candidate silently clones the main world).
-2. `seed_worker.py` (one per worker) — boots `SEED_ROLL_MODE=true`
-   containers, `customdim create → measure → destroy` over a native RCON
-   socket (~10ms/call), writes `worker-<n>.csv`.
+1. `score-dimensions.py manifest` — splits dims across workers; each candidate slot carries spare seeds for spawn-filter re-rolls; every attempt seed gets a config entry in the worker's roll config (the seed/density/peaceful mixins resolve by config name — without an entry a candidate silently clones the main world).
+2. `seed_worker.py` (one per worker) — boots `SEED_ROLL_MODE=true` containers, `customdim create → measure → destroy` over a native RCON socket (~10ms/call), writes `worker-<n>.csv`.
 3. World pass — fresh boots per world-seed candidate.
-4. Winners render pass — top N per dimension re-created and rendered via
-   BlueMap (spawn 144×144, per-family lighting, nether roof cut).
-5. `finalise` — merge, score, write winners + `worldSeed`, generate
-   `viewer.html`, sync the consumer `data/config` copy.
+4. Winners render pass — top N per dimension re-created and rendered via BlueMap (spawn 144×144, per-family lighting, nether roof cut).
+5. `finalise` — merge, score, write winners + `worldSeed`, generate `viewer.html`, sync the consumer `data/config` copy.
 
 ## Reference extractors
 
-- `scripts/seed/extract-biome-catalog.py <data-dir>` — regenerates
-  `scripts/seed/biome_catalog.json` (228 biomes: colours, mobs, features)
-  from the installed jars. Re-run after worldgen mod changes.
-- Structure ids were extracted the same way (`worldgen/structure/` in the
-  jars); the curated map is `STRUCTS` in `dimension_profiles.py`.
+- `scripts/seed/extract-biome-catalog.py <data-dir>` — regenerates `scripts/seed/biome_catalog.json` (228 biomes: colours, mobs, features) from the installed jars. Re-run after worldgen mod changes.
+- Structure ids were extracted the same way (`worldgen/structure/` in the jars); the curated map is `STRUCTS` in `dimension_profiles.py`.
