@@ -286,11 +286,10 @@ body.ungrouped .cand-dim-label { display: block; }
 .img-wrap img { transition: transform .3s ease; }
 body.show-borders .img-wrap img { transform-origin: center; }
 .border-ring {
-  display: none; position: absolute; border: 2px solid rgba(255,60,60,.8);
+  position: absolute; border: 2px solid rgba(255,60,60,.8);
   pointer-events: none; z-index: 5;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.4);
 }
-body.show-borders .border-ring { display: block; }
 .border-label {
   position: absolute; bottom: 2px; right: 4px; font-size: .55rem;
   color: rgba(255,60,60,.9); background: rgba(0,0,0,.6);
@@ -469,24 +468,30 @@ body.show-borders .border-label { display: block; }
     if (hires) { var p = new Image(); p.onload = function() { lbImg.src = hires; }; p.src = hires; }
     var detail = cand.querySelector('.cand-detail');
     lbInfo.innerHTML = detail ? detail.innerHTML : '';
-    // Add border overlay to lightbox image if borders enabled
+    // Lightbox border ring: hires renders (32K) exceed most borders.
+    // Show border ring at diameter/hirescoverage proportion.
     var lbImageDiv = lb.querySelector('.lb-image');
     var existingRing = lbImageDiv.querySelector('.border-ring');
     if (existingRing) existingRing.remove();
     var existingLbl = lbImageDiv.querySelector('.border-label');
     if (existingLbl) existingLbl.remove();
-    if (document.body.classList.contains('show-borders')) {
-      var dimCard = cand.closest('.dim-card');
-      if (dimCard && dimCard.dataset.borderPct) {
+    var dimCard = cand.closest('.dim-card');
+    if (dimCard && dimCard.dataset.borderDiameter) {
+      var bDiam = parseFloat(dimCard.dataset.borderDiameter);
+      var dScale = parseFloat(dimCard.dataset.dimScale || 1);
+      var hiresCoverage = 2048 * 16 / dScale;
+      if (hiresCoverage > bDiam) {
+        var pct = (bDiam / hiresCoverage) * 100;
+        var off = (100 - pct) / 2;
         var ring = document.createElement('div');
         ring.className = 'border-ring';
-        ring.style.cssText = 'display:block;left:'+dimCard.dataset.borderOffset+'%;top:'+dimCard.dataset.borderOffset+'%;width:'+dimCard.dataset.borderPct+'%;height:'+dimCard.dataset.borderPct+'%';
+        ring.style.cssText = 'display:block;left:'+off.toFixed(1)+'%;top:'+off.toFixed(1)+'%;width:'+pct.toFixed(1)+'%;height:'+pct.toFixed(1)+'%';
         lbImageDiv.style.position = 'relative';
         lbImageDiv.appendChild(ring);
         var lbl = document.createElement('div');
         lbl.className = 'border-label';
         lbl.style.display = 'block';
-        lbl.textContent = dimCard.dataset.borderDiameter + 'b border';
+        lbl.textContent = bDiam + 'b border';
         lbImageDiv.appendChild(lbl);
       }
     }
@@ -675,25 +680,20 @@ body.show-borders .border-label { display: block; }
   });
 
   // --- World border overlays ---
-  // Scale each image so the border = container edge. The render covers
-  // RENDER_SIZE * BASE_SCALE / dimScale blocks. If the border (diameter)
-  // is smaller than that, the image shrinks. If bigger, it stays full.
-  var RENDER_SIZE = 1024, BASE_SCALE = 8;
+  // All dimensions scale relative to the largest border diameter.
+  // A 1024b world is 1/16th of a 16384b overworld.
+  // No red ring on cards — just relative sizing.
+  // Lightbox hires (32K render) gets a red ring at 50% showing the border.
+  var maxDiameter = 0;
+  document.querySelectorAll('.dim-card').forEach(function(card) {
+    var r = parseFloat(card.dataset.radius || 0);
+    if (r * 2 > maxDiameter) maxDiameter = r * 2;
+  });
   document.querySelectorAll('.dim-card').forEach(function(card) {
     var radius = parseFloat(card.dataset.radius || 0);
-    var dimScale = parseFloat(card.dataset.dimScale || 1);
     if (!radius) return;
     var diameter = radius * 2;
-    var coverage = RENDER_SIZE * BASE_SCALE / dimScale;
-    // Container represents whichever is larger: render or border.
-    // Image scales to coverage/max, border ring scales to diameter/max.
-    var maxExtent = Math.max(coverage, diameter);
-    var imgScale = Math.max(0.05, coverage / maxExtent);
-    var borderPct = Math.max(5, (diameter / maxExtent) * 100);
-    var borderOffset = (100 - borderPct) / 2;
-    card.dataset.imgScale = imgScale.toFixed(4);
-    card.dataset.borderPct = borderPct.toFixed(1);
-    card.dataset.borderOffset = borderOffset.toFixed(1);
+    var imgScale = Math.max(0.05, diameter / maxDiameter);
     card.dataset.borderDiameter = diameter;
     card.querySelectorAll('img').forEach(function(img) {
       var wrap = img.parentElement;
@@ -703,14 +703,9 @@ body.show-borders .border-label { display: block; }
       div.dataset.borderScale = imgScale.toFixed(4);
       img.parentNode.insertBefore(div, img);
       div.appendChild(img);
-      // Border ring positioned proportionally within the container
-      var ring = document.createElement('div');
-      ring.className = 'border-ring';
-      ring.style.cssText = 'left:'+borderOffset.toFixed(1)+'%;top:'+borderOffset.toFixed(1)+'%;width:'+borderPct.toFixed(1)+'%;height:'+borderPct.toFixed(1)+'%';
-      div.appendChild(ring);
       var lbl = document.createElement('div');
       lbl.className = 'border-label';
-      lbl.textContent = diameter + 'b border';
+      lbl.textContent = diameter + 'b';
       div.appendChild(lbl);
     });
   });
