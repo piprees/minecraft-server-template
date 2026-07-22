@@ -18,8 +18,10 @@ Philosophy (from the worldgen brief):
     the harder it should be; larger worlds are easier and more varied.
   - Voids are dead worlds: no terrain, but the biome layout is still
     there (mob spawning, sounds, fog) — variety of listed biomes matters.
-  - Every playable radius = PLAYER_BORDER_RADIUS / portal scale; structure
-    quality is judged by placement bands RELATIVE to that radius.
+  - Playable radius: the per-dimension borders.player when set (the mod
+    applies it verbatim as the vanilla border radius — config authors
+    write it pre-scaled), else PLAYER_BORDER_RADIUS / portal scale.
+    Structure quality is judged by placement bands RELATIVE to it.
 
 Used by score-dimensions.py (plan / score / finalise). No CLI here.
 """
@@ -384,7 +386,7 @@ def monolith_from_dir(config_dir):
                     world_seed = int(seed)
                 else:
                     w["seed"] = int(seed)
-            for key in ("spawn", "scale", "seedRoll", "difficulty"):
+            for key in ("spawn", "scale", "seedRoll", "difficulty", "borders"):
                 if key in f:
                     w[key] = f[key]
             worlds.append(w)
@@ -393,7 +395,7 @@ def monolith_from_dir(config_dir):
         d = {"name": slug,
              "dimensionId": f.get("dimensionId") or f"{namespaces.get(slug, ns)}:{slug}"}
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
-                    "seedRoll", "difficulty"):
+                    "seedRoll", "difficulty", "borders", "structures"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
@@ -618,7 +620,14 @@ def build_profile(dim, config, difficulty=None):
         scale = float(dim.get("scale", 1.0))
     else:
         scale = float(portal.get("scale") or portal_scales(config).get(name, 1.0))
-    radius = DEFAULT_BORDER_RADIUS / scale
+    # borders.player IS the playable radius (WorldBorderManager applies it
+    # unscaled); the 8192/scale heuristic only covers configs without one.
+    border_player = (dim.get("borders") or {}).get("player")
+    if isinstance(border_player, (int, float)) and not isinstance(border_player, bool) \
+            and border_player > 0:
+        radius = float(border_player)
+    else:
+        radius = DEFAULT_BORDER_RADIUS / scale
     density = dim.get("structureDensity")
     dim_difficulty = dim.get("difficulty") or {}
     peaceful = dim_difficulty.get("hostileSpawning", dim.get("hostileSpawning")) is False
@@ -785,7 +794,10 @@ def build_profile(dim, config, difficulty=None):
                          and len(sr["heightRange"]) == 2
                          else CLONE_HEIGHT_RANGES.get(dim_type)),
         "endgame_safe_radius": endgame_safe_radius,
-        "locate_cap": int(radius + 1000),
+        # Wants may deliberately sit beyond the border (pocket-dim scenery
+        # visible via Distant Horizons) — the locate cap must reach them.
+        "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery
+                                          if kind == "want"]) + 1000),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
             "type": dim_type,

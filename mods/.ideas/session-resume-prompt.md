@@ -68,7 +68,9 @@ Updated configs for: the_catalyst_maw (→nether_islands with oppressive biomes)
 
 After any change to seed scripts:
 ```bash
-STACK="/Users/pip/Projects/elfydd/.stack/v3.0.1/stack/scripts/seed"
+# NOTE: sync to the stack elfydd ACTUALLY runs — resolve the `current`
+# symlink (was v3.0.1 when this doc was written; v3.0.2 as of 2026-07-22).
+STACK="/Users/pip/Projects/elfydd/.stack/$(readlink /Users/pip/Projects/elfydd/.stack/current)/stack/scripts/seed"
 for f in biome_renderer.py terrain_height.py surface_rules.py noise_configs.json \
          score-dimensions.py viewer_template.html viewer-server.py \
          structure_placement.py biome_sampler.py; do

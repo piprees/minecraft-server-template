@@ -583,12 +583,18 @@ def write_winner(data, winner):
 
 
 def write_winners_to_overlay(overlay_root, winners, seedtest,
-                             platform_sources=None):
+                             platform_sources=None, platform_dir=None):
     """Consumer mode: winners land in the consumer repo's overlay. New
     files get the FULL platform default (seed + spawn updated); existing
     files are patched in place — 'overrides' files keep their shape,
     full-replace files get top-level seed/spawn, empty {} (disabled) are
-    left alone."""
+    left alone.
+
+    New files copy the RAW v4 platform file ({platform_dir}/dimensions/
+    {name}.json) when available — the synthesised monolith entry in
+    platform_sources drops portal/borders/structures, and an overlay file
+    is a FULL REPLACE at boot, so cloning from the monolith shape silently
+    stripped those blocks from the dimension."""
     dims_dir = Path(overlay_root) / "dimensions"
     backup = None
     if dims_dir.is_dir():
@@ -610,7 +616,16 @@ def write_winners_to_overlay(overlay_root, winners, seedtest,
             else:
                 target = data
         else:
-            src = (platform_sources or {}).get(name, {})
+            src = None
+            if platform_dir is not None:
+                pf = Path(platform_dir) / "dimensions" / f"{name}.json"
+                if pf.exists():
+                    try:
+                        src = json.loads(pf.read_text())
+                    except json.JSONDecodeError:
+                        src = None
+            if src is None:
+                src = (platform_sources or {}).get(name, {})
             data = {k: v for k, v in src.items()}
             target = data
         if write_winner(target, w):
@@ -714,7 +729,7 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
             if getattr(args, "winner_overlay", None):
                 changed, backup = write_winners_to_overlay(
                     args.winner_overlay, winners, args.seedtest,
-                    platform_sources=all_sources)
+                    platform_sources=all_sources, platform_dir=cfg_path)
                 print(f"overlay updated: {changed} seeds changed "
                       f"({Path(args.winner_overlay) / 'dimensions'} — \"overrides\" files)"
                       + (f"; backup: {backup}" if backup else ""))

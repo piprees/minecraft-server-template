@@ -226,6 +226,50 @@ class BuildProfileV4Tests(unittest.TestCase):
         dim2 = {"name": "d", "type": "overworld", "dimensionId": "adventure:d"}
         self.assertEqual(build_profile(dim2, cfg, {"adventure:d": 1.3})["mob_difficulty"], 1.3)
 
+    def test_borders_player_sets_playable_radius(self):
+        cfg = {"namespace": "adventure", "dimensions": [], "portals": [], "worlds": []}
+        pocket = {"name": "p", "type": "multi_biome", "dimensionId": "adventure:p",
+                  "borders": {"player": 256, "generation": 2048},
+                  "structures": {"wants": {"farmstead": {"min": 512, "max": 2048}}}}
+        profile = build_profile(pocket, cfg)
+        self.assertEqual(profile["radius"], 256.0)
+        # bands are relative to the real playable radius, not 8192/scale
+        self.assertEqual(profile["grid_pitch"], 64)
+        # wants beyond the border stretch the locate cap to reach them
+        self.assertEqual(profile["locate_cap"], 3048)
+        # fallback: no borders block -> 8192/scale heuristic unchanged
+        plain = {"name": "d", "type": "overworld", "dimensionId": "adventure:d"}
+        self.assertEqual(build_profile(plain, cfg)["radius"], 8192.0)
+        # zero means borderless: heuristic applies
+        borderless = {"name": "b", "type": "overworld", "dimensionId": "adventure:b",
+                      "borders": {"player": 0}}
+        self.assertEqual(build_profile(borderless, cfg)["radius"], 8192.0)
+
+    def test_borders_carried_through_monolith_synthesis(self):
+        import json
+        import pathlib
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            dims = pathlib.Path(td) / "dimensions"
+            dims.mkdir()
+            (dims / "pocket.json").write_text(json.dumps(
+                {"type": "multi_biome", "borders": {"player": 256},
+                 "structures": {"wants": {"farmstead": {"min": 512, "max": 2048}},
+                                "shuns": ["village"]}}))
+            (dims / "the_end.json").write_text(json.dumps(
+                {"seed": 5, "borders": {"player": 4096}}))
+            cfg = monolith_from_dir(td)
+        dim = next(d for d in cfg["dimensions"] if d["name"] == "pocket")
+        self.assertEqual(dim["borders"], {"player": 256})
+        profile = build_profile(dim, cfg)
+        self.assertEqual(profile["radius"], 256.0)
+        # the v4 "structures" block survives synthesis: explicit wants/shuns,
+        # not the DEFAULT_WANTS fallback
+        self.assertEqual({(n, kind) for n, _sid, _spec, kind in profile["battery"]},
+                         {("farmstead", "want"), ("village", "shun")})
+        world = next(w for w in cfg["worlds"] if w["name"] == "the_end")
+        self.assertEqual(build_profile(world, cfg)["radius"], 4096.0)
+
 
 if __name__ == "__main__":
     unittest.main()
