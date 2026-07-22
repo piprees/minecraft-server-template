@@ -118,8 +118,8 @@ Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updat
    mc.example.com:25577   │   (+ SRV record hides the port)                │  ├ autopause when empty
                           │                                                │  └ RCON :25575 (internal only)
   Friends (browser) ──────┼─ Cloudflare Tunnel (HTTP only):                │
-   map.example.com        │    map/status/mods ─► nav-proxy ─► bluemap/Kuma│ sidecars:
-   pack.example.com       │    pack             ─► pack-web (nginx)        │  bluemap (map render + web, 24/7)
+   map.example.com        │    map/status/mods ─► nav-proxy ─► static/Kuma │ sidecars:
+   pack.example.com       │    pack             ─► pack-web (nginx)        │  unmined-render (static maps)
    status.example.com     │                                                │  mc-backup (restic ► R2, 12h)
    mods.example.com       │                                                │  idle-tasks (Chunky pre-gen, GC)
                           │                                                │  mod-checker (daily update page)
@@ -137,7 +137,6 @@ Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updat
 | --- | --- | --- | --- |
 | `mc` | `itzg/minecraft-server` | local, cloud | The game server. Fabric, autopause, RCON, healthcheck |
 | `defaults-seed` | `ghcr.io/.../defaults-seed` | local, cloud | Seeds default configs, mods, and datapacks into shared volumes; applies consumer overlay |
-| `bluemap` | `ghcr.io/bluemap-minecraft/bluemap` | both | Standalone map renderer + web server; watches world files, stays up during autopause. No player markers |
 | `mc-backup` | `itzg/mc-backup` | cloud | restic snapshots to R2 every 6h by default, `save-off` consistency |
 | `minio` + `minio-init` + `mc-backup-local` | minio / itzg | local | Local S3 stand-in so backups work identically in dev |
 | `uptime-kuma` + `kuma-init` | louislam / ghcr.io/.../kuma-init | both | Monitoring + one-shot idempotent provisioning from `config/uptime-kuma/kuma-config.json` |
@@ -248,7 +247,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
 | `seed/*` | Mac | Batch seed testing, scoring, reports |
 | `service.sh` | Mac | Start, stop, restart, or check status of sidecars (local or production; never MC) |
-| `map-render.sh` | Mac | Drive the bluemap sidecar: status, force re-renders, thread tuning |
+| `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
 
 ### Image scripts (baked into GHCR images, not run directly)
@@ -358,7 +357,7 @@ Troubleshooting:
 
 Automatic every **6h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency. Retention: 3 daily, 1 weekly, 1 monthly (fits R2's free 10GB). Override the interval with `BACKUP_INTERVAL`.
 
-**Excludes** (regenerable data): `bluemap`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`. Only world, player data, and config are backed up.
+**Excludes** (regenerable data): `bluemap`, `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`. Only world, player data, and config are backed up.
 
 ```bash
 ./ops backup                                     # manual backup

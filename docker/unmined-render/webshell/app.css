@@ -67,6 +67,7 @@ body.sidebar-closed #view { left: 0; }
   pointer-events: none; transition: opacity .25s ease;
 }
 #fade.active { opacity: 1; }
+#map-empty[hidden] { display: none; }
 #map-empty {
   position: absolute; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center; text-align: center;
