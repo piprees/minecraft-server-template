@@ -1417,7 +1417,9 @@ async def mc_border(interaction: discord.Interaction, radius: int | None = None)
     await interaction.response.send_message(
         f"Player border set to **{radius}** blocks "
         f"(overworld {diameter} diameter, nether {nether_radius} radius).\n"
-        f"Resets to `PLAYER_BORDER_RADIUS` on next deploy.",
+        f"Temporary: the custom-dimensions mod re-applies `borders.player` "
+        f"from `config/custom-dimensions/` at the next restart — edit the "
+        f"config to make it permanent.",
         ephemeral=True,
     )
     await audit(interaction, f"set player border to **{radius}** blocks (nether {nether_radius})")
