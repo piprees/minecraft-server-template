@@ -74,6 +74,7 @@ MANIFEST=(
   scripts/seed/report-top.sh
   scripts/seed/score-report.py
   scripts/seed/viewer-server.py
+  scripts/seed/viewer_template.html
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
   scripts/seed/biome_source_mixing.py

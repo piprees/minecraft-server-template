@@ -8,6 +8,9 @@ lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
 c2me-fabric:GC7ouKxZ
+# carpet — server admin/testing tool: fake players for headless portal + gameplay
+# verification (ops-gated commands; no client counterpart needed)
+carpet:f2mvlGrg
 noisium:4sGQgiu2
 servercore:GQ2a51Rl
 chunky:RVFHfo1D
