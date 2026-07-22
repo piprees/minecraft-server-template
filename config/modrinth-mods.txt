@@ -7,7 +7,7 @@ fabric-language-kotlin:bdhiINYC
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
-c2me-fabric:4kQdubQA
+c2me-fabric:GC7ouKxZ
 noisium:4sGQgiu2
 servercore:GQ2a51Rl
 chunky:RVFHfo1D

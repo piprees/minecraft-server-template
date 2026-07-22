@@ -137,6 +137,7 @@
     "stableOnly": [],
     "_holdsComment": "holds: slugs pin-mod-versions.sh must NOT re-pin, keyed by slug with the reason. Remove an entry only when its blocker clears.",
     "holds": {
+      "c2me-fabric": "0.4.0-alpha.0.21 wedges fresh-world creation: the Server thread parks forever in getChunkBlocking while locating spawn (chunk future never completes; verified via thread dump 2026-07-22 on a full local world wipe). Hold at 0.4.0-alpha.0.19 (GC7ouKxZ) until a later alpha survives a fresh-world boot end to end.",
       "critters-and-companions": "2.6.x claims 1.21.1 but is built against a newer Architectury (AbstractMethodError in NetworkAggregator$Adaptor.registerS2C at server boot — killed the v3.2.0 smoke test 2026-07-22); our architectury-api 13.0.8 is already the newest 1.21.1 build. Hold at 1.21.1-2.4.1 (YuM4Jtu5) until a CAC release actually targets architectury 13.x.",
       "xaeros-world-map": "1.42.0 removed Waypoint's int x/y/z fields; maplink 4.4.0's @Accessor mixin hard-crashes the client on map open. Hold at 1.41.2 (9ts5xgne) until a maplink release supports WM 1.42+.",
       "xaeros-minimap": "era-pair of xaeros-world-map 1.41.2 - held at 26.1.0 (UlRSujUV); bump both together when the maplink hold clears"

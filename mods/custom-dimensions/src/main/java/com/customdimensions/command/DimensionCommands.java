@@ -177,6 +177,7 @@ public class DimensionCommands {
 
         mgr.requestWorldUnload(name);
         mgr.forgetRuntimeDefinition(name);
+        com.customdimensions.dimension.DimensionFingerprints.forget(name);
 
         source.sendFeedback(() -> Text.literal("Queued destruction of dimension '" + name + "'"), true);
         return 1;

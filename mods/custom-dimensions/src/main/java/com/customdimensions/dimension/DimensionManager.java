@@ -150,14 +150,19 @@ public class DimensionManager {
             // Per-dim isolation: one broken config must not abort registration
             // of every dimension after it (2026-07-22: a seed-less config NPE'd
             // here and silently took an unrelated new dimension down with it).
+            DimensionFingerprints.init(this.server);
             for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
                 if (dimRegistry.contains(key)) {
+                    // The persisted generator (level.dat) wins for existing
+                    // dimensions — warn on drift, never delete or regenerate.
+                    DimensionFingerprints.checkExisting(def);
                     continue;
                 }
                 try {
                     DimensionOptions options = this.createDimensionOptions(def);
                     dimRegistry.add(key, options, RegistryEntryInfo.DEFAULT);
+                    DimensionFingerprints.record(def);
                     MultiverseServer.LOGGER.info("Registered dimension: {}", key);
                 } catch (Exception e) {
                     MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
