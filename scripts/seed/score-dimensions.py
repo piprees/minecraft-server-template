@@ -916,18 +916,22 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if best:
         img = "renders/{}/{}.png".format(name, best["seed"])
         hires = "renders/{}/{}_hires.png".format(name, best["seed"])
-        img_html = "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.onerror=null\">".format(img, hires)
+        img_html = ("<img src='{}' data-hires='{}' loading='lazy' "
+                    "alt='Map render — {} best seed' "
+                    "onerror=\"this.onerror=null\">").format(img, hires, esc_name)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
             html.escape(best.get("spawn_biome", "")))
 
+    pinned_dim = "1" if winners.get(name, {}).get("pinned") else "0"
     out = []
     out.append(
-        "<div class='dim-card' data-family='{}' data-type='{}' "
+        "<div class='dim-card' role='button' tabindex='0' aria-expanded='false' "
+        "data-family='{}' data-type='{}' "
         "data-mood='{}' data-flagged='{}' data-name='{}' "
         "data-score='{:.1f}' data-cands='{}' data-shortlisted='{}' "
-        "data-radius='{}' data-dim-scale='{}'{}>".format(
+        "data-pinned='{}' data-radius='{}' data-dim-scale='{}'{}>".format(
             family, ptype, pmood, flagged, esc_name, best_score, n_cands,
-            best_shortlisted,
+            best_shortlisted, pinned_dim,
             int(profile["radius"]), profile.get("scale", 1.0),
             " data-hidden='1'" if is_hidden else ""))
     out.append(flag_dot)
@@ -951,13 +955,16 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
 
     # Detail panel (visible when expanded)
     out.append("<div class='detail'>")
-    out.append("<span class='close-btn'>&times;</span>")
+    out.append("<button type='button' class='close-btn' "
+               "aria-label='Close details'>&times;</button>")
 
     # Detail header: winner image + info side by side
     out.append("<div class='detail-header'>")
     if best:
-        out.append("<img class='winner-img' src='renders/{}/{}.png' "
-                   "onerror=\"this.onerror=null\">".format(name, best["seed"]))
+        out.append("<img class='winner-img' src='renders/{}/{}.png' loading='lazy' "
+                   "alt='Map render — {} seed {}' "
+                   "onerror=\"this.onerror=null\">".format(
+                       name, best["seed"], esc_name, best["seed"]))
     out.append("<div class='detail-info'>")
     out.append("<h2>{}</h2>".format(html.escape(name)))
     out.append("<div class='blurb'>{}</div>".format(html.escape(profile["blurb"])))
@@ -1163,7 +1170,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
-        "<img src='{}' data-hires='{}' loading='lazy' onerror=\"this.onerror=null\">"
+        "<img src='{}' data-hires='{}' loading='lazy' "
+        "alt='Map render — {} seed {}' onerror=\"this.onerror=null\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' style='color:{}'>{:.1f}{}</div>"
@@ -1187,6 +1195,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             esc_dim, hidden, shortlisted_attr,
             html.escape(candidate_tooltip(c), quote=True),
             img, hires,
+            esc_dim, c["seed"],
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],
             html.escape(dim_name),
