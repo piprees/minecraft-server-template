@@ -435,6 +435,37 @@ services:
       retries: 5
 
   # ==========================================================================
+  # unmined-render - Scheduled static map renders (uNmINeD CLI)
+  # ==========================================================================
+  # Renders every base world + on-disk custom dimension to a static web map
+  # (webp tiles, self-contained viewer) in ./data/unmined-web on an interval.
+  # Incremental: only changed regions re-render; unchanged dimensions are
+  # skipped entirely. Renders are clamped to borders.generation (custom
+  # dims) / PREGEN_BORDER_RADIUS (base worlds). Served by nav-proxy at
+  # map.DOMAIN/unmined/ — plain files, edge-cacheable.
+  #
+  # OFF by default: set UNMINED_INTERVAL (e.g. 6h) in .env to enable.
+  # Both profiles.
+  # ==========================================================================
+  unmined-render:
+    image: ${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/unmined-render:${IMAGE_TAG:-latest}
+    container_name: "${CONTAINER_PREFIX:-}unmined-render"
+    environment:
+      UNMINED_INTERVAL: "${UNMINED_INTERVAL:-0}"
+      UNMINED_ZOOMOUT: "${UNMINED_ZOOMOUT:-6}"
+      PREGEN_BORDER_RADIUS: "${PREGEN_BORDER_RADIUS:-8192}"
+    volumes:
+      - ./data/world:/world:ro
+      - ./data/config/custom-dimensions:/config:ro
+      - ./data/unmined-web:/web
+    mem_limit: 1024m
+    logging: *default-logging
+    restart: unless-stopped
+    profiles:
+      - local
+      - cloud
+
+  # ==========================================================================
   # nav-proxy - Reverse proxy that injects the site nav bar
   # ==========================================================================
   # Sits in front of all web services (BlueMap, Uptime Kuma, pack-web),
@@ -449,6 +480,7 @@ services:
     command: /bin/sh -c "mkdir -p /etc/nginx/templates && cp /config-vol/nginx/nav-proxy.conf.template /etc/nginx/templates/default.conf.template && exec /docker-entrypoint.sh nginx -g 'daemon off;'"
     volumes:
       - stack-config:/config-vol:ro
+      - ./data/unmined-web:/unmined-web:ro
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}

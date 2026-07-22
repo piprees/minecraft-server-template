@@ -146,6 +146,7 @@ Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updat
 | `pack-web` | nginx | both | Serves the `.mrpack`, download page, and the mirrored mod JARs (`/mods/`, Cloudflare edge-cached) from `modpack/dist/` |
 | `idle-tasks` | ghcr.io/.../idle-tasks | cloud | When empty: save, GC, Chunky pre-generation |
 | `mod-checker` | ghcr.io/.../mod-checker | both | Daily (06:00 UTC) mod update check, HTML page at mods.DOMAIN |
+| `unmined-render` | ghcr.io/.../unmined-render | both | Scheduled static uNmINeD map renders into `data/unmined-web/`, served at map.DOMAIN/unmined/ (off until `UNMINED_INTERVAL` is set) |
 | `discord-sync` | ghcr.io/.../discord-sync | both | Discord bot: `/register`, `/mc` admin commands, role→whitelist sync |
 
 **Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only.

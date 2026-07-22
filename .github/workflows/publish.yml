@@ -36,10 +36,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [discord-sync, kuma-init, mod-checker, idle-tasks, defaults-seed, modpack-builder]
+        image: [discord-sync, kuma-init, mod-checker, idle-tasks, defaults-seed, modpack-builder, unmined-render]
         include:
           - image: discord-sync
             dockerfile: docker/discord-sync/Dockerfile
+          - image: unmined-render
+            dockerfile: docker/unmined-render/Dockerfile
           - image: kuma-init
             dockerfile: docker/kuma-init/Dockerfile
           - image: mod-checker

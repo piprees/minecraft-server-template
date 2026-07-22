@@ -46,6 +46,16 @@ server {
 @media (max-width:360px){.site-nav-brand{font-size:0;gap:0}}.box{text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#7a8999;max-width:28rem}code{background:#1c2835;padding:.15em .4em;border-radius:4px;font-size:.9em}</style></head><body><nav class="site-nav"><a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a><a href="https://map.${DOMAIN}" aria-current="page">Map</a><a href="https://status.${DOMAIN}">Status</a><a href="https://pack.${DOMAIN}">Download</a><a href="https://mods.${DOMAIN}">Mods</a></nav><div class="box"><h1>Map is taking a nap</h1><p>The map service is restarting and will be back in a minute or two. The game server itself is unaffected - you can join <code>mc.${DOMAIN}</code> as usual.</p></div></body></html>';
     }
 
+    # uNmINeD static maps (unmined-render sidecar). ^~ is load-bearing:
+    # without it the 30-day-immutable regex location below captures
+    # /unmined/*.webp tiles and proxies them to BlueMap (404).
+    location ^~ /unmined/ {
+        alias /unmined-web/;
+        autoindex off;
+        expires 24h;
+        add_header Cache-Control "public, max-age=86400, stale-while-revalidate=86400" always;
+    }
+
     # Live data (player positions, markers) - never cache, real-time
     location ~* ^/maps/.*/live/ {
         set $bluemap_upstream http://bluemap:8100;
