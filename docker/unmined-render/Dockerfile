@@ -13,7 +13,7 @@ FROM debian:bookworm-slim
 
 ARG TARGETARCH
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl jq \
+    && apt-get install -y --no-install-recommends ca-certificates curl jq libicu72 \
     && rm -rf /var/lib/apt/lists/*
 
 # Map Docker arch to uNmINeD's naming (amd64 -> x64). The LINUX downloads
