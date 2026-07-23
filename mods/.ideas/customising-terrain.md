@@ -1,5 +1,13 @@
 # Customising terrain: scale, realism and per-dimension shape
 
+> **Status (2026-07-23): both recommended phases SHIPPED** — the tuned
+> `config/tectonic.json` ships via the config-sync pipeline, and the
+> per-dimension `noiseSettings` field with jar-baked `adventure:wide`/
+> `compressed` presets landed (`gen-terrain-presets.py`; regenerate on
+> Tectonic pin bumps — see mods/AGENTS.md). Retained as reference: the
+> Tectonic knob-semantics table and the alternatives survey below are the
+> only copy of that research. "Continents" (phase 3) remains unadopted.
+
 Research into making terrain wider and more realistically proportioned
 (broader mountains and valleys, less craggy/"Minecraft-y"), what knobs
 already exist, what mods could help, and how the custom-dimensions mod

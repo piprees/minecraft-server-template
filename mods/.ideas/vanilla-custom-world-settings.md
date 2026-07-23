@@ -1,5 +1,12 @@
 # Vanilla "Custom" world settings → per-dimension config support
 
+> **Status (2026-07-23): Tier 1 SHIPPED** (`coordinateScale`, `effects`,
+> `infiniburn`, `monsterSpawnLightLevel`, `monsterSpawnBlockLightLimit`
+> live in `DimensionConfig.Environment`/`DimensionTypeBuilder`). Tiers
+> 2–3 and the precision-placement section remain the open roadmap; the
+> implementation sketches from the 2026-07-22 platform handoff are merged
+> in below.
+
 Analysis of the Minecraft wiki "Custom" world-type page against what the
 custom-dimensions mod (1.21.1) already does, what's cheap to add, and what
 we should refuse. Grounded in the actual code: `DimensionConfig.Environment`,
@@ -43,11 +50,11 @@ seeds, biome lists, `noiseSettings` presets (jar-baked
 | `respawn_anchor_works` | ✅ have (`respawnAnchorWorks`) | |
 | `has_raids` | ✅ have (`hasRaids`) | |
 | `min_y` / `height` / `logical_height` | ✅ have | validated (×16, ±2032, logicalHeight ≤ height); proven live with the y=500 oracle (Phase 4) |
-| `coordinate_scale` | 🟡 easy | `DimensionTypeBuilder.build()` currently inherits `base.coordinateScale()`. Add `env.coordinateScale` (clamp 0.00001–30000000). **Trap**: our portals do their own scaling via `portal.scale` — setting BOTH double-applies for vanilla travel mechanics; document that `coordinate_scale` affects vanilla portal maths while `portal.scale` is ours, pick one per dimension. |
-| `effects` | 🟡 easy, high value | One of `minecraft:overworld`/`the_nether`/`the_end`. Server-registrable; the client renders the matching skybox/fog. This is the legit replacement for the ignored `skyColor`/`fogColor` fields — and it should feed the map shell's per-family background too. Custom effect ids need a client mod: refuse. |
-| `infiniburn` | 🟡 easy | String block-tag id → `TagKey.of(RegistryKeys.BLOCK, ...)`. No existence validation possible for tags at parse time — document “typo = nothing burns forever”, fall back to base on malformed id. |
-| `monster_spawn_light_level` | 🟡 easy | Accept an int (→ `ConstantIntProvider`) or `[min,max]` (→ uniform). Nice synergy with the difficulty system — e.g. gauntlet-style dims where mobs spawn at light 7 (pre-1.18 rules) or 15 (everywhere). |
-| `monster_spawn_block_light_limit` | 🟡 easy | Plain int 0–15. |
+| `coordinate_scale` | ✅ have (Tier 1) | `DimensionTypeBuilder.build()` currently inherits `base.coordinateScale()`. Add `env.coordinateScale` (clamp 0.00001–30000000). **Trap**: our portals do their own scaling via `portal.scale` — setting BOTH double-applies for vanilla travel mechanics; document that `coordinate_scale` affects vanilla portal maths while `portal.scale` is ours, pick one per dimension. |
+| `effects` | ✅ have (Tier 1) | One of `minecraft:overworld`/`the_nether`/`the_end`. Server-registrable; the client renders the matching skybox/fog. This is the legit replacement for the ignored `skyColor`/`fogColor` fields — and it should feed the map shell's per-family background too. Custom effect ids need a client mod: refuse. |
+| `infiniburn` | ✅ have (Tier 1) | String block-tag id → `TagKey.of(RegistryKeys.BLOCK, ...)`. No existence validation possible for tags at parse time — document “typo = nothing burns forever”, fall back to base on malformed id. |
+| `monster_spawn_light_level` | ✅ have (Tier 1) | Accept an int (→ `ConstantIntProvider`) or `[min,max]` (→ uniform). Nice synergy with the difficulty system — e.g. gauntlet-style dims where mobs spawn at light 7 (pre-1.18 rules) or 15 (everywhere). |
+| `monster_spawn_block_light_limit` | ✅ have (Tier 1) | Plain int 0–15. |
 | `skyColor` / `fogColor` | ❌ won't (as-is) | Client rendering; already ignored with a log line. `effects` (above) is the supported 3-flavour version. Full custom colours would need biome `special_effects` overrides — see biome section. |
 
 ### Root-level Custom world fields
@@ -76,7 +83,7 @@ seeds, biome lists, `noiseSettings` presets (jar-baked
 
 ## Mod changes required (by tier)
 
-**Tier 1 — config plumbing only (one small PR):**
+**Tier 1 — config plumbing only — ✅ SHIPPED:**
 `Environment` gains `coordinateScale`, `effects`, `infiniburn`,
 `monsterSpawnLightLevel`, `monsterSpawnBlockLightLimit`;
 `DimensionTypeBuilder.build()` stops inheriting those five from base when
@@ -141,6 +148,20 @@ functions), so a desert patch in mountains is a sandy mountain — patch
 radius should respect terrain mood; blend the edge (1–2 chunk noise jitter
 on the boundary) or patches look stamped.
 
+Implementation notes (2026-07-22 handoff): a `PatchedBiomeSource extends
+BiomeSource` wrapping (delegate, patches) — `getBiomes()` is the union,
+`getBiomeForNoiseGen(x,y,z)` answers from a patch when inside one, else
+delegates. Biome-source coordinates are QUARTS (block >> 2), so convert
+the radius; `CODEC` is a required abstract in 1.21.1 — a codec that
+round-trips delegate + patch list server-side is all it needs. Natural
+home: `DimensionManager.createDimensionOptions` (every generator case
+builds its source there — wrap the result when patches are configured).
+Pipeline parity is part of the same change, not a follow-up:
+`scripts/seed/biome_sampler.py` applies the same override before scoring.
+Oracle: fixture dim, cherry_grove patch at (0,0) — `execute in <dim> run
+locate biome minecraft:cherry_grove` returns ~0; a probe outside the
+radius returns the base source's biome.
+
 ### Fixed structures (two routes)
 
 1. **Post-gen `/place structure`** (cheap, ships tomorrow): deploy.sh's
@@ -157,6 +178,23 @@ on the boundary) or patches look stamped.
    placements is the same machinery. This gets real generation-time
    placement (terrain adaptation, locate support, maps) and composes with
    structureDensity.
+
+   Implementation notes (2026-07-22 handoff): register the placement type
+   at mod init; inject synthetic (structure set → fixed placement) pairs
+   during the rebuild. Access points are `StructurePlacementAccessor` and
+   `StructurePlacementCalculatorInvoker` — the invoker exists because the
+   public Stream create() zeroes concentric-ring seeds, so the private
+   ctor is the one to use. A `"structures": {"mode": allow|reject|none,
+   "list": [...], "force": [{structure, x, z}]}` shape must coexist with
+   the existing seed-roll `Structures` class (wants/shuns) — read
+   `c89e1e1` first. "none" is a whole-set drop (structureDensity already
+   does these); the peaceful overlay drops sets through a parallel path —
+   unifying them while in there leaves things tidier. Pipeline parity:
+   `scripts/seed/structure_placement.py` treats filtered sets as absent
+   and forced structures as constants (known distance, guaranteed scoring
+   hits) — rolls then only hunt the organic remainder. Oracle: fixture
+   dim forcing an end_city near spawn — `locate structure` returns the
+   configured spot; with `"mode": "none"` every locate is "Could not find".
 
 ### How deep does it go?
 
