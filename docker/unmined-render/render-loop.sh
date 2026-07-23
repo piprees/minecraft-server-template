@@ -108,6 +108,18 @@ config_file_for() {
   esac
 }
 
+# Display name for a dimension slug. Known dimensions get curated names;
+# custom ones fall back to title-casing the slug.
+display_name() {
+  case "$1" in
+    overworld)     echo "The Overworld" ;;
+    nether)        echo "The Nether" ;;
+    end)           echo "The End" ;;
+    paradise_lost) echo "The Paradise" ;;
+    *)             jq -rn --arg s "$1" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")' ;;
+  esac
+}
+
 # Spawn marker for one map: the dimension's spawn point labelled with its
 # name. This file is the dynamic-marker hook — anything may rewrite it
 # between renders (structures, POIs, sign data); the shell fetches it with
@@ -115,7 +127,7 @@ config_file_for() {
 write_markers() {
   name="$1"
   cfg="$(config_file_for "$name")"
-  pretty=$(jq -rn --arg s "$name" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")')
+  pretty=$(display_name "$name")
   spawn="[0, 64, 0]"
   if [[ -f "$cfg" ]]; then
     s=$(jq -c '(.spawn // .overrides.spawn // empty)' "$cfg" 2>/dev/null || true)
@@ -129,42 +141,61 @@ write_markers() {
     }]' > "$OUT_DIR/maps/$name/markers.json"
 }
 
-# Manifest consumed by the web shell (served no-cache): one entry per
-# rendered map with a version stamp (epoch of the last render) that busts
-# the edge cache for that dimension's tiles and metadata.
+# Emit one manifest entry for a dimension. Rendered dimensions get a
+# version stamp from the last-render marker; unrendered ones get version 0
+# and rendered=false so the shell can show them as placeholders.
+manifest_entry() {
+  name="$1"
+  cfg="$(config_file_for "$name")"
+  dim_type="overworld"
+  spawn="null"
+  if [[ -f "$cfg" ]]; then
+    dim_type=$(jq -r '(.type // .overrides.type // "overworld")' "$cfg" 2>/dev/null || echo overworld)
+    spawn=$(jq -c '(.spawn // .overrides.spawn // null)' "$cfg" 2>/dev/null || echo null)
+  fi
+  case "$name:$dim_type" in
+    nether:*|*:*nether*) family="nether" ;;
+    end:*|*:*end*|*:void) family="end" ;;
+    *paradise*) family="paradise_lost" ;;
+    *) family="overworld" ;;
+  esac
+  local rendered="false" ver=0
+  local marker="$OUT_DIR/maps/$name/.last-render"
+  if [[ -f "$OUT_DIR/maps/$name/unmined.map.properties.js" ]]; then
+    rendered="true"
+    ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
+  fi
+  jq -n --arg slug "$name" --arg type "$dim_type" --arg family "$family" \
+    --argjson spawn "$spawn" --argjson ver "$ver" --argjson rendered "$rendered" \
+    --arg pretty "$(display_name "$name")" \
+    '{slug: $slug, name: $pretty, type: $type, family: $family,
+      spawn: $spawn, version: $ver, renderedAt: (if $rendered then $ver else null end),
+      rendered: $rendered}'
+}
+
+# Manifest consumed by the web shell (served no-cache). Always includes the
+# four base dimensions (even before first render) plus any custom dimensions
+# that have been rendered.
 write_manifest() {
   tmp="$OUT_DIR/.manifest-entries"
   : > "$tmp"
+  # Base four — always present.
+  for base in overworld nether end paradise_lost; do
+    manifest_entry "$base" >> "$tmp"
+  done
+  # Custom dimensions that have been rendered.
   for d in "$OUT_DIR"/maps/*/; do
     [[ -f "$d/unmined.map.properties.js" ]] || continue
     name=$(basename "$d")
-    marker="$d/.last-render"
-    ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
-    cfg="$(config_file_for "$name")"
-    dim_type="overworld"
-    spawn="null"
-    if [[ -f "$cfg" ]]; then
-      dim_type=$(jq -r '(.type // .overrides.type // "overworld")' "$cfg" 2>/dev/null || echo overworld)
-      spawn=$(jq -c '(.spawn // .overrides.spawn // null)' "$cfg" 2>/dev/null || echo null)
-    fi
-    case "$name:$dim_type" in
-      nether:*|*:*nether*) family="nether" ;;
-      end:*|*:*end*|*:void) family="end" ;;
-      *paradise*) family="paradise_lost" ;;
-      *) family="overworld" ;;
-    esac
-    jq -n --arg slug "$name" --arg type "$dim_type" --arg family "$family" \
-      --argjson spawn "$spawn" --argjson ver "$ver" \
-      --arg pretty "$(jq -rn --arg s "$name" '$s | split("_") | map((.[0:1] | ascii_upcase) + .[1:]) | join(" ")')" \
-      '{slug: $slug, name: $pretty, type: $type, family: $family,
-        spawn: $spawn, version: $ver, renderedAt: $ver}' >> "$tmp"
+    case "$name" in overworld|nether|end|paradise_lost) continue ;; esac
+    manifest_entry "$name" >> "$tmp"
   done
-  jq -s '{generated: now | floor, dimensions: sort_by(.slug)}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
+  jq -s '{generated: now | floor, dimensions: .}' "$tmp" > "$OUT_DIR/manifest.json.tmp"
   mv "$OUT_DIR/manifest.json.tmp" "$OUT_DIR/manifest.json"
   rm -f "$tmp"
 }
 
-# Install the SPA shell (index.html/app.js/app.css) and shared uNmINeD
+# Install the web shell (index.html/app.js/app.css) and shared uNmINeD
 # assets (lib/, unmined.js — identical in every map dir) at the web root.
 install_shell() {
   if [[ -d "$WEBSHELL_DIR" ]]; then

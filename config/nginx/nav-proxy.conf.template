@@ -4,7 +4,7 @@
 
 # World map — static uNmINeD output (unmined-render sidecar), served
 # straight from the /unmined-web bind mount. No upstream: the map is
-# always up, even while mc restarts. The SPA shell (index.html) handles
+# always up, even while mc restarts. The web shell (index.html) handles
 # clean per-dimension URLs (map.DOMAIN/<slug>), so every non-file path
 # falls back to it. Tiles and per-map metadata are requested with a
 # ?v=<render stamp> by the shell — safe to cache as immutable; a
@@ -30,6 +30,16 @@ server {
     add_header Content-Security-Policy "default-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob: https:; connect-src 'self' wss: https:; font-src 'self' data:" always;
 
     client_max_body_size 1m;
+
+    # Short-cache 404s so Cloudflare doesn't serve stale not-founds for
+    # hours after files appear (e.g. first render creating /lib/).
+    error_page 404 @short-cache-404;
+    location @short-cache-404 {
+        internal;
+        add_header Cache-Control "public, max-age=600" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        return 404;
+    }
 
     # Per-dimension map data (tiles, metadata JS, markers). Immutable:
     # the shell versions every request with ?v=<render stamp>. ^~ keeps
@@ -61,8 +71,8 @@ server {
         add_header Cache-Control "public, max-age=3600, stale-while-revalidate=3600" always;
     }
 
-    # SPA shell: clean dimension URLs (/the_gauntlet) fall back to
-    # index.html; the shell routes from location.pathname. Nav bar and OG
+    # Clean dimension URLs (/the-gauntlet) fall back to index.html; the
+    # shell reads location.pathname to load the right map. Nav bar and OG
     # metadata are injected here, same pattern as the other surfaces.
     location / {
         try_files $uri /index.html;

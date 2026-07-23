@@ -1,5 +1,7 @@
 /* map.DOMAIN shell — sidebar + map view. The site nav bar (44px, fixed) is
    injected by nav-proxy; every fixed element below starts at top: 44px. */
+@view-transition { navigation: auto; }
+
 :root {
   --nav-h: 44px;
   --sidebar-w: 240px;
@@ -23,13 +25,28 @@ body {
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* --- View transitions ------------------------------------------------------- */
+#view { view-transition-name: map-view; }
+#sidebar { view-transition-name: sidebar; }
+
+::view-transition-old(map-view) { animation: fade-out .2s ease-in; }
+::view-transition-new(map-view) { animation: fade-in .3s ease-out; }
+::view-transition-old(sidebar),
+::view-transition-new(sidebar) { animation: none; }
+
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+
 /* --- Sidebar toggle ------------------------------------------------------ */
 #sidebar-toggle {
   position: fixed; top: calc(var(--nav-h) + 8px); left: 8px; z-index: 1001;
   font: inherit; font-size: 1rem; line-height: 1; padding: .45rem .6rem;
   background: var(--bg-panel); color: var(--text);
   border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+  view-transition-name: sidebar-toggle;
 }
+::view-transition-old(sidebar-toggle),
+::view-transition-new(sidebar-toggle) { animation: none; }
 #sidebar-toggle:hover { border-color: var(--accent); }
 #sidebar-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -53,6 +70,7 @@ body.sidebar-closed #sidebar { transform: translateX(-100%); }
 #dim-list a:hover { background: #10161d; }
 #dim-list a[aria-current="page"] { background: #14202b; color: #a8d8a0; }
 #dim-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#dim-list a.dim-pending { color: var(--text-muted); font-style: italic; }
 #dim-list .dim-when { display: block; font-size: .68rem; color: var(--text-muted); }
 
 /* --- Map view -------------------------------------------------------------- */
@@ -61,12 +79,7 @@ body.sidebar-closed #sidebar { transform: translateX(-100%); }
   left: var(--sidebar-w); transition: left .2s ease;
 }
 body.sidebar-closed #view { left: 0; }
-#map { position: absolute; inset: 0; transition: background-color .25s ease; }
-#fade {
-  position: absolute; inset: 0; z-index: 50; opacity: 0;
-  pointer-events: none; transition: opacity .25s ease;
-}
-#fade.active { opacity: 1; }
+#map { position: absolute; inset: 0; }
 #map-empty[hidden] { display: none; }
 #map-empty {
   position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -80,7 +93,9 @@ body.sidebar-closed #view { left: 0; }
 #view .ol-zoom { top: .5em; left: auto; right: .5em; }
 
 @media (prefers-reduced-motion: reduce) {
-  #sidebar, #view, #fade, #map { transition: none; }
+  #sidebar, #view { transition: none; }
+  ::view-transition-old(map-view),
+  ::view-transition-new(map-view) { animation: none; }
 }
 
 @media (max-width: 700px) {
