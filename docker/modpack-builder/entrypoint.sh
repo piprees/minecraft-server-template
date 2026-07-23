@@ -57,6 +57,7 @@ fi
 ln -sf /work/dist              "$PROJECT/modpack/dist"
 ln -sf "$ASSETS_DIR"           "$PROJECT/assets"
 ln -sf /app                    "$PROJECT/scripts"
+[[ -d /overlay ]] && ln -sf /overlay "$PROJECT/overlay"
 touch "$PROJECT/.env"
 
 # --- export env for build-modpack.sh -----------------------------------------
