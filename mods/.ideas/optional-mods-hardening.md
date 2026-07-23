@@ -1,18 +1,10 @@
 # Optional-mods hardening: surviving consumer mod removals
 
-Consumers can remove any default mod via `overlay/mods-remove.txt`, so every
-platform surface should assume **all mods are effectively optional**. The v3
-worldgen work added several surfaces that reference mod content; this file
-records the audit (2026-07-15), what is already handled, and what a future
-round should investigate. **Partially implemented — see status per row.**
+Consumers can remove any default mod via `overlay/mods-remove.txt`, so every platform surface should assume **all mods are effectively optional**. The v3 worldgen work added several surfaces that reference mod content; this file records the audit (2026-07-15), what is already handled, and what a future round should investigate. **Partially implemented — see status per row.**
 
 ## Failure model
 
-A datapack or mod-jar registry entry that references content from an absent
-mod fails DYNAMIC REGISTRY LOAD, and a broken world datapack prevents the
-world from loading — a boot-breaker, not a cosmetic gap. References that are
-merely *matched lazily* (biome ids in surface-rule conditions, tag entries)
-degrade gracefully.
+A datapack or mod-jar registry entry that references content from an absent mod fails DYNAMIC REGISTRY LOAD, and a broken world datapack prevents the world from loading — a boot-breaker, not a cosmetic gap. References that are merely _matched lazily_ (biome ids in surface-rule conditions, tag entries) degrade gracefully.
 
 ## Audit table
 
@@ -30,27 +22,7 @@ degrade gracefully.
 
 ## Future round (suggested brief for another agent)
 
-1. **Make the noise presets self-contained.** Extend
-   `scripts/gen-terrain-presets.py` to add the pinned TERRALITH jar as a
-   base layer and clone the full reference closure into the `adventure`
-   namespace: all `tectonic:`/`terralith:` NOISE definitions (static JSONs)
-   referenced by `"noise"` fields and `shift/shift_a/shift_b` arguments,
-   plus the terralith-jar density functions the Terratonic settings
-   reference. Success criterion: `grep -r '"(tectonic|terralith):' ` over
-   the generated tree matches ONLY biome ids in surface-rule conditions
-   (lazy) — zero registry-holder references. Then a Tectonic/Terralith
-   removal degrades to "different terrain" instead of a boot break.
-   Watch: noise Holder dedup is per-id, so cloned noises cost a little
-   memory per preset; verify NoiseConfig instantiation count stays sane.
-2. **Removal-matrix smoke coverage.** A smoke-test variant (matrix or a
-   second boot) with a representative `overlay/mods-remove.txt`
-   (when-dungeons-arise + dungeons-and-taverns + one YUNG mod) asserting
-   the server boots and `/locate` for a removed set's structure fails
-   cleanly. This is the regression net for the whole promise.
-3. **Ownership for future platform datapacks.** Any new curated datapack
-   that references mod content should emit `ownership.json` — consider a
-   lint check (datapack contains non-vanilla namespaces but no
-   ownership.json → warn).
-4. **Client pack parity.** `modpack/adventure.mrpack.json` removals are a
-   separate system (client packs are consumer-forked, not overlay-driven);
-   out of scope here but worth a look in the same round.
+1. **Make the noise presets self-contained.** Extend `scripts/gen-terrain-presets.py` to add the pinned TERRALITH jar as a base layer and clone the full reference closure into the `adventure` namespace: all `tectonic:`/`terralith:` NOISE definitions (static JSONs) referenced by `"noise"` fields and `shift/shift_a/shift_b` arguments, plus the terralith-jar density functions the Terratonic settings reference. Success criterion: `grep -r '"(tectonic|terralith):' ` over the generated tree matches ONLY biome ids in surface-rule conditions (lazy) — zero registry-holder references. Then a Tectonic/Terralith removal degrades to "different terrain" instead of a boot break. Watch: noise Holder dedup is per-id, so cloned noises cost a little memory per preset; verify NoiseConfig instantiation count stays sane.
+2. **Removal-matrix smoke coverage.** A smoke-test variant (matrix or a second boot) with a representative `overlay/mods-remove.txt` (when-dungeons-arise + dungeons-and-taverns + one YUNG mod) asserting the server boots and `/locate` for a removed set's structure fails cleanly. This is the regression net for the whole promise.
+3. **Ownership for future platform datapacks.** Any new curated datapack that references mod content should emit `ownership.json` — consider a lint check (datapack contains non-vanilla namespaces but no ownership.json → warn).
+4. **Client pack parity.** `modpack/adventure.mrpack.json` removals are a separate system (client packs are consumer-forked, not overlay-driven); out of scope here but worth a look in the same round.
