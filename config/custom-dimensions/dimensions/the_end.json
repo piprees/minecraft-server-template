@@ -10,11 +10,56 @@
   "seedRoll": {
     "mood": "hard",
     "description": "The end — endgame space. Cities and citadels within honest reach of the gateways.",
-    "spawnFilter": [],
+    "spawnFilter": [
+      "minecraft:end_highlands",
+      "minecraft:the_end",
+      "minecraft:end_midlands"
+    ],
     "wants": {
       "end_city": "spread",
       "phantom_citadel": "near_border"
     },
-    "shuns": []
-  }
+    "shuns": [],
+    "structures": [
+      {
+        "name": "minecraft:end_cities",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "friendsandfoes:citadel",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "nova_structures:end_ship",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "mes:enderwatch_tower",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "nullscape:dragon_skeleton",
+        "kind": "want",
+        "range": "spread"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:end_highlands",
+      "minecraft:end_midlands",
+      "minecraft:end_barrens",
+      "nullscape:void_barrens",
+      "nullscape:shadowlands",
+      "nullscape:crystal_peaks"
+    ]
+  },
+  "seed": 5758021621088668177,
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

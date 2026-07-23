@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "Violet spires in the sky — wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
-  "seed": -2184852740675444909,
+  "seed": 9126336716251728441,
   "biomes": [
     "paradise_lost:wisteria_woods",
     "terralith:amethyst_canyon",
@@ -43,7 +43,8 @@
       "aurel_tower": "near_spawn",
       "birdcage": "spread",
       "wizard_tower": "spread",
-      "para_palace": "near_border"
+      "para_palace": "near_border",
+      "relic_temple": "near_border"
     },
     "shuns": [
       "village",
@@ -56,5 +57,10 @@
       -60,
       440
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

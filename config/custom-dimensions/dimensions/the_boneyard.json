@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong.",
-  "seed": 7510794555179130518,
+  "seed": 9201742130235930622,
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
@@ -39,8 +39,15 @@
       "giant_skull": "near_spawn",
       "nether_graveyard": "near_spawn",
       "fortress": "spread",
-      "bastion": "spread"
+      "bastion": "spread",
+      "bone_dungeon": "near_spawn",
+      "sculk_dungeon": "spread"
     },
     "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

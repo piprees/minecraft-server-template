@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns.",
-  "seed": -3173898274248612281,
+  "seed": 9135545649734435741,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -36,12 +36,19 @@
       "forest_ruin": "near_spawn",
       "old_manor": "spread",
       "abandoned_temple": "spread",
-      "skeleton_dungeon": "spread"
+      "skeleton_dungeon": "spread",
+      "pumpkin_ruins": "near_spawn",
+      "ancient_crypt": "near_border"
     },
     "shuns": [
       "village",
       "tavern"
     ],
     "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Outpost country gone feral — pillager lookouts, bandit towers and campsites contest every hill.",
-  "seed": -7001159427840009832,
+  "seed": -4857143333049984274,
   "borders": {
     "player": 512,
     "generation": 512
@@ -35,12 +35,18 @@
       "pillager_outpost": "near_spawn",
       "pillager_lookout": "near_spawn",
       "bandit_towers": "spread",
-      "illager_campsite": "spread",
-      "nomad_outpost": "spread"
+      "illager_campsite": "near_spawn",
+      "nomad_outpost": "spread",
+      "bandit_village": "near_border"
     },
     "shuns": [
       "monument"
     ],
     "description": "Outpost country gone feral — pillager lookouts, bandit towers and campsites contest every hill."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

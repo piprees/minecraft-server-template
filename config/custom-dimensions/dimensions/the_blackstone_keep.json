@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive.",
-  "seed": -7942150272453941819,
+  "seed": 9213987570450868060,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -36,5 +36,10 @@
       "fortress": "spread"
     },
     "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

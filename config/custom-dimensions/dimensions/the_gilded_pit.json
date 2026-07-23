@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs.",
-  "seed": 1881563837797304477,
+  "seed": 9194906980739314006,
   "borders": {
     "player": 683,
     "generation": 683
@@ -36,5 +36,10 @@
       "sanctum": "near_border"
     },
     "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

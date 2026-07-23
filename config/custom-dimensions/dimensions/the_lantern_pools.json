@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no.",
-  "seed": -7749576552491939738,
+  "seed": 8598640343340391518,
   "borders": {
     "player": 512,
     "generation": 512
@@ -28,8 +28,11 @@
     "spawnFilter": [
       "terralith:desert_oasis",
       "terralith:warm_river",
-      "minecraft:lush_caves",
-      "terralith:red_oasis"
+      "minecraft:warm_ocean",
+      "minecraft:mangrove_swamp",
+      "terralith:lush_valley",
+      "minecraft:jungle",
+      "minecraft:sparse_jungle"
     ],
     "water": "high",
     "wants": {
@@ -46,6 +49,19 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no."
-  }
+    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no.",
+    "varietyBiomes": [
+      "terralith:desert_oasis",
+      "terralith:warm_river",
+      "minecraft:mangrove_swamp",
+      "minecraft:jungle",
+      "minecraft:warm_ocean",
+      "terralith:orchid_swamp"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

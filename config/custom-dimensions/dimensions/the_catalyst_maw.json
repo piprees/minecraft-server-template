@@ -1,13 +1,21 @@
 {
-  "type": "end",
-  "description": "The maw: sculk and shadowland in solid end terrain — the catalyst is still feeding.",
-  "seed": 7719368698613726672,
+  "type": "nether_islands",
+  "description": "The maw: sculk-corrupted end terrain bleeding into dark overworld — oppressive, chaotic, hostile. The catalyst is still feeding.",
+  "seed": 9093123537521721615,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "nullscape:shadowlands",
     "minecraft:deep_dark",
     "minecraft:end_highlands",
-    "terralith:cave/deep_caves"
+    "minecraft:end_midlands",
+    "minecraft:dark_forest",
+    "minecraft:pale_garden",
+    "terralith:moonlight_grove",
+    "terralith:moonlight_valley",
+    "minecraft:mangrove_swamp",
+    "minecraft:basalt_deltas",
+    "terralith:volcanic_crater",
+    "terralith:caldera"
   ],
   "borders": {
     "player": 8192,
@@ -36,14 +44,58 @@
     "mood": "hard",
     "spawnFilter": [
       "nullscape:shadowlands",
-      "minecraft:deep_dark"
+      "minecraft:deep_dark",
+      "minecraft:dark_forest",
+      "minecraft:pale_garden"
     ],
-    "wants": {
-      "mega_ship_crashed": "spread",
-      "endscraps": "near_spawn",
-      "phantom_citadel": "near_border",
-      "end_city": "spread"
-    },
-    "description": "The maw: sculk and shadowland in solid end terrain — the catalyst is still feeding."
-  }
+    "structures": [
+      {
+        "name": "minecraft:end_cities",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "friendsandfoes:citadel",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "mes:endscraps",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "mes:enderwatch_tower",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nova_structures:end_ship",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "minecraft:ancient_city",
+        "kind": "want",
+        "range": "spread"
+      }
+    ],
+    "varietyBiomes": [
+      "nullscape:shadowlands",
+      "minecraft:deep_dark",
+      "minecraft:end_highlands",
+      "minecraft:dark_forest",
+      "minecraft:pale_garden",
+      "terralith:moonlight_grove",
+      "minecraft:mangrove_swamp",
+      "minecraft:basalt_deltas",
+      "terralith:volcanic_crater"
+    ],
+    "description": "The maw: sculk-corrupted end terrain bleeding into dark overworld — oppressive, chaotic, hostile. The catalyst is still feeding."
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

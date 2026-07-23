@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country.",
-  "seed": 4989373384118084179,
+  "seed": 9185324862121826233,
   "biomes": [
     "minecraft:end_highlands",
     "nullscape:crystal_peaks",
@@ -40,8 +40,14 @@
       "end_gate_fortress": "spread",
       "enderkeep": "spread",
       "end_city": "spread",
-      "astral_hideaway": "near_spawn"
+      "astral_hideaway": "near_spawn",
+      "end_ruins": "near_spawn"
     },
     "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

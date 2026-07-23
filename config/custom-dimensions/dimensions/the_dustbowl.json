@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else.",
-  "seed": -4788941127388080412,
+  "seed": -6585932694360697170,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 512,
@@ -28,12 +28,15 @@
     "mood": "desolate",
     "spawnFilter": [
       "terralith:ancient_sands",
-      "natures_spirit:drylands",
+      "natures_spirit:wooded_drylands",
       "terralith:steppe",
       "natures_spirit:scorched_dunes",
       "minecraft:desert",
       "minecraft:badlands",
-      "terralith:arid_highlands"
+      "terralith:arid_highlands",
+      "minecraft:savanna",
+      "terralith:hot_shrubland",
+      "natures_spirit:xeric_plains"
     ],
     "water": "none",
     "wants": {
@@ -51,5 +54,10 @@
       "trial_chambers"
     ],
     "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone.",
-  "seed": 7966179322634150228,
+  "seed": 6737624617755405423,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -34,12 +34,18 @@
       "graveyard": "near_spawn",
       "abandoned_chapel": "spread",
       "zombie_dungeon": "spread",
-      "old_manor": "near_border"
+      "old_manor": "near_border",
+      "skeleton_dungeon": "near_border"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
     "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

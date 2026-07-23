@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel.",
-  "seed": 8321122100447703446,
+  "seed": 9155801355435215650,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,12 +23,16 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
       "terralith:moonlight_grove",
       "minecraft:old_growth_spruce_taiga",
       "natures_spirit:snowy_fir_forest",
-      "minecraft:dark_forest"
+      "minecraft:dark_forest",
+      "minecraft:taiga",
+      "natures_spirit:fir_forest",
+      "minecraft:old_growth_pine_taiga",
+      "terralith:birch_taiga"
     ],
     "wants": {
       "graveyard": "near_spawn",
@@ -41,5 +45,10 @@
       "monument"
     ],
     "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",
-  "seed": -6903795762373810598,
+  "seed": -1792310558452177569,
   "biomes": [
     "paradise_lost:autumnal_tundra",
     "paradise_lost:highlands_shield",
@@ -32,7 +32,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "scenic",
     "spawnFilter": [
       "paradise_lost:autumnal_tundra",
       "natures_spirit:snowy_fir_forest",
@@ -55,5 +55,10 @@
       -60,
       440
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

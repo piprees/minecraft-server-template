@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall.",
-  "seed": 3015051760093781697,
+  "seed": 88447297175691575,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -32,13 +32,17 @@
       "terralith:jungle_mountains",
       "natures_spirit:tropical_basin",
       "terralith:cloud_forest",
-      "minecraft:jungle"
+      "minecraft:jungle",
+      "minecraft:sparse_jungle",
+      "minecraft:bamboo_jungle",
+      "minecraft:dark_forest"
     ],
     "wants": {
       "jungle_ruin": "near_spawn",
       "infested_temple": "spread",
       "webbed_dungeon": "near_border",
-      "lush_dungeon": "spread"
+      "lush_dungeon": "spread",
+      "jungle_tree_house": "spread"
     },
     "shuns": [
       "village",
@@ -47,5 +51,10 @@
       "monument"
     ],
     "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

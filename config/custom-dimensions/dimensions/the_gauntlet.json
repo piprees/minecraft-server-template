@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is.",
-  "seed": -7771539005296047534,
+  "seed": 9206337873968108447,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:windswept_hills",
@@ -51,14 +51,20 @@
       "minecraft:jagged_peaks",
       "minecraft:frozen_peaks",
       "minecraft:stony_peaks",
-      "terralith:caldera"
+      "terralith:caldera",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_gravelly_hills",
+      "terralith:rocky_mountains",
+      "terralith:basalt_cliffs",
+      "minecraft:grove"
     ],
     "wants": {
       "wizard_tower": "near_spawn",
       "ancient_city": "spread",
       "trial_chambers": "spread",
       "ice_dungeon_l": "spread",
-      "keep_kayra": "near_border"
+      "keep_kayra": "near_border",
+      "coliseum": "near_border"
     },
     "shuns": [
       "village",
@@ -66,5 +72,10 @@
       "farmstead"
     ],
     "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

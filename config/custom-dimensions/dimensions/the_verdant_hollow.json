@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical.",
-  "seed": 8520493563399625018,
+  "seed": 9207382997821124202,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 1024,
@@ -28,20 +28,38 @@
     "mood": "pastoral",
     "spawnFilter": [
       "terralith:lush_valley",
-      "natures_spirit:cypress_fields",
-      "terralith:valley_clearing",
-      "minecraft:meadow"
+      "minecraft:meadow",
+      "minecraft:plains",
+      "minecraft:flower_forest",
+      "terralith:lavender_valley",
+      "terralith:temperate_highlands",
+      "minecraft:birch_forest"
     ],
     "wants": {
       "village": "near_spawn",
       "farmstead": "near_spawn",
       "tavern": "spread",
-      "giant_mushroom": "spread"
+      "giant_mushroom": "spread",
+      "campsite": "near_spawn"
     },
     "shuns": [
       "ancient_city",
       "coliseum"
     ],
-    "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical."
-  }
+    "description": "Broad green valleys with hamlets in the folds. Pastoral, generous, a little whimsical.",
+    "varietyBiomes": [
+      "terralith:lush_valley",
+      "minecraft:meadow",
+      "minecraft:flower_forest",
+      "minecraft:plains",
+      "terralith:lavender_valley",
+      "minecraft:birch_forest",
+      "terralith:temperate_highlands"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

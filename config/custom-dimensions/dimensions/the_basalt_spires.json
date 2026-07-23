@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Basalt drama — pillars, bridges and a bastion in the columns.",
-  "seed": 14268788340776233,
+  "seed": 9194112441437988152,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -34,6 +34,36 @@
       "bastion": "spread",
       "nether_bridge": "spread"
     },
-    "description": "Basalt drama — pillars, bridges and a bastion in the columns."
-  }
+    "description": "Basalt drama — pillars, bridges and a bastion in the columns.",
+    "structures": [
+      {
+        "name": "incendium:lesser_structures",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "incendium:greater_structures",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nova_structures:nether_structures",
+        "kind": "want",
+        "range": "mid_range"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:basalt_deltas",
+      "incendium:volcanic_deltas",
+      "incendium:ash_barrens",
+      "minecraft:nether_wastes",
+      "minecraft:crimson_forest",
+      "minecraft:soul_sand_valley"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -22,6 +22,23 @@
       "paradise_lost:vault": "spread",
       "paradise_lost:palace": "near_border"
     },
-    "shuns": []
-  }
+    "shuns": [],
+    "varietyBiomes": [
+      "paradise_lost:highlands",
+      "paradise_lost:highlands_forest",
+      "paradise_lost:calcite_craglands",
+      "paradise_lost:highlands_thicket",
+      "paradise_lost:continental_plateau",
+      "paradise_lost:highlands_shield",
+      "paradise_lost:highlands_grand_glade",
+      "paradise_lost:autumnal_tundra",
+      "paradise_lost:wisteria_woods"
+    ]
+  },
+  "seed": -6907794329645529399,
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

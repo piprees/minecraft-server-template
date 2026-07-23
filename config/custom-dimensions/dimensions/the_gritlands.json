@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins — nobody could live here, and nothing organised survives.",
-  "seed": 6451515302540119049,
+  "seed": 5190387473893419670,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -30,7 +30,10 @@
       "terralith:basalt_cliffs",
       "terralith:ashen_savanna",
       "terralith:volcanic_peaks",
-      "minecraft:windswept_gravelly_hills"
+      "minecraft:windswept_gravelly_hills",
+      "minecraft:stony_shore",
+      "terralith:rocky_shrubland",
+      "terralith:cold_shrubland"
     ],
     "water": "none",
     "wants": {
@@ -49,5 +52,10 @@
       "coliseum"
     ],
     "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins — nobody could live here, and nothing organised survives."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

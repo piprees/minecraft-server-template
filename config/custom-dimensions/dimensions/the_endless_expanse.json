@@ -1,7 +1,7 @@
 {
   "type": "large_biomes",
   "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge.",
-  "seed": -3604832347219380837,
+  "seed": 8301660540697123312,
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -23,12 +23,15 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
-      "natures_spirit:prairie",
+      "minecraft:plains",
+      "minecraft:forest",
       "terralith:steppe",
-      "natures_spirit:golden_wilds",
-      "minecraft:forest"
+      "minecraft:sunflower_plains",
+      "minecraft:meadow",
+      "terralith:brushland",
+      "minecraft:savanna"
     ],
     "wants": {
       "village": "near_spawn",
@@ -36,8 +39,58 @@
       "farmstead": "near_spawn",
       "mineshaft": "near_spawn",
       "mansion": "near_border",
-      "coliseum": "near_border"
+      "coliseum": "near_border",
+      "watchtower": "spread"
     },
-    "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge."
-  }
+    "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge.",
+    "structures": [
+      {
+        "name": "minecraft:villages",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "minecraft:pillager_outposts",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "minecraft:mansions",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "adventuredungeons:bygonedungeon",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "minecraft:ruined_portals",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "minecraft:mineshafts",
+        "kind": "want",
+        "range": "mid_range"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:plains",
+      "minecraft:forest",
+      "minecraft:sunflower_plains",
+      "minecraft:meadow",
+      "terralith:steppe",
+      "terralith:brushland",
+      "minecraft:savanna",
+      "minecraft:birch_forest",
+      "minecraft:dark_forest",
+      "terralith:shield_clearing"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

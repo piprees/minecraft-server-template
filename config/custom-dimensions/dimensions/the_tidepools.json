@@ -1,12 +1,8 @@
 {
   "type": "multi_biome",
   "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water.",
-  "biomes": [
-    "minecraft:beach",
-    "minecraft:stony_shore",
-    "terralith:granite_cliffs",
-    "minecraft:lukewarm_ocean"
-  ],
+  "seed": 9220205183867437739,
+  "biomes": ["minecraft:beach", "minecraft:stony_shore", "terralith:granite_cliffs", "minecraft:lukewarm_ocean"],
   "borders": {
     "player": 256,
     "generation": 2048
@@ -41,10 +37,7 @@
   "seedRoll": {
     "mood": "serene",
     "water": "high",
-    "spawnFilter": [
-      "minecraft:beach",
-      "minecraft:stony_shore"
-    ],
+    "spawnFilter": ["minecraft:beach", "minecraft:stony_shore"],
     "description": "A pocket of tidal shallows — rock pools, gull-grey cliffs and a drowned wreck glinting under clear water."
   }
 }

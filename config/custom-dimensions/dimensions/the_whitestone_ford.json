@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water.",
-  "seed": -8759877331682622938,
+  "seed": 8552618426369524335,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 1024,
@@ -43,5 +43,10 @@
       "ancient_city"
     ],
     "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

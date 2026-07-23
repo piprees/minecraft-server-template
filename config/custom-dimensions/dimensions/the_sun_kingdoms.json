@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon.",
-  "seed": -3604832347219380837,
+  "seed": -4889960454287639919,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:savanna",
@@ -11,8 +11,6 @@
     "minecraft:badlands",
     "minecraft:eroded_badlands",
     "minecraft:plains",
-    "minecraft:river",
-    "minecraft:beach",
     "terralith:arid_highlands",
     "terralith:lush_desert",
     "terralith:desert_oasis",
@@ -54,8 +52,10 @@
     "spawnFilter": [
       "minecraft:desert",
       "minecraft:savanna",
-      "terralith:lush_desert",
-      "terralith:ancient_sands"
+      "minecraft:badlands",
+      "terralith:arid_highlands",
+      "terralith:desert_canyon",
+      "terralith:hot_shrubland"
     ],
     "water": "none",
     "wants": {
@@ -63,8 +63,60 @@
       "desert_shrine": "near_spawn",
       "bandit_village": "spread",
       "sand_dungeon_l": "spread",
-      "keep_kayra": "near_border"
+      "keep_kayra": "near_border",
+      "desert_pyramid": "spread",
+      "dusty_tomb": "near_border"
     },
-    "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon."
-  }
+    "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon.",
+    "structures": [
+      {
+        "name": "minecraft:villages",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "minecraft:desert_pyramids",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "minecraft:pillager_outposts",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "minecraft:ruined_portals",
+        "kind": "want",
+        "range": "spread"
+      },
+      {
+        "name": "adventuredungeons:bygonedungeon",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "minecraft:ocean_monuments",
+        "kind": "shun",
+        "minDistance": 4000
+      }
+    ],
+    "shuns": [],
+    "varietyBiomes": [
+      "minecraft:desert",
+      "minecraft:savanna",
+      "minecraft:badlands",
+      "minecraft:eroded_badlands",
+      "minecraft:wooded_badlands",
+      "terralith:arid_highlands",
+      "terralith:desert_canyon",
+      "terralith:hot_shrubland",
+      "terralith:fractured_savanna",
+      "terralith:brushland"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

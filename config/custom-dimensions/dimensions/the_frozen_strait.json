@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road.",
-  "seed": -6800857166025637730,
+  "seed": 1407229080638003557,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 512,
@@ -30,7 +30,11 @@
       "minecraft:frozen_ocean",
       "minecraft:deep_frozen_ocean",
       "terralith:ice_marsh",
-      "minecraft:snowy_beach"
+      "minecraft:snowy_beach",
+      "minecraft:snowy_plains",
+      "minecraft:frozen_river",
+      "minecraft:snowy_taiga",
+      "terralith:frozen_cliffs"
     ],
     "water": "sea",
     "wants": {
@@ -45,5 +49,10 @@
       "coliseum"
     ],
     "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

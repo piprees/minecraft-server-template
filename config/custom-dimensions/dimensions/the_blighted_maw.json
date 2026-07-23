@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger.",
-  "seed": 7394931452934382410,
+  "seed": 9209138044254743191,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -37,5 +37,10 @@
       "fortress": "spread"
     },
     "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

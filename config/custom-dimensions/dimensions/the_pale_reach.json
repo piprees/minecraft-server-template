@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "The pale desolate reach — calcite crags floating in white silence.",
-  "seed": 7588343130126410291,
+  "seed": -458653036088005852,
   "biomes": [
     "paradise_lost:calcite_craglands",
     "terralith:frozen_cliffs",
@@ -57,5 +57,10 @@
       -60,
       440
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

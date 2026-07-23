@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything.",
-  "seed": 4132502889542137435,
+  "seed": -8536168897606233021,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -30,7 +30,11 @@
       "terralith:sakura_grove",
       "minecraft:cherry_grove",
       "terralith:lavender_forest",
-      "terralith:white_cliffs"
+      "terralith:white_cliffs",
+      "minecraft:flower_forest",
+      "minecraft:meadow",
+      "terralith:blooming_valley",
+      "minecraft:birch_forest"
     ],
     "wants": {
       "abandoned_chapel": "spread",
@@ -44,5 +48,10 @@
       "coliseum"
     ],
     "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

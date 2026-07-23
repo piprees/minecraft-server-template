@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Warped corruption spreading over a mesa world — teal fungus over red rock.",
-  "seed": 5801515250367357934,
+  "seed": 9204094914283411112,
   "biomes": [
     "minecraft:warped_forest",
     "incendium:inverted_forest",
@@ -28,7 +28,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "scenic",
     "spawnFilter": [
       "minecraft:warped_forest",
       "incendium:inverted_forest",
@@ -40,5 +40,10 @@
       "bastion": "spread"
     },
     "description": "Warped corruption spreading over a mesa world — teal fungus over red rock."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

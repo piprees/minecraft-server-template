@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold.",
-  "seed": -3604832347219380837,
+  "seed": -1692870054349687441,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:snowy_plains",
@@ -44,7 +44,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "pastoral",
     "spawnFilter": [
       "minecraft:snowy_plains",
       "minecraft:snowy_taiga",
@@ -56,8 +56,14 @@
       "igloo": "near_spawn",
       "taiga_outpost": "spread",
       "cold_dungeon": "spread",
-      "ice_dungeon_l": "near_border"
+      "ice_dungeon_l": "near_border",
+      "frozen_dungeon": "near_border"
     },
     "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

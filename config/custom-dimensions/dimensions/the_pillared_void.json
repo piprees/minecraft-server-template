@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else.",
-  "seed": -696349698492342128,
+  "seed": 9223110004402776460,
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -28,15 +28,56 @@
     "mood": "desolate",
     "spawnFilter": [
       "nullscape:void_barrens",
-      "minecraft:small_end_islands",
       "minecraft:end_barrens",
-      "minecraft:the_end"
+      "minecraft:the_end",
+      "minecraft:small_end_islands",
+      "minecraft:end_highlands"
     ],
     "wants": {
       "ender_spire": "spread",
       "ruined_pillar": "near_spawn",
-      "dragon_skeleton": "spread"
+      "dragon_skeleton": "spread",
+      "mystical_archway": "spread"
     },
-    "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else."
-  }
+    "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else.",
+    "structures": [
+      {
+        "name": "nullscape:dragon_skeleton",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "mes:ender_spire",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "mes:ruined_pillar",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nullscape:rift",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "mvs:stone_pillars",
+        "kind": "want",
+        "range": "near_spawn"
+      }
+    ],
+    "varietyBiomes": [
+      "nullscape:void_barrens",
+      "minecraft:small_end_islands",
+      "minecraft:end_barrens",
+      "minecraft:the_end"
+    ],
+    "terrain": "void"
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

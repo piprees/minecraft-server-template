@@ -1,6 +1,12 @@
 {
   "type": "multi_biome",
   "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall.",
+  "seed": 5004021960434439426,
+  "spawn": [
+    0,
+    64,
+    0
+  ],
   "biomes": [
     "paradise_lost:wisteria_woods",
     "minecraft:cherry_grove",
@@ -10,7 +16,22 @@
     "terralith:blooming_valley",
     "minecraft:flower_forest",
     "terralith:moonlight_valley",
-    "terralith:lush_valley"
+    "terralith:lush_valley",
+    "terralith:warm_river",
+    "minecraft:deep_lukewarm_ocean",
+    "minecraft:lukewarm_ocean",
+    "minecraft:warm_ocean",
+    "terralith:deep_warm_ocean",
+    "terralith:shrubland",
+    "minecraft:meadow",
+    "natures_spirit:floral_ridges",
+    "natures_spirit:flowering_shrubland",
+    "natures_spirit:golden_wilds",
+    "natures_spirit:heather_fields",
+    "natures_spirit:lavender_fields",
+    "natures_spirit:maple_woodlands",
+    "natures_spirit:marigold_meadows",
+    "natures_spirit:prairie"
   ],
   "borders": {
     "player": 256,
@@ -37,19 +58,34 @@
   },
   "structures": {
     "wants": {
-      "guide_post_warm": { "min": 0, "max": 256 },
-      "abandoned_camp": { "min": 0, "max": 256 },
-      "farmstead": { "min": 512, "max": 2048 },
-      "tavern": { "min": 512, "max": 2048 }
+      "guide_post_warm": {
+        "min": 256,
+        "max": 512
+      },
+      "abandoned_camp": {
+        "min": 256,
+        "max": 512
+      },
+      "farmstead": {
+        "min": 512,
+        "max": 2048
+      },
+      "tavern": {
+        "min": 512,
+        "max": 2048
+      }
     },
-    "shuns": { "village": {}, "ruined_portal": {} }
+    "shuns": {
+      "village": {},
+      "ruined_portal": {}
+    }
   },
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
       "paradise_lost:wisteria_woods",
-      "minecraft:cherry_grove",
-      "terralith:sakura_grove"
+      "terralith:sakura_grove",
+      "minecraft:cherry_grove"
     ],
     "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall."
   }

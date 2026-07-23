@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down.",
-  "seed": 9221821359447431546,
+  "seed": 9038274477995635546,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -34,5 +34,10 @@
       "nether_reactor": "spread"
     },
     "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

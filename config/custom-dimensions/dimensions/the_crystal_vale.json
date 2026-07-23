@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war.",
-  "seed": 6857879019486337303,
+  "seed": 7030276223102451156,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -38,7 +38,8 @@
     "wants": {
       "wizard_tower": "spread",
       "relic_temple": "near_border",
-      "guide_post_warm": "near_spawn"
+      "guide_post_warm": "near_spawn",
+      "abandoned_chapel": "spread"
     },
     "shuns": [
       "monument",
@@ -46,5 +47,10 @@
       "coliseum"
     ],
     "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

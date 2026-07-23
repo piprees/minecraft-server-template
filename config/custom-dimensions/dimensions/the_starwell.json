@@ -1,11 +1,7 @@
 {
   "type": "sky_islands",
   "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down.",
-  "biomes": [
-    "terralith:mirage_isles",
-    "terralith:skylands_winter",
-    "nullscape:shadowlands"
-  ],
+  "biomes": ["terralith:mirage_isles", "terralith:skylands_winter", "nullscape:shadowlands"],
   "borders": {
     "player": 256,
     "generation": 512
@@ -57,11 +53,7 @@
   "seedRoll": {
     "mood": "scenic",
     "terrain": "islands",
-    "spawnFilter": [
-      "terralith:mirage_isles",
-      "terralith:skylands_winter",
-      "nullscape:shadowlands"
-    ],
+    "spawnFilter": ["terralith:mirage_isles", "terralith:skylands_winter", "nullscape:shadowlands"],
     "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down."
   }
 }

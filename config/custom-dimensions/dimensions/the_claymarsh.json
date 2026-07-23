@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Quiet wetland wilderness — reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes.",
-  "seed": -4254781042587868201,
+  "seed": -8973129246890378784,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -30,7 +30,11 @@
       "minecraft:swamp",
       "minecraft:mangrove_swamp",
       "terralith:orchid_swamp",
-      "natures_spirit:bamboo_wetlands"
+      "natures_spirit:bamboo_wetlands",
+      "minecraft:river",
+      "minecraft:beach",
+      "minecraft:dark_forest",
+      "terralith:moonlight_valley"
     ],
     "water": "high",
     "wants": {
@@ -46,5 +50,10 @@
       "ancient_city"
     ],
     "description": "Quiet wetland wilderness — reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

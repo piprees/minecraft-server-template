@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
-  "seed": 6416894595201730599,
+  "seed": -4745410978042438563,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,7 +23,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "desolate",
     "spawnFilter": [
       "terralith:ashen_savanna",
       "terralith:volcanic_peaks",
@@ -35,13 +35,21 @@
     "wants": {
       "abandoned_camp": "near_spawn",
       "graveyard": "spread",
-      "scorched_tomb": "near_border"
+      "scorched_tomb": "near_border",
+      "ruin_grassy": "spread",
+      "pumpkin_ruins": "spread"
     },
     "shuns": [
       "village",
       "tavern",
       "monument"
     ],
-    "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire."
-  }
+    "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
+    "water": "none"
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

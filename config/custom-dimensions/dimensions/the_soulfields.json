@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Soul-sand meadows and grave fields; the dead are the crop.",
-  "seed": 5882171892785548389,
+  "seed": 8788869748950071596,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:soul_sand_valley",
@@ -30,7 +30,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "desolate",
     "spawnFilter": [
       "minecraft:soul_sand_valley",
       "incendium:ash_barrens",
@@ -42,5 +42,10 @@
       "lost_soul_dungeon": "spread"
     },
     "description": "Soul-sand meadows and grave fields; the dead are the crop."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

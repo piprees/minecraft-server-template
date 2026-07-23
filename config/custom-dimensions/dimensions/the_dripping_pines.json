@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines.",
-  "seed": -3544930939946256374,
+  "seed": 8954320106618531345,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,21 +23,31 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "scenic",
     "spawnFilter": [
       "terralith:siberian_taiga",
       "natures_spirit:boreal_taiga",
-      "minecraft:old_growth_pine_taiga"
+      "minecraft:old_growth_pine_taiga",
+      "minecraft:taiga",
+      "minecraft:old_growth_spruce_taiga",
+      "natures_spirit:fir_forest"
     ],
     "wants": {
       "foraging_outpost": "near_spawn",
       "taiga_ruin_deep": "spread",
-      "mouldy_dungeon": "spread"
+      "mouldy_dungeon": "spread",
+      "abandoned_camp": "spread",
+      "northern_ruin": "spread"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
     "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands.",
-  "seed": -3604832347219380837,
+  "seed": -6748313849734002813,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:windswept_hills",
@@ -53,18 +53,29 @@
       "terralith:haze_mountain",
       "terralith:highlands",
       "terralith:rocky_mountains",
-      "minecraft:windswept_hills"
+      "minecraft:windswept_hills",
+      "terralith:temperate_highlands",
+      "terralith:forested_highlands",
+      "minecraft:meadow",
+      "minecraft:stony_peaks"
     ],
     "wants": {
       "guide_post_cold": "near_spawn",
       "taiga_outpost": "near_spawn",
       "firetower": "spread",
       "engineer_tower": "spread",
-      "keep_kayra": "near_border"
+      "keep_kayra": "near_border",
+      "nomad_outpost": "spread",
+      "campsite": "near_spawn"
     },
     "shuns": [
       "monument"
     ],
     "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

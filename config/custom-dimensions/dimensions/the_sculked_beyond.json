@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on.",
-  "seed": -356153069817876777,
+  "seed": 2639304234547348987,
   "biomes": [
     "minecraft:deep_dark",
     "terralith:cave/infested_caves",
@@ -33,7 +33,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "hard",
     "spawnFilter": [
       "minecraft:deep_dark",
       "terralith:cave/infested_caves",
@@ -43,5 +43,10 @@
       "terralith:cave/deep_caves"
     ],
     "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

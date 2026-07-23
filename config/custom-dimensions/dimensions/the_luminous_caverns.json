@@ -1,7 +1,7 @@
 {
   "type": "cave",
   "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies.",
-  "seed": 1126811856535624437,
+  "seed": 5405923286239551039,
   "biomes": [
     "minecraft:lush_caves",
     "incendium:quartz_flats",
@@ -46,5 +46,10 @@
       "sanctum"
     ],
     "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

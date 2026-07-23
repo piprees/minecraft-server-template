@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Narrow bridged chasms — quartz spans over the wail.",
-  "seed": -7035356524938563395,
+  "seed": 9215546969771092822,
   "borders": {
     "player": 683,
     "generation": 683
@@ -23,13 +23,22 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
-    "spawnFilter": ["minecraft:soul_sand_valley", "minecraft:basalt_deltas"],
+    "mood": "hard",
+    "spawnFilter": [
+      "minecraft:soul_sand_valley",
+      "minecraft:basalt_deltas"
+    ],
     "wants": {
       "nether_bridge": "near_spawn",
       "fortress": "spread",
-      "giant_skull": "spread"
+      "giant_skull": "spread",
+      "blackstone_pillars": "spread"
     },
     "description": "Narrow bridged chasms — quartz spans over the wail."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

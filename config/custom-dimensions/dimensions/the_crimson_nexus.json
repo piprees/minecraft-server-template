@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Fortresses under an open sky.",
-  "seed": -3604832347219380837,
+  "seed": 6802233275268905437,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -49,6 +49,53 @@
     "shuns": [
       "village"
     ],
-    "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Fortresses under an open sky."
-  }
+    "description": "Nether biomes on overworld noise — a nexus where the crimson bleeds through. Fortresses under an open sky.",
+    "structures": [
+      {
+        "name": "betterfortresses:fortress",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "incendium:lesser_structures",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "incendium:greater_structures",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nova_structures:nether_structures",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "mns:nether_tower",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "philipsruins:nether_ruins",
+        "kind": "want",
+        "range": "spread"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:nether_wastes",
+      "incendium:weeping_valley",
+      "incendium:withered_forest",
+      "incendium:quartz_flats",
+      "minecraft:warped_forest",
+      "incendium:inverted_forest",
+      "minecraft:crimson_forest",
+      "incendium:volcanic_deltas"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

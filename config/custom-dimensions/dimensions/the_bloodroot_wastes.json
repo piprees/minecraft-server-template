@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Crimson root-country; forges and fungus in the red haze.",
-  "seed": -7196598490213397255,
+  "seed": 7849380135011039804,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -24,7 +24,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
       "minecraft:crimson_forest",
       "incendium:weeping_valley"
@@ -32,8 +32,14 @@
     "wants": {
       "crimson_fungus": "near_spawn",
       "crimson_forge": "spread",
-      "fortress": "spread"
+      "fortress": "spread",
+      "crimson_well": "near_spawn"
     },
     "description": "Crimson root-country; forges and fungus in the red haze."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

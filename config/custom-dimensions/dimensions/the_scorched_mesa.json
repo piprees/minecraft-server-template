@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere.",
-  "seed": -5885483684890712603,
+  "seed": -8777423045116236165,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -30,7 +30,11 @@
       "terralith:bryce_canyon",
       "minecraft:eroded_badlands",
       "natures_spirit:stratified_desert",
-      "terralith:desert_canyon"
+      "terralith:desert_canyon",
+      "minecraft:badlands",
+      "minecraft:wooded_badlands",
+      "terralith:savanna_badlands",
+      "minecraft:savanna"
     ],
     "water": "none",
     "wants": {
@@ -45,5 +49,10 @@
       "monument"
     ],
     "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

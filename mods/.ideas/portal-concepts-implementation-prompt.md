@@ -1,5 +1,12 @@
 # Portal Concepts — Implementation Prompt
 
+> **Status: IMPLEMENTED (2026-07-23, shipped in v3.3.0; shared-igniter fix in v3.4.0).**
+> All three behaviours live-verified per the oracles below. Still open: the
+> jigsaw exit-shrine structure (deferred by design — see new-portal-concepts.md
+> §3 option 2). Note for reuse: the §4 bot-aiming advice below is superseded —
+> stand the bot INSIDE the frame and `look down` at the bottom frame block
+> (mods/AGENTS.md §3b has the corrected recipe).
+
 You're working in `/Users/pip/Projects/minecraft-server-template`. Implement the three portal behaviours designed in `mods/.ideas/new-portal-concepts.md` (read it first, in full) in the custom-dimensions Fabric mod, then verify each one live against the local consumer at `~/Projects/elfydd`.
 
 Read `AGENTS.md` and `mods/AGENTS.md` in full before touching code — the verification loop, mixin conventions, and tick-loop threading rules there are mandatory and every one of them exists because of a real incident.

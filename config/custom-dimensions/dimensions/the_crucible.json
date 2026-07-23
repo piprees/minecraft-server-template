@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless.",
-  "seed": -3604832347219380837,
+  "seed": 9202718971865095650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "minecraft:dark_forest",
@@ -57,7 +57,8 @@
       "jungle_tree_house": "near_spawn",
       "infested_temple": "spread",
       "webbed_dungeon": "spread",
-      "trial_chambers": "spread"
+      "trial_chambers": "spread",
+      "murkydungeon": "spread"
     },
     "shuns": [
       "village",
@@ -65,5 +66,10 @@
       "farmstead"
     ],
     "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

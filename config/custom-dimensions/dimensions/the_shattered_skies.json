@@ -1,7 +1,7 @@
 {
   "type": "sky_islands",
   "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
-  "seed": -3604832347219380837,
+  "seed": -5208023471198691652,
   "biomes": [
     "minecraft:plains",
     "minecraft:forest",
@@ -51,15 +51,27 @@
       "minecraft:cherry_grove",
       "minecraft:flower_forest",
       "terralith:skylands_spring",
-      "terralith:blooming_valley"
+      "terralith:blooming_valley",
+      "minecraft:plains",
+      "minecraft:meadow",
+      "minecraft:forest",
+      "minecraft:birch_forest",
+      "terralith:sakura_grove",
+      "terralith:lush_valley"
     ],
     "wants": {
       "sky_house": "near_spawn",
       "sky_castle_ruin": "spread",
       "sky_arena": "spread",
-      "sky_volcano": "near_border"
+      "sky_volcano": "near_border",
+      "sky_castle_tower": "near_border"
     },
     "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
     "terrain": "islands"
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

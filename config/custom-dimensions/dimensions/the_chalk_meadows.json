@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles.",
-  "seed": 888786079348736810,
+  "seed": 7979793790560277687,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 1024,
@@ -29,7 +29,11 @@
       "natures_spirit:heather_fields",
       "natures_spirit:carnation_fields",
       "terralith:blooming_plateau",
-      "minecraft:meadow"
+      "minecraft:meadow",
+      "minecraft:plains",
+      "minecraft:sunflower_plains",
+      "minecraft:flower_forest",
+      "natures_spirit:lavender_fields"
     ],
     "wants": {
       "village": "near_spawn",
@@ -43,5 +47,10 @@
       "coliseum"
     ],
     "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

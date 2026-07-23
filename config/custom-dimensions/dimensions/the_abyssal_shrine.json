@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows; guardians below, sky above.",
-  "seed": -8401790570074108359,
+  "seed": 801303553111466439,
   "biomes": [
     "paradise_lost:continental_plateau",
     "paradise_lost:highlands_grand_glade",
@@ -41,7 +41,8 @@
     "wants": {
       "para_vault": "near_spawn",
       "monument": "near_spawn",
-      "para_palace": "spread"
+      "para_palace": "spread",
+      "deepwater_dungeon": "spread"
     },
     "shuns": [
       "village",
@@ -54,5 +55,10 @@
       -60,
       440
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

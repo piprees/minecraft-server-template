@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Crumbling solid end — crystal peaks shearing into shadow, crashed ships in the rubble.",
-  "seed": -6358345418972121684,
+  "seed": 9222271493615113425,
   "noiseSettings": "adventure:compressed",
   "biomes": [
     "nullscape:crystal_peaks",
@@ -44,5 +44,10 @@
       "end_city": "spread"
     },
     "description": "Crumbling solid end — crystal peaks shearing into shadow, crashed ships in the rubble."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

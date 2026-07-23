@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone.",
-  "seed": -2229145286337484445,
+  "seed": 9192136150769168028,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -26,10 +26,13 @@
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "terralith:stony_spires",
       "terralith:rocky_mountains",
       "minecraft:stony_peaks",
-      "terralith:granite_cliffs"
+      "minecraft:windswept_hills",
+      "minecraft:stony_shore",
+      "minecraft:windswept_gravelly_hills",
+      "terralith:basalt_cliffs",
+      "terralith:scarlet_mountains"
     ],
     "water": "none",
     "wants": {
@@ -42,6 +45,21 @@
       "village",
       "monument"
     ],
-    "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone."
-  }
+    "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone.",
+    "varietyBiomes": [
+      "terralith:rocky_mountains",
+      "minecraft:stony_peaks",
+      "minecraft:windswept_hills",
+      "minecraft:windswept_gravelly_hills",
+      "terralith:basalt_cliffs",
+      "terralith:scarlet_mountains",
+      "minecraft:stony_shore",
+      "terralith:volcanic_peaks"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

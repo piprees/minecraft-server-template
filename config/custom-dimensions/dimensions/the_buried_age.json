@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took.",
-  "seed": -27431537388891441,
+  "seed": 4043512277582323411,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -36,5 +36,10 @@
       "pipeline": "spread"
     },
     "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

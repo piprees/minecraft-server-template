@@ -1,11 +1,8 @@
 {
   "type": "cave",
   "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark.",
-  "biomes": [
-    "minecraft:basalt_deltas",
-    "terralith:cave/thermal_caves",
-    "incendium:quartz_flats"
-  ],
+  "seed": 9181733818447442817,
+  "biomes": ["minecraft:basalt_deltas", "terralith:cave/thermal_caves", "incendium:quartz_flats"],
   "borders": {
     "player": 256,
     "generation": 512
@@ -36,10 +33,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "terralith:cave/thermal_caves",
-      "incendium:quartz_flats"
-    ],
+    "spawnFilter": ["terralith:cave/thermal_caves", "incendium:quartz_flats"],
     "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark."
   }
 }

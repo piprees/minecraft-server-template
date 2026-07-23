@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step.",
-  "seed": -6382007599207638359,
+  "seed": -710009041145965796,
   "noiseSettings": "adventure:compressed",
   "borders": {
     "player": 1024,
@@ -44,5 +44,10 @@
       "coliseum"
     ],
     "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

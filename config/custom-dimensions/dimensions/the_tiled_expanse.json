@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "A tiled quartz-and-void expanse — monoliths and archways in geometric silence.",
-  "seed": 3362388695457488365,
+  "seed": 3962981317763428010,
   "biomes": [
     "incendium:quartz_flats",
     "minecraft:end_midlands",
@@ -29,7 +29,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "desolate",
     "spawnFilter": [
       "incendium:quartz_flats",
       "nullscape:void_barrens"
@@ -41,5 +41,10 @@
       "end_city": "near_border"
     },
     "description": "A tiled quartz-and-void expanse — monoliths and archways in geometric silence."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

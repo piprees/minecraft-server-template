@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world.",
-  "seed": 5735056219198225107,
+  "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
   "borders": {
     "player": 512,
@@ -36,7 +36,8 @@
       "shipwreck": "near_spawn",
       "buried_treasure": "near_spawn",
       "ocean_ruins": "spread",
-      "lighthouse": "spread"
+      "lighthouse": "spread",
+      "ocean_pillar": "spread"
     },
     "shuns": [
       "village",
@@ -46,5 +47,10 @@
       "trial_chambers"
     ],
     "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

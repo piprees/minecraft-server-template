@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The forge itself — crimson forges and reactors in a small brutal deep.",
-  "seed": -4778351741013971258,
+  "seed": 8768619481766417318,
   "borders": {
     "player": 683,
     "generation": 683
@@ -36,5 +36,10 @@
       "fortress": "spread"
     },
     "description": "The forge itself — crimson forges and reactors in a small brutal deep."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

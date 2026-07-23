@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring.",
-  "seed": -3604832347219380837,
+  "seed": -2033868061535873206,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:cherry_grove",
@@ -67,5 +67,10 @@
       "giant_mushroom": "spread"
     },
     "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

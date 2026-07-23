@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world.",
-  "seed": 888677704244175115,
+  "seed": 9026703353164040970,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -33,8 +33,14 @@
       "sanctum": "spread",
       "infernal_altar": "spread",
       "forbidden_castle": "near_border",
-      "bastion": "spread"
+      "bastion": "spread",
+      "nether_tower": "near_spawn"
     },
     "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

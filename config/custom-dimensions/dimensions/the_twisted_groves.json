@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner.",
-  "seed": -4696684832744545496,
+  "seed": 8276490801986154035,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -24,7 +24,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "scenic",
     "spawnFilter": [
       "minecraft:warped_forest",
       "incendium:inverted_forest"
@@ -32,8 +32,14 @@
     "wants": {
       "warped_outpost": "near_spawn",
       "warped_greatsword": "spread",
-      "fortress": "near_border"
+      "fortress": "near_border",
+      "strange_outpost": "spread"
     },
     "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

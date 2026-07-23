@@ -1,7 +1,7 @@
 {
   "type": "amplified",
   "description": "Amplified madness — cliffs beyond reason, keeps on the peaks.",
-  "seed": -3604832347219380837,
+  "seed": -9159371576077905675,
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -31,7 +31,12 @@
       "terralith:scarlet_mountains",
       "minecraft:stony_peaks",
       "minecraft:windswept_hills",
-      "terralith:windswept_spires"
+      "terralith:windswept_spires",
+      "minecraft:forest",
+      "minecraft:taiga",
+      "minecraft:plains",
+      "minecraft:snowy_taiga",
+      "minecraft:windswept_savanna"
     ],
     "wants": {
       "firetower": "near_spawn",
@@ -43,5 +48,10 @@
       "monument"
     ],
     "description": "Amplified madness — cliffs beyond reason, keeps on the peaks."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

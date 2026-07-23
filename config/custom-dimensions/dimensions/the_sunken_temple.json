@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
-  "seed": -7553093148959622972,
+  "seed": 4738366115120948309,
   "biomes": [
     "paradise_lost:tradewinds",
     "paradise_lost:highlands",
@@ -44,7 +44,8 @@
       "para_palace": "near_border",
       "monument": "spread",
       "deepwater_dungeon": "spread",
-      "para_remains": "near_spawn"
+      "para_remains": "near_spawn",
+      "ocean_fortress": "near_border"
     },
     "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
     "shuns": [],
@@ -54,5 +55,10 @@
       -60,
       440
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

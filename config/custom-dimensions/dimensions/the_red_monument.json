@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith.",
-  "seed": 1348467636973897365,
+  "seed": 847731309170024191,
   "biomes": [
     "terralith:scarlet_mountains",
     "minecraft:crimson_forest",
@@ -30,18 +30,54 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "dramatic",
     "spawnFilter": [
-      "terralith:scarlet_mountains",
-      "terralith:red_oasis",
-      "minecraft:crimson_forest"
+      "minecraft:crimson_forest",
+      "minecraft:end_highlands",
+      "minecraft:end_barrens",
+      "minecraft:basalt_deltas"
     ],
     "wants": {
       "monolith": "near_spawn",
       "manuscript_shrine": "spread",
       "mythic_garden": "spread",
-      "end_city": "near_border"
+      "end_city": "near_border",
+      "ender_spire": "spread"
     },
-    "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith."
-  }
+    "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith.",
+    "structures": [
+      {
+        "name": "minecraft:end_cities",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "mes:ender_spire",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nullscape:rift",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "mes:ruined_pillar",
+        "kind": "want",
+        "range": "spread"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:crimson_forest",
+      "minecraft:end_highlands",
+      "minecraft:end_barrens",
+      "minecraft:basalt_deltas",
+      "nullscape:void_barrens"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

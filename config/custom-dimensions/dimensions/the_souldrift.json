@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark.",
-  "seed": -3604832347219380837,
+  "seed": -6084751356019635319,
   "biomes": [
     "minecraft:soul_sand_valley",
     "minecraft:basalt_deltas",
@@ -52,5 +52,10 @@
       "village"
     ],
     "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

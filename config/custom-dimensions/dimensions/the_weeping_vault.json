@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world.",
-  "seed": -3211735946045942308,
+  "seed": 8939242886241437506,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -37,5 +37,10 @@
       "bastion": "spread"
     },
     "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

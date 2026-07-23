@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Industrial lava flats — pipelines and reactors over the melt.",
-  "seed": -1580560277501623545,
+  "seed": -8522992867091947329,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,7 +23,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
       "minecraft:nether_wastes",
       "incendium:infernal_dunes",
@@ -36,5 +36,10 @@
       "crimson_well": "near_spawn"
     },
     "description": "Industrial lava flats — pipelines and reactors over the melt."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

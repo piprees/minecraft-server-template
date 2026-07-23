@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border.",
-  "seed": -1127231349081233614,
+  "seed": -1157745575203996945,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -23,7 +23,7 @@
     }
   },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
       "natures_spirit:redwood_forest",
       "minecraft:dark_forest",
@@ -34,12 +34,18 @@
       "forest_ruin": "spread",
       "old_manor": "near_border",
       "spider_dungeon": "spread",
-      "mansion": "near_border"
+      "mansion": "near_border",
+      "lush_dungeon": "spread"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
     "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

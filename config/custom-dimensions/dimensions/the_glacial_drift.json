@@ -1,7 +1,7 @@
 {
   "type": "paradise_lost:paradise_lost",
   "description": "A glacial drift among the skylands — frozen paradise islands calving into the void.",
-  "seed": 7276819460514288435,
+  "seed": 3730788643567922115,
   "biomes": [
     "paradise_lost:autumnal_tundra",
     "paradise_lost:calcite_craglands",
@@ -38,13 +38,16 @@
     "spawnFilter": [
       "paradise_lost:autumnal_tundra",
       "paradise_lost:calcite_craglands",
-      "terralith:glacial_chasm"
+      "paradise_lost:highlands",
+      "paradise_lost:highlands_forest",
+      "paradise_lost:highlands_shield"
     ],
     "wants": {
       "para_remains": "near_spawn",
       "aurel_tower": "spread",
       "igloo": "near_spawn",
-      "para_vault": "near_border"
+      "para_vault": "near_border",
+      "birdcage": "spread"
     },
     "shuns": [],
     "description": "A glacial drift among the skylands — frozen paradise islands calving into the void.",
@@ -53,6 +56,47 @@
     "heightRange": [
       -60,
       440
+    ],
+    "structures": [
+      {
+        "name": "paradise_lost:remains",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "paradise_lost:aurel_tower",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "paradise_lost:vault",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "paradise_lost:palace",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "paradise_lost:birdcage",
+        "kind": "want",
+        "range": "near_spawn"
+      }
+    ],
+    "varietyBiomes": [
+      "paradise_lost:autumnal_tundra",
+      "paradise_lost:calcite_craglands",
+      "paradise_lost:highlands",
+      "paradise_lost:highlands_forest",
+      "paradise_lost:highlands_shield",
+      "paradise_lost:continental_plateau",
+      "paradise_lost:highlands_thicket"
     ]
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

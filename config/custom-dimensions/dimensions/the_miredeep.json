@@ -1,7 +1,7 @@
 {
   "type": "overworld",
   "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company.",
-  "seed": -278367467270338546,
+  "seed": 8614947220682105760,
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -29,7 +29,11 @@
       "terralith:orchid_swamp",
       "minecraft:mangrove_swamp",
       "natures_spirit:marsh",
-      "minecraft:swamp"
+      "minecraft:swamp",
+      "minecraft:river",
+      "minecraft:dark_forest",
+      "minecraft:beach",
+      "terralith:moonlight_valley"
     ],
     "water": "high",
     "wants": {
@@ -46,5 +50,10 @@
       "coliseum"
     ],
     "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

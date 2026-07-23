@@ -1,7 +1,7 @@
 {
   "type": "nether",
   "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms.",
-  "seed": -4891546376175842645,
+  "seed": 194573149100713462,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -47,5 +47,10 @@
       "sanctum"
     ],
     "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

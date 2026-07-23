@@ -1,7 +1,7 @@
 {
   "type": "nether_islands",
   "description": "Burning islands in a void sea — nether archipelago on end-island bones.",
-  "seed": -3604832347219380837,
+  "seed": 5613206028346317650,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
@@ -37,14 +37,75 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["minecraft:crimson_forest", "incendium:volcanic_deltas", "minecraft:basalt_deltas"],
+    "spawnFilter": [
+      "minecraft:crimson_forest",
+      "incendium:volcanic_deltas",
+      "minecraft:basalt_deltas",
+      "minecraft:nether_wastes",
+      "minecraft:warped_forest",
+      "incendium:ash_barrens",
+      "incendium:infernal_dunes"
+    ],
     "wants": {
       "bastion": "spread",
       "fortress": "spread",
       "giant_skull": "spread",
-      "nether_tower": "spread"
+      "nether_tower": "spread",
+      "crimson_forge": "spread"
     },
     "description": "Burning islands in a void sea — nether archipelago on end-island bones.",
-    "terrain": "islands"
-  }
+    "terrain": "islands",
+    "structures": [
+      {
+        "name": "betterfortresses:fortress",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "incendium:lesser_structures",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "minecraft:ruined_portals",
+        "kind": "want",
+        "range": "near_spawn"
+      },
+      {
+        "name": "incendium:greater_structures",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "nova_structures:nether_structures",
+        "kind": "want",
+        "range": "mid_range"
+      },
+      {
+        "name": "mns:nether_tower",
+        "kind": "want",
+        "range": "far"
+      },
+      {
+        "name": "philipsruins:nether_ruins",
+        "kind": "want",
+        "range": "spread"
+      }
+    ],
+    "varietyBiomes": [
+      "minecraft:crimson_forest",
+      "minecraft:warped_forest",
+      "minecraft:basalt_deltas",
+      "incendium:volcanic_deltas",
+      "incendium:ash_barrens",
+      "incendium:infernal_dunes",
+      "incendium:withered_forest",
+      "minecraft:nether_wastes"
+    ]
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "type": "end",
   "description": "Citadel country — end cities and phantom citadels saturate the highlands.",
-  "seed": 2345324516627475701,
+  "seed": 9063126249592024391,
   "biomes": [
     "minecraft:end_highlands",
     "nullscape:crystal_peaks",
@@ -33,14 +33,23 @@
     "mood": "hard",
     "spawnFilter": [
       "minecraft:end_highlands",
-      "nullscape:crystal_peaks"
+      "nullscape:crystal_peaks",
+      "minecraft:the_end",
+      "minecraft:end_barrens",
+      "minecraft:end_midlands"
     ],
     "wants": {
       "end_city": "spread",
       "phantom_citadel": "spread",
       "enderkeep": "spread",
-      "enderwatch_tower": "near_spawn"
+      "enderwatch_tower": "near_spawn",
+      "end_tower": "near_spawn"
     },
     "description": "Citadel country — end cities and phantom citadels saturate the highlands."
-  }
+  },
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }
