@@ -295,6 +295,136 @@ class TestCheckerboardSampler(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
+class TestPatchedSampler(unittest.TestCase):
+    """PatchedBiomeSampler mirrors PatchedBiomeSource: quart-space circular
+    containment (inclusive), first patch wins, delegate everywhere else."""
+
+    @classmethod
+    def setUpClass(cls):
+        from biome_sampler import BiomeSampler, PatchedBiomeSampler, load_noise_configs
+        cls.base = BiomeSampler(42, str(BIOME_PARAMS),
+                                noise_config=load_noise_configs().get("overworld"),
+                                family="overworld")
+        cls.PatchedBiomeSampler = PatchedBiomeSampler
+
+    def test_patch_wins_inside_delegate_outside(self):
+        patches = [{"biome": "minecraft:cherry_grove", "x": 0, "z": 0, "radius": 96,
+                    "blend": 0}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        # centre + inside the 24-quart radius
+        self.assertEqual(s.biome_at(0, 0), "minecraft:cherry_grove")
+        self.assertEqual(s.biome_at(64, 64), "minecraft:cherry_grove")  # ~22.6 quarts
+        # outside: exactly the delegate's answer
+        self.assertEqual(s.biome_at(500, 500), self.base.biome_at(500, 500))
+        self.assertNotEqual(s.biome_at(500, 500), "minecraft:cherry_grove")
+
+    def test_quart_geometry_matches_java(self):
+        # radius 96 -> 24 quarts, inclusive: quart distance 24 in, 25 out.
+        patches = [{"biome": "b", "x": 0, "z": 0, "radius": 96, "blend": 0}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        self.assertEqual(s.biome_at(24 * 4, 0), "b")       # qx=24, 24² <= 24²
+        self.assertNotEqual(s.biome_at(25 * 4, 0), "b")    # qx=25, outside
+
+    def test_blend_jitters_the_edge_deterministically(self):
+        from biome_sampler import _patch_jitter
+        # Deterministic, bounded, and actually varying.
+        vals = [_patch_jitter(q, -q * 3 + 7, 0) for q in range(-64, 64, 3)]
+        self.assertEqual(vals, [_patch_jitter(q, -q * 3 + 7, 0) for q in range(-64, 64, 3)])
+        self.assertTrue(all(-1.0 <= v <= 1.0 for v in vals))
+        self.assertGreater(len({round(v, 6) for v in vals}), 10)
+        # On the exact radius ring, blend produces MIXED membership.
+        patches = [{"biome": "b", "x": 0, "z": 0, "radius": 256, "blend": 16}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        import math
+        ring = []
+        for i in range(32):
+            ang = i * math.pi / 16
+            ring.append(s.biome_at(int(256 * math.cos(ang)), int(256 * math.sin(ang))) == "b")
+        self.assertIn(True, ring)
+        self.assertIn(False, ring)
+
+    def test_square_shape_uses_chebyshev(self):
+        patches = [{"biome": "b", "x": 0, "z": 0, "radius": 96, "blend": 0,
+                    "shape": "square"}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        # (24q, 24q) corner: inside the square, far outside the circle.
+        self.assertEqual(s.biome_at(96, 96), "b")
+        self.assertNotEqual(s.biome_at(101, 0), "b")  # 25q out on the axis
+
+    def test_global_explicit_replace_is_dimension_wide(self):
+        target = self.base.biome_at(0, 0)
+        s = self.PatchedBiomeSampler(
+            self.base, [{"biome": "swapped", "replace": target, "scope": "global"}])
+        # every instance of target swaps, however far out; others untouched
+        for x in range(-4096, 4097, 512):
+            for z in range(-4096, 4097, 512):
+                base_biome = self.base.biome_at(x, z)
+                expect = "swapped" if base_biome == target else base_biome
+                self.assertEqual(s.biome_at(x, z), expect, f"at ({x},{z})")
+
+    def test_global_selector_swaps_all_touching_biomes(self):
+        # Whatever biomes the delegate has within 128 blocks of origin all
+        # become "river", everywhere in the dimension.
+        touching = {self.base.biome_at(x, z)
+                    for x in range(-128, 129, 16) for z in range(-128, 129, 16)}
+        s = self.PatchedBiomeSampler(
+            self.base, [{"biome": "river", "x": 0, "z": 0, "radius": 128,
+                         "scope": "global"}])
+        self.assertEqual(s.biome_at(0, 0), "river")
+        # a far point whose base biome touched the selector also swaps
+        for x in range(0, 8192, 256):
+            if self.base.biome_at(x, 0) in touching:
+                self.assertEqual(s.biome_at(x, 0), "river", f"far match at ({x},0)")
+                break
+
+    def test_swap_mode_preserves_shape(self):
+        """replace mode: only columns the delegate resolves to the target
+        biome are substituted; everything else inside the radius keeps the
+        delegate's answer."""
+        # Find a real biome near origin and a nearby point with a DIFFERENT
+        # biome, so the test is seed-robust.
+        target = self.base.biome_at(0, 0)
+        other_point = None
+        for x in range(0, 2048, 64):
+            if self.base.biome_at(x, 0) != target:
+                other_point = (x, 0)
+                break
+        self.assertIsNotNone(other_point, "need biome variety near origin")
+        radius = other_point[0] + 256
+        patches = [{"biome": "swapped_in", "x": 0, "z": 0, "radius": radius,
+                    "replace": target}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        # target biome columns swap; different-biome columns keep the delegate
+        self.assertEqual(s.biome_at(0, 0), "swapped_in")
+        self.assertEqual(s.biome_at(*other_point), self.base.biome_at(*other_point))
+        # wildcard replaces everything inside the radius (stamp equivalence)
+        wild = self.PatchedBiomeSampler(
+            self.base, [{"biome": "w", "x": 0, "z": 0, "radius": 96, "replace": "*"}])
+        self.assertEqual(wild.biome_at(0, 0), "w")
+
+    def test_non_matching_swap_falls_through_to_later_patches(self):
+        patches = [{"biome": "swap_target", "x": 0, "z": 0, "radius": 128,
+                    "replace": "definitely:not_a_real_biome"},
+                   {"biome": "stamp_under", "x": 0, "z": 0, "radius": 128}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        # swap patch doesn't match -> the stamp beneath it wins
+        self.assertEqual(s.biome_at(0, 0), "stamp_under")
+
+    def test_first_patch_wins_and_locate_spawn_filter_work(self):
+        patches = [{"biome": "first", "x": 0, "z": 0, "radius": 64},
+                   {"biome": "second", "x": 0, "z": 0, "radius": 128}]
+        s = self.PatchedBiomeSampler(self.base, patches)
+        self.assertEqual(s.biome_at(0, 0), "first")
+        self.assertEqual(s.biome_at(100, 0), "second")  # outside first, inside second
+        cherry = self.PatchedBiomeSampler(
+            self.base, [{"biome": "minecraft:cherry_grove", "x": 0, "z": 0, "radius": 96}])
+        dist, _x, _z = cherry.locate_biome("minecraft:cherry_grove", radius=512, step=16)
+        self.assertEqual(dist, 0)
+        best_b, best_d, _bx, _bz = cherry.spawn_filter({"minecraft:cherry_grove"}, radius=256, step=16)
+        self.assertEqual((best_b, best_d), ("minecraft:cherry_grove", 0))
+
+
+@unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
 class TestIslandMaskDeterminism(unittest.TestCase):
     """Island mask must be deterministic: same seed = same mask."""
 

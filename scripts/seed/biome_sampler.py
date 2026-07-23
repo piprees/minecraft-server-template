@@ -577,6 +577,136 @@ class CheckerboardBiomeSampler(BiomeSampler):
         return self.biomes[idx], climate
 
 
+_PATCH_DEFAULT_BLEND = 8
+_PATCH_SELECTOR_CAP = 256  # blocks — selector sampling sweep cap
+
+
+def _patch_hash_unit(x, z, salt):
+    """Splitmix-style hash -> [-1, 1). Bit-for-bit mirror of
+    PatchedBiomeSource.hashUnit — change BOTH or neither."""
+    h = _u64(_u64(x * 0x9E3779B97F4A7C15) ^ _u64(z * 0xC2B2AE3D27D4EB4F)
+             ^ _u64(salt * 0x100000001B3))
+    h ^= h >> 33
+    h = _u64(h * 0xFF51AFD7ED558CCD)
+    h ^= h >> 33
+    h = _u64(h * 0xC4CEB9FE1A85EC53)
+    h ^= h >> 33
+    return (h >> 11) * (2.0 ** -53) * 2.0 - 1.0
+
+
+def _patch_jitter(qx, qz, salt):
+    """Smooth value noise in [-1, 1]: 4-quart lattice, smoothstep
+    interpolation. Mirror of PatchedBiomeSource.jitterNoise."""
+    lx, lz = qx >> 2, qz >> 2
+    fx, fz = (qx & 3) / 4.0, (qz & 3) / 4.0
+    v00 = _patch_hash_unit(lx, lz, salt)
+    v10 = _patch_hash_unit(lx + 1, lz, salt)
+    v01 = _patch_hash_unit(lx, lz + 1, salt)
+    v11 = _patch_hash_unit(lx + 1, lz + 1, salt)
+    sx = fx * fx * (3.0 - 2.0 * fx)
+    sz = fz * fz * (3.0 - 2.0 * fz)
+    a = v00 + (v10 - v00) * sx
+    b = v01 + (v11 - v01) * sx
+    return a + (b - a) * sz
+
+
+class PatchedBiomeSampler:
+    """Mirror of the mod's PatchedBiomeSource (biomePatches config).
+
+    Per-patch modes: STAMP (no "replace" — the area claims every column),
+    CLIPPED SWAP ("replace": id — within the area, only columns the
+    delegate resolves to that id are substituted; "*" = any biome), and
+    GLOBAL SWAP ("scope": "global" — dimension-wide: explicit "replace"
+    swaps that id everywhere; no replace/"*" makes the area a SELECTOR
+    whose touching biomes all swap globally). "shape": "circle" (default,
+    Euclidean) or "square" (Chebyshev). "blend" (blocks, default 8, 0 =
+    razor) jitters local edges with _patch_jitter, salted by patch index.
+    Precedence: local patches in config order (non-matching swaps fall
+    through), then the global map on the delegate's answer. All geometry
+    in QUART space (block >> 2), containment inclusive — keep everything
+    in sync with the Java source."""
+
+    def __init__(self, delegate, patches):
+        self.delegate = delegate
+        self._geom = []       # local: (biome, qx, qz, qr, replace, blend_q, salt, square)
+        self._global = {}     # target id -> replacement biome
+        selectors = []
+        entries = []
+        local_index = 0
+        for p in patches:
+            entries.append((p["biome"], (), 0.0))
+            replace = (p.get("replace") or "").strip().lower() or None
+            if (p.get("scope") or "").strip().lower() == "global":
+                if replace and replace != "*":
+                    self._global[replace] = p["biome"]
+                else:
+                    selectors.append(p)
+                continue
+            qr = max(1, int(p["radius"]) >> 2)
+            blend = p.get("blend", _PATCH_DEFAULT_BLEND) or 0
+            blend_q = max(1, int(blend) >> 2) if blend > 0 else 0
+            square = (p.get("shape") or "").strip().lower() == "square"
+            self._geom.append((p["biome"], int(p["x"]) >> 2, int(p["z"]) >> 2,
+                               qr, replace, blend_q, local_index, square))
+            local_index += 1
+        for p in selectors:
+            self._resolve_selector(p)
+        # tier2's representability check unions patches with the delegate.
+        self._entries = entries + list(delegate._entries)
+
+    def _resolve_selector(self, p):
+        """Sample the delegate across the selector area; every distinct
+        biome touching it swaps globally to the patch biome. Mirrors
+        resolveGlobalSelectors (2D sampling; the Java samples at y=64 —
+        region-level parity, same as the rest of the pipeline)."""
+        cqx, cqz = int(p["x"]) >> 2, int(p["z"]) >> 2
+        qr = max(1, min(int(p["radius"]), _PATCH_SELECTOR_CAP) >> 2)
+        square = (p.get("shape") or "").strip().lower() == "square"
+        own = p["biome"]
+        for dz in range(-qr, qr + 1):
+            for dx in range(-qr, qr + 1):
+                if not square and dx * dx + dz * dz > qr * qr:
+                    continue
+                found = self.delegate.biome_at((cqx + dx) << 2, (cqz + dz) << 2)
+                if found and found != own:
+                    self._global.setdefault(found, own)
+
+    def biome_and_climate(self, x, z):
+        qx, qz = x >> 2, z >> 2
+        resolved = None  # delegate (biome, climate), computed at most once
+        for biome, cqx, cqz, qr, replace, blend_q, salt, square in self._geom:
+            dx, dz = qx - cqx, qz - cqz
+            eff = qr if blend_q == 0 else qr + _patch_jitter(qx, qz, salt) * blend_q
+            inside = (max(abs(dx), abs(dz)) <= eff) if square \
+                else (dx * dx + dz * dz <= eff * eff)
+            if not inside:
+                continue
+            if replace is None or replace == "*":
+                return biome, self.delegate.sample_climate(x, z)
+            if resolved is None:
+                resolved = self.delegate.biome_and_climate(x, z)
+            if resolved[0] == replace:
+                return biome, resolved[1]
+        if self._global:
+            if resolved is None:
+                resolved = self.delegate.biome_and_climate(x, z)
+            replacement = self._global.get(resolved[0])
+            if replacement is not None:
+                return replacement, resolved[1]
+        return resolved if resolved is not None else self.delegate.biome_and_climate(x, z)
+
+    def biome_at(self, x, z):
+        return self.biome_and_climate(x, z)[0]
+
+    def sample_climate(self, x, z):
+        return self.delegate.sample_climate(x, z)
+
+    # Ring search + spawn scan only need biome_at — borrow the base
+    # implementations unbound so behaviour stays identical.
+    locate_biome = BiomeSampler.locate_biome
+    spawn_filter = BiomeSampler.spawn_filter
+
+
 # ---------------------------------------------------------------------------
 # CLI mode
 # ---------------------------------------------------------------------------

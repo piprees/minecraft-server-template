@@ -78,18 +78,16 @@ Our `environment` block already covers MOST of the dimension-type surface, with 
 
 Question: since the mod owns the dimension pipeline, can we PLACE biomes and structures instead of rolling seeds until they land well? Yes — and it inverts the roller's job from "search for luck" to "verify constraints".
 
-### Biome patches (medium effort, huge payoff)
+### Biome patches — ✅ SHIPPED 2026-07-23
 
-A biome source is a pure function (x, y, z) → biome. The mod already swaps sources per dimension, so it can WRAP any source with an override layer:
+`PatchedBiomeSource` (codec-registered as `customdimensions:patched`) wraps any noise generator's source; `PatchedBiomeSampler` mirrors it in the roller. Three modes per patch, plus shape and blend knobs — see docs/customisation.md for the user-facing reference:
 
-    "biomePatches": [
-      { "biome": "minecraft:cherry_grove", "x": 0, "z": 0, "radius": 96 },
-      { "biome": "terralith:moonlight_grove", "x": 1500, "z": -800, "radius": 200 }
-    ]
+- **Stamp** (no `replace`): the area claims every column.
+- **Clipped swap** (`replace`): within the area, only columns the delegate resolves to the target biome swap — organic shape preserved; `"*"` = any.
+- **Global swap** (`scope: "global"`): dimension-wide wholesale replacement — explicit `replace` swaps that id everywhere; without one the area is a selector (all biomes touching it swap; sampling sweep capped at 256 blocks, resolved lazily+deterministically so level.dat round-trips). No per-blob identity exists in a biome source, so "that mesa, past the radius" = all instances of that biome by construction.
+- `shape: circle|square` (Chebyshev tiles cleanly); `blend` (0–64 blocks, default 8) jitters local edges with smooth value noise (4-quart lattice, splitmix-hash — mirrored bit-for-bit in the roller; salt = patch config index).
 
-Delegate to the wrapped source everywhere except inside patches. Effects: correct surface rules, features, mob spawns, grass/water tint inside the patch; multi-noise generation everywhere else. The killer app is a **guaranteed spawn biome at (0,0)** — which deletes the spawn-filter lottery (the 0.1–0.5% acceptance-rate problem from 2026-07-17) entirely. Caveats: 1.18+ terrain SHAPE is mostly biome-independent (density functions), so a desert patch in mountains is a sandy mountain — patch radius should respect terrain mood; blend the edge (1–2 chunk noise jitter on the boundary) or patches look stamped.
-
-Implementation notes (2026-07-22 handoff): a `PatchedBiomeSource extends BiomeSource` wrapping (delegate, patches) — `getBiomes()` is the union, `getBiomeForNoiseGen(x,y,z)` answers from a patch when inside one, else delegates. Biome-source coordinates are QUARTS (block >> 2), so convert the radius; `CODEC` is a required abstract in 1.21.1 — a codec that round-trips delegate + patch list server-side is all it needs. Natural home: `DimensionManager.createDimensionOptions` (every generator case builds its source there — wrap the result when patches are configured). Pipeline parity is part of the same change, not a follow-up: `scripts/seed/biome_sampler.py` applies the same override before scoring. Oracle: fixture dim, cherry_grove patch at (0,0) — `execute in <dim> run locate biome minecraft:cherry_grove` returns ~0; a probe outside the radius returns the base source's biome.
+Verified live: stamp locate-0 at origin + delegate outside + level.dat encode/decode across a codec evolution; clipped swap positive/negative on a server-verified blob; global eradication oracle (`locate biome` target unfindable dimension-wide); blend mixed-membership ring at the exact radius. Parity note: point-exact predictions hold for large regions; sliver biomes sit inside the sampler's approximation envelope (server measurement stays ground truth — and `locate biome` itself samples on a 32-block grid).
 
 ### Fixed structures (two routes)
 
@@ -107,10 +105,10 @@ Combining the above with what already exists:
 | Heights, light, effects, spawn rules | environment block | ✅ + Tier 1 |
 | Terrain character | noiseSettings jar presets | ✅ (gen-terrain-presets.py) |
 | Biome mix | biomes list / multi_noise | ✅ |
-| Exact biome at exact spot | biomePatches wrapper | 🟡 medium |
+| Exact biome at exact spot | biomePatches wrapper | ✅ (stamp/clip/global + shape/blend) |
 | Structure density/themes | structureDensity | ✅ |
 | Exact structure at exact spot | /place (v1) or fixed placement (v2) | 🟡 easy / medium |
-| Guaranteed spawn biome | biomePatches at 0,0 | 🟡 falls out |
+| Guaranteed spawn biome | biomePatches at 0,0 | ✅ falls out |
 | Custom biomes (own colours/features) | jar-baked worldgen/biome JSON | 🟡 medium, client-visible tints work |
 | Terrain shape at exact spots | authored density functions | 🔴 hard, real worldgen authoring |
 | Custom skyboxes beyond the 3 vanilla effects | — | ❌ client mod territory |

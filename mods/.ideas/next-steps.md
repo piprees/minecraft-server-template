@@ -10,9 +10,18 @@ precision-placement section — item 2 below — remains from that doc).
 - **Tier 2**: `checkerboard` (+`checkerboardScale`, `CheckerboardBiomeSampler` parity, live-verified probe-for-probe), `superflat` custom `layers` + `flatBiome`, `seedRoll: {skip: true}` in mod schema + `rollable()`.
 - **Tier 3**: `settingsOverrides` whitelist, per-biome `parameters` (object-form biomes entries), per-set `structures.spacing` — each landed with its roller counterpart (`build_mixed_entries` param_overrides, seed_worker fluid check, tier-1 spacing maths) and live-verified.
 
-## 2. biomePatches
+## 2. biomePatches — DONE 2026-07-23
 
-Spec: `vanilla-custom-world-settings.md` § Precision placement (the implementation sketch from the platform handoff is merged in there: PatchedBiomeSource, quart coords, CODEC, sampler parity, oracle). Guaranteed spawn biome at (0,0) deletes the spawn-filter lottery. Related but gated behind it: fixed structure placements (same section).
+Spec: `vanilla-custom-world-settings.md` § Precision placement. Shipped
+beyond the original sketch after design discussion with Pip: three modes
+(stamp / clipped swap via `replace` / global swap via `scope: "global"`
+with explicit target or area-selector), `shape: circle|square`, `blend`
+edge jitter (bit-mirrored value noise in `PatchedBiomeSampler`).
+Codec-registered `customdimensions:patched`; level.dat round-trip and a
+codec evolution verified live; all modes oracle-verified. Guaranteed
+spawn biome at (0,0) now deletes the spawn-filter lottery. Still gated
+behind this section: **fixed structure placements** (same spec section —
+next candidate alongside item 3).
 
 ## 3. Exit shrines + dimension links & exit conditions
 

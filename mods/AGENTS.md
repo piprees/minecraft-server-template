@@ -68,6 +68,17 @@ unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep
 
 Install straight into the local consumer's `data/mods/` and restart only the mc container — no release, no bundle, no full stack cycle:
 
+**Re-patch c2me BEFORE every stop/start in this loop.** c2me strips
+`useDensityFunctionCompiler` from `data/config/c2me.toml` on every boot
+(after reading it), so patching once does NOT survive repeated restart
+cycles — each `docker stop mc && docker start mc` after the first boots
+unpatched (2026-07-23: three consecutive fixture cycles ran that way
+mid-session despite the trap being documented). Paste the idempotent
+snippet from `dev-up.sh` (search `useDensityFunctionCompiler`) before
+each restart, or make it part of your restart one-liner. Verify via log
+grep, never the config file (the key is stripped again by the boot that
+honours it).
+
 ```bash
 cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
 docker restart mc && sleep 45

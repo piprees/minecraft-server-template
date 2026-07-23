@@ -712,7 +712,68 @@ public class DimensionManager {
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
         };
-        return applySettingsOverrides(def, built);
+        return applyBiomePatches(def, applySettingsOverrides(def, built), biomeRegistry);
+    }
+
+    // "biomePatches" (precision placement): wrap the built generator's biome
+    // source so fixed circular patches answer before the generated layout.
+    // Runs LAST — after withSeed (the delegate keeps its seeded state) and
+    // after settingsOverrides — and composes with every noise-generator
+    // type. Flat/void generators warn + no-op (their layout is fixed anyway).
+    // Invalid patches are skipped individually (warn); zero valid patches
+    // leaves the source untouched.
+    private DimensionOptions applyBiomePatches(DimensionConfig def, DimensionOptions built,
+                                               Registry<Biome> biomeRegistry) {
+        List<DimensionConfig.BiomePatch> configured = def.getBiomePatches();
+        if (configured == null || configured.isEmpty()) {
+            return built;
+        }
+        if (!(built.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: biomePatches ignored — type '{}' does not use a noise generator",
+                    def.getName(), def.getType());
+            return built;
+        }
+        List<PatchedBiomeSource.Patch> patches = new ArrayList<>();
+        for (DimensionConfig.BiomePatch p : configured) {
+            Identifier id = p.biome == null ? null : Identifier.tryParse(p.biome.trim().toLowerCase());
+            Optional<RegistryEntry.Reference<Biome>> entry = id == null ? Optional.empty()
+                    : biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, id));
+            String scope = p.scope != null && p.scope.trim().equalsIgnoreCase("global") ? "global" : "clip";
+            String replace = p.replace == null || p.replace.isBlank() ? null : p.replace.trim().toLowerCase();
+            // Global with an explicit target needs no circle; everything else
+            // (stamps, clipped swaps, global selectors) requires one.
+            boolean needsCircle = !("global".equals(scope) && replace != null && !"*".equals(replace));
+            boolean circleValid = p.x != null && p.z != null
+                    && p.radius != null && p.radius >= 1 && p.radius <= 65536;
+            int blend = p.blend == null ? PatchedBiomeSource.DEFAULT_BLEND
+                    : Math.max(0, Math.min(64, p.blend));
+            if (p.blend != null && (p.blend < 0 || p.blend > 64)) {
+                MultiverseServer.LOGGER.warn("Dimension {}: biomePatch blend {} outside 0-64 — clamped to {}",
+                        def.getName(), p.blend, blend);
+            }
+            if (entry.isEmpty() || (needsCircle && !circleValid)) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: invalid biomePatch (biome: {}, x: {}, z: {}, radius: {}, scope: {} — "
+                        + "need a registered biome, and a 1 <= radius <= 65536 circle unless scope is "
+                        + "global with an explicit replace) — patch skipped",
+                        def.getName(), p.biome, p.x, p.z, p.radius, scope);
+                continue;
+            }
+            String shape = p.shape != null && p.shape.trim().equalsIgnoreCase("square") ? "square" : "circle";
+            patches.add(new PatchedBiomeSource.Patch(entry.get(),
+                    p.x != null ? p.x : 0, p.z != null ? p.z : 0,
+                    p.radius != null ? p.radius : 1,
+                    java.util.Optional.ofNullable(replace), blend, scope, shape));
+        }
+        if (patches.isEmpty()) {
+            return built;
+        }
+        PatchedBiomeSource patched = new PatchedBiomeSource(noiseGen.getBiomeSource(), patches);
+        MultiverseServer.LOGGER.info("Dimension {}: biome source wrapped with {} patch(es) ({})",
+                def.getName(), patches.size(), def.getBiomePatchesFingerprint());
+        return new DimensionOptions(built.dimensionTypeEntry(),
+                new NoiseChunkGenerator(patched, noiseGen.getSettings()));
     }
 
     // Whitelisted ChunkGeneratorSettings field swaps ("settingsOverrides",

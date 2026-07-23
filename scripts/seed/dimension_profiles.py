@@ -417,7 +417,7 @@ def monolith_from_dir(config_dir):
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
                     "seedRoll", "difficulty", "borders", "structures",
                     "checkerboardScale", "layers", "flatBiome",
-                    "settingsOverrides"):
+                    "settingsOverrides", "biomePatches"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
@@ -871,6 +871,9 @@ def build_profile(dim, config, difficulty=None):
         "biome_parameters": biome_parameters,
         "settings_overrides": dim.get("settingsOverrides") or {},
         "spacing_overrides": struct_block.get("spacing") or {},
+        # Precision placement: fixed circular patches over the layout —
+        # the fast roller wraps its sampler in PatchedBiomeSampler.
+        "biome_patches": dim.get("biomePatches") or [],
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

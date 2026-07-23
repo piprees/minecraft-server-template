@@ -462,6 +462,42 @@ matrix), all mirrored by the seed-rolling pipeline:
   ]
   ```
 
+- `"biomePatches"` — fixed biome patches over the generated layout,
+  three modes per patch. **Stamp** (no `replace`): the listed biome
+  claims every column in the area. **Clipped swap** (`replace` set):
+  within the area, only columns the normal layout resolves to the
+  `replace` biome are substituted — the natural blob keeps its organic
+  shape, recoloured (`"*"` matches any biome ≈ a stamp). **Global swap**
+  (`"scope": "global"`): dimension-wide wholesale replacement — an
+  explicit `replace` id swaps that biome everywhere (no area needed);
+  without one the area becomes a *selector*: every distinct biome
+  touching it swaps globally (selector sampling sweeps up to 256 blocks
+  of the radius). There is no per-blob identity in a biome source, so
+  "replace that mesa even past the radius" means ALL instances of that
+  biome — usually what you wanted in a curated dimension.
+
+  Shared knobs: `"shape"`: `"circle"` (default) or `"square"`
+  (Chebyshev — tiles cleanly against chunk grids); `"blend"`: edge
+  jitter in blocks (0–64, default 8, `0` = razor edge) — smooth
+  deterministic noise wobbles stamp/clip borders so they don't read as
+  compass shapes. Precedence: local patches in config order (a
+  non-matching swap falls through), then global rules. The killer app
+  is a **guaranteed spawn biome at (0, 0)** — no more rolling seeds
+  against a spawn filter. Creation-time worldgen. Terrain SHAPE is
+  density-function-driven and mostly biome-independent: a desert patch
+  on a mountain is a sandy mountain — pick sites with the terrain mood
+  in mind. Invalid patches are skipped with a warning.
+
+  ```json
+  "biomePatches": [
+    { "biome": "minecraft:cherry_grove", "x": 0, "z": 0, "radius": 96 },
+    { "biome": "terralith:moonlight_grove", "x": 800, "z": -200, "radius": 400,
+      "replace": "minecraft:dark_forest", "shape": "square", "blend": 16 },
+    { "biome": "minecraft:cherry_grove", "replace": "minecraft:badlands", "scope": "global" },
+    { "biome": "minecraft:river", "x": 500, "z": 500, "radius": 48, "scope": "global" }
+  ]
+  ```
+
 - `"structures": { "spacing": { "<set-id>": { "spacing": N, "separation": M } } }`
   — exact placement values for one structure SET (registry set id, e.g.
   `minecraft:villages`, NOT a structure id), overriding the theme-based

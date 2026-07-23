@@ -25,7 +25,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from biome_sampler import BiomeSampler, CheckerboardBiomeSampler, load_noise_configs  # noqa: E402
+from biome_sampler import (  # noqa: E402
+    BiomeSampler, CheckerboardBiomeSampler, PatchedBiomeSampler, load_noise_configs,
+)
 from dimension_profiles import (  # noqa: E402
     build_profile, load_config, load_difficulty, rollable,
 )
@@ -304,6 +306,9 @@ def _process_dimension(task):
                                    biome_filter=biome_filter,
                                    family=noise_family,
                                    param_overrides=profile.get("biome_parameters") or None)
+        patches = profile.get("biome_patches") or []
+        if patches:
+            sampler = PatchedBiomeSampler(sampler, patches)
         rows, ok = tier2_measure(seed, profile, sampler)
 
         # Merge structure distances into rows

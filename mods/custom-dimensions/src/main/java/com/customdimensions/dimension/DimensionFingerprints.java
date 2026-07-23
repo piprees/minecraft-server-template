@@ -53,6 +53,7 @@ public final class DimensionFingerprints {
         f.put("flatBiome", String.valueOf(def.getFlatBiome()));
         f.put("settingsOverrides", String.valueOf(def.getSettingsOverridesFingerprint()));
         f.put("biomeParameters", String.valueOf(def.getBiomeParametersFingerprint()));
+        f.put("biomePatches", String.valueOf(def.getBiomePatchesFingerprint()));
         return f;
     }
 
@@ -92,7 +93,7 @@ public final class DimensionFingerprints {
             return;
         }
         StringBuilder worldgenDrift = new StringBuilder();
-        for (String k : new String[]{"type", "noiseSettings", "biomes", "checkerboardScale", "layers", "flatBiome", "settingsOverrides", "biomeParameters"}) {
+        for (String k : new String[]{"type", "noiseSettings", "biomes", "checkerboardScale", "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"}) {
             if (!String.valueOf(stored.get(k)).equals(current.get(k))) {
                 if (worldgenDrift.length() > 0) {
                     worldgenDrift.append(", ");

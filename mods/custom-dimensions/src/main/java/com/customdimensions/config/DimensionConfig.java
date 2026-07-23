@@ -77,6 +77,9 @@ public class DimensionConfig {
     /** Whitelisted ChunkGeneratorSettings field swaps (Tier 3). */
     @SerializedName("settingsOverrides")
     private SettingsOverrides settingsOverrides;
+    /** Fixed circular biome patches over the generated layout (precision placement). */
+    @SerializedName("biomePatches")
+    private List<BiomePatch> biomePatches;
     /** Base-world travel-scale metadata (worlds[].scale) — tooling only. */
     @SerializedName("scale")
     private Double scale;
@@ -328,6 +331,41 @@ public class DimensionConfig {
         return this.settingsOverrides;
     }
 
+    /** Configured biome patches; null when unset. Validated at use. */
+    public List<BiomePatch> getBiomePatches() {
+        return this.biomePatches;
+    }
+
+    /**
+     * Canonical "biome@x,z,r;..." string for creation-time fingerprinting;
+     * null when no patches are configured.
+     */
+    public String getBiomePatchesFingerprint() {
+        if (this.biomePatches == null || this.biomePatches.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (BiomePatch p : this.biomePatches) {
+            if (sb.length() > 0) {
+                sb.append(";");
+            }
+            sb.append(p.biome).append("@").append(p.x).append(",").append(p.z).append(",").append(p.radius);
+            if (p.replace != null && !p.replace.isBlank()) {
+                sb.append(">").append(p.replace);
+            }
+            if (p.scope != null && !p.scope.isBlank()) {
+                sb.append("!").append(p.scope);
+            }
+            if (p.shape != null && !p.shape.isBlank()) {
+                sb.append("#").append(p.shape);
+            }
+            if (p.blend != null) {
+                sb.append("~").append(p.blend);
+            }
+        }
+        return sb.toString();
+    }
+
     /**
      * Canonical "id={params json},..." string for creation-time
      * fingerprinting; null when no entry carries parameters. JsonObject
@@ -573,6 +611,39 @@ public class DimensionConfig {
         public Double minMultiplier;
         @SerializedName("maxMultiplier")
         public Double maxMultiplier;
+    }
+
+    /**
+     * One fixed circular biome patch: the biome claims every column within
+     * `radius` blocks of (x, z), the delegate source answers everywhere
+     * else. Creation-time worldgen (the wrapped source is baked into
+     * level.dat). A patch at spawn deletes the seed-roll spawn lottery.
+     */
+    public static class BiomePatch {
+        @SerializedName("biome")
+        public String biome;
+        @SerializedName("x")
+        public Integer x;
+        @SerializedName("z")
+        public Integer z;
+        @SerializedName("radius")
+        public Integer radius;
+        /**
+         * Unset = stamp mode (the area claims everything). A biome id =
+         * swap mode: only columns resolving to that biome are substituted
+         * (shape preserved). "*" = any biome.
+         */
+        @SerializedName("replace")
+        public String replace;
+        /** Edge jitter in blocks (0-64, default 8; 0 = razor edge). Local patches only. */
+        @SerializedName("blend")
+        public Integer blend;
+        /** "clip" (default) = bounded by the area; "global" = dimension-wide swap. */
+        @SerializedName("scope")
+        public String scope;
+        /** "circle" (default) or "square" (Chebyshev — tiles cleanly). */
+        @SerializedName("shape")
+        public String shape;
     }
 
     /**

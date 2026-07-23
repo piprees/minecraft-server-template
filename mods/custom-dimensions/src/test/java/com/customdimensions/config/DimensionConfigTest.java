@@ -380,6 +380,40 @@ class DimensionConfigTest {
     }
 
     @Test
+    void biomePatchesDeserialise() {
+        DimensionConfig config = parse("d", """
+                {"biomePatches":[{"biome":"minecraft:cherry_grove","x":0,"z":0,"radius":96},
+                                 {"biome":"terralith:moonlight_grove","x":1500,"z":-800,"radius":200}]}
+                """);
+        assertEquals(2, config.getBiomePatches().size());
+        assertEquals("minecraft:cherry_grove", config.getBiomePatches().get(0).biome);
+        assertEquals(96, config.getBiomePatches().get(0).radius);
+        assertEquals(-800, config.getBiomePatches().get(1).z);
+        assertEquals("minecraft:cherry_grove@0,0,96;terralith:moonlight_grove@1500,-800,200",
+                config.getBiomePatchesFingerprint());
+        assertNull(parse("d", "{}").getBiomePatches());
+        assertNull(parse("d", "{}").getBiomePatchesFingerprint());
+        // Swap mode: "replace" carries through and joins the fingerprint.
+        DimensionConfig swap = parse("d", """
+                {"biomePatches":[{"biome":"minecraft:cherry_grove","x":0,"z":0,"radius":400,
+                                  "replace":"minecraft:desert"}]}
+                """);
+        assertEquals("minecraft:desert", swap.getBiomePatches().get(0).replace);
+        assertEquals("minecraft:cherry_grove@0,0,400>minecraft:desert",
+                swap.getBiomePatchesFingerprint());
+        // Global scope, square shape, and blend all carry through + fingerprint.
+        DimensionConfig full = parse("d", """
+                {"biomePatches":[{"biome":"minecraft:river","x":10,"z":20,"radius":48,
+                                  "scope":"global","shape":"square","blend":0}]}
+                """);
+        assertEquals("global", full.getBiomePatches().get(0).scope);
+        assertEquals("square", full.getBiomePatches().get(0).shape);
+        assertEquals(0, full.getBiomePatches().get(0).blend);
+        assertEquals("minecraft:river@10,20,48!global#square~0",
+                full.getBiomePatchesFingerprint());
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

@@ -23,6 +23,13 @@ public class MultiverseServer implements DedicatedServerModInitializer {
     public void onInitializeServer() {
         LOGGER.info("Initializing CustomDimensions (The Multiverse Engine)");
         FabricLoader.getInstance().getObjectShare().put("customdimensions:init", true);
+        // biomePatches: the wrapper source must have a registered codec or
+        // vanilla cannot encode the dimension's generator into level.dat at
+        // save time (crash on first world save, not at creation).
+        net.minecraft.registry.Registry.register(
+                net.minecraft.registry.Registries.BIOME_SOURCE,
+                net.minecraft.util.Identifier.of("customdimensions", "patched"),
+                com.customdimensions.dimension.PatchedBiomeSource.CODEC);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             DimensionCommands.register(dispatcher));
         // Config-driven overworld spawn: the worlds[] overworld entry's
