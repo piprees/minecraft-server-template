@@ -616,6 +616,18 @@ done
 echo "  $PRUNED stale jar(s) removed"
 
 # =============================================================================
+# 10b. Fetch missing managed jars (offline-by-default boots)
+# =============================================================================
+# MODS_FILE is empty by default, so itzg neither downloads nor HEAD-checks
+# anything at boot — fetching files the manifest expects but data/ lacks is
+# our job, done here while mc is still stopped. Zero network requests when
+# the mod list hasn't changed. A failed download aborts the deploy: booting
+# without a worldgen mod corrupts chunks.
+echo ""
+echo "==> Syncing managed mods/datapacks..."
+"$SCRIPT_DIR/sync-mods.sh" "$SERVER_DIR/data" "$STACK_MODS_VOLUME"
+
+# =============================================================================
 # 11. Start the stack
 # =============================================================================
 echo ""

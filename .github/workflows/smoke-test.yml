@@ -131,11 +131,19 @@ jobs:
           # otherwise (mods/AGENTS.md); mirrors deploy.sh 8c / dev-up.sh.
           printf '[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n' > data/config/c2me.toml
 
-      - name: Start seed and mc
+      - name: Start seed and sync mods (offline-by-default boots)
+        # MODS_FILE is empty by default, so mc makes no network requests at
+        # boot — missing jars are fetched host-side from the seed's resolved
+        # URL lists, exactly like dev-up.sh/deploy.sh. On an actions/cache
+        # hit this downloads nothing.
+        run: |
+          docker compose --profile local up -d seed
+          docker wait seed
+          ./scripts/sync-mods.sh "$PWD/data"
+
+      - name: Start mc
         run: |
           docker compose --profile local up -d mc
-        env:
-          MODRINTH_PROJECTS: "@/extras/modrinth-mods.txt"
 
       - name: Wait for server to become healthy
         run: |

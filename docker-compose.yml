@@ -132,19 +132,19 @@ services:
       SPAWN_PROTECTION: "0"
       MOTD: ${MOTD:-A modded adventure server}
 
-      # --- Mods ---
+      # --- Mods (offline by default) ---
       # The seed container resolves every pinned Modrinth version to a
       # direct download URL (cached — zero API calls once warm) and writes
-      # these files into the stack-mods volume. itzg downloads only files
-      # missing from data/mods, straight from the CDN — no Modrinth API at
-      # boot, no 429 restart loops when the mod list changes. Stale jars
-      # are removed by deploy.sh/dev-up.sh using mods-manifest.txt.
-      # Offline boots: itzg HEAD-checks each URL for freshness even when
-      # every jar is cached, so set MODS_FILE= (empty) in .env to skip the
-      # sync entirely and boot from data/mods as-is. The `-` (not `:-`)
-      # operator is deliberate: it lets an explicit empty value through.
-      MODS_FILE: ${MODS_FILE-/extras/mods-urls.txt}
-      DATAPACKS_FILE: ${DATAPACKS_FILE-/extras/datapacks-urls.txt}
+      # URL lists into the stack-mods volume, but itzg's MODS_FILE sync is
+      # OFF by default: it HEAD-checks every URL each boot even with all
+      # jars cached, so mc makes zero network requests at boot instead.
+      # Missing jars are fetched host-side by scripts/sync-mods.sh (called
+      # from dev-up.sh, deploy.sh, and CI) between the seed and mc's start;
+      # stale jars are removed against mods-manifest.txt. Set
+      # MODS_FILE=/extras/mods-urls.txt in .env to hand the sync back to
+      # itzg. The `-` (not `:-`) operator keeps an explicit empty override.
+      MODS_FILE: ${MODS_FILE-}
+      DATAPACKS_FILE: ${DATAPACKS_FILE-}
 
       # Force env vars to overwrite server.properties on every boot.
       # Without this, stale values (e.g. enforce-whitelist=true) persist.

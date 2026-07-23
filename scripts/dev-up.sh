@@ -415,8 +415,10 @@ if [[ $SEEDED -gt 0 ]]; then
 fi
 
 # --- Start the local profile --------------------------------------------------
-# Mod downloads use MODS_FILE (URLs resolved by the seed container, cached) —
-# no Modrinth API at boot; itzg fetches only files missing from data/mods.
+# MODS_FILE is empty by default (offline boots — itzg neither downloads nor
+# HEAD-checks anything). Run the seed alone first, then fetch any missing
+# managed jars host-side from its resolved URL lists BEFORE mc starts.
+# Zero network requests when nothing is missing.
 # Legacy hash-gate override cleanup:
 rm -f "$CONSUMER_DIR/.modrinth-override.yml"
 # --project-directory is critical: it makes ./data, ./overlay, ./modpack-dist,
@@ -427,8 +429,17 @@ compose_up() {
     -f "$STACK_DIR/docker-compose.local.yml" \
     --project-directory "$CONSUMER_DIR" \
     -p "$COMPOSE_PROJECT_NAME" \
-    --profile local up -d
+    --profile local up -d "$@"
 }
+
+compose_up seed
+SEED_EXIT=$(docker wait "${CONTAINER_PREFIX:-}seed")
+if [[ "$SEED_EXIT" != "0" ]]; then
+  echo "  Seed container failed (exit $SEED_EXIT) - refusing to boot on stale mod lists."
+  echo "  Check the logs: docker logs ${CONTAINER_PREFIX:-}seed"
+  exit 1
+fi
+"$SCRIPT_DIR/sync-mods.sh" "$CONSUMER_DIR/data" "${COMPOSE_PROJECT_NAME}_stack-mods"
 
 MC_NAME="${CONTAINER_PREFIX:-}mc"
 if ! compose_up; then

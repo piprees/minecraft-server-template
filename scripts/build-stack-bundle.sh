@@ -31,6 +31,7 @@ MANIFEST=(
   .env.example
   scripts/lib.sh
   scripts/deploy.sh
+  scripts/sync-mods.sh
   scripts/initial-setup.sh
   scripts/infra-deploy.sh
   scripts/setup-permissions.sh
