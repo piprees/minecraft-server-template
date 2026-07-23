@@ -2,12 +2,13 @@
 
 Agreed with Pip 2026-07-23. Work top to bottom; each item links to the doc that specifies it. Update this file as items complete (mark done, move lessons into AGENTS/READMEs, delete the item's idea doc once its content is captured — the pattern used for the portal-concepts docs).
 
-## 1. Custom world settings, Tiers 2–3
+## 1. Custom world settings, Tiers 2–3 — DONE 2026-07-23
 
-Spec: `vanilla-custom-world-settings.md` (Tiers 1–2 shipped).
+Spec: `vanilla-custom-world-settings.md` (Tiers 1–3 shipped; only the
+precision-placement section — item 2 below — remains from that doc).
 
-- **Tier 2 — DONE 2026-07-23**: `checkerboard` (+`checkerboardScale`, `CheckerboardBiomeSampler` parity, live-verified), `superflat` custom `layers` + `flatBiome`, `seedRoll: {skip: true}` in mod schema + `rollable()`.
-- **Tier 3** (each lands TOGETHER with its Python-roller counterpart or candidate scores lie): per-biome multi-noise `parameters`, `settingsOverrides` whitelist (sea_level/default_block/default_fluid/ disable_mob_generation), per-structure spacing overrides via the `DimensionStructures` rebuild.
+- **Tier 2**: `checkerboard` (+`checkerboardScale`, `CheckerboardBiomeSampler` parity, live-verified probe-for-probe), `superflat` custom `layers` + `flatBiome`, `seedRoll: {skip: true}` in mod schema + `rollable()`.
+- **Tier 3**: `settingsOverrides` whitelist, per-biome `parameters` (object-form biomes entries), per-set `structures.spacing` — each landed with its roller counterpart (`build_mixed_entries` param_overrides, seed_worker fluid check, tier-1 spacing maths) and live-verified.
 
 ## 2. biomePatches
 

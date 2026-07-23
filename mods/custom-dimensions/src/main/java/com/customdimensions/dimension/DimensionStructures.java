@@ -58,7 +58,10 @@ public final class DimensionStructures {
         }
         String density = normalizedDensity(def);
         boolean peaceful = !def.isHostileSpawningEnabled();
-        if ("normal".equals(density) && !peaceful) {
+        java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides =
+                def.getStructures() != null && def.getStructures().spacing != null
+                        ? def.getStructures().spacing : java.util.Map.of();
+        if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()) {
             return null;
         }
         List<RegistryEntry<StructureSet>> transformed = new ArrayList<>();
@@ -75,6 +78,22 @@ public final class DimensionStructures {
             if (peaceful && "dungeon".equals(theme)) {
                 dropped++;
                 continue;
+            }
+
+            // Explicit per-set override (structures.spacing) wins over the
+            // theme-based density factors — but never resurrects a set the
+            // peaceful/none drops above already removed.
+            DimensionConfig.SpacingOverride override = setId != null ? spacingOverrides.get(setId) : null;
+            if (override != null) {
+                StructureSet set = entry.value();
+                StructurePlacement explicit = withExplicitSpacing(def, setId, set.placement(), override);
+                if (explicit != null) {
+                    transformed.add(RegistryEntry.of(new StructureSet(set.structures(), explicit)));
+                    rescaled++;
+                    continue;
+                }
+                // invalid values or custom placement type: warned inside,
+                // fall through to the normal theme path
             }
 
             double spacingFactor = 1.0;
@@ -138,6 +157,40 @@ public final class DimensionStructures {
                         density, def.getName());
                 return "normal";
         }
+    }
+
+    // Explicit spacing/separation for one set (structures.spacing override).
+    // Same random_spread-only constraint as rescale; invariants enforced
+    // (spacing >= 2, 0 <= separation < spacing — vanilla's codec is strict
+    // about separation < spacing, violating it crashes placement).
+    private static StructurePlacement withExplicitSpacing(DimensionConfig def, String setId,
+            StructurePlacement placement, DimensionConfig.SpacingOverride override) {
+        if (placement.getClass() != RandomSpreadStructurePlacement.class) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: structures.spacing for {} ignored — custom placement type {}",
+                    def.getName(), setId, placement.getClass().getSimpleName());
+            return null;
+        }
+        RandomSpreadStructurePlacement random = (RandomSpreadStructurePlacement) placement;
+        StructurePlacementAccessor base = (StructurePlacementAccessor) placement;
+        int spacing = override.spacing != null ? override.spacing : random.getSpacing();
+        int separation = override.separation != null ? override.separation : random.getSeparation();
+        if (spacing < 2 || spacing > 4096 || separation < 0 || separation >= spacing) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: structures.spacing for {} invalid (spacing: {}, separation: {} — "
+                    + "need 2 <= spacing <= 4096, 0 <= separation < spacing) — using the theme-based path",
+                    def.getName(), setId, spacing, separation);
+            return null;
+        }
+        return new RandomSpreadStructurePlacement(
+                base.getLocateOffsetField(),
+                base.getFrequencyReductionMethodField(),
+                base.getFrequencyField(),
+                base.getSaltField(),
+                base.getExclusionZoneField(),
+                spacing,
+                separation,
+                random.getSpreadType());
     }
 
     // Only exact random_spread placements can be rescaled generically; any

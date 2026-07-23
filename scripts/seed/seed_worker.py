@@ -991,6 +991,14 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
         rows.append((f"biome_{biome}_dist", dist))
 
     fy, fluid = FLUID_CHECK[fam]
+    # settingsOverrides parity (Tier 3): the mod swaps seaLevel/defaultFluid
+    # in the generator settings, so the fluid probe must follow — the top
+    # fluid block sits at seaLevel - 1 (vanilla: sea 63, water surface 62).
+    so = profile.get("settings_overrides") or {}
+    if isinstance(so.get("seaLevel"), int):
+        fy = so["seaLevel"] - 1
+    if isinstance(so.get("defaultFluid"), str) and so["defaultFluid"]:
+        fluid = so["defaultFluid"]
     pitch = profile["grid_pitch"]
     for r in range(3):
         for c in range(3):

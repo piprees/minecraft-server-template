@@ -7,6 +7,9 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **12 world types** -- overworld/multi_biome, nether, end, void, superflat, cave, checkerboard, sky_islands, nether_islands, amplified, large_biomes, single_biome — plus `ns:path` clone types for any registered dimension
 - **Checkerboard dimensions** -- `type: "checkerboard"` tiles the `biomes` list in a fixed grid (seed-independent layout, seeded terrain); `checkerboardScale` 0-62 (default 2) sets the cell size (`2^(scale+4)` blocks)
 - **Custom superflat layers** -- `layers` (bottom-up `{block, height}` list) and `flatBiome` on `type: "superflat"`; invalid config falls back to the whole default bedrock/dirt/grass stack
+- **Generator settings overrides** -- `settingsOverrides` swaps `seaLevel`, `defaultBlock`, `defaultFluid`, `disableMobGeneration` on the type's (or noiseSettings preset's) generator settings; per-field warn-and-keep-base on invalid values
+- **Per-biome placement parameters** -- `biomes` entries may be `{id, parameters}` objects with explicit multi-noise intervals (number or `[min,max]` per axis, -2..2); the biome claims exactly that region, unset axes span everything
+- **Per-set structure spacing** -- `structures.spacing` maps structure SET ids to exact `{spacing, separation}` values, overriding the theme-based `structureDensity` factors for those sets (boot-re-read; new chunks only)
 - **Custom portal frames** -- any block as the frame, any item as the igniter
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed

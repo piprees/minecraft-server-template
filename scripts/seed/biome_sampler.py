@@ -324,7 +324,7 @@ def load_noise_configs():
 # ---------------------------------------------------------------------------
 class BiomeSampler:
     def __init__(self, seed, biome_params_path, noise_config=None,
-                 biome_filter=None, family=None):
+                 biome_filter=None, family=None, param_overrides=None):
         """Create a biome sampler for one seed.
 
         Args:
@@ -332,10 +332,15 @@ class BiomeSampler:
             biome_params_path: path to the biome parameter table JSON
             noise_config: dict of {param_name: {noise_id, first_octave,
                           amplitudes, xz_scale}} — defaults to overworld
-            biome_filter: optional set of biome IDs to restrict the lookup
-                          table (matches the mod's per-dimension biome list)
+            biome_filter: optional biome ID list to restrict the lookup
+                          table (matches the mod's per-dimension biome list).
+                          Pass an ORDERED list when foreign biomes are in
+                          play — round-robin assignment follows list order.
             family: optional family tag to filter entries by source dimension
                     family (e.g. "nether", "end", "paradise_lost")
+            param_overrides: optional {biome_id: raw "parameters" dict}
+                    (Tier 3 object-form biomes entries) — forwarded to
+                    build_mixed_entries for explicit placement intervals
         """
         self.seed = seed
         self.biome_table = json.loads(Path(biome_params_path).read_text())
@@ -355,7 +360,8 @@ class BiomeSampler:
             from biome_source_mixing import build_mixed_entries
             biome_list = list(biome_filter) if not isinstance(biome_filter, list) else biome_filter
             source_entries = build_mixed_entries(
-                self.biome_table, biome_list, family_filter=family or "overworld")
+                self.biome_table, biome_list, family_filter=family or "overworld",
+                param_overrides=param_overrides)
         else:
             source_entries = None
 

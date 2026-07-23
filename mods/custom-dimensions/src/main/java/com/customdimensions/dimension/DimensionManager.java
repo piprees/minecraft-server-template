@@ -232,10 +232,30 @@ public class DimensionManager {
     // being silently dropped. Before this, a list with no native matches
     // (the_crimson_nexus, the_souldrift) fell back to plains.
     private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
-                                         String biomeList, String dimName) {
+                                         String biomeList, String dimName,
+                                         Map<String, com.google.gson.JsonObject> paramOverrides) {
         Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
                 .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
                 .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+
+        // Explicit per-biome parameters (Tier 3): a listed biome with a
+        // valid "parameters" object gets ONE explicit hypercube and is
+        // withdrawn from the native/round-robin machinery entirely — its
+        // natural regions (if any) join the pool for foreign biomes.
+        // Mirrored by biome_source_mixing.py (param_overrides); keep in sync.
+        Map<Identifier, MultiNoiseUtil.NoiseHypercube> explicit = new java.util.LinkedHashMap<>();
+        if (paramOverrides != null) {
+            for (Map.Entry<String, com.google.gson.JsonObject> e : paramOverrides.entrySet()) {
+                Identifier id = Identifier.tryParse(e.getKey());
+                if (id == null || !allowedIds.contains(id)) {
+                    continue;
+                }
+                MultiNoiseUtil.NoiseHypercube cube = hypercubeFrom(e.getValue(), dimName, e.getKey());
+                if (cube != null) {
+                    explicit.put(id, cube);
+                }
+            }
+        }
 
         MultiNoiseUtil.Entries<RegistryEntry<Biome>> entries =
                 ((MultiNoiseBiomeSourceAccessor) base).invokeGetBiomeEntries();
@@ -244,7 +264,7 @@ public class DimensionManager {
         Set<Identifier> nativeIds = new HashSet<>();
         for (Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>> pair : entries.getEntries()) {
             Identifier id = pair.getSecond().getKey().map(RegistryKey::getValue).orElse(null);
-            if (id != null && allowedIds.contains(id)) {
+            if (id != null && allowedIds.contains(id) && !explicit.containsKey(id)) {
                 nativeEntries.add(pair);
                 nativeIds.add(id);
             } else {
@@ -254,7 +274,7 @@ public class DimensionManager {
 
         List<RegistryEntry<Biome>> foreign = new ArrayList<>();
         for (Identifier id : allowedIds) {
-            if (nativeIds.contains(id)) {
+            if (nativeIds.contains(id) || explicit.containsKey(id)) {
                 continue;
             }
             Optional<RegistryEntry.Reference<Biome>> entry =
@@ -266,7 +286,18 @@ public class DimensionManager {
             }
         }
 
-        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>(nativeEntries);
+        List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result = new ArrayList<>();
+        for (Map.Entry<Identifier, MultiNoiseUtil.NoiseHypercube> e : explicit.entrySet()) {
+            Optional<RegistryEntry.Reference<Biome>> biomeEntry =
+                    biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, e.getKey()));
+            if (biomeEntry.isPresent()) {
+                result.add(Pair.of(e.getValue(), biomeEntry.get()));
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} (with parameters) not in the registry — skipped",
+                        dimName, e.getKey());
+            }
+        }
+        result.addAll(nativeEntries);
         if (!foreign.isEmpty()) {
             for (int i = 0; i < pool.size(); i++) {
                 result.add(Pair.of(pool.get(i), foreign.get(i % foreign.size())));
@@ -276,9 +307,69 @@ public class DimensionManager {
             MultiverseServer.LOGGER.warn("Dimension {}: no usable biomes in '{}' — keeping the base source", dimName, biomeList);
             return base;
         }
-        MultiverseServer.LOGGER.info("Dimension {}: biome source built ({} native, {} mixed-in of {} requested)",
-                dimName, nativeEntries.size(), foreign.size(), allowedIds.size());
+        MultiverseServer.LOGGER.info("Dimension {}: biome source built ({} explicit, {} native, {} mixed-in of {} requested)",
+                dimName, result.size() - nativeEntries.size() - (foreign.isEmpty() ? 0 : pool.size()),
+                nativeEntries.size(), foreign.size(), allowedIds.size());
         return MultiNoiseBiomeSource.create(new MultiNoiseUtil.Entries<>(result));
+    }
+
+    // One NoiseHypercube from a raw "parameters" object. Each axis is a
+    // number (point) or [min, max]; unset axes span the whole [-2, 2] space
+    // (the biome claims everything the interval doesn't constrain).
+    // "offset" is a plain float >= 0. Any invalid axis -> warn + null (the
+    // biome falls back to plain-listed behaviour, never a crash).
+    private static MultiNoiseUtil.NoiseHypercube hypercubeFrom(
+            com.google.gson.JsonObject params, String dimName, String biomeId) {
+        MultiNoiseUtil.ParameterRange[] ranges = new MultiNoiseUtil.ParameterRange[6];
+        String[] axes = {"temperature", "humidity", "continentalness", "erosion", "depth", "weirdness"};
+        for (int i = 0; i < axes.length; i++) {
+            MultiNoiseUtil.ParameterRange range = parameterRange(params.get(axes[i]));
+            if (range == null) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: biome {} parameters.{} invalid (need a number or [min, max] within -2..2) — ignoring the parameters block",
+                        dimName, biomeId, axes[i]);
+                return null;
+            }
+            ranges[i] = range;
+        }
+        float offset = 0.0f;
+        com.google.gson.JsonElement off = params.get("offset");
+        if (off != null && off.isJsonPrimitive() && off.getAsJsonPrimitive().isNumber()) {
+            float v = off.getAsFloat();
+            if (v >= 0.0f && v <= 1.0f) {
+                offset = v;
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: biome {} parameters.offset {} outside 0..1 — using 0",
+                        dimName, biomeId, v);
+            }
+        }
+        return MultiNoiseUtil.createNoiseHypercube(
+                ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5], offset);
+    }
+
+    // A parameter axis: absent -> full span; number -> point; [min, max] ->
+    // interval. Null on malformed input or values outside vanilla's -2..2.
+    private static MultiNoiseUtil.ParameterRange parameterRange(com.google.gson.JsonElement e) {
+        if (e == null || e.isJsonNull()) {
+            return MultiNoiseUtil.ParameterRange.of(-2.0f, 2.0f);
+        }
+        if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) {
+            float v = e.getAsFloat();
+            return v < -2.0f || v > 2.0f ? null : MultiNoiseUtil.ParameterRange.of(v);
+        }
+        if (e.isJsonArray() && e.getAsJsonArray().size() == 2) {
+            com.google.gson.JsonElement lo = e.getAsJsonArray().get(0);
+            com.google.gson.JsonElement hi = e.getAsJsonArray().get(1);
+            if (lo.isJsonPrimitive() && lo.getAsJsonPrimitive().isNumber()
+                    && hi.isJsonPrimitive() && hi.getAsJsonPrimitive().isNumber()) {
+                float min = lo.getAsFloat();
+                float max = hi.getAsFloat();
+                if (min <= max && min >= -2.0f && max <= 2.0f) {
+                    return MultiNoiseUtil.ParameterRange.of(min, max);
+                }
+            }
+        }
+        return null;
     }
 
     // Resolve the biome source for a dimension with a biome list: prefer the
@@ -291,10 +382,10 @@ public class DimensionManager {
             return null;
         }
         if (baseGenerator != null && baseGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource base) {
-            return buildMixedSource(base, biomeRegistry, biomeList, def.getName());
+            return buildMixedSource(base, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
         if (overworldGenerator != null && overworldGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource owBase) {
-            return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName());
+            return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
         return null;
     }
@@ -373,7 +464,7 @@ public class DimensionManager {
             throw new IllegalStateException("Cannot create dimension options: overworld not found");
         }
 
-        return switch (type) {
+        DimensionOptions built = switch (type) {
             case "void" -> {
                 // A void with a biome list keeps a REAL biome layout even
                 // though no terrain generates — mob spawning, fog and
@@ -621,6 +712,71 @@ public class DimensionManager {
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
         };
+        return applySettingsOverrides(def, built);
+    }
+
+    // Whitelisted ChunkGeneratorSettings field swaps ("settingsOverrides",
+    // Tier 3): clone the built generator's settings record with seaLevel /
+    // defaultBlock / defaultFluid / disableMobGeneration replaced. Runs
+    // AFTER the type switch so it composes with noiseSettings presets and
+    // every noise-generator type. Per-field warn + keep-base on invalid
+    // values; flat/void generators warn + no-op (nothing to override).
+    private static DimensionOptions applySettingsOverrides(DimensionConfig def, DimensionOptions built) {
+        DimensionConfig.SettingsOverrides so = def.getSettingsOverrides();
+        if (so == null) {
+            return built;
+        }
+        if (!(built.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: settingsOverrides ignored — type '{}' does not use a noise generator",
+                    def.getName(), def.getType());
+            return built;
+        }
+        ChunkGeneratorSettings base = noiseGen.getSettings().value();
+
+        int seaLevel = base.seaLevel();
+        if (so.seaLevel != null) {
+            // Vanilla codec has no explicit bound; keep it inside the widest
+            // legal build range so a typo cannot place the sea outside the world.
+            if (so.seaLevel >= -2032 && so.seaLevel <= 2031) {
+                seaLevel = so.seaLevel;
+            } else {
+                MultiverseServer.LOGGER.warn("Dimension {}: settingsOverrides.seaLevel {} outside -2032..2031 — keeping {}",
+                        def.getName(), so.seaLevel, seaLevel);
+            }
+        }
+        net.minecraft.block.BlockState defaultBlock = resolveOverrideBlock(
+                def, "defaultBlock", so.defaultBlock, base.defaultBlock());
+        net.minecraft.block.BlockState defaultFluid = resolveOverrideBlock(
+                def, "defaultFluid", so.defaultFluid, base.defaultFluid());
+        boolean disableMobGen = so.disableMobGeneration != null
+                ? so.disableMobGeneration : base.mobGenerationDisabled();
+
+        ChunkGeneratorSettings swapped = new ChunkGeneratorSettings(
+                base.generationShapeConfig(), defaultBlock, defaultFluid,
+                base.noiseRouter(), base.surfaceRule(), base.spawnTarget(),
+                seaLevel, disableMobGen, base.aquifers(), base.oreVeins(),
+                base.usesLegacyRandom());
+        MultiverseServer.LOGGER.info("Dimension {}: settingsOverrides applied ({})",
+                def.getName(), def.getSettingsOverridesFingerprint());
+        NoiseChunkGenerator swappedGen = new NoiseChunkGenerator(
+                noiseGen.getBiomeSource(), RegistryEntry.of(swapped));
+        return new DimensionOptions(built.dimensionTypeEntry(), swappedGen);
+    }
+
+    private static net.minecraft.block.BlockState resolveOverrideBlock(
+            DimensionConfig def, String field, String id, net.minecraft.block.BlockState base) {
+        if (id == null || id.isBlank()) {
+            return base;
+        }
+        Identifier ident = Identifier.tryParse(id.trim().toLowerCase());
+        Optional<Block> block = ident == null ? Optional.empty() : Registries.BLOCK.getOrEmpty(ident);
+        if (block.isEmpty()) {
+            MultiverseServer.LOGGER.warn("Dimension {}: settingsOverrides.{} '{}' not in the block registry — keeping the base block",
+                    def.getName(), field, id);
+            return base;
+        }
+        return block.get().getDefaultState();
     }
 
     private static ChunkGenerator withSeed(ChunkGenerator generator, long seed) {

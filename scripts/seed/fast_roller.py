@@ -132,12 +132,27 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
     if not profile["battery"]:
         return 0.5, dists
 
+    spacing_overrides = profile.get("spacing_overrides") or {}
     ss, n = 0.0, 0
     for sname, sid, spec, kind in profile["battery"]:
         set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets)
         if set_cfg:
+            # Per-set placement overrides (structures.spacing, Tier 3):
+            # same values DimensionStructures applies server-side. Same
+            # invariants too (2 <= spacing, 0 <= separation < spacing) —
+            # the mod falls back to the theme path on violation, we keep
+            # the extracted values.
+            spacing = set_cfg["spacing"]
+            separation = set_cfg["separation"]
+            ov = spacing_overrides.get(set_cfg.get("id"))
+            if isinstance(ov, dict):
+                new_spacing = ov.get("spacing", spacing)
+                new_sep = ov.get("separation", separation)
+                if isinstance(new_spacing, int) and isinstance(new_sep, int) \
+                        and 2 <= new_spacing <= 4096 and 0 <= new_sep < new_spacing:
+                    spacing, separation = new_spacing, new_sep
             result = nearest_structure(
-                seed, set_cfg["spacing"], set_cfg["separation"],
+                seed, spacing, separation,
                 set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
                 frequency=set_cfg.get("frequency", 1.0),
                 search_radius=50)
@@ -267,7 +282,9 @@ def _process_dimension(task):
     noise_family = _TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
     noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
     config_biomes = profile.get("create_args", {}).get("biome")
-    biome_filter = set(config_biomes.split(",")) if config_biomes else None
+    # ORDERED list, not a set: foreign-biome round-robin follows config
+    # order in the mod (LinkedHashSet) — a set here scrambles the layout.
+    biome_filter = config_biomes.split(",") if config_biomes else None
 
     results = []
     accepted = 0
@@ -285,7 +302,8 @@ def _process_dimension(task):
             sampler = BiomeSampler(seed, biome_params_path,
                                    noise_config=noise_config,
                                    biome_filter=biome_filter,
-                                   family=noise_family)
+                                   family=noise_family,
+                                   param_overrides=profile.get("biome_parameters") or None)
         rows, ok = tier2_measure(seed, profile, sampler)
 
         # Merge structure distances into rows

@@ -227,6 +227,63 @@ class RollableTests(unittest.TestCase):
         self.assertIsNone(build_profile(plain, cfg2)["checkerboard_scale"])
 
 
+class Tier3ProfileTests(unittest.TestCase):
+    """Tier 3 parity: biome parameters, settingsOverrides, spacing overrides."""
+
+    def profile_for(self, dim):
+        cfg = {"namespace": "adventure", "dimensions": [dim], "portals": [], "worlds": []}
+        return build_profile(dim, cfg)
+
+    def test_biomes_object_entries_split_ids_and_parameters(self):
+        dim = {"name": "d", "type": "multi_biome", "dimensionId": "adventure:d",
+               "biomes": ["minecraft:plains",
+                          {"id": "minecraft:cherry_grove",
+                           "parameters": {"temperature": [-0.5, 0.2]}},
+                          "minecraft:desert"]}
+        profile = self.profile_for(dim)
+        self.assertEqual(profile["create_args"]["biome"],
+                         "minecraft:plains,minecraft:cherry_grove,minecraft:desert")
+        self.assertEqual(profile["biome_parameters"],
+                         {"minecraft:cherry_grove": {"temperature": [-0.5, 0.2]}})
+
+    def test_settings_and_spacing_overrides_reach_profile(self):
+        dim = {"name": "d", "type": "overworld", "dimensionId": "adventure:d",
+               "settingsOverrides": {"seaLevel": 100, "defaultFluid": "minecraft:lava"},
+               "structures": {"spacing": {"minecraft:villages": {"spacing": 8, "separation": 4}}}}
+        profile = self.profile_for(dim)
+        self.assertEqual(profile["settings_overrides"]["seaLevel"], 100)
+        self.assertEqual(profile["spacing_overrides"]["minecraft:villages"],
+                         {"spacing": 8, "separation": 4})
+        # absent -> empty dicts, never None
+        plain = self.profile_for({"name": "p", "type": "overworld",
+                                  "dimensionId": "adventure:p"})
+        self.assertEqual(plain["settings_overrides"], {})
+        self.assertEqual(plain["spacing_overrides"], {})
+        self.assertEqual(plain["biome_parameters"], {})
+
+    def test_monolith_carries_tier3_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {
+                "dimensions/the_lavasea.json": {
+                    "type": "multi_biome",
+                    "biomes": ["minecraft:plains",
+                               {"id": "minecraft:desert",
+                                "parameters": {"continentalness": 0.3}}],
+                    "settingsOverrides": {"seaLevel": 40},
+                },
+            })
+            cfg = monolith_from_dir(tmp)
+        dim = cfg["dimensions"][0]
+        self.assertEqual(dim["biome"], "minecraft:plains,minecraft:desert")
+        self.assertEqual(dim["biomeParameters"],
+                         {"minecraft:desert": {"continentalness": 0.3}})
+        self.assertEqual(dim["settingsOverrides"], {"seaLevel": 40})
+        profile = build_profile(dim, cfg)
+        self.assertEqual(profile["biome_parameters"],
+                         {"minecraft:desert": {"continentalness": 0.3}})
+        self.assertEqual(profile["settings_overrides"], {"seaLevel": 40})
+
+
 class BuildProfileV4Tests(unittest.TestCase):
     def test_v4_dict_matches_legacy_equivalent(self):
         legacy_cfg = {

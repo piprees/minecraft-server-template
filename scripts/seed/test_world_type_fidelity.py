@@ -120,6 +120,49 @@ class TestBuildMixedEntries(unittest.TestCase):
         r2 = self.build_mixed_entries(table, ["a", "x", "y"])
         self.assertEqual([e["biome"] for e in r1], [e["biome"] for e in r2])
 
+    def test_param_override_creates_explicit_entry(self):
+        """Tier 3: an overridden biome gets ONE explicit entry with the
+        configured intervals; its natural regions join the pool."""
+        table = self._make_table(["a", "b", "c"])
+        result = self.build_mixed_entries(
+            table, ["a", "b"],
+            param_overrides={"a": {"temperature": [-0.5, 0.2],
+                                   "continentalness": 0.3, "offset": 0.1}})
+        a_entries = [e for e in result if e["biome"] == "a"]
+        self.assertEqual(len(a_entries), 1)
+        self.assertEqual(a_entries[0]["temperature"], [-0.5, 0.2])
+        self.assertEqual(a_entries[0]["continentalness"], [0.3, 0.3])  # point
+        self.assertEqual(a_entries[0]["humidity"], [-2.0, 2.0])        # unset -> full span
+        self.assertEqual(a_entries[0]["offset"], 0.1)
+        # b stays native with its table params
+        b_entries = [e for e in result if e["biome"] == "b"]
+        self.assertEqual(len(b_entries), 1)
+        self.assertEqual(b_entries[0]["continentalness"], [0.1, 0.15000000000000002])
+
+    def test_param_override_frees_natural_regions_to_pool(self):
+        """a's natural region becomes pool: with a foreign biome listed it
+        gets claimed; explicit a keeps only its configured interval."""
+        table = self._make_table(["a", "b"])
+        result = self.build_mixed_entries(
+            table, ["a", "foreign_x"],
+            param_overrides={"a": {"temperature": 0.0}})
+        biome_ids = [e["biome"] for e in result]
+        # pool = a's natural region + b's region -> both to foreign_x
+        self.assertEqual(biome_ids.count("foreign_x"), 2)
+        self.assertEqual(biome_ids.count("a"), 1)
+
+    def test_invalid_param_override_falls_back_to_plain_listed(self):
+        """Out-of-range or malformed axes: the override is ignored and the
+        biome behaves exactly as a plain string entry (mirrors the Java
+        warn-and-ignore)."""
+        table = self._make_table(["a", "b"])
+        for bad in ({"temperature": 5.0},          # out of range
+                    {"temperature": [0.5, -0.5]},  # inverted
+                    {"temperature": "hot"}):       # wrong type
+            result = self.build_mixed_entries(table, ["a"], param_overrides={"a": bad})
+            plain = self.build_mixed_entries(table, ["a"])
+            self.assertEqual(result, plain, f"bad={bad}")
+
 
 @unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
 class TestMixedSourceIntegration(unittest.TestCase):

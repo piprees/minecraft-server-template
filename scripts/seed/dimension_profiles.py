@@ -416,12 +416,16 @@ def monolith_from_dir(config_dir):
              "dimensionId": f.get("dimensionId") or f"{namespaces.get(slug, ns)}:{slug}"}
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
                     "seedRoll", "difficulty", "borders", "structures",
-                    "checkerboardScale", "layers", "flatBiome"):
+                    "checkerboardScale", "layers", "flatBiome",
+                    "settingsOverrides"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
         if biomes:
-            d["biome"] = ",".join(biomes)
+            ids, bparams = biome_ids_and_params(biomes)
+            d["biome"] = ",".join(ids)
+            if bparams:
+                d["biomeParameters"] = bparams
         elif f.get("biome"):
             d["biome"] = f["biome"]
         dif = f.get("difficulty") or {}
@@ -457,6 +461,25 @@ def monolith_from_dir(config_dir):
     if world_seed is not None:
         out["worldSeed"] = world_seed
     return out
+
+
+def biome_ids_and_params(entries):
+    """Split a v4 "biomes" array into (ordered id list, {id: parameters}).
+    Entries are plain id strings or {"id": ..., "parameters": {...}} objects
+    (Tier 3) — mirrors DimensionConfig.getBiomes/getBiomeParameters."""
+    ids, params = [], {}
+    for e in entries or []:
+        if isinstance(e, str):
+            if e.strip():
+                ids.append(e.strip())
+        elif isinstance(e, dict):
+            bid = (e.get("id") or "").strip()
+            if not bid:
+                continue
+            ids.append(bid)
+            if isinstance(e.get("parameters"), dict):
+                params[bid] = e["parameters"]
+    return ids, params
 
 
 def family_of(dim_type):
@@ -661,8 +684,15 @@ def build_profile(dim, config, difficulty=None):
     peaceful = dim_difficulty.get("hostileSpawning", dim.get("hostileSpawning")) is False
     noise = dim.get("noiseSettings")
     sr = dim.get("seedRoll") or {}
-    config_biomes = list(dim.get("biomes") or []) \
-        or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+    # Biome list: raw v4 dicts may carry object entries with parameters
+    # (Tier 3); monolith synthesis collapses them into "biome" (id string)
+    # + "biomeParameters". Both paths land in the same two variables.
+    raw_biomes = dim.get("biomes")
+    if raw_biomes:
+        config_biomes, biome_parameters = biome_ids_and_params(raw_biomes)
+    else:
+        config_biomes = [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+        biome_parameters = dim.get("biomeParameters") or {}
 
     # Mob difficulty: the v4 per-dimension difficulty block wins; the
     # legacy configurable-difficulty.json5 dict is the fallback. Tiebreaker
@@ -834,6 +864,13 @@ def build_profile(dim, config, difficulty=None):
         # Checkerboard grid scale (vanilla codec 0-62, default 2); the fast
         # roller's CheckerboardBiomeSampler mirrors the mod's grid formula.
         "checkerboard_scale": dim.get("checkerboardScale"),
+        # Tier 3 parity: explicit multi-noise intervals ({id: parameters}),
+        # ChunkGeneratorSettings swaps (seaLevel/defaultFluid feed the fluid
+        # check in seed_worker), and per-set placement overrides (tier-1
+        # structure maths applies them before nearest_structure).
+        "biome_parameters": biome_parameters,
+        "settings_overrides": dim.get("settingsOverrides") or {},
+        "spacing_overrides": struct_block.get("spacing") or {},
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

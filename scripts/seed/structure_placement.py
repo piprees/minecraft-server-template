@@ -225,6 +225,7 @@ def load_structure_sets(extract_dir):
             continue
 
         sets[set_id] = {
+            "id": set_id,
             "structures": structures,
             "spacing": placement.get("spacing", 32),
             "separation": placement.get("separation", 8),

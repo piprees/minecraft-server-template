@@ -321,6 +321,65 @@ class DimensionConfigTest {
     }
 
     @Test
+    void settingsOverridesDeserialise() {
+        DimensionConfig config = parse("d", """
+                {"settingsOverrides":{"seaLevel":100,"defaultBlock":"minecraft:netherrack",
+                 "defaultFluid":"minecraft:lava","disableMobGeneration":true}}
+                """);
+        assertEquals(100, config.getSettingsOverrides().seaLevel);
+        assertEquals("minecraft:netherrack", config.getSettingsOverrides().defaultBlock);
+        assertEquals("minecraft:lava", config.getSettingsOverrides().defaultFluid);
+        assertEquals(true, config.getSettingsOverrides().disableMobGeneration);
+        assertEquals("seaLevel=100,defaultBlock=minecraft:netherrack,defaultFluid=minecraft:lava,disableMobGeneration=true",
+                config.getSettingsOverridesFingerprint());
+        // Partial block fingerprints only the set fields, in fixed order.
+        assertEquals("seaLevel=40",
+                parse("d", "{\"settingsOverrides\":{\"seaLevel\":40}}").getSettingsOverridesFingerprint());
+        // Absent block: null getter, null fingerprint; empty block: null fingerprint.
+        assertNull(parse("d", "{}").getSettingsOverrides());
+        assertNull(parse("d", "{}").getSettingsOverridesFingerprint());
+        assertNull(parse("d", "{\"settingsOverrides\":{}}").getSettingsOverridesFingerprint());
+    }
+
+    @Test
+    void structureSpacingOverridesDeserialise() {
+        DimensionConfig config = parse("d", """
+                {"structures":{"spacing":{"minecraft:villages":{"spacing":8,"separation":4},
+                                          "dungeons_plus:cold_dungeon":{"spacing":12}}}}
+                """);
+        assertEquals(8, config.getStructures().spacing.get("minecraft:villages").spacing);
+        assertEquals(4, config.getStructures().spacing.get("minecraft:villages").separation);
+        assertEquals(12, config.getStructures().spacing.get("dungeons_plus:cold_dungeon").spacing);
+        assertNull(config.getStructures().spacing.get("dungeons_plus:cold_dungeon").separation);
+        // spacing coexists with wants/shuns (roller-only) untouched
+        assertNull(config.getStructures().wants);
+    }
+
+    @Test
+    void biomesObjectEntriesCarryParameters() {
+        DimensionConfig config = parse("d", """
+                {"biomes":["minecraft:plains",
+                           {"id":"minecraft:cherry_grove",
+                            "parameters":{"temperature":[-0.5,0.2],"continentalness":0.3,"offset":0.1}},
+                           "minecraft:desert"]}
+                """);
+        // Both entry forms contribute ids, in order.
+        assertEquals("minecraft:plains,minecraft:cherry_grove,minecraft:desert", config.getBiome());
+        assertEquals(3, config.getBiomes().size());
+        // Only object entries with a parameters object land in the map.
+        assertEquals(1, config.getBiomeParameters().size());
+        assertTrue(config.getBiomeParameters().containsKey("minecraft:cherry_grove"));
+        assertEquals(0.3, config.getBiomeParameters().get("minecraft:cherry_grove")
+                .get("continentalness").getAsDouble());
+        assertNotNull(config.getBiomeParametersFingerprint());
+        // Plain string arrays keep the old behaviour exactly.
+        DimensionConfig plain = parse("d", "{\"biomes\":[\"minecraft:swamp\",\"natures_spirit:marsh\"]}");
+        assertEquals("minecraft:swamp,natures_spirit:marsh", plain.getBiome());
+        assertTrue(plain.getBiomeParameters().isEmpty());
+        assertNull(plain.getBiomeParametersFingerprint());
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

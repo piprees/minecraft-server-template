@@ -55,8 +55,13 @@ public class DimensionConfig {
     private int[] spawn;
     @SerializedName("noiseSettings")
     private String noiseSettings;
+    /**
+     * New-format biome entries: plain id strings, or (Tier 3)
+     * {"id": "...", "parameters": {...}} objects with explicit multi-noise
+     * placement intervals. Kept as raw JSON so both forms coexist per entry.
+     */
     @SerializedName("biomes")
-    private List<String> biomes;
+    private List<JsonElement> biomes;
     /** Legacy comma-separated biome list (multiverse_config.json). */
     @SerializedName("biome")
     private String biome;
@@ -69,6 +74,9 @@ public class DimensionConfig {
     /** Superflat biome id. Null = plains. */
     @SerializedName("flatBiome")
     private String flatBiome;
+    /** Whitelisted ChunkGeneratorSettings field swaps (Tier 3). */
+    @SerializedName("settingsOverrides")
+    private SettingsOverrides settingsOverrides;
     /** Base-world travel-scale metadata (worlds[].scale) — tooling only. */
     @SerializedName("scale")
     private Double scale;
@@ -224,20 +232,76 @@ public class DimensionConfig {
         this.noiseSettings = noiseSettings;
     }
 
+    /** Biome id from either entry form: "ns:path" or {"id": "ns:path", ...}. */
+    private static String biomeIdOf(JsonElement entry) {
+        if (entry == null || entry.isJsonNull()) {
+            return null;
+        }
+        if (entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString()) {
+            String s = entry.getAsString().trim();
+            return s.isEmpty() ? null : s;
+        }
+        if (entry.isJsonObject()) {
+            JsonElement id = entry.getAsJsonObject().get("id");
+            if (id != null && id.isJsonPrimitive() && id.getAsJsonPrimitive().isString()) {
+                String s = id.getAsString().trim();
+                return s.isEmpty() ? null : s;
+            }
+        }
+        return null;
+    }
+
     /**
      * Biome list as the comma-separated string the generator plumbing
-     * expects. New-format "biomes" arrays win; the legacy "biome" string
-     * passes through. Null when neither is set.
+     * expects. New-format "biomes" arrays win (object entries contribute
+     * their "id"); the legacy "biome" string passes through. Null when
+     * neither is set.
      */
     public String getBiome() {
-        if (this.biomes != null && !this.biomes.isEmpty()) {
-            return String.join(",", this.biomes);
+        List<String> ids = this.getBiomes();
+        if (ids != null && !ids.isEmpty()) {
+            return String.join(",", ids);
         }
         return this.biome != null && !this.biome.isBlank() ? this.biome : null;
     }
 
+    /** Biome ids from the new-format array (both entry forms); null when unset. */
     public List<String> getBiomes() {
-        return this.biomes;
+        if (this.biomes == null) {
+            return null;
+        }
+        List<String> ids = new java.util.ArrayList<>();
+        for (JsonElement entry : this.biomes) {
+            String id = biomeIdOf(entry);
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * Explicit multi-noise parameter overrides from object-form biomes
+     * entries (Tier 3): biome id -> raw "parameters" object. Empty map when
+     * none. Interval validation happens at use (DimensionManager) — this is
+     * pure extraction.
+     */
+    public Map<String, JsonObject> getBiomeParameters() {
+        Map<String, JsonObject> out = new java.util.LinkedHashMap<>();
+        if (this.biomes == null) {
+            return out;
+        }
+        for (JsonElement entry : this.biomes) {
+            if (!entry.isJsonObject()) {
+                continue;
+            }
+            String id = biomeIdOf(entry);
+            JsonElement params = entry.getAsJsonObject().get("parameters");
+            if (id != null && params != null && params.isJsonObject()) {
+                out.put(id, params.getAsJsonObject());
+            }
+        }
+        return out;
     }
 
     public void setBiome(String biome) {
@@ -258,6 +322,58 @@ public class DimensionConfig {
     /** Superflat biome id; null means plains. */
     public String getFlatBiome() {
         return this.flatBiome;
+    }
+
+    public SettingsOverrides getSettingsOverrides() {
+        return this.settingsOverrides;
+    }
+
+    /**
+     * Canonical "id={params json},..." string for creation-time
+     * fingerprinting; null when no entry carries parameters. JsonObject
+     * preserves insertion order, so the same file always fingerprints equal.
+     */
+    public String getBiomeParametersFingerprint() {
+        Map<String, JsonObject> params = this.getBiomeParameters();
+        if (params.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, JsonObject> e : params.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append(",");
+            }
+            sb.append(e.getKey()).append("=").append(e.getValue());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Canonical "key=value,..." string for creation-time fingerprinting;
+     * null when no overrides are set. Only set fields appear, in a fixed
+     * order, so semantically equal configs always fingerprint equal.
+     */
+    public String getSettingsOverridesFingerprint() {
+        SettingsOverrides so = this.settingsOverrides;
+        if (so == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        appendFingerprintField(sb, "seaLevel", so.seaLevel);
+        appendFingerprintField(sb, "defaultBlock", so.defaultBlock);
+        appendFingerprintField(sb, "defaultFluid", so.defaultFluid);
+        appendFingerprintField(sb, "disableMobGeneration", so.disableMobGeneration);
+        return sb.length() > 0 ? sb.toString() : null;
+    }
+
+    private static void appendFingerprintField(StringBuilder sb, String key, Object value) {
+        if (value == null) {
+            return;
+        }
+        if (sb.length() > 0) {
+            sb.append(",");
+        }
+        sb.append(key).append("=").append(value);
     }
 
     /**
@@ -459,6 +575,26 @@ public class DimensionConfig {
         public Double maxMultiplier;
     }
 
+    /**
+     * Whitelisted per-dimension ChunkGeneratorSettings swaps (Tier 3 of the
+     * Custom-world-settings matrix). Applied AFTER noiseSettings resolution:
+     * the resolved preset (or the type's default) is cloned with these
+     * fields replaced. Creation-time worldgen — baked into level.dat.
+     * Arbitrary inline noise settings stay unsupported by design.
+     */
+    public static class SettingsOverrides {
+        @SerializedName("seaLevel")
+        public Integer seaLevel;
+        /** Block id, e.g. "minecraft:netherrack". */
+        @SerializedName("defaultBlock")
+        public String defaultBlock;
+        /** Block id of a fluid block, e.g. "minecraft:lava". */
+        @SerializedName("defaultFluid")
+        public String defaultFluid;
+        @SerializedName("disableMobGeneration")
+        public Boolean disableMobGeneration;
+    }
+
     /** One superflat layer, bottom-up like vanilla: height = thickness in blocks. */
     public static class FlatLayer {
         @SerializedName("block")
@@ -474,6 +610,25 @@ public class DimensionConfig {
         public Map<String, StructureShun> shuns;
         @SerializedName("endgame")
         public EndgameConfig endgame;
+        /**
+         * Runtime per-set placement overrides (Tier 3), keyed by structure
+         * SET id (e.g. "minecraft:villages" — the worldgen/structure_set
+         * registry key, NOT a structure id). Unlike wants/shuns (roller-only
+         * scoring), this changes real generation: the set's random_spread
+         * placement is rebuilt with these exact values. Creation-time-ish:
+         * applies to newly generated chunks only (grid re-rolls at the
+         * explored-terrain border, same caveat as datapack spacing edits).
+         */
+        @SerializedName("spacing")
+        public Map<String, SpacingOverride> spacing;
+    }
+
+    /** Explicit placement values for one structure set (see Structures.spacing). */
+    public static class SpacingOverride {
+        @SerializedName("spacing")
+        public Integer spacing;
+        @SerializedName("separation")
+        public Integer separation;
     }
 
     public static class StructureWant {

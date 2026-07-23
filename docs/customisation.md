@@ -431,6 +431,48 @@ A dimension can opt out of seed rolling entirely with
 it (superflat dims are always skipped; the flag exists for anything else
 whose seed you've pinned by hand).
 
+Three further worldgen dials (Tier 3 of the custom-world-settings
+matrix), all mirrored by the seed-rolling pipeline:
+
+- `"settingsOverrides"` — whitelisted generator-settings swaps applied on
+  top of the type's (or `noiseSettings` preset's) settings. Creation-time
+  worldgen. Fields: `seaLevel` (int), `defaultBlock` / `defaultFluid`
+  (block ids — think netherrack body, lava seas), and
+  `disableMobGeneration` (bool). Invalid values warn and keep the base
+  value per field. Arbitrary inline noise settings remain unsupported by
+  design — author a jar preset instead.
+
+  ```json
+  { "settingsOverrides": { "seaLevel": 100, "defaultFluid": "minecraft:lava" } }
+  ```
+
+- **Per-biome placement parameters** — a `biomes` entry may be an object
+  `{ "id": "...", "parameters": { ... } }` instead of a plain id string.
+  Parameters are vanilla multi-noise intervals (`temperature`,
+  `humidity`, `continentalness`, `erosion`, `depth`, `weirdness`: number
+  or `[min, max]` within -2..2; `offset` 0..1). An overridden biome gets
+  exactly that region and is withdrawn from the natural/round-robin
+  mixing; unset axes span everything. Invalid parameters warn and the
+  entry behaves as a plain listed biome. Creation-time worldgen.
+
+  ```json
+  "biomes": [
+    { "id": "minecraft:plains", "parameters": { "temperature": [-2.0, 0.0] } },
+    { "id": "minecraft:cherry_grove", "parameters": { "temperature": [0.0, 2.0] } }
+  ]
+  ```
+
+- `"structures": { "spacing": { "<set-id>": { "spacing": N, "separation": M } } }`
+  — exact placement values for one structure SET (registry set id, e.g.
+  `minecraft:villages`, NOT a structure id), overriding the theme-based
+  `structureDensity` factors for that set. Invariants enforced:
+  `2 <= spacing <= 4096`, `0 <= separation < spacing`; violations (and
+  custom placement types) warn and fall back to the theme path. Unlike
+  the fields above this is boot-re-read, but placements only affect
+  newly generated chunks (the grid re-rolls at explored-terrain borders,
+  same caveat as datapack spacing edits). The peaceful overlay's
+  dungeon-set drops always win over a spacing entry.
+
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 
