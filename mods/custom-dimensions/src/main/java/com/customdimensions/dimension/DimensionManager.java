@@ -25,8 +25,12 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.dimension.DimensionOptions;
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.biome.source.CheckerboardBiomeSource;
 import net.minecraft.world.biome.source.FixedBiomeSource;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList;
@@ -295,6 +299,54 @@ public class DimensionManager {
         return null;
     }
 
+    // "flatBiome" for superflat dims: unknown or unset falls back to plains
+    // (warn on unknown — same never-crash policy as noiseSettings).
+    private RegistryEntry<Biome> resolveFlatBiome(DimensionConfig def, Registry<Biome> biomeRegistry) {
+        String id = def.getFlatBiome();
+        if (id != null && !id.isBlank()) {
+            Identifier ident = Identifier.tryParse(id.trim().toLowerCase());
+            Optional<RegistryEntry.Reference<Biome>> entry = ident == null ? Optional.empty()
+                    : biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, ident));
+            if (entry.isPresent()) {
+                return entry.get();
+            }
+            MultiverseServer.LOGGER.warn("Dimension {}: flatBiome '{}' not in the registry — using plains", def.getName(), id);
+        }
+        return biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
+    }
+
+    private static List<FlatChunkGeneratorLayer> defaultFlatLayers() {
+        return List.of(
+                new FlatChunkGeneratorLayer(1, Blocks.BEDROCK),
+                new FlatChunkGeneratorLayer(2, Blocks.DIRT),
+                new FlatChunkGeneratorLayer(1, Blocks.GRASS_BLOCK));
+    }
+
+    // Custom "layers" for superflat dims. Vanilla layer semantics: bottom-up,
+    // height = thickness (0..4064, the vanilla codec bound; 0 is legal and
+    // generates nothing). ANY invalid entry -> warn + the full default stack:
+    // all-or-nothing so a typo can't half-build a world silently.
+    private static List<FlatChunkGeneratorLayer> resolveFlatLayers(DimensionConfig def) {
+        List<DimensionConfig.FlatLayer> configured = def.getLayers();
+        if (configured == null || configured.isEmpty()) {
+            return defaultFlatLayers();
+        }
+        List<FlatChunkGeneratorLayer> layers = new ArrayList<>();
+        for (DimensionConfig.FlatLayer layer : configured) {
+            Identifier id = layer.block == null ? null : Identifier.tryParse(layer.block.trim().toLowerCase());
+            Optional<Block> block = id == null ? Optional.empty() : Registries.BLOCK.getOrEmpty(id);
+            int height = layer.height == null ? -1 : layer.height;
+            if (block.isEmpty() || height < 0 || height > 4064) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: invalid superflat layer (block: {}, height: {}) — using the default bedrock/dirt/grass stack",
+                        def.getName(), layer.block, layer.height);
+                return defaultFlatLayers();
+            }
+            layers.add(new FlatChunkGeneratorLayer(height, block.get()));
+        }
+        return layers;
+    }
+
     private DimensionOptions createDimensionOptions(DimensionConfig def) {
         MutableRegistry<DimensionOptions> dimRegistry = this.getDimensionRegistry();
         DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
@@ -352,15 +404,59 @@ public class DimensionManager {
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(new FlatChunkGenerator(config), worldSeed));
             }
             case "superflat" -> {
-                RegistryEntry<Biome> plainsBiome = biomeRegistry.getEntry(biomeRegistry.get(BiomeKeys.PLAINS));
-                List<FlatChunkGeneratorLayer> layers = List.of(
-                        new FlatChunkGeneratorLayer(1, Blocks.BEDROCK),
-                        new FlatChunkGeneratorLayer(2, Blocks.DIRT),
-                        new FlatChunkGeneratorLayer(1, Blocks.GRASS_BLOCK)
-                );
-                FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), plainsBiome, List.of())
-                    .with(layers, Optional.empty(), plainsBiome);
+                // Custom "layers" + "flatBiome" (Tier 2): vanilla superflat
+                // semantics — layers bottom-up, height = thickness. Invalid
+                // config falls back whole (never half-builds a stack).
+                RegistryEntry<Biome> flatBiome = this.resolveFlatBiome(def, biomeRegistry);
+                List<FlatChunkGeneratorLayer> layers = resolveFlatLayers(def);
+                FlatChunkGeneratorConfig config = new FlatChunkGeneratorConfig(Optional.empty(), flatBiome, List.of())
+                    .with(layers, Optional.empty(), flatBiome);
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(new FlatChunkGenerator(config), worldSeed));
+            }
+            case "checkerboard" -> {
+                // Deterministic biome grid (vanilla checkerboard source): the
+                // listed biomes tile in a fixed pattern INDEPENDENT of seed
+                // (index = floorMod((qx >> scale+2) + (qz >> scale+2), n) in
+                // quart coords — mirrored by the roller's checkerboard
+                // sampler; keep the two in sync). Terrain shape still follows
+                // the dimension seed through the overworld noise settings.
+                List<RegistryEntry<Biome>> checkerEntries = new ArrayList<>();
+                String biomeList = def.getBiome();
+                if (biomeList != null) {
+                    for (String raw : biomeList.split(",")) {
+                        Identifier id = Identifier.tryParse(raw.trim());
+                        Optional<RegistryEntry.Reference<Biome>> entry = id == null ? Optional.empty()
+                                : biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, id));
+                        if (entry.isPresent()) {
+                            checkerEntries.add(entry.get());
+                        } else {
+                            MultiverseServer.LOGGER.warn("Dimension {}: checkerboard biome {} not in the registry — skipped",
+                                    def.getName(), raw.trim());
+                        }
+                    }
+                }
+                if (checkerEntries.isEmpty()) {
+                    MultiverseServer.LOGGER.warn(
+                            "Dimension {}: checkerboard needs a non-empty 'biomes' list — falling back to the overworld generator",
+                            def.getName());
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
+                }
+                int scale = 2;
+                Integer configuredScale = def.getCheckerboardScale();
+                if (configuredScale != null) {
+                    if (configuredScale >= 0 && configuredScale <= 62) {
+                        scale = configuredScale;
+                    } else {
+                        MultiverseServer.LOGGER.warn("Dimension {}: checkerboardScale {} outside 0-62 — using the default 2",
+                                def.getName(), configuredScale);
+                    }
+                }
+                BiomeSource checkerboard = new CheckerboardBiomeSource(RegistryEntryList.of(checkerEntries), scale);
+                if (overworldOpts.chunkGenerator() instanceof NoiseChunkGenerator noiseGen) {
+                    NoiseChunkGenerator checkerGen = new NoiseChunkGenerator(checkerboard, noiseGen.getSettings());
+                    yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(checkerGen, settingsOverride), worldSeed));
+                }
+                yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
             case "single_biome" -> {
                 String biomeId = def.getBiome();

@@ -32,7 +32,10 @@ DEFAULT_BORDER_RADIUS = 8192
 # Families share a locate battery (structure id -> band).
 # "cave" rides the overworld family: minecraft:caves samples the overworld
 # climate router, so biome measurement + locate batteries behave overworld-ish.
-OVERWORLD_FAMILY = {"overworld", "multi_biome", "amplified", "large_biomes", "sky_islands", "cave"}
+# "checkerboard" rides it too: overworld noise settings under a deterministic
+# biome grid (the grid is seed-independent; terrain/structures still roll).
+OVERWORLD_FAMILY = {"overworld", "multi_biome", "amplified", "large_biomes", "sky_islands", "cave",
+                    "checkerboard"}
 NETHER_FAMILY = {"nether", "nether_islands"}
 END_FAMILY = {"end"}
 
@@ -412,7 +415,8 @@ def monolith_from_dir(config_dir):
         d = {"name": slug,
              "dimensionId": f.get("dimensionId") or f"{namespaces.get(slug, ns)}:{slug}"}
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
-                    "seedRoll", "difficulty", "borders", "structures"):
+                    "seedRoll", "difficulty", "borders", "structures",
+                    "checkerboardScale", "layers", "flatBiome"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
@@ -517,11 +521,18 @@ def mood_from_difficulty(mult):
 
 
 def rollable(dim):
-    """Superflat is not rollable (flat generator — nothing varies with the
-    seed). Voids roll ONLY with a biome list: the mod's adventure:void
-    noise generator (custom-dimensions >= 1.2.0) gives them a real, seeded
-    biome layout, so the seed genuinely changes what spawns/sounds/looms
-    in the fog. A void without biomes has nothing to measure."""
+    """seedRoll.skip is the explicit opt-out: {"seedRoll": {"skip": true}}
+    excludes a dimension from measurement and scoring entirely (mirrors the
+    mod's DimensionConfig.SeedRoll.skip — the mod itself ignores seedRoll).
+    Superflat is not rollable (flat generator — nothing varies with the
+    seed, custom layers/flatBiome included). Voids roll ONLY with a biome
+    list: the mod's adventure:void noise generator (custom-dimensions >=
+    1.2.0) gives them a real, seeded biome layout, so the seed genuinely
+    changes what spawns/sounds/looms in the fog. A void without biomes has
+    nothing to measure. Checkerboard rolls: the biome GRID is seed-
+    independent, but terrain shape and structure placement still vary."""
+    if (dim.get("seedRoll") or {}).get("skip"):
+        return False
     t = dim.get("type")
     if t == "superflat":
         return False
@@ -820,6 +831,9 @@ def build_profile(dim, config, difficulty=None):
                          else CLONE_HEIGHT_RANGES.get(dim_type)),
         "clear_spawn_radius": clear_spawn_radius,
         "endgame_safe_radius": endgame_safe_radius,
+        # Checkerboard grid scale (vanilla codec 0-62, default 2); the fast
+        # roller's CheckerboardBiomeSampler mirrors the mod's grid formula.
+        "checkerboard_scale": dim.get("checkerboardScale"),
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

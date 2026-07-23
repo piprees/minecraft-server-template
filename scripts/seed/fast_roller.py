@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from biome_sampler import BiomeSampler, load_noise_configs  # noqa: E402
+from biome_sampler import BiomeSampler, CheckerboardBiomeSampler, load_noise_configs  # noqa: E402
 from dimension_profiles import (  # noqa: E402
     build_profile, load_config, load_difficulty, rollable,
 )
@@ -273,10 +273,19 @@ def _process_dimension(task):
     accepted = 0
     rejected = 0
     for _t1_score, seed, struct_dists in survivors:
-        sampler = BiomeSampler(seed, biome_params_path,
-                               noise_config=noise_config,
-                               biome_filter=biome_filter,
-                               family=noise_family)
+        if dim_type == "checkerboard" and config_biomes:
+            # Ordered biome list (config order = the mod's grid order);
+            # the set-shaped biome_filter would scramble the pattern.
+            sampler = CheckerboardBiomeSampler(
+                seed, biome_params_path,
+                biomes=config_biomes.split(","),
+                scale=profile.get("checkerboard_scale"),
+                noise_config=noise_config, family=noise_family)
+        else:
+            sampler = BiomeSampler(seed, biome_params_path,
+                                   noise_config=noise_config,
+                                   biome_filter=biome_filter,
+                                   family=noise_family)
         rows, ok = tier2_measure(seed, profile, sampler)
 
         # Merge structure distances into rows

@@ -7,9 +7,11 @@ from pathlib import Path
 
 from dimension_profiles import (
     build_profile,
+    family_of,
     load_config,
     load_dimension_configs,
     monolith_from_dir,
+    rollable,
 )
 
 
@@ -181,6 +183,48 @@ class StructureRangeTests(unittest.TestCase):
                  "seedRoll": {"mood": "serene"},
                  "structures": {"endgame": {"allow": True}}}
         self.assertEqual(self.profile_for(allow)["endgame_safe_radius"], 0)
+
+
+class RollableTests(unittest.TestCase):
+    """Tier 2: seedRoll.skip opt-out + checkerboard rollability."""
+
+    def test_seed_roll_skip_excludes_any_type(self):
+        self.assertFalse(rollable({"type": "overworld", "seedRoll": {"skip": True}}))
+        self.assertFalse(rollable({"type": "checkerboard", "biomes": ["minecraft:plains"],
+                                   "seedRoll": {"skip": True}}))
+        # skip absent or falsy leaves the normal rules in force
+        self.assertTrue(rollable({"type": "overworld"}))
+        self.assertTrue(rollable({"type": "overworld", "seedRoll": {"skip": False}}))
+        self.assertTrue(rollable({"type": "overworld", "seedRoll": {"mood": "serene"}}))
+
+    def test_superflat_never_rolls_even_with_custom_layers(self):
+        self.assertFalse(rollable({"type": "superflat"}))
+        self.assertFalse(rollable({"type": "superflat", "flatBiome": "minecraft:desert",
+                                   "layers": [{"block": "minecraft:sand", "height": 3}]}))
+
+    def test_checkerboard_rolls_and_rides_overworld_family(self):
+        self.assertTrue(rollable({"type": "checkerboard",
+                                  "biomes": ["minecraft:plains", "minecraft:desert"]}))
+        self.assertEqual(family_of("checkerboard"), "overworld")
+
+    def test_checkerboard_scale_flows_into_profile_via_monolith(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {
+                "dimensions/the_patchwork.json": {
+                    "type": "checkerboard", "checkerboardScale": 4,
+                    "biomes": ["minecraft:plains", "minecraft:desert"]},
+            })
+            cfg = monolith_from_dir(tmp)
+        dim = cfg["dimensions"][0]
+        self.assertEqual(dim["checkerboardScale"], 4)
+        profile = build_profile(dim, cfg)
+        self.assertEqual(profile["checkerboard_scale"], 4)
+        self.assertEqual(profile["family"], "overworld")
+        # unset scale stays None (sampler defaults to vanilla's 2)
+        plain = {"name": "d", "type": "checkerboard", "dimensionId": "adventure:d",
+                 "biome": "minecraft:plains"}
+        cfg2 = {"namespace": "adventure", "dimensions": [plain], "portals": [], "worlds": []}
+        self.assertIsNone(build_profile(plain, cfg2)["checkerboard_scale"])
 
 
 class BuildProfileV4Tests(unittest.TestCase):

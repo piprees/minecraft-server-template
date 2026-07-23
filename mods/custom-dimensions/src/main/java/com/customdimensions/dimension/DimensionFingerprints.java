@@ -45,6 +45,12 @@ public final class DimensionFingerprints {
         f.put("noiseSettings", String.valueOf(def.getNoiseSettings()));
         f.put("biomes", String.valueOf(def.getBiome()));
         f.put("seed", String.valueOf(def.getSeed()));
+        // Tier 2 creation-time generator knobs. Old fingerprint records lack
+        // these keys — stored null vs current "null" compares equal, so
+        // pre-Tier-2 worlds never false-positive on drift.
+        f.put("checkerboardScale", String.valueOf(def.getCheckerboardScale()));
+        f.put("layers", String.valueOf(def.getLayersFingerprint()));
+        f.put("flatBiome", String.valueOf(def.getFlatBiome()));
         return f;
     }
 
@@ -84,7 +90,7 @@ public final class DimensionFingerprints {
             return;
         }
         StringBuilder worldgenDrift = new StringBuilder();
-        for (String k : new String[]{"type", "noiseSettings", "biomes"}) {
+        for (String k : new String[]{"type", "noiseSettings", "biomes", "checkerboardScale", "layers", "flatBiome"}) {
             if (!String.valueOf(stored.get(k)).equals(current.get(k))) {
                 if (worldgenDrift.length() > 0) {
                     worldgenDrift.append(", ");

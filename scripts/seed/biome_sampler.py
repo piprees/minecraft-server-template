@@ -536,6 +536,41 @@ class BiomeSampler:
         return None, -1, 0, 0
 
 
+class CheckerboardBiomeSampler(BiomeSampler):
+    """Deterministic checkerboard biome layout over seeded climate noise.
+
+    Mirrors the mod's "checkerboard" generator case (DimensionManager:
+    vanilla CheckerboardBiomeSource wrapped in a NoiseChunkGenerator with
+    overworld settings). The biome at a point is pure geometry — seed-
+    independent — while climate sampling (the terrain proxy) still runs the
+    family noise, because terrain shape and structures DO vary with seed.
+
+    Vanilla formula (1.21.1 CheckerboardBiomeSource, quart coords = block
+    >> 2): index = floorMod((qx >> scale+2) + (qz >> scale+2), len(biomes)).
+    Python's >> and % on negative ints are arithmetic-shift and floor-mod,
+    matching Java's >> and Math.floorMod. Keep in sync with the Java case.
+
+    Biome order matters: it must match the config's biomes list exactly
+    (the mod builds its RegistryEntryList in config order)."""
+
+    def __init__(self, seed, biome_params_path, biomes, scale=None,
+                 noise_config=None, family=None):
+        super().__init__(seed, biome_params_path, noise_config=noise_config,
+                         biome_filter=None, family=family)
+        self.biomes = [b.strip() for b in biomes if b and b.strip()]
+        eff_scale = scale if isinstance(scale, int) and 0 <= scale <= 62 else 2
+        self.grid_shift = eff_scale + 2
+        # tier2's "namesake representable" check reads {e[0] for e in _entries}.
+        self._entries = [(b, (), 0.0) for b in self.biomes]
+
+    def biome_and_climate(self, x, z):
+        climate = self.sample_climate(x, z)
+        if not self.biomes:
+            return "unknown", climate
+        idx = (((x >> 2) >> self.grid_shift) + ((z >> 2) >> self.grid_shift)) % len(self.biomes)
+        return self.biomes[idx], climate
+
+
 # ---------------------------------------------------------------------------
 # CLI mode
 # ---------------------------------------------------------------------------

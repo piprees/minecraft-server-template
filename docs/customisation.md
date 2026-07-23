@@ -396,6 +396,41 @@ deprecated fallback):
   all dungeon-theme structure sets and rarify settlements/ships to ~0.3x
   automatically.
 
+Two generator types accept extra creation-time fields (worldgen — baked
+into `level.dat` at creation, changes need a world wipe):
+
+- `"type": "checkerboard"` tiles the `biomes` list in a fixed grid
+  (vanilla checkerboard biome source) over overworld terrain noise —
+  the layout is seed-independent, terrain and structures still follow
+  the seed. `"checkerboardScale"` (0–62, default 2) sets the cell size:
+  one cell is `2^(scale+4)` blocks per side (scale 2 = 64 blocks).
+  Invalid biome entries are skipped with a warning; an empty list falls
+  back to a plain overworld generator.
+- `"type": "superflat"` accepts `"flatBiome"` (biome id, default plains)
+  and `"layers"` — bottom-up like vanilla, `height` = thickness:
+
+  ```json
+  {
+    "type": "superflat",
+    "flatBiome": "minecraft:desert",
+    "layers": [
+      { "block": "minecraft:bedrock", "height": 1 },
+      { "block": "minecraft:sandstone", "height": 10 },
+      { "block": "minecraft:sand", "height": 3 }
+    ]
+  }
+  ```
+
+  Any invalid layer (unknown block, bad height) falls back to the whole
+  default bedrock/dirt/grass stack — never a half-built world. Biome
+  features and structures still generate on superflat terrain (desert
+  wells, dungeons), exactly as vanilla superflat presets behave.
+
+A dimension can opt out of seed rolling entirely with
+`"seedRoll": { "skip": true }` — the roller neither measures nor scores
+it (superflat dims are always skipped; the flag exists for anything else
+whose seed you've pinned by hand).
+
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 

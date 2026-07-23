@@ -190,6 +190,68 @@ class TestMixedSourceIntegration(unittest.TestCase):
 
 
 @unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
+class TestCheckerboardSampler(unittest.TestCase):
+    """CheckerboardBiomeSampler mirrors the mod's CheckerboardBiomeSource:
+    fixed grid layout (seed-independent), seeded climate, vanilla formula
+    index = floorMod((qx >> scale+2) + (qz >> scale+2), n) in quart coords."""
+
+    BIOMES = ["minecraft:plains", "minecraft:desert", "minecraft:snowy_plains"]
+
+    @classmethod
+    def setUpClass(cls):
+        from biome_sampler import CheckerboardBiomeSampler, load_noise_configs
+        cls.Sampler = CheckerboardBiomeSampler
+        cls.noise_config = load_noise_configs().get("overworld")
+
+    def _sampler(self, seed, scale=None):
+        return self.Sampler(seed, str(BIOME_PARAMS), self.BIOMES, scale=scale,
+                            noise_config=self.noise_config, family="overworld")
+
+    def test_matches_vanilla_formula(self):
+        s = self._sampler(42, scale=2)  # shift = 4, cell = 64 blocks
+        for x, z in [(0, 0), (63, 0), (64, 0), (-1, 0), (-64, -64),
+                     (1000, -2000), (127, 129)]:
+            expected = self.BIOMES[(((x >> 2) >> 4) + ((z >> 2) >> 4)) % 3]
+            self.assertEqual(s.biome_at(x, z), expected, f"at ({x},{z})")
+        # origin is always biomes[0]
+        self.assertEqual(s.biome_at(0, 0), "minecraft:plains")
+
+    def test_layout_is_seed_independent_climate_is_not(self):
+        a, b = self._sampler(111), self._sampler(222)
+        points = [(x * 96, z * 96) for x in range(-3, 4) for z in range(-3, 4)]
+        self.assertEqual([a.biome_at(x, z) for x, z in points],
+                         [b.biome_at(x, z) for x, z in points],
+                         "checkerboard layout must not vary with seed")
+        self.assertNotEqual(
+            [round(a.sample_climate(x, z)["continentalness"], 6) for x, z in points],
+            [round(b.sample_climate(x, z)["continentalness"], 6) for x, z in points],
+            "climate (terrain proxy) must still vary with seed")
+
+    def test_scale_changes_cell_size_and_invalid_scale_falls_back(self):
+        fine = self._sampler(42, scale=0)    # shift 2, 16-block cells
+        coarse = self._sampler(42, scale=4)  # shift 6, 256-block cells
+        # Within one coarse cell the fine sampler changes biome, coarse doesn't.
+        self.assertEqual(coarse.biome_at(0, 0), coarse.biome_at(200, 0))
+        self.assertNotEqual(fine.biome_at(0, 0), fine.biome_at(16, 0))
+        # Out-of-range and None fall back to vanilla default 2 (shift 4).
+        self.assertEqual(self._sampler(42, scale=63).grid_shift, 4)
+        self.assertEqual(self._sampler(42, scale=-1).grid_shift, 4)
+        self.assertEqual(self._sampler(42).grid_shift, 4)
+
+    def test_locate_and_spawn_filter_work_on_the_grid(self):
+        s = self._sampler(42, scale=2)
+        # Every listed biome is locatable within a few cells of origin.
+        for biome in self.BIOMES:
+            result = s.locate_biome(biome, radius=512, step=16)
+            self.assertIsNotNone(result, f"{biome} must be locatable")
+        best_b, best_d, _x, _z = s.spawn_filter({"minecraft:desert"}, radius=256, step=16)
+        self.assertEqual(best_b, "minecraft:desert")
+        self.assertGreaterEqual(best_d, 0)
+        # _entries drives tier2's representability check.
+        self.assertEqual({e[0] for e in s._entries}, set(self.BIOMES))
+
+
+@unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
 class TestIslandMaskDeterminism(unittest.TestCase):
     """Island mask must be deterministic: same seed = same mask."""
 

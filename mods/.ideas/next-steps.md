@@ -4,9 +4,9 @@ Agreed with Pip 2026-07-23. Work top to bottom; each item links to the doc that 
 
 ## 1. Custom world settings, Tiers 2–3
 
-Spec: `vanilla-custom-world-settings.md` (Tier 1 already shipped).
+Spec: `vanilla-custom-world-settings.md` (Tiers 1–2 shipped).
 
-- **Tier 2** (independent, small): `checkerboard` biome-source case; `superflat` custom `layers` + `flatBiome`. Each needs its seed-roll touch (`rollable()`, biome sampler) or a `seedRoll: {skip: true}` default.
+- **Tier 2 — DONE 2026-07-23**: `checkerboard` (+`checkerboardScale`, `CheckerboardBiomeSampler` parity, live-verified), `superflat` custom `layers` + `flatBiome`, `seedRoll: {skip: true}` in mod schema + `rollable()`.
 - **Tier 3** (each lands TOGETHER with its Python-roller counterpart or candidate scores lie): per-biome multi-noise `parameters`, `settingsOverrides` whitelist (sea_level/default_block/default_fluid/ disable_mob_generation), per-structure spacing overrides via the `DimensionStructures` rebuild.
 
 ## 2. biomePatches

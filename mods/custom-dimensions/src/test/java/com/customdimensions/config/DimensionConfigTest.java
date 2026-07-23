@@ -282,6 +282,45 @@ class DimensionConfigTest {
     }
 
     @Test
+    void checkerboardScaleDeserialises() {
+        DimensionConfig config = parse("d",
+                "{\"type\":\"checkerboard\",\"biomes\":[\"minecraft:plains\",\"minecraft:desert\"],\"checkerboardScale\":4}");
+        assertEquals("checkerboard", config.getType());
+        assertEquals(4, config.getCheckerboardScale());
+        assertEquals("minecraft:plains,minecraft:desert", config.getBiome());
+        // Unset stays null (use-site defaults to vanilla's 2).
+        assertNull(parse("d", "{\"type\":\"checkerboard\"}").getCheckerboardScale());
+    }
+
+    @Test
+    void superflatLayersAndFlatBiomeDeserialise() {
+        DimensionConfig config = parse("d", """
+                {"type":"superflat","flatBiome":"minecraft:desert",
+                 "layers":[{"block":"minecraft:bedrock","height":1},
+                           {"block":"minecraft:sandstone","height":10},
+                           {"block":"minecraft:sand","height":3}]}
+                """);
+        assertEquals("minecraft:desert", config.getFlatBiome());
+        assertEquals(3, config.getLayers().size());
+        assertEquals("minecraft:sandstone", config.getLayers().get(1).block);
+        assertEquals(10, config.getLayers().get(1).height);
+        assertEquals("1*minecraft:bedrock,10*minecraft:sandstone,3*minecraft:sand",
+                config.getLayersFingerprint());
+        // Unset layers/flatBiome: null fingerprint, null getters.
+        DimensionConfig bare = parse("d", "{\"type\":\"superflat\"}");
+        assertNull(bare.getLayers());
+        assertNull(bare.getFlatBiome());
+        assertNull(bare.getLayersFingerprint());
+    }
+
+    @Test
+    void seedRollSkipDeserialises() {
+        DimensionConfig config = parse("d", "{\"seedRoll\":{\"skip\":true}}");
+        assertEquals(true, config.getSeedRoll().skip);
+        assertNull(parse("d", "{\"seedRoll\":{\"mood\":\"serene\"}}").getSeedRoll().skip);
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

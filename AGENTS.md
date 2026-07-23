@@ -171,6 +171,8 @@ See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility
 
 ## Known issues (watch list)
 
+- **Epic Dungeons loot ids crash feature placement → c2me wedges the main thread on sync chunk load** (2026-07-23, local): `epic:chests/DungeonZombie` (uppercase = invalid identifier path) throws `Non [a-z0-9/._-] character in path` during chunk feature placement when an Epic Dungeons dungeon generates; under c2me the chunk upgrade fails once (`Error upgrading chunk [x, z] to "minecraft:features"`) and a main-thread sync load waiting on that chunk (e.g. RCON `forceload add`, `execute if block` on ungenerated chunks) then hangs FOREVER — RCON goes i/o-timeout while `docker ps` stays healthy. Signature: spark `Timed out waiting for world statistics` every 60s. Recovery: `docker stop -t 90 mc && docker start mc` (local only; production restarts go through deploy.sh). Avoid forceloading/probing ungenerated chunks near spawn in fixture dims when Epic Dungeons structures can land there; upstream candidate (the loot table id is the mod's data bug).
+
 - **c2me `TheChunkSystem` ConcurrentModificationException** (`Error executing task on Chunk source main thread executor for <dim>` … `TheChunkSystem.lambda$onItemUpgrade$0`): c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, BlueMap initial loads, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. Do NOT filter it from logs (real error, upstream candidate). If it starts crashing servers, the module can be bypassed only by removing c2me; revisit on c2me updates.
 
 ## Script map

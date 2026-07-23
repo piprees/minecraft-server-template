@@ -60,6 +60,15 @@ public class DimensionConfig {
     /** Legacy comma-separated biome list (multiverse_config.json). */
     @SerializedName("biome")
     private String biome;
+    /** Checkerboard biome-source scale (vanilla codec 0-62). Null = vanilla default 2. */
+    @SerializedName("checkerboardScale")
+    private Integer checkerboardScale;
+    /** Superflat custom layers, bottom-up like vanilla (height = thickness). */
+    @SerializedName("layers")
+    private List<FlatLayer> layers;
+    /** Superflat biome id. Null = plains. */
+    @SerializedName("flatBiome")
+    private String flatBiome;
     /** Base-world travel-scale metadata (worlds[].scale) — tooling only. */
     @SerializedName("scale")
     private Double scale;
@@ -234,6 +243,39 @@ public class DimensionConfig {
     public void setBiome(String biome) {
         this.biome = biome;
         this.biomes = null;
+    }
+
+    /** Checkerboard scale as configured (vanilla codec 0-62); null when unset. Validated at use. */
+    public Integer getCheckerboardScale() {
+        return this.checkerboardScale;
+    }
+
+    /** Superflat custom layers (bottom-up); null/empty means the default bedrock/dirt/grass stack. */
+    public List<FlatLayer> getLayers() {
+        return this.layers;
+    }
+
+    /** Superflat biome id; null means plains. */
+    public String getFlatBiome() {
+        return this.flatBiome;
+    }
+
+    /**
+     * Canonical "height*block,..." string for creation-time fingerprinting
+     * (worldgen drift detection); null when no custom layers are set.
+     */
+    public String getLayersFingerprint() {
+        if (this.layers == null || this.layers.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (FlatLayer layer : this.layers) {
+            if (sb.length() > 0) {
+                sb.append(",");
+            }
+            sb.append(layer.height).append("*").append(layer.block);
+        }
+        return sb.toString();
     }
 
     /** Base-world travel scale (tooling metadata); custom dims use portal.scale. */
@@ -415,6 +457,14 @@ public class DimensionConfig {
         public Double minMultiplier;
         @SerializedName("maxMultiplier")
         public Double maxMultiplier;
+    }
+
+    /** One superflat layer, bottom-up like vanilla: height = thickness in blocks. */
+    public static class FlatLayer {
+        @SerializedName("block")
+        public String block;
+        @SerializedName("height")
+        public Integer height;
     }
 
     public static class Structures {
@@ -650,6 +700,9 @@ public class DimensionConfig {
      * shape verbatim (ranges land in Phase 6 under "structures").
      */
     public static class SeedRoll {
+        /** True = the roller ignores this dimension entirely (no measurement, no scoring). */
+        @SerializedName("skip")
+        public Boolean skip;
         @SerializedName("mood")
         public String mood;
         @SerializedName("spawnFilter")
