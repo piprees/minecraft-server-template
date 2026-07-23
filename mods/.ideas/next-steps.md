@@ -36,6 +36,20 @@ Spec: `fork-dimension-config-gui.md`. Pure Python/HTML in `scripts/seed/`. NOTE:
 
 Spec: `optional-mods-hardening.md`. The open boot-breaker: removing Tectonic/Terralith breaks boots because the `adventure:wide`/ `compressed` presets reference their registries. Round 1 = self-contained noise presets; round 2 = removal-matrix smoke coverage.
 
+## Running-start notes for the next agent — session 2026-07-23/24 additions
+
+- **Persisted-state downgrade rule**: anything serialised into `portal_links.json` (or any state file) must stay parseable by every jar that might read it back — deploys roll back. A `#tag` in a persisted `frameBlock` crash-looped v3.6.0 (`Identifier.of` in an uncaught world-tick path). mods/AGENTS carries the full rule.
+- **netherportalspread eats custom-framed portals** — root-caused and fixed (`NetherPortalProtectionMixin`); if a portal block ever vanishes mysteriously again, the diagnostic that worked was a temporary `World.setBlockState` HEAD mixin logging a stack trace on portal→air. Four plausible theories (leaf decay, stale zones, mod tracking, site curse) were all wrong; the trace was right in one cycle. Instrument early, don't armchair.
+- **Source portal interiors contain NO portal blocks** — zones are invisible; only arrival portals carry real NETHER_PORTAL blocks. Assert source-side success by bot traversal, never interior probes.
+- **`execute in <dim> run tp Bot ...` teleports ACROSS dimensions** — it's the standard way to move the bot between worlds, and the standard way to accidentally do so.
+- **PLAYER_IN_ZONE is edge-triggered and can go stale**: a bot returned into a zone it never "exited" (flag-wise) won't re-teleport — step out and back in (`tp` away, sleep 2, `tp` back).
+- **`/setblock` and `/fill` fire NO neighbour updates** (flag 2) — never use them to test update-driven behaviour; use falling blocks or player actions (bot `attack once`).
+- **The existing-portal reuse branch does not log** — only fresh creations print "Created portal"; a traversal with no log line means `findExistingPortal` matched. Stacked test frames climb the heightmap (`findSurfaceY`), so repeated traversals at one site create portals at ever-higher Y — clean sites between runs.
+- **Empty RCON responses under load are failures-to-recheck**, and `execute at <entity> if block` in particular returns empty unreliably — prefer `execute in <dim> if block <abs coords>`.
+- **elfydd's `.stack/current` now points at the released bundle (v3.6.0)**, NOT the repo — seed-script edits are no longer live on elfydd; re-point to `v3-dev` (symlink to the repo) if roller work needs live iteration.
+- **Release pending Pip's word**: `fc27767` (seed-group rolling) + `67e93dc` (map fixes) + `f22423a` (portals Tier 1 + NetherPortalProtectionMixin). The protection fix is player-facing on production (return portals silently dying) — lean quick. elfydd's local `data/mods/customdimensions.jar` runs the unreleased Tier 1 build.
+- **Still awaiting a real player on production**: the `respawnAt` death redirect and the first organic exit-shrine encounter (carpet bots can't respawn).
+
 ## Running-start notes for the next agent (accrued 2026-07-23)
 
 Verification-loop traps hit THIS session (beyond what AGENTS documents):
