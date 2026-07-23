@@ -7,6 +7,14 @@ Two-tier screening:
   Tier 2 (fast):    biome sampling on tier-1 survivors — ~15 seeds/sec.
          Spawn filter, biome variety, terrain proxy.
 
+Seed-group rolling: dimensions whose generation-affecting config is
+byte-identical (dimension_profiles.generation_fingerprint) share every
+seed's measurements — they are grouped, each group's tier-2 survivors are
+measured ONCE through a memoised sampler, and every member banks rows for
+every group seed. Per-member rows are bit-identical to a solo run
+(sampling is deterministic); winners within a group are made distinct at
+finalise time (same fingerprint + same seed = literal world clones).
+
 No server, no RCON, no Docker. Writes the same CSV format that
 score-dimensions.py consumes.
 
@@ -29,9 +37,52 @@ from biome_sampler import (  # noqa: E402
     BiomeSampler, CheckerboardBiomeSampler, PatchedBiomeSampler, load_noise_configs,
 )
 from dimension_profiles import (  # noqa: E402
-    build_profile, load_config, load_difficulty, rollable,
+    build_profile, generation_fingerprint, load_config, load_difficulty, rollable,
 )
 from structure_placement import load_structure_sets, nearest_structure  # noqa: E402
+
+
+class MemoSampler:
+    """Point-caching wrapper for seed-group rolling: within a fingerprint
+    group every member shares ONE sampler per seed (the sampler is built
+    purely from fingerprint fields), so biome/climate lookups repeat across
+    members — spawn scans hit the same 49 points, variety locates walk the
+    same rings. Caching by coordinate makes the 2nd..Nth member's
+    measurement near-free while staying EXACT: sampling is deterministic,
+    so per-member rows are bit-identical to a solo run."""
+
+    def __init__(self, sampler):
+        self._sampler = sampler
+        self._entries = sampler._entries  # tier2's representability check
+        self._points = {}
+        self._locates = {}
+
+    def biome_and_climate(self, x, z):
+        got = self._points.get((x, z))
+        if got is None:
+            got = self._sampler.biome_and_climate(x, z)
+            self._points[(x, z)] = got
+        return got
+
+    def biome_at(self, x, z):
+        return self.biome_and_climate(x, z)[0]
+
+    def sample_climate(self, x, z):
+        return self.biome_and_climate(x, z)[1]
+
+    # Ring search borrowed unbound (PatchedBiomeSampler's pattern) — it
+    # only needs biome_at, which hits the point cache.
+    _ring_locate = BiomeSampler.locate_biome
+
+    def locate_biome(self, biome_id, radius=6400, step=64, origin_x=0, origin_z=0):
+        key = (biome_id, radius, step, origin_x, origin_z)
+        if key not in self._locates:
+            self._locates[key] = self._ring_locate(
+                biome_id, radius=radius, step=step,
+                origin_x=origin_x, origin_z=origin_z)
+        return self._locates[key]
+
+    spawn_filter = BiomeSampler.spawn_filter
 
 
 LOCATE_HORIZON = 1600
@@ -254,9 +305,46 @@ def tier2_measure(seed, profile, sampler):
     return rows, True
 
 
-def _process_dimension(task):
-    """Process one dimension: tier-1 screen, then tier-2 on top-N."""
-    (dim_name, profile, pool_size, keep_count,
+def _build_sampler(seed, profile, biome_params_path, noise_configs):
+    """One seed's sampler from a profile's generation fields. Within a
+    fingerprint group every member builds the IDENTICAL sampler (all inputs
+    are fingerprint fields), which is what makes group sharing exact."""
+    fam = profile["family"] or "overworld"
+    dim_type = profile.get("type", "")
+    noise_family = _TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
+    noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
+    config_biomes = profile.get("create_args", {}).get("biome")
+    # ORDERED list, not a set: foreign-biome round-robin follows config
+    # order in the mod (LinkedHashSet) — a set here scrambles the layout.
+    biome_filter = config_biomes.split(",") if config_biomes else None
+
+    if dim_type == "checkerboard" and config_biomes:
+        # Ordered biome list (config order = the mod's grid order);
+        # the set-shaped biome_filter would scramble the pattern.
+        sampler = CheckerboardBiomeSampler(
+            seed, biome_params_path,
+            biomes=config_biomes.split(","),
+            scale=profile.get("checkerboard_scale"),
+            noise_config=noise_config, family=noise_family)
+    else:
+        sampler = BiomeSampler(seed, biome_params_path,
+                               noise_config=noise_config,
+                               biome_filter=biome_filter,
+                               family=noise_family,
+                               param_overrides=profile.get("biome_parameters") or None)
+    patches = profile.get("biome_patches") or []
+    if patches:
+        sampler = PatchedBiomeSampler(sampler, patches)
+    return sampler
+
+
+def _process_group(task):
+    """Process one fingerprint group (singletons are groups of 1):
+    tier-1 screen a SHARED seed pool per member, union the per-member
+    top-N survivors, then tier-2-measure each survivor ONCE — a memoised
+    sampler serves every member, and each member banks rows for every
+    group seed (richer assignment pool at shared measurement cost)."""
+    (members, pool_size, keep_count,
      struct_sets_path, biome_params_path, noise_configs, seen_set) = task
 
     t0 = time.time()
@@ -268,70 +356,61 @@ def _process_dimension(task):
         for s in cfg["structures"]:
             struct_to_sets.setdefault(s["id"], []).append(set_id)
 
-    # Tier 1: screen pool_size seeds on structures alone
-    tier1 = []
+    # Tier 1: one shared pool; every member scores every seed.
+    ranks = {name: [] for name, _profile in members}
     for _ in range(pool_size):
         seed = random_seed()
         while str(seed) in seen_set:
             seed = random_seed()
         seen_set.add(str(seed))
-        score, dists = tier1_score(seed, profile, struct_sets, struct_to_sets)
-        tier1.append((score, seed, dists))
+        for name, profile in members:
+            score, _dists = tier1_score(seed, profile, struct_sets, struct_to_sets)
+            ranks[name].append((score, seed))
 
-    tier1.sort(reverse=True)
-    survivors = tier1[:keep_count]
+    # Survivors: union of each member's top keep_count — every member gets
+    # seeds that screened well FOR THEM; overlap between members is the
+    # tier-2 saving.
+    survivors = []
+    chosen = set()
+    for name, _profile in members:
+        ranks[name].sort(reverse=True)
+        for _score, seed in ranks[name][:keep_count]:
+            if seed not in chosen:
+                chosen.add(seed)
+                survivors.append(seed)
     tier1_ms = (time.time() - t0) * 1000
 
-    # Tier 2: full biome+terrain on survivors — ALL families use biome
-    # sampling when biome_params.json has entries for their biomes.
-    fam = profile["family"] or "overworld"
-    dim_type = profile.get("type", "")
-    noise_family = _TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
-    noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
-    config_biomes = profile.get("create_args", {}).get("biome")
-    # ORDERED list, not a set: foreign-biome round-robin follows config
-    # order in the mod (LinkedHashSet) — a set here scrambles the layout.
-    biome_filter = config_biomes.split(",") if config_biomes else None
-
-    results = []
-    accepted = 0
-    rejected = 0
-    for _t1_score, seed, struct_dists in survivors:
-        if dim_type == "checkerboard" and config_biomes:
-            # Ordered biome list (config order = the mod's grid order);
-            # the set-shaped biome_filter would scramble the pattern.
-            sampler = CheckerboardBiomeSampler(
-                seed, biome_params_path,
-                biomes=config_biomes.split(","),
-                scale=profile.get("checkerboard_scale"),
-                noise_config=noise_config, family=noise_family)
-        else:
-            sampler = BiomeSampler(seed, biome_params_path,
-                                   noise_config=noise_config,
-                                   biome_filter=biome_filter,
-                                   family=noise_family,
-                                   param_overrides=profile.get("biome_parameters") or None)
-        patches = profile.get("biome_patches") or []
-        if patches:
-            sampler = PatchedBiomeSampler(sampler, patches)
-        rows, ok = tier2_measure(seed, profile, sampler)
-
-        # Merge structure distances into rows
-        for sname, sid, _band, _kind in profile["battery"]:
-            dist = struct_dists.get(sname, -1)
-            rows.append((f"structure_{sname}_dist", dist))
-
-        results.append((seed, rows, ok))
-        if ok:
-            accepted += 1
-        else:
-            rejected += 1
+    # Tier 2: one sampler per seed serves all members (fingerprint
+    # invariant), memoised so repeated spawn/variety/terrain lookups
+    # across members are near-free — and EXACT (deterministic sampling).
+    results = {name: [] for name, _profile in members}
+    accepted = {name: 0 for name, _profile in members}
+    rejected = {name: 0 for name, _profile in members}
+    rep_profile = members[0][1]
+    for seed in survivors:
+        sampler = _build_sampler(seed, rep_profile, biome_params_path, noise_configs)
+        if len(members) > 1:
+            sampler = MemoSampler(sampler)
+        for name, profile in members:
+            rows, ok = tier2_measure(seed, profile, sampler)
+            # Structure distances: recomputed per member (pure math,
+            # <0.1ms) — each member's battery differs within a group.
+            _score, struct_dists = tier1_score(seed, profile,
+                                               struct_sets, struct_to_sets)
+            for sname, _sid, _band, _kind in profile["battery"]:
+                rows.append((f"structure_{sname}_dist", struct_dists.get(sname, -1)))
+            results[name].append((seed, rows, ok))
+            if ok:
+                accepted[name] += 1
+            else:
+                rejected[name] += 1
 
     tier2_ms = (time.time() - t0) * 1000 - tier1_ms
     total_ms = (time.time() - t0) * 1000
 
-    return (dim_name, results, accepted, rejected,
-            pool_size, len(survivors), tier1_ms, tier2_ms, total_ms)
+    return [(name, results[name], accepted[name], rejected[name],
+             pool_size, len(survivors), tier1_ms, tier2_ms, total_ms)
+            for name, _profile in members]
 
 
 def main():
@@ -398,26 +477,44 @@ def main():
         print(f"ERROR: biome params not found at {biome_params_path}")
         return 1
 
+    # Seed-group rolling: dims with byte-identical generation config share
+    # every seed's measurements — group them so each group's seeds are
+    # measured once and banked for every member. Worlds and unique dims
+    # stay singletons (fingerprint None never groups).
+    fingerprints = {d["name"]: generation_fingerprint(d) for d in dims}
+    groups = {}
+    for name, profile in all_targets:
+        fp = fingerprints.get(name)
+        key = fp if fp is not None else f"solo:{name}"
+        groups.setdefault(key, []).append((name, profile))
+
     tasks = []
-    for dim_name, profile in all_targets:
-        tasks.append((dim_name, profile, args.tier1_pool, args.count,
+    for members in groups.values():
+        tasks.append((members, args.tier1_pool, args.count,
                       struct_sets_path, biome_params_path, noise_configs, set(seen)))
 
     num_workers = args.workers or min(multiprocessing.cpu_count(), len(tasks))
     csv_path = args.output_csv or str(Path(args.seedtest) / "fast-roller.csv")
 
-    total_seeds = len(all_targets) * args.tier1_pool
-    print(f"Fast roller: {len(all_targets)} targets")
-    print(f"  Tier 1: {args.tier1_pool} seeds/target (structure screening)")
-    print(f"  Tier 2: top {args.count}/target (biome + terrain)")
+    multi = [m for m in groups.values() if len(m) > 1]
+    total_seeds = len(groups) * args.tier1_pool
+    print(f"Fast roller: {len(all_targets)} targets in {len(groups)} groups")
+    if multi:
+        print(f"  Shared-generation groups: {len(multi)} covering "
+              f"{sum(len(m) for m in multi)} dims (measured once per group)")
+        for m in multi:
+            print(f"    [{len(m)}] {', '.join(name for name, _p in m)}")
+    print(f"  Tier 1: {args.tier1_pool} seeds/group (structure screening)")
+    print(f"  Tier 2: top {args.count}/member, union per group (biome + terrain)")
     print(f"  Workers: {num_workers}, output: {csv_path}")
     t0 = time.time()
 
     if num_workers > 1 and len(tasks) > 1:
         with multiprocessing.Pool(num_workers) as pool:
-            all_results = pool.map(_process_dimension, tasks)
+            grouped_results = pool.map(_process_group, tasks)
     else:
-        all_results = [_process_dimension(t) for t in tasks]
+        grouped_results = [_process_group(t) for t in tasks]
+    all_results = [r for group in grouped_results for r in group]
 
     # Write CSV
     total_accepted = 0
@@ -437,7 +534,6 @@ def main():
 
     # Fold into candidate store
     print("\nFolding into candidate store...")
-    import importlib.util
     spec = importlib.util.spec_from_file_location(
         "score_dimensions",
         str(SCRIPT_DIR / "score-dimensions.py"))

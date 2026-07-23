@@ -8,6 +8,8 @@ from pathlib import Path
 from dimension_profiles import (
     build_profile,
     family_of,
+    generation_fingerprint,
+    generation_payload,
     load_config,
     load_dimension_configs,
     monolith_from_dir,
@@ -294,6 +296,99 @@ class Tier3ProfileTests(unittest.TestCase):
         self.assertEqual(profile["biome_parameters"],
                          {"minecraft:desert": {"continentalness": 0.3}})
         self.assertEqual(profile["settings_overrides"], {"seaLevel": 40})
+
+
+class GenerationFingerprintTests(unittest.TestCase):
+    """Seed-group rolling: two dims share a seed's measurements iff their
+    generation-affecting config is byte-identical. Scoring/runtime fields
+    must NOT move the fingerprint; generation fields MUST."""
+
+    BASE = {
+        "name": "a", "type": "overworld", "dimensionId": "adventure:a",
+        "biomes": ["minecraft:plains", "minecraft:forest"],
+        "structureDensity": "sparse", "noiseSettings": "adventure:wide",
+    }
+
+    def fp(self, **changes):
+        dim = {**self.BASE, **changes}
+        return generation_fingerprint(dim)
+
+    def test_scoring_and_runtime_fields_do_not_change_it(self):
+        base = self.fp()
+        self.assertEqual(base, self.fp(name="b", dimensionId="adventure:b", seed=42))
+        self.assertEqual(base, self.fp(seedRoll={"mood": "hard",
+                                                 "spawnFilter": ["minecraft:forest"],
+                                                 "wants": {"village": "spread"}}))
+        self.assertEqual(base, self.fp(portal={"frameBlock": "minecraft:clay",
+                                               "scale": 8.0}))
+        self.assertEqual(base, self.fp(difficulty={"mobMultiplier": 3.0}))
+        self.assertEqual(base, self.fp(borders={"player": 512}))
+        self.assertEqual(base, self.fp(description="x", color="FF0000",
+                                       exits={"void": {"target": "bed"}}))
+        # structures wants/shuns/clearSpawnRadius are scoring-only...
+        self.assertEqual(base, self.fp(structures={"wants": {"village": "spread"},
+                                                   "shuns": ["monument"],
+                                                   "clearSpawnRadius": 64}))
+
+    def test_generation_fields_change_it(self):
+        base = self.fp()
+        self.assertNotEqual(base, self.fp(type="multi_biome"))
+        self.assertNotEqual(base, self.fp(noiseSettings="adventure:compressed"))
+        self.assertNotEqual(base, self.fp(structureDensity="dense"))
+        self.assertNotEqual(base, self.fp(biomes=["minecraft:plains"]))
+        # order matters: one biome's difference re-deals the whole layout
+        self.assertNotEqual(base, self.fp(biomes=["minecraft:forest", "minecraft:plains"]))
+        self.assertNotEqual(base, self.fp(biomes=[
+            "minecraft:plains",
+            {"id": "minecraft:forest", "parameters": {"temperature": [0, 1]}}]))
+        self.assertNotEqual(base, self.fp(difficulty={"hostileSpawning": False}))
+        self.assertNotEqual(base, self.fp(environment={"minY": -128, "height": 512}))
+        self.assertNotEqual(base, self.fp(borders={"generation": 2048}))
+        self.assertNotEqual(base, self.fp(settingsOverrides={"seaLevel": 100}))
+        self.assertNotEqual(base, self.fp(biomePatches=[
+            {"biome": "minecraft:plains", "x": 0, "z": 0, "radius": 64}]))
+        self.assertNotEqual(base, self.fp(exitShrines={"enabled": True}))
+        # ...but structures.spacing rescales placements: generation-affecting
+        self.assertNotEqual(base, self.fp(structures={
+            "spacing": {"minecraft:villages": {"spacing": 8, "separation": 4}}}))
+
+    def test_runtime_environment_keys_do_not_change_it(self):
+        base = self.fp(environment={"minY": -64})
+        self.assertEqual(base, self.fp(environment={"minY": -64, "ambientLight": 0.5,
+                                                    "hasSkyLight": False}))
+
+    def test_base_worlds_never_group(self):
+        self.assertIsNone(generation_fingerprint({"name": "overworld", "seed": 1}))
+        self.assertIsNone(generation_payload({"name": "the_nether", "scale": 8.0}))
+
+    def test_v4_dict_and_monolith_entry_agree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {
+                "dimensions/the_test.json": {
+                    "type": "multi_biome", "seed": 7,
+                    "biomes": ["minecraft:plains",
+                               {"id": "minecraft:desert",
+                                "parameters": {"continentalness": 0.3}}],
+                    "structureDensity": "dense",
+                    "environment": {"minY": -32, "height": 288, "ambientLight": 0.1},
+                    "borders": {"player": 1024, "generation": 2048},
+                    "seedRoll": {"mood": "hard"},
+                    "portal": {"frameBlock": "minecraft:clay", "scale": 4.0},
+                },
+            })
+            cfg = monolith_from_dir(tmp)
+        synthesised = cfg["dimensions"][0]
+        raw = {
+            "name": "the_test", "type": "multi_biome", "seed": 7,
+            "biomes": ["minecraft:plains",
+                       {"id": "minecraft:desert",
+                        "parameters": {"continentalness": 0.3}}],
+            "structureDensity": "dense",
+            "environment": {"minY": -32, "height": 288, "ambientLight": 0.1},
+            "borders": {"player": 1024, "generation": 2048},
+        }
+        self.assertEqual(generation_fingerprint(raw),
+                         generation_fingerprint(synthesised))
 
 
 class BuildProfileV4Tests(unittest.TestCase):

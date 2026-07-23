@@ -419,7 +419,8 @@ def monolith_from_dir(config_dir):
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
                     "seedRoll", "difficulty", "borders", "structures",
                     "checkerboardScale", "layers", "flatBiome",
-                    "settingsOverrides", "biomePatches", "exitShrines"):
+                    "settingsOverrides", "biomePatches", "exitShrines",
+                    "environment"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
@@ -564,6 +565,66 @@ def rollable(dim):
     if t == "void":
         return bool(dim.get("biome") or dim.get("biomes"))
     return True
+
+
+# Worldgen-relevant environment keys (the rest of the environment block —
+# ambient light, effects, bed/anchor rules — is runtime-only).
+_FP_ENVIRONMENT_KEYS = ("minY", "height", "logicalHeight", "coordinateScale")
+
+
+def generation_payload(dim):
+    """Canonical dict of every generation-affecting config field — the
+    invariant behind seed-group rolling: two dimensions can share a seed's
+    measurements iff this payload is byte-identical. Generation-affecting
+    means it changes the world a seed generates OR what a measurement of it
+    means: type, noiseSettings, the FULL ordered biome list (one biome's
+    difference re-deals the whole layout), per-biome parameters,
+    structureDensity, the peaceful overlay (hostileSpawning drops structure
+    sets), worldgen environment fields, borders.generation (measurement
+    radius), checkerboard/superflat shape, settingsOverrides, biomePatches,
+    exitShrines (raises the shrine set's frequency), and structures.spacing
+    (rescales placements). Everything else — seedRoll, portal, difficulty
+    multipliers, description, colours — is scoring or runtime and shares
+    freely. Base-world entries (no "type") return None: never grouped."""
+    if "type" not in dim:
+        return None
+    raw_biomes = dim.get("biomes")
+    if raw_biomes:
+        ids, params = biome_ids_and_params(raw_biomes)
+    else:
+        ids = [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+        params = dim.get("biomeParameters") or {}
+    dif = dim.get("difficulty") or {}
+    peaceful = dif.get("hostileSpawning", dim.get("hostileSpawning")) is False
+    env = dim.get("environment") or {}
+    return {
+        "type": dim.get("type"),
+        "noiseSettings": dim.get("noiseSettings"),
+        "biomes": [[b, params.get(b)] for b in ids],
+        "structureDensity": dim.get("structureDensity"),
+        "peaceful": peaceful,
+        "environment": {k: env.get(k) for k in _FP_ENVIRONMENT_KEYS},
+        "generationBorder": (dim.get("borders") or {}).get("generation"),
+        "checkerboardScale": dim.get("checkerboardScale"),
+        "layers": dim.get("layers"),
+        "flatBiome": dim.get("flatBiome"),
+        "settingsOverrides": dim.get("settingsOverrides") or {},
+        "biomePatches": dim.get("biomePatches") or [],
+        "exitShrines": bool((dim.get("exitShrines") or {}).get("enabled")),
+        "spacingOverrides": (dim.get("structures") or {}).get("spacing") or {},
+    }
+
+
+def generation_fingerprint(dim):
+    """sha256[:12] of generation_payload — the group key for seed-group
+    rolling. None for base-world entries (they never group)."""
+    import hashlib
+    import json
+    payload = generation_payload(dim)
+    if payload is None:
+        return None
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
 def portal_scales(config):

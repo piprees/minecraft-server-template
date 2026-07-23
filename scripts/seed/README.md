@@ -68,6 +68,8 @@ Two-tier screening pipeline. Tier 1 (instant): structure placement check using e
 
 Single source of truth for what gets measured and how candidates are judged. Derives per-dimension profiles from the config: mood-driven weights (namesake, variety, terrain, structures), structure placement bands, terrain targets, spawn filters, biome variety probes. Handles the full dimension taxonomy (overworld, nether, end, paradise_lost, void, sky_islands).
 
+Also home of `generation_fingerprint()` — the seed-group-rolling key (see below).
+
 ### `structure_placement.py` — Structure distance computation
 
 Computes nearest structure placement from seed + structure set parameters (spacing, separation, salt, spread type). Pure math — no world generation.
@@ -79,6 +81,26 @@ Scores measured candidates against dimension profiles, persists candidate stores
 ### `candidates.py` — Candidate storage
 
 Manages the per-dimension JSON candidate stores in `config/custom-dimensions/candidates/`.
+
+## Seed-Group Rolling
+
+Many dimensions are "same world, different curated taste" — identical generation settings, differing only by wants/shuns/spawn filters. Those share every seed's measurements, so the roller measures each seed **once per generation fingerprint** and banks the rows for every member.
+
+### The invariant (and its hard edge)
+
+Two dimensions can share a seed's measurements **iff their generation-affecting config is byte-identical**: `type`, `noiseSettings`, the full ordered biome list (one biome's difference re-deals the whole layout), per-biome `parameters`, `structureDensity`, the peaceful overlay (`hostileSpawning: false` drops structure sets), worldgen `environment` fields (minY/height/logicalHeight/coordinateScale), `borders.generation`, `checkerboardScale`/`layers`/`flatBiome`, `settingsOverrides`, `biomePatches`, `exitShrines` (raises the shrine set's frequency), and `structures.spacing` (rescales placements). Everything else — `seedRoll`, `portal`, difficulty multipliers, description, colours — is scoring or runtime and shares freely.
+
+**Hard edge**: measurements never transfer across differing biome lists, even "similar" ones. Same-or-nothing.
+
+### How it works
+
+- `dimension_profiles.generation_fingerprint(dim)` → sha256[:12] of the canonical generation payload (`generation_payload` for debugging). Base-world entries return `None` and never group.
+- `fast_roller` groups rollable targets by fingerprint. Each group screens ONE shared tier-1 pool (every member scores every seed), unions the per-member top `--count` survivors, and tier-2-measures each survivor once — a `MemoSampler` (coordinate-cached, exact) serves every member, so per-member rows are **bit-identical to a solo run**. Every member banks rows for every group seed: richer assignment pool, seeds rejected by one member's spawn filter still count for its siblings, and every rejection is banked (never re-rolled).
+- Candidates are stamped with the fingerprint they were **measured under** (`candidates/{slug}.json` → `candidates.<seed>.fingerprint`).
+- `score-dimensions.py finalise` assigns winners **injectively within a group** — two members with the same fingerprint AND the same seed are literal world clones, so winners must be distinct seeds. Greedy best-fit: pins claim their seed first, then members in best-score order walk down their own ranking past taken seeds.
+- **Fingerprint drift**: a generation-config change re-keys the dim to a new fingerprint. Its banked measurements stay (never deleted), but `finalise` and `status` warn when a winner was measured under a different fingerprint — those measurements describe a world the config no longer generates, and only a re-roll fixes that (rescoring can't).
+
+The payoff (measured 2026-07-23, 78 custom dims): 8 groups covering 31 dims — the biggest is the 6-dim nether-default group. For a 5-member group, tier-2 measurement of the whole group costs roughly what one member used to.
 
 ## The Biome Sampling Algorithm
 

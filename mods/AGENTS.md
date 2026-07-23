@@ -202,6 +202,7 @@ The seed-rolling system at `scripts/seed/` evaluates dimension seeds without run
 - Dimension configs at `config/custom-dimensions/dimensions/` drive what gets rolled — the roller reads `type`, `biomes`, `seedRoll`, `structureDensity`, and `difficulty` from each file
 - Per-dimension `seedRoll` blocks control spawn filters, wants/shuns, mood, and terrain preferences
 - Winners are written back to `config/custom-dimensions/candidates/` and optionally into the dimension config's `seed` field
+- **Seed-group rolling**: dims with byte-identical generation config (`dimension_profiles.generation_fingerprint`) share measurements — measured once per group, winners forced distinct at finalise (same fingerprint + same seed = literal world clones). Any NEW generation-affecting config field the mod grows MUST be added to `generation_payload()` or grouping silently lies (the roller-parity rule's fingerprint corollary)
 
 ## Architecture (custom-dimensions)
 

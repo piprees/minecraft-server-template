@@ -54,7 +54,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import candidates  # noqa: E402
-from dimension_profiles import build_profile, load_config, load_difficulty, rollable  # noqa: E402
+from dimension_profiles import (  # noqa: E402
+    build_profile, generation_fingerprint, load_config, load_difficulty, rollable,
+)
 
 LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 
@@ -479,8 +481,12 @@ def persist_candidates(args, config, profiles, results, data, winners=None):
     for name in profiles:
         store = candidates.load_store(cdir / f"{name}.json")
         store["configHash"] = candidates.config_hash(sources.get(name))
+        # New candidates are stamped with the generation fingerprint they
+        # were measured under (drift vs the current config is warned at
+        # status/finalise time); existing candidates keep their stamp.
+        fp = generation_fingerprint(sources[name]) if name in sources else None
         for seed, rows in data.get(name, {}).items():
-            candidates.merge_rows(store, seed, rows)
+            candidates.merge_rows(store, seed, rows, fingerprint=fp)
         for seed, reason in abandoned.get(name, {}).items():
             store["abandoned"].setdefault(str(seed), reason)
         for c in results.get(name, []):
@@ -557,6 +563,7 @@ def cmd_status(args, config, profiles):
           f"{'winner':>21} {'score':>6}  state")
     print("-" * 96)
     stale_count = 0
+    drifted_count = 0
     for name in profiles:
         store = candidates.load_store(cdir / f"{name}.json")
         chash = candidates.config_hash(sources.get(name))
@@ -573,12 +580,24 @@ def cmd_status(args, config, profiles):
                 wscore = f"{score['total']:.1f}"
             else:
                 state = "STALE (winner unscored for current config — run seed-rescore)"
+            # Generation-fingerprint drift is stronger than score staleness:
+            # the winner's MEASUREMENTS describe a world the current config
+            # no longer generates — rescoring can't fix that, only re-rolling.
+            cur_fp = generation_fingerprint(sources.get(name) or {})
+            cand_fp = store["candidates"][winner].get("fingerprint")
+            if cur_fp and cand_fp and cand_fp != cur_fp:
+                state = "DRIFTED (generation config changed since measurement — re-roll)"
+                drifted_count += 1
         pin = " 📌" if store["winnerPinned"] else ""
         print(f"{name:30} {len(store['candidates']):>5} {len(store['rejected']):>4} "
               f"{len(store['abandoned']):>5} {winner or '-':>21} {wscore:>6}  {state}{pin}")
     if stale_count:
         print(f"\n{stale_count} target(s) have stale scores — ./dev seed-rescore refreshes "
               "them from banked measurements (no re-rolling)")
+    if drifted_count:
+        print(f"{drifted_count} target(s) have winners measured under a different "
+              "generation fingerprint — their measurements no longer describe the "
+              "configured world; re-roll those dimensions")
 
 
 def print_summary(results, profiles, rejected=None):
@@ -773,11 +792,72 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
             cand = dict(cand)
             cand["pinned"] = True
             winners[d] = cand
-    if dir_mode:
-        persist_candidates(args, config, profiles, results, data, winners)
 
     all_sources = {d["name"]: d for d in config.get("dimensions", [])}
     all_sources.update({w["name"]: w for w in config.get("worlds", [])})
+
+    # Seed-group rolling: two members of a generation-fingerprint group
+    # with the same seed are LITERAL WORLD CLONES — winners within a group
+    # must be distinct seeds. Greedy best-fit: pins claim their seed first,
+    # then members in best-score order walk down their own ranking past
+    # taken seeds (fine at these group sizes, ≤6 members).
+    fp_groups = {}
+    for name in profiles:
+        src = all_sources.get(name)
+        fp = generation_fingerprint(src) if src else None
+        if fp is not None:
+            fp_groups.setdefault(fp, []).append(name)
+    for names in fp_groups.values():
+        if len(names) < 2:
+            continue
+        taken = {}
+        pinned = [n for n in names if winners.get(n, {}).get("pinned")]
+        ranked = sorted((n for n in names
+                         if n in winners and not winners[n].get("pinned")),
+                        key=lambda n: -winners[n]["score"])
+        for n in pinned:
+            seed = winners[n]["seed"]
+            if seed in taken:
+                print(f"WARNING: pinned winners for {taken[seed]} and {n} share seed "
+                      f"{seed} — identical generation config makes them literal "
+                      f"world clones; re-pin one of them")
+            taken.setdefault(seed, n)
+        for n in ranked:
+            top_seed = winners[n]["seed"]
+            if top_seed not in taken:
+                taken[top_seed] = n
+                continue
+            alt = next((c for c in results.get(n, [])
+                        if c["seed"] not in taken), None)
+            if alt is None:
+                print(f"WARNING: no distinct seed left for {n} in its generation "
+                      f"group — keeping shared seed {top_seed} (world clone of "
+                      f"{taken[top_seed]}); roll more candidates")
+                continue
+            print(f"group assignment: {n} takes {alt['seed']} "
+                  f"(score {alt['score']:.1f}; top seed {top_seed} "
+                  f"already won by {taken[top_seed]})")
+            winners[n] = alt
+            taken[alt["seed"]] = n
+
+    if dir_mode:
+        persist_candidates(args, config, profiles, results, data, winners)
+        # Fingerprint drift: a winner measured under a different generation
+        # fingerprint describes a world the current config no longer
+        # generates. Warn, never delete (the mod's fingerprint-drift tone).
+        cdir_fp = candidates.candidates_dir(Path(args.config))
+        for name, w in winners.items():
+            src = all_sources.get(name)
+            cur_fp = generation_fingerprint(src) if src else None
+            if cur_fp is None:
+                continue
+            store = candidates.load_store(cdir_fp / f"{name}.json")
+            cand_fp = store["candidates"].get(str(w["seed"]), {}).get("fingerprint")
+            if cand_fp and cand_fp != cur_fp:
+                print(f"WARNING: {name} winner {w['seed']} was measured under "
+                      f"generation fingerprint {cand_fp}, but the config now "
+                      f"fingerprints {cur_fp} — its measurements describe a world "
+                      f"this config no longer generates; re-roll {name}")
 
     if args.write_config and winners:
         cfg_path = Path(args.config)

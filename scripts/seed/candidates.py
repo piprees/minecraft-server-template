@@ -8,6 +8,11 @@ One JSON file per roll target at {config_dir}/candidates/{slug}.json:
     "candidates": {
       "<seed>": {
         "measurements": { ... },        # raw locate/terrain metrics (seed-specific, never stale)
+        "fingerprint": "17be85b67f59",  # generation fingerprint the seed was MEASURED under
+                                        # (dimension_profiles.generation_fingerprint) — drift
+                                        # vs the current config means the measurements describe
+                                        # a world this config no longer generates (warned at
+                                        # status/finalise, never deleted)
         "scores": {                     # keyed by config hash — a config change makes old
           "a1b2c3d4": {"total": 77.6, "namesake": 1.0, ..., "timestamp": "..."}
           }                             # scores stale WITHOUT invalidating measurements
@@ -81,9 +86,12 @@ def save_store(path, store):
     tmp.replace(path)
 
 
-def merge_rows(store, seed, rows):
+def merge_rows(store, seed, rows, fingerprint=None):
     """Fold one measured candidate's raw metric rows into the store.
-    Spawn-filter rejects land in rejected{} with a derived reason."""
+    Spawn-filter rejects land in rejected{} with a derived reason.
+    `fingerprint` (the generation fingerprint the seed was measured under)
+    is stamped on NEW candidates only — an existing candidate keeps the
+    stamp from its own measurement run."""
     seed = str(seed)
     if rows.get("rejected") == "1":
         if seed not in store["rejected"]:
@@ -96,9 +104,12 @@ def merge_rows(store, seed, rows):
                 f"spawn filter: nearest biome at {dist} blocks" if dist >= 0
                 else "spawn filter: no matching biome found")
         return
+    is_new = seed not in store["candidates"]
     cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
     cand.setdefault("measurements", {}).update(rows)
     cand.setdefault("scores", {})
+    if fingerprint and is_new:
+        cand["fingerprint"] = fingerprint
 
 
 def record_score(store, seed, chash, total, parts, timestamp):

@@ -579,18 +579,27 @@ after design changes and rebuild the mod jar. Seed rolling: add
 `"exit_shrine": "near_spawn"` to `seedRoll.wants` to favour candidates
 with a shrine in walking distance.
 
-## Worldgen: seed rolling with profiles
+## Worldgen: seed rolling
 
-`./dev seed-roll` measures seeds (no judgement); `./dev seed-report
---profile <name>` scores the banked measurements at report time. Profiles
-live in `scripts/seed/profiles/` (`classic`, `overworld-natural`, and the
-`dim-*` archetypes) — format documented in `classic.profile`. Roll a single
-dimension's seed candidates in batches with:
+`./dev seed-roll` rolls every rollable dimension with the pure-Python
+roller (structure screening + biome/terrain sampling — no server boots),
+banks raw measurements in `config/custom-dimensions/candidates/`, and
+writes winner seeds back into the dimension configs. `./dev seed-rescore`
+re-scores the banked measurements against your current configs without
+re-rolling; `./dev seed-status` shows per-dimension candidate counts,
+winners, and freshness; `./dev seed-viewer` is the interactive picker.
 
-```bash
-./dev seed-roll --dimension the_gauntlet --profile dim-hard-overworld --candidates 16 --rounds 4
-./dev seed-report --profile dim-hard-overworld --target the_gauntlet
-```
+**Seed groups**: dimensions whose generation-affecting config is
+byte-identical (same type, noiseSettings, biome list, structureDensity,
+patches, …) share every seed's measurements — the roller measures each
+seed once per group and banks it for every member, and the finaliser
+guarantees group members get **distinct** winner seeds (two identical-
+generation dims on the same seed would be literal world clones). Scoring
+fields (`seedRoll`, `structures.wants/shuns`, difficulty, portal, colours)
+don't affect grouping — curate them freely.
 
-Winners are applied by hand: world seed → `SEED=` in `.env`; dimension seed
-→ that dimension's `"seed"` in `config/multiverse_config.json`.
+`seed-status` states worth knowing: `STALE` means scores need a
+`seed-rescore` after a config edit; `DRIFTED` means the winner was
+measured under a **different generation config** — its measurements no
+longer describe the world your config generates, and only a re-roll of
+that dimension fixes it.

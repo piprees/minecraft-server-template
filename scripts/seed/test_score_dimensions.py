@@ -93,6 +93,17 @@ class CandidateStoreTests(unittest.TestCase):
             self.assertEqual(candidates.load_store(path)["candidates"]["1"]["measurements"],
                              {"errors": "0"})
 
+    def test_merge_rows_stamps_fingerprint_on_new_candidates_only(self):
+        store = candidates.empty_store()
+        candidates.merge_rows(store, 1, {"errors": "0"}, fingerprint="aaa111")
+        self.assertEqual(store["candidates"]["1"]["fingerprint"], "aaa111")
+        # an existing candidate keeps the stamp from its own measurement run
+        candidates.merge_rows(store, 1, {"extra": "1"}, fingerprint="bbb222")
+        self.assertEqual(store["candidates"]["1"]["fingerprint"], "aaa111")
+        # no fingerprint given -> no stamp (legacy callers)
+        candidates.merge_rows(store, 2, {"errors": "0"})
+        self.assertNotIn("fingerprint", store["candidates"]["2"])
+
     def test_seen_seeds_covers_all_banks(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = candidates.empty_store()
@@ -215,6 +226,103 @@ class CandidatePipelineTests(unittest.TestCase):
             store = candidates.load_store(cdir / "sample_dimension.json")
             self.assertEqual(store["winner"], "200")
             self.assertFalse(store["winnerPinned"])
+
+
+class GroupWinnerAssignmentTests(unittest.TestCase):
+    """Seed-group rolling: within a generation-fingerprint group the same
+    seed means literal world clones, so finalise must assign distinct
+    winners; a winner measured under a drifted fingerprint gets a warning."""
+
+    def make_args(self, tmp, gen_extra_b=None):
+        cfg = Path(tmp) / "custom-dimensions"
+        (cfg / "dimensions").mkdir(parents=True, exist_ok=True)
+        base = {"type": "overworld",
+                "seedRoll": {"spawnFilter": ["minecraft:plains"]}}
+        (cfg / "dimensions" / "twin_a.json").write_text(json.dumps(base))
+        dim_b = dict(base)
+        if gen_extra_b:
+            dim_b.update(gen_extra_b)
+        (cfg / "dimensions" / "twin_b.json").write_text(json.dumps(dim_b))
+        seedtest = Path(tmp) / "seedtest"
+        seedtest.mkdir(exist_ok=True)
+        return SimpleNamespace(config=str(cfg), seedtest=str(seedtest),
+                               csv=str(seedtest / "measurements.csv"),
+                               write_config=False, viewer=False,
+                               open_viewer=False)
+
+    def _measure_twins(self, args):
+        # Seed 100 spawns on the namesake (scores higher) for BOTH twins;
+        # 200 is the runner-up. Identical rows -> identical rankings.
+        rows = []
+        for dim in ("twin_a", "twin_b"):
+            rows += [[dim, "100", "spawn_biome", "minecraft:plains"],
+                     [dim, "100", "errors", "0"],
+                     [dim, "200", "spawn_biome", "minecraft:desert"],
+                     [dim, "200", "errors", "0"]]
+        write_worker_csv(args.seedtest, rows)
+
+    def _finalise(self, args):
+        import contextlib
+        import io
+        from dimension_profiles import load_config
+        config = load_config(args.config)
+        profiles = {d["name"]: build_profile(d, config)
+                    for d in config["dimensions"]}
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            score_dimensions.cmd_finalise(args, config, profiles)
+        return out.getvalue()
+
+    def test_group_members_get_distinct_winners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.make_args(tmp)
+            self._measure_twins(args)
+            output = self._finalise(args)
+            cdir = Path(args.config) / "candidates"
+            winner_a = candidates.load_store(cdir / "twin_a.json")["winner"]
+            winner_b = candidates.load_store(cdir / "twin_b.json")["winner"]
+            self.assertEqual({winner_a, winner_b}, {"100", "200"})
+            self.assertIn("group assignment", output)
+
+    def test_different_fingerprints_keep_independent_winners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # structureDensity changes the generation fingerprint — no
+            # group, both twins keep their own best seed.
+            args = self.make_args(tmp, gen_extra_b={"structureDensity": "dense"})
+            self._measure_twins(args)
+            self._finalise(args)
+            cdir = Path(args.config) / "candidates"
+            self.assertEqual(candidates.load_store(cdir / "twin_a.json")["winner"], "100")
+            self.assertEqual(candidates.load_store(cdir / "twin_b.json")["winner"], "100")
+
+    def test_pinned_winner_claims_its_seed_first(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.make_args(tmp)
+            self._measure_twins(args)
+            cdir = Path(args.config) / "candidates"
+            # Pin the LOWER-scoring twin_b to the shared top seed: twin_a
+            # must step down to 200 even though it out-scores twin_b.
+            store = candidates.empty_store()
+            store["winner"] = "100"
+            store["winnerPinned"] = True
+            candidates.save_store(cdir / "twin_b.json", store)
+            self._finalise(args)
+            self.assertEqual(candidates.load_store(cdir / "twin_b.json")["winner"], "100")
+            self.assertEqual(candidates.load_store(cdir / "twin_a.json")["winner"], "200")
+
+    def test_fingerprint_drift_warns_at_finalise(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.make_args(tmp)
+            self._measure_twins(args)
+            self._finalise(args)  # stamps candidates with the current fp
+            # Generation change AFTER measurement: twin_a's banked
+            # measurements describe a world this config no longer makes.
+            (Path(args.config) / "dimensions" / "twin_a.json").write_text(
+                json.dumps({"type": "overworld", "structureDensity": "dense",
+                            "seedRoll": {"spawnFilter": ["minecraft:plains"]}}))
+            output = self._finalise(args)
+            self.assertIn("measured under", output)
+            self.assertIn("twin_a", output)
 
 
 class WinnerOverlayWritebackTests(unittest.TestCase):
