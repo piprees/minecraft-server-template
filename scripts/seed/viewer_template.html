@@ -1,993 +1,1700 @@
 <!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<title>Seed Viewer — Multiverse</title>
-<style>
-:root {
-  color-scheme: dark;
-  --bg-page: #14161a;
-  --bg-card: #1d2026;
-  --bg-card-alt: #181b20;
-  --bg-input: #191c21;
-  --border: #2c313a;
-  --border-hover: #4a5568;
-  --text: #e6e6e6;
-  --text-muted: #9aaabb;
-  --text-heading: #c8d2dc;
-  --accent: #5b8dd0;
-  --accent-hover: #8fb4d8;
-  --accent-gold: #d4a020;
-  --accent-gold-bright: #ffd850;
-  --score-green: #6ec96e;
-  --score-amber: #e8a735;
-  --score-red: #e05252;
-  --radius: 8px;
-  --radius-sm: 6px;
-  --radius-pill: 99px;
-}
-* { box-sizing: border-box; }
-body {
-  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg-page); color: var(--text); margin: 0; padding: 0 2rem 2rem;
-}
-
-h1 { font-size: 1.4rem; margin: 1rem 0 .3rem; }
-.summary { color: var(--text-muted); font-size: .85rem; margin: .2rem 0 .6rem; }
-.summary b { color: var(--text-heading); font-weight: 600; }
-
-/* --- Sticky filter/sort bar --- */
-.filter-bar {
-  position: sticky; top: 0; z-index: 100; background: var(--bg-page);
-  border-bottom: 1px solid #262b33; padding: .5rem 0;
-  display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
-}
-.filter-bar select, .filter-bar input[type=text] {
-  font: inherit; font-size: .82rem; background: var(--bg-card); color: var(--text);
-  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .25rem .5rem; outline: none;
-}
-.filter-bar select:focus, .filter-bar input[type=text]:focus { border-color: var(--accent); }
-.filter-bar input[type=text] { flex: 1; min-width: 8rem; max-width: 14rem; }
-.filter-bar label {
-  font-size: .82rem; color: var(--text-muted); cursor: pointer; user-select: none;
-  display: flex; align-items: center; gap: .25rem;
-}
-.family-btns { display: flex; gap: 0; }
-.family-btn {
-  font: inherit; font-size: .78rem; padding: .25rem .6rem;
-  background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border);
-  cursor: pointer; transition: background .12s, color .12s;
-}
-.family-btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-.family-btn:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-.family-btn + .family-btn { border-left: none; }
-.family-btn.active { background: #2a3545; color: var(--accent-hover); border-color: var(--accent); }
-.family-btn:hover { background: #252a33; }
-
-/* --- Focus indicators --- */
-.dim-card:focus-visible, .cand-toggle:focus-visible, .close-btn:focus-visible,
-.family-btn:focus-visible, .pick:focus-visible, .action-btn:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
-}
-
-/* --- Winner card grid (grouped mode) --- */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: .6rem; margin-top: .6rem;
-}
-.dim-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: .5rem; cursor: pointer; transition: border-color .12s;
-  position: relative; overflow: hidden; min-width: 0;
-}
-.dim-card:hover { border-color: var(--border-hover); }
-.dim-card.expanded { border-color: var(--accent); grid-column: 1 / -1; cursor: default; }
-.dim-card.hidden { display: none; }
-.dim-card img {
-  width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
-  object-fit: cover; image-rendering: pixelated;
-}
-.dim-card.expanded img.winner-img { max-width: 200px; width: 100%; }
-.dim-card .dim-name {
-  font-size: .88rem; font-weight: 600; margin-top: .3rem;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.dim-card .dim-meta {
-  font-size: .72rem; color: var(--text-muted); margin-top: .1rem;
-  display: flex; gap: .4rem; align-items: center; flex-wrap: wrap;
-}
-.dim-card .dim-score { font-weight: 700; font-size: 1rem; }
-.dim-card .dim-blurb {
-  font-size: .68rem; color: #8899aa; margin-top: .15rem;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  font-style: italic;
-}
-.dim-card .dim-spawn { font-size: .7rem; color: var(--text-muted); margin-top: .15rem; }
-.dim-card .dim-spawn b { color: #a8d8a0; font-weight: 600; }
-
-/* Flag dot on card corner */
-.flag-dot {
-  position: absolute; top: .4rem; right: .4rem;
-  width: 8px; height: 8px; border-radius: 50%;
-}
-.flag-dot.amber { background: var(--score-amber); }
-.flag-dot.red { background: var(--score-red); }
-
-/* Badge */
-.badge {
-  display: inline-block; font-size: .65rem; padding: .05rem .4rem;
-  border-radius: var(--radius-pill); background: var(--border); color: var(--text-muted);
-}
-
-/* --- Expanded detail panel --- */
-.detail { display: none; margin-top: .6rem; }
-.dim-card.expanded .detail { display: block; }
-.dim-card.expanded .compact { display: none; }
-
-.detail-header {
-  display: flex; gap: 1rem; align-items: flex-start; margin-bottom: .6rem;
-}
-.detail-info { flex: 1; min-width: 0; }
-.detail-info h2 { font-size: 1.1rem; margin: 0 0 .2rem; }
-.detail-info .blurb { color: #bcd; font-size: .82rem; margin: .2rem 0; }
-.detail-info .criteria {
-  font-size: .75rem; color: var(--text-muted); background: var(--bg-input);
-  border: 1px solid #262b33; border-radius: var(--radius-sm);
-  padding: .4rem .6rem; margin-top: .4rem;
-}
-.detail-info .criteria b { color: var(--text-heading); font-weight: 600; }
-
-.dim-actions { margin: .5rem 0; }
-
-/* --- Candidate cards --- */
-.all-cands {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: .6rem; margin-top: .5rem;
-}
-.cand {
-  background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: .5rem; width: 100%; position: relative;
-  overflow: hidden; min-width: 0;
-}
-.cand.winner { border-color: var(--accent-gold); box-shadow: 0 0 0 1px var(--accent-gold); }
-.cand img {
-  width: 100%; aspect-ratio: 1; border-radius: 4px; background: #101216;
-  object-fit: cover; image-rendering: pixelated; display: block;
-}
-.cand .score { font-size: 1rem; font-weight: 700; }
-.cand .seed {
-  font-family: ui-monospace, monospace; font-size: .7rem;
-  word-break: break-all; color: var(--accent-hover);
-}
-.cand .cand-dim-label {
-  font-size: .68rem; color: var(--text-muted); margin-top: .15rem;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.section-header {
-  font-size: .65rem; color: var(--text-muted); text-transform: uppercase;
-  letter-spacing: .5px; margin: .4rem 0 .15rem;
-  border-top: 1px solid var(--border); padding-top: .3rem;
-}
-.terrain-summary {
-  display: flex; gap: .6rem; font-size: .65rem; color: var(--text-muted);
-  margin-top: .3rem; padding: .2rem 0;
-  border-top: 1px solid #1a1d22;
-}
-.terrain-summary b { color: var(--text-heading); }
-.struct-table, .struct-list { margin-top: .3rem; font-size: .72rem; color: var(--text-muted); }
-.struct-list div { padding: .1rem 0; }
-.struct-list span[title] { cursor: help; }
-.bars { margin-top: .25rem; }
-.bar {
-  display: grid; grid-template-columns: 4.5rem 1fr 2.2rem; gap: .3rem;
-  align-items: center; font-size: .68rem; color: var(--text-muted); margin-bottom: .15rem;
-}
-.bar .track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
-.bar .fill { height: 100%; border-radius: 4px; }
-.cand.winner .bar .fill { background: var(--accent-gold); }
-.spawn { font-size: .7rem; color: var(--text-muted); margin-top: .2rem;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.spawn b { color: #a8d8a0; font-weight: 600; }
-
-/* --- Buttons --- */
-.pick, .action-btn {
-  display: none; margin-top: .3rem; font-size: .72rem; padding: .3rem .6rem;
-  border-radius: var(--radius-sm); border: 1px solid #3a4150; background: #232833;
-  color: var(--text-heading); cursor: pointer; min-height: 32px;
-}
-.pick:hover, .action-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold-bright); }
-body.live .pick, body.live .action-btn { display: inline-block; }
-.action-btn { margin-right: .2rem; }
-kbd {
-  font: inherit; font-size: .65em; background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.15); border-radius: 3px;
-  padding: .05em .3em; margin-left: .3em; vertical-align: baseline;
-}
-.action-btn.reroll:hover { border-color: var(--accent); color: var(--accent-hover); }
-.action-btn.edit:hover { border-color: #5bd060; color: #a8d8a0; }
-
-.close-btn {
-  position: absolute; top: .4rem; right: .4rem; font-size: 1.2rem;
-  color: #666; cursor: pointer; line-height: 1; padding: .3rem;
-  border-radius: var(--radius-sm);
-  background: none; border: none; font-family: inherit;
-}
-.close-btn:hover { color: var(--text); background: rgba(255,255,255,.05); }
-
-/* Shortlisted candidate indicator */
-.cand[data-shortlisted]::after {
-  content: '\2605'; position: absolute; top: .3rem; right: .3rem;
-  color: var(--accent-gold); font-size: .85rem; line-height: 1;
-}
-
-/* Shortlist filter: hide non-shortlisted candidates when active */
-body.shortlist-filter .cand:not([data-shortlisted]) { display: none; }
-
-/* Ungrouped mode: flat grid of all candidates */
-#ungrouped-grid {
-  display: none;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: .6rem; margin-top: .6rem;
-}
-body.ungrouped #grid { display: none; }
-body.ungrouped #ungrouped-grid { display: grid; }
-
-/* Dim label hidden in grouped mode, visible in ungrouped */
-.cand-dim-label { display: none; }
-body.ungrouped .cand-dim-label { display: block; }
-
-/* Hidden dimension cards */
-.dim-card[data-hidden="1"] { opacity: .45; }
-.dim-card[data-hidden="1"]:hover { opacity: .7; }
-
-/* Extra action buttons */
-.action-btn.hide:hover { border-color: var(--score-amber); color: var(--score-amber); }
-.action-btn.remove { color: #c55; }
-.action-btn.remove:hover { border-color: var(--score-red); color: var(--score-red); }
-.action-btn.create-dim:hover { border-color: var(--accent-hover); color: var(--accent-hover); }
-
-/* Create dimension dialog */
-#create-dim-dialog {
-  background: var(--bg-card); color: var(--text); border: 1px solid #3a4150;
-  border-radius: 10px; padding: 1.2rem; max-width: 380px; width: 90vw;
-}
-#create-dim-dialog::backdrop { background: rgba(0,0,0,.6); }
-#create-dim-dialog h3 { margin: 0 0 .8rem; font-size: 1rem; }
-#create-dim-dialog label {
-  display: block; font-size: .82rem; color: var(--text-muted); margin-bottom: .6rem;
-}
-#create-dim-dialog input[type=text], #create-dim-dialog textarea {
-  display: block; width: 100%; margin-top: .2rem;
-  font: inherit; font-size: .82rem; background: var(--bg-page); color: var(--text);
-  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem .5rem;
-}
-#create-dim-dialog textarea { height: 4rem; resize: vertical; }
-#create-dim-dialog input:focus, #create-dim-dialog textarea:focus {
-  border-color: var(--accent); outline: none;
-}
-.cd-error { color: var(--score-red); font-size: .75rem; min-height: 1.1em; margin-bottom: .3rem; }
-.dialog-actions {
-  display: flex; gap: .5rem; justify-content: flex-end; margin-top: .6rem;
-}
-.dialog-actions button {
-  font: inherit; font-size: .8rem; padding: .3rem .8rem;
-  border-radius: var(--radius-sm); cursor: pointer; border: 1px solid #3a4150;
-  background: #232833; color: var(--text-heading); min-height: 32px;
-}
-.dialog-actions button:hover { border-color: var(--accent); }
-.dialog-actions .primary { background: #2a3545; color: var(--accent-hover); }
-
-/* --- Hires indicator --- */
-.cand .hires-badge, .dim-card .hires-badge {
-  position: absolute; top: .6rem; left: .6rem; font-size: .55rem;
-  background: rgba(91,141,208,.85); color: #fff; padding: .1rem .3rem;
-  border-radius: 3px; font-weight: 700; letter-spacing: .5px;
-  pointer-events: none; display: none;
-}
-.cand .hires-badge.visible, .dim-card .hires-badge.visible { display: block; }
-
-/* --- World border mode --- */
-.img-wrap { position: relative; display: block; overflow: hidden;
-  background: #0a0c0e; border-radius: 4px; }
-.img-wrap img { transition: transform .3s ease; }
-body.show-borders .img-wrap img { transform-origin: center; }
-.border-ring {
-  position: absolute; border: 2px solid rgba(255,60,60,.8);
-  pointer-events: none; z-index: 5;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.4);
-}
-.border-label {
-  position: absolute; bottom: 0; right: 0; font-size: .55rem;
-  color: white; font-family: ui-monospace, monospace;
-  background: #1e2026; padding: .2rem;
-  border-radius: 4px 0 0 0; letter-spacing: 1.1px; line-height: 1;
-  display: block;
-}
-
-/* --- Candidate detail lightbox --- */
-.cand img, img.winner-img { cursor: zoom-in; }
-#lightbox {
-  display: none; position: fixed; inset: 0; z-index: 999;
-  background: rgba(0,0,0,.85);
-  justify-content: center; align-items: center; padding: 2rem;
-}
-#lightbox.open { display: flex; }
-#lightbox .lb-inner {
-  display: flex; gap: 1.5rem; max-width: 1200px; width: 100%;
-  max-height: 90vh; background: var(--bg-card); border-radius: var(--radius);
-  overflow: hidden; position: relative;
-}
-#lightbox .lb-image {
-  flex: 0 0 auto; width: 55%; max-width: 55%; display: flex; align-items: center;
-  background: #101216;
-}
-#lightbox .lb-image img {
-  width: 100%; height: auto; image-rendering: pixelated; display: block;
-}
-#lightbox .lb-info {
-  flex: 1; padding: 1rem; overflow-y: auto; min-width: 0;
-  font-size: .82rem; color: var(--text);
-  display: flex; flex-direction: column;
-}
-#lightbox .lb-header .lb-title {
-  display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap;
-}
-#lightbox .lb-header .dim-label { font-size: .78rem; color: var(--text-muted); }
-#lightbox .lb-header .score { font-size: 1.1rem; font-weight: 700; }
-#lightbox .lb-header .seed { font-family: ui-monospace, monospace; font-size: .65rem;
-  color: var(--accent-hover); word-break: break-all; }
-#lightbox .lb-header .spawn { font-size: 1rem; margin: .15rem 0; }
-#lightbox .lb-header .spawn b { color: #a8d8a0; font-weight: 700; }
-#lightbox .lb-header .score-parts { font-size: .72rem; color: var(--text-muted); margin-bottom: .15rem; }
-#lightbox .lb-meta { display: flex; flex-wrap: wrap; gap: .25rem; margin-bottom: .1rem; }
-#lightbox .lb-actions {
-  display: flex; gap: .4rem; flex-wrap: wrap;
-  margin-top: auto; padding-top: .6rem;
-  border-top: 1px solid var(--border);
-}
-#lightbox .lb-actions .pick, #lightbox .lb-actions .action-btn {
-  display: inline-block; margin-top: 0;
-}
-#lightbox .lb-close {
-  position: absolute; top: .6rem; right: .8rem; font-size: 1.4rem;
-  color: #888; cursor: pointer; line-height: 1; padding: .3rem;
-  z-index: 10;
-  background: none; border: none; font-family: inherit;
-}
-#lightbox .lb-close:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
-}
-#lightbox .lb-close:hover { color: var(--text); }
-@media (max-width: 800px) {
-  #lightbox .lb-inner { flex-direction: column; max-height: 95vh; }
-  #lightbox .lb-image { max-width: 100%; }
-  #lightbox { padding: .5rem; }
-}
-
-/* --- Responsive --- */
-@media (max-width: 900px) {
-  body { padding: 0 1rem 1rem; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  .detail-header { flex-direction: column; }
-  .dim-card.expanded img.winner-img { max-width: 100%; }
-}
-@media (max-width: 600px) {
-  .grid { grid-template-columns: 1fr 1fr; gap: .4rem; }
-  .all-cands { grid-template-columns: 1fr 1fr; }
-  .filter-bar { gap: .3rem; }
-  h1 { font-size: 1.1rem; }
-}
-</style>
-
-<!-- Filter bar -->
-<div class="filter-bar">
-  <div class="family-btns">{{FAMILY_BUTTONS}}</div>
-  <select id="f-type" aria-label="Filter by type">{{TYPE_OPTIONS}}</select>
-  <select id="f-mood" aria-label="Filter by mood">{{MOOD_OPTIONS}}</select>
-  <select id="f-sort" aria-label="Sort order">
-    <option value="name">Sort: Name</option>
-    <option value="score-desc">Sort: Score ↓</option>
-    <option value="score-asc">Sort: Score ↑</option>
-    <option value="family">Sort: Family</option>
-    <option value="candidates">Sort: Most tested</option>
-  </select>
-  <input id="f-search" type="text" placeholder="Search…" aria-label="Search dimensions">
-  <label><input type="checkbox" id="f-flagged"> Below threshold</label>
-  <label><input type="checkbox" id="f-shortlisted"> Shortlisted</label>
-  <label><input type="checkbox" id="f-ungrouped"> Flat view</label>
-  <label><input type="checkbox" id="f-hidden"> Show hidden</label>
-  <label><input type="checkbox" id="f-borders"> Show borders</label>
-</div>
-
-<h1>Dimension seed candidates</h1>
-<p class="summary">{{SUMMARY_STATS}}</p>
-<p class="summary" id="progress" aria-live="polite"></p>
-
-<!-- Grouped mode: dimension cards -->
-<div class="grid" id="grid">
-{{DIMENSIONS_HTML}}
-</div>
-
-<!-- Ungrouped mode: flat candidate cards (populated by JS) -->
-<div id="ungrouped-grid"></div>
-
-<dialog id="create-dim-dialog">
-  <h3>Fork as new dimension</h3>
-  <label>Name<input type="text" id="cd-name" required></label>
-  <div class="cd-error" id="cd-name-error"></div>
-  <label>Description<textarea id="cd-desc" maxlength="300"></textarea></label>
-  <div class="dialog-actions">
-    <button type="button" id="cd-cancel">Cancel</button>
-    <button type="button" id="cd-create" class="primary">Create</button>
-  </div>
-  <input type="hidden" id="cd-parent-dim">
-  <input type="hidden" id="cd-seed">
-</dialog>
-
-<div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
-  <div class="lb-inner">
-    <button type="button" class="lb-close" aria-label="Close">&times;</button>
-    <div class="lb-image"><img width="2048" height="2048" loading="eager" decoding="async" style="background:#101216"></div>
-    <div class="lb-info"></div>
-  </div>
-</div>
-
-<script>
-(function() {
-  var live = location.protocol !== 'file:';
-
-  // --- Candidate detail lightbox ---
-  var lb = document.getElementById('lightbox');
-  var lbImg = lb.querySelector('.lb-image img');
-  var lbInfo = lb.querySelector('.lb-info');
-  var lbReturnFocus = null;
-  function lbShow() {
-    if (!lb.classList.contains('open')) {
-      lbReturnFocus = document.activeElement;
-      lb.classList.add('open');
+  <meta charset="utf-8" />
+  <title>Seed Viewer — Multiverse</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-page: #14161a;
+      --bg-card: #1d2026;
+      --bg-card-alt: #181b20;
+      --bg-input: #191c21;
+      --border: #2c313a;
+      --border-hover: #4a5568;
+      --text: #e6e6e6;
+      --text-muted: #9aaabb;
+      --text-heading: #c8d2dc;
+      --accent: #5b8dd0;
+      --accent-hover: #8fb4d8;
+      --accent-gold: #d4a020;
+      --accent-gold-bright: #ffd850;
+      --score-green: #6ec96e;
+      --score-amber: #e8a735;
+      --score-red: #e05252;
+      --radius: 8px;
+      --radius-sm: 6px;
+      --radius-pill: 99px;
     }
-    lb.querySelector('.lb-close').focus();
-  }
-  function lbHide() {
-    lb.classList.remove('open');
-    if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus();
-    lbReturnFocus = null;
-  }
-  document.addEventListener('click', function(e) {
-    var img = e.target.closest('.cand img, img.winner-img');
-    if (img && img.closest('.compact')) img = null;
-    if (!img) return;
-    e.stopPropagation();
-    var cand = img.closest('.cand');
-    if (cand) {
-      openCandInLightbox(cand);
-    } else {
-      lbImg.src = img.src;
-      lbInfo.innerHTML = '';
-      lbShow();
+    * {
+      box-sizing: border-box;
     }
-  });
-  lb.querySelector('.lb-close').addEventListener('click', function(e) {
-    e.stopPropagation(); lbHide();
-  });
-  lb.addEventListener('click', function(e) {
-    if (e.target === lb) lbHide();
-  });
-  // Track current candidate for arrow nav
-  var lbCurrentCand = null;
-  function getVisibleCands() {
-    var src;
-    var expanded = document.querySelector('.dim-card.expanded');
-    if (document.body.classList.contains('ungrouped')) {
-      src = ugGrid.querySelectorAll('.cand');
-    } else if (expanded) {
-      src = expanded.querySelectorAll('.cand[data-idx]');
-    } else {
-      return [];
+    body {
+      font:
+        14px/1.5 -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      background: var(--bg-page);
+      color: var(--text);
+      margin: 0;
+      padding: 0 2rem 2rem;
     }
-    return Array.from(src).filter(function(c) {
-      if (c.style.display === 'none') return false;
-      if (c.offsetParent === null) return false;
-      return true;
-    });
-  }
-  function openCandInLightbox(cand) {
-    if (!cand) return;
-    lbCurrentCand = cand;
-    var img = cand.querySelector('img');
-    if (!img) return;
-    lbImg.src = img.src;
-    var hires = img.dataset.hires;
-    if (hires) { var p = new Image(); p.onload = function() { lbImg.src = hires; }; p.src = hires; }
-    var detail = cand.querySelector('.cand-detail');
-    lbInfo.innerHTML = detail ? detail.innerHTML : '';
-    // Lightbox border ring: hires renders (32K) exceed most borders.
-    // Show border ring at diameter/hirescoverage proportion.
-    var lbImageDiv = lb.querySelector('.lb-image');
-    var existingRing = lbImageDiv.querySelector('.border-ring');
-    if (existingRing) existingRing.remove();
-    var existingLbl = lbImageDiv.querySelector('.border-label');
-    if (existingLbl) existingLbl.remove();
-    var dimCard = cand.closest('.dim-card');
-    if (dimCard && dimCard.dataset.borderDiameter) {
-      var bDiam = parseFloat(dimCard.dataset.borderDiameter);
-      var dScale = parseFloat(dimCard.dataset.dimScale || 1);
-      var hiresCoverage = 2048 * 16 / dScale;
-      var lbl = document.createElement('div');
-      lbl.className = 'border-label';
-      lbl.textContent = hiresCoverage + 'b render · ' + bDiam + 'b border';
-      lbImageDiv.style.position = 'relative';
-      lbImageDiv.appendChild(lbl);
-      if (hiresCoverage > bDiam) {
-        var pct = (bDiam / hiresCoverage) * 100;
-        var off = (100 - pct) / 2;
-        var ring = document.createElement('div');
-        ring.className = 'border-ring';
-        ring.style.cssText = 'display:block;left:'+off.toFixed(1)+'%;top:'+off.toFixed(1)+'%;width:'+pct.toFixed(1)+'%;height:'+pct.toFixed(1)+'%';
-        lbImageDiv.appendChild(ring);
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 1rem 0 0.3rem;
+    }
+    .summary {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0.2rem 0 0.6rem;
+    }
+    .summary b {
+      color: var(--text-heading);
+      font-weight: 600;
+    }
+
+    /* --- Sticky filter/sort bar --- */
+    .filter-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-page);
+      border-bottom: 1px solid #262b33;
+      padding: 0.5rem 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .filter-bar select,
+    .filter-bar input[type='text'] {
+      font: inherit;
+      font-size: 0.82rem;
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem 0.5rem;
+      outline: none;
+    }
+    .filter-bar select:focus,
+    .filter-bar input[type='text']:focus {
+      border-color: var(--accent);
+    }
+    .filter-bar input[type='text'] {
+      flex: 1;
+      min-width: 8rem;
+      max-width: 14rem;
+    }
+    .filter-bar label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .family-btns {
+      display: flex;
+      gap: 0;
+    }
+    .family-btn {
+      font: inherit;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.6rem;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition:
+        background 0.12s,
+        color 0.12s;
+    }
+    .family-btn:first-child {
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+    .family-btn:last-child {
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .family-btn + .family-btn {
+      border-left: none;
+    }
+    .family-btn.active {
+      background: #2a3545;
+      color: var(--accent-hover);
+      border-color: var(--accent);
+    }
+    .family-btn:hover {
+      background: #252a33;
+    }
+
+    /* --- Focus indicators --- */
+    .dim-card:focus-visible,
+    .cand-toggle:focus-visible,
+    .close-btn:focus-visible,
+    .family-btn:focus-visible,
+    .pick:focus-visible,
+    .action-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* --- Winner card grid (grouped mode) --- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    .dim-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: border-color 0.12s;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .dim-card:hover {
+      border-color: var(--border-hover);
+    }
+    .dim-card.expanded {
+      border-color: var(--accent);
+      grid-column: 1 / -1;
+      cursor: default;
+    }
+    .dim-card.hidden {
+      display: none;
+    }
+    .dim-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #101216;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+    .dim-card.expanded img.winner-img {
+      max-width: 200px;
+      width: 100%;
+    }
+    .dim-card .dim-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-top: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dim-card .dim-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .dim-card .dim-score {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .dim-card .dim-blurb {
+      font-size: 0.68rem;
+      color: #8899aa;
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-style: italic;
+    }
+    .dim-card .dim-spawn {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+    .dim-card .dim-spawn b {
+      color: #a8d8a0;
+      font-weight: 600;
+    }
+
+    /* Flag dot on card corner */
+    .flag-dot {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.4rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .flag-dot.amber {
+      background: var(--score-amber);
+    }
+    .flag-dot.red {
+      background: var(--score-red);
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-pill);
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    /* --- Expanded detail panel --- */
+    .detail {
+      display: none;
+      margin-top: 0.6rem;
+    }
+    .dim-card.expanded .detail {
+      display: block;
+    }
+    .dim-card.expanded .compact {
+      display: none;
+    }
+
+    .detail-header {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.6rem;
+    }
+    .detail-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .detail-info h2 {
+      font-size: 1.1rem;
+      margin: 0 0 0.2rem;
+    }
+    .detail-info .blurb {
+      color: #bcd;
+      font-size: 0.82rem;
+      margin: 0.2rem 0;
+    }
+    .detail-info .criteria {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-input);
+      border: 1px solid #262b33;
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 0.6rem;
+      margin-top: 0.4rem;
+    }
+    .detail-info .criteria b {
+      color: var(--text-heading);
+      font-weight: 600;
+    }
+
+    .dim-actions {
+      margin: 0.5rem 0;
+    }
+
+    /* --- Candidate cards --- */
+    .all-cands {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.5rem;
+    }
+    .cand {
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .cand.winner {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 1px var(--accent-gold);
+    }
+    .cand img {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #101216;
+      object-fit: cover;
+      image-rendering: pixelated;
+      display: block;
+    }
+    .cand .score {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .cand .seed {
+      font-family: ui-monospace, monospace;
+      font-size: 0.7rem;
+      word-break: break-all;
+      color: var(--accent-hover);
+    }
+    .cand .cand-dim-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .section-header {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0.4rem 0 0.15rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.3rem;
+    }
+    .terrain-summary {
+      display: flex;
+      gap: 0.6rem;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      padding: 0.2rem 0;
+      border-top: 1px solid #1a1d22;
+    }
+    .terrain-summary b {
+      color: var(--text-heading);
+    }
+    .struct-table,
+    .struct-list {
+      margin-top: 0.3rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .struct-list div {
+      padding: 0.1rem 0;
+    }
+    .struct-list span[title] {
+      cursor: help;
+    }
+    .bars {
+      margin-top: 0.25rem;
+    }
+    .bar {
+      display: grid;
+      grid-template-columns: 4.5rem 1fr 2.2rem;
+      gap: 0.3rem;
+      align-items: center;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+    .bar .track {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar .fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .cand.winner .bar .fill {
+      background: var(--accent-gold);
+    }
+    .spawn {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .spawn b {
+      color: #a8d8a0;
+      font-weight: 600;
+    }
+
+    /* --- Buttons --- */
+    .pick,
+    .action-btn {
+      display: none;
+      margin-top: 0.3rem;
+      font-size: 0.72rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid #3a4150;
+      background: #232833;
+      color: var(--text-heading);
+      cursor: pointer;
+      min-height: 32px;
+    }
+    .pick:hover,
+    .action-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold-bright);
+    }
+    body.live .pick,
+    body.live .action-btn {
+      display: inline-block;
+    }
+    .action-btn {
+      margin-right: 0.2rem;
+    }
+    kbd {
+      font: inherit;
+      font-size: 0.65em;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      padding: 0.05em 0.3em;
+      margin-left: 0.3em;
+      vertical-align: baseline;
+    }
+    .action-btn.reroll:hover {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+    .action-btn.edit:hover {
+      border-color: #5bd060;
+      color: #a8d8a0;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 0.4rem;
+      right: 0.4rem;
+      font-size: 1.2rem;
+      color: #666;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.3rem;
+      border-radius: var(--radius-sm);
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .close-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Shortlisted candidate indicator */
+    .cand[data-shortlisted]::after {
+      content: '\2605';
+      position: absolute;
+      top: 0.3rem;
+      right: 0.3rem;
+      color: var(--accent-gold);
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+
+    /* Shortlist filter: hide non-shortlisted candidates when active */
+    body.shortlist-filter .cand:not([data-shortlisted]) {
+      display: none;
+    }
+
+    /* Ungrouped mode: flat grid of all candidates */
+    #ungrouped-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+    body.ungrouped #grid {
+      display: none;
+    }
+    body.ungrouped #ungrouped-grid {
+      display: grid;
+    }
+
+    /* Dim label hidden in grouped mode, visible in ungrouped */
+    .cand-dim-label {
+      display: none;
+    }
+    body.ungrouped .cand-dim-label {
+      display: block;
+    }
+
+    /* Hidden dimension cards */
+    .dim-card[data-hidden='1'] {
+      opacity: 0.45;
+    }
+    .dim-card[data-hidden='1']:hover {
+      opacity: 0.7;
+    }
+
+    /* Extra action buttons */
+    .action-btn.hide:hover {
+      border-color: var(--score-amber);
+      color: var(--score-amber);
+    }
+    .action-btn.remove {
+      color: #c55;
+    }
+    .action-btn.remove:hover {
+      border-color: var(--score-red);
+      color: var(--score-red);
+    }
+    .action-btn.create-dim:hover {
+      border-color: var(--accent-hover);
+      color: var(--accent-hover);
+    }
+
+    /* Create dimension dialog */
+    #create-dim-dialog {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid #3a4150;
+      border-radius: 10px;
+      padding: 1.2rem;
+      max-width: 380px;
+      width: 90vw;
+    }
+    #create-dim-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    #create-dim-dialog h3 {
+      margin: 0 0 0.8rem;
+      font-size: 1rem;
+    }
+    #create-dim-dialog label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+    #create-dim-dialog input[type='text'],
+    #create-dim-dialog textarea {
+      display: block;
+      width: 100%;
+      margin-top: 0.2rem;
+      font: inherit;
+      font-size: 0.82rem;
+      background: var(--bg-page);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.35rem 0.5rem;
+    }
+    #create-dim-dialog textarea {
+      height: 4rem;
+      resize: vertical;
+    }
+    #create-dim-dialog input:focus,
+    #create-dim-dialog textarea:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    .cd-error {
+      color: var(--score-red);
+      font-size: 0.75rem;
+      min-height: 1.1em;
+      margin-bottom: 0.3rem;
+    }
+    .dialog-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 0.6rem;
+    }
+    .dialog-actions button {
+      font: inherit;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 1px solid #3a4150;
+      background: #232833;
+      color: var(--text-heading);
+      min-height: 32px;
+    }
+    .dialog-actions button:hover {
+      border-color: var(--accent);
+    }
+    .dialog-actions .primary {
+      background: #2a3545;
+      color: var(--accent-hover);
+    }
+
+    /* --- Hires indicator --- */
+    .cand .hires-badge,
+    .dim-card .hires-badge {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.6rem;
+      font-size: 0.55rem;
+      background: rgba(91, 141, 208, 0.85);
+      color: #fff;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      display: none;
+    }
+    .cand .hires-badge.visible,
+    .dim-card .hires-badge.visible {
+      display: block;
+    }
+
+    /* --- World border mode --- */
+    .img-wrap {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      background: #0a0c0e;
+      border-radius: 4px;
+    }
+    .img-wrap img {
+      transition: transform 0.3s ease;
+    }
+    body.show-borders .img-wrap img {
+      transform-origin: center;
+    }
+    .border-ring {
+      position: absolute;
+      border: 2px solid rgba(255, 60, 60, 0.8);
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+    }
+    .border-label {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      font-size: 0.55rem;
+      color: white;
+      font-family: ui-monospace, monospace;
+      background: #1e2026;
+      padding: 0.2rem;
+      border-radius: 4px 0 0 0;
+      letter-spacing: 1.1px;
+      line-height: 1;
+      display: block;
+    }
+
+    /* --- Candidate detail lightbox --- */
+    .cand img,
+    img.winner-img {
+      cursor: zoom-in;
+    }
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    #lightbox.open {
+      display: flex;
+    }
+    #lightbox .lb-inner {
+      display: flex;
+      gap: 1.5rem;
+      max-width: 1200px;
+      width: 100%;
+      max-height: 90vh;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+    }
+    #lightbox .lb-image {
+      flex: 0 0 auto;
+      width: 55%;
+      max-width: 55%;
+      display: flex;
+      align-items: center;
+      background: #101216;
+      position: relative;
+    }
+    #lightbox .lb-image img {
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      display: block;
+    }
+    #lightbox .lb-image img.lb-structs {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+    }
+    #lightbox .lb-image img.lb-structs.on {
+      display: block;
+    }
+    #lightbox .lb-structs-toggle {
+      position: absolute;
+      left: 0.6rem;
+      bottom: 0.6rem;
+      z-index: 6;
+      font-size: 0.68rem;
+      font-family: inherit;
+      padding: 0.25rem 0.55rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: rgba(16, 18, 22, 0.8);
+      color: var(--text);
+    }
+    #lightbox .lb-structs-toggle[aria-pressed='false'] {
+      opacity: 0.5;
+    }
+    #lightbox .lb-structs-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    #lightbox .lb-info {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      min-width: 0;
+      font-size: 0.82rem;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+    #lightbox .lb-header .lb-title {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    #lightbox .lb-header .dim-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    #lightbox .lb-header .score {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    #lightbox .lb-header .seed {
+      font-family: ui-monospace, monospace;
+      font-size: 0.65rem;
+      color: var(--accent-hover);
+      word-break: break-all;
+    }
+    #lightbox .lb-header .spawn {
+      font-size: 1rem;
+      margin: 0.15rem 0;
+    }
+    #lightbox .lb-header .spawn b {
+      color: #a8d8a0;
+      font-weight: 700;
+    }
+    #lightbox .lb-header .score-parts {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+    #lightbox .lb-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 0.1rem;
+    }
+    #lightbox .lb-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: auto;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    #lightbox .lb-actions .pick,
+    #lightbox .lb-actions .action-btn {
+      display: inline-block;
+      margin-top: 0;
+    }
+    #lightbox .lb-close {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.8rem;
+      font-size: 1.4rem;
+      color: #888;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.3rem;
+      z-index: 10;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    #lightbox .lb-close:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    #lightbox .lb-close:hover {
+      color: var(--text);
+    }
+    @media (max-width: 800px) {
+      #lightbox .lb-inner {
+        flex-direction: column;
+        max-height: 95vh;
+      }
+      #lightbox .lb-image {
+        max-width: 100%;
+      }
+      #lightbox {
+        padding: 0.5rem;
       }
     }
-    lbShow();
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      if (lb.classList.contains('open')) { lbHide(); return; }
-      var expanded = document.querySelector('.dim-card.expanded');
-      if (expanded) setExpanded(expanded, false);
-      return;
-    }
-    if (!lb.classList.contains('open')) return;
-    // Focus trap: keep Tab inside the dialog while open
-    if (e.key === 'Tab') {
-      var focusables = lb.querySelectorAll('button, [href], input, select, textarea');
-      if (!focusables.length) return;
-      var first = focusables[0], last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      return;
-    }
-    // Arrow keys: navigate between candidates
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      var cands = getVisibleCands();
-      if (!cands.length || !lbCurrentCand) return;
-      var idx = cands.indexOf(lbCurrentCand);
-      if (idx < 0) return;
-      var next = e.key === 'ArrowRight' ? cands[idx + 1] : cands[idx - 1];
-      if (next) openCandInLightbox(next);
-      return;
-    }
-    // Keyboard shortcuts for actions
-    if (e.key === 'u' || e.key === 'U') {
-      var btn = lbInfo.querySelector('.pick');
-      if (btn) btn.click();
-      return;
-    }
-    if (e.key === 'x' || e.key === 'X') {
-      var btn = lbInfo.querySelector('.action-btn.shortlist');
-      if (btn) btn.click();
-      return;
-    }
-    if (e.key === 'f' || e.key === 'F') {
-      var btn = lbInfo.querySelector('.action-btn.create-dim');
-      if (btn) btn.click();
-      return;
-    }
-  });
-  if (live) document.body.classList.add('live');
 
-  // --- Filter + sort state from URL hash ---
-  function readHash() {
-    var p = new URLSearchParams(location.search.slice(1));
-    return {
-      family: p.get('family') || 'All', type: p.get('type') || '',
-      mood: p.get('mood') || '', search: p.get('q') || '',
-      flagged: p.get('flagged') === '1', shortlisted: p.get('shortlisted') === '1',
-      ungrouped: p.get('ungrouped') === '1',
-      showHidden: p.get('hidden') === '1', sort: p.get('sort') || 'name'
-    };
-  }
-  function writeHash(s) {
-    var p = new URLSearchParams();
-    if (s.family !== 'All') p.set('family', s.family);
-    if (s.type) p.set('type', s.type);
-    if (s.mood) p.set('mood', s.mood);
-    if (s.search) p.set('q', s.search);
-    if (s.flagged) p.set('flagged', '1');
-    if (s.shortlisted) p.set('shortlisted', '1');
-    if (s.ungrouped) p.set('ungrouped', '1');
-    if (s.showHidden) p.set('hidden', '1');
-    if (s.sort !== 'name') p.set('sort', s.sort);
-    var qs = p.toString();
-    history.replaceState(null, '', qs ? '?' + qs : location.pathname);
-  }
-
-  var state = readHash();
-  var typeEl = document.getElementById('f-type');
-  var moodEl = document.getElementById('f-mood');
-  var sortEl = document.getElementById('f-sort');
-  var searchEl = document.getElementById('f-search');
-  var flaggedEl = document.getElementById('f-flagged');
-  var shortlistedEl = document.getElementById('f-shortlisted');
-  var ungroupedEl = document.getElementById('f-ungrouped');
-  var hiddenEl = document.getElementById('f-hidden');
-  var grid = document.getElementById('grid');
-  var ugGrid = document.getElementById('ungrouped-grid');
-
-  function candSort(a, b) {
-    switch (state.sort) {
-      case 'score-desc': return parseFloat(b.dataset.score || 0) - parseFloat(a.dataset.score || 0);
-      case 'score-asc': return parseFloat(a.dataset.score || 0) - parseFloat(b.dataset.score || 0);
-      case 'family': return (a.dataset.dim || '').localeCompare(b.dataset.dim || '');
-      default: return (a.dataset.dim || '').localeCompare(b.dataset.dim || '')
-                   || parseFloat(b.dataset.score || 0) - parseFloat(a.dataset.score || 0);
+    /* --- Responsive --- */
+    @media (max-width: 900px) {
+      body {
+        padding: 0 1rem 1rem;
+      }
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+      .detail-header {
+        flex-direction: column;
+      }
+      .dim-card.expanded img.winner-img {
+        max-width: 100%;
+      }
     }
-  }
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem;
+      }
+      .all-cands {
+        grid-template-columns: 1fr 1fr;
+      }
+      .filter-bar {
+        gap: 0.3rem;
+      }
+      h1 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
 
-  function buildUngrouped() {
-    ugGrid.innerHTML = '';
-    var q = state.search.toLowerCase();
-    var clones = [];
-    document.querySelectorAll('.dim-card').forEach(function(card) {
-      var groups = (card.dataset.family || '').split(' ');
-      var fam = state.family === 'All' || groups.indexOf(state.family) >= 0;
-      var typ = !state.type || card.dataset.type === state.type;
-      var moo = !state.mood || card.dataset.mood === state.mood;
-      var txt = !q || card.dataset.name.toLowerCase().indexOf(q) >= 0;
-      var hid = state.showHidden || card.dataset.hidden !== '1';
-      if (!(fam && typ && moo && txt && hid)) return;
-      card.querySelectorAll('.cand').forEach(function(c) {
-        if (state.shortlisted && !c.dataset.shortlisted) return;
-        if (state.flagged && parseFloat(c.dataset.score || 100) >= 70) return;
-        var clone = c.cloneNode(true);
-        clone.style.display = '';
-        var lbl = clone.querySelector('.cand-dim-label');
-        if (lbl) lbl.style.display = 'block';
-        clones.push(clone);
-      });
-    });
-    clones.sort(candSort);
-    var frag = document.createDocumentFragment();
-    clones.forEach(function(el) { frag.appendChild(el); });
-    ugGrid.appendChild(frag);
-  }
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="family-btns">{{FAMILY_BUTTONS}}</div>
+    <select id="f-type" aria-label="Filter by type">
+      {{TYPE_OPTIONS}}
+    </select>
+    <select id="f-mood" aria-label="Filter by mood">
+      {{MOOD_OPTIONS}}
+    </select>
+    <select id="f-sort" aria-label="Sort order">
+      <option value="name">Sort: Name</option>
+      <option value="score-desc">Sort: Score ↓</option>
+      <option value="score-asc">Sort: Score ↑</option>
+      <option value="family">Sort: Family</option>
+      <option value="candidates">Sort: Most tested</option>
+    </select>
+    <input id="f-search" type="text" placeholder="Search…" aria-label="Search dimensions" />
+    <label><input type="checkbox" id="f-flagged" /> Below threshold</label>
+    <label><input type="checkbox" id="f-shortlisted" /> Shortlisted</label>
+    <label><input type="checkbox" id="f-ungrouped" /> Flat view</label>
+    <label><input type="checkbox" id="f-hidden" /> Show hidden</label>
+    <label><input type="checkbox" id="f-borders" /> Show borders</label>
+  </div>
 
-  function sortCandsInGroups() {
-    document.querySelectorAll('.all-cands').forEach(function(container) {
-      var items = Array.from(container.querySelectorAll('.cand'));
-      items.sort(candSort);
-      items.forEach(function(el) { container.appendChild(el); });
-    });
-  }
+  <h1>Dimension seed candidates</h1>
+  <p class="summary">{{SUMMARY_STATS}}</p>
+  <p class="summary" id="progress" aria-live="polite"></p>
 
-  // --- Review progress: dims with a pinned winner, shortlisted seed, or hidden ---
-  function updateProgress() {
-    var cards = document.querySelectorAll('.dim-card');
-    var total = cards.length, done = 0;
-    cards.forEach(function(c) {
-      if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1'
-          || c.dataset.hidden === '1') done++;
-    });
-    var el = document.getElementById('progress');
-    if (!el) return;
-    el.textContent = 'Reviewed ' + done + ' of ' + total + ' dimensions — '
-      + (total - done) + ' still to review (a dimension counts as reviewed '
-      + 'once a seed is pinned or shortlisted, or the dimension is hidden)';
-  }
+  <!-- Grouped mode: dimension cards -->
+  <div class="grid" id="grid">{{DIMENSIONS_HTML}}</div>
 
-  function applyState() {
-    document.querySelectorAll('.family-btn').forEach(function(b) {
-      var active = b.dataset.family === state.family;
-      b.classList.toggle('active', active);
-      b.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-    typeEl.value = state.type; moodEl.value = state.mood;
-    sortEl.value = state.sort; searchEl.value = state.search;
-    flaggedEl.checked = state.flagged; shortlistedEl.checked = state.shortlisted;
-    ungroupedEl.checked = state.ungrouped; hiddenEl.checked = state.showHidden;
-    document.body.classList.toggle('shortlist-filter', state.shortlisted);
-    document.body.classList.toggle('ungrouped', state.ungrouped);
-    var q = state.search.toLowerCase();
-    if (state.ungrouped) {
-      buildUngrouped();
-    } else {
-      var cards = Array.from(document.querySelectorAll('.dim-card'));
-      cards.forEach(function(c) {
-        var groups = (c.dataset.family || '').split(' ');
-        var fam = state.family === 'All' || groups.indexOf(state.family) >= 0;
-        var typ = !state.type || c.dataset.type === state.type;
-        var moo = !state.mood || c.dataset.mood === state.mood;
-        var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0;
-        var flg = !state.flagged || c.dataset.flagged === '1';
-        var shl = !state.shortlisted || c.querySelector('.cand[data-shortlisted]') !== null;
-        var hid = state.showHidden || c.dataset.hidden !== '1';
-        c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && shl && hid));
-      });
-      var visible = cards.filter(function(c) { return !c.classList.contains('hidden'); });
-      visible.sort(function(a, b) {
-        switch (state.sort) {
-          case 'score-desc': return parseFloat(b.dataset.score) - parseFloat(a.dataset.score);
-          case 'score-asc': return parseFloat(a.dataset.score) - parseFloat(b.dataset.score);
-          case 'family': return (a.dataset.family || '').localeCompare(b.dataset.family || '') || a.dataset.name.localeCompare(b.dataset.name);
-          case 'candidates': return parseInt(b.dataset.cands) - parseInt(a.dataset.cands);
-          default: return a.dataset.name.localeCompare(b.dataset.name);
+  <!-- Ungrouped mode: flat candidate cards (populated by JS) -->
+  <div id="ungrouped-grid"></div>
+
+  <dialog id="create-dim-dialog">
+    <h3>Fork as new dimension</h3>
+    <label>Name<input type="text" id="cd-name" required /></label>
+    <div class="cd-error" id="cd-name-error"></div>
+    <label>Description<textarea id="cd-desc" maxlength="300"></textarea></label>
+    <div class="dialog-actions">
+      <button type="button" id="cd-cancel">Cancel</button>
+      <button type="button" id="cd-create" class="primary">Create</button>
+    </div>
+    <input type="hidden" id="cd-parent-dim" />
+    <input type="hidden" id="cd-seed" />
+  </dialog>
+
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
+    <div class="lb-inner">
+      <button type="button" class="lb-close" aria-label="Close">&times;</button>
+      <div class="lb-image">
+        <img width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
+        <img class="lb-structs" width="2048" loading="lazy" height="2048" decoding="async" alt="" />
+        <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
+          Structures
+        </button>
+      </div>
+      <div class="lb-info"></div>
+    </div>
+  </div>
+
+  <script>
+    ;(function () {
+      var live = location.protocol !== 'file:'
+
+      // --- Candidate detail lightbox ---
+      var lb = document.getElementById('lightbox')
+      var lbImg = lb.querySelector('.lb-image img')
+      var lbInfo = lb.querySelector('.lb-info')
+      var lbStructs = lb.querySelector('.lb-structs')
+      var lbStructsBtn = lb.querySelector('.lb-structs-toggle')
+      var lbStructsOn = true
+      var lbReturnFocus = null
+      // Structure overlays are separate transparent PNGs written next to the
+      // renders ({seed}_structures.png / {seed}_hires_structures.png). Probe
+      // for one matching the displayed render; hide the toggle when absent.
+      function lbSetStructs(src) {
+        lbStructs.classList.remove('on')
+        lbStructs.removeAttribute('src')
+        lbStructsBtn.style.display = 'none'
+        if (!src) return
+        var base = src.split('?')[0]
+        if (!/\.png$/.test(base) || /_structures\.png$/.test(base)) return
+        var url = base.replace(/\.png$/, '_structures.png')
+        var probe = new Image()
+        probe.onload = function () {
+          lbStructs.src = probe.src
+          lbStructsBtn.style.display = ''
+          if (lbStructsOn) lbStructs.classList.add('on')
         }
-      });
-      visible.forEach(function(c) { grid.appendChild(c); });
-      sortCandsInGroups();
-    }
-    updateProgress();
-    writeHash(state);
-  }
-
-  document.querySelectorAll('.family-btn').forEach(function(b) {
-    b.addEventListener('click', function() { state.family = b.dataset.family; applyState(); });
-  });
-  typeEl.addEventListener('change', function() { state.type = typeEl.value; applyState(); });
-  moodEl.addEventListener('change', function() { state.mood = moodEl.value; applyState(); });
-  sortEl.addEventListener('change', function() { state.sort = sortEl.value; applyState(); });
-  searchEl.addEventListener('input', function() { state.search = searchEl.value; applyState(); });
-  flaggedEl.addEventListener('change', function() { state.flagged = flaggedEl.checked; applyState(); });
-  shortlistedEl.addEventListener('change', function() { state.shortlisted = shortlistedEl.checked; applyState(); });
-  ungroupedEl.addEventListener('change', function() { state.ungrouped = ungroupedEl.checked; applyState(); });
-  hiddenEl.addEventListener('change', function() { state.showHidden = hiddenEl.checked; applyState(); });
-  document.getElementById('f-borders').addEventListener('change', function(e) {
-    var on = e.target.checked;
-    document.body.classList.toggle('show-borders', on);
-    document.querySelectorAll('.img-wrap').forEach(function(wrap) {
-      var img = wrap.querySelector('img');
-      if (img) img.style.transform = on ? 'scale(' + wrap.dataset.borderScale + ')' : '';
-    });
-  });
-
-  // --- World border overlays ---
-  // All dimensions scale relative to the largest border diameter.
-  // A 1024b world is 1/16th of a 16384b overworld.
-  // No red ring on cards — just relative sizing.
-  // Lightbox hires (32K render) gets a red ring at 50% showing the border.
-  var RENDER_SIZE = 1024, BASE_SCALE = 8;
-  var maxDiameter = 0;
-  document.querySelectorAll('.dim-card').forEach(function(card) {
-    var r = parseFloat(card.dataset.radius || 0);
-    if (r * 2 > maxDiameter) maxDiameter = r * 2;
-  });
-  document.querySelectorAll('.dim-card').forEach(function(card) {
-    var radius = parseFloat(card.dataset.radius || 0);
-    var dimScale = parseFloat(card.dataset.dimScale || 1);
-    if (!radius) return;
-    var diameter = radius * 2;
-    var imgScale = Math.max(0.05, diameter / maxDiameter);
-    var normalCoverage = RENDER_SIZE * Math.max(1, Math.floor(BASE_SCALE / dimScale));
-    var hiresCoverage = Math.round(2048 * 16 / dimScale);
-    card.dataset.borderDiameter = diameter;
-    card.querySelectorAll('img').forEach(function(img) {
-      var wrap = img.parentElement;
-      if (wrap.classList.contains('img-wrap')) return;
-      var div = document.createElement('div');
-      div.className = 'img-wrap';
-      div.dataset.borderScale = imgScale.toFixed(4);
-      img.parentNode.insertBefore(div, img);
-      div.appendChild(img);
-      var lbl = document.createElement('div');
-      lbl.className = 'border-label';
-      lbl.textContent = normalCoverage + 'b';
-      lbl.dataset.normalCoverage = normalCoverage;
-      lbl.dataset.hiresCoverage = hiresCoverage;
-      div.appendChild(lbl);
-    });
-  });
-
-  applyState();
-
-  // --- Image auto-refresh: retry missing images + upgrade to hires ---
-  (function autoRefreshImages() {
-    var pending = new Set();
-    document.querySelectorAll('img[data-hires]').forEach(function(img) { pending.add(img); });
-    function tick() {
-      if (!pending.size) return;
-      pending.forEach(function(img) {
-        if (!img.naturalWidth || !img.src) {
-          var normalSrc = img.src || img.dataset.hires.replace('_hires', '');
-          var probe = new Image();
-          probe.onload = function() { img.src = normalSrc.split('?')[0] + '?t=' + Date.now(); tryHires(img); };
-          probe.src = normalSrc.split('?')[0] + '?t=' + Date.now();
-        } else { tryHires(img); }
-      });
-    }
-    function tryHires(img) {
-      var hires = img.dataset.hires;
-      if (!hires) { pending.delete(img); return; }
-      var hi = new Image();
-      hi.onload = function() {
-        img.src = hi.src;
-        var wrap = img.parentElement;
-        if (wrap) {
-          var badge = wrap.querySelector('.hires-badge');
-          if (badge) badge.classList.add('visible');
-          var lbl = wrap.querySelector('.border-label');
-          if (lbl && lbl.dataset.hiresCoverage) lbl.textContent = lbl.dataset.hiresCoverage + 'b';
+        probe.src = url + '?t=' + Date.now()
+      }
+      lbStructsBtn.addEventListener('click', function () {
+        lbStructsOn = !lbStructsOn
+        lbStructsBtn.setAttribute('aria-pressed', String(lbStructsOn))
+        lbStructs.classList.toggle('on', lbStructsOn && !!lbStructs.getAttribute('src'))
+      })
+      function lbShow() {
+        if (!lb.classList.contains('open')) {
+          lbReturnFocus = document.activeElement
+          lb.classList.add('open')
         }
-        pending.delete(img);
-      };
-      hi.src = hires.split('?')[0] + '?t=' + Date.now();
-    }
-    tick();
-    var iv = setInterval(function() { tick(); if (!pending.size) clearInterval(iv); }, 10000);
-  })();
-
-  // --- Card expand/collapse ---
-  function setExpanded(card, on) {
-    card.classList.toggle('expanded', on);
-    card.setAttribute('aria-expanded', on ? 'true' : 'false');
-  }
-  function expandCard(card) {
-    if (card.classList.contains('expanded')) return;
-    document.querySelectorAll('.dim-card.expanded').forEach(function(c) { setExpanded(c, false); });
-    setExpanded(card, true);
-    sortCandsInGroups();
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-  grid.addEventListener('click', function(e) {
-    if (e.target.closest('.action-btn, .pick, .close-btn, .cand')) return;
-    var card = e.target.closest('.dim-card');
-    if (!card) return;
-    expandCard(card);
-  });
-  grid.addEventListener('keydown', function(e) {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    if (e.target.closest('.action-btn, .pick, .close-btn, .cand, button, input, select')) return;
-    var card = e.target.closest('.dim-card');
-    if (!card || card.classList.contains('expanded')) return;
-    e.preventDefault();
-    expandCard(card);
-  });
-  grid.addEventListener('click', function(e) {
-    var close = e.target.closest('.close-btn');
-    if (close) { setExpanded(close.closest('.dim-card'), false); }
-  });
-
-  // --- Action buttons (live server only) ---
-  if (!live) return;
-
-  function postJSON(url, data) {
-    return fetch(url, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    }).catch(function() { return null; });
-  }
-
-  function handleAction(e) {
-    var pick = e.target.closest('.pick');
-    if (pick) {
-      pick.disabled = true; pick.textContent = 'saving…';
-      postJSON('/pick', {dim: pick.dataset.dim, seed: pick.dataset.seed}).then(function(res) {
-        if (res && res.ok) location.reload();
-        else { pick.disabled = false; pick.textContent = 'Could not save'; }
-      });
-      return;
-    }
-    var reroll = e.target.closest('.action-btn.reroll');
-    if (reroll) {
-      reroll.disabled = true; reroll.textContent = 'Rolling…';
-      postJSON('/reroll', {dim: reroll.dataset.dim, pool: 5000, count: 100}).then(function(res) {
-        if (res && res.ok) res.json().then(function(d) { pollJob(d.job_id, reroll); });
-        else { reroll.disabled = false; reroll.textContent = 'Roll failed — check terminal'; }
-      });
-      return;
-    }
-    var edit = e.target.closest('.action-btn.edit');
-    if (edit) {
-      edit.disabled = true; edit.textContent = 'Opening…';
-      postJSON('/edit-config', {dim: edit.dataset.dim}).then(function(res) {
-        edit.textContent = (res && res.ok) ? 'Opened' : 'Could not open';
-        setTimeout(function() { edit.disabled = false; edit.textContent = 'Edit'; }, 2500);
-      });
-      return;
-    }
-    var createDim = e.target.closest('.action-btn.create-dim');
-    if (createDim) {
-      var dlg = document.getElementById('create-dim-dialog');
-      document.getElementById('cd-parent-dim').value = createDim.dataset.dim;
-      document.getElementById('cd-seed').value = createDim.dataset.seed;
-      document.getElementById('cd-name').value = createDim.dataset.dim + '_fork';
-      document.getElementById('cd-desc').value = '';
-      document.getElementById('cd-name-error').textContent = '';
-      document.getElementById('cd-create').disabled = false;
-      document.getElementById('cd-create').textContent = 'Create';
-      dlg.showModal();
-      return;
-    }
-    var hideBtn = e.target.closest('.action-btn.hide');
-    if (hideBtn) {
-      hideBtn.disabled = true; hideBtn.textContent = 'Hiding…';
-      postJSON('/hide-dimension', {dim: hideBtn.dataset.dim}).then(function(res) {
-        if (res && res.ok) location.reload();
-        else { hideBtn.disabled = false; hideBtn.textContent = 'Could not hide'; }
-      });
-      return;
-    }
-    var removeBtn = e.target.closest('.action-btn.remove');
-    if (removeBtn) {
-      if (!confirm('Remove "' + removeBtn.dataset.dim + '" and all its candidate data? This cannot be undone.')) return;
-      removeBtn.disabled = true; removeBtn.textContent = 'Removing…';
-      postJSON('/remove-dimension', {dim: removeBtn.dataset.dim}).then(function(res) {
-        if (res && res.ok) location.reload();
-        else { removeBtn.disabled = false; removeBtn.textContent = 'Could not remove'; }
-      });
-      return;
-    }
-    var slBtn = e.target.closest('.action-btn.shortlist');
-    if (slBtn) {
-      // In the lightbox the button lives in copied markup — fall back to the
-      // original candidate element so its shortlist state stays in sync.
-      var cand = slBtn.closest('.cand') || lbCurrentCand;
-      var isShortlisted = cand ? cand.dataset.shortlisted === '1' : slBtn.textContent.indexOf('Remove') >= 0;
-      slBtn.disabled = true;
-      slBtn.textContent = isShortlisted ? 'Removing…' : 'Shortlisting…';
-      postJSON('/shortlist', {dim: slBtn.dataset.dim, seed: slBtn.dataset.seed, action: isShortlisted ? 'remove' : 'add'}).then(function(res) {
-        if (!res || !res.ok) { slBtn.disabled = false; slBtn.textContent = 'Could not update'; return; }
-        return res.json();
-      }).then(function(data) {
-        if (!data) return;
-        if (data.shortlisted) {
-          if (cand) cand.dataset.shortlisted = '1';
-          slBtn.textContent = 'Remove from shortlist';
+        lb.querySelector('.lb-close').focus()
+      }
+      function lbHide() {
+        lb.classList.remove('open')
+        if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus()
+        lbReturnFocus = null
+      }
+      document.addEventListener('click', function (e) {
+        var img = e.target.closest('.cand img, img.winner-img')
+        if (img && img.closest('.compact')) img = null
+        if (!img) return
+        e.stopPropagation()
+        var cand = img.closest('.cand')
+        if (cand) {
+          openCandInLightbox(cand)
         } else {
-          if (cand) delete cand.dataset.shortlisted;
-          slBtn.textContent = 'Shortlist';
+          lbImg.src = img.src
+          lbSetStructs(img.src)
+          lbInfo.innerHTML = ''
+          lbShow()
         }
-        slBtn.disabled = false;
-        var cardEl = cand && cand.closest('.dim-card');
-        if (cardEl) {
-          cardEl.dataset.shortlisted =
-            cardEl.querySelector('.cand[data-shortlisted]') ? '1' : '0';
+      })
+      lb.querySelector('.lb-close').addEventListener('click', function (e) {
+        e.stopPropagation()
+        lbHide()
+      })
+      lb.addEventListener('click', function (e) {
+        if (e.target === lb) lbHide()
+      })
+      // Track current candidate for arrow nav
+      var lbCurrentCand = null
+      function getVisibleCands() {
+        var src
+        var expanded = document.querySelector('.dim-card.expanded')
+        if (document.body.classList.contains('ungrouped')) {
+          src = ugGrid.querySelectorAll('.cand')
+        } else if (expanded) {
+          src = expanded.querySelectorAll('.cand[data-idx]')
+        } else {
+          return []
         }
-        updateProgress();
-      });
-      return;
-    }
-  }
-  grid.addEventListener('click', handleAction);
-  ugGrid.addEventListener('click', handleAction);
-  lb.addEventListener('click', handleAction);
+        return Array.from(src).filter(function (c) {
+          if (c.style.display === 'none') return false
+          if (c.offsetParent === null) return false
+          return true
+        })
+      }
+      function openCandInLightbox(cand) {
+        if (!cand) return
+        lbCurrentCand = cand
+        var img = cand.querySelector('img')
+        if (!img) return
+        lbImg.src = img.src
+        lbSetStructs(img.src)
+        var hires = img.dataset.hires
+        if (hires) {
+          var p = new Image()
+          p.onload = function () {
+            lbImg.src = hires
+            lbSetStructs(hires)
+          }
+          p.src = hires
+        }
+        var detail = cand.querySelector('.cand-detail')
+        lbInfo.innerHTML = detail ? detail.innerHTML : ''
+        // Lightbox border ring: hires renders (32K) exceed most borders.
+        // Show border ring at diameter/hirescoverage proportion.
+        var lbImageDiv = lb.querySelector('.lb-image')
+        var existingRing = lbImageDiv.querySelector('.border-ring')
+        if (existingRing) existingRing.remove()
+        var existingLbl = lbImageDiv.querySelector('.border-label')
+        if (existingLbl) existingLbl.remove()
+        var dimCard = cand.closest('.dim-card')
+        if (dimCard && dimCard.dataset.borderDiameter) {
+          var bDiam = parseFloat(dimCard.dataset.borderDiameter)
+          var dScale = parseFloat(dimCard.dataset.dimScale || 1)
+          var hiresCoverage = (2048 * 16) / dScale
+          var lbl = document.createElement('div')
+          lbl.className = 'border-label'
+          lbl.textContent = hiresCoverage + 'b render · ' + bDiam + 'b border'
+          lbImageDiv.style.position = 'relative'
+          lbImageDiv.appendChild(lbl)
+          if (hiresCoverage > bDiam) {
+            var pct = (bDiam / hiresCoverage) * 100
+            var off = (100 - pct) / 2
+            var ring = document.createElement('div')
+            ring.className = 'border-ring'
+            ring.style.cssText =
+              'display:block;left:' +
+              off.toFixed(1) +
+              '%;top:' +
+              off.toFixed(1) +
+              '%;width:' +
+              pct.toFixed(1) +
+              '%;height:' +
+              pct.toFixed(1) +
+              '%'
+            lbImageDiv.appendChild(ring)
+          }
+        }
+        lbShow()
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (lb.classList.contains('open')) {
+            lbHide()
+            return
+          }
+          var expanded = document.querySelector('.dim-card.expanded')
+          if (expanded) setExpanded(expanded, false)
+          return
+        }
+        if (!lb.classList.contains('open')) return
+        // Focus trap: keep Tab inside the dialog while open
+        if (e.key === 'Tab') {
+          var focusables = lb.querySelectorAll('button, [href], input, select, textarea')
+          if (!focusables.length) return
+          var first = focusables[0],
+            last = focusables[focusables.length - 1]
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+          return
+        }
+        // Arrow keys: navigate between candidates
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          e.preventDefault()
+          var cands = getVisibleCands()
+          if (!cands.length || !lbCurrentCand) return
+          var idx = cands.indexOf(lbCurrentCand)
+          if (idx < 0) return
+          var next = e.key === 'ArrowRight' ? cands[idx + 1] : cands[idx - 1]
+          if (next) openCandInLightbox(next)
+          return
+        }
+        // Keyboard shortcuts for actions
+        if (e.key === 'u' || e.key === 'U') {
+          var btn = lbInfo.querySelector('.pick')
+          if (btn) btn.click()
+          return
+        }
+        if (e.key === 'x' || e.key === 'X') {
+          var btn = lbInfo.querySelector('.action-btn.shortlist')
+          if (btn) btn.click()
+          return
+        }
+        if (e.key === 'f' || e.key === 'F') {
+          var btn = lbInfo.querySelector('.action-btn.create-dim')
+          if (btn) btn.click()
+          return
+        }
+      })
+      if (live) document.body.classList.add('live')
 
-  function pollJob(id, btn) {
-    var iv = setInterval(function() {
-      fetch('/job/' + id).then(function(r) { return r.json(); }).then(function(d) {
-        if (d.status === 'done') { clearInterval(iv); btn.textContent = 'Done'; setTimeout(function() { location.reload(); }, 800); }
-        else if (d.status === 'failed') { clearInterval(iv); btn.disabled = false; btn.textContent = 'Roll failed — check terminal'; }
-        else { btn.textContent = 'Rolling… ' + (d.elapsed || '') + 's'; }
-      }).catch(function() {});
-    }, 2000);
-  }
+      // --- Filter + sort state from URL hash ---
+      function readHash() {
+        var p = new URLSearchParams(location.search.slice(1))
+        return {
+          family: p.get('family') || 'All',
+          type: p.get('type') || '',
+          mood: p.get('mood') || '',
+          search: p.get('q') || '',
+          flagged: p.get('flagged') === '1',
+          shortlisted: p.get('shortlisted') === '1',
+          ungrouped: p.get('ungrouped') === '1',
+          showHidden: p.get('hidden') === '1',
+          sort: p.get('sort') || 'name',
+        }
+      }
+      function writeHash(s) {
+        var p = new URLSearchParams()
+        if (s.family !== 'All') p.set('family', s.family)
+        if (s.type) p.set('type', s.type)
+        if (s.mood) p.set('mood', s.mood)
+        if (s.search) p.set('q', s.search)
+        if (s.flagged) p.set('flagged', '1')
+        if (s.shortlisted) p.set('shortlisted', '1')
+        if (s.ungrouped) p.set('ungrouped', '1')
+        if (s.showHidden) p.set('hidden', '1')
+        if (s.sort !== 'name') p.set('sort', s.sort)
+        var qs = p.toString()
+        history.replaceState(null, '', qs ? '?' + qs : location.pathname)
+      }
 
-  // --- Create dimension modal ---
-  document.getElementById('cd-cancel').addEventListener('click', function() {
-    document.getElementById('create-dim-dialog').close();
-  });
-  document.getElementById('cd-create').addEventListener('click', function() {
-    var nameEl = document.getElementById('cd-name');
-    var descEl = document.getElementById('cd-desc');
-    var errEl = document.getElementById('cd-name-error');
-    var name = nameEl.value.trim();
-    if (!/^[a-z][a-z0-9_]*$/.test(name)) {
-      errEl.textContent = 'Name must start with a letter and contain only lowercase letters, numbers, and underscores.';
-      return;
-    }
-    errEl.textContent = '';
-    var btn = document.getElementById('cd-create');
-    btn.disabled = true; btn.textContent = 'Creating…';
-    postJSON('/create-dimension', {
-      parent_dim: document.getElementById('cd-parent-dim').value,
-      seed: document.getElementById('cd-seed').value,
-      name: name, description: descEl.value.trim()
-    }).then(function(res) {
-      if (!res || !res.ok) return res && res.json ? res.json() : null;
-      return res.json();
-    }).then(function(data) {
-      if (data && data.ok) { document.getElementById('create-dim-dialog').close(); location.reload(); }
-      else { errEl.textContent = (data && data.error) || 'Could not create'; btn.disabled = false; btn.textContent = 'Create'; }
-    });
-  });
-})();
-</script>
+      var state = readHash()
+      var typeEl = document.getElementById('f-type')
+      var moodEl = document.getElementById('f-mood')
+      var sortEl = document.getElementById('f-sort')
+      var searchEl = document.getElementById('f-search')
+      var flaggedEl = document.getElementById('f-flagged')
+      var shortlistedEl = document.getElementById('f-shortlisted')
+      var ungroupedEl = document.getElementById('f-ungrouped')
+      var hiddenEl = document.getElementById('f-hidden')
+      var grid = document.getElementById('grid')
+      var ugGrid = document.getElementById('ungrouped-grid')
+
+      function candSort(a, b) {
+        switch (state.sort) {
+          case 'score-desc':
+            return parseFloat(b.dataset.score || 0) - parseFloat(a.dataset.score || 0)
+          case 'score-asc':
+            return parseFloat(a.dataset.score || 0) - parseFloat(b.dataset.score || 0)
+          case 'family':
+            return (a.dataset.dim || '').localeCompare(b.dataset.dim || '')
+          default:
+            return (
+              (a.dataset.dim || '').localeCompare(b.dataset.dim || '') ||
+              parseFloat(b.dataset.score || 0) - parseFloat(a.dataset.score || 0)
+            )
+        }
+      }
+
+      function buildUngrouped() {
+        ugGrid.innerHTML = ''
+        var q = state.search.toLowerCase()
+        var clones = []
+        document.querySelectorAll('.dim-card').forEach(function (card) {
+          var groups = (card.dataset.family || '').split(' ')
+          var fam = state.family === 'All' || groups.indexOf(state.family) >= 0
+          var typ = !state.type || card.dataset.type === state.type
+          var moo = !state.mood || card.dataset.mood === state.mood
+          var txt = !q || card.dataset.name.toLowerCase().indexOf(q) >= 0
+          var hid = state.showHidden || card.dataset.hidden !== '1'
+          if (!(fam && typ && moo && txt && hid)) return
+          card.querySelectorAll('.cand').forEach(function (c) {
+            if (state.shortlisted && !c.dataset.shortlisted) return
+            if (state.flagged && parseFloat(c.dataset.score || 100) >= 70) return
+            var clone = c.cloneNode(true)
+            clone.style.display = ''
+            var lbl = clone.querySelector('.cand-dim-label')
+            if (lbl) lbl.style.display = 'block'
+            clones.push(clone)
+          })
+        })
+        clones.sort(candSort)
+        var frag = document.createDocumentFragment()
+        clones.forEach(function (el) {
+          frag.appendChild(el)
+        })
+        ugGrid.appendChild(frag)
+      }
+
+      function sortCandsInGroups() {
+        document.querySelectorAll('.all-cands').forEach(function (container) {
+          var items = Array.from(container.querySelectorAll('.cand'))
+          items.sort(candSort)
+          items.forEach(function (el) {
+            container.appendChild(el)
+          })
+        })
+      }
+
+      // --- Review progress: dims with a pinned winner, shortlisted seed, or hidden ---
+      function updateProgress() {
+        var cards = document.querySelectorAll('.dim-card')
+        var total = cards.length,
+          done = 0
+        cards.forEach(function (c) {
+          if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1' || c.dataset.hidden === '1') done++
+        })
+        var el = document.getElementById('progress')
+        if (!el) return
+        el.textContent =
+          'Reviewed ' +
+          done +
+          ' of ' +
+          total +
+          ' dimensions — ' +
+          (total - done) +
+          ' still to review (a dimension counts as reviewed ' +
+          'once a seed is pinned or shortlisted, or the dimension is hidden)'
+      }
+
+      function applyState() {
+        document.querySelectorAll('.family-btn').forEach(function (b) {
+          var active = b.dataset.family === state.family
+          b.classList.toggle('active', active)
+          b.setAttribute('aria-pressed', active ? 'true' : 'false')
+        })
+        typeEl.value = state.type
+        moodEl.value = state.mood
+        sortEl.value = state.sort
+        searchEl.value = state.search
+        flaggedEl.checked = state.flagged
+        shortlistedEl.checked = state.shortlisted
+        ungroupedEl.checked = state.ungrouped
+        hiddenEl.checked = state.showHidden
+        document.body.classList.toggle('shortlist-filter', state.shortlisted)
+        document.body.classList.toggle('ungrouped', state.ungrouped)
+        var q = state.search.toLowerCase()
+        if (state.ungrouped) {
+          buildUngrouped()
+        } else {
+          var cards = Array.from(document.querySelectorAll('.dim-card'))
+          cards.forEach(function (c) {
+            var groups = (c.dataset.family || '').split(' ')
+            var fam = state.family === 'All' || groups.indexOf(state.family) >= 0
+            var typ = !state.type || c.dataset.type === state.type
+            var moo = !state.mood || c.dataset.mood === state.mood
+            var txt = !q || c.dataset.name.toLowerCase().indexOf(q) >= 0
+            var flg = !state.flagged || c.dataset.flagged === '1'
+            var shl = !state.shortlisted || c.querySelector('.cand[data-shortlisted]') !== null
+            var hid = state.showHidden || c.dataset.hidden !== '1'
+            c.classList.toggle('hidden', !(fam && typ && moo && txt && flg && shl && hid))
+          })
+          var visible = cards.filter(function (c) {
+            return !c.classList.contains('hidden')
+          })
+          visible.sort(function (a, b) {
+            switch (state.sort) {
+              case 'score-desc':
+                return parseFloat(b.dataset.score) - parseFloat(a.dataset.score)
+              case 'score-asc':
+                return parseFloat(a.dataset.score) - parseFloat(b.dataset.score)
+              case 'family':
+                return (
+                  (a.dataset.family || '').localeCompare(b.dataset.family || '') ||
+                  a.dataset.name.localeCompare(b.dataset.name)
+                )
+              case 'candidates':
+                return parseInt(b.dataset.cands) - parseInt(a.dataset.cands)
+              default:
+                return a.dataset.name.localeCompare(b.dataset.name)
+            }
+          })
+          visible.forEach(function (c) {
+            grid.appendChild(c)
+          })
+          sortCandsInGroups()
+        }
+        updateProgress()
+        writeHash(state)
+      }
+
+      document.querySelectorAll('.family-btn').forEach(function (b) {
+        b.addEventListener('click', function () {
+          state.family = b.dataset.family
+          applyState()
+        })
+      })
+      typeEl.addEventListener('change', function () {
+        state.type = typeEl.value
+        applyState()
+      })
+      moodEl.addEventListener('change', function () {
+        state.mood = moodEl.value
+        applyState()
+      })
+      sortEl.addEventListener('change', function () {
+        state.sort = sortEl.value
+        applyState()
+      })
+      searchEl.addEventListener('input', function () {
+        state.search = searchEl.value
+        applyState()
+      })
+      flaggedEl.addEventListener('change', function () {
+        state.flagged = flaggedEl.checked
+        applyState()
+      })
+      shortlistedEl.addEventListener('change', function () {
+        state.shortlisted = shortlistedEl.checked
+        applyState()
+      })
+      ungroupedEl.addEventListener('change', function () {
+        state.ungrouped = ungroupedEl.checked
+        applyState()
+      })
+      hiddenEl.addEventListener('change', function () {
+        state.showHidden = hiddenEl.checked
+        applyState()
+      })
+      document.getElementById('f-borders').addEventListener('change', function (e) {
+        var on = e.target.checked
+        document.body.classList.toggle('show-borders', on)
+        document.querySelectorAll('.img-wrap').forEach(function (wrap) {
+          var img = wrap.querySelector('img')
+          if (img) img.style.transform = on ? 'scale(' + wrap.dataset.borderScale + ')' : ''
+        })
+      })
+
+      // --- World border overlays ---
+      // All dimensions scale relative to the largest border diameter.
+      // A 1024b world is 1/16th of a 16384b overworld.
+      // No red ring on cards — just relative sizing.
+      // Lightbox hires (32K render) gets a red ring at 50% showing the border.
+      var RENDER_SIZE = 1024,
+        BASE_SCALE = 8
+      var maxDiameter = 0
+      document.querySelectorAll('.dim-card').forEach(function (card) {
+        var r = parseFloat(card.dataset.radius || 0)
+        if (r * 2 > maxDiameter) maxDiameter = r * 2
+      })
+      document.querySelectorAll('.dim-card').forEach(function (card) {
+        var radius = parseFloat(card.dataset.radius || 0)
+        var dimScale = parseFloat(card.dataset.dimScale || 1)
+        if (!radius) return
+        var diameter = radius * 2
+        var imgScale = Math.max(0.05, diameter / maxDiameter)
+        var normalCoverage = RENDER_SIZE * Math.max(1, Math.floor(BASE_SCALE / dimScale))
+        var hiresCoverage = Math.round((2048 * 16) / dimScale)
+        card.dataset.borderDiameter = diameter
+        card.querySelectorAll('img').forEach(function (img) {
+          var wrap = img.parentElement
+          if (wrap.classList.contains('img-wrap')) return
+          var div = document.createElement('div')
+          div.className = 'img-wrap'
+          div.dataset.borderScale = imgScale.toFixed(4)
+          img.parentNode.insertBefore(div, img)
+          div.appendChild(img)
+          var lbl = document.createElement('div')
+          lbl.className = 'border-label'
+          lbl.textContent = normalCoverage + 'b'
+          lbl.dataset.normalCoverage = normalCoverage
+          lbl.dataset.hiresCoverage = hiresCoverage
+          div.appendChild(lbl)
+        })
+      })
+
+      applyState()
+
+      // --- Image auto-refresh: retry missing images + upgrade to hires ---
+      ;(function autoRefreshImages() {
+        var pending = new Set()
+        document.querySelectorAll('img[data-hires]').forEach(function (img) {
+          pending.add(img)
+        })
+        function tick() {
+          if (!pending.size) return
+          pending.forEach(function (img) {
+            if (!img.naturalWidth || !img.src) {
+              var normalSrc = img.src || img.dataset.hires.replace('_hires', '')
+              var probe = new Image()
+              probe.onload = function () {
+                img.src = normalSrc.split('?')[0] + '?t=' + Date.now()
+                tryHires(img)
+              }
+              probe.src = normalSrc.split('?')[0] + '?t=' + Date.now()
+            } else {
+              tryHires(img)
+            }
+          })
+        }
+        function tryHires(img) {
+          var hires = img.dataset.hires
+          if (!hires) {
+            pending.delete(img)
+            return
+          }
+          var hi = new Image()
+          hi.onload = function () {
+            img.src = hi.src
+            var wrap = img.parentElement
+            if (wrap) {
+              var badge = wrap.querySelector('.hires-badge')
+              if (badge) badge.classList.add('visible')
+              var lbl = wrap.querySelector('.border-label')
+              if (lbl && lbl.dataset.hiresCoverage) lbl.textContent = lbl.dataset.hiresCoverage + 'b'
+            }
+            pending.delete(img)
+          }
+          hi.src = hires.split('?')[0] + '?t=' + Date.now()
+        }
+        tick()
+        var iv = setInterval(function () {
+          tick()
+          if (!pending.size) clearInterval(iv)
+        }, 10000)
+      })()
+
+      // --- Card expand/collapse ---
+      function setExpanded(card, on) {
+        card.classList.toggle('expanded', on)
+        card.setAttribute('aria-expanded', on ? 'true' : 'false')
+      }
+      function expandCard(card) {
+        if (card.classList.contains('expanded')) return
+        document.querySelectorAll('.dim-card.expanded').forEach(function (c) {
+          setExpanded(c, false)
+        })
+        setExpanded(card, true)
+        sortCandsInGroups()
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
+      grid.addEventListener('click', function (e) {
+        if (e.target.closest('.action-btn, .pick, .close-btn, .cand')) return
+        var card = e.target.closest('.dim-card')
+        if (!card) return
+        expandCard(card)
+      })
+      grid.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return
+        if (e.target.closest('.action-btn, .pick, .close-btn, .cand, button, input, select')) return
+        var card = e.target.closest('.dim-card')
+        if (!card || card.classList.contains('expanded')) return
+        e.preventDefault()
+        expandCard(card)
+      })
+      grid.addEventListener('click', function (e) {
+        var close = e.target.closest('.close-btn')
+        if (close) {
+          setExpanded(close.closest('.dim-card'), false)
+        }
+      })
+
+      // --- Action buttons (live server only) ---
+      if (!live) return
+
+      function postJSON(url, data) {
+        return fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }).catch(function () {
+          return null
+        })
+      }
+
+      function handleAction(e) {
+        var pick = e.target.closest('.pick')
+        if (pick) {
+          pick.disabled = true
+          pick.textContent = 'saving…'
+          postJSON('/pick', { dim: pick.dataset.dim, seed: pick.dataset.seed }).then(function (res) {
+            if (res && res.ok) location.reload()
+            else {
+              pick.disabled = false
+              pick.textContent = 'Could not save'
+            }
+          })
+          return
+        }
+        var reroll = e.target.closest('.action-btn.reroll')
+        if (reroll) {
+          reroll.disabled = true
+          reroll.textContent = 'Rolling…'
+          postJSON('/reroll', { dim: reroll.dataset.dim, pool: 5000, count: 100 }).then(function (res) {
+            if (res && res.ok)
+              res.json().then(function (d) {
+                pollJob(d.job_id, reroll)
+              })
+            else {
+              reroll.disabled = false
+              reroll.textContent = 'Roll failed — check terminal'
+            }
+          })
+          return
+        }
+        var edit = e.target.closest('.action-btn.edit')
+        if (edit) {
+          edit.disabled = true
+          edit.textContent = 'Opening…'
+          postJSON('/edit-config', { dim: edit.dataset.dim }).then(function (res) {
+            edit.textContent = res && res.ok ? 'Opened' : 'Could not open'
+            setTimeout(function () {
+              edit.disabled = false
+              edit.textContent = 'Edit'
+            }, 2500)
+          })
+          return
+        }
+        var createDim = e.target.closest('.action-btn.create-dim')
+        if (createDim) {
+          var dlg = document.getElementById('create-dim-dialog')
+          document.getElementById('cd-parent-dim').value = createDim.dataset.dim
+          document.getElementById('cd-seed').value = createDim.dataset.seed
+          document.getElementById('cd-name').value = createDim.dataset.dim + '_fork'
+          document.getElementById('cd-desc').value = ''
+          document.getElementById('cd-name-error').textContent = ''
+          document.getElementById('cd-create').disabled = false
+          document.getElementById('cd-create').textContent = 'Create'
+          dlg.showModal()
+          return
+        }
+        var hideBtn = e.target.closest('.action-btn.hide')
+        if (hideBtn) {
+          hideBtn.disabled = true
+          hideBtn.textContent = 'Hiding…'
+          postJSON('/hide-dimension', { dim: hideBtn.dataset.dim }).then(function (res) {
+            if (res && res.ok) location.reload()
+            else {
+              hideBtn.disabled = false
+              hideBtn.textContent = 'Could not hide'
+            }
+          })
+          return
+        }
+        var removeBtn = e.target.closest('.action-btn.remove')
+        if (removeBtn) {
+          if (!confirm('Remove "' + removeBtn.dataset.dim + '" and all its candidate data? This cannot be undone.'))
+            return
+          removeBtn.disabled = true
+          removeBtn.textContent = 'Removing…'
+          postJSON('/remove-dimension', { dim: removeBtn.dataset.dim }).then(function (res) {
+            if (res && res.ok) location.reload()
+            else {
+              removeBtn.disabled = false
+              removeBtn.textContent = 'Could not remove'
+            }
+          })
+          return
+        }
+        var slBtn = e.target.closest('.action-btn.shortlist')
+        if (slBtn) {
+          // In the lightbox the button lives in copied markup — fall back to the
+          // original candidate element so its shortlist state stays in sync.
+          var cand = slBtn.closest('.cand') || lbCurrentCand
+          var isShortlisted = cand ? cand.dataset.shortlisted === '1' : slBtn.textContent.indexOf('Remove') >= 0
+          slBtn.disabled = true
+          slBtn.textContent = isShortlisted ? 'Removing…' : 'Shortlisting…'
+          postJSON('/shortlist', {
+            dim: slBtn.dataset.dim,
+            seed: slBtn.dataset.seed,
+            action: isShortlisted ? 'remove' : 'add',
+          })
+            .then(function (res) {
+              if (!res || !res.ok) {
+                slBtn.disabled = false
+                slBtn.textContent = 'Could not update'
+                return
+              }
+              return res.json()
+            })
+            .then(function (data) {
+              if (!data) return
+              if (data.shortlisted) {
+                if (cand) cand.dataset.shortlisted = '1'
+                slBtn.textContent = 'Remove from shortlist'
+              } else {
+                if (cand) delete cand.dataset.shortlisted
+                slBtn.textContent = 'Shortlist'
+              }
+              slBtn.disabled = false
+              var cardEl = cand && cand.closest('.dim-card')
+              if (cardEl) {
+                cardEl.dataset.shortlisted = cardEl.querySelector('.cand[data-shortlisted]') ? '1' : '0'
+              }
+              updateProgress()
+            })
+          return
+        }
+      }
+      grid.addEventListener('click', handleAction)
+      ugGrid.addEventListener('click', handleAction)
+      lb.addEventListener('click', handleAction)
+
+      function pollJob(id, btn) {
+        var iv = setInterval(function () {
+          fetch('/job/' + id)
+            .then(function (r) {
+              return r.json()
+            })
+            .then(function (d) {
+              if (d.status === 'done') {
+                clearInterval(iv)
+                btn.textContent = 'Done'
+                setTimeout(function () {
+                  location.reload()
+                }, 800)
+              } else if (d.status === 'failed') {
+                clearInterval(iv)
+                btn.disabled = false
+                btn.textContent = 'Roll failed — check terminal'
+              } else {
+                btn.textContent = 'Rolling… ' + (d.elapsed || '') + 's'
+              }
+            })
+            .catch(function () {})
+        }, 2000)
+      }
+
+      // --- Create dimension modal ---
+      document.getElementById('cd-cancel').addEventListener('click', function () {
+        document.getElementById('create-dim-dialog').close()
+      })
+      document.getElementById('cd-create').addEventListener('click', function () {
+        var nameEl = document.getElementById('cd-name')
+        var descEl = document.getElementById('cd-desc')
+        var errEl = document.getElementById('cd-name-error')
+        var name = nameEl.value.trim()
+        if (!/^[a-z][a-z0-9_]*$/.test(name)) {
+          errEl.textContent =
+            'Name must start with a letter and contain only lowercase letters, numbers, and underscores.'
+          return
+        }
+        errEl.textContent = ''
+        var btn = document.getElementById('cd-create')
+        btn.disabled = true
+        btn.textContent = 'Creating…'
+        postJSON('/create-dimension', {
+          parent_dim: document.getElementById('cd-parent-dim').value,
+          seed: document.getElementById('cd-seed').value,
+          name: name,
+          description: descEl.value.trim(),
+        })
+          .then(function (res) {
+            if (!res || !res.ok) return res && res.json ? res.json() : null
+            return res.json()
+          })
+          .then(function (data) {
+            if (data && data.ok) {
+              document.getElementById('create-dim-dialog').close()
+              location.reload()
+            } else {
+              errEl.textContent = (data && data.error) || 'Could not create'
+              btn.disabled = false
+              btn.textContent = 'Create'
+            }
+          })
+      })
+    })()
+  </script>
+</html>

@@ -259,6 +259,21 @@ MOOD_BLURBS = {
                 "spread, vanilla-plus feel.",
 }
 
+# Mood -> default clearSpawnRadius (blocks). Structures inside this zone
+# penalise the score — the player should have breathing room at spawn,
+# not land on top of a dungeon entrance. Hard/adventurous dims want
+# structures in your face; serene/pastoral want space to build.
+MOOD_CLEAR_SPAWN = {
+    "hard": 0,
+    "adventurous": 0,
+    "dramatic": 48,
+    "scenic": 64,
+    "pastoral": 80,
+    "serene": 80,
+    "desolate": 48,
+    "standard": 48,
+}
+
 # Mood -> component weights (namesake, variety, terrain, structures).
 # Normalised at use; hostile-structure emphasis rides inside structures.
 MOOD_WEIGHTS = {
@@ -744,6 +759,14 @@ def build_profile(dim, config, difficulty=None):
         weights["namesake"] = max(5, weights["namesake"] - 5)
         weights["variety"] = max(5, weights["variety"] - 5)
 
+    # Clear-spawn radius: structures inside this zone penalise the score.
+    # Config wins; mood default is the fallback.
+    csr = struct_block.get("clearSpawnRadius")
+    if isinstance(csr, (int, float)) and not isinstance(csr, bool):
+        clear_spawn_radius = max(0, int(csr))
+    else:
+        clear_spawn_radius = MOOD_CLEAR_SPAWN.get(mood, 48)
+
     # Endgame near-spawn safety: hard/dense dims want endgame close;
     # everything else penalises candidates with endgame inside a protected
     # zone. The structures.endgame block overrides the heuristics.
@@ -795,6 +818,7 @@ def build_profile(dim, config, difficulty=None):
         "height_range": (tuple(sr["heightRange"]) if isinstance(sr.get("heightRange"), list)
                          and len(sr["heightRange"]) == 2
                          else CLONE_HEIGHT_RANGES.get(dim_type)),
+        "clear_spawn_radius": clear_spawn_radius,
         "endgame_safe_radius": endgame_safe_radius,
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.

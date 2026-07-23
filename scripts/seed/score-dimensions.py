@@ -299,21 +299,44 @@ def score_candidate(profile, rows):
         else:
             parts["namesake"] = base
 
-    # Variety: fraction of listed biomes locatable nearby. Closer = better.
+    # Variety: biome diversity within the playable area. Proximity-weighted
+    # so that fringe slivers (biomes found only near or beyond the world
+    # border) don't inflate the score — a monoculture with token far-away
+    # biomes no longer rates as "diverse". The balance component checks
+    # that non-namesake biomes genuinely exist close to spawn; namesake
+    # biomes already earn credit in the namesake component.
     found, total = 0.0, 0
-    half_r = profile["radius"] / 2
+    radius = profile["radius"]
+    half_r = radius / 2
+    namesake_set = set(profile["namesake"])
+    non_namesake_close = 0
+    non_namesake_total = 0
     for metric, value in rows.items():
         if metric.startswith("biome_") and metric.endswith("_dist"):
             total += 1
             d = float(value)
+            biome_id = metric[6:-5]
+            is_namesake = biome_id in namesake_set
+            if not is_namesake:
+                non_namesake_total += 1
             if d >= 0:
-                contrib = 1.0 if d <= profile["radius"] else 0.6
-                if d <= half_r:
-                    contrib *= 1.05
+                if d <= radius:
+                    # Quadratic decay approximates the area fraction a biome
+                    # at distance d can occupy in a circle of radius r.
+                    contrib = max(0.25, 1.0 - (d / radius) ** 2)
+                    if d <= half_r and not is_namesake:
+                        non_namesake_close += 1
+                else:
+                    contrib = 0.15
                 found += contrib
-    parts["variety"] = (found / total) if total else 0.5
-    if total and found == 1 and total > 2:
-        parts["variety"] *= 0.7  # verging on single-biome — penalise
+    base_variety = (found / total) if total else 0.5
+    if non_namesake_total > 1:
+        balance = non_namesake_close / non_namesake_total
+        parts["variety"] = 0.7 * base_variety + 0.3 * balance
+    else:
+        parts["variety"] = base_variety
+    if total > 2 and found < 1.5:
+        parts["variety"] *= 0.7
 
     # Terrain.
     relief, grain, water, land = terrain_metrics(rows)
@@ -334,17 +357,43 @@ def score_candidate(profile, rows):
             parts["terrain"] *= 0.5  # unexpectedly voidy/ocean-swallowed
 
     # Structures: wants judged by their block range, shuns by distance.
+    # clearSpawnRadius penalises ANY battery structure found too close to
+    # spawn — the player needs breathing room regardless of the want range.
+    # Density bias: found structures nudge the score by structureDensity —
+    # sparse dims slightly prefer fewer hits, dense dims slightly prefer more.
     if profile["battery"]:
         ss, n = 0.0, 0
+        found_count = 0
+        clear_r = profile.get("clear_spawn_radius", 0)
         for name, _sid, spec, kind in profile["battery"]:
             v = rows.get(f"structure_{name}_dist")
             d = float(v) if v is not None else None
             if kind == "shun":
-                ss += shun_score(d, profile["radius"], spec)
+                s = shun_score(d, profile["radius"], spec)
             else:
-                ss += want_score(d, spec[0], spec[1], profile["radius"])
+                s = want_score(d, spec[0], spec[1], profile["radius"])
+            if clear_r > 0 and d is not None and d >= 0 and d < clear_r:
+                s *= max(0.0, d / clear_r)
+            ss += s
             n += 1
+            if d is not None and d >= 0:
+                found_count += 1
         parts["structures"] = ss / n if n else 0.0
+        # Density bias: each found structure nudges the score. When
+        # enrichment data exists (structure_all from a render pass), use
+        # the TOTAL structure count — it includes unlisted structures
+        # that the battery never asked about. This lets later roll rounds
+        # dethrone earlier winners when enrichment reveals a cluttered or
+        # empty world. Without enrichment, fall back to battery-found-count.
+        enriched = rows.get("_enriched_structure_count")
+        struct_count = int(enriched) if enriched is not None else found_count
+        density = profile.get("density")
+        if density == "sparse":
+            parts["structures"] = max(0.0, parts["structures"] - struct_count * 0.012)
+        elif density == "dense":
+            parts["structures"] = min(1.1, parts["structures"] + struct_count * 0.008)
+        else:
+            parts["structures"] = max(0.0, parts["structures"] - struct_count * 0.003)
     else:
         parts["structures"] = 0.0
 
@@ -392,6 +441,9 @@ def gather_measurements(args):
                 slug = f.stem
                 for seed, cand in store["candidates"].items():
                     data[slug][seed].update(cand.get("measurements", {}))
+                    sa = cand.get("structure_all")
+                    if sa:
+                        data[slug][seed]["_enriched_structure_count"] = str(len(sa))
                 for seed in store["rejected"]:
                     data[slug][seed].setdefault("rejected", "1")
     sources = [Path(args.csv)] if getattr(args, "csv", None) else []

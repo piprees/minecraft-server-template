@@ -109,6 +109,54 @@ BIOME_COLOURS = {
 
 FALLBACK_COLOUR = (128, 128, 128)
 
+# Structure marker colours, keyed by keyword matched against the battery
+# structure name (approximate the structure's dominant build material).
+STRUCT_MAT = {
+    "village": (104, 104, 104),     # cobblestone
+    "pillager": (60, 60, 60),       # dark stone
+    "mansion": (90, 60, 30),        # dark oak planks
+    "monument": (70, 130, 130),     # prismarine
+    "temple": (180, 170, 140),      # sandstone
+    "jungle_temple": (80, 90, 50),  # mossy cobblestone
+    "desert_pyramid": (210, 195, 145), # sandstone
+    "fortress": (55, 10, 10),       # nether brick
+    "stronghold": (80, 80, 80),     # stone brick
+    "mineshaft": (100, 72, 36),     # oak planks
+    "shipwreck": (90, 60, 30),      # planks
+    "ruined_portal": (40, 10, 40),  # obsidian
+    "bastion": (30, 30, 30),        # blackstone
+    "end_city": (200, 160, 200),    # purpur
+    "witch": (60, 80, 30),          # swamp hut
+    "igloo": (220, 220, 220),       # snow
+    "ancient_city": (20, 20, 30),   # deepslate
+    "trail_ruins": (140, 100, 60),  # terracotta
+    "outpost": (100, 72, 36),       # oak planks
+    "ocean_ruin": (70, 100, 80),    # mossy stone
+    "dungeon": (80, 80, 80),        # cobblestone
+    "treasure": (180, 170, 140),    # sandstone
+    "sanctum": (100, 60, 60),       # deepslate
+    "tower": (104, 104, 104),       # stone
+    "citadel": (80, 60, 40),        # dark planks
+    "keep": (50, 50, 50),           # blackstone
+    "shrine": (130, 110, 80),       # stone brick
+    "camp": (100, 72, 36),          # planks
+    "ruin": (90, 90, 80),           # cracked stone
+    "vault": (60, 50, 50),          # deepslate
+}
+_FOOTPRINT_LARGE = ("mansion", "monument", "fortress", "bastion")
+
+
+def _struct_style(name):
+    """(colour, footprint radius in px) for a battery structure name."""
+    for keyword, col in STRUCT_MAT.items():
+        if keyword in name:
+            if keyword == "village":
+                return col, 8
+            if keyword in _FOOTPRINT_LARGE:
+                return col, 5
+            return col, 3
+    return FALLBACK_COLOUR, 3
+
 
 def biome_colour(biome_id):
     if biome_id in BIOME_COLOURS:
@@ -292,77 +340,6 @@ def render_biome_map(seed, biome_params_path, output_path,
 
     iseed = int(seed)
 
-    # Pre-compute structure footprints as pixel-coordinate rectangles
-    struct_pixels = {}
-    try:
-        from structure_placement import load_structure_sets, nearest_structure
-        struct_sets_dir = None
-        for candidate in (Path.cwd() / ".seedtest" / ".structure_sets",
-                          Path.cwd().parent / ".seedtest" / ".structure_sets"):
-            if candidate.exists():
-                struct_sets_dir = candidate
-                break
-        if struct_sets_dir:
-            sets = load_structure_sets(str(struct_sets_dir))
-            struct_mat = {
-                "village": (104, 104, 104),     # cobblestone
-                "pillager": (60, 60, 60),       # dark stone
-                "mansion": (90, 60, 30),        # dark oak planks
-                "monument": (70, 130, 130),     # prismarine
-                "temple": (180, 170, 140),      # sandstone
-                "jungle_temple": (80, 90, 50),  # mossy cobblestone
-                "desert_pyramid": (210, 195, 145), # sandstone
-                "fortress": (55, 10, 10),       # nether brick
-                "stronghold": (80, 80, 80),     # stone brick
-                "mineshaft": (100, 72, 36),     # oak planks
-                "shipwreck": (90, 60, 30),      # planks
-                "ruined_portal": (40, 10, 40),  # obsidian
-                "bastion": (30, 30, 30),        # blackstone
-                "end_city": (200, 160, 200),    # purpur
-                "witch": (60, 80, 30),          # swamp hut
-                "igloo": (220, 220, 220),       # snow
-                "ancient_city": (20, 20, 30),   # deepslate
-                "trail_ruins": (140, 100, 60),  # terracotta
-                "outpost": (100, 72, 36),       # oak planks
-                "ocean_ruin": (70, 100, 80),    # mossy stone
-                "dungeon": (80, 80, 80),        # cobblestone
-                "treasure": (180, 170, 140),    # sandstone
-                "sanctum": (100, 60, 60),       # deepslate
-                "tower": (104, 104, 104),       # stone
-                "citadel": (80, 60, 40),        # dark planks
-                "keep": (50, 50, 50),           # blackstone
-                "shrine": (130, 110, 80),       # stone brick
-                "camp": (100, 72, 36),          # planks
-                "ruin": (90, 90, 80),           # cracked stone
-                "vault": (60, 50, 50),          # deepslate
-            }
-            for set_id, cfg in sets.items():
-                col = (128, 128, 128)
-                footprint_r = 3
-                for keyword, kcol in struct_mat.items():
-                    if keyword in set_id:
-                        col = kcol
-                        if keyword == "village":
-                            footprint_r = 8
-                        elif keyword in ("mansion", "monument", "fortress", "bastion"):
-                            footprint_r = 5
-                        break
-                result = nearest_structure(
-                    iseed, cfg["spacing"], cfg["separation"], cfg["salt"],
-                    spread_type=cfg.get("spread_type", "linear"),
-                    frequency=cfg.get("frequency", 1.0), search_radius=20)
-                if result:
-                    _, bx, bz = result
-                    cx = int((bx + half) / total_blocks * size)
-                    cy = int((bz + half) / total_blocks * size)
-                    for dy in range(-footprint_r, footprint_r + 1):
-                        for dx in range(-footprint_r, footprint_r + 1):
-                            npx, npy = cx + dx, cy + dy
-                            if 0 <= npx < size and 0 <= npy < size:
-                                struct_pixels[(npx, npy)] = col
-    except ImportError:
-        pass
-
     pixels = bytearray(size * size * 3)
     for py in range(size):
         sy = min(py // upscale, sample_resolution - 1)
@@ -541,11 +518,6 @@ def render_biome_map(seed, biome_params_path, output_path,
                     g = min(255, g + 6)
                     b = min(255, b + 5)
 
-            # --- Structure footprints ---
-            sp = struct_pixels.get((px, py))
-            if sp is not None:
-                r, g, b = sp
-
             # --- Contour lines ---
             if not is_water and not is_void and not is_cave and h > 10:
                 ci = 20 if is_ow else 15
@@ -567,103 +539,58 @@ def render_biome_map(seed, biome_params_path, output_path,
     return size
 
 
-def overlay_structures(png_path, seed, dim_name, config_path, size, blocks_per_pixel):
-    """Draw structure markers on an existing render PNG. Uses structure_placement
-    to compute positions, then draws coloured dots with labels at the edge."""
-    from structure_placement import load_structure_sets, nearest_structure
-    from dimension_profiles import load_config, load_difficulty, build_profile
+def write_png_rgba(path, pixels, width, height):
+    """Write an RGBA pixel buffer as a PNG file. No dependencies."""
+    def chunk(tag, data):
+        raw = tag + data
+        return struct.pack(">I", len(data)) + raw + struct.pack(">I", zlib.crc32(raw) & 0xFFFFFFFF)
 
-    config = load_config(config_path)
-    difficulty = load_difficulty(config_path)
-    all_dims = {d["name"]: d for d in config.get("dimensions", [])}
-    all_dims.update({w["name"]: w for w in config.get("worlds", [])})
-    if dim_name not in all_dims:
-        return
-
-    profile = build_profile(all_dims[dim_name], config, difficulty)
-    struct_sets_dir = Path(config_path).parent.parent / ".seedtest" / ".structure_sets"
-    if not struct_sets_dir.exists():
-        return
-
-    struct_sets = load_structure_sets(str(struct_sets_dir))
-    struct_to_sets = {}
-    for set_id, cfg in struct_sets.items():
-        for s in cfg["structures"]:
-            struct_to_sets.setdefault(s["id"], []).append(set_id)
-
-    total_blocks = size * blocks_per_pixel
-    half = total_blocks // 2
-
-    # Read existing PNG pixels
-    data = Path(png_path).read_bytes()
-    if not data.startswith(b"\x89PNG"):
-        return
-
-    import zlib as _zlib
-    pos = 8
-    width = height = 0
-    idat = b""
-    while pos < len(data):
-        length = struct.unpack(">I", data[pos:pos + 4])[0]
-        tag = data[pos + 4:pos + 8]
-        body = data[pos + 8:pos + 8 + length]
-        if tag == b"IHDR":
-            width, height = struct.unpack(">II", body[:8])
-        elif tag == b"IDAT":
-            idat += body
-        elif tag == b"IEND":
-            break
-        pos += 12 + length
-
-    raw = _zlib.decompress(idat)
-    pixels = bytearray(width * height * 3)
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    raw_rows = b""
     for y in range(height):
-        off = y * (width * 3 + 1) + 1
-        pixels[y * width * 3:(y + 1) * width * 3] = raw[off:off + width * 3]
+        raw_rows += b"\x00"
+        raw_rows += pixels[y * width * 4:(y + 1) * width * 4]
 
-    # Plot structure markers
-    colours = [(255, 80, 80), (80, 200, 255), (255, 200, 50), (80, 255, 120),
-               (200, 120, 255), (255, 160, 80), (120, 200, 200), (200, 200, 100)]
-    markers = []
-    for i, (sname, sid, _spec, kind) in enumerate(profile["battery"]):
-        clean = sid.lstrip("#")
-        set_cfg = None
-        if clean in struct_to_sets:
-            set_cfg = struct_sets[struct_to_sets[clean][0]]
-        elif clean in struct_sets:
-            set_cfg = struct_sets[clean]
-        if not set_cfg:
-            continue
+    out = b"\x89PNG\r\n\x1a\n"
+    out += chunk(b"IHDR", ihdr)
+    out += chunk(b"IDAT", zlib.compress(raw_rows, 6))
+    out += chunk(b"IEND", b"")
+    Path(path).write_bytes(out)
 
-        result = nearest_structure(
-            int(seed), set_cfg["spacing"], set_cfg["separation"],
-            set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
-            frequency=set_cfg.get("frequency", 1.0), search_radius=30)
-        if not result:
-            continue
-        dist, bx, bz = result
-        # Convert block coords to pixel coords
-        px = int((bx + half) / total_blocks * width)
-        py = int((bz + half) / total_blocks * height)
-        if 0 <= px < width and 0 <= py < height:
-            col = colours[i % len(colours)]
-            markers.append((px, py, sname, col, kind))
 
-    # Draw markers: filled circles with dark border, sized for visibility
-    for mx, my, _name, col, kind in markers:
-        r_dot = 6 if kind == "want" else 4
-        for dy in range(-r_dot - 1, r_dot + 2):
-            for dx in range(-r_dot - 1, r_dot + 2):
-                nx, ny = mx + dx, my + dy
-                if 0 <= nx < width and 0 <= ny < height:
-                    dist_sq = dx * dx + dy * dy
-                    off = (ny * width + nx) * 3
-                    if dist_sq <= r_dot * r_dot:
+def render_structure_overlay(structure_all, out_path, size, total_blocks):
+    """Write a transparent RGBA overlay PNG plotting EVERY placement in
+    structure_all ({name: [(dist, x, z), ...]}, banked on the candidate by
+    viewer-server's finalise enrichment via find_all_in_radius).
+
+    size/total_blocks must match the base render the overlay stacks over —
+    the block→pixel mapping is identical to render_biome_map's. Placements
+    are RandomSpread rolls without biome validation: markers show where a
+    structure start CAN roll, not a guarantee it generates."""
+    half = total_blocks // 2
+    pixels = bytearray(size * size * 4)  # zeroed = fully transparent
+    for sname, hits in sorted(structure_all.items()):
+        col, r_fp = _struct_style(sname)
+        border = (max(0, col[0] - 70), max(0, col[1] - 70), max(0, col[2] - 70))
+        for _dist, bx, bz in hits:
+            cx = int((bx + half) / total_blocks * size)
+            cy = int((bz + half) / total_blocks * size)
+            if cx < -r_fp - 1 or cx > size + r_fp or cy < -r_fp - 1 or cy > size + r_fp:
+                continue
+            for dy in range(-r_fp - 1, r_fp + 2):
+                for dx in range(-r_fp - 1, r_fp + 2):
+                    npx, npy = cx + dx, cy + dy
+                    if not (0 <= npx < size and 0 <= npy < size):
+                        continue
+                    ring = max(abs(dx), abs(dy))
+                    off = (npy * size + npx) * 4
+                    if ring <= r_fp:
                         pixels[off:off + 3] = bytes(col)
-                    elif dist_sq <= (r_dot + 1) * (r_dot + 1):
-                        pixels[off:off + 3] = bytes([20, 20, 20])
-
-    write_png(png_path, bytes(pixels), width, height)
+                        pixels[off + 3] = 255
+                    elif pixels[off + 3] == 0:
+                        pixels[off:off + 3] = bytes(border)
+                        pixels[off + 3] = 200
+    write_png_rgba(out_path, bytes(pixels), size, size)
 
 
 FAMILY_NOISE = {
@@ -698,7 +625,7 @@ def _render_one(task):
 
 def batch_render(config_path, seedtest_path, biome_params_path,
                  top=10, size=1024, scale=8, sample_resolution=256,
-                 workers=0, dims_filter=None, shortlist=False, suffix=""):
+                 workers=0, dims_filter=None, suffix=""):
     """Render biome maps for top-N candidates per dimension. No MC server."""
     import multiprocessing
     import time
@@ -719,7 +646,6 @@ def batch_render(config_path, seedtest_path, biome_params_path,
     cdir = cmod.candidates_dir(Path(config_path))
     renders_dir = Path(seedtest_path) / "renders"
     tasks = []
-    queued_normal = set()
 
     for name, dim in all_targets.items():
         profile = build_profile(dim, config, difficulty)
@@ -742,50 +668,8 @@ def batch_render(config_path, seedtest_path, biome_params_path,
             if out.exists():
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
-            queued_normal.add((name, seed))
             tasks.append((int(seed), name, fam, dim_type, dim.get("biome") or None,
                           biome_params_path, str(out), size, effective_scale, sample_resolution))
-
-    if shortlist:
-        import json as _json
-        hires_size = size * 2
-        hires_scale = max(scale // 2, 1)
-        hires_sample_res = min(sample_resolution * 2, hires_size)
-        # Shortlist lives in shortlist.json (managed by viewer-server), keyed as "dim/seed"
-        sl_path = Path(seedtest_path) / "shortlist.json"
-        sl_entries = {}
-        if sl_path.exists():
-            try:
-                sl_data = _json.loads(sl_path.read_text())
-                for key, val in sl_data.items():
-                    parts = key.split("/", 1)
-                    if len(parts) == 2:
-                        sl_entries.setdefault(parts[0], set()).add(parts[1])
-            except (_json.JSONDecodeError, OSError):
-                pass
-        # Also check candidate store for shortlisted flag (belt and braces)
-        for name, dim in all_targets.items():
-            profile = build_profile(dim, config, difficulty)
-            store = cmod.load_store(cdir / f"{name}.json")
-            dim_type = dim.get("type", "")
-            fam = profile.get("family", "overworld")
-            sl_seeds = sl_entries.get(name, set())
-            dim_scale = profile.get("scale", 1.0)
-            eff_scale = max(1, int(scale / dim_scale))
-            eff_hires_scale = max(1, int(hires_scale / dim_scale))
-            for seed_str, cand in store["candidates"].items():
-                if seed_str not in sl_seeds and not cand.get("shortlisted"):
-                    continue
-                out = renders_dir / name / f"{seed_str}.png"
-                if not out.exists() and (name, seed_str) not in queued_normal:
-                    out.parent.mkdir(parents=True, exist_ok=True)
-                    tasks.append((int(seed_str), name, fam, dim_type, dim.get("biome") or None,
-                                  biome_params_path, str(out), size, eff_scale, sample_resolution))
-                out_hires = renders_dir / name / f"{seed_str}_hires.png"
-                if not out_hires.exists():
-                    out_hires.parent.mkdir(parents=True, exist_ok=True)
-                    tasks.append((int(seed_str), name, fam, dim_type, dim.get("biome") or None,
-                                  biome_params_path, str(out_hires), hires_size, eff_hires_scale, hires_sample_res))
 
     if not tasks:
         print("All candidates already have renders.")
@@ -846,8 +730,6 @@ def main():
     batch.add_argument("--sample-res", type=int, default=256)
     batch.add_argument("--workers", type=int, default=0)
     batch.add_argument("--dims", help="Comma-separated dimension names")
-    batch.add_argument("--shortlist", action="store_true",
-                       help="Also render shortlisted candidates at both normal and highres")
     batch.add_argument("--suffix", default="",
                        help="Filename suffix before .png (e.g. '_hires')")
 
@@ -872,7 +754,7 @@ def main():
                             top=args.top, size=args.size, scale=args.scale,
                             sample_resolution=args.sample_res,
                             workers=args.workers, dims_filter=args.dims,
-                            shortlist=args.shortlist, suffix=args.suffix)
+                            suffix=args.suffix)
     else:
         ap.print_help()
 

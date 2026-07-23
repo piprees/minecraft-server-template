@@ -53,6 +53,45 @@ def _batch_render(config, seedtest, biome_params, size, scale, sample_res,
     subprocess.run(cmd)
 
 
+# (size, base blocks-per-pixel, filename suffix) of the two batch render
+# passes — structure overlays must be written with the same geometry as
+# the base render they stack over.
+BATCH_GEOMETRIES = ((1024, 8, ""), (2048, 16, "_hires"))
+
+
+def _load_structure_all(config_path, dim, seed):
+    """Read a candidate's banked structure_all from the candidate store.
+    Returns None when absent — callers skip overlay generation entirely
+    (no fallback recomputation; a later finalise fills the gap)."""
+    try:
+        sys.path.insert(0, str(SCRIPT_DIR))
+        import candidates as cmod
+        cdir = cmod.candidates_dir(Path(config_path))
+        store = cmod.load_store(cdir / f"{dim}.json")
+        return store["candidates"].get(str(seed), {}).get("structure_all")
+    except Exception:
+        return None
+
+
+def _write_structure_overlays(seedtest, dim, seed_str, structure_all, dim_scale,
+                              geometries=BATCH_GEOMETRIES, skip_existing=True):
+    """Write transparent {seed}{suffix}_structures.png overlays next to the
+    renders. Each geometry MUST match the base render it stacks over;
+    dim_scale shrinks coverage exactly like batch_render's effective_scale."""
+    from biome_renderer import render_structure_overlay
+    out_dir = Path(seedtest) / "renders" / dim
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written = 0
+    for size, base_scale, suffix in geometries:
+        out = out_dir / f"{seed_str}{suffix}_structures.png"
+        if skip_existing and out.exists():
+            continue
+        eff_scale = max(1, int(base_scale / dim_scale))
+        render_structure_overlay(structure_all, str(out), size, size * eff_scale)
+        written += 1
+    return written
+
+
 def _find_dim_config(config_path, dim):
     """Find the JSON file for a dimension in the config directory or
     monolith config. Returns (path, is_overlay) or (None, False)."""
@@ -297,12 +336,16 @@ class ViewerHandler(SimpleHTTPRequestHandler):
              "--size", "1024", "--scale", "16"],
             capture_output=True, text=True, timeout=120)
         if r.returncode == 0 and out_path.exists():
-            # Overlay structure markers on the hi-res render
-            try:
-                from biome_renderer import overlay_structures
-                overlay_structures(str(out_path), seed, dim, self.config_path, 1024, 16)
-            except Exception:
-                pass
+            # Structures overlay matching THIS render's geometry (1024px,
+            # 16 b/px — narrower than the 2048px batch hires, so overwrite).
+            sa = _load_structure_all(self.config_path, dim, seed)
+            if sa:
+                try:
+                    _write_structure_overlays(
+                        self.seedtest, dim, seed, sa, 1.0,
+                        geometries=((1024, 16, "_hires"),), skip_existing=False)
+                except Exception:
+                    pass
             rel = f"renders/{dim}/{seed}_hires.png"
             self._respond_json({"ok": True, "path": rel})
         else:
@@ -369,11 +412,14 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                  "--family", noise_family,
                  "--size", "1024", "--scale", "16"],
                 capture_output=True, text=True, timeout=120)
-            try:
-                from biome_renderer import overlay_structures
-                overlay_structures(str(hires_path), seed, dim, self.config_path, 1024, 16)
-            except Exception:
-                pass
+            sa = _load_structure_all(self.config_path, dim, seed)
+            if sa and hires_path.exists():
+                try:
+                    _write_structure_overlays(
+                        self.seedtest, dim, seed, sa, 1.0,
+                        geometries=((1024, 16, "_hires"),), skip_existing=False)
+                except Exception:
+                    pass
 
         self._respond_json({"ok": True, "shortlisted": True,
                             "hires": f"renders/{dim}/{seed}_hires.png"})
@@ -583,6 +629,7 @@ def main():
         all_sets = load_structure_sets(str(struct_sets_dir)) if struct_sets_dir.exists() else {}
 
         enriched = 0
+        overlays = 0
         for name, dim in all_targets.items():
             profile = build_profile(dim, config, difficulty)
             store = cmod.load_store(cdir / f"{name}.json")
@@ -598,30 +645,36 @@ def main():
                     scored.append((best, seed_str))
             scored.sort(reverse=True)
 
+            dim_scale = float(profile.get("scale", 1.0) or 1.0)
             changed = False
             for _, seed_str in scored[:10]:
                 cand = store["candidates"][seed_str]
-                if "structure_all" in cand:
-                    continue
-                sa = {}
-                for sname, sid, spec, kind in battery:
-                    clean = sid.lstrip("#")
-                    cfg = all_sets.get(clean)
-                    if not cfg:
-                        continue
-                    hits = find_all_in_radius(
-                        int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
-                        radius, spread_type=cfg.get("spread_type", "linear"),
-                        frequency=cfg.get("frequency", 1.0))
-                    sa[sname] = [(d, x, z) for d, x, z in hits]
-                cand["structure_all"] = sa
-                changed = True
-                enriched += 1
+                if "structure_all" not in cand:
+                    sa = {}
+                    for sname, sid, spec, kind in battery:
+                        clean = sid.lstrip("#")
+                        cfg = all_sets.get(clean)
+                        if not cfg:
+                            continue
+                        hits = find_all_in_radius(
+                            int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
+                            radius, spread_type=cfg.get("spread_type", "linear"),
+                            frequency=cfg.get("frequency", 1.0))
+                        sa[sname] = [(d, x, z) for d, x, z in hits]
+                    cand["structure_all"] = sa
+                    changed = True
+                    enriched += 1
+                # Transparent marker overlays stacked over the batch renders
+                # by the viewer. Same top-10 as the renders; nothing else
+                # gets one (missing seeds fill in on the next finalise).
+                overlays += _write_structure_overlays(
+                    args.seedtest, name, seed_str, cand["structure_all"], dim_scale)
 
             if changed:
                 cmod.save_store(cdir / f"{name}.json", store)
 
-        print(f"Enriched {enriched} candidates with full structure data", flush=True)
+        print(f"Enriched {enriched} candidates with full structure data "
+              f"({overlays} overlay images written)", flush=True)
 
         # Biome survey: sample a grid within the border, record all unique biomes + positions
         print("=== Surveying biomes ===", flush=True)
