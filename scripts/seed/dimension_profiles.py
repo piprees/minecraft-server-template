@@ -64,7 +64,7 @@ HOSTILE_STRUCTURES = {
 # adventure is over before it starts. Hard/compressed/dense dimensions
 # opt out via seedRoll.allowEndgameNearSpawn or mood=hard.
 # NOT included: fortress, bastion, end_city (mid-game infrastructure).
-# Rebuilt from mods/.ideas/structure-sets-extracted.csv (377 sets audited).
+# Rebuilt from scripts/data/structure-sets-extracted.csv (377 sets audited).
 ENDGAME_STRUCTURES = {
     # vanilla climax
     "ancient_city", "trial_chambers", "mansion", "monument",

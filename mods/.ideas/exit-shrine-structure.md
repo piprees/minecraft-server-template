@@ -1,4 +1,79 @@
-# Exit shrines — jigsaw structure for the way home
+# Exit shrines, dimension links, and exit conditions
+
+Two related programmes: the jigsaw shrine structure (the pretty way
+home), and the broader vision it grew into (2026-07-23) — dimensions as
+an interlinked graph with thematic, configurable ways OUT, where death
+is not always final.
+
+## Part 2 — dimension links and exit conditions (the vision)
+
+Today every exit funnels through one mechanism: a portal (anchor/exit)
+with a target of origin/bed/worldSpawn. Generalise both halves:
+
+**Configurable exit targets.** Exit portals and shrines should target
+ANY dimension, not just the overworld — `"target": {"dimension":
+"adventure:the_starwell", "arrival": "anchor" | "spawn" | [x,y,z]}`
+alongside the existing `"bed"`/`"worldSpawn"`/`"origin"` shorthands.
+That makes dims composable into chains and hubs (enter the gauntlet
+only through the boneyard; the starwell as a nexus with shrines to
+three sibling pockets). The existing exitMode plumbing in
+`PortalReturnTarget` is the right seam — it becomes a target
+descriptor rather than a mode string.
+
+**Exit conditions — leaving without a portal.** A per-dimension
+`exits` block mapping TRIGGERS to targets:
+
+    "exits": {
+      "void":        { "action": "teleport", "target": "bed" },
+      "death":       { "action": "respawnAt", "target": "worldSpawn" },
+      "death:lava":  { "action": "respawnAt", "target": "adventure:the_furnace_halls" },
+      "fallFrom":    { "minHeight": 100, "action": "teleport", "target": "origin" },
+      "enderPearl":  { "action": "teleport", "target": "adventure:the_starwell" }
+    }
+
+Trigger families worth supporting (each maps to an existing hook):
+
+- **Void fall** — the sharpest one for sky_islands/void dims. Options:
+  kill (vanilla), teleport home safe, or drop-from-sky into the target
+  (arrive at the target's top build height with slow-falling — very
+  thematic for sky dims). Hook: Y-below-minY check in the existing
+  `ServerWorldMixin` tick pass; must fire BEFORE vanilla void damage.
+- **Death, generally** — "dying here sends you home instead of ending
+  the run". Hook: `ServerPlayerEntity.getRespawnTarget` is already
+  mixin-adjacent (the bed-exit work); a per-dimension respawn override
+  is a natural extension. Death stops being final per-dimension: a
+  nether-style dim where dying wakes you in your bed reframes the whole
+  risk model. Keep vanilla keepInventory semantics orthogonal (that's a
+  gamerule; note the interaction in docs).
+- **Death by specific cause** — `death:lava`, `death:drowning`,
+  `death:burning`, `death:fall`, `death:mob:<entity_id>` — the damage
+  source is available at death time (`DamageSource` type ids map
+  cleanly to config keys). Thematic exits: drown in the tidepools to
+  surface in the shallows.
+- **Action triggers** — ender pearl throw, swimming (time-in-water
+  threshold), status effect held (e.g. leave the wisteria by sleeping,
+  leave a spirit dim while invisible), falling from a height without
+  dying. Each is an event hook + a small state tracker in the tick
+  pass; gate the ambitious ones behind demand.
+
+**Design principles** (from the discussion):
+
+- Peaceful dims: leaving is always a free choice — exit portals stay;
+  exit conditions ADD routes, never remove them.
+- Never strand, never surprise-kill: every configured exit resolves to
+  a safe arrival (surface-resolved like anchors); a dim configuring
+  `void: kill` is explicitly opting into vanilla behaviour, not the
+  default.
+- `PortalSafetyValidator` grows with this: a dim whose ONLY exit is a
+  death trigger warns (stranding-by-config again); cyclic links are
+  fine (that's the point) but a link to a nonexistent dimension warns
+  at boot in the fingerprint tone.
+- The seed roller ignores all of it (`exits` is runtime-only) —
+  `build_profile` passthrough test, same as the portal blocks.
+- Persistence: exit conditions are config-driven and boot-re-read like
+  portal config — no world wipes, applies to existing dims.
+
+## Part 1 — the jigsaw shrine structure (the pretty way home)
 
 The one unbuilt piece of the portal-concepts work (v3.3.0 shipped anchors,
 single-use portals, and mod-built exit portals; see

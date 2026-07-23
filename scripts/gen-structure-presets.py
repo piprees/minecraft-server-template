@@ -3,12 +3,12 @@
 
 Purpose:  Build three variants of the `structures` override datapack
           (default / dense / sparse) from the curated dial list in
-          mods/.ideas/customising-structures.csv. Each override is a
+          scripts/data/structure-dials.csv. Each override is a
           WHOLE-FILE copy of the structure_set JSON from the exact pinned
           mod jar (world datapacks shadow mod data at the same path), with
           only placement fields changed.
 
-Context:  mods/.ideas/customising-structures.md Option A. The default
+Context:  docs/customisation.md "Worldgen: structure frequency". The default
           preset encodes the "sparse and natural" main-overworld intent:
           big/hostile sets rarer, villages and small settlements more
           common, fortified villages and a couple of castle sets kept,
@@ -48,7 +48,7 @@ import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-CSV_PATH = REPO / "mods/.ideas/customising-structures.csv"
+CSV_PATH = REPO / "scripts/data/structure-dials.csv"
 MODS_TXT = REPO / "config/modrinth-mods.txt"
 ACTIVE_OUT = REPO / "config/datapacks/structures"
 PRESETS_OUT = REPO / "config/datapack-presets"

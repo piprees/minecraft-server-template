@@ -6,7 +6,7 @@ Sources:
   2. Datapacks:     config/datapacks/*/data/*/worldgen/structure_set/*.json
   3. Vanilla JAR:   elfydd/data/versions/1.21.1/server-1.21.1.jar
 
-Output: mods/.ideas/structure-sets-extracted.csv
+Output: scripts/data/structure-sets-extracted.csv
         config/custom-dimensions/extractors/structures.json  (v4 Phase 0)
 """
 
@@ -24,7 +24,7 @@ ELFYDD_DIR = Path.home() / "Projects" / "elfydd"
 MODS_DIR = ELFYDD_DIR / "data" / "mods"
 VANILLA_JAR = ELFYDD_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"
-OUTPUT_CSV = PLATFORM_DIR / "mods" / ".ideas" / "structure-sets-extracted.csv"
+OUTPUT_CSV = PLATFORM_DIR / "scripts" / "data" / "structure-sets-extracted.csv"
 OUTPUT_JSON = PLATFORM_DIR / "config" / "custom-dimensions" / "extractors" / "structures.json"
 
 # ── Dimension inference ──────────────────────────────────────────────
