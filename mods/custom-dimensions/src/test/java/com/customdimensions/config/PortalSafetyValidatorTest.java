@@ -114,6 +114,60 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void tagFrameWithoutPlaceBlockWarns() {
+        DimensionConfig config = parse("the_grove", """
+                {"portal":{"frameBlock":"#minecraft:logs"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("framePlaceBlock"));
+        // an explicit place block (or a plain id in a list) silences it
+        DimensionConfig placed = parse("d", """
+                {"portal":{"frameBlock":"#minecraft:logs","framePlaceBlock":"minecraft:oak_log"}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(placed)).isEmpty());
+        DimensionConfig listed = parse("d", """
+                {"portal":{"frameBlock":["#minecraft:logs","minecraft:oak_planks"]}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(listed)).isEmpty());
+    }
+
+    @Test
+    void unknownColourGroupWarns() {
+        DimensionConfig config = parse("the_puce_palace", """
+                {"portal":{"frameBlock":{"colorGroup":"puce"}}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        // colour warning + (puce has no wool, so no place block) place warning
+        assertTrue(warnings.stream().anyMatch(w -> w.contains("puce")));
+        // a real colour is silent (wool default place block)
+        DimensionConfig red = parse("d", """
+                {"portal":{"frameBlock":{"colorGroup":"red"}}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(red)).isEmpty());
+    }
+
+    @Test
+    void invalidOrientationAndMalformedFormsWarn() {
+        DimensionConfig sideways = parse("the_tilted", """
+                {"portal":{"frameBlock":"minecraft:clay","orientation":"sideways"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(sideways));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("sideways"));
+        DimensionConfig ok = parse("d", """
+                {"portal":{"frameBlock":"minecraft:clay","orientation":"vertical_x"}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(ok)).isEmpty());
+        DimensionConfig malformed = parse("the_glitch", """
+                {"portal":{"frameBlock":["minecraft:clay","Not An Id"]}}
+                """);
+        List<String> malformedWarnings = PortalSafetyValidator.validate(List.of(malformed));
+        assertEquals(1, malformedWarnings.size());
+        assertTrue(malformedWarnings.get(0).contains("Not An Id"));
+    }
+
+    @Test
     void explicitlyDisabledExitPortalStillWarns() {
         DimensionConfig config = parse("the_trap", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":true}},

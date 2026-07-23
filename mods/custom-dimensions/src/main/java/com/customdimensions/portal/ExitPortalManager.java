@@ -154,7 +154,10 @@ public final class ExitPortalManager {
     }
 
     private static Block resolveFrameBlock(DimensionConfig config) {
-        String id = config.hasPortal() ? config.getPortal().frameBlock : null;
+        // Building needs a concrete block: framePlaceBlock for tag/list/
+        // colour-group frames, the plain frameBlock otherwise (accepting is
+        // not placing — see FrameMatcher).
+        String id = config.hasPortal() ? config.getPortal().resolvePlacementBlockId() : null;
         Identifier frameId = id != null ? Identifier.tryParse(id) : null;
         Block block = frameId != null ? Registries.BLOCK.get(frameId) : null;
         return block != null && block != Blocks.AIR ? block : Blocks.CRYING_OBSIDIAN;

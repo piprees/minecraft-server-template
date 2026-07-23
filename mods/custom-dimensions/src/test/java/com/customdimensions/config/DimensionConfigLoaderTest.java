@@ -145,7 +145,7 @@ class DimensionConfigLoaderTest {
         assertEquals(4096, dims.get("b").getGenerationBorderRadius());
         assertEquals(2.0, dims.get("b").getDifficulty().getMobMultiplier());
         // c: default frameBlock only fills in where a portal is declared
-        assertEquals("minecraft:crying_obsidian", dims.get("c").getPortal().frameBlock);
+        assertEquals("minecraft:crying_obsidian", dims.get("c").getPortal().getFrameBlockId());
         assertFalse(dims.get("a").hasPortal());
     }
 

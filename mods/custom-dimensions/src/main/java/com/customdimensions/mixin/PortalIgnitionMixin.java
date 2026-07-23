@@ -3,8 +3,9 @@ package com.customdimensions.mixin;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
+import com.customdimensions.portal.FrameMatcher;
+import com.customdimensions.portal.IgnitionScan;
 import com.customdimensions.portal.PortalHelper;
-import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
@@ -71,9 +72,8 @@ public class PortalIgnitionMixin {
     // Returns true when a portal was ignited (cir is then set to SUCCESS).
     private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, ItemUsageContext context,
             PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
-        Identifier frameId = Identifier.of(def.getFrameBlock());
-        Block frameBlock = Registries.BLOCK.get(frameId);
-        if (frameBlock == null) {
+        FrameMatcher matcher = def.resolveFrameMatcher();
+        if (matcher.isEmpty()) {
             return false;
         }
 
@@ -83,42 +83,13 @@ public class PortalIgnitionMixin {
                 continue;
             }
 
-            Set<BlockPos> xFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.X);
-            Set<BlockPos> zFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Z);
-            Set<BlockPos> yFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Y);
-            boolean xValid = !xFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, xFill, frameBlock, Direction.Axis.X);
-            boolean zValid = !zFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, zFill, frameBlock, Direction.Axis.Z);
-            boolean yValid = !yFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, yFill, frameBlock, Direction.Axis.Y);
-
-            if (!xValid && !zValid && !yValid) {
+            IgnitionScan fills = IgnitionScan.discover(serverWorld, candidate, matcher, def);
+            if (fills == null) {
                 continue;
             }
-
-            Set<BlockPos> fill;
-            Direction.Axis axis;
-            Direction.Axis clickedAxis = dir.getAxis();
-
-            if (yValid && clickedAxis == Direction.Axis.Y) {
-                fill = yFill;
-                axis = Direction.Axis.Y;
-            } else if (xValid && clickedAxis == Direction.Axis.X) {
-                fill = xFill;
-                axis = Direction.Axis.X;
-            } else if (zValid && clickedAxis == Direction.Axis.Z) {
-                fill = zFill;
-                axis = Direction.Axis.Z;
-            } else if (yValid) {
-                fill = yFill;
-                axis = Direction.Axis.Y;
-            } else if (xValid) {
-                fill = xFill;
-                axis = Direction.Axis.X;
-            } else {
-                fill = zFill;
-                axis = Direction.Axis.Z;
-            }
-
-            registerAndFinish(serverWorld, clickedPos, context, def, fill, axis);
+            // Prefer the axis matching the clicked face, then Y, X, Z.
+            Direction.Axis axis = fills.pick(dir.getAxis());
+            registerAndFinish(serverWorld, clickedPos, context, def, fills.get(axis), axis);
             cir.setReturnValue(ActionResult.SUCCESS);
             return true;
         }
@@ -131,31 +102,12 @@ public class PortalIgnitionMixin {
                         continue;
                     }
 
-                    Set<BlockPos> xFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.X);
-                    Set<BlockPos> zFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Z);
-                    Set<BlockPos> yFill = PortalHelper.floodFill(serverWorld, candidate, frameBlock, Direction.Axis.Y);
-                    boolean xValid = !xFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, xFill, frameBlock, Direction.Axis.X);
-                    boolean zValid = !zFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, zFill, frameBlock, Direction.Axis.Z);
-                    boolean yValid = !yFill.isEmpty() && PortalHelper.isAreaBoundedByFrame(serverWorld, yFill, frameBlock, Direction.Axis.Y);
-
-                    if (!xValid && !zValid && !yValid) {
+                    IgnitionScan fills = IgnitionScan.discover(serverWorld, candidate, matcher, def);
+                    if (fills == null) {
                         continue;
                     }
-
-                    Set<BlockPos> fill;
-                    Direction.Axis axis;
-                    if (yValid) {
-                        fill = yFill;
-                        axis = Direction.Axis.Y;
-                    } else if (xValid) {
-                        fill = xFill;
-                        axis = Direction.Axis.X;
-                    } else {
-                        fill = zFill;
-                        axis = Direction.Axis.Z;
-                    }
-
-                    registerAndFinish(serverWorld, candidate, context, def, fill, axis);
+                    Direction.Axis axis = fills.pick(null);
+                    registerAndFinish(serverWorld, candidate, context, def, fills.get(axis), axis);
                     cir.setReturnValue(ActionResult.SUCCESS);
                     return true;
                 }

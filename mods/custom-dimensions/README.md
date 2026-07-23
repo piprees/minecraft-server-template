@@ -189,6 +189,56 @@ config/custom-dimensions/
 
 Consumer overlay resolution (files in `overlay/dimensions/`): a file with a top-level `"overrides"` object deep-merges over the platform default; a file without one replaces the platform default entirely; an empty `{}` skips the dimension; overlay-only files are consumer-added dimensions namespaced by the `BRAND_SLUG` environment variable.
 
+### Frame materials and orientation
+
+`frameBlock` accepts four forms — what the frame ACCEPTS at ignition and
+zone validation:
+
+```jsonc
+"portal": {
+  "frameBlock": "minecraft:cherry_planks",            // single block id (classic)
+  "frameBlock": "#minecraft:logs",                    // any block in a tag
+  "frameBlock": ["minecraft:oak_planks", "#minecraft:logs"],  // union list (ids + tags)
+  "frameBlock": { "colorGroup": "red" },              // "any red block" — sugar for
+                                                      // #adventure:red_blocks (16 dye-colour
+                                                      // tags ship in the jar datapack: wool,
+                                                      // concrete, concrete powder, terracotta,
+                                                      // glazed terracotta, stained glass)
+
+  // Accepting is NOT placing: when the mod BUILDS a frame (arrival portals,
+  // exitPortal), it needs one concrete block. Defaults: the plain frameBlock,
+  // a list's first plain id, "<colour>_wool" for colour groups; tag-only
+  // configs without it fall back to obsidian (boot WARN).
+  "framePlaceBlock": "minecraft:oak_log",
+
+  // Which axes ignition may consider. Absent = "any" (all three — the
+  // pre-existing behaviour). "vertical" = X or Z, "horizontal" = Y
+  // (end-portal style), "vertical_x" / "vertical_z" lock one axis.
+  "orientation": "vertical_x"
+}
+```
+
+Mixed frames are legal: any combination of accepted blocks bounds a valid
+portal, and single-use decay resolves each frame block individually through
+the decay map. Zones persist the accept forms they were ignited with —
+changing a dimension's `frameBlock` later never invalidates existing portals
+retroactively (immutable-snapshot rule, same as anchor/singleUse). Invalid
+tag ids, unknown colour names, and unknown orientations WARN at boot and
+never crash; a tag frame without `framePlaceBlock` WARNs that mod-built
+frames fall back to obsidian.
+
+Two hard-won rules from live verification (2026-07-23):
+
+- **Persisted zone records always store a plain block id in `frameBlock`**
+  (the placement block; accept forms ride in `frameAccepts`). Older mod
+  builds `Identifier.of()` that field in an uncaught world-tick path — a
+  `#tag` there crash-loops any server that downgrades.
+- **Registered portal blocks are immune to neighbour-update popping**
+  (`NetherPortalProtectionMixin`): vanilla re-validates portal frames as
+  obsidian-only on ANY adjacent block change, and netherportalspread's
+  corruption spread was silently deleting custom-framed arrival portals
+  seconds after creation. Player-built vanilla portals are untouched.
+
 ### Anchor, single-use, and exit portals
 
 Unlike worldgen config (creation-time-only, baked into `level.dat`), the whole portal block — anchor, singleUse, exitPortal included — is re-read every boot, so these features apply to existing dimensions without a world wipe.

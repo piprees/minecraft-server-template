@@ -30,6 +30,7 @@ public final class PortalSafetyValidator {
             if (config.isBaseWorld()) {
                 continue;
             }
+            validateFrameConfig(config, warnings);
             // Death-only exits: a dimension whose ONLY way out is dying is
             // stranding-by-config for anyone who wants to leave alive.
             if (!config.getExits().isEmpty() && config.getPortal() == null
@@ -62,6 +63,60 @@ public final class PortalSafetyValidator {
             }
         }
         return warnings;
+    }
+
+    private static final java.util.Set<String> ORIENTATIONS = java.util.Set.of(
+            "vertical", "horizontal", "vertical_x", "vertical_z", "any");
+
+    // Frame-material hygiene (Tier 1 of further-portal-customisations):
+    // malformed accept forms, unknown colour groups, missing framePlaceBlock
+    // on non-plain frames, unknown orientation values. WARN and keep going.
+    private static void validateFrameConfig(DimensionConfig config, List<String> warnings) {
+        DimensionConfig.Portal portal = config.getPortal();
+        if (portal == null) {
+            return;
+        }
+        List<String> forms = portal.getFrameAcceptForms();
+        if (portal.frameBlock != null && !portal.frameBlock.isJsonNull() && forms.isEmpty()) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameBlock has an unusable shape (expected a block id, "
+                    + "\"#ns:tag\", a list of those, or {\"colorGroup\": \"<colour>\"}) — the portal "
+                    + "can never ignite. KEEPING the config as written (never auto-fixed).",
+                    config.getName()));
+            return;
+        }
+        for (String form : forms) {
+            String idPart = form.startsWith("#") ? form.substring(1) : form;
+            if (net.minecraft.util.Identifier.tryParse(idPart) == null) {
+                warnings.add(String.format(
+                        "Dimension %s: portal frame form '%s' is not a valid identifier — it will "
+                        + "never match. KEEPING the config as written (never auto-fixed).",
+                        config.getName(), form));
+            }
+        }
+        String colour = portal.getColorGroup();
+        if (colour != null && !DimensionConfig.Portal.DYE_COLOURS.contains(colour)) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameBlock colorGroup '%s' is not one of the 16 dye "
+                    + "colours — the #adventure:%s_blocks tag does not exist and the portal can "
+                    + "never ignite. KEEPING the config as written (never auto-fixed).",
+                    config.getName(), colour, colour));
+        }
+        boolean nonPlain = forms.stream().anyMatch(f -> f.startsWith("#")) || forms.size() > 1;
+        if (nonPlain && portal.resolvePlacementBlockId() == null) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameBlock accepts tags but no framePlaceBlock is set — "
+                    + "mod-built frames (arrival portals, exitPortal) fall back to obsidian. "
+                    + "KEEPING the config as written; set \"framePlaceBlock\" to fix (never auto-fixed).",
+                    config.getName()));
+        }
+        if (portal.orientation != null && !portal.orientation.isBlank()
+                && !ORIENTATIONS.contains(portal.orientation.trim())) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.orientation '%s' is not one of %s — treated as \"any\". "
+                    + "KEEPING the config as written (never auto-fixed).",
+                    config.getName(), portal.orientation.trim(), ORIENTATIONS));
+        }
     }
 
     // Dimension-link hygiene: every exit target that names a dimension must

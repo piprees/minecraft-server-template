@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:brown_wool",
+    "minecraft:brown_concrete",
+    "minecraft:brown_concrete_powder",
+    "minecraft:brown_terracotta",
+    "minecraft:brown_glazed_terracotta",
+    "minecraft:brown_stained_glass"
+  ]
+}

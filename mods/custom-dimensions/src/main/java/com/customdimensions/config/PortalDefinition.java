@@ -1,15 +1,42 @@
 package com.customdimensions.config;
 
+import com.customdimensions.portal.FrameMatcher;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.Map;
 
 public class PortalDefinition {
     private String id;
+    /**
+     * Primary frame form: a plain block id for simple configs (today's
+     * shape, unchanged in zone records), or the first accept form
+     * ("#ns:tag" included) for tag/list/colour-group configs.
+     */
     private String frameBlock;
+    /**
+     * Full accept forms (block ids and "#ns:path" tags) when the frame
+     * accepts more than the single frameBlock. Null for simple configs —
+     * getFrameAccepts() falls back to [frameBlock], so legacy zone records
+     * behave exactly as before.
+     */
+    private List<String> frameAccepts;
+    /**
+     * Concrete block the mod PLACES when it builds frames (arrival
+     * portals, exit portals). Null when frameBlock is itself a plain id.
+     * Accepting is not placing — a tag describes what's accepted, this
+     * field describes what's built.
+     */
+    private String framePlaceBlock;
+    /**
+     * "vertical" (X/Z) | "horizontal" (Y) | "vertical_x" | "vertical_z" |
+     * "any". Null = "any" — today's behaviour, all three axes.
+     */
+    private String orientation;
     private String igniterItem;
     private String targetDimension;
     private String color;
@@ -29,6 +56,7 @@ public class PortalDefinition {
     private int singleUseDelayTicks = 200;
     private String singleUseBreakMode = "decay";
     private Map<String, String> singleUseDecayMap;
+    private transient FrameMatcher frameMatcher;
 
     public PortalDefinition() {
     }
@@ -58,6 +86,74 @@ public class PortalDefinition {
 
     public void setFrameBlock(String frameBlock) {
         this.frameBlock = frameBlock;
+        this.frameMatcher = null;
+    }
+
+    /** Accept forms for frame checks; [frameBlock] when none were stored. */
+    public List<String> getFrameAccepts() {
+        if (this.frameAccepts != null && !this.frameAccepts.isEmpty()) {
+            return this.frameAccepts;
+        }
+        return this.frameBlock != null ? List.of(this.frameBlock) : List.of();
+    }
+
+    public void setFrameAccepts(List<String> frameAccepts) {
+        this.frameAccepts = frameAccepts != null && !frameAccepts.isEmpty() ? frameAccepts : null;
+        this.frameMatcher = null;
+    }
+
+    /** Lazily built (and cached) matcher over the accept forms. */
+    public FrameMatcher resolveFrameMatcher() {
+        if (this.frameMatcher == null) {
+            this.frameMatcher = FrameMatcher.of(this.getFrameAccepts());
+        }
+        return this.frameMatcher;
+    }
+
+    /**
+     * Concrete block id the mod places when it BUILDS frames (arrival and
+     * exit portals): explicit framePlaceBlock, else frameBlock when it is a
+     * plain id. Null when the config is tag-only without a place block —
+     * callers fall back to their existing defaults and
+     * PortalSafetyValidator warns at boot.
+     */
+    public String getFramePlaceBlock() {
+        if (this.framePlaceBlock != null && !this.framePlaceBlock.isBlank()) {
+            return this.framePlaceBlock;
+        }
+        return this.frameBlock != null && !this.frameBlock.startsWith("#") ? this.frameBlock : null;
+    }
+
+    public void setFramePlaceBlock(String framePlaceBlock) {
+        this.framePlaceBlock = framePlaceBlock;
+    }
+
+    /** "vertical" | "horizontal" | "vertical_x" | "vertical_z" | "any" (default). */
+    public String getOrientation() {
+        return this.orientation != null && !this.orientation.isBlank() ? this.orientation : "any";
+    }
+
+    public void setOrientation(String orientation) {
+        this.orientation = orientation;
+    }
+
+    /**
+     * Whether ignition may consider this axis. Unknown orientation values
+     * behave as "any" (validator warns; never crash, never auto-fix).
+     */
+    public boolean allowsAxis(Direction.Axis axis) {
+        switch (this.getOrientation()) {
+            case "vertical":
+                return axis != Direction.Axis.Y;
+            case "horizontal":
+                return axis == Direction.Axis.Y;
+            case "vertical_x":
+                return axis == Direction.Axis.X;
+            case "vertical_z":
+                return axis == Direction.Axis.Z;
+            default:
+                return true;
+        }
     }
 
     public String getIgniterItem() {

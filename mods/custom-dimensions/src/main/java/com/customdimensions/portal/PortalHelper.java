@@ -187,6 +187,18 @@ public class PortalHelper {
         PORTAL_TARGETS.computeIfAbsent(portalWorld, k -> new HashMap<>()).put(keyPos, new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType, exitMode));
     }
 
+    /**
+     * Pure lookup: is this position a REGISTERED custom portal block
+     * (arrival, anchor, exit-portal, or shrine frame)? Unlike
+     * getPortalTarget this never claims legacy entries or saves — it is
+     * called from NetherPortalProtectionMixin on every portal-block
+     * neighbour update and must stay side-effect free.
+     */
+    public static boolean isRegisteredPortalPosition(RegistryKey<World> portalWorld, BlockPos pos) {
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
+        return (targets != null && targets.containsKey(pos)) || LEGACY_PORTAL_TARGETS.containsKey(pos);
+    }
+
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
         Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
         PortalReturnTarget target = targets != null ? targets.get(keyPos) : null;
@@ -264,12 +276,14 @@ public class PortalHelper {
     }
 
     public static boolean isZoneValid(ServerWorld world, PortalZone zone) {
-        Identifier frameId = Identifier.of(zone.definition.getFrameBlock());
-        Block frameBlock = Registries.BLOCK.get(frameId);
-        if (frameBlock == null) {
+        // The zone's persisted definition carries the accept forms it was
+        // ignited with — validation uses those, not the current config
+        // (zones are immutable snapshots of their ignition-time config).
+        FrameMatcher matcher = zone.definition.resolveFrameMatcher();
+        if (matcher.isEmpty()) {
             return false;
         }
-        return isAreaBoundedByFrame(world, zone.interior, frameBlock, zone.axis);
+        return isAreaBoundedByFrame(world, zone.interior, matcher, zone.axis);
     }
 
     public static void clearInteriorPortals(ServerWorld world, PortalZone zone) {
@@ -448,9 +462,13 @@ public class PortalHelper {
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY, String exitMode) {
-        Identifier frameId = Identifier.of(definition.getFrameBlock());
-        Block frameBlock = Registries.BLOCK.get(frameId);
-        if (frameBlock == null) {
+        // Building needs a CONCRETE block: framePlaceBlock (tag/list/group
+        // configs), else the plain frameBlock, else obsidian. Accepting is
+        // not placing.
+        String placeId = definition.getFramePlaceBlock();
+        Identifier frameId = placeId != null ? Identifier.tryParse(placeId) : null;
+        Block frameBlock = frameId != null ? Registries.BLOCK.get(frameId) : null;
+        if (frameBlock == null || frameBlock == Blocks.AIR) {
             frameBlock = Blocks.OBSIDIAN;
         }
 
@@ -550,7 +568,7 @@ public class PortalHelper {
         return state.isAir() || state.isOf(Blocks.CAVE_AIR) || state.isOf(Blocks.LIGHT);
     }
 
-    public static Set<BlockPos> floodFill(ServerWorld world, BlockPos start, Block frameBlock, Direction.Axis axis) {
+    public static Set<BlockPos> floodFill(ServerWorld world, BlockPos start, FrameMatcher frameMatcher, Direction.Axis axis) {
         HashSet<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
         queue.add(start);
@@ -568,7 +586,7 @@ public class PortalHelper {
                     continue;
                 }
                 BlockState state = world.getBlockState(neighbor);
-                if (state.getBlock() == frameBlock) {
+                if (frameMatcher.matches(state)) {
                     continue;
                 }
                 if (!isPortalFillable(state)) {
@@ -581,12 +599,12 @@ public class PortalHelper {
         return visited;
     }
 
-    public static boolean isAreaBoundedByFrame(ServerWorld world, Set<BlockPos> portalArea, Block frameBlock, Direction.Axis axis) {
+    public static boolean isAreaBoundedByFrame(ServerWorld world, Set<BlockPos> portalArea, FrameMatcher frameMatcher, Direction.Axis axis) {
         Direction[] directions = planeDirections(axis);
         for (BlockPos pos : portalArea) {
             for (Direction dir : directions) {
                 BlockPos neighbor = pos.offset(dir);
-                if (portalArea.contains(neighbor) || world.getBlockState(neighbor).getBlock() == frameBlock) {
+                if (portalArea.contains(neighbor) || frameMatcher.matches(world.getBlockState(neighbor))) {
                     continue;
                 }
                 return false;

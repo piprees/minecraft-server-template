@@ -512,7 +512,7 @@ public class DimensionConfig {
     }
 
     public boolean hasPortal() {
-        return this.portal != null && this.portal.frameBlock != null;
+        return this.portal != null && !this.portal.getFrameAcceptForms().isEmpty();
     }
 
     public ExitPortal getExitPortal() {
@@ -551,13 +551,34 @@ public class DimensionConfig {
         if (this.portal == null) {
             return null;
         }
+        // Primary frame form: ALWAYS a plain, parseable block id — the plain
+        // config id, else the placement block, else obsidian (the documented
+        // build fallback). Never a "#tag" form: definitions persist into
+        // portal_links.json zone records, and older jars Identifier.of() the
+        // frameBlock in an UNCAUGHT world-tick path — a '#' there crash-loops
+        // any server that downgrades (hit live 2026-07-23 testing v3.6.0
+        // against new-format records). With a parseable-but-wrong id, old
+        // jars just drop the zone as invalid, which is the graceful floor.
+        List<String> accepts = this.portal.getFrameAcceptForms();
+        String plainId = this.portal.getFrameBlockId();
+        String place = this.portal.resolvePlacementBlockId();
+        String primary = plainId != null ? plainId
+                : (place != null ? place : "minecraft:obsidian");
         PortalDefinition def = new PortalDefinition(
                 this.name,
-                this.portal.frameBlock,
+                primary,
                 this.portal.igniterItem != null ? this.portal.igniterItem : "",
                 this.getDimensionId(),
                 this.portal.color,
                 this.portal.lightLevel != null ? this.portal.lightLevel : 0);
+        // Only store what the simple form can't express — keeps legacy-shaped
+        // definitions (and their persisted zone records) unchanged.
+        if (!accepts.equals(List.of(primary))) {
+            def.setFrameAccepts(accepts);
+        }
+        if (this.portal.orientation != null && !this.portal.orientation.isBlank()) {
+            def.setOrientation(this.portal.orientation.trim());
+        }
         def.setScale(this.portal.scale != null ? this.portal.scale : 1.0);
         def.setCooldown(this.portal.cooldown != null ? this.portal.cooldown : 40);
         def.setParticleType(this.portal.particleType);
@@ -742,8 +763,38 @@ public class DimensionConfig {
     }
 
     public static class Portal {
+        /** The 16 dye colours, for colorGroup validation and tag sugar. */
+        public static final Set<String> DYE_COLOURS = Set.of(
+                "white", "orange", "magenta", "light_blue", "yellow", "lime",
+                "pink", "gray", "light_gray", "cyan", "purple", "blue",
+                "brown", "green", "red", "black");
+
+        /**
+         * What the frame ACCEPTS — one of four forms:
+         *   "minecraft:oak_planks"        single block id (legacy, unchanged)
+         *   "#minecraft:logs"             block tag reference
+         *   ["minecraft:oak_planks", ...] explicit list (ids and #tags mix)
+         *   {"colorGroup": "red"}         sugar for "#adventure:red_blocks"
+         *                                 (16 tags shipped in the jar datapack)
+         * Kept as raw JSON so every form deserialises into the same field.
+         */
         @SerializedName("frameBlock")
-        public String frameBlock;
+        public JsonElement frameBlock;
+        /**
+         * Concrete block the mod places when it builds frames (arrival and
+         * exit portals). Required in spirit when frameBlock is not a single
+         * plain id — accepting is not placing. Falls back to the first
+         * plain id in a list, or "<colour>_wool" for colour groups.
+         */
+        @SerializedName("framePlaceBlock")
+        public String framePlaceBlock;
+        /**
+         * Ignition orientation constraint: "vertical" (X/Z) | "horizontal"
+         * (Y) | "vertical_x" | "vertical_z" | "any". Absent = "any" —
+         * identical to today's behaviour (all three axes attempted).
+         */
+        @SerializedName("orientation")
+        public String orientation;
         @SerializedName("igniterItem")
         public String igniterItem;
         @SerializedName("color")
@@ -789,6 +840,94 @@ public class DimensionConfig {
                 return this.sounds.exit;
             }
             return this.exitSound != null ? this.exitSound : "block.portal.travel";
+        }
+
+        /**
+         * Normalised accept forms (block ids and "#ns:path" tags) from any
+         * frameBlock shape. Empty when unset/unusable. Colour groups
+         * resolve to the jar-shipped "#adventure:<colour>_blocks" tag —
+         * unknown colour names still emit the tag (it won't exist, so it
+         * never matches; PortalSafetyValidator warns).
+         */
+        public List<String> getFrameAcceptForms() {
+            List<String> out = new java.util.ArrayList<>();
+            JsonElement e = this.frameBlock;
+            if (e == null || e.isJsonNull()) {
+                return out;
+            }
+            if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()) {
+                String s = e.getAsString().trim();
+                if (!s.isEmpty()) {
+                    out.add(s);
+                }
+            } else if (e.isJsonArray()) {
+                for (JsonElement entry : e.getAsJsonArray()) {
+                    if (entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString()) {
+                        String s = entry.getAsString().trim();
+                        if (!s.isEmpty()) {
+                            out.add(s);
+                        }
+                    }
+                }
+            } else if (e.isJsonObject()) {
+                String colour = this.getColorGroup();
+                if (colour != null) {
+                    out.add("#adventure:" + colour + "_blocks");
+                }
+            }
+            return out;
+        }
+
+        /** The colorGroup name when frameBlock is that form, else null. */
+        public String getColorGroup() {
+            if (this.frameBlock == null || !this.frameBlock.isJsonObject()) {
+                return null;
+            }
+            JsonElement cg = this.frameBlock.getAsJsonObject().get("colorGroup");
+            if (cg != null && cg.isJsonPrimitive() && cg.getAsJsonPrimitive().isString()) {
+                String s = cg.getAsString().trim().toLowerCase();
+                return s.isEmpty() ? null : s;
+            }
+            return null;
+        }
+
+        /** The single plain block id when frameBlock is exactly that legacy form, else null. */
+        public String getFrameBlockId() {
+            if (this.frameBlock != null && this.frameBlock.isJsonPrimitive()
+                    && this.frameBlock.getAsJsonPrimitive().isString()) {
+                String s = this.frameBlock.getAsString().trim();
+                if (!s.isEmpty() && !s.startsWith("#")) {
+                    return s;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Concrete block id the mod places when it builds frames: explicit
+         * framePlaceBlock wins; a plain frameBlock id is its own place
+         * block; lists fall back to their first plain id; colour groups to
+         * "<colour>_wool". Null for tag-only configs without a place block
+         * (callers keep their existing fallbacks; validator warns).
+         */
+        public String resolvePlacementBlockId() {
+            if (this.framePlaceBlock != null && !this.framePlaceBlock.isBlank()) {
+                return this.framePlaceBlock.trim();
+            }
+            String plain = this.getFrameBlockId();
+            if (plain != null) {
+                return plain;
+            }
+            for (String form : this.getFrameAcceptForms()) {
+                if (!form.startsWith("#")) {
+                    return form;
+                }
+            }
+            String colour = this.getColorGroup();
+            if (colour != null && DYE_COLOURS.contains(colour)) {
+                return "minecraft:" + colour + "_wool";
+            }
+            return null;
         }
     }
 

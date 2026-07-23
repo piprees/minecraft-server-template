@@ -21,7 +21,8 @@
     "SimpleRegistryAccessor",
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
-    "WorldLoaderMixin"
+    "WorldLoaderMixin",
+    "NetherPortalProtectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

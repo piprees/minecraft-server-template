@@ -465,4 +465,93 @@ class DimensionConfigTest {
         assertEquals(false, config.getStructures().endgame.allow);
         assertEquals(1228, config.getStructures().endgame.safeRadius);
     }
+
+    // --- frame material generalisation (further-portal-customisations Tier 1) ---
+
+    @Test
+    void frameBlockAcceptsAllFourForms() {
+        assertEquals(java.util.List.of("minecraft:clay"),
+                parse("d", "{\"portal\":{\"frameBlock\":\"minecraft:clay\"}}")
+                        .getPortal().getFrameAcceptForms());
+        assertEquals(java.util.List.of("#minecraft:logs"),
+                parse("d", "{\"portal\":{\"frameBlock\":\"#minecraft:logs\"}}")
+                        .getPortal().getFrameAcceptForms());
+        assertEquals(java.util.List.of("minecraft:oak_planks", "#minecraft:logs"),
+                parse("d", "{\"portal\":{\"frameBlock\":[\"minecraft:oak_planks\",\"#minecraft:logs\"]}}")
+                        .getPortal().getFrameAcceptForms());
+        assertEquals(java.util.List.of("#adventure:red_blocks"),
+                parse("d", "{\"portal\":{\"frameBlock\":{\"colorGroup\":\"red\"}}}")
+                        .getPortal().getFrameAcceptForms());
+        // every form counts as "has a portal"
+        assertTrue(parse("d", "{\"portal\":{\"frameBlock\":\"#minecraft:logs\"}}").hasPortal());
+        assertTrue(parse("d", "{\"portal\":{\"frameBlock\":{\"colorGroup\":\"red\"}}}").hasPortal());
+        assertFalse(parse("d", "{\"portal\":{}}").hasPortal());
+    }
+
+    @Test
+    void placementBlockResolutionOrder() {
+        // explicit framePlaceBlock wins
+        assertEquals("minecraft:oak_log",
+                parse("d", "{\"portal\":{\"frameBlock\":\"#minecraft:logs\","
+                        + "\"framePlaceBlock\":\"minecraft:oak_log\"}}")
+                        .getPortal().resolvePlacementBlockId());
+        // plain frameBlock is its own place block
+        assertEquals("minecraft:clay",
+                parse("d", "{\"portal\":{\"frameBlock\":\"minecraft:clay\"}}")
+                        .getPortal().resolvePlacementBlockId());
+        // lists fall back to their first plain id
+        assertEquals("minecraft:oak_planks",
+                parse("d", "{\"portal\":{\"frameBlock\":[\"#minecraft:logs\",\"minecraft:oak_planks\"]}}")
+                        .getPortal().resolvePlacementBlockId());
+        // colour groups default to the colour's wool
+        assertEquals("minecraft:red_wool",
+                parse("d", "{\"portal\":{\"frameBlock\":{\"colorGroup\":\"red\"}}}")
+                        .getPortal().resolvePlacementBlockId());
+        // tag-only with no place block: null (callers fall back, validator warns)
+        assertNull(parse("d", "{\"portal\":{\"frameBlock\":\"#minecraft:logs\"}}")
+                .getPortal().resolvePlacementBlockId());
+    }
+
+    @Test
+    void toPortalDefinitionCarriesFrameTier1Fields() {
+        // Simple config: definition (and its persisted zone records) look
+        // exactly like before — no accepts, no place block, no orientation.
+        PortalDefinition plain = parse("d",
+                "{\"portal\":{\"frameBlock\":\"minecraft:clay\",\"igniterItem\":\"minecraft:stick\"}}")
+                .toPortalDefinition();
+        assertEquals("minecraft:clay", plain.getFrameBlock());
+        assertEquals(java.util.List.of("minecraft:clay"), plain.getFrameAccepts());
+        assertEquals("minecraft:clay", plain.getFramePlaceBlock());
+        assertEquals("any", plain.getOrientation());
+
+        PortalDefinition rich = parse("d", """
+                {"portal":{"frameBlock":["#minecraft:logs","minecraft:oak_planks"],
+                 "framePlaceBlock":"minecraft:oak_log",
+                 "orientation":"vertical_x",
+                 "igniterItem":"minecraft:stick"}}
+                """).toPortalDefinition();
+        // Primary is ALWAYS a plain parseable id (the placement block) —
+        // '#' in a persisted frameBlock crash-loops older jars, which
+        // Identifier.of() it in an uncaught world-tick path.
+        assertEquals("minecraft:oak_log", rich.getFrameBlock());
+        assertEquals(java.util.List.of("#minecraft:logs", "minecraft:oak_planks"),
+                rich.getFrameAccepts());
+        assertEquals("minecraft:oak_log", rich.getFramePlaceBlock());
+        assertEquals("vertical_x", rich.getOrientation());
+
+        PortalDefinition colour = parse("d",
+                "{\"portal\":{\"frameBlock\":{\"colorGroup\":\"lime\"}}}").toPortalDefinition();
+        assertEquals("minecraft:lime_wool", colour.getFrameBlock());
+        assertEquals(java.util.List.of("#adventure:lime_blocks"), colour.getFrameAccepts());
+        assertEquals("minecraft:lime_wool", colour.getFramePlaceBlock());
+
+        // Tag-only with no place block: primary falls to obsidian (the
+        // documented build fallback) but the matcher still accepts the tag.
+        PortalDefinition tagOnly = parse("d",
+                "{\"portal\":{\"frameBlock\":\"#minecraft:logs\"}}").toPortalDefinition();
+        assertEquals("minecraft:obsidian", tagOnly.getFrameBlock());
+        assertEquals(java.util.List.of("#minecraft:logs"), tagOnly.getFrameAccepts());
+        // no '#' ever reaches a persisted frameBlock
+        assertFalse(tagOnly.getFrameBlock().startsWith("#"));
+    }
 }

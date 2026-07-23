@@ -147,7 +147,9 @@ public class MultiverseConfig {
         List<PortalDefinition> matches = new ArrayList<>();
         for (PortalDefinition p : this.portals) {
             if (p.getIgniterItem() != null && p.getIgniterItem().equals(itemId)) {
-                if (clickedBlockId != null && clickedBlockId.equals(p.getFrameBlock())) {
+                // Matcher-aware ordering: tag/list frames count as a clicked-
+                // frame match too (plain ids compare registry-free).
+                if (clickedBlockId != null && p.resolveFrameMatcher().acceptsBlockId(clickedBlockId)) {
                     matches.add(0, p);
                 } else {
                     matches.add(p);

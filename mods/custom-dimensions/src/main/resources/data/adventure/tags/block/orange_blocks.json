@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:orange_wool",
+    "minecraft:orange_concrete",
+    "minecraft:orange_concrete_powder",
+    "minecraft:orange_terracotta",
+    "minecraft:orange_glazed_terracotta",
+    "minecraft:orange_stained_glass"
+  ]
+}
