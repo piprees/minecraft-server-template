@@ -2,7 +2,11 @@
 
 Two related programmes: the jigsaw shrine structure (the pretty way home), and the broader vision it grew into (2026-07-23) — dimensions as an interlinked graph with thematic, configurable ways OUT, where death is not always final.
 
-## Part 2 — dimension links and exit conditions (the vision)
+## Part 2 — dimension links and exit conditions — ✅ SHIPPED 2026-07-23
+
+Landed as designed (docs/customisation.md § Dimension links and exit conditions is the user reference): `ExitTarget` descriptors (any-dimension links with anchor/spawn/[x,y,z] arrivals, canonical `dim!ns:slug!arrival` strings so `portal_links.json` needed no schema change), the `exits` trigger block (void, death, death:&lt;cause&gt;, death:mob:&lt;id&gt;, enderPearl, fallFrom; teleport/respawnAt/kill actions), `ExitConditions` + `PlayerRespawnRedirectMixin`, validator rules (death-only exits, dangling links), roller passthrough test. Bot-verified live: void→link, enderPearl, death:lava cancel-teleport, linked exit portal. `respawnAt` is the one path a Carpet bot cannot exercise (fake players don't respawn) — mixin applies clean; first real-player death confirms it.
+
+Original design notes kept below for reference:
 
 Today every exit funnels through one mechanism: a portal (anchor/exit) with a target of origin/bed/worldSpawn. Generalise both halves:
 

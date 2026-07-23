@@ -67,6 +67,53 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void deathOnlyExitsWarn() {
+        DimensionConfig config = parse("the_oubliette", """
+                {"exits":{"death":{"target":"bed"},"death:lava":{"target":"worldSpawn"}}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("death triggers"));
+        // A non-death exit, a portal, or an exitPortal silences it.
+        DimensionConfig withVoid = parse("d", """
+                {"exits":{"death":{"target":"bed"},"void":{"target":"bed"}}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(withVoid)).isEmpty());
+        DimensionConfig withExitPortal = parse("d", """
+                {"exits":{"death":{"target":"bed"}},"exitPortal":{"enabled":true}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(withExitPortal)).isEmpty());
+    }
+
+    @Test
+    void danglingDimensionLinksWarn() {
+        DimensionConfig linked = parse("the_gate", """
+                {"exitPortal":{"enabled":true,
+                  "target":{"dimension":"adventure:nowhere","arrival":"spawn"}}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(linked));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("adventure:nowhere"));
+        assertTrue(warnings.get(0).contains("exitPortal.target"));
+        // A link to a CONFIGURED dimension (cyclic included) is fine.
+        DimensionConfig hub = parse("the_hub", """
+                {"exitPortal":{"enabled":true,
+                  "target":{"dimension":"adventure:the_spoke"}}}
+                """);
+        DimensionConfig spoke = parse("the_spoke", """
+                {"exits":{"enderPearl":{"target":{"dimension":"adventure:the_hub"}}}}
+                """);
+        hub.setNamespace("adventure");
+        spoke.setNamespace("adventure");
+        assertTrue(PortalSafetyValidator.validate(List.of(hub, spoke)).isEmpty());
+        // Base-world links are always known.
+        DimensionConfig toNether = parse("d", """
+                {"exits":{"void":{"target":{"dimension":"minecraft:the_nether"}}}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(toNether)).isEmpty());
+    }
+
+    @Test
     void explicitlyDisabledExitPortalStillWarns() {
         DimensionConfig config = parse("the_trap", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":true}},

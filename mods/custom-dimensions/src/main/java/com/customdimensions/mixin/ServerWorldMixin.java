@@ -193,6 +193,11 @@ public class ServerWorldMixin {
         // worlds-map mutation rule below applies here).
         com.customdimensions.portal.ExitPortalManager.tick(world);
 
+        // Exit conditions ("exits" block): void + fallFrom triggers. Runs
+        // at tick HEAD, so a configured void exit fires BEFORE vanilla void
+        // damage (Entity.tickInVoid runs later, during entity ticking).
+        com.customdimensions.dimension.ExitConditions.tick(world);
+
         DimensionManager.getInstance().updatePlayerPresence(worldKey, !world.getPlayers().isEmpty());
 
         // Idle unload is driven by ServerTickEvents.END_SERVER_TICK (see

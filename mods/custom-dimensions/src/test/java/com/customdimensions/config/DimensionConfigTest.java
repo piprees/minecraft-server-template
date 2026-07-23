@@ -414,6 +414,30 @@ class DimensionConfigTest {
     }
 
     @Test
+    void exitsBlockDeserialises() {
+        DimensionConfig config = parse("d", """
+                {"exits":{
+                  "void":       {"action":"teleport","target":"bed"},
+                  "death":      {"target":"worldSpawn"},
+                  "death:lava": {"action":"respawnAt",
+                                 "target":{"dimension":"adventure:the_furnace_halls","arrival":"spawn"}},
+                  "fallFrom":   {"minHeight":120,"target":"origin"},
+                  "enderPearl": {"target":{"dimension":"adventure:the_starwell","arrival":[0,80,0]}}}}
+                """);
+        assertEquals(5, config.getExits().size());
+        assertEquals("teleport", config.getExits().get("void").getAction());
+        assertEquals("teleport", config.getExits().get("death").getAction());  // default
+        assertEquals("respawnAt", config.getExits().get("death:lava").getAction());
+        assertEquals(120, config.getExits().get("fallFrom").getMinHeight());
+        assertEquals(100, config.getExits().get("void").getMinHeight());       // default
+        assertEquals("bed", config.getExits().get("void").target.getAsString());
+        assertEquals("adventure:the_starwell", config.getExits().get("enderPearl")
+                .target.getAsJsonObject().get("dimension").getAsString());
+        // absent -> empty map, never null
+        assertTrue(parse("d", "{}").getExits().isEmpty());
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

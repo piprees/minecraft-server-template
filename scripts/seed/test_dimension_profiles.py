@@ -261,6 +261,18 @@ class Tier3ProfileTests(unittest.TestCase):
         self.assertEqual(plain["spacing_overrides"], {})
         self.assertEqual(plain["biome_parameters"], {})
 
+    def test_exits_block_is_runtime_only(self):
+        """The 'exits' block (exit conditions) must not affect scoring —
+        profiles with and without it are identical (same principle as the
+        portal block)."""
+        base = {"name": "d", "type": "overworld", "dimensionId": "adventure:d",
+                "seedRoll": {"mood": "serene"}}
+        with_exits = dict(base)
+        with_exits["exits"] = {"void": {"target": "bed"},
+                               "death:lava": {"action": "respawnAt",
+                                              "target": {"dimension": "adventure:x"}}}
+        self.assertEqual(self.profile_for(base), self.profile_for(with_exits))
+
     def test_monolith_carries_tier3_fields(self):
         with tempfile.TemporaryDirectory() as tmp:
             write_tree(tmp, {

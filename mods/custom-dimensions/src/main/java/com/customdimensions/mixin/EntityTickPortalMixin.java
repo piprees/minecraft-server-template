@@ -88,6 +88,30 @@ public abstract class EntityTickPortalMixin {
                     Set.of(), player.getYaw(), player.getPitch());
             return;
         }
+        // Dimension-link targets ("dim!ns:slug!arrival" — exits leading to
+        // ANY dimension, the chains/hubs feature). An unloaded runtime
+        // target queues its world load and retries next tick: no cooldown
+        // is set and the tick isn't cancelled, so the player simply stands
+        // in the portal until the world is ready (a few ticks).
+        if (exitMode != null && exitMode.startsWith("dim!")) {
+            com.customdimensions.dimension.ExitTarget link =
+                    com.customdimensions.dimension.ExitTarget.parse(exitMode);
+            if (link != null) {
+                com.customdimensions.dimension.ExitTarget.Destination dest =
+                        link.resolve(player, serverLevel);
+                if (dest == null) {
+                    ci.cancel();  // world still loading — swallow this tick, retry
+                    return;
+                }
+                ci.cancel();
+                player.setPortalCooldown(target.cooldown);
+                PortalHelper.clearPlayerOrigin(player.getUuid());
+                PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
+                player.teleport(dest.world(), dest.pos().x, dest.pos().y, dest.pos().z,
+                        Set.of(), player.getYaw(), player.getPitch());
+                return;
+            }
+        }
 
         RegistryKey<World> targetWorldKey = null;
         double tx = pos.getX() + 0.5;

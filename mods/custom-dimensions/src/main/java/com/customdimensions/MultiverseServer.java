@@ -30,6 +30,32 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 net.minecraft.registry.Registries.BIOME_SOURCE,
                 net.minecraft.util.Identifier.of("customdimensions", "patched"),
                 com.customdimensions.dimension.PatchedBiomeSource.CODEC);
+        // Exit conditions ("exits" block): death redirection and the
+        // ender-pearl trigger. Void/fallFrom run from the world tick
+        // (ServerWorldMixin); the respawn override is consumed by
+        // PlayerRespawnRedirectMixin.
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DEATH.register(
+                (entity, source, amount) -> {
+                    if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player
+                            && entity.getWorld() instanceof net.minecraft.server.world.ServerWorld world) {
+                        return com.customdimensions.dimension.ExitConditions.onDeath(player, world, source);
+                    }
+                    return true;
+                });
+        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register(
+                (player, world, hand) -> {
+                    net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+                    if (player instanceof net.minecraft.server.network.ServerPlayerEntity sp
+                            && world instanceof net.minecraft.server.world.ServerWorld sw
+                            && stack.isOf(net.minecraft.item.Items.ENDER_PEARL)
+                            && com.customdimensions.dimension.ExitConditions.handleEnderPearl(sp, sw)) {
+                        return net.minecraft.util.TypedActionResult.fail(stack);
+                    }
+                    return net.minecraft.util.TypedActionResult.pass(stack);
+                });
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(
+                (handler, server) ->
+                        com.customdimensions.dimension.ExitConditions.forgetPlayer(handler.player.getUuid()));
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             DimensionCommands.register(dispatcher));
         // Config-driven overworld spawn: the worlds[] overworld entry's

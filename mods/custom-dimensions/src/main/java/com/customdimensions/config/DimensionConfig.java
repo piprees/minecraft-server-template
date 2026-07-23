@@ -100,6 +100,9 @@ public class DimensionConfig {
     private Portal portal;
     @SerializedName("exitPortal")
     private ExitPortal exitPortal;
+    /** Trigger -> exit rule: ways OUT without a portal (boot-re-read). */
+    @SerializedName("exits")
+    private Map<String, ExitRule> exits;
     @SerializedName("environment")
     private Environment environment;
     @SerializedName("seedRoll")
@@ -513,6 +516,11 @@ public class DimensionConfig {
         return this.exitPortal;
     }
 
+    /** Exit-condition rules keyed by trigger; empty map when unset. */
+    public Map<String, ExitRule> getExits() {
+        return this.exits != null ? this.exits : Map.of();
+    }
+
     /** True when the mod must build and maintain an exit portal near spawn. */
     public boolean hasExitPortal() {
         return this.exitPortal != null && !Boolean.FALSE.equals(this.exitPortal.enabled);
@@ -781,12 +789,20 @@ public class DimensionConfig {
         /** [x, y, z], or the string "spawn" (also the default when absent). */
         @SerializedName("pos")
         public JsonElement pos;
-        /** Exit mode for the anchor arrival portal: "origin" | "bed" | "worldSpawn". */
+        /**
+         * Exit target for the anchor arrival portal: "origin" (default) |
+         * "bed" | "worldSpawn", or a dimension-link descriptor
+         * {"dimension": ..., "arrival": ...} for chained dimensions.
+         */
         @SerializedName("exit")
-        public String exit;
+        public JsonElement exit;
 
+        /** Canonical exit-mode string (ExitTarget grammar); "origin" default/fallback. */
         public String getExit() {
-            return this.exit != null && !this.exit.isBlank() ? this.exit : "origin";
+            if (this.exit == null || this.exit.isJsonNull()) {
+                return "origin";
+            }
+            return com.customdimensions.dimension.ExitTarget.canonicalise(this.exit, "origin");
         }
 
         /**
@@ -844,12 +860,20 @@ public class DimensionConfig {
         /** [x, y, z], or "spawn" (default) for spawn + a deterministic offset. */
         @SerializedName("pos")
         public JsonElement pos;
-        /** Exit mode: "bed" (default) | "worldSpawn" | "origin". */
+        /**
+         * Exit target: "bed" (default) | "worldSpawn" | "origin", or a
+         * dimension-link descriptor {"dimension": "ns:slug", "arrival":
+         * "anchor" | "spawn" | [x, y, z]} — exits can lead ANYWHERE.
+         */
         @SerializedName("target")
-        public String target;
+        public JsonElement target;
 
+        /** Canonical exit-mode string (ExitTarget grammar); "bed" default/fallback. */
         public String getTargetMode() {
-            return this.target != null && !this.target.isBlank() ? this.target : "bed";
+            if (this.target == null || this.target.isJsonNull()) {
+                return "bed";
+            }
+            return com.customdimensions.dimension.ExitTarget.canonicalise(this.target, "bed");
         }
 
         /** Explicit [x, y, z] when configured, null for the "spawn" default. */
@@ -861,6 +885,37 @@ public class DimensionConfig {
                         this.pos.getAsJsonArray().get(2).getAsInt()};
             }
             return null;
+        }
+    }
+
+    /**
+     * One exit-condition rule ("exits" block). Triggers (the map key):
+     * "void" (fell below minY), "death" (any death), "death:&lt;cause&gt;"
+     * (damage-type id path, e.g. "death:lava", "death:mob:minecraft:zombie"),
+     * "enderPearl" (pearl thrown), "fallFrom" (fell minHeight blocks and
+     * survived). Boot-re-read like portal config — no world wipes.
+     *
+     * Targets: the shorthand strings "bed" | "worldSpawn" | "origin", or a
+     * descriptor {"dimension": "ns:slug", "arrival": "anchor" | "spawn" |
+     * [x, y, z]} linking to ANY dimension. Actions: "teleport" (intercept —
+     * for death triggers this cancels the death), "respawnAt" (die normally,
+     * respawn at the target), "kill" (explicit vanilla opt-in for "void").
+     */
+    public static class ExitRule {
+        @SerializedName("action")
+        public String action;
+        @SerializedName("target")
+        public JsonElement target;
+        /** fallFrom only: minimum fall distance in blocks (default 100). */
+        @SerializedName("minHeight")
+        public Integer minHeight;
+
+        public String getAction() {
+            return this.action != null && !this.action.isBlank() ? this.action : "teleport";
+        }
+
+        public int getMinHeight() {
+            return this.minHeight != null && this.minHeight > 0 ? this.minHeight : 100;
         }
     }
 

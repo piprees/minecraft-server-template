@@ -13,6 +13,7 @@
     "MultiNoiseBiomeSourceAccessor",
     "NoiseChunkGeneratorAccessor",
     "PeacefulDimensionSpawnMixin",
+    "PlayerRespawnRedirectMixin",
     "PortalIgnitionMixin",
     "ServerChunkLoadingManagerMixin",
     "ServerWorldMixin",

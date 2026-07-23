@@ -512,6 +512,51 @@ matrix), all mirrored by the seed-rolling pipeline:
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 
+## Dimension links and exit conditions
+
+Every exit target — `exitPortal.target`, `portal.anchor.exit`, and the
+`exits` rules below — accepts the shorthands `"bed"` | `"worldSpawn"` |
+`"origin"` **or a dimension-link descriptor**
+`{"dimension": "adventure:the_starwell", "arrival": "anchor" | "spawn" | [x,y,z]}`,
+making dimensions composable into chains and hubs (enter the gauntlet
+only through the boneyard; a nexus dim whose shrines lead to three
+sibling pockets). Arrivals surface-resolve like portal anchors — never
+strand, never surprise-kill. Boot-re-read: no world wipes.
+
+The per-dimension `exits` block maps TRIGGERS to targets — ways out
+without a portal:
+
+```json
+"exits": {
+  "void":        { "target": "bed" },
+  "death":       { "action": "respawnAt", "target": "worldSpawn" },
+  "death:lava":  { "action": "teleport", "target": { "dimension": "adventure:the_furnace_halls" } },
+  "fallFrom":    { "minHeight": 120, "target": "origin" },
+  "enderPearl":  { "target": { "dimension": "adventure:the_starwell", "arrival": "anchor" } }
+}
+```
+
+- **`void`** — fired when a player falls below the world floor, before
+  vanilla void damage. `{"action": "kill"}` explicitly opts back into
+  vanilla. Arrivals get 15s of slow falling (sky-drop safe).
+- **`death`** / **`death:<cause>`** / **`death:mob:<entity_id>`** — most
+  specific key wins (`death:lava`, `death:drowning`, `death:mob:minecraft:zombie`;
+  cause keys are damage-type id paths). `"action": "teleport"` cancels
+  the death and leaves instead (the run continues, ~3 hearts);
+  `"respawnAt"` dies normally and respawns at the target (one-shot;
+  keepInventory is the usual gamerule and stays orthogonal).
+- **`enderPearl`** — throwing a pearl exits instead (the pearl is not
+  consumed in flight; the use is intercepted).
+- **`fallFrom`** — falling `minHeight` blocks (default 100) without
+  landing teleports mid-fall, with slow falling on arrival.
+
+Design guarantees: exit conditions ADD routes, never remove them
+(peaceful dims keep their exit portals); a 5-second per-player cooldown
+stops trigger loops; boot validation WARNs (never crashes, never
+auto-fixes) when a dimension's only exits are death triggers or when a
+link names a dimension that doesn't exist — a dangling link falls back
+to the overworld spawn at runtime.
+
 ## Worldgen: seed rolling with profiles
 
 `./dev seed-roll` measures seeds (no judgement); `./dev seed-report

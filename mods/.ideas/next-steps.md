@@ -25,7 +25,10 @@ next candidate alongside item 3).
 
 ## 3. Exit shrines + dimension links & exit conditions
 
-Spec: `exit-shrine-structure.md` (Part 1: jigsaw shrine structure, configurable shapes/variants; Part 2: exits targeting ANY dimension, and per-dimension exit conditions — void fall, death and death-by-cause redirection, action triggers like ender pearls and swimming; death not always final; peaceful dims always leave-at-will). Design principles and validator rules are in the doc.
+Spec: `exit-shrine-structure.md`.
+
+- **Part 2 (dimension links + exit conditions) — DONE 2026-07-23**: ExitTarget descriptors on every exit surface, `exits` trigger block (void/death/death:cause/death:mob/enderPearl/fallFrom), validator rules, bot-verified live (respawnAt awaits first real-player death — mixin applies clean).
+- **Part 1 (jigsaw shrine structure)** — still open: jar-datapack `adventure:exit_shrine` structure + set + NBT templates, shrine frames registering as exit zones, structureDensity exemption, `exit_shrine` seed-roll want.
 
 ## 4. Fork-config GUI
 
