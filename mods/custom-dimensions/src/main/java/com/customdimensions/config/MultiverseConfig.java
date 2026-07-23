@@ -132,9 +132,29 @@ public class MultiverseConfig {
     }
 
     public Optional<PortalDefinition> getPortalByIgniter(String itemId) {
-        return this.portals.stream()
-                .filter(p -> p.getIgniterItem().equals(itemId))
-                .findFirst();
+        return this.getPortalsByIgniter(itemId, null).stream().findFirst();
+    }
+
+    /**
+     * Every portal using this igniter, ordered so definitions whose frame
+     * matches the clicked block come first. Igniter items are SHARED across
+     * dimensions (eight dims use ender_eye) — a first-match-wins lookup made
+     * every shared-igniter portal except the alphabetically first
+     * unignitable, because ignition then hunted for the wrong frame block
+     * (found 2026-07-23 via the Carpet-bot loop).
+     */
+    public List<PortalDefinition> getPortalsByIgniter(String itemId, String clickedBlockId) {
+        List<PortalDefinition> matches = new ArrayList<>();
+        for (PortalDefinition p : this.portals) {
+            if (p.getIgniterItem() != null && p.getIgniterItem().equals(itemId)) {
+                if (clickedBlockId != null && clickedBlockId.equals(p.getFrameBlock())) {
+                    matches.add(0, p);
+                } else {
+                    matches.add(p);
+                }
+            }
+        }
+        return matches;
     }
 
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {

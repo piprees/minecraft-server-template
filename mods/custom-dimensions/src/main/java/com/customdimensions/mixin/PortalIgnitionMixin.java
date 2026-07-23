@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 
 @Mixin(ItemStack.class)
@@ -39,29 +39,42 @@ public class PortalIgnitionMixin {
         }
 
         BlockPos clickedPos = context.getBlockPos();
-        PortalDefinition def = null;
+        String clickedBlockId = Registries.BLOCK.getId(serverWorld.getBlockState(clickedPos).getBlock()).toString();
 
+        // Igniter items are shared across dimensions (eight dims use
+        // ender_eye), so EVERY matching definition is a candidate — each
+        // hunts for its own frame block, and the first with a valid frame
+        // at the click site wins. Definitions whose frame matches the
+        // clicked block are tried first.
         Item heldItem = context.getStack().getItem();
         Identifier itemId = Registries.ITEM.getId(heldItem);
-        if (itemId != null) {
-            Optional<PortalDefinition> portalDef = MultiverseConfig.getInstance().getPortalByIgniter(itemId.toString());
-            if (portalDef.isPresent()) {
-                def = portalDef.get();
+        List<PortalDefinition> candidates = itemId != null
+                ? MultiverseConfig.getInstance().getPortalsByIgniter(itemId.toString(), clickedBlockId)
+                : List.of();
+
+        if (candidates.isEmpty()) {
+            PortalDefinition fallback = MultiverseConfig.getInstance().getDefaultPortalForFrameBlock(clickedBlockId);
+            if (fallback == null) {
+                return;
             }
+            candidates = List.of(fallback);
         }
 
-        if (def == null) {
-            String blockId = Registries.BLOCK.getId(serverWorld.getBlockState(clickedPos).getBlock()).toString();
-            def = MultiverseConfig.getInstance().getDefaultPortalForFrameBlock(blockId);
-            if (def == null) {
+        for (PortalDefinition def : candidates) {
+            if (tryIgnite(serverWorld, clickedPos, context, def, cir)) {
                 return;
             }
         }
+    }
 
+    // Frame detection + zone registration for one candidate definition.
+    // Returns true when a portal was ignited (cir is then set to SUCCESS).
+    private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, ItemUsageContext context,
+            PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
         Identifier frameId = Identifier.of(def.getFrameBlock());
         Block frameBlock = Registries.BLOCK.get(frameId);
         if (frameBlock == null) {
-            return;
+            return false;
         }
 
         for (Direction dir : Direction.values()) {
@@ -105,25 +118,15 @@ public class PortalIgnitionMixin {
                 axis = Direction.Axis.Z;
             }
 
-            RegistryKey<World> worldKey = serverWorld.getRegistryKey();
-            PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
-            PortalHelper.registerZone(zone);
-            prewarmTarget(def);
-            PortalHelper.spawnParticles(serverWorld, zone);
-            playIgniteSound(serverWorld, clickedPos, def);
-
-            if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
-                context.getStack().decrement(1);
-            }
+            registerAndFinish(serverWorld, clickedPos, context, def, fill, axis);
             cir.setReturnValue(ActionResult.SUCCESS);
-            return;
+            return true;
         }
 
-        BlockPos center = clickedPos;
         for (int dx = -3; dx <= 3; dx++) {
             for (int dy = -3; dy <= 3; dy++) {
                 for (int dz = -3; dz <= 3; dz++) {
-                    BlockPos candidate = center.add(dx, dy, dz);
+                    BlockPos candidate = clickedPos.add(dx, dy, dz);
                     if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(candidate))) {
                         continue;
                     }
@@ -152,20 +155,26 @@ public class PortalIgnitionMixin {
                         axis = Direction.Axis.Z;
                     }
 
-                    RegistryKey<World> worldKey = serverWorld.getRegistryKey();
-                    PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
-                    PortalHelper.registerZone(zone);
-                    prewarmTarget(def);
-                    PortalHelper.spawnParticles(serverWorld, zone);
-                    playIgniteSound(serverWorld, candidate, def);
-
-                    if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
-                        context.getStack().decrement(1);
-                    }
+                    registerAndFinish(serverWorld, candidate, context, def, fill, axis);
                     cir.setReturnValue(ActionResult.SUCCESS);
-                    return;
+                    return true;
                 }
             }
+        }
+        return false;
+    }
+
+    private static void registerAndFinish(ServerWorld serverWorld, BlockPos soundPos, ItemUsageContext context,
+            PortalDefinition def, Set<BlockPos> fill, Direction.Axis axis) {
+        RegistryKey<World> worldKey = serverWorld.getRegistryKey();
+        PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
+        PortalHelper.registerZone(zone);
+        prewarmTarget(def);
+        PortalHelper.spawnParticles(serverWorld, zone);
+        playIgniteSound(serverWorld, soundPos, def);
+
+        if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
+            context.getStack().decrement(1);
         }
     }
 

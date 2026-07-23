@@ -144,4 +144,33 @@ class MultiverseConfigTest {
         }
         assertEquals(expected, config.getWorldSeedOverride("minecraft:overworld"));
     }
+
+    @Test
+    void sharedIgniterReturnsAllCandidatesClickedFrameFirst(@TempDir Path dir) throws IOException {
+        // Eight shipped dims share ender_eye; first-match-wins made every
+        // portal but the alphabetically first unignitable (2026-07-23).
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_aaa_maw.json"), """
+                {"portal":{"frameBlock":"minecraft:sculk_catalyst","igniterItem":"minecraft:ender_eye"}}
+                """);
+        Files.writeString(dims.resolve("the_starwell.json"), """
+                {"portal":{"frameBlock":"minecraft:crying_obsidian","igniterItem":"minecraft:ender_eye"}}
+                """);
+        Files.writeString(dims.resolve("the_other.json"), """
+                {"portal":{"frameBlock":"minecraft:mud_bricks","igniterItem":"minecraft:pink_petals"}}
+                """);
+        MultiverseConfig config = fromDirectory(dir);
+
+        var all = config.getPortalsByIgniter("minecraft:ender_eye", null);
+        assertEquals(2, all.size());
+
+        // Clicking a crying_obsidian frame must put the starwell def first.
+        var ordered = config.getPortalsByIgniter("minecraft:ender_eye", "minecraft:crying_obsidian");
+        assertEquals("the_starwell", ordered.get(0).getId());
+        assertEquals("the_aaa_maw", ordered.get(1).getId());
+
+        assertTrue(config.getPortalsByIgniter("minecraft:torch", null).isEmpty());
+        assertEquals("the_other", config.getPortalsByIgniter("minecraft:pink_petals", "x").get(0).getId());
+    }
 }
