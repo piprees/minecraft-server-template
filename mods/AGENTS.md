@@ -139,6 +139,7 @@ sleep 3
 
 Gotchas learned the hard way:
 
+- **Bot block interaction is currently broken (2026-07-22):** `player Bot use once` doesn't reach `interactBlock` on the full mod stack (even torch placement fails), so bot-driven ignition doesn't work right now. Item-use still fires — mind ender-eye igniters: a missed block click throws the eye, which runs a synchronous stronghold locate (~30s main-thread stall). The recipe worked on 2026-07-13 and ~15 mods were bumped since (`d00bd1d`); bisect when it next matters. Workaround: stop mc, hand-append `source-zone-v1` records to `data/config/portal_links.json` (frame blocks must exist; interiors can stay air — validity only checks the frame ring), start mc — the restore path registers them and `tp Bot` into the interior drives traversal.
 - **Ignition positioning**: the bot must be INSIDE the frame looking at the frame wall — from outside, cherry_sapling plants itself on the adjacent block instead of triggering ignition. The `PortalIgnitionMixin` hooks `ItemStack.useOnBlock` at HEAD, but the clicked position must have an air block adjacent to the frame for flood-fill to find the portal shape.
 - `player Bot spawn at ...` may ignore the position (tp after instead).
 - Vanilla resets portal cooldown every tick while an entity stands IN a portal, so return trips need step-out → wait cooldown (check `data get entity Bot PortalCooldown` = 0) → step-in.

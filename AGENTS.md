@@ -288,7 +288,7 @@ Every external network call is either eliminated, cached, or made failure-tolera
 
 | When | Why |
 | --- | --- |
-| **Server boot (after first seed)** | Mod JARs are cached in `data/mods/` and `stack-mods` volume; `MODS_FILE`/`DATAPACKS_FILE` downloads only missing files from CDN URLs (all already present after first run). No Modrinth API calls at boot. |
+| **Server boot (after first seed)** | Mod JARs are cached in `data/mods/` and `stack-mods` volume; `MODS_FILE`/`DATAPACKS_FILE` downloads only missing files from CDN URLs (all already present after first run). No Modrinth API calls at boot. One nuance: itzg HEAD-checks each URL for freshness, so a CDN outage during boot can fail the init despite a warm cache (transient — the container restart retries). For deliberately offline boots set `MODS_FILE=` (empty) in `.env`, which skips the sync and boots from `data/mods` as-is; `./scripts/cache-assets.sh --mods` keeps a jar snapshot. |
 | **Server runtime** | All gameplay, RCON, autopause, idle-tasks, BlueMap rendering, Discord bot commands — everything runs locally |
 | **Seed rolling** | Uses a warm Docker image (`defaults-seed`); no itzg entrypoint, no network calls |
 | **Config changes** | Edit `.env` or `overlay/` files, `./dev up` — no downloads needed (seed container uses baked-in defaults from the image) |

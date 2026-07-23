@@ -139,8 +139,12 @@ services:
       # missing from data/mods, straight from the CDN — no Modrinth API at
       # boot, no 429 restart loops when the mod list changes. Stale jars
       # are removed by deploy.sh/dev-up.sh using mods-manifest.txt.
-      MODS_FILE: /extras/mods-urls.txt
-      DATAPACKS_FILE: /extras/datapacks-urls.txt
+      # Offline boots: itzg HEAD-checks each URL for freshness even when
+      # every jar is cached, so set MODS_FILE= (empty) in .env to skip the
+      # sync entirely and boot from data/mods as-is. The `-` (not `:-`)
+      # operator is deliberate: it lets an explicit empty value through.
+      MODS_FILE: ${MODS_FILE-/extras/mods-urls.txt}
+      DATAPACKS_FILE: ${DATAPACKS_FILE-/extras/datapacks-urls.txt}
 
       # Force env vars to overwrite server.properties on every boot.
       # Without this, stale values (e.g. enforce-whitelist=true) persist.
