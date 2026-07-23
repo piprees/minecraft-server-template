@@ -198,6 +198,10 @@ public class ServerWorldMixin {
         // damage (Entity.tickInVoid runs later, during entity ticking).
         com.customdimensions.dimension.ExitConditions.tick(world);
 
+        // Exit shrines: light + register any beacons the chunk-load scan
+        // queued (block mutation belongs in the tick, not the load event).
+        com.customdimensions.portal.ExitShrineManager.processQueued(world);
+
         DimensionManager.getInstance().updatePlayerPresence(worldKey, !world.getPlayers().isEmpty());
 
         // Idle unload is driven by ServerTickEvents.END_SERVER_TICK (see

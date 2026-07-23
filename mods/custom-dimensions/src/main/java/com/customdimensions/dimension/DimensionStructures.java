@@ -61,7 +61,8 @@ public final class DimensionStructures {
         java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides =
                 def.getStructures() != null && def.getStructures().spacing != null
                         ? def.getStructures().spacing : java.util.Map.of();
-        if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()) {
+        if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
+                && !def.hasExitShrines()) {
             return null;
         }
         List<RegistryEntry<StructureSet>> transformed = new ArrayList<>();
@@ -74,6 +75,25 @@ public final class DimensionStructures {
             }
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             String theme = setId != null ? StructureThemes.themeOf(setId) : null;
+
+            // Exit shrines ship with a near-zero frequency so they can never
+            // generate in worlds that bypass this rebuild (base worlds).
+            // Opted-in dims get the full-frequency copy; everyone else keeps
+            // the effectively-off original. Exempt from every theme factor.
+            if ("adventure:exit_shrines".equals(setId)) {
+                if (def.hasExitShrines()) {
+                    StructureSet set = entry.value();
+                    // ships at frequency 0.001; x1000 -> min(1.0, ...) = full
+                    StructurePlacement full = rescale(set.placement(), 1.0, 1000.0);
+                    if (full != null) {
+                        transformed.add(RegistryEntry.of(new StructureSet(set.structures(), full)));
+                        rescaled++;
+                        continue;
+                    }
+                }
+                transformed.add(entry);
+                continue;
+            }
 
             if (peaceful && "dungeon".equals(theme)) {
                 dropped++;

@@ -56,6 +56,11 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, server) ->
                         com.customdimensions.dimension.ExitConditions.forgetPlayer(handler.player.getUuid()));
+        // Exit shrines: beacon detection on chunk load (cheap block-entity
+        // map scan); block mutation happens in the world tick drain, never
+        // inside the load event.
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
+                com.customdimensions.portal.ExitShrineManager::onChunkLoad);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             DimensionCommands.register(dispatcher));
         // Config-driven overworld spawn: the worlds[] overworld entry's

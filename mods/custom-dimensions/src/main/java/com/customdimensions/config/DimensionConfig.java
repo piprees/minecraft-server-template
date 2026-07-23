@@ -103,6 +103,9 @@ public class DimensionConfig {
     /** Trigger -> exit rule: ways OUT without a portal (boot-re-read). */
     @SerializedName("exits")
     private Map<String, ExitRule> exits;
+    /** Scattered exit-shrine structures (the pretty way home). */
+    @SerializedName("exitShrines")
+    private ExitShrines exitShrines;
     @SerializedName("environment")
     private Environment environment;
     @SerializedName("seedRoll")
@@ -521,6 +524,15 @@ public class DimensionConfig {
         return this.exits != null ? this.exits : Map.of();
     }
 
+    public ExitShrines getExitShrines() {
+        return this.exitShrines;
+    }
+
+    /** True when adventure:exit_shrine structures generate (and register) here. */
+    public boolean hasExitShrines() {
+        return this.exitShrines != null && !Boolean.FALSE.equals(this.exitShrines.enabled);
+    }
+
     /** True when the mod must build and maintain an exit portal near spawn. */
     public boolean hasExitPortal() {
         return this.exitPortal != null && !Boolean.FALSE.equals(this.exitPortal.enabled);
@@ -916,6 +928,30 @@ public class DimensionConfig {
 
         public int getMinHeight() {
             return this.minHeight != null && this.minHeight > 0 ? this.minHeight : 100;
+        }
+    }
+
+    /**
+     * The pretty way home: adventure:exit_shrine jigsaw ruins scattered
+     * through the dimension, each carrying a beacon-marked portal frame the
+     * mod detects on chunk load and registers as an exit zone. The shrine
+     * structure SET ships with a near-zero frequency, raised to full only
+     * for dimensions that enable this block (DimensionStructures), so
+     * shrines never leak into base worlds or unopted dims. The spawn
+     * exitPortal remains the guarantee; shrines are scenery.
+     */
+    public static class ExitShrines {
+        @SerializedName("enabled")
+        public Boolean enabled;
+        /** Exit target (ExitTarget grammar); default "bed", same as exitPortal. */
+        @SerializedName("target")
+        public JsonElement target;
+
+        public String getTargetMode() {
+            if (this.target == null || this.target.isJsonNull()) {
+                return "bed";
+            }
+            return com.customdimensions.dimension.ExitTarget.canonicalise(this.target, "bed");
         }
     }
 

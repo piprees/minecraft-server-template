@@ -1,0 +1,12 @@
+{
+  "structures": [
+    { "structure": "adventure:exit_shrine", "weight": 1 }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 24,
+    "separation": 12,
+    "frequency": 0.001,
+    "salt": 918273645
+  }
+}

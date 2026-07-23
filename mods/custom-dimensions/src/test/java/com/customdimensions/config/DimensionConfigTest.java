@@ -438,6 +438,21 @@ class DimensionConfigTest {
     }
 
     @Test
+    void exitShrinesBlockDeserialises() {
+        DimensionConfig config = parse("d", """
+                {"exitShrines":{"enabled":true,
+                 "target":{"dimension":"adventure:the_starwell","arrival":"spawn"}}}
+                """);
+        assertTrue(config.hasExitShrines());
+        assertEquals("dim!adventure:the_starwell!spawn", config.getExitShrines().getTargetMode());
+        // default target is bed; absent/disabled block means no shrines
+        assertEquals("bed", parse("d", "{\"exitShrines\":{\"enabled\":true}}")
+                .getExitShrines().getTargetMode());
+        assertFalse(parse("d", "{}").hasExitShrines());
+        assertFalse(parse("d", "{\"exitShrines\":{\"enabled\":false}}").hasExitShrines());
+    }
+
+    @Test
     void structuresBlockDeserialises() {
         DimensionConfig config = parse("d", """
                 {"structures":{"wants":{"swamp_ruin":{"min":0,"max":2000}},

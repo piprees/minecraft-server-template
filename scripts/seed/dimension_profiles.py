@@ -228,6 +228,8 @@ STRUCTS = {
     "mega_ship_crashed": "mes:mega_ship_crashed", "mega_ship_deepslate": "mes:mega_ship_crashed_deepslate",
     "dragon_skeleton": "nullscape:dragon_skeleton", "end_tower": "structory_towers:end/end_tower",
     "end_ruins": "philipsruins:end_ruins", "end_gate_fortress": "philipsruins:end_gate_fortress",
+    # in-house (custom-dimensions jar datapack)
+    "exit_shrine": "adventure:exit_shrine",
     # sky islands (MSS places on the floating islands)
     "sky_castle_ruin": "mss:castle_ruin", "sky_arena": "mss:arena",
     "sky_house": "mss:small_oak_house", "sky_volcano": "mss:volcano",
@@ -417,7 +419,7 @@ def monolith_from_dir(config_dir):
         for key in ("type", "seed", "spawn", "noiseSettings", "structureDensity",
                     "seedRoll", "difficulty", "borders", "structures",
                     "checkerboardScale", "layers", "flatBiome",
-                    "settingsOverrides", "biomePatches"):
+                    "settingsOverrides", "biomePatches", "exitShrines"):
             if key in f:
                 d[key] = f[key]
         biomes = f.get("biomes")
@@ -874,6 +876,10 @@ def build_profile(dim, config, difficulty=None):
         # Precision placement: fixed circular patches over the layout —
         # the fast roller wraps its sampler in PatchedBiomeSampler.
         "biome_patches": dim.get("biomePatches") or [],
+        # Exit shrines: the adventure:exit_shrines set ships at frequency
+        # 0.001 and DimensionStructures raises it to 1.0 for opted-in dims —
+        # tier-1 structure maths mirrors the raise (fast_roller).
+        "exit_shrines": bool((dim.get("exitShrines") or {}).get("enabled")),
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

@@ -146,6 +146,7 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
             # the extracted values.
             spacing = set_cfg["spacing"]
             separation = set_cfg["separation"]
+            frequency = set_cfg.get("frequency", 1.0)
             ov = spacing_overrides.get(set_cfg.get("id"))
             if isinstance(ov, dict):
                 new_spacing = ov.get("spacing", spacing)
@@ -153,10 +154,14 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
                 if isinstance(new_spacing, int) and isinstance(new_sep, int) \
                         and 2 <= new_spacing <= 4096 and 0 <= new_sep < new_spacing:
                     spacing, separation = new_spacing, new_sep
+            # exitShrines parity: DimensionStructures raises the shrine
+            # set's shipped 0.001 frequency to 1.0 for opted-in dims.
+            if set_cfg.get("id") == "adventure:exit_shrines" and profile.get("exit_shrines"):
+                frequency = 1.0
             result = nearest_structure(
                 seed, spacing, separation,
                 set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
-                frequency=set_cfg.get("frequency", 1.0),
+                frequency=frequency,
                 search_radius=50)
             dist = result[0] if result else -1
             if cap is not None and dist > cap:

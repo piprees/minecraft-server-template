@@ -37,9 +37,11 @@ Trigger families worth supporting (each maps to an existing hook):
 - The seed roller ignores all of it (`exits` is runtime-only) — `build_profile` passthrough test, same as the portal blocks.
 - Persistence: exit conditions are config-driven and boot-re-read like portal config — no world wipes, applies to existing dims.
 
-## Part 1 — the jigsaw shrine structure (the pretty way home)
+## Part 1 — the jigsaw shrine structure — ✅ SHIPPED 2026-07-23
 
-The one unbuilt piece of the portal-concepts work (v3.3.0 shipped anchors, single-use portals, and mod-built exit portals; see new-portal-concepts.md §3 option 2). The mod-built exit portal at spawn is functional but plain — this is the pretty version.
+Landed: `adventure:exit_shrine` jigsaw structure + `adventure:exit_shrines` set + template pool in the jar datapack; `scripts/gen-exit-shrine.py` generates the NBT template (own minimal NBT writer, deterministic gzip — rerun after design changes, rebuild the jar). Beacon centrepiece under the frame is the detection marker: `ExitShrineManager` scans chunk-load block entities, verifies the crying-obsidian ring in all four jigsaw rotations, lights + registers from the world tick (never the load event). The set ships at frequency 0.001 so base worlds (which bypass the DimensionStructures rebuild) can never generate one; opted-in dims (`exitShrines.enabled`) get a x1000 full-frequency copy, exempt from theme factors. `exit_shrine` joined the roller's STRUCTS + tier-1 frequency parity. Bot-verified end to end (generation 144 blocks out at spacing 24, detection under a rotated placement, traversal home). Open question resolved as leaned: spawn exitPortal stays the guarantee, shrines are scenery; per-dimension frame substitution went to further-portal-customisations.md.
+
+Original notes below for reference. The pre-shipping context: the one unbuilt piece of the portal-concepts work (v3.3.0 shipped anchors, single-use portals, and mod-built exit portals). The mod-built exit portal at spawn is functional but plain — this is the pretty version.
 
 ## The idea
 
