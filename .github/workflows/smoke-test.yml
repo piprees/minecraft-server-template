@@ -87,6 +87,7 @@ jobs:
         # fabric-seasons-terralith-compat hard-depends on terralith, so a real
         # consumer removing terralith must remove it too — same here.
         run: |
+          mkdir -p overlay
           cat > overlay/mods-remove.txt <<'EOF'
           when-dungeons-arise
           dungeons-and-taverns
