@@ -267,8 +267,13 @@ public class DimensionCommands {
             return 0;
         }
 
+        // Phase 1: static entries from getBiomeEntries() — exact climate
+        // cells for vanilla + Terralith (anything that ships multinoise data
+        // in its JAR). These are the precise cells the nearest-neighbour
+        // sampler needs for correct biome placement.
         var entries = ((MultiNoiseBiomeSourceAccessor) mnbs).invokeGetBiomeEntries();
         var entryList = entries.getEntries();
+        var staticBiomes = new java.util.HashSet<String>();
 
         StringBuilder json = new StringBuilder("[\n");
         for (int i = 0; i < entryList.size(); i++) {
@@ -279,6 +284,7 @@ public class DimensionCommands {
             String biomeId = biome.getKey()
                 .map(k -> k.getValue().toString())
                 .orElse("unknown");
+            staticBiomes.add(biomeId);
 
             if (i > 0) json.append(",\n");
             json.append("  {\"biome\": \"").append(biomeId).append("\"");
@@ -291,6 +297,93 @@ public class DimensionCommands {
             json.append(", \"offset\": ").append(cube.offset() / 10000.0);
             json.append("}");
         }
+
+        // Phase 2: spatial grid sample via the LIVE getBiome() — captures
+        // TerraBlender-injected biomes that the static entries miss. For
+        // each sample point, record the biome + the climate values. Only
+        // biomes NOT already in the static dump get entries here.
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        var sampler = noiseConfig.getMultiNoiseSampler();
+        int radius = 8192;
+        int step = 64;
+
+        // Collect (climate point, biome) observations for non-static biomes.
+        // Group by biome, then bin by the vanilla temperature×humidity grid
+        // (5 temp bands × 5 humidity bands) to produce distinct entries per
+        // climate cell — same granularity as vanilla/Terralith entries.
+        var discovered = new java.util.HashMap<String,
+            java.util.HashMap<Long, long[]>>();
+
+        int gridPoints = 0;
+        for (int x = -radius; x <= radius; x += step) {
+            for (int z = -radius; z <= radius; z += step) {
+                int qx = x >> 2;
+                int qz = z >> 2;
+
+                var biome = biomeSource.getBiome(qx, 0, qz, sampler);
+                String biomeId = biome.getKey()
+                    .map(k -> k.getValue().toString())
+                    .orElse("unknown");
+
+                if (staticBiomes.contains(biomeId)) continue;
+
+                MultiNoiseUtil.NoiseValuePoint point = sampler.sample(qx, 0, qz);
+                long temp = point.temperatureNoise();
+                long humid = point.humidityNoise();
+                long cont = point.continentalnessNoise();
+                long eros = point.erosionNoise();
+                long depth = point.depth();
+                long weird = point.weirdnessNoise();
+
+                // Bin key: quantise temp and humidity to the 5 vanilla bands
+                // (-1.0, -0.45, -0.15, 0.2, 0.55, 1.0 for temp; similar
+                // for humidity). This keeps each biome's disjoint climate
+                // cells as separate entries rather than merging them.
+                int tempBin = quantiseBand(temp, TEMP_BREAKS);
+                int humidBin = quantiseBand(humid, HUMID_BREAKS);
+                long binKey = ((long) tempBin << 32) | (humidBin & 0xFFFFFFFFL);
+
+                var biomeMap = discovered.computeIfAbsent(biomeId,
+                    k -> new java.util.HashMap<>());
+                long[] range = biomeMap.computeIfAbsent(binKey, k -> new long[]{
+                    Long.MAX_VALUE, Long.MIN_VALUE,
+                    Long.MAX_VALUE, Long.MIN_VALUE,
+                    Long.MAX_VALUE, Long.MIN_VALUE,
+                    Long.MAX_VALUE, Long.MIN_VALUE,
+                    Long.MAX_VALUE, Long.MIN_VALUE,
+                    Long.MAX_VALUE, Long.MIN_VALUE
+                });
+                range[0] = Math.min(range[0], temp);   range[1] = Math.max(range[1], temp);
+                range[2] = Math.min(range[2], humid);  range[3] = Math.max(range[3], humid);
+                range[4] = Math.min(range[4], cont);   range[5] = Math.max(range[5], cont);
+                range[6] = Math.min(range[6], eros);   range[7] = Math.max(range[7], eros);
+                range[8] = Math.min(range[8], depth);   range[9] = Math.max(range[9], depth);
+                range[10] = Math.min(range[10], weird); range[11] = Math.max(range[11], weird);
+                gridPoints++;
+            }
+        }
+
+        // Append discovered entries (sorted for determinism).
+        int discoveredCount = 0;
+        var sortedDiscovered = new java.util.ArrayList<>(discovered.keySet());
+        java.util.Collections.sort(sortedDiscovered);
+        for (String biomeId : sortedDiscovered) {
+            var bins = discovered.get(biomeId);
+            var sortedBins = new java.util.ArrayList<>(bins.keySet());
+            java.util.Collections.sort(sortedBins);
+            for (long binKey : sortedBins) {
+                long[] r = bins.get(binKey);
+                json.append(",\n  {\"biome\": \"").append(biomeId).append("\"");
+                json.append(", \"temperature\": [").append(r[0] / 10000.0).append(", ").append(r[1] / 10000.0).append("]");
+                json.append(", \"humidity\": [").append(r[2] / 10000.0).append(", ").append(r[3] / 10000.0).append("]");
+                json.append(", \"continentalness\": [").append(r[4] / 10000.0).append(", ").append(r[5] / 10000.0).append("]");
+                json.append(", \"erosion\": [").append(r[6] / 10000.0).append(", ").append(r[7] / 10000.0).append("]");
+                json.append(", \"depth\": [").append(r[8] / 10000.0).append(", ").append(r[9] / 10000.0).append("]");
+                json.append(", \"weirdness\": [").append(r[10] / 10000.0).append(", ").append(r[11] / 10000.0).append("]");
+                json.append(", \"offset\": 0.0}");
+                discoveredCount++;
+            }
+        }
         json.append("\n]\n");
 
         try {
@@ -298,15 +391,34 @@ public class DimensionCommands {
                 .resolve("custom-dimensions").resolve("biome_params.json");
             Files.createDirectories(outputPath.getParent());
             Files.writeString(outputPath, json.toString());
-            int count = entryList.size();
+            int staticCount = staticBiomes.size();
+            int newBiomes = sortedDiscovered.size();
+            int newEntries = discoveredCount;
+            int totalEntries = entryList.size() + discoveredCount;
+            int totalGrid = gridPoints;
             source.sendFeedback(() -> Text.literal(
-                "Dumped " + count + " biome entries to biome_params.json"), false);
-            return count;
+                "Dumped " + totalEntries + " entries (" + staticCount
+                + " static biomes + " + newBiomes + " discovered via "
+                + totalGrid + " grid samples, " + newEntries
+                + " new entries) to biome_params.json"), false);
+            return totalEntries;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to write biome params", e);
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    // Vanilla temperature band breakpoints (×10000 for long-quantised values).
+    private static final long[] TEMP_BREAKS = {-4500, -1500, 2000, 5500};
+    // Vanilla humidity band breakpoints.
+    private static final long[] HUMID_BREAKS = {-3500, -1000, 1000, 3000};
+
+    private static int quantiseBand(long value, long[] breaks) {
+        for (int i = 0; i < breaks.length; i++) {
+            if (value < breaks[i]) return i;
+        }
+        return breaks.length;
     }
 
     private static int debugPrng(CommandContext<ServerCommandSource> ctx) {
