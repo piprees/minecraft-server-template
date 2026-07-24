@@ -132,6 +132,29 @@ class PortalDefinitionTest {
     }
 
     @Test
+    void partMatchersFallBackToUnionAndPlaceBlocksResolvePerPart() {
+        PortalDefinition def = new PortalDefinition("p", "minecraft:oak_planks", "i", "t", "AA00FF", 0);
+        assertFalse(def.hasPartMaterials());
+        def.setFramePartAccepts(java.util.Map.of(
+                "top", java.util.List.of("minecraft:oak_planks"),
+                "sides", java.util.List.of("#minecraft:logs")));
+        assertTrue(def.hasPartMaterials());
+        // parsing is registry-free: forms land in the right matcher buckets
+        assertEquals(java.util.List.of("minecraft:oak_planks"),
+                def.resolvePartMatcher("top").getBlockIds());
+        assertEquals(java.util.List.of("minecraft:logs"),
+                def.resolvePartMatcher("sides").getTagIds());
+        // an unspecified part falls back to the union (frameAccepts) matcher
+        def.setFrameAccepts(java.util.List.of("minecraft:oak_planks", "#minecraft:logs"));
+        assertEquals(def.resolveFrameMatcher(), def.resolvePartMatcher("bottom"));
+        // per-part placement: first plain id, else definition-wide fallback
+        assertEquals("minecraft:oak_planks", def.getPartPlaceBlock("top"));
+        assertEquals("minecraft:oak_planks", def.getPartPlaceBlock("sides")); // tag-only -> global
+        def.setFramePlaceBlock("minecraft:oak_log");
+        assertEquals("minecraft:oak_log", def.getPartPlaceBlock("sides"));
+    }
+
+    @Test
     void centreBlockBlankNormalisesToNull() {
         PortalDefinition def = new PortalDefinition();
         assertNull(def.getCentreBlock());

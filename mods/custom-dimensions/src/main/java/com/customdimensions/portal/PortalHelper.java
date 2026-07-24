@@ -283,7 +283,7 @@ public class PortalHelper {
         if (matcher.isEmpty()) {
             return false;
         }
-        return isAreaBoundedByFrame(world, zone.interior, matcher, zone.axis);
+        return isAreaBoundedByFrameParts(world, zone.interior, zone.definition, zone.axis);
     }
 
     public static void clearInteriorPortals(ServerWorld world, PortalZone zone) {
@@ -487,11 +487,26 @@ public class PortalHelper {
         int frameFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
         HashSet<BlockPos> interiorSet = new HashSet<>(interior);
         Direction[] planeDirs = planeDirections(axis);
+        // Per-part materials build the arrival frame in kind: top/sides/
+        // bottom resolve their own placement block (vertical portals only —
+        // horizontal frames stay uniform, same rule as validation).
+        boolean perPart = definition.hasPartMaterials() && axis != Direction.Axis.Y;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        if (perPart) {
+            for (BlockPos p : interior) {
+                minY = Math.min(minY, p.getY());
+                maxY = Math.max(maxY, p.getY());
+            }
+        }
         for (BlockPos p : interior) {
             for (Direction dir : planeDirs) {
                 BlockPos neighbor = p.offset(dir);
                 if (!interiorSet.contains(neighbor)) {
-                    targetWorld.setBlockState(neighbor, frameState, frameFlags);
+                    BlockState state = perPart
+                            ? partFrameState(definition, classifyFramePart(neighbor, minY, maxY), frameState)
+                            : frameState;
+                    targetWorld.setBlockState(neighbor, state, frameFlags);
                 }
             }
         }
@@ -528,6 +543,15 @@ public class PortalHelper {
         }
 
         savePortalLinks();
+    }
+
+    // Placement state for one frame part: the part's own place block when
+    // it resolves, else the definition-wide fallback the caller computed.
+    private static BlockState partFrameState(PortalDefinition definition, String part, BlockState fallback) {
+        String id = definition.getPartPlaceBlock(part);
+        Identifier blockId = id != null ? Identifier.tryParse(id) : null;
+        Block block = blockId != null ? Registries.BLOCK.get(blockId) : null;
+        return block != null && block != Blocks.AIR ? block.getDefaultState() : fallback;
     }
 
     // radiusV is wider than radiusH so a portal built when the surface sat a
@@ -608,6 +632,55 @@ public class PortalHelper {
                     continue;
                 }
                 return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Which frame part a ring position belongs to, for per-part material
+     * checks: below the interior's lowest row = "bottom", above its
+     * highest = "top", everything else (side columns, and any frame block
+     * level with the interior of an irregular shape) = "sides".
+     */
+    public static String classifyFramePart(BlockPos framePos, int interiorMinY, int interiorMaxY) {
+        if (framePos.getY() < interiorMinY) {
+            return "bottom";
+        }
+        if (framePos.getY() > interiorMaxY) {
+            return "top";
+        }
+        return "sides";
+    }
+
+    /**
+     * Per-part frame validation (frameMaterials): every ring position must
+     * satisfy the matcher for ITS part. Uniform definitions and horizontal
+     * (Y-axis) portals fall back to the union check — per-part top/bottom/
+     * sides has no meaning on a flat ring (v1 decision).
+     */
+    public static boolean isAreaBoundedByFrameParts(ServerWorld world, Set<BlockPos> portalArea,
+            PortalDefinition definition, Direction.Axis axis) {
+        if (!definition.hasPartMaterials() || axis == Direction.Axis.Y) {
+            return isAreaBoundedByFrame(world, portalArea, definition.resolveFrameMatcher(), axis);
+        }
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (BlockPos p : portalArea) {
+            minY = Math.min(minY, p.getY());
+            maxY = Math.max(maxY, p.getY());
+        }
+        Direction[] directions = planeDirections(axis);
+        for (BlockPos pos : portalArea) {
+            for (Direction dir : directions) {
+                BlockPos neighbor = pos.offset(dir);
+                if (portalArea.contains(neighbor)) {
+                    continue;
+                }
+                String part = classifyFramePart(neighbor, minY, maxY);
+                if (!definition.resolvePartMatcher(part).matches(world.getBlockState(neighbor))) {
+                    return false;
+                }
             }
         }
         return true;

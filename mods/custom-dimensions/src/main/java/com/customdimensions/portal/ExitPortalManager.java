@@ -136,11 +136,22 @@ public final class ExitPortalManager {
                 interior.add(new BlockPos(x + dx, y + dy, z));
             }
         }
+        // Per-part materials build the exit frame in kind: the row below
+        // the interior is "bottom", above it "top", the rest "sides"
+        // (corners follow their row). Uniform frames keep one block.
+        com.customdimensions.config.PortalDefinition def =
+                config.hasPortal() ? config.toPortalDefinition() : null;
+        boolean perPart = def != null && def.hasPartMaterials();
         for (int dx = -1; dx <= width; dx++) {
             for (int dy = -1; dy <= height; dy++) {
                 boolean isInterior = dx >= 0 && dx < width && dy >= 0 && dy < height;
                 if (!isInterior) {
-                    world.setBlockState(new BlockPos(x + dx, y + dy, z), frameBlock.getDefaultState(), flags);
+                    Block block = frameBlock;
+                    if (perPart) {
+                        String part = dy < 0 ? "bottom" : dy >= height ? "top" : "sides";
+                        block = resolvePartBlock(def, part, frameBlock);
+                    }
+                    world.setBlockState(new BlockPos(x + dx, y + dy, z), block.getDefaultState(), flags);
                 }
             }
         }
@@ -199,6 +210,14 @@ public final class ExitPortalManager {
                     color, cooldown, config.hasPortal() ? config.getPortal().particleType : null, exitMode);
         }
         PortalHelper.savePortalLinks();
+    }
+
+    private static Block resolvePartBlock(com.customdimensions.config.PortalDefinition def,
+            String part, Block fallback) {
+        String id = def.getPartPlaceBlock(part);
+        Identifier blockId = id != null ? Identifier.tryParse(id) : null;
+        Block block = blockId != null ? Registries.BLOCK.get(blockId) : null;
+        return block != null && block != Blocks.AIR ? block : fallback;
     }
 
     private static Block resolveFrameBlock(DimensionConfig config) {

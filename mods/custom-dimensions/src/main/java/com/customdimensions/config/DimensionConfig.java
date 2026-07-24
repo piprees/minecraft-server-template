@@ -576,6 +576,17 @@ public class DimensionConfig {
         if (!accepts.equals(List.of(primary))) {
             def.setFrameAccepts(accepts);
         }
+        Map<String, List<String>> parts = this.portal.getFramePartAcceptForms();
+        if (!parts.isEmpty()) {
+            def.setFramePartAccepts(parts);
+        }
+        // Plumb the explicit framePlaceBlock through: without this, a plain
+        // frameBlock (e.g. "minecraft:stone") silently overrides a differing
+        // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain
+        // (found live 2026-07-24 while verifying per-part placement).
+        if (this.portal.framePlaceBlock != null && !this.portal.framePlaceBlock.isBlank()) {
+            def.setFramePlaceBlock(this.portal.framePlaceBlock.trim());
+        }
         if (this.portal.orientation != null && !this.portal.orientation.isBlank()) {
             def.setOrientation(this.portal.orientation.trim());
         }
@@ -788,6 +799,16 @@ public class DimensionConfig {
         @SerializedName("frameBlock")
         public JsonElement frameBlock;
         /**
+         * Per-part frame requirements (Tier 2b): keys "top" / "sides" /
+         * "bottom", each value any frameBlock accept form (id, "#ns:tag",
+         * list, {"colorGroup": ...}). Mutually exclusive with frameBlock —
+         * both present WARNs and frameMaterials wins. Vertical portals
+         * only; horizontal (Y-axis) fills validate against the union.
+         * Parts left out accept the union of the specified parts.
+         */
+        @SerializedName("frameMaterials")
+        public JsonObject frameMaterials;
+        /**
          * Concrete block the mod places when it builds frames (arrival and
          * exit portals). Required in spirit when frameBlock is not a single
          * plain id — accepting is not placing. Falls back to the first
@@ -872,8 +893,55 @@ public class DimensionConfig {
          * never matches; PortalSafetyValidator warns).
          */
         public List<String> getFrameAcceptForms() {
+            Map<String, List<String>> parts = this.getFramePartAcceptForms();
+            if (!parts.isEmpty()) {
+                // frameMaterials wins over frameBlock: the union of every
+                // part's forms is what the flood-fill accepts.
+                List<String> union = new java.util.ArrayList<>();
+                for (List<String> forms : parts.values()) {
+                    for (String form : forms) {
+                        if (!union.contains(form)) {
+                            union.add(form);
+                        }
+                    }
+                }
+                return union;
+            }
+            return acceptFormsFrom(this.frameBlock);
+        }
+
+        /** The frame part names per-part materials recognise, in order. */
+        public static final List<String> FRAME_PARTS = List.of("top", "sides", "bottom");
+
+        /**
+         * Per-part accept forms from frameMaterials ("top"/"sides"/
+         * "bottom" -> normalised forms). Empty map when unset. Unknown
+         * keys are ignored here (PortalSafetyValidator warns).
+         */
+        public Map<String, List<String>> getFramePartAcceptForms() {
+            Map<String, List<String>> out = new java.util.LinkedHashMap<>();
+            if (this.frameMaterials == null) {
+                return out;
+            }
+            for (String part : FRAME_PARTS) {
+                JsonElement e = this.frameMaterials.get(part);
+                if (e != null && !e.isJsonNull()) {
+                    List<String> forms = acceptFormsFrom(e);
+                    if (!forms.isEmpty()) {
+                        out.put(part, forms);
+                    }
+                }
+            }
+            return out;
+        }
+
+        /**
+         * Normalised accept forms from ANY frame-form JSON element: a
+         * plain/tag id string, an array of those, or {"colorGroup": ...}
+         * (sugar for the jar-shipped "#adventure:<colour>_blocks" tag).
+         */
+        public static List<String> acceptFormsFrom(JsonElement e) {
             List<String> out = new java.util.ArrayList<>();
-            JsonElement e = this.frameBlock;
             if (e == null || e.isJsonNull()) {
                 return out;
             }
@@ -892,7 +960,7 @@ public class DimensionConfig {
                     }
                 }
             } else if (e.isJsonObject()) {
-                String colour = this.getColorGroup();
+                String colour = colorGroupOf(e);
                 if (colour != null) {
                     out.add("#adventure:" + colour + "_blocks");
                 }
@@ -900,17 +968,22 @@ public class DimensionConfig {
             return out;
         }
 
-        /** The colorGroup name when frameBlock is that form, else null. */
-        public String getColorGroup() {
-            if (this.frameBlock == null || !this.frameBlock.isJsonObject()) {
+        /** The colorGroup name of a {"colorGroup": ...} element, else null. */
+        public static String colorGroupOf(JsonElement e) {
+            if (e == null || !e.isJsonObject()) {
                 return null;
             }
-            JsonElement cg = this.frameBlock.getAsJsonObject().get("colorGroup");
+            JsonElement cg = e.getAsJsonObject().get("colorGroup");
             if (cg != null && cg.isJsonPrimitive() && cg.getAsJsonPrimitive().isString()) {
                 String s = cg.getAsString().trim().toLowerCase();
                 return s.isEmpty() ? null : s;
             }
             return null;
+        }
+
+        /** The colorGroup name when frameBlock is that form, else null. */
+        public String getColorGroup() {
+            return colorGroupOf(this.frameBlock);
         }
 
         /** The single plain block id when frameBlock is exactly that legacy form, else null. */

@@ -105,6 +105,39 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void frameMaterialsHygieneWarnings() {
+        // both frameBlock and frameMaterials -> exclusivity warning
+        DimensionConfig both = parse("d1", """
+                {"portal":{"frameBlock":"minecraft:stone",
+                 "frameMaterials":{"sides":"minecraft:oak_log"}}}
+                """);
+        List<String> w1 = PortalSafetyValidator.validate(List.of(both));
+        assertEquals(1, w1.size());
+        assertTrue(w1.get(0).contains("mutually exclusive"));
+        // unknown part key -> ignored + warned
+        DimensionConfig badKey = parse("d2", """
+                {"portal":{"frameMaterials":{"sides":"minecraft:oak_log","lintel":"minecraft:stone"}}}
+                """);
+        List<String> w2 = PortalSafetyValidator.validate(List.of(badKey));
+        assertEquals(1, w2.size());
+        assertTrue(w2.get(0).contains("lintel"));
+        // horizontal orientation -> per-part has no effect
+        DimensionConfig flat = parse("d3", """
+                {"portal":{"orientation":"horizontal",
+                 "frameMaterials":{"sides":"minecraft:oak_log"}}}
+                """);
+        List<String> w3 = PortalSafetyValidator.validate(List.of(flat));
+        assertEquals(1, w3.size());
+        assertTrue(w3.get(0).contains("no effect on horizontal"));
+        // clean vertical per-part config is silent
+        DimensionConfig fine = parse("d4", """
+                {"portal":{"frameMaterials":{"top":"minecraft:oak_planks",
+                 "sides":"#minecraft:logs","bottom":"minecraft:stone"}}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(fine)).isEmpty());
+    }
+
+    @Test
     void disabledSingleUseAndPlainPortalsAreSilent() {
         DimensionConfig disabled = parse("d1", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":false}}}

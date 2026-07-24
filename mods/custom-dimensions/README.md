@@ -13,6 +13,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Biome patches** -- `biomePatches` overrides the generated layout in three modes: stamp (`{biome, x, z, radius}` claims the area), clipped swap (`replace` recolours only the matching biome inside the area, organic shape kept), and global swap (`scope: "global"` replaces a biome dimension-wide, or uses the area as a selector for every biome touching it). `shape: circle|square`, `blend` edge jitter (default 8 blocks). A stamp at (0,0) guarantees the spawn biome. Backed by a codec-registered `PatchedBiomeSource` wrapper so the generator persists cleanly
 - **Custom portal frames** -- any block as the frame, any item as the igniter; `frameBlock` accepts a plain id, `#ns:tag`, a list, or `{"colorGroup": "<dye>"}`, with `framePlaceBlock` naming the concrete block mod-built frames use
 - **Portal shape presets** -- optional `shape`: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring, optional `centreBlock` pedestal); absent = free-form flood-fill. Shapes imply orientation; mod-built exit portals follow the dimension's shape
+- **Per-part frame materials** -- `frameMaterials` {top, sides, bottom} each accepting any frame form ("stone base, log pillars, plank lintel"); flood-fill accepts the union, validation checks each ring position's part; mod-built frames place per part (vertical portals only)
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
 - **Coordinate scaling** -- configurable scale factor per portal (e.g., 0.125 for nether-style 1:8)
@@ -239,6 +240,37 @@ Two hard-won rules from live verification (2026-07-23):
   obsidian-only on ANY adjacent block change, and netherportalspread's
   corruption spread was silently deleting custom-framed arrival portals
   seconds after creation. Player-built vanilla portals are untouched.
+
+### Per-part frame materials
+
+`frameMaterials` gives different frame segments different requirements —
+"stone base, log pillars, plank lintel". Mutually exclusive with
+`frameBlock` (both present WARNs; frameMaterials wins):
+
+```jsonc
+"portal": {
+  "frameMaterials": {
+    "top": "minecraft:oak_planks",   // each part takes ANY accept form:
+    "sides": "#minecraft:logs",      // id, #tag, list, {"colorGroup": ...}
+    "bottom": "minecraft:stone"
+  },
+  // sides is tag-only, so mod-built frames need a concrete block for it
+  "framePlaceBlock": "minecraft:oak_log"
+}
+```
+
+The flood-fill accepts the UNION of all parts (any listed material bounds
+the fill); validation then classifies each ring position — below the
+interior's lowest row = `bottom`, above its highest = `top`, everything
+else = `sides` — and checks that part's matcher. Parts left out accept
+the union. **Vertical portals only (v1)**: horizontal (Y-axis) fills and
+`end_exit`/`horizontal` configs validate against the union and WARN at
+boot (top/bottom has no meaning on a flat ring).
+
+Mod-built frames are built in kind: arrival portals and `exitPortal`
+place each part's first plain id (else `framePlaceBlock`, else obsidian).
+Zone records persist `framePartAccepts` (plain strings); older jars
+ignore the field and validate against the union — graceful downgrade.
 
 ### Portal shapes
 

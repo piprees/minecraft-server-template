@@ -85,6 +85,26 @@ class StoredPortalZonePersistenceTest {
     }
 
     @Test
+    void framePartAcceptsRoundTripAndLegacyRecordsStayUniform() {
+        PortalHelper.PortalZone source = zone(-1);
+        source.definition.setFramePartAccepts(java.util.Map.of(
+                "sides", java.util.List.of("#minecraft:logs"),
+                "bottom", java.util.List.of("minecraft:stone")));
+        String json = GSON.toJson(PortalHelper.StoredPortalZone.from(source));
+        assertTrue(json.contains("framePartAccepts"));
+        PortalHelper.PortalZone restored =
+                GSON.fromJson(json, PortalHelper.StoredPortalZone.class).toPortalZone();
+        assertTrue(restored.definition.hasPartMaterials());
+        assertEquals(java.util.List.of("#minecraft:logs"),
+                restored.definition.getFramePartAccepts().get("sides"));
+        // pre-2b records have no part accepts and stay uniform
+        String legacyJson = GSON.toJson(PortalHelper.StoredPortalZone.from(zone(-1)));
+        assertFalse(legacyJson.contains("framePartAccepts"));
+        assertFalse(GSON.fromJson(legacyJson, PortalHelper.StoredPortalZone.class)
+                .toPortalZone().definition.hasPartMaterials());
+    }
+
+    @Test
     void legacyRecordWithoutCountdownFieldRestoresUnarmed() {
         String legacy = """
                 {"recordType":"source-zone-v1","sourceWorld":"minecraft:overworld",

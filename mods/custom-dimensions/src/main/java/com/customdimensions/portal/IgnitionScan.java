@@ -40,6 +40,12 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
         if (!PortalShape.matches(def.getShape(), fill, axis)) {
             return null;
         }
+        // Per-part materials: each ring position must satisfy ITS part's
+        // matcher (uniform frames and Y-axis fills pass through unchanged).
+        if (def.hasPartMaterials()
+                && !PortalHelper.isAreaBoundedByFrameParts(world, fill, def, axis)) {
+            return null;
+        }
         return fill;
     }
 

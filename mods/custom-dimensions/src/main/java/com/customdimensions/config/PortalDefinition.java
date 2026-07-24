@@ -69,7 +69,15 @@ public class PortalDefinition {
     private int singleUseDelayTicks = 200;
     private String singleUseBreakMode = "decay";
     private Map<String, String> singleUseDecayMap;
+    /**
+     * Per-part accept forms ("top"/"sides"/"bottom" -> forms) when the
+     * config uses frameMaterials. Null for uniform frames. Persisted into
+     * zone records as plain strings (older jars ignore the unknown field
+     * and validate against frameAccepts' union — graceful downgrade).
+     */
+    private Map<String, List<String>> framePartAccepts;
     private transient FrameMatcher frameMatcher;
+    private transient Map<String, FrameMatcher> partMatchers;
 
     public PortalDefinition() {
     }
@@ -121,6 +129,56 @@ public class PortalDefinition {
             this.frameMatcher = FrameMatcher.of(this.getFrameAccepts());
         }
         return this.frameMatcher;
+    }
+
+    /** True when this definition carries per-part frame materials. */
+    public boolean hasPartMaterials() {
+        return this.framePartAccepts != null && !this.framePartAccepts.isEmpty();
+    }
+
+    /** Per-part accept forms; empty map for uniform frames. */
+    public Map<String, List<String>> getFramePartAccepts() {
+        return this.framePartAccepts != null ? this.framePartAccepts : Map.of();
+    }
+
+    public void setFramePartAccepts(Map<String, List<String>> framePartAccepts) {
+        this.framePartAccepts =
+                framePartAccepts != null && !framePartAccepts.isEmpty() ? framePartAccepts : null;
+        this.partMatchers = null;
+        this.frameMatcher = null;
+    }
+
+    /**
+     * Matcher for one frame part ("top"/"sides"/"bottom"). Parts the
+     * config leaves out fall back to the union matcher (any accepted
+     * material), so a top-only frameMaterials still bounds a portal.
+     */
+    public FrameMatcher resolvePartMatcher(String part) {
+        List<String> forms = this.getFramePartAccepts().get(part);
+        if (forms == null || forms.isEmpty()) {
+            return this.resolveFrameMatcher();
+        }
+        if (this.partMatchers == null) {
+            this.partMatchers = new java.util.HashMap<>();
+        }
+        return this.partMatchers.computeIfAbsent(part, p -> FrameMatcher.of(forms));
+    }
+
+    /**
+     * Concrete block id placed for one frame part when the mod builds
+     * frames: the part's first plain id, else the definition-wide
+     * framePlaceBlock fallback chain.
+     */
+    public String getPartPlaceBlock(String part) {
+        List<String> forms = this.getFramePartAccepts().get(part);
+        if (forms != null) {
+            for (String form : forms) {
+                if (!form.startsWith("#")) {
+                    return form;
+                }
+            }
+        }
+        return this.getFramePlaceBlock();
     }
 
     /**

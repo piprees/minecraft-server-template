@@ -191,7 +191,11 @@ public final class DimensionConfigLoader {
             base.add("difficulty", settings.defaults.getAsJsonObject("difficulty").deepCopy());
         }
         if (dimension.has("portal") && dimension.get("portal").isJsonObject()
-                && settings.defaults.has("frameBlock")) {
+                && settings.defaults.has("frameBlock")
+                // A dimension declaring per-part materials owns its whole
+                // frame — merging the default frameBlock under it would
+                // trip the frameBlock/frameMaterials exclusivity warning.
+                && !dimension.getAsJsonObject("portal").has("frameMaterials")) {
             JsonObject portal = new JsonObject();
             portal.add("frameBlock", settings.defaults.get("frameBlock"));
             base.add("portal", portal);

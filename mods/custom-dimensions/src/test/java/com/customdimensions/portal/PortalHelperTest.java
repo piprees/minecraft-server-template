@@ -39,6 +39,21 @@ class PortalHelperTest {
     }
 
     @Test
+    void classifyFramePartByInteriorYRange() {
+        net.minecraft.util.math.BlockPos below = new net.minecraft.util.math.BlockPos(0, 59, 0);
+        net.minecraft.util.math.BlockPos level = new net.minecraft.util.math.BlockPos(1, 61, 0);
+        net.minecraft.util.math.BlockPos above = new net.minecraft.util.math.BlockPos(0, 63, 0);
+        assertEquals("bottom", PortalHelper.classifyFramePart(below, 60, 62));
+        assertEquals("sides", PortalHelper.classifyFramePart(level, 60, 62));
+        assertEquals("top", PortalHelper.classifyFramePart(above, 60, 62));
+        // boundary rows belong to sides — only strictly past the interior counts
+        assertEquals("sides", PortalHelper.classifyFramePart(
+                new net.minecraft.util.math.BlockPos(0, 60, 0), 60, 62));
+        assertEquals("sides", PortalHelper.classifyFramePart(
+                new net.minecraft.util.math.BlockPos(0, 62, 0), 60, 62));
+    }
+
+    @Test
     void parseColorEmptyReturnsFallback() {
         assertEquals(0x8844FF, PortalHelper.parseColor(""));
     }

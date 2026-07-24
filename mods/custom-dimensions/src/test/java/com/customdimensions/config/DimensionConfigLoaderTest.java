@@ -150,6 +150,26 @@ class DimensionConfigLoaderTest {
     }
 
     @Test
+    void defaultFrameBlockSkipsFrameMaterialsDimensions(@TempDir Path config, @TempDir Path overlay) throws IOException {
+        Files.createDirectories(config);
+        Files.writeString(config.resolve("settings.json"), """
+                {"namespace":"adventure","defaults":{"frameBlock":"minecraft:crying_obsidian"}}
+                """);
+        writeDim(config, "parts", """
+                {"type":"overworld","portal":{"igniterItem":"minecraft:stick",
+                 "frameMaterials":{"sides":"#minecraft:logs","bottom":"minecraft:stone"}}}
+                """);
+        Map<String, DimensionConfig> dims =
+                DimensionConfigLoader.loadAllWithSettings(config, overlay).dimensions();
+        // The dimension owns its whole frame: no injected frameBlock, no
+        // spurious exclusivity warning, per-part forms intact.
+        assertNull(dims.get("parts").getPortal().frameBlock);
+        assertEquals(java.util.List.of("#minecraft:logs"),
+                dims.get("parts").getPortal().getFramePartAcceptForms().get("sides"));
+        assertTrue(PortalSafetyValidator.validate(dims.values()).isEmpty());
+    }
+
+    @Test
     void loadSettingsReadsFramesBlock(@TempDir Path config) throws IOException {
         Files.writeString(config.resolve("settings.json"), """
                 {"namespace":"elfydd","frames":{"overworld":"minecraft:gold_block","nether":"minecraft:obsidian"}}

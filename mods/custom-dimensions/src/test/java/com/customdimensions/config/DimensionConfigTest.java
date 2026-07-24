@@ -158,6 +158,52 @@ class DimensionConfigTest {
     }
 
     @Test
+    void frameMaterialsParsePerPartAndUnionWins() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"igniterItem":"minecraft:stick",
+                 "frameMaterials":{"top":"minecraft:oak_planks",
+                                   "sides":["#minecraft:logs"],
+                                   "bottom":{"colorGroup":"red"}}}}
+                """);
+        assertTrue(config.hasPortal());
+        var parts = config.getPortal().getFramePartAcceptForms();
+        assertEquals(java.util.List.of("minecraft:oak_planks"), parts.get("top"));
+        assertEquals(java.util.List.of("#minecraft:logs"), parts.get("sides"));
+        assertEquals(java.util.List.of("#adventure:red_blocks"), parts.get("bottom"));
+        // union accept forms drive the flood-fill matcher
+        assertEquals(java.util.List.of("minecraft:oak_planks", "#minecraft:logs",
+                "#adventure:red_blocks"), config.getPortal().getFrameAcceptForms());
+        PortalDefinition def = config.toPortalDefinition();
+        assertTrue(def.hasPartMaterials());
+        assertEquals(parts, def.getFramePartAccepts());
+        // primary frameBlock stays a plain parseable id (downgrade rule):
+        // the first plain id in the union
+        assertEquals("minecraft:oak_planks", def.getFrameBlock());
+    }
+
+    @Test
+    void explicitFramePlaceBlockSurvivesPlainFrameBlock() {
+        // A plain frameBlock must not shadow a differing explicit
+        // framePlaceBlock (accepting is not placing).
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"minecraft:stone",
+                 "framePlaceBlock":"minecraft:oak_log"}}
+                """);
+        assertEquals("minecraft:oak_log", config.toPortalDefinition().getFramePlaceBlock());
+    }
+
+    @Test
+    void frameMaterialsWinOverFrameBlock() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"minecraft:stone",
+                 "frameMaterials":{"sides":"minecraft:oak_log"}}}
+                """);
+        assertEquals(java.util.List.of("minecraft:oak_log"),
+                config.getPortal().getFrameAcceptForms());
+        assertTrue(config.toPortalDefinition().hasPartMaterials());
+    }
+
+    @Test
     void legacyFlatPortalSoundsStillResolve() {
         DimensionConfig config = parse("d", """
                 {"portal":{"frameBlock":"minecraft:clay","enterSound":"x.y"}}

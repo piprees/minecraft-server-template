@@ -118,6 +118,71 @@ public final class PortalSafetyValidator {
                     config.getName(), portal.orientation.trim(), ORIENTATIONS));
         }
         validateShapeConfig(config, portal, warnings);
+        validateFrameMaterials(config, portal, warnings);
+    }
+
+    // Per-part material hygiene (Tier 2b): frameBlock/frameMaterials
+    // exclusivity, unknown part keys, malformed forms, horizontal misuse,
+    // unresolvable per-part placement. WARN and keep going.
+    private static void validateFrameMaterials(DimensionConfig config, DimensionConfig.Portal portal,
+                                               List<String> warnings) {
+        if (portal.frameMaterials == null) {
+            return;
+        }
+        if (portal.frameBlock != null && !portal.frameBlock.isJsonNull()) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameBlock and portal.frameMaterials are both set — they "
+                    + "are mutually exclusive and frameMaterials wins. KEEPING the config as "
+                    + "written (never auto-fixed).",
+                    config.getName()));
+        }
+        for (String key : portal.frameMaterials.keySet()) {
+            if (!DimensionConfig.Portal.FRAME_PARTS.contains(key)) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.frameMaterials key '%s' is not one of %s — ignored. "
+                        + "KEEPING the config as written (never auto-fixed).",
+                        config.getName(), key, DimensionConfig.Portal.FRAME_PARTS));
+            }
+        }
+        java.util.Map<String, List<String>> parts = portal.getFramePartAcceptForms();
+        if (parts.isEmpty()) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameMaterials has no usable part entries — the portal "
+                    + "can never ignite. KEEPING the config as written (never auto-fixed).",
+                    config.getName()));
+            return;
+        }
+        for (java.util.Map.Entry<String, List<String>> part : parts.entrySet()) {
+            for (String form : part.getValue()) {
+                String idPart = form.startsWith("#") ? form.substring(1) : form;
+                if (net.minecraft.util.Identifier.tryParse(idPart) == null) {
+                    warnings.add(String.format(
+                            "Dimension %s: portal.frameMaterials.%s form '%s' is not a valid "
+                            + "identifier — it will never match. KEEPING the config as written "
+                            + "(never auto-fixed).",
+                            config.getName(), part.getKey(), form));
+                }
+            }
+            boolean noPlain = part.getValue().stream().allMatch(f -> f.startsWith("#"));
+            if (noPlain && portal.resolvePlacementBlockId() == null) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.frameMaterials.%s is tag-only and no framePlaceBlock "
+                        + "is set — mod-built frames fall back to obsidian for that part. KEEPING "
+                        + "the config as written; set \"framePlaceBlock\" to fix (never auto-fixed).",
+                        config.getName(), part.getKey()));
+            }
+        }
+        String orientation = portal.orientation != null ? portal.orientation.trim() : null;
+        boolean horizontalOnly = "horizontal".equals(orientation)
+                || com.customdimensions.portal.PortalShape.END_EXIT.equals(
+                        portal.shape != null ? portal.shape.trim() : null);
+        if (horizontalOnly) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.frameMaterials has no effect on horizontal (Y-axis) "
+                    + "portals — the union of all parts applies instead. KEEPING the config as "
+                    + "written (never auto-fixed).",
+                    config.getName()));
+        }
     }
 
     // Shape hygiene (Tier 2): unknown preset names, shape/orientation
