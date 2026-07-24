@@ -82,6 +82,40 @@ Scores measured candidates against dimension profiles, persists candidate stores
 
 Manages the per-dimension JSON candidate stores in `config/custom-dimensions/candidates/`.
 
+### `viewer-server.py` — Viewer server + the config form
+
+Serves the viewer and its live actions. Beyond the original pick/reroll/
+shortlist endpoints, the **fork/create/edit config form** replaces the old
+name-only dialog: forking a candidate, the per-card `Configure` button, and
+the header's `New dimension` all open one `<dialog>` with sections for
+World (type/noise/density/scale/border), Mood & scoring, a searchable
+~1800-biome multi-select, structure wants/shuns, Difficulty, and Portal —
+pre-populated from the parent (or existing) config with live hints (band
+block-ranges for the chosen radius, hostile-want warnings, mood blurbs).
+
+- `GET /fork-schema` — every option list as one JSON blob (types, moods +
+  blurbs, bands + fraction ranges, ~230 structure short names, noise
+  presets, biomes grouped by namespace). Built once at startup from
+  `dimension_profiles.py` + `biome_params.json`; it IS the documentation
+  of valid values, always in sync with the code.
+- `GET /dim-config?dim=X` — the parsed config for pre-population.
+- `POST /create-dimension` — grew `mode` (`fork` default | `create` |
+  `edit`) and an optional `config` object, validated server-side field by
+  field (`resolve_struct` for structures, biome ids against biome_params,
+  bands/ranges, MAP-form shuns only) with per-field errors for inline
+  display. Valid config deep-merges over the parent clone (fork), a
+  minimal skeleton (create), or the existing file (edit). On any config
+  divergence an auto-reroll job starts and its `job_id` returns for the
+  existing `pollJob` UI.
+
+Two traps baked into the validation (both found by the boot gate):
+**band-name wants go to `seedRoll.wants`** — `structures.wants` is the
+mod's `Map<String, StructureWant>` and Gson-crashes on strings — and
+**shuns must be MAP form** for the same reason. Overlay-written dims are
+also mirrored into the staged overlay (`<config>/overlay/dimensions/`)
+at write time, or fast_roller/finalise can't see them until the next
+`./dev up` re-stage.
+
 ## Seed-Group Rolling
 
 Many dimensions are "same world, different curated taste" — identical generation settings, differing only by wants/shuns/spawn filters. Those share every seed's measurements, so the roller measures each seed **once per generation fingerprint** and banks the rows for every member.

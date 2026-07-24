@@ -144,6 +144,258 @@ def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
             _jobs[job_id]["error"] = str(exc)[:500]
 
 
+_fork_schema_cache = None
+
+
+def _build_fork_schema(config_path):
+    """One JSON blob of every option list the fork/create/edit form needs.
+    Built lazily on first request, cached for the server's lifetime — it
+    IS the documentation of valid moods/bands/structures/biomes, always
+    in sync with dimension_profiles."""
+    global _fork_schema_cache
+    if _fork_schema_cache is not None:
+        return _fork_schema_cache
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dimension_profiles import (BANDS, HOSTILE_STRUCTURES, MOOD_BLURBS,
+                                    STRUCTS)
+    biomes = {}
+    bp_path = SCRIPT_DIR / "biome_params.json"
+    if bp_path.exists():
+        try:
+            # A flat list of {biome, ..., family} rows (~1800), from the
+            # mod's /customdim dump-biome-params.
+            for row in json.loads(bp_path.read_text()):
+                biome_id = row.get("biome") if isinstance(row, dict) else None
+                if not biome_id:
+                    continue
+                ns = biome_id.split(":")[0]
+                biomes.setdefault(ns, [])
+                if biome_id not in biomes[ns]:
+                    biomes[ns].append(biome_id)
+            for ns in biomes:
+                biomes[ns].sort()
+        except (OSError, json.JSONDecodeError, AttributeError, TypeError):
+            biomes = {}
+    _fork_schema_cache = {
+        "version": 1,
+        # Mirrors the mod's DimensionManager type switch.
+        "types": ["overworld", "multi_biome", "single_biome", "nether", "end",
+                  "void", "superflat", "cave", "checkerboard", "sky_islands",
+                  "nether_islands", "amplified", "large_biomes"],
+        "noise_settings": ["", "adventure:wide", "adventure:compressed",
+                           "minecraft:amplified", "minecraft:large_biomes"],
+        "structure_density": ["", "sparse", "normal", "dense"],
+        "moods": {k: MOOD_BLURBS.get(k, "") for k in sorted(MOOD_BLURBS)},
+        "bands": sorted(BANDS),
+        "band_ranges": {k: list(v) for k, v in BANDS.items()},
+        "structures": sorted(STRUCTS),
+        "hostile_structures": sorted(HOSTILE_STRUCTURES),
+        "waters": ["", "default", "sea", "high", "none"],
+        "biomes": biomes,
+    }
+    return _fork_schema_cache
+
+
+# Field-by-field validation of the optional fork-form config. Returns
+# (clean_config, errors) — errors is {field: message} for inline display;
+# clean_config contains ONLY the validated fields (deep-merged over the
+# parent clone by the caller). Shuns must be the MAP form: the mod's Gson
+# crashes on list-form structures.shuns.
+def _validate_fork_config(raw, config_path):
+    schema = _build_fork_schema(config_path)
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dimension_profiles import resolve_struct
+    clean, errors = {}, {}
+    if not isinstance(raw, dict):
+        return {}, {"config": "config must be an object"}
+
+    def s(key):
+        v = raw.get(key)
+        return v.strip() if isinstance(v, str) else None
+
+    if s("type"):
+        if s("type") in schema["types"]:
+            clean["type"] = s("type")
+        else:
+            errors["type"] = f"unknown type '{s('type')}'"
+    if s("noiseSettings") is not None:
+        if s("noiseSettings") in schema["noise_settings"]:
+            if s("noiseSettings"):
+                clean["noiseSettings"] = s("noiseSettings")
+        else:
+            errors["noiseSettings"] = f"unknown preset '{s('noiseSettings')}'"
+    if s("structureDensity") is not None and s("structureDensity"):
+        if s("structureDensity") in schema["structure_density"]:
+            clean["structureDensity"] = s("structureDensity")
+        else:
+            errors["structureDensity"] = "must be sparse/normal/dense"
+
+    border = raw.get("borderRadius")
+    if border is not None:
+        try:
+            border = int(border)
+            if not 64 <= border <= 100000:
+                raise ValueError
+            clean["borders"] = {"player": border, "generation": border}
+        except (TypeError, ValueError):
+            errors["borderRadius"] = "must be an integer 64..100000"
+
+    biomes = raw.get("biomes")
+    if biomes is not None:
+        known = {b for ids in schema["biomes"].values() for b in ids}
+        if not isinstance(biomes, list) or not all(isinstance(b, str) for b in biomes):
+            errors["biomes"] = "must be a list of biome ids"
+        else:
+            bad = [b for b in biomes if b not in known]
+            if bad:
+                errors["biomes"] = f"unknown biome(s): {', '.join(bad[:5])}"
+            elif biomes:
+                clean["biomes"] = biomes
+
+    seed_roll = {}
+    if s("mood") is not None and s("mood"):
+        if s("mood") in schema["moods"]:
+            seed_roll["mood"] = s("mood")
+        else:
+            errors["mood"] = f"unknown mood '{s('mood')}'"
+    if s("water") is not None and s("water"):
+        if s("water") in schema["waters"]:
+            seed_roll["water"] = s("water")
+        else:
+            errors["water"] = "must be default/sea/high/none"
+    spawn_filter = raw.get("spawnFilter")
+    if spawn_filter:
+        if not isinstance(spawn_filter, list):
+            errors["spawnFilter"] = "must be a list of biome ids"
+        else:
+            chosen = set(clean.get("biomes") or [])
+            bad = [b for b in spawn_filter if chosen and b not in chosen]
+            if bad:
+                errors["spawnFilter"] = "spawnFilter must be a subset of the chosen biomes"
+            else:
+                seed_roll["spawnFilter"] = spawn_filter
+    if seed_roll:
+        clean["seedRoll"] = seed_roll
+
+    structures = {}
+    wants = raw.get("wants")
+    if wants is not None:
+        if not isinstance(wants, dict):
+            errors["wants"] = "must be a map of structure -> band or {min,max}"
+        else:
+            # Band-name wants live in seedRoll.wants (free-form, roller
+            # scoring); {min,max} ranges live in structures.wants — the
+            # mod's Gson maps that to StructureWant objects and CRASHES on
+            # band strings there (caught live by the boot gate 2026-07-24).
+            band_wants, range_wants = {}, {}
+            for sname, spec in wants.items():
+                if resolve_struct(sname) is None:
+                    errors["wants"] = f"unknown structure '{sname}'"
+                    break
+                if isinstance(spec, str) and spec in schema["bands"]:
+                    band_wants[sname] = spec
+                elif isinstance(spec, dict):
+                    try:
+                        lo, hi = int(spec["min"]), int(spec["max"])
+                        if not 0 <= lo < hi:
+                            raise ValueError
+                        range_wants[sname] = {"min": lo, "max": hi}
+                    except (KeyError, TypeError, ValueError):
+                        errors["wants"] = f"'{sname}' range needs 0 <= min < max"
+                        break
+                else:
+                    errors["wants"] = f"'{sname}' must be a band name or {{min,max}}"
+                    break
+            else:
+                if range_wants:
+                    structures["wants"] = range_wants
+                if band_wants:
+                    clean.setdefault("seedRoll", {})["wants"] = band_wants
+    shuns = raw.get("shuns")
+    if shuns is not None:
+        if not isinstance(shuns, dict):
+            errors["shuns"] = "must be a MAP of structure -> {minDistance} (the mod crashes on lists)"
+        else:
+            out = {}
+            for sname, spec in shuns.items():
+                if resolve_struct(sname) is None:
+                    errors["shuns"] = f"unknown structure '{sname}'"
+                    break
+                md = spec.get("minDistance") if isinstance(spec, dict) else None
+                try:
+                    out[sname] = {"minDistance": max(0, int(md))} if md is not None else {}
+                except (TypeError, ValueError):
+                    errors["shuns"] = f"'{sname}' minDistance must be an integer"
+                    break
+            else:
+                if out:
+                    structures["shuns"] = out
+    if structures:
+        clean["structures"] = structures
+
+    difficulty = {}
+    mm = raw.get("mobMultiplier")
+    if mm is not None:
+        try:
+            mm = float(mm)
+            if not 0.0 <= mm <= 10.0:
+                raise ValueError
+            difficulty["mobMultiplier"] = mm
+        except (TypeError, ValueError):
+            errors["mobMultiplier"] = "must be a number 0..10"
+    hs = raw.get("hostileSpawning")
+    if hs is not None:
+        difficulty["hostileSpawning"] = bool(hs)
+    pl = raw.get("playerLuck")
+    if pl is not None:
+        try:
+            difficulty["playerLuck"] = max(0.0, min(10.0, float(pl)))
+        except (TypeError, ValueError):
+            errors["playerLuck"] = "must be a number"
+    if difficulty:
+        clean["difficulty"] = difficulty
+
+    portal = {}
+    for key in ("frameBlock", "igniterItem", "particleType"):
+        v = s(key)
+        if v:
+            if ":" not in v:
+                errors[key] = "must be a namespaced id (e.g. minecraft:obsidian)"
+            else:
+                portal[key] = v
+    colour = s("color")
+    if colour:
+        import re as _re
+        if _re.match(r"^#?[0-9a-fA-F]{6}$", colour):
+            portal["color"] = colour.lstrip("#").upper()
+        else:
+            errors["color"] = "must be a 6-digit hex colour"
+    if portal:
+        clean["portal"] = portal
+
+    scale = raw.get("scale")
+    if scale is not None:
+        try:
+            scale = float(scale)
+            if scale not in (1.0, 4.0, 8.0, 12.0, 16.0):
+                raise ValueError
+            clean.setdefault("portal", {})["scale"] = scale
+        except (TypeError, ValueError):
+            errors["scale"] = "must be one of 1, 4, 8, 12, 16"
+
+    return clean, errors
+
+
+def _deep_merge(base, over):
+    out = dict(base)
+    for k, v in over.items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = _deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
 class ViewerHandler(SimpleHTTPRequestHandler):
     # Set by main()
     seedtest = ""
@@ -173,6 +425,25 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if self.path == "/fork-schema":
+            try:
+                self._respond_json(_build_fork_schema(self.config_path))
+            except Exception as exc:
+                self._respond_json({"error": str(exc)[:300]}, 500)
+            return
+        if self.path.startswith("/dim-config"):
+            from urllib.parse import parse_qs, urlparse
+            dim = (parse_qs(urlparse(self.path).query).get("dim") or [""])[0]
+            path = self._resolve_dim_config(dim) if dim else None
+            if not path:
+                self._respond_json({"error": f"config not found for '{dim}'"}, 404)
+                return
+            try:
+                self._respond_json({"ok": True, "dim": dim,
+                                    "config": json.loads(path.read_text())})
+            except (OSError, json.JSONDecodeError) as exc:
+                self._respond_json({"error": str(exc)[:300]}, 500)
+            return
         if self.path.startswith("/job/"):
             job_id = self.path[5:]
             with _jobs_lock:
@@ -425,81 +696,145 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                             "hires": f"renders/{dim}/{seed}_hires.png"})
 
     def _handle_create_dimension(self):
+        """Fork (default), create-from-scratch, or edit-in-place — one
+        endpoint, three modes, identical validation. The optional `config`
+        object carries the form's divergences; validation errors come back
+        per-field for inline display."""
         try:
             body = self._read_json()
-            parent_dim = str(body["parent_dim"])
-            seed = str(body["seed"])
+            mode = str(body.get("mode", "fork"))
             name = str(body["name"])
             description = str(body.get("description", ""))[:300]
+            parent_dim = str(body.get("parent_dim", ""))
+            seed = str(body.get("seed", "") or "")
+            form_config = body.get("config")
         except (ValueError, KeyError, json.JSONDecodeError):
-            self.send_error(400, "expected JSON {parent_dim, seed, name}")
+            self.send_error(400, "expected JSON {name, ...}")
             return
 
         import re
         if not re.match(r'^[a-z][a-z0-9_]*$', name):
-            self._respond_json({"ok": False, "error": "Name must be snake_case"}, 400)
+            self._respond_json({"ok": False, "error": "Name must be snake_case",
+                                "errors": {"name": "Name must be snake_case"}}, 400)
+            return
+        if mode not in ("fork", "create", "edit"):
+            self._respond_json({"ok": False, "error": f"unknown mode '{mode}'"}, 400)
+            return
+        if mode == "fork" and not parent_dim:
+            self._respond_json({"ok": False, "error": "fork needs parent_dim"}, 400)
             return
 
-        parent_path, _ = _find_dim_config(self.config_path, parent_dim)
-        if not parent_path or not parent_path.exists():
-            self._respond_json({"ok": False, "error": f"Parent config not found: {parent_dim}"}, 404)
-            return
-
-        cfg = Path(self.config_path)
-        if cfg.is_dir():
-            parent_data = json.loads(parent_path.read_text())
-        else:
-            full = json.loads(parent_path.read_text())
-            parent_data = next((d for d in full.get("dimensions", [])
-                                if d["name"] == parent_dim), None)
-            if not parent_data:
-                self._respond_json({"ok": False, "error": "Dimension not found in config"}, 404)
+        clean_config, field_errors = ({}, {})
+        if form_config is not None:
+            clean_config, field_errors = _validate_fork_config(form_config, self.config_path)
+            if field_errors:
+                self._respond_json({"ok": False, "error": "validation failed",
+                                    "errors": field_errors}, 422)
                 return
 
-        new_data = dict(parent_data)
+        cfg = Path(self.config_path)
+        target_path = None
+        if mode == "fork":
+            parent_path, _ = _find_dim_config(self.config_path, parent_dim)
+            if not parent_path or not parent_path.exists():
+                self._respond_json({"ok": False, "error": f"Parent config not found: {parent_dim}"}, 404)
+                return
+            if cfg.is_dir():
+                parent_data = json.loads(parent_path.read_text())
+            else:
+                full = json.loads(parent_path.read_text())
+                parent_data = next((d for d in full.get("dimensions", [])
+                                    if d["name"] == parent_dim), None)
+                if not parent_data:
+                    self._respond_json({"ok": False, "error": "Dimension not found in config"}, 404)
+                    return
+        elif mode == "edit":
+            target_path = self._resolve_dim_config(name)
+            if not target_path:
+                self._respond_json({"ok": False, "error": f"Config not found: {name}"}, 404)
+                return
+            parent_data = json.loads(target_path.read_text())
+        else:  # create: a minimal sane skeleton
+            parent_data = {"type": "overworld",
+                           "borders": {"player": 2048, "generation": 2048}}
+
+        new_data = _deep_merge(dict(parent_data), clean_config)
         new_data["name"] = name
-        new_data["seed"] = int(seed)
-        new_data["description"] = description
-        new_data["parentDimension"] = parent_dim
-        ns = new_data.get("dimensionId", "").split(":")[0] or "adventure"
+        if seed:
+            new_data["seed"] = int(seed)
+        if description:
+            new_data["description"] = description
+        if mode == "fork":
+            new_data["parentDimension"] = parent_dim
+        ns = str(new_data.get("dimensionId", "")).split(":")[0] or "adventure"
         new_data["dimensionId"] = f"{ns}:{name}"
 
-        if self.winner_overlay:
-            out_dir = Path(self.winner_overlay) / "dimensions"
-        elif cfg.is_dir():
-            out_dir = cfg / "dimensions"
+        if mode == "edit":
+            out_path = target_path
         else:
-            self._respond_json({"ok": False, "error": "Cannot create in monolith mode"}, 400)
-            return
-
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{name}.json"
-        if out_path.exists():
-            self._respond_json({"ok": False, "error": f"'{name}' already exists"}, 409)
-            return
+            if self.winner_overlay:
+                out_dir = Path(self.winner_overlay) / "dimensions"
+            elif cfg.is_dir():
+                out_dir = cfg / "dimensions"
+            else:
+                self._respond_json({"ok": False, "error": "Cannot create in monolith mode"}, 400)
+                return
+            out_dir.mkdir(parents=True, exist_ok=True)
+            out_path = out_dir / f"{name}.json"
+            if out_path.exists():
+                self._respond_json({"ok": False, "error": f"'{name}' already exists"}, 409)
+                return
 
         out_path.write_text(json.dumps(new_data, indent=2, ensure_ascii=False) + "\n")
 
-        try:
-            sys.path.insert(0, str(SCRIPT_DIR))
-            import candidates as cand_mod
-            src_cdir = cand_mod.candidates_dir(cfg if cfg.is_dir() else cfg.parent)
-            src_store_path = src_cdir / f"{parent_dim}.json"
-            if src_store_path.exists():
-                src_store = cand_mod.load_store(src_store_path)
-                seed_str = str(seed)
-                if seed_str in src_store["candidates"]:
-                    dst_base = Path(self.winner_overlay) if self.winner_overlay else cfg
-                    dst_cdir = cand_mod.candidates_dir(dst_base)
-                    dst_cdir.mkdir(parents=True, exist_ok=True)
-                    dst_store = cand_mod.load_store(dst_cdir / f"{name}.json")
-                    cand_mod.merge_rows(dst_store, seed_str,
-                                        src_store["candidates"][seed_str].get("measurements", {}))
-                    cand_mod.save_store(dst_cdir / f"{name}.json", dst_store)
-        except Exception:
-            pass
+        # Overlay-written dims are invisible to fast_roller/finalise until
+        # dev-up re-stages the consumer overlay into the config dir — mirror
+        # the file into the staged overlay now so the auto-reroll (and the
+        # viewer) see the new dim immediately. Same content, same contract:
+        # the next dev-up re-stages it identically.
+        if self.winner_overlay and cfg.is_dir():
+            staged = cfg / "overlay" / "dimensions"
+            if staged.parent.is_dir():
+                staged.mkdir(parents=True, exist_ok=True)
+                (staged / f"{name}.json").write_text(
+                    json.dumps(new_data, indent=2, ensure_ascii=False) + "\n")
 
-        self._respond_json({"ok": True, "path": str(out_path)})
+        if mode == "fork" and seed:
+            try:
+                sys.path.insert(0, str(SCRIPT_DIR))
+                import candidates as cand_mod
+                src_cdir = cand_mod.candidates_dir(cfg if cfg.is_dir() else cfg.parent)
+                src_store_path = src_cdir / f"{parent_dim}.json"
+                if src_store_path.exists():
+                    src_store = cand_mod.load_store(src_store_path)
+                    seed_str = str(seed)
+                    if seed_str in src_store["candidates"]:
+                        dst_base = Path(self.winner_overlay) if self.winner_overlay else cfg
+                        dst_cdir = cand_mod.candidates_dir(dst_base)
+                        dst_cdir.mkdir(parents=True, exist_ok=True)
+                        dst_store = cand_mod.load_store(dst_cdir / f"{name}.json")
+                        cand_mod.merge_rows(dst_store, seed_str,
+                                            src_store["candidates"][seed_str].get("measurements", {}))
+                        cand_mod.save_store(dst_cdir / f"{name}.json", dst_store)
+            except Exception:
+                pass
+
+        # The form's whole point is diverging, so the parent's candidates
+        # rarely apply — auto-roll fresh candidates for the new/edited dim
+        # when the form changed anything generation-relevant.
+        job_id = None
+        if clean_config:
+            job_id = f"reroll-{name}-{int(time.time())}"
+            with _jobs_lock:
+                _jobs[job_id] = {"status": "running", "dim": name,
+                                 "started": time.strftime("%H:%M:%S"),
+                                 "started_mono": time.monotonic()}
+            threading.Thread(
+                target=_run_reroll, daemon=True,
+                args=(job_id, name, self.config_path, self.seedtest,
+                      self.finalise_args, 5000, 100)).start()
+
+        self._respond_json({"ok": True, "path": str(out_path), "job_id": job_id})
 
     def _handle_hide_dimension(self):
         try:

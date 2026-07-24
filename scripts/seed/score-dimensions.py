@@ -1153,9 +1153,10 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
         "<div class='dim-actions'>"
         "<button class='action-btn reroll' data-dim='{}'>Re-roll</button>"
         "<button class='action-btn edit' data-dim='{}'>Edit</button>"
+        "<button class='action-btn configure' data-dim='{}'>Configure</button>"
         "<button class='action-btn hide' data-dim='{}'>Hide</button>"
         "<button class='action-btn remove' data-dim='{}'>Remove</button>"
-        "</div>".format(esc_name, esc_name, esc_name, esc_name))
+        "</div>".format(esc_name, esc_name, esc_name, esc_name, esc_name))
     out.append("</div></div>")  # close detail-info + detail-header
 
     # All candidates

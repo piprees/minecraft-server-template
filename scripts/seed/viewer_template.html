@@ -619,6 +619,148 @@
       background: #2a3545;
       color: var(--accent-hover);
     }
+    /* Fork/create/edit config form */
+    #create-dim-dialog {
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+    .cf-section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin: 0.5rem 0;
+      padding: 0.35rem 0.6rem;
+    }
+    .cf-section summary {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-heading);
+      user-select: none;
+    }
+    .cf-section summary:focus-visible {
+      outline: 2px solid var(--accent);
+      border-radius: 3px;
+    }
+    .cf-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.4rem 0.8rem;
+      margin-top: 0.5rem;
+    }
+    #create-dim-dialog select,
+    #create-dim-dialog input[type='number'] {
+      display: block;
+      width: 100%;
+      margin-top: 0.2rem;
+      font: inherit;
+      font-size: 0.82rem;
+      background: var(--bg-page);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.3rem 0.4rem;
+    }
+    #create-dim-dialog select:focus,
+    #create-dim-dialog input[type='number']:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+    .cf-check {
+      display: flex !important;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1.1rem;
+    }
+    .cf-checklist {
+      max-height: 9rem;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.3rem 0.5rem;
+      margin-top: 0.3rem;
+      font-size: 0.78rem;
+    }
+    .cf-checklist.tall {
+      max-height: 14rem;
+    }
+    .cf-checklist label {
+      display: flex !important;
+      align-items: center;
+      gap: 0.35rem;
+      margin: 0 0 0.15rem !important;
+      color: var(--text) !important;
+    }
+    .cf-checklist .cf-more {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 0.2rem 0;
+    }
+    .cf-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+    .cf-hint.cf-warn {
+      color: var(--score-amber);
+    }
+    .cf-count {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .cf-sub {
+      margin-top: 0.5rem !important;
+    }
+    .cf-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      margin-top: 0.35rem;
+    }
+    .cf-row input[type='text'] {
+      flex: 2;
+      margin-top: 0 !important;
+    }
+    .cf-row select,
+    .cf-row input[type='number'] {
+      flex: 1;
+      margin-top: 0 !important;
+      width: auto;
+    }
+    .cf-row .cf-del {
+      font: inherit;
+      font-size: 0.85rem;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 0.15rem 0.5rem;
+    }
+    .cf-row .cf-del:hover {
+      border-color: var(--score-red);
+      color: var(--score-red);
+    }
+    .cf-add {
+      font: inherit;
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 0.25rem 0.6rem;
+    }
+    .cf-add:hover {
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+    @media (max-width: 600px) {
+      .cf-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
 
     /* --- Hires indicator --- */
     .cand .hires-badge,
@@ -903,7 +1045,10 @@
     <label><input type="checkbox" id="f-borders" /> Show borders</label>
   </div>
 
-  <h1>Dimension seed candidates</h1>
+  <h1>Dimension seed candidates
+    <button type="button" class="action-btn" id="new-dim-btn"
+            onclick="openConfigDialog('create', '', '')">New dimension</button>
+  </h1>
   <p class="summary">{{SUMMARY_STATS}}</p>
   <p class="summary" id="progress" aria-live="polite"></p>
 
@@ -914,16 +1059,104 @@
   <div id="ungrouped-grid"></div>
 
   <dialog id="create-dim-dialog">
-    <h3>Fork as new dimension</h3>
+    <h3 id="cd-title">Fork as new dimension</h3>
     <label>Name<input type="text" id="cd-name" required /></label>
-    <div class="cd-error" id="cd-name-error"></div>
+    <div class="cd-error" data-err="name" id="cd-name-error"></div>
     <label>Description<textarea id="cd-desc" maxlength="300"></textarea></label>
+
+    <details class="cf-section" open>
+      <summary>World</summary>
+      <div class="cf-grid">
+        <label>Type<select id="cf-type"></select></label>
+        <label>Noise preset<select id="cf-noise"></select></label>
+        <label>Structure density<select id="cf-density"></select></label>
+        <label>Portal scale<select id="cf-scale">
+          <option value="">(inherit)</option><option>1</option><option>4</option>
+          <option>8</option><option>12</option><option>16</option></select></label>
+        <label>Border radius<select id="cf-border">
+          <option value="">(inherit)</option><option value="256">256 pocket</option>
+          <option value="512">512</option><option value="1024">1024</option>
+          <option value="2048">2048</option><option value="4096">4096</option>
+          <option value="8192">8192</option><option value="custom">custom…</option></select></label>
+        <label id="cf-border-custom-wrap" hidden>Custom radius
+          <input type="number" id="cf-border-custom" min="64" max="100000" step="64" /></label>
+      </div>
+      <div class="cf-hint" id="cf-band-hint"></div>
+      <div class="cd-error" data-err="type"></div>
+      <div class="cd-error" data-err="noiseSettings"></div>
+      <div class="cd-error" data-err="borderRadius"></div>
+      <div class="cd-error" data-err="scale"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Mood &amp; scoring</summary>
+      <div class="cf-grid">
+        <label>Mood<select id="cf-mood"></select></label>
+        <label>Water<select id="cf-water"></select></label>
+      </div>
+      <div class="cf-hint" id="cf-mood-blurb"></div>
+      <label class="cf-sub">Spawn filter (subset of chosen biomes)</label>
+      <div class="cf-checklist" id="cf-spawnfilter"></div>
+      <div class="cd-error" data-err="mood"></div>
+      <div class="cd-error" data-err="spawnFilter"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Biomes <span class="cf-count" id="cf-biome-count"></span></summary>
+      <input type="text" id="cf-biome-filter" placeholder="Filter ~1800 biomes…" />
+      <div class="cf-checklist tall" id="cf-biomes"></div>
+      <div class="cd-error" data-err="biomes"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Structures — wants</summary>
+      <div id="cf-wants"></div>
+      <button type="button" class="cf-add" id="cf-add-want">+ add want</button>
+      <div class="cf-hint cf-warn" id="cf-hostile-warn" hidden></div>
+      <div class="cd-error" data-err="wants"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Structures — shuns</summary>
+      <div id="cf-shuns"></div>
+      <button type="button" class="cf-add" id="cf-add-shun">+ add shun</button>
+      <div class="cd-error" data-err="shuns"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Difficulty</summary>
+      <div class="cf-grid">
+        <label>Mob multiplier<select id="cf-mobmult"></select></label>
+        <label>Player luck<select id="cf-luck"></select></label>
+        <label class="cf-check"><input type="checkbox" id="cf-hostile" /> Hostile spawning</label>
+      </div>
+      <div class="cd-error" data-err="mobMultiplier"></div>
+      <div class="cd-error" data-err="playerLuck"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Portal</summary>
+      <div class="cf-grid">
+        <label>Frame block<input type="text" id="cf-frame" placeholder="minecraft:obsidian" /></label>
+        <label>Igniter item<input type="text" id="cf-igniter" placeholder="minecraft:flint_and_steel" /></label>
+        <label>Colour<input type="text" id="cf-color" placeholder="8844FF" maxlength="7" /></label>
+        <label>Particle<input type="text" id="cf-particle" placeholder="minecraft:portal" /></label>
+      </div>
+      <div class="cd-error" data-err="frameBlock"></div>
+      <div class="cd-error" data-err="igniterItem"></div>
+      <div class="cd-error" data-err="color"></div>
+      <div class="cd-error" data-err="particleType"></div>
+    </details>
+
+    <datalist id="cf-structs-list"></datalist>
+    <div class="cd-error" data-err="config"></div>
     <div class="dialog-actions">
       <button type="button" id="cd-cancel">Cancel</button>
       <button type="button" id="cd-create" class="primary">Create</button>
     </div>
     <input type="hidden" id="cd-parent-dim" />
     <input type="hidden" id="cd-seed" />
+    <input type="hidden" id="cd-mode" value="fork" />
   </dialog>
 
   <div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
@@ -1548,15 +1781,12 @@
         }
         var createDim = e.target.closest('.action-btn.create-dim')
         if (createDim) {
-          var dlg = document.getElementById('create-dim-dialog')
-          document.getElementById('cd-parent-dim').value = createDim.dataset.dim
-          document.getElementById('cd-seed').value = createDim.dataset.seed
-          document.getElementById('cd-name').value = createDim.dataset.dim + '_fork'
-          document.getElementById('cd-desc').value = ''
-          document.getElementById('cd-name-error').textContent = ''
-          document.getElementById('cd-create').disabled = false
-          document.getElementById('cd-create').textContent = 'Create'
-          dlg.showModal()
+          openConfigDialog('fork', createDim.dataset.dim, createDim.dataset.seed)
+          return
+        }
+        var configureBtn = e.target.closest('.action-btn.configure')
+        if (configureBtn) {
+          openConfigDialog('edit', configureBtn.dataset.dim, '')
           return
         }
         var hideBtn = e.target.closest('.action-btn.hide')
@@ -1656,42 +1886,370 @@
         }, 2000)
       }
 
-      // --- Create dimension modal ---
-      document.getElementById('cd-cancel').addEventListener('click', function () {
-        document.getElementById('create-dim-dialog').close()
+      // --- Fork/create/edit config form ---
+      var cfSchema = null
+      var cfParent = null // parent (or existing) config for pre-population
+      function $id(id) {
+        return document.getElementById(id)
+      }
+      function fetchSchema() {
+        if (cfSchema) return Promise.resolve(cfSchema)
+        return fetch('/fork-schema')
+          .then(function (r) {
+            return r.json()
+          })
+          .then(function (s) {
+            cfSchema = s
+            return s
+          })
+      }
+      function fillSelect(el, options, labels, selected) {
+        el.innerHTML = ''
+        options.forEach(function (opt, i) {
+          var o = document.createElement('option')
+          o.value = opt
+          o.textContent = (labels && labels[i]) || opt || '(inherit)'
+          if (opt === selected) o.selected = true
+          el.appendChild(o)
+        })
+      }
+      // Searchable checklist: filter box over checkboxes, capped render so
+      // 1800 biomes stay snappy (matches render lazily on filter input).
+      function renderChecklist(container, ids, checked, filter, cap) {
+        container.innerHTML = ''
+        var q = (filter || '').toLowerCase()
+        var shown = 0
+        var hidden = 0
+        ids.forEach(function (id) {
+          var isChecked = checked.indexOf(id) >= 0
+          // checked entries always render so selections stay visible
+          if (!isChecked && q && id.indexOf(q) < 0) return
+          if (!isChecked && shown >= (cap || 250)) {
+            hidden++
+            return
+          }
+          var label = document.createElement('label')
+          var cb = document.createElement('input')
+          cb.type = 'checkbox'
+          cb.value = id
+          cb.checked = isChecked
+          label.appendChild(cb)
+          label.appendChild(document.createTextNode(' ' + id))
+          container.appendChild(label)
+          shown++
+        })
+        if (hidden > 0) {
+          var more = document.createElement('div')
+          more.className = 'cf-more'
+          more.textContent = hidden + ' more — type to filter'
+          container.appendChild(more)
+        }
+      }
+      function checkedValues(container) {
+        return Array.prototype.map.call(
+          container.querySelectorAll('input:checked'),
+          function (cb) {
+            return cb.value
+          }
+        )
+      }
+      function addStructRow(container, kind, name, spec) {
+        var row = document.createElement('div')
+        row.className = 'cf-row'
+        var input = document.createElement('input')
+        input.type = 'text'
+        input.placeholder = 'structure…'
+        input.setAttribute('list', 'cf-structs-list')
+        input.value = name || ''
+        row.appendChild(input)
+        if (kind === 'want') {
+          var band = document.createElement('select')
+          var bands = (cfSchema && cfSchema.bands) || []
+          fillSelect(band, bands.concat(['custom']), null, typeof spec === 'string' ? spec : 'custom')
+          if (typeof spec !== 'string' && !spec) band.value = bands[0] || 'spread'
+          row.appendChild(band)
+          var lo = document.createElement('input')
+          lo.type = 'number'
+          lo.placeholder = 'min'
+          var hi = document.createElement('input')
+          hi.type = 'number'
+          hi.placeholder = 'max'
+          if (spec && typeof spec === 'object') {
+            lo.value = spec.min
+            hi.value = spec.max
+          }
+          function syncCustom() {
+            var isCustom = band.value === 'custom'
+            lo.hidden = hi.hidden = !isCustom
+          }
+          band.addEventListener('change', syncCustom)
+          row.appendChild(lo)
+          row.appendChild(hi)
+          syncCustom()
+        } else {
+          var md = document.createElement('input')
+          md.type = 'number'
+          md.placeholder = 'min distance'
+          if (spec && typeof spec === 'object' && spec.minDistance != null) md.value = spec.minDistance
+          row.appendChild(md)
+        }
+        var del = document.createElement('button')
+        del.type = 'button'
+        del.className = 'cf-del'
+        del.textContent = '×'
+        del.setAttribute('aria-label', 'Remove row')
+        del.addEventListener('click', function () {
+          row.remove()
+          updateHostileWarn()
+        })
+        row.appendChild(del)
+        input.addEventListener('change', updateHostileWarn)
+        container.appendChild(row)
+      }
+      function collectStructRows(container, kind) {
+        var out = {}
+        container.querySelectorAll('.cf-row').forEach(function (row) {
+          var name = row.querySelector('input[list]').value.trim()
+          if (!name) return
+          if (kind === 'want') {
+            var band = row.querySelector('select').value
+            if (band === 'custom') {
+              var nums = row.querySelectorAll('input[type=number]')
+              out[name] = { min: parseInt(nums[0].value || '0', 10), max: parseInt(nums[1].value || '0', 10) }
+            } else {
+              out[name] = band
+            }
+          } else {
+            var md = row.querySelector('input[type=number]').value
+            out[name] = md ? { minDistance: parseInt(md, 10) } : {}
+          }
+        })
+        return out
+      }
+      function currentBorder() {
+        var sel = $id('cf-border').value
+        if (sel === 'custom') return parseInt($id('cf-border-custom').value || '0', 10) || null
+        return sel ? parseInt(sel, 10) : null
+      }
+      function updateBandHint() {
+        if (!cfSchema) return
+        var r =
+          currentBorder() ||
+          (cfParent && cfParent.borders && cfParent.borders.player) ||
+          8192
+        var parts = []
+        Object.keys(cfSchema.band_ranges || {}).forEach(function (b) {
+          var f = cfSchema.band_ranges[b]
+          parts.push(b + ' = ' + Math.round(f[0] * r) + '–' + Math.round(f[1] * r) + ' blocks')
+        })
+        $id('cf-band-hint').textContent = 'At radius ' + r + ': ' + parts.join(' · ')
+        $id('cf-border-custom-wrap').hidden = $id('cf-border').value !== 'custom'
+      }
+      function updateHostileWarn() {
+        if (!cfSchema) return
+        var warn = $id('cf-hostile-warn')
+        if ($id('cf-hostile').checked) {
+          warn.hidden = true
+          return
+        }
+        var hostile = cfSchema.hostile_structures || []
+        var stripped = Object.keys(collectStructRows($id('cf-wants'), 'want')).filter(function (n) {
+          return hostile.indexOf(n) >= 0
+        })
+        warn.hidden = stripped.length === 0
+        warn.textContent = stripped.length
+          ? 'hostileSpawning off strips hostile wants: ' + stripped.join(', ')
+          : ''
+      }
+      function updateMoodBlurb() {
+        if (!cfSchema) return
+        $id('cf-mood-blurb').textContent = (cfSchema.moods || {})[$id('cf-mood').value] || ''
+      }
+      function refreshSpawnFilter() {
+        var chosen = checkedValues($id('cf-biomes'))
+        var current = ((cfParent && cfParent.seedRoll) || {}).spawnFilter || []
+        renderChecklist($id('cf-spawnfilter'), chosen, current, '', 500)
+      }
+      function populateForm(mode, parentCfg) {
+        cfParent = parentCfg || {}
+        var s = cfSchema
+        fillSelect($id('cf-type'), s.types, null, cfParent.type || 'overworld')
+        fillSelect($id('cf-noise'), s.noise_settings, null, cfParent.noiseSettings || '')
+        fillSelect($id('cf-density'), s.structure_density, null, cfParent.structureDensity || '')
+        var moods = [''].concat(Object.keys(s.moods))
+        fillSelect($id('cf-mood'), moods, null, (cfParent.seedRoll || {}).mood || '')
+        fillSelect($id('cf-water'), s.waters, null, (cfParent.seedRoll || {}).water || '')
+        var mults = ['', '0', '0.5', '1', '1.5', '2', '2.5', '3']
+        var dif = cfParent.difficulty || {}
+        fillSelect($id('cf-mobmult'), mults, null, dif.mobMultiplier != null ? String(dif.mobMultiplier) : '')
+        fillSelect($id('cf-luck'), mults, null, dif.playerLuck != null ? String(dif.playerLuck) : '')
+        $id('cf-hostile').checked = dif.hostileSpawning !== false
+        var portal = cfParent.portal || {}
+        $id('cf-frame').value = typeof portal.frameBlock === 'string' ? portal.frameBlock : ''
+        $id('cf-igniter').value = portal.igniterItem || ''
+        $id('cf-color').value = portal.color || ''
+        $id('cf-particle').value = portal.particleType || ''
+        $id('cf-scale').value = portal.scale != null ? String(portal.scale) : ''
+        var border = (cfParent.borders || {}).player
+        var std = ['256', '512', '1024', '2048', '4096', '8192']
+        $id('cf-border').value = border == null ? '' : std.indexOf(String(border)) >= 0 ? String(border) : 'custom'
+        $id('cf-border-custom').value = border || ''
+        var allBiomes = []
+        Object.keys(s.biomes).forEach(function (ns) {
+          allBiomes = allBiomes.concat(s.biomes[ns])
+        })
+        var chosenBiomes = cfParent.biomes || []
+        // object-form biome entries carry {id: ...}
+        chosenBiomes = chosenBiomes.map(function (b) {
+          return typeof b === 'string' ? b : b.id
+        })
+        $id('cf-biome-filter').value = ''
+        renderChecklist($id('cf-biomes'), allBiomes, chosenBiomes, '')
+        $id('cf-biome-count').textContent = '(' + chosenBiomes.length + ' selected)'
+        var dl = $id('cf-structs-list')
+        dl.innerHTML = ''
+        s.structures.forEach(function (n) {
+          var o = document.createElement('option')
+          o.value = n
+          dl.appendChild(o)
+        })
+        $id('cf-wants').innerHTML = ''
+        var wants = (cfParent.structures || {}).wants || (cfParent.seedRoll || {}).wants || {}
+        Object.keys(wants).forEach(function (n) {
+          addStructRow($id('cf-wants'), 'want', n, wants[n])
+        })
+        $id('cf-shuns').innerHTML = ''
+        var shuns = (cfParent.structures || {}).shuns || {}
+        if (Object.prototype.toString.call(shuns) === '[object Object]') {
+          Object.keys(shuns).forEach(function (n) {
+            addStructRow($id('cf-shuns'), 'shun', n, shuns[n])
+          })
+        }
+        refreshSpawnFilter()
+        updateBandHint()
+        updateMoodBlurb()
+        updateHostileWarn()
+        Array.prototype.forEach.call(document.querySelectorAll('#create-dim-dialog .cd-error'), function (el) {
+          el.textContent = ''
+        })
+      }
+      function openConfigDialog(mode, dim, seed) {
+        var dlg = $id('create-dim-dialog')
+        $id('cd-mode').value = mode
+        $id('cd-parent-dim').value = mode === 'fork' ? dim : ''
+        $id('cd-seed').value = seed || ''
+        $id('cd-title').textContent =
+          mode === 'fork' ? 'Fork "' + dim + '" as new dimension' : mode === 'edit' ? 'Configure "' + dim + '"' : 'New dimension'
+        $id('cd-name').value = mode === 'fork' ? dim + '_fork' : mode === 'edit' ? dim : ''
+        $id('cd-name').readOnly = mode === 'edit'
+        $id('cd-create').disabled = false
+        $id('cd-create').textContent = mode === 'edit' ? 'Save' : 'Create'
+        var configPromise =
+          mode === 'create'
+            ? Promise.resolve({ config: {} })
+            : fetch('/dim-config?dim=' + encodeURIComponent(dim)).then(function (r) {
+                return r.json()
+              })
+        Promise.all([fetchSchema(), configPromise]).then(function (results) {
+          var cfg = (results[1] && results[1].config) || {}
+          $id('cd-desc').value = mode === 'edit' ? cfg.description || '' : ''
+          populateForm(mode, cfg)
+          dlg.showModal()
+        })
+      }
+      window.openConfigDialog = openConfigDialog
+      $id('cf-biome-filter').addEventListener('input', function () {
+        var s = cfSchema
+        if (!s) return
+        var allBiomes = []
+        Object.keys(s.biomes).forEach(function (ns) {
+          allBiomes = allBiomes.concat(s.biomes[ns])
+        })
+        renderChecklist($id('cf-biomes'), allBiomes, checkedValues($id('cf-biomes')), this.value)
       })
-      document.getElementById('cd-create').addEventListener('click', function () {
-        var nameEl = document.getElementById('cd-name')
-        var descEl = document.getElementById('cd-desc')
-        var errEl = document.getElementById('cd-name-error')
-        var name = nameEl.value.trim()
+      $id('cf-biomes').addEventListener('change', function () {
+        $id('cf-biome-count').textContent = '(' + checkedValues($id('cf-biomes')).length + ' selected)'
+        refreshSpawnFilter()
+      })
+      $id('cf-border').addEventListener('change', updateBandHint)
+      $id('cf-border-custom').addEventListener('input', updateBandHint)
+      $id('cf-mood').addEventListener('change', updateMoodBlurb)
+      $id('cf-hostile').addEventListener('change', updateHostileWarn)
+      $id('cf-add-want').addEventListener('click', function () {
+        addStructRow($id('cf-wants'), 'want', '', null)
+      })
+      $id('cf-add-shun').addEventListener('click', function () {
+        addStructRow($id('cf-shuns'), 'shun', '', null)
+      })
+      $id('cd-cancel').addEventListener('click', function () {
+        $id('create-dim-dialog').close()
+      })
+      $id('cd-create').addEventListener('click', function () {
+        var name = $id('cd-name').value.trim()
+        var errEl = $id('cd-name-error')
         if (!/^[a-z][a-z0-9_]*$/.test(name)) {
           errEl.textContent =
             'Name must start with a letter and contain only lowercase letters, numbers, and underscores.'
           return
         }
-        errEl.textContent = ''
-        var btn = document.getElementById('cd-create')
+        Array.prototype.forEach.call(document.querySelectorAll('#create-dim-dialog .cd-error'), function (el) {
+          el.textContent = ''
+        })
+        var config = {
+          type: $id('cf-type').value,
+          noiseSettings: $id('cf-noise').value,
+          structureDensity: $id('cf-density').value,
+          mood: $id('cf-mood').value,
+          water: $id('cf-water').value,
+          biomes: checkedValues($id('cf-biomes')),
+          spawnFilter: checkedValues($id('cf-spawnfilter')),
+          wants: collectStructRows($id('cf-wants'), 'want'),
+          shuns: collectStructRows($id('cf-shuns'), 'shun'),
+          hostileSpawning: $id('cf-hostile').checked,
+          frameBlock: $id('cf-frame').value,
+          igniterItem: $id('cf-igniter').value,
+          color: $id('cf-color').value,
+          particleType: $id('cf-particle').value,
+        }
+        var border = currentBorder()
+        if (border) config.borderRadius = border
+        if ($id('cf-scale').value) config.scale = parseFloat($id('cf-scale').value)
+        if ($id('cf-mobmult').value) config.mobMultiplier = parseFloat($id('cf-mobmult').value)
+        if ($id('cf-luck').value) config.playerLuck = parseFloat($id('cf-luck').value)
+        var btn = $id('cd-create')
         btn.disabled = true
-        btn.textContent = 'Creating…'
+        btn.textContent = 'Saving…'
         postJSON('/create-dimension', {
-          parent_dim: document.getElementById('cd-parent-dim').value,
-          seed: document.getElementById('cd-seed').value,
+          mode: $id('cd-mode').value,
+          parent_dim: $id('cd-parent-dim').value,
+          seed: $id('cd-seed').value,
           name: name,
-          description: descEl.value.trim(),
+          description: $id('cd-desc').value.trim(),
+          config: config,
         })
           .then(function (res) {
-            if (!res || !res.ok) return res && res.json ? res.json() : null
-            return res.json()
+            return res && res.json ? res.json() : null
           })
           .then(function (data) {
             if (data && data.ok) {
-              document.getElementById('create-dim-dialog').close()
-              location.reload()
+              if (data.job_id) {
+                btn.textContent = 'Rolling…'
+                pollJob(data.job_id, btn)
+              } else {
+                $id('create-dim-dialog').close()
+                location.reload()
+              }
             } else {
-              errEl.textContent = (data && data.error) || 'Could not create'
+              var errors = (data && data.errors) || {}
+              Object.keys(errors).forEach(function (field) {
+                var el = document.querySelector('#create-dim-dialog .cd-error[data-err="' + field + '"]')
+                if (el) el.textContent = errors[field]
+              })
+              errEl.textContent = Object.keys(errors).length
+                ? 'Fix the highlighted fields.'
+                : (data && data.error) || 'Could not save'
               btn.disabled = false
-              btn.textContent = 'Create'
+              btn.textContent = 'Save'
             }
           })
       })
