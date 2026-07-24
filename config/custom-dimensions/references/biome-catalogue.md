@@ -1,6 +1,6 @@
 # Biome Catalogue
 
-Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). Source: `scripts/seed/biome_params.json` (extracted from the running server) + `config/custom-dimensions/extractors/biomes.json` for Nature's Spirit biomes.
+Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). Source: `scripts/seed/biome_params.json` (extracted from the running server via `/customdim dump-biome-params` — hybrid dump that captures both static multinoise entries and TerraBlender-injected biomes via spatial grid sampling).
 
 **Only use ids listed here.** A biome id not in this file will be silently filtered out by the mod — no error, no warning, and if your entire biomes list gets filtered to empty, the dimension falls back to `minecraft:plains`.
 
@@ -11,11 +11,11 @@ Every biome id available on this server, grouped by **family** (which dimension 
 - `type: "paradise_lost:paradise_lost"` → use **paradise_lost** biomes
 - `type: "void"` → use biomes from **one** family (don't mix)
 
-**Nature's Spirit biomes** (47 biomes, `natures_spirit:` namespace) are installed on the server and used in shipped dimensions, but are NOT yet in `biome_params.json` — the roller's sampler doesn't have climate parameters for them. They are safe to use in `biomes` lists (the mod will generate them correctly), but **do not put Nature's Spirit biomes in `seedRoll.spawnFilter`** — the roller can't evaluate spawn candidates against them. Use a vanilla or Terralith biome in `spawnFilter` that appears near the same terrain, and list Nature's Spirit biomes only in the main `biomes` array.
+All biomes below — including Nature's Spirit — are fully supported in both `biomes` lists and `seedRoll.spawnFilter`. The dump captures TerraBlender-injected biomes alongside vanilla and Terralith. If `biome_params.json` is stale (pre-hybrid-dump), re-run warmup: delete `scripts/seed/biome_params.json` and run `./dev seed-roll-all` (or `./dev seed-roll-all --reset`).
 
 ---
 
-## Overworld family (148 biomes in roller + 47 Nature's Spirit)
+## Overworld family (195 biomes)
 
 Use with: `multi_biome`, `overworld`, `cave`, `amplified`, `large_biomes`, `sky_islands`, `checkerboard`, `single_biome`, `void` (if all biomes are overworld-family).
 
@@ -104,7 +104,7 @@ terralith:yellowstone                 terralith:yosemite_cliffs
 terralith:yosemite_lowlands
 ```
 
-### natures_spirit (47 biomes) — NOT in biome_params.json, see warning above
+### natures_spirit (47 biomes)
 
 ```
 natures_spirit:alpine_clearings       natures_spirit:alpine_highlands
@@ -158,16 +158,19 @@ minecraft:warped_forest
 
 ---
 
-## End family (6 biomes)
+## End family (8 biomes)
 
 Use with: `end`, `void` (if all biomes are end-family).
 
-### minecraft (3 biomes)
+### minecraft (5 biomes)
 
 ```
-minecraft:end_highlands               minecraft:small_end_islands
+minecraft:end_barrens                 minecraft:end_highlands
+minecraft:end_midlands                minecraft:small_end_islands
 minecraft:the_end
 ```
+
+`end_barrens` and `end_midlands` are vanilla transition biomes around the main end island. They exist in the biome registry and can be used in `biomes` lists. They don't appear in the multinoise parameter table (vanilla's `TheEndBiomeSource` places them via simplex noise, not multinoise) — if used in a `multi_biome` dim they'll be treated as "foreign" biomes and assigned climate cells from the pool, which works fine.
 
 ### nullscape (3 biomes)
 
@@ -191,6 +194,18 @@ paradise_lost:highlands_forest        paradise_lost:highlands_grand_glade
 paradise_lost:highlands_shield        paradise_lost:highlands_thicket
 paradise_lost:tradewinds              paradise_lost:wisteria_woods
 ```
+
+---
+
+## Special biomes (no family)
+
+### minecraft
+
+```
+minecraft:the_void
+```
+
+`the_void` is the superflat/void biome. No family tag, no multinoise placement. Can be used in `biomes` lists for void dimensions or biome patches where you want a truly empty biome (no mobs, no features, no surface).
 
 ---
 
