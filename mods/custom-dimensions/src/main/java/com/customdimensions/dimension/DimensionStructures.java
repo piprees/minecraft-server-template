@@ -86,6 +86,19 @@ public final class DimensionStructures {
                     // ships at frequency 0.001; x1000 -> min(1.0, ...) = full
                     StructurePlacement full = rescale(set.placement(), 1.0, 1000.0);
                     if (full != null) {
+                        // Explicit structures.spacing wins; otherwise the
+                        // spacing derives from the playable border — a
+                        // 256-radius pocket wants 1-2 shrines, not a grid.
+                        // MIRRORED in scripts/seed/fast_roller.py (tier 1);
+                        // change both together or shrine scoring lies.
+                        DimensionConfig.SpacingOverride ov = spacingOverrides.get(setId);
+                        if (ov == null) {
+                            ov = derivedShrineSpacing(def.getPlayerBorderRadius());
+                        }
+                        StructurePlacement spaced = withExplicitSpacing(def, setId, full, ov);
+                        if (spaced != null) {
+                            full = spaced;
+                        }
                         transformed.add(RegistryEntry.of(new StructureSet(set.structures(), full)));
                         rescaled++;
                         continue;
@@ -180,6 +193,18 @@ public final class DimensionStructures {
     }
 
     // Explicit spacing/separation for one set (structures.spacing override).
+    /**
+     * Automatic shrine spacing from the playable border: roughly
+     * radius-in-chunks / 2, clamped 12..48. Pure — unit-tested, and
+     * mirrored bit-for-bit in scripts/seed/fast_roller.py (roller parity).
+     */
+    static DimensionConfig.SpacingOverride derivedShrineSpacing(int playerBorderRadiusBlocks) {
+        DimensionConfig.SpacingOverride out = new DimensionConfig.SpacingOverride();
+        out.spacing = Math.max(12, Math.min(48, playerBorderRadiusBlocks / 32));
+        out.separation = out.spacing / 2;
+        return out;
+    }
+
     // Same random_spread-only constraint as rescale; invariants enforced
     // (spacing >= 2, 0 <= separation < spacing — vanilla's codec is strict
     // about separation < spacing, violating it crashes placement).

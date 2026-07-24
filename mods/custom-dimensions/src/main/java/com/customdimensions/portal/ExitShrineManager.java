@@ -91,6 +91,7 @@ public final class ExitShrineManager {
             if (!frameRingIntact(world, beacon, dir)) {
                 continue;
             }
+            substituteFrame(world, def, beacon, dir);
             Block frame = world.getBlockState(beacon.up()).getBlock();
             int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
             net.minecraft.block.BlockState portalState = Blocks.NETHER_PORTAL.getDefaultState()
@@ -116,6 +117,34 @@ public final class ExitShrineManager {
                 "Exit shrine beacon in {} at {} has no intact frame in any rotation — not registered "
                 + "(broken ruin, or a player-placed beacon; harmless)",
                 world.getRegistryKey().getValue(), beacon.toShortString());
+    }
+
+    // Per-dimension frame substitution: the shipped template hard-codes
+    // crying obsidian, but a shrine in an "any wood" dimension should be
+    // built from that dimension's own placement block. Rewriting the ring
+    // in-world at registration beats template variants: one template, any
+    // material, and detection was always material-agnostic (frameRingIntact
+    // reads whatever sits above the beacon). Idempotent — an already-
+    // substituted ring reads current == place and no-ops.
+    private static void substituteFrame(ServerWorld world, DimensionConfig def, BlockPos beacon, Direction dir) {
+        String placeId = def.hasPortal() ? def.getPortal().resolvePlacementBlockId() : null;
+        net.minecraft.util.Identifier id = placeId != null
+                ? net.minecraft.util.Identifier.tryParse(placeId) : null;
+        Block place = id != null ? net.minecraft.registry.Registries.BLOCK.get(id) : null;
+        if (place == null || place == Blocks.AIR
+                || world.getBlockState(beacon.up()).isOf(place)) {
+            return;
+        }
+        int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
+        for (int step = 0; step <= 1; step++) {
+            BlockPos col = beacon.offset(dir, step);
+            world.setBlockState(col.up(1), place.getDefaultState(), flags);
+            world.setBlockState(col.up(5), place.getDefaultState(), flags);
+        }
+        for (int dy = 2; dy <= 4; dy++) {
+            world.setBlockState(beacon.offset(dir, -1).up(dy), place.getDefaultState(), flags);
+            world.setBlockState(beacon.offset(dir, 2).up(dy), place.getDefaultState(), flags);
+        }
     }
 
     // Ring for the rotation where the second interior column is at beacon+dir:

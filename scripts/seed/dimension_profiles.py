@@ -740,8 +740,12 @@ def build_profile(dim, config, difficulty=None):
     if isinstance(border_player, (int, float)) and not isinstance(border_player, bool) \
             and border_player > 0:
         radius = float(border_player)
+        raw_player_border = int(border_player)
     else:
         radius = DEFAULT_BORDER_RADIUS / scale
+        # The mod's derived shrine spacing uses the RAW unscaled border
+        # (DimensionConfig.getPlayerBorderRadius defaults to 8192).
+        raw_player_border = DEFAULT_BORDER_RADIUS
     density = dim.get("structureDensity")
     dim_difficulty = dim.get("difficulty") or {}
     peaceful = dim_difficulty.get("hostileSpawning", dim.get("hostileSpawning")) is False
@@ -941,6 +945,9 @@ def build_profile(dim, config, difficulty=None):
         # 0.001 and DimensionStructures raises it to 1.0 for opted-in dims —
         # tier-1 structure maths mirrors the raise (fast_roller).
         "exit_shrines": bool((dim.get("exitShrines") or {}).get("enabled")),
+        # Raw unscaled borders.player (or the 8192 default) — feeds the
+        # derived shrine spacing mirror (DimensionStructures parity).
+        "player_border": raw_player_border,
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

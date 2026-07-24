@@ -263,6 +263,29 @@ class Tier3ProfileTests(unittest.TestCase):
         self.assertEqual(plain["spacing_overrides"], {})
         self.assertEqual(plain["biome_parameters"], {})
 
+    def test_player_border_carries_raw_unscaled_value(self):
+        """The derived shrine spacing (mod: DimensionStructures
+        .derivedShrineSpacing; roller: fast_roller tier1) uses the RAW
+        borders.player, never the scaled playable radius. The expected
+        spacing table is duplicated in DimensionStructuresTest.java —
+        change both together."""
+        explicit = self.profile_for({"name": "d", "type": "overworld",
+                                     "dimensionId": "adventure:d",
+                                     "borders": {"player": 512}})
+        self.assertEqual(explicit["player_border"], 512)
+        # no border + portal scale: radius is scaled but player_border is raw
+        scaled = self.profile_for({"name": "d", "type": "overworld",
+                                   "dimensionId": "adventure:d",
+                                   "portal": {"frameBlock": "b", "scale": 8.0}})
+        self.assertEqual(scaled["player_border"], 8192)
+        self.assertEqual(scaled["radius"], 1024.0)
+        # the derived formula both sides pin: clamp(border // 32, 12, 48)
+        for border, spacing in ((256, 12), (384, 12), (512, 16),
+                                (1024, 32), (1536, 48), (8192, 48)):
+            derived = max(12, min(48, border // 32))
+            self.assertEqual(derived, spacing)
+            self.assertEqual(derived // 2, spacing // 2)
+
     def test_exits_block_is_runtime_only(self):
         """The 'exits' block (exit conditions) must not affect scoring —
         profiles with and without it are identical (same principle as the

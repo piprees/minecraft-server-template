@@ -199,16 +199,25 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
             separation = set_cfg["separation"]
             frequency = set_cfg.get("frequency", 1.0)
             ov = spacing_overrides.get(set_cfg.get("id"))
+            explicit_spacing = False
             if isinstance(ov, dict):
                 new_spacing = ov.get("spacing", spacing)
                 new_sep = ov.get("separation", separation)
                 if isinstance(new_spacing, int) and isinstance(new_sep, int) \
                         and 2 <= new_spacing <= 4096 and 0 <= new_sep < new_spacing:
                     spacing, separation = new_spacing, new_sep
+                    explicit_spacing = True
             # exitShrines parity: DimensionStructures raises the shrine
-            # set's shipped 0.001 frequency to 1.0 for opted-in dims.
+            # set's shipped 0.001 frequency to 1.0 for opted-in dims, and
+            # (absent an explicit structures.spacing) derives the spacing
+            # from the raw playable border: clamp(radius/32, 12, 48),
+            # separation = spacing // 2. MIRRORS derivedShrineSpacing in
+            # DimensionStructures — change both together.
             if set_cfg.get("id") == "adventure:exit_shrines" and profile.get("exit_shrines"):
                 frequency = 1.0
+                if not explicit_spacing:
+                    spacing = max(12, min(48, int(profile.get("player_border", 8192)) // 32))
+                    separation = spacing // 2
             result = nearest_structure(
                 seed, spacing, separation,
                 set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
