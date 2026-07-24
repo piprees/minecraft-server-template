@@ -11,7 +11,7 @@ A datapack or mod-jar registry entry that references content from an absent mod 
 | Surface | On mod removal | Status |
 | --- | --- | --- |
 | `structures` override datapack (+ dense/sparse presets) | structure_set overrides reference the removed mod's structures → registry load failure → **boot break** | ✅ FIXED: packs carry `ownership.json` (file → modrinth slug, emitted by gen-structure-presets.py); `scripts/filter-datapacks.py` strips owned files at sync time in deploy.sh/dev-up.sh, after both platform and overlay syncs (overlay-swapped presets covered; packs without ownership.json untouched). Covers vanilla-set overrides owned by mods (D&T's woodland_mansions, Incendium's nether_complexes, Nullscape's end_cities). |
-| `adventure:wide`/`compressed` noise presets (custom-dimensions jar) | reference ~30 `tectonic:` noises, ~60 `terralith:` noises AND terralith-jar density functions (`terralith:overworld/extra_terrain_sum`, `spikes/tendrils`) → removing Tectonic or Terralith → **boot break** (mod data is always loaded) | ⚠️ OPEN — see "future round" below. Pre-v3, removing Tectonic/Terralith merely changed terrain; post-v3 it breaks boots. Documented as unsupported for now. |
+| `adventure:wide`/`compressed` noise presets (custom-dimensions jar) | reference ~30 `tectonic:` noises, ~60 `terralith:` noises AND terralith-jar density functions (`terralith:overworld/extra_terrain_sum`, `spikes/tendrils`) → removing Tectonic or Terralith → **boot break** (mod data is always loaded) | ✅ FIXED 2026-07-24: gen-terrain-presets.py walks the full reference closure — DFs cloned into the adventure ns (id-neutral), noises shipped as byte-identical SAME-ID copies per the amendment below, minecraft: refs audited against frozen vanilla id sets. Verified: minimal-stack boot + chunk gen with both mods absent; locate-oracle bit-identity on elfydd with mods present (26/26 probes). Regression net: smoke-test.yml removal-matrix variant. See mods/custom-dimensions/README.md § Noise presets and mods/AGENTS.md § Worldgen self-containment rules. |
 | structureDensity / peaceful runtime rescaling | removed mod's sets simply absent from the registry → no-op | ✅ inherently safe |
 | theme map (jar + `config/structure_themes.json` overlay) | unknown/absent ids never match → no-op; consumer extras themable via overlay | ✅ safe |
 | `config/tectonic.json` | Tectonic removed → config unread, inert | ✅ safe |
@@ -35,6 +35,17 @@ A datapack or mod-jar registry entry that references content from an absent mod 
 > duplicate identical content (harmless; assert pack-order semantics
 > anyway); mod removed → ours fills the gap; no id changes → no terrain
 > drift, no fingerprint drift, roller parity holds by construction.
+
+> **Status 2026-07-24: rounds 1–3 below SHIPPED** (same session as the
+> amendment). 1 = generator closure per the amendment (plus a wrinkle the
+> spec missed: both jars invent `minecraft:`-namespace ids — noise_router
+> DFs and Terralith noises like `noodle_ridge_c` — which need cloning/
+> copying too, while vanilla-shipped `minecraft:` ids must NEVER be
+> copied or they'd repaint the real overworld when the mod is removed).
+> 2 = smoke-test.yml `removal` matrix variant (also exercises
+> filter-datapacks.py, which CI never ran before). 3 = ownership lint in
+> test-scripts.sh Phase 1 (tag files exempt — lazy, never boot-break).
+> 4 (client pack parity) remains open and unscheduled.
 
 1. **Make the noise presets self-contained.** Extend `scripts/gen-terrain-presets.py` to resolve the pinned Tectonic + Terralith jars (Modrinth pins in `config/modrinth-mods.txt`) and walk the reference closure from the `adventure:wide`/`compressed` settings: all `tectonic:`/`terralith:` NOISE definitions (static JSONs) referenced by `"noise"` fields and `shift/shift_a/shift_b` arguments, plus the terralith-jar density functions the Terratonic settings reference — emitted same-id per the amendment above. Success criteria: with Tectonic and Terralith removed, the server boots and `adventure:wide`/`compressed` dims generate; with them present, generation is bit-identical to today (locate/biome oracle on a fixture dim, same seed, before/after — c2me DFC re-patch on every restart). Watch: noise Holder dedup is per-id, so duplicate provision costs nothing extra when the mod is present.
 2. **Removal-matrix smoke coverage.** A smoke-test variant (matrix or a second boot) with a representative `overlay/mods-remove.txt` (when-dungeons-arise + dungeons-and-taverns + one YUNG mod) asserting the server boots and `/locate` for a removed set's structure fails cleanly. This is the regression net for the whole promise.

@@ -26,7 +26,6 @@
   "fluid_level_floodedness": "adventure:compressed/minecraft/overworld/noise_router/fluid_level_floodedness",
   "fluid_level_spread": "adventure:compressed/minecraft/overworld/noise_router/fluid_level_spread",
   "initial_density_without_jaggedness": "adventure:compressed/minecraft/overworld/noise_router/initial_density_without_jaggedness",
-  "preliminary_surface_level": "minecraft:overworld/noise_router/preliminary_surface_level",
   "lava": "adventure:compressed/minecraft/overworld/noise_router/lava",
   "ridges": "adventure:compressed/minecraft/overworld/noise_router/ridges",
   "temperature": "adventure:compressed/minecraft/overworld/noise_router/temperature",

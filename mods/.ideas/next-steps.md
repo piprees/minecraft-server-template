@@ -1,69 +1,49 @@
 # Next steps — the working queue
 
-Reset 2026-07-24 after the portals/auras/GUI session (items 1–6 of the
-previous queue all shipped; their history lives in git — the last full
-status snapshot is commit `8cdeb64`'s version of this file). Work top to
-bottom; one piece to completion (implemented AND verified AND documented)
-before the next. Delete an idea doc only after verifying its content is
-captured (`git show 086bfed` is the worked example).
+Queue cleared 2026-07-24 (second session of the day): optional-mods
+hardening (item 1 of the post-portals queue) shipped in full — all three
+rounds implemented, verified, and documented. History lives in git; the
+resolution summary is the status block in `optional-mods-hardening.md`.
+Work top to bottom; one piece to completion (implemented AND verified AND
+documented) before the next. Delete an idea doc only after verifying its
+content is captured (`git show 086bfed` is the worked example).
 
-## 1. Optional-mods hardening
+## Queue
 
-Spec: `optional-mods-hardening.md` (read in full — it carries a CRITICAL
-2026-07-24 amendment: the noise-preset closure must ship under the
-ORIGINAL `tectonic:`/`terralith:` ids, never renamed into the adventure
-namespace, because vanilla seeds noises by hashing the id string and a
-rename shifts terrain on every existing world).
-
-> **Session prompt:** You're working in
-> `/Users/pip/Projects/minecraft-server-template`; the local consumer for
-> verification is `~/Projects/elfydd` (its `.stack/current` symlinks
-> `v3-dev` → this repo, so seed-script edits are live; its
-> `data/mods/customdimensions.jar` runs an unreleased build). Read
-> AGENTS.md and mods/AGENTS.md in full, then
-> `mods/.ideas/optional-mods-hardening.md` including the amendment.
-> Round 1: extend `scripts/gen-terrain-presets.py` to resolve the pinned
-> Tectonic + Terralith jars (pins in `config/modrinth-mods.txt`), walk
-> the reference closure from the `adventure:wide`/`compressed` settings
-> (every `"noise"` field, `shift/shift_a/shift_b` argument, and
-> density-function reference), and emit byte-identical same-id copies
-> into the custom-dimensions jar datapack. Success: with Tectonic and
-> Terralith REMOVED the server boots and `adventure:wide`/`compressed`
-> dims generate; with them PRESENT generation is bit-identical to today
-> (locate/biome oracle on a fixture dim, same seed, before/after — re-run
-> the c2me DFC re-patch before every restart, snippet in dev-up.sh).
-> Full verification loop for the mod rebuild (artefact checks → install
-> on elfydd → boot). Round 2: a removal-matrix smoke variant in CI
-> (representative `overlay/mods-remove.txt`: when-dungeons-arise +
-> dungeons-and-taverns + one YUNG mod + Tectonic + Terralith) asserting a
-> clean boot and a clean `/locate` failure for a removed set. Round 3
-> (cheap): the ownership.json lint from the spec. One round to completion
-> before the next; fold lessons into mods/AGENTS.md and update this
-> file. Do not cut a release — that's Pip's call.
+(empty — pull from the backlog below or wait for Pip)
 
 ## Idea backlog (unscheduled)
 
 - `fixed-structure-placements.md` — the last precision-placement piece
   (exact structure at an exact spot; two routes sketched with
   implementation notes). Fingerprint corollary applies.
+- Client pack parity (`optional-mods-hardening.md` item 4) — client packs
+  are consumer-forked, a separate system from overlay removals; never
+  audited for mod-removal safety.
 
 ## Decisions waiting on Pip
 
-- ~~Release~~ / ~~netherportalspread retirement~~ — RESOLVED 2026-07-24:
-  Pip approved both. netherportalspread removed from the default mod
-  list (opt-in aura preset documented in the mod README) and v3.7.0
-  dispatched covering the whole portal/aura/GUI arc. Next agent: verify
-  the release published cleanly (`gh release list`) and that the major
-  tag was refreshed (`git fetch origin '+refs/tags/v3:refs/tags/v3'`).
+- **Next release**: v3.7.0 shipped 2026-07-24 (portal/aura/GUI arc +
+  netherportalspread retirement). The optional-mods hardening work is now
+  pending on main for the NEXT release: self-contained noise presets in
+  the customdimensions jar, the smoke removal matrix, the ownership lint.
+  When asked: `gh workflow run release.yml -f version=vX.Y.Z`, never
+  `gh release create`; refresh the major tag after
+  (`git fetch origin '+refs/tags/v3:refs/tags/v3'`).
 
-## Standing state (2026-07-24)
+## Standing state (2026-07-24, post-hardening session)
 
-- **elfydd**: healthy, fixture-free (level.dat scrubbed — procedure now
-  in AGENTS.md Dimension lifecycle traps), `.stack/current` → `v3-dev`
-  (live repo), unreleased customdimensions.jar installed. Cosmetic
-  residue: test platforms/frames in the overworld at x≈2998–3186,
-  z≈2995–3205, y149–154, plus a registered source gateway at
-  (3160,150,3000) — functional, harmless, clean up only if in the way.
+- **elfydd**: healthy (Restarts=0), running the unreleased HARDENED
+  customdimensions.jar — locate-oracle verified bit-identical against the
+  previous build (26/26 probes across both preset dims). `.stack/current`
+  → `v3-dev` (live repo). Cosmetic residue unchanged: test
+  platforms/frames in the overworld at x≈2998–3186, z≈2995–3205,
+  y149–154, plus a registered source gateway at (3160,150,3000) —
+  functional, harmless, clean up only if in the way.
+- **CI**: smoke-test.yml is now a 2-leg matrix (default/removal);
+  release.yml gates on both. The removal leg is the regression net for
+  the "every default mod is removable" promise — it also exercises
+  filter-datapacks.py, which CI never ran before.
 - **Awaiting a real player on production**: the `respawnAt` death
   redirect and the first organic exit-shrine encounter (carpet bots
   can't respawn).

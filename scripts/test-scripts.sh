@@ -95,6 +95,61 @@ if [[ $BUNDLE_ERRORS -eq 0 ]]; then
   echo "  ✓ All seed-roll dependencies are bundled"
 fi
 
+echo "  Checking datapack ownership manifests..."
+# A datapack file referencing a removable mod's content fails dynamic-registry
+# load when that mod is removed (boot break). filter-datapacks.py strips owned
+# files at sync time, but only for packs carrying an ownership.json — so any
+# platform pack touching mod namespaces without one is an unguarded boot risk.
+# Namespaces exempt: minecraft (vanilla always present) and adventure (ours).
+OWNERSHIP_ERRORS=0
+OWNERSHIP_OUT=$(python3 - << 'PYEOF'
+import json, re, sys
+from pathlib import Path
+
+EXEMPT = {"minecraft", "adventure"}
+ID_NS = re.compile(r'"#?([a-z_0-9.-]+):[a-z_0-9/.-]+"')
+problems = 0
+packs = set()
+for root in (Path("config/datapacks"), Path("config/datapack-presets")):
+    if root.is_dir():
+        packs |= {m.parent for m in root.rglob("pack.mcmeta")}
+for pack in sorted(packs):
+    ownership_file = pack / "ownership.json"
+    owned = set(json.loads(ownership_file.read_text())) if ownership_file.is_file() else None
+    for f in sorted(pack.rglob("*.json")):
+        rel = str(f.relative_to(pack))
+        if rel in ("pack.mcmeta", "ownership.json"):
+            continue
+        # Tag files never boot-break: missing entries fail at tag-load
+        # (logged, tag degraded), not at dynamic-registry load.
+        if "/tags/" in f.as_posix():
+            continue
+        parts = f.relative_to(pack).parts
+        namespaces = set()
+        if parts and parts[0] == "data" and len(parts) > 1:
+            namespaces.add(parts[1])
+        namespaces |= set(ID_NS.findall(f.read_text()))
+        mod_ns = namespaces - EXEMPT
+        if not mod_ns:
+            continue
+        if owned is None:
+            print(f"  {pack}: {rel} references mod namespace(s) "
+                  f"{sorted(mod_ns)} but the pack has no ownership.json")
+            problems += 1
+        elif rel not in owned:
+            print(f"  {pack}: {rel} references mod namespace(s) "
+                  f"{sorted(mod_ns)} but is missing from ownership.json")
+            problems += 1
+sys.exit(1 if problems else 0)
+PYEOF
+) || OWNERSHIP_ERRORS=1
+if [[ $OWNERSHIP_ERRORS -eq 0 ]]; then
+  echo "  ✓ Datapack ownership manifests cover all mod-namespace references"
+else
+  echo "$OWNERSHIP_OUT"
+  warn "Datapack ownership lint failed (unguarded mod references — boot risk on mod removal)"
+fi
+
 echo "  Validating docker-compose.yml..."
 COMPOSE_ERRORS=0
 if docker compose --profile cloud config --quiet; then
@@ -124,7 +179,7 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + BUNDLE_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + BUNDLE_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

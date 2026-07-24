@@ -21,32 +21,64 @@ Context:  mods/.ideas/customising-terrain.md — "fully independent
             - config_clamp     -> vanilla clamp with min/max folded to numbers
             - tectonic:invert  -> 1 / <constant-folded argument>
 
-Usage:    scripts/gen-terrain-presets.py [--jar path/to/tectonic.jar]
-          Without --jar the pinned version from config/modrinth-mods.txt is
-          downloaded from the Modrinth CDN into a temp dir.
+Self-containment (optional-mods hardening, 2026-07-24): the presets must
+survive Tectonic AND Terralith being removed via overlay/mods-remove.txt.
+Registry entries baked into a mod jar are always loaded, so a dangling
+reference is a boot break, not a cosmetic gap. Three mechanisms:
+  1. DENSITY FUNCTIONS are cloned into the adventure namespace (the
+     original mechanism, now extended to the terralith-jar closure —
+     DF ids carry no seed, so renaming is generation-neutral).
+  2. NOISES keep their ORIGINAL ids — vanilla seeds each noise by
+     MD5-hashing the id string, so a rename shifts terrain on every
+     existing world. Byte-identical same-id copies are emitted into
+     data/tectonic/ and data/terralith/ instead; when the real mod is
+     present its pack outranks ours (mods each get their own datapack,
+     tectonic's built-in pack sits above all of them) and the duplicate
+     is harmless either way because the bytes match.
+  3. minecraft:-namespace refs are audited against the frozen vanilla
+     1.21.1 id sets below: vanilla ids stay runtime-resolved (vanilla
+     always provides them), mod-INVENTED minecraft: DFs are cloned like
+     any other, and mod-invented minecraft: noises are same-id-copied
+     (safe: no vanilla surface references them). Vanilla ids are NEVER
+     shipped as copies — our copy would leak into the real overworld
+     whenever the owning mod is removed.
 
-Gotchas:  - Re-run this whenever the Tectonic pin bumps (weekly mod-updates PR
-            is the checkpoint) and commit the regenerated files.
+Usage:    scripts/gen-terrain-presets.py [--tectonic-jar X] [--terralith-jar Y]
+          (--jar is a legacy alias for --tectonic-jar.) Without the args the
+          pinned versions from config/modrinth-mods.txt are downloaded from
+          the Modrinth CDN.
+
+Gotchas:  - Re-run this whenever the Tectonic OR Terralith pin bumps (weekly
+            mod-updates PR is the checkpoint) and commit the regenerated
+            files. Regenerate VANILLA_DFS/VANILLA_NOISES on MC version bumps
+            (extract data/minecraft/worldgen/{density_function,noise} ids
+            from the vanilla server jar).
           - Template-only tooling: not shipped in the stack bundle.
           - The wide preset applies the ultrasmooth overlay; compressed does
             not. Changing that means regenerating.
-          - Output must contain zero `tectonic:` density-function references;
-            the script hard-fails otherwise. `tectonic:` NOISE references
-            (worldgen/noise/, static definitions with no config wiring) are
-            deliberately kept global.
+          - Output must contain zero `tectonic:`/`terralith:`
+            density-function references; every retained external reference
+            must be a NOISE reference with an emitted same-id copy. The
+            final audit hard-fails otherwise.
+          - Generator-owned output dirs are wiped before emission:
+            data/adventure/worldgen/density_function/{wide,compressed},
+            data/adventure/worldgen/noise_settings, data/tectonic,
+            data/terralith, data/minecraft/worldgen/noise. Everything else
+            under data/ is hand-authored — never clean it here.
 """
 
 import argparse
 import io
 import json
 import re
-import sys
+import shutil
 import urllib.request
 import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-OUT_ROOT = REPO / "mods/custom-dimensions/src/main/resources/data/adventure/worldgen"
+RES_DATA = REPO / "mods/custom-dimensions/src/main/resources/data"
+OUT_ROOT = RES_DATA / "adventure/worldgen"
 MODS_TXT = REPO / "config/modrinth-mods.txt"
 
 # --- Preset definitions -------------------------------------------------------
@@ -101,11 +133,92 @@ PRESETS = {
 
 DF_RE = re.compile(r"^data/([a-z_0-9.]+)/worldgen/density_function/(.+)\.json$")
 
+# Vanilla 1.21.1 worldgen ids, extracted from server-1.21.1.jar
+# (data/minecraft/worldgen/{density_function,noise}). Regenerate on MC bumps.
+VANILLA_DFS = frozenset({
+    "end/base_3d_noise", "end/sloped_cheese", "nether/base_3d_noise",
+    "overworld/base_3d_noise", "overworld/caves/entrances",
+    "overworld/caves/noodle", "overworld/caves/pillars",
+    "overworld/caves/spaghetti_2d",
+    "overworld/caves/spaghetti_2d_thickness_modulator",
+    "overworld/caves/spaghetti_roughness_function", "overworld/continents",
+    "overworld/depth", "overworld/erosion", "overworld/factor",
+    "overworld/jaggedness", "overworld/offset", "overworld/ridges",
+    "overworld/ridges_folded", "overworld/sloped_cheese",
+    "overworld_amplified/depth", "overworld_amplified/factor",
+    "overworld_amplified/jaggedness", "overworld_amplified/offset",
+    "overworld_amplified/sloped_cheese", "overworld_large_biomes/continents",
+    "overworld_large_biomes/depth", "overworld_large_biomes/erosion",
+    "overworld_large_biomes/factor", "overworld_large_biomes/jaggedness",
+    "overworld_large_biomes/offset", "overworld_large_biomes/sloped_cheese",
+    "shift_x", "shift_z", "y", "zero",
+})
+VANILLA_NOISES = frozenset({
+    "aquifer_barrier", "aquifer_fluid_level_floodedness",
+    "aquifer_fluid_level_spread", "aquifer_lava", "badlands_pillar",
+    "badlands_pillar_roof", "badlands_surface", "calcite", "cave_cheese",
+    "cave_entrance", "cave_layer", "clay_bands_offset", "continentalness",
+    "continentalness_large", "erosion", "erosion_large", "gravel",
+    "gravel_layer", "ice", "iceberg_pillar", "iceberg_pillar_roof",
+    "iceberg_surface", "jagged", "nether_state_selector", "nether_wart",
+    "netherrack", "noodle", "noodle_ridge_a", "noodle_ridge_b",
+    "noodle_thickness", "offset", "ore_gap", "ore_vein_a", "ore_vein_b",
+    "ore_veininess", "packed_ice", "patch", "pillar", "pillar_rareness",
+    "pillar_thickness", "powder_snow", "ridge", "soul_sand_layer",
+    "spaghetti_2d", "spaghetti_2d_elevation", "spaghetti_2d_modulator",
+    "spaghetti_2d_thickness", "spaghetti_3d_1", "spaghetti_3d_2",
+    "spaghetti_3d_rarity", "spaghetti_3d_thickness", "spaghetti_roughness",
+    "spaghetti_roughness_modulator", "surface", "surface_secondary",
+    "surface_swamp", "temperature", "temperature_large", "vegetation",
+    "vegetation_large",
+})
 
-def pinned_jar_url():
+# JSON keys whose string values are never worldgen references.
+INERT_KEYS = ("type", "biome_is", "random_name", "Name")
+SHIFT_TYPES = ("minecraft:shift", "minecraft:shift_a", "minecraft:shift_b")
+
+ID_RE = re.compile(r"^[a-z_0-9.]+:[a-z_0-9/.]+$|^[a-z_0-9/.]+$")
+
+
+def qualify(ref):
+    """Bare ids (terralith writes e.g. "overworld/temperature") mean minecraft:."""
+    return ref if ":" in ref else f"minecraft:{ref}"
+
+
+def scan_refs(node, noise_refs, df_refs, key=None, node_type=None):
+    """Positionally classify external references in a worldgen JSON tree.
+
+    "noise" values and shift-node "argument" values are NOISE ids; every
+    other id-shaped string outside INERT_KEYS is a density-function ref.
+    Ids can collide across the two registries (tectonic:blend_alpha is
+    both) — position is the only correct disambiguator.
+    """
+    if isinstance(node, dict):
+        t = node.get("type", "")
+        for k, v in node.items():
+            scan_refs(v, noise_refs, df_refs, k, t)
+    elif isinstance(node, list):
+        for v in node:
+            scan_refs(v, noise_refs, df_refs, key, node_type)
+    elif isinstance(node, str):
+        if key in INERT_KEYS or not ID_RE.match(node):
+            return
+        ref = qualify(node)
+        ns, path = ref.split(":", 1)
+        if key == "noise" or (key == "argument" and node_type in SHIFT_TYPES):
+            noise_refs.add(ref)
+        elif ns in ("tectonic", "terralith"):
+            df_refs.add(ref)
+        elif ns == "minecraft" and ("/" in path or path in VANILLA_DFS):
+            # slash-less minecraft: strings that aren't vanilla DFs are
+            # block/etc ids that slipped past INERT_KEYS — not references
+            df_refs.add(ref)
+
+
+def pinned_jar_url(slug):
     for line in MODS_TXT.read_text().splitlines():
         line = line.strip()
-        if line.startswith("tectonic:"):
+        if line.startswith(f"{slug}:"):
             version_id = line.split(":", 1)[1].split()[0]
             api = f"https://api.modrinth.com/v2/version/{version_id}"
             with urllib.request.urlopen(api) as r:
@@ -113,12 +226,22 @@ def pinned_jar_url():
             for f in data["files"]:
                 if f.get("primary"):
                     return f["url"], data["version_number"]
-    raise SystemExit("tectonic pin not found in config/modrinth-mods.txt")
+    raise SystemExit(f"{slug} pin not found in config/modrinth-mods.txt")
+
+
+def fetch_jar(arg_path, slug):
+    if arg_path:
+        return zipfile.ZipFile(io.BytesIO(Path(arg_path).read_bytes())), Path(arg_path).name
+    url, version = pinned_jar_url(slug)
+    print(f"downloading {slug} {version} ...")
+    with urllib.request.urlopen(url) as r:
+        return zipfile.ZipFile(io.BytesIO(r.read())), f"{slug} {version}"
 
 
 def load_layers(zf, preset):
-    """Return {id: json} for density functions, plus the noise settings json,
-    honouring overlay order for this preset (base < mod < ultrasmooth < terratonic)."""
+    """Return ({id: json} density functions, noise settings json, {rel: bytes}
+    raw file map), honouring overlay order for this preset
+    (base < mod < ultrasmooth < terratonic — later layers win)."""
     layers = ["resourcepacks/tectonic/data/",
               "resourcepacks/tectonic/overlay.mod/data/"]
     if preset["ultrasmooth"]:
@@ -126,12 +249,14 @@ def load_layers(zf, preset):
     layers.append("resourcepacks/tectonic/overlay.terratonic/data/")
 
     dfs = {}
+    files = {}
     noise_settings = None
     for layer in layers:
         for name in zf.namelist():
             if not name.startswith(layer) or not name.endswith(".json"):
                 continue
             rel = "data/" + name[len(layer):]
+            files[rel] = zf.read(name)
             m = DF_RE.match(rel)
             if m:
                 dfs[f"{m.group(1)}:{m.group(2)}"] = json.loads(zf.read(name))
@@ -139,7 +264,55 @@ def load_layers(zf, preset):
                 noise_settings = json.loads(zf.read(name))
     if noise_settings is None:
         raise SystemExit("terratonic overworld noise settings not found in jar")
-    return dfs, noise_settings
+    # Dead data in the terratonic settings: preliminary_surface_level is not
+    # a 1.21.1 noise_router field (codecs ignore it) and the DF it references
+    # does not exist in ANY jar — tectonic ships the dangling ref and boots,
+    # which is the proof it's ignored. Strip it so the closure stays honest.
+    noise_settings.get("noise_router", {}).pop("preliminary_surface_level", None)
+    return dfs, noise_settings, files
+
+
+def expand_closure(dfs, noise_settings, lz):
+    """Pull referenced-but-missing density functions into `dfs` so the clone
+    pass makes the presets self-contained.
+
+    Resolution mirrors runtime pack priority: a terralith: id already in
+    `dfs` came from tectonic's terratonic overlay (its built-in pack
+    outranks every mod pack, so that copy is what generation uses today);
+    otherwise the terralith jar provides it. minecraft: ids that vanilla
+    ships stay runtime-resolved — vanilla always provides them, and
+    cloning them would freeze mod overrides into the presets. Mod-INVENTED
+    minecraft: ids must be cloned or they dangle when the mod is removed.
+    """
+    def df_body_from_terralith(ref):
+        ns, path = ref.split(":", 1)
+        rel = f"data/{ns}/worldgen/density_function/{path}.json"
+        try:
+            return json.loads(lz.read(rel))
+        except KeyError:
+            return None
+
+    added = 0
+    while True:
+        noise_refs, df_refs = set(), set()
+        scan_refs(noise_settings, noise_refs, df_refs)
+        for body in dfs.values():
+            scan_refs(body, noise_refs, df_refs)
+        missing = []
+        for ref in sorted(df_refs):
+            if ref in dfs:
+                continue
+            ns, path = ref.split(":", 1)
+            if ns == "minecraft" and path in VANILLA_DFS:
+                continue  # vanilla provides it in every configuration
+            body = df_body_from_terralith(ref)
+            if body is None:
+                raise SystemExit(f"density function {ref} not found in any jar")
+            dfs[ref] = body
+            missing.append(ref)
+        if not missing:
+            return added
+        added += len(missing)
 
 
 def fold(node, constants, dfs=None, _depth=0):
@@ -182,9 +355,12 @@ def transform(node, preset, df_ids, prefix, dfs=None, parent_key=None):
     """Rewrite refs into the preset namespace and inline config-driven nodes."""
     if isinstance(node, str):
         # Rewrite references to cloned density functions. "type" and "noise"
-        # values are never DF references.
-        if parent_key not in ("type", "noise") and node in df_ids:
-            return f"adventure:{prefix}/{node.replace(':', '/')}"
+        # values are never DF references. Terralith writes some minecraft:
+        # refs BARE ("overworld/temperature") — qualify before lookup.
+        if parent_key not in ("type", "noise") and ID_RE.match(node):
+            ref = qualify(node)
+            if ref in df_ids:
+                return f"adventure:{prefix}/{ref.replace(':', '/')}"
         return node
     if isinstance(node, list):
         return [transform(x, preset, df_ids, prefix, dfs, parent_key) for x in node]
@@ -248,33 +424,127 @@ def transform(node, preset, df_ids, prefix, dfs=None, parent_key=None):
 
 
 def check_output(obj, path):
-    s = json.dumps(obj)
-    for m in re.finditer(r'"(tectonic:[^"]+)"', s):
-        ref = m.group(1)
-        # tectonic noise definitions are static (no config wiring) and stay global
-        if re.search(r'"noise":\s*"%s"' % re.escape(ref), s):
+    """Per-file guard: every surviving external ref must be a noise reference
+    (same-id copies are emitted for those); a tectonic:/terralith: DF ref or
+    a non-vanilla minecraft: DF ref means the clone pass missed something."""
+    noise_refs, df_refs = set(), set()
+    scan_refs(obj, noise_refs, df_refs)
+    bad = sorted(
+        r for r in df_refs
+        if r.split(":", 1)[0] in ("tectonic", "terralith")
+        or (r.startswith("minecraft:") and r.split(":", 1)[1] not in VANILLA_DFS)
+    )
+    if bad:
+        raise SystemExit(f"{path}: unresolved density-function refs {bad}")
+
+
+def source_noise_bytes(ref, tect_files, lz):
+    """Raw bytes of a noise definition from its owning jar, or None."""
+    ns, path = ref.split(":", 1)
+    rel = f"data/{ns}/worldgen/noise/{path}.json"
+    if ns == "tectonic":
+        return tect_files.get(rel)
+    try:
+        return lz.read(rel)  # terralith: and terralith-invented minecraft: ids
+    except KeyError:
+        return None
+
+
+def emit_noise_copies(noise_refs, tect_files, lz):
+    """Same-id, byte-identical noise copies for every external reference.
+
+    Ids are NEVER renamed: vanilla seeds a noise by MD5-hashing its id
+    string, so a renamed copy generates different terrain. Byte-identical
+    same-id duplicates are order-safe — whichever pack wins provides the
+    same content. Vanilla-shipped minecraft: ids are skipped entirely: our
+    copy would override VANILLA (not just the mod) whenever the owning mod
+    is absent, silently changing the real overworld.
+    """
+    copied, skipped = [], []
+    for ref in sorted(noise_refs):
+        ns, path = ref.split(":", 1)
+        if ns == "adventure":
             continue
-        raise SystemExit(f"{path}: unresolved tectonic reference {ref}")
+        if ns == "minecraft" and path in VANILLA_NOISES:
+            skipped.append(ref)
+            continue
+        raw = source_noise_bytes(ref, tect_files, lz)
+        if raw is None:
+            raise SystemExit(f"noise {ref} not found in any jar")
+        dest = RES_DATA / ns / "worldgen/noise" / (path + ".json")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(raw)
+        copied.append(ref)
+    print(f"noise copies: {len(copied)} emitted "
+          f"({sum(1 for r in copied if r.startswith('tectonic:'))} tectonic, "
+          f"{sum(1 for r in copied if r.startswith('terralith:'))} terralith, "
+          f"{sum(1 for r in copied if r.startswith('minecraft:'))} mod-invented minecraft), "
+          f"{len(skipped)} vanilla ids left runtime-resolved")
+    return copied
+
+
+def final_audit(tect_files, lz):
+    """Re-scan everything actually on disk and hard-fail on any gap."""
+    noise_refs, df_refs = set(), set()
+    emitted_dfs = set()
+    for base, ns_prefix in ((OUT_ROOT / "density_function", "adventure:"),
+                            (OUT_ROOT / "noise_settings", None)):
+        for p in base.rglob("*.json"):
+            scan_refs(json.loads(p.read_text()), noise_refs, df_refs)
+            if ns_prefix:
+                emitted_dfs.add(ns_prefix + str(p.relative_to(base))[:-len(".json")])
+    problems = []
+    for r in sorted(df_refs):
+        ns, path = r.split(":", 1)
+        if ns == "adventure":
+            if r not in emitted_dfs:
+                problems.append(f"dangling adventure DF ref {r}")
+        elif ns == "minecraft":
+            if path not in VANILLA_DFS:
+                problems.append(f"non-vanilla minecraft DF ref {r}")
+        else:
+            problems.append(f"external DF ref {r}")
+    for r in sorted(noise_refs):
+        ns, path = r.split(":", 1)
+        if ns == "minecraft" and path in VANILLA_NOISES:
+            continue
+        dest = RES_DATA / ns / "worldgen/noise" / (path + ".json")
+        if not dest.is_file():
+            problems.append(f"noise ref {r} has no emitted copy")
+        elif dest.read_bytes() != source_noise_bytes(r, tect_files, lz):
+            problems.append(f"noise copy {r} is not byte-identical to its source")
+    if problems:
+        raise SystemExit("final audit FAILED:\n  " + "\n  ".join(problems))
+    print(f"final audit OK: {len(df_refs)} DF refs, {len(noise_refs)} noise refs, "
+          f"all closed or vanilla-resolved")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--jar", help="path to tectonic jar (skips download)")
+    ap.add_argument("--tectonic-jar", "--jar", dest="tectonic_jar",
+                    help="path to tectonic jar (skips download)")
+    ap.add_argument("--terralith-jar", help="path to terralith jar (skips download)")
     args = ap.parse_args()
 
-    if args.jar:
-        jar_bytes = Path(args.jar).read_bytes()
-        version = Path(args.jar).name
-    else:
-        url, version = pinned_jar_url()
-        print(f"downloading tectonic {version} ...")
-        with urllib.request.urlopen(url) as r:
-            jar_bytes = r.read()
+    zf, t_version = fetch_jar(args.tectonic_jar, "tectonic")
+    lz, l_version = fetch_jar(args.terralith_jar, "terralith")
 
-    zf = zipfile.ZipFile(io.BytesIO(jar_bytes))
+    # Generator-owned output only — everything else under data/ is
+    # hand-authored (tags, structures, template pools, and the hand-written
+    # noise_settings/void.json). See docstring.
+    for owned in (OUT_ROOT / "density_function",
+                  RES_DATA / "tectonic", RES_DATA / "terralith",
+                  RES_DATA / "minecraft/worldgen/noise"):
+        shutil.rmtree(owned, ignore_errors=True)
+    for name in PRESETS:
+        (OUT_ROOT / "noise_settings" / f"{name}.json").unlink(missing_ok=True)
+
     total_files = 0
+    all_noise_refs = set()
+    tect_files = {}
     for name, preset in PRESETS.items():
-        dfs, noise_settings = load_layers(zf, preset)
+        dfs, noise_settings, tect_files = load_layers(zf, preset)
+        pulled = expand_closure(dfs, noise_settings, lz)
         df_ids = set(dfs)
 
         # Ids can collide across the noise and density-function registries;
@@ -294,6 +564,7 @@ def main():
             dest.parent.mkdir(parents=True, exist_ok=True)
             converted = transform(body, preset, df_ids, name, dfs)
             check_output(converted, dest)
+            scan_refs(converted, all_noise_refs, set())
             dest.write_text(json.dumps(converted, indent=1) + "\n")
             total_files += 1
 
@@ -301,13 +572,18 @@ def main():
         ns["noise"] = preset["noise_block"]
         ns = transform(ns, preset, df_ids, name, dfs)
         check_output(ns, f"noise_settings/{name}.json")
+        scan_refs(ns, all_noise_refs, set())
         dest = OUT_ROOT / "noise_settings" / f"{name}.json"
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(json.dumps(ns, indent=1) + "\n")
         total_files += 1
-        print(f"preset {name}: {len(dfs)} density functions + noise settings")
+        print(f"preset {name}: {len(dfs)} density functions "
+              f"({pulled} pulled via closure) + noise settings")
 
-    print(f"generated {total_files} files from {version} into {OUT_ROOT}")
+    copied = emit_noise_copies(all_noise_refs, tect_files, lz)
+    final_audit(tect_files, lz)
+    print(f"generated {total_files} preset files + {len(copied)} noise copies "
+          f"from {t_version} / {l_version}")
 
 
 if __name__ == "__main__":

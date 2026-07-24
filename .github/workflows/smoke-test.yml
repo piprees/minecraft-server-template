@@ -29,9 +29,20 @@ concurrency:
 
 jobs:
   boot-test:
-    name: Boot server and verify
+    name: Boot server and verify (${{ matrix.variant }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # default: full stack. removal: a representative consumer
+        # overlay/mods-remove.txt (structure mods + BOTH worldgen mods the
+        # noise presets used to depend on) — the regression net for the
+        # optional-mods promise: every default mod must be removable
+        # without breaking the boot.
+        variant: [default, removal]
+    env:
+      VARIANT: ${{ matrix.variant }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -62,8 +73,28 @@ jobs:
         uses: actions/cache@v6
         with:
           path: data/mods
-          key: mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}
-          restore-keys: mc-mods-
+          # Variant-suffixed: the removal variant prunes jars from data/mods,
+          # and a shared key would let it poison the default variant's cache.
+          key: mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-${{ matrix.variant }}
+          restore-keys: |
+            mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-
+            mc-mods-
+
+      - name: Write consumer mods-remove overlay (removal variant)
+        if: matrix.variant == 'removal'
+        # Representative consumer removal set: three structure mods plus BOTH
+        # worldgen mods the adventure:wide/compressed noise presets reference.
+        # fabric-seasons-terralith-compat hard-depends on terralith, so a real
+        # consumer removing terralith must remove it too — same here.
+        run: |
+          cat > overlay/mods-remove.txt <<'EOF'
+          when-dungeons-arise
+          dungeons-and-taverns
+          yungs-better-dungeons
+          tectonic
+          terralith
+          fabric-seasons-terralith-compat
+          EOF
 
       - name: Create bind-mount directories
         run: mkdir -p data/mods data/config modpack-dist overlay backups
@@ -131,6 +162,20 @@ jobs:
           # otherwise (mods/AGENTS.md); mirrors deploy.sh 8c / dev-up.sh.
           printf '[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n' > data/config/c2me.toml
 
+      - name: Install platform datapacks and filter for removed mods
+        # Mirrors dev-up.sh/deploy.sh: platform datapacks into the world dir,
+        # then ownership-based filtering strips override files owned by
+        # removed mods. Without the filter the removal variant's structures
+        # pack would reference absent structure sets — a registry-load boot
+        # break, which is exactly the regression this variant guards.
+        run: |
+          mkdir -p data/world/datapacks
+          for pack in config/datapacks/*/; do
+            cp -r "$pack" "data/world/datapacks/$(basename "$pack")"
+          done
+          python3 scripts/filter-datapacks.py data/world/datapacks \
+            config/modrinth-mods.txt overlay
+
       - name: Start seed and sync mods (offline-by-default boots)
         # MODS_FILE is empty by default, so mc makes no network requests at
         # boot — missing jars are fetched host-side from the seed's resolved
@@ -140,6 +185,24 @@ jobs:
           docker compose --profile local up -d seed
           docker wait seed
           ./scripts/sync-mods.sh "$PWD/data"
+
+      - name: Prune jars removed by the overlay
+        # The mod cache restores ALL default jars; sync-mods only adds. In
+        # production dev-up.sh/deploy.sh prune against the seed's manifest —
+        # mirror that, or the removal variant boots WITH the removed mods.
+        run: |
+          VOL=$(docker volume ls -q | grep 'stack-mods$' | head -1)
+          MANIFEST=$(docker run --rm -v "$VOL":/m:ro alpine cat /m/mods-manifest.txt)
+          PRUNED=0
+          for jar in data/mods/*.jar; do
+            [ -f "$jar" ] || continue
+            base=$(basename "$jar")
+            [ "$base" = "customdimensions.jar" ] && continue
+            if ! grep -qxF "$base" <<< "$MANIFEST"; then
+              rm -f "$jar"; PRUNED=$((PRUNED+1)); echo "  pruned: $base"
+            fi
+          done
+          echo "pruned $PRUNED jar(s)"
 
       - name: Start mc
         run: |
@@ -181,7 +244,8 @@ jobs:
 
           # Tectonic parses config/tectonic.json SILENTLY — a malformed file
           # logs one line and falls back to factory defaults. Fail loudly here.
-          if grep -qiF -- "Couldn't load tectonic config" <<<"$LOG"; then
+          # (default variant only: the removal variant has no Tectonic)
+          if [[ "$VARIANT" == "default" ]] && grep -qiF -- "Couldn't load tectonic config" <<<"$LOG"; then
             echo "::error::Tectonic fell back to factory defaults — config/tectonic.json failed to parse"
             exit 1
           fi
@@ -239,6 +303,11 @@ jobs:
           # fails. Run in a custom dim to confirm the patched type is shared.
           # setblock does not load chunks ("That position is not loaded") —
           # forceload first and give async chunk gen a few tries.
+          # (default only: without Tectonic the type keeps vanilla height 384)
+          if [[ "$VARIANT" != "default" ]]; then
+            echo "Custom dimensions + noise presets verified (removal variant skips the height oracle)"
+            exit 0
+          fi
           docker exec mc rcon-cli "execute in adventure:the_smoke_wide run forceload add 8 8" || true
           SB=""
           for attempt in 1 2 3 4 5 6; do
@@ -254,7 +323,44 @@ jobs:
           }
           echo "Custom dimensions + noise presets verified"
 
+      - name: Assert removed mods are gone and locate fails cleanly (removal variant)
+        if: matrix.variant == 'removal'
+        run: |
+          # 1. The removed jars must actually be absent.
+          PRESENT=$(ls data/mods/ | grep -icE 'tectonic|terralith|dungeons.arise|dungeons.and.taverns|betterdungeons|YungsBetterDungeons' || true)
+          if [ "$PRESENT" -gt 0 ]; then
+            echo "::error::removed mod jar(s) still present in data/mods:"
+            ls data/mods/ | grep -iE 'tectonic|terralith|dungeons' || true
+            exit 1
+          fi
+          echo "removed jars absent from data/mods"
+
+          # 2. /locate for a removed set's structure must fail CLEANLY: an
+          # unknown-id error back over RCON, server still healthy after.
+          OUT=$(docker exec mc rcon-cli "execute in adventure:the_claymarsh run locate structure when_dungeons_arise:mining_system" 2>&1 || true)
+          echo "locate(removed structure): $OUT"
+          if echo "$OUT" | grep -qi "is at"; then
+            echo "::error::locate found a structure from a removed mod"
+            exit 1
+          fi
+          docker exec mc rcon-cli "list" | grep -q "players online" || {
+            echo "::error::server unresponsive after locate of a removed structure"
+            exit 1
+          }
+          echo "clean locate failure, server healthy"
+
+          # 3. The ownership filter must have stripped the removed mods'
+          # structure_set overrides from the world datapack.
+          LEFT=$(find data/world/datapacks/structures -path '*dungeons_arise*' -o -path '*betterdungeons*' 2>/dev/null | wc -l)
+          if [ "$LEFT" -gt 0 ]; then
+            echo "::error::filter-datapacks.py left override files for removed mods"
+            find data/world/datapacks/structures -path '*dungeons_arise*' -o -path '*betterdungeons*'
+            exit 1
+          fi
+          echo "ownership filtering verified"
+
       - name: Assert starterkit config is bundle version (not mod default)
+        if: matrix.variant == 'default'
         run: |
           # The seed container writes configs to /config-vol/ (stack-config volume).
           # deploy.sh copies these to /data/config/ on production; in CI we check
@@ -272,12 +378,14 @@ jobs:
           fi
 
       - name: Restore Carpet mod cache
+        if: matrix.variant == 'default'
         uses: actions/cache@v6
         with:
           path: .cache/carpet-ci.jar
           key: carpet-1.21-1.4.147-v240613
 
       - name: Download Carpet mod (cache miss only)
+        if: matrix.variant == 'default'
         run: |
           if [[ ! -f .cache/carpet-ci.jar ]]; then
             mkdir -p .cache
@@ -286,6 +394,7 @@ jobs:
           fi
 
       - name: Spawn a fake player (Carpet bot) and verify world generation
+        if: matrix.variant == 'default'
         run: |
           echo "Installing Carpet for fake-player support..."
           docker cp .cache/carpet-ci.jar mc:/data/mods/carpet-ci.jar
