@@ -279,6 +279,35 @@ The template ships a curated ~150 server + ~110 client mod list focused on explo
 3. Pin versions: `./scripts/pin-mod-versions.sh --apply`
 4. Test locally: `./dev up`
 
+## Removing default mods
+
+Every default mod is removable via `overlay/mods-remove.txt` without
+breaking the boot — this is a platform promise, guarded by the smoke
+test's removal-matrix variant in CI. What actually happens per surface
+when a mod is removed (audited 2026-07-15, hardened 2026-07-24):
+
+| Surface | On mod removal |
+| --- | --- |
+| `structures` datapack (+ dense/sparse presets) | packs carry `ownership.json` (file → slug); `filter-datapacks.py` strips the removed mod's override files at sync time in deploy.sh/dev-up.sh — covers vanilla-set overrides owned by mods (D&T's woodland_mansions, Incendium's nether_complexes, Nullscape's end_cities) |
+| `adventure:wide`/`compressed` noise presets | self-contained in the customdimensions jar: density functions cloned into the adventure namespace, noises shipped as byte-identical same-id copies. Removing Tectonic and/or Terralith boots clean; preset-dim terrain stays put except vanilla-shipped `minecraft:` noises (aquifers, climate), which revert to vanilla semantics in NEW chunks |
+| structureDensity / peaceful rescaling | removed mod's sets simply absent from the registry — no-op |
+| structure theme map | unknown/absent ids never match — no-op |
+| `config/tectonic.json`, `c2me.toml`, Cristel Lib configs | config files for absent mods are inert |
+| dimension biome lists (`terralith:`/`incendium:` biomes) | missing entries filtered at creation, logged; empty list falls back to plains |
+| seed-profile locate batteries | `/locate` misses are measured as misses — scoring copes |
+
+Two consumer responsibilities remain:
+
+- **Remove dependents together**: a mod that hard-depends on a removed mod
+  fails Fabric's dependency check at boot (e.g.
+  `fabric-seasons-terralith-compat` must go when `terralith` goes).
+- **Terrain borders are yours to accept**: worldgen-mod removal changes
+  NEW chunks only; existing chunks keep their shape, so expect visible
+  borders at the boundary.
+
+Client packs are a separate system (consumer-forked, not overlay-driven)
+and have not been audited for removal safety.
+
 ## Resource packs
 
 Resource packs auto-install with the modpack. They're declared in `modpack/adventure.mrpack.json` under `_resourcePacks.packs`, and `build-modpack.sh` resolves each slug to its **newest version tagged for `MC_VERSION`** on Modrinth at build time.

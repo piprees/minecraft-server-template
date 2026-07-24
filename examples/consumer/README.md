@@ -131,6 +131,15 @@ Add the slug to `overlay/mods-remove.txt`:
 distant-horizons
 ```
 
+Every default mod is removable without breaking the boot — including the
+worldgen pair (Tectonic, Terralith): the platform's structure datapacks
+strip removed mods' overrides automatically, and the custom-dimension
+noise presets are self-contained. Two caveats: remove a mod's dependents
+with it (e.g. `fabric-seasons-terralith-compat` goes when `terralith`
+goes), and removing a worldgen mod changes NEW terrain — existing chunks
+keep their shape, new chunks generate with vanilla semantics, so expect
+borders. CI's smoke removal matrix guards this promise.
+
 ### Override a config file
 
 Place the file in `overlay/config/` with the same path as the template's `config/` directory. Your file replaces the platform default.

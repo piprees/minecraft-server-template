@@ -2,11 +2,14 @@
 
 Queue cleared 2026-07-24 (second session of the day): optional-mods
 hardening (item 1 of the post-portals queue) shipped in full — all three
-rounds implemented, verified, and documented. History lives in git; the
-resolution summary is the status block in `optional-mods-hardening.md`.
-Work top to bottom; one piece to completion (implemented AND verified AND
-documented) before the next. Delete an idea doc only after verifying its
-content is captured (`git show 086bfed` is the worked example).
+rounds implemented, verified, and documented, and the idea doc deleted
+after capture (audit table → docs/customisation.md § Removing default
+mods; design → mods/custom-dimensions/README.md § Noise presets; lessons
+→ mods/AGENTS.md § Worldgen self-containment rules; open remnants →
+backlog below). Work top to bottom; one piece to completion (implemented
+AND verified AND documented) before the next. Delete an idea doc only
+after verifying its content is captured (`git show 086bfed` is the
+worked example).
 
 ## Queue
 
@@ -17,9 +20,23 @@ content is captured (`git show 086bfed` is the worked example).
 - `fixed-structure-placements.md` — the last precision-placement piece
   (exact structure at an exact spot; two routes sketched with
   implementation notes). Fingerprint corollary applies.
-- Client pack parity (`optional-mods-hardening.md` item 4) — client packs
-  are consumer-forked, a separate system from overlay removals; never
-  audited for mod-removal safety.
+- **Seed-viewer terrain-height fidelity for preset dims** — the viewer's
+  `TerrainEvaluator` (scripts/seed/terrain_height.py) applies Terralith's
+  overworld offset spline to ALL overworld-family dims, including
+  `adventure:wide`/`compressed` dims whose real splines differ (Terratonic
+  graph + preset constants). Since the hardening work the preset DF JSONs
+  live IN-REPO fully inlined
+  (mods/custom-dimensions/src/main/resources/data/adventure/worldgen/),
+  so per-preset spline extraction needs no jar walk: extract offset/factor
+  from `density_function/{wide,compressed}/tectonic/...`, key
+  terrain_splines.json by noiseSettings id, fall back to the Terralith
+  spline for plain-overworld dims. Viewer-only fidelity — measurements
+  bank real server output and are unaffected. While in there, sweep
+  scripts/seed/spike/14-non-overworld-render-quality.md for other
+  render-quality limitations worth lifting into tasks.
+- **Client pack parity** — client packs are consumer-forked, a separate
+  system from overlay removals; never audited for mod-removal safety
+  (noted at the end of docs/customisation.md § Removing default mods).
 
 ## Decisions waiting on Pip
 
