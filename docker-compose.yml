@@ -32,6 +32,57 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+# --- Backup post-script: size cap + Discord notify (both backup sidecars) ---
+# Runs after every backup ($1 = backup exit code, itzg/mc-backup contract;
+# $$ is compose escaping for runtime vars).
+# 1. SIZE CAP: while the repo's raw size exceeds BACKUP_SIZE_CAP_GIB
+#    (default 10 — R2's free tier), forget the OLDEST snapshot and prune.
+#    Never touches the newest snapshot: a world genuinely bigger than the
+#    cap keeps exactly one copy and warns — raise the cap in .env instead.
+# 2. NOTIFY: one message per backup to DISCORD_WEBHOOK_URL (fire-and-forget,
+#    skipped when unset — e.g. local dev) with status, repo size, snapshot
+#    count, and any cap trims.
+x-backup-post: &backup-post-script |
+  WEBHOOK="$${DISCORD_WEBHOOK_URL:-}"
+  notify() {
+    if [ -n "$$WEBHOOK" ]; then
+      curl -sf -m 10 -H "Content-Type: application/json" \
+        -d "{\"content\":\"$$1\"}" "$$WEBHOOK" > /dev/null 2>&1 || true
+    fi
+  }
+  if [ "$${1:-0}" != "0" ]; then
+    echo "backup-post: backup FAILED (exit $$1)"
+    notify ":x: **Backup FAILED** on \`$$(hostname)\` (exit $$1) — check \`docker logs mc-backup\`"
+    exit 0
+  fi
+  CAP_GIB="$${BACKUP_SIZE_CAP_GIB:-10}"
+  CAP=$$(( CAP_GIB * 1024 * 1024 * 1024 ))
+  TRIMMED=0
+  WARN=""
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    SIZE=$$(restic stats --mode raw-data --json 2>/dev/null | sed -n 's/.*"total_size":\([0-9]*\).*/\1/p')
+    if [ -z "$$SIZE" ]; then echo "backup-post: could not read repo size"; exit 0; fi
+    if [ "$$SIZE" -le "$$CAP" ]; then break; fi
+    COUNT=$$(restic snapshots --json 2>/dev/null | grep -o '"short_id"' | wc -l | tr -d ' ')
+    if [ "$$COUNT" -le 1 ]; then
+      WARN=" :warning: over the cap with only ONE snapshot left — raise BACKUP_SIZE_CAP_GIB or shrink the world"
+      echo "backup-post: WARNING repo over cap with one snapshot left"
+      break
+    fi
+    OLDEST=$$(restic snapshots --compact 2>/dev/null | awk '/^[0-9a-f]{8} /{print $$1; exit}')
+    if [ -z "$$OLDEST" ]; then break; fi
+    echo "backup-post: repo $$SIZE bytes over $${CAP_GIB}GiB cap — forgetting oldest snapshot $$OLDEST"
+    restic forget "$$OLDEST" --prune
+    TRIMMED=$$(( TRIMMED + 1 ))
+  done
+  SIZE=$$(restic stats --mode raw-data --json 2>/dev/null | sed -n 's/.*"total_size":\([0-9]*\).*/\1/p')
+  COUNT=$$(restic snapshots --json 2>/dev/null | grep -o '"short_id"' | wc -l | tr -d ' ')
+  GIB=$$(awk "BEGIN {printf \"%.2f\", $${SIZE:-0} / 1073741824}")
+  TRIM_NOTE=""
+  if [ "$$TRIMMED" -gt 0 ]; then TRIM_NOTE=" — trimmed $$TRIMMED oldest to fit the cap"; fi
+  echo "backup-post: OK — repo $${GIB} GiB / $${CAP_GIB} GiB cap, $$COUNT snapshots$$TRIM_NOTE"
+  notify ":floppy_disk: **Backup OK** — repo $${GIB} GiB / $${CAP_GIB} GiB cap, $$COUNT snapshots$$TRIM_NOTE$$WARN"
+
 services:
 
   # ==========================================================================
@@ -253,6 +304,10 @@ services:
         --keep-daily ${RESTIC_RETENTION_DAILY:-7}
         --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
         --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
+      POST_BACKUP_SCRIPT: *backup-post-script
+      # Local dev: leave unset unless you want test-pack notifications too.
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       RCON_HOST: mc
       RCON_PASSWORD: ${RCON_PASSWORD:-}
     volumes:
@@ -307,6 +362,11 @@ services:
         --keep-daily ${RESTIC_RETENTION_DAILY:-7}
         --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
         --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+
+      # --- Hard size cap + Discord notify (see x-backup-post at the top) ---
+      BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
+      POST_BACKUP_SCRIPT: *backup-post-script
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
 
       # --- Exclude regenerable data from backups ---
       # Only world/ and config/ are irreplaceable; everything else is
