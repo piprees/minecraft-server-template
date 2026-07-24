@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "intervalSeconds": 10800,
+  "minimumItemAgeSeconds": 300,
+  "announcementsEnabled": false,
+  "warningSeconds": [],
+  "broadcastClearMessage": false,
+  "warningMessage": "Ground items will be cleared in {time}.",
+  "clearMessage": "Cleared {count} ground items.",
+  "clearNamedItems": false,
+  "ignoredItems": [
+    "minecraft:nether_star",
+    "minecraft:dragon_egg"
+  ],
+  "ignoredWorlds": []
+}
