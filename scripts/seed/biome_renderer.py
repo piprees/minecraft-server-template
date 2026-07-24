@@ -276,13 +276,17 @@ def render_biome_map(seed, biome_params_path, output_path,
                      noise_config=None, family=None, dim_type=None,
                      biome_filter=None,
                      size=1024, blocks_per_pixel=4,
-                     sample_resolution=256):
+                     sample_resolution=256, noise_settings=None):
     """Render a terrain-aware biome map image.
 
     Samples biomes at sample_resolution×sample_resolution internally,
     then scales up to the output size. Uses surface-block colours,
     spline-based terrain heights, water depth shading, and vegetation
     density for a terrain-like appearance.
+
+    Dims on an adventure noise preset (noise_settings) get EXACT heights
+    from the in-repo Terratonic graph (preset_terrain.py) instead of the
+    Terralith-spline family approximation.
     """
     sampler = BiomeSampler(int(seed), biome_params_path,
                            noise_config=noise_config, family=family,
@@ -290,6 +294,13 @@ def render_biome_map(seed, biome_params_path, output_path,
 
     evaluator = _evaluator_for_family(family)
     eval_family = family or "overworld"
+    preset_eval = None
+    if noise_settings:
+        try:
+            from preset_terrain import PresetTerrainEvaluator
+            preset_eval = PresetTerrainEvaluator(noise_settings, int(seed))
+        except (ValueError, ImportError):
+            preset_eval = None  # unknown preset id → family fallback
 
     total_blocks = size * blocks_per_pixel
     half = total_blocks // 2
@@ -316,7 +327,9 @@ def render_biome_map(seed, biome_params_path, output_path,
             cont = climate.get("continentalness", 0.0)
             ero = climate.get("erosion", 0.0)
             weird = climate.get("weirdness", 0.0)
-            if evaluator is not None and evaluator.has_family(eval_family):
+            if preset_eval is not None:
+                h = preset_eval.surface_height(x, z)
+            elif evaluator is not None and evaluator.has_family(eval_family):
                 h = evaluator.surface_height(cont, ero, weird, family=eval_family)
             else:
                 h = max(0.0, min(200.0, 63.0 + cont * 40.0 - ero * 20.0 + ridges_folded(weird) * 15.0))
@@ -607,7 +620,7 @@ TYPE_NOISE_OVERRIDE = {
 def _render_one(task):
     """Multiprocessing worker: render one candidate."""
     (seed, dim_name, family, dim_type, biome_csv, biome_params_path,
-     output_path, size, scale, sample_res) = task
+     output_path, size, scale, sample_res, noise_settings) = task
     configs = load_noise_configs()
     noise_family = TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
     noise_config = configs.get(noise_family, configs.get("overworld"))
@@ -617,7 +630,8 @@ def _render_one(task):
                          noise_config=noise_config, family=noise_family,
                          dim_type=dim_type, biome_filter=biome_filter,
                          size=size, blocks_per_pixel=scale,
-                         sample_resolution=sample_res)
+                         sample_resolution=sample_res,
+                         noise_settings=noise_settings)
         return dim_name, seed, True
     except Exception as e:
         return dim_name, seed, str(e)
@@ -669,7 +683,8 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
             tasks.append((int(seed), name, fam, dim_type, dim.get("biome") or None,
-                          biome_params_path, str(out), size, effective_scale, sample_resolution))
+                          biome_params_path, str(out), size, effective_scale, sample_resolution,
+                          dim.get("noiseSettings")))
 
     if not tasks:
         print("All candidates already have renders.")
