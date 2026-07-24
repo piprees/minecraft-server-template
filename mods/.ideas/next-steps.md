@@ -49,20 +49,12 @@ rename shifts terrain on every existing world).
 
 ## Decisions waiting on Pip
 
-- **Release**: nine commits are pending on main since v3.6.0 —
-  `fc27767` (seed-group rolling), `67e93dc` (map fixes), `f22423a`
-  (portals Tier 1 + NetherPortalProtectionMixin), `b33dfe2` (shapes),
-  `c410cf2` (per-part materials), `aaf101e` (portal auras), `4a77471`
-  (pattern + end_gateway), `2c0ce24` (shrine residuals), `c0d2848`
-  (fork-config GUI). The protection fix is player-facing on production
-  (return portals silently dying to netherportalspread) — lean quick.
-  When asked: `gh workflow run release.yml -f version=vX.Y.Z`, never
-  `gh release create`; refresh the major tag after.
-- **netherportalspread retirement**: with auras shipped, two spread
-  engines fight around the same portals and it eats custom arrival
-  frames (mods/AGENTS documents the trap). Remove it (or zero its
-  spread) and ship its behaviour as an opt-in aura preset
-  (`conversions` + `fireChance`) for nether-y dims.
+- ~~Release~~ / ~~netherportalspread retirement~~ — RESOLVED 2026-07-24:
+  Pip approved both. netherportalspread removed from the default mod
+  list (opt-in aura preset documented in the mod README) and v3.7.0
+  dispatched covering the whole portal/aura/GUI arc. Next agent: verify
+  the release published cleanly (`gh release list`) and that the major
+  tag was refreshed (`git fetch origin '+refs/tags/v3:refs/tags/v3'`).
 
 ## Standing state (2026-07-24)
 

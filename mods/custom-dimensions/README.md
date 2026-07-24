@@ -381,6 +381,26 @@ older jars log unknown records as malformed and drop them, so a
 downgrade quietly stops auras without crashing). Anchor arrivals sample
 once — the first link wins.
 
+**Nether-corruption preset** (the netherportalspread replacement — that
+mod was retired in v3.7.0 in favour of auras; two spread engines fought
+around the same portals and it converted custom arrival frames). Opt a
+nether-y dimension in with:
+
+```jsonc
+"portal": {
+  "aura": {
+    "palette": ["minecraft:netherrack", "minecraft:blackstone",
+                "minecraft:magma_block", "minecraft:crimson_nylium"],
+    "flora": ["minecraft:crimson_fungus", "minecraft:crimson_roots"],
+    "trees": ["minecraft:crimson_fungus"],
+    "fluids": ["minecraft:lava"],
+    "conversions": { "minecraft:obsidian": "minecraft:crying_obsidian" },
+    "fireChance": 0.08,
+    "budget": -1              // endless creep, netherportalspread-style
+  }
+}
+```
+
 ### Anchor, single-use, and exit portals
 
 Unlike worldgen config (creation-time-only, baked into `level.dat`), the whole portal block — anchor, singleUse, exitPortal included — is re-read every boot, so these features apply to existing dimensions without a world wipe.

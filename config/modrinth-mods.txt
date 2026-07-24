@@ -150,7 +150,7 @@ pause-day-cycle:KQWm3NrZ
 # balm:jR9x1yws                               # removed: only dep was waystones+netherportalfix (both removed)
 # netherportalfix:9KrnphgC                    # removed: custom-dimensions handles portal linking; also clashed with its NetherPortalBlockMixin
 # waystones:CxLc6vVg                          # removed: unused, disliked
-nether-portal-spread:KkeWVnMV
+# nether-portal-spread:KkeWVnMV              # retired v3.7.0: replaced by custom-dimensions portal auras (better integrated: per-dimension palettes, budgets, exclusion sets — and it ate custom arrival frames); opt-in preset in the mod README
 fallingtree:wxGXaJMA
 carry-on:eFWFmwmL
 bountiful:LFm1BWOE
