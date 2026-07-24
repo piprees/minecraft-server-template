@@ -1,8 +1,19 @@
 # Local dev overrides - committed, not generated.
 # Disables whitelist (PlayerDB lookups fail without auth servers).
 # Disables autopause (causes watchdog issues in Docker on Mac).
+#
+# The entrypoint wrapper unsets WHITELIST before exec'ing the real
+# entrypoint. Setting it to "" in environment isn't enough — the itzg
+# image treats any defined value (even empty) as "manage this list",
+# which re-enables white-list=true in server.properties. Compose can't
+# truly unset a variable defined in the main file, so we unset at runtime.
+# OPS is kept — it grants op without triggering whitelist.
 services:
   mc:
+    entrypoint:
+      - /bin/bash
+      - -c
+      - unset WHITELIST; exec /image/scripts/start
     environment:
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"

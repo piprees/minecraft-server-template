@@ -414,6 +414,18 @@ if [[ $SEEDED -gt 0 ]]; then
   echo "  Pre-seeded $SEEDED mod JARs from local mirror/cache"
 fi
 
+# --- Tear down existing containers --------------------------------------------
+# Ensures entrypoint overrides and env changes from docker-compose.local.yml
+# take effect. A plain `up -d` reuses existing containers with stale config;
+# `down` removes them so `up` creates fresh ones every time.
+echo "  Stopping any existing containers..."
+docker compose \
+  -f "$STACK_DIR/docker-compose.yml" \
+  -f "$STACK_DIR/docker-compose.local.yml" \
+  --project-directory "$CONSUMER_DIR" \
+  -p "$COMPOSE_PROJECT_NAME" \
+  --profile local down 2>/dev/null || true
+
 # --- Start the local profile --------------------------------------------------
 # MODS_FILE is empty by default (offline boots — itzg neither downloads nor
 # HEAD-checks anything). Run the seed alone first, then fetch any missing
@@ -502,6 +514,29 @@ if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF";
     sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
   fi
   echo "  BlueMap: auto-accepted resource download."
+fi
+
+# --- Grant op via RCON in offline mode ----------------------------------------
+# In offline mode the itzg image can't resolve usernames to UUIDs via Mojang,
+# so the OPS env var silently fails. Grant op via RCON post-boot instead —
+# the server generates offline UUIDs that work without API calls.
+if [[ "${ONLINE_MODE:-TRUE}" == "FALSE" && -n "${OPS:-}" ]]; then
+  echo "  Granting op to local players via RCON (offline mode)..."
+  IFS=',' read -ra OP_LIST <<< "$OPS"
+  for attempt in 1 2 3; do
+    ALL_OK=true
+    for player in "${OP_LIST[@]}"; do
+      player="$(echo "$player" | xargs)"
+      [[ -z "$player" ]] && continue
+      if docker exec "$MC_NAME" rcon-cli "op $player" 2>/dev/null | grep -qi "nothing changed\|opped"; then
+        echo "    op: $player"
+      else
+        ALL_OK=false
+      fi
+    done
+    $ALL_OK && break
+    [[ $attempt -lt 3 ]] && sleep 5
+  done
 fi
 
 echo ""
