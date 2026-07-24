@@ -22,7 +22,21 @@ A datapack or mod-jar registry entry that references content from an absent mod 
 
 ## Future round (suggested brief for another agent)
 
-1. **Make the noise presets self-contained.** Extend `scripts/gen-terrain-presets.py` to add the pinned TERRALITH jar as a base layer and clone the full reference closure into the `adventure` namespace: all `tectonic:`/`terralith:` NOISE definitions (static JSONs) referenced by `"noise"` fields and `shift/shift_a/shift_b` arguments, plus the terralith-jar density functions the Terratonic settings reference. Success criterion: `grep -r '"(tectonic|terralith):' ` over the generated tree matches ONLY biome ids in surface-rule conditions (lazy) — zero registry-holder references. Then a Tectonic/Terralith removal degrades to "different terrain" instead of a boot break. Watch: noise Holder dedup is per-id, so cloned noises cost a little memory per preset; verify NoiseConfig instantiation count stays sane.
+> **CRITICAL amendment (2026-07-24 research):** the original route below
+> ("clone the closure INTO the adventure namespace") is a
+> production-world-breaking trap. Vanilla derives every noise parameter's
+> seed by MD5-hashing the noise ID STRING (see scripts/seed/README.md
+> §PRNG), so renaming `tectonic:X` → `adventure:X` re-seeds every cloned
+> noise and CHANGES TERRAIN for all existing worlds using the presets —
+> chunk borders on production. The correct design: ship byte-identical
+> copies of the needed noise JSONs and density functions **under their
+> ORIGINAL `tectonic:`/`terralith:` ids** inside our jar datapack
+> (datapacks may provide entries in any namespace). Mod present →
+> duplicate identical content (harmless; assert pack-order semantics
+> anyway); mod removed → ours fills the gap; no id changes → no terrain
+> drift, no fingerprint drift, roller parity holds by construction.
+
+1. **Make the noise presets self-contained.** Extend `scripts/gen-terrain-presets.py` to resolve the pinned Tectonic + Terralith jars (Modrinth pins in `config/modrinth-mods.txt`) and walk the reference closure from the `adventure:wide`/`compressed` settings: all `tectonic:`/`terralith:` NOISE definitions (static JSONs) referenced by `"noise"` fields and `shift/shift_a/shift_b` arguments, plus the terralith-jar density functions the Terratonic settings reference — emitted same-id per the amendment above. Success criteria: with Tectonic and Terralith removed, the server boots and `adventure:wide`/`compressed` dims generate; with them present, generation is bit-identical to today (locate/biome oracle on a fixture dim, same seed, before/after — c2me DFC re-patch on every restart). Watch: noise Holder dedup is per-id, so duplicate provision costs nothing extra when the mod is present.
 2. **Removal-matrix smoke coverage.** A smoke-test variant (matrix or a second boot) with a representative `overlay/mods-remove.txt` (when-dungeons-arise + dungeons-and-taverns + one YUNG mod) asserting the server boots and `/locate` for a removed set's structure fails cleanly. This is the regression net for the whole promise.
 3. **Ownership for future platform datapacks.** Any new curated datapack that references mod content should emit `ownership.json` — consider a lint check (datapack contains non-vanilla namespaces but no ownership.json → warn).
 4. **Client pack parity.** `modpack/adventure.mrpack.json` removals are a separate system (client packs are consumer-forked, not overlay-driven); out of scope here but worth a look in the same round.

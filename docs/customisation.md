@@ -512,6 +512,29 @@ matrix), all mirrored by the seed-rolling pipeline:
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 
+## Portals
+
+The full portal schema lives in
+[`mods/custom-dimensions/README.md`](../mods/custom-dimensions/README.md)
+— that file is the source of truth, not this guide. Headlines of what a
+dimension's `portal` block can do (all boot-re-read; no world wipes):
+
+- **Frame materials**: a plain block id, `#ns:tag`, an explicit list, or
+  `{"colorGroup": "<dye>"}`; `framePlaceBlock` names the concrete block
+  mod-built frames use; `frameMaterials` {top/sides/bottom} gives frame
+  segments different requirements.
+- **Shapes**: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring
+  with an optional `centreBlock` pedestal), `end_gateway` (frameless
+  one-block teleporter), or an explicit pattern template; plus an
+  `orientation` constraint.
+- **Auras**: portals affect their surroundings — by default each linked
+  pair leaks the other side's sampled nature through (terrain, plants,
+  trees, fluids), bounded by per-side budgets; `portal.aura` overrides
+  palettes, adds explicit conversions and fire, or switches it off.
+- **Anchors, single-use portals, exit portals, exit shrines**: see the
+  mod README; shrine frames rebuild in the dimension's own
+  `framePlaceBlock` and shrine spacing derives from `borders.player`.
+
 ## Dimension links and exit conditions
 
 Every exit target — `exitPortal.target`, `portal.anchor.exit`, and the

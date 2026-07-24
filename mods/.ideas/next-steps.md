@@ -1,91 +1,80 @@
 # Next steps — the working queue
 
-Agreed with Pip 2026-07-23. Work top to bottom; each item links to the doc that specifies it. Update this file as items complete (mark done, move lessons into AGENTS/READMEs, delete the item's idea doc once its content is captured — the pattern used for the portal-concepts docs).
+Reset 2026-07-24 after the portals/auras/GUI session (items 1–6 of the
+previous queue all shipped; their history lives in git — the last full
+status snapshot is commit `8cdeb64`'s version of this file). Work top to
+bottom; one piece to completion (implemented AND verified AND documented)
+before the next. Delete an idea doc only after verifying its content is
+captured (`git show 086bfed` is the worked example).
 
-## 1. Custom world settings, Tiers 2–3 — DONE 2026-07-23
+## 1. Optional-mods hardening
 
-Spec: `vanilla-custom-world-settings.md` (Tiers 1–3 shipped; only the precision-placement section — item 2 below — remains from that doc).
+Spec: `optional-mods-hardening.md` (read in full — it carries a CRITICAL
+2026-07-24 amendment: the noise-preset closure must ship under the
+ORIGINAL `tectonic:`/`terralith:` ids, never renamed into the adventure
+namespace, because vanilla seeds noises by hashing the id string and a
+rename shifts terrain on every existing world).
 
-- **Tier 2**: `checkerboard` (+`checkerboardScale`, `CheckerboardBiomeSampler` parity, live-verified probe-for-probe), `superflat` custom `layers` + `flatBiome`, `seedRoll: {skip: true}` in mod schema + `rollable()`.
-- **Tier 3**: `settingsOverrides` whitelist, per-biome `parameters` (object-form biomes entries), per-set `structures.spacing` — each landed with its roller counterpart (`build_mixed_entries` param_overrides, seed_worker fluid check, tier-1 spacing maths) and live-verified.
+> **Session prompt:** You're working in
+> `/Users/pip/Projects/minecraft-server-template`; the local consumer for
+> verification is `~/Projects/elfydd` (its `.stack/current` symlinks
+> `v3-dev` → this repo, so seed-script edits are live; its
+> `data/mods/customdimensions.jar` runs an unreleased build). Read
+> AGENTS.md and mods/AGENTS.md in full, then
+> `mods/.ideas/optional-mods-hardening.md` including the amendment.
+> Round 1: extend `scripts/gen-terrain-presets.py` to resolve the pinned
+> Tectonic + Terralith jars (pins in `config/modrinth-mods.txt`), walk
+> the reference closure from the `adventure:wide`/`compressed` settings
+> (every `"noise"` field, `shift/shift_a/shift_b` argument, and
+> density-function reference), and emit byte-identical same-id copies
+> into the custom-dimensions jar datapack. Success: with Tectonic and
+> Terralith REMOVED the server boots and `adventure:wide`/`compressed`
+> dims generate; with them PRESENT generation is bit-identical to today
+> (locate/biome oracle on a fixture dim, same seed, before/after — re-run
+> the c2me DFC re-patch before every restart, snippet in dev-up.sh).
+> Full verification loop for the mod rebuild (artefact checks → install
+> on elfydd → boot). Round 2: a removal-matrix smoke variant in CI
+> (representative `overlay/mods-remove.txt`: when-dungeons-arise +
+> dungeons-and-taverns + one YUNG mod + Tectonic + Terralith) asserting a
+> clean boot and a clean `/locate` failure for a removed set. Round 3
+> (cheap): the ownership.json lint from the spec. One round to completion
+> before the next; fold lessons into mods/AGENTS.md and update this
+> file. Do not cut a release — that's Pip's call.
 
-## 2. biomePatches — DONE 2026-07-23
+## Idea backlog (unscheduled)
 
-Spec: `vanilla-custom-world-settings.md` § Precision placement. Shipped beyond the original sketch after design discussion with Pip: three modes (stamp / clipped swap via `replace` / global swap via `scope: "global"` with explicit target or area-selector), `shape: circle|square`, `blend` edge jitter (bit-mirrored value noise in `PatchedBiomeSampler`). Codec-registered `customdimensions:patched`; level.dat round-trip and a codec evolution verified live; all modes oracle-verified. Guaranteed spawn biome at (0,0) now deletes the spawn-filter lottery. Still gated behind this section: **fixed structure placements** (same spec section — next candidate alongside item 3).
+- `fixed-structure-placements.md` — the last precision-placement piece
+  (exact structure at an exact spot; two routes sketched with
+  implementation notes). Fingerprint corollary applies.
 
-## 3. Exit shrines + dimension links & exit conditions — DONE 2026-07-23
+## Decisions waiting on Pip
 
-Spec: `exit-shrine-structure.md` (both parts shipped; doc carries the verified-status summaries).
+- **Release**: nine commits are pending on main since v3.6.0 —
+  `fc27767` (seed-group rolling), `67e93dc` (map fixes), `f22423a`
+  (portals Tier 1 + NetherPortalProtectionMixin), `b33dfe2` (shapes),
+  `c410cf2` (per-part materials), `aaf101e` (portal auras), `4a77471`
+  (pattern + end_gateway), `2c0ce24` (shrine residuals), `c0d2848`
+  (fork-config GUI). The protection fix is player-facing on production
+  (return portals silently dying to netherportalspread) — lean quick.
+  When asked: `gh workflow run release.yml -f version=vX.Y.Z`, never
+  `gh release create`; refresh the major tag after.
+- **netherportalspread retirement**: with auras shipped, two spread
+  engines fight around the same portals and it eats custom arrival
+  frames (mods/AGENTS documents the trap). Remove it (or zero its
+  spread) and ship its behaviour as an opt-in aura preset
+  (`conversions` + `fireChance`) for nether-y dims.
 
-- **Part 2**: ExitTarget descriptors on every exit surface, `exits` trigger block (void/death/death:cause/death:mob/enderPearl/fallFrom), validator rules, bot-verified live (respawnAt awaits first real-player death — mixin applies clean).
-- **Part 1**: `adventure:exit_shrine` jigsaw (jar datapack; `scripts/gen-exit-shrine.py` generates the NBT), beacon-marked frames self-register on chunk load (rotation-aware), frequency-gated set (0.001 shipped, x1000 for opted-in dims — never leaks into base worlds), `exit_shrine` STRUCTS entry + tier-1 frequency parity. Bot-verified: generation at spacing, detection under jigsaw rotation, traversal home.
+## Standing state (2026-07-24)
 
-## 4. Seed group rolling — DONE 2026-07-23
-
-Spec: `seed-group-rolling.md` (deleted — content lives in `scripts/seed/README.md` § Seed-Group Rolling, `docs/customisation.md` § Worldgen: seed rolling, and mods/AGENTS §Seed rolling pipeline). Shipped: `generation_fingerprint()`/`generation_payload()` in dimension_profiles (validated against the spec's 8-group/31-dim table — exact match), fast_roller groups by fingerprint with a shared tier-1 pool + union survivors + `MemoSampler` (per-member rows proven bit-identical to solo runs), candidates stamped with their measurement fingerprint, injective winner assignment within groups at finalise (pins claim first), and DRIFTED warnings in status/finalise. **Design deviation from the spec**: the bank stays per-dim (every member banks every group seed's rows) rather than re-keying to a fingerprint-keyed store — same saving, zero schema migration, all existing tooling untouched. Corollary rule now in mods/AGENTS: any new generation-affecting config field MUST be added to `generation_payload()`.
-
-## 5. Further portal customisations + portal auras — DONE 2026-07-24
-
-Specs `further-portal-customisations.md` and `portal-auras.md` deleted this session — content absorbed into mods/custom-dimensions/README.md (schemas: frame materials/orientation, per-part materials, shapes incl. pattern + end_gateway, auras, shrine substitution/spacing), mods/AGENTS.md (bot recipes + traps), and the per-tier status notes below (verify coverage against `git show` of this commit's parent if ever in doubt — the 086bfed pattern).
-
-Spec: `further-portal-customisations.md`. Tier 1 shipped and bot-verified: `FrameMatcher` (plain/`#tag`/list/`colorGroup` accept forms), 16 jar-datapack colour tags, `framePlaceBlock` (accepting ≠ placing), `orientation` gating (default "any" = today's behaviour — the spec's "default vertical" lost to its own back-compat principle), matcher-aware igniter ordering and zone validation. Two incidents en route, both fixed + documented in mods/AGENTS: (1) persisted `frameBlock` must stay a plain parseable id or older jars crash-loop on downgrade; (2) `NetherPortalProtectionMixin` — netherportalspread's corruption spread was popping ALL custom-framed arrival portals (production-affecting, pre-existing; root-caused via a temporary portal-pop stack-trace mixin). **Tier 2a (shapes) DONE 2026-07-24**: `shape` presets `door` (1x2) / `doorway` (2x3) / `end_exit` (horizontal ring) validated post-flood-fill (`PortalShape`, pure geometry, unit-tested); shape-implied orientation (explicit `orientation` wins, contradictions warn as never-ignitable); `centreBlock` pedestal on end_exit ignition (source-side only — exit-portal intact-check forbids it); `ExitPortalManager` builds shape-matched exit portals (door=1x2, end_exit=horizontal 3x3 END_PORTAL pad); shape/centreBlock persist in zone records as plain strings (downgrade-safe, restart-verified live incl. restored-zone re-traversal). Bot-verified on elfydd: 3 positives + 5 negatives (zone-count oracle), arrival shapes, pedestal, exit-portal shapes. **Tier 2b (per-part materials) DONE 2026-07-24**: `frameMaterials` {top/sides/bottom}, each part any accept form; flood-fill takes the union, validation classifies each ring position (below lowest interior row = bottom, above highest = top, else sides — `classifyFramePart`, unit-tested); vertical portals only (horizontal validates union + boot WARN); mod-built frames placed in kind (arrival + exitPortal per-part). Ships two fixes found en route: settings-defaults `frameBlock` no longer injected under frameMaterials dims (spurious exclusivity warning), and explicit `framePlaceBlock` no longer shadowed by a plain `frameBlock`. Bot-verified on elfydd incl. the load-bearing negative (union-valid frame with one block in the wrong part) — and the netherportalspread-converts-arrival-frames trap is documented in mods/AGENTS (assert immediately; probe the conversion table before blaming placement). **Deep tier (end_gateway + pattern templates) DONE 2026-07-24**: `shape` accepts a pattern object (`{"type":"pattern","template":[...],"legend":{...}}` — row-major, top row = highest Y, exact interior cover + frame-cell checks via the matcher, don't-care cells; auto-tries X/Z) and `end_gateway` (frameless click-to-place END_GATEWAY block, no frameBlock needed; vanilla gateway travel suppressed for mod-owned positions via `EndGatewaySuppressionMixin` on `EndGatewayBlock.onEntityCollision` — 1.21 moved gateway travel there, `tryTeleportingEntity` no longer exists; the cancel must also top up the standing player's portal cooldown or arrivals BOUNCE straight back, found live). Gateways ride the existing zone/return machinery via `isPortalBlock`/`collectPortalArea`. Bot-verified: cross-template positive + same-material doorway negative (zone-count oracle), gateway place/traverse/6s-stability/return, gateway exitPortal. **Exit-shrine residuals DONE 2026-07-24**: shrine frames rebuilt in the dimension's `framePlaceBlock` at registration (in-world rewrite in ExitShrineManager — one template, any material, idempotent; detection was already material-agnostic), and shrine spacing derives from raw `borders.player` (clamp(radius/32, 12..48) chunks, separation = spacing/2) unless `structures.spacing` sets it explicitly — which now actually applies to the shrine set (it previously short-circuited before the override branch). Roller mirror in fast_roller tier-1 + `player_border` profile field (raw, unscaled — NOT the scaled `radius`); parity pinned by twin unit tests (DimensionStructuresTest / test_dimension_profiles, same expected table). Live: locate at 116 blocks under the derived 16-chunk grid, diorite-substituted shrine registered + traversal home. **Portal auras DONE 2026-07-24** (spec: `portal-auras.md`): derived bi-directional palette leak as the default (link-time sampling — ground-biased 9×7×9 after a live fix; terrain histogram top-5, flora, log→tree map, still fluids), `portal.aura` overrides (palette/flora/trees/fluids/conversions/fireChance/radius/interval/blocksPerPass/budget/sides), bounded passes from ServerWorldMixin with exclusion set + chunk-loaded guard + per-side persisted budgets (zone fields + `aura-site-v1` records; downgrade = old jars log-and-drop them, auras stop, nothing crashes). Live-verified on elfydd both directions (end_stone superflat fixture × moss/birch-dressed overworld platform; budget resumed across restart). Override modes live-fired 2026-07-24 (piggybacked on the deep-tier boot): explicit `palette` (obsidian), `conversions` (deepslate→crying_obsidian), `fireChance` all confirmed converting on the source side; budget cap confirmed stopping at exactly 300 in the site record. `fluids` placement remains unit-tested only (a single depression cell is too small a random target for a live soak; `isDepression` discipline is pinned in PortalAuraManagerTest). Conversion OUTPUTS are immune to the terrain leak (or crying_obsidian would decay to obsidian on a re-hit — caught in review). **PACK-CURATION DECISION FOR PIP**: with auras landed, netherportalspread should be removed (or its spread zeroed) — two spread engines fight around the same portals, and it eats custom arrival frames (documented in mods/AGENTS). Ship its behaviour as an opt-in aura preset (conversions + fireChance) for nether-y dims instead.
-
-## 6. Fork-config GUI — DONE 2026-07-24
-
-Spec `fork-dimension-config-gui.md` (implementation prompt folded in — coverage verified against `git show 0dc30dc^`). Shipped: `GET /fork-schema` (option lists from dimension_profiles + biome_params, cached), `GET /dim-config`, `POST /create-dimension` with `mode` fork/create/edit + validated `config` object (per-field errors, deep-merge over parent/skeleton/existing) + auto-reroll job, and the full sectioned `<dialog>` form (searchable biome multi-select, wants/shuns rows with band/range split, live band-range + hostile-strip + mood-blurb hints, per-card `Configure`, header `New dimension`). Docs in scripts/seed/README.md §viewer-server. Three live-caught fixes: band-name wants must land in `seedRoll.wants` (the mod's `structures.wants` Gson-crashes on strings — caught by the boot gate), overlay-written dims mirrored into the staged overlay or the roller can't see them, biome_params is a flat row list not a family map. Live-verified on elfydd: 13-field fork write, 422 per-field rejections, auto-reroll (100 candidates banked, card renders), edit-in-place, create-from-scratch, and the written configs boot (`Registered dimension`). Browser screenshot pass deferred (Chrome extension not connected headlessly); form markup verified in the served page.
-
-## 7. Optional-mods hardening — NOT STARTED (handed over 2026-07-24; prompt below)
-
-Spec: `optional-mods-hardening.md`. The open boot-breaker: removing Tectonic/Terralith breaks boots because the `adventure:wide`/`compressed` presets reference their registries. Round 1 = self-contained noise presets; round 2 = removal-matrix smoke coverage.
-
-**CRITICAL research finding (this session, 2026-07-24) — read before implementing:** the spec's route ("clone the reference closure INTO the adventure namespace") is a **production-world-breaking trap**. Vanilla derives every noise parameter's seed by MD5-hashing the noise ID STRING (see scripts/seed/README.md §PRNG), so renaming `tectonic:X` → `adventure:X` re-seeds every cloned noise and CHANGES TERRAIN for all existing worlds using the presets — chunk borders on production. The correct design: ship byte-identical copies of the needed `tectonic:`/`terralith:` noise JSONs (and the terralith-jar density functions) **under their ORIGINAL ids** inside our jar datapack — datapacks may provide entries in any namespace. Mod present → duplicate identical content (harmless); mod removed → ours fills the gap; no id changes → no terrain drift, no fingerprint drift. Validate pack-order/merge semantics for the mod-present case (identical content makes ordering moot, but assert it), and keep the roller's noise handling untouched (ids unchanged ⇒ parity holds by construction).
-
-### Handover prompt for the next session
-
-> You're working in `/Users/pip/Projects/minecraft-server-template`; the local consumer for verification is `~/Projects/elfydd` (its `.stack/current` currently symlinks `v3-dev` → this repo, so seed-script edits are live; `data/mods/customdimensions.jar` runs an unreleased build — see the release-pending note below). Read AGENTS.md and mods/AGENTS.md in full first, then `mods/.ideas/optional-mods-hardening.md` and THIS section's research finding — the original spec's namespace-clone route breaks terrain on existing worlds (noise seeds hash the id string); ship same-id copies instead.
->
-> Round 1: extend `scripts/gen-terrain-presets.py` to resolve the pinned Tectonic + Terralith jars (Modrinth pins in `config/modrinth-mods.txt`), walk the reference closure from the `adventure:wide`/`compressed` settings (every `"noise"` field, `shift/shift_a/shift_b` argument, and density-function reference), and emit byte-identical copies under the ORIGINAL ids into the custom-dimensions jar datapack. Success criterion (amended from the spec): with Tectonic and Terralith removed, the server boots and `adventure:wide`/`compressed` dims generate; with them present, generation is bit-identical to today (locate/biome oracle on a fixture dim before/after, same seed — the c2me DFC re-patch rule applies to every restart, snippet in dev-up.sh). Regenerate presets, rebuild the mod through the full verification loop (build → artefact checks → install on elfydd → boot).
-> Round 2: a removal-matrix smoke variant in CI (representative `overlay/mods-remove.txt`: when-dungeons-arise + dungeons-and-taverns + one YUNG mod + Tectonic + Terralith) asserting a clean boot and a clean `/locate` failure for a removed set. Round 3 (cheap): the ownership.json lint from the spec.
-> Work one round to completion (implemented AND verified AND documented) before the next; fold lessons into mods/AGENTS.md and update this file. Do not cut a release — that's Pip's call (one is already pending covering this session's portal/aura/GUI work).
-
-## Running-start notes for the next agent — session 2026-07-24 (portals Tier 2 → auras → deep tier → shrines → GUI)
-
-- **Release pending Pip's word — now larger**: `fc27767` + `67e93dc` + `f22423a` (previous session) PLUS this session's `b33dfe2` (shapes), `c410cf2` (per-part materials), `aaf101e` (portal auras), `4a77471` (deep tier: pattern + end_gateway), `2c0ce24` (shrine residuals), `c0d2848` (fork-config GUI). elfydd runs the unreleased jar; production still v3.6.0. The NetherPortalProtectionMixin fix remains player-facing — lean quick.
-- **netherportalspread retirement decision for Pip** (from the auras work): two spread engines fight around the same portals and it eats custom arrival frames. Ship its behaviour as an opt-in aura preset instead (item 5's aura notes).
-- **Deleting fixture WORLD DIRS without scrubbing level.dat is a boot wedge**: level.dat re-creates the dims and regenerates their spawn chunks → Epic Dungeons loot-id + c2me main-thread hang (hit live twice this session). Proven cleanup: stop mc → `pip install nbtlib` in a venv → delete `Data.WorldGenSettings.dimensions` keys (back up level.dat first) → delete world dirs + configs + fingerprints + portal_links records → start. The 11 stale `zz_*` fixture dims from 2026-07-23 were scrubbed this way too.
-- **Spark "Timed out waiting for world statistics" is NOT always the wedge**: it also fires through legitimately heavy boots (mass dim creation can run 10+ min). Check `Error upgrading chunk`/`DungeonZombie` counts and whether the log still advances before declaring a hang.
-- **The mod's `structures.wants` is `Map<String, StructureWant>`** — band-name strings there are a Gson parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family as the list-form shuns crash. The GUI validator now enforces the split.
-- **elfydd's `.stack/current` now symlinks `v3-dev` → this repo** (re-pointed this session for the GUI live loop): seed-script edits are live immediately; remember this when reasoning about what elfydd runs.
-- **Overlay-written dims need the staged-overlay mirror** (`data/config/custom-dimensions/overlay/dimensions/`) or fast_roller/finalise can't see them until the next `./dev up`; viewer-server now does this on create/fork.
-- **Chrome extension was offline** — the GUI's 900px/600px screenshot pass is deferred; do it opportunistically when a browser session is available.
-- **Cosmetic residue in the overworld dev world**: test platforms/frames at x≈2998–3186, z≈2995–3205, y149–154 (and a registered source gateway at 3160,150,3000 — functional, harmless). Clean up only if they get in the way.
-
-## Running-start notes for the next agent — session 2026-07-23/24 additions
-
-- **Persisted-state downgrade rule**: anything serialised into `portal_links.json` (or any state file) must stay parseable by every jar that might read it back — deploys roll back. A `#tag` in a persisted `frameBlock` crash-looped v3.6.0 (`Identifier.of` in an uncaught world-tick path). mods/AGENTS carries the full rule.
-- **netherportalspread eats custom-framed portals** — root-caused and fixed (`NetherPortalProtectionMixin`); if a portal block ever vanishes mysteriously again, the diagnostic that worked was a temporary `World.setBlockState` HEAD mixin logging a stack trace on portal→air. Four plausible theories (leaf decay, stale zones, mod tracking, site curse) were all wrong; the trace was right in one cycle. Instrument early, don't armchair.
-- **Source portal interiors contain NO portal blocks** — zones are invisible; only arrival portals carry real NETHER_PORTAL blocks. Assert source-side success by bot traversal, never interior probes.
-- **`execute in <dim> run tp Bot ...` teleports ACROSS dimensions** — it's the standard way to move the bot between worlds, and the standard way to accidentally do so.
-- **PLAYER_IN_ZONE is edge-triggered and can go stale**: a bot returned into a zone it never "exited" (flag-wise) won't re-teleport — step out and back in (`tp` away, sleep 2, `tp` back).
-- **`/setblock` and `/fill` fire NO neighbour updates** (flag 2) — never use them to test update-driven behaviour; use falling blocks or player actions (bot `attack once`).
-- **The existing-portal reuse branch does not log** — only fresh creations print "Created portal"; a traversal with no log line means `findExistingPortal` matched. Stacked test frames climb the heightmap (`findSurfaceY`), so repeated traversals at one site create portals at ever-higher Y — clean sites between runs.
-- **Empty RCON responses under load are failures-to-recheck**, and `execute at <entity> if block` in particular returns empty unreliably — prefer `execute in <dim> if block <abs coords>`.
-- **elfydd's `.stack/current` now points at the released bundle (v3.6.0)**, NOT the repo — seed-script edits are no longer live on elfydd; re-point to `v3-dev` (symlink to the repo) if roller work needs live iteration.
-- **Release pending Pip's word**: `fc27767` (seed-group rolling) + `67e93dc` (map fixes) + `f22423a` (portals Tier 1 + NetherPortalProtectionMixin). The protection fix is player-facing on production (return portals silently dying) — lean quick. elfydd's local `data/mods/customdimensions.jar` runs the unreleased Tier 1 build.
-- **Still awaiting a real player on production**: the `respawnAt` death redirect and the first organic exit-shrine encounter (carpet bots can't respawn).
-
-## Running-start notes for the next agent (accrued 2026-07-23)
-
-Verification-loop traps hit THIS session (beyond what AGENTS documents):
-
-- **c2me re-patch before EVERY `docker stop/start`** — now in mods/AGENTS.md §2. Three consecutive cycles ran unpatched here before it was caught. The idempotent snippet lives in `dev-up.sh` (search `useDensityFunctionCompiler`).
-- **Chunk generation from RCON can wedge the main thread permanently** (Epic Dungeons `epic:chests/DungeonZombie` invalid loot id + c2me — AGENTS known-issues). Run any forceload/if-block over ungenerated chunks as a BACKGROUND command with a timeout; recovery is `docker stop -t 90 mc && docker start mc`.
-- **`docker exec -i` eats your loop's stdin** — pipe-driven RCON loops silently stop after one iteration; append `</dev/null` to every docker exec inside a `while read` loop.
-- **zsh does not word-split unquoted vars** — `set -- $probe` patterns from bash break; use `read -r a b c <<< "$str"`.
-- **`unzip -l` with a glob matching two files** treats the second as a member filter and lists nothing — always name the jar exactly.
-- **`locate biome` samples on a 32-block horizontal grid** — distances quantise; classify inside/outside rather than expecting exact 0s near edges.
-- **Python sampler parity is REGION-level** — large regions and half-plane parameter tests match probe-for-probe; sliver biomes (sparse_jungle etc.) land within an approximation envelope. Server measurement stays ground truth; don't chase point mismatches.
-- **Fixture-dim lifecycle takes TWO restarts to fully clear** — level.dat re-creates deleted fixture dims for one boot (orphan reconciliation unloads them; the registry entry clears the restart after). Fixture cleanup = delete config + world dir + fingerprints entry, then expect one boot of orphan-unload chatter.
-- **elfydd's stack `current` → `v3-dev` symlinks straight to this repo** — seed-script changes are live locally without any sync step.
-- **Bot recipes**: `gamemode survival Bot` before `/damage` (spawns creative-ish/invulnerable); carpet fake players never respawn, so the `respawnAt` exit action is still awaiting its first real-player death as live confirmation; `touch /data/.skip-pause` before bot sessions and delete it in cleanup.
-- **Structure-set extraction cache**: `.seedtest/.structure_sets` won't contain `adventure:exit_shrines` until the next extraction run — roller work touching shrine placement should re-extract first.
+- **elfydd**: healthy, fixture-free (level.dat scrubbed — procedure now
+  in AGENTS.md Dimension lifecycle traps), `.stack/current` → `v3-dev`
+  (live repo), unreleased customdimensions.jar installed. Cosmetic
+  residue: test platforms/frames in the overworld at x≈2998–3186,
+  z≈2995–3205, y149–154, plus a registered source gateway at
+  (3160,150,3000) — functional, harmless, clean up only if in the way.
+- **Awaiting a real player on production**: the `respawnAt` death
+  redirect and the first organic exit-shrine encounter (carpet bots
+  can't respawn).
+- **Deferred**: the fork-config GUI's 900px/600px screenshot pass
+  (Chrome extension was offline headlessly) — do it opportunistically in
+  a browser-enabled session.

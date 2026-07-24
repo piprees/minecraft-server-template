@@ -583,9 +583,13 @@ def generation_payload(dim):
     sets), worldgen environment fields, borders.generation (measurement
     radius), checkerboard/superflat shape, settingsOverrides, biomePatches,
     exitShrines (raises the shrine set's frequency), and structures.spacing
-    (rescales placements). Everything else — seedRoll, portal, difficulty
-    multipliers, description, colours — is scoring or runtime and shares
-    freely. Base-world entries (no "type") return None: never grouped."""
+    (rescales placements). For exitShrines dims WITHOUT an explicit spacing
+    override, the shrine grid derives from borders.player — so the derived
+    spacing joins the payload for those dims (and only those: a plain dim's
+    player border stays scoring-only). Everything else — seedRoll, portal,
+    difficulty multipliers, description, colours — is scoring or runtime
+    and shares freely. Base-world entries (no "type") return None: never
+    grouped."""
     if "type" not in dim:
         return None
     raw_biomes = dim.get("biomes")
@@ -597,7 +601,7 @@ def generation_payload(dim):
     dif = dim.get("difficulty") or {}
     peaceful = dif.get("hostileSpawning", dim.get("hostileSpawning")) is False
     env = dim.get("environment") or {}
-    return {
+    payload = {
         "type": dim.get("type"),
         "noiseSettings": dim.get("noiseSettings"),
         "biomes": [[b, params.get(b)] for b in ids],
@@ -613,6 +617,29 @@ def generation_payload(dim):
         "exitShrines": bool((dim.get("exitShrines") or {}).get("enabled")),
         "spacingOverrides": (dim.get("structures") or {}).get("spacing") or {},
     }
+    # Added only when applicable so every pre-existing non-shrine
+    # fingerprint stays byte-stable (no spurious DRIFTED warnings).
+    derived = _derived_shrine_spacing(dim)
+    if derived is not None:
+        payload["shrineSpacing"] = derived
+    return payload
+
+
+def _derived_shrine_spacing(dim):
+    """Effective derived shrine spacing (DimensionStructures
+    .derivedShrineSpacing mirror): only meaningful — and only
+    fingerprinted — when exitShrines is enabled with no explicit
+    structures.spacing override for the shrine set."""
+    if not bool((dim.get("exitShrines") or {}).get("enabled")):
+        return None
+    overrides = (dim.get("structures") or {}).get("spacing") or {}
+    if "adventure:exit_shrines" in overrides:
+        return None  # explicit override already fingerprints via spacingOverrides
+    border = (dim.get("borders") or {}).get("player")
+    if not isinstance(border, (int, float)) or isinstance(border, bool) or border <= 0:
+        border = DEFAULT_BORDER_RADIUS
+    spacing = max(12, min(48, int(border) // 32))
+    return [spacing, spacing // 2]
 
 
 def generation_fingerprint(dim):

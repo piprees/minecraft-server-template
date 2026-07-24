@@ -385,6 +385,20 @@ class GenerationFingerprintTests(unittest.TestCase):
         self.assertNotEqual(base, self.fp(biomePatches=[
             {"biome": "minecraft:plains", "x": 0, "z": 0, "radius": 64}]))
         self.assertNotEqual(base, self.fp(exitShrines={"enabled": True}))
+        # shrine dims derive their grid from borders.player — differing
+        # player borders must split the group (but ONLY for shrine dims:
+        # asserted the other way in the runtime test above)
+        self.assertNotEqual(
+            self.fp(exitShrines={"enabled": True}, borders={"player": 512}),
+            self.fp(exitShrines={"enabled": True}, borders={"player": 4096}))
+        # an explicit shrine spacing override neutralises the border derive
+        self.assertEqual(
+            self.fp(exitShrines={"enabled": True}, borders={"player": 512},
+                    structures={"spacing": {"adventure:exit_shrines":
+                                            {"spacing": 20, "separation": 10}}}),
+            self.fp(exitShrines={"enabled": True}, borders={"player": 4096},
+                    structures={"spacing": {"adventure:exit_shrines":
+                                            {"spacing": 20, "separation": 10}}}))
         # ...but structures.spacing rescales placements: generation-affecting
         self.assertNotEqual(base, self.fp(structures={
             "spacing": {"minecraft:villages": {"spacing": 8, "separation": 4}}}))
