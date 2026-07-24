@@ -355,6 +355,36 @@ if [[ -f "$DH_TOML" ]]; then
   fi
 fi
 
+# --- Enforce Discord integration config (mirrors deploy.sh step 9) ------------
+# The dcintegration mod reads its bot token from Discord-Integration.toml, NOT
+# from env vars. dev-up.sh seeds the config with skip-if-exists, so the first
+# boot creates the TOML with botToken="INSERT BOT TOKEN HERE" and subsequent
+# boots never touch it. Without this injection, INSTANCE stays null and the
+# mod's mixin on player leave crashes the server with an NPE.
+DI_TOML="$CONSUMER_DIR/data/config/Discord-Integration.toml"
+if [[ -n "${DISCORD_BOT_TOKEN:-}" && -f "$DI_TOML" ]]; then
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$DI_TOML" 2>/dev/null || true
+    sed -i '' "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" "$DI_TOML" 2>/dev/null || true
+    sed -i '' 's|enable = false|enable = true|' "$DI_TOML" 2>/dev/null || true
+    sed -i '' "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$DI_TOML" 2>/dev/null || true
+    sed -i '' 's|serverStarting = true|serverStarting = false|' "$DI_TOML" 2>/dev/null || true
+  else
+    sed -i "s|botToken = \".*\"|botToken = \"${DISCORD_BOT_TOKEN}\"|" "$DI_TOML" 2>/dev/null || true
+    sed -i "s|botChannel = .*|botChannel = ${DISCORD_CHAT_CHANNEL_ID:-${DISCORD_CHANNEL_ID:-0}}|" "$DI_TOML" 2>/dev/null || true
+    sed -i 's|enable = false|enable = true|' "$DI_TOML" 2>/dev/null || true
+    sed -i "s|serverName = \".*\"|serverName = \"${BRAND_NAME:-Server}\"|" "$DI_TOML" 2>/dev/null || true
+    sed -i 's|serverStarting = true|serverStarting = false|' "$DI_TOML" 2>/dev/null || true
+  fi
+  # discord-sync owns slash commands — disable them in the mod.
+  if [[ -f "$SCRIPT_DIR/ensure-discord-command-owner.py" ]]; then
+    python3 "$SCRIPT_DIR/ensure-discord-command-owner.py" "$DI_TOML"
+  fi
+  echo "  Discord integration configured (bot token injected)"
+elif [[ -z "${DISCORD_BOT_TOKEN:-}" && -f "$DI_TOML" ]]; then
+  echo "  Warning: DISCORD_BOT_TOKEN not set — dcintegration will fail to connect"
+fi
+
 # --- Install in-house mod JARs from the bundle --------------------------------
 # Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
 # Overwrite deliberately so a bundle update replaces stale copies. Without
@@ -537,6 +567,49 @@ if [[ "${ONLINE_MODE:-TRUE}" == "FALSE" && -n "${OPS:-}" ]]; then
     $ALL_OK && break
     [[ $attempt -lt 3 ]] && sleep 5
   done
+fi
+
+# --- Auto-rebuild modpack if stale --------------------------------------------
+# The modpack must stay in sync with the stack version and mod overlay so the
+# client has the correct mods, configs, and resource packs. Rebuild when:
+#   - modpack-dist/ has no .mrpack file (never built)
+#   - the stack version changed since the last build
+#   - overlay/mods-extra.txt or overlay/mods-remove.txt changed
+# The build runs the modpack-builder image (same as ./dev pack).
+PACK_DIR="$CONSUMER_DIR/modpack-dist"
+PACK_MARKER="$PACK_DIR/.build-inputs"
+STACK_VER="$(cat "$STACK_DIR/VERSION" 2>/dev/null || echo unknown)"
+OVERLAY_HASH="$(cat "$CONSUMER_DIR/overlay/mods-extra.txt" "$CONSUMER_DIR/overlay/mods-remove.txt" 2>/dev/null | cksum | awk '{print $1}')"
+CURRENT_INPUTS="${STACK_VER}:${OVERLAY_HASH}"
+PREV_INPUTS="$(cat "$PACK_MARKER" 2>/dev/null || echo none)"
+HAVE_MRPACK=false
+ls "$PACK_DIR"/*.mrpack &>/dev/null 2>&1 && HAVE_MRPACK=true
+
+if [[ "$HAVE_MRPACK" == "false" || "$CURRENT_INPUTS" != "$PREV_INPUTS" ]]; then
+  echo ""
+  if [[ "$HAVE_MRPACK" == "false" ]]; then
+    echo "  Modpack not built yet — building now..."
+  else
+    echo "  Modpack inputs changed — rebuilding..."
+  fi
+  mkdir -p "$PACK_DIR"
+  if docker run --rm \
+    -v "$CONSUMER_DIR/overlay:/overlay:ro" \
+    -v "$PACK_DIR:/work/dist" \
+    -e "DOMAIN=${LOCAL_DOMAIN:-${DOMAIN:-localhost}}" \
+    -e "BRAND_NAME=${BRAND_NAME:-My Server}" \
+    -e "BRAND_SLUG=${BRAND_SLUG:-myserver}" \
+    -e "MC_VERSION=${MC_VERSION:-1.21.1}" \
+    -e "SERVER_PORT=${SERVER_PORT:-25577}" \
+    -e "LOCAL_DOMAIN=${LOCAL_DOMAIN:-localhost}" \
+    -e "GIT_SHA=${GIT_SHA:-local}" \
+    -e "DISCORD_INVITE_URL=${DISCORD_INVITE_URL:-}" \
+    "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}" 2>&1; then
+    echo "$CURRENT_INPUTS" > "$PACK_MARKER"
+    echo "  Modpack built to modpack-dist/"
+  else
+    echo "  Warning: modpack build failed — client pack may be stale"
+  fi
 fi
 
 echo ""
