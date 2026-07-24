@@ -15,7 +15,7 @@ All biomes below — including Nature's Spirit — are fully supported in both `
 
 ---
 
-## Overworld family (195 biomes)
+## Overworld family (196 biomes)
 
 Use with: `multi_biome`, `overworld`, `cave`, `amplified`, `large_biomes`, `sky_islands`, `checkerboard`, `single_biome`, `void` (if all biomes are overworld-family).
 
@@ -104,33 +104,33 @@ terralith:yellowstone                 terralith:yosemite_cliffs
 terralith:yosemite_lowlands
 ```
 
-### natures_spirit (47 biomes)
+### natures_spirit (48 biomes)
 
 ```
 natures_spirit:alpine_clearings       natures_spirit:alpine_highlands
 natures_spirit:arid_highlands         natures_spirit:arid_savanna
 natures_spirit:aspen_forest           natures_spirit:bamboo_wetlands
 natures_spirit:blooming_dunes         natures_spirit:blooming_highlands
-natures_spirit:boreal_taiga           natures_spirit:carnation_fields
-natures_spirit:cedar_thicket          natures_spirit:coniferous_covert
-natures_spirit:cypress_fields         natures_spirit:dusty_slopes
-natures_spirit:fir_forest             natures_spirit:floral_ridges
-natures_spirit:flowering_shrubland    natures_spirit:golden_wilds
-natures_spirit:heather_fields         natures_spirit:lavender_fields
-natures_spirit:lively_dunes           natures_spirit:maple_woodlands
-natures_spirit:marigold_meadows       natures_spirit:marsh
+natures_spirit:blooming_sugi_forest   natures_spirit:boreal_taiga
+natures_spirit:carnation_fields       natures_spirit:cedar_thicket
+natures_spirit:chaparral              natures_spirit:coniferous_covert
+natures_spirit:cypress_fields         natures_spirit:drylands
+natures_spirit:dusty_slopes           natures_spirit:fir_forest
+natures_spirit:floral_ridges          natures_spirit:flowering_shrubland
+natures_spirit:golden_wilds           natures_spirit:heather_fields
+natures_spirit:lavender_fields        natures_spirit:lively_dunes
+natures_spirit:maple_woodlands        natures_spirit:marsh
 natures_spirit:oak_savanna            natures_spirit:prairie
 natures_spirit:red_peaks              natures_spirit:redwood_forest
-natures_spirit:scorched_dunes         natures_spirit:shrubby_highlands
-natures_spirit:shrubland              natures_spirit:sleeted_slopes
+natures_spirit:shrubby_highlands      natures_spirit:shrubland
 natures_spirit:snowcapped_red_peaks   natures_spirit:snowy_fir_forest
 natures_spirit:snowy_redwood_forest   natures_spirit:sparse_tropical_woods
-natures_spirit:stratified_desert      natures_spirit:tropical_basin
-natures_spirit:tropical_shores        natures_spirit:tropical_woods
-natures_spirit:tundra                 natures_spirit:white_cliffs
-natures_spirit:windswept_sugi_forest  natures_spirit:wisteria_forest
-natures_spirit:wooded_drylands        natures_spirit:woody_highlands
-natures_spirit:xeric_plains
+natures_spirit:stratified_desert      natures_spirit:sugi_forest
+natures_spirit:tropical_basin         natures_spirit:tropical_shores
+natures_spirit:tropical_woods         natures_spirit:tundra
+natures_spirit:white_cliffs           natures_spirit:windswept_sugi_forest
+natures_spirit:wisteria_forest        natures_spirit:wooded_drylands
+natures_spirit:woody_highlands        natures_spirit:xeric_plains
 ```
 
 ---
