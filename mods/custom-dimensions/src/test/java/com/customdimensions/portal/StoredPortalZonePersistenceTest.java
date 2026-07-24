@@ -62,6 +62,29 @@ class StoredPortalZonePersistenceTest {
     }
 
     @Test
+    void shapeAndCentreBlockRoundTripAndDefaultToStandard() {
+        PortalHelper.PortalZone source = zone(-1);
+        source.definition.setShape("end_exit");
+        source.definition.setCentreBlock("minecraft:dragon_egg");
+        String json = GSON.toJson(PortalHelper.StoredPortalZone.from(source));
+        // Plain strings only in the record (downgrade-parseability rule);
+        // older jars simply ignore the unknown fields.
+        assertTrue(json.contains("\"shape\":\"end_exit\""));
+        assertTrue(json.contains("\"centreBlock\":\"minecraft:dragon_egg\""));
+        PortalHelper.PortalZone restored =
+                GSON.fromJson(json, PortalHelper.StoredPortalZone.class).toPortalZone();
+        assertEquals("end_exit", restored.definition.getShape());
+        assertEquals("minecraft:dragon_egg", restored.definition.getCentreBlock());
+        // Records without shape (every pre-Tier-2 zone) restore as standard.
+        PortalHelper.PortalZone legacyShaped = zone(-1);
+        String legacyJson = GSON.toJson(PortalHelper.StoredPortalZone.from(legacyShaped));
+        assertFalse(legacyJson.contains("shape"));
+        assertEquals("standard",
+                GSON.fromJson(legacyJson, PortalHelper.StoredPortalZone.class)
+                        .toPortalZone().definition.getShape());
+    }
+
+    @Test
     void legacyRecordWithoutCountdownFieldRestoresUnarmed() {
         String legacy = """
                 {"recordType":"source-zone-v1","sourceWorld":"minecraft:overworld",

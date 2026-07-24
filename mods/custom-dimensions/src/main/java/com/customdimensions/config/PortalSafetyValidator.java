@@ -117,6 +117,49 @@ public final class PortalSafetyValidator {
                     + "KEEPING the config as written (never auto-fixed).",
                     config.getName(), portal.orientation.trim(), ORIENTATIONS));
         }
+        validateShapeConfig(config, portal, warnings);
+    }
+
+    // Shape hygiene (Tier 2): unknown preset names, shape/orientation
+    // contradictions, and centreBlock misuse. WARN and keep going.
+    private static void validateShapeConfig(DimensionConfig config, DimensionConfig.Portal portal,
+                                            List<String> warnings) {
+        String shape = portal.shape != null ? portal.shape.trim() : null;
+        if (shape != null && !shape.isBlank()
+                && !com.customdimensions.portal.PortalShape.KNOWN.contains(shape)) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.shape '%s' is not one of %s — the portal can never "
+                    + "ignite. KEEPING the config as written (never auto-fixed).",
+                    config.getName(), shape, com.customdimensions.portal.PortalShape.KNOWN));
+        }
+        // An explicit orientation that excludes every axis the shape can
+        // exist on means ignition can never succeed — surface it.
+        String orientation = portal.orientation != null ? portal.orientation.trim() : null;
+        if (orientation != null && !orientation.isBlank() && shape != null) {
+            boolean verticalShape = com.customdimensions.portal.PortalShape.DOOR.equals(shape)
+                    || com.customdimensions.portal.PortalShape.DOORWAY.equals(shape);
+            boolean horizontalShape = com.customdimensions.portal.PortalShape.END_EXIT.equals(shape);
+            if ((verticalShape && "horizontal".equals(orientation))
+                    || (horizontalShape && orientation.startsWith("vertical"))) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.shape '%s' cannot exist under portal.orientation '%s' — "
+                        + "the portal can never ignite. KEEPING the config as written (never auto-fixed).",
+                        config.getName(), shape, orientation));
+            }
+        }
+        if (portal.centreBlock != null && !portal.centreBlock.isBlank()) {
+            if (!com.customdimensions.portal.PortalShape.END_EXIT.equals(shape)) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.centreBlock is set but portal.shape is not \"end_exit\" — "
+                        + "it will never be placed. KEEPING the config as written (never auto-fixed).",
+                        config.getName()));
+            } else if (net.minecraft.util.Identifier.tryParse(portal.centreBlock.trim()) == null) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.centreBlock '%s' is not a valid identifier — nothing "
+                        + "will be placed. KEEPING the config as written (never auto-fixed).",
+                        config.getName(), portal.centreBlock.trim()));
+            }
+        }
     }
 
     // Dimension-link hygiene: every exit target that names a dimension must

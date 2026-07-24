@@ -11,7 +11,8 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Per-biome placement parameters** -- `biomes` entries may be `{id, parameters}` objects with explicit multi-noise intervals (number or `[min,max]` per axis, -2..2); the biome claims exactly that region, unset axes span everything
 - **Per-set structure spacing** -- `structures.spacing` maps structure SET ids to exact `{spacing, separation}` values, overriding the theme-based `structureDensity` factors for those sets (boot-re-read; new chunks only)
 - **Biome patches** -- `biomePatches` overrides the generated layout in three modes: stamp (`{biome, x, z, radius}` claims the area), clipped swap (`replace` recolours only the matching biome inside the area, organic shape kept), and global swap (`scope: "global"` replaces a biome dimension-wide, or uses the area as a selector for every biome touching it). `shape: circle|square`, `blend` edge jitter (default 8 blocks). A stamp at (0,0) guarantees the spawn biome. Backed by a codec-registered `PatchedBiomeSource` wrapper so the generator persists cleanly
-- **Custom portal frames** -- any block as the frame, any item as the igniter
+- **Custom portal frames** -- any block as the frame, any item as the igniter; `frameBlock` accepts a plain id, `#ns:tag`, a list, or `{"colorGroup": "<dye>"}`, with `framePlaceBlock` naming the concrete block mod-built frames use
+- **Portal shape presets** -- optional `shape`: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring, optional `centreBlock` pedestal); absent = free-form flood-fill. Shapes imply orientation; mod-built exit portals follow the dimension's shape
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
 - **Coordinate scaling** -- configurable scale factor per portal (e.g., 0.125 for nether-style 1:8)
@@ -238,6 +239,42 @@ Two hard-won rules from live verification (2026-07-23):
   obsidian-only on ANY adjacent block change, and netherportalspread's
   corruption spread was silently deleting custom-framed arrival portals
   seconds after creation. Player-built vanilla portals are untouched.
+
+### Portal shapes
+
+An optional `"shape"` constrains the geometry a player must build. Absent
+(or `"standard"`) keeps free-form flood-fill — any frame-bounded shape up
+to 128 interior blocks, today's behaviour:
+
+```jsonc
+"portal": {
+  "shape": "door",       // exactly 1x2 interior (a single door), vertical
+  "shape": "doorway",    // exactly 2x3 interior (the vanilla Nether opening), vertical
+  "shape": "end_exit",   // horizontal ring (any footprint), end-portal style
+
+  // end_exit only: a pedestal block placed at the interior's centre cell
+  // on ignition (dragon egg, trophy). Source-side scenery — arrival pads
+  // and mod-built exit portals never get one (the exit-portal intact
+  // check requires every interior cell to be a portal block).
+  "centreBlock": "minecraft:dragon_egg"
+}
+```
+
+Shapes imply an orientation default (`door`/`doorway` → `"vertical"`,
+`end_exit` → `"horizontal"`); an explicit `"orientation"` always wins, and
+a contradictory combination (e.g. `door` + `horizontal`) WARNs at boot as
+never-ignitable. Unknown shape names WARN at boot and reject every
+ignition until fixed — never a crash, never auto-fixed. Validation runs
+after the flood-fill (`PortalShape`, pure geometry): wrong-size interiors
+simply don't ignite.
+
+Mod-built frames follow the dimension's shape: arrival portals reuse the
+source interior as always, and `exitPortal` builds a 1x2 frame for `door`
+dims, the classic 2x3 for `doorway`/`standard`, and a horizontal 3x3
+`END_PORTAL` pad ringed in the placement block for `end_exit`. Zone
+records persist `shape`/`centreBlock` as plain strings — older jars ignore
+the unknown fields (downgrade-safe), and pre-shape records restore as
+`standard`.
 
 ### Anchor, single-use, and exit portals
 

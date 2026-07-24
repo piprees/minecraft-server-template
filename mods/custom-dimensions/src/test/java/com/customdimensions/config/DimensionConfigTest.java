@@ -137,6 +137,27 @@ class DimensionConfigTest {
     }
 
     @Test
+    void shapeAndCentreBlockPlumbIntoPortalDefinition() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"minecraft:end_stone_bricks","shape":"end_exit",
+                 "centreBlock":"minecraft:dragon_egg"}}
+                """);
+        PortalDefinition def = config.toPortalDefinition();
+        assertEquals("end_exit", def.getShape());
+        assertEquals("minecraft:dragon_egg", def.getCentreBlock());
+        assertEquals("horizontal", def.getOrientation());
+        // absent shape stays standard and leaves orientation at "any"
+        PortalDefinition plain = parse("d", "{\"portal\":{\"frameBlock\":\"b\"}}").toPortalDefinition();
+        assertEquals("standard", plain.getShape());
+        assertNull(plain.getCentreBlock());
+        assertEquals("any", plain.getOrientation());
+        // an explicit "standard" is not stored (keeps legacy-shaped records)
+        PortalDefinition explicit = parse("d",
+                "{\"portal\":{\"frameBlock\":\"b\",\"shape\":\"standard\"}}").toPortalDefinition();
+        assertEquals("standard", explicit.getShape());
+    }
+
+    @Test
     void legacyFlatPortalSoundsStillResolve() {
         DimensionConfig config = parse("d", """
                 {"portal":{"frameBlock":"minecraft:clay","enterSound":"x.y"}}

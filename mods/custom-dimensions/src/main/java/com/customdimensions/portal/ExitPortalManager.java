@@ -96,7 +96,10 @@ public final class ExitPortalManager {
 
         // Adopt an existing intact portal near the site before building —
         // otherwise every boot would stack a fresh frame on the old one.
-        BlockPos existing = PortalHelper.findExistingPortal(world, baseX, surfaceY, baseZ, 3, 16, Direction.Axis.X);
+        // end_exit dimensions build (and search for) horizontal portals.
+        Direction.Axis axis = PortalShape.END_EXIT.equals(shapeOf(config))
+                ? Direction.Axis.Y : Direction.Axis.X;
+        BlockPos existing = PortalHelper.findExistingPortal(world, baseX, surfaceY, baseZ, 3, 16, axis);
         Set<BlockPos> newInterior;
         if (existing != null) {
             newInterior = interiorFrom(existing, world);
@@ -114,21 +117,28 @@ public final class ExitPortalManager {
         return collected.isEmpty() ? Set.of(anyPortalBlock) : collected;
     }
 
-    // Standard 2x3 X-axis frame from the dimension's own frame block.
+    // Frame in the dimension's own frame block and portal shape ("door" =
+    // 1x2, "doorway"/"standard" = 2x3, "end_exit" = horizontal 3x3 ring).
     // Frames first, portal blocks last with NOTIFY_LISTENERS | FORCE_STATE —
     // NOTIFY_ALL makes custom-framed portals self-destruct during placement.
     private static Set<BlockPos> buildFrame(ServerWorld world, DimensionConfig config, int x, int y, int z) {
         Block frameBlock = resolveFrameBlock(config);
         int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
+        String shape = shapeOf(config);
+        if (PortalShape.END_EXIT.equals(shape)) {
+            return buildHorizontalFrame(world, frameBlock, x, y, z, flags);
+        }
+        int width = PortalShape.DOOR.equals(shape) ? 1 : INTERIOR_WIDTH;
+        int height = PortalShape.DOOR.equals(shape) ? 2 : INTERIOR_HEIGHT;
         Set<BlockPos> interior = new HashSet<>();
-        for (int dx = 0; dx < INTERIOR_WIDTH; dx++) {
-            for (int dy = 0; dy < INTERIOR_HEIGHT; dy++) {
+        for (int dx = 0; dx < width; dx++) {
+            for (int dy = 0; dy < height; dy++) {
                 interior.add(new BlockPos(x + dx, y + dy, z));
             }
         }
-        for (int dx = -1; dx <= INTERIOR_WIDTH; dx++) {
-            for (int dy = -1; dy <= INTERIOR_HEIGHT; dy++) {
-                boolean isInterior = dx >= 0 && dx < INTERIOR_WIDTH && dy >= 0 && dy < INTERIOR_HEIGHT;
+        for (int dx = -1; dx <= width; dx++) {
+            for (int dy = -1; dy <= height; dy++) {
+                boolean isInterior = dx >= 0 && dx < width && dy >= 0 && dy < height;
                 if (!isInterior) {
                     world.setBlockState(new BlockPos(x + dx, y + dy, z), frameBlock.getDefaultState(), flags);
                 }
@@ -140,6 +150,44 @@ public final class ExitPortalManager {
             world.setBlockState(p, portalState, flags);
         }
         return interior;
+    }
+
+    // Horizontal 3x3 END_PORTAL pad with a frame ring at the same level and
+    // a solid floor beneath (same floor rule as createTargetPortal). No
+    // centreBlock pedestal here: the intact-check requires every interior
+    // cell to be a portal block, and a pedestal cell would read as "broken"
+    // and trigger a rebuild loop.
+    private static Set<BlockPos> buildHorizontalFrame(ServerWorld world, Block frameBlock,
+            int x, int y, int z, int flags) {
+        Set<BlockPos> interior = new HashSet<>();
+        for (int dx = 0; dx < 3; dx++) {
+            for (int dz = 0; dz < 3; dz++) {
+                interior.add(new BlockPos(x + dx, y, z + dz));
+            }
+        }
+        for (int dx = -1; dx <= 3; dx++) {
+            for (int dz = -1; dz <= 3; dz++) {
+                boolean isInterior = dx >= 0 && dx < 3 && dz >= 0 && dz < 3;
+                if (!isInterior) {
+                    world.setBlockState(new BlockPos(x + dx, y, z + dz), frameBlock.getDefaultState(), flags);
+                }
+            }
+        }
+        for (BlockPos p : interior) {
+            BlockPos below = p.down();
+            if (!world.getBlockState(below).isSolid()) {
+                world.setBlockState(below, frameBlock.getDefaultState(), flags);
+            }
+        }
+        for (BlockPos p : interior) {
+            world.setBlockState(p, Blocks.END_PORTAL.getDefaultState(), flags);
+        }
+        return interior;
+    }
+
+    /** The dimension's portal shape preset ("standard" when unset). */
+    private static String shapeOf(DimensionConfig config) {
+        return PortalShape.normalise(config.hasPortal() ? config.getPortal().shape : null);
     }
 
     private static void registerExit(ServerWorld world, DimensionConfig config, Set<BlockPos> interior) {

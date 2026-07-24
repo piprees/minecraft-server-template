@@ -579,6 +579,13 @@ public class DimensionConfig {
         if (this.portal.orientation != null && !this.portal.orientation.isBlank()) {
             def.setOrientation(this.portal.orientation.trim());
         }
+        if (this.portal.shape != null && !this.portal.shape.isBlank()
+                && !com.customdimensions.portal.PortalShape.STANDARD.equals(this.portal.shape.trim())) {
+            def.setShape(this.portal.shape.trim());
+        }
+        if (this.portal.centreBlock != null && !this.portal.centreBlock.isBlank()) {
+            def.setCentreBlock(this.portal.centreBlock.trim());
+        }
         def.setScale(this.portal.scale != null ? this.portal.scale : 1.0);
         def.setCooldown(this.portal.cooldown != null ? this.portal.cooldown : 40);
         def.setParticleType(this.portal.particleType);
@@ -795,6 +802,21 @@ public class DimensionConfig {
          */
         @SerializedName("orientation")
         public String orientation;
+        /**
+         * Named shape preset: "standard" (absent — free-form flood-fill) |
+         * "door" (1x2 vertical) | "doorway" (2x3 vertical) | "end_exit"
+         * (horizontal ring). Shapes imply an orientation default; an
+         * explicit "orientation" always wins.
+         */
+        @SerializedName("shape")
+        public String shape;
+        /**
+         * Block id placed at the interior centre on end_exit ignition (a
+         * pedestal — dragon egg, trophy). Only meaningful with
+         * shape "end_exit".
+         */
+        @SerializedName("centreBlock")
+        public String centreBlock;
         @SerializedName("igniterItem")
         public String igniterItem;
         @SerializedName("color")

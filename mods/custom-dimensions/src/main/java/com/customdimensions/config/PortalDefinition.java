@@ -34,9 +34,22 @@ public class PortalDefinition {
     private String framePlaceBlock;
     /**
      * "vertical" (X/Z) | "horizontal" (Y) | "vertical_x" | "vertical_z" |
-     * "any". Null = "any" — today's behaviour, all three axes.
+     * "any". Null defers to the shape's implied orientation (door/doorway
+     * vertical, end_exit horizontal), else "any" — today's behaviour.
      */
     private String orientation;
+    /**
+     * Named shape preset: "standard" (free-form flood-fill, the default) |
+     * "door" (1x2) | "doorway" (2x3) | "end_exit" (horizontal ring). Null =
+     * "standard". Persisted into zone records as a plain string (unknown
+     * fields are ignored by older jars — downgrade-safe).
+     */
+    private String shape;
+    /**
+     * Block id placed at the interior's centre on end_exit ignition (a
+     * pedestal). Null = nothing placed. Plain parseable id only.
+     */
+    private String centreBlock;
     private String igniterItem;
     private String targetDimension;
     private String color;
@@ -128,13 +141,39 @@ public class PortalDefinition {
         this.framePlaceBlock = framePlaceBlock;
     }
 
-    /** "vertical" | "horizontal" | "vertical_x" | "vertical_z" | "any" (default). */
+    /**
+     * Effective orientation: the explicit field always wins; otherwise the
+     * shape's implication (door/doorway → "vertical", end_exit →
+     * "horizontal"); otherwise "any" (today's behaviour).
+     */
     public String getOrientation() {
-        return this.orientation != null && !this.orientation.isBlank() ? this.orientation : "any";
+        if (this.orientation != null && !this.orientation.isBlank()) {
+            return this.orientation;
+        }
+        String implied = com.customdimensions.portal.PortalShape.impliedOrientation(this.shape);
+        return implied != null ? implied : "any";
     }
 
     public void setOrientation(String orientation) {
         this.orientation = orientation;
+    }
+
+    /** Normalised shape preset name; "standard" when unset. */
+    public String getShape() {
+        return com.customdimensions.portal.PortalShape.normalise(this.shape);
+    }
+
+    public void setShape(String shape) {
+        this.shape = shape;
+    }
+
+    /** Centre pedestal block id for end_exit shapes; null = none. */
+    public String getCentreBlock() {
+        return this.centreBlock != null && !this.centreBlock.isBlank() ? this.centreBlock : null;
+    }
+
+    public void setCentreBlock(String centreBlock) {
+        this.centreBlock = centreBlock;
     }
 
     /**

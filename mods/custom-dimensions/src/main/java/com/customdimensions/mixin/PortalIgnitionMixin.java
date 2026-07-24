@@ -121,6 +121,7 @@ public class PortalIgnitionMixin {
         RegistryKey<World> worldKey = serverWorld.getRegistryKey();
         PortalHelper.PortalZone zone = new PortalHelper.PortalZone(fill, def, axis, worldKey, def.getTargetKey());
         PortalHelper.registerZone(zone);
+        placeCentreBlock(serverWorld, def, fill, axis);
         prewarmTarget(def);
         PortalHelper.spawnParticles(serverWorld, zone);
         playIgniteSound(serverWorld, soundPos, def);
@@ -128,6 +129,28 @@ public class PortalIgnitionMixin {
         if (context.getPlayer() == null || !context.getPlayer().isCreative()) {
             context.getStack().decrement(1);
         }
+    }
+
+    // end_exit pedestal: a real block at the interior's centre cell (dragon
+    // egg, trophy). Source zones stay invisible otherwise — the pedestal is
+    // scenery, not a portal block, and zone validity only checks the frame
+    // ring, so occupying one interior cell is safe. Placement uses
+    // NOTIFY_LISTENERS | FORCE_STATE like every other frame/portal write.
+    private static void placeCentreBlock(ServerWorld world, PortalDefinition def,
+            Set<BlockPos> fill, Direction.Axis axis) {
+        if (axis != Direction.Axis.Y
+                || !com.customdimensions.portal.PortalShape.END_EXIT.equals(def.getShape())
+                || def.getCentreBlock() == null) {
+            return;
+        }
+        Identifier blockId = Identifier.tryParse(def.getCentreBlock());
+        net.minecraft.block.Block block = blockId != null ? Registries.BLOCK.get(blockId) : null;
+        if (block == null || block == net.minecraft.block.Blocks.AIR) {
+            return;
+        }
+        BlockPos centre = com.customdimensions.portal.PortalShape.centreOf(fill);
+        world.setBlockState(centre, block.getDefaultState(),
+                net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
     }
 
     // Pre-warm the target dimension the moment its portal ignites — world

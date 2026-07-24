@@ -49,6 +49,62 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
+    void unknownShapeWarns() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"b","shape":"hexagon"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(config));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("hexagon"));
+        assertTrue(warnings.get(0).contains("never ignite"));
+    }
+
+    @Test
+    void knownShapesAreSilent() {
+        DimensionConfig door = parse("d1", "{\"portal\":{\"frameBlock\":\"b\",\"shape\":\"door\"}}");
+        DimensionConfig doorway = parse("d2", "{\"portal\":{\"frameBlock\":\"b\",\"shape\":\"doorway\"}}");
+        DimensionConfig endExit = parse("d3", """
+                {"portal":{"frameBlock":"b","shape":"end_exit","centreBlock":"minecraft:dragon_egg"}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(door, doorway, endExit)).isEmpty());
+    }
+
+    @Test
+    void contradictoryShapeOrientationWarns() {
+        DimensionConfig sideways = parse("d1", """
+                {"portal":{"frameBlock":"b","shape":"door","orientation":"horizontal"}}
+                """);
+        DimensionConfig upright = parse("d2", """
+                {"portal":{"frameBlock":"b","shape":"end_exit","orientation":"vertical_x"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(sideways, upright));
+        assertEquals(2, warnings.size());
+        assertTrue(warnings.get(0).contains("can never ignite"));
+        assertTrue(warnings.get(1).contains("can never ignite"));
+        // compatible explicit orientation stays silent
+        DimensionConfig fine = parse("d3", """
+                {"portal":{"frameBlock":"b","shape":"door","orientation":"vertical_z"}}
+                """);
+        assertTrue(PortalSafetyValidator.validate(List.of(fine)).isEmpty());
+    }
+
+    @Test
+    void centreBlockOutsideEndExitWarns() {
+        DimensionConfig stray = parse("d1", """
+                {"portal":{"frameBlock":"b","centreBlock":"minecraft:dragon_egg"}}
+                """);
+        List<String> warnings = PortalSafetyValidator.validate(List.of(stray));
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("centreBlock"));
+        DimensionConfig badId = parse("d2", """
+                {"portal":{"frameBlock":"b","shape":"end_exit","centreBlock":"NOT AN ID"}}
+                """);
+        List<String> idWarnings = PortalSafetyValidator.validate(List.of(badId));
+        assertEquals(1, idWarnings.size());
+        assertTrue(idWarnings.get(0).contains("not a valid identifier"));
+    }
+
+    @Test
     void disabledSingleUseAndPlainPortalsAreSilent() {
         DimensionConfig disabled = parse("d1", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":false}}}

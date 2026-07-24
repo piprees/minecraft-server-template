@@ -109,4 +109,35 @@ class PortalDefinitionTest {
         def.setOrientation("sideways");
         assertTrue(def.allowsAxis(x) && def.allowsAxis(y) && def.allowsAxis(z));
     }
+
+    @Test
+    void shapeImpliesOrientationButExplicitWins() {
+        net.minecraft.util.math.Direction.Axis x = net.minecraft.util.math.Direction.Axis.X;
+        net.minecraft.util.math.Direction.Axis y = net.minecraft.util.math.Direction.Axis.Y;
+        net.minecraft.util.math.Direction.Axis z = net.minecraft.util.math.Direction.Axis.Z;
+        PortalDefinition def = new PortalDefinition("p", "b", "i", "t", "AA00FF", 0);
+        assertEquals("standard", def.getShape());
+        def.setShape("door");
+        assertEquals("vertical", def.getOrientation());   // implied
+        assertTrue(def.allowsAxis(x) && def.allowsAxis(z));
+        assertFalse(def.allowsAxis(y));
+        def.setShape("end_exit");
+        assertEquals("horizontal", def.getOrientation());
+        assertTrue(def.allowsAxis(y));
+        assertFalse(def.allowsAxis(x) || def.allowsAxis(z));
+        // explicit orientation always wins over the shape's implication
+        def.setOrientation("vertical_x");
+        assertTrue(def.allowsAxis(x));
+        assertFalse(def.allowsAxis(y) || def.allowsAxis(z));
+    }
+
+    @Test
+    void centreBlockBlankNormalisesToNull() {
+        PortalDefinition def = new PortalDefinition();
+        assertNull(def.getCentreBlock());
+        def.setCentreBlock("  ");
+        assertNull(def.getCentreBlock());
+        def.setCentreBlock("minecraft:dragon_egg");
+        assertEquals("minecraft:dragon_egg", def.getCentreBlock());
+    }
 }

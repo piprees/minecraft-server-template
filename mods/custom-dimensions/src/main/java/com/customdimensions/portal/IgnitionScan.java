@@ -34,6 +34,12 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
         if (fill.isEmpty() || !PortalHelper.isAreaBoundedByFrame(world, fill, matcher, axis)) {
             return null;
         }
+        // Shape presets constrain the geometry the flood-fill found —
+        // "standard" (absent) accepts anything, unknown names accept
+        // nothing (validator warns at boot; ignition just fails).
+        if (!PortalShape.matches(def.getShape(), fill, axis)) {
+            return null;
+        }
         return fill;
     }
 

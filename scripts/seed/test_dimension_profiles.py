@@ -321,6 +321,14 @@ class GenerationFingerprintTests(unittest.TestCase):
                                                  "wants": {"village": "spread"}}))
         self.assertEqual(base, self.fp(portal={"frameBlock": "minecraft:clay",
                                                "scale": 8.0}))
+        # Tier 2 portal customisations are runtime-only too: shapes,
+        # orientation, placement blocks, per-part materials, pedestals.
+        self.assertEqual(base, self.fp(portal={
+            "frameBlock": "#minecraft:logs", "framePlaceBlock": "minecraft:oak_log",
+            "orientation": "horizontal", "shape": "end_exit",
+            "centreBlock": "minecraft:dragon_egg",
+            "frameMaterials": {"top": "#minecraft:planks", "sides": "#minecraft:logs",
+                               "bottom": "minecraft:stone"}}))
         self.assertEqual(base, self.fp(difficulty={"mobMultiplier": 3.0}))
         self.assertEqual(base, self.fp(borders={"player": 512}))
         self.assertEqual(base, self.fp(description="x", color="FF0000",
