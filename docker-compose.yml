@@ -235,7 +235,7 @@ services:
   mc-backup-local:
     image: ${MIRROR_REGISTRY:-ghcr.io/piprees/mirrors}/itzg/mc-backup:2026.7.0
     container_name: "${CONTAINER_PREFIX:-}mc-backup-local"
-    hostname: mc-backup-local  # stable restic host (see mc-backup below)
+    hostname: "${BRAND_SLUG:-adventure}-mc-backup-local"  # stable restic host (see mc-backup below)
     depends_on:
       mc:
         condition: service_healthy
@@ -285,7 +285,7 @@ services:
     # snapshots by (host, paths), and the host defaults to the container id —
     # every deploy recreated the sidecar with a new id, stranding each era's
     # retained snapshots forever (23 snapshots / ~50 GiB by 2026-07-24).
-    hostname: mc-backup
+    hostname: "${BRAND_SLUG:-adventure}-mc-backup"
     depends_on:
       mc:
         condition: service_healthy
