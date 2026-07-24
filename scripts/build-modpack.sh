@@ -57,6 +57,39 @@ if [[ ! -f "$MANIFEST" ]]; then
   exit 1
 fi
 
+# --- client/server parity lint (warn-only) -------------------------------------
+# Server-mod removals (overlay/mods-remove.txt) do NOT feed this build — the
+# client manifest is consumer-forked. A slug removed server-side but still in
+# _clientMods.required is a JOIN FAILURE for every player (Fabric registry
+# handshake kick; 52 such both-required mods audited 2026-07-24). Warn loudly
+# so the fork gets synced; never fail the build (the consumer may be mid-sync).
+MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
+if [[ -f "$MODS_REMOVE" ]]; then
+  python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'
+import json, sys
+manifest, removes = sys.argv[1], sys.argv[2]
+client = json.load(open(manifest)).get("_clientMods", {})
+required = {m.split(":")[0].strip() for m in client.get("required", [])}
+optional = {m.split(":")[0].strip() for m in client.get("optional", [])}
+removed = set()
+for line in open(removes):
+    slug = line.split("#")[0].strip()
+    if slug:
+        removed.add(slug.rstrip("?"))
+hits_req = sorted(removed & required)
+hits_opt = sorted(removed & optional)
+for slug in hits_req:
+    print(f"  WARNING: '{slug}' is removed server-side but still in _clientMods.required —"
+          f" players carrying it will be KICKED at join (registry mismatch)."
+          f" Remove it from the client manifest too, then rebuild.")
+for slug in hits_opt:
+    print(f"  note: '{slug}' removed server-side is still a client OPTIONAL — harmless"
+          f" if client-only, degraded if it talks to the server.")
+if not hits_req and not hits_opt:
+    print("  client/server parity: no removed server mods present in the client manifest")
+PARITY
+fi
+
 echo "==> Building modpack: ${PACK_NAME}.mrpack"
 
 # --- extract client mod slugs from manifest -----------------------------------

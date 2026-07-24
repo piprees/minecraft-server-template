@@ -140,6 +140,19 @@ goes), and removing a worldgen mod changes NEW terrain — existing chunks
 keep their shape, new chunks generate with vanilla semantics, so expect
 borders. CI's smoke removal matrix guards this promise.
 
+**Keep the CLIENT pack in sync.** The client manifest is yours (forked),
+and ~50 default mods are required on BOTH sides — removing one of those
+server-side while clients still carry it gets every player kicked at the
+Fabric handshake ("Incompatible mod set"). The pack build warns when a
+slug in `mods-remove.txt` is still in `_clientMods.required`. Checklist
+per removed slug:
+
+1. Is it in `_clientMods.required` in `modpack/adventure.mrpack.json`?
+2. If yes, remove it there too — along with any client-only dependents
+   (e.g. removing `trinkets` also takes `charm-of-undying` and
+   `elytra-slot`).
+3. Rebuild the pack; the coherence check catches dangling dependencies.
+
 ### Override a config file
 
 Place the file in `overlay/config/` with the same path as the template's `config/` directory. Your file replaces the platform default.
