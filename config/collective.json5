@@ -1,0 +1,13 @@
+{
+	"enableUpdateChecker": false,
+	"transferItemsBetweenReplacedEntities": true,
+	"loopsAmountUsedToGetAllEntityDrops": 100,
+	"findABlockCheckAroundEntitiesDelayMs": 30000,
+	"enablePatronPets": true,
+	"downloadNonEnglishTranslations": true,
+	"pushTranslationResourcePack": false,
+	"requireTranslationResourcePack": true,
+	"serverLanguage": "en_us",
+	"itemNameTranslationMode": "auto",
+	"updateMinecraftWindowTitleInDevMode": false
+}
