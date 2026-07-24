@@ -188,7 +188,22 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
     spacing_overrides = profile.get("spacing_overrides") or {}
     ss, n = 0.0, 0
     for sname, sid, spec, kind in profile["battery"]:
+        # Fixed placements (structures.force) are constants — known
+        # distance regardless of seed; mode-filtered sets are absent.
+        # Mirrors DimensionStructures; helpers live in structure_placement.
+        from structure_placement import forced_distance, mode_drops
+        forced = forced_distance(sid, profile)
+        if forced is not None:
+            dists[sname] = forced
+            if kind == "shun":
+                ss += shun_score(forced, profile["radius"], spec)
+            else:
+                ss += want_score(forced, spec[0], spec[1], profile["radius"])
+            n += 1
+            continue
         set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets)
+        if set_cfg and mode_drops(set_cfg.get("id"), profile):
+            set_cfg = None
         if set_cfg:
             # Per-set placement overrides (structures.spacing, Tier 3):
             # same values DimensionStructures applies server-side. Same

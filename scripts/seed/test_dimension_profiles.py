@@ -402,6 +402,51 @@ class GenerationFingerprintTests(unittest.TestCase):
         # ...but structures.spacing rescales placements: generation-affecting
         self.assertNotEqual(base, self.fp(structures={
             "spacing": {"minecraft:villages": {"spacing": 8, "separation": 4}}}))
+        # structures.mode / structures.force (fixed placements, 2026-07-24)
+        # are generation-affecting — and conditional, so dims without them
+        # keep pre-existing fingerprints byte-stable.
+        self.assertNotEqual(base, self.fp(structures={"mode": "none"}))
+        self.assertNotEqual(base, self.fp(structures={
+            "mode": "reject", "list": ["minecraft:villages"]}))
+        self.assertNotEqual(
+            self.fp(structures={"mode": "allow", "list": ["minecraft:villages"]}),
+            self.fp(structures={"mode": "allow", "list": ["minecraft:mineshafts"]}))
+        self.assertNotEqual(base, self.fp(structures={
+            "force": [{"structure": "minecraft:ancient_city", "x": 100, "z": -200}]}))
+        self.assertNotEqual(
+            self.fp(structures={"force": [{"structure": "minecraft:ancient_city",
+                                           "x": 100, "z": -200}]}),
+            self.fp(structures={"force": [{"structure": "minecraft:ancient_city",
+                                           "x": 100, "z": -300}]}))
+        # malformed force entries are ignored, not fingerprinted
+        self.assertEqual(base, self.fp(structures={
+            "force": [{"structure": None, "x": 1, "z": 2}, {"x": 3, "z": 4}]}))
+
+    def test_structure_parity_helpers(self):
+        # Mirrors DimensionStructures: forced placements are constants,
+        # mode filters organic sets, the exit-shrines opt-in is exempt.
+        from structure_placement import forced_distance, mode_drops
+        profile = {
+            "forced_structures": [
+                {"structure": "minecraft:ancient_city", "x": 300, "z": 400},
+                {"structure": "minecraft:ancient_city", "x": 30, "z": 40}],
+            "structures_mode": "allow",
+            "structures_list": ["minecraft:villages"],
+            "exit_shrines": True,
+        }
+        self.assertEqual(50, forced_distance("minecraft:ancient_city", profile))
+        self.assertEqual(50, forced_distance("#minecraft:ancient_city", profile))
+        self.assertIsNone(forced_distance("minecraft:villages", profile))
+        self.assertFalse(mode_drops("minecraft:villages", profile))
+        self.assertTrue(mode_drops("minecraft:mineshafts", profile))
+        self.assertFalse(mode_drops("adventure:exit_shrines", profile))  # opt-in exempt
+        profile["structures_mode"] = "reject"
+        self.assertTrue(mode_drops("minecraft:villages", profile))
+        self.assertFalse(mode_drops("minecraft:mineshafts", profile))
+        profile["structures_mode"] = "none"
+        self.assertTrue(mode_drops("minecraft:mineshafts", profile))
+        profile["structures_mode"] = None
+        self.assertFalse(mode_drops("minecraft:mineshafts", profile))
 
     def test_runtime_environment_keys_do_not_change_it(self):
         base = self.fp(environment={"minY": -64})

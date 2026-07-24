@@ -187,6 +187,38 @@ def nearest_structure(world_seed, spacing, separation, salt, origin_x=0, origin_
     return best
 
 
+def forced_distance(sid, profile, origin_x=0, origin_z=0):
+    """Distance to a forced placement (structures.force) of this structure
+    id, or None. Mirrors FixedStructurePlacement: forced structures are
+    CONSTANTS — known distance, guaranteed scoring hits; rolls only hunt
+    the organic remainder. Exact-id match only (a tag want containing a
+    forced structure still scores via its organic set)."""
+    clean = sid.lstrip("#")
+    best = None
+    for f in profile.get("forced_structures") or []:
+        if f.get("structure") == clean:
+            dx, dz = f["x"] - origin_x, f["z"] - origin_z
+            d = int((dx * dx + dz * dz) ** 0.5)
+            best = d if best is None else min(best, d)
+    return best
+
+
+def mode_drops(set_id, profile):
+    """True when structures.mode filters this ORGANIC set out — the roller
+    then treats it as absent (dist -1). Mirrors DimensionStructures: the
+    exit-shrines opt-in precedes the filter, and forced placements are
+    additive after it (handled via forced_distance, never dropped)."""
+    mode = profile.get("structures_mode")
+    if not mode:
+        return False
+    if set_id == "adventure:exit_shrines" and profile.get("exit_shrines"):
+        return False
+    if mode == "none":
+        return True
+    listed = set_id in (profile.get("structures_list") or [])
+    return not listed if mode == "allow" else listed
+
+
 def load_structure_sets(extract_dir):
     """Load all structure_set JSONs from the extraction directory.
     Returns {set_id: {structures, spacing, separation, salt, frequency, spread_type}}."""

@@ -30,6 +30,13 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 net.minecraft.registry.Registries.BIOME_SOURCE,
                 net.minecraft.util.Identifier.of("customdimensions", "patched"),
                 com.customdimensions.dimension.PatchedBiomeSource.CODEC);
+        // structures.force: fixed placements live only in per-world rebuilt
+        // calculators (never level.dat), but the type registration keeps
+        // getType() honest and future serialisation safe.
+        net.minecraft.registry.Registry.register(
+                net.minecraft.registry.Registries.STRUCTURE_PLACEMENT,
+                net.minecraft.util.Identifier.of("customdimensions", "fixed"),
+                com.customdimensions.dimension.FixedStructurePlacement.TYPE);
         // Exit conditions ("exits" block): death redirection and the
         // ender-pearl trigger. Void/fallFrom run from the world tick
         // (ServerWorldMixin); the respawn override is consumed by

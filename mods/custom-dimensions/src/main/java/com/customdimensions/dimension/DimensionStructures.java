@@ -58,11 +58,18 @@ public final class DimensionStructures {
         }
         String density = normalizedDensity(def);
         boolean peaceful = !def.isHostileSpawningEnabled();
+        DimensionConfig.Structures structBlock = def.getStructures();
         java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides =
-                def.getStructures() != null && def.getStructures().spacing != null
-                        ? def.getStructures().spacing : java.util.Map.of();
+                structBlock != null && structBlock.spacing != null
+                        ? structBlock.spacing : java.util.Map.of();
+        String mode = normalizedMode(def.getName(), structBlock);
+        java.util.Set<String> modeList = structBlock != null && structBlock.list != null
+                ? new java.util.HashSet<>(structBlock.list) : java.util.Set.of();
+        java.util.List<DimensionConfig.ForcedStructure> forced =
+                structBlock != null && structBlock.force != null
+                        ? structBlock.force : java.util.List.of();
         if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
-                && !def.hasExitShrines()) {
+                && !def.hasExitShrines() && mode == null && forced.isEmpty()) {
             return null;
         }
         List<RegistryEntry<StructureSet>> transformed = new ArrayList<>();
@@ -106,6 +113,23 @@ public final class DimensionStructures {
                 }
                 transformed.add(entry);
                 continue;
+            }
+
+            // Organic-set filter (structures.mode): applied after the
+            // exit-shrines opt-in (which is config-driven, not organic) and
+            // before every density/theme path. Forced placements are
+            // synthetic sets appended after the loop — mode never touches
+            // them ("mode": "none" + force = ONLY the forced structures).
+            if (mode != null) {
+                boolean keep = switch (mode) {
+                    case "allow" -> setId != null && modeList.contains(setId);
+                    case "reject" -> setId == null || !modeList.contains(setId);
+                    default -> false; // "none"
+                };
+                if (!keep) {
+                    dropped++;
+                    continue;
+                }
             }
 
             if (peaceful && "dungeon".equals(theme)) {
@@ -164,12 +188,80 @@ public final class DimensionStructures {
             rescaled++;
         }
 
+        // Fixed placements (structures.force): one synthetic single-structure
+        // set per forced structure id, positioned by FixedStructurePlacement.
+        // Unknown structure ids (e.g. from a removed mod) warn and skip —
+        // never a boot break (optional-mods promise).
+        int forcedCount = 0;
+        if (!forced.isEmpty()) {
+            var structureRegistry = world.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.STRUCTURE);
+            java.util.Map<Identifier, java.util.List<net.minecraft.util.math.ChunkPos>> byStructure =
+                    new java.util.LinkedHashMap<>();
+            for (DimensionConfig.ForcedStructure f : forced) {
+                if (f == null || f.structure == null || f.x == null || f.z == null) {
+                    MultiverseServer.LOGGER.warn(
+                            "Dimension {}: structures.force entry missing structure/x/z — skipped",
+                            def.getName());
+                    continue;
+                }
+                Identifier sid = Identifier.tryParse(f.structure);
+                if (sid == null) {
+                    MultiverseServer.LOGGER.warn(
+                            "Dimension {}: structures.force id '{}' is not a valid identifier — skipped",
+                            def.getName(), f.structure);
+                    continue;
+                }
+                byStructure.computeIfAbsent(sid, k -> new java.util.ArrayList<>())
+                        .add(new net.minecraft.util.math.ChunkPos(f.x >> 4, f.z >> 4));
+            }
+            for (var e : byStructure.entrySet()) {
+                var entry = structureRegistry.getEntry(
+                        net.minecraft.registry.RegistryKey.of(
+                                net.minecraft.registry.RegistryKeys.STRUCTURE, e.getKey()));
+                if (entry.isEmpty()) {
+                    MultiverseServer.LOGGER.warn(
+                            "Dimension {}: forced structure {} not in the registry (mod removed?) — skipped",
+                            def.getName(), e.getKey());
+                    continue;
+                }
+                transformed.add(RegistryEntry.of(new StructureSet(
+                        entry.get(), new FixedStructurePlacement(e.getValue()))));
+                forcedCount += e.getValue().size();
+                MultiverseServer.LOGGER.info(
+                        "Dimension {}: forced {} at chunk(s) {}",
+                        def.getName(), e.getKey(), e.getValue());
+            }
+        }
+
         MultiverseServer.LOGGER.info(
-                "Dimension {} structure profile: density={}{} ({} sets kept, {} rescaled, {} dropped)",
+                "Dimension {} structure profile: density={}{}{}{} ({} sets kept, {} rescaled, {} dropped)",
                 def.getName(), density, peaceful ? "+peaceful" : "",
+                mode != null ? "+mode=" + mode : "",
+                forcedCount > 0 ? "+" + forcedCount + " forced" : "",
                 transformed.size(), rescaled, dropped);
         return StructurePlacementCalculatorInvoker.invokeNew(
                 noiseConfig, biomeSource, original.getStructureSeed(), original.getStructureSeed(), transformed);
+    }
+
+    /** Validated structures.mode: allow | reject | none, or null (off).
+     *  Package-private for unit tests (same pattern as derivedShrineSpacing). */
+    static String normalizedMode(String dimName, DimensionConfig.Structures block) {
+        if (block == null || block.mode == null || block.mode.isEmpty()) {
+            return null;
+        }
+        String mode = block.mode.toLowerCase();
+        switch (mode) {
+            case "allow":
+            case "reject":
+            case "none":
+                return mode;
+            default:
+                MultiverseServer.LOGGER.warn(
+                        "Unknown structures.mode '{}' on dimension {} — ignoring the filter",
+                        block.mode, dimName);
+                return null;
+        }
     }
 
     private static String normalizedDensity(DimensionConfig def) {

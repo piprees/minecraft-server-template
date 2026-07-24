@@ -538,6 +538,24 @@ matrix), all mirrored by the seed-rolling pipeline:
   same caveat as datapack spacing edits). The peaceful overlay's
   dungeon-set drops always win over a spacing entry.
 
+- `"structures": { "mode": "allow|reject|none", "list": [...] }` — filter
+  whole ORGANIC structure sets per dimension: `allow` keeps only sets in
+  `list`, `reject` drops the listed sets, `none` drops everything organic.
+  Set ids, boot-re-read, new chunks only. An exit-shrines opt-in survives
+  the filter.
+
+- `"structures": { "force": [ { "structure": "minecraft:ancient_city",
+  "x": 1200, "z": -800 } ] }` — an exact structure at an exact spot
+  (STRUCTURE id, block coordinates; the start lands in that chunk).
+  Forced placements are additive after `mode` (`"mode": "none"` + `force`
+  = only the forced structures), exempt from density rescaling, and
+  visible to `/locate`. The structure's biome predicate still applies —
+  pick a spot whose biome the structure accepts, or it silently won't
+  place. Unknown structure ids (removed mods) warn and skip. Note
+  `/locate` returns the first find in ring order across sets, so with the
+  organic set still enabled it may name a farther organic instance even
+  when your forced one exists.
+
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 

@@ -245,6 +245,48 @@ making the noise presets survive Tectonic/Terralith removal:
   order). Any closure walk must resolve conflicts by runtime priority, not
   first-found.
 
+### Structure placement lessons (fixed placements, 2026-07-24)
+
+- **Vanilla CubicSpline EXTRAPOLATES LINEARLY beyond its endpoints** using
+  the endpoint derivative. Any Python re-implementation that clamps to the
+  endpoint value flattens splines with non-zero edge derivatives —
+  tectonic's `full_continents` is `derivative: 1` at both ends (an identity
+  band), so clamping collapsed the whole continents field to a constant.
+  Hit in preset_terrain.py AND latently in terrain_height.py (masked there
+  by Terralith/Incendium/Nullscape splines having zero edge derivatives —
+  the nether snapshot render changed when fixed).
+- **`/locate` is first-found-in-radius-order, NOT nearest-across-sets.**
+  ChunkGenerator iterates placements in map order ring by ring; when a
+  structure exists in several sets (organic + forced), the organic set's
+  hit can be returned even when the forced one is closer. Oracle design:
+  prove forced placements with `"mode": "none"` + `force` (organic sets
+  gone → locate must return the exact forced spot or nothing).
+- **`force` guarantees the start ATTEMPT, not the biome check.** Vanilla
+  validates the structure's biome predicate at placement; 3D biomes make
+  peaks-area spots tricky (locate biome says stony_peaks but the surface
+  column may sample another biome at the structure's Y). Probe with
+  `customdim locate biome` and prefer broad-biome structures for fixtures.
+- **StructurePlacementCalculator prefilters by biome availability**
+  (`calculate()`: a set's placement is only indexed for structures whose
+  valid-biome list intersects the biome source's set). A forced structure
+  whose biomes don't exist in the dim's biome source is invisible to
+  locate AND generation — warn-and-skip territory, not a crash.
+- **`customdim sample-noise` is a generation ground-truth oracle**: it
+  returns the router climate point at (x&~3, 0, z&~3); for Terratonic
+  graphs depth(y=0) = 1 + offset, so surface_Y = 128*depth. A c2me-free
+  itzg container (fabric-api + customdimensions only, MAX_TICK_TIME=-1
+  under qemu — the watchdog kills slow emulated ticks) is the clean rig:
+  preset_terrain.py matched it 36/36 probes to the RCON quantisation
+  floor (1e-4), both presets, positive and negative seeds.
+- **elfydd/production sample-noise DIVERGES from pure-vanilla evaluation**
+  of the same seed + same settings (all channels, large deltas). The
+  hardened-jar bit-identity oracle (26/26 before/after) proves it is
+  stable and pre-existing, not caused by the datapack work; prime suspect
+  is c2me's chunk-system/noise modules. The seed-roll pipeline's climate
+  model is vanilla-semantics too, so any bias is shared and scoring-
+  relative. Investigate before trusting ABSOLUTE coordinates from
+  headless prediction on production.
+
 ### Seed rolling pipeline
 
 The seed-rolling system at `scripts/seed/` evaluates dimension seeds without running the game. See `scripts/seed/README.md` for the full architecture. Key integration points with the custom-dimensions mod:

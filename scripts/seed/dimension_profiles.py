@@ -622,6 +622,19 @@ def generation_payload(dim):
     derived = _derived_shrine_spacing(dim)
     if derived is not None:
         payload["shrineSpacing"] = derived
+    # Fixed structure placements + the organic-set filter (2026-07-24) are
+    # generation-affecting; conditional for the same byte-stability reason.
+    struct_block = dim.get("structures") or {}
+    if struct_block.get("mode"):
+        payload["structuresMode"] = [struct_block.get("mode"),
+                                     sorted(struct_block.get("list") or [])]
+    well_formed_force = [
+        f for f in (struct_block.get("force") or [])
+        if isinstance(f, dict) and f.get("structure")
+        and f.get("x") is not None and f.get("z") is not None]
+    if well_formed_force:
+        payload["forcedStructures"] = sorted(
+            [f["structure"], f["x"], f["z"]] for f in well_formed_force)
     return payload
 
 
@@ -965,6 +978,18 @@ def build_profile(dim, config, difficulty=None):
         "biome_parameters": biome_parameters,
         "settings_overrides": dim.get("settingsOverrides") or {},
         "spacing_overrides": struct_block.get("spacing") or {},
+        # Fixed placements + organic-set filter (structures.mode/list/force):
+        # tier-1 structure maths treats filtered sets as absent and forced
+        # structures as constants (structure_placement.forced_distance /
+        # mode_drops — mirrors DimensionStructures; change both together).
+        "structures_mode": (struct_block.get("mode")
+                            if struct_block.get("mode") in ("allow", "reject", "none")
+                            else None),
+        "structures_list": struct_block.get("list") or [],
+        "forced_structures": [
+            f for f in (struct_block.get("force") or [])
+            if isinstance(f, dict) and f.get("structure")
+            and f.get("x") is not None and f.get("z") is not None],
         # Precision placement: fixed circular patches over the layout —
         # the fast roller wraps its sampler in PatchedBiomeSampler.
         "biome_patches": dim.get("biomePatches") or [],

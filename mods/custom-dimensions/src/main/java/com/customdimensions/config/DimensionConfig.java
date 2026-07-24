@@ -776,6 +776,37 @@ public class DimensionConfig {
          */
         @SerializedName("spacing")
         public Map<String, SpacingOverride> spacing;
+        /**
+         * Whole-set filter over the ORGANIC structure sets (fixed-structure
+         * placements below are additive after it): "allow" keeps only sets
+         * in {@link #list}, "reject" drops sets in {@link #list}, "none"
+         * drops every organic set. Absent/null = no filtering. Runtime
+         * rebuild like spacing — applies to newly generated chunks only.
+         */
+        @SerializedName("mode")
+        public String mode;
+        /** Structure SET ids for mode allow/reject. */
+        @SerializedName("list")
+        public List<String> list;
+        /**
+         * Exact structure at an exact spot: synthetic single-structure sets
+         * with a customdimensions:fixed placement. STRUCTURE ids (not set
+         * ids); x/z are BLOCK coordinates (the structure start lands in that
+         * block's chunk). Generation-affecting — mirrored in
+         * scripts/seed/dimension_profiles.generation_payload().
+         */
+        @SerializedName("force")
+        public List<ForcedStructure> force;
+    }
+
+    /** One fixed structure placement (Structures.force). */
+    public static class ForcedStructure {
+        @SerializedName("structure")
+        public String structure;
+        @SerializedName("x")
+        public Integer x;
+        @SerializedName("z")
+        public Integer z;
     }
 
     /** Explicit placement values for one structure set (see Structures.spacing). */

@@ -961,10 +961,16 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
     safe_cmd(f"execute in {dim} run forceload remove 0 0")
 
     # Structure placement via pure Python — no server thread, no RCON.
-    from structure_placement import nearest_structure
+    from structure_placement import nearest_structure, forced_distance, mode_drops
     dim_seed = _resolve_candidate_seed(rcon, dim)
     for sname, sid, _band, _kind in profile["battery"]:
+        forced = forced_distance(sid, profile)
+        if forced is not None:
+            rows.append((f"structure_{sname}_dist", forced))
+            continue
         set_cfg = _find_structure_set(sid)
+        if set_cfg and mode_drops(set_cfg.get("id"), profile):
+            set_cfg = None
         if set_cfg and dim_seed is not None:
             result = nearest_structure(
                 dim_seed, set_cfg["spacing"], set_cfg["separation"],

@@ -204,6 +204,49 @@ Consumer overlay resolution (files in `overlay/dimensions/`): a file with a top-
 
 Conflict note baked into the design: Terratonic's overlay patches two `terralith:` DFs (`overworld/extra_terrain_base`, `overworld/spike/size_spline`) with different content than Terralith's own copies — the adventure clones use the Terratonic variants because that's what generation resolves today (Tectonic's pack outranks Terralith's), and cloning sidesteps the pack-order question entirely.
 
+### Fixed structure placements and set filtering (`structures.mode` / `force`)
+
+The `structures` block gains precision-placement controls alongside the
+existing roller `wants`/`shuns` and runtime `spacing`:
+
+```json
+"structures": {
+  "mode": "allow",
+  "list": ["minecraft:villages", "adventure:exit_shrines"],
+  "force": [
+    { "structure": "minecraft:ancient_city", "x": 1200, "z": -800 }
+  ]
+}
+```
+
+- **`mode`** filters the ORGANIC structure sets at the per-world calculator
+  rebuild: `allow` keeps only sets in `list`, `reject` drops sets in
+  `list`, `none` drops every organic set. The exit-shrines opt-in precedes
+  the filter (an opted-in dim keeps its shrines even under `allow`/`none`).
+  Unknown modes warn and disable the filter.
+- **`force`** places an exact structure at an exact spot: each entry
+  becomes a synthetic single-structure set with a
+  `customdimensions:fixed` placement (a `RandomSpreadStructurePlacement`
+  subclass, so vanilla `/locate` finds it and density rescaling exempts
+  it). STRUCTURE ids, block coordinates; the start lands in that block's
+  chunk. Unknown structures (removed mods) warn and skip — never a boot
+  break. Forced placements are additive after `mode` — `"mode": "none"` +
+  `force` = ONLY the forced structures.
+- **Biome predicate still applies**: `force` guarantees the START ATTEMPT
+  at that chunk; vanilla still checks the structure's biome list at
+  placement. Force a spot whose biome the structure accepts (probe with
+  `/customdim locate biome` first) or it silently won't place and locate
+  falls back to organic instances.
+- Like `spacing`, this is a RUNTIME rebuild (re-read every boot, newly
+  generated chunks only) — not creation-time worldgen. One forced position
+  per 32-chunk region is locatable; extras in the same region still
+  generate (warned at boot).
+- Roller parity: filtered sets measure as absent, forced structures as
+  constant distances (`structure_placement.forced_distance`/`mode_drops`);
+  both fields join `generation_payload()` conditionally, so existing
+  fingerprints stay byte-stable. The fork-config GUI does not expose these
+  fields yet.
+
 ### Frame materials and orientation
 
 `frameBlock` accepts four forms — what the frame ACCEPTS at ignition and
