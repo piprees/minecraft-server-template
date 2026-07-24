@@ -556,6 +556,16 @@ matrix), all mirrored by the seed-rolling pipeline:
   organic set still enabled it may name a farther organic instance even
   when your forced one exists.
 
+Every remaining dimension-file field — `difficulty` (mob multipliers,
+attribute selection, depth scaling, player luck), the `exits` block
+(void/death/enderPearl/fallFrom triggers with teleport/respawnAt/kill
+actions), `structures.endgame` gating, the full `environment`
+dimension-type field list, and the cosmetic/legacy fields — is documented
+with copyable examples in
+[`mods/custom-dimensions/README.md`](../mods/custom-dimensions/README.md)
+§ "Difficulty, exits, and the remaining fields". That README is the
+source of truth for the dimension-file schema.
+
 The shipped 74-dimension mapping is documented in
 [docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
 

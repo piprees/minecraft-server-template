@@ -247,6 +247,102 @@ existing roller `wants`/`shuns` and runtime `spacing`:
   fingerprints stay byte-stable. The fork-config GUI does not expose these
   fields yet.
 
+### Difficulty, exits, and the remaining fields
+
+Complete reference for everything not covered by its own section above —
+each snippet is copyable as-is into a dimension file.
+
+**Difficulty** (hostile-mob scaling; peaceful dims drop dungeon-theme
+structure sets automatically):
+
+```json
+"difficulty": {
+  "hostileSpawning": true,
+  "mobMultiplier": 1.5,
+  "attributes": { "health": true, "damage": true, "armor": false,
+                  "speed": false, "knockback": false },
+  "playerLuck": 0.5,
+  "depthScaling": { "enabled": true, "startY": 0, "endY": -64,
+                    "minMultiplier": 1.0, "maxMultiplier": 2.0 }
+}
+```
+
+- `mobMultiplier` scales hostile mobs only (`0` = effectively peaceful);
+  `attributes` booleans choose WHICH attributes the multiplier touches
+  (default: health + damage). `playerLuck` is a flat luck attribute bonus
+  applied on join/world change. `depthScaling` ramps the multiplier from
+  `minMultiplier` at `startY` to `maxMultiplier` at `endY` (deeper =
+  harder).
+
+**Exits** (`"exits"` block — leaving the dimension without a portal).
+Triggers: `"void"` (fell below minY), `"death"` (any death),
+`"death:<cause>"` (specific damage type), `"enderPearl"` (pearl thrown —
+consumed, no teleport), `"fallFrom"` (fell `minHeight` blocks). Targets:
+`"bed"` | `"worldSpawn"` | `"origin"` (where the player entered from), or
+`{"dimension": "adventure:the_gauntlet", "arrival": "anchor"}` where
+`arrival` is `"anchor"` | `"spawn"` | `[x, y, z]`. Actions: `"teleport"`
+(intercepts — for death triggers this CANCELS the death), `"respawnAt"`
+(die normally, respawn at the target — needs a real player to verify;
+carpet bots can't respawn), `"kill"` (explicit vanilla void death):
+
+```json
+"exits": {
+  "void": { "target": "origin", "action": "teleport" },
+  "death": { "target": { "dimension": "minecraft:overworld",
+                          "arrival": "spawn" }, "action": "respawnAt" },
+  "enderPearl": { "target": "worldSpawn", "action": "teleport" },
+  "fallFrom": { "minHeight": 100, "target": "origin", "action": "teleport" }
+}
+```
+
+**Endgame gating** (`structures.endgame`) — keeps end-game structures
+(theme map's endgame ids) away from spawn, or bans them:
+
+```json
+"structures": { "endgame": { "allow": true, "safeRadius": 1500 } }
+```
+
+**Cosmetic / identity fields**:
+
+```json
+"description": "A wind-scoured test of the peaks.",
+"dimensionId": "adventure:the_gauntlet",
+"portal": { "particleType": "minecraft:end_rod" }
+```
+
+- `description` is documentation-only (surfaced by tooling, never parsed).
+- `dimensionId` is LEGACY — omit it; the id derives from
+  `{namespace}:{filename}` (base worlds map to their vanilla ids).
+- `portal.particleType` overrides the coloured portal particles with any
+  particle id (`color` is ignored when set).
+
+**Environment** (`"environment"` block → registers `{ns}:{slug}_type`;
+invalid heights fall back to the base type, never a crash). Full field
+list, vanilla dimension-type semantics: `skyColor`, `fogColor`,
+`ambientLight` (0–1), `fixedTime` (tick of day, locks the sun),
+`hasCeiling`, `hasSkylight`, `ultraWarm` (nether water rules), `natural`
+(false = compasses/beds go weird), `bedWorks`, `respawnAnchorWorks`,
+`piglinSafe`, `hasRaids`, `minY`, `height`, `logicalHeight`,
+`coordinateScale` (nether-style travel ratio), `effects`
+(`minecraft:overworld|the_nether|the_end` sky rendering), `infiniburn`
+(block tag), `monsterSpawnLightLevel` (int or int-provider),
+`monsterSpawnBlockLightLimit`:
+
+```json
+"environment": {
+  "skyColor": "#4A2C6B", "fogColor": "#2A1A3E",
+  "ambientLight": 0.3, "fixedTime": 18000,
+  "hasSkylight": true, "hasCeiling": false,
+  "ultraWarm": false, "natural": false,
+  "bedWorks": false, "respawnAnchorWorks": true,
+  "piglinSafe": false, "hasRaids": false,
+  "minY": -64, "height": 512, "logicalHeight": 512,
+  "coordinateScale": 1.0, "effects": "minecraft:the_end",
+  "infiniburn": "#minecraft:infiniburn_overworld",
+  "monsterSpawnLightLevel": 7, "monsterSpawnBlockLightLimit": 0
+}
+```
+
 ### Frame materials and orientation
 
 `frameBlock` accepts four forms — what the frame ACCEPTS at ignition and

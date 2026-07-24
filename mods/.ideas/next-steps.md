@@ -31,6 +31,13 @@ Delete an idea doc only after verifying its content is captured
 - Sweep scripts/seed/spike/14-non-overworld-render-quality.md for other
   render-quality limitations worth lifting into tasks (the preset-height
   one from that family is now shipped).
+- **Deeper worldgen authoring** (survivors of the retired
+  fixed-structure-placements.md — its placement feature shipped
+  2026-07-24): custom biomes with own colours/features via jar-baked
+  worldgen/biome JSON (medium; client-visible tints work); authored
+  density functions for terrain shape at exact spots (hard — real
+  worldgen authoring). Custom skyboxes beyond the three vanilla effects
+  remain client-mod territory (out of scope).
 
 ## Decisions waiting on Pip
 
@@ -44,17 +51,28 @@ Delete an idea doc only after verifying its content is captured
 
 ## Standing state (2026-07-24, end of session 3)
 
-- **elfydd**: healthy, running the fixed-placements build of
-  customdimensions.jar. Session-temporary edits REVERTED at session end:
-  idleUnloadMinutes back to 5, oracle force/mode overlay edits re-staged
-  from the consumer overlay source. Cosmetic overworld residue unchanged
-  (platforms x≈2998–3186, z≈2995–3205; source gateway at (3160,150,3000)).
+- **elfydd**: stack DOWN, data wiped (world/maps/mod state — matches the
+  production wipe below; the old overworld test-platform residue went
+  with it). `.stack/current` → `v3-dev` (live repo);
+  data/mods/customdimensions.jar is the fixed-placements build; overlay
+  dimension configs intact (81 files), stored candidates removed.
+  Session-temporary edits were reverted before the wipe (idleUnloadMinutes
+  5, oracle force/mode overlay edits re-staged). Next `./dev up` re-seeds
+  config and boots fresh.
 - **Verification highlights**: preset_terrain.py exact vs a c2me-free
   vanilla rig (36/36 probes, both presets, ± seeds); fixed placements
   proven by boot-log + mode=none locate oracle; `/locate` is
   first-in-ring-order across sets (vanilla quirk, documented).
-- **Awaiting a real player on production**: the `respawnAt` death
-  redirect and the first organic exit-shrine encounter.
+- **PRODUCTION IS OFF AND WIPED** (2026-07-24, Pip's instruction, restic
+  snapshot `efccdb69` taken first): all containers stopped; world, maps
+  (bluemap + unmined), player data, LuckPerms user data, portal_links,
+  fingerprints, chunky tasks all deleted. Next full deploy (or manual
+  start) regenerates from config. Local elfydd data wiped identically;
+  stored candidates removed (template + elfydd overlay); Pip is running
+  a fresh dimension-configuration + seed-roll pass and will commit it.
+- **Awaiting a real player on production** (after relaunch): the
+  `respawnAt` death redirect and the first organic exit-shrine
+  encounter.
 - **Deferred**: fork-config GUI screenshot pass (browser session); GUI
   form fields for structures.mode/list/force (validator untouched —
   fields pass through config files only for now).
