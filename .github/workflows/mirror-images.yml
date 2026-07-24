@@ -4,8 +4,9 @@ name: Mirror Docker Hub Images
 # limits and outages. The compose file references these mirrors via
 # MIRROR_REGISTRY (defaults to ghcr.io/piprees/mirrors).
 #
-# Runs weekly and on manual dispatch. Each image is pulled from Docker Hub,
-# retagged under ghcr.io/piprees/mirrors/<source>:<tag>, and pushed.
+# Runs weekly and on manual dispatch. Uses `docker buildx imagetools create`
+# to copy the full multi-arch manifest (amd64 + arm64) from Docker Hub to
+# GHCR without pulling layers locally — faster and preserves all platforms.
 #
 # To add an image: append to the matrix below and update docker-compose.yml.
 # To override the mirror at deploy time: set MIRROR_REGISTRY in .env.
@@ -43,11 +44,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull, retag, push
+      - name: Log in to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Copy multi-arch manifest to GHCR
         run: |
-          SOURCE="${{ matrix.source }}"
-          TARGET="ghcr.io/piprees/mirrors/${SOURCE}"
+          SOURCE="docker.io/${{ matrix.source }}"
+          TARGET="ghcr.io/piprees/mirrors/${{ matrix.source }}"
           echo "Mirroring ${SOURCE} → ${TARGET}"
-          docker pull "${SOURCE}"
-          docker tag "${SOURCE}" "${TARGET}"
-          docker push "${TARGET}"
+          docker buildx imagetools create --tag "${TARGET}" "${SOURCE}"
