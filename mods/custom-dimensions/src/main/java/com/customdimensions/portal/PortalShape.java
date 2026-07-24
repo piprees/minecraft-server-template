@@ -24,8 +24,11 @@ public final class PortalShape {
     public static final String DOOR = "door";
     public static final String DOORWAY = "doorway";
     public static final String END_EXIT = "end_exit";
+    public static final String END_GATEWAY = "end_gateway";
+    /** Internal name for explicit template shapes (config uses the object form). */
+    public static final String PATTERN = "pattern";
 
-    public static final Set<String> KNOWN = Set.of(STANDARD, DOOR, DOORWAY, END_EXIT);
+    public static final Set<String> KNOWN = Set.of(STANDARD, DOOR, DOORWAY, END_EXIT, END_GATEWAY, PATTERN);
 
     private PortalShape() {
     }
@@ -72,6 +75,10 @@ public final class PortalShape {
                 // Thematic, not prescriptive: any horizontal ring the player
                 // builds is valid — the preset's job is forcing the Y plane.
                 return axis == Direction.Axis.Y;
+            case END_GATEWAY:
+                // Frameless single-block teleporter — ignition never
+                // flood-fills for these, but a restored zone still checks.
+                return interior.size() == 1;
             default:
                 return false;
         }
@@ -114,6 +121,85 @@ public final class PortalShape {
             return spanX == 2 && spanY == 3 && spanZ == 1;
         }
         return spanZ == 2 && spanY == 3 && spanX == 1;
+    }
+
+    /**
+     * Explicit template matching ("pattern" shapes). The template is
+     * row-major: for vertical portals rows map top-to-bottom to
+     * DECREASING Y and columns to increasing X (axis X) or Z (axis Z);
+     * for horizontal portals rows map to increasing Z and columns to
+     * increasing X. Legend roles: "frame" cells must satisfy the frame
+     * predicate, "interior" cells must exactly cover the discovered
+     * interior (no more, no less); any other character is a don't-care.
+     */
+    public static boolean matchesPattern(java.util.List<String> rows,
+            java.util.Map<String, String> legend, Set<BlockPos> interior,
+            Direction.Axis axis, java.util.function.Predicate<BlockPos> frameAt) {
+        if (rows == null || rows.isEmpty() || interior == null || interior.isEmpty()) {
+            return false;
+        }
+        // Collect template cells by role.
+        java.util.List<int[]> interiorCells = new java.util.ArrayList<>();
+        java.util.List<int[]> frameCells = new java.util.ArrayList<>();
+        for (int r = 0; r < rows.size(); r++) {
+            String row = rows.get(r);
+            for (int c = 0; c < row.length(); c++) {
+                String role = legend.get(String.valueOf(row.charAt(c)));
+                if ("interior".equals(role)) {
+                    interiorCells.add(new int[]{r, c});
+                } else if ("frame".equals(role)) {
+                    frameCells.add(new int[]{r, c});
+                }
+            }
+        }
+        if (interiorCells.size() != interior.size()) {
+            return false;
+        }
+        // Anchor the template's interior bounding box onto the world's.
+        int rMin = Integer.MAX_VALUE, cMin = Integer.MAX_VALUE;
+        for (int[] cell : interiorCells) {
+            rMin = Math.min(rMin, cell[0]);
+            cMin = Math.min(cMin, cell[1]);
+        }
+        int uMin = Integer.MAX_VALUE, vMin = Integer.MAX_VALUE, vMax = Integer.MIN_VALUE;
+        int planeCoord = 0;
+        for (BlockPos p : interior) {
+            int u = axis == Direction.Axis.Z ? p.getZ() : p.getX();
+            int v = axis == Direction.Axis.Y ? p.getZ() : p.getY();
+            uMin = Math.min(uMin, u);
+            vMin = Math.min(vMin, v);
+            vMax = Math.max(vMax, v);
+            planeCoord = axis == Direction.Axis.X ? p.getZ()
+                    : axis == Direction.Axis.Z ? p.getX() : p.getY();
+        }
+        // Every template interior cell must land on a real interior block
+        // (equal sizes + full membership = exact cover).
+        for (int[] cell : interiorCells) {
+            if (!interior.contains(cellToWorld(cell, rMin, cMin, uMin, vMin, vMax, planeCoord, axis))) {
+                return false;
+            }
+        }
+        for (int[] cell : frameCells) {
+            if (!frameAt.test(cellToWorld(cell, rMin, cMin, uMin, vMin, vMax, planeCoord, axis))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static BlockPos cellToWorld(int[] cell, int rMin, int cMin,
+            int uMin, int vMin, int vMax, int planeCoord, Direction.Axis axis) {
+        int u = uMin + (cell[1] - cMin);
+        int v = axis == Direction.Axis.Y
+                ? vMin + (cell[0] - rMin)       // horizontal: rows -> +Z
+                : vMax - (cell[0] - rMin);      // vertical: top row = highest Y
+        if (axis == Direction.Axis.X) {
+            return new BlockPos(u, v, planeCoord);
+        }
+        if (axis == Direction.Axis.Z) {
+            return new BlockPos(planeCoord, v, u);
+        }
+        return new BlockPos(u, planeCoord, v);
     }
 
     /**

@@ -22,7 +22,8 @@
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
     "WorldLoaderMixin",
-    "NetherPortalProtectionMixin"
+    "NetherPortalProtectionMixin",
+    "EndGatewaySuppressionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

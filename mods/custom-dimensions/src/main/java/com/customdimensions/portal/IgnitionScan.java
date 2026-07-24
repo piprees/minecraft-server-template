@@ -36,8 +36,15 @@ public record IgnitionScan(Set<BlockPos> xFill, Set<BlockPos> zFill, Set<BlockPo
         }
         // Shape presets constrain the geometry the flood-fill found —
         // "standard" (absent) accepts anything, unknown names accept
-        // nothing (validator warns at boot; ignition just fails).
-        if (!PortalShape.matches(def.getShape(), fill, axis)) {
+        // nothing (validator warns at boot; ignition just fails). Pattern
+        // shapes overlay their template (frame cells checked against the
+        // live world through the matcher).
+        if (PortalShape.PATTERN.equals(def.getShape())) {
+            if (!PortalShape.matchesPattern(def.getShapeTemplate(), def.getShapeLegend(),
+                    fill, axis, p -> matcher.matches(world.getBlockState(p)))) {
+                return null;
+            }
+        } else if (!PortalShape.matches(def.getShape(), fill, axis)) {
             return null;
         }
         // Per-part materials: each ring position must satisfy ITS part's

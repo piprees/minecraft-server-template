@@ -154,7 +154,9 @@ public class ServerWorldMixin {
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
-                        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16, zone.axis);
+                        BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
+                                ? PortalHelper.findExistingGateway(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16)
+                                : PortalHelper.findExistingPortal(targetWorld, targetCenterX, surfaceY, targetCenterZ, 5, 16, zone.axis);
                         int portalCooldown = def.getCooldown();
 
                         if (existing != null) {
@@ -232,8 +234,11 @@ public class ServerWorldMixin {
         int anchorZ = anchor[2];
         int surfaceY = PortalHelper.findSurfaceY(targetWorld, anchorX, anchorZ);
 
-        BlockPos existing = PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, zone.axis);
-        if (existing == null && zone.axis != Direction.Axis.Y) {
+        BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
+                ? PortalHelper.findExistingGateway(targetWorld, anchorX, surfaceY, anchorZ, 5, 16)
+                : PortalHelper.findExistingPortal(targetWorld, anchorX, surfaceY, anchorZ, 5, 16, zone.axis);
+        if (existing == null && zone.axis != Direction.Axis.Y
+                && !com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())) {
             // A previous arrival may have built the portal on the other
             // horizontal axis (first source's shape wins) — reuse it.
             Direction.Axis other = zone.axis == Direction.Axis.X ? Direction.Axis.Z : Direction.Axis.X;

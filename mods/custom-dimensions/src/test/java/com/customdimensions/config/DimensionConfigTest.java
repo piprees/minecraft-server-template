@@ -193,6 +193,35 @@ class DimensionConfigTest {
     }
 
     @Test
+    void patternShapePlumbsIntoPortalDefinition() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"minecraft:stone","shape":{
+                 "type":"pattern","template":["FFF","F.F","FFF"],
+                 "legend":{"F":"frame",".":"interior"}}}}
+                """);
+        PortalDefinition def = config.toPortalDefinition();
+        assertEquals("pattern", def.getShape());
+        assertEquals(java.util.List.of("FFF", "F.F", "FFF"), def.getShapeTemplate());
+        assertEquals("frame", def.getShapeLegend().get("F"));
+        // legend defaults to F/. when omitted
+        DimensionConfig noLegend = parse("d", """
+                {"portal":{"frameBlock":"b","shape":{"type":"pattern","template":["F.F"]}}}
+                """);
+        assertEquals("interior", noLegend.getPortal().getShapeLegend().get("."));
+    }
+
+    @Test
+    void endGatewayNeedsNoFrameBlock() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"igniterItem":"minecraft:ender_eye","shape":"end_gateway"}}
+                """);
+        assertTrue(config.hasPortal());
+        PortalDefinition def = config.toPortalDefinition();
+        assertEquals("end_gateway", def.getShape());
+        assertEquals("any", def.getOrientation());
+    }
+
+    @Test
     void auraBlockPlumbsIntoPortalDefinition() {
         DimensionConfig config = parse("d", """
                 {"portal":{"frameBlock":"b","aura":{

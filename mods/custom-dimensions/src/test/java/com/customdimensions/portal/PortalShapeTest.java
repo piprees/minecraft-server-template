@@ -116,6 +116,55 @@ class PortalShapeTest {
     }
 
     @Test
+    void patternMatchesExactTemplateOverlay() {
+        java.util.Map<String, String> legend = java.util.Map.of("F", "frame", ".", "interior");
+        java.util.List<String> rows = java.util.List.of("FFF", "F.F", "F.F", "FFF");
+        // 1x2 interior at (10, 60..61, 5), axis X; frame ring around it.
+        Set<BlockPos> interior = Set.of(new BlockPos(10, 61, 5), new BlockPos(10, 60, 5));
+        Set<BlockPos> frames = new HashSet<>(Set.of(
+                new BlockPos(9, 62, 5), new BlockPos(10, 62, 5), new BlockPos(11, 62, 5),
+                new BlockPos(9, 61, 5), new BlockPos(11, 61, 5),
+                new BlockPos(9, 60, 5), new BlockPos(11, 60, 5),
+                new BlockPos(9, 59, 5), new BlockPos(10, 59, 5), new BlockPos(11, 59, 5)));
+        assertTrue(PortalShape.matchesPattern(rows, legend, interior, Direction.Axis.X, frames::contains));
+        // one missing corner frame block fails the F cells
+        frames.remove(new BlockPos(9, 62, 5));
+        assertFalse(PortalShape.matchesPattern(rows, legend, interior, Direction.Axis.X, frames::contains));
+        // wrong interior size fails before any frame checks
+        assertFalse(PortalShape.matchesPattern(rows, legend,
+                Set.of(new BlockPos(10, 60, 5)), Direction.Axis.X, p -> true));
+    }
+
+    @Test
+    void patternDontCareCellsIgnoreSurroundings() {
+        // Lintel-only template: stone-class top, anything at the sides.
+        java.util.Map<String, String> legend = java.util.Map.of("F", "frame", ".", "interior");
+        java.util.List<String> rows = java.util.List.of("FFF", " . ", " . ");
+        Set<BlockPos> interior = Set.of(new BlockPos(0, 60, 0), new BlockPos(0, 61, 0));
+        Set<BlockPos> frames = Set.of(
+                new BlockPos(-1, 62, 0), new BlockPos(0, 62, 0), new BlockPos(1, 62, 0));
+        assertTrue(PortalShape.matchesPattern(rows, legend, interior, Direction.Axis.X, frames::contains));
+    }
+
+    @Test
+    void patternMapsRowsToZOnHorizontalPortals() {
+        java.util.Map<String, String> legend = java.util.Map.of("F", "frame", ".", "interior");
+        java.util.List<String> rows = java.util.List.of("F.F");
+        // one interior cell at (5, 40, 7); frames west/east of it on the Y plane
+        Set<BlockPos> interior = Set.of(new BlockPos(5, 40, 7));
+        Set<BlockPos> frames = Set.of(new BlockPos(4, 40, 7), new BlockPos(6, 40, 7));
+        assertTrue(PortalShape.matchesPattern(rows, legend, interior, Direction.Axis.Y, frames::contains));
+    }
+
+    @Test
+    void endGatewayShapeIsSingleBlock() {
+        assertTrue(PortalShape.matches("end_gateway", Set.of(new BlockPos(0, 60, 0)), Direction.Axis.X));
+        assertFalse(PortalShape.matches("end_gateway",
+                Set.of(new BlockPos(0, 60, 0), new BlockPos(0, 61, 0)), Direction.Axis.X));
+        assertNull(PortalShape.impliedOrientation("end_gateway"));
+    }
+
+    @Test
     void normaliseCollapsesBlanks() {
         assertEquals("standard", PortalShape.normalise(null));
         assertEquals("standard", PortalShape.normalise("  "));

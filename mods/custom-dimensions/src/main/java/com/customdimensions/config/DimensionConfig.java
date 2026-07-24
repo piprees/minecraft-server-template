@@ -512,7 +512,9 @@ public class DimensionConfig {
     }
 
     public boolean hasPortal() {
-        return this.portal != null && !this.portal.getFrameAcceptForms().isEmpty();
+        // Frameless gateway portals are legitimate without any frameBlock.
+        return this.portal != null && (!this.portal.getFrameAcceptForms().isEmpty()
+                || com.customdimensions.portal.PortalShape.END_GATEWAY.equals(this.portal.getShapeName()));
     }
 
     public ExitPortal getExitPortal() {
@@ -590,9 +592,16 @@ public class DimensionConfig {
         if (this.portal.orientation != null && !this.portal.orientation.isBlank()) {
             def.setOrientation(this.portal.orientation.trim());
         }
-        if (this.portal.shape != null && !this.portal.shape.isBlank()
-                && !com.customdimensions.portal.PortalShape.STANDARD.equals(this.portal.shape.trim())) {
-            def.setShape(this.portal.shape.trim());
+        String shapeName = this.portal.getShapeName();
+        if (shapeName != null
+                && !com.customdimensions.portal.PortalShape.STANDARD.equals(shapeName)) {
+            def.setShape(shapeName);
+        }
+        List<String> template = this.portal.getShapeTemplate();
+        if (template != null) {
+            def.setShape(com.customdimensions.portal.PortalShape.PATTERN);
+            def.setShapeTemplate(template);
+            def.setShapeLegend(this.portal.getShapeLegend());
         }
         if (this.portal.centreBlock != null && !this.portal.centreBlock.isBlank()) {
             def.setCentreBlock(this.portal.centreBlock.trim());
@@ -840,13 +849,67 @@ public class DimensionConfig {
         @SerializedName("orientation")
         public String orientation;
         /**
-         * Named shape preset: "standard" (absent — free-form flood-fill) |
-         * "door" (1x2 vertical) | "doorway" (2x3 vertical) | "end_exit"
-         * (horizontal ring). Shapes imply an orientation default; an
+         * Shape constraint — either a named preset string ("standard" |
+         * "door" | "doorway" | "end_exit" | "end_gateway") or an explicit
+         * pattern object {"type": "pattern", "template": ["FFF","F.F",
+         * "FFF"], "legend": {"F": "frame", ".": "interior"}}. Absent =
+         * free-form flood-fill. Presets imply an orientation default; an
          * explicit "orientation" always wins.
          */
         @SerializedName("shape")
-        public String shape;
+        public JsonElement shape;
+
+        /** The preset name when shape is a plain string, else null. */
+        public String getShapeName() {
+            if (this.shape != null && this.shape.isJsonPrimitive()
+                    && this.shape.getAsJsonPrimitive().isString()) {
+                String s = this.shape.getAsString().trim();
+                return s.isEmpty() ? null : s;
+            }
+            return null;
+        }
+
+        /** Template rows when shape is a pattern object, else null. */
+        public List<String> getShapeTemplate() {
+            if (this.shape == null || !this.shape.isJsonObject()) {
+                return null;
+            }
+            JsonObject obj = this.shape.getAsJsonObject();
+            JsonElement type = obj.get("type");
+            if (type == null || !type.isJsonPrimitive() || !"pattern".equals(type.getAsString())) {
+                return null;
+            }
+            JsonElement template = obj.get("template");
+            if (template == null || !template.isJsonArray()) {
+                return null;
+            }
+            List<String> rows = new java.util.ArrayList<>();
+            for (JsonElement row : template.getAsJsonArray()) {
+                if (row.isJsonPrimitive() && row.getAsJsonPrimitive().isString()) {
+                    rows.add(row.getAsString());
+                }
+            }
+            return rows.isEmpty() ? null : rows;
+        }
+
+        /** Pattern legend (char -> role); defaults to F=frame, .=interior. */
+        public Map<String, String> getShapeLegend() {
+            Map<String, String> legend = new java.util.LinkedHashMap<>();
+            if (this.shape != null && this.shape.isJsonObject()
+                    && this.shape.getAsJsonObject().get("legend") instanceof JsonObject legendObj) {
+                for (String key : legendObj.keySet()) {
+                    JsonElement v = legendObj.get(key);
+                    if (v.isJsonPrimitive() && v.getAsJsonPrimitive().isString()) {
+                        legend.put(key, v.getAsString());
+                    }
+                }
+            }
+            if (legend.isEmpty()) {
+                legend.put("F", "frame");
+                legend.put(".", "interior");
+            }
+            return legend;
+        }
         /**
          * Block id placed at the interior centre on end_exit ignition (a
          * pedestal — dragon egg, trophy). Only meaningful with

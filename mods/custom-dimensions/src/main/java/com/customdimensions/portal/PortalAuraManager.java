@@ -304,9 +304,13 @@ public final class PortalAuraManager {
         }
         // Terrain leak: like-for-like-ish — exposed positions take the
         // palette's dominant (surface) block, buried ones a random member.
+        // Conversion OUTPUTS are immune, or the leak would slowly eat the
+        // explicit conversions (crying_obsidian -> obsidian on a re-hit).
+        String stateId = Registries.BLOCK.getId(state.getBlock()).toString();
         if (palette != null && !palette.isEmpty()
                 && state.isOpaqueFullCube(world, pos)
-                && !palette.contains(Registries.BLOCK.getId(state.getBlock()).toString())) {
+                && !palette.contains(stateId)
+                && !s.getConversions().containsValue(stateId)) {
             boolean exposed = !world.getBlockState(pos.up()).isOpaqueFullCube(world, pos.up());
             String pick = exposed || palette.size() == 1
                     ? palette.get(0)

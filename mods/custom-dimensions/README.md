@@ -284,6 +284,18 @@ to 128 interior blocks, today's behaviour:
   "shape": "door",       // exactly 1x2 interior (a single door), vertical
   "shape": "doorway",    // exactly 2x3 interior (the vanilla Nether opening), vertical
   "shape": "end_exit",   // horizontal ring (any footprint), end-portal style
+  "shape": "end_gateway",// frameless 1-block teleporter (see below)
+
+  // Explicit template: legend roles are "frame" (must match the frame
+  // material), "interior" (must exactly cover the ignited opening), and
+  // anything else = don't care. Row-major; for vertical portals the top
+  // row is the highest Y and the template auto-tries both X and Z axes;
+  // for horizontal portals rows map to +Z.
+  "shape": {
+    "type": "pattern",
+    "template": ["FFFFF", "FF.FF", "F...F", "FF.FF", "FFFFF"],
+    "legend": { "F": "frame", ".": "interior" }
+  },
 
   // end_exit only: a pedestal block placed at the interior's centre cell
   // on ignition (dragon egg, trophy). Source-side scenery — arrival pads
@@ -292,6 +304,19 @@ to 128 interior blocks, today's behaviour:
   "centreBlock": "minecraft:dragon_egg"
 }
 ```
+
+**`end_gateway`** is fundamentally different: no frame, no flood-fill —
+the igniter is used ON a block face (like placing a torch) and a real
+`END_GATEWAY` block appears there, beam and all. `frameBlock` is not
+required. Vanilla gateway travel is suppressed for mod-owned gateway
+positions (`EndGatewaySuppressionMixin` cancels
+`EndGatewayBlock.onEntityCollision`; player-placed vanilla gateways
+elsewhere keep vanilla rules) — traversal and return trips run through
+the same zone tick and return-target machinery as every other custom
+portal (`isPortalBlock`/`collectPortalArea` recognise gateways). Zone
+validity is simply "the gateway block still exists"; breaking it clears
+the zone. Arrivals and `exitPortal`s for gateway dimensions are single
+floating gateway blocks.
 
 Shapes imply an orientation default (`door`/`doorway` → `"vertical"`,
 `end_exit` → `"horizontal"`); an explicit `"orientation"` always wins, and

@@ -72,6 +72,20 @@ public class PortalIgnitionMixin {
     // Returns true when a portal was ignited (cir is then set to SUCCESS).
     private static boolean tryIgnite(ServerWorld serverWorld, BlockPos clickedPos, ItemUsageContext context,
             PortalDefinition def, CallbackInfoReturnable<ActionResult> cir) {
+        // Frameless gateways: click-to-place, no flood-fill, no frame. The
+        // gateway goes on the clicked face (like placing a torch); the
+        // matcher may legitimately be empty for these configs.
+        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())) {
+            BlockPos gatewayPos = clickedPos.offset(context.getSide());
+            if (!PortalHelper.isPortalFillable(serverWorld.getBlockState(gatewayPos))) {
+                return false;
+            }
+            serverWorld.setBlockState(gatewayPos, net.minecraft.block.Blocks.END_GATEWAY.getDefaultState(),
+                    net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
+            registerAndFinish(serverWorld, gatewayPos, context, def, Set.of(gatewayPos), Direction.Axis.X);
+            cir.setReturnValue(ActionResult.SUCCESS);
+            return true;
+        }
         FrameMatcher matcher = def.resolveFrameMatcher();
         if (matcher.isEmpty()) {
             return false;

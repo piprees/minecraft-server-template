@@ -299,6 +299,12 @@ public class PortalHelper {
     }
 
     public static boolean isZoneValid(ServerWorld world, PortalZone zone) {
+        // Frameless gateway zones: valid while the gateway block exists
+        // (there is no frame to check and the matcher may be empty).
+        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(zone.definition.getShape())) {
+            BlockPos p = zone.interior.iterator().next();
+            return world.getBlockState(p).isOf(Blocks.END_GATEWAY);
+        }
         // The zone's persisted definition carries the accept forms it was
         // ignited with — validation uses those, not the current config
         // (zones are immutable snapshots of their ignition-time config).
@@ -485,6 +491,18 @@ public class PortalHelper {
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY, String exitMode) {
+        // Frameless gateway arrivals: a single END_GATEWAY block, no frame
+        // ring, no floor dance — vanilla gateways float, ours may too.
+        if (com.customdimensions.portal.PortalShape.END_GATEWAY.equals(definition.getShape())) {
+            BlockPos gatewayPos = interior.iterator().next();
+            targetWorld.setBlockState(gatewayPos, Blocks.END_GATEWAY.getDefaultState(),
+                    Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+            registerPortal(targetWorld.getRegistryKey(), gatewayPos, sourceWorld, sourceY,
+                    parseColor(definition.getColor()), definition.getCooldown(),
+                    definition.getParticleType(), exitMode);
+            savePortalLinks();
+            return;
+        }
         // Building needs a CONCRETE block: framePlaceBlock (tag/list/group
         // configs), else the plain frameBlock, else obsidian. Accepting is
         // not placing.
@@ -593,6 +611,21 @@ public class PortalHelper {
                         continue;
                     }
                     if (state.isOf(Blocks.NETHER_PORTAL) && state.contains(NetherPortalBlock.AXIS) && state.get(NetherPortalBlock.AXIS) == axis) {
+                        return pos;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Nearest END_GATEWAY block in the search box, else null (gateway reuse). */
+    public static BlockPos findExistingGateway(ServerWorld world, int centerX, int centerY, int centerZ, int radiusH, int radiusV) {
+        for (int dx = -radiusH; dx <= radiusH; dx++) {
+            for (int dz = -radiusH; dz <= radiusH; dz++) {
+                for (int dy = -radiusV; dy <= radiusV; dy++) {
+                    BlockPos pos = new BlockPos(centerX + dx, centerY + dy, centerZ + dz);
+                    if (world.getBlockState(pos).isOf(Blocks.END_GATEWAY)) {
                         return pos;
                     }
                 }
@@ -711,6 +744,9 @@ public class PortalHelper {
 
     public static Set<BlockPos> collectPortalArea(ServerWorld world, BlockPos start) {
         BlockState startState = world.getBlockState(start);
+        if (startState.isOf(Blocks.END_GATEWAY)) {
+            return Set.of(start); // gateways are always exactly one block
+        }
         if (startState.isOf(Blocks.END_PORTAL)) {
             return collectHorizontalPortalArea(world, start);
         }
@@ -807,7 +843,8 @@ public class PortalHelper {
     }
 
     public static boolean isPortalBlock(BlockState state) {
-        return state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL);
+        return state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL)
+                || state.isOf(Blocks.END_GATEWAY);
     }
 
     private static ParticleEffect resolveParticleFromTarget(PortalReturnTarget target) {

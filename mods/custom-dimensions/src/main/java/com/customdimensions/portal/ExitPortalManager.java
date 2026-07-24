@@ -99,7 +99,9 @@ public final class ExitPortalManager {
         // end_exit dimensions build (and search for) horizontal portals.
         Direction.Axis axis = PortalShape.END_EXIT.equals(shapeOf(config))
                 ? Direction.Axis.Y : Direction.Axis.X;
-        BlockPos existing = PortalHelper.findExistingPortal(world, baseX, surfaceY, baseZ, 3, 16, axis);
+        BlockPos existing = PortalShape.END_GATEWAY.equals(shapeOf(config))
+                ? PortalHelper.findExistingGateway(world, baseX, surfaceY, baseZ, 3, 16)
+                : PortalHelper.findExistingPortal(world, baseX, surfaceY, baseZ, 3, 16, axis);
         Set<BlockPos> newInterior;
         if (existing != null) {
             newInterior = interiorFrom(existing, world);
@@ -127,6 +129,12 @@ public final class ExitPortalManager {
         String shape = shapeOf(config);
         if (PortalShape.END_EXIT.equals(shape)) {
             return buildHorizontalFrame(world, frameBlock, x, y, z, flags);
+        }
+        if (PortalShape.END_GATEWAY.equals(shape)) {
+            // A single floating gateway — nothing to frame, nothing to decay.
+            BlockPos gatewayPos = new BlockPos(x, y, z);
+            world.setBlockState(gatewayPos, Blocks.END_GATEWAY.getDefaultState(), flags);
+            return Set.of(gatewayPos);
         }
         int width = PortalShape.DOOR.equals(shape) ? 1 : INTERIOR_WIDTH;
         int height = PortalShape.DOOR.equals(shape) ? 2 : INTERIOR_HEIGHT;
@@ -196,9 +204,12 @@ public final class ExitPortalManager {
         return interior;
     }
 
-    /** The dimension's portal shape preset ("standard" when unset). */
+    /**
+     * The dimension's portal shape preset ("standard" when unset —
+     * pattern-object shapes also build the standard 2x3 exit frame).
+     */
     private static String shapeOf(DimensionConfig config) {
-        return PortalShape.normalise(config.hasPortal() ? config.getPortal().shape : null);
+        return PortalShape.normalise(config.hasPortal() ? config.getPortal().getShapeName() : null);
     }
 
     private static void registerExit(ServerWorld world, DimensionConfig config, Set<BlockPos> interior) {

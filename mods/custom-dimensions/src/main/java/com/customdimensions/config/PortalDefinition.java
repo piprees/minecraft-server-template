@@ -234,6 +234,31 @@ public class PortalDefinition {
         this.centreBlock = centreBlock;
     }
 
+    /** Pattern template rows (shape "pattern"); null otherwise. */
+    public List<String> getShapeTemplate() {
+        return this.shapeTemplate;
+    }
+
+    public void setShapeTemplate(List<String> shapeTemplate) {
+        this.shapeTemplate = shapeTemplate;
+    }
+
+    /** Pattern legend (char -> "frame"/"interior"); F/. defaults when unset. */
+    public Map<String, String> getShapeLegend() {
+        if (this.shapeLegend != null && !this.shapeLegend.isEmpty()) {
+            return this.shapeLegend;
+        }
+        return Map.of("F", "frame", ".", "interior");
+    }
+
+    public void setShapeLegend(Map<String, String> shapeLegend) {
+        this.shapeLegend = shapeLegend;
+    }
+
+    /** Pattern shape rows + legend — persisted as plain strings (downgrade rule). */
+    private List<String> shapeTemplate;
+    private Map<String, String> shapeLegend;
+
     /**
      * Whether ignition may consider this axis. Unknown orientation values
      * behave as "any" (validator warns; never crash, never auto-fix).

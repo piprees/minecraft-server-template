@@ -222,8 +222,7 @@ public final class PortalSafetyValidator {
         }
         String orientation = portal.orientation != null ? portal.orientation.trim() : null;
         boolean horizontalOnly = "horizontal".equals(orientation)
-                || com.customdimensions.portal.PortalShape.END_EXIT.equals(
-                        portal.shape != null ? portal.shape.trim() : null);
+                || com.customdimensions.portal.PortalShape.END_EXIT.equals(portal.getShapeName());
         if (horizontalOnly) {
             warnings.add(String.format(
                     "Dimension %s: portal.frameMaterials has no effect on horizontal (Y-axis) "
@@ -233,22 +232,51 @@ public final class PortalSafetyValidator {
         }
     }
 
-    // Shape hygiene (Tier 2): unknown preset names, shape/orientation
-    // contradictions, and centreBlock misuse. WARN and keep going.
+    // Shape hygiene (Tier 2 + deep tier): unknown preset names, malformed
+    // pattern objects, shape/orientation contradictions, and centreBlock
+    // misuse. WARN and keep going.
     private static void validateShapeConfig(DimensionConfig config, DimensionConfig.Portal portal,
                                             List<String> warnings) {
-        String shape = portal.shape != null ? portal.shape.trim() : null;
-        if (shape != null && !shape.isBlank()
+        String shape = portal.getShapeName();
+        if (shape != null
                 && !com.customdimensions.portal.PortalShape.KNOWN.contains(shape)) {
             warnings.add(String.format(
                     "Dimension %s: portal.shape '%s' is not one of %s — the portal can never "
                     + "ignite. KEEPING the config as written (never auto-fixed).",
                     config.getName(), shape, com.customdimensions.portal.PortalShape.KNOWN));
         }
+        if (portal.shape != null && portal.shape.isJsonObject()) {
+            List<String> template = portal.getShapeTemplate();
+            if (template == null) {
+                warnings.add(String.format(
+                        "Dimension %s: portal.shape object is not a valid pattern (expected "
+                        + "{\"type\": \"pattern\", \"template\": [rows...]}) — the portal can "
+                        + "never ignite. KEEPING the config as written (never auto-fixed).",
+                        config.getName()));
+            } else {
+                java.util.Map<String, String> legend = portal.getShapeLegend();
+                boolean hasInterior = false;
+                for (String row : template) {
+                    for (char c : row.toCharArray()) {
+                        if ("interior".equals(legend.get(String.valueOf(c)))) {
+                            hasInterior = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasInterior) {
+                    warnings.add(String.format(
+                            "Dimension %s: portal.shape pattern has no interior cells (legend %s) — "
+                            + "the portal can never ignite. KEEPING the config as written "
+                            + "(never auto-fixed).",
+                            config.getName(), legend));
+                }
+            }
+        }
         // An explicit orientation that excludes every axis the shape can
         // exist on means ignition can never succeed — surface it.
         String orientation = portal.orientation != null ? portal.orientation.trim() : null;
-        if (orientation != null && !orientation.isBlank() && shape != null) {
+        if (orientation != null && !orientation.isBlank() && shape != null && !shape.isBlank()) {
             boolean verticalShape = com.customdimensions.portal.PortalShape.DOOR.equals(shape)
                     || com.customdimensions.portal.PortalShape.DOORWAY.equals(shape);
             boolean horizontalShape = com.customdimensions.portal.PortalShape.END_EXIT.equals(shape);
