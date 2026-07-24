@@ -165,10 +165,16 @@ public class ServerWorldMixin {
                             player.teleport(targetWorld, existing.getX() + 0.5, landY, existing.getZ() + 0.5, Set.of(), player.getYaw(), player.getPitch());
                             playPortalSound(targetWorld, existing, def.getExitSound());
                             PortalHelper.startSingleUseCountdown(zone);
+                            // Older zones may pre-date auras: link them on
+                            // first reuse (both worlds loaded right now).
+                            com.customdimensions.portal.PortalAuraManager.onLink(
+                                    world, zone, targetWorld, PortalHelper.collectPortalArea(targetWorld, existing));
                             continue playerLoop;
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
+                        com.customdimensions.portal.PortalAuraManager.onLink(
+                                world, zone, targetWorld, adjustedInterior);
                         MultiverseServer.LOGGER.info("Created portal in {} at ({}, {}, {})",
                                 targetKey.getValue(), targetCenterX, surfaceY, targetCenterZ);
                         playPortalSound(world, pos, def.getEnterSound());
@@ -192,6 +198,11 @@ public class ServerWorldMixin {
         // declare one (block placement from a world tick is safe; only the
         // worlds-map mutation rule below applies here).
         com.customdimensions.portal.ExitPortalManager.tick(world);
+
+        // Portal auras: bounded environmental spread around portal pairs
+        // (chunk-loaded guard + budgets inside; same safety envelope as
+        // the exit-portal tick).
+        com.customdimensions.portal.PortalAuraManager.tick(world);
 
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs
         // at tick HEAD, so a configured void exit fires BEFORE vanilla void
@@ -251,6 +262,12 @@ public class ServerWorldMixin {
             PortalHelper.createTargetPortal(targetWorld, anchorInterior, zone.axis, def, worldKey, pos.getY(), def.getAnchorExit());
             MultiverseServer.LOGGER.info("Created anchor portal in {} at ({}, {}, {})",
                     zone.targetWorld.getValue(), anchorX, surfaceY, anchorZ);
+            // Anchor arrivals are shared by many sources: onLink samples
+            // once and the first link wins (immutable snapshot).
+            com.customdimensions.portal.PortalAuraManager.onLink(world, zone, targetWorld, anchorInterior);
+        } else {
+            com.customdimensions.portal.PortalAuraManager.onLink(
+                    world, zone, targetWorld, PortalHelper.collectPortalArea(targetWorld, existing));
         }
 
         playPortalSound(world, pos, def.getEnterSound());

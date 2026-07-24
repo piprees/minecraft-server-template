@@ -613,6 +613,22 @@ public class DimensionConfig {
             def.setSingleUseBreakMode(this.portal.singleUse.getBreakMode());
             def.setSingleUseDecayMap(this.portal.singleUse.decayMap);
         }
+        if (this.portal.aura != null) {
+            PortalDefinition.AuraSettings aura = new PortalDefinition.AuraSettings();
+            aura.enabled = this.portal.aura.enabled;
+            aura.radius = this.portal.aura.radius;
+            aura.interval = this.portal.aura.interval;
+            aura.blocksPerPass = this.portal.aura.blocksPerPass;
+            aura.budget = this.portal.aura.budget;
+            aura.sides = this.portal.aura.sides;
+            aura.palette = this.portal.aura.palette;
+            aura.flora = this.portal.aura.flora;
+            aura.trees = this.portal.aura.trees;
+            aura.fluids = this.portal.aura.fluids;
+            aura.conversions = this.portal.aura.conversions;
+            aura.fireChance = this.portal.aura.fireChance;
+            def.setAura(aura);
+        }
         return def;
     }
 
@@ -863,6 +879,14 @@ public class DimensionConfig {
         public Anchor anchor;
         @SerializedName("singleUse")
         public SingleUse singleUse;
+        /**
+         * Environmental spread around this dimension's portals (both
+         * sides). Absent = the derived bi-directional leak: each side's
+         * surroundings are sampled at link time and leak through to the
+         * other. See PortalAuraManager.
+         */
+        @SerializedName("aura")
+        public Aura aura;
 
         public String getIgniteSound() {
             if (this.sounds != null && this.sounds.ignite != null) {
@@ -1066,6 +1090,49 @@ public class DimensionConfig {
             }
             return dimensionSpawn != null ? dimensionSpawn.clone() : new int[]{0, 64, 0};
         }
+    }
+
+    /**
+     * Portal aura: themed environmental spread around a portal pair.
+     * Every field optional; absent block = derived bi-directional leak
+     * (sampled palettes, defaults below). All values are runtime-only —
+     * boot-re-read like the rest of the portal block.
+     */
+    public static class Aura {
+        /** Explicit off switch; absent/true = aura runs. */
+        @SerializedName("enabled")
+        public Boolean enabled;
+        /** Blocks from the portal centre a pass may reach (default 8, max 32). */
+        @SerializedName("radius")
+        public Integer radius;
+        /** Ticks between passes (default 40, min 10). */
+        @SerializedName("interval")
+        public Integer interval;
+        /** Conversion attempts per pass (default 2, max 16). */
+        @SerializedName("blocksPerPass")
+        public Integer blocksPerPass;
+        /** Lifetime conversions per portal side; -1 = endless creep (default 300). */
+        @SerializedName("budget")
+        public Integer budget;
+        /** "source" | "target" | "both" (default). */
+        @SerializedName("sides")
+        public String sides;
+        /** Terrain palette THIS dimension emits (overrides sampling). Empty = emit none. */
+        @SerializedName("palette")
+        public List<String> palette;
+        @SerializedName("flora")
+        public List<String> flora;
+        /** ConfiguredFeature ids (e.g. "minecraft:oak"). */
+        @SerializedName("trees")
+        public List<String> trees;
+        @SerializedName("fluids")
+        public List<String> fluids;
+        /** Explicit from (id or #tag) -> to conversions, outside the frame. */
+        @SerializedName("conversions")
+        public Map<String, String> conversions;
+        /** Per-pass ignition chance on exposed surfaces (default 0). */
+        @SerializedName("fireChance")
+        public Double fireChance;
     }
 
     /**

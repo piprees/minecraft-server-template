@@ -14,6 +14,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Custom portal frames** -- any block as the frame, any item as the igniter; `frameBlock` accepts a plain id, `#ns:tag`, a list, or `{"colorGroup": "<dye>"}`, with `framePlaceBlock` naming the concrete block mod-built frames use
 - **Portal shape presets** -- optional `shape`: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring, optional `centreBlock` pedestal); absent = free-form flood-fill. Shapes imply orientation; mod-built exit portals follow the dimension's shape
 - **Per-part frame materials** -- `frameMaterials` {top, sides, bottom} each accepting any frame form ("stone base, log pillars, plank lintel"); flood-fill accepts the union, validation checks each ring position's part; mod-built frames place per part (vertical portals only)
+- **Portal auras** -- portals affect their surroundings: by default each linked pair leaks the other side's sampled nature through (terrain, flora, trees, fluids), bounded by per-side budgets; `portal.aura` overrides palettes, adds explicit conversions (obsidian→crying) and fire, or switches it off
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
 - **Coordinate scaling** -- configurable scale factor per portal (e.g., 0.125 for nether-style 1:8)
@@ -307,6 +308,53 @@ dims, the classic 2x3 for `doorway`/`standard`, and a horizontal 3x3
 records persist `shape`/`centreBlock` as plain strings — older jars ignore
 the unknown fields (downgrade-safe), and pre-shape records restore as
 `standard`.
+
+### Portal auras
+
+Portals affect their surroundings. **By default** (no config) every
+linked pair leaks the OTHER side's nature through: at link time (arrival
+creation, the only moment both ends are loaded) each side's terrain is
+sampled — a solid-block histogram (top 5 = terrain palette), small
+plants, logs mapped to tree features, still surface fluids — and slow
+bounded passes then convert each side's surroundings using the far
+side's palette. Sampling the real loaded terrain (not biome registries)
+is deliberate: surface rules live in worldgen noise settings and aren't
+practically queryable, and sampling captures modded terrain for free.
+
+```jsonc
+"portal": {
+  "aura": {
+    "enabled": false,        // explicit off switch (absent = on, derived)
+    "radius": 12,            // blocks from portal centre (default 8, max 32)
+    "interval": 40,          // ticks between passes (default 40, min 10)
+    "blocksPerPass": 2,      // conversion attempts per pass (max 16)
+    "budget": 300,           // lifetime conversions per side; -1 = endless
+    "sides": "both",         // "source" | "target" | "both"
+
+    // Emission override: replaces the SAMPLED palette this dimension
+    // leaks into the other side. Empty list = emit nothing.
+    "palette": ["minecraft:netherrack", "minecraft:blackstone"],
+    "flora": ["minecraft:crimson_fungus"],
+    "trees": ["minecraft:crimson_fungus"],   // ConfiguredFeature ids
+    "fluids": ["minecraft:lava"],
+
+    // Extras on top of either mode:
+    "conversions": { "minecraft:obsidian": "minecraft:crying_obsidian" },
+    "fireChance": 0.08       // per-pass ignition on exposed surfaces
+  }
+}
+```
+
+Guard rails (all enforced): the exclusion set (interior + frame ring +
+registered portal positions) is never converted; passes are chunk-loaded
+guarded and never load terrain; containers/block entities and bedrock are
+never touched; fluids form only in depressions (solid floor + ≥3
+enclosing walls) and count double against the budget; feature-placement
+failures are silent no-ops. Palettes and budgets persist (zone records
+and `aura-site-v1` records in `portal_links.json` — plain ids only;
+older jars log unknown records as malformed and drop them, so a
+downgrade quietly stops auras without crashing). Anchor arrivals sample
+once — the first link wins.
 
 ### Anchor, single-use, and exit portals
 

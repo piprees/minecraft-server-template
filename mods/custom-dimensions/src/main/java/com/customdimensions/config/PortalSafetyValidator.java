@@ -119,6 +119,54 @@ public final class PortalSafetyValidator {
         }
         validateShapeConfig(config, portal, warnings);
         validateFrameMaterials(config, portal, warnings);
+        validateAura(config, portal, warnings);
+    }
+
+    // Aura hygiene: unknown sides values and unparseable ids. WARN and keep
+    // going — a malformed entry just never places anything.
+    private static void validateAura(DimensionConfig config, DimensionConfig.Portal portal,
+                                     List<String> warnings) {
+        DimensionConfig.Aura aura = portal.aura;
+        if (aura == null) {
+            return;
+        }
+        if (aura.sides != null && !java.util.Set.of("source", "target", "both").contains(aura.sides)) {
+            warnings.add(String.format(
+                    "Dimension %s: portal.aura.sides '%s' is not source/target/both — treated as "
+                    + "\"both\". KEEPING the config as written (never auto-fixed).",
+                    config.getName(), aura.sides));
+        }
+        java.util.Map<String, List<String>> idLists = new java.util.LinkedHashMap<>();
+        idLists.put("palette", aura.palette);
+        idLists.put("flora", aura.flora);
+        idLists.put("trees", aura.trees);
+        idLists.put("fluids", aura.fluids);
+        for (java.util.Map.Entry<String, List<String>> list : idLists.entrySet()) {
+            if (list.getValue() == null) {
+                continue;
+            }
+            for (String id : list.getValue()) {
+                if (net.minecraft.util.Identifier.tryParse(id) == null) {
+                    warnings.add(String.format(
+                            "Dimension %s: portal.aura.%s entry '%s' is not a valid identifier — "
+                            + "it will never place. KEEPING the config as written (never auto-fixed).",
+                            config.getName(), list.getKey(), id));
+                }
+            }
+        }
+        if (aura.conversions != null) {
+            for (java.util.Map.Entry<String, String> conv : aura.conversions.entrySet()) {
+                String fromId = conv.getKey().startsWith("#") ? conv.getKey().substring(1) : conv.getKey();
+                if (net.minecraft.util.Identifier.tryParse(fromId) == null
+                        || net.minecraft.util.Identifier.tryParse(conv.getValue()) == null) {
+                    warnings.add(String.format(
+                            "Dimension %s: portal.aura.conversions entry '%s' -> '%s' has an invalid "
+                            + "identifier — it will never convert. KEEPING the config as written "
+                            + "(never auto-fixed).",
+                            config.getName(), conv.getKey(), conv.getValue()));
+                }
+            }
+        }
     }
 
     // Per-part material hygiene (Tier 2b): frameBlock/frameMaterials

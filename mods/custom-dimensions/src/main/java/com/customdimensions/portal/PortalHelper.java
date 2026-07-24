@@ -97,6 +97,12 @@ public class PortalHelper {
                 links.add(StoredPortalZone.from(zone));
             }
         }
+        for (Map.Entry<RegistryKey<World>, Map<BlockPos, AuraSite>> worldSites : AURA_SITES.entrySet()) {
+            for (AuraSite site : worldSites.getValue().values()) {
+                site.world = worldSites.getKey().getValue().toString();
+                links.add(site);
+            }
+        }
         try {
             Files.createDirectories(portalLinksPath.getParent());
             Path temporary = portalLinksPath.resolveSibling("." + portalLinksPath.getFileName() + ".tmp");
@@ -136,6 +142,7 @@ public class PortalHelper {
         LEGACY_PORTAL_TARGETS.clear();
         PORTAL_ZONES.clear();
         PENDING_ZONES.clear();
+        AURA_SITES.clear();
         if (portalLinksPath == null || !Files.exists(portalLinksPath)) {
             return;
         }
@@ -151,6 +158,22 @@ public class PortalHelper {
                         StoredPortalZone stored = GSON.fromJson(link, StoredPortalZone.class);
                         PortalZone zone = stored.toPortalZone();
                         PENDING_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
+                        continue;
+                    }
+                    if (link.has("recordType") && "aura-site-v1".equals(link.get("recordType").getAsString())) {
+                        AuraSite site = GSON.fromJson(link, AuraSite.class);
+                        if (site.world != null && site.interior != null && !site.interior.isEmpty()) {
+                            RegistryKey<World> worldKey =
+                                    RegistryKey.of(RegistryKeys.WORLD, Identifier.of(site.world));
+                            BlockPos key = site.interior.get(0).toBlockPos();
+                            for (StoredPosition p : site.interior) {
+                                BlockPos pos = p.toBlockPos();
+                                if (pos.compareTo(key) < 0) {
+                                    key = pos;
+                                }
+                            }
+                            AURA_SITES.computeIfAbsent(worldKey, k -> new HashMap<>()).put(key, site);
+                        }
                         continue;
                     }
                     int x = link.get("x").getAsInt();
@@ -885,6 +908,12 @@ public class PortalHelper {
         // the zone has never been traversed. Written at countdown start and
         // again at shutdown so a restart resumes rather than resets.
         Integer singleUseTicksLeft;
+        // Aura palettes + budget (plain block ids/ints — downgrade rule).
+        List<String> auraPalette;
+        List<String> auraFlora;
+        List<String> auraTrees;
+        List<String> auraFluids;
+        Integer auraBudgetSpent;
 
         StoredPortalZone() {
         }
@@ -898,6 +927,13 @@ public class PortalHelper {
             stored.interior = zone.interior.stream().map(StoredPosition::new).toList();
             if (zone.singleUseTicksLeft >= 0) {
                 stored.singleUseTicksLeft = zone.singleUseTicksLeft;
+            }
+            if (zone.auraPalette != null) {
+                stored.auraPalette = zone.auraPalette;
+                stored.auraFlora = zone.auraFlora;
+                stored.auraTrees = zone.auraTrees;
+                stored.auraFluids = zone.auraFluids;
+                stored.auraBudgetSpent = zone.auraBudgetSpent > 0 ? zone.auraBudgetSpent : null;
             }
             return stored;
         }
@@ -923,8 +959,53 @@ public class PortalHelper {
             if (singleUseTicksLeft != null && singleUseTicksLeft >= 0) {
                 zone.singleUseTicksLeft = singleUseTicksLeft;
             }
+            if (auraPalette != null) {
+                zone.auraPalette = auraPalette;
+                zone.auraFlora = auraFlora;
+                zone.auraTrees = auraTrees;
+                zone.auraFluids = auraFluids;
+                zone.auraBudgetSpent = auraBudgetSpent != null ? auraBudgetSpent : 0;
+            }
             return zone;
         }
+    }
+
+    /**
+     * Arrival-side aura state ("aura-site-v1" records): the source's
+     * sampled nature plus the settings snapshot it was linked with. Older
+     * jars log these as malformed records and drop them on their next save
+     * — noisy but non-fatal (the aura just stops; nothing crashes).
+     */
+    public static class AuraSite {
+        String recordType = "aura-site-v1";
+        String world;
+        List<StoredPosition> interior;
+        public List<String> palette;
+        public List<String> flora;
+        public List<String> trees;
+        public List<String> fluids;
+        public PortalDefinition.AuraSettings settings;
+        public int budgetSpent;
+
+        public void setInterior(java.util.Collection<BlockPos> positions) {
+            this.interior = positions.stream().map(StoredPosition::new).toList();
+        }
+
+        public Set<BlockPos> interiorPositions() {
+            Set<BlockPos> out = new HashSet<>();
+            if (this.interior != null) {
+                for (StoredPosition p : this.interior) {
+                    out.add(p.toBlockPos());
+                }
+            }
+            return out;
+        }
+    }
+
+    private static final Map<RegistryKey<World>, Map<BlockPos, AuraSite>> AURA_SITES = new HashMap<>();
+
+    public static Map<RegistryKey<World>, Map<BlockPos, AuraSite>> getAuraSites() {
+        return AURA_SITES;
     }
 
     public static class PlayerOrigin {
@@ -946,6 +1027,16 @@ public class PortalHelper {
         // Single-use countdown: -1 = never traversed, >0 = ticking down
         // (decremented by ServerWorldMixin), 0 = expire this tick.
         public int singleUseTicksLeft = -1;
+        // Aura palettes leaked FROM the target side, sampled once at link
+        // time (null = not linked yet / aura off). Plain block ids only —
+        // the downgrade-parseability rule applies to these fields too.
+        public List<String> auraPalette;
+        public List<String> auraFlora;
+        public List<String> auraTrees;
+        public List<String> auraFluids;
+        // Lifetime aura conversions spent on the source side (persisted:
+        // restarts resume, never re-burn).
+        public int auraBudgetSpent;
 
         public PortalZone(Set<BlockPos> interior, PortalDefinition definition, Direction.Axis axis, RegistryKey<World> sourceWorld, RegistryKey<World> targetWorld) {
             this.interior = interior;

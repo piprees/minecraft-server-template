@@ -393,4 +393,81 @@ public class PortalDefinition {
                 : Identifier.of("minecraft", this.targetDimension);
         return RegistryKey.of(RegistryKeys.WORLD, id);
     }
+
+    /** Aura settings; a shared default instance when the config has none. */
+    public AuraSettings getAura() {
+        return this.aura != null ? this.aura : AuraSettings.DEFAULTS;
+    }
+
+    public void setAura(AuraSettings aura) {
+        this.aura = aura;
+    }
+
+    /** True unless the config explicitly switched the aura off. */
+    public boolean isAuraEnabled() {
+        return !Boolean.FALSE.equals(this.getAura().enabled);
+    }
+
+    private AuraSettings aura;
+
+    /**
+     * Aura tuning snapshot — persisted into zone records and aura-site
+     * records (plain types only: the downgrade-parseability rule). Null
+     * fields mean "the default"; getters clamp to sane bounds so a hand-
+     * edited record can't run away.
+     */
+    public static class AuraSettings {
+        public static final AuraSettings DEFAULTS = new AuraSettings();
+
+        public Boolean enabled;
+        public Integer radius;
+        public Integer interval;
+        public Integer blocksPerPass;
+        public Integer budget;
+        public String sides;
+        public List<String> palette;
+        public List<String> flora;
+        public List<String> trees;
+        public List<String> fluids;
+        public Map<String, String> conversions;
+        public Double fireChance;
+
+        public int getRadius() {
+            return this.radius != null ? Math.max(1, Math.min(32, this.radius)) : 8;
+        }
+
+        public int getInterval() {
+            return this.interval != null ? Math.max(10, this.interval) : 40;
+        }
+
+        public int getBlocksPerPass() {
+            return this.blocksPerPass != null ? Math.max(1, Math.min(16, this.blocksPerPass)) : 2;
+        }
+
+        /** Lifetime conversion budget; -1 = endless. */
+        public int getBudget() {
+            return this.budget != null ? Math.max(-1, this.budget) : 300;
+        }
+
+        /** "source" | "target" | "both" (default; unknown values = both). */
+        public String getSides() {
+            return "source".equals(this.sides) || "target".equals(this.sides) ? this.sides : "both";
+        }
+
+        public boolean affectsSource() {
+            return !"target".equals(this.getSides());
+        }
+
+        public boolean affectsTarget() {
+            return !"source".equals(this.getSides());
+        }
+
+        public double getFireChance() {
+            return this.fireChance != null ? Math.max(0.0, Math.min(1.0, this.fireChance)) : 0.0;
+        }
+
+        public Map<String, String> getConversions() {
+            return this.conversions != null ? this.conversions : Map.of();
+        }
+    }
 }

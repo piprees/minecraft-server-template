@@ -193,6 +193,36 @@ class DimensionConfigTest {
     }
 
     @Test
+    void auraBlockPlumbsIntoPortalDefinition() {
+        DimensionConfig config = parse("d", """
+                {"portal":{"frameBlock":"b","aura":{
+                 "enabled":true,"radius":12,"interval":20,"blocksPerPass":4,
+                 "budget":-1,"sides":"source",
+                 "palette":["minecraft:netherrack"],"fireChance":0.08,
+                 "conversions":{"minecraft:obsidian":"minecraft:crying_obsidian"}}}}
+                """);
+        PortalDefinition def = config.toPortalDefinition();
+        assertTrue(def.isAuraEnabled());
+        assertEquals(12, def.getAura().getRadius());
+        assertEquals(20, def.getAura().getInterval());
+        assertEquals(4, def.getAura().getBlocksPerPass());
+        assertEquals(-1, def.getAura().getBudget());
+        assertEquals("source", def.getAura().getSides());
+        assertEquals(java.util.List.of("minecraft:netherrack"), def.getAura().palette);
+        assertEquals(0.08, def.getAura().getFireChance());
+        assertEquals("minecraft:crying_obsidian",
+                def.getAura().getConversions().get("minecraft:obsidian"));
+        // absent block = enabled derived defaults
+        PortalDefinition plain = parse("d", "{\"portal\":{\"frameBlock\":\"b\"}}").toPortalDefinition();
+        assertTrue(plain.isAuraEnabled());
+        assertNull(plain.getAura().palette);
+        // explicit off
+        PortalDefinition off = parse("d",
+                "{\"portal\":{\"frameBlock\":\"b\",\"aura\":{\"enabled\":false}}}").toPortalDefinition();
+        assertFalse(off.isAuraEnabled());
+    }
+
+    @Test
     void frameMaterialsWinOverFrameBlock() {
         DimensionConfig config = parse("d", """
                 {"portal":{"frameBlock":"minecraft:stone",

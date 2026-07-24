@@ -329,6 +329,12 @@ class GenerationFingerprintTests(unittest.TestCase):
             "centreBlock": "minecraft:dragon_egg",
             "frameMaterials": {"top": "#minecraft:planks", "sides": "#minecraft:logs",
                                "bottom": "minecraft:stone"}}))
+        # Portal auras are runtime-only environmental spread.
+        self.assertEqual(base, self.fp(portal={
+            "frameBlock": "minecraft:clay",
+            "aura": {"radius": 12, "budget": -1, "sides": "both",
+                     "palette": ["minecraft:netherrack"], "fireChance": 0.08,
+                     "conversions": {"minecraft:obsidian": "minecraft:crying_obsidian"}}}))
         self.assertEqual(base, self.fp(difficulty={"mobMultiplier": 3.0}))
         self.assertEqual(base, self.fp(borders={"player": 512}))
         self.assertEqual(base, self.fp(description="x", color="FF0000",

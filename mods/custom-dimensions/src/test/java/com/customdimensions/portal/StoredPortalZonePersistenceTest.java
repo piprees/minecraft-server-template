@@ -105,6 +105,45 @@ class StoredPortalZonePersistenceTest {
     }
 
     @Test
+    void auraPalettesAndBudgetRoundTrip() {
+        PortalHelper.PortalZone source = zone(-1);
+        source.auraPalette = java.util.List.of("minecraft:end_stone", "minecraft:obsidian");
+        source.auraFlora = java.util.List.of("minecraft:chorus_flower");
+        source.auraTrees = java.util.List.of();
+        source.auraFluids = java.util.List.of();
+        source.auraBudgetSpent = 42;
+        String json = GSON.toJson(PortalHelper.StoredPortalZone.from(source));
+        assertTrue(json.contains("\"auraBudgetSpent\":42"));
+        PortalHelper.PortalZone restored =
+                GSON.fromJson(json, PortalHelper.StoredPortalZone.class).toPortalZone();
+        assertEquals(java.util.List.of("minecraft:end_stone", "minecraft:obsidian"), restored.auraPalette);
+        assertEquals(42, restored.auraBudgetSpent);
+        // unlinked zones carry no aura fields at all
+        String plain = GSON.toJson(PortalHelper.StoredPortalZone.from(zone(-1)));
+        assertFalse(plain.contains("aura"));
+        assertNull(GSON.fromJson(plain, PortalHelper.StoredPortalZone.class).toPortalZone().auraPalette);
+    }
+
+    @Test
+    void auraSiteRecordRoundTrips() {
+        PortalHelper.AuraSite site = new PortalHelper.AuraSite();
+        site.setInterior(java.util.List.of(
+                new net.minecraft.util.math.BlockPos(10, 64, 10),
+                new net.minecraft.util.math.BlockPos(10, 65, 10)));
+        site.palette = java.util.List.of("minecraft:moss_block");
+        site.settings = new com.customdimensions.config.PortalDefinition.AuraSettings();
+        site.settings.budget = 100;
+        site.budgetSpent = 7;
+        String json = GSON.toJson(site);
+        assertTrue(json.contains("\"recordType\":\"aura-site-v1\""));
+        PortalHelper.AuraSite restored = GSON.fromJson(json, PortalHelper.AuraSite.class);
+        assertEquals(2, restored.interiorPositions().size());
+        assertEquals(java.util.List.of("minecraft:moss_block"), restored.palette);
+        assertEquals(100, restored.settings.getBudget());
+        assertEquals(7, restored.budgetSpent);
+    }
+
+    @Test
     void legacyRecordWithoutCountdownFieldRestoresUnarmed() {
         String legacy = """
                 {"recordType":"source-zone-v1","sourceWorld":"minecraft:overworld",
