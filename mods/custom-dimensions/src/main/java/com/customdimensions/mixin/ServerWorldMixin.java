@@ -170,17 +170,22 @@ public class ServerWorldMixin {
                         // coordinates are the wrong column for scale != 1.
                         int surfaceY = PortalHelper.findSurfaceY(targetWorld, targetCenterX, targetCenterZ);
 
-                        // Rebuild the portal with its shape intact: keep each
-                        // interior block's height relative to the portal's
-                        // bottom layer rather than flattening to one Y.
-                        int minInteriorY = Integer.MAX_VALUE;
-                        for (BlockPos p : zone.interior) {
-                            minInteriorY = Math.min(minInteriorY, p.getY());
+                        // Arrivals are a STANDARD size at an OPEN site, not a
+                        // copy of whatever frame the player built at a
+                        // heightmap that lies in a ceilinged world. See
+                        // PortalSite — this is the "arrived encased in
+                        // calcite at y=248" fix, and the reason the way home
+                        // looks the same wherever you came from.
+                        int siteY = com.customdimensions.portal.PortalSite.findArrivalY(
+                                targetWorld, targetCenterX + dx, targetCenterZ + dz, zone.axis, surfaceY);
+                        boolean carved = siteY == com.customdimensions.portal.PortalSite.NO_SITE;
+                        if (carved) {
+                            siteY = surfaceY;
                         }
-                        HashSet<BlockPos> adjustedInterior = new HashSet<>();
-                        for (BlockPos p : zone.interior) {
-                            adjustedInterior.add(new BlockPos(p.getX() + dx, surfaceY + (p.getY() - minInteriorY), p.getZ() + dz));
-                        }
+                        surfaceY = siteY;
+                        HashSet<BlockPos> adjustedInterior = new HashSet<>(
+                                com.customdimensions.portal.PortalSite.standardInterior(
+                                        targetCenterX + dx, siteY, targetCenterZ + dz, zone.axis));
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 

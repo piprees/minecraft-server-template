@@ -217,6 +217,40 @@ public class MultiverseConfig {
         return null;
     }
 
+    /**
+     * The portal definition describing travel INTO {@code targetWorld}, or
+     * null when nothing configures one.
+     *
+     * <p>A dimension's {@code portal} block has always meant "the portal that
+     * leads to this dimension", which is what makes this lookup meaningful
+     * for the RETURN direction too: the portal standing in a custom dimension
+     * that takes you home is, by that definition, an overworld portal, and
+     * should look and sound like one.
+     *
+     * <p>Vanilla never needed this — there is no such thing as an "overworld
+     * portal" there, because the nether portal you came through is the same
+     * block you go back through. Ours are built per dimension, so without a
+     * lookup the way home inherits the presentation of the place you are
+     * trying to leave: a portal home from an ember dimension rendered in
+     * ember colours, which reads as another door deeper in rather than the
+     * way out.
+     */
+    public PortalDefinition getPortalFor(RegistryKey<World> targetWorld) {
+        if (targetWorld == null) {
+            return null;
+        }
+        for (PortalDefinition p : this.portals) {
+            try {
+                if (targetWorld.equals(p.getTargetKey())) {
+                    return p;
+                }
+            } catch (RuntimeException ignored) {
+                // A malformed targetDimension elsewhere must not break this.
+            }
+        }
+        return null;
+    }
+
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {
         if (blockId.equals(this.settings.frameOverworld)) {
             return new PortalDefinition("default_overworld", this.settings.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);

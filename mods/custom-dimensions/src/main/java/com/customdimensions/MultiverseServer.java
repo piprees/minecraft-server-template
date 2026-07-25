@@ -70,6 +70,20 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 com.customdimensions.portal.ExitShrineManager::onChunkLoad);
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             DimensionCommands.register(dispatcher));
+        // Mining one pane of an arrival portal takes the whole portal, the way
+        // vanilla's does. NetherPortalProtectionMixin defends registered
+        // portal blocks from NEIGHBOUR updates (netherportalspread and friends
+        // would otherwise delete them), and spawnTargetPortalParticles heals a
+        // hole so a missing pane cannot strand anyone — both correct, and
+        // between them they made a deliberate pick-swing do nothing but
+        // regenerate. A PLAYER break is a different intention entirely, and
+        // this is the only place that can tell the two apart.
+        net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents.AFTER.register(
+                (world, player, pos, state, entity) -> {
+                    if (world instanceof net.minecraft.server.world.ServerWorld serverWorld) {
+                        com.customdimensions.portal.PortalHelper.onPlayerBrokePortalBlock(serverWorld, pos);
+                    }
+                });
         // Config-driven overworld spawn: the worlds[] overworld entry's
         // "spawn": [x, y, z] replaces the SPAWN_X/Y/Z env enforcement.
         // Other worlds share the global spawn in vanilla, so only the

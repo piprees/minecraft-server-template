@@ -10,7 +10,7 @@
     "mobMultiplier": 1.2
   },
   "portal": {
-    "frameBlock": "minecraft:cracked_deepslate",
+    "frameBlock": "minecraft:cracked_deepslate_bricks",
     "igniterItem": "minecraft:amethyst_shard",
     "color": "5B6B7B",
     "lightLevel": 11,
@@ -44,14 +44,8 @@
       "ancient_temple": "spread",
       "keep_kayra": "near_border"
     },
-    "shuns": [
-      "monument"
-    ],
+    "shuns": ["monument"],
     "description": "Amplified madness — cliffs beyond reason, keeps on the peaks."
   },
-  "spawn": [
-    0,
-    64,
-    0
-  ]
+  "spawn": [0, 64, 0]
 }

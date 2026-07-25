@@ -911,6 +911,73 @@ public class PortalHelper {
         return false;
     }
 
+    /**
+     * A player mined a block; if it was part of one of our arrival portals,
+     * take the whole portal down with it.
+     *
+     * <p>Vanilla behaviour, restored deliberately. Breaking one pane of a
+     * nether portal pops every pane connected to it, and a player who swings
+     * at a portal expects it gone — but our portals are protected from the
+     * neighbour updates that would normally cascade
+     * ({@code NetherPortalProtectionMixin}), and a lone missing pane is healed
+     * on the next particle pass ({@link #healPortalHole}) so that a portal
+     * with a hole cannot strand whoever is standing in it. Correct in
+     * isolation, and together they made mining a portal do nothing at all.
+     *
+     * <p>Deregistering comes FIRST. The heal is keyed on a position still
+     * being in the return-target map, so clearing blocks while they were
+     * still registered would race the particle pass into rebuilding what this
+     * is trying to remove.
+     *
+     * <p>Only touches REGISTERED positions, so a player-built vanilla portal
+     * keeps vanilla's own rules, and a source zone — which has no portal
+     * blocks at all — is unaffected. Source frames are still policed by
+     * {@code isZoneValid} on the world tick.
+     */
+    public static void onPlayerBrokePortalBlock(ServerWorld world, BlockPos pos) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        if (!isRegisteredPortalPosition(worldKey, pos)) {
+            return;
+        }
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(worldKey);
+        if (targets == null) {
+            return;
+        }
+        // Grow over the REGISTRY rather than over block states: the block the
+        // player just broke is already gone, so a state-based flood fill would
+        // stop at the hole and leave the rest of the portal standing.
+        Set<BlockPos> aperture = com.customdimensions.immersive.ProjectionVolume.collectAperture(
+                pos, planeDirections(Direction.Axis.X), targets::containsKey, MAX_PORTAL_BLOCKS);
+        if (aperture.isEmpty()) {
+            aperture = new HashSet<>(Set.of(pos));
+        }
+        for (Direction.Axis axis : new Direction.Axis[]{Direction.Axis.Y, Direction.Axis.Z}) {
+            aperture.addAll(com.customdimensions.immersive.ProjectionVolume.collectAperture(
+                    pos, planeDirections(axis), targets::containsKey, MAX_PORTAL_BLOCKS));
+        }
+
+        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(worldKey);
+        for (BlockPos p : aperture) {
+            targets.remove(p);
+            if (frames != null) {
+                frames.remove(p);
+            }
+        }
+        for (BlockPos p : aperture) {
+            if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
+                continue;
+            }
+            if (isPortalBlock(world.getBlockState(p))) {
+                world.setBlockState(p, Blocks.AIR.getDefaultState(),
+                        Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+            }
+        }
+        savePortalLinks();
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "Arrival portal broken by a player in {} at {} ({} blocks removed)",
+                worldKey.getValue(), pos.toShortString(), aperture.size());
+    }
+
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY) {
         createTargetPortal(targetWorld, interior, axis, definition, sourceWorld, sourceY, null);
     }
@@ -937,6 +1004,10 @@ public class PortalHelper {
         if (frameBlock == null || frameBlock == Blocks.AIR) {
             frameBlock = Blocks.OBSIDIAN;
         }
+
+        // Guarantee egress BEFORE the frame goes in: a portal you cannot step
+        // out of is the worst failure this code has (see PortalSite).
+        PortalSite.carveEgress(targetWorld, interior, axis);
 
         BlockState frameState = frameBlock.getDefaultState();
         BlockState portalState = axis == Direction.Axis.Y
@@ -986,9 +1057,21 @@ public class PortalHelper {
             }
         }
 
-        int color = parseColor(definition.getColor());
+        // PRESENTATION describes where a portal GOES; MATERIAL describes
+        // where it is. The frame above is built from this dimension's blocks
+        // so it is recognisable on arrival, but the colour and particles
+        // belong to the world on the other side — this portal's job is to
+        // take you back there, and it should say so. Without the lookup an
+        // arrival inherits the presentation of the dimension you are trying
+        // to leave, so the way home out of an ember dimension glowed ember
+        // and read as another door deeper in.
+        PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
+        if (presentation == null) {
+            presentation = definition;
+        }
+        int color = parseColor(presentation.getColor());
         int cooldown = definition.getCooldown();
-        String particleType = definition.getParticleType();
+        String particleType = presentation.getParticleType();
         RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
 
         // Register BEFORE placing the portal blocks, not after.

@@ -15,6 +15,20 @@
     },
     "mobMultiplier": 1.0
   },
+  "portal": {
+    "frameBlock": "minecraft:mossy_stone_bricks",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "7FC8F8",
+    "lightLevel": 11,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:cherry_leaves",
+    "sounds": {
+      "ignite": "block.portal.trigger",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
+  },
   "seedRoll": {
     "mood": "standard",
     "description": "The main overworld — safe, fairly vanilla spawn with interesting features nearby to kick off the journey; a real world players want to live in, with hard dungeons waiting near the border.",
@@ -40,5 +54,9 @@
     },
     "shuns": []
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }
