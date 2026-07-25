@@ -768,6 +768,14 @@ public class PortalHelper {
     // createTargetPortal lays a floor when nothing solid is underneath.
     public static final int VOID_FALLBACK_Y = 64;
 
+    /**
+     * Presentation for an arrival whose source world has no portal config —
+     * a base world such as the overworld. Vanilla's portal violet, matching
+     * {@link #parseColor}'s own fallback, so the way home reads as an
+     * ordinary portal rather than as the dimension you are standing in.
+     */
+    public static final int NEUTRAL_PORTAL_COLOR = 0x8844FF;
+
     // Absolute Y a player should stand at when arriving at (centerX, centerZ)
     // — one above the heightmap surface. The caller must pass the SCALED
     // target-world column, not source-portal coordinates. Forces generation
@@ -1064,12 +1072,24 @@ public class PortalHelper {
         // to leave, so the way home out of an ember dimension glowed ember
         // and read as another door deeper in.
         PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
-        if (presentation == null) {
-            presentation = definition;
-        }
-        int color = parseColor(presentation.getColor());
+        // No config for the source world means a BASE world — the overworld,
+        // in practice, which is where almost every portal comes from. It has
+        // no portal block of its own, so there is nothing to describe it with.
+        //
+        // Falling back to `definition` here was the bug: `definition` is the
+        // DESTINATION's portal, so the way home out of an ember dimension
+        // glowed ember and read as another door deeper in. Reported in game
+        // 2026-07-25 as "still seeing nether styles on the return portal".
+        //
+        // A neutral vanilla presentation is the honest answer: the way back to
+        // the overworld should look like an ordinary portal, not like the
+        // place you are leaving. A CHAINED dimension is unaffected — its
+        // source has a config and getPortalFor returns it.
+        int color = presentation != null
+                ? parseColor(presentation.getColor())
+                : NEUTRAL_PORTAL_COLOR;
         int cooldown = definition.getCooldown();
-        String particleType = presentation.getParticleType();
+        String particleType = presentation != null ? presentation.getParticleType() : null;
         RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
 
         // Register BEFORE placing the portal blocks, not after.
