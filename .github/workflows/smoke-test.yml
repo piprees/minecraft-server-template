@@ -566,14 +566,34 @@ jobs:
 
           # The arrival must not be entombed: at least one face of the portal
           # plane has to be steppable.
+          # "Passable" is not just minecraft:air. PortalSite.clear() returns
+          # early on state.isAir(), and cave_air IS air — so underground it
+          # correctly leaves an already-open cell alone rather than rewriting
+          # it to plain air. Asserting minecraft:air only would call a
+          # perfectly walkable cave_air gap "entombed", which is exactly what
+          # happened on the first run of this test (arrival at y=40).
+          passable() {
+            for AIR in minecraft:air minecraft:cave_air minecraft:void_air; do
+              if docker exec mc rcon-cli "execute in $DIM if block $1 $2 $3 $AIR" 2>&1 | grep -q "passed"; then
+                return 0
+              fi
+            done
+            return 1
+          }
           EGRESS=0
           for DZ in 1 -1; do
-            FOOT=$(docker exec mc rcon-cli "execute in $DIM if block $AX $AY $((AZ+DZ)) minecraft:air" 2>&1 || true)
-            HEAD=$(docker exec mc rcon-cli "execute in $DIM if block $AX $((AY+1)) $((AZ+DZ)) minecraft:air" 2>&1 || true)
-            if echo "$FOOT" | grep -q "passed" && echo "$HEAD" | grep -q "passed"; then EGRESS=1; fi
+            if passable "$AX" "$AY" "$((AZ+DZ))" && passable "$AX" "$((AY+1))" "$((AZ+DZ))"; then
+              EGRESS=1
+            fi
           done
           if [ $EGRESS -eq 0 ]; then
             echo "::error::Arrival is ENTOMBED — no body-height gap on either face of the portal plane"
+            echo "  arrival $AX $AY $AZ; probing faces at z=$((AZ+1)) and z=$((AZ-1)):"
+            for DZ in 1 -1; do
+              for YY in "$AY" "$((AY+1))"; do
+                echo "    $AX $YY $((AZ+DZ)): $(docker exec mc rcon-cli "execute in $DIM if block $AX $YY $((AZ+DZ)) minecraft:air" 2>&1 | head -1)"
+              done
+            done
             exit 1
           fi
           echo "Arrival has egress"
