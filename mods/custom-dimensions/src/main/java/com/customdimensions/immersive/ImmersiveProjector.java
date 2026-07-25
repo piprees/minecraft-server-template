@@ -166,8 +166,35 @@ public final class ImmersiveProjector {
     private static final double GATEWAY_PARTICLE_RANGE_SQ = 32.0 * 32.0;
 
     /** 4d: cloud size, and the slow scale pulse that stops it reading as static. */
-    private static final int GATEWAY_PARTICLE_COUNT = 4;
+    private static final int GATEWAY_PARTICLE_COUNT = 2;
     private static final int GATEWAY_PULSE_PERIOD = 40;
+
+    /**
+     * How often the Phase 4 particle passes emit, in ticks.
+     *
+     * <h2>Why these are not 1</h2>
+     * Both passes originally ran EVERY tick, on top of {@code
+     * PortalHelper.spawnParticles}' pre-existing 2-per-interior-block-per-tick
+     * — reported in-game as "the particle effects are very strong". A dust
+     * particle lives roughly 20-30 ticks, so an every-tick spawn keeps ~20+
+     * particles alive per position at all times: a cloud, not a border.
+     *
+     * At a 10-tick cadence the frame carries about two live particles per
+     * block, which reads as a steady coloured outline of the opening rather
+     * than smoke pouring out of it — a tenth of the particles and a tenth of
+     * the {@code ParticleS2CPacket}s (one per ring block per emission). The
+     * gateway cloud emits twice as often but at half the count, because for a
+     * gateway zone the cloud is the ENTIRE immersive treatment (no frame, no
+     * projection, nothing else to look at) — net, also about a tenth of what
+     * it was.
+     *
+     * Both divide {@link #PARTICLE_LOG_INTERVAL} exactly, which is what keeps
+     * the heartbeat below landing on an emitting tick. Deliberately constants
+     * and not config: this is taste, and a knob for it would be one more
+     * thing to get wrong.
+     */
+    private static final int EDGE_PARTICLE_INTERVAL = 10;
+    private static final int GATEWAY_PARTICLE_INTERVAL = 5;
 
     /**
      * Heartbeat cadence (10s) for the 4b/4d particle DEBUG lines. Particles
@@ -365,9 +392,17 @@ public final class ImmersiveProjector {
      *
      * Called only when a projection is live for someone, from the projector
      * tick rather than a second injection point.
+     *
+     * Emits on {@link #EDGE_PARTICLE_INTERVAL}, not every tick — see that
+     * constant for why. The gate is the first thing here so the nine ticks in
+     * ten that emit nothing also build no ring set.
      */
     private static void spawnEdgeParticles(ServerWorld world, PortalHelper.PortalZone zone,
             PortalDefinition def, BlockPos centre, long tick) {
+        long phased = tick + particlePhase(centre, EDGE_PARTICLE_INTERVAL);
+        if (phased % EDGE_PARTICLE_INTERVAL != 0) {
+            return;
+        }
         DustParticleEffect effect = new DustParticleEffect(
                 dustColour(PortalHelper.parseColor(def.getColor())), 1.0f);
         Direction[] planeDirs = PortalHelper.planeDirections(zone.axis);
@@ -388,12 +423,26 @@ public final class ImmersiveProjector {
                     edge.getX() + 0.5, edge.getY() + 0.5, edge.getZ() + 0.5,
                     1, 0.1, 0.1, 0.1, 0.0);
         }
-        if (tick % PARTICLE_LOG_INTERVAL == 0) {
+        if (phased % PARTICLE_LOG_INTERVAL == 0) {
             // Particles leave no server-side trace, so this heartbeat is the
-            // only headless evidence that 4b is running.
+            // only headless evidence that 4b is running. Phased with the
+            // emission for the same reason it is a multiple of the interval:
+            // an unphased check would never coincide with an emitting tick
+            // for any zone whose stagger offset is non-zero, and 4b would
+            // look dead in the log while working perfectly.
             MultiverseServer.LOGGER.debug("immersive: edge particles on {} frame blocks at zone {} {}",
                     ring.size(), world.getRegistryKey().getValue(), centre.toShortString());
         }
+    }
+
+    /**
+     * Per-zone emission offset, so a hub with several immersive portals
+     * spreads its particle packets across the interval instead of spiking
+     * them all onto the same tick. Deterministic (position-derived), so a
+     * zone keeps its phase for as long as it exists.
+     */
+    private static int particlePhase(BlockPos anchor, int interval) {
+        return Math.floorMod(anchor.hashCode(), interval);
     }
 
     /**
@@ -408,6 +457,11 @@ public final class ImmersiveProjector {
      * whole feature is built not to do. The pulse is therefore local: a
      * slow scale cycle rather than the biome-fog blend the phase doc
      * sketched.
+     *
+     * "Denser" is relative to the standard interior particles it replaces,
+     * not to the every-tick firehose this originally was: it emits on {@link
+     * #GATEWAY_PARTICLE_INTERVAL}, which still samples both halves of the
+     * pulse four times each per cycle, so the breathing survives the cut.
      */
     private static void tickGatewayCloud(ServerWorld world, PortalHelper.PortalZone zone,
             PortalDefinition def, List<ServerPlayerEntity> players, long tick) {
@@ -415,6 +469,10 @@ public final class ImmersiveProjector {
             return;
         }
         BlockPos gatewayPos = zone.interior.iterator().next();
+        long phased = tick + particlePhase(gatewayPos, GATEWAY_PARTICLE_INTERVAL);
+        if (phased % GATEWAY_PARTICLE_INTERVAL != 0) {
+            return;
+        }
         boolean visible = false;
         for (ServerPlayerEntity player : players) {
             if (gatewayPos.getSquaredDistance(player.getBlockPos()) <= GATEWAY_PARTICLE_RANGE_SQ) {
@@ -430,7 +488,7 @@ public final class ImmersiveProjector {
                 new DustParticleEffect(dustColour(PortalHelper.parseColor(def.getColor())), scale),
                 gatewayPos.getX() + 0.5, gatewayPos.getY() + 0.5, gatewayPos.getZ() + 0.5,
                 GATEWAY_PARTICLE_COUNT, 0.3, 0.3, 0.3, 0.02);
-        if (tick % PARTICLE_LOG_INTERVAL == 0) {
+        if (phased % PARTICLE_LOG_INTERVAL == 0) {
             // As with the edge particles: a gateway zone has no projection to
             // log, so without this there is no headless signal at all.
             MultiverseServer.LOGGER.debug("immersive: gateway cloud at zone {} {}",

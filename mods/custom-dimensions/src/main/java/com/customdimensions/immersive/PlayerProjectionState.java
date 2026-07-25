@@ -35,15 +35,50 @@ import java.util.UUID;
  * describing, so it cannot express fake states at all. Verified against the
  * Yarn-mapped 1.21.1 jar; do not "optimise" back to it.
  *
- * The budget is fine without batching: the worst-case initial send for the
- * default 2x3 doorway at depth 8 / radius 2 is 336 positions x ~14 bytes
- * ~= 5 KB, once per activation. Steady state is near zero because the delta
- * pass only sends positions whose target block actually changed.
+ * The budget is fine without batching: the default 2x3 doorway at depth 8 /
+ * radius 2 has 336 CANDIDATE positions x ~14 bytes ~= 5 KB, and the sightline
+ * mask below sends well under half of those from any one viewing position.
+ * Steady state is near zero because the delta pass only sends positions whose
+ * target block actually changed — plus, while the player is walking, the
+ * positions entering and leaving their view cone.
  *
  * <h2>Player identity</h2>
  * The live {@link ServerPlayerEntity} is passed in on every call rather than
  * held: a respawn replaces the entity while keeping the UUID, and a cached
  * reference would leave the projection tracking a removed entity's position.
+ *
+ * <h2>The sightline mask, and the invariant that makes it safe</h2>
+ * {@link ProjectionVolume#computeSourcePositions} returns a rectangular slab,
+ * most of which sits behind the frame WALL rather than behind the opening.
+ * Sending all of it put destination terrain beside and above the frame for
+ * anyone looking in the portal's general direction. Every position is
+ * therefore filtered through {@link ProjectionVolume#seesThroughOpening}
+ * against this player's eye, on every send — the mask is a property of where
+ * they are standing, not of the zone, so it cannot be computed once and
+ * cached on the volume.
+ *
+ * That makes fake blocks come and go while a player walks, which puts all the
+ * weight on one invariant:
+ *
+ * <blockquote><b>{@code lastSent} is exactly the set of positions this client
+ * is currently showing a fake block at, and nothing leaves it without a
+ * correction packet having been sent.</b></blockquote>
+ *
+ * Three properties hold it up:
+ * <ul>
+ *   <li>{@code lastSent} only ever gains positions drawn from {@link #volume},
+ *       and every rebuild of {@code volume} is preceded by {@link #restore}
+ *       plus a clear — so iterating {@code volume} always reaches every faked
+ *       position;</li>
+ *   <li>a position that becomes masked-out is restored and removed on the
+ *       same pass, in the send loop, rather than being silently skipped —
+ *       skipping it is what would leave a trail of stuck fake blocks behind a
+ *       player who walks around a portal;</li>
+ *   <li>the removal is conditional on the correction actually going out. An
+ *       unloaded source chunk (or a player who has left the world) keeps the
+ *       position in {@code lastSent} so a later pass — or the teardown — can
+ *       retry, instead of forgetting a block that is still faked.</li>
+ * </ul>
  *
  * <h2>Phase 4: three block states, not two</h2>
  * Everything this class reads from the target world is one of THREE things,
@@ -111,8 +146,8 @@ public final class PlayerProjectionState {
     /** 4e: one "undecided" log line per projection, not one per pass. */
     private boolean pendingLogged;
 
-    /** 4c: player position and server tick at the last send. */
-    private Vec3d lastRefreshPos;
+    /** 4c: player EYE position and server tick at the last send. */
+    private Vec3d lastRefreshEye;
     private long lastRefreshTick;
     /** 4c: last logged cadence, so only CHANGES of pace produce a line. */
     private boolean lastStationary;
@@ -160,6 +195,13 @@ public final class PlayerProjectionState {
         if (handler == null) {
             return;
         }
+        Vec3d eye = player.getEyePos();
+        // Restores triggered by the mask below address coordinates in
+        // sourceWorld; if the player is somehow no longer there those packets
+        // would paint source blocks into another dimension (the same reason
+        // restore() checks). Positions then simply stay in lastSent.
+        boolean sameWorld = sourceWorld != null
+                && sourceWorld.getRegistryKey().equals(player.getServerWorld().getRegistryKey());
         // Chunk lookups are cached per pass; nulls are cached too, so an
         // unloaded target chunk costs one lookup per pass, not one per block.
         // Shared with the 4e depth sampling below, which reads the same
@@ -200,9 +242,36 @@ public final class PlayerProjectionState {
         Direction.Axis normalAxis = wanted.getAxis();
         int firstLayer = ProjectionVolume.firstLayerCoord(this.zone.interior, wanted);
 
+        // Per-player sightline mask. Resolved once per pass: the plane never
+        // moves, and the probe is a single Mutable reused across the volume
+        // so the mask costs no allocation per position.
+        int planeCoord = ProjectionVolume.planeCoord(this.zone.interior, normalAxis);
+        BlockPos.Mutable probe = new BlockPos.Mutable();
+        int masked = 0;
+        int unmasked = 0;
+
         int bottomY = targetWorld.getBottomY();
         int topY = targetWorld.getTopY();
         for (BlockPos pos : this.volume) {
+            if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
+                    this.zone.interior, probe)) {
+                // Behind the frame wall from where this player is standing.
+                // A position that WAS visible and no longer is must be given
+                // its real block back here and now: the player walked, the
+                // frustum swung away from it, and nothing downstream would
+                // ever revisit it — that is precisely how a walk around a
+                // portal leaves a trail of stuck fake blocks. It only leaves
+                // lastSent once the correction has actually gone out, so an
+                // unloaded source chunk means "retry next pass", not "drop
+                // the record".
+                masked++;
+                if (sameWorld && this.lastSent.containsKey(pos)
+                        && restoreOne(handler, sourceWorld, pos)) {
+                    this.lastSent.remove(pos);
+                    unmasked++;
+                }
+                continue;
+            }
             BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
             if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
                 continue;
@@ -233,7 +302,23 @@ public final class PlayerProjectionState {
             this.lastSent.put(pos, state);
         }
 
-        this.lastRefreshPos = player.getPos();
+        if (full || unmasked > 0) {
+            // Counts, not events (mods/AGENTS.md): "activated" alone looked
+            // perfectly healthy in all three of this feature's silent
+            // failures. The visible/candidate ratio is the headless evidence
+            // that the mask is doing something, and the restored count is the
+            // headless evidence that walking away from a sightline puts real
+            // blocks back rather than stranding them.
+            MultiverseServer.LOGGER.debug(
+                    "immersive: sightline mask for {} at zone {} -> {} of {} candidates visible, {} restored",
+                    this.playerName, this.sourceWorldKey.getValue(),
+                    this.volume.size() - masked, this.volume.size(), unmasked);
+        }
+
+        // The EYE, not the feet: the mask is a function of eye position, so
+        // that is what "has this player moved enough to need a new mask?"
+        // has to measure.
+        this.lastRefreshEye = eye;
         this.lastRefreshTick = tick;
     }
 
@@ -247,14 +332,21 @@ public final class PlayerProjectionState {
      * stays the authoritative baseline and the next pass sends every
      * position that has changed since, whenever that pass happens.
      *
+     * This is also the sightline mask's update rate, which is why the
+     * movement test measures the EYE and not the feet — the mask is computed
+     * from the eye, and a stretched interval must only ever apply to a
+     * viewer whose sightlines have not moved. A MOVING player is back on the
+     * configured interval immediately, so the frustum follows them and
+     * positions it leaves behind are restored on the same pass.
+     *
      * While 4e's depth question is still open the projection refreshes at
      * the full rate regardless, so a preview waiting on its arrival chunks
      * resolves in a few ticks instead of a few seconds.
      */
     public boolean needsRefresh(ServerPlayerEntity player, long tick, ImmersiveSettings settings) {
-        double movedSq = (this.lastRefreshPos == null || !this.depthDecided)
+        double movedSq = (this.lastRefreshEye == null || !this.depthDecided)
                 ? Double.MAX_VALUE
-                : player.getPos().squaredDistanceTo(this.lastRefreshPos);
+                : player.getEyePos().squaredDistanceTo(this.lastRefreshEye);
         boolean due = shouldRefresh(tick, this.lastRefreshTick, movedSq, settings.refreshInterval());
         if (due) {
             // Evaluated only when a refresh is actually authorised: between
@@ -295,6 +387,13 @@ public final class PlayerProjectionState {
      * #SHALLOW_DEPTH} the moment it activated, and — since the outcome is
      * sticky — never grow one back. There would be no error, no exception
      * and no failing test: just shallow previews everywhere.
+     *
+     * The sample is deliberately NOT sightline-masked. "Is the far side
+     * empty?" is a question about the destination, not about where one
+     * player happens to be standing, and masking it would make a sticky
+     * decision depend on a viewing angle — an oblique approach would sample
+     * a handful of positions, or none at all, and decide the dimension's
+     * contents from that.
      */
     private int resolveDepth(ServerWorld targetWorld, ImmersiveSettings settings,
             ProjectionVolume.TargetMapping mapping, int arrivalY, Direction normal,
@@ -403,7 +502,7 @@ public final class PlayerProjectionState {
         this.depthDecided = false;
         this.decidedDepth = 0;
         this.pendingLogged = false;
-        this.lastRefreshPos = null;
+        this.lastRefreshEye = null;
         this.lastRefreshTick = 0;
         this.lastStationary = false;
     }
@@ -423,15 +522,28 @@ public final class PlayerProjectionState {
             return;
         }
         for (BlockPos pos : this.lastSent.keySet()) {
-            // Reading a real state must never load a chunk either.
-            if (!sourceWorld.getChunkManager().isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
-                continue;
-            }
-            // Restore the REAL state, never a hardcoded AIR: a projection
-            // position that overlaps a real portal block (anchor portals)
-            // must come back as the portal block (PLAN.md Gotcha #8).
-            handler.sendPacket(new BlockUpdateS2CPacket(pos, sourceWorld.getBlockState(pos)));
+            restoreOne(handler, sourceWorld, pos);
         }
+    }
+
+    /**
+     * Hand one position's REAL block back to the client, never a hardcoded
+     * AIR: a projection position that overlaps a real portal block (anchor
+     * portals) must come back as the portal block (PLAN.md Gotcha #8).
+     *
+     * Returns false when nothing was sent because the source chunk is not
+     * loaded — reading its state would load it, which the projector must
+     * never do (Rule 1). Callers that are dropping the position anyway
+     * ignore that; the mask keeps the position in {@code lastSent} so a
+     * later pass retries rather than stranding a fake block.
+     */
+    private static boolean restoreOne(ServerPlayNetworkHandler handler, ServerWorld sourceWorld, BlockPos pos) {
+        if (sourceWorld == null
+                || !sourceWorld.getChunkManager().isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
+            return false;
+        }
+        handler.sendPacket(new BlockUpdateS2CPacket(pos, sourceWorld.getBlockState(pos)));
+        return true;
     }
 
     private static BlockState sample(ServerWorld targetWorld, BlockPos targetPos, Map<Long, WorldChunk> cache) {

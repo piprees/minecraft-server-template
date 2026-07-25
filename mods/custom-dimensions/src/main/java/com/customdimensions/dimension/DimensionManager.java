@@ -1167,7 +1167,9 @@ public class DimensionManager {
     // Identifier for a dimension slug: the config's own namespace when a
     // definition exists (consumer-added dims may live under BRAND_SLUG),
     // otherwise the platform namespace.
-    private Identifier identifierFor(String name) {
+    // Public so command handlers can resolve a slug the same way the loader
+    // does — a second copy of this namespace fallback would drift.
+    public Identifier identifierFor(String name) {
         DimensionConfig def = this.resolveDefinition(name);
         return def != null
                 ? def.getDimensionIdentifier()

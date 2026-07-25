@@ -5,11 +5,15 @@ import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.decoration.painting.PaintingEntity;
 import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.entity.passive.CowEntity;
 import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.entity.vehicle.MinecartEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -21,13 +25,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * The pure decision logic behind Phase 3's entity pass-through: which entity
- * types may cross, the volume the scan queries, and the swept "did it actually
- * go through the doorway" test.
+ * types may cross, which live entity states may cross, the volume the scan
+ * queries, and the swept "did it actually go through the doorway" test.
  *
  * <p>Everything asserted here is world-free by construction — that is the
- * point of keeping it out of {@code ServerWorldMixin}. The live paths
- * ({@code tick}, {@code tryReturnFromArrivalPortal}) are exercised on the real
- * server via RCON; what CAN be pinned headlessly is pinned here.
+ * point of keeping it out of {@code ServerWorldMixin}, and these tests
+ * deliberately never bootstrap a registry, so no entity is ever instantiated.
+ * The live paths ({@code tick}, {@code tryReturnFromArrivalPortal}) are
+ * exercised on the real server via RCON; what CAN be pinned headlessly is
+ * pinned here.
+ *
+ * <p>Phase 3b inverted the living-entity policy — mobs, villagers and animals
+ * now cross, as they do through a vanilla nether portal — so the assertions
+ * that used to prove they were rejected now prove the opposite.
  */
 class EntityPassthroughTest {
 
@@ -45,26 +55,51 @@ class EntityPassthroughTest {
     }
 
     @Test
-    void playersAndLivingEntitiesNeverCross() {
-        // Players have their own teleport path in ServerWorldMixin; mobs and
-        // villagers break on a cross-dimension recreate (AI, leash, spawn
-        // tracking). Armour stands are excluded for free by being living.
+    void livingEntitiesMayCross() {
+        // The Phase 3b decision: portals carry mobs, villagers and livestock
+        // exactly as vanilla nether portals do. This assertion is the inverse
+        // of the one this file shipped with — it is the feature.
+        assertTrue(EntityPassthrough.isPassthroughType(ZombieEntity.class));
+        assertTrue(EntityPassthrough.isPassthroughType(VillagerEntity.class));
+        assertTrue(EntityPassthrough.isPassthroughType(CowEntity.class));
+    }
+
+    @Test
+    void playersNeverCross() {
+        // Players have their own teleport path in ServerWorldMixin (origin
+        // tracking, portal sounds, single-use countdown, arrival portal
+        // creation). Letting them in here would double-teleport them, so the
+        // exclusion is written against PlayerEntity and not just its server
+        // subclass.
         assertFalse(EntityPassthrough.isPassthroughType(ServerPlayerEntity.class));
-        assertFalse(EntityPassthrough.isPassthroughType(ZombieEntity.class));
-        assertFalse(EntityPassthrough.isPassthroughType(VillagerEntity.class));
+        assertFalse(EntityPassthrough.isPassthroughType(PlayerEntity.class));
+    }
+
+    @Test
+    void armourStandsStayWhereTheyWerePut() {
+        // Living, but placed rather than wandering: a stand standing inside
+        // the frame as decoration must not teleport itself away. The one
+        // living type that is decor is the one living type excluded.
         assertFalse(EntityPassthrough.isPassthroughType(ArmorStandEntity.class));
     }
 
     @Test
     void vehiclesAndBlockAttachedEntitiesNeverCross() {
+        // A boat carrying a passenger across a dimension boundary is a bigger
+        // piece of work than this phase; a boat crossing WITHOUT its passenger
+        // is worse than not crossing at all. Frames and paintings are attached
+        // to blocks that do not come with them.
         assertFalse(EntityPassthrough.isPassthroughType(BoatEntity.class));
+        assertFalse(EntityPassthrough.isPassthroughType(MinecartEntity.class));
         assertFalse(EntityPassthrough.isPassthroughType(ItemFrameEntity.class));
+        assertFalse(EntityPassthrough.isPassthroughType(PaintingEntity.class));
     }
 
     @Test
     void theAllowListIsAllowListNotDenyList() {
-        // Anything not explicitly named — including a modded entity we have
-        // never heard of — stays put.
+        // Non-living entities still have to be named explicitly — a modded
+        // one we have never heard of stays put. (Living ones are in as a
+        // class, which is the deliberate asymmetry of this phase.)
         assertFalse(EntityPassthrough.isPassthroughType(net.minecraft.entity.Entity.class));
         assertFalse(EntityPassthrough.isPassthroughType(null));
     }
@@ -72,6 +107,54 @@ class EntityPassthroughTest {
     @Test
     void nullEntityIsNotEligible() {
         assertFalse(EntityPassthrough.isEligible(null));
+    }
+
+    // ------------------------------------------------------------------
+    // Live-state policy (isPassthroughState)
+    // ------------------------------------------------------------------
+    //
+    // Arguments, in order: removed, ridden, carrying, vanillaAllowsPortal.
+
+    @Test
+    void anOrdinaryUnencumberedEntityPasses() {
+        assertTrue(EntityPassthrough.isPassthroughState(false, false, false, true));
+    }
+
+    @Test
+    void anEntityAlreadyTakenThisTickDoesNot() {
+        // The scan iterates a snapshot list; a teleport earlier in the same
+        // pass leaves a removed reference in it.
+        assertFalse(EntityPassthrough.isPassthroughState(true, false, false, true));
+    }
+
+    @Test
+    void ridersAndTheirMountsBothStayPut() {
+        // A passenger is skipped because its vehicle should carry it or
+        // nothing should move — and the vehicle is skipped because
+        // Entity.teleportTo DOES carry passengers, recursively, which for a
+        // ridden horse would drag the PLAYER across on this path and race
+        // their own teleport. So neither half of a mounted pair moves.
+        assertFalse(EntityPassthrough.isPassthroughState(false, true, false, true));
+        assertFalse(EntityPassthrough.isPassthroughState(false, false, true, true));
+    }
+
+    @Test
+    void vanillasOwnPortalVetoIsHonoured() {
+        // canUsePortals is false for the ender dragon and the wither outright,
+        // for a sleeping villager, and for a fishing bobber whose angler is
+        // staying behind. We do not second-guess any of them.
+        assertFalse(EntityPassthrough.isPassthroughState(false, false, false, false));
+    }
+
+    @Test
+    void beingOnALeadIsNotARefusal() {
+        // The leash is deliberately absent from the gate set: a leashed mob
+        // is eligible, and detachLeashBeforeCrossing breaks and drops the lead
+        // immediately before the teleport. Refusing instead would strand the
+        // mob leashed to a holder in another dimension, which vanilla NEVER
+        // breaks (Leashable.tickLeash detaches on death only, and skips its
+        // distance check entirely across worlds).
+        assertTrue(EntityPassthrough.isPassthroughState(false, false, false, true));
     }
 
     // ------------------------------------------------------------------

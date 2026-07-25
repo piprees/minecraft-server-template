@@ -3,7 +3,8 @@
 > **Depends on:** Phase 0 (config parsing + pre-loaded target world)
 > **Unlocks:** Phase 4 (Polish)
 > **Independent of:** Phases 1 and 2 (can be built in parallel)
-> **Status:** Complete
+> **Status:** Complete. Extended by **Phase 3b — living entities** (below),
+> which inverts the original decision to exclude them.
 > original plan were wrong and are corrected in place; the §3c coordinate
 > snippet did NOT match the real player teleport and has been replaced.
 
@@ -11,8 +12,9 @@
 
 Items thrown into an immersive portal appear on the other side with preserved
 velocity. Projectiles (arrows, tridents, potions, snowballs) fly through.
-XP orbs drift through. The portal acts like an open doorway for non-player
-entities.
+XP orbs drift through. Mobs, villagers and livestock walk through, as they do
+through a vanilla nether portal. The portal acts like an open doorway for every
+non-player entity that vanilla itself would let through.
 
 ## Connection to Overall Plan
 
@@ -50,8 +52,182 @@ decision logic stays unit-testable.
 immersive: entity
 ```
 
-Two forms: `immersive: entity <type> crossed <src> -> <dst> at (x, y, z) velocity (x, y, z)`
-and `immersive: entity <type> returned <src> -> <dst> at (x, y, z)`.
+Three forms: `immersive: entity <type> crossed <src> -> <dst> at (x, y, z) velocity (x, y, z)`,
+`immersive: entity <type> returned <src> -> <dst> at (x, y, z)`, and
+`immersive: entity <type> leash detached before crossing`.
+
+---
+
+## Phase 3b — Living entities
+
+Phase 3 shipped with living entities excluded on the grounds that pathfinding
+targets, AI memories, leashes and spawn tracking are world-scoped and break on
+a cross-dimension recreate. The project owner reversed that deliberately,
+accepting the extra compute:
+
+> *"these should function like any other in-game portal so I'm willing to accept
+> the extra compute for AI pathfinding etc, it'd be a shame if players couldn't
+> bring villagers to their dimensions or build farms, etc."*
+
+So mobs, villagers and animals now cross. **Vanilla nether portals are the
+reference for "correct"** — every decision below either matches vanilla or
+states why it deliberately doesn't.
+
+### What the exclusion was actually protecting against, and what it costs
+
+Most of the original worry turned out to be handled by the recreate itself:
+
+| Worry | What really happens | Action |
+| --- | --- | --- |
+| Pathfinding targets | `EntityNavigation` is not serialised. The arrival is built by `EntityType.create(destination)` + `copyFrom(NBT)`, so it gets a fresh navigation bound to its new world. | None needed |
+| AI memories | Brain memories are `GlobalPos`-qualified (world + position). A villager's old home and job site simply stop matching in the new dimension — exactly what happens when vanilla carries one into the Nether. | None needed |
+| Attack target | `LivingEntity.target` is not written to NBT, so it clears on the recreate. | None needed |
+| Spawn tracking | Per-world and live-counted; `ServerWorld.onDimensionChanged` re-indexes the arrival. Animals and villagers already refuse to despawn, so only hostile mobs face the destination's despawn rules — as vanilla. | None needed |
+| Leashes | Real. See below. | Detach before crossing |
+| Per-dimension difficulty | Real, and NOT a vanilla concern — it is this mod's own feature. See below. | Re-applied on arrival |
+
+### Eligibility, as it now stands
+
+`isPassthroughType(Class)` stays a class-level allow-list (world-free, so the
+whole policy is unit-testable), with `LivingEntity` added to it. Three
+exclusions survive:
+
+- **`PlayerEntity`** — players have their own teleport path in
+  `ServerWorldMixin` (origin tracking, portal sounds, single-use countdown,
+  arrival portal creation). Letting them in here would double-teleport them.
+  Written against `PlayerEntity`, not `ServerPlayerEntity`, so it holds for
+  every subclass including Carpet fake players.
+- **`ArmorStandEntity`** — living, but placed rather than wandering. A stand a
+  player has stood inside the frame as decoration must not teleport itself
+  away. It is the one living type that is decor, so it is the one living type
+  excluded.
+- **`VehicleEntity`** — see § Vehicles below.
+
+`isEligible(Entity)` adds the live-state half, and gained two gates:
+
+- **`hasPassengers()`, not just `hasVehicle()`.** `Entity.teleportTo` *carries
+  passengers*: it detaches them, teleports each recursively and re-mounts on
+  the far side. A ridden horse would therefore have dragged its **player**
+  across on this path, bypassing origin tracking and racing the player's own
+  teleport. Neither half of a mounted pair moves now; the player dismounts and
+  walks through, which is what the player loop expects anyway (it already skips
+  mounted players).
+- **`canUsePortals(false)`** — vanilla's own per-entity veto, honoured
+  verbatim. Decompiled 1.21.1: the base is `(allowVehicles || !hasVehicle()) &&
+  isAlive()`; `LivingEntity` adds `&& !isSleeping()`; `EnderDragonEntity` and
+  `WitherEntity` return `false` outright; `ThrownEntity` returns `true`
+  unconditionally (so pearls, snowballs and potions are unaffected). This is
+  the cleanest possible statement of "behaves like a vanilla portal".
+
+  **One deliberate side effect:** `FishingBobberEntity` returns `false`, and it
+  was eligible before Phase 3b purely because it is a `ProjectileEntity`. A
+  bobber crossing while the angler holding it stays behind is exactly the
+  dangling cross-world reference this file is careful about, and vanilla
+  forbids it for the same reason. Treat this as a fix, not a regression — but
+  it *is* a behaviour change to the pre-3b item path, so it is written down
+  here rather than left to be discovered.
+
+### Leashes — decision: detach and drop, before the teleport
+
+`detachLeashBeforeCrossing` calls `Leashable.detachLeash(true, true)` — vanilla's
+own break call, the one `tickLeash` makes when the holder dies or the mob is
+dragged past the maximum leash length. It drops a lead item and sends the detach
+packet so the holder's client stops drawing a rope to something that has gone.
+
+**Why not refuse to move a leashed mob.** Verified against the decompiled
+`Leashable.tickLeash`: it detaches **only** when one of the two is dead, and
+when the holder is in a different world it skips its distance check entirely.
+So a cross-world leash in vanilla is *permanent*. Refusing to move the mob
+would therefore manufacture the exact dangling cross-world leash the refusal
+was meant to prevent — the player walks through, the cow stays behind, and the
+lead never breaks. It would also make "lead your cow through the portal"
+impossible, which is most of the reason living entities are allowed through.
+
+**Why not just let it cross leashed** (vanilla's literal behaviour). It
+self-heals, but badly and only eventually. The teleport recreates the mob from
+NBT, so the arrival carries an *unresolved* holder — a UUID, or a block
+position for a fence knot. `resolveLeashData` then either drops a lead in the
+destination once `age > 100` (a phantom leash on any mob younger than five
+seconds), or, for a fence-tied mob, calls `LeashKnotEntity.getOrCreate` and
+**spawns a stray leash knot in the destination world** at the mapped position,
+tied to nothing. That litter is the deciding argument.
+
+**The cost of the choice:** the lead lands on the *near* side, whereas vanilla
+would (eventually) drop it on the far side. A player leading an animal through
+has to step back for the lead. That is the whole divergence.
+
+**Mobs leashed TO a crossing entity** need no code: the teleport removes the
+original, and their next `tickLeash` sees a holder that is no longer alive and
+drops their own leads.
+
+### Per-dimension difficulty — applied on arrival
+
+`MobAttributeMixin` applies this mod's per-dimension mob multipliers at
+`MobEntity.initialize`, which runs at natural spawn and **never** for an entity
+that walked in from somewhere else. Without this, a mob walked into a hard
+dimension would keep its origin dimension's stats forever.
+
+`applyArrivalDifficulty` calls `DifficultyManager.applyMobModifiers(mob)` on the
+**arrival** entity — the same public entry point the mixin uses, no new API, no
+reaching around it. It is idempotent by modifier id (remove-then-add), so it
+replaces the origin's modifiers rather than stacking on them. Applied on both
+the source-side crossing and the arrival-side return.
+
+Two inherited behaviours worth knowing: scaling only ever applies to
+MONSTER-spawn-group mobs (villagers and livestock are untouched — the mod's
+existing policy), and a mob whose health scales is set back to full, so an
+arrival in a scaled dimension is treated exactly like a spawn there.
+
+**Known gap (not hacked around):** a destination with no scaling — multiplier
+1.0, or no dimension config at all, e.g. the plain overworld — makes
+`applyMobModifiers` return early *without* stripping the origin's modifiers, so
+a mob walked OUT of a hard dimension keeps its boost. Closing that needs a
+strip-only path inside `DifficultyManager`, which owns the private modifier id.
+Duplicating that id from here would be a hack, so it is recorded as a gap
+instead.
+
+### Vehicles and passengers — a known gap, stated deliberately
+
+`VehicleEntity` (boats, minecarts) stays excluded, and entities with passengers
+are now excluded too. **This is a known gap, not an oversight.** A boat with a
+passenger crossing a dimension boundary is a bigger piece of work than this
+phase: the vehicle and every rider have to arrive together and re-mount
+correctly, a player rider must not be moved by this path at all (they have
+their own), and the arrival column has to be safe for a boat rather than merely
+loaded. Until that is built:
+
+- A boat or minecart does not cross, with or without a rider.
+- A ridden horse, pig, strider or llama does not cross while anyone is aboard.
+- An **unridden** horse, pig, strider or llama *does* cross — it is just a mob.
+- A player leading a mount through must dismount first, which the player
+  teleport loop already requires of them.
+
+### Performance
+
+The broad-phase is unchanged and the search box is **not** widened: it is still
+the interior's bounding box plus `SCAN_MARGIN` (3 blocks, there so fast movers
+become candidates), queried through `world.getOtherEntities`. Cost stays
+proportional to entities actually near an immersive portal, never to the world's
+entity count.
+
+What Phase 3b adds:
+
+- **Source side:** mobs near a portal now clear the class gate and reach the
+  swept `crossedInterior` test. A mob moves well under half a block a tick, so
+  that is one or two `BlockPos` lookups each. Negligible.
+- **Arrival side:** `tryReturnFromArrivalPortal` runs for every non-player
+  entity every tick, and mobs now get past the class check. The next two gates
+  are a plain integer field read (`getPortalCooldown`) and
+  `getBlockStateAtPos()`, which vanilla caches per tick — so the added cost is
+  one comparison and one cached read per mob in a loaded world. The map lookup
+  and the config read stay behind the portal-block test, which almost nothing
+  passes.
+
+### Single-use portals are still player-only
+
+Unchanged and re-verified: `startSingleUseCountdown` is not called from either
+entity path. A wandering mob cannot burn a one-shot portal a player is saving,
+and neither can a thrown item. Only a player traversal arms the countdown.
 
 ## Implementation Checklist
 
@@ -108,13 +284,22 @@ and `immersive: entity <type> returned <src> -> <dst> at (x, y, z)`.
 
 ### 3b. Entity eligibility filter
 
-- [x] Create the eligibility filter. **Shipped as two functions:**
-  `isPassthroughType(Class<?>)` (pure type policy, unit-tested against
-  `ItemEntity`/`ArrowEntity`/`EnderPearlEntity`/`ExperienceOrbEntity`/`FallingBlockEntity`
-  positive and `ServerPlayerEntity`/`ZombieEntity`/`VillagerEntity`/`ArmorStandEntity`/`BoatEntity`/`ItemFrameEntity`/bare
-  `Entity` negative) plus `isEligible(Entity)` for the live state checks. The
-  class-based split is what makes the whole policy testable without a world.
-  Original sketch:
+- [x] Create the eligibility filter. **Shipped as three functions:**
+  `isPassthroughType(Class<?>)` (pure type policy), `isPassthroughState(...)`
+  (pure live-state policy, added by Phase 3b so the rider/passenger/vanilla-veto
+  gates are pinned by test rather than only by reading the call site), and
+  `isEligible(Entity)` which composes the two against a real entity. Keeping
+  both halves world-free is what makes the whole policy testable without
+  bootstrapping a registry — which these unit tests deliberately never do.
+
+  Unit-tested positive: `ItemEntity`/`ArrowEntity`/`EnderPearlEntity`/
+  `ExperienceOrbEntity`/`FallingBlockEntity` and (Phase 3b)
+  `ZombieEntity`/`VillagerEntity`/`CowEntity`. Negative:
+  `PlayerEntity`/`ServerPlayerEntity`/`ArmorStandEntity`/`BoatEntity`/
+  `MinecartEntity`/`ItemFrameEntity`/`PaintingEntity`/bare `Entity`/null.
+
+  Original sketch (superseded twice over — it excluded living entities and did
+  not know `teleportTo` carries passengers):
   ```java
   private static boolean isPassthroughEligible(Entity entity) {
       if (entity instanceof ServerPlayerEntity) return false; // players have their own path
@@ -127,20 +312,28 @@ and `immersive: entity <type> returned <src> -> <dst> at (x, y, z)`.
   }
   ```
 
-- [x] **Explicitly excluded:**
-  - `ServerPlayerEntity` — already handled by the existing player teleport loop
-  - `LivingEntity` (mobs, villagers) — pathfinding, AI state, leash, spawn
-    tracking all break on cross-dimension teleport. Future feature.
-  - `VehicleEntity` (boats, minecarts) — rider state is complex
-  - `ArmorStandEntity` — technically not living but shares placement concerns
+- [x] **Explicitly excluded** (updated by Phase 3b):
+  - `PlayerEntity` — already handled by the existing player teleport loop.
+    Widened from `ServerPlayerEntity` so it covers every player subclass.
+  - ~~`LivingEntity` (mobs, villagers)~~ — **now allowed** (Phase 3b).
+  - `VehicleEntity` (boats, minecarts) — known gap, see § Vehicles above
+  - `ArmorStandEntity` — living, but placed decor rather than wandering
   - `ItemFrameEntity`, `PaintingEntity` — attached to blocks
   - Any entity with `hasVehicle()` — passengers follow their vehicle
+  - Any entity with `hasPassengers()` (Phase 3b) — `teleportTo` would drag
+    them across, players included
+  - Anything vanilla vetoes via `canUsePortals(false)` (Phase 3b) — ender
+    dragon, wither, sleeping mobs, fishing bobbers
 
 - [x] Imports:
   - `net.minecraft.entity.ItemEntity`
   - `net.minecraft.entity.projectile.ProjectileEntity`
   - `net.minecraft.entity.ExperienceOrbEntity`
   - `net.minecraft.entity.FallingBlockEntity`
+  - `net.minecraft.entity.LivingEntity`, `net.minecraft.entity.Leashable`,
+    `net.minecraft.entity.mob.MobEntity`,
+    `net.minecraft.entity.player.PlayerEntity`,
+    `net.minecraft.entity.decoration.ArmorStandEntity` (Phase 3b)
 
 **File:** Same `ServerWorldMixin.java`
 
@@ -311,6 +504,36 @@ implementation item.
 - [x] `"entityPassthrough": false`: entities do NOT pass through
 - [x] Entity with portal cooldown: does NOT re-teleport (no ping-pong)
 
+### Phase 3b additions (RCON, headless) — NOT YET RUN ON A LIVE SERVER
+
+> These invert the old load-bearing negative ("a pig must NOT cross"). The
+> `data get entity`/`kill @e` assertions are the oracle; the DEBUG log is
+> supporting evidence only.
+
+- [ ] **Mob crosses.** `summon minecraft:pig <zone x> <y> <z>` then
+  `execute in <ns>:<dim> positioned <ax> <ay> <az> run kill @e[type=pig,distance=..48]`
+  — must report one kill. Baseline the source side first.
+- [ ] **Villager crosses**, and is still a villager with its trades on the far
+  side (`data get entity @e[type=villager,limit=1] Offers`).
+- [ ] **Player does NOT double-teleport.** Walk a Carpet bot through and assert
+  `data get entity Bot Pos` matches the player path's landing, and that the
+  log shows exactly one traversal for it.
+- [ ] **Ridden mount stays put.** `ride` a bot onto a pig inside the zone; the
+  pig must NOT cross and the bot must NOT move (`data get entity Bot Dimension`).
+- [ ] **Leashed mob crosses and the lead drops on the NEAR side.** Leash a
+  sheep to the bot, walk it into the zone, then assert the sheep arrived in
+  the target dimension AND a `minecraft:lead` item entity exists near the
+  source portal (`execute positioned <zone> run data get entity @e[type=item,distance=..6]`).
+- [ ] **Wither/ender dragon do NOT cross** (vanilla veto) — `summon` a wither
+  inside the zone, assert it is still in the source world one cooldown later.
+- [ ] **Single-use portal survives a mob.** On a `singleUse` dimension, send a
+  pig through and assert the zone record's `singleUseTicksLeft` is still
+  absent/-1 in `portal_links.json` (the countdown must not be armed).
+- [ ] **Difficulty applied on arrival.** Send a zombie into a dimension with a
+  `difficulty.mobMultiplier` > 1 and assert its
+  `Attributes` carry the `customdimensions:dimension_difficulty` modifier
+  (`data get entity @e[type=zombie,limit=1] attributes`).
+
 ### Manual (human-in-game) — REQUIRED
 
 > Not verified — needs a human in-game. The ender-pearl behaviour (3e)
@@ -325,7 +548,13 @@ implementation item.
 - [ ] **Throw snowball through:** snowball continues, hits mob on other side
 - [ ] **Drop XP near portal:** orbs drift through, collectible on other side
 - [ ] **Falling sand:** sand entity falls through horizontal portal
-- [ ] **Mob near portal:** mob does NOT pass through (excluded)
+- [ ] **Mob near portal:** mob DOES pass through (Phase 3b — was the load-bearing
+  negative before, is the load-bearing positive now)
+- [ ] **Villager brought through:** trades, profession and workstation
+  behaviour on the far side look sane to a human
+- [ ] **Leashed animal:** crosses, lead drops on the near side, no rope is
+  still drawn to it afterwards
+- [ ] **Ridden horse:** does not cross; the player dismounts and walks through
 
 ## Shipping Criteria
 
@@ -334,7 +563,9 @@ Phase 3 ships independently when:
 1. Items, projectiles, XP orbs, and falling blocks pass through immersive portals
 2. Velocity is preserved across the transition
 3. Portal cooldown prevents ping-pong teleportation
-4. Living entities (mobs) are explicitly excluded
+4. **(Phase 3b, was: "living entities are explicitly excluded")** Living
+   entities pass through, players do not, and vanilla's own `canUsePortals`
+   veto is honoured
 5. `"entityPassthrough": false` disables the feature
 6. Non-immersive portals are completely unaffected
 7. No errors or entity duplication during pass-through
@@ -365,6 +596,38 @@ Phase 3 ships independently when:
   pass-through-eligible entity moves that fast.
 - **Ender pearl chain teleport (3e) is unverified** — it needs a human with a
   pearl. The pearl itself crosses like any other projectile.
+
+### Added by Phase 3b
+
+- **Vehicles and their passengers do not cross** — a known gap, stated in full
+  in § Vehicles above. Boats, minecarts, and any mount with someone aboard stay
+  put; an unridden mount crosses as a plain mob.
+- **A leashed mob's lead drops on the NEAR side**, not the far side. That is
+  the one deliberate divergence from vanilla, taken to avoid a stray leash knot
+  being spawned in the destination world. See § Leashes.
+- **Difficulty is re-applied but never stripped.** A mob walked INTO a scaled
+  dimension gets the destination's modifiers; a mob walked OUT of one into an
+  unscaled world keeps its old boost, because `DifficultyManager.applyMobModifiers`
+  returns early before its remove-then-add. Needs a strip-only path in
+  `DifficultyManager` to close.
+- **A mob resting ON a horizontal (END_PORTAL) arrival does not return.** The
+  arrival-side check looks at the entity's own block position only, and an
+  entity standing on top of a floor portal has its feet block in the air above
+  it. Pre-existing for items; more visible now that mobs walk about on arrival
+  portals. Fixing it costs two extra block lookups per non-player entity per
+  tick, which is the price the arrival-side design explicitly declines to pay.
+- **Mobs will oscillate near a portal pair**, wandering out and back in and
+  crossing again. The cooldown and the entry-edge trigger bound how fast, but
+  they do not stop it — and vanilla nether portals behave the same way.
+- **`FishingBobberEntity` no longer crosses.** It did before 3b, purely because
+  it is a `ProjectileEntity`; vanilla's `canUsePortals` forbids it. Behaviour
+  change to the pre-3b item path, deliberate.
+- **Documentation elsewhere is now stale and was not editable from this
+  workstream:** `mods/AGENTS.md` still says "Living entities are excluded
+  wholesale" and carries the verification line "Load-bearing negative: a pig
+  must NOT cross (living entities excluded)"; `immersive/PLAN.md` §Phase
+  Summary still describes Phase 3 as items/projectiles/orbs/falling blocks.
+  Both need updating alongside this change.
 
 ## Research Notes
 

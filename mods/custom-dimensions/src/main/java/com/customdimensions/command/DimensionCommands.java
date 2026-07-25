@@ -95,6 +95,9 @@ public class DimensionCommands {
                         .executes(ctx -> destroy(ctx, StringArgumentType.getString(ctx, "name")))))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
+                .then(CommandManager.literal("load")
+                    .then(CommandManager.argument("name", StringArgumentType.word())
+                        .executes(ctx -> load(ctx, StringArgumentType.getString(ctx, "name")))))
                 .then(CommandManager.literal("locate")
                     .then(CommandManager.literal("biome")
                         .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
@@ -180,6 +183,41 @@ public class DimensionCommands {
         com.customdimensions.dimension.DimensionFingerprints.forget(name);
 
         source.sendFeedback(() -> Text.literal("Queued destruction of dimension '" + name + "'"), true);
+        return 1;
+    }
+
+    /**
+     * Instantiates a configured dimension's world without a player having to
+     * walk into it.
+     *
+     * <p>Custom dimensions are REGISTERED at boot but their {@code ServerWorld}
+     * is created lazily on first entry, so {@code execute in <ns>:<dim>} fails
+     * with "Unknown dimension" until somebody visits. That is correct at
+     * runtime and wrong for automation: CI's smoke test asserts per-dimension
+     * seeds, noise settings and structure density, and every one of those
+     * assertions needs a live world. This is the headless equivalent of
+     * walking through the portal.
+     *
+     * <p>Queues via {@code requestWorldLoad} (drained on END_SERVER_TICK)
+     * rather than calling {@code getOrCreateDimension} directly — world
+     * creation from command context deadlocks the main thread (mods/AGENTS.md,
+     * dynamic world lifecycle rule). So this returns immediately and the world
+     * appears a tick or two later; callers must poll, not assume.
+     */
+    private static int load(CommandContext<ServerCommandSource> ctx, String name) {
+        ServerCommandSource source = ctx.getSource();
+        if (MultiverseConfig.getInstance().getDimension(name) == null) {
+            source.sendError(Text.literal("No configured dimension named '" + name + "'"));
+            return 0;
+        }
+        RegistryKey<World> worldKey = RegistryKey.of(
+                RegistryKeys.WORLD, DimensionManager.getInstance().identifierFor(name));
+        if (source.getServer().getWorld(worldKey) != null) {
+            source.sendFeedback(() -> Text.literal("Dimension " + worldKey.getValue() + " already loaded"), false);
+            return 1;
+        }
+        DimensionManager.getInstance().requestWorldLoad(name);
+        source.sendFeedback(() -> Text.literal("Queued load for " + worldKey.getValue()), false);
         return 1;
     }
 

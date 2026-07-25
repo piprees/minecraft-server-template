@@ -251,9 +251,22 @@ jobs:
             exit 1
           fi
 
-          # Boot-time dimension creation from the fixture config.
+          # Dimensions are REGISTERED at boot but their ServerWorld is created
+          # lazily on first player entry, so `execute in` answers "Unknown
+          # dimension" until somebody visits. `customdim load` is the headless
+          # equivalent of walking through the portal: it queues the load on
+          # END_SERVER_TICK (creating a world from command context deadlocks
+          # the main thread), so poll rather than assuming it is immediate.
           for dim in the_claymarsh the_blossom_gardens the_smoke_wide the_smoke_compressed; do
-            OUT=$(docker exec mc rcon-cli "execute in adventure:$dim run seed" 2>&1 || true)
+            docker exec mc rcon-cli "customdim load $dim" >/dev/null 2>&1 || true
+          done
+          for dim in the_claymarsh the_blossom_gardens the_smoke_wide the_smoke_compressed; do
+            OUT=""
+            for _ in $(seq 1 20); do
+              OUT=$(docker exec mc rcon-cli "execute in adventure:$dim run seed" 2>&1 || true)
+              echo "$OUT" | grep -q "Seed" && break
+              sleep 3
+            done
             echo "seed($dim): $OUT"
             echo "$OUT" | grep -q "Seed" || {
               echo "::error::Dimension adventure:$dim missing or seed query failed"

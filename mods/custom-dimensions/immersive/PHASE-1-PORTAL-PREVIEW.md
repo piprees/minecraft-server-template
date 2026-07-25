@@ -269,10 +269,89 @@ to a client that has fresh real block data.
   teardown; a joining client's chunk data is already authoritative)
 
 Verification note: the initial full send can legitimately report fewer than
-336 positions (294 observed) because the ticket loads asynchronously and the
-far chunk misses that tick; the delta pass fills it ~0.2s later. Pinning the
-arrival chunks with a second player yields the full 336. A short count is
-therefore expected, not a defect.
+the candidate count because the ticket loads asynchronously and the far chunk
+misses that tick; the delta pass fills it ~0.2s later. A short count is
+therefore expected, not a defect. Since 1h below, the count is also bounded by
+the sightline mask rather than by the slab — see there for the numbers.
+
+### 1h. Sightline masking (found by human testing, not in the plan)
+
+Reported in-game: *"the new immersive blocks appear to be happening outside of
+the portal frame rather than only inside it, so the server is rendering stuff
+when I just look in the general direction of the portal; it needs to be masked
+or something to avoid that."* Screenshots showed destination blocks rendered
+beside and above the frame, occluding the real world.
+
+`computeSourcePositions` builds a rectangular slab: the interior's in-plane
+bounding box **padded by `previewRadius` on both in-plane axes**, extended
+`previewDepth` along the normal. Those padded columns sit behind the frame
+WALL, not behind the opening. Nothing masked them, so every one of the 336
+default-config positions was sent to anyone within `activationRange`,
+regardless of whether they could see through the portal at all. The 336-block
+budget analysis above is the count of positions that were being sent; it was
+never the count that should have been visible.
+
+A portal is a hole, and you can only see through a hole along a line that goes
+through it.
+
+- [x] `ProjectionVolume.seesThroughOpening(eye, block, normalAxis, planeCoord,
+  interior, scratch)` — the segment from the player's eye to the block's centre
+  must cross the portal's mid-plane at a point inside the opening
+- [x] The crossing point is floored to a block position and looked up in the
+  **interior set itself, never its bounding box**, so an irregular flood-filled
+  frame (an arch, an L, a notch) masks per cell — the same discipline
+  `EntityPassthrough`'s swept path already uses
+- [x] Evaluated **per player, on every send**, in `PlayerProjectionState.send`.
+  The mask is a property of where the viewer is standing, not of the zone, so
+  it cannot be computed once and cached on the volume
+- [x] **Masked-out positions that were previously sent are restored** (real
+  block state, from `lastSent`) and dropped from the baseline on the same pass.
+  This is the load-bearing part: without it, walking around a portal leaves a
+  trail of stuck fake blocks — the same defect class as a missed teardown path,
+  but continuous rather than occasional
+- [x] The removal is conditional on the correction actually going out. An
+  unloaded source chunk keeps the position in `lastSent` so a later pass (or
+  the teardown) retries, instead of forgetting a block that is still faked
+- [x] The 4c movement test measures the **eye**, not the feet, because the eye
+  is what the mask is computed from. A moving player is on the configured
+  interval, so the cone follows them and vacated positions are restored on the
+  same pass; only a genuinely stationary viewer gets the stretched interval
+- [x] `previewRadius` keeps its config field, defaults and clamping, but is now
+  only a **bound on how far the visible cone may widen** behind the opening —
+  it no longer describes what is shown
+
+What this produces is a view frustum: at the layer against the plane exactly
+the opening's own footprint is visible, widening with depth, and sliding
+sideways as the player walks (which is also where the parallax comes from).
+Measured on the default fixture (2x3 doorway, depth 8, radius 2), pinned in
+`ProjectionVolumeTest`:
+
+| eye | visible of 336 |
+|---|---|
+| 6 blocks out, centred | 149 (6, 8, 15, 20, 20, 24, 28, 28 by depth layer) |
+| 6 blocks out, 3 to the side | 90 |
+| 6 blocks out, 9 to the side | 13 |
+
+Cost is one division, two multiply-floors and one `Set` lookup
+per candidate, with a reused `BlockPos.Mutable` so the mask allocates nothing
+per position.
+
+Two deliberate non-changes:
+
+- **`resolveDepth`'s 4e sample is NOT masked.** "Is the far side empty?" is a
+  question about the destination, not about one viewer's angle, and masking it
+  would let an oblique approach decide a sticky, per-projection depth from a
+  handful of positions (or none). The 4f measurements below still hold.
+- **The candidate slab is unchanged.** Tapering it into a pyramid would save
+  perhaps a third of the (very cheap) mask evaluations and would couple the
+  zone's geometry to a viewer distance it does not know.
+
+Known trade-off at close range: `previewRadius` bounds the cone, so a player
+standing 2-3 blocks from the frame can see the outer corners of the aperture
+clip back to real blocks at the deepest layers (at 4+ blocks out, radius 2
+covers the whole cone). Raising `DEFAULT_PREVIEW_RADIUS` to 3 or 4 in
+`ImmersiveSettings` would fill those corners at the cost of more candidate
+positions; the mask means the extra candidates cost evaluations, not packets.
 
 ## Verification Checklist
 

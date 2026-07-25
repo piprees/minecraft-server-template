@@ -4,13 +4,18 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
+import com.customdimensions.dimension.DifficultyManager;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.FallingBlockEntity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.Leashable;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.vehicle.VehicleEntity;
 import net.minecraft.registry.RegistryKey;
@@ -33,9 +38,31 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Immersive portal entity pass-through (Phase 3): items, projectiles,
- * experience orbs and falling blocks cross an immersive portal the way a
- * player does, keeping their velocity, so the frame reads as an open
- * doorway rather than a player-only turnstile.
+ * experience orbs, falling blocks and — since Phase 3b — living entities
+ * (mobs, villagers, animals) cross an immersive portal the way a player does,
+ * keeping their velocity, so the frame reads as an open doorway rather than a
+ * player-only turnstile.
+ *
+ * <h2>Living entities</h2>
+ * They were excluded when this phase first shipped, on the grounds that
+ * pathfinding targets, AI memories, leashes and spawn tracking are all
+ * world-scoped and break on a cross-dimension recreate. That exclusion has
+ * been lifted deliberately: vanilla nether portals carry mobs, so a portal
+ * that refuses them does not read as a portal, and players want to bring
+ * villagers and livestock to their dimensions. Vanilla's own behaviour is the
+ * reference for what "correct" means here, and where this diverges from it —
+ * leashes (detached near-side rather than dropped far-side) and per-dimension
+ * difficulty (re-applied on arrival) — the divergence is documented at the
+ * method that causes it.
+ *
+ * <p>What the cross-dimension recreate does to a mob, and why none of it needs
+ * code here: navigation and the current attack target are not serialised, so
+ * the arrival gets a fresh {@code EntityNavigation} bound to its new world;
+ * brain memories are {@code GlobalPos}-qualified, so a villager's old home and
+ * job site simply stop matching, exactly as they do when vanilla carries one
+ * into the Nether; and animals and villagers already refuse to despawn, so
+ * only hostile mobs are subject to the destination's despawn rules — again as
+ * vanilla.
  *
  * <p>Gated entirely on {@link ImmersiveSettings#entityPassthrough()}. A zone
  * whose definition has no immersive block does zero work here and behaves
@@ -131,41 +158,53 @@ public final class EntityPassthrough {
      * Whether an entity of this class may pass through an immersive portal.
      *
      * <p>Class-based rather than instance-based so the whole eligibility
-     * policy is testable without a live world. The exclusions are deliberate
-     * and each one is load-bearing:
+     * policy is testable without a live world; the live-state half lives in
+     * {@link #isEligible}. Still an allow-list, not a deny-list — item frames
+     * and paintings are attached to blocks, end crystals are structural, and
+     * an unknown modded non-living entity is not our business.
+     *
+     * <p>The exclusions are deliberate and each one is load-bearing:
      *
      * <ul>
-     *   <li>{@link ServerPlayerEntity} — has its own teleport path in
+     *   <li>{@link PlayerEntity} — a player has their own teleport path in
      *       {@code ServerWorldMixin} (origin tracking, portal sounds,
      *       single-use countdown, arrival portal creation). Redundant here at
-     *       best, double-teleporting at worst.</li>
-     *   <li>ALL {@link LivingEntity} (mobs, villagers, armour stands) —
-     *       pathfinding targets, AI memories, leashes and spawn tracking are
-     *       all world-scoped and break on a cross-dimension recreate. A
-     *       future feature, not this one. This also covers players, since
-     *       {@code PlayerEntity} is a {@code LivingEntity}; the explicit
-     *       player check above it is documentation.</li>
-     *   <li>{@link VehicleEntity} (boats, minecarts) — rider state.</li>
+     *       best, double-teleporting at worst, so this is checked before
+     *       anything else. Written against {@code PlayerEntity} rather than
+     *       {@link ServerPlayerEntity} so it holds for every player subclass,
+     *       fake players included.</li>
+     *   <li>{@link ArmorStandEntity} — living, but placed rather than
+     *       wandering. A stand a player has stood inside the frame as
+     *       decoration would silently teleport itself away on the next tick.
+     *       This is the one living type that is decor, so it is the one
+     *       living type excluded.</li>
+     *   <li>{@link VehicleEntity} (boats, minecarts) — a boat carrying a
+     *       passenger across a dimension boundary is a bigger piece of work
+     *       than this (see the phase doc); a boat crossing WITHOUT its
+     *       passenger is worse than not crossing at all.</li>
      * </ul>
      *
-     * Everything else must be on the allow-list explicitly: item frames and
-     * paintings are attached to blocks, end crystals are structural, and an
-     * unknown modded entity is not our business.
+     * <p>Everything else living is in, which is the point of this phase: mobs,
+     * villagers, animals and anything a mod adds on top of
+     * {@link LivingEntity}. Vanilla's own per-entity veto
+     * ({@code canUsePortals}) is applied in {@link #isEligible}, so the ender
+     * dragon and the wither still stay where they are.
      */
     public static boolean isPassthroughType(Class<?> type) {
         if (type == null) {
             return false;
         }
-        if (ServerPlayerEntity.class.isAssignableFrom(type)) {
+        if (PlayerEntity.class.isAssignableFrom(type)) {
             return false;
         }
-        if (LivingEntity.class.isAssignableFrom(type)) {
+        if (ArmorStandEntity.class.isAssignableFrom(type)) {
             return false;
         }
         if (VehicleEntity.class.isAssignableFrom(type)) {
             return false;
         }
-        return ItemEntity.class.isAssignableFrom(type)
+        return LivingEntity.class.isAssignableFrom(type)
+                || ItemEntity.class.isAssignableFrom(type)
                 || ProjectileEntity.class.isAssignableFrom(type)
                 || ExperienceOrbEntity.class.isAssignableFrom(type)
                 || FallingBlockEntity.class.isAssignableFrom(type);
@@ -310,8 +349,9 @@ public final class EntityPassthrough {
                 }
                 if (targetWorld == null) {
                     // Target world unloaded. Deliberately NOT queued for
-                    // load: a thrown item should not be able to spin up a
-                    // dimension. Phase 0's proximity pre-loader already has
+                    // load: nothing short of a player should be able to spin
+                    // up a dimension — least of all a mob that has wandered
+                    // into an unattended frame. Phase 0's pre-loader has
                     // it loaded whenever a player is near enough to throw
                     // anything at the portal.
                     continue;
@@ -327,12 +367,71 @@ public final class EntityPassthrough {
         }
     }
 
-    /** Instance-level eligibility: the type policy plus live entity state. */
+    /**
+     * Instance-level eligibility: the type policy plus live entity state.
+     *
+     * <p>Ordered cheapest-and-most-selective first, because the arrival-side
+     * caller runs this on every non-player entity in the game every tick. The
+     * class check is what rejects the overwhelming majority.
+     *
+     * <p>Two gates matter more now that living entities are in:
+     *
+     * <ul>
+     *   <li><b>Passengers, not just vehicles.</b> A rider was already skipped
+     *       (the vehicle should carry it or nothing should move), but
+     *       {@code Entity.teleportTo} carries passengers with it — it
+     *       detaches them, teleports each recursively and re-mounts on the far
+     *       side. A ridden horse would therefore drag its PLAYER across on
+     *       this path, bypassing origin tracking entirely and racing the
+     *       player's own teleport. So a mount with anyone aboard stays put;
+     *       the player dismounts and walks through, which is what the player
+     *       loop expects anyway (it skips mounted players too).</li>
+     *   <li><b>{@code canUsePortals} is vanilla's own veto</b> and is honoured
+     *       verbatim. It rules out the ender dragon and the wither (both
+     *       return false outright), sleeping villagers, and dead entities —
+     *       and, incidentally, fishing bobbers, which were eligible before
+     *       this phase purely because they are projectiles. A bobber crossing
+     *       while the angler holding it stays behind is exactly the dangling
+     *       cross-world reference this class is careful to avoid, and vanilla
+     *       forbids it for the same reason. {@code false} is passed for
+     *       {@code allowVehicles} so it agrees with the explicit
+     *       {@code hasVehicle} gate rather than overriding it.</li>
+     * </ul>
+     */
     public static boolean isEligible(Entity entity) {
-        return entity != null
-                && !entity.isRemoved()
-                && !entity.hasVehicle()
-                && isPassthroughType(entity.getClass());
+        if (entity == null) {
+            return false;
+        }
+        if (!isPassthroughType(entity.getClass())) {
+            return false;
+        }
+        return isPassthroughState(entity.isRemoved(), entity.hasVehicle(), entity.hasPassengers(),
+                entity.canUsePortals(false));
+    }
+
+    /**
+     * The live-state half of {@link #isEligible}, as a pure function so the
+     * policy is pinned by unit test rather than only by reading the call site
+     * — the same reason {@link #isPassthroughType} takes a {@code Class}
+     * instead of an {@code Entity}.
+     *
+     * <p>Note what is NOT a gate here: <b>being on a lead</b>. A leashed mob
+     * crosses, and its lead is broken and dropped first — see
+     * {@code detachLeashBeforeCrossing} for why refusing to move it would be
+     * the worse of the two options.
+     *
+     * @param removed             the entity has already been taken this tick
+     * @param ridden              the entity is a passenger; its vehicle should
+     *                            carry it, or nothing should move
+     * @param carrying            the entity has passengers of its own;
+     *                            {@code teleportTo} would drag them across
+     *                            with it, players included
+     * @param vanillaAllowsPortal {@code Entity.canUsePortals(false)} — vanilla's
+     *                            own per-entity veto, honoured verbatim
+     */
+    public static boolean isPassthroughState(boolean removed, boolean ridden, boolean carrying,
+            boolean vanillaAllowsPortal) {
+        return !removed && !ridden && !carrying && vanillaAllowsPortal;
     }
 
     /**
@@ -377,6 +476,8 @@ public final class EntityPassthrough {
         double ty = floorY + (entity.getY() - mapping.interiorMinY());
         double tz = entity.getZ() + mapping.dz();
 
+        detachLeashBeforeCrossing(entity);
+
         Vec3d velocity = entity.getVelocity();
         Entity arrived = entity.teleportTo(new TeleportTarget(
                 targetWorld, new Vec3d(tx, ty, tz), velocity,
@@ -388,6 +489,7 @@ public final class EntityPassthrough {
         // to stop dead at the far side for a tick.
         arrived.velocityModified = true;
         arrived.setPortalCooldown(def.getCooldown());
+        applyArrivalDifficulty(arrived);
 
         MultiverseServer.LOGGER.debug(
                 "immersive: entity {} crossed {} -> {} at ({}, {}, {}) velocity ({}, {}, {})",
@@ -412,20 +514,30 @@ public final class EntityPassthrough {
      * entity in the game.
      *
      * <p>This runs on every non-player entity every tick, so the gates are
-     * ordered cheapest-and-most-selective first: the class check rejects all
-     * mobs and players before anything touches the world, and the block state
-     * comes from {@code getBlockStateAtPos()}, which vanilla caches per tick.
-     * Unlike the player path this checks only the entity's own block, not
-     * also the blocks above and below it: items, orbs, arrows and falling
-     * blocks are all sub-block entities whose block position is where they
-     * visually are, and two extra block lookups per entity per tick is not a
-     * price worth paying for a case that cannot arise.
+     * ordered cheapest-and-most-selective first: the class check rejects
+     * players and everything off the allow-list before anything touches the
+     * world, the portal cooldown is a plain field read, and only then does the
+     * block state get looked at — and that comes from
+     * {@code getBlockStateAtPos()}, which vanilla caches per tick. Living
+     * entities now clear the class gate, so the added per-tick cost of this
+     * phase is one integer comparison and one cached state read per mob in a
+     * loaded world; the map lookup and the config read stay behind the
+     * portal-block test, which almost nothing passes.
+     *
+     * <p>Unlike the player path this checks only the entity's own block, not
+     * also the blocks above and below it. That is exact for the sub-block
+     * entities (items, orbs, arrows, falling blocks) and for anything standing
+     * in a vertical doorway, whose portal blocks reach the floor. The gap it
+     * leaves is an entity resting ON a horizontal (END_PORTAL) arrival, whose
+     * block position is the air above the portal — see the phase doc's known
+     * limits. Two extra block lookups per entity per tick is not the price to
+     * pay for it.
      *
      * <p>Exit modes are honoured only where they mean something without a
      * player: {@code "worldSpawn"} resolves, a plain link or {@code "origin"}
-     * falls back to the recorded source world and Y (an item has no bed and
-     * no tracked origin), and {@code "bed"} / {@code "dim!..."} are skipped
-     * rather than guessed at.
+     * falls back to the recorded source world and Y (a thrown diamond and a
+     * wandering cow alike have no bed and no tracked origin), and
+     * {@code "bed"} / {@code "dim!..."} are skipped rather than guessed at.
      */
     public static boolean tryReturnFromArrivalPortal(Entity entity, World rawWorld) {
         if (!(rawWorld instanceof ServerWorld world)) {
@@ -486,6 +598,8 @@ public final class EntityPassthrough {
             return false;
         }
 
+        detachLeashBeforeCrossing(entity);
+
         Vec3d velocity = entity.getVelocity();
         Entity arrived = entity.teleportTo(new TeleportTarget(
                 destination, new Vec3d(tx, ty, tz), velocity,
@@ -495,14 +609,17 @@ public final class EntityPassthrough {
         }
         arrived.velocityModified = true;
         arrived.setPortalCooldown(target.cooldown);
+        applyArrivalDifficulty(arrived);
         // The return often lands inside the very source zone that sent the
         // entity here. Seeding the destination's "was inside" set makes that
         // read as already-inside rather than as a fresh entry, so it settles
         // instead of bouncing back the moment its cooldown expires.
         markInside(destination.getRegistryKey(), arrived.getUuid());
 
-        // Single-use countdowns are deliberately NOT armed from here: a
-        // thrown item must not burn a one-shot portal the player is saving.
+        // Single-use countdowns are deliberately NOT armed from here, and
+        // startSingleUseCountdown is not called on the source side either: no
+        // thrown item and no wandering mob may burn a one-shot portal the
+        // player is saving. Only a player traversal arms the countdown.
         MultiverseServer.LOGGER.debug(
                 "immersive: entity {} returned {} -> {} at ({}, {}, {})",
                 arrived.getType().getTranslationKey(), worldKey.getValue(),
@@ -514,6 +631,82 @@ public final class EntityPassthrough {
     // ------------------------------------------------------------------
     // Internals
     // ------------------------------------------------------------------
+
+    /**
+     * Break the lead before a leashed mob crosses, dropping it the way any
+     * other broken leash does.
+     *
+     * <p>{@code detachLeash(true, true)} is vanilla's own break call — the one
+     * {@code Leashable.tickLeash} makes when the holder dies or the mob is
+     * dragged past the maximum leash length. It drops a lead item and sends
+     * the detach packet, so the holder's client stops drawing a rope to
+     * something that is no longer there.
+     *
+     * <p><b>Why detach rather than refuse to move.</b> Refusing leaves the mob
+     * behind, still leashed to a holder who has just walked into another
+     * dimension — and vanilla NEVER breaks that leash: {@code tickLeash} only
+     * detaches on death, and skips its distance check entirely when the two
+     * are in different worlds. Refusing would therefore manufacture the exact
+     * permanent cross-world leash this is meant to avoid, and it would make
+     * "lead your cow through the portal" impossible, which is most of the
+     * reason living entities are allowed through at all.
+     *
+     * <p><b>Why not simply let it cross leashed.</b> That is what vanilla
+     * does, and it self-heals — but badly, and only eventually. The teleport
+     * recreates the mob from NBT, so the arrival carries an UNRESOLVED holder
+     * (a UUID, or a block position for a fence knot) rather than a live
+     * reference. {@code resolveLeashData} then either drops a lead in the
+     * destination once {@code age > 100} — a phantom leash on any mob younger
+     * than five seconds — or, for a fence-tied mob, calls
+     * {@code LeashKnotEntity.getOrCreate} and <b>spawns a stray leash knot in
+     * the destination world</b> at the mapped position, tied to nothing.
+     * Detaching first is deterministic, immediate, and cannot leave litter on
+     * the far side. The one cost is that the lead lands on the near side, so
+     * a player leading an animal through has to step back for it.
+     *
+     * <p>Mobs leashed TO the crossing entity need nothing here: the teleport
+     * removes the original, and their next {@code tickLeash} sees a holder
+     * that is no longer alive and drops their own leads.
+     */
+    private static void detachLeashBeforeCrossing(Entity entity) {
+        if (!(entity instanceof Leashable leashable) || !leashable.isLeashed()) {
+            return;
+        }
+        leashable.detachLeash(true, true);
+        MultiverseServer.LOGGER.debug("immersive: entity {} leash detached before crossing",
+                entity.getType().getTranslationKey());
+    }
+
+    /**
+     * Re-apply the DESTINATION dimension's mob scaling to an arriving mob.
+     *
+     * <p>{@code MobAttributeMixin} applies this mod's per-dimension multipliers
+     * at {@code MobEntity.initialize}, which runs at natural spawn and never
+     * for an entity that walked in from somewhere else. Without this a zombie
+     * led into a hard dimension would keep its home dimension's stats
+     * forever. {@link DifficultyManager#applyMobModifiers} is the same public
+     * entry point the mixin uses and is idempotent by modifier id
+     * (remove-then-add), so calling it on arrival replaces the origin's
+     * modifiers with the destination's rather than stacking them.
+     *
+     * <p>Two behaviours inherited from that method are worth knowing:
+     * scaling only ever applies to MONSTER-spawn-group mobs (villagers and
+     * livestock are untouched, which is the mod's existing policy), and a mob
+     * whose health scales is set back to full — an arrival in a scaled
+     * dimension is treated exactly like a spawn there.
+     *
+     * <p><b>Known gap:</b> a destination with no scaling (multiplier 1.0, or
+     * no dimension config at all — the plain overworld, say) returns early
+     * WITHOUT stripping the origin's modifiers, so a mob walked out of a hard
+     * dimension keeps its boost. Closing that needs a strip-only path inside
+     * {@code DifficultyManager}, which owns the modifier id; it is not
+     * something to reach around from here.
+     */
+    private static void applyArrivalDifficulty(Entity arrived) {
+        if (arrived instanceof MobEntity mob) {
+            DifficultyManager.applyMobModifiers(mob);
+        }
+    }
 
     /** The source -&gt; target transform this zone's player teleport would use. */
     private static ProjectionVolume.TargetMapping mappingFor(PortalHelper.PortalZone zone, PortalDefinition def) {

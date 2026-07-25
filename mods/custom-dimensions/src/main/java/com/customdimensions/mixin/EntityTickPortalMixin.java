@@ -27,14 +27,20 @@ public abstract class EntityTickPortalMixin {
     private void onTickPortal(CallbackInfo ci) {
         Entity self = (Entity) (Object) this;
         if (!(self instanceof ServerPlayerEntity player)) {
-            // Immersive portals (Phase 3d): an item, projectile, XP orb or
-            // falling block standing in an ARRIVAL portal block goes back the
-            // way it came. Cancel ONLY when it actually teleported — this
-            // callback fires for every non-player entity in the game every
-            // tick, and cancelling it otherwise would break vanilla's own
-            // portal handling for all of them. All gating (immersive config,
-            // entity type, cooldown, portal block, registered target) lives
-            // in EntityPassthrough.
+            // Immersive portals (Phase 3d): an item, projectile, XP orb,
+            // falling block or living entity standing in an ARRIVAL portal
+            // block goes back the way it came. Cancel ONLY when it actually
+            // teleported — this callback fires for every non-player entity in
+            // the game every tick, and cancelling it otherwise would break
+            // vanilla's own portal handling for all of them. All gating
+            // (immersive config, entity type, cooldown, portal block,
+            // registered target) lives in EntityPassthrough, which orders its
+            // checks so a mob costs a field read and a cached block state
+            // before anything more expensive is touched.
+            //
+            // Returning false is load-bearing for NON-immersive dimensions:
+            // vanilla then runs its own tickPortalTeleportation, which is
+            // what has always happened for entities in those worlds.
             if (com.customdimensions.immersive.EntityPassthrough
                     .tryReturnFromArrivalPortal(self, this.world)) {
                 ci.cancel();

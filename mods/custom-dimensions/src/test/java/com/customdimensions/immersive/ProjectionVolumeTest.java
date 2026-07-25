@@ -3,6 +3,7 @@ package com.customdimensions.immersive;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -226,6 +227,242 @@ class ProjectionVolumeTest {
         assertEquals(1, ProjectionVolume.coordOn(pos, Direction.Axis.X));
         assertEquals(2, ProjectionVolume.coordOn(pos, Direction.Axis.Y));
         assertEquals(3, ProjectionVolume.coordOn(pos, Direction.Axis.Z));
+    }
+
+    // ---- sightline mask ------------------------------------------------
+    //
+    // The reported defect: "the new immersive blocks appear to be happening
+    // outside of the portal frame rather than only inside it, so the server
+    // is rendering stuff when I just look in the general direction of the
+    // portal". computeSourcePositions pads the slab by previewRadius on both
+    // in-plane axes, and every one of those padded columns sits behind the
+    // frame WALL. These tests pin the rule that fixes it: a position is only
+    // sent if the segment from the player's eye to its centre goes through
+    // the opening.
+
+    /** Allocating form — the scratch probe is exercised separately. */
+    private static boolean sees(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
+            int planeCoord, Set<BlockPos> interior) {
+        return ProjectionVolume.seesThroughOpening(eye, block, normalAxis, planeCoord, interior, null);
+    }
+
+    @Test
+    void planeCoordNamesTheOpeningsPlane() {
+        // A zone interior is one block thick, so the plane is a single
+        // coordinate on the normal axis.
+        assertEquals(20, ProjectionVolume.planeCoord(doorwayX(10, 64, 20), Direction.Axis.Z));
+        assertEquals(-5, ProjectionVolume.planeCoord(doorwayZ(-5, 70, -30), Direction.Axis.X));
+        assertEquals(100, ProjectionVolume.planeCoord(pad(0, 100, 0), Direction.Axis.Y));
+        // Degenerate input must not leak MAX_VALUE arithmetic into a plane.
+        assertEquals(0, ProjectionVolume.planeCoord(Set.of(), Direction.Axis.Z));
+        assertEquals(0, ProjectionVolume.planeCoord(doorwayX(10, 64, 20), null));
+    }
+
+    @Test
+    void directlyBehindTheOpeningIsVisibleAndBehindTheWallIsNot() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        // Eye 6 blocks north of the plane, centred on the 2x3 opening.
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+
+        // Straight through the doorway.
+        assertTrue(sees(eye, new BlockPos(10, 64, 21), Direction.Axis.Z, 20, interior));
+        assertTrue(sees(eye, new BlockPos(11, 66, 24), Direction.Axis.Z, 20, interior));
+
+        // The previewRadius padding beside and above the frame: these are
+        // the positions the tester saw destination blocks in.
+        assertFalse(sees(eye, new BlockPos(9, 64, 21), Direction.Axis.Z, 20, interior),
+                "a column beside the frame is behind the wall, not the opening");
+        assertFalse(sees(eye, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(eye, new BlockPos(10, 68, 21), Direction.Axis.Z, 20, interior),
+                "a row above the frame is behind the wall, not the opening");
+        assertFalse(sees(eye, new BlockPos(10, 62, 21), Direction.Axis.Z, 20, interior));
+    }
+
+    @Test
+    void theVisibleConeWidensWithDepth() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+
+        // One column out from the frame: hidden right behind the wall,
+        // visible once far enough back that the sightline through the
+        // opening has spread to reach it. This is the frustum, and it is
+        // what makes previewRadius a bound on the cone rather than a
+        // description of what gets sent.
+        assertFalse(sees(eye, new BlockPos(9, 64, 21), Direction.Axis.Z, 20, interior));
+        assertTrue(sees(eye, new BlockPos(9, 64, 28), Direction.Axis.Z, 20, interior));
+    }
+
+    /**
+     * The whole default slab, from a typical viewing position: the layer
+     * against the plane shows exactly the opening and nothing else, the
+     * visible window never shrinks with depth, and the total sent is a
+     * fraction of the candidate set.
+     */
+    @Test
+    void theMaskReducesTheDefaultSlabToACone() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+        List<BlockPos> volume = ProjectionVolume.computeSourcePositions(
+                interior, Direction.Axis.X, Direction.SOUTH, 8, 2);
+        assertEquals(336, volume.size());
+
+        int[] perLayer = new int[9];
+        Set<BlockPos> firstLayerVisible = new HashSet<>();
+        int visible = 0;
+        for (BlockPos pos : volume) {
+            if (!sees(eye, pos, Direction.Axis.Z, 20, interior)) {
+                continue;
+            }
+            visible++;
+            perLayer[pos.getZ() - 20]++;
+            if (pos.getZ() == 21) {
+                firstLayerVisible.add(pos);
+            }
+        }
+
+        // Against the plane, the visible set is the opening's own footprint:
+        // every padded position — the ones that were bleeding into the real
+        // world around the frame — is masked.
+        Set<BlockPos> expectedFirstLayer = new HashSet<>();
+        for (BlockPos p : interior) {
+            expectedFirstLayer.add(new BlockPos(p.getX(), p.getY(), 21));
+        }
+        assertEquals(expectedFirstLayer, firstLayerVisible);
+
+        for (int layer = 2; layer <= 8; layer++) {
+            assertTrue(perLayer[layer] >= perLayer[layer - 1],
+                    "the cone must not narrow with depth at layer " + layer);
+        }
+        // 6, 8, 15, 20, 20, 24, 28, 28 by layer. The total is pinned because
+        // it is the size of the defect: 149 positions are on a sightline
+        // through the opening from here, and the other 187 were being sent
+        // anyway — replacing real blocks around the frame.
+        assertEquals(149, visible, "cone size from a centred eye 6 blocks out");
+    }
+
+    @Test
+    void anObliqueEyeSlidesTheVisibleWindow() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        // Three blocks off to -X of the opening, same distance in front.
+        Vec3d oblique = new Vec3d(8.0, 65.5, 14.5);
+
+        // Looking across the opening from the side, the sightlines land on
+        // the FAR side of the slab: the near-side padding is behind the wall
+        // and the far-side padding is now in view. The window slides with
+        // the viewer, which is where the parallax comes from.
+        assertTrue(sees(oblique, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(oblique, new BlockPos(9, 65, 21), Direction.Axis.Z, 20, interior));
+
+        // The same position from a centred eye answers the other way round —
+        // which is exactly why the mask cannot be baked into the volume once
+        // and shared between players.
+        Vec3d centred = new Vec3d(11.0, 65.5, 14.5);
+        assertFalse(sees(centred, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+
+        // Far round the side, only a thin sliver of the slab is still on a
+        // true sightline through the doorway (a steep angle across the
+        // opening), and nothing near the viewer's side of the frame is.
+        // Before the mask all 336 positions went out from ANY angle, which
+        // is what put destination terrain over the real world for a player
+        // merely looking in the portal's general direction.
+        Vec3d beside = new Vec3d(2.0, 65.5, 14.5);
+        assertFalse(sees(beside, new BlockPos(9, 65, 21), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(beside, new BlockPos(8, 65, 24), Direction.Axis.Z, 20, interior));
+
+        int besideVisible = 0;
+        int centredVisible = 0;
+        for (BlockPos pos : ProjectionVolume.computeSourcePositions(
+                interior, Direction.Axis.X, Direction.SOUTH, 8, 2)) {
+            if (sees(beside, pos, Direction.Axis.Z, 20, interior)) {
+                besideVisible++;
+            }
+            if (sees(centred, pos, Direction.Axis.Z, 20, interior)) {
+                centredVisible++;
+            }
+        }
+        // 13 of 336 from beside, against 149 from in front of it.
+        assertTrue(besideVisible * 5 < centredVisible,
+                "an oblique viewer should see a sliver, not a wall: "
+                        + besideVisible + " vs " + centredVisible);
+    }
+
+    @Test
+    void anIrregularInteriorMasksPerBlockNotByBoundingBox() {
+        // The same doorway with its top-right cell missing — a flood-filled
+        // frame is under no obligation to be a rectangle.
+        Set<BlockPos> notched = doorwayX(10, 64, 20);
+        notched.remove(new BlockPos(11, 66, 20));
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+
+        BlockPos behindTheNotch = new BlockPos(11, 66, 21);
+        // Present in the bounding box, absent from the opening: masked.
+        assertFalse(sees(eye, behindTheNotch, Direction.Axis.Z, 20, notched),
+                "a bounding-box test would wrongly show this one");
+        // And visible again once the cell it sits behind is part of the
+        // opening, so the difference really is the notch.
+        assertTrue(sees(eye, behindTheNotch, Direction.Axis.Z, 20, doorwayX(10, 64, 20)));
+        // The rest of the opening is unaffected by the notch.
+        assertTrue(sees(eye, new BlockPos(10, 64, 21), Direction.Axis.Z, 20, notched));
+    }
+
+    @Test
+    void aViewerInTheDoorwaySeesThroughItRatherThanNothing() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        // Standing IN the plane, eye past its midpoint: the crossing is
+        // behind the eye. Masking there would blank the entire preview in
+        // the last half-block before a traversal.
+        Vec3d past = new Vec3d(11.0, 65.5, 20.7);
+        assertTrue(sees(past, new BlockPos(8, 62, 28), Direction.Axis.Z, 20, interior));
+        assertTrue(sees(past, new BlockPos(10, 64, 21), Direction.Axis.Z, 20, interior));
+        // Eye level with the block: parallel to the plane, never crosses.
+        Vec3d level = new Vec3d(11.0, 65.5, 21.5);
+        assertTrue(sees(level, new BlockPos(10, 64, 21), Direction.Axis.Z, 20, interior));
+    }
+
+    @Test
+    void theMaskFollowsThePortalOrientation() {
+        // Z-axis doorway: plane normal is X.
+        Set<BlockPos> zInterior = doorwayZ(-5, 70, -30);
+        Vec3d westOfIt = new Vec3d(-10.5, 71.5, -29.0);
+        assertTrue(sees(westOfIt, new BlockPos(-4, 71, -30), Direction.Axis.X, -5, zInterior));
+        assertFalse(sees(westOfIt, new BlockPos(-4, 71, -31), Direction.Axis.X, -5, zInterior));
+
+        // Horizontal pad: plane normal is Y, viewer above looking down.
+        Set<BlockPos> horizontal = pad(0, 100, 0);
+        Vec3d above = new Vec3d(1.5, 106.5, 1.5);
+        assertTrue(sees(above, new BlockPos(1, 98, 1), Direction.Axis.Y, 100, horizontal));
+        assertFalse(sees(above, new BlockPos(-1, 99, -1), Direction.Axis.Y, 100, horizontal));
+    }
+
+    @Test
+    void aReusedScratchProbeAnswersIdenticallyToAFreshOne() {
+        // The send path reuses one Mutable across the whole volume to keep
+        // the mask allocation-free; a Mutable hashes and compares as its
+        // coordinates, so it must be a valid key for the interior set.
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+        BlockPos.Mutable scratch = new BlockPos.Mutable();
+        for (BlockPos pos : ProjectionVolume.computeSourcePositions(
+                interior, Direction.Axis.X, Direction.SOUTH, 8, 2)) {
+            assertEquals(sees(eye, pos, Direction.Axis.Z, 20, interior),
+                    ProjectionVolume.seesThroughOpening(
+                            eye, pos, Direction.Axis.Z, 20, interior, scratch),
+                    "scratch probe disagreed at " + pos);
+        }
+    }
+
+    @Test
+    void degenerateMaskInputsShowNothing() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        Vec3d eye = new Vec3d(11.0, 65.5, 14.5);
+        BlockPos block = new BlockPos(10, 64, 21);
+        // Nothing to see through, or nothing to see with: mask it out. This
+        // fails CLOSED — the real world stays visible.
+        assertFalse(sees(null, block, Direction.Axis.Z, 20, interior));
+        assertFalse(sees(eye, null, Direction.Axis.Z, 20, interior));
+        assertFalse(sees(eye, block, null, 20, interior));
+        assertFalse(sees(eye, block, Direction.Axis.Z, 20, null));
+        assertFalse(sees(eye, block, Direction.Axis.Z, 20, Set.of()));
     }
 
     @Test

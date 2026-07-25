@@ -318,8 +318,41 @@ public class PortalHelper {
     }
 
     public static void registerZone(PortalZone zone) {
-        PORTAL_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
+        if (!addZoneIfAbsent(zone)) {
+            return;
+        }
         savePortalLinks();
+    }
+
+    /**
+     * Adds a zone unless an equivalent one is already registered; returns
+     * whether it was actually added.
+     *
+     * <p>Re-igniting an already-lit frame used to append a SECOND zone over
+     * the same interior. Nothing deduplicated, and both copies persisted, so
+     * the duplicate survived restarts and bred further copies on each
+     * re-light. Every per-zone pass then ran twice: two portal-particle
+     * emissions (the visible symptom — a player reported the effect as far
+     * too strong), two immersive projections of the same 336 blocks to the
+     * same client, two chunk-ticket holders, and two aura sites. Found live
+     * 2026-07-25 with two byte-identical source-zone-v1 records in
+     * portal_links.json.
+     *
+     * <p>Identity is (target world, axis, interior positions) — the same
+     * triple that makes two zones behave identically. The source world is
+     * implicit in the map key.
+     */
+    private static boolean addZoneIfAbsent(PortalZone zone) {
+        List<PortalZone> zones = PORTAL_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>());
+        for (PortalZone existing : zones) {
+            if (existing.axis == zone.axis
+                    && existing.targetWorld.equals(zone.targetWorld)
+                    && existing.interior.equals(zone.interior)) {
+                return false;
+            }
+        }
+        zones.add(zone);
+        return true;
     }
 
     public static void removeZone(PortalZone zone) {
@@ -358,7 +391,13 @@ public class PortalHelper {
             // effect for existing zones.
             zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(zone.targetWorld));
             if (isZoneValid(world, zone)) {
-                PORTAL_ZONES.computeIfAbsent(worldKey, k -> new ArrayList<>()).add(zone);
+                // Same dedupe as registerZone: a portal_links.json written
+                // before that guard existed can still hold duplicate records,
+                // and restoring both would resurrect the double-particle,
+                // double-projection behaviour on every boot. This collapses
+                // them on first load; the save at the end of this method
+                // rewrites the file without the duplicate.
+                addZoneIfAbsent(zone);
             } else {
                 System.err.println("[customdimensions] Dropped invalid persisted portal route in " + worldKey.getValue());
             }
@@ -538,7 +577,13 @@ public class PortalHelper {
                 }
                 PortalReturnTarget rt = entry.getValue();
                 if (!isPortalBlock(level.getBlockState(p))) {
-                    continue;
+                    // A registered arrival position with no portal block is a
+                    // HOLE, and a holed portal is a player trap: they walk
+                    // back into the gap, nothing teleports them, and the
+                    // dimension looks one-way. Heal it (see healPortalHole).
+                    if (!healPortalHole(level, targets, p)) {
+                        continue;
+                    }
                 }
                 ParticleEffect effect = resolveParticleFromTarget(rt);
                 level.spawnParticles(effect,
@@ -562,6 +607,61 @@ public class PortalHelper {
                 );
             }
         }
+    }
+
+    /**
+     * Restores a missing block in a registered arrival portal by copying an
+     * adjacent registered portal block's exact state. Returns whether it
+     * healed.
+     *
+     * <p><b>Why this exists.</b> A hole in an arrival portal strands players.
+     * Found live 2026-07-25: an arrival came up 5 blocks of 6, and to the
+     * player standing in the gap the dimension simply had no way out. The
+     * registration-ordering fix in {@link #createTargetPortal} closes the
+     * cause we identified, but a portal block can also be lost to something
+     * we do not control — a stray neighbour update, a mod placing a feature,
+     * a world edit. The cost of being wrong here is a trapped player, so the
+     * portal repairs itself rather than trusting that every cause was found.
+     *
+     * <p><b>Only fills AIR, and only from a surviving neighbour.</b> Copying
+     * a neighbour gives the correct block AND the correct axis for free, with
+     * no need to re-derive orientation. Requiring a surviving neighbour is
+     * also the escape hatch: break every portal block and nothing regenerates,
+     * so a player can still dismantle a portal deliberately. Healing a single
+     * gap they punched is the intended behaviour — these are mod-built
+     * portals, and vanilla would have popped the whole thing anyway.
+     *
+     * <p>Never loads a chunk: the caller has already checked {@code p}'s chunk
+     * is loaded, and each candidate neighbour is checked before it is read.
+     */
+    private static boolean healPortalHole(ServerWorld level,
+            Map<BlockPos, PortalReturnTarget> targets, BlockPos pos) {
+        if (!level.getBlockState(pos).isAir()) {
+            // Something solid is there. Not our hole to fill — overwriting
+            // a player's build would be worse than the gap.
+            return false;
+        }
+        for (Direction dir : Direction.values()) {
+            BlockPos neighbor = pos.offset(dir);
+            if (!targets.containsKey(neighbor)) {
+                continue;
+            }
+            if (!level.getChunkManager().isChunkLoaded(neighbor.getX() >> 4, neighbor.getZ() >> 4)) {
+                continue;
+            }
+            BlockState neighborState = level.getBlockState(neighbor);
+            // Gateways are single-block by definition — there is no such
+            // thing as a hole in one, and copying it would spawn a second.
+            if (!isPortalBlock(neighborState) || neighborState.isOf(Blocks.END_GATEWAY)) {
+                continue;
+            }
+            level.setBlockState(pos, neighborState, Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+            com.customdimensions.MultiverseServer.LOGGER.debug(
+                    "Healed arrival portal hole in {} at {}",
+                    level.getRegistryKey().getValue(), pos.toShortString());
+            return true;
+        }
+        return false;
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY) {
@@ -639,17 +739,28 @@ public class PortalHelper {
             }
         }
 
-        int portalFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
-        for (BlockPos pos : interior) {
-            targetWorld.setBlockState(pos, portalState, portalFlags);
-        }
-
         int color = parseColor(definition.getColor());
         int cooldown = definition.getCooldown();
         String particleType = definition.getParticleType();
         RegistryKey<World> portalWorld = targetWorld.getRegistryKey();
+
+        // Register BEFORE placing the portal blocks, not after.
+        // NetherPortalProtectionMixin only defends positions already present
+        // in the return-target map, so registering afterwards leaves the
+        // whole placement loop unprotected: vanilla
+        // NetherPortalBlock.getStateForNeighborUpdate re-validates against an
+        // OBSIDIAN frame and pops anything else. Found live 2026-07-25 — an
+        // arrival portal came up 5 blocks out of 6, and the hole made the
+        // return trip look broken to the player standing in it.
+        // Registration is a pure in-memory map write with no world side
+        // effects, so doing it first is safe and strictly better.
         for (BlockPos p : interior) {
             registerPortal(portalWorld, p, sourceWorld, sourceY, color, cooldown, particleType, exitMode);
+        }
+
+        int portalFlags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
+        for (BlockPos pos : interior) {
+            targetWorld.setBlockState(pos, portalState, portalFlags);
         }
         Map<BlockPos, Integer> frames = PORTAL_FRAMES.computeIfAbsent(portalWorld, k -> new HashMap<>());
         for (BlockPos p : interior) {

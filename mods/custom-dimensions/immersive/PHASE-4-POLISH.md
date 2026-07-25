@@ -76,6 +76,32 @@ Without a visual edge, it's hard to tell where the "real world" ends and the
 
 **File:** Modified `immersive/ImmersiveProjector.java` (~15 lines)
 
+#### Intensity correction (human testing, 2026-07-25)
+
+Reported in-game: *"The particle effects are very strong too, we might want to
+tone that back a bit."* The sketch above spawns **every tick**, on top of
+`PortalHelper.spawnParticles`' pre-existing 2-per-interior-block-per-tick. A
+dust particle lives ~20-30 ticks, so an every-tick spawn keeps 20+ alive per
+frame block permanently — a cloud pouring out of the portal, not a border
+around it.
+
+- [x] `EDGE_PARTICLE_INTERVAL = 10` ticks (twice a second). ~2 live particles
+  per frame block instead of ~20: a tenth of the particles, and a tenth of the
+  `ParticleS2CPacket`s (one per ring block per emission). The border still
+  reads as continuous because the cadence is well inside a particle's lifetime
+- [x] The cadence gate is the first statement in `spawnEdgeParticles`, so the
+  nine ticks in ten that emit nothing also build no ring set
+- [x] Emission is **phase-staggered per zone** (`particlePhase`, derived from
+  the zone centre) so a hub with several immersive portals spreads its packets
+  across the interval rather than spiking them onto one tick
+- [x] The DEBUG heartbeat is phased with the emission, and both intervals
+  divide `PARTICLE_LOG_INTERVAL` exactly — otherwise the heartbeat would never
+  land on an emitting tick for a staggered zone and 4b would look dead in the
+  log while working perfectly
+- [x] No new config keys: this is taste, and a knob for it is one more thing to
+  get wrong. The interior particle spawn in `PortalHelper` is untouched —
+  pre-existing behaviour, not an immersive concern
+
 ### 4c. Smart refresh throttling
 
 **Problem:** The `refreshInterval` is constant regardless of whether anything
@@ -97,6 +123,12 @@ has changed. A stationary player wastes packet budget on identical delta updates
   stationary, use `refreshInterval * 4` (reduced packet rate for static view).
 - [x] This saves ~75% of packets for AFK players near portals — relevant for
   servers with portals in hub/spawn areas.
+- [x] **Measures the EYE, not the feet** (changed with Phase 1h's sightline
+  mask). The mask is computed from the eye position, so this throttle is also
+  the mask's update rate; stretching the interval is only safe for a viewer
+  whose sightlines have not moved. A moving player is back on the configured
+  interval immediately, so the view cone follows them and the positions it
+  vacates are restored on the same pass.
 
 **File:** Modified `immersive/PlayerProjectionState.java` (~10 lines)
 
@@ -126,6 +158,20 @@ project behind. They get no immersive treatment at all.
   immersive is enabled, giving them a denser, more atmospheric effect.
 
 **File:** Modified `immersive/ImmersiveProjector.java` (~15 lines)
+
+#### Intensity correction (human testing, 2026-07-25)
+
+Same defect as 4b: 4 particles **every tick** is ~80 alive at all times.
+
+- [x] `GATEWAY_PARTICLE_INTERVAL = 5` ticks with `GATEWAY_PARTICLE_COUNT` cut
+  from 4 to 2 — net about a tenth of what it was, matching 4b
+- [x] Emits twice as often as the frame border but at half the count, because
+  for a gateway zone this cloud is the ENTIRE immersive treatment: no frame,
+  no projection, nothing else to look at. "Denser" is relative to the interior
+  particles it replaces, not to the original firehose
+- [x] 5 divides `GATEWAY_PULSE_PERIOD` (40), so both halves of the scale pulse
+  are still sampled four times per cycle — the breathing survives the cut
+- [x] Phase-staggered and heartbeat-phased exactly like 4b
 
 ### 4e. Projection depth auto-scaling
 
