@@ -6,11 +6,19 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 {
   "namespace": "adventure",
   "idleUnloadMinutes": 5,
-  "frames": { "overworld": "minecraft:mossy_stone_bricks", "nether": "minecraft:obsidian", "end": "minecraft:end_stone_bricks" },
+  "frames": {
+    "overworld": "minecraft:mossy_stone_bricks",
+    "nether": "minecraft:obsidian",
+    "end": "minecraft:end_stone_bricks"
+  },
   "defaults": {
     "frameBlock": "minecraft:mossy_stone_bricks",
     "borders": { "player": 8192, "generation": 8192 },
-    "difficulty": { "mobMultiplier": 1.0, "attributes": { "health": true, "damage": true, "armor": true, "speed": false, "knockback": false }, "playerLuck": 1.0 }
+    "difficulty": {
+      "mobMultiplier": 1.0,
+      "attributes": { "health": true, "damage": true, "armor": true, "speed": false, "knockback": false },
+      "playerLuck": 1.0
+    }
   }
 }
 ```
@@ -183,12 +191,26 @@ Trigger keys: `"void"`, `"death"`, `"death:<cause>"` (e.g. `death:lava`, `death:
 ```json
 {
   "environment": {
-    "skyColor": "#4A2C6B", "fogColor": "#2A1A3E", "ambientLight": 0.3, "fixedTime": 18000,
-    "hasSkylight": true, "hasCeiling": false, "ultraWarm": false, "natural": false,
-    "bedWorks": false, "respawnAnchorWorks": true, "piglinSafe": false, "hasRaids": false,
-    "minY": -64, "height": 512, "logicalHeight": 512, "coordinateScale": 1.0,
-    "effects": "minecraft:the_end", "infiniburn": "#minecraft:infiniburn_overworld",
-    "monsterSpawnLightLevel": 7, "monsterSpawnBlockLightLimit": 0
+    "skyColor": "#4A2C6B",
+    "fogColor": "#2A1A3E",
+    "ambientLight": 0.3,
+    "fixedTime": 18000,
+    "hasSkylight": true,
+    "hasCeiling": false,
+    "ultraWarm": false,
+    "natural": false,
+    "bedWorks": false,
+    "respawnAnchorWorks": true,
+    "piglinSafe": false,
+    "hasRaids": false,
+    "minY": -64,
+    "height": 512,
+    "logicalHeight": 512,
+    "coordinateScale": 1.0,
+    "effects": "minecraft:the_end",
+    "infiniburn": "#minecraft:infiniburn_overworld",
+    "monsterSpawnLightLevel": 7,
+    "monsterSpawnBlockLightLimit": 0
   }
 }
 ```

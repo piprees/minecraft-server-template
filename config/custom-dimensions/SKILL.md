@@ -19,12 +19,22 @@ This skill has four reference files. **You must read ALL of them before writing 
 | `references/biome-catalogue.md` | Every installed biome id grouped by family (overworld/nether/end/paradise_lost) and namespace — **the only biome ids that will actually work** | Pick biomes that exist and belong to the right family |
 
 **Also read 2-3 existing dimension configs** with a similar size/mood to the one you're building. Good anchors:
+
 - `the_gauntlet.json` — small (2048), brutal, `multi_biome`, compressed noise
 - `the_wuthering_wisteria.json` — pocket (256), peaceful, `multi_biome`
 - `the_blossom_gardens.json` — large (8192), peaceful, `multi_biome`, wide noise
 - `the_basalt_spires.json` — pocket (1024), nether type
 - `the_end_citadel.json` — medium (4096), end type
 - `overworld.json` — base-world override (no type, just seed/spawn/scoring)
+
+**And always check blocks, structures, and items against the json files inside the extractors** (`config/custom-dimensions/extractors/`) — the mod silently ignores unknown ids. These catalogues are authoritative; don't guess ids from memory or the wiki, just choose from the lists.
+
+| File | What it contains | Why you need it |
+| --- | --- | --- |
+| ./extractors/biomes.json | All installed biome ids extracted from mods | Pick biomes that exist and belong to the right family |
+| ./extractors/blocks.json | All installed block ids | Pick blocks that exist and are valid for portal frames, aura palettes, etc. |
+| ./extractors/entities.json | All installed entity ids | Pick mobs that exist and are valid for spawn filters, etc. |
+| ./extractors/structures.json | All installed structure short names | Pick structures that exist and are valid for `structures.wants`/`structures.shuns` |
 
 Real shipped files are more reliable than any description of the schema, including this one.
 
@@ -103,6 +113,7 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 | `16.0` | 1:16 maximum compression. | Tiny. 512-block borders typical. | Claustrophobic pocket dims | 9 |
 
 **Scale and border interact.** The 84 shipped dimensions follow a clear pattern:
+
 - `scale=1.0` → `borders.player=8192` (or `4096`)
 - `scale=4.0` → `borders.player=2048`
 - `scale=8.0` → `borders.player=1024`
@@ -181,10 +192,7 @@ A complete, valid, medium-difficulty `multi_biome` dimension:
 
 ## `portal.aura.subsume` — what the aura may eat
 
-Every linked portal grows an **aura**: it slowly converts blocks in an annulus
-around both ends, so the two worlds bleed into each other. `subsume` decides
-what it is allowed to convert, and **it is a design statement about the
-dimension, not a safety setting**.
+Every linked portal grows an **aura**: it slowly converts blocks in an annulus around both ends, so the two worlds bleed into each other. `subsume` decides what it is allowed to convert, and **it is a design statement about the dimension, not a safety setting**.
 
 ```jsonc
 "portal": {
@@ -198,47 +206,21 @@ dimension, not a safety setting**.
 | `natural` (default) | Converts natural terrain; never anything crafted or shaped. A beach portal takes the sand and leaves the cobblestone wall standing in it. | Everything ordinary. |
 | `everything` | Converts whatever it reaches, player builds included. | **Dangerous worlds.** The encroachment IS the story. |
 
-**When to reach for `everything`.** Any dimension that is aggressive, ultra-hard,
-or whose description names consuming, feeding, corruption, blight, sculk or the
-void. Opening a portal to one of those should carry visible risk — the
-dimension telling the truth about itself. The shipped set was audited on
-exactly that rule: `difficulty.mobMultiplier >= 2.0` **or** a description that
-names one of those forces. 24 of 84 dimensions qualify.
+**When to reach for `everything`.** Any dimension that is aggressive, ultra-hard, or whose description names consuming, feeding, corruption, blight, sculk or the void. Opening a portal to one of those should carry visible risk — the dimension telling the truth about itself. The shipped set was audited on exactly that rule: `difficulty.mobMultiplier >= 2.0` **or** a description that names one of those forces. 24 of 84 dimensions qualify.
 
-Two judgement calls that rule does NOT make for you, both real cases from that
-audit: `the_dripping_pines` ("ruins **rotting** under the pines") and
-`the_glacial_drift` ("islands calving into the **void**", `mobMultiplier` 0.8)
-both hit a keyword while being gentle, scenic dimensions. The word describes
-scenery, not a force acting on the world. Both keep the default. **Read the
-description; don't just match the word.**
+Two judgement calls that rule does NOT make for you, both real cases from that audit: `the_dripping_pines` ("ruins **rotting** under the pines") and `the_glacial_drift` ("islands calving into the **void**", `mobMultiplier` 0.8) both hit a keyword while being gentle, scenic dimensions. The word describes scenery, not a force acting on the world. Both keep the default. **Read the description; don't just match the word.**
 
-**Say so in the description.** An `everything` dimension is a promise that a
-build near its portal is at risk. That belongs in the player-facing text, not
-just the JSON.
+**Say so in the description.** An `everything` dimension is a promise that a build near its portal is at risk. That belongs in the player-facing text, not just the JSON.
 
-**Claims are an absolute veto, and `everything` does not bypass them.** The mod
-asks Open Parties and Claims before converting anything; a claimed chunk is
-never touched, under any policy. One rule, no exceptions — an exception would
-make the guarantee unexplainable to players. This is also what makes the
-feature fair: claiming land is how a player says "I am prepared to host this
-thing", and choosing not to claim is a decision with consequences.
+**Claims are an absolute veto, and `everything` does not bypass them.** The mod asks Open Parties and Claims before converting anything; a claimed chunk is never touched, under any policy. One rule, no exceptions — an exception would make the guarantee unexplainable to players. This is also what makes the feature fair: claiming land is how a player says "I am prepared to host this thing", and choosing not to claim is a decision with consequences.
 
-**How `natural` tells crafted from natural**: the `#adventure:aura_protected`
-block tag, shipped in the mod's jar datapack. Planks, wool, concrete, bricks,
-cobblestone, stone bricks, polished/cut/smooth variants, metal and copper
-blocks, glazed terracotta and friends are all in it. Plain stone, dirt, sand,
-gravel, deepslate and logs are not — those are the world, and the aura is
-allowed to spread through the world. Extend it from a consumer datapack rather
-than editing the mod.
+**How `natural` tells crafted from natural**: the `#adventure:aura_protected` block tag, shipped in the mod's jar datapack. Planks, wool, concrete, bricks, cobblestone, stone bricks, polished/cut/smooth variants, metal and copper blocks, glazed terracotta and friends are all in it. Plain stone, dirt, sand, gravel, deepslate and logs are not — those are the world, and the aura is allowed to spread through the world. Extend it from a consumer datapack rather than editing the mod.
 
-**There is no revert.** Original block states are deliberately not persisted.
-Claims are the protection mechanism; rebuilding is quick.
+**There is no revert.** Original block states are deliberately not persisted. Claims are the protection mechanism; rebuilding is quick.
 
 ## Immersive portals (`portal.immersive`) — ON by default
 
-Every portal is immersive unless it says otherwise. You see the destination's
-terrain through the frame, hear its biome ambience, and can throw items
-through. Server-side only — no client mod, and a vanilla client gets all of it.
+Every portal is immersive unless it says otherwise. You see the destination's terrain through the frame, hear its biome ambience, and can throw items through. Server-side only — no client mod, and a vanilla client gets all of it.
 
 ```jsonc
 "portal": {
@@ -255,25 +237,13 @@ through. Server-side only — no client mod, and a vanilla client gets all of it
 }
 ```
 
-**Write `"immersive": false` only for a deliberate reason**, and say what it is
-in a comment or the description. Legitimate reasons: a dimension whose portal
-should read as mundane, or one whose destination is visually meaningless
-(pure `void` type — you would be projecting nothing).
+**Write `"immersive": false` only for a deliberate reason**, and say what it is in a comment or the description. Legitimate reasons: a dimension whose portal should read as mundane, or one whose destination is visually meaningless (pure `void` type — you would be projecting nothing).
 
-**`previewDepth` is a look, not a performance dial.** 8 is the sweet spot. 16
-shows lighting artefacts; 4 reads as wallpaper rather than a window. Don't
-lower it to "save" anything — the projection only runs for players within
-`activationRange` and sends deltas after the first pass.
+**`previewDepth` is a look, not a performance dial.** 8 is the sweet spot. 16 shows lighting artefacts; 4 reads as wallpaper rather than a window. Don't lower it to "save" anything — the projection only runs for players within `activationRange` and sends deltas after the first pass.
 
-**It is boot-re-read**, like the rest of the portal block, so it applies to
-dimensions that already exist without a world wipe.
+**It is boot-re-read**, like the rest of the portal block, so it applies to dimensions that already exist without a world wipe.
 
-Known limitations, all inherent to the server-side approach and all documented
-in `mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md`: no entities
-visible on the far side, source-dimension lighting and biome colours, block
-entities without their contents, geometry snapping as you walk (block is the
-granularity), and the vanilla loading screen on the actual transition. None of
-these are worth reporting as bugs.
+Known limitations, all inherent to the server-side approach and all documented in `mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md`: no entities visible on the far side, source-dimension lighting and biome colours, block entities without their contents, geometry snapping as you walk (block is the granularity), and the vanilla loading screen on the actual transition. None of these are worth reporting as bugs.
 
 ## Advanced features (use only when the theme requires them)
 
@@ -286,25 +256,15 @@ These features appear in 0-1 of the 84 shipped dimensions. Don't add them specul
 
 ### Portal auras — tuning only
 
-The aura runs by default and needs no config. This block is for tuning it; the
-policy question (**what it is allowed to eat**) is `subsume`, documented in its
-own section above because every dimension has an answer to it.
+The aura runs by default and needs no config. This block is for tuning it; the policy question (**what it is allowed to eat**) is `subsume`, documented in its own section above because every dimension has an answer to it.
 
 - **`portal.aura`**: `{"enabled": false}` switches it off entirely.
-- Tunables: `radius` (default 8, max 32), `interval` (ticks, default 40, min 10),
-  `blocksPerPass` (default 2, max 16), `budget` (lifetime conversions per side,
-  default 300, `-1` = endless), `sides` (`"source"`/`"target"`/`"both"`).
-- Palette overrides: `palette` (terrain block ids), `flora`, `trees`
-  (ConfiguredFeature ids), `fluids`, `conversions` (`{"from": "to"}`, `from` may
-  be `#tag`), `fireChance` (0-1, default 0).
+- Tunables: `radius` (default 8, max 32), `interval` (ticks, default 40, min 10), `blocksPerPass` (default 2, max 16), `budget` (lifetime conversions per side, default 300, `-1` = endless), `sides` (`"source"`/`"target"`/`"both"`).
+- Palette overrides: `palette` (terrain block ids), `flora`, `trees` (ConfiguredFeature ids), `fluids`, `conversions` (`{"from": "to"}`, `from` may be `#tag`), `fireChance` (0-1, default 0).
 
-**Trees are never inferred**, only planted from an explicit `aura.trees`. A
-sampled tree palette turned a beach portal into an impassable dark-oak thicket
-— a tree's footprint is orders of magnitude bigger than the block that seeded
-it. Set `trees` only when a forest IS the effect you want.
+**Trees are never inferred**, only planted from an explicit `aura.trees`. A sampled tree palette turned a beach portal into an impassable dark-oak thicket — a tree's footprint is orders of magnitude bigger than the block that seeded it. Set `trees` only when a forest IS the effect you want.
 
-**Test at a sped-up cadence**, never the default: `{"interval": 10,
-"blocksPerPass": 8}`.
+**Test at a sped-up cadence**, never the default: `{"interval": 10, "blocksPerPass": 8}`.
 
 ### Single-use portals
 
@@ -367,8 +327,7 @@ docker logs mc 2>&1 | grep -iE 'custom-dimensions|WARN|ERROR' | tail -40
 docker exec -i mc rcon-cli "execute in adventure:<slug> run seed"
 ```
 
-Loud failures: invalid JSON, `structures.wants`/`shuns` format violations.
-Silent failures: unknown block/item ids, empty biome list (falls back to plains), tag-only `frameBlock` without `framePlaceBlock`, unrecognised portal `shape`.
+Loud failures: invalid JSON, `structures.wants`/`shuns` format violations. Silent failures: unknown block/item ids, empty biome list (falls back to plains), tag-only `frameBlock` without `framePlaceBlock`, unrecognised portal `shape`.
 
 ## Seed rolling
 

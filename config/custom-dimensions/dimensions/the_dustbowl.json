@@ -44,20 +44,8 @@
       "ruins_desert": "spread",
       "supply_cache_desert": "near_spawn"
     },
-    "shuns": [
-      "village",
-      "tavern",
-      "monument",
-      "mansion",
-      "coliseum",
-      "ancient_city",
-      "trial_chambers"
-    ],
+    "shuns": ["village", "tavern", "monument", "mansion", "coliseum", "ancient_city", "trial_chambers"],
     "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."
   },
-  "spawn": [
-    0,
-    64,
-    0
-  ]
+  "spawn": [0, 64, 0]
 }

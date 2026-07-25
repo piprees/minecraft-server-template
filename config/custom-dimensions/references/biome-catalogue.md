@@ -5,6 +5,7 @@ Every biome id available on this server, grouped by **family** (which dimension 
 **Only use ids listed here.** A biome id not in this file will be silently filtered out by the mod — no error, no warning, and if your entire biomes list gets filtered to empty, the dimension falls back to `minecraft:plains`.
 
 **Family matters.** Biomes are registered per-family in the multinoise parameter table. A biome from the wrong family won't appear in the roller's sampler for that dimension type, causing `spawnFilter` rejections and zero candidates:
+
 - `type: "overworld"`, `"multi_biome"`, `"cave"`, `"amplified"`, `"large_biomes"`, `"sky_islands"`, `"checkerboard"`, `"single_biome"` → use **overworld** biomes
 - `type: "nether"`, `"nether_islands"` → use **nether** biomes
 - `type: "end"` → use **end** biomes

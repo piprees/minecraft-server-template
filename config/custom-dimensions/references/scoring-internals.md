@@ -23,11 +23,11 @@ Void dimensions (`type: "void"`) override this entirely: `{"namesake": 30, "vari
 
 Fractions of the **playable radius** (`borders.player`, or `8192 / portal.scale` if unset):
 
-| Band | Range (fraction of radius) |
-| --- | --- |
-| `near_spawn` | 0.00 – 0.30 |
-| `spread` | 0.15 – 0.65 |
-| `near_border` | 0.45 – 1.00 |
+| Band          | Range (fraction of radius) |
+| ------------- | -------------------------- |
+| `near_spawn`  | 0.00 – 0.30                |
+| `spread`      | 0.15 – 0.65                |
+| `near_border` | 0.45 – 1.00                |
 
 `structureDensity` shifts these bands when using the band-name form (does NOT affect explicit `{min,max}` block ranges in `structures.wants` — those are always literal):
 
@@ -57,16 +57,16 @@ structureDensity == "dense" and mood in (standard, adventurous) -> bumped to adv
 
 Structures inside this radius of spawn penalise the roll — the idea being hard/adventurous dims want structures in your face, serene/pastoral dims want breathing room to build:
 
-| Mood | Default clear-spawn radius (blocks) |
-| --- | --- |
-| `hard` | 0 |
-| `adventurous` | 0 |
-| `dramatic` | 48 |
-| `scenic` | 64 |
-| `pastoral` | 80 |
-| `serene` | 80 |
-| `desolate` | 48 |
-| `standard` | 48 |
+| Mood          | Default clear-spawn radius (blocks) |
+| ------------- | ----------------------------------- |
+| `hard`        | 0                                   |
+| `adventurous` | 0                                   |
+| `dramatic`    | 48                                  |
+| `scenic`      | 64                                  |
+| `pastoral`    | 80                                  |
+| `serene`      | 80                                  |
+| `desolate`    | 48                                  |
+| `standard`    | 48                                  |
 
 ## Endgame/boss structure safety
 
@@ -80,11 +80,11 @@ Structures inside this radius of spawn penalise the roll — the idea being hard
 
 Relief (max−min height across a sample grid), grain (mean |Δheight| between adjacent points), water (fraction of the grid that's wet):
 
-| `noiseSettings` | relief target | grain target | water target |
-| --- | --- | --- | --- |
-| `adventure:compressed` | 40-160 | 6-26 | 0.0-0.30 |
-| `adventure:wide` | 10-60 | 0-6 | 0.05-0.45 |
-| (unset / other) | 18-90 | 2-14 | 0.0-0.45 |
+| `noiseSettings`        | relief target | grain target | water target |
+| ---------------------- | ------------- | ------------ | ------------ |
+| `adventure:compressed` | 40-160        | 6-26         | 0.0-0.30     |
+| `adventure:wide`       | 10-60         | 0-6          | 0.05-0.45    |
+| (unset / other)        | 18-90         | 2-14         | 0.0-0.45     |
 
 `hard`/`dramatic` moods widen relief/grain targets further (relief ×1.25-1.4, grain floor raised); `serene`/`pastoral` narrow relief (×0.7-0.8). `seedRoll.water` (`"sea"`/`"high"`/`"none"`) overrides the water target directly regardless of `noiseSettings`.
 
