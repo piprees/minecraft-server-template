@@ -20,10 +20,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.Heightmap;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,16 +51,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * world tick, which is what {@link #tick} is.
  *
  * <h2>Rule 1: never sync-load a chunk from here</h2>
- * The arrival surface is read off an already-loaded chunk
- * ({@code getChunkManager().getWorldChunk(cx, cz, false)}); a null chunk means
+ * The arrival is resolved by {@link ArrivalResolver}, which reads an
+ * already-loaded chunk ({@code getChunkManager().getWorldChunk(cx, cz,
+ * false)}) and reports {@link ArrivalResolver#NO_ARRIVAL} for a null one —
  * "skip, try again on a later tick". {@link PortalHelper#findSurfaceY} is
  * deliberately NOT used even though the player path uses it: it calls
  * {@code world.getChunk(...)}, which FORCE-GENERATES, and sync-generating a
  * chunk from the world tick is a documented server-wedge trigger on this
  * server (mods/AGENTS.md "Known issues"). A thrown item is not worth a wedged
- * tick loop. {@link #arrivalSurfaceY} reproduces {@code findSurfaceY}'s maths
- * (including its void fallback and build-limit headroom) on a loaded chunk, so
- * when it does resolve it agrees with the player exactly.
+ * tick loop.
  *
  * <h2>Rule 2: the transform is the player's transform</h2>
  * The source -&gt; target mapping comes from {@link ProjectionVolume}, the same
@@ -73,6 +70,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * therefore lands in exactly the column a player would; entities off-centre
  * keep their offset through the doorway, which is the same translation applied
  * to a different starting point rather than a second, divergent transform.
+ *
+ * <h2>Rule 3: land where the player lands, not where the ground is</h2>
+ * This used to hold its own copy of the heightmap surface calculation, as did
+ * the projector, and both diverged from the player path for the same reason:
+ * once an arrival portal exists the player is teleported INTO it, while the
+ * heightmap answers with the top of the solid frame we built around it — four
+ * or more blocks higher. {@link ArrivalResolver} is now the single answer for
+ * all three of them; do not reintroduce a local copy.
  *
  * <h2>Edge triggering</h2>
  * The player loop teleports on the ENTRY EDGE only (it tracks "was inside" per
@@ -109,8 +114,11 @@ public final class EntityPassthrough {
     private static final double SWEEP_STEP = 0.5;
     private static final int MAX_SWEEP_SAMPLES = 32;
 
-    /** Arrival column's chunk isn't loaded yet — no crossing this pass. */
-    private static final int NO_ARRIVAL = Integer.MIN_VALUE;
+    /**
+     * Arrival column's chunk isn't loaded yet — no crossing this pass.
+     * Aliased from {@link ArrivalResolver} rather than re-declared.
+     */
+    private static final int NO_ARRIVAL = ArrivalResolver.NO_ARRIVAL;
 
     private EntityPassthrough() {
     }
@@ -352,7 +360,8 @@ public final class EntityPassthrough {
     private static void passThrough(ServerWorld world, ServerWorld targetWorld, Entity entity,
             PortalHelper.PortalZone zone, PortalDefinition def) {
         ProjectionVolume.TargetMapping mapping = mappingFor(zone, def);
-        int arrivalY = arrivalSurfaceY(targetWorld, mapping.arrivalX(), mapping.arrivalZ());
+        int arrivalY = ArrivalResolver.arrivalY(
+                targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
         if (arrivalY == NO_ARRIVAL) {
             // Arrival column not loaded. The entity keeps its position and
             // its zero cooldown, so it simply crosses on a later tick once
@@ -513,24 +522,6 @@ public final class EntityPassthrough {
             return ProjectionVolume.anchorMapping(zone.interior, anchor[0], anchor[2]);
         }
         return ProjectionVolume.scaledMapping(zone.interior, def.getScale());
-    }
-
-    /**
-     * The arrival surface Y, or {@link #NO_ARRIVAL} when the arrival column's
-     * chunk isn't loaded. Same maths as {@link PortalHelper#findSurfaceY} — so
-     * an entity lands where a player would — read off an already-loaded chunk
-     * instead of force-generating one (see "Rule 1" above).
-     */
-    private static int arrivalSurfaceY(ServerWorld targetWorld, int x, int z) {
-        WorldChunk chunk = targetWorld.getChunkManager().getWorldChunk(x >> 4, z >> 4, false);
-        if (chunk == null) {
-            return NO_ARRIVAL;
-        }
-        int surfaceY = chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
-        if (surfaceY <= targetWorld.getBottomY() + 1) {
-            return PortalHelper.VOID_FALLBACK_Y;
-        }
-        return Math.min(surfaceY, targetWorld.getTopY() - 8);
     }
 
     private static void markInside(RegistryKey<World> worldKey, UUID entityId) {

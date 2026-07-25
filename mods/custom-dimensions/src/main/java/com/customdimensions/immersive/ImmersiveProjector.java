@@ -5,6 +5,7 @@ import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
+import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,24 +14,28 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.Heightmap;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Immersive portal preview (Phase 1) and cross-portal audio (Phase 2): the
- * per-tick driver that activates, refreshes and tears down each player's
- * fake-block projection of the dimension on the other side of an immersive
- * portal, and leaks the target dimension's biome ambience back through the
- * portal plane.
+ * Immersive portal preview (Phase 1), cross-portal audio (Phase 2) and the
+ * Phase 4 particle passes: the per-tick driver that activates, refreshes and
+ * tears down each player's fake-block projection of the dimension on the
+ * other side of an immersive portal, leaks the target dimension's biome
+ * ambience back through the portal plane, and dresses the result — a
+ * coloured border on the frame of an active preview (4b), and a denser cloud
+ * for gateway zones that have no frame to project through at all (4d).
  *
  * Presentation only. It never touches traversal, ignition, zone validation
  * or portal links — the blocks it sends are client-side illusions that are
@@ -47,7 +52,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * cosmetic preview must never be able to hang the tick loop. That is also
  * why {@link PortalHelper#findSurfaceY} is NOT used: it calls
  * {@code world.getChunk(...)}, which force-generates. {@link
- * #arrivalSurfaceY} reproduces its maths on an already-loaded chunk.
+ * ArrivalResolver} answers the same question without loading anything —
+ * and answers it BETTER, by preferring the registered arrival portal the
+ * player actually lands in over a heightmap our own frame has raised.
  *
  * <h2>Rule 2: hold a chunk ticket, do not hope someone else did</h2>
  * <b>Regression guard — do not remove the ticket as "redundant with Phase
@@ -57,8 +64,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Phase 0's {@code ImmersivePreloader} generates a 5x5 arrival grid,
  *       but takes no ticket. With no player in the target world those
  *       chunks unload within seconds.</li>
- *   <li>{@link #arrivalSurfaceY} then returns {@link #NO_ARRIVAL} forever
- *       and the zone is skipped silently — no log, no error.</li>
+ *   <li>{@link ArrivalResolver#arrivalY} then returns {@link #NO_ARRIVAL}
+ *       forever and the zone is skipped silently — no log, no error.</li>
  *   <li>The pre-loader never re-runs, because its dedupe is only
  *       invalidated by {@code ServerWorldEvents.UNLOAD} and the WORLD never
  *       unloaded — only its chunks did.</li>
@@ -139,8 +146,35 @@ public final class ImmersiveProjector {
     private static final int TICKET_HOLD_MARGIN = 6;
     private static final int TICKET_DROP_MARGIN = 10;
 
-    /** Arrival column's chunk isn't loaded yet — no projection data this pass. */
-    private static final int NO_ARRIVAL = Integer.MIN_VALUE;
+    /**
+     * Arrival column's chunk isn't loaded yet — no projection data this pass.
+     * Aliased from {@link ArrivalResolver} rather than re-declared: the two
+     * are compared against each other on every tick.
+     */
+    private static final int NO_ARRIVAL = ArrivalResolver.NO_ARRIVAL;
+
+    /**
+     * Gateway cloud audience gate (4d). {@code ServerWorld.spawnParticles}
+     * only forwards to players within 32 blocks unless forced (verified by
+     * disassembling {@code sendToPlayerIfNearby} in the Yarn-mapped 1.21.1
+     * jar: {@code isWithinDistance(..., force ? 512 : 32)}), so this is the
+     * exact radius at which the packets stop being visible — not a tuning
+     * knob, and deliberately NOT activationRange: a gateway has no
+     * projection to activate, and its particles should not appear or vanish
+     * on a config value that means something else.
+     */
+    private static final double GATEWAY_PARTICLE_RANGE_SQ = 32.0 * 32.0;
+
+    /** 4d: cloud size, and the slow scale pulse that stops it reading as static. */
+    private static final int GATEWAY_PARTICLE_COUNT = 4;
+    private static final int GATEWAY_PULSE_PERIOD = 40;
+
+    /**
+     * Heartbeat cadence (10s) for the 4b/4d particle DEBUG lines. Particles
+     * are pure client-side output, so a periodic line is the only way to
+     * confirm either pass is running without a human in the game.
+     */
+    private static final int PARTICLE_LOG_INTERVAL = 200;
 
     private ImmersiveProjector() {
     }
@@ -188,7 +222,12 @@ public final class ImmersiveProjector {
             }
             if (PortalShape.END_GATEWAY.equals(def.getShape())) {
                 // Frameless single-block teleporter — there is no portal
-                // plane to project through. Silently excluded.
+                // plane to project blocks through, and none is ever built
+                // for it. Phase 4d gives it the one immersive treatment it
+                // can carry instead: a denser particle cloud, in place of
+                // (not on top of) the standard zone particles that
+                // PortalHelper.spawnParticles skips for exactly these zones.
+                tickGatewayCloud(world, zone, def, players, tick);
                 continue;
             }
             BlockPos centre = PortalShape.centreOf(zone.interior);
@@ -220,10 +259,17 @@ public final class ImmersiveProjector {
             if (anyoneNear && targetWorld != null) {
                 mapping = mappingFor(zone, def);
                 holdChunks(targetWorld, zone, mapping, immersive, tick);
-                arrivalY = arrivalSurfaceY(targetWorld, mapping.arrivalX(), mapping.arrivalZ());
+                arrivalY = ArrivalResolver.arrivalY(
+                        targetWorld, mapping.arrivalX(), mapping.arrivalZ(), zone.axis);
             } else {
                 releaseChunks(zone, running);
             }
+
+            // 4b: whether at least one player is actually being shown this
+            // zone's preview right now. Edge particles frame a projection;
+            // with nobody projecting there is nothing to frame, and the
+            // packets would be spent on an ordinary-looking portal.
+            boolean projecting = false;
 
             for (ServerPlayerEntity player : players) {
                 Map<PortalHelper.PortalZone, PlayerProjectionState> states = ACTIVE.get(player.getUuid());
@@ -252,20 +298,31 @@ public final class ImmersiveProjector {
                     // Ticketed chunks are still loading in. An existing
                     // projection is left as-is rather than flickering; a new
                     // one activates on a later tick, within a second or two.
+                    projecting |= state != null;
                     continue;
                 }
 
                 if (state == null) {
                     state = new PlayerProjectionState(player, zone);
-                    state.sendFull(player, world, targetWorld, immersive, mapping, arrivalY);
+                    state.sendFull(player, world, targetWorld, immersive, mapping, arrivalY, tick);
                     ACTIVE.computeIfAbsent(player.getUuid(), k -> new ConcurrentHashMap<>()).put(zone, state);
                     MultiverseServer.LOGGER.info(
                             "immersive: projection activated for {} at zone {} {} -> {} ({} blocks)",
                             player.getName().getString(), world.getRegistryKey().getValue(),
                             centre.toShortString(), zone.targetWorld.getValue(), state.projectedCount());
-                } else if (tick % immersive.refreshInterval() == 0) {
-                    state.sendDelta(player, world, targetWorld, immersive, mapping, arrivalY);
+                } else if (state.needsRefresh(player, tick, immersive)) {
+                    // 4c: the cadence is the projection's own, not the
+                    // world's — a stationary viewer is refreshed a quarter
+                    // as often. Nothing is dropped by waiting: the delta
+                    // baseline is untouched and the next pass still sends
+                    // everything that changed in the meantime.
+                    state.sendDelta(player, world, targetWorld, immersive, mapping, arrivalY, tick);
                 }
+                projecting = true;
+            }
+
+            if (projecting) {
+                spawnEdgeParticles(world, zone, def, centre, tick);
             }
 
             // Audio pass (Phase 2): same audience gate as the chunk ticket
@@ -281,6 +338,118 @@ public final class ImmersiveProjector {
                 tickAudio(world, targetWorld, centre, arrivalPos, tick);
             }
         }
+    }
+
+    /**
+     * Does the projector own this zone's particles (4d)? True only for an
+     * immersive gateway zone, which gets its denser cloud from {@link
+     * #tickGatewayCloud} instead of the standard interior spawn.
+     *
+     * Asked by {@code PortalHelper.spawnParticles} so the two never double
+     * up. The decision lives here rather than there because it is entirely
+     * an immersive concern (PLAN.md Gotcha #12) — and it is false for every
+     * non-immersive portal, which keeps its particles exactly as they were.
+     */
+    public static boolean suppliesParticlesFor(PortalHelper.PortalZone zone) {
+        return zone != null && zone.definition != null
+                && zone.definition.getImmersive() != null
+                && PortalShape.END_GATEWAY.equals(zone.definition.getShape());
+    }
+
+    /**
+     * 4b: a coloured border on the frame blocks around an active preview,
+     * marking where the real world stops and the projection starts. Spawned
+     * on the FRAME ring (positions adjacent to the interior, in-plane),
+     * which is exactly where the existing interior particles are not — the
+     * two are complementary.
+     *
+     * Called only when a projection is live for someone, from the projector
+     * tick rather than a second injection point.
+     */
+    private static void spawnEdgeParticles(ServerWorld world, PortalHelper.PortalZone zone,
+            PortalDefinition def, BlockPos centre, long tick) {
+        DustParticleEffect effect = new DustParticleEffect(
+                dustColour(PortalHelper.parseColor(def.getColor())), 1.0f);
+        Direction[] planeDirs = PortalHelper.planeDirections(zone.axis);
+        Set<BlockPos> ring = new HashSet<>();
+        for (BlockPos p : zone.interior) {
+            for (Direction dir : planeDirs) {
+                BlockPos edge = p.offset(dir);
+                // Deduplicated: an irregular interior can present the same
+                // frame block to two of its cells, and a doubled spawn there
+                // would read as a bright spot on an otherwise even border.
+                if (!zone.interior.contains(edge)) {
+                    ring.add(edge);
+                }
+            }
+        }
+        for (BlockPos edge : ring) {
+            world.spawnParticles(effect,
+                    edge.getX() + 0.5, edge.getY() + 0.5, edge.getZ() + 0.5,
+                    1, 0.1, 0.1, 0.1, 0.0);
+        }
+        if (tick % PARTICLE_LOG_INTERVAL == 0) {
+            // Particles leave no server-side trace, so this heartbeat is the
+            // only headless evidence that 4b is running.
+            MultiverseServer.LOGGER.debug("immersive: edge particles on {} frame blocks at zone {} {}",
+                    ring.size(), world.getRegistryKey().getValue(), centre.toShortString());
+        }
+    }
+
+    /**
+     * 4d: the immersive treatment for gateway zones, which have no frame,
+     * no plane and therefore no block projection — a denser, gently pulsing
+     * cloud of the portal's own colour around the gateway block.
+     *
+     * No target-world sampling at all: a gateway zone never resolves a
+     * mapping and never takes an arrival chunk ticket, so there is nothing
+     * loaded to read a biome (or anything else) from, and reading one would
+     * mean force-loading a chunk from the world tick — the one thing this
+     * whole feature is built not to do. The pulse is therefore local: a
+     * slow scale cycle rather than the biome-fog blend the phase doc
+     * sketched.
+     */
+    private static void tickGatewayCloud(ServerWorld world, PortalHelper.PortalZone zone,
+            PortalDefinition def, List<ServerPlayerEntity> players, long tick) {
+        if (zone.interior.isEmpty()) {
+            return;
+        }
+        BlockPos gatewayPos = zone.interior.iterator().next();
+        boolean visible = false;
+        for (ServerPlayerEntity player : players) {
+            if (gatewayPos.getSquaredDistance(player.getBlockPos()) <= GATEWAY_PARTICLE_RANGE_SQ) {
+                visible = true;
+                break;
+            }
+        }
+        if (!visible) {
+            return;
+        }
+        float scale = tick % GATEWAY_PULSE_PERIOD < GATEWAY_PULSE_PERIOD / 2 ? 1.2f : 1.8f;
+        world.spawnParticles(
+                new DustParticleEffect(dustColour(PortalHelper.parseColor(def.getColor())), scale),
+                gatewayPos.getX() + 0.5, gatewayPos.getY() + 0.5, gatewayPos.getZ() + 0.5,
+                GATEWAY_PARTICLE_COUNT, 0.3, 0.3, 0.3, 0.02);
+        if (tick % PARTICLE_LOG_INTERVAL == 0) {
+            // As with the edge particles: a gateway zone has no projection to
+            // log, so without this there is no headless signal at all.
+            MultiverseServer.LOGGER.debug("immersive: gateway cloud at zone {} {}",
+                    world.getRegistryKey().getValue(), gatewayPos.toShortString());
+        }
+    }
+
+    /**
+     * Packed RGB to the 0..1 vector {@link DustParticleEffect} wants.
+     *
+     * A three-line duplicate of {@code PortalHelper}'s private helper on
+     * purpose: widening the portal package's API for a cosmetic feature buys
+     * a permanent coupling to save three lines.
+     */
+    private static Vector3f dustColour(int colour) {
+        return new Vector3f(
+                ((colour >> 16) & 0xFF) / 255.0f,
+                ((colour >> 8) & 0xFF) / 255.0f,
+                (colour & 0xFF) / 255.0f);
     }
 
     /**
@@ -506,25 +675,6 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * The arrival surface Y, or {@link #NO_ARRIVAL} when the arrival
-     * column's chunk isn't loaded yet. Same maths as
-     * {@link PortalHelper#findSurfaceY} (so the preview lines up with where
-     * the player actually lands), read off an already-loaded chunk instead
-     * of force-generating one.
-     */
-    private static int arrivalSurfaceY(ServerWorld targetWorld, int x, int z) {
-        WorldChunk chunk = targetWorld.getChunkManager().getWorldChunk(x >> 4, z >> 4, false);
-        if (chunk == null) {
-            return NO_ARRIVAL;
-        }
-        int surfaceY = chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
-        if (surfaceY <= targetWorld.getBottomY() + 1) {
-            return PortalHelper.VOID_FALLBACK_Y;
-        }
-        return Math.min(surfaceY, targetWorld.getTopY() - 8);
-    }
-
-    /**
      * Cross-portal audio (Phase 2): biome ambience and mood sound bleeding
      * through from the target dimension, played at the SOURCE-side portal
      * centre — never in the target world, and never as a game event.
@@ -534,7 +684,7 @@ public final class ImmersiveProjector {
      * sends packets straight to nearby players and bypasses that entirely
      * (PLAN.md Gotcha #7).
      *
-     * {@code arrivalPos} is the same column {@link #arrivalSurfaceY} already
+     * {@code arrivalPos} is the same column {@link ArrivalResolver} already
      * resolved for the block projection — its chunk is guaranteed loaded (the
      * caller only reaches here once {@code arrivalY != NO_ARRIVAL}), so
      * sampling its biome never touches the chunk system and can never

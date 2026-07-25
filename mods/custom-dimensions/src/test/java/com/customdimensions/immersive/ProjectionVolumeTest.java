@@ -167,6 +167,68 @@ class ProjectionVolumeTest {
     }
 
     @Test
+    void firstLayerCoordNamesTheLayerNearestThePlane() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        assertEquals(21, ProjectionVolume.firstLayerCoord(interior, Direction.SOUTH));
+        assertEquals(19, ProjectionVolume.firstLayerCoord(interior, Direction.NORTH));
+
+        Set<BlockPos> zInterior = doorwayZ(-5, 70, -30);
+        assertEquals(-4, ProjectionVolume.firstLayerCoord(zInterior, Direction.EAST));
+        assertEquals(-6, ProjectionVolume.firstLayerCoord(zInterior, Direction.WEST));
+
+        Set<BlockPos> horizontal = pad(0, 100, 0);
+        assertEquals(101, ProjectionVolume.firstLayerCoord(horizontal, Direction.UP));
+        assertEquals(99, ProjectionVolume.firstLayerCoord(horizontal, Direction.DOWN));
+
+        // Degenerate input must not leak Integer.MAX_VALUE arithmetic into
+        // a coordinate comparison.
+        assertEquals(0, ProjectionVolume.firstLayerCoord(Set.of(), Direction.NORTH));
+        assertEquals(0, ProjectionVolume.firstLayerCoord(horizontal, null));
+    }
+
+    /**
+     * 4a sends invisible LIGHT blocks for the first depth layer and 4e
+     * samples that same layer for its air/solid/unknown decision. Both
+     * identify it by coordinate rather than by walking the slab, so that
+     * coordinate must select exactly one layer of the volume — no more, no
+     * fewer, on either side of the plane.
+     */
+    @Test
+    void firstLayerCoordSelectsExactlyOneVolumeLayer() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        for (Direction normal : new Direction[]{Direction.SOUTH, Direction.NORTH}) {
+            List<BlockPos> volume = ProjectionVolume.computeSourcePositions(
+                    interior, Direction.Axis.X, normal, 8, 2);
+            int first = ProjectionVolume.firstLayerCoord(interior, normal);
+            long onFirst = volume.stream()
+                    .filter(p -> ProjectionVolume.coordOn(p, normal.getAxis()) == first)
+                    .count();
+            // 2 wide + 2*2 pad = 6, 3 tall + 2*2 pad = 7.
+            assertEquals(6 * 7, onFirst, "one full layer for " + normal);
+            assertEquals(6 * 7, ProjectionVolume.computeSourcePositions(
+                    interior, Direction.Axis.X, normal, 1, 2).size(),
+                    "a depth-1 volume IS the first layer for " + normal);
+            // And it is the layer nearest the plane, not the far end.
+            for (BlockPos p : volume) {
+                int coord = ProjectionVolume.coordOn(p, normal.getAxis());
+                if (normal == Direction.SOUTH) {
+                    assertTrue(coord >= first, "slab starts at the first layer: " + p);
+                } else {
+                    assertTrue(coord <= first, "slab starts at the first layer: " + p);
+                }
+            }
+        }
+    }
+
+    @Test
+    void coordOnPicksTheRequestedAxis() {
+        BlockPos pos = new BlockPos(1, 2, 3);
+        assertEquals(1, ProjectionVolume.coordOn(pos, Direction.Axis.X));
+        assertEquals(2, ProjectionVolume.coordOn(pos, Direction.Axis.Y));
+        assertEquals(3, ProjectionVolume.coordOn(pos, Direction.Axis.Z));
+    }
+
+    @Test
     void testTargetMapping() {
         // Interior columns x = 100/101, z = 200; average truncates to
         // (100, 200). At scale 0.5 the arrival column is (50, 100).

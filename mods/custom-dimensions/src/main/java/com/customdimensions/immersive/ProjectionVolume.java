@@ -139,6 +139,38 @@ public final class ProjectionVolume {
     }
 
     /**
+     * The coordinate, along {@code normal}'s axis, of the slab layer nearest
+     * the portal plane — the first block of projected depth.
+     *
+     * Two Phase 4 passes need to name that layer without walking the volume:
+     * 4a replaces it with invisible LIGHT blocks, and 4e samples it to decide
+     * whether the far side is worth showing at full depth. Both must agree
+     * with {@link #computeSourcePositions}, which starts the slab one block
+     * past the plane — hence max+1 / min-1 here, the same arithmetic.
+     */
+    public static int firstLayerCoord(Set<BlockPos> interior, Direction normal) {
+        if (interior == null || interior.isEmpty() || normal == null) {
+            return 0;
+        }
+        Direction.Axis axis = normal.getAxis();
+        // Same positivity idiom as computeSourcePositions, deliberately: one
+        // notion of "which way is forward" for the whole class.
+        boolean positive = normal.getOffsetX() + normal.getOffsetY() + normal.getOffsetZ() > 0;
+        return positive ? maxOn(interior, axis) + 1 : minOn(interior, axis) - 1;
+    }
+
+    /** One coordinate of a position, chosen by axis. */
+    public static int coordOn(BlockPos pos, Direction.Axis axis) {
+        if (axis == Direction.Axis.X) {
+            return pos.getX();
+        }
+        if (axis == Direction.Axis.Y) {
+            return pos.getY();
+        }
+        return pos.getZ();
+    }
+
+    /**
      * The source -&gt; target transform for one zone: horizontal offsets, the
      * interior's floor Y (the row that lands on the arrival surface), and
      * the arrival column whose heightmap supplies that surface.
@@ -247,16 +279,6 @@ public final class ProjectionVolume {
                 sourcePos.getX() + mapping.dx(),
                 arrivalY + (sourcePos.getY() - mapping.interiorMinY()),
                 sourcePos.getZ() + mapping.dz());
-    }
-
-    private static int coordOn(BlockPos pos, Direction.Axis axis) {
-        if (axis == Direction.Axis.X) {
-            return pos.getX();
-        }
-        if (axis == Direction.Axis.Y) {
-            return pos.getY();
-        }
-        return pos.getZ();
     }
 
     private static int minOn(Set<BlockPos> positions, Direction.Axis axis) {

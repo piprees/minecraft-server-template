@@ -223,6 +223,60 @@ public class PortalHelper {
         return (targets != null && targets.containsKey(pos)) || LEGACY_PORTAL_TARGETS.containsKey(pos);
     }
 
+    /**
+     * The registered portal block a teleport aimed at this column would land
+     * on, or null if there is none in range.
+     *
+     * <p>This is {@link #findExistingPortal}'s answer, read out of the
+     * in-memory registry instead of the world. It exists because the immersive
+     * preview and entity pass-through must agree with where a player actually
+     * lands, and the player path lands at an EXISTING arrival portal whenever
+     * one is found — but those two callers may not touch an unloaded chunk,
+     * and {@code findExistingPortal} reads up to 11x11x33 real block states.
+     * No block reads, no chunk access, no mutation: safe from any tick path.
+     *
+     * <p><b>Search order is load-bearing.</b> {@code findExistingPortal}
+     * iterates dx, then dz, then dy, all ascending, and returns its FIRST hit
+     * — which is the lexicographic minimum by (x, z, y) over the matches. This
+     * reproduces that ordering exactly, so the two pick the same portal when
+     * several are in range. Note it is NOT {@code BlockPos.compareTo}, whose
+     * order is (y, z, x).
+     *
+     * <p>Legacy position-only records are deliberately excluded: their world
+     * is unknown until a return trip claims them, so matching one here could
+     * answer with a portal from another dimension.
+     */
+    public static BlockPos findRegisteredPortalNear(RegistryKey<World> portalWorld,
+            int centerX, int centerY, int centerZ, int radiusH, int radiusV) {
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
+        if (targets == null || targets.isEmpty()) {
+            return null;
+        }
+        BlockPos best = null;
+        for (BlockPos pos : targets.keySet()) {
+            if (Math.abs(pos.getX() - centerX) > radiusH
+                    || Math.abs(pos.getZ() - centerZ) > radiusH
+                    || Math.abs(pos.getY() - centerY) > radiusV) {
+                continue;
+            }
+            if (best == null || comesFirstInScanOrder(pos, best)) {
+                best = pos;
+            }
+        }
+        return best;
+    }
+
+    /** (x, z, y) ascending — the order findExistingPortal's loops visit. */
+    private static boolean comesFirstInScanOrder(BlockPos candidate, BlockPos current) {
+        if (candidate.getX() != current.getX()) {
+            return candidate.getX() < current.getX();
+        }
+        if (candidate.getZ() != current.getZ()) {
+            return candidate.getZ() < current.getZ();
+        }
+        return candidate.getY() < current.getY();
+    }
+
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
         Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
         PortalReturnTarget target = targets != null ? targets.get(keyPos) : null;
@@ -454,6 +508,12 @@ public class PortalHelper {
     }
 
     public static void spawnParticles(ServerWorld world, PortalZone zone) {
+        // Immersive gateway zones get a denser cloud from the projector
+        // instead of this one (Phase 4d) — spawning both would just muddle
+        // the effect. True for no other zone, immersive or not.
+        if (com.customdimensions.immersive.ImmersiveProjector.suppliesParticlesFor(zone)) {
+            return;
+        }
         ParticleEffect effect = resolveParticleEffect(zone.definition);
         for (BlockPos p : zone.interior) {
             world.spawnParticles(effect,

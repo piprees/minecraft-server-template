@@ -2,7 +2,7 @@
 
 > **Depends on:** Phases 1, 2, and 3 (refines output from all three)
 > **Unlocks:** Nothing (final MVP phase)
-> **Status:** Not started
+> **Status:** Complete
 
 ## Goal
 
@@ -25,7 +25,7 @@ ship individually.
 may be completely wrong (a sunny overworld projecting into a dark nether cave
 shows cave blocks in full daylight).
 
-- [ ] When sending the initial full projection, place invisible LIGHT blocks
+- [x] When sending the initial full projection, place invisible LIGHT blocks
   (level 15) at the portal plane boundary — the first layer of projected blocks:
   ```java
   // In PlayerProjectionState.sendFull(), for each portal-plane-adjacent position:
@@ -34,11 +34,11 @@ shows cave blocks in full daylight).
           new BlockUpdateS2CPacket(pos, Blocks.LIGHT.getDefaultState()));
   }
   ```
-- [ ] These LIGHT blocks are fake (only sent to the client, not placed in the
+- [x] These LIGHT blocks are fake (only sent to the client, not placed in the
   world). They illuminate the projected blocks behind them, making the preview
   visible even when the source-side lighting is dark.
-- [ ] On cleanup, these positions are restored like any other projected position.
-- [ ] **Trade-off:** This makes ALL projected blocks fully lit, regardless of the
+- [x] On cleanup, these positions are restored like any other projected position.
+- [x] **Trade-off:** This makes ALL projected blocks fully lit, regardless of the
   target dimension's actual lighting. It's better than darkness but not accurate.
   Acceptable for MVP — accurate lighting would require client-side rendering.
 
@@ -50,7 +50,7 @@ shows cave blocks in full daylight).
 Without a visual edge, it's hard to tell where the "real world" ends and the
 "preview" begins.
 
-- [ ] Spawn dimension-coloured `DustParticleEffect` particles along the portal
+- [x] Spawn dimension-coloured `DustParticleEffect` particles along the portal
   frame edges every tick, using the portal's configured `color`:
   ```java
   // In ImmersiveProjector.tick(), for active immersive zones:
@@ -68,10 +68,10 @@ Without a visual edge, it's hard to tell where the "real world" ends and the
       }
   }
   ```
-- [ ] These particles sit on the FRAME blocks, creating a coloured border that
+- [x] These particles sit on the FRAME blocks, creating a coloured border that
   frames the preview. They complement the existing zone interior particles
   (which are already coloured per the portal config).
-- [ ] Only spawn when the immersive preview is active for at least one player
+- [x] Only spawn when the immersive preview is active for at least one player
   (don't waste particles when nobody can see the projection).
 
 **File:** Modified `immersive/ImmersiveProjector.java` (~15 lines)
@@ -81,7 +81,7 @@ Without a visual edge, it's hard to tell where the "real world" ends and the
 **Problem:** The `refreshInterval` is constant regardless of whether anything
 has changed. A stationary player wastes packet budget on identical delta updates.
 
-- [ ] Track player position at last refresh. Skip the delta update if the
+- [x] Track player position at last refresh. Skip the delta update if the
   player hasn't moved more than 0.5 blocks since last refresh AND no blocks
   changed in the target dimension:
   ```java
@@ -93,9 +93,9 @@ has changed. A stationary player wastes packet budget on identical delta updates
       return player.getPos().squaredDistanceTo(lastRefreshPos) > 0.25; // 0.5^2
   }
   ```
-- [ ] When the player IS moving, use the configured `refreshInterval`. When
+- [x] When the player IS moving, use the configured `refreshInterval`. When
   stationary, use `refreshInterval * 4` (reduced packet rate for static view).
-- [ ] This saves ~75% of packets for AFK players near portals — relevant for
+- [x] This saves ~75% of packets for AFK players near portals — relevant for
   servers with portals in hub/spawn areas.
 
 **File:** Modified `immersive/PlayerProjectionState.java` (~10 lines)
@@ -106,7 +106,7 @@ has changed. A stationary player wastes packet budget on identical delta updates
 block projection because they're single-block portals with no frame plane to
 project behind. They get no immersive treatment at all.
 
-- [ ] For immersive gateway portals, spawn a tight cloud of particles that
+- [x] For immersive gateway portals, spawn a tight cloud of particles that
   pulse between the portal's colour and the target biome's fog colour:
   ```java
   if (PortalShape.END_GATEWAY.equals(def.getShape()) && imm != null) {
@@ -122,7 +122,7 @@ project behind. They get no immersive treatment at all.
       }
   }
   ```
-- [ ] This replaces the existing particle spawn for gateway zones when
+- [x] This replaces the existing particle spawn for gateway zones when
   immersive is enabled, giving them a denser, more atmospheric effect.
 
 **File:** Modified `immersive/ImmersiveProjector.java` (~15 lines)
@@ -133,7 +133,7 @@ project behind. They get no immersive treatment at all.
 projection looks empty and confusing. Similarly, a portal to a dimension with
 a floor at y=200 projects underground blocks when the arrival is at surface.
 
-- [ ] After computing the projection volume, scan the first depth layer. If
+- [x] After computing the projection volume, scan the first depth layer. If
   >80% of blocks are air, reduce depth to 2 (just show the boundary):
   ```java
   int airCount = 0;
@@ -144,21 +144,70 @@ a floor at y=200 projects underground blocks when the arrival is at surface.
       effectiveDepth = Math.min(2, settings.previewDepth());
   }
   ```
-- [ ] This is a one-time check at activation (stored in `PlayerProjectionState`).
+- [x] This is a one-time check at activation (stored in `PlayerProjectionState`).
   Subsequent refreshes use the effective depth.
 
 **File:** Modified `immersive/PlayerProjectionState.java` (~10 lines)
+
+### 4f. Arrival resolution (found by live testing, not in the plan)
+
+4e's air/solid counting exposed a **Phase 1 correctness bug** that had been
+invisible until something started reporting on the destination's contents.
+
+The preview resolved its arrival Y from the heightmap. The player path does
+not: once an arrival portal exists it lands the player AT that portal
+(`landY = existing.getY()`) and only consults the surface when it has to build
+a new one. And building the arrival portal *changes the heightmap it was
+derived from* — `createTargetPortal` places solid frame blocks above the top
+interior row, so `MOTION_BLOCKING_NO_LEAVES` at that column afterwards reports
+the top of our own frame rather than the ground.
+
+Measured (2026-07-25, overworld → `adventure:the_blossom_gardens`, scale 1):
+ground at y=62, arrival portal interior y=63–65 with frame at 62 and 66. A
+traversing bot landed at **y=63**; the heightmap answered **67**. So the
+preview was built ~4 blocks above the destination and showed the empty sky
+over it — which 4e then correctly diagnosed as "all air" and shrank to depth
+2. Every portal in the game would have degraded that way after its first use,
+silently.
+
+- [x] `ArrivalResolver` — one shared answer to "where is the other side",
+  used by both `ImmersiveProjector` and `EntityPassthrough` (three private
+  copies is how this drifts again)
+- [x] Registered arrival portal first, heightmap only as the fallback — the
+  same order the player path uses, with the same `(5, 16)` search box and the
+  same `(x, z, y)` scan order, so it resolves the portal the player path would
+- [x] Lookup is a pure in-memory read of `PortalHelper`'s registered targets —
+  no block states, no chunk access. `findExistingPortal` is deliberately NOT
+  used despite being the player path's tool: it scans real blocks and would
+  touch unloaded chunks (Rule 1)
+- [x] Stale registrations are re-checked against the world only when the chunk
+  happens to be loaded — an unloaded chunk is not evidence against the registry
+
+Result, same fixture, before and after:
+
+| | air | solid | decision | projected |
+|---|---|---|---|---|
+| before | 42 | 0 | SHALLOW | 84 |
+| after | 30 | 12 | FULL | 336 |
+
+The 12 solid is exactly the two `previewRadius` padding rows that map below
+the arrival surface (2 rows × 6 wide) — the geometry behaving as designed.
 
 ## Verification Checklist
 
 ### Automated
 
-- [ ] Unit tests for smart refresh logic (mock player position, verify
+- [x] Unit tests for smart refresh logic (mock player position, verify
   refresh skip when stationary)
-- [ ] No errors in server log for any Phase 4 feature
-- [ ] All existing tests pass unchanged
+- [x] No errors in server log for any Phase 4 feature
+- [x] All existing tests pass unchanged
 
 ### Manual (human-in-game)
+
+> Not verified — needs eyes in-game. Headless verification proves the
+> mechanism (LIGHT states routed through `lastSent` and restored on cleanup,
+> depth decisions logged, real blocks provably untouched), not how any of it
+> looks.
 
 - [ ] **4a (lighting):** projected cave blocks are visible, not black
 - [ ] **4b (edge particles):** coloured particle border visible around the
