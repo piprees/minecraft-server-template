@@ -17,6 +17,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,12 +39,26 @@ import java.util.UUID;
  * describing, so it cannot express fake states at all. Verified against the
  * Yarn-mapped 1.21.1 jar; do not "optimise" back to it.
  *
- * The budget is fine without batching: the default 2x3 doorway at depth 8 /
- * radius 2 has 336 CANDIDATE positions x ~14 bytes ~= 5 KB, and the sightline
- * mask below sends well under half of those from any one viewing position.
- * Steady state is near zero because the delta pass only sends positions whose
- * target block actually changed — plus, while the player is walking, the
- * positions entering and leaving their view cone.
+ <h2>The pass is budgeted — {@link ProjectionBudget}</h2>
+ * This class used to claim batching was unnecessary: "336 CANDIDATE positions
+ * … the sightline mask sends well under half of those". Both numbers were
+ * falsified in game on 2026-07-25. {@code previewRadius} went 2 -&gt; 4 in a
+ * later session, taking the slab to 1056, and a single pass sent 984 packets:
+ *
+ * <pre>
+ *   immersive: sightline mask ... 0 of 1056 maskable visible, 984 restored
+ * </pre>
+ *
+ * Walking past a portal inverts the WHOLE mask at once, so everything the
+ * player could see needs a correction packet in the same pass — ~1000
+ * {@code BlockUpdateS2CPacket}s in one tick, per viewer, per portal, at the
+ * default 4-tick interval. Reported as a multi-second stall with fake blocks
+ * lingering afterwards.
+ *
+ * {@link #send} therefore CLASSIFIES the whole volume first and only then
+ * spends a per-pass ceiling, restores before sends. Steady state — the few
+ * positions entering and leaving the view cone as a player walks — is far
+ * under the ceiling and never queues.
  *
  * <h2>Player identity</h2>
  * The live {@link ServerPlayerEntity} is passed in on every call rather than
@@ -373,6 +388,25 @@ public final class PlayerProjectionState {
 
         int bottomY = targetWorld.getBottomY();
         int topY = targetWorld.getTopY();
+        // CLASSIFY first, ACT second — the pass is budgeted (ProjectionBudget).
+        //
+        // Walking past a portal inverts the whole sightline mask, so every
+        // position the player could see needs a correction packet in the SAME
+        // pass. Measured live 2026-07-25: "0 of 1056 maskable visible, 984
+        // restored" — ~1000 BlockUpdateS2CPackets in one tick, per viewer, per
+        // portal, at the default 4-tick interval. That is the multi-second
+        // stall, and the backlog is why fake blocks appeared to linger.
+        //
+        // Acting inside the classification loop would let ITERATION ORDER
+        // decide what fits the budget. The rule is that restores outrank
+        // sends (a fake block still showing is a wall the player collides
+        // with; one not yet sent is merely absent), and that can only be
+        // honoured by knowing both totals before spending. The sightline
+        // probe — the expensive part — still runs exactly once per position.
+        List<BlockPos> pendingRestores = new ArrayList<>();
+        List<BlockPos> pendingSendPos = new ArrayList<>();
+        List<BlockState> pendingSendState = new ArrayList<>();
+
         for (BlockPos pos : this.volume) {
             BlockState state;
             {
@@ -384,10 +418,8 @@ public final class PlayerProjectionState {
                     // fake block is stranded there until they relog. Skipping
                     // that is exactly what strands fake blocks.
                     bodies++;
-                    if (sameWorld && this.lastSent.containsKey(pos)
-                            && restoreOne(handler, sourceWorld, pos)) {
-                        this.lastSent.remove(pos);
-                        unmasked++;
+                    if (sameWorld && this.lastSent.containsKey(pos)) {
+                        pendingRestores.add(pos);
                     }
                     continue;
                 }
@@ -403,10 +435,8 @@ public final class PlayerProjectionState {
                     // unloaded source chunk means "retry next pass", not "drop
                     // the record".
                     masked++;
-                    if (sameWorld && this.lastSent.containsKey(pos)
-                            && restoreOne(handler, sourceWorld, pos)) {
-                        this.lastSent.remove(pos);
-                        unmasked++;
+                    if (sameWorld && this.lastSent.containsKey(pos)) {
+                        pendingRestores.add(pos);
                     }
                     continue;
                 }
@@ -428,6 +458,36 @@ public final class PlayerProjectionState {
             if (previous == state) {
                 continue;
             }
+            pendingSendPos.add(pos);
+            pendingSendState.add(state);
+        }
+
+        // SPEND. Restores first; sends take what is left.
+        //
+        // Deferral is safe under the two existing invariants and needs no
+        // extra bookkeeping:
+        //   - a deferred RESTORE keeps its lastSent entry, which is exactly
+        //     what "lastSent is what the client is showing" requires, and the
+        //     next pass re-queues it because the position is still masked;
+        //   - a deferred SEND leaves lastSent stale, so the next pass sees
+        //     previous != state and queues it again.
+        ProjectionBudget.Allowance allowance = ProjectionBudget.allow(
+                pendingRestores.size(), pendingSendPos.size(), ProjectionBudget.DEFAULT_MAX_PER_PASS);
+        int deferred = (pendingRestores.size() - allowance.restores())
+                + (pendingSendPos.size() - allowance.sends());
+
+        for (int i = 0; i < allowance.restores(); i++) {
+            BlockPos pos = pendingRestores.get(i);
+            // Still conditional: an unloaded source chunk means "retry next
+            // pass", not "drop the record".
+            if (restoreOne(handler, sourceWorld, pos)) {
+                this.lastSent.remove(pos);
+                unmasked++;
+            }
+        }
+        for (int i = 0; i < allowance.sends(); i++) {
+            BlockPos pos = pendingSendPos.get(i);
+            BlockState state = pendingSendState.get(i);
             handler.sendPacket(new BlockUpdateS2CPacket(pos, state));
             this.lastSent.put(pos, state);
         }
@@ -483,9 +543,10 @@ public final class PlayerProjectionState {
             int maskable = this.volume.size();
             MultiverseServer.LOGGER.debug(
                     "immersive: sightline mask for {} at zone {} -> {} of {} maskable visible, "
-                            + "{} restored, {} aperture cells overlaid, {} suppressed by bodies",
+                            + "{} restored, {} aperture cells overlaid, {} suppressed by bodies, "
+                            + "{} deferred to the next pass",
                     this.playerName, this.sourceWorldKey.getValue(),
-                    maskable - masked - bodies, maskable, unmasked, lights, bodies);
+                    maskable - masked - bodies, maskable, unmasked, lights, bodies, deferred);
         }
 
         // The EYE, not the feet: the mask is a function of eye position, so
