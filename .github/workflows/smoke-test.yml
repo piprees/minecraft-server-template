@@ -152,6 +152,23 @@ jobs:
               'the_smoke_compressed': {"type": "overworld", "seed": 2222,
                                        "noiseSettings": "adventure:compressed",
                                        "structureDensity": "dense"},
+              # Dedicated portal target for the traversal e2e. A SHIPPED
+              # dimension must never be the target: the test would couple to
+              # content (an edited frameBlock breaks it for an unrelated
+              # reason), and a live server would have a bot activating a
+              # dimension meant to stay dormant until players find it.
+              #
+              # scale 8 + border 1024 is the load-bearing pair. Entering
+              # DIVIDES, so a portal at overworld 600,600 arrives at 75,75 --
+              # inside the 1024 border. If entry ever regresses to MULTIPLY
+              # the arrival lands at 4800,4800, outside the border, and the
+              # e2e fails loudly. That is the 2026-07-25 defect as a gate.
+              'the_smoke_portal': {"type": "overworld", "seed": 3333,
+                                   "borders": {"player": 1024, "generation": 1024},
+                                   "portal": {"frameBlock": "minecraft:copper_block",
+                                              "igniterItem": "minecraft:golden_carrot",
+                                              "color": "00FF88",
+                                              "scale": 8.0}},
           }
           for slug, cfg in smoke.items():
               json.dump(cfg, open(f'{base}/dimensions/{slug}.json', 'w'), indent=2)
@@ -482,14 +499,14 @@ jobs:
           #     with a portal they cannot even mine;
           #   * arrival ENTOMBED — no egress either side of the plane.
           X=600; Y=100; Z=600
-          DIM=adventure:the_blossom_gardens
+          DIM=adventure:the_smoke_portal
           docker exec mc rcon-cli "execute in minecraft:overworld run forceload add $((X-4)) $((Z-4)) $((X+4)) $((Z+4))" >/dev/null
           sleep 3
           # 2x3 cherry_planks frame in the XY plane; interior X..X+1, Y+1..Y+3
-          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-2)) $Y $Z $((X+3)) $Y $Z minecraft:cherry_planks" >/dev/null
-          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-1)) $((Y+1)) $Z $((X-1)) $((Y+3)) $Z minecraft:cherry_planks" >/dev/null
-          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X+2)) $((Y+1)) $Z $((X+2)) $((Y+3)) $Z minecraft:cherry_planks" >/dev/null
-          docker exec mc rcon-cli "execute in minecraft:overworld run fill $X $((Y+4)) $Z $((X+1)) $((Y+4)) $Z minecraft:cherry_planks" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-2)) $Y $Z $((X+3)) $Y $Z minecraft:copper_block" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-1)) $((Y+1)) $Z $((X-1)) $((Y+3)) $Z minecraft:copper_block" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X+2)) $((Y+1)) $Z $((X+2)) $((Y+3)) $Z minecraft:copper_block" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $X $((Y+4)) $Z $((X+1)) $((Y+4)) $Z minecraft:copper_block" >/dev/null
           docker exec mc rcon-cli "execute in minecraft:overworld run fill $X $((Y+1)) $Z $((X+1)) $((Y+3)) $Z minecraft:air" >/dev/null
 
           # Ignite from INSIDE the frame looking down at the bottom block —
@@ -498,7 +515,7 @@ jobs:
           docker exec mc rcon-cli "gamemode creative SmokeBot" >/dev/null
           docker exec mc rcon-cli "execute in minecraft:overworld run tp SmokeBot $X.5 $((Y+1)) $Z.5" >/dev/null
           sleep 2
-          docker exec mc rcon-cli "item replace entity SmokeBot hotbar.0 with minecraft:cherry_sapling 8" >/dev/null
+          docker exec mc rcon-cli "item replace entity SmokeBot hotbar.0 with minecraft:golden_carrot 8" >/dev/null
           docker exec mc rcon-cli "player SmokeBot hotbar 1" >/dev/null
           docker exec mc rcon-cli "player SmokeBot look down" >/dev/null
           sleep 1
@@ -509,7 +526,7 @@ jobs:
             sleep 4
             BOTDIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null || echo "")
             echo "  traversal attempt $attempt: $BOTDIM"
-            if echo "$BOTDIM" | grep -q "the_blossom_gardens"; then ARRIVED=1; break; fi
+            if echo "$BOTDIM" | grep -q "the_smoke_portal"; then ARRIVED=1; break; fi
           done
           if [ $ARRIVED -eq 0 ]; then
             echo "::error::Bot never traversed the portal into $DIM"
@@ -524,7 +541,7 @@ jobs:
 
           # The arrival must be inside the destination's PLAYER border, or the
           # player cannot interact with any block once they get there.
-          BORDER=$(python3 -c 'import json; print((json.load(open("config/custom-dimensions/dimensions/the_blossom_gardens.json")).get("borders") or {}).get("player", 0))')
+          BORDER=$(python3 -c 'import json; print((json.load(open("data/config/custom-dimensions/dimensions/the_smoke_portal.json")).get("borders") or {}).get("player", 0))')
           echo "Destination player border radius: $BORDER"
           for COORD in "$AX" "$AZ"; do
             ABS=${COORD#-}
@@ -534,6 +551,18 @@ jobs:
             fi
           done
           echo "Arrival is inside the destination world border"
+
+          # Entering divides by scale (8): 600 -> 75. Pinning the column makes
+          # a silent direction flip impossible; "inside the border" alone
+          # would still pass for a wrong-but-small coordinate.
+          for PAIR in "$AX 75" "$AZ 75"; do
+            set -- $PAIR
+            if [ "$1" -ne "$2" ]; then
+              echo "::error::Arrival column $1 != expected $2 — portal.scale must DIVIDE on entry (600 / 8 = 75)"
+              exit 1
+            fi
+          done
+          echo "Scaled arrival column is correct (600 / 8 = 75)"
 
           # The arrival must not be entombed: at least one face of the portal
           # plane has to be steppable.
@@ -553,6 +582,61 @@ jobs:
           echo "Cleaning up bot..."
           docker exec mc rcon-cli "player SmokeBot kill" || true
           echo "Fake player test passed"
+
+      - name: Assert carpet's piston mixin stays patched (crash regression)
+        if: matrix.variant == 'default'
+        # scripts/patch-mod-data.py strips PistonBaseBlock_movableBEMixin from
+        # carpet's jar. Stock carpet nulls the moving-piston BlockEntity and
+        # Supplementaries hard-errors on that, so ANY piston moving a block
+        # entity kills the tick loop. It went unexplained for eleven days.
+        #
+        # Two checks, because they fail differently:
+        #   1. the mixin is absent from the installed jar — catches the patch
+        #      not running at all;
+        #   2. a piston actually pushes a chest without crashing — catches a
+        #      carpet release RENAMING the mixin, where the patcher would
+        #      silently match nothing and report success.
+        # See docs/known-issues/carpet-supplementaries-piston-crash.md.
+        run: |
+          CARPET_JAR=$(docker exec mc sh -c 'ls /data/mods/*arpet*.jar 2>/dev/null | head -1' || true)
+          if [ -z "$CARPET_JAR" ]; then
+            echo "::error::carpet jar not found in /data/mods — it should ship via config/modrinth-mods.txt"
+            exit 1
+          fi
+          docker exec mc sh -c "cd /tmp && rm -f carpet.mixins.json && unzip -o -q '$CARPET_JAR' carpet.mixins.json"
+          if docker exec mc grep -q 'PistonBaseBlock_movableBEMixin' /tmp/carpet.mixins.json; then
+            echo "::error::carpet's PistonBaseBlock_movableBEMixin is STILL PRESENT — patch-mod-data.py did not run or did not match"
+            exit 1
+          fi
+          echo "carpet piston mixin is stripped"
+
+          RESTARTS_BEFORE=$(docker inspect mc --format '{{.RestartCount}}')
+          docker exec mc rcon-cli "execute in minecraft:overworld run forceload add 248 -462 256 -456" >/dev/null
+          sleep 3
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill 248 70 -460 254 70 -460 minecraft:stone" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run setblock 251 71 -460 minecraft:chest" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run setblock 250 71 -460 minecraft:piston[facing=east]" >/dev/null
+          sleep 2
+          docker exec mc rcon-cli "execute in minecraft:overworld run setblock 249 71 -460 minecraft:redstone_block" >/dev/null
+          sleep 8
+
+          RESTARTS_AFTER=$(docker inspect mc --format '{{.RestartCount}}')
+          if [ "$RESTARTS_BEFORE" != "$RESTARTS_AFTER" ]; then
+            echo "::error::Server restarted after a piston pushed a chest ($RESTARTS_BEFORE -> $RESTARTS_AFTER) — the carpet x Supplementaries crash is back"
+            docker logs mc --tail 40
+            exit 1
+          fi
+          if docker exec mc sh -c 'grep -q "moving-piston BlockEntity" /data/logs/latest.log' 2>/dev/null; then
+            echo "::error::null moving-piston BlockEntity logged — the carpet x Supplementaries crash is back"
+            exit 1
+          fi
+          PUSHED=$(docker exec mc rcon-cli "execute in minecraft:overworld if block 252 71 -460 minecraft:chest" 2>&1 || true)
+          echo "$PUSHED" | grep -q "passed" || {
+            echo "::error::chest was not pushed — Supplementaries push_block_entities is broken (patch may have removed too much)"
+            exit 1
+          }
+          docker exec mc rcon-cli "execute in minecraft:overworld run forceload remove 248 -462 256 -456" >/dev/null || true
+          echo "Piston + chest + carpet: no crash, chest pushed"
 
       - name: Assert no crash reports
         run: |

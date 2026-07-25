@@ -136,9 +136,18 @@ has no effect.
 
 ### If you bump the carpet pin
 
-Re-run the reproduction below. A carpet release could rename or split that
-mixin, and the patch would silently stop matching — the failure mode is a
-crash returning, not an error from the patcher.
+**This is now automated** — `smoke-test.yml` runs the reproduction on every
+release, so a bad pin fails CI rather than reaching a player. It asserts two
+different failure modes:
+
+1. `PistonBaseBlock_movableBEMixin` is absent from the installed jar — catches
+   the patch not running at all;
+2. a piston actually pushes a chest with no crash and no restart — catches a
+   carpet release RENAMING or splitting that mixin, where the patcher matches
+   nothing and cheerfully reports success.
+
+The second is the one that matters: the failure mode of a renamed mixin is the
+crash coming back silently, not an error from the patcher.
 
 ### Alternatives considered
 
