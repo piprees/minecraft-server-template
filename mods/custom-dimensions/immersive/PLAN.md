@@ -500,6 +500,30 @@ Set expectations honestly when you hand something over — the tester reasonably
 read a working Phase 0 as broken because the doc promised "instant" and he saw
 a loading screen. Say what a change will and will not look like.
 
+### Ghosts: restart the server before believing a visual bug report
+
+Fake blocks live on the client until it reloads those chunks. If the server
+restarts while a player is connected, anything currently projected is
+**orphaned** — the server comes back with no record of it and never sends a
+correction. Shutdown now restores properly, so an orderly restart is clean,
+but a hard crash still leaves residue and older jars left plenty.
+
+Orphaned blocks look EXACTLY like a live masking failure: destination
+geometry floating outside the frame. This cost real diagnosis time twice.
+
+Before treating a screenshot as a regression, check whether a projection was
+even active:
+
+```bash
+docker exec mc sh -c 'grep -E "immersive: projection (activated|cleared)" /data/logs/latest.log | tail'
+docker inspect mc --format '{{.State.StartedAt}}'
+# and confirm the position server-side:
+docker exec -i mc rcon-cli 'execute in <world> if block <x> <y> <z> minecraft:air'
+```
+
+Server says AIR + no recent activation = ghosts. The remedy is a client chunk
+reload (F3+A or relog), not a code change.
+
 ### A trap that will waste your time
 
 Portal coordinates are frequently negative on a real world. `floor(-424.5)` is
