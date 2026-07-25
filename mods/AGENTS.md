@@ -47,6 +47,69 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - **Persisted `PortalDefinition.frameBlock` must ALWAYS be a plain parseable id — never a `#tag` form.** Older jars `Identifier.of()` it in an uncaught world-tick path (`isZoneValid` ← `restoreZones`); a `#` in a persisted zone record crash-loops any server running a pre-FrameMatcher build (hit live 2026-07-23 A/B-testing v3.6.0). Accept forms belong in `frameAccepts`; `toPortalDefinition` enforces this and a unit test pins it. General rule: fields serialised into `portal_links.json` must stay parseable by every jar that might ever read them back — deploys roll back.
 - **Registered portal blocks are protected from neighbour-update popping** (`NetherPortalProtectionMixin`). Vanilla `NetherPortalBlock.getStateForNeighborUpdate` pops any portal not framed in obsidian whenever an adjacent block changes — and **netherportalspread's** corruption engine (`Util.spreadNetherToBlock`, NOTIFY_ALL) converts blocks right next to freshly detected portals, silently deleting custom-framed arrival portals within seconds (root-caused 2026-07-23 with a temporary portal-pop stack-trace mixin after four misleading suspects; the fix protects only positions registered in `PortalHelper`'s return-target map, so player-built vanilla portals keep vanilla rules).
 
+**Immersive portals** (`portal.immersive`): a presentation layer over an existing portal — see through it, hear the far side, throw things through. Server-side only; no client mod. Decision record and per-phase docs live in `mods/custom-dimensions/immersive/`.
+
+```jsonc
+"portal": {
+  "immersive": true            // all defaults
+  // or, with tuning:
+  // "immersive": {
+  //   "enabled": true,          // an explicit false here = not immersive
+  //   "previewDepth": 8,        // blocks deep behind the frame (1-16)
+  //   "previewRadius": 2,       // pad beyond the frame edge (0-4)
+  //   "refreshInterval": 4,     // ticks between delta refreshes (min 2)
+  //   "activationRange": 24,    // blocks (1-64)
+  //   "audio": true,            // biome ambience leaking through
+  //   "entityPassthrough": true // items/projectiles/orbs/falling blocks
+  // }
+}
+```
+
+- **`immersive` is boot-re-read, like the rest of the portal block** — no world wipe needed. But it is `transient` on `PortalDefinition` and deliberately NOT serialised into `portal_links.json`, so a zone restored from disk deserialises with it null. `PortalHelper.restoreZones` re-stamps it from live config via `MultiverseConfig.getImmersiveFor(targetWorld)`. Without that re-stamp every already-ignited immersive portal silently stops being immersive on the next restart. Stamping **null** is correct and load-bearing: it's how turning the setting off takes effect for existing zones.
+- **Never sync-load a chunk from the projector, the audio pass, or entity pass-through.** All target-world reads go through `getChunkManager().getWorldChunk(cx, cz, false)`; null means skip. `PortalHelper.findSurfaceY` force-generates, so the immersive code deliberately reimplements its maths (`ImmersiveProjector.arrivalSurfaceY`, `EntityPassthrough.arrivalSurfaceY`) on an already-loaded chunk. Sync-generating from a world tick is the Epic Dungeons + c2me wedge in Known issues — a cosmetic preview must never be able to hang the tick loop.
+- **Arrival chunks need a ticket, not just pre-generation.** Phase 0's proximity pre-load generates a 5x5 grid, but with no ticket and no player there the outer ring unloads again within seconds. The projector holds a chunk ticket while any player is near, released on every teardown path, with a 100-tick expiry refreshed every 20 so a missed release self-heals rather than pinning chunks forever. Without the ticket the preview works exactly once and then never again (the pre-loader's dedupe only clears on world UNLOAD, and only the *chunks* had unloaded).
+- **Anchor dimensions share one arrival between many source portals**, and a chunk ticket is a single entry keyed on `(type, level, argument)` — so a release must check no other zone still wants that chunk, or the first teardown drops the ticket for every holder.
+- **Fake blocks are client-only `BlockUpdateS2CPacket`s**, never placed in the world. `ChunkDeltaUpdateS2CPacket` looks like the batched answer but its only 1.21.1 constructor takes a `ChunkSection` and reads states *out of the real world*, so it cannot express fake states at all — don't "optimise" back to it. Cleanup must restore `world.getBlockState(pos)`, never a hardcoded AIR (a projection overlapping a real portal block must come back as the portal block).
+- **Cleanup has six paths and all six matter**: out of range, zone removed (hook `PortalHelper.removeZone`, which covers frame-break *and* single-use expiry), disconnect, join (a relog in range would otherwise leave stale `lastSent`, making the delta pass a no-op against a client holding fresh real blocks), player world change, and target world unloaded. Leaked fake blocks persist until the player relogs.
+- **Audio uses `world.playSound`, never game events.** `GameEventSuppressionMixin` drops every game event in a managed world with no players, and the target world usually has none. Sound is emitted in the SOURCE world at the portal centre, sampling biome data from the target.
+- **There is no cross-portal weather relay and there cannot be one.** Every dimension this mod creates is built over an `UnmodifiableLevelProperties` wrapping the same main world properties (see `DimensionManager.getOrCreateDimension`), exactly as vanilla does, so `isRaining()`/`isThundering()` read one save-wide flag. `target raining && !source raining` is unsatisfiable. Vanilla's `/weather` also ignores `execute in <dim>` and always targets the overworld.
+- **Entity pass-through detects a swept path, not a position.** A bow arrow covers ~3 blocks per tick and would tunnel straight through a one-block-thick portal. The interior is tested as a set of block positions rather than its bounding box, so irregular flood-filled frames don't grab things flying past a concave corner. Crossing is entry-EDGE triggered (like the player loop) and the "inside" set is recorded *before* the cooldown gate — otherwise an entity waiting out its cooldown inside the zone re-fires the instant it expires (ping-pong).
+- **Cross-dimension teleport RECREATES a non-player entity**, so anything set on the original reference afterwards is set on a corpse. Use `Entity.teleportTo(TeleportTarget)`: it carries velocity as a first-class field (so position and velocity land together on the entity that arrives) and returns the live arrival. Living entities are excluded wholesale — pathfinding, AI memories, leashes and spawn tracking are all world-scoped.
+- **Gateway portals are excluded** from block projection and entity pass-through (a frameless single block has no projection plane, and vanilla already handles entities standing in one).
+- **Resolve the arrival through `ArrivalResolver`, never the heightmap directly.** The player path lands at the EXISTING arrival portal when there is one (`landY = existing.getY()`) and only consults `findSurfaceY` to build a new one. Building that portal *changes the heightmap it came from* — `createTargetPortal` places solid frame blocks above the top interior row, so `MOTION_BLOCKING_NO_LEAVES` at that column afterwards reports the top of our own frame, not the ground. Measured 2026-07-25: a bot landed at y=63 while the heightmap answered 67, so the preview sat four blocks high and showed empty sky. `ArrivalResolver` reads `PortalHelper`'s **in-memory** registered-target map first (same `(5, 16)` box and `(x, z, y)` scan order as `findExistingPortal`, so it picks the same portal) and falls back to the heightmap only for a column with no portal yet. Don't use `findExistingPortal` here despite it being the player path's tool — it scans real blocks and would touch unloaded chunks.
+- **Distinguish air from unknown when sampling the target.** An unloaded chunk reads as "no block" exactly like air does, and conflating them silently shrank every preview to 2 blocks deep (`PlayerProjectionState.decideDepth` declines to decide below 75% known, and measures its air threshold over known samples only). The same three-state discipline applies to any future heuristic over projected content.
+- **Log counts, not just events.** Both the chunk-ticket bug and the arrival-resolution bug were only visible because the projector logs how many blocks it projected and 4e logs its air/solid/unknown tallies. An "activated" line alone would have looked perfectly healthy in all three broken states.
+
+**Verification recipes (immersive)** — everything below is headless; the visual and audio quality checks genuinely need a human in-game.
+
+```bash
+# Mod DEBUG logging is off by default and audio/entity lines are DEBUG.
+# Patch the (read-only) stack-config volume via a helper container, restart mc:
+docker run --rm -v <brand>_stack-config:/v -w /v alpine:3.20 sh -c \
+  'cp log4j2-adventure.xml log4j2-adventure.xml.bak && sed -i \
+   "s|<Root level=\"info\">|<Logger name=\"customdimensions\" level=\"debug\" additivity=\"false\"><AppenderRef ref=\"SysOut\"/><AppenderRef ref=\"File\"/></Logger>\n<Root level=\"info\">|" log4j2-adventure.xml'
+
+# Activation / teardown (INFO — always visible)
+docker exec mc sh -c 'grep -E "immersive: (projection|holding|released)" /data/logs/latest.log | tail'
+# Expect "projection activated ... (336 blocks)" for a 2x3 doorway at depth 8
+# radius 2. A SHORT count on the first send is normal, not a defect: the
+# ticket loads asynchronously so the far chunk misses that tick and the delta
+# pass fills it. Pin the arrival chunks with a second player to see the full 336.
+
+# The load-bearing assert: fake blocks must never become real. Lay markers
+# through the slab, activate, then prove they survived.
+docker exec -i mc rcon-cli 'setblock <x> <y> <z+1> minecraft:gold_block'
+docker exec -i mc rcon-cli 'execute if block <x> <y> <z+1> minecraft:gold_block'
+
+# Entity pass-through (capture a baseline BEFORE the change, or the result
+# is unfalsifiable). kill's output doubles as the arrival count and cleanup.
+docker exec -i mc rcon-cli 'summon minecraft:item <zone x> <y> <z> {Item:{id:"minecraft:diamond",Count:1b},Motion:[0.0,0.0,-0.4]}'
+docker exec -i mc rcon-cli 'execute in <ns>:<dim> positioned <ax> <ay> <az> run kill @e[type=item,distance=..48]'
+# Load-bearing negative: a pig must NOT cross (living entities excluded).
+```
+
+Config negatives are worth exercising because they run the whole parse->gate path: `"immersive": {"enabled": true, "audio": false}` must give a projection with zero audio DEBUG lines, and `{"entityPassthrough": false}` must put entities back to not crossing.
+
 **Feature ideas** live in `~/Projects/minecraft-server-template/mods/.ideas` as individual markdown files — not in this document.
 
 ## Verification loop
@@ -204,7 +267,7 @@ Once the local loop passes: commit → `gh workflow run release.yml -f version=v
 
 | Mod | Status | Purpose |
 | --- | --- | --- |
-| `custom-dimensions` | In development | Boot-time dimension creation from repo config, custom portal frames with configurable igniters, coordinate scaling, coloured particles, bidirectional travel, per-dimension noise settings (`noiseSettings` → jar-baked `adventure:wide`/`adventure:compressed`, generated by `scripts/gen-terrain-presets.py` — self-contained since 2026-07-24 (survive Tectonic/Terralith removal); regenerate on Tectonic OR Terralith pin bumps) and theme-aware structure density (`structureDensity` + automatic peaceful overlay; themes from `scripts/gen-structure-presets.py`) |
+| `custom-dimensions` | In development | Boot-time dimension creation from repo config, custom portal frames with configurable igniters, coordinate scaling, coloured particles, bidirectional travel, per-dimension noise settings (`noiseSettings` → jar-baked `adventure:wide`/`adventure:compressed`, generated by `scripts/gen-terrain-presets.py` — self-contained since 2026-07-24 (survive Tectonic/Terralith removal); regenerate on Tectonic OR Terralith pin bumps) and theme-aware structure density (`structureDensity` + automatic peaceful overlay; themes from `scripts/gen-structure-presets.py`), and immersive portals (`portal.immersive` — see-through preview via server-side fake blocks, cross-portal biome audio, entity pass-through; no client mod) |
 
 ### Worldgen self-containment rules (optional-mods hardening, 2026-07-24)
 
@@ -314,7 +377,17 @@ MultiverseServer (entrypoint)
 ├── ServerWorldMixin → per-tick logic
 │   ├── validates portal zones (removes broken ones)
 │   ├── teleports players stepping into portals
-│   └── spawns coloured particles on all portals
+│   ├── spawns coloured particles on all portals
+│   ├── immersive proximity scan → ImmersivePreloader (target world + chunks)
+│   ├── ImmersiveProjector.tick → fake-block preview + cross-portal audio
+│   └── EntityPassthrough.tick → items/projectiles crossing immersive zones
+├── immersive/ → presentation layer, gated on portal.immersive (null = off)
+│   ├── ImmersiveSettings (config record; transient on PortalDefinition)
+│   ├── ImmersivePreloader → proximity world load + arrival chunk pre-gen
+│   ├── ProjectionVolume → pure geometry; mirrors the teleport transform
+│   ├── PlayerProjectionState → per-player fake-block slab + delta packets
+│   ├── ImmersiveProjector → tick driver, chunk tickets, teardown, audio
+│   └── EntityPassthrough → swept-path entity crossing (both directions)
 ├── PortalIgnitionMixin → portal creation
 │   ├── detects item use matching portal config
 │   ├── flood-fills to find valid frame

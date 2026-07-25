@@ -2,7 +2,7 @@
 
 > **Location:** `mods/custom-dimensions/immersive/`
 > **Phase docs:** `PHASE-0-*.md` through `PHASE-4-*.md` in this directory
-> **Status:** Planning complete. Implementation not started.
+> **Status:** Implementation complete — all five phases shipped and verified.
 
 ## What this is
 
@@ -421,6 +421,25 @@ mixin classes (all changes are to existing mixins).
    to post-MVP — doubles the projection count.
 
 ---
+
+## What live testing found that the plan did not
+
+Every defect in this feature had the same signature: **build green, tests
+green, feature silently not happening**. None were reachable by code review.
+If you extend this feature, budget for the live loop — it is not optional
+here.
+
+| Found | Symptom | Cause |
+|---|---|---|
+| Phase 0 | Immersive silently off for every portal after a restart | `ImmersiveSettings` is transient (correct), but restored zones deserialise their definition from `portal_links.json`, so it came back null. `restoreZones` now re-stamps from live config. |
+| Phase 1 | Preview worked exactly once, then never again | The projector refuses to load chunks (correct) while the pre-loader's dedupe only cleared on world UNLOAD — but only the *chunks* had unloaded. Fixed with a chunk ticket, expiry-backed. |
+| Phase 1 | Relog in range showed nothing | Stale `lastSent` made the delta pass a no-op against a client holding fresh real blocks. JOIN now drops the state. |
+| Phase 2 | Weather relay never fired | Per-dimension weather does not exist: every world shares one save-wide flag. Cut as unreachable code. |
+| Phase 4 | Preview ~4 blocks above where players land, then shrunk to depth 2 | The mod's own arrival frame raises the heightmap the preview sampled; the player path lands at the existing portal instead. Fixed with a shared `ArrivalResolver`. |
+
+Two of these (the Phase 1 ticket, the Phase 4 arrival) were only visible
+because something downstream *reported numbers* — the projected-block count
+and 4e's air/solid counts. Log the counts, not just the events.
 
 ## Verification Strategy
 

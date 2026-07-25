@@ -132,7 +132,8 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
     "sounds": { "ignite": "block.portal.trigger", "enter": "block.portal.travel", "exit": "block.portal.travel" },
     "anchor": { "pos": "spawn", "exit": "bed" },
     "singleUse": { "enabled": true, "delaySeconds": 10, "breakMode": "decay", "decayMap": {} },
-    "aura": { "enabled": false }
+    "aura": { "enabled": false },
+    "immersive": true
   }
 }
 ```
@@ -155,6 +156,7 @@ Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: fal
 | `anchor` | Fixed landing point. `pos`: `[x,y,z]` or `"spawn"`. `exit`: `"origin"` (default) \| `"bed"` \| `"worldSpawn"` \| `{"dimension": "ns:slug", "arrival": "anchor"\|"spawn"\|[x,y,z]}`. |
 | `singleUse` | Self-destructing portal. `delaySeconds` (default 10) from first traversal to frame break. `breakMode`: `"destroy"` \| `"decay"` (default, swaps via `decayMap`) \| `"partial"` (1-2 blocks decay, repairable). |
 | `aura` | Environmental particle/sound spread near the portal. `{"enabled": false}` to disable; default is a derived bi-directional leak. |
+| `immersive` | See through the portal into the destination, hear its biome ambience, and throw items/projectiles through. Server-side only — no client mod. `true` for all defaults, absent/`false` for off, or an object to tune: `previewDepth` (1-16, default 8), `previewRadius` (0-4, default 2), `refreshInterval` ticks (min 2, default 4), `activationRange` blocks (1-64, default 24), `audio` (default true), `entityPassthrough` (default true). An explicit `"enabled": false` inside the object means off. Boot-re-read like the rest of `portal`, so changes apply without a world wipe. Excluded for `end_gateway` shapes (no projection plane). |
 
 ## `exitPortal` object
 
