@@ -276,8 +276,21 @@ public final class PortalAuraManager {
                 }
                 return 0;
             }
-            if (trees != null && !trees.isEmpty() && random.nextDouble() < TREE_CHANCE) {
-                return generateTree(world, pos, trees.get(random.nextInt(trees.size())), random) ? 1 : 0;
+            // Trees are planted ONLY from an explicit aura.trees config.
+            //
+            // Derived tree palettes are no longer produced (see sample()), but
+            // records persisted before that change still carry them, and those
+            // records outlive the code — a portal linked yesterday would go on
+            // planting dark oaks forever. Gating at the point of use fixes
+            // already-affected worlds on the next boot instead of needing a
+            // migration, and costs one list check.
+            // `s.trees` is the EXPLICIT config list; `trees` is whatever was
+            // persisted, which for older records is a derived palette.
+            List<String> explicitTrees = s.trees;
+            if (explicitTrees != null && !explicitTrees.isEmpty()
+                    && random.nextDouble() < TREE_CHANCE) {
+                return generateTree(world, pos,
+                        explicitTrees.get(random.nextInt(explicitTrees.size())), random) ? 1 : 0;
             }
             if (flora != null && !flora.isEmpty() && random.nextDouble() < FLORA_CHANCE) {
                 Block plant = blockOf(flora.get(random.nextInt(flora.size())));
@@ -418,7 +431,8 @@ public final class PortalAuraManager {
             Set<String> excludedIds) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         Set<String> flora = new java.util.LinkedHashSet<>();
-        Set<String> trees = new java.util.LinkedHashSet<>();
+        // Derived trees are collected but NOT returned — see below.
+        Set<String> derivedTrees = new java.util.LinkedHashSet<>();
         Set<String> fluids = new java.util.LinkedHashSet<>();
         // Ground-biased vertical window: a vertical portal's centre sits
         // 1-2 blocks above the terrain that actually characterises the
@@ -445,7 +459,11 @@ public final class PortalAuraManager {
                     if (state.isIn(BlockTags.LOGS)) {
                         String feature = LOG_TO_TREE.get(id);
                         if (feature != null) {
-                            trees.add(feature); // unknown modded logs: no tree
+                            // DERIVED TREES ARE DISABLED — see the comment on
+                            // the trees list below. Kept as a no-op rather
+                            // than deleting the log->feature mapping, which is
+                            // still what an explicit aura.trees config needs.
+                            derivedTrees.add(feature);
                         }
                     } else if (isFlora(state, id)) {
                         flora.add(id);
@@ -465,7 +483,23 @@ public final class PortalAuraManager {
         Sampled out = new Sampled();
         out.terrain = topN(counts, PALETTE_SIZE);
         out.flora = new ArrayList<>(flora);
-        out.trees = new ArrayList<>(trees);
+        // TREES ARE NOT DERIVED FROM SAMPLING.
+        //
+        // A sampled tree palette turns any portal near a forest into a
+        // thicket: a dark oak is a 2x2 trunk with an enormous canopy, and at
+        // TREE_CHANCE per pass against a 300 budget an 8-radius aura plants
+        // roughly a dozen of them. Reported in game 2026-07-25 — "the beach is
+        // now completely rammed with dark oak trees and I can barely move
+        // around". The aura is meant to make somewhere feel touched by the
+        // other side, not to wall it in, and trees are the one palette entry
+        // whose footprint is orders of magnitude bigger than the block that
+        // seeded it.
+        //
+        // Trees remain available as a deliberate, per-dimension choice via
+        // an explicit `aura.trees` config (Sampled.explicit), which is the
+        // path a dimension takes when someone has decided a forest IS the
+        // effect. They are simply never inferred.
+        out.trees = List.of();
         out.fluids = new ArrayList<>(fluids);
         return out;
     }

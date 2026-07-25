@@ -104,6 +104,43 @@ import java.util.concurrent.ConcurrentHashMap;
  * is refreshed on a cadence while wanted: a leaked ticket pins chunks loaded
  * forever, which would be a worse bug than the one it fixes, so it
  * self-heals even if a release path is ever missed.
+ *
+ * <h2>Rule 3: an ORDERLY shutdown is a teardown; a crash is not</h2>
+ * {@link #clear()} restores every live projection before dropping its state.
+ * It has to, and the reason is worth reading before anyone "simplifies" it
+ * back into a set of {@code clear()} calls:
+ *
+ * <p>A fake block only ever becomes real again because the server tells the
+ * client so. If the process stops while projections are live, nobody tells
+ * it — and after a restart the server has no record that those positions were
+ * ever faked, so it will never correct them. The client goes on rendering
+ * destination terrain that, server-side, is plain air. This cost most of a
+ * debugging session in July 2026: a tester's screenshots of foliage floating
+ * outside a portal frame looked exactly like a sightline-mask failure, but the
+ * server's last projection activity was an hour old and a restart sat between
+ * the two. Every jar install during local iteration was minting fresh ghosts.
+ *
+ * <p>The hook is sound for this: {@code WorldLoaderMixin.onShutdown} injects
+ * at {@code MinecraftServer.shutdown} HEAD, which runs before {@code
+ * getNetworkIo().stop()} and before {@code
+ * PlayerManager.disconnectAllPlayers()}, so the player list is live and every
+ * channel is open. {@code ClientConnection.send} writes with {@code
+ * flush = true}, and the later {@code disconnect()} does {@code
+ * channel.close().awaitUninterruptibly()} — a close queued behind writes that
+ * have already been flushed. The corrections make it onto the wire.
+ *
+ * <p><b>What this cannot fix, honestly:</b> a hard crash, an OOM kill, {@code
+ * kill -9}, or the container being torn out from under the process. None of
+ * them run {@code shutdown()}, so none of them restore anything, and there is
+ * no server-side mechanism that could — the knowledge of what was faked dies
+ * with the process. That residue is only correctable by the CLIENT reloading
+ * the affected chunks. If a player reports blocks from another dimension
+ * hanging around a portal after a crash, the remedy is to make their client
+ * re-request chunks: relog, press F3+A (reload chunks), or walk out past
+ * render distance and back. Check the server log for a recent
+ * "restored ... before shutdown" line before treating any such report as a
+ * projection bug — its absence, plus a restart in the window, is the
+ * signature of stale ghosts rather than a live defect.
  */
 public final class ImmersiveProjector {
 
@@ -1075,9 +1112,24 @@ public final class ImmersiveProjector {
         }
     }
 
-    /** Resets all session state (server shutdown). */
+    /**
+     * Server is stopping: give every connected player their real blocks back,
+     * then drop all session state.
+     *
+     * <b>The restore is the point.</b> This used to release chunk tickets and
+     * clear {@link #ACTIVE} without sending anything, which orphaned every
+     * projected position on every still-connected client — see "Rule 3" in
+     * the class comment for why that was invisible for a whole session.
+     *
+     * Called from {@code WorldLoaderMixin.onShutdown}, which injects at
+     * {@code MinecraftServer.shutdown} HEAD — before {@code
+     * getNetworkIo().stop()} and well before {@code
+     * PlayerManager.disconnectAllPlayers()}, so the player list is live and
+     * the channels are open.
+     */
     public static void clear() {
         MinecraftServer running = server;
+        restoreEverything(running);
         for (PortalHelper.PortalZone zone : new ArrayList<>(HELD.keySet())) {
             releaseChunks(zone, running);
         }
@@ -1087,6 +1139,68 @@ public final class ImmersiveProjector {
         ARRIVAL_SETTINGS.clear();
         ARRIVAL_INDEX_TICK.clear();
         server = null;
+    }
+
+    /**
+     * Restore every live projection, in both directions, through the ordinary
+     * {@link PlayerProjectionState#cleanup} path — not a parallel one, so
+     * shutdown gets the same real-block-not-AIR restore (Gotcha #8) and the
+     * same loaded-chunk guard as walking out of range does.
+     *
+     * <h2>Nothing here may prevent the server stopping</h2>
+     * {@code shutdown()} goes on to save every world AFTER this returns, so an
+     * exception escaping this method would cost world data — a far worse
+     * outcome than the cosmetic residue it is trying to clean up. Each
+     * projection is therefore isolated, and the whole pass is wrapped:
+     * {@code Throwable}, deliberately, because at this point continuing to
+     * shut down is the correct response to ANY failure, including one we have
+     * not thought of.
+     */
+    private static void restoreEverything(MinecraftServer running) {
+        if (running == null || ACTIVE.isEmpty()) {
+            return;
+        }
+        try {
+            int restoredPositions = 0;
+            int restoredPlayers = 0;
+            for (Map.Entry<UUID, Map<PortalHelper.PortalZone, PlayerProjectionState>> entry
+                    : ACTIVE.entrySet()) {
+                ServerPlayerEntity player = running.getPlayerManager().getPlayer(entry.getKey());
+                if (player == null) {
+                    // Already gone; their client has no fake blocks to fix,
+                    // and the next join sends real chunk data anyway.
+                    continue;
+                }
+                boolean restoredAny = false;
+                for (PlayerProjectionState state : entry.getValue().values()) {
+                    try {
+                        // Read the count BEFORE cleanup empties the baseline.
+                        int count = state.projectedCount();
+                        state.cleanup(player, running.getWorld(state.sourceWorldKey()));
+                        restoredPositions += count;
+                        restoredAny = true;
+                    } catch (RuntimeException e) {
+                        // One bad projection must not cost the others theirs.
+                        MultiverseServer.LOGGER.warn(
+                                "immersive: could not restore a projection for {} at shutdown: {}",
+                                state.playerName(), e.toString());
+                    }
+                }
+                if (restoredAny) {
+                    restoredPlayers++;
+                }
+            }
+            if (restoredPositions > 0) {
+                // Counts, not events: this line is the only evidence that a
+                // restart handed the blocks back rather than orphaning them.
+                MultiverseServer.LOGGER.info(
+                        "immersive: restored {} projected positions for {} player(s) before shutdown",
+                        restoredPositions, restoredPlayers);
+            }
+        } catch (Throwable t) {
+            MultiverseServer.LOGGER.warn(
+                    "immersive: shutdown restore pass failed, continuing to stop the server", t);
+        }
     }
 
     /**

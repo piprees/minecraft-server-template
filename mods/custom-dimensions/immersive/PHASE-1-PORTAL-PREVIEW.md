@@ -225,6 +225,50 @@ modified `ServerWorldMixin.java` (~2 lines), modified `MultiverseServer.java`
 - [x] If `cleanup()` finds the player disconnected (networkHandler null),
   skip — the relog resend handles it
 
+#### The relog backstop assumes the server keeps running (found 2026-07-25)
+
+The first item above is true for a player who relogs, but it quietly assumes
+there is still a server on the other side that knows what it faked. **A server
+restart breaks that assumption**: `ImmersiveProjector.clear()` used to release
+chunk tickets and drop `ACTIVE` without sending anything, so every projected
+position on every still-connected client was orphaned — and after the restart
+the server has no record those positions were ever faked, so it will never
+correct them. The client renders destination terrain over what is, server-side,
+plain air.
+
+This masqueraded as a masking bug for most of a session. A tester's screenshots
+showed foliage floating outside a portal frame; the server's last projection
+activity was an hour old with a restart in between. Local iteration installs a
+jar and restarts on every change, so it was minting fresh ghosts continuously.
+
+- [x] `clear()` now restores every live projection first, in both directions,
+  through the ordinary `PlayerProjectionState.cleanup()` — same real-block
+  restore (Gotcha #8), same loaded-chunk guard, no parallel path
+- [x] The hook is sound for it: `WorldLoaderMixin.onShutdown` injects at
+  `MinecraftServer.shutdown` HEAD, which runs **before** `getNetworkIo().stop()`
+  and **before** `PlayerManager.disconnectAllPlayers()`, so the player list is
+  live and the channels are open. `ClientConnection.send` writes with
+  `flush = true`; the later `disconnect()` does
+  `channel.close().awaitUninterruptibly()`, a close queued behind writes that
+  have already been flushed
+- [x] Nothing in the restore pass can prevent the server stopping —
+  `shutdown()` saves every world after this returns, so a failure there would
+  cost world data. Each projection is isolated and the whole pass is wrapped
+- [x] Logged as a count (`restored N projected positions for M player(s)
+  before shutdown`), which is the only evidence a restart handed the blocks
+  back rather than orphaning them
+
+**Limit, stated honestly:** this cannot help a hard crash, an OOM kill,
+`kill -9`, or the container being torn away — none of them run `shutdown()`,
+and no server-side mechanism could, because the knowledge of what was faked
+dies with the process. That residue is correctable only by the CLIENT
+reloading the affected chunks: relog, F3+A, or walk out past render distance
+and back. **Diagnostic rule:** before treating "blocks from another dimension
+near a portal" as a projection defect, check the log for a recent
+`restored ... before shutdown` line and for a restart in the window — absence
+of the former plus presence of the latter is the signature of stale ghosts,
+not a live bug.
+
 ### 1f. Unit tests
 
 - [x] `ProjectionVolumeTest.java`:
