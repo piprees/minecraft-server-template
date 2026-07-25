@@ -2,9 +2,10 @@
 
 > **Location:** `mods/custom-dimensions/immersive/`
 > **Phase docs:** `PHASE-0-*.md` through `PHASE-6-*.md` in this directory
-> **Status:** MVP complete — Phases 0-4 shipped and verified in game.
-> Phases 5 (client companion) and 6 (aura policy) are specified but NOT
-> started. Phase 6 touches player property and should be sequenced FIRST.
+> **Status:** Phases 0-4 and 6 shipped and verified in game; Phase 7 partly
+> shipped. Phase 5 (client companion) is specified and not started.
+> **Phase 8 (`PHASE-8-SOLIDITY.md`) is the highest-priority open work — it
+> opens with an unresolved live defect that can trap a player.**
 
 ## What this is
 
@@ -176,7 +177,9 @@ Both are independent of each other.
 | 3 | `PHASE-3-ENTITY-PASSTHROUGH.md` | Items, projectiles, XP orbs pass through with velocity | S | 0 | Medium |
 | 4 | `PHASE-4-POLISH.md` | Lighting, edge particles, smart throttling, gateway hints | S | 0 | Low |
 | 5 | `PHASE-5-CLIENT-COMPANION.md` | Client mod: loading screen, portal transparency, ghost entities, real lighting/biome colour | L | n/a | High |
-| 6 | `PHASE-6-AURA-POLICY.md` | `aura.subsume` policy — may an aura convert player-placed blocks? Claims as a hard gate, plus revert | M | n/a | Medium |
+| 6 | `PHASE-6-AURA-POLICY.md` | `aura.subsume` policy — may an aura convert player-placed blocks? Claims as a hard gate | M | n/a | Medium | **Shipped** |
+| 7 | `PHASE-7-PORTAL-IDENTITY.md` | Presentation describes where a portal GOES; overworld identity, End fill-activation | M | n/a | Medium | Partly shipped |
+| 8 | `PHASE-8-SOLIDITY.md` | Fake blocks must never trap a player — open live defect, highest priority | S | n/a | **High** |
 
 **Total:** ~830 new lines across 4 new files + 5 modified files.
 
