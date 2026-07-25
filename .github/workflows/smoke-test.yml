@@ -222,6 +222,17 @@ jobs:
           done
           echo "pruned $PRUNED jar(s)"
 
+      - name: Repair known-bad third-party mod jars
+        # Mirrors deploy.sh (production) and dev-up.sh (local): the same jars
+        # must be repaired everywhere the server boots. CI ran neither, so it
+        # booted with UNPATCHED carpet and unpatched Epic Dungeons — caught by
+        # the piston regression step below on its first run.
+        #
+        # Must be after the prune (the jars have to be present and final) and
+        # before mc starts.
+        run: |
+          python3 scripts/patch-mod-data.py "$PWD/data/mods"
+
       - name: Start mc
         run: |
           docker compose --profile local up -d mc
