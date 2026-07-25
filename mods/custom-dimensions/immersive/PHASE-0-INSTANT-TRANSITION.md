@@ -7,6 +7,15 @@
 ## Goal
 
 Eliminate the visible pause when a player steps through a portal to a custom
+> **Scope correction (2026-07-25, from in-game testing).** This phase removes
+> the *stall* — the wait while the target world spins up and its arrival chunks
+> generate. It does NOT remove the dimension-change **screen**. That screen is
+> client-side: vanilla shows it on any cross-dimension teleport regardless of
+> how ready the server is, and suppressing it needs a client mod, which this
+> feature explicitly rules out. The tester saw the screen and reasonably read
+> it as the phase not working. Read "instant" below as "no generation stall",
+> not "no screen".
+
 dimension. After this phase ships, entering an immersive portal feels instant —
 the target world and its arrival chunks are pre-loaded before the player crosses.
 

@@ -63,6 +63,10 @@ public class PortalHelper {
     private static final Map<RegistryKey<World>, List<PortalZone>> PENDING_ZONES = new HashMap<>();
     private static final Map<String, Boolean> PLAYER_IN_ZONE = new HashMap<>();
     private static final Map<UUID, PlayerOrigin> PLAYER_ORIGINS = new HashMap<>();
+    // Arrival-portal presence, keyed by entity UUID — see enteredArrivalPortal.
+    // Concurrent because both the world tick and the entity tick write it.
+    private static final Map<UUID, ArrivalPresence> ARRIVAL_PRESENCE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static int lastPresenceSweepTick = 0;
     private static final Map<RegistryKey<World>, Map<BlockPos, Integer>> PORTAL_FRAMES = new HashMap<>();
     private static Path portalLinksPath;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -144,6 +148,9 @@ public class PortalHelper {
         PORTAL_ZONES.clear();
         PENDING_ZONES.clear();
         AURA_SITES.clear();
+        // Presence is per-session state about live entities, never persisted:
+        // a boot starts with nobody standing anywhere.
+        clearArrivalPresence();
         if (portalLinksPath == null || !Files.exists(portalLinksPath)) {
             return;
         }
@@ -299,6 +306,203 @@ public class PortalHelper {
 
     public static void setPlayerInZone(String key, boolean inZone) {
         PLAYER_IN_ZONE.put(key, inZone);
+    }
+
+    // ------------------------------------------------------------------
+    // Arrival-portal edge trigger
+    // ------------------------------------------------------------------
+
+    /** A record survives this many ticks without a sighting before it is swept. */
+    private static final int PRESENCE_TTL_TICKS = 6000;   // 5 minutes
+    /** How often the sweep is allowed to run. */
+    private static final int PRESENCE_SWEEP_INTERVAL = 600;   // 30 seconds
+
+    /**
+     * Where we last saw an entity relative to our arrival portals. Mutated in
+     * place rather than replaced so a sighting costs no allocation.
+     */
+    private static final class ArrivalPresence {
+        RegistryKey<World> world;
+        int tick;
+        boolean inside;
+
+        ArrivalPresence(RegistryKey<World> world, int tick, boolean inside) {
+            this.world = world;
+            this.tick = tick;
+            this.inside = inside;
+        }
+    }
+
+    /**
+     * The entry edge for a RETURN trip out of an arrival portal, shared by the
+     * player path ({@code EntityTickPortalMixin}) and the entity path
+     * ({@code EntityPassthrough.tryReturnFromArrivalPortal}).
+     *
+     * <p><b>Why an edge and not a cooldown.</b> Arrival portals are real
+     * {@code NETHER_PORTAL}/{@code END_PORTAL} blocks, so vanilla's
+     * {@code Entity.tryUsePortal} runs against them every tick an entity
+     * stands inside one — and its first act, when the entity already has a
+     * cooldown, is {@code resetPortalCooldown()}, which re-pins the value to
+     * {@code getDefaultPortalCooldown()} (10 for a player, 300 for everything
+     * else). {@code tickPortalCooldown} then takes one off, and the re-pin
+     * puts it back. The cooldown therefore NEVER reaches zero while an entity
+     * stands in a portal. Both return paths used to gate on
+     * {@code getPortalCooldown() == 0}, so a player who arrived by portal —
+     * and so landed INSIDE the arrival portal — could not go home without
+     * first walking fully out, waiting out the drain, and walking back in.
+     * Measured live 2026-07-25: {@code PortalCooldown=10} at t=2s, t=6s and
+     * t=12s on a player standing still in the arrival portal.
+     *
+     * <p>So the gate is presence, not cooldown: an entity must have been
+     * somewhere OTHER than this portal since it last stood in it. That is the
+     * same shape as the source-zone trigger above
+     * ({@link #wasPlayerInZone}/{@link #setPlayerInZone}), which is why it
+     * lives here beside it rather than in a parallel mechanism of its own.
+     *
+     * <p><b>The cooldown is still load-bearing</b>, just demoted from gate to
+     * seed. On a FIRST sighting in a world we have no history to reason from,
+     * and a warm cooldown is exactly what distinguishes "a teleport put me
+     * here" (our own return teleports and {@code ServerWorldMixin}'s outbound
+     * one all set one) from "I materialised here" (an item dropped into the
+     * portal, a mob spawned in it — neither has a cooldown, and both should
+     * cross, as they did before this change). Without it, arriving through a
+     * portal would fire the return on the very next tick, forever.
+     *
+     * <p>Callers sample at different rates and both are correct:
+     * <ul>
+     *   <li>The player path samples EVERY tick, {@code insidePortal} true or
+     *       false. That keeps {@code world} following the player, so arriving
+     *       in a dimension always reads as a first sighting there — which is
+     *       what makes the outbound teleport in {@code ServerWorldMixin} safe
+     *       without a hook in it.</li>
+     *   <li>The entity path samples only while the entity is in one of our
+     *       portals, so the map is untouched for the thousands of entities
+     *       that are not. "It left" is inferred from the gap in sightings
+     *       instead, which needs the entity to be away for at least one full
+     *       tick.</li>
+     * </ul>
+     *
+     * @param world             the world the entity is in right now
+     * @param id                entity UUID
+     * @param insidePortal      standing in a portal block this tick
+     * @param warmPortalCooldown {@code getPortalCooldown() > 0}
+     * @param tick              {@code MinecraftServer.getTicks()}
+     * @return true on the tick the entity entered the portal, and only then
+     */
+    public static boolean enteredArrivalPortal(RegistryKey<World> world, UUID id,
+            boolean insidePortal, boolean warmPortalCooldown, int tick) {
+        // Swept BEFORE the read, so `previous` can never be a record the sweep
+        // has just detached from the map (mutating one of those would silently
+        // lose the update).
+        sweepArrivalPresence(tick);
+        ArrivalPresence previous = ARRIVAL_PRESENCE.get(id);
+        if (!insidePortal) {
+            // Only ever refreshes a record that already exists: an entity that
+            // has never been near an arrival portal costs one map lookup and
+            // no memory at all.
+            if (previous != null) {
+                previous.world = world;
+                previous.tick = tick;
+                previous.inside = false;
+            }
+            return false;
+        }
+        boolean firstSightingHere = previous == null || !world.equals(previous.world);
+        boolean stillStandingThere = !firstSightingHere && previous.inside && previous.tick >= tick - 1;
+        markArrivedInPortal(world, id, tick);
+        if (firstSightingHere) {
+            return !warmPortalCooldown;
+        }
+        return !stillStandingThere;
+    }
+
+    /**
+     * Records an entity as already standing in an arrival portal without
+     * firing the edge — "wherever we just put you, you count as being there
+     * already".
+     *
+     * <p>Called immediately after every teleport this mod performs, so a
+     * destination that happens to be (or contain) a portal cannot bounce the
+     * entity straight back out of it. Belt to {@link #enteredArrivalPortal}'s
+     * cooldown braces: this holds even for a portal configured with
+     * {@code "cooldown": 0}.
+     */
+    public static void markArrivedInPortal(RegistryKey<World> world, UUID id, int tick) {
+        ArrivalPresence presence = ARRIVAL_PRESENCE.get(id);
+        if (presence == null) {
+            ARRIVAL_PRESENCE.put(id, new ArrivalPresence(world, tick, true));
+            return;
+        }
+        presence.world = world;
+        presence.tick = tick;
+        presence.inside = true;
+    }
+
+    /**
+     * Hands the entry edge back, so the next tick the entity is standing in
+     * the portal reads as a fresh entry again.
+     *
+     * <p>The edge is a one-shot by design: it fires on the tick something
+     * steps in and then stays quiet however long it stands there. Any path
+     * that fires it and then declines to teleport — a target world that has
+     * not finished loading, a chain link that cannot resolve yet — has to give
+     * it back, or the entity stands in the portal forever waiting for a retry
+     * that was already spent. That was the level-check behaviour the old
+     * cooldown gate got for free, and it has to be explicit now.
+     *
+     * <p>The rule is the same one that governs {@code ci.cancel()} in
+     * {@code EntityTickPortalMixin}: consume it only when you actually
+     * teleported. Paths that can never succeed (an entity meeting a
+     * player-only exit mode) keep the edge consumed rather than re-testing
+     * every tick — the entity IS inside, and nothing will change that.
+     */
+    public static void rearmArrivalPortalEntry(RegistryKey<World> world, UUID id, int tick) {
+        ArrivalPresence presence = ARRIVAL_PRESENCE.get(id);
+        if (presence == null) {
+            ARRIVAL_PRESENCE.put(id, new ArrivalPresence(world, tick, false));
+            return;
+        }
+        presence.world = world;
+        presence.tick = tick;
+        presence.inside = false;
+    }
+
+    /** Drops one entity's presence record (teleported away for good, tests). */
+    public static void forgetArrivalPresence(UUID id) {
+        ARRIVAL_PRESENCE.remove(id);
+    }
+
+    /** Resets the whole map (boot, server shutdown, tests). */
+    public static void clearArrivalPresence() {
+        ARRIVAL_PRESENCE.clear();
+        lastPresenceSweepTick = 0;
+    }
+
+    /** Records currently held — for tests asserting the map does not leak. */
+    public static int arrivalPresenceCount() {
+        return ARRIVAL_PRESENCE.size();
+    }
+
+    /**
+     * Drops records nothing has looked at in {@link #PRESENCE_TTL_TICKS}.
+     *
+     * <p>This is what keeps the map bounded without a disconnect hook, and it
+     * is safe to be aggressive about precisely because of the cooldown seed in
+     * {@link #enteredArrivalPortal}: an evicted record makes the next sighting
+     * a first sighting, and a first sighting is decided correctly by the
+     * cooldown either way. Nothing that could still matter is ever old enough
+     * to be swept — a record is refreshed every tick an entity is inside a
+     * portal, and the longest cooldown vanilla pins is 300 ticks.
+     *
+     * <p>{@code abs} rather than a plain difference so records written before
+     * a tick-counter reset are treated as stale rather than as far-future.
+     */
+    private static void sweepArrivalPresence(int tick) {
+        if (Math.abs(tick - lastPresenceSweepTick) < PRESENCE_SWEEP_INTERVAL) {
+            return;
+        }
+        lastPresenceSweepTick = tick;
+        ARRIVAL_PRESENCE.values().removeIf(p -> Math.abs(tick - p.tick) > PRESENCE_TTL_TICKS);
     }
 
     public static void setPlayerOrigin(UUID playerUuid, RegistryKey<World> sourceWorld, BlockPos sourcePos) {
@@ -551,6 +755,17 @@ public class PortalHelper {
         // instead of this one (Phase 4d) — spawning both would just muddle
         // the effect. True for no other zone, immersive or not.
         if (com.customdimensions.immersive.ImmersiveProjector.suppliesParticlesFor(zone)) {
+            return;
+        }
+        // An immersive portal's interior fill is suppressed entirely: the
+        // PREVIEW is the visual, and a doorway packed with particles is
+        // exactly what you cannot see through. Requested in-game 2026-07-25
+        // ("turn particles off but keep the dust effect so it looks more
+        // like a window"). The projector's coloured edge particles still
+        // trace the frame, so the portal keeps its outline and its colour —
+        // it just stops fogging its own view. Non-immersive portals are
+        // untouched: the fill is their only visual.
+        if (zone.definition != null && zone.definition.getImmersive() != null) {
             return;
         }
         ParticleEffect effect = resolveParticleEffect(zone.definition);

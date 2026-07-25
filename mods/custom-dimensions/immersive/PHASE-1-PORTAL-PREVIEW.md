@@ -336,6 +336,16 @@ Cost is one division, two multiply-floors and one `Set` lookup
 per candidate, with a reused `BlockPos.Mutable` so the mask allocates nothing
 per position.
 
+**The mask keys off eye POSITION and must never key off camera angle.** What
+is geometrically visible through a hole is a function of where your eye is,
+not which way it points — turn your head and the same blocks are still on the
+far side of the same opening. Keying off yaw/pitch would pop real blocks in
+and out every time a player turned around, a far worse artefact than the one
+being fixed. So the projection legitimately changes as a player WALKS and
+legitimately does not as they LOOK; if that asymmetry gets reported as a bug,
+the bug is something else wrongly keyed to the mask — as 4a's light layer once
+was (see PHASE-4 §4a).
+
 Two deliberate non-changes:
 
 - **`resolveDepth`'s 4e sample is NOT masked.** "Is the far side empty?" is a

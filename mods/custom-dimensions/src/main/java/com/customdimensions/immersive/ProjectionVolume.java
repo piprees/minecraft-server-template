@@ -5,9 +5,12 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Pure geometry for the immersive portal preview (Phase 1): which source
@@ -24,12 +27,13 @@ import java.util.Set;
  * the zone and is computed once, while visibility is a property of the viewer
  * and changes every time they move.
  *
- * The target mapping MIRRORS {@code ServerWorldMixin}'s teleport transform
- * exactly — including its integer truncation and its use of the interior's
- * average column for scaled portals but its MIN corner for anchor portals.
- * A preview that disagrees with where the player actually lands is worse
- * than no preview, so any change to the teleport maths must be made here in
- * the same commit.
+ * The mappings MIRROR the real teleport transforms exactly — {@code
+ * ServerWorldMixin}'s outbound one (including its integer truncation, and its
+ * use of the interior's average column for scaled portals but its MIN corner
+ * for anchor portals) and {@code EntityTickPortalMixin}'s return one for the
+ * arrival-side projection. A preview that disagrees with where the player
+ * actually lands is worse than no preview, so any change to either teleport
+ * path must be made here in the same commit.
  */
 public final class ProjectionVolume {
 
@@ -233,6 +237,21 @@ public final class ProjectionVolume {
      * inside the aperture there is nothing left to mask, and returning false
      * there would blank the whole preview in the last half-block before a
      * traversal.
+     *
+     * <h2>Eye POSITION, never camera angle — do not "fix" this</h2>
+     * This takes a {@link Vec3d} position and nothing else. It must never
+     * grow a yaw/pitch parameter, and the result must never depend on where
+     * the player is looking. What is geometrically visible through a hole is
+     * a function of where your eye IS, not of which way it is pointing: turn
+     * your head and the same blocks are still on the far side of the same
+     * opening. Keying off camera angle would make real blocks pop in and out
+     * every time a player turned around, and would be a far worse artefact
+     * than the one this method fixes.
+     *
+     * Consequently the projection legitimately changes as a player WALKS and
+     * legitimately does not as they LOOK. If that asymmetry is ever reported
+     * as a bug, the bug is something else keyed to this mask that should not
+     * be — as {@code PlayerProjectionState}'s 4a light layer once was.
      */
     public static boolean seesThroughOpening(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
             int planeCoord, Set<BlockPos> interior, BlockPos.Mutable scratch) {
@@ -279,6 +298,52 @@ public final class ProjectionVolume {
         // A Mutable hashes and compares as its coordinates (Vec3i), so a
         // reused probe is a valid key for the interior set.
         return interior.contains(scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z));
+    }
+
+    /**
+     * The 4a light layer: the OPENING's own cross-section extruded one block
+     * along {@code normal} — the positions directly behind the doorway, with
+     * no {@code previewRadius} padding.
+     *
+     * <h2>Why this is not just the first slab layer</h2>
+     * 4a's invisible {@code Blocks.LIGHT} substitution used to be applied
+     * inside the mask-filtered send loop, which made the set of level-15
+     * light sources a function of where the player stood. Every step changed
+     * which first-layer positions passed {@link #seesThroughOpening}, adding
+     * and removing light sources, and the client relit the area each time —
+     * reported in-game as "when I WALK around the portal the level of light
+     * coming out of it changes a lot, but when I stand still and LOOK around
+     * it doesn't". The mask was right; putting the lights behind it was not.
+     *
+     * So the light layer is derived from the zone alone. It is the same set
+     * for every viewer and every position they can stand in, which is what
+     * makes the lighting stable.
+     *
+     * Two properties make it the right set:
+     * <ul>
+     *   <li><b>It is per-cell, not a bounding box.</b> An irregular opening
+     *       gets an irregular light layer, so an arch does not light the
+     *       solid corners it does not have.</li>
+     *   <li><b>It has no radius padding.</b> The padded positions sit behind
+     *       the frame WALL; a light source there spills through real
+     *       geometry around the frame, which is precisely the glow that was
+     *       reported. Restricting to the aperture cuts the default doorway
+     *       from 42 sources to 6 and aims what is left through the hole.</li>
+     * </ul>
+     *
+     * Every returned position lies on {@link #firstLayerCoord} and inside
+     * {@link #computeSourcePositions} for any depth &gt;= 1 and radius &gt;= 0,
+     * so the caller can send these without a second bookkeeping path.
+     */
+    public static Set<BlockPos> lightPositions(Set<BlockPos> interior, Direction normal) {
+        if (interior == null || interior.isEmpty() || normal == null) {
+            return Set.of();
+        }
+        Set<BlockPos> out = new HashSet<>(interior.size() * 2);
+        for (BlockPos p : interior) {
+            out.add(p.offset(normal));
+        }
+        return out;
     }
 
     /** The block coordinate the segment is passing through at parameter {@code t}. */
@@ -339,6 +404,136 @@ public final class ProjectionVolume {
         int arrivalZ = (int) Math.round((double) centreZ * scale);
         return new TargetMapping(arrivalX - centreX, arrivalZ - centreZ,
                 minOn(interior, Direction.Axis.Y), arrivalX, arrivalZ);
+    }
+
+    /**
+     * RETURN mapping, for projecting an ARRIVAL portal's far side — the world
+     * you would go back to.
+     *
+     * <h2>Which of the return paths this mirrors, and why</h2>
+     * {@code EntityTickPortalMixin.onTickPortal} resolves a player's return in
+     * this order: configured exit modes ({@code bed} / {@code worldSpawn} /
+     * {@code dim!…}), then the player's own tracked ORIGIN, then the portal's
+     * registered fallback — {@code target.sourceWorld} at {@code
+     * target.sourceY}, keeping the X/Z of the portal block they were standing
+     * in. This mirrors the LAST of those: a translation-free horizontal map
+     * ({@code dx = dz = 0}) with the aperture's floor row landing on
+     * {@code sourceY}, which the caller supplies as the {@code arrivalY}
+     * argument to {@link #toTarget}.
+     *
+     * The fallback is the right one to preview even though the origin usually
+     * wins at teleport time, for two reasons:
+     * <ul>
+     *   <li><b>A projection is shared.</b> Everyone who can see through this
+     *       portal sees the same fake blocks. Keying it to one player's travel
+     *       history would make the preview depend on who happened to look
+     *       first — worse than being slightly wrong.</li>
+     *   <li><b>At scale 1 they agree.</b> The origin is the source portal
+     *       block the player stepped into, and {@code sourceY} is that same
+     *       block's Y ({@code createTargetPortal} is handed {@code
+     *       pos.getY()}); the arrival is built at the SCALED source column, so
+     *       for an unscaled portal the fallback column and the origin column
+     *       are the same place. They diverge only for scaled portals, where
+     *       the fallback is also what any player who has lost their origin
+     *       (a restart) actually gets.</li>
+     * </ul>
+     *
+     * Callers must not use this for an arrival carrying an {@code exitMode}:
+     * {@code bed} is per-player, and {@code worldSpawn}/{@code dim!…} land
+     * somewhere that is not this portal's column at all.
+     */
+    public static TargetMapping returnMapping(Set<BlockPos> aperture) {
+        if (aperture == null || aperture.isEmpty()) {
+            return new TargetMapping(0, 0, 0, 0, 0);
+        }
+        // Same integer accumulate-then-divide idiom as scaledMapping. Only
+        // picks the representative column for the chunk ticket — the mapping
+        // itself is horizontal identity, so truncation cannot misplace a block.
+        int centreX = 0;
+        int centreZ = 0;
+        for (BlockPos p : aperture) {
+            centreX += p.getX();
+            centreZ += p.getZ();
+        }
+        int count = aperture.size();
+        centreX /= count;
+        centreZ /= count;
+        return new TargetMapping(0, 0, minOn(aperture, Direction.Axis.Y), centreX, centreZ);
+    }
+
+    /**
+     * The set of portal blocks making up one arrival portal's aperture, grown
+     * from {@code seed} through {@code planeDirs} for as long as
+     * {@code isPortalPosition} keeps saying yes.
+     *
+     * <h2>Why a predicate and not a world</h2>
+     * The caller passes {@code PortalHelper::isRegisteredPortalPosition},
+     * which is a pure in-memory map read. That is deliberate: the obvious
+     * alternative, {@code PortalHelper.collectPortalArea}, flood-fills over
+     * real BLOCK STATES and can therefore walk out of the loaded region — and
+     * nothing in the projector may load a chunk (Rule 1). Growing over the
+     * registry instead reads nothing, works for an aperture that straddles a
+     * chunk border with one side unloaded, and reproduces the aperture
+     * exactly, because the registry entries ARE the interior positions
+     * {@code createTargetPortal} registered.
+     *
+     * The trade-off is that the registry can be stale — a destroyed portal is
+     * never de-registered — so the caller separately checks that the seed
+     * still carries a portal block, on a loaded chunk only. That check is the
+     * feature's portal-destruction teardown trigger.
+     *
+     * Bounded by {@code limit}, mirroring {@code PortalHelper}'s
+     * {@code MAX_PORTAL_BLOCKS}: a corrupted registry must not be able to walk
+     * this into a long loop from a tick path.
+     */
+    public static Set<BlockPos> collectAperture(BlockPos seed, Direction[] planeDirs,
+            Predicate<BlockPos> isPortalPosition, int limit) {
+        if (seed == null || planeDirs == null || isPortalPosition == null || limit <= 0
+                || !isPortalPosition.test(seed)) {
+            return Set.of();
+        }
+        Set<BlockPos> found = new HashSet<>();
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        found.add(seed);
+        queue.add(seed);
+        while (!queue.isEmpty() && found.size() < limit) {
+            BlockPos pos = queue.poll();
+            for (Direction dir : planeDirs) {
+                BlockPos next = pos.offset(dir);
+                if (found.contains(next) || !isPortalPosition.test(next)) {
+                    continue;
+                }
+                found.add(next);
+                queue.add(next);
+                if (found.size() >= limit) {
+                    break;
+                }
+            }
+        }
+        return found;
+    }
+
+    /**
+     * The lexicographic-minimum position of a set, by (x, y, z) — a canonical
+     * identity for an aperture that does not depend on which of its blocks was
+     * used to discover it.
+     *
+     * Two source portals sharing one arrival (anchor dimensions, or two
+     * sources close enough to reuse a portal) seed the same aperture from
+     * different blocks; keyed on this they collapse to one projection instead
+     * of two racing ones.
+     */
+    public static BlockPos minCorner(Set<BlockPos> positions) {
+        BlockPos best = null;
+        for (BlockPos p : positions) {
+            if (best == null
+                    || p.getX() < best.getX()
+                    || (p.getX() == best.getX() && p.getY() < best.getY())
+                    || (p.getX() == best.getX() && p.getY() == best.getY() && p.getZ() < best.getZ())) {
+                best = p;
+            }
+        }
+        return best;
     }
 
     /**

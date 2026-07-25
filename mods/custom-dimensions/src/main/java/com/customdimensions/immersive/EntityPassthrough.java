@@ -114,6 +114,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * straight back the moment its cooldown expires. The set is rebuilt from the
  * scan every tick, so it is self-pruning — it only ever holds entities
  * currently standing in an immersive zone interior.
+ *
+ * <p>The ARRIVAL side needs the same discipline and, since 2026-07-25, gets it
+ * from {@code PortalHelper.enteredArrivalPortal} — one mechanism shared with
+ * the player return path. It used to gate on {@code getPortalCooldown() != 0},
+ * which cannot work: vanilla's {@code Entity.tryUsePortal} re-pins the cooldown
+ * to {@code getDefaultPortalCooldown()} every tick an entity stands in a portal
+ * block (300 for a non-player, 10 for a player), so an entity that ARRIVED in
+ * an arrival portal never saw it reach zero and could never leave the way it
+ * came. Every teleport on both sides now calls
+ * {@code PortalHelper.markArrivedInPortal} so the destination reads as
+ * already-occupied rather than as a fresh entry.
  */
 public final class EntityPassthrough {
 
@@ -490,6 +501,12 @@ public final class EntityPassthrough {
         arrived.velocityModified = true;
         arrived.setPortalCooldown(def.getCooldown());
         applyArrivalDifficulty(arrived);
+        // The far side of a source zone IS an arrival portal — the entity
+        // lands in real portal blocks. Record it as already standing there, or
+        // the arrival-side return in tryReturnFromArrivalPortal reads the very
+        // next tick as an entry edge and throws it straight back.
+        PortalHelper.markArrivedInPortal(
+                targetWorld.getRegistryKey(), arrived.getUuid(), world.getServer().getTicks());
 
         MultiverseServer.LOGGER.debug(
                 "immersive: entity {} crossed {} -> {} at ({}, {}, {}) velocity ({}, {}, {})",
@@ -516,13 +533,15 @@ public final class EntityPassthrough {
      * <p>This runs on every non-player entity every tick, so the gates are
      * ordered cheapest-and-most-selective first: the class check rejects
      * players and everything off the allow-list before anything touches the
-     * world, the portal cooldown is a plain field read, and only then does the
-     * block state get looked at — and that comes from
-     * {@code getBlockStateAtPos()}, which vanilla caches per tick. Living
-     * entities now clear the class gate, so the added per-tick cost of this
-     * phase is one integer comparison and one cached state read per mob in a
-     * loaded world; the map lookup and the config read stay behind the
-     * portal-block test, which almost nothing passes.
+     * world, and only then does the block state get looked at — and that comes
+     * from {@code getBlockStateAtPos()}, which vanilla caches per tick. Living
+     * entities clear the class gate, so the added per-tick cost of this phase
+     * is one cached state read per mob in a loaded world; the config read, the
+     * target lookup and the presence sample all stay behind the portal-block
+     * test, which almost nothing passes. (The cooldown check used to sit ahead
+     * of the block read and no longer does — it was never a cost measure, it
+     * was the broken gate, and it is now read once per entity that is actually
+     * standing in one of our portals.)
      *
      * <p>Unlike the player path this checks only the entity's own block, not
      * also the blocks above and below it. That is exact for the sub-block
@@ -544,9 +563,6 @@ public final class EntityPassthrough {
             return false;
         }
         if (!isEligible(entity)) {
-            return false;
-        }
-        if (entity.getPortalCooldown() != 0) {
             return false;
         }
         if (!PortalHelper.isPortalBlock(entity.getBlockStateAtPos())) {
@@ -575,6 +591,22 @@ public final class EntityPassthrough {
             return false;
         }
 
+        // The entry edge, shared with the player path. This used to be a
+        // `getPortalCooldown() != 0` gate two checks earlier, and it had the
+        // same defect the player path did — worse, in fact: vanilla's re-pin
+        // for a NON-player is getDefaultPortalCooldown() = 300, so a mob or
+        // item that arrived in an arrival portal sat there with a cooldown
+        // pinned at 300 and could never leave the way it came. Sampled only
+        // once the entity is known to be standing in one of OUR portals, so
+        // the thousands of entities that are not never touch the map; "it
+        // stepped out" is inferred from the resulting gap in sightings, which
+        // needs the entity to be away for a full tick.
+        int now = world.getServer().getTicks();
+        if (!PortalHelper.enteredArrivalPortal(worldKey, entity.getUuid(), true,
+                entity.getPortalCooldown() != 0, now)) {
+            return false;
+        }
+
         ServerWorld destination;
         double tx;
         double ty;
@@ -591,10 +623,17 @@ public final class EntityPassthrough {
             ty = target.sourceY;
             tz = pos.getZ() + 0.5;
         } else {
-            // "bed" and "dim!ns:slug!arrival" resolve against a player.
+            // "bed" and "dim!ns:slug!arrival" resolve against a player. The
+            // entry edge stays CONSUMED here on purpose: this can never
+            // succeed for an entity, and the entity really is inside, so
+            // re-testing it every tick would buy nothing.
             return false;
         }
         if (destination == null || destination.getRegistryKey().equals(worldKey)) {
+            // Target world idle-unloaded: transient, so hand the edge back and
+            // let a later tick carry the entity out (see
+            // PortalHelper.rearmArrivalPortalEntry).
+            PortalHelper.rearmArrivalPortalEntry(worldKey, entity.getUuid(), now);
             return false;
         }
 
@@ -605,6 +644,7 @@ public final class EntityPassthrough {
                 destination, new Vec3d(tx, ty, tz), velocity,
                 entity.getYaw(), entity.getPitch(), TeleportTarget.ADD_PORTAL_CHUNK_TICKET));
         if (arrived == null) {
+            PortalHelper.rearmArrivalPortalEntry(worldKey, entity.getUuid(), now);
             return false;
         }
         arrived.velocityModified = true;
@@ -615,6 +655,10 @@ public final class EntityPassthrough {
         // read as already-inside rather than as a fresh entry, so it settles
         // instead of bouncing back the moment its cooldown expires.
         markInside(destination.getRegistryKey(), arrived.getUuid());
+        // Same idea one layer up, for ARRIVAL portals rather than source
+        // zones: whatever we just dropped the entity into counts as somewhere
+        // it was already standing.
+        PortalHelper.markArrivedInPortal(destination.getRegistryKey(), arrived.getUuid(), now);
 
         // Single-use countdowns are deliberately NOT armed from here, and
         // startSingleUseCountdown is not called on the source side either: no
@@ -721,8 +765,15 @@ public final class EntityPassthrough {
         INSIDE.computeIfAbsent(worldKey, k -> new HashSet<>()).add(entityId);
     }
 
-    /** Resets all session state (server shutdown, tests). */
+    /**
+     * Resets all session state (server shutdown, tests).
+     *
+     * <p>Includes the arrival-portal presence map, which lives in
+     * {@link PortalHelper} because the player path shares it — the two are one
+     * mechanism and resetting half of it would leave the other half lying.
+     */
     public static void clear() {
         INSIDE.clear();
+        PortalHelper.clearArrivalPresence();
     }
 }

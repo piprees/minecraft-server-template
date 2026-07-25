@@ -33,10 +33,10 @@ public abstract class EntityTickPortalMixin {
             // teleported — this callback fires for every non-player entity in
             // the game every tick, and cancelling it otherwise would break
             // vanilla's own portal handling for all of them. All gating
-            // (immersive config, entity type, cooldown, portal block,
-            // registered target) lives in EntityPassthrough, which orders its
-            // checks so a mob costs a field read and a cached block state
-            // before anything more expensive is touched.
+            // (entity type, portal block, immersive config, registered target,
+            // entry edge) lives in EntityPassthrough, which orders its checks
+            // so a mob costs a class check and a cached block state before
+            // anything more expensive is touched.
             //
             // Returning false is load-bearing for NON-immersive dimensions:
             // vanilla then runs its own tickPortalTeleportation, which is
@@ -50,14 +50,9 @@ public abstract class EntityTickPortalMixin {
         if (!(this.world instanceof ServerWorld serverLevel)) {
             return;
         }
-        if (player.hasVehicle()) {
-            return;
-        }
-        if (player.getPortalCooldown() > 0) {
-            return;
-        }
 
         BlockPos pos = player.getBlockPos();
+        boolean inPortal = true;
         BlockState state = serverLevel.getBlockState(pos);
         if (!PortalHelper.isPortalBlock(state)) {
             state = serverLevel.getBlockState(pos.up());
@@ -65,15 +60,45 @@ public abstract class EntityTickPortalMixin {
                 pos = pos.up();
             } else {
                 state = serverLevel.getBlockState(pos.down());
-                if (!PortalHelper.isPortalBlock(state)) {
-                    return;
+                if (PortalHelper.isPortalBlock(state)) {
+                    pos = pos.down();
+                } else {
+                    inPortal = false;
                 }
-                pos = pos.down();
             }
+        }
+
+        // The return gate. Sampled on EVERY tick, in a portal or not, so the
+        // player's presence record follows them from world to world — that is
+        // what makes arriving through a portal read as a first sighting in the
+        // new dimension, with no hook needed in ServerWorldMixin's outbound
+        // teleport. See PortalHelper.enteredArrivalPortal for why this replaced
+        // the old `getPortalCooldown() > 0` early return: vanilla re-pins that
+        // value every tick an entity stands in a portal block, so it never
+        // cleared for a player who arrived INSIDE the arrival portal and the
+        // return could not fire at all (measured live 2026-07-25). The cooldown
+        // is still consulted — as the seed that tells a teleport arrival apart
+        // from a walk-in — just not as the gate.
+        RegistryKey<World> worldKey = serverLevel.getRegistryKey();
+        int now = serverLevel.getServer().getTicks();
+        boolean entered = PortalHelper.enteredArrivalPortal(
+                worldKey, player.getUuid(), inPortal, player.getPortalCooldown() > 0, now);
+        if (!inPortal || !entered) {
+            return;
+        }
+        // From here the edge has FIRED, and it is a one-shot. Every path that
+        // does not teleport hands it back with rearmArrivalPortalEntry, or the
+        // player stands in the portal waiting for a retry that was already
+        // spent — the level-check behaviour the old cooldown gate got for
+        // free. Same rule as ci.cancel(): consume it only when you teleported.
+        if (player.hasVehicle()) {
+            PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
+            return;
         }
 
         Set<BlockPos> portalBlocks = PortalHelper.collectPortalArea(serverLevel, pos);
         if (portalBlocks.isEmpty()) {
+            PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
             return;
         }
 
@@ -93,6 +118,7 @@ public abstract class EntityTickPortalMixin {
             TeleportTarget respawn = player.getRespawnTarget(true, TeleportTarget.NO_OP);
             player.teleport(respawn.world(), respawn.pos().x, respawn.pos().y, respawn.pos().z,
                     Set.of(), player.getYaw(), player.getPitch());
+            PortalHelper.markArrivedInPortal(respawn.world().getRegistryKey(), player.getUuid(), now);
             return;
         }
         if ("worldSpawn".equals(exitMode)) {
@@ -104,6 +130,7 @@ public abstract class EntityTickPortalMixin {
             BlockPos spawn = overworld.getSpawnPos();
             player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
                     Set.of(), player.getYaw(), player.getPitch());
+            PortalHelper.markArrivedInPortal(overworld.getRegistryKey(), player.getUuid(), now);
             return;
         }
         // Dimension-link targets ("dim!ns:slug!arrival" — exits leading to
@@ -119,6 +146,7 @@ public abstract class EntityTickPortalMixin {
                         link.resolve(player, serverLevel);
                 if (dest == null) {
                     ci.cancel();  // world still loading — swallow this tick, retry
+                    PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
                     return;
                 }
                 ci.cancel();
@@ -127,6 +155,10 @@ public abstract class EntityTickPortalMixin {
                 PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
                 player.teleport(dest.world(), dest.pos().x, dest.pos().y, dest.pos().z,
                         Set.of(), player.getYaw(), player.getPitch());
+                // Chain hops land ON the next dimension's arrival portal by
+                // design, so this one is not belt-and-braces — without it the
+                // hop would immediately read as an entry and bounce back.
+                PortalHelper.markArrivedInPortal(dest.world().getRegistryKey(), player.getUuid(), now);
                 return;
             }
         }
@@ -155,6 +187,7 @@ public abstract class EntityTickPortalMixin {
                 player.setPortalCooldown(target.cooldown);
                 player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
                         Set.of(), player.getYaw(), player.getPitch());
+                PortalHelper.markArrivedInPortal(overworld.getRegistryKey(), player.getUuid(), now);
                 return;
             }
             targetWorldKey = target.sourceWorld;
@@ -163,10 +196,13 @@ public abstract class EntityTickPortalMixin {
         }
 
         if (targetWorldKey == null || targetWorldKey == serverLevel.getRegistryKey()) {
+            PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
             return;
         }
         ServerWorld targetWorld = serverLevel.getServer().getWorld(targetWorldKey);
         if (targetWorld == null) {
+            // Idle-unloaded target: the retry is the whole point of rearming.
+            PortalHelper.rearmArrivalPortalEntry(worldKey, player.getUuid(), now);
             return;
         }
 
@@ -174,5 +210,6 @@ public abstract class EntityTickPortalMixin {
         player.setPortalCooldown(cooldown);
         PortalHelper.startSingleUseCountdownAt(serverLevel, pos);
         player.teleport(targetWorld, tx, ty, tz, Set.of(), player.getYaw(), player.getPitch());
+        PortalHelper.markArrivedInPortal(targetWorldKey, player.getUuid(), now);
     }
 }

@@ -1,15 +1,19 @@
 # Immersive Portals — Decision Record and Agent Briefing
 
 > **Location:** `mods/custom-dimensions/immersive/`
-> **Phase docs:** `PHASE-0-*.md` through `PHASE-4-*.md` in this directory
-> **Status:** Implementation complete — all five phases shipped and verified.
+> **Phase docs:** `PHASE-0-*.md` through `PHASE-6-*.md` in this directory
+> **Status:** MVP complete — Phases 0-4 shipped and verified in game.
+> Phases 5 (client companion) and 6 (aura policy) are specified but NOT
+> started. Phase 6 touches player property and should be sequenced FIRST.
 
 ## What this is
 
 An MVP immersive portal experience for the custom-dimensions mod. Players can
 see through portal frames into the destination dimension, hear ambient sounds
 from the other side, and throw items through. No dependency on the
-ImmersivePortals mod. No client mod required.
+ImmersivePortals mod. No client mod required for Phases 0-4 — a vanilla
+client gets the whole MVP. Phase 5 specifies the things that provably
+CANNOT be done server-side, and is the only part that needs one.
 
 **Config-driven:** `"immersive": true` in a dimension's `portal` block enables it.
 
@@ -171,6 +175,8 @@ Both are independent of each other.
 | 2 | `PHASE-2-CROSS-PORTAL-AUDIO.md` | Biome ambience + weather sounds leak through portal | S | 0 | Low |
 | 3 | `PHASE-3-ENTITY-PASSTHROUGH.md` | Items, projectiles, XP orbs pass through with velocity | S | 0 | Medium |
 | 4 | `PHASE-4-POLISH.md` | Lighting, edge particles, smart throttling, gateway hints | S | 0 | Low |
+| 5 | `PHASE-5-CLIENT-COMPANION.md` | Client mod: loading screen, portal transparency, ghost entities, real lighting/biome colour | L | n/a | High |
+| 6 | `PHASE-6-AURA-POLICY.md` | `aura.subsume` policy — may an aura convert player-placed blocks? Claims as a hard gate, plus revert | M | n/a | Medium |
 
 **Total:** ~830 new lines across 4 new files + 5 modified files.
 
@@ -421,6 +427,85 @@ mixin classes (all changes are to existing mixins).
    to post-MVP — doubles the projection count.
 
 ---
+
+## Briefing for the next agent (start here)
+
+Phases 0–4 are shipped. Phase 5 (`PHASE-5-CLIENT-COMPANION.md`) is specified
+but not started, and is the only planned work that needs a client mod.
+
+**Read these before touching anything:** this file, your phase doc,
+`mods/AGENTS.md` (the Portal system section now carries the immersive contract
+and its verification recipes), and the source of `ImmersiveProjector`,
+`PlayerProjectionState`, `ProjectionVolume`, `ArrivalResolver` and
+`EntityPassthrough` — the class comments in those files are where the hard-won
+reasoning lives, and several of them exist specifically to stop a future change
+reintroducing a bug that cost real debugging time.
+
+### The five rules this feature runs on
+
+1. **Never sync-load a chunk from a tick path.** Every target-world read goes
+   through `getChunkManager().getWorldChunk(cx, cz, false)`; null means skip.
+   `PortalHelper.findSurfaceY` force-generates, which is why `ArrivalResolver`
+   reimplements its maths on a loaded chunk. Sync-generating from the world
+   tick is the documented Epic Dungeons + c2me wedge.
+2. **`lastSent` is exactly what the client is showing**, and nothing leaves it
+   without a correction packet having gone out. Every fake-block bug in this
+   feature has been a violation of that sentence.
+3. **Resolve "where is the other side" through `ArrivalResolver`, never the
+   heightmap directly.** The mod's own arrival frame raises the heightmap it
+   would read.
+4. **Distinguish air from unknown.** An unloaded chunk reads as "no block"
+   exactly like air does, and conflating them silently degrades output.
+5. **Gate everything on `getImmersive() != null`.** Non-immersive portals must
+   take zero new code paths.
+
+### How to verify (and how not to)
+
+The headless loop — build, install into the local consumer's `data/mods/`,
+`docker stop mc && docker start mc`, drive a Carpet bot over RCON, grep logs —
+is in `mods/AGENTS.md` and it works. Use it. But understand its ceiling:
+
+**Every single defect in this feature was invisible to a green build and a
+green test suite.** Not one was a crash. They were all *silent absence* — the
+feature quietly not happening, with no error anywhere. Build-green and
+tests-green would have shipped every one of them.
+
+Worse, one headless test **passed for the wrong reason**: the return-trip test
+teleported a bot out of the arrival portal and back in, which happens to be
+the only sequence that clears vanilla's pinned portal cooldown. It verified the
+mechanism while completely missing that a human arriving by portal never gets
+that sequence — and the reporter was stranded twice. When you write a test,
+ask whether it models how a player actually behaves, not just whether the code
+path executes.
+
+Two practical consequences:
+
+- **Log counts, not just events.** The chunk-ticket bug and the arrival-
+  resolution bug were both only visible because something downstream logged
+  *numbers* (projected block count, air/solid tallies). An "activated" line
+  alone looked perfectly healthy in three separate broken states.
+- **Capture a baseline before you change behaviour.** The entity pass-through
+  work was only falsifiable because the "nothing crosses" state was recorded
+  first.
+
+### Getting a human to test it
+
+This feature's remaining risk is visual, and a human found in one session what
+headless testing had not: the projection leaking outside the frame, lighting
+that swam as the player walked, particles obscuring the view, the aura seeding
+the portal's own building material, and the cooldown trap. Screenshots were
+worth more than any log.
+
+Set expectations honestly when you hand something over — the tester reasonably
+read a working Phase 0 as broken because the doc promised "instant" and he saw
+a loading screen. Say what a change will and will not look like.
+
+### A trap that will waste your time
+
+Portal coordinates are frequently negative on a real world. `floor(-424.5)` is
+`-425`, not `-424`. An RCON `summon` at `z=-424.5` lands OUTSIDE a portal plane
+at `z=-424`. This produced a false regression report during entity testing —
+mobs "passed" the same broken test only because they wandered in on their own.
 
 ## What live testing found that the plan did not
 

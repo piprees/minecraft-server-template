@@ -2,9 +2,13 @@ package com.customdimensions.immersive;
 
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.ImmersiveSettings;
+import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.portal.PortalHelper;
 import com.customdimensions.portal.PortalShape;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
@@ -16,10 +20,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.WorldChunk;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +47,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * or portal links — the blocks it sends are client-side illusions that are
  * never placed in the world, and the sounds it plays are ordinary
  * {@link World#playSound} packets aimed at the source-side portal position.
+ *
+ * <h2>Both directions</h2>
+ * The tick runs two passes over two different kinds of thing:
+ * <ul>
+ *   <li>{@link #tickSourceZones} — source portal ZONES in this world (the
+ *       flood-filled openings players ignite), previewing where they lead;</li>
+ *   <li>{@link #tickArrivalPortals} — arrival PORTALS standing in this world
+ *       (real portal blocks with a registered return target, and no zone at
+ *       all), previewing the world you would go back to.</li>
+ * </ul>
+ * They differ only in how the aperture, the settings and the destination
+ * mapping are found. Everything downstream of that — the sightline mask, the
+ * chunk ticket, the delta refresh, the stationary throttle and every teardown
+ * path — is {@link #projectToPlayers} and {@link PlayerProjectionState},
+ * shared verbatim, so the two cannot drift apart in behaviour.
  *
  * <h2>Rule 1: never sync-load a chunk from here</h2>
  * Every read of the target world goes through a non-loading accessor
@@ -97,6 +118,25 @@ public final class ImmersiveProjector {
 
     /** Zones currently holding arrival-chunk tickets. */
     private static final Map<PortalHelper.PortalZone, HeldChunks> HELD = new ConcurrentHashMap<>();
+
+    /**
+     * world -&gt; aperture min corner -&gt; the arrival portal standing there.
+     * Rebuilt on a cadence rather than every tick, and entries are reused
+     * across rebuilds so their synthetic zone (the key into {@link #ACTIVE}
+     * and {@link #HELD}) stays the same instance.
+     */
+    private static final Map<RegistryKey<World>, Map<BlockPos, ArrivalPortal>> ARRIVALS =
+            new ConcurrentHashMap<>();
+
+    /** Last tick each world's arrival index (and immersive setting) was asked for. */
+    private static final Map<RegistryKey<World>, Long> ARRIVAL_INDEX_TICK = new ConcurrentHashMap<>();
+
+    /**
+     * Cached {@code getImmersiveFor} answer per world. Only present for a
+     * world that IS immersive; absent means "not immersive, or not asked yet".
+     */
+    private static final Map<RegistryKey<World>, ImmersiveSettings> ARRIVAL_SETTINGS =
+            new ConcurrentHashMap<>();
 
     /**
      * Captured from the world tick so the zone-removal and world-unload
@@ -203,7 +243,70 @@ public final class ImmersiveProjector {
      */
     private static final int PARTICLE_LOG_INTERVAL = 200;
 
+    /**
+     * How often the arrival index is re-derived, in ticks (1s).
+     *
+     * A rebuild scans every world's source zones, so it is not a per-tick
+     * cost — but it is what makes a newly-built arrival portal start
+     * previewing, so it cannot be slow either. It only ever runs for a world
+     * that is both immersive and occupied.
+     */
+    private static final int ARRIVAL_INDEX_INTERVAL = 20;
+
+    /**
+     * The search box for an arrival portal around its zone's mapped column.
+     * Same numbers as {@link ArrivalResolver}, which is the same question
+     * asked from the other side — a portal one of them finds and the other
+     * does not would preview one direction and not the other.
+     */
+    private static final int ARRIVAL_SEARCH_H = 5;
+    private static final int ARRIVAL_SEARCH_V = 16;
+
+    /**
+     * Aperture size cap, mirroring {@code PortalHelper}'s private
+     * {@code MAX_PORTAL_BLOCKS}. A registry that has somehow grown a
+     * connected run of stale positions must not be able to walk the aperture
+     * fill into a long loop from the world tick.
+     */
+    private static final int MAX_APERTURE = 128;
+
     private ImmersiveProjector() {
+    }
+
+    /**
+     * One arrival portal being projected: its canonical key (the aperture's
+     * min corner), the block the liveness check probes, the synthetic zone
+     * that carries it through the shared machinery, its return mapping, and
+     * the destination Y that mapping's floor row lands on.
+     */
+    private static final class ArrivalPortal {
+        private final BlockPos key;
+        private final BlockPos seed;
+        private final PortalHelper.PortalZone zone;
+        private final ProjectionVolume.TargetMapping mapping;
+        private final int destinationY;
+
+        private ArrivalPortal(BlockPos key, BlockPos seed, PortalHelper.PortalZone zone,
+                ProjectionVolume.TargetMapping mapping, int destinationY) {
+            this.key = key;
+            this.seed = seed;
+            this.zone = zone;
+            this.mapping = mapping;
+            this.destinationY = destinationY;
+        }
+
+        /**
+         * Is a freshly derived record describing the same projection as this
+         * one? Only then may the existing instance be kept — anything else
+         * (a block broken out of the aperture, a re-registered destination)
+         * means the old projection is describing somewhere it no longer is.
+         */
+        private boolean matches(ArrivalPortal other) {
+            return this.destinationY == other.destinationY
+                    && this.zone.axis == other.zone.axis
+                    && this.zone.targetWorld.equals(other.zone.targetWorld)
+                    && this.zone.interior.equals(other.zone.interior);
+        }
     }
 
     /** One zone's ticketed chunk columns in one target world. */
@@ -229,7 +332,16 @@ public final class ImmersiveProjector {
     public static void tick(ServerWorld world) {
         MinecraftServer running = world.getServer();
         server = running;
+        long tick = running.getTicks();
+        tickSourceZones(world, running, tick);
+        tickArrivalPortals(world, running, tick);
+    }
 
+    /**
+     * The outbound direction: source portal zones in this world, previewing
+     * the dimension they lead TO.
+     */
+    private static void tickSourceZones(ServerWorld world, MinecraftServer running, long tick) {
         List<PortalHelper.PortalZone> sourceZones = PortalHelper.getSourceZones(world.getRegistryKey());
         if (sourceZones.isEmpty()) {
             return;
@@ -239,7 +351,6 @@ public final class ImmersiveProjector {
         // player disconnected or changed world.
         List<ServerPlayerEntity> players = world.getPlayers();
 
-        long tick = running.getTicks();
         for (PortalHelper.PortalZone zone : new ArrayList<>(sourceZones)) {
             PortalDefinition def = zone.definition;
             ImmersiveSettings immersive = def.getImmersive();
@@ -264,22 +375,12 @@ public final class ImmersiveProjector {
 
             ServerWorld targetWorld = running.getWorld(zone.targetWorld);
             int range = immersive.activationRange();
-            double activateSq = (double) range * range;
-            double deactivateSq = (double) (range + DEACTIVATE_MARGIN) * (range + DEACTIVATE_MARGIN);
 
             // The ticket follows PROXIMITY, not successful activation: the
             // arrival surface can only be resolved once the chunks are
             // loaded, so waiting for activation to take the ticket would
             // never take it at all.
-            int ticketMargin = HELD.containsKey(zone) ? TICKET_DROP_MARGIN : TICKET_HOLD_MARGIN;
-            double ticketSq = (double) (range + ticketMargin) * (range + ticketMargin);
-            boolean anyoneNear = false;
-            for (ServerPlayerEntity player : players) {
-                if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq) {
-                    anyoneNear = true;
-                    break;
-                }
-            }
+            boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone, range);
 
             ProjectionVolume.TargetMapping mapping = null;
             int arrivalY = NO_ARRIVAL;
@@ -296,57 +397,8 @@ public final class ImmersiveProjector {
             // zone's preview right now. Edge particles frame a projection;
             // with nobody projecting there is nothing to frame, and the
             // packets would be spent on an ordinary-looking portal.
-            boolean projecting = false;
-
-            for (ServerPlayerEntity player : players) {
-                Map<PortalHelper.PortalZone, PlayerProjectionState> states = ACTIVE.get(player.getUuid());
-                PlayerProjectionState state = states != null ? states.get(zone) : null;
-                double distanceSq = centre.getSquaredDistance(player.getBlockPos());
-                boolean inRange = distanceSq <= (state == null ? activateSq : deactivateSq);
-
-                // Target world unloaded mid-projection (the idle unloader
-                // closes pre-loaded-but-unvisited worlds) is treated exactly
-                // like walking away: restore the real blocks (Gotcha #11).
-                if (!inRange || targetWorld == null) {
-                    if (state != null) {
-                        state.cleanup(player, world);
-                        states.remove(zone);
-                        ACTIVE.computeIfPresent(player.getUuid(), (k, v) -> v.isEmpty() ? null : v);
-                        MultiverseServer.LOGGER.info(
-                                "immersive: projection cleared for {} at zone {} {} ({})",
-                                player.getName().getString(), world.getRegistryKey().getValue(),
-                                centre.toShortString(),
-                                targetWorld == null ? "target world unloaded" : "out of range");
-                    }
-                    continue;
-                }
-
-                if (arrivalY == NO_ARRIVAL) {
-                    // Ticketed chunks are still loading in. An existing
-                    // projection is left as-is rather than flickering; a new
-                    // one activates on a later tick, within a second or two.
-                    projecting |= state != null;
-                    continue;
-                }
-
-                if (state == null) {
-                    state = new PlayerProjectionState(player, zone);
-                    state.sendFull(player, world, targetWorld, immersive, mapping, arrivalY, tick);
-                    ACTIVE.computeIfAbsent(player.getUuid(), k -> new ConcurrentHashMap<>()).put(zone, state);
-                    MultiverseServer.LOGGER.info(
-                            "immersive: projection activated for {} at zone {} {} -> {} ({} blocks)",
-                            player.getName().getString(), world.getRegistryKey().getValue(),
-                            centre.toShortString(), zone.targetWorld.getValue(), state.projectedCount());
-                } else if (state.needsRefresh(player, tick, immersive)) {
-                    // 4c: the cadence is the projection's own, not the
-                    // world's — a stationary viewer is refreshed a quarter
-                    // as often. Nothing is dropped by waiting: the delta
-                    // baseline is untouched and the next pass still sends
-                    // everything that changed in the meantime.
-                    state.sendDelta(player, world, targetWorld, immersive, mapping, arrivalY, tick);
-                }
-                projecting = true;
-            }
+            boolean projecting = projectToPlayers(world, zone, targetWorld, mapping, arrivalY,
+                    immersive, players, centre, tick, "source");
 
             if (projecting) {
                 spawnEdgeParticles(world, zone, def, centre, tick);
@@ -365,6 +417,392 @@ public final class ImmersiveProjector {
                 tickAudio(world, targetWorld, centre, arrivalPos, tick);
             }
         }
+    }
+
+    /**
+     * The RETURN direction: arrival portals standing in this world, previewing
+     * the world you would go back to.
+     *
+     * <h2>Why this is not just another zone loop</h2>
+     * An arrival portal is not a {@code PortalZone} and has no
+     * {@code PortalDefinition}. What it has is an entry per portal BLOCK in
+     * {@code PortalHelper}'s registered return targets. So the three things a
+     * projection needs are each sourced differently:
+     * <ul>
+     *   <li><b>Settings</b> come from the dimension the portal is IN
+     *       ({@code getImmersiveFor}), not from a zone — checked first, so a
+     *       non-immersive dimension takes no further code path at all.</li>
+     *   <li><b>The aperture</b> is found by growing over REGISTERED positions
+     *       rather than block states ({@link ProjectionVolume#collectAperture})
+     *       — no block reads, so Rule 1 cannot be violated even by an aperture
+     *       that straddles an unloaded chunk border.</li>
+     *   <li><b>The mapping</b> is {@link ProjectionVolume#returnMapping}, which
+     *       mirrors {@code EntityTickPortalMixin}'s registered fallback.</li>
+     * </ul>
+     * Everything after that — mask, ticket, delta, throttle, teardown — is
+     * {@link #projectToPlayers}, the same code the source direction runs.
+     *
+     * <h2>The portal blocks themselves are never faked</h2>
+     * Unlike a source zone (invisible, no blocks), an arrival aperture is
+     * full of real {@code NETHER_PORTAL}/{@code END_PORTAL}, and those blocks
+     * are load-bearing for vanilla's in-portal detection and for the return
+     * trip itself. Nothing here touches them: the synthetic zone's interior IS
+     * the aperture, and {@link ProjectionVolume#computeSourcePositions} starts
+     * its slab one block PAST the plane, so the projection sits behind the
+     * portal exactly as it does on the source side.
+     *
+     * <h2>Deliberately not done here</h2>
+     * No edge particles (the aperture already carries its own from
+     * {@code spawnTargetPortalParticles}) and no audio relay (it would double
+     * the sound budget for a destination the player just came from). The
+     * arrival direction is block projection only.
+     */
+    private static void tickArrivalPortals(ServerWorld world, MinecraftServer running, long tick) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        List<ServerPlayerEntity> players = world.getPlayers();
+        if (players.isEmpty()) {
+            // Nobody here to project to. Checked before anything else because
+            // it is a field read: an empty world costs one comparison. Any
+            // ticket held for a player who has just left still goes; the
+            // INDEX is kept, since rebuilding it means scanning every world's
+            // zones and the portals have not moved.
+            Map<BlockPos, ArrivalPortal> held = ARRIVALS.get(worldKey);
+            if (held != null) {
+                for (ArrivalPortal arrival : held.values()) {
+                    releaseChunks(arrival.zone, running);
+                }
+            }
+            return;
+        }
+
+        // getImmersiveFor walks the portal list parsing each target id, so it
+        // allocates — asking it every tick for every world would be pure
+        // garbage on the tick loop. It rides the index cadence instead, and
+        // the answer is cached alongside. A dimension that is not immersive
+        // therefore costs three map lookups per tick and nothing else.
+        Long asked = ARRIVAL_INDEX_TICK.get(worldKey);
+        if (asked == null || tick - asked >= ARRIVAL_INDEX_INTERVAL) {
+            ImmersiveSettings resolved = MultiverseConfig.getInstance().getImmersiveFor(worldKey);
+            if (resolved == null) {
+                // Not an immersive dimension — and if it USED to be one
+                // (the setting is boot-re-read), give back what was projected.
+                dropArrivals(worldKey);
+                ARRIVAL_INDEX_TICK.put(worldKey, tick);
+                return;
+            }
+            ARRIVAL_SETTINGS.put(worldKey, resolved);
+            rebuildArrivalIndex(world, running, tick);
+        }
+
+        ImmersiveSettings settings = ARRIVAL_SETTINGS.get(worldKey);
+        Map<BlockPos, ArrivalPortal> index = ARRIVALS.get(worldKey);
+        if (settings == null || index == null || index.isEmpty()) {
+            return;
+        }
+
+        for (ArrivalPortal arrival : new ArrayList<>(index.values())) {
+            PortalHelper.PortalZone zone = arrival.zone;
+            BlockPos centre = PortalShape.centreOf(zone.interior);
+            if (centre == null) {
+                continue;
+            }
+            boolean anyoneNear = anyoneWithinTicketRange(players, centre, zone,
+                    settings.activationRange());
+
+            // Portal-destruction teardown. The registry is never pruned when
+            // a portal block is broken (see ArrivalResolver.stillAPortal), so
+            // there is no event to hook — this IS the detection: one
+            // loaded-chunk block read per arrival per tick, checked only
+            // while someone is close enough for the chunk to be loaded and
+            // for a leak to matter. cleanupZone restores every viewer's real
+            // blocks and drops the ticket, exactly as a broken source frame
+            // does.
+            if (anyoneNear && !stillAPortalBlock(world, arrival.seed)) {
+                cleanupZone(zone);
+                index.remove(arrival.key);
+                MultiverseServer.LOGGER.info(
+                        "immersive: arrival projection dropped at {} {} (portal destroyed)",
+                        worldKey.getValue(), arrival.key.toShortString());
+                continue;
+            }
+
+            ServerWorld destination = running.getWorld(zone.targetWorld);
+            if (anyoneNear && destination != null) {
+                holdChunks(destination, zone, arrival.mapping, settings, tick);
+            } else {
+                releaseChunks(zone, running);
+            }
+            projectToPlayers(world, zone, destination, arrival.mapping, arrival.destinationY,
+                    settings, players, centre, tick, "arrival");
+        }
+    }
+
+    /**
+     * Re-derive which arrival portals stand in this world.
+     *
+     * <p>Arrival portals are discovered through the SOURCE ZONES that built
+     * them: a zone whose {@code targetWorld} is this world has its arrival at
+     * the column its own outbound mapping names, which is the same lookup
+     * {@link ArrivalResolver} uses to preview it from the other side. That
+     * keeps discovery to in-memory reads plus one heightmap sample off an
+     * already-loaded chunk.
+     *
+     * <p>Consequence worth knowing: arrivals with no source zone pointing at
+     * them — {@code exitPortal} frames and exit shrines — are not found this
+     * way and get no preview. Covering them needs a read accessor over
+     * {@code PortalHelper}'s registered targets, which is not this session's
+     * file to change.
+     *
+     * <p>Existing {@link ArrivalPortal} instances are REUSED whenever the
+     * aperture is unchanged. That is load-bearing rather than an optimisation:
+     * {@code ACTIVE} and {@code HELD} are keyed on the synthetic zone
+     * instance, so handing out a fresh one each rebuild would orphan every
+     * projection and every chunk ticket once a second.
+     */
+    private static Map<BlockPos, ArrivalPortal> rebuildArrivalIndex(ServerWorld world,
+            MinecraftServer running, long tick) {
+        RegistryKey<World> worldKey = world.getRegistryKey();
+        Map<BlockPos, ArrivalPortal> previous = ARRIVALS.get(worldKey);
+        Map<BlockPos, ArrivalPortal> next = new HashMap<>();
+
+        for (ServerWorld other : running.getWorlds()) {
+            for (PortalHelper.PortalZone zone
+                    : new ArrayList<>(PortalHelper.getSourceZones(other.getRegistryKey()))) {
+                if (!worldKey.equals(zone.targetWorld) || zone.definition == null) {
+                    continue;
+                }
+                if (PortalShape.END_GATEWAY.equals(zone.definition.getShape())) {
+                    // A gateway arrival is one frameless block: no plane, so
+                    // nothing to project through (same rule as the source side).
+                    continue;
+                }
+                ProjectionVolume.TargetMapping outbound = mappingFor(zone, zone.definition);
+                int surfaceY = ArrivalResolver.heightmapSurfaceY(
+                        world, outbound.arrivalX(), outbound.arrivalZ());
+                if (surfaceY == NO_ARRIVAL) {
+                    continue;
+                }
+                BlockPos seed = PortalHelper.findRegisteredPortalNear(worldKey,
+                        outbound.arrivalX(), surfaceY, outbound.arrivalZ(),
+                        ARRIVAL_SEARCH_H, ARRIVAL_SEARCH_V);
+                if (seed == null) {
+                    // The zone has never been traversed, so its arrival does
+                    // not exist yet. It will on a later rebuild.
+                    continue;
+                }
+                ArrivalPortal built = buildArrival(world, worldKey, seed);
+                if (built == null || next.containsKey(built.key)) {
+                    // Already found via another zone — anchor dimensions
+                    // share one arrival between every source portal.
+                    continue;
+                }
+                ArrivalPortal prior = previous != null ? previous.get(built.key) : null;
+                if (prior != null && prior.matches(built)) {
+                    next.put(built.key, prior);
+                } else {
+                    if (prior != null) {
+                        // The aperture or its destination changed under us:
+                        // the old projection describes somewhere else now.
+                        cleanupZone(prior.zone);
+                    }
+                    next.put(built.key, built);
+                }
+            }
+        }
+
+        if (previous != null) {
+            for (Map.Entry<BlockPos, ArrivalPortal> gone : previous.entrySet()) {
+                if (!next.containsKey(gone.getKey())) {
+                    cleanupZone(gone.getValue().zone);
+                }
+            }
+        }
+        ARRIVALS.put(worldKey, next);
+        ARRIVAL_INDEX_TICK.put(worldKey, tick);
+        return next;
+    }
+
+    /**
+     * Build one arrival's projection record from a registered portal block,
+     * or null when it cannot or should not be projected.
+     *
+     * <p>The axis comes from the real block state rather than from the source
+     * zone that led here, because several zones with different axes can share
+     * one arrival and only the block knows which way its plane actually
+     * faces. That same read doubles as the liveness check: air at a
+     * registered position means a stale registration, not a portal.
+     */
+    private static ArrivalPortal buildArrival(ServerWorld world, RegistryKey<World> worldKey, BlockPos seed) {
+        WorldChunk chunk = world.getChunkManager().getWorldChunk(seed.getX() >> 4, seed.getZ() >> 4, false);
+        if (chunk == null) {
+            return null;
+        }
+        BlockState state = chunk.getBlockState(seed);
+        Direction.Axis axis;
+        if (state.isOf(Blocks.END_PORTAL)) {
+            axis = Direction.Axis.Y;
+        } else if (state.isOf(Blocks.NETHER_PORTAL) && state.contains(NetherPortalBlock.AXIS)) {
+            axis = state.get(NetherPortalBlock.AXIS);
+        } else {
+            // Gateway (no plane), air (stale registration), or a block some
+            // other mod put there.
+            return null;
+        }
+        PortalHelper.PortalReturnTarget target = PortalHelper.getPortalTarget(worldKey, seed);
+        if (target == null || target.sourceWorld == null || worldKey.equals(target.sourceWorld)) {
+            return null;
+        }
+        if (target.exitMode != null) {
+            // "bed" is per-player, and "worldSpawn"/"dim!..." land somewhere
+            // that is not this portal's column at all — see returnMapping.
+            // Previewing a place the player will not arrive at is worse than
+            // previewing nothing, so anchor and exit-portal arrivals keep
+            // their plain vanilla look.
+            return null;
+        }
+        Set<BlockPos> aperture = ProjectionVolume.collectAperture(seed,
+                PortalHelper.planeDirections(axis),
+                pos -> PortalHelper.isRegisteredPortalPosition(worldKey, pos),
+                MAX_APERTURE);
+        if (aperture.isEmpty()) {
+            return null;
+        }
+        BlockPos key = ProjectionVolume.minCorner(aperture);
+        // A synthetic zone is what lets the arrival direction reuse every
+        // teardown path unchanged: ACTIVE, HELD, cleanupZone, forgetPlayer,
+        // forgetInWorld and onWorldUnload all key on a PortalZone and read
+        // only interior/axis/sourceWorld/targetWorld. sourceWorld is where
+        // the fake blocks are painted (this world) and targetWorld is where
+        // they are sampled from, which is exactly the meaning those paths
+        // already give the two fields.
+        PortalDefinition definition = new PortalDefinition(
+                "arrival:" + key.toShortString(), null, null,
+                target.sourceWorld.getValue().toString(), null, 0);
+        PortalHelper.PortalZone zone = new PortalHelper.PortalZone(
+                aperture, definition, axis, worldKey, target.sourceWorld);
+        return new ArrivalPortal(key, seed, zone,
+                ProjectionVolume.returnMapping(aperture), target.sourceY);
+    }
+
+    /**
+     * Is there still a portal block here? Null chunk means "no evidence" and
+     * keeps the projection — an unloaded chunk must never be read as a
+     * destroyed portal, and must never be loaded to find out (Rule 1). Same
+     * discipline as {@code ArrivalResolver.stillAPortal}.
+     */
+    private static boolean stillAPortalBlock(ServerWorld world, BlockPos pos) {
+        WorldChunk chunk = world.getChunkManager().getWorldChunk(pos.getX() >> 4, pos.getZ() >> 4, false);
+        if (chunk == null) {
+            return true;
+        }
+        return PortalHelper.isPortalBlock(chunk.getBlockState(pos));
+    }
+
+    /** Tear down and forget every arrival projection in one world. */
+    private static void dropArrivals(RegistryKey<World> worldKey) {
+        Map<BlockPos, ArrivalPortal> index = ARRIVALS.remove(worldKey);
+        ARRIVAL_SETTINGS.remove(worldKey);
+        ARRIVAL_INDEX_TICK.remove(worldKey);
+        if (index == null) {
+            return;
+        }
+        for (ArrivalPortal arrival : index.values()) {
+            // Restores every viewer's real blocks and drops the ticket.
+            cleanupZone(arrival.zone);
+        }
+    }
+
+    /**
+     * The per-player half of a projection, shared by BOTH directions:
+     * activate, refresh, or tear down each nearby player's fake-block view of
+     * one aperture. Returns whether anyone is being shown it right now.
+     *
+     * Factoring this out is what makes the arrival direction cost so little:
+     * the sightline mask, the delta pass, the activation hysteresis, the
+     * stationary throttle and — the part that matters — every teardown path
+     * are the SAME CODE for both, not a parallel implementation that can
+     * drift out of agreement with this one.
+     *
+     * {@code destination} null (world unloaded) and {@code destinationY}
+     * {@link #NO_ARRIVAL} (chunks still loading) are both handled here, so
+     * neither caller has to.
+     */
+    private static boolean projectToPlayers(ServerWorld world, PortalHelper.PortalZone zone,
+            ServerWorld destination, ProjectionVolume.TargetMapping mapping, int destinationY,
+            ImmersiveSettings settings, List<ServerPlayerEntity> players, BlockPos centre,
+            long tick, String direction) {
+        int range = settings.activationRange();
+        double activateSq = (double) range * range;
+        double deactivateSq = (double) (range + DEACTIVATE_MARGIN) * (range + DEACTIVATE_MARGIN);
+        boolean projecting = false;
+
+        for (ServerPlayerEntity player : players) {
+            Map<PortalHelper.PortalZone, PlayerProjectionState> states = ACTIVE.get(player.getUuid());
+            PlayerProjectionState state = states != null ? states.get(zone) : null;
+            double distanceSq = centre.getSquaredDistance(player.getBlockPos());
+            boolean inRange = distanceSq <= (state == null ? activateSq : deactivateSq);
+
+            // Destination world unloaded mid-projection (the idle unloader
+            // closes pre-loaded-but-unvisited worlds) is treated exactly
+            // like walking away: restore the real blocks (Gotcha #11).
+            if (!inRange || destination == null) {
+                if (state != null) {
+                    state.cleanup(player, world);
+                    states.remove(zone);
+                    ACTIVE.computeIfPresent(player.getUuid(), (k, v) -> v.isEmpty() ? null : v);
+                    MultiverseServer.LOGGER.info(
+                            "immersive: {} projection cleared for {} at {} {} ({})",
+                            direction, player.getName().getString(),
+                            world.getRegistryKey().getValue(), centre.toShortString(),
+                            destination == null ? "destination world unloaded" : "out of range");
+                }
+                continue;
+            }
+
+            if (destinationY == NO_ARRIVAL) {
+                // Ticketed chunks are still loading in. An existing
+                // projection is left as-is rather than flickering; a new
+                // one activates on a later tick, within a second or two.
+                projecting |= state != null;
+                continue;
+            }
+
+            if (state == null) {
+                state = new PlayerProjectionState(player, zone);
+                state.sendFull(player, world, destination, settings, mapping, destinationY, tick);
+                ACTIVE.computeIfAbsent(player.getUuid(), k -> new ConcurrentHashMap<>()).put(zone, state);
+                MultiverseServer.LOGGER.info(
+                        "immersive: {} projection activated for {} at {} {} -> {} ({} blocks)",
+                        direction, player.getName().getString(), world.getRegistryKey().getValue(),
+                        centre.toShortString(), zone.targetWorld.getValue(), state.projectedCount());
+            } else if (state.needsRefresh(player, tick, settings)) {
+                // 4c: the cadence is the projection's own, not the
+                // world's — a stationary viewer is refreshed a quarter
+                // as often. Nothing is dropped by waiting: the delta
+                // baseline is untouched and the next pass still sends
+                // everything that changed in the meantime.
+                state.sendDelta(player, world, destination, settings, mapping, destinationY, tick);
+            }
+            projecting = true;
+        }
+        return projecting;
+    }
+
+    /**
+     * Is anyone close enough that this aperture should be holding its chunk
+     * ticket? Wider band than the projection, with its own hysteresis (see
+     * {@link #TICKET_HOLD_MARGIN}).
+     */
+    private static boolean anyoneWithinTicketRange(List<ServerPlayerEntity> players, BlockPos centre,
+            PortalHelper.PortalZone zone, int range) {
+        int margin = HELD.containsKey(zone) ? TICKET_DROP_MARGIN : TICKET_HOLD_MARGIN;
+        double ticketSq = (double) (range + margin) * (range + margin);
+        for (ServerPlayerEntity player : players) {
+            if (centre.getSquaredDistance(player.getBlockPos()) <= ticketSq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -618,6 +1056,10 @@ public final class ImmersiveProjector {
     public static void onWorldUnload(ServerWorld world) {
         RegistryKey<World> worldKey = world.getRegistryKey();
         MinecraftServer running = server;
+        // Arrival portals standing in this world go with it. Done first, so
+        // the ticket sweep below sees their zones already released rather
+        // than stranding entries keyed on a world that is closing.
+        dropArrivals(worldKey);
         List<PortalHelper.PortalZone> sourced = new ArrayList<>();
         Iterator<Map.Entry<PortalHelper.PortalZone, HeldChunks>> it = HELD.entrySet().iterator();
         while (it.hasNext()) {
@@ -641,6 +1083,9 @@ public final class ImmersiveProjector {
         }
         HELD.clear();
         ACTIVE.clear();
+        ARRIVALS.clear();
+        ARRIVAL_SETTINGS.clear();
+        ARRIVAL_INDEX_TICK.clear();
         server = null;
     }
 

@@ -19,6 +19,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -80,6 +81,22 @@ import java.util.UUID;
  *       retry, instead of forgetting a block that is still faked.</li>
  * </ul>
  *
+ * <h2>The one exemption: the 4a light layer</h2>
+ * {@link ProjectionVolume#lightPositions} — the aperture extruded one block —
+ * bypasses the mask and is sent whenever the projection is active. It has to,
+ * because a view-DEPENDENT set of light sources is a view-dependent amount of
+ * light: the client relights the area every time the set changes, so walking
+ * past a portal made the brightness swim while standing still and turning did
+ * nothing. {@code Blocks.LIGHT} is invisible, so sending one for a position
+ * that is behind the frame wall from this player's angle leaks no geometry —
+ * the mask is there to keep VISIBLE blocks inside the opening, and this is not
+ * one of those.
+ *
+ * The exemption is deliberately narrow: these positions still go through
+ * {@code lastSent} and are restored by the same {@link #restore}, so there is
+ * one bookkeeping path and the invariant above is untouched. Everything else
+ * in the volume is masked exactly as before.
+ *
  * <h2>Phase 4: three block states, not two</h2>
  * Everything this class reads from the target world is one of THREE things,
  * and collapsing them to two is the bug this feature keeps rediscovering:
@@ -104,6 +121,50 @@ public final class PlayerProjectionState {
      * nothing"); two blocks reads as a boundary.
      */
     static final int SHALLOW_DEPTH = 2;
+
+    /**
+     * 4a: the invisible light source painted over the positions directly
+     * behind the opening, so a preview of a dark destination is not a black
+     * rectangle.
+     *
+     * <b>A method and not a constant, deliberately:</b> {@code Blocks.LIGHT}
+     * resolves through the block registry, so touching it from a static
+     * initialiser makes this whole class unloadable outside a bootstrapped
+     * game — every unit test over {@link #decideDepth} and {@link
+     * #shouldRefresh} dies with {@code ExceptionInInitializerError}.
+     * {@code getDefaultState()} returns the interned instance every time, so
+     * calling it per position is a field read and the identity comparison in
+     * the delta pass still short-circuits.
+     *
+     * <h2>Why still level 15</h2>
+     * The tester's bright-forest destination read hot, and the obvious lever
+     * is {@code Blocks.LIGHT}'s level property. It is the wrong one to pull,
+     * because the same change that fixed the flicker already cut the light
+     * hard in two better ways:
+     * <ul>
+     *   <li><b>7x fewer sources.</b> The layer was the padded first slab layer
+     *       (42 positions for the default doorway); it is now the aperture
+     *       itself (6).</li>
+     *   <li><b>Aimed through the hole.</b> The padded positions sat behind the
+     *       frame WALL, lighting the real world from inside it — which is
+     *       literally "light coming out of the portal". What is left shines
+     *       out of the doorway, which is what a portal to somewhere bright
+     *       should do.</li>
+     * </ul>
+     * Block light decrements one per step and does not pass opaque blocks, so
+     * the visible surfaces at the far, lateral edge of an 8-deep preview are
+     * 10-12 steps from the nearest source: light 3-5 at level 15, and 0-2 at
+     * level 12. Dropping the level would black out exactly the deep periphery
+     * 4a exists to rescue, and with 7x fewer sources there is no longer a
+     * neighbouring light to make up the difference.
+     *
+     * If it still reads hot in-game after this change, the level IS the next
+     * lever — that cost is the reason it is not this one. Lower it with
+     * {@code .with(Properties.LEVEL_15, n)} here and nowhere else.
+     */
+    private static BlockState lightState() {
+        return Blocks.LIGHT.getDefaultState();
+    }
 
     /**
      * 4c: squared movement below which a player counts as stationary
@@ -233,14 +294,20 @@ public final class PlayerProjectionState {
                     wanted, depth, settings.previewRadius());
         }
 
-        // 4a: the layer nearest the plane is sent as invisible LIGHT instead
-        // of its sampled block, so the preview is lit by its own front face
-        // rather than by whatever the SOURCE dimension's sky happens to be
-        // doing. Skipped for a one-block-deep slab, where it would leave
-        // nothing to look at.
+        // 4a: the positions directly behind the opening are sent as invisible
+        // LIGHT instead of their sampled block, so the preview is lit by its
+        // own front face rather than by whatever the SOURCE dimension's sky
+        // happens to be doing. Skipped for a one-block-deep slab, where it
+        // would leave nothing to look at.
+        //
+        // View-INDEPENDENT, and that is the whole point: derived from the
+        // zone's own geometry, never from the mask. See lightPositions.
         boolean lightLayer = depth >= SHALLOW_DEPTH;
         Direction.Axis normalAxis = wanted.getAxis();
         int firstLayer = ProjectionVolume.firstLayerCoord(this.zone.interior, wanted);
+        Set<BlockPos> lightPositions = lightLayer
+                ? ProjectionVolume.lightPositions(this.zone.interior, wanted)
+                : Set.of();
 
         // Per-player sightline mask. Resolved once per pass: the plane never
         // moves, and the probe is a single Mutable reused across the volume
@@ -249,50 +316,65 @@ public final class PlayerProjectionState {
         BlockPos.Mutable probe = new BlockPos.Mutable();
         int masked = 0;
         int unmasked = 0;
+        int lights = 0;
 
         int bottomY = targetWorld.getBottomY();
         int topY = targetWorld.getTopY();
         for (BlockPos pos : this.volume) {
-            if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
-                    this.zone.interior, probe)) {
-                // Behind the frame wall from where this player is standing.
-                // A position that WAS visible and no longer is must be given
-                // its real block back here and now: the player walked, the
-                // frustum swung away from it, and nothing downstream would
-                // ever revisit it — that is precisely how a walk around a
-                // portal leaves a trail of stuck fake blocks. It only leaves
-                // lastSent once the correction has actually gone out, so an
-                // unloaded source chunk means "retry next pass", not "drop
-                // the record".
-                masked++;
-                if (sameWorld && this.lastSent.containsKey(pos)
-                        && restoreOne(handler, sourceWorld, pos)) {
-                    this.lastSent.remove(pos);
-                    unmasked++;
-                }
-                continue;
-            }
-            BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
-            if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
-                continue;
-            }
-            BlockState state = sample(targetWorld, targetPos, chunks);
-            if (state == null) {
-                // Target chunk not loaded. A position never sent keeps its
-                // real source block; one already faked holds its last known
-                // state rather than flickering back and forth as the chunk
-                // comes and goes. Documented graceful degradation — see
-                // ImmersiveProjector for why we never load it ourselves.
-                continue;
-            }
-            if (lightLayer && ProjectionVolume.coordOn(pos, normalAxis) == firstLayer) {
-                // Fake, like every other position here: never placed in the
+            BlockState state;
+            // The cheap int compare gates the hash lookup: only one layer of
+            // the slab can hold light positions at all.
+            if (lightLayer && ProjectionVolume.coordOn(pos, normalAxis) == firstLayer
+                    && lightPositions.contains(pos)) {
+                // Sent unconditionally — no mask, no target sampling. LIGHT is
+                // invisible, so a light position that happens to sit behind
+                // the frame wall for THIS viewer leaks no geometry; the mask
+                // exists to stop VISIBLE blocks appearing outside the opening
+                // and this is not one of those. Routing it through the mask is
+                // what made the lighting swim as the player walked.
+                //
+                // Fake like every other position here: never placed in the
                 // world, so no neighbour updates and no piston crash class
-                // (PLAN.md Gotcha #2). It IS recorded in lastSent below, so
-                // cleanup restores the real block (Gotcha #8). getDefaultState
-                // returns the interned level-15 state, so the identity
+                // (PLAN.md Gotcha #2). It goes into lastSent below like
+                // anything else, so cleanup restores the real block
+                // (Gotcha #8) — one bookkeeping path, not two. lightState()
+                // returns a single interned instance, so the identity
                 // comparison below still short-circuits the delta pass.
-                state = Blocks.LIGHT.getDefaultState();
+                state = lightState();
+                lights++;
+            } else {
+                if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
+                        this.zone.interior, probe)) {
+                    // Behind the frame wall from where this player is standing.
+                    // A position that WAS visible and no longer is must be given
+                    // its real block back here and now: the player walked, the
+                    // frustum swung away from it, and nothing downstream would
+                    // ever revisit it — that is precisely how a walk around a
+                    // portal leaves a trail of stuck fake blocks. It only leaves
+                    // lastSent once the correction has actually gone out, so an
+                    // unloaded source chunk means "retry next pass", not "drop
+                    // the record".
+                    masked++;
+                    if (sameWorld && this.lastSent.containsKey(pos)
+                            && restoreOne(handler, sourceWorld, pos)) {
+                        this.lastSent.remove(pos);
+                        unmasked++;
+                    }
+                    continue;
+                }
+                BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
+                if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
+                    continue;
+                }
+                state = sample(targetWorld, targetPos, chunks);
+                if (state == null) {
+                    // Target chunk not loaded. A position never sent keeps its
+                    // real source block; one already faked holds its last known
+                    // state rather than flickering back and forth as the chunk
+                    // comes and goes. Documented graceful degradation — see
+                    // ImmersiveProjector for why we never load it ourselves.
+                    continue;
+                }
             }
             BlockState previous = this.lastSent.get(pos);
             if (previous == state) {
@@ -305,14 +387,18 @@ public final class PlayerProjectionState {
         if (full || unmasked > 0) {
             // Counts, not events (mods/AGENTS.md): "activated" alone looked
             // perfectly healthy in all three of this feature's silent
-            // failures. The visible/candidate ratio is the headless evidence
-            // that the mask is doing something, and the restored count is the
+            // failures. The visible/maskable ratio is the headless evidence
+            // that the mask is doing something, the restored count is the
             // headless evidence that walking away from a sightline puts real
-            // blocks back rather than stranding them.
+            // blocks back rather than stranding them, and the light count is
+            // the headless evidence that the 4a layer is a fixed size — it
+            // must not move as the player does.
+            int maskable = this.volume.size() - lights;
             MultiverseServer.LOGGER.debug(
-                    "immersive: sightline mask for {} at zone {} -> {} of {} candidates visible, {} restored",
+                    "immersive: sightline mask for {} at zone {} -> {} of {} maskable visible, "
+                            + "{} restored, {} fixed light positions",
                     this.playerName, this.sourceWorldKey.getValue(),
-                    this.volume.size() - masked, this.volume.size(), unmasked);
+                    maskable - masked, maskable, unmasked, lights);
         }
 
         // The EYE, not the feet: the mask is a function of eye position, so

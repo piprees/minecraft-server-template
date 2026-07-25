@@ -44,6 +44,67 @@ shows cave blocks in full daylight).
 
 **File:** Modified `immersive/PlayerProjectionState.java` (~15 lines)
 
+#### View-independence correction (human testing, 2026-07-25)
+
+Reported in-game after Phase 1h's sightline mask shipped: *"When I -walk-
+around the portal, the level of light coming out of it changes a lot, but when
+I stand still and LOOK around, it doesn't."*
+
+The sketch above applies the LIGHT substitution to "each portal-plane-adjacent
+position" — which, once 1h existed, meant *each position that passed the mask*.
+The set of level-15 sources therefore became a function of where the player
+stood: every step added and removed light sources and the client relit the
+area. Standing still the mask is stable, so nothing flickers — exactly the
+asymmetry reported.
+
+The mask was right. The lights being behind it were not.
+
+- [x] `ProjectionVolume.lightPositions(interior, normal)` — the OPENING's own
+  cross-section extruded one block along the normal. Derived from the zone
+  alone, so it is the same set for every viewer from every position
+- [x] **No `previewRadius` padding.** Those padded positions sit behind the
+  frame WALL; a light source there shines through the real geometry around the
+  frame, which is literally the glow being reported. For the default doorway
+  this cuts the layer from **42 sources to 6** and aims what is left through
+  the hole
+- [x] Per-cell, not a bounding box — an arch lights an arch, and does not put
+  sources inside solid corners the opening does not have
+- [x] Sent **unconditionally** while the projection is active, bypassing
+  `seesThroughOpening`. LIGHT is invisible, so a light position that sits
+  behind the wall from one viewer's angle leaks no geometry; the mask exists
+  to keep VISIBLE blocks inside the opening and this is not one of those
+- [x] Still routed through `lastSent` and restored by the same `restore()` —
+  **one bookkeeping path, not two**. Pinned by a test that every light position
+  lies inside `computeSourcePositions` on its first layer, for both sides and
+  every legal depth/radius
+- [x] Non-light positions keep the mask exactly as before
+
+**`Blocks.LIGHT` must not be resolved from a static initialiser.** It goes
+through the block registry, so a `static final BlockState` field makes
+`PlayerProjectionState` unloadable outside a bootstrapped game and every unit
+test over `decideDepth`/`shouldRefresh` dies with
+`ExceptionInInitializerError`. It stays a per-call `getDefaultState()`, which
+returns the interned instance anyway (hit while making this change).
+
+##### Why the level is still 15
+
+The tester's bright-forest destination reads hot, and the obvious lever is the
+`level` property. It is the wrong one to pull *now*, because the change above
+already cut the light hard in two better ways — 7× fewer sources, and the
+survivors aimed through the doorway instead of buried in the wall.
+
+Block light decrements one per step and does not pass opaque blocks, so the
+visible surfaces at the far lateral edge of an 8-deep preview are 10–12 steps
+from the nearest source: light 3–5 at level 15, **0–2 at level 12**. Lowering
+it would black out precisely the deep periphery 4a exists to rescue, and with
+7× fewer sources there is no longer a neighbouring light to make up the
+difference. Two compounding changes would also make the in-game result
+unattributable.
+
+If it still reads hot after this, the level *is* the next lever, and that cost
+is why it is not this one. Change it in `PlayerProjectionState.lightState()`
+and nowhere else.
+
 ### 4b. Portal edge particles
 
 **Problem:** The boundary between real blocks and projected blocks is abrupt.

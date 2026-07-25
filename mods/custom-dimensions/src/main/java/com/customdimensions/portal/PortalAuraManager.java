@@ -104,7 +104,8 @@ public final class PortalAuraManager {
             Sampled sampled = settings.palette != null
                     ? Sampled.explicit(settings)
                     : sample(targetWorld, arrivalCentre,
-                            exclusionFor(arrivalInterior, zone.axis));
+                            exclusionFor(arrivalInterior, zone.axis),
+                            frameMaterialsOf(zone.definition));
             zone.auraPalette = sampled.terrain;
             zone.auraFlora = sampled.flora;
             zone.auraTrees = sampled.trees;
@@ -123,7 +124,8 @@ public final class PortalAuraManager {
             Sampled sampled = sourceEmission != null
                     ? Sampled.explicit(sourceEmission)
                     : sample(sourceWorld, sourceCentre,
-                            exclusionFor(zone.interior, zone.axis));
+                            exclusionFor(zone.interior, zone.axis),
+                            frameMaterialsOf(zone.definition));
             PortalHelper.AuraSite site = new PortalHelper.AuraSite();
             site.setInterior(arrivalInterior);
             site.palette = sampled.terrain;
@@ -363,7 +365,57 @@ public final class PortalAuraManager {
      * features, still surface fluids. Registry surface rules aren't
      * queryable, so sampling what is genuinely there is the mod-proof way.
      */
+    /**
+     * Block ids the histogram must never pick up, however much of them is
+     * standing around: the portal's own building materials.
+     *
+     * <p>Position-based exclusion only covers the frame RING. A player who
+     * builds their portal into a wall, a tower or a plinth — which is most
+     * portals anyone bothers to decorate — leaves plenty of the frame
+     * material inside the 9x7x9 sample box, so it wins a slot in the terrain
+     * histogram and the far side starts sprouting it. Reported in-game
+     * 2026-07-25: a cherry_planks portal seeded cherry_planks across the
+     * destination, which reads less like an ecological leak and more like a
+     * joke. Obsidian or stone would have hidden the same bug.
+     *
+     * <p>Covers the accept forms AND the placement block, so a tag- or
+     * colour-group-framed portal excludes what it is actually built from.
+     * Plain ids only — a "#tag" accept form has no single block to exclude
+     * and is skipped rather than guessed at.
+     */
+    private static Set<String> frameMaterialsOf(PortalDefinition definition) {
+        if (definition == null) {
+            return Set.of();
+        }
+        Set<String> ids = new java.util.LinkedHashSet<>();
+        for (String form : definition.getFrameAccepts()) {
+            if (form != null && !form.startsWith("#")) {
+                ids.add(form);
+            }
+        }
+        for (String part : definition.getFramePartAccepts().keySet()) {
+            String place = definition.getPartPlaceBlock(part);
+            if (place != null && !place.startsWith("#")) {
+                ids.add(place);
+            }
+        }
+        String place = definition.getFramePlaceBlock();
+        if (place != null && !place.startsWith("#")) {
+            ids.add(place);
+        }
+        String centre = definition.getCentreBlock();
+        if (centre != null && !centre.startsWith("#")) {
+            ids.add(centre);
+        }
+        return ids;
+    }
+
     static Sampled sample(ServerWorld world, BlockPos centre, Set<BlockPos> exclusion) {
+        return sample(world, centre, exclusion, Set.of());
+    }
+
+    static Sampled sample(ServerWorld world, BlockPos centre, Set<BlockPos> exclusion,
+            Set<String> excludedIds) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         Set<String> flora = new java.util.LinkedHashSet<>();
         Set<String> trees = new java.util.LinkedHashSet<>();
@@ -386,6 +438,10 @@ public final class PortalAuraManager {
                         continue;
                     }
                     String id = Registries.BLOCK.getId(state.getBlock()).toString();
+                    if (excludedIds.contains(id)) {
+                        // The portal's own material — see frameMaterialsOf.
+                        continue;
+                    }
                     if (state.isIn(BlockTags.LOGS)) {
                         String feature = LOG_TO_TREE.get(id);
                         if (feature != null) {

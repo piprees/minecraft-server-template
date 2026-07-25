@@ -587,7 +587,25 @@ dimension's `portal` block can do (all boot-re-read; no world wipes):
 - **Auras**: portals affect their surroundings — by default each linked
   pair leaks the other side's sampled nature through (terrain, plants,
   trees, fluids), bounded by per-side budgets; `portal.aura` overrides
-  palettes, adds explicit conversions and fire, or switches it off.
+  palettes, adds explicit conversions and fire, or switches it off. The
+  sampler ignores the portal's own building materials, so a plank-framed
+  portal doesn't seed planks across the destination.
+- **Immersive portals** (`"immersive": true`): see the destination's real
+  terrain through the frame with natural parallax, hear its biome ambience,
+  and throw items, projectiles, XP orbs — and walk mobs and villagers —
+  through. Server-side only: no client mod, and a vanilla client gets all
+  of it. Tune with the object form (`previewDepth`, `previewRadius`,
+  `refreshInterval`, `activationRange`, `audio`, `entityPassthrough`), or
+  set `"audio": false` / `"entityPassthrough": false` to keep the visuals
+  without the rest.
+
+  Worth knowing before you enable it: the transition still shows vanilla's
+  dimension-change screen (that is client-side and cannot be suppressed from
+  a server — the pre-loading removes the *stall*, not the screen), the
+  destination's lighting and biome colours are approximated, and entities on
+  the far side are not visible. Those limits and the client mod that would
+  lift them are specified in
+  [`mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md`](../mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md).
 - **Anchors, single-use portals, exit portals, exit shrines**: see the
   mod README; shrine frames rebuild in the dimension's own
   `framePlaceBlock` and shrine spacing derives from `borders.player`.

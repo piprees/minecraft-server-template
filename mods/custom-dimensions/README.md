@@ -15,6 +15,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Portal shape presets** -- optional `shape`: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring, optional `centreBlock` pedestal); absent = free-form flood-fill. Shapes imply orientation; mod-built exit portals follow the dimension's shape
 - **Per-part frame materials** -- `frameMaterials` {top, sides, bottom} each accepting any frame form ("stone base, log pillars, plank lintel"); flood-fill accepts the union, validation checks each ring position's part; mod-built frames place per part (vertical portals only)
 - **Portal auras** -- portals affect their surroundings: by default each linked pair leaks the other side's sampled nature through (terrain, flora, trees, fluids), bounded by per-side budgets; `portal.aura` overrides palettes, adds explicit conversions (obsidian→crying) and fire, or switches it off
+- **Immersive portals** -- `portal.immersive` turns a portal into a window: the destination's real terrain is visible through the frame with natural parallax (server-sent fake blocks, masked to what you could actually see through the aperture), its biome ambience leaks back, and items, projectiles, XP orbs, mobs and villagers walk through. Server-side only — a vanilla client gets all of it, no client mod. `true` for defaults or an object to tune `previewDepth` / `previewRadius` / `refreshInterval` / `activationRange` / `audio` / `entityPassthrough`. Boot-re-read like the rest of `portal`. Known limits (vanilla's dimension-change screen still shows, approximate lighting and biome colours, far-side entities invisible) and the client mod that would lift them are specified in [`immersive/PHASE-5-CLIENT-COMPANION.md`](immersive/PHASE-5-CLIENT-COMPANION.md)
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
 - **Coordinate scaling** -- configurable scale factor per portal (e.g., 0.125 for nether-style 1:8)
@@ -484,6 +485,63 @@ dims, the classic 2x3 for `doorway`/`standard`, and a horizontal 3x3
 records persist `shape`/`centreBlock` as plain strings — older jars ignore
 the unknown fields (downgrade-safe), and pre-shape records restore as
 `standard`.
+
+### Immersive portals
+
+```jsonc
+"portal": {
+  "immersive": true
+  // or, to tune:
+  // "immersive": {
+  //   "enabled": true,           // an explicit false here = not immersive
+  //   "previewDepth": 8,         // blocks projected behind the frame (1-16)
+  //   "previewRadius": 2,        // candidate padding beyond the aperture (0-4)
+  //   "refreshInterval": 4,      // ticks between delta refreshes (min 2)
+  //   "activationRange": 24,     // blocks from the portal (1-64)
+  //   "audio": true,             // biome ambience from the far side
+  //   "entityPassthrough": true  // items, projectiles, orbs, mobs, villagers
+  // }
+}
+```
+
+Boot-re-read, like the rest of `portal` — changes apply without a world
+wipe. Not serialised into `portal_links.json`: it is re-stamped onto
+restored zones from live config every boot, so turning it on or off takes
+effect for portals that already exist.
+
+What it does, all server-side:
+
+- **Preview.** The destination's real blocks are sent to nearby clients as
+  fake block updates at real coordinates, so parallax is free. Each
+  position is masked against that player's eye — only what could genuinely
+  be seen through the aperture is sent, and anything that falls out of
+  sight is restored the same pass.
+- **Audio.** The far side's biome loop and mood sounds play at the portal.
+  Most overworld biomes have no loop sound, so overworld-to-overworld
+  portals are quiet by design; nether-family destinations are distinctive.
+- **Pass-through.** Items, projectiles, XP orbs and falling blocks cross
+  with their velocity intact, and so do living entities — you can lead a
+  villager or a cow through, and build farms across a portal. Leads are
+  detached before crossing (a cross-world leash is unrecoverable in
+  vanilla). Vehicles with passengers are not handled yet.
+- **Interior particles are suppressed** while immersive is on — the preview
+  is the visual — leaving the coloured edge particles to trace the frame.
+
+Known limits, and none of them are bugs:
+
+- Vanilla's dimension-change **screen** still appears on traversal. The
+  pre-loading removes the generation *stall*, not the screen, which is
+  client-side.
+- Lighting is approximated with invisible light at the aperture; the
+  destination's real light levels are not reproduced.
+- Water, grass and foliage take the SOURCE biome's colours — those are
+  computed client-side from the biome the client thinks it is in.
+- Entities on the far side are not visible.
+- Gateway portals (`shape: end_gateway`) get particles, not projection.
+
+`immersive/PHASE-5-CLIENT-COMPANION.md` specifies the client mod that
+would lift each of those, and records which ones a client mod cannot help
+with either.
 
 ### Portal auras
 
