@@ -3,6 +3,7 @@ package com.customdimensions.mixin;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
+import com.customdimensions.immersive.EntityPassthrough;
 import com.customdimensions.immersive.ImmersivePreloader;
 import com.customdimensions.immersive.ImmersiveProjector;
 import com.customdimensions.portal.PortalHelper;
@@ -43,6 +44,7 @@ public class WorldLoaderMixin {
         PortalHelper.savePortalLinks();
         ImmersivePreloader.clear();
         ImmersiveProjector.clear();
+        EntityPassthrough.clear();
         MultiverseServer.onServerStopping(server);
     }
 }

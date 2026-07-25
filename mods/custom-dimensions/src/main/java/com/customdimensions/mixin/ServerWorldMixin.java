@@ -244,6 +244,14 @@ public class ServerWorldMixin {
         // its own zones and returns immediately when none are immersive.
         com.customdimensions.immersive.ImmersiveProjector.tick(world);
 
+        // Immersive portals (Phase 3 — Entity Pass-Through): items,
+        // projectiles, XP orbs and falling blocks crossing an immersive
+        // source zone with their velocity intact. After the projector so a
+        // crossing entity sees the same zone state the projection was built
+        // from, and before ExitConditions (PLAN.md Gotcha #12). Fetches its
+        // own zones and does nothing at all for non-immersive ones.
+        com.customdimensions.immersive.EntityPassthrough.tick(world);
+
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs
         // at tick HEAD, so a configured void exit fires BEFORE vanilla void
         // damage (Entity.tickInVoid runs later, during entity ticking).
