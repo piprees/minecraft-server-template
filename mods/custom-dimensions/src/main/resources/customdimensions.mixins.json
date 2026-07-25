@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorAccessor",
+    "CreateWorldsMixin",
     "EntityTickPortalMixin",
     "GameEventSuppressionMixin",
     "MinecraftServerAccessor",
