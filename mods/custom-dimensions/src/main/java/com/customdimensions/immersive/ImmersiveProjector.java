@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.Heightmap;
@@ -25,13 +26,16 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Immersive portal preview (Phase 1): the per-tick driver that activates,
- * refreshes and tears down each player's fake-block projection of the
- * dimension on the other side of an immersive portal.
+ * Immersive portal preview (Phase 1) and cross-portal audio (Phase 2): the
+ * per-tick driver that activates, refreshes and tears down each player's
+ * fake-block projection of the dimension on the other side of an immersive
+ * portal, and leaks the target dimension's biome ambience back through the
+ * portal plane.
  *
  * Presentation only. It never touches traversal, ignition, zone validation
  * or portal links — the blocks it sends are client-side illusions that are
- * never placed in the world.
+ * never placed in the world, and the sounds it plays are ordinary
+ * {@link World#playSound} packets aimed at the source-side portal position.
  *
  * <h2>Rule 1: never sync-load a chunk from here</h2>
  * Every read of the target world goes through a non-loading accessor
@@ -262,6 +266,19 @@ public final class ImmersiveProjector {
                 } else if (tick % immersive.refreshInterval() == 0) {
                     state.sendDelta(player, world, targetWorld, immersive, mapping, arrivalY);
                 }
+            }
+
+            // Audio pass (Phase 2): same audience gate as the chunk ticket
+            // (anyoneNear) and the same arrival column as the block
+            // projection (mapping/arrivalY), so it never resolves a second,
+            // divergent notion of "where the other side is". Skipped
+            // whenever the projection itself would be skipped this tick —
+            // no ticket-holder, no target world, or the arrival chunk isn't
+            // loaded yet (NO_ARRIVAL) — which also means never loading a
+            // chunk just to sample a biome.
+            if (immersive.audio() && anyoneNear && targetWorld != null && arrivalY != NO_ARRIVAL) {
+                BlockPos arrivalPos = new BlockPos(mapping.arrivalX(), arrivalY, mapping.arrivalZ());
+                tickAudio(world, targetWorld, centre, arrivalPos, tick);
             }
         }
     }
@@ -505,5 +522,70 @@ public final class ImmersiveProjector {
             return PortalHelper.VOID_FALLBACK_Y;
         }
         return Math.min(surfaceY, targetWorld.getTopY() - 8);
+    }
+
+    /**
+     * Cross-portal audio (Phase 2): biome ambience and mood sound bleeding
+     * through from the target dimension, played at the SOURCE-side portal
+     * centre — never in the target world, and never as a game event.
+     * {@code GameEventSuppressionMixin} drops every game event in a managed
+     * world with no players, which the target world usually is here (the
+     * approaching player is still on this side); {@link World#playSound}
+     * sends packets straight to nearby players and bypasses that entirely
+     * (PLAN.md Gotcha #7).
+     *
+     * {@code arrivalPos} is the same column {@link #arrivalSurfaceY} already
+     * resolved for the block projection — its chunk is guaranteed loaded (the
+     * caller only reaches here once {@code arrivalY != NO_ARRIVAL}), so
+     * sampling its biome never touches the chunk system and can never
+     * force-load anything (Rule 1).
+     *
+     * No weather relay: originally planned (PHASE-2 §2c) but per-dimension
+     * weather does not exist in vanilla 1.21.1. Every {@code ServerWorld}
+     * except the overworld is built over an {@link
+     * net.minecraft.world.level.UnmodifiableLevelProperties} wrapping
+     * {@code saveProperties.getMainWorldProperties()} — the SAME instance
+     * the overworld itself was constructed with — so {@code isRaining()}/
+     * {@code isThundering()} always read one shared, save-wide flag no
+     * matter which dimension asks. Confirmed both in vanilla
+     * ({@code MinecraftServer.createWorlds}) and in this mod's own
+     * {@code DimensionManager.getOrCreateDimension}/{@code
+     * getOrCreateDimensionDirect}, which construct every runtime dimension
+     * the identical way. {@code targetWorld.isRaining() != world.isRaining()}
+     * can therefore never be true — do not re-add a rain/thunder relay
+     * without first giving dimensions independent weather state, which
+     * nothing in this codebase (or vanilla) currently does.
+     *
+     * Each leak has its own cadence, checked independently so biome loop and
+     * mood can each land on their own tick within one call rather than
+     * sharing a single gate. Volumes stay low and vanilla's distance falloff
+     * (~16 blocks) does the rest — this must read as atmospheric background,
+     * not a noise machine.
+     */
+    private static void tickAudio(ServerWorld world, ServerWorld targetWorld, BlockPos portalCentre,
+            BlockPos arrivalPos, long tick) {
+        if (tick % 40 == 0) {
+            // Nether-family biomes carry a distinctive loop; most overworld
+            // biomes have none, so overworld-to-overworld portals are
+            // correctly silent here (PHASE-2 research notes).
+            targetWorld.getBiome(arrivalPos).value().getLoopSound().ifPresent(sound -> {
+                world.playSound(null, portalCentre, sound.value(), SoundCategory.AMBIENT, 0.3f, 1.0f);
+                MultiverseServer.LOGGER.debug("immersive: biome loop sound at {} from {}",
+                        portalCentre.toShortString(), targetWorld.getRegistryKey().getValue());
+            });
+        }
+        if (tick % 60 == 0) {
+            // Mood sound (cave ambience) stands in for per-mob sounds:
+            // LivingEntity.getAmbientSound() is protected and not worth
+            // reaching for (PHASE-2 doc). Rolled at 15% so it doesn't loop
+            // constantly even when the arrival column qualifies every pass.
+            targetWorld.getBiome(arrivalPos).value().getMoodSound().ifPresent(mood -> {
+                if (world.random.nextFloat() < 0.15f) {
+                    world.playSound(null, portalCentre, mood.getSound().value(), SoundCategory.AMBIENT, 0.2f, 1.0f);
+                    MultiverseServer.LOGGER.debug("immersive: mood sound at {} from {}",
+                            portalCentre.toShortString(), targetWorld.getRegistryKey().getValue());
+                }
+            });
+        }
     }
 }
