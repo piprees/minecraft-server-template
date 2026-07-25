@@ -274,6 +274,17 @@ jobs:
             }
           done
 
+          # RE-CAPTURE the log. Worlds are created lazily, so every
+          # "Dimension <x> uses noise settings ..." / "structure profile: ..."
+          # line is emitted by the `customdim load` loop ABOVE — after the
+          # snapshot taken before it. Asserting against the stale copy fails
+          # even though the server did exactly the right thing, and the line
+          # is plainly visible in the job log (2026-07-25: every release
+          # blocked on "structureDensity=dense was not applied", with
+          # "Dimension the_smoke_compressed structure profile: density=dense"
+          # present in that same log).
+          LOG=$(docker logs mc 2>&1)
+
           # Per-dimension seed mixin oracle: the reported seed must be the
           # config seed, not the world seed (c2me DFC trap in mods/AGENTS.md).
           docker exec mc rcon-cli "execute in adventure:the_smoke_wide run seed" | grep -q "1111" || {
