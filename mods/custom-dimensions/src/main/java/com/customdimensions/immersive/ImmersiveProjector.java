@@ -852,6 +852,30 @@ public final class ImmersiveProjector {
      * an immersive concern (PLAN.md Gotcha #12) — and it is false for every
      * non-immersive portal, which keeps its particles exactly as they were.
      */
+    /**
+     * Is this registered portal position part of an immersive ARRIVAL — one
+     * whose blocks the projector fakes away so the aperture reads as a
+     * window rather than a nether portal?
+     *
+     * <p>Asked by {@code PortalHelper.spawnTargetPortalParticles} so the
+     * mod's own dust is thinned to match, instead of replacing the haze the
+     * fake blocks just removed. Reads the arrival index only — no world
+     * access, no allocation — and is false for every non-immersive portal,
+     * which keeps their particles exactly as they were.
+     */
+    public static boolean isImmersiveArrival(RegistryKey<World> world, BlockPos pos) {
+        Map<BlockPos, ArrivalPortal> index = ARRIVALS.get(world);
+        if (index == null || index.isEmpty()) {
+            return false;
+        }
+        for (ArrivalPortal arrival : index.values()) {
+            if (arrival.zone.interior.contains(pos)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean suppliesParticlesFor(PortalHelper.PortalZone zone) {
         return zone != null && zone.definition != null
                 && zone.definition.getImmersive() != null

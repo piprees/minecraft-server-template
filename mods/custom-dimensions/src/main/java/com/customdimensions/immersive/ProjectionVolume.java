@@ -258,10 +258,15 @@ public final class ProjectionVolume {
      * leaks — those rays miss the frame altogether and reach the block in open
      * air — and that is exactly the rule's cutoff.
      *
-     * <p>The ring is one cell thick, matching the frame. A portal built into a
-     * wider WALL occludes more than that, so this stays slightly conservative
-     * for those; correcting it would mean probing real block states in the
-     * plane, which is a world read this class deliberately does not do.
+     * <p>The occluder set is whatever actually blocks sight in the portal's
+     * plane — see {@link #occluders}. A one-cell ring derived from geometry
+     * was the first attempt and it was still too tight in two ways, both
+     * reported: it omits the frame's diagonal CORNERS (a shadow clipping one
+     * was rejected outright, which is why sand kept showing at the bottom
+     * corners of the opening), and a portal built into a wider WALL occludes
+     * far more than one cell, so every steep or oblique view lost blocks the
+     * wall was already hiding. Reading the plane answers both, and adapts to
+     * whatever the player actually built.
      *
      * <h2>How the shadow is computed</h2>
      * Only the block's two faces ON THE NORMAL AXIS matter for the crossing
@@ -329,12 +334,13 @@ public final class ProjectionVolume {
      * as a bug, the bug is something else keyed to this mask that should not
      * be — as {@code PlayerProjectionState}'s 4a light layer once was.
      *
-     * @param frameRing the opening's in-plane ring ({@link #frameRing}); an
-     *                  empty or null set degrades to the old strict
+     * @param occluders in-plane positions that block sight ({@link #occluders},
+     *                  or {@link #frameRing} for the geometry-only fallback);
+     *                  an empty or null set degrades to the strict
      *                  whole-shadow-inside-the-aperture rule
      */
     public static boolean seesThroughOpening(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
-            int planeCoord, Set<BlockPos> interior, Set<BlockPos> frameRing, BlockPos.Mutable scratch) {
+            int planeCoord, Set<BlockPos> interior, Set<BlockPos> occluders, BlockPos.Mutable scratch) {
         if (eye == null || block == null || normalAxis == null || interior == null || interior.isEmpty()) {
             return false;
         }
@@ -357,7 +363,7 @@ public final class ProjectionVolume {
         double tLow = toPlane / (blockN - eyeN);
         double tHigh = toPlane / ((blockN + 1.0) - eyeN);
         return shadowFitsOpening(eye, block, normalAxis, planeCoord, tLow, tHigh,
-                interior, frameRing, scratch);
+                interior, occluders, scratch);
     }
 
     /**
@@ -366,7 +372,7 @@ public final class ProjectionVolume {
      * the opening at least once and stay within the opening plus its ring?
      */
     private static boolean shadowFitsOpening(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
-            int planeCoord, double t0, double t1, Set<BlockPos> interior, Set<BlockPos> frameRing,
+            int planeCoord, double t0, double t1, Set<BlockPos> interior, Set<BlockPos> occluders,
             BlockPos.Mutable scratch) {
         double uEye;
         double vEye;
@@ -427,7 +433,7 @@ public final class ProjectionVolume {
                     touchesOpening = true;
                     continue;
                 }
-                if (frameRing == null || !frameRing.contains(probe)) {
+                if (occluders == null || !occluders.contains(probe)) {
                     // Past the frame: these rays reach the block in open air,
                     // which is the leak the whole mask exists to prevent.
                     return false;
@@ -477,6 +483,72 @@ public final class ProjectionVolume {
      * {@code PortalHelper.planeDirections} so this class stays world- and
      * mod-free; the two produce the same four directions by construction.
      */
+    /**
+     * The in-plane positions around an opening that actually block sight,
+     * asked of the world rather than assumed from the frame's shape.
+     *
+     * <p>Walks the aperture's in-plane bounding box grown by {@code margin},
+     * skips the aperture itself, and keeps every cell {@code isOccluding}
+     * accepts. The caller supplies that predicate so this class stays
+     * world-free; in the projector it is "the real block here is an opaque
+     * full cube, on a loaded chunk".
+     *
+     * <p><b>Why not {@link #frameRing}.</b> Geometry gets this wrong in both
+     * directions. It misses the frame's diagonal CORNER blocks, because a ring
+     * built by offsetting each aperture cell along the four in-plane
+     * directions never reaches them — and a shadow clipping a corner was
+     * therefore rejected as a leak, which is why real ground kept showing
+     * through the bottom corners of the opening. It also stops at one cell,
+     * while most portals worth looking through are set into a WALL that
+     * occludes far more, so every steep or oblique view lost blocks the wall
+     * was already hiding. Neither is a tuning problem; both are the same
+     * mistake of describing the occluder instead of measuring it.
+     *
+     * <p>Anything the predicate declines — unloaded chunk, glass, air — is
+     * treated as see-through, so the mask stays conservative exactly where
+     * the evidence is missing.
+     */
+    public static Set<BlockPos> occluders(Set<BlockPos> interior, Direction.Axis portalAxis,
+            int margin, Predicate<BlockPos> isOccluding) {
+        if (interior == null || interior.isEmpty() || isOccluding == null) {
+            return Set.of();
+        }
+        Direction.Axis normal = normalAxis(portalAxis);
+        int planeCoord = minOn(interior, normal);
+        Direction.Axis uAxis = normal == Direction.Axis.X ? Direction.Axis.Y : Direction.Axis.X;
+        Direction.Axis vAxis = normal == Direction.Axis.Z ? Direction.Axis.Y : Direction.Axis.Z;
+        int pad = Math.max(0, margin);
+        int uMin = minOn(interior, uAxis) - pad;
+        int uMax = maxOn(interior, uAxis) + pad;
+        int vMin = minOn(interior, vAxis) - pad;
+        int vMax = maxOn(interior, vAxis) + pad;
+
+        Set<BlockPos> out = new HashSet<>();
+        for (int u = uMin; u <= uMax; u++) {
+            for (int v = vMin; v <= vMax; v++) {
+                BlockPos pos = fromPlane(normal, planeCoord, u, v);
+                if (interior.contains(pos)) {
+                    continue;
+                }
+                if (isOccluding.test(pos)) {
+                    out.add(pos);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Rebuild a plane position from its normal coordinate and (u, v) pair. */
+    private static BlockPos fromPlane(Direction.Axis normal, int planeCoord, int u, int v) {
+        if (normal == Direction.Axis.X) {
+            return new BlockPos(planeCoord, u, v);
+        }
+        if (normal == Direction.Axis.Y) {
+            return new BlockPos(u, planeCoord, v);
+        }
+        return new BlockPos(u, v, planeCoord);
+    }
+
     public static Set<BlockPos> frameRing(Set<BlockPos> interior, Direction.Axis portalAxis) {
         if (interior == null || interior.isEmpty()) {
             return Set.of();

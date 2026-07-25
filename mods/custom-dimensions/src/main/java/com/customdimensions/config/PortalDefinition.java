@@ -472,6 +472,19 @@ public class PortalDefinition {
         public List<String> fluids;
         public Map<String, String> conversions;
         public Double fireChance;
+        /**
+         * "none" | "natural" (default) | "everything" — see AuraPolicy.
+         *
+         * <p>Persisted into zone and aura-site records like the rest of
+         * this snapshot, but the LIVE config wins at use time
+         * (PortalAuraManager.subsumeFor): the policy has to be
+         * re-decidable for portals that are already lit, or auditing the
+         * shipped dimension set would change nothing on a running world.
+         * The persisted value is only a fallback for a portal whose
+         * dimension has left the config. A plain string, so older jars
+         * ignore the unknown field — the downgrade rule.
+         */
+        public String subsume;
 
         public int getRadius() {
             return this.radius != null ? Math.max(1, Math.min(32, this.radius)) : 8;
@@ -509,6 +522,11 @@ public class PortalDefinition {
 
         public Map<String, String> getConversions() {
             return this.conversions != null ? this.conversions : Map.of();
+        }
+
+        /** Normalised subsume policy; unknown/absent values mean "natural". */
+        public String getSubsume() {
+            return com.customdimensions.portal.AuraPolicy.normalise(this.subsume);
         }
     }
 }

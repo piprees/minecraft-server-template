@@ -757,24 +757,46 @@ public class PortalHelper {
         if (com.customdimensions.immersive.ImmersiveProjector.suppliesParticlesFor(zone)) {
             return;
         }
-        // An immersive portal's interior fill is suppressed entirely: the
-        // PREVIEW is the visual, and a doorway packed with particles is
-        // exactly what you cannot see through. Requested in-game 2026-07-25
-        // ("turn particles off but keep the dust effect so it looks more
-        // like a window"). The projector's coloured edge particles still
-        // trace the frame, so the portal keeps its outline and its colour —
-        // it just stops fogging its own view. Non-immersive portals are
-        // untouched: the fill is their only visual.
-        if (zone.definition != null && zone.definition.getImmersive() != null) {
+        ParticleEffect effect = resolveParticleEffect(zone.definition);
+        boolean immersive = zone.definition != null && zone.definition.getImmersive() != null;
+        if (immersive) {
+            // An immersive portal thins its interior fill rather than losing
+            // it. The full 2-per-cell-per-tick fill is exactly what you
+            // cannot see through, and suppressing it entirely was the first
+            // fix — but that left "a perfectly hollow box", with nothing to
+            // say the doorway is anything but a hole until the client-side
+            // work lands. A twelfth of the density reads as dust drifting
+            // out of the opening while leaving the view clear.
+            if ((world.getTime() + particlePhase(zone)) % IMMERSIVE_PARTICLE_INTERVAL != 0) {
+                return;
+            }
+            for (BlockPos p : zone.interior) {
+                world.spawnParticles(effect,
+                        p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
+                        1, 0.25, 0.25, 0.25, 0.005
+                );
+            }
             return;
         }
-        ParticleEffect effect = resolveParticleEffect(zone.definition);
+        // Non-immersive portals are untouched: the fill is their only visual.
         for (BlockPos p : zone.interior) {
             world.spawnParticles(effect,
                     p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
                     2, 0.4, 0.4, 0.4, 0.01
             );
         }
+    }
+
+    /** Ticks between the thinned particle passes an immersive portal emits. */
+    private static final int IMMERSIVE_PARTICLE_INTERVAL = 6;
+
+    /**
+     * Per-zone phase offset so several portals in view do not all pulse on
+     * the same tick — the same trick the projector's edge particles use.
+     */
+    private static int particlePhase(PortalZone zone) {
+        BlockPos any = zone.interior.iterator().next();
+        return Math.floorMod(any.hashCode(), IMMERSIVE_PARTICLE_INTERVAL);
     }
 
     public static void spawnTargetPortalParticles(ServerWorld level) {
@@ -799,6 +821,16 @@ public class PortalHelper {
                     if (!healPortalHole(level, targets, p)) {
                         continue;
                     }
+                }
+                // An immersive arrival is a window too — the projector fakes
+                // its portal blocks away so the swirl and vanilla's particles
+                // stop, and a full-rate dust emission here would just put the
+                // haze straight back. Same thinning, same reasoning, as the
+                // source side in spawnParticles.
+                if (com.customdimensions.immersive.ImmersiveProjector.isImmersiveArrival(worldKey, p)
+                        && (level.getTime() + Math.floorMod(p.hashCode(), IMMERSIVE_PARTICLE_INTERVAL))
+                                % IMMERSIVE_PARTICLE_INTERVAL != 0) {
+                    continue;
                 }
                 ParticleEffect effect = resolveParticleFromTarget(rt);
                 level.spawnParticles(effect,

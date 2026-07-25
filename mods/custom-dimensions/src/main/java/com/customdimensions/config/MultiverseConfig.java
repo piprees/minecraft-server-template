@@ -188,6 +188,35 @@ public class MultiverseConfig {
         return null;
     }
 
+    /**
+     * The live {@code portal.aura.subsume} policy for the dimension a
+     * portal targets, or null when no configured portal targets it.
+     *
+     * <p>Same shape and same reason as {@link #getImmersiveFor}: the
+     * value persisted in a zone record is a snapshot of ignition time,
+     * and this is how a config edit reaches portals that are already lit.
+     * Both sides of a link resolve through this one key — the source
+     * zone's aura and the arrival site's aura are both governed by the
+     * TARGET dimension's config, because that is the dimension whose
+     * nature is leaking.
+     */
+    public String getAuraSubsumeFor(RegistryKey<World> targetWorld) {
+        if (targetWorld == null) {
+            return null;
+        }
+        for (PortalDefinition p : this.portals) {
+            try {
+                if (targetWorld.equals(p.getTargetKey())) {
+                    return p.getAura().getSubsume();
+                }
+            } catch (RuntimeException ignored) {
+                // A malformed targetDimension on an unrelated portal must
+                // never break the lookup for the rest of the list.
+            }
+        }
+        return null;
+    }
+
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {
         if (blockId.equals(this.settings.frameOverworld)) {
             return new PortalDefinition("default_overworld", this.settings.frameOverworld, "", "minecraft:overworld", "#00AAAA", 0);

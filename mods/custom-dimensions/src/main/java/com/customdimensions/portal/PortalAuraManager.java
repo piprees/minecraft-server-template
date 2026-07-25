@@ -1,6 +1,7 @@
 package com.customdimensions.portal;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.compat.ClaimsCompat;
 import com.customdimensions.config.PortalDefinition;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -40,8 +41,23 @@ import java.util.function.Predicate;
  * write uses NOTIFY_LISTENERS | FORCE_STATE; budgets persist so restarts
  * resume rather than re-burn; fluids only form in depressions and count
  * double; feature-placement failures are silent no-ops.
+ *
+ * <p>What it is allowed to eat is a separate question with three correct
+ * answers, one per dimension — {@code portal.aura.subsume}, see
+ * {@link AuraPolicy}. Two gates apply to every candidate position, in
+ * this order: a claimed chunk is never touched by anything (hard veto,
+ * not a policy case), and a replacement additionally needs the policy's
+ * permission. Neither gate is reachable by a non-aura code path.
  */
 public final class PortalAuraManager {
+
+    /**
+     * Made things — what a {@code natural} aura will not convert. Shipped
+     * in the jar datapack ({@code data/adventure/tags/block/}) so it is
+     * extensible by a consumer datapack without a mod change.
+     */
+    private static final TagKey<Block> AURA_PROTECTED =
+            TagKey.of(RegistryKeys.BLOCK, Identifier.of("adventure", "aura_protected"));
 
     /** Terrain palette size cap (top-N histogram entries). */
     private static final int PALETTE_SIZE = 5;
@@ -180,7 +196,8 @@ public final class PortalAuraManager {
             int spent = runPass(world, centreOf(zone.interior),
                     exclusionFor(zone.interior, zone.axis),
                     zone.auraPalette, zone.auraFlora, zone.auraTrees, zone.auraFluids,
-                    s, budget < 0 ? Integer.MAX_VALUE : budget - zone.auraBudgetSpent);
+                    s, subsumeFor(zone.targetWorld, s),
+                    budget < 0 ? Integer.MAX_VALUE : budget - zone.auraBudgetSpent);
             if (spent > 0) {
                 zone.auraBudgetSpent += spent;
                 dirty = true;
@@ -206,7 +223,8 @@ public final class PortalAuraManager {
                 int spent = runPass(world, centreOf(interior),
                         exclusionForArrival(world, interior),
                         site.palette, site.flora, site.trees, site.fluids,
-                        s, budget < 0 ? Integer.MAX_VALUE : budget - site.budgetSpent);
+                        s, subsumeFor(worldKey, s),
+                        budget < 0 ? Integer.MAX_VALUE : budget - site.budgetSpent);
                 if (spent > 0) {
                     site.budgetSpent += spent;
                     dirty = true;
@@ -224,16 +242,32 @@ public final class PortalAuraManager {
 
     // === One aura pass =====================================================
 
+    /**
+     * The live subsume policy governing an aura, keyed on the dimension
+     * whose nature is leaking. Falls back to the snapshot persisted with
+     * the zone/site only when that dimension is no longer configured.
+     */
+    private static String subsumeFor(RegistryKey<net.minecraft.world.World> dimensionKey,
+            PortalDefinition.AuraSettings snapshot) {
+        String live = com.customdimensions.config.MultiverseConfig.getInstance()
+                .getAuraSubsumeFor(dimensionKey);
+        if (live != null) {
+            return live;
+        }
+        return snapshot != null ? snapshot.getSubsume() : AuraPolicy.NATURAL;
+    }
+
     /** Returns budget units spent (fluids count double). */
     private static int runPass(ServerWorld world, BlockPos centre, Set<BlockPos> exclusion,
             List<String> palette, List<String> flora, List<String> trees, List<String> fluids,
-            PortalDefinition.AuraSettings s, int remaining) {
+            PortalDefinition.AuraSettings s, String subsume, int remaining) {
         if (!world.getChunkManager().isChunkLoaded(centre.getX() >> 4, centre.getZ() >> 4)) {
             return 0; // never spread into (or from) unloaded terrain
         }
         int radius = s.getRadius();
         Random random = Random.create(centre.asLong() ^ world.getTime() * 0x9E3779B97F4A7C15L);
         int spent = 0;
+        int claimed = 0;
         for (int i = 0; i < s.getBlocksPerPass() && spent < remaining; i++) {
             BlockPos pos = centre.add(
                     random.nextBetween(-radius, radius),
@@ -244,7 +278,22 @@ public final class PortalAuraManager {
                     || PortalHelper.isRegisteredPortalPosition(world.getRegistryKey(), pos)) {
                 continue;
             }
-            spent += convertAt(world, pos, palette, flora, trees, fluids, s, random);
+            // The hard gate, above the policy and above "everything":
+            // a claimed chunk is the player having already said "this is
+            // mine", and no dimension outranks that.
+            if (ClaimsCompat.isClaimed(world, pos)) {
+                claimed++;
+                continue;
+            }
+            spent += convertAt(world, pos, palette, flora, trees, fluids, s, subsume, random);
+        }
+        if (claimed > 0) {
+            // Counts, not events: a silently-doing-nothing aura and a
+            // correctly-vetoed one look identical without this number.
+            MultiverseServer.LOGGER.debug(
+                    "aura: pass near {} in {} spent {}, {} of {} candidates vetoed by a claim",
+                    centre.toShortString(), world.getRegistryKey().getValue(),
+                    spent, claimed, s.getBlocksPerPass());
         }
         return spent;
     }
@@ -252,7 +301,7 @@ public final class PortalAuraManager {
     /** One conversion attempt at one position; returns budget units spent. */
     private static int convertAt(ServerWorld world, BlockPos pos,
             List<String> palette, List<String> flora, List<String> trees, List<String> fluids,
-            PortalDefinition.AuraSettings s, Random random) {
+            PortalDefinition.AuraSettings s, String subsume, Random random) {
         BlockState state = world.getBlockState(pos);
         int flags = Block.NOTIFY_LISTENERS | Block.FORCE_STATE;
 
@@ -262,12 +311,15 @@ public final class PortalAuraManager {
                 return 0;
             }
             // Fire first (explicitly configured aggression), then fluids in
-            // depressions, then the odd tree, then flora.
-            if (s.getFireChance() > 0 && random.nextDouble() < s.getFireChance()) {
+            // depressions, then the odd tree, then flora. The first two are
+            // gated by the policy even though they only fill air — see
+            // AuraPolicy.allowsHazardousAdditions.
+            boolean hazards = AuraPolicy.allowsHazardousAdditions(subsume);
+            if (hazards && s.getFireChance() > 0 && random.nextDouble() < s.getFireChance()) {
                 world.setBlockState(pos, Blocks.FIRE.getDefaultState(), flags);
                 return 1;
             }
-            if (fluids != null && !fluids.isEmpty() && random.nextDouble() < FLUID_CHANCE
+            if (hazards && fluids != null && !fluids.isEmpty() && random.nextDouble() < FLUID_CHANCE
                     && isDepression(p -> world.getBlockState(p).isOpaqueFullCube(world, p), pos)) {
                 Block fluid = blockOf(fluids.get(random.nextInt(fluids.size())));
                 if (fluid != null) {
@@ -305,6 +357,14 @@ public final class PortalAuraManager {
         // Never touch containers/machines, unbreakables, or portal blocks.
         if (world.getBlockEntity(pos) != null || state.isOf(Blocks.BEDROCK)
                 || PortalHelper.isPortalBlock(state)) {
+            return 0;
+        }
+        // Everything below this line REPLACES a block that is already
+        // there, so the policy decides once, here, for all of it —
+        // explicit conversions included. A conversion map names what an
+        // author wants changed; it does not carry permission to eat a
+        // player's walls. An author who means that says "everything".
+        if (!AuraPolicy.allowsReplacement(subsume, state.isIn(AURA_PROTECTED))) {
             return 0;
         }
         // Explicit conversions win (obsidian -> crying_obsidian, etc.).

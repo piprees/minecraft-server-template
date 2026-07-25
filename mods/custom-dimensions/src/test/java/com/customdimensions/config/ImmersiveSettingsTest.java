@@ -33,8 +33,20 @@ class ImmersiveSettingsTest {
     }
 
     @Test
-    void testAbsent() {
-        assertNull(parsePortal("{\"portal\":{\"frameBlock\":\"b\"}}").getImmersive());
+    void testAbsentIsOnByDefault() {
+        // Immersive is the house style for every portal this mod builds, so
+        // saying nothing means yes. Opting out is an explicit false.
+        ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\"}}").getImmersive();
+        assertNotNull(imm);
+        assertTrue(imm.enabled());
+        assertEquals(8, imm.previewDepth());
+    }
+
+    @Test
+    void testExplicitFalseIsTheOptOut() {
+        assertNull(parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":false}}").getImmersive());
+        assertNull(parsePortal(
+                "{\"portal\":{\"frameBlock\":\"b\",\"immersive\":{\"enabled\":false}}}").getImmersive());
     }
 
     @Test

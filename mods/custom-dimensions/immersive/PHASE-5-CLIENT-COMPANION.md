@@ -130,6 +130,44 @@ the companion mod.
 
 ---
 
+### 5h. Depth, and the sky behind it
+
+Raised by the project owner 2026-07-25: *"in my head it should go out by at
+least 2 chunks"*, plus *"the skybox is something we will also need to consider
+when viewed through the portal"*. Both are correct, and both are this phase.
+
+`previewDepth` defaults to **8 blocks** and is capped at 16. Two chunks (32)
+is not a tuning change, because the slab is not a camera — it is **real space
+in the source world**, painted over on the client:
+
+- **Every projected position overwrites a real block.** At depth 8 the default
+  2x3 doorway with `previewRadius` 2 has 336 candidates; at 32 it would be
+  1344, each an individual `BlockUpdateS2CPacket`, per player per portal.
+- **They occupy walkable space.** Depth is how far behind the portal the
+  client believes the destination is; anything a player can stand in is
+  somewhere they can collide with a block that is not there. Eight blocks of
+  that is already the source of the collision hiccups.
+- **The cone is bounded by `previewRadius` (max 4), not by depth.** The
+  visible frustum widens with distance, so past ~16 blocks the extra layers
+  are a narrowing tunnel clipped by the radius — more packets for less view.
+
+So depth cannot buy distance. Distance needs a real camera: a second
+`WorldRenderer` pass rendering the destination to a texture, which is this
+phase's core proposal — and once that exists, the depth cap stops mattering
+because nothing is being faked into the source world at all.
+
+**The skybox is the same problem seen from the top.** Through a portal to a
+sky-island or void dimension you should see that dimension's sky, fog and
+cloud layer, not the overworld's. A fake-block projection cannot express
+"sky" at all — there is no block to send for it, so the far side reads as
+whatever the source dimension's horizon happens to be doing, which is why a
+preview onto open terrain looks like a hole in the world rather than a window
+into another one. Nothing server-side can change that: sky, fog colour and
+cloud height are client render state keyed to the dimension being rendered.
+Fold it into the render-to-texture work — it comes almost free there, since
+the second pass already needs the destination's dimension effects to render
+anything correctly.
+
 ## Enabling work
 
 ### 5f. A server→client capability handshake

@@ -54,6 +54,9 @@
       "ignite": "block.azalea_leaves.place",
       "enter": "entity.parrot.ambient",
       "exit": "entity.breeze.idle_air"
+    },
+    "aura": {
+      "subsume": "none"
     }
   },
   "structures": {

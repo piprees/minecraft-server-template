@@ -636,6 +636,7 @@ public class DimensionConfig {
             aura.fluids = this.portal.aura.fluids;
             aura.conversions = this.portal.aura.conversions;
             aura.fireChance = this.portal.aura.fireChance;
+            aura.subsume = this.portal.aura.subsume;
             def.setAura(aura);
         }
         def.setImmersive(this.portal.getImmersiveSettings());
@@ -1242,6 +1243,13 @@ public class DimensionConfig {
         /** Per-pass ignition chance on exposed surfaces (default 0). */
         @SerializedName("fireChance")
         public Double fireChance;
+        /**
+         * What the aura may eat: "none" | "natural" (default) |
+         * "everything". Claims veto all three. See AuraPolicy — an
+         * "everything" dimension should say so in its description.
+         */
+        @SerializedName("subsume")
+        public String subsume;
     }
 
     /**

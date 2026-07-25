@@ -9,12 +9,20 @@ import com.google.gson.JsonObject;
  * "immersive" field on {@link DimensionConfig.Portal}:
  *
  * <pre>
+ *   absent                            -&gt; enabled, all defaults (ON by default)
  *   "immersive": true                 -&gt; enabled, all defaults
- *   "immersive": false / absent       -&gt; null (not immersive)
+ *   "immersive": false                -&gt; null (opt OUT)
  *   "immersive": {}                   -&gt; enabled, all defaults
  *   "immersive": {"enabled": false}   -&gt; null, even with other fields set
  *   "immersive": {"previewDepth": 4}  -&gt; that field clamped, rest defaults
  * </pre>
+ *
+ * <b>Absent means ON.</b> Immersive started as opt-in while it was risky;
+ * it is now the house style for every portal this mod builds, and a
+ * dimension that wants a plain vanilla portal says {@code "immersive":
+ * false}. Keeping it opt-in would have meant most dimensions never
+ * exercising the feature — the opposite of what catches its bugs, which
+ * have every one of them been silent absence rather than a crash.
  *
  * Deliberately NOT serialised into portal_links.json zone records: it is
  * transient on {@link PortalDefinition} and re-read from dimension config
@@ -60,13 +68,17 @@ public record ImmersiveSettings(
      */
     public static ImmersiveSettings fromJson(JsonElement element) {
         if (element == null || element.isJsonNull()) {
-            return null;
+            // Absent = on. Opting out is an explicit "immersive": false.
+            return DEFAULTS;
         }
         if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isBoolean()) {
             return element.getAsBoolean() ? DEFAULTS : null;
         }
         if (!element.isJsonObject()) {
-            return null;
+            // A malformed value is not a request to turn the feature off:
+            // the rest of this parser falls back to defaults rather than
+            // rejecting, and so does this.
+            return DEFAULTS;
         }
         JsonObject obj = element.getAsJsonObject();
         if (isExplicitlyDisabled(obj)) {

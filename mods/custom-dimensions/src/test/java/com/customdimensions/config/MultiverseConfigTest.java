@@ -191,7 +191,11 @@ class MultiverseConfigTest {
                  "immersive":{"previewDepth":4}}}
                 """);
         Files.writeString(dims.resolve("the_other.json"), """
-                {"portal":{"frameBlock":"minecraft:mud_bricks","igniterItem":"minecraft:pink_petals"}}
+                {"portal":{"frameBlock":"minecraft:mud_bricks","igniterItem":"minecraft:pink_petals",
+                 "immersive":false}}
+                """);
+        Files.writeString(dims.resolve("the_quiet.json"), """
+                {"portal":{"frameBlock":"minecraft:tuff","igniterItem":"minecraft:clay_ball"}}
                 """);
         MultiverseConfig config = fromDirectory(dir);
 
@@ -203,8 +207,14 @@ class MultiverseConfigTest {
         assertNotNull(imm);
         assertEquals(4, imm.previewDepth());
 
-        assertNull(config.getImmersiveFor(otherKey));      // no "immersive" configured for this portal
+        assertNull(config.getImmersiveFor(otherKey));      // explicit "immersive": false — the opt-out
         assertNull(config.getImmersiveFor(unrelatedKey));  // no portal targets this dimension at all
         assertNull(config.getImmersiveFor(null));
+
+        // Saying nothing means immersive, at every default.
+        RegistryKey<World> quietKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("adventure:the_quiet"));
+        ImmersiveSettings quiet = config.getImmersiveFor(quietKey);
+        assertNotNull(quiet);
+        assertEquals(8, quiet.previewDepth());
     }
 }

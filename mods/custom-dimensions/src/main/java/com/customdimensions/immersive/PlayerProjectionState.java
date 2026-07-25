@@ -216,12 +216,12 @@ public final class PlayerProjectionState {
     /** Depth the current {@link #volume} was built with (0 = none yet). */
     private int builtDepth;
     /**
-     * The opening's in-plane ring — the mask's occluder set. A property of
-     * the zone, not of the viewer, so it is resolved once and reused; a
-     * partially-visible block is shown precisely because the rest of it is
-     * behind these.
+     * How far past the aperture the occluder probe looks, on top of
+     * {@code previewRadius}. A block's shadow can spill a cell or two beyond
+     * the slab's own footprint at a grazing angle, and a wall the probe never
+     * looked at reads as see-through — which hides blocks it was covering.
      */
-    private Set<BlockPos> frameRing = Set.of();
+    private static final int OCCLUDER_MARGIN = 3;
 
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
@@ -303,8 +303,22 @@ public final class PlayerProjectionState {
             this.builtDepth = depth;
             this.volume = ProjectionVolume.computeSourcePositions(this.zone.interior, this.zone.axis,
                     wanted, depth, settings.previewRadius());
-            this.frameRing = ProjectionVolume.frameRing(this.zone.interior, this.zone.axis);
         }
+
+        // What actually blocks sight in the portal's plane, measured rather
+        // than assumed — a frame's corner blocks and the wall it is set into
+        // are both occluders, and neither is derivable from the aperture's
+        // shape. Rebuilt per pass so breaking the wall widens the window on
+        // the next refresh; the probe never loads a chunk (Rule 1), and an
+        // unloaded cell counts as see-through, which only ever hides more.
+        Set<BlockPos> occluders = sourceWorld == null
+                ? ProjectionVolume.frameRing(this.zone.interior, this.zone.axis)
+                : ProjectionVolume.occluders(this.zone.interior, this.zone.axis,
+                        settings.previewRadius() + OCCLUDER_MARGIN,
+                        probePos -> sourceWorld.getChunkManager()
+                                .isChunkLoaded(probePos.getX() >> 4, probePos.getZ() >> 4)
+                                && sourceWorld.getBlockState(probePos)
+                                        .isOpaqueFullCube(sourceWorld, probePos));
 
         // 4a: the positions directly behind the opening are sent as invisible
         // LIGHT instead of their sampled block, so the preview is lit by its
@@ -356,7 +370,7 @@ public final class PlayerProjectionState {
                 lights++;
             } else {
                 if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
-                        this.zone.interior, this.frameRing, probe)) {
+                        this.zone.interior, occluders, probe)) {
                     // Behind the frame wall from where this player is standing.
                     // A position that WAS visible and no longer is must be given
                     // its real block back here and now: the player walked, the
@@ -394,6 +408,41 @@ public final class PlayerProjectionState {
             }
             handler.sendPacket(new BlockUpdateS2CPacket(pos, state));
             this.lastSent.put(pos, state);
+        }
+
+        // The APERTURE itself, on the arrival side only.
+        //
+        // An arrival portal is made of REAL NETHER_PORTAL blocks, so it keeps
+        // vanilla's purple swirl and its client-side particle storm — you
+        // walk up to the way home and see a nether portal with a preview
+        // hiding behind it. The source side has no such problem because its
+        // zone interior is air by construction (mods/AGENTS.md), which is
+        // exactly what tells the two directions apart here without a flag
+        // threaded through the shared activation path.
+        //
+        // Faking the aperture to whatever the return world holds there —
+        // air, in practice, since it maps onto the source zone's interior —
+        // removes both: no swirl to draw and, because the client believes
+        // it is air, no randomDisplayTick to spawn particles from either.
+        // The real block is untouched, so traversal is unaffected, and
+        // restore() hands the portal block back (PLAN.md Gotcha #8).
+        if (overlaysPlane()) {
+            for (BlockPos pos : this.zone.interior) {
+                BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
+                if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
+                    continue;
+                }
+                BlockState state = sample(targetWorld, targetPos, chunks);
+                if (state == null) {
+                    continue;
+                }
+                BlockState previous = this.lastSent.get(pos);
+                if (previous == state) {
+                    continue;
+                }
+                handler.sendPacket(new BlockUpdateS2CPacket(pos, state));
+                this.lastSent.put(pos, state);
+            }
         }
 
         if (full || unmasked > 0) {
@@ -465,6 +514,25 @@ public final class PlayerProjectionState {
         return due;
     }
 
+    /**
+     * Is this the ARRIVAL direction, whose aperture is made of real portal
+     * blocks that would otherwise show through the preview?
+     *
+     * <p>Decided from the one structural difference between the two
+     * directions rather than from a flag: only an arrival aperture's cells
+     * are registered portal positions. A source zone's interior carries no
+     * portal blocks at all — that invariant is load-bearing elsewhere in the
+     * mod (mods/AGENTS.md § Portal system) and is what makes source zones
+     * invisible in the first place.
+     */
+    private boolean overlaysPlane() {
+        if (this.zone.interior.isEmpty()) {
+            return false;
+        }
+        return PortalHelper.isRegisteredPortalPosition(
+                this.sourceWorldKey, this.zone.interior.iterator().next());
+    }
+
     /** Pure 4c predicate: elapsed ticks against the movement-scaled interval. */
     static boolean shouldRefresh(long tick, long lastRefreshTick, double movedSq, int refreshInterval) {
         long interval = Math.max(1, refreshInterval);
@@ -488,7 +556,6 @@ public final class PlayerProjectionState {
     public void forget() {
         this.lastSent.clear();
         this.volume = List.of();
-        this.frameRing = Set.of();
         this.normal = null;
         this.builtDepth = 0;
         this.lastRefreshEye = null;

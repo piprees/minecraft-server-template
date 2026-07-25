@@ -42,6 +42,9 @@
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
+    },
+    "aura": {
+      "subsume": "everything"
     }
   },
   "seedRoll": {
