@@ -338,7 +338,19 @@ class ProjectionVolumeTest {
         // it is the size of the defect: 149 positions are on a sightline
         // through the opening from here, and the other 187 were being sent
         // anyway — replacing real blocks around the frame.
-        assertEquals(149, visible, "cone size from a centred eye 6 blocks out");
+        // 6, 6, 6, 6, 10, 10, 20, 20 by depth layer. For the first four
+        // layers the visible set is exactly the aperture's own 2x3
+        // cross-section — you look through a 2x3 hole and see a 2x3 column of
+        // the other side — and it opens out with distance.
+        //
+        // The permissive centre-only test gave 149 here. The 65 positions it
+        // has given up are the ones whose OUTER HALF hung past the frame:
+        // fewer blocks, but none of them smeared across the frame edge.
+        //
+        // Coincidence worth naming: the withdrawn 4e shrink also produced 84
+        // (6x7x2). This 84 is spread over the full 8 blocks of depth, which
+        // is the entire difference between a window and a wallpaper.
+        assertEquals(84, visible, "cone size from a centred eye 6 blocks out");
     }
 
     @Test
@@ -346,19 +358,29 @@ class ProjectionVolumeTest {
         Set<BlockPos> interior = doorwayX(10, 64, 20);
         // Three blocks off to -X of the opening, same distance in front.
         Vec3d oblique = new Vec3d(8.0, 65.5, 14.5);
-
-        // Looking across the opening from the side, the sightlines land on
-        // the FAR side of the slab: the near-side padding is behind the wall
-        // and the far-side padding is now in view. The window slides with
-        // the viewer, which is where the parallax comes from.
-        assertTrue(sees(oblique, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
-        assertFalse(sees(oblique, new BlockPos(9, 65, 21), Direction.Axis.Z, 20, interior));
-
-        // The same position from a centred eye answers the other way round —
-        // which is exactly why the mask cannot be baked into the volume once
-        // and shared between players.
         Vec3d centred = new Vec3d(11.0, 65.5, 14.5);
-        assertFalse(sees(centred, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+
+        // Looking across the opening from the side, the near-side padding is
+        // behind the wall — and so, under the conservative test, is its
+        // far-side neighbour at depth 1: that block's CENTRE clears the
+        // aperture but its outer half does not (see the dedicated test
+        // below). Both keep their real blocks.
+        assertFalse(sees(oblique, new BlockPos(9, 65, 21), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(oblique, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+
+        // The window really does slide with the viewer though. Deeper along
+        // the same bearing — where perspective has shrunk the block's shadow
+        // enough to fit through the opening — the oblique eye sees a position
+        // the centred eye does not. That asymmetry is the parallax, and it is
+        // why the mask cannot be baked into the volume once and shared.
+        //
+        // The band is narrow at both ends, and both ends are the containment
+        // rule: nearer than z=22 the shadow is still too wide to fit, further
+        // than z=25 it has slid off the opening's far edge.
+        assertTrue(sees(oblique, new BlockPos(12, 65, 24), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(centred, new BlockPos(12, 65, 24), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(oblique, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
+        assertFalse(sees(oblique, new BlockPos(12, 65, 27), Direction.Axis.Z, 20, interior));
 
         // Far round the side, only a thin sliver of the slab is still on a
         // true sightline through the doorway (a steep angle across the
@@ -381,10 +403,82 @@ class ProjectionVolumeTest {
                 centredVisible++;
             }
         }
-        // 13 of 336 from beside, against 149 from in front of it.
         assertTrue(besideVisible * 5 < centredVisible,
                 "an oblique viewer should see a sliver, not a wall: "
                         + besideVisible + " vs " + centredVisible);
+    }
+
+    /**
+     * The reported artefact, pinned: *"i'm side-on to the portal... it
+     * shouldn't have those leaves there, if i step slightly to the left it
+     * goes away"*.
+     *
+     * A block whose centre-ray clears the aperture still renders as a full
+     * cube, so at a grazing angle its outer half hangs past the frame. The
+     * centre test — what this mask used to be — passes it; requiring the whole
+     * block to be visible does not.
+     */
+    @Test
+    void aBlockWhoseCentreClearsButWhoseEdgeDoesNotIsHidden() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        Vec3d oblique = new Vec3d(8.0, 65.5, 14.5);
+        BlockPos block = new BlockPos(12, 65, 21);
+
+        // The old test, reproduced here so the difference is explicit rather
+        // than asserted from memory: the ray to the block's CENTRE crosses
+        // the plane at x = 11.86, y = 65.5 — cell (11, 65), which IS part of
+        // the opening.
+        double t = (20.5 - 14.5) / ((21 + 0.5) - 14.5);
+        int centreX = (int) Math.floor(8.0 + t * (12 + 0.5 - 8.0));
+        int centreY = (int) Math.floor(65.5 + t * (65 + 0.5 - 65.5));
+        assertTrue(interior.contains(new BlockPos(centreX, centreY, 20)),
+                "fixture must be a centre-passes case, or it proves nothing");
+
+        // Its near face crosses at x = 11.2 and its far face at x = 12.6, so
+        // the block's shadow spans cells 11 AND 12 — and 12 is frame, not
+        // opening. Half this block would hang outside the portal.
+        assertFalse(sees(oblique, block, Direction.Axis.Z, 20, interior));
+
+        // And the containment really is what rejected it: widen the opening
+        // by the one column its shadow spills into and the same block from
+        // the same eye becomes visible.
+        Set<BlockPos> wider = new HashSet<>(interior);
+        for (int y = 64; y <= 66; y++) {
+            wider.add(new BlockPos(12, y, 20));
+        }
+        assertTrue(sees(oblique, block, Direction.Axis.Z, 20, wider));
+    }
+
+    /**
+     * Full containment must never be looser than the centre test it
+     * subsumes: anything the conservative mask shows, a centre-only mask
+     * would have shown too. Swept over the whole default slab from several
+     * viewing positions.
+     */
+    @Test
+    void theConservativeMaskIsStrictlyTighterThanACentreTest() {
+        Set<BlockPos> interior = doorwayX(10, 64, 20);
+        List<BlockPos> volume = ProjectionVolume.computeSourcePositions(
+                interior, Direction.Axis.X, Direction.SOUTH, 8, 2);
+        Vec3d[] eyes = {
+                new Vec3d(11.0, 65.5, 14.5),
+                new Vec3d(8.0, 65.5, 14.5),
+                new Vec3d(13.5, 62.0, 18.0),
+                new Vec3d(2.0, 70.0, 10.0),
+        };
+        for (Vec3d eye : eyes) {
+            for (BlockPos pos : volume) {
+                if (!sees(eye, pos, Direction.Axis.Z, 20, interior)) {
+                    continue;
+                }
+                // Visible => its centre ray must also land in the opening.
+                double t = (20.5 - eye.z) / ((pos.getZ() + 0.5) - eye.z);
+                int cx = (int) Math.floor(eye.x + t * (pos.getX() + 0.5 - eye.x));
+                int cy = (int) Math.floor(eye.y + t * (pos.getY() + 0.5 - eye.y));
+                assertTrue(interior.contains(new BlockPos(cx, cy, 20)),
+                        "shown a block whose centre misses the opening: " + pos + " from " + eye);
+            }
+        }
     }
 
     @Test

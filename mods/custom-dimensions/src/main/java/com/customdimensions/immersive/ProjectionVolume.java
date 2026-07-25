@@ -163,9 +163,8 @@ public final class ProjectionVolume {
      * The coordinate, along {@code normal}'s axis, of the slab layer nearest
      * the portal plane — the first block of projected depth.
      *
-     * Two Phase 4 passes need to name that layer without walking the volume:
-     * 4a replaces it with invisible LIGHT blocks, and 4e samples it to decide
-     * whether the far side is worth showing at full depth. Both must agree
+     * 4a needs to name that layer without walking the volume, to gate its
+     * {@link #lightPositions} lookup on a cheap int compare. It must agree
      * with {@link #computeSourcePositions}, which starts the slab one block
      * past the plane — hence max+1 / min-1 here, the same arithmetic.
      */
@@ -197,7 +196,28 @@ public final class ProjectionVolume {
     }
 
     /**
-     * Can this viewer see {@code block} THROUGH the portal opening?
+     * Widest cell span the containment test will walk on one in-plane axis
+     * before giving up and calling the block hidden.
+     *
+     * A block's shadow on the plane is normally under one cell across
+     * (perspective shrinks anything behind the plane), and reaches two or
+     * three only for a block far off-axis seen from right against the frame.
+     * Anything wider cannot fit inside an aperture worth projecting through,
+     * so the cap costs nothing real and bounds the loop against a pathological
+     * eye position from a tick path.
+     */
+    private static final int MAX_SHADOW_CELLS = 8;
+
+    /**
+     * A block's shadow that lands exactly on a cell boundary has not entered
+     * the next cell. Without this the common case of a perfectly centred
+     * viewer — whose shadows land on integers — would demand a cell beyond
+     * the frame edge and hide blocks that are precisely inside it.
+     */
+    private static final double EDGE_EPSILON = 1.0e-6;
+
+    /**
+     * Can this viewer see ALL of {@code block} THROUGH the portal opening?
      *
      * <h2>Why this exists</h2>
      * {@link #computeSourcePositions} is a rectangular slab, so most of it
@@ -207,36 +227,59 @@ public final class ProjectionVolume {
      * just look in the general direction of the portal". A portal is a hole,
      * and you can only see through a hole along a line that goes through it.
      *
-     * <h2>The test</h2>
-     * The straight segment from {@code eye} to the block's CENTRE must cross
-     * the portal's mid-plane at a point lying inside the opening. The
-     * crossing point is floored to a block position and looked up in
-     * {@code interior} itself — never in its bounding box, so an irregular
-     * flood-filled frame (an L, an arch, a frame with a notch) masks per
-     * cell, exactly like {@code EntityPassthrough}'s swept-path test does.
+     * <h2>The test: the WHOLE block, not its centre</h2>
+     * The block's shadow — the perspective projection of its full cube from
+     * {@code eye} onto the portal's mid-plane — must lie entirely inside the
+     * opening. Every cell that shadow touches is looked up in {@code interior}
+     * itself, never in its bounding box, so an irregular flood-filled frame
+     * (an L, an arch, a frame with a notch) masks per cell, exactly like
+     * {@code EntityPassthrough}'s swept-path test does.
      *
-     * The result is a view frustum: a narrow window at depth 1 that widens
-     * with depth, and that slides sideways as the player walks — which is
-     * also where the parallax comes from. Positions outside it keep their
-     * real blocks.
+     * <p><b>Testing the centre was not enough</b>, and this is the second
+     * defect this method has had. A block whose centre-ray clears the aperture
+     * still renders as a full cube, so at grazing angles its outer half sticks
+     * out past the frame — reported in-game as "i'm side-on to the portal, it
+     * shouldn't have those leaves there; if i step slightly to the left it
+     * goes away". The mask was doing what it said; what it said was too
+     * permissive. Requiring full containment projects fewer positions, which
+     * is the correct trade: a slightly shallower-looking but CLEAN window
+     * beats a deeper one that smears geometry across the frame edge.
+     *
+     * The result is still a view frustum — a narrow window at depth 1 that
+     * widens with depth and slides sideways as the player walks, which is
+     * where the parallax comes from — just a conservative one. Positions
+     * outside it keep their real blocks.
+     *
+     * <h2>How the shadow is computed</h2>
+     * Only the block's two faces ON THE NORMAL AXIS matter for the crossing
+     * parameter, giving two values of {@code t}; each in-plane axis then has
+     * two candidate coordinates. The four combinations per axis bound the
+     * shadow, and its axis-aligned bounding rectangle is what gets tested.
+     * That rectangle is a superset of the true (hexagonal) shadow, so this
+     * errs towards hiding — the direction we want.
      *
      * <h2>Cost</h2>
-     * One division, two multiply-floors and one {@code Set} lookup per
-     * position per player per refresh, with no allocation when the caller
-     * passes a {@code scratch} it reuses across the volume. {@code scratch}
-     * may be null (tests, one-off calls), which costs one {@link BlockPos}.
+     * A centre test first, which is the old one-division/one-lookup check:
+     * full containment implies centre containment, so a centre miss is a
+     * definite miss and the majority of the slab is rejected at the old
+     * price. Only positions that pass it pay for the extent test — two
+     * divisions, eight multiply-adds and typically one to four more
+     * {@code Set} lookups. No allocation when the caller passes a
+     * {@code scratch} it reuses across the volume; {@code scratch} may be null
+     * (tests, one-off calls), which costs one {@link BlockPos} per lookup.
      *
      * <h2>Boundary behaviour</h2>
-     * Blocks are sampled by their centre, so the frustum edge is decided per
-     * block rather than per fragment — a block straddling the edge is in or
-     * out as a whole. Testing all eight corners would cost 8x for a
-     * half-block of accuracy on a cosmetic effect.
+     * A block is still in or out as a whole — that granularity is inherent, and
+     * it is why geometry visibly snaps as a player walks. That snapping is NOT
+     * a defect to be smoothed: hysteresis or fading would reintroduce the
+     * stuck-fake-block class this feature spent three rounds eliminating. Only
+     * a client-side renderer can clip sub-block accurately; see
+     * {@code immersive/PHASE-5-CLIENT-COMPANION.md}.
      *
      * An eye AT or PAST the plane (the player standing in the doorway, about
-     * to teleport) yields {@code t <= 0} and everything is visible: from
-     * inside the aperture there is nothing left to mask, and returning false
-     * there would blank the whole preview in the last half-block before a
-     * traversal.
+     * to teleport) makes everything visible: from inside the aperture there is
+     * nothing left to mask, and returning false there would blank the whole
+     * preview in the last half-block before a traversal.
      *
      * <h2>Eye POSITION, never camera angle — do not "fix" this</h2>
      * This takes a {@link Vec3d} position and nothing else. It must never
@@ -260,44 +303,140 @@ public final class ProjectionVolume {
         }
         double plane = planeCoord + 0.5;
         double eyeN = eyeOn(eye, normalAxis);
-        double blockN = coordOn(block, normalAxis) + 0.5;
-        double denom = blockN - eyeN;
-        if (Math.abs(denom) < 1.0e-6) {
-            // Eye level with the block along the normal: the segment runs
-            // parallel to the plane and never crosses it. Only reachable
-            // with the eye already inside the slab, i.e. in the doorway.
+        int blockN = coordOn(block, normalAxis);
+        double toPlane = plane - eyeN;
+        // Which side of the plane the slab is on, from this block.
+        double blockSide = (blockN + 0.5) - plane;
+        if (toPlane * blockSide <= 0.0) {
+            // The eye is AT the plane, PAST it, or level with the block: it is
+            // inside the doorway (viewerFarSide keeps the slab opposite the
+            // viewer otherwise). Nothing left to mask, and masking here would
+            // blank the preview in the last half-block before a traversal.
             return true;
         }
-        double t = (plane - eyeN) / denom;
-        if (t <= 0.0) {
-            // Crossing is behind the eye: the eye is at or past the plane.
-            return true;
-        }
-        if (t > 1.0) {
-            // Crossing is past the block, so the block is in FRONT of the
-            // plane. viewerFarSide keeps the slab on the far side, so this
-            // is unreachable in practice — masked rather than trusted.
+
+        // Cheap reject first: full containment implies centre containment, so
+        // a centre miss is a definite miss. This is the whole cost for the
+        // majority of the slab, which lies outside the cone.
+        double tCentre = toPlane / ((blockN + 0.5) - eyeN);
+        if (!cellInside(eye, block, normalAxis, planeCoord, tCentre, tCentre, interior, scratch)) {
             return false;
         }
-        int x;
-        int y;
-        int z;
+
+        // Extent test: the block's two faces on the normal axis give the two
+        // crossing parameters that bound its shadow on the plane.
+        double tLow = toPlane / (blockN - eyeN);
+        double tHigh = toPlane / ((blockN + 1.0) - eyeN);
+        return cellInside(eye, block, normalAxis, planeCoord, tLow, tHigh, interior, scratch);
+    }
+
+    /**
+     * Is every cell the block's shadow touches — taken over the crossing
+     * parameters {@code t0..t1} and the block's full extent on each in-plane
+     * axis — part of the opening?
+     *
+     * Passing the same {@code t} twice degenerates this to the centre test,
+     * which is exactly how the cheap reject above reuses it.
+     */
+    private static boolean cellInside(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
+            int planeCoord, double t0, double t1, Set<BlockPos> interior, BlockPos.Mutable scratch) {
+        boolean centreOnly = t0 == t1;
+        double uEye;
+        double vEye;
+        int uBlock;
+        int vBlock;
         if (normalAxis == Direction.Axis.X) {
-            x = planeCoord;
-            y = crossingOn(eye.y, block.getY(), t);
-            z = crossingOn(eye.z, block.getZ(), t);
+            uEye = eye.y;
+            vEye = eye.z;
+            uBlock = block.getY();
+            vBlock = block.getZ();
         } else if (normalAxis == Direction.Axis.Y) {
-            x = crossingOn(eye.x, block.getX(), t);
-            y = planeCoord;
-            z = crossingOn(eye.z, block.getZ(), t);
+            uEye = eye.x;
+            vEye = eye.z;
+            uBlock = block.getX();
+            vBlock = block.getZ();
         } else {
-            x = crossingOn(eye.x, block.getX(), t);
-            y = crossingOn(eye.y, block.getY(), t);
-            z = planeCoord;
+            uEye = eye.x;
+            vEye = eye.y;
+            uBlock = block.getX();
+            vBlock = block.getY();
         }
-        // A Mutable hashes and compares as its coordinates (Vec3i), so a
-        // reused probe is a valid key for the interior set.
-        return interior.contains(scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z));
+
+        int uMin;
+        int uMax;
+        int vMin;
+        int vMax;
+        if (centreOnly) {
+            uMin = uMax = (int) Math.floor(uEye + t0 * (uBlock + 0.5 - uEye));
+            vMin = vMax = (int) Math.floor(vEye + t0 * (vBlock + 0.5 - vEye));
+        } else {
+            long uSpan = shadowSpan(uEye, uBlock, t0, t1);
+            long vSpan = shadowSpan(vEye, vBlock, t0, t1);
+            uMin = (int) (uSpan >> 32);
+            uMax = (int) uSpan;
+            vMin = (int) (vSpan >> 32);
+            vMax = (int) vSpan;
+            if (uMax - uMin >= MAX_SHADOW_CELLS || vMax - vMin >= MAX_SHADOW_CELLS) {
+                // A shadow this wide cannot fit inside any aperture worth
+                // projecting through; refusing it also bounds the loop below.
+                return false;
+            }
+        }
+
+        for (int u = uMin; u <= uMax; u++) {
+            for (int v = vMin; v <= vMax; v++) {
+                int x;
+                int y;
+                int z;
+                if (normalAxis == Direction.Axis.X) {
+                    x = planeCoord;
+                    y = u;
+                    z = v;
+                } else if (normalAxis == Direction.Axis.Y) {
+                    x = u;
+                    y = planeCoord;
+                    z = v;
+                } else {
+                    x = u;
+                    y = v;
+                    z = planeCoord;
+                }
+                // A Mutable hashes and compares as its coordinates (Vec3i), so
+                // a reused probe is a valid key for the interior set.
+                if (!interior.contains(scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The inclusive cell range one in-plane axis of the block's shadow covers,
+     * packed as {@code (min &lt;&lt; 32) | max} so the caller pays no
+     * allocation per position.
+     *
+     * The extremes are found over the four combinations of the block's two
+     * face coordinates on this axis with the two crossing parameters — the
+     * axis-aligned bound of the shadow. {@link #EDGE_EPSILON} keeps a shadow
+     * that ends exactly on a cell boundary from claiming the next cell, which
+     * matters because a perfectly centred viewer's shadows land on integers.
+     */
+    private static long shadowSpan(double eyeU, int blockU, double t0, double t1) {
+        double lo = blockU;
+        double hi = blockU + 1.0;
+        double a = eyeU + t0 * (lo - eyeU);
+        double b = eyeU + t0 * (hi - eyeU);
+        double c = eyeU + t1 * (lo - eyeU);
+        double d = eyeU + t1 * (hi - eyeU);
+        double min = Math.min(Math.min(a, b), Math.min(c, d));
+        double max = Math.max(Math.max(a, b), Math.max(c, d));
+        int cellMin = (int) Math.floor(min);
+        int cellMax = (int) Math.floor(max - EDGE_EPSILON);
+        if (cellMax < cellMin) {
+            cellMax = cellMin;
+        }
+        return ((long) cellMin << 32) | (cellMax & 0xFFFFFFFFL);
     }
 
     /**
@@ -344,11 +483,6 @@ public final class ProjectionVolume {
             out.add(p.offset(normal));
         }
         return out;
-    }
-
-    /** The block coordinate the segment is passing through at parameter {@code t}. */
-    private static int crossingOn(double from, int toBlock, double t) {
-        return (int) Math.floor(from + t * (toBlock + 0.5 - from));
     }
 
     /** One coordinate of an eye position, chosen by axis. */

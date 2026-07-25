@@ -99,7 +99,7 @@ import java.util.UUID;
  *
  * <h2>Phase 4: three block states, not two</h2>
  * Everything this class reads from the target world is one of THREE things,
- * and collapsing them to two is the bug this feature keeps rediscovering:
+ * and collapsing them to two is a bug this feature kept rediscovering:
  * <ul>
  *   <li><b>air</b> — a loaded chunk says there is nothing there;</li>
  *   <li><b>solid</b> — a loaded chunk says there is something there;</li>
@@ -110,17 +110,44 @@ import java.util.UUID;
  * Unknown is the NORMAL state for the first tick or two after a zone takes
  * its chunk ticket — measured on the live server, the initial full send
  * routinely covers 294 of 336 positions because the far chunk is still on
- * its way in. {@link #decideDepth} therefore never counts unknown as air,
- * and declines to decide at all until most of the layer is known.
+ * its way in. Any future heuristic over projected content must keep the three
+ * apart; treating unknown as air is how you conclude "empty dimension" from a
+ * chunk that simply had not arrived.
+ *
+ * <h2>Withdrawn: 4e's depth auto-scaling — do not re-add it</h2>
+ * Phase 4e shrank the preview to 2 blocks when more than 80% of the first
+ * depth layer sampled as air, the stated aim being that "a portal to a void
+ * dimension shows void" looks like a bug. It was built carefully — three-state
+ * counting, a 75%-known quorum before deciding, the air ratio measured over
+ * known samples only — and it was still wrong, because the QUESTION was wrong:
+ *
+ * <p>{@code ArrivalResolver} lands the interior's floor row on the destination
+ * SURFACE. The first depth layer is therefore the slab immediately above the
+ * destination's terrain, which is air almost everywhere that is not a cave.
+ * Only the {@code previewRadius} padding rows, which map below the floor,
+ * catch solid ground. "First layer is mostly air" is the healthy case for a
+ * portal onto open terrain, not a void-dimension signal — so whether a portal
+ * ran at full depth or half depth came down to how much padding happened to
+ * land in a hillside. One fixture measured 30 air / 12 solid (71%, full
+ * depth); a tester's portal a few hundred blocks away landed the other side of
+ * the threshold and ran at {@code 6 x 7 x 2 = 84} blocks, which he correctly
+ * reported as "no window effect at all".
+ *
+ * <p>Raising the threshold would only move the coin flip. The depth is now
+ * always {@code settings.previewDepth()}, and a portal to a void dimension
+ * previews void — an honest result that needs no rescuing. If someone wants
+ * emptiness handled again, it needs a question about the DESTINATION (its
+ * generator, its configured type) rather than about one slab of blocks.
  */
 public final class PlayerProjectionState {
 
     /**
-     * 4e: depth used when the far side turns out to be mostly empty. Deep
-     * previews of a void dimension read as a bug ("the portal shows
-     * nothing"); two blocks reads as a boundary.
+     * Shallowest slab that can carry a 4a light layer: with only one block of
+     * depth, replacing it with invisible LIGHT would leave nothing to look at.
+     * (Previously {@code SHALLOW_DEPTH}, the target of the withdrawn 4e
+     * shrink — this threshold is all that survives of it.)
      */
-    static final int SHALLOW_DEPTH = 2;
+    static final int LIGHT_LAYER_MIN_DEPTH = 2;
 
     /**
      * 4a: the invisible light source painted over the positions directly
@@ -130,8 +157,8 @@ public final class PlayerProjectionState {
      * <b>A method and not a constant, deliberately:</b> {@code Blocks.LIGHT}
      * resolves through the block registry, so touching it from a static
      * initialiser makes this whole class unloadable outside a bootstrapped
-     * game — every unit test over {@link #decideDepth} and {@link
-     * #shouldRefresh} dies with {@code ExceptionInInitializerError}.
+     * game — every unit test over {@link #shouldRefresh} dies with
+     * {@code ExceptionInInitializerError}.
      * {@code getDefaultState()} returns the interned instance every time, so
      * calling it per position is a field read and the identity comparison in
      * the delta pass still short-circuits.
@@ -176,17 +203,6 @@ public final class PlayerProjectionState {
     /** 4c: refresh interval multiplier applied while stationary. */
     static final int STATIONARY_MULTIPLIER = 4;
 
-    /**
-     * 4e outcome. PENDING is not a failure — it means "not enough of the
-     * first layer is loaded to judge", and the caller must leave the
-     * configured depth alone and ask again on a later pass.
-     */
-    public enum DepthDecision {
-        PENDING,
-        SHALLOW,
-        FULL
-    }
-
     private final UUID playerId;
     private final String playerName;
     private final PortalHelper.PortalZone zone;
@@ -199,13 +215,6 @@ public final class PlayerProjectionState {
     private List<BlockPos> volume = List.of();
     /** Depth the current {@link #volume} was built with (0 = none yet). */
     private int builtDepth;
-
-    /** 4e: true once the first layer could actually be judged. Sticky. */
-    private boolean depthDecided;
-    /** 4e: the judged depth. Only meaningful while {@link #depthDecided}. */
-    private int decidedDepth;
-    /** 4e: one "undecided" log line per projection, not one per pass. */
-    private boolean pendingLogged;
 
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
@@ -265,27 +274,22 @@ public final class PlayerProjectionState {
                 && sourceWorld.getRegistryKey().equals(player.getServerWorld().getRegistryKey());
         // Chunk lookups are cached per pass; nulls are cached too, so an
         // unloaded target chunk costs one lookup per pass, not one per block.
-        // Shared with the 4e depth sampling below, which reads the same
-        // columns.
         Map<Long, WorldChunk> chunks = new HashMap<>();
 
         Direction wanted = ProjectionVolume.viewerFarSide(
                 this.zone.interior, this.zone.axis, player.getBlockPos(), this.normal);
         boolean sideFlip = wanted != this.normal;
-        if (full || sideFlip) {
-            // A different side samples a different column of the target
-            // world, so its emptiness is a different question. Re-ask it.
-            this.depthDecided = false;
-            this.pendingLogged = false;
-        }
-        int depth = resolveDepth(targetWorld, settings, mapping, arrivalY, wanted, chunks);
+        // Always the configured depth. There is deliberately no heuristic
+        // here any more — see "Withdrawn: 4e's depth auto-scaling" in the
+        // class comment before adding one back.
+        int depth = settings.previewDepth();
 
         if (full || sideFlip || depth != this.builtDepth || this.volume.isEmpty()) {
             // Restore the old slab before building the new one, or blocks
-            // that leave the volume stay faked until the player relogs. Two
-            // ways to leave it: a side flip (the player walked round the
-            // frame) and a depth change (4e shrinking a mostly-empty view
-            // once its first layer finally loaded).
+            // that leave the volume stay faked until the player relogs. The
+            // usual reason is a side flip (the player walked round the
+            // frame); a depth change now only happens if config is re-read
+            // under a live projection.
             restore(player, sourceWorld);
             this.lastSent.clear();
             this.normal = wanted;
@@ -302,7 +306,7 @@ public final class PlayerProjectionState {
         //
         // View-INDEPENDENT, and that is the whole point: derived from the
         // zone's own geometry, never from the mask. See lightPositions.
-        boolean lightLayer = depth >= SHALLOW_DEPTH;
+        boolean lightLayer = depth >= LIGHT_LAYER_MIN_DEPTH;
         Direction.Axis normalAxis = wanted.getAxis();
         int firstLayer = ProjectionVolume.firstLayerCoord(this.zone.interior, wanted);
         Set<BlockPos> lightPositions = lightLayer
@@ -425,12 +429,12 @@ public final class PlayerProjectionState {
      * configured interval immediately, so the frustum follows them and
      * positions it leaves behind are restored on the same pass.
      *
-     * While 4e's depth question is still open the projection refreshes at
-     * the full rate regardless, so a preview waiting on its arrival chunks
-     * resolves in a few ticks instead of a few seconds.
+     * A projection with no baseline yet refreshes at the full rate, so one
+     * still waiting on its arrival chunks fills in within a few ticks rather
+     * than a few seconds.
      */
     public boolean needsRefresh(ServerPlayerEntity player, long tick, ImmersiveSettings settings) {
-        double movedSq = (this.lastRefreshEye == null || !this.depthDecided)
+        double movedSq = this.lastRefreshEye == null
                 ? Double.MAX_VALUE
                 : player.getEyePos().squaredDistanceTo(this.lastRefreshEye);
         boolean due = shouldRefresh(tick, this.lastRefreshTick, movedSq, settings.refreshInterval());
@@ -463,110 +467,6 @@ public final class PlayerProjectionState {
     }
 
     /**
-     * 4e: how deep this projection should actually go, sampling the first
-     * layer once it is knowable and sticking with the answer thereafter.
-     *
-     * The decision is deliberately re-asked on every pass until it can be
-     * MADE, because "no block here" during the first ticks of a projection
-     * means "chunk still loading", not "void dimension". Deciding early on
-     * that evidence would shrink every portal on the server to {@link
-     * #SHALLOW_DEPTH} the moment it activated, and — since the outcome is
-     * sticky — never grow one back. There would be no error, no exception
-     * and no failing test: just shallow previews everywhere.
-     *
-     * The sample is deliberately NOT sightline-masked. "Is the far side
-     * empty?" is a question about the destination, not about where one
-     * player happens to be standing, and masking it would make a sticky
-     * decision depend on a viewing angle — an oblique approach would sample
-     * a handful of positions, or none at all, and decide the dimension's
-     * contents from that.
-     */
-    private int resolveDepth(ServerWorld targetWorld, ImmersiveSettings settings,
-            ProjectionVolume.TargetMapping mapping, int arrivalY, Direction normal,
-            Map<Long, WorldChunk> chunks) {
-        if (this.depthDecided) {
-            return this.decidedDepth;
-        }
-        List<BlockPos> firstLayer = ProjectionVolume.computeSourcePositions(
-                this.zone.interior, this.zone.axis, normal, 1, settings.previewRadius());
-        int air = 0;
-        int solid = 0;
-        int unknown = 0;
-        int bottomY = targetWorld.getBottomY();
-        int topY = targetWorld.getTopY();
-        for (BlockPos pos : firstLayer) {
-            BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
-            if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
-                // Outside the target world's height range: no block, but no
-                // evidence of emptiness either — the projection skips these
-                // positions entirely.
-                unknown++;
-                continue;
-            }
-            BlockState state = sample(targetWorld, targetPos, chunks);
-            if (state == null) {
-                // Chunk not loaded. NOT air. See the class comment.
-                unknown++;
-            } else if (state.isAir()) {
-                air++;
-            } else {
-                solid++;
-            }
-        }
-
-        DepthDecision decision = decideDepth(air, solid, unknown);
-        if (decision == DepthDecision.PENDING) {
-            if (!this.pendingLogged) {
-                this.pendingLogged = true;
-                MultiverseServer.LOGGER.debug(
-                        "immersive: depth undecided for {} at zone {} (air {}, solid {}, unknown {} of {}) "
-                                + "— keeping configured {}",
-                        this.playerName, this.sourceWorldKey.getValue(), air, solid, unknown,
-                        firstLayer.size(), settings.previewDepth());
-            }
-            return settings.previewDepth();
-        }
-        this.depthDecided = true;
-        this.decidedDepth = decision == DepthDecision.SHALLOW
-                ? Math.min(SHALLOW_DEPTH, settings.previewDepth())
-                : settings.previewDepth();
-        MultiverseServer.LOGGER.debug(
-                "immersive: depth decision for {} at zone {} -> {} ({}, configured {}; air {}, solid {}, unknown {} of {})",
-                this.playerName, this.sourceWorldKey.getValue(), this.decidedDepth, decision,
-                settings.previewDepth(), air, solid, unknown, firstLayer.size());
-        return this.decidedDepth;
-    }
-
-    /**
-     * Pure 4e decision over one layer's air/solid/unknown counts.
-     *
-     * Two rules, both of which exist to keep an unloaded chunk from reading
-     * as an empty dimension:
-     * <ol>
-     *   <li>at least three quarters of the layer must be KNOWN before any
-     *       decision is made — anything less is PENDING, and PENDING means
-     *       the caller keeps the configured depth and asks again later;</li>
-     *   <li>the &gt;80% air threshold is measured against the KNOWN samples
-     *       only. Unknown is never air.</li>
-     * </ol>
-     * Both thresholds are biased towards PENDING/FULL on purpose: an
-     * over-deep preview of an empty dimension is a cosmetic disappointment,
-     * while a wrongly shallow one is a silent, sticky, server-wide
-     * degradation of the whole feature.
-     */
-    static DepthDecision decideDepth(int air, int solid, int unknown) {
-        int known = air + solid;
-        int total = known + unknown;
-        if (known <= 0 || total <= 0) {
-            return DepthDecision.PENDING;
-        }
-        if (known * 4 < total * 3) {
-            return DepthDecision.PENDING;
-        }
-        return air * 5 > known * 4 ? DepthDecision.SHALLOW : DepthDecision.FULL;
-    }
-
-    /**
      * Restore the real source-dimension blocks and forget the slab. Safe to
      * call for a disconnected player or one who has changed world — it sends
      * nothing in either case.
@@ -582,12 +482,6 @@ public final class PlayerProjectionState {
         this.volume = List.of();
         this.normal = null;
         this.builtDepth = 0;
-        // The 4e answer belongs to a projection, not to a zone: a state
-        // that is being torn down must not hand a stale "that dimension is
-        // empty" verdict to whatever rebuilds next.
-        this.depthDecided = false;
-        this.decidedDepth = 0;
-        this.pendingLogged = false;
         this.lastRefreshEye = null;
         this.lastRefreshTick = 0;
         this.lastStationary = false;

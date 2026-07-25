@@ -103,6 +103,31 @@ every other mod that reads biome state. A client mod can colour the projected
 volume from the destination's biome without touching the client's real biome
 data.
 
+### 5g. Sub-block-accurate clipping at the frame edge
+
+The server-side mask (`ProjectionVolume.seesThroughOpening`) decides visibility
+per WHOLE BLOCK, because a block is the smallest thing a `BlockUpdateS2CPacket`
+can describe. Two consequences follow, and neither is fixable server-side:
+
+- **The edge is quantised.** The mask is conservative — a block must be
+  *entirely* visible through the aperture to be sent — so nothing hangs past
+  the frame, but the trade is that partially-visible blocks show as real world
+  instead of as the fraction of destination that geometrically belongs there.
+  The window is therefore very slightly smaller than the true opening.
+- **Geometry snaps as the player walks.** The mask is a function of eye
+  position; blocks are the granularity; a cube either is or is not sent. So
+  positions pop in and out at the cone boundary as someone moves past a
+  portal. Reported in-game and confirmed as inherent.
+
+**Do not attempt to smooth this server-side.** Hysteresis, fading, or holding a
+block "one more pass" all reintroduce the leaked-fake-block class the feature
+spent three rounds eliminating (a position that stops qualifying must be
+restored on the same pass — see PHASE-1 §1h). The honest fix is a client
+renderer that clips the projected volume against the portal's actual aperture
+rectangle per fragment, which removes both the quantised edge and the popping
+at once, and makes the conservative server mask unnecessary for anyone running
+the companion mod.
+
 ---
 
 ## Enabling work
