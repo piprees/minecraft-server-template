@@ -402,48 +402,23 @@ jobs:
             exit 1
           fi
 
-      - name: Restore Carpet mod cache
-        if: matrix.variant == 'default'
-        uses: actions/cache@v6
-        with:
-          path: .cache/carpet-ci.jar
-          key: carpet-1.21-1.4.147-v240613
-
-      - name: Download Carpet mod (cache miss only)
-        if: matrix.variant == 'default'
-        run: |
-          if [[ ! -f .cache/carpet-ci.jar ]]; then
-            mkdir -p .cache
-            CARPET_URL="https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
-            curl -sL -o .cache/carpet-ci.jar "$CARPET_URL"
-          fi
-
       - name: Spawn a fake player (Carpet bot) and verify world generation
         if: matrix.variant == 'default'
         run: |
-          echo "Installing Carpet for fake-player support..."
-          docker cp .cache/carpet-ci.jar mc:/data/mods/carpet-ci.jar
-          # Full stop+start (not restart): the itzg entrypoint re-scans
-          # /data/mods/ on start, and Fabric rebuilds its mod list. A plain
-          # restart reuses the cached mod list from the first boot.
-          docker stop mc
-          docker start mc
-
-          echo "Waiting for server to become healthy with Carpet..."
-          CARPET_ELAPSED=0
-          while [ $CARPET_ELAPSED -lt 300 ]; do
-            if docker exec mc rcon-cli "list" 2>/dev/null | grep -q "players online"; then
-              echo "Server healthy with Carpet (took ${CARPET_ELAPSED}s)"
-              break
-            fi
-            sleep 15
-            CARPET_ELAPSED=$((CARPET_ELAPSED + 15))
-          done
-          if [ $CARPET_ELAPSED -ge 300 ]; then
-            echo "::error::Server did not recover after Carpet install"
-            docker logs mc --tail 30
+          # Carpet ships as a platform default (config/modrinth-mods.txt), so
+          # there is nothing to download or install and no extra server
+          # restart — it is already loaded. It used to be side-loaded here,
+          # which cost a full stop/start (the slowest step in this job).
+          #
+          # Stock carpet crashes the tick loop alongside Supplementaries on
+          # any piston moving a block entity; scripts/patch-mod-data.py strips
+          # the offending mixin. See
+          # docs/known-issues/carpet-supplementaries-piston-crash.md.
+          docker exec mc rcon-cli "carpet" >/dev/null 2>&1 || {
+            echo "::error::Carpet is not loaded — it should ship in config/modrinth-mods.txt"
+            docker exec mc sh -c 'ls /data/mods | grep -i carpet' || true
             exit 1
-          fi
+          }
 
           echo "Enabling Carpet player command and spawning bot..."
           docker exec mc rcon-cli "carpet commandPlayer true" || true
@@ -497,9 +472,86 @@ jobs:
             docker logs mc 2>&1 | grep -iE "FATAL|ClassCastException|MixinApplyError" | head -10
           fi
 
+          # ---- Portal traversal, end to end -------------------------------
+          # The only part of the portal system a unit test cannot reach: a
+          # real player walking into a real frame. Both defect classes found
+          # on 2026-07-25 are asserted here, and neither was catchable any
+          # other way:
+          #   * arrival OUTSIDE the destination's world border — vanilla then
+          #     forbids breaking or placing any block, so the player is stuck
+          #     with a portal they cannot even mine;
+          #   * arrival ENTOMBED — no egress either side of the plane.
+          X=600; Y=100; Z=600
+          DIM=adventure:the_blossom_gardens
+          docker exec mc rcon-cli "execute in minecraft:overworld run forceload add $((X-4)) $((Z-4)) $((X+4)) $((Z+4))" >/dev/null
+          sleep 3
+          # 2x3 cherry_planks frame in the XY plane; interior X..X+1, Y+1..Y+3
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-2)) $Y $Z $((X+3)) $Y $Z minecraft:cherry_planks" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X-1)) $((Y+1)) $Z $((X-1)) $((Y+3)) $Z minecraft:cherry_planks" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $((X+2)) $((Y+1)) $Z $((X+2)) $((Y+3)) $Z minecraft:cherry_planks" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $X $((Y+4)) $Z $((X+1)) $((Y+4)) $Z minecraft:cherry_planks" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run fill $X $((Y+1)) $Z $((X+1)) $((Y+3)) $Z minecraft:air" >/dev/null
+
+          # Ignite from INSIDE the frame looking down at the bottom block —
+          # near-horizontal aims at eye-level frame blocks miss inconsistently
+          # (mods/AGENTS.md 3b).
+          docker exec mc rcon-cli "gamemode creative SmokeBot" >/dev/null
+          docker exec mc rcon-cli "execute in minecraft:overworld run tp SmokeBot $X.5 $((Y+1)) $Z.5" >/dev/null
+          sleep 2
+          docker exec mc rcon-cli "item replace entity SmokeBot hotbar.0 with minecraft:cherry_sapling 8" >/dev/null
+          docker exec mc rcon-cli "player SmokeBot hotbar 1" >/dev/null
+          docker exec mc rcon-cli "player SmokeBot look down" >/dev/null
+          sleep 1
+          docker exec mc rcon-cli "player SmokeBot use once" >/dev/null
+
+          ARRIVED=0
+          for attempt in $(seq 1 10); do
+            sleep 4
+            BOTDIM=$(docker exec mc rcon-cli "data get entity SmokeBot Dimension" 2>/dev/null || echo "")
+            echo "  traversal attempt $attempt: $BOTDIM"
+            if echo "$BOTDIM" | grep -q "the_blossom_gardens"; then ARRIVED=1; break; fi
+          done
+          if [ $ARRIVED -eq 0 ]; then
+            echo "::error::Bot never traversed the portal into $DIM"
+            docker exec mc sh -c 'grep -iE "portal|customdimensions" /data/logs/latest.log | tail -20' || true
+            exit 1
+          fi
+
+          BOTPOS=$(docker exec mc rcon-cli "data get entity SmokeBot Pos" 2>/dev/null)
+          echo "Arrived at: $BOTPOS"
+          read -r AX AY AZ <<<"$(printf '%s' "$BOTPOS" | python3 -c 'import re,sys; v=re.findall(r"-?\d+\.?\d*", sys.stdin.read().split("[")[-1]); print(int(float(v[0])), int(float(v[1])), int(float(v[2])))')"
+          echo "Arrival block coords: $AX $AY $AZ"
+
+          # The arrival must be inside the destination's PLAYER border, or the
+          # player cannot interact with any block once they get there.
+          BORDER=$(python3 -c 'import json; print((json.load(open("config/custom-dimensions/dimensions/the_blossom_gardens.json")).get("borders") or {}).get("player", 0))')
+          echo "Destination player border radius: $BORDER"
+          for COORD in "$AX" "$AZ"; do
+            ABS=${COORD#-}
+            if [ -n "$ABS" ] && [ "$ABS" -gt "$BORDER" ] 2>/dev/null; then
+              echo "::error::Arrival coordinate $COORD is OUTSIDE the $DIM player border ($BORDER) — the player would be unable to break or place any block"
+              exit 1
+            fi
+          done
+          echo "Arrival is inside the destination world border"
+
+          # The arrival must not be entombed: at least one face of the portal
+          # plane has to be steppable.
+          EGRESS=0
+          for DZ in 1 -1; do
+            FOOT=$(docker exec mc rcon-cli "execute in $DIM if block $AX $AY $((AZ+DZ)) minecraft:air" 2>&1 || true)
+            HEAD=$(docker exec mc rcon-cli "execute in $DIM if block $AX $((AY+1)) $((AZ+DZ)) minecraft:air" 2>&1 || true)
+            if echo "$FOOT" | grep -q "passed" && echo "$HEAD" | grep -q "passed"; then EGRESS=1; fi
+          done
+          if [ $EGRESS -eq 0 ]; then
+            echo "::error::Arrival is ENTOMBED — no body-height gap on either face of the portal plane"
+            exit 1
+          fi
+          echo "Arrival has egress"
+          echo "Portal traversal e2e passed"
+
           echo "Cleaning up bot..."
           docker exec mc rcon-cli "player SmokeBot kill" || true
-          docker exec mc rm -f /data/mods/carpet-ci.jar || true
           echo "Fake player test passed"
 
       - name: Assert no crash reports
