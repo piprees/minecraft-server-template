@@ -629,6 +629,45 @@ public final class ProjectionVolume {
     }
 
     /**
+     * Phase 8c — the cells a body occupies, padded by {@code pad} in every
+     * direction. A fake block must NEVER be painted into one of these.
+     *
+     * <p>Client-side collision against a fake block is inherent to the
+     * server-side approach: the client believes the block is real and will
+     * not let the player walk through it, while the server knows there is
+     * nothing there to mine. A fake block painted into somebody's body is
+     * therefore an unmineable wall that only they can see — the worst
+     * failure this feature has, because being unable to move loses the
+     * player entirely.
+     *
+     * <p>Padding of 1 covers the step a player takes between refresh passes
+     * (4 ticks by default); suppressing only the exact occupied cells would
+     * still paint a block into the space they are walking into.
+     *
+     * <p>Pure over plain doubles: no entity, no world, no MC runtime.
+     */
+    public static Set<BlockPos> occupiedCells(double minX, double minY, double minZ,
+            double maxX, double maxY, double maxZ, int pad) {
+        Set<BlockPos> out = new HashSet<>();
+        int x0 = (int) Math.floor(minX) - pad;
+        int y0 = (int) Math.floor(minY) - pad;
+        int z0 = (int) Math.floor(minZ) - pad;
+        // Ceil-minus-one so a box ending exactly on a boundary does not claim
+        // the next cell along, which would widen every body by one for free.
+        int x1 = (int) Math.ceil(maxX) - 1 + pad;
+        int y1 = (int) Math.ceil(maxY) - 1 + pad;
+        int z1 = (int) Math.ceil(maxZ) - 1 + pad;
+        for (int x = x0; x <= x1; x++) {
+            for (int y = y0; y <= y1; y++) {
+                for (int z = z0; z <= z1; z++) {
+                    out.add(new BlockPos(x, y, z));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
      * Scaled (non-anchor) mapping. Mirrors {@code ServerWorldMixin}: the
      * interior's integer-averaged column is scaled and rounded, and the
      * difference becomes a flat horizontal offset. The int accumulate-then-
@@ -647,8 +686,23 @@ public final class ProjectionVolume {
             centreX /= count;
             centreZ /= count;
         }
-        int arrivalX = (int) Math.round((double) centreX * scale);
-        int arrivalZ = (int) Math.round((double) centreZ * scale);
+        // DIVIDE on entry. `scale` is stated the way people actually talk
+        // about the Nether: "8 nether : 1 over" — one block walked in the
+        // DESTINATION is worth `scale` blocks at home. So going IN divides
+        // and coming OUT multiplies.
+        //
+        //   travel 10 in a scale-8 dim  ->  10 * 8 = 80 overworld blocks
+        //   a portal at overworld 1888  ->  1888 / 8 = 236 in the dim
+        //
+        // Multiplying here inflated arrivals by scale instead of shrinking
+        // them, putting them outside the destination's own world border —
+        // where vanilla forbids breaking or placing ANY block, so the player
+        // could not mine the frame, the portal, or the rock around them
+        // (2026-07-25, adventure:the_ember_fields at 1888,-3624 vs a border
+        // of 1024). Every dimension border is authored as overworldBorder /
+        // scale, which is only consistent with dividing here.
+        int arrivalX = (int) Math.round(centreX / scale);
+        int arrivalZ = (int) Math.round(centreZ / scale);
         return new TargetMapping(arrivalX - centreX, arrivalZ - centreZ,
                 minOn(interior, Direction.Axis.Y), arrivalX, arrivalZ);
     }

@@ -18,7 +18,11 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Immersive portals** -- `portal.immersive` turns a portal into a window: the destination's real terrain is visible through the frame with natural parallax (server-sent fake blocks, masked to what you could actually see through the aperture), its biome ambience leaks back, and items, projectiles, XP orbs, mobs and villagers walk through. Server-side only — a vanilla client gets all of it, no client mod. `true` for defaults or an object to tune `previewDepth` / `previewRadius` / `refreshInterval` / `activationRange` / `audio` / `entityPassthrough`. Boot-re-read like the rest of `portal`. Known limits (vanilla's dimension-change screen still shows, approximate lighting and biome colours, far-side entities invisible) and the client mod that would lift them are specified in [`immersive/PHASE-5-CLIENT-COMPANION.md`](immersive/PHASE-5-CLIENT-COMPANION.md)
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
-- **Coordinate scaling** -- configurable scale factor per portal (e.g., 0.125 for nether-style 1:8)
+- **Coordinate scaling** -- `portal.scale` is the Nether-style travel ratio, stated the way people say it: **"8 nether : 1 over"**. One block walked in the DESTINATION is worth `scale` blocks back home, so **entering divides and returning multiplies**.
+  - `scale: 8` -- walk 10 blocks in the dimension, you have covered 80 at home. A portal at overworld `(1888, -3624)` arrives at `(236, -453)`.
+  - `scale: 1` -- no compaction; coordinates match 1:1.
+  - `scale: 0.125` -- the inverse: a *sprawling* dimension, 10 blocks there is 1.25 at home.
+  - A dimension's `borders.player` must be `overworldBorder / scale`, or portals built near the overworld border arrive outside the destination's border -- where vanilla forbids breaking or placing any block, stranding the player.
 - **Coloured particles** -- hex colour per portal, rendered on both source and target sides
 - **Per-portal cooldown** -- configurable teleport cooldown (0-200 ticks) per portal link
 - **Portal sound effects** -- configurable ignition, entry, and exit sounds per portal (JSON config only)

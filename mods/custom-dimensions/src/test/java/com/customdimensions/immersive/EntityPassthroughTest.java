@@ -262,7 +262,7 @@ class EntityPassthroughTest {
         // column must land in exactly that block — otherwise the preview, the
         // player and the thrown item would disagree about where "through" is.
         Set<BlockPos> interior = Set.of(new BlockPos(100, 64, 50), new BlockPos(100, 65, 50));
-        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 8.0);
+        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 0.125);
 
         assertEquals(800, mapping.arrivalX());
         assertEquals(400, mapping.arrivalZ());

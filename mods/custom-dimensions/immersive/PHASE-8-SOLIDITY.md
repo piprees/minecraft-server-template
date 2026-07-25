@@ -1,9 +1,56 @@
 # Phase 8 — Solidity: fake blocks must never trap a player
 
-> **Status:** not started. Opens with an unresolved live defect.
-> **Priority:** highest open work. A cosmetic limitation annoys; being unable
-> to move loses the player entirely.
+> **Status: SHIPPED 2026-07-25.** 8a, 8b and 8c are closed, verified headless
+> against the live local server with a Carpet bot. 8d recorded below as a
+> standing option, not taken.
 > **Depends on:** nothing. Phases 0–4, 6 and most of 7 are shipped.
+
+## Outcome (read this before the analysis below — parts of it were wrong)
+
+**8a — the cause was neither (a) nor (b). It was (c): real terrain.**
+The arrival was a *pre-fix* 4×3 portal (`PortalSite`'s standard size is 2×3)
+built inside solid calcite. `createTargetPortal` calls
+`PortalSite.carveEgress`, but `ServerWorldMixin`'s reuse branch
+(`existing != null`) never did — so egress was guaranteed **only for portals
+being created**, and every traversal after the first re-entombed the player.
+Fixed by `PortalSite.ensureEgress` on the reuse path.
+
+*Headless proof:* re-buried both faces of the real portal (0/16 air cells),
+drove a bot through the overworld source portal, re-probed — **16/16 air**.
+
+**The F3+A test in this document does not work.** F3+A is
+`WorldRenderer.reload()`: it rebuilds render meshes from the client's local
+`ClientWorld` and never re-requests chunks, so fake blocks survive it. It
+cannot discriminate (a) from (b) and it gave a misleading answer here. The
+working discriminator is a server `execute … if block … minecraft:air` probe
+compared against what the player reports seeing. `PLAN.md § Ghosts` carries
+the same wrong claim.
+
+**8b — resolved differently, by owner decision.** `NetherPortalProtectionMixin`
+was **kept**, not removed: it only intercepts NEIGHBOUR updates, and our
+arrival frames are not obsidian, so removing it makes vanilla pop every
+arrival whenever an adjacent block changes — that is not "vanilla behaviour",
+it is portals evaporating. What actually made portals indestructible was
+**`healPortalHole`, now removed**: it refilled any registered cell from a
+surviving neighbour on every particle pass, so a creative player watched
+panes respawn forever. `onPlayerBrokePortalBlock` still takes the whole
+aperture down on one break.
+
+**8c — implemented and verified.** `ProjectionVolume.occupiedCells` is the
+pure invariant; `PlayerProjectionState` suppresses every body cell (padded by
+1 for the step between refresh passes, viewer included) using the same
+restore-and-drop-from-`lastSent` bookkeeping as the sightline mask.
+
+*Headless proof:* the mask line now carries the count —
+`1044 of 1056 maskable visible … 12 suppressed by bodies` with a bot standing
+in the slab, `0 suppressed by bodies` with nobody in it.
+
+**Tests:** `PortalSiteTest` (23), `BodySuppressionTest` (9),
+`PortalScalingContractTest` (11). Suite 273 → 316. See
+`../TEST-COVERAGE-AUDIT.md` for the coverage gaps this exposed — `PortalSite`
+had **zero** tests despite owning the two behaviours that trap players.
+
+## Original analysis (historical — see Outcome above for what was true)
 
 ## The defect
 

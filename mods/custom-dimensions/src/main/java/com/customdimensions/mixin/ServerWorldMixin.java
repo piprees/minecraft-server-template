@@ -160,8 +160,10 @@ public class ServerWorldMixin {
                             portalCenterX /= count;
                             portalCenterZ /= count;
                         }
-                        int targetCenterX = (int) Math.round((double) portalCenterX * scale);
-                        int targetCenterZ = (int) Math.round((double) portalCenterZ * scale);
+                        // DIVIDE on entry — "8 nether : 1 over". See
+                        // ProjectionVolume.scaledMapping for the full note.
+                        int targetCenterX = (int) Math.round(portalCenterX / scale);
+                        int targetCenterZ = (int) Math.round(portalCenterZ / scale);
                         int dx = targetCenterX - portalCenterX;
                         int dz = targetCenterZ - portalCenterZ;
 

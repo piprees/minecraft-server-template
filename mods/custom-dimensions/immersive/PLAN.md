@@ -570,3 +570,94 @@ requires a human in-game.
 | Parallax | Human moves and observes | **No** |
 | Audio quality | Human listens near portal | **No** |
 | Regression | Existing unit tests + Carpet bot portal traversal | Yes |
+
+---
+
+## Session notes — 2026-07-25 (Phase 8 shipped, Phase 9 opened)
+
+Four defects, one root cause each, all found in one session. Read these before
+touching portals again; three of them cost hours because a document in this
+directory asserted something false.
+
+### Corrections to THIS document and PHASE-8
+
+- **`F3+A` does not clear fake blocks.** `PLAN.md § Ghosts` and
+  `PHASE-8-SOLIDITY.md` both say it does. It is `WorldRenderer.reload()`: it
+  rebuilds render meshes from the client's local `ClientWorld` and never
+  re-requests chunk data. Fake blocks arrive as `BlockUpdateS2CPacket`, land in
+  `ClientWorld`, and survive it. **Use a relog**, or step beyond view distance
+  and back. The PHASE-8 "decisive test" built on F3+A cannot discriminate and
+  gave a misleading answer.
+- **The authoritative discriminator is a server probe plus a human report,
+  together.** `execute in <dim> if block <x> <y> <z> minecraft:air` tells you
+  what is REAL. The player tells you what is RENDERED. Divergence is the whole
+  point of a projection, so neither half decides alone.
+- **An RCON `setblock` is not a player break.** Player breaks fire
+  `PlayerBlockBreakEvents`; `setblock` does not. Any break-triggered logic is
+  invisible to an RCON-only test — a 60-second "the block stayed air" probe
+  proved nothing about the reported symptom.
+- **Carpet ships.** `config/modrinth-mods.txt` carries `carpet:f2mvlGrg`.
+  `mods/AGENTS.md`'s "install temporarily — LOCAL ONLY, never ship" recipe is
+  stale; the bot is available without installing anything.
+
+### The scale inversion — the big one
+
+`portal.scale` is the Nether ratio as people say it: **"8 nether : 1 over"**.
+One block in the DESTINATION is worth `scale` at home, so **entering divides,
+returning multiplies**. The code multiplied on entry.
+
+Consequence: an overworld portal at (236, −453) into a `scale: 8` dimension
+arrived at (1888, −3624) instead of (30, −57) — outside that dimension's own
+1024 border, where **vanilla forbids breaking or placing any block**. The
+player could not mine the rock around them, the frame, or the portal. The
+symptom looks exactly like a protection mixin or a fake-block bug. It is
+neither.
+
+Three sources agreed on the ratio reading and the code agreed with none: 52
+configs use whole ratios and none uses a fraction; every border is authored as
+`overworldBorder / scale`; vanilla's own `coordinate_scale` for the Nether is
+8. One README line said "0.125 for nether-style 1:8" and two unit tests had
+been written to match it — that line was the origin of the whole mess. It is
+corrected and now carries a worked example.
+
+**Do not re-derive this.** If a fractional `portal.scale` ever appears in a
+config, it means a sprawling dimension, and it is almost certainly a mistake.
+
+### Testing lessons
+
+- **Test the requirement, not the implementation.** A "live regression case"
+  was written pinning `236 × 8 = 1888` as correct, from observed behaviour.
+  That immortalised the bug and would have blocked its own fix. Derive
+  expectations from the docs and the config, then let the test fail.
+- **Test density was inversely correlated with defect density.** 273 tests sat
+  on config parsing and pure geometry; `PortalSite` (arrival placement and
+  egress) and `WorldBorderManager` (the border that caused all this) had
+  **zero**. See `../TEST-COVERAGE-AUDIT.md` for the matrix and the rule that
+  came out of it: *a class that writes to the world, or decides whether a
+  player can move, does not ship without a pure, tested core.*
+- The pattern that makes that possible is `ProjectionVolume`'s: take probes as
+  functional interfaces, keep the decision pure, let the caller supply the
+  world. `PortalSite` was refactored to it and went 0 → 23 tests.
+
+### Live-loop gotchas that cost time
+
+- **`floor(-453.5)` is `-454`.** A bot tp'd to `z=-453.5` stands one block
+  OUTSIDE a portal plane at `z=-453`. This produced a false "the bot won't
+  traverse" for several attempts. Documented in this file already; it still
+  caught us.
+- Worlds are lazily unloaded, so `execute in <dim> …` answers
+  *"Unknown dimension"* until something loads it. Not a failure.
+- `worldborder get` reads the shared vanilla border, **not** the mod's
+  per-world one. Trust `WorldBorderManager`'s boot log line instead:
+  `World border for <dim>: radius N (from config)`.
+- `strings` on a jar entry silently produced nothing; **use `javap -p
+  -classpath <jar>`** to prove a method reached the artefact.
+- A `git checkout --` revert of one file will happily delete a method another
+  file still calls. Build after every revert.
+
+### What "shipped" cost, for planning
+
+Phase 8 took one session including diagnosis: 273 → 316 tests, three new test
+classes, and an e2e proof driven with a Carpet bot (re-bury the real portal →
+0/16 air cells → traverse → 16/16). The e2e loop is genuinely fast once the
+bot is up; the expensive part was the false leads above.

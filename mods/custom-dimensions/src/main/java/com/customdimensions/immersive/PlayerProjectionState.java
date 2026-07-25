@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -219,6 +220,14 @@ public final class PlayerProjectionState {
     private final RegistryKey<World> sourceWorldKey;
 
     /** Last state sent per source position — the delta baseline. */
+    /**
+     * Phase 8c: blocks of clearance kept around every body. One covers the
+     * step a player takes between refresh passes (4 ticks by default) — with
+     * no padding the projection still paints into the cell they are walking
+     * into, which collides just the same.
+     */
+    private static final int BODY_PAD = 1;
+
     private final Map<BlockPos, BlockState> lastSent = new HashMap<>();
     /** Side of the portal plane the slab currently sits on (null = none yet). */
     private Direction normal;
@@ -348,12 +357,40 @@ public final class PlayerProjectionState {
         int masked = 0;
         int unmasked = 0;
         int lights = 0;
+        int bodies = 0;
+
+        // Phase 8c: every cell any player's body occupies (padded by one for
+        // the step they take between passes). A fake block here is an
+        // unmineable wall only that player can see — see
+        // ProjectionVolume.occupiedCells. The viewer is included: their own
+        // preview must not wall them in either.
+        Set<BlockPos> occupied = new HashSet<>();
+        for (ServerPlayerEntity nearby : sourceWorld.getPlayers()) {
+            net.minecraft.util.math.Box box = nearby.getBoundingBox();
+            occupied.addAll(ProjectionVolume.occupiedCells(
+                    box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, BODY_PAD));
+        }
 
         int bottomY = targetWorld.getBottomY();
         int topY = targetWorld.getTopY();
         for (BlockPos pos : this.volume) {
             BlockState state;
             {
+                if (occupied.contains(pos)) {
+                    // A body is here. Same bookkeeping as the sightline mask
+                    // below, and for the same reason: a position that becomes
+                    // suppressed because somebody walked into it must be
+                    // RESTORED and dropped from lastSent on this pass, or the
+                    // fake block is stranded there until they relog. Skipping
+                    // that is exactly what strands fake blocks.
+                    bodies++;
+                    if (sameWorld && this.lastSent.containsKey(pos)
+                            && restoreOne(handler, sourceWorld, pos)) {
+                        this.lastSent.remove(pos);
+                        unmasked++;
+                    }
+                    continue;
+                }
                 if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
                         this.zone.interior, occluders, probe)) {
                     // Behind the frame wall from where this player is standing.
@@ -446,9 +483,9 @@ public final class PlayerProjectionState {
             int maskable = this.volume.size();
             MultiverseServer.LOGGER.debug(
                     "immersive: sightline mask for {} at zone {} -> {} of {} maskable visible, "
-                            + "{} restored, {} aperture cells overlaid",
+                            + "{} restored, {} aperture cells overlaid, {} suppressed by bodies",
                     this.playerName, this.sourceWorldKey.getValue(),
-                    maskable - masked, maskable, unmasked, lights);
+                    maskable - masked - bodies, maskable, unmasked, lights, bodies);
         }
 
         // The EYE, not the feet: the mask is a function of eye position, so

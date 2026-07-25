@@ -814,13 +814,26 @@ public class PortalHelper {
                 }
                 PortalReturnTarget rt = entry.getValue();
                 if (!isPortalBlock(level.getBlockState(p))) {
-                    // A registered arrival position with no portal block is a
-                    // HOLE, and a holed portal is a player trap: they walk
-                    // back into the gap, nothing teleports them, and the
-                    // dimension looks one-way. Heal it (see healPortalHole).
-                    if (!healPortalHole(level, targets, p)) {
-                        continue;
-                    }
+                    // No portal block here any more, and it is deliberately
+                    // NOT restored.
+                    //
+                    // This used to heal the gap (healPortalHole), on the
+                    // reasoning that a holed arrival strands whoever is
+                    // standing in it. Together with NetherPortalProtectionMixin
+                    // that made a portal genuinely indestructible: a player in
+                    // creative could swing at a pane all day and watch it come
+                    // straight back, because the heal ran on the next particle
+                    // pass. Reported in game 2026-07-25 — "not being able to
+                    // escape a portal, in creative, or even damage it or delete
+                    // it, is a massive problem".
+                    //
+                    // Being able to destroy a portal you built outranks the
+                    // stranding case, which exit portals, exit shrines and the
+                    // configured exit modes already cover (owner decision,
+                    // 2026-07-25). Neighbour-update protection stays — that
+                    // compensates for a non-obsidian frame and never resists a
+                    // player.
+                    continue;
                 }
                 // An immersive arrival is a window too — the projector fakes
                 // its portal blocks away so the swirl and vanilla's particles
@@ -857,61 +870,6 @@ public class PortalHelper {
     }
 
     /**
-     * Restores a missing block in a registered arrival portal by copying an
-     * adjacent registered portal block's exact state. Returns whether it
-     * healed.
-     *
-     * <p><b>Why this exists.</b> A hole in an arrival portal strands players.
-     * Found live 2026-07-25: an arrival came up 5 blocks of 6, and to the
-     * player standing in the gap the dimension simply had no way out. The
-     * registration-ordering fix in {@link #createTargetPortal} closes the
-     * cause we identified, but a portal block can also be lost to something
-     * we do not control — a stray neighbour update, a mod placing a feature,
-     * a world edit. The cost of being wrong here is a trapped player, so the
-     * portal repairs itself rather than trusting that every cause was found.
-     *
-     * <p><b>Only fills AIR, and only from a surviving neighbour.</b> Copying
-     * a neighbour gives the correct block AND the correct axis for free, with
-     * no need to re-derive orientation. Requiring a surviving neighbour is
-     * also the escape hatch: break every portal block and nothing regenerates,
-     * so a player can still dismantle a portal deliberately. Healing a single
-     * gap they punched is the intended behaviour — these are mod-built
-     * portals, and vanilla would have popped the whole thing anyway.
-     *
-     * <p>Never loads a chunk: the caller has already checked {@code p}'s chunk
-     * is loaded, and each candidate neighbour is checked before it is read.
-     */
-    private static boolean healPortalHole(ServerWorld level,
-            Map<BlockPos, PortalReturnTarget> targets, BlockPos pos) {
-        if (!level.getBlockState(pos).isAir()) {
-            // Something solid is there. Not our hole to fill — overwriting
-            // a player's build would be worse than the gap.
-            return false;
-        }
-        for (Direction dir : Direction.values()) {
-            BlockPos neighbor = pos.offset(dir);
-            if (!targets.containsKey(neighbor)) {
-                continue;
-            }
-            if (!level.getChunkManager().isChunkLoaded(neighbor.getX() >> 4, neighbor.getZ() >> 4)) {
-                continue;
-            }
-            BlockState neighborState = level.getBlockState(neighbor);
-            // Gateways are single-block by definition — there is no such
-            // thing as a hole in one, and copying it would spawn a second.
-            if (!isPortalBlock(neighborState) || neighborState.isOf(Blocks.END_GATEWAY)) {
-                continue;
-            }
-            level.setBlockState(pos, neighborState, Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
-            com.customdimensions.MultiverseServer.LOGGER.debug(
-                    "Healed arrival portal hole in {} at {}",
-                    level.getRegistryKey().getValue(), pos.toShortString());
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * A player mined a block; if it was part of one of our arrival portals,
      * take the whole portal down with it.
      *
@@ -919,10 +877,17 @@ public class PortalHelper {
      * nether portal pops every pane connected to it, and a player who swings
      * at a portal expects it gone — but our portals are protected from the
      * neighbour updates that would normally cascade
-     * ({@code NetherPortalProtectionMixin}), and a lone missing pane is healed
-     * on the next particle pass ({@link #healPortalHole}) so that a portal
-     * with a hole cannot strand whoever is standing in it. Correct in
-     * isolation, and together they made mining a portal do nothing at all.
+     * ({@code NetherPortalProtectionMixin}, which compensates for a frame that
+     * is not obsidian and so would otherwise fail vanilla's re-validation).
+     * That protection is deliberately blind to intent, so this is the only
+     * place that can tell a player's pick from a stray block update.
+     *
+     * <p>There was also a {@code healPortalHole} pass that refilled a missing
+     * pane from a surviving neighbour. Between the two, a portal was
+     * indestructible — in creative you could swing at a pane and watch it
+     * reappear on the next particle tick. It was removed on 2026-07-25; being
+     * able to destroy a portal outranks the stranding case, which exit
+     * portals, exit shrines and the configured exit modes already cover.
      *
      * <p>Deregistering comes FIRST. The heal is keyed on a position still
      * being in the return-target map, so clearing blocks while they were

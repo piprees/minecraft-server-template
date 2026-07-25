@@ -622,9 +622,9 @@ class ProjectionVolumeTest {
     @Test
     void testTargetMapping() {
         // Interior columns x = 100/101, z = 200; average truncates to
-        // (100, 200). At scale 0.5 the arrival column is (50, 100).
+        // (100, 200). At scale 2 (2 dim : 1 over) entry HALVES: (50, 100).
         Set<BlockPos> interior = doorwayX(100, 64, 200);
-        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 0.5);
+        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 2.0);
 
         assertEquals(50, mapping.arrivalX());
         assertEquals(100, mapping.arrivalZ());
@@ -673,7 +673,7 @@ class ProjectionVolumeTest {
     @Test
     void targetChunksFollowTheScaledOffset() {
         Set<BlockPos> interior = doorwayX(100, 64, 200);
-        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 0.5);
+        ProjectionVolume.TargetMapping mapping = ProjectionVolume.scaledMapping(interior, 2.0);
         List<ChunkPos> chunks = ProjectionVolume.targetChunks(
                 interior, Direction.Axis.X, mapping, 8, 2);
 
@@ -753,6 +753,6 @@ class ProjectionVolumeTest {
         assertEquals(new BlockPos(-999, 82, 3000),
                 ProjectionVolume.toTarget(new BlockPos(101, 66, 200), mapping, 80));
         // Scale is irrelevant for anchors: they never consult it.
-        assertNotEquals(ProjectionVolume.scaledMapping(interior, 0.5).dx(), mapping.dx());
+        assertNotEquals(ProjectionVolume.scaledMapping(interior, 2.0).dx(), mapping.dx());
     }
 }
