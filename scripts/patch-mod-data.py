@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """patch-mod-data.py - Repair known-bad data inside third-party mod JARs.
 
-Currently one patch: Epic Dungeons ships structure template NBTs whose
+Patch 1 - Epic Dungeons ships structure template NBTs whose
 chest block entities reference CamelCase loot table ids
 (epic:chests/DungeonPoop1). Modern identifiers reject uppercase, so
 feature placement aborts for the chunk and the chest generates lootless.
@@ -19,11 +19,28 @@ NBT strings are u16 big-endian length-prefixed UTF-8 inside gzip; each
 rewrite adjusts the prefix, so no NBT library is needed. Only ids whose
 snake_case target actually exists as a shipped loot table are rewritten.
 
+Patch 2 - carpet crashes the server alongside Supplementaries. carpet's
+PistonBaseBlock_movableBEMixin installs two UNCONDITIONAL @Redirects on
+PistonBaseBlock.moveBlocks: newMovingBlockEntity -> null, and setBlockEntity
+-> no-op (it reinstates the entity itself). Supplementaries wraps that same
+setBlockEntity call for its own push_block_entities feature and treats null
+as a hard error, so ANY piston moving a block entity kills the tick loop.
+Neither redirect consults CarpetSettings.movableBlockEntities, so no carpet
+setting avoids it. Removing that one mixin from carpet.mixins.json restores
+vanilla piston behaviour and leaves the rest of carpet - crucially the fake
+players the verification loop needs - fully working. carpet's own
+movableBlockEntities rule stops working, which is acceptable: it is off by
+default and the feature is duplicated by Supplementaries anyway.
+
+See docs/known-issues/carpet-supplementaries-piston-crash.md for the
+bytecode analysis and the one-piston-one-chest reproduction.
+
 Usage: python3 patch-mod-data.py <mods-dir>
 Exit 0 always (a failed patch must never block a deploy); prints a summary.
 """
 
 import gzip
+import json
 import re
 import shutil
 import struct
@@ -115,12 +132,57 @@ def patch_jar(jar_path: Path) -> int:
     return total
 
 
+# carpet mixins that implement movable block entities on the piston call
+# sites Supplementaries also wraps. Only the FIRST is load-bearing for the
+# crash (it owns returnNull/dontDoAnything); the others are left in place
+# because they are inert once it is gone and removing more is more risk.
+CARPET_CRASH_MIXINS = ["PistonBaseBlock_movableBEMixin"]
+
+
+def patch_carpet(jar_path: Path) -> int:
+    """Drop carpet's piston movable-BE mixin. Returns mixins removed."""
+    config = "carpet.mixins.json"
+    with zipfile.ZipFile(jar_path) as zf:
+        if config not in zf.namelist():
+            return 0
+        raw = zf.read(config)
+    doc = json.loads(raw)
+    mixins = doc.get("mixins")
+    if not isinstance(mixins, list):
+        return 0
+    keep = [m for m in mixins if m not in CARPET_CRASH_MIXINS]
+    removed = len(mixins) - len(keep)
+    if removed == 0:
+        return 0  # already patched - idempotent
+    doc["mixins"] = keep
+    payload = json.dumps(doc, indent=2).encode()
+
+    tmp = jar_path.with_suffix(".patched-tmp")
+    with zipfile.ZipFile(jar_path) as zin, zipfile.ZipFile(
+        tmp, "w", zipfile.ZIP_DEFLATED
+    ) as zout:
+        for item in zin.infolist():
+            data = payload if item.filename == config else zin.read(item.filename)
+            zout.writestr(item, data)
+    shutil.move(str(tmp), str(jar_path))
+    return removed
+
+
 def main():
     if len(sys.argv) != 2:
         print("usage: patch-mod-data.py <mods-dir>")
         return
     mods_dir = Path(sys.argv[1])
     for jar in sorted(mods_dir.glob("*.jar")):
+        if "carpet" in jar.name.lower():
+            try:
+                n = patch_carpet(jar)
+                if n:
+                    print(f"  patch-mod-data: {jar.name}: removed {n} piston mixin(s) "
+                          "(carpet x Supplementaries crash)")
+            except Exception as e:  # never block a deploy
+                print(f"  patch-mod-data: FAILED on {jar.name}: {e}")
+            continue
         if "epic" not in jar.name.lower():
             continue
         try:

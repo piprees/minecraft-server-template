@@ -483,6 +483,19 @@ if [[ "$SEED_EXIT" != "0" ]]; then
 fi
 "$SCRIPT_DIR/sync-mods.sh" "$CONSUMER_DIR/data" "${COMPOSE_PROJECT_NAME}_stack-mods"
 
+# Repair known-bad data inside third-party mod jars, exactly as deploy.sh does
+# on production (idempotent; a patched jar keeps its filename so the
+# skip-existing download and the manifest prune both leave it alone).
+# MUST run after sync-mods.sh (the jars have to exist) and before mc starts.
+#
+# This was production-only until 2026-07-25, so local dev ran unpatched: Epic
+# Dungeons' CamelCase loot ids aborted feature placement and spawned lootless
+# chests, and carpet's piston mixin would crash the tick loop next to
+# Supplementaries. Local and production must repair the same jars.
+if [[ -f "$SCRIPT_DIR/patch-mod-data.py" ]]; then
+  python3 "$SCRIPT_DIR/patch-mod-data.py" "$CONSUMER_DIR/data/mods" || true
+fi
+
 MC_NAME="${CONTAINER_PREFIX:-}mc"
 if ! compose_up; then
   # A mod-sync boot downloads ~150 JARs and mc can restart once mid-sync

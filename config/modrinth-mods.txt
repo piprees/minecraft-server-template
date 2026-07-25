@@ -8,23 +8,27 @@ lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
 c2me-fabric:GC7ouKxZ
-# carpet — DELIBERATELY NOT A PLATFORM DEFAULT. It was one briefly (842e9fe,
-# "ops-gated fake-player tooling the platform's own verification loop depends
-# on") and it crashed a player's server on 2026-07-25:
+# carpet — server admin/testing tool: fake players for the headless
+# verification loop (ops-gated commands; no client counterpart).
 #
-#   IllegalStateException: Another mod passed a null moving-piston BlockEntity
-#   into Level.setBlockEntity during PistonBaseBlock.moveBlocks. ... Carpet is
-#   a known mod that does this.
+# SAFE ONLY BECAUSE scripts/patch-mod-data.py STRIPS ONE OF ITS MIXINS.
+# carpet's PistonBaseBlock_movableBEMixin installs two unconditional
+# @Redirects on moveBlocks (newMovingBlockEntity -> null, setBlockEntity ->
+# no-op). Supplementaries wraps that same call for its own
+# push_block_entities feature and treats null as a hard error, so any piston
+# moving a block entity killed the tick loop — twice in the wild before it
+# was root-caused. No carpet setting avoids it; the redirects ignore
+# CarpetSettings.movableBlockEntities.
 #
-# Carpet overrides MovingPistonBlock.newMovingBlockEntity and can return null;
-# Supplementaries' captureBeForPistonMove treats that as a hard error and names
-# carpet by name. Any piston moving a block entity is a server crash. A testing
-# tool must not be able to do that to someone who is just playing.
+# patch-mod-data.py removes that single mixin from carpet.mixins.json on every
+# deploy AND every local `./dev up`. Fake players keep working; carpet's own
+# movableBlockEntities rule does not (it is off by default and duplicates
+# Supplementaries anyway).
 #
-# For the Carpet-bot verification loop, add it to the CONSUMER overlay for the
-# duration of the test and take it out again:
-#   echo 'carpet:f2mvlGrg' >> overlay/mods-extra.txt   # then ./dev up
-# See mods/AGENTS.md § 3b.
+# If you bump this pin, re-run the reproduction in
+# docs/known-issues/carpet-supplementaries-piston-crash.md — a carpet release
+# could rename that mixin and the patch would silently stop matching.
+carpet:f2mvlGrg
 noisium:4sGQgiu2
 servercore:GQ2a51Rl
 chunky:RVFHfo1D

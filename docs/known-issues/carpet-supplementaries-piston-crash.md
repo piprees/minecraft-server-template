@@ -1,7 +1,8 @@
 # Carpet × Supplementaries: piston crash (root-caused 2026-07-25)
 
-> **Status:** root cause found. Fixed by removing carpet from the platform
-> default mod list. Not a bug in this project's code.
+> **Status:** root cause found and PATCHED AWAY. carpet still ships; the
+> offending mixin is stripped from its jar automatically on every deploy and
+> every local `./dev up`. Not a bug in this project's code.
 >
 > **This file exists because the previous investigation was lost.** On
 > 2026-07-14 an agent wrote `mods/.ideas/supplementaries-piston-crash.md` and
@@ -89,11 +90,13 @@ The server crashes within a tick. Verified 2026-07-25 across all three arms:
 
 | carpet | `push_block_entities` | result |
 |---|---|---|
-| absent | `true` | chest pushed, no crash — **shipped configuration** |
-| present | `true` | **CRASH**, `RestartCount` +1, new crash report |
-| present | `false` | no crash; chest not pushed (vanilla piston behaviour) |
+| absent | `true` | chest pushed, no crash |
+| present, **stock** | `true` | **CRASH**, `RestartCount` +1, new crash report |
+| present, **stock** | `false` | no crash; chest not pushed (vanilla behaviour) |
+| present, **patched** | `true` | **no crash AND chest pushed** — shipped configuration |
 
-The middle row is the bug. The bottom row is the workaround.
+Row 2 is the bug. Row 3 is the config-only workaround. Row 4 is what we ship:
+everything works, nothing is given up.
 
 ## Why it looked intermittent
 
@@ -106,45 +109,51 @@ matches how often somebody actually pushed a chest, not a race condition.
 That is why "reproduce it" defeated the earlier attempts — they were looking
 for a timing bug near spawn rather than a specific redstone shape.
 
-## Fix
+## Fix — patch the mixin out of the jar
 
-Carpet was removed from `config/modrinth-mods.txt`.
+`scripts/patch-mod-data.py` removes `PistonBaseBlock_movableBEMixin` from
+`carpet.mixins.json`. That is the class owning `returnNull` and
+`dontDoAnything`, so with it unlisted the redirects are never applied and
+vanilla piston behaviour is restored. The rest of carpet — including the fake
+players the verification loop needs — is untouched.
 
-It had been promoted to a platform default in `842e9fe` — *"ops-gated
-fake-player tooling the platform's own verification loop depends on"* — a
-reasonable motive, but it put a **testing tool** on every player's server where
-it can hard-crash the tick loop. `mods/AGENTS.md`'s own older recipe had said
-"install temporarily — LOCAL ONLY, never ship"; the promotion contradicted it.
+The script already existed for the Epic Dungeons loot ids and is the right
+home: idempotent, exits 0 always, and a patched jar keeps its filename so the
+skip-existing download and the manifest prune both leave it alone.
 
-Supplementaries stays: it is content players actually want.
+It runs from `deploy.sh` on production and, **since 2026-07-25, from
+`dev-up.sh` locally too**. It had been production-only, so local dev had never
+had the Epic Dungeons repair either — local and production now repair the
+same jars.
 
-### Getting the Carpet bot back for verification
+What is given up: carpet's own `movableBlockEntities` rule stops working. It
+is off by default and duplicates Supplementaries' `push_block_entities`, so
+nothing is actually lost. The rule still appears in `carpet list`; it simply
+has no effect.
 
-Add it to the **consumer overlay** for the duration of the test, then remove it:
+**Verified after patching:** fake player spawns and reports its position,
+`carpet list` works, a piston pushes a chest, no crash, `RestartCount` 0.
 
-```bash
-echo 'carpet:f2mvlGrg' >> overlay/mods-extra.txt
-./dev up
-# ... run the bot loop (mods/AGENTS.md § 3b) ...
-sed -i '' '/^carpet:/d' overlay/mods-extra.txt
-./dev up
-```
+### If you bump the carpet pin
 
-**If the test world has piston contraptions**, also set
-`tweaks.piston_tweaks.push_block_entities: false` in
-`data/config/supplementaries-common.json` for the duration. That is the
-monkey-patch, and it is verified above: with Supplementaries' duplicate
-feature off, carpet's redirects have nothing to collide with. The cost is
-that pistons stop pushing block entities entirely — Supplementaries' feature
-is gone and carpet's `movableBlockEntities` is off by default.
+Re-run the reproduction below. A carpet release could rename or split that
+mixin, and the patch would silently stop matching — the failure mode is a
+crash returning, not an error from the patcher.
 
-**Why not patch it in our own mod.** We ship mixins, so a third handler on
-that call site is technically possible, but both existing ones are
-`@Redirect`/`@WrapOperation` on the SAME `setBlockEntity` invocation and the
-outcome already depends on their relative order. Adding a third contender to a
-race, to fix a crash that only appears when a testing tool is installed, is a
-worse trade than not shipping the testing tool. The config toggle achieves the
-same result with no bytecode and no ordering assumptions.
+### Alternatives considered
+
+**Config-only** (`push_block_entities: false`) works — row 3 above — but costs
+players a gameplay feature to accommodate a tooling mod. Rejected once the jar
+patch proved viable.
+
+**A mixin of our own.** We ship mixins, so a third handler on that call site is
+possible, but both existing ones already contend for the same
+`setBlockEntity` invocation. Removing a participant is strictly simpler than
+adding one.
+
+**Not shipping carpet.** The first fix attempted, and it works, but carpet is
+genuinely useful on a live server and the verification loop wants it always
+present. Patching the jar keeps it without the crash.
 
 ## What this cost, and the lesson
 

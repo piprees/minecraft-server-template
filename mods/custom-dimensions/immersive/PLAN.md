@@ -601,12 +601,15 @@ directory asserted something false.
   patched that file inside the `stack-config` volume, which every seed run
   reverts (trap #12) — the diagnostics vanished mid-session on the next
   `./dev up`. Never re-introduce a post-install patch for this.
-- **Carpet must NOT be shipped.** It was a platform default for eleven days
-  and crashed a player's server: carpet unconditionally nulls the
-  moving-piston BlockEntity and Supplementaries hard-errors on that, so any
-  piston tick is a coin flip on mixin order. Root-caused from the jar's
-  bytecode in `docs/known-issues/carpet-supplementaries-piston-crash.md`.
-  Add it to the consumer overlay for a bot run, then take it out.
+- **Carpet ships, and is patched on the way in.** Stock carpet
+  unconditionally nulls the moving-piston BlockEntity; Supplementaries
+  hard-errors on that, so any piston moving a block entity crashed the tick
+  loop (twice in the wild, deterministic once you know the shape).
+  `scripts/patch-mod-data.py` strips the one offending mixin from the jar on
+  every deploy and every `./dev up`, so the bot is always available and
+  nothing is given up. Root-caused from bytecode in
+  `docs/known-issues/carpet-supplementaries-piston-crash.md`; re-run its
+  repro if the carpet pin moves.
 
 ### The scale inversion — the big one
 

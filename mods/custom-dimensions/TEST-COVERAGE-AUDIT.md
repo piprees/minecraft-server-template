@@ -105,10 +105,10 @@ traversing — 16/16 after. 8c proven by the new mask count: `12 suppressed by
 bodies` with a bot in the slab, `0` without. Boot clean, `Restarts=0`, no
 mixin failures.
 
-**Note:** carpet is deliberately NOT shipped — it briefly was, and crashed a
-player's server through a mixin conflict with Supplementaries on piston ticks
-(`docs/known-issues/carpet-supplementaries-piston-crash.md`). Add it to the
-consumer overlay for a test run and remove it afterwards.
+**Note:** carpet ships as a platform default and needs no setup. Stock carpet
+crashes the server alongside Supplementaries on piston ticks; the offending
+mixin is stripped automatically by `scripts/patch-mod-data.py`
+(`docs/known-issues/carpet-supplementaries-piston-crash.md`).
 
 Shipped alongside:
 - `PortalSite` refactored to pure cores (`findArrivalY`, `fits`) + new
