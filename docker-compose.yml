@@ -204,6 +204,12 @@ services:
       # Custom log4j config to filter RCON spam, Vinery warnings, etc.
       JVM_OPTS: "-Dlog4j.configurationFile=/config-vol/log4j2-adventure.xml"
 
+      # In-house mod log level, read by log4j2-adventure.xml via its
+      # Environment Lookup. "debug" turns on the immersive-portal
+      # diagnostics (projection/mask counts, deferred packets, aura passes);
+      # "info" is the shipped default. Restart mc to apply.
+      CUSTOMDIM_LOG_LEVEL: "${CUSTOMDIM_LOG_LEVEL:-info}"
+
     volumes:
       # Persistent world data, config, mods, logs - the lot.
       - ./data:/data

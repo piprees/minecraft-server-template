@@ -244,6 +244,29 @@ public final class PlayerProjectionState {
     private static final int BODY_PAD = 1;
 
     private final Map<BlockPos, BlockState> lastSent = new HashMap<>();
+
+    /**
+     * Positions the client is STILL showing a fake block at, which have left
+     * {@link #volume} — a side flip rebuilds the slab on the other side of the
+     * plane, so the old slab's positions are no longer reachable by iterating
+     * the volume.
+     *
+     * <p>They used to be restored in one unbudgeted burst inside {@link #send}
+     * (restore-everything, then clear), which is the same ~1000-packets-in-one-
+     * tick spike {@link ProjectionBudget} exists to prevent — just triggered by
+     * walking ROUND a portal rather than past it.
+     *
+     * <p>Carried here instead and drained under the budget, ahead of the
+     * volume's own restores: nothing else will ever revisit these, so they
+     * outrank a masked position that the next pass would re-queue anyway.
+     *
+     * <p>The {@code lastSent} invariant extends over this map unchanged — it
+     * is still "exactly what the client is showing", just in two buckets. Every
+     * teardown path drains both ({@link #restore}), {@link #forget} clears
+     * both, and a position that re-enters the volume is removed from here the
+     * moment {@code lastSent} takes responsibility for it again.
+     */
+    private final Map<BlockPos, BlockState> staleOutsideVolume = new HashMap<>();
     /** Side of the portal plane the slab currently sits on (null = none yet). */
     private Direction normal;
     private List<BlockPos> volume = List.of();
@@ -282,9 +305,22 @@ public final class PlayerProjectionState {
         return this.sourceWorldKey;
     }
 
-    /** Number of positions currently faked on this client. */
+    /**
+     * Number of positions currently faked on this client — BOTH buckets.
+     *
+     * <p>Counting only {@code lastSent} would under-report after a side flip,
+     * when positions the client is still showing have been carried into
+     * {@code staleOutsideVolume} pending a budgeted restore. Any leak check
+     * built on this number has to see them, or a carried-over backlog reads
+     * as "nothing projected".
+     */
     public int projectedCount() {
-        return this.lastSent.size();
+        return this.lastSent.size() + this.staleOutsideVolume.size();
+    }
+
+    /** Positions carried over from a previous slab, awaiting restore. */
+    public int pendingCarryOverCount() {
+        return this.staleOutsideVolume.size();
     }
 
     /** Initial activation: (re)build the slab and send every position. */
@@ -331,7 +367,10 @@ public final class PlayerProjectionState {
             // usual reason is a side flip (the player walked round the
             // frame); a depth change now only happens if config is re-read
             // under a live projection.
-            restore(player, sourceWorld);
+            // Carry the old slab's faked positions over rather than
+            // restoring them all now — see staleOutsideVolume. They are
+            // drained under the budget on this and following passes.
+            this.staleOutsideVolume.putAll(this.lastSent);
             this.lastSent.clear();
             this.normal = wanted;
             this.builtDepth = depth;
@@ -406,6 +445,13 @@ public final class PlayerProjectionState {
         List<BlockPos> pendingRestores = new ArrayList<>();
         List<BlockPos> pendingSendPos = new ArrayList<>();
         List<BlockState> pendingSendState = new ArrayList<>();
+
+        // Carried-over positions go FIRST: they are outside the current
+        // volume, so no later pass would reach them by iteration. A masked
+        // position, by contrast, is re-queued every pass until it drains.
+        if (sameWorld) {
+            pendingRestores.addAll(this.staleOutsideVolume.keySet());
+        }
 
         for (BlockPos pos : this.volume) {
             BlockState state;
@@ -482,6 +528,7 @@ public final class PlayerProjectionState {
             // pass", not "drop the record".
             if (restoreOne(handler, sourceWorld, pos)) {
                 this.lastSent.remove(pos);
+                this.staleOutsideVolume.remove(pos);
                 unmasked++;
             }
         }
@@ -490,6 +537,9 @@ public final class PlayerProjectionState {
             BlockState state = pendingSendState.get(i);
             handler.sendPacket(new BlockUpdateS2CPacket(pos, state));
             this.lastSent.put(pos, state);
+            // lastSent is responsible for this position again; leaving it in
+            // the stale bucket would restore a block that is currently faked.
+            this.staleOutsideVolume.remove(pos);
         }
 
         // THE APERTURE, in both directions — the light layer and the
@@ -664,6 +714,7 @@ public final class PlayerProjectionState {
     /** Drop all tracking without sending anything. */
     public void forget() {
         this.lastSent.clear();
+        this.staleOutsideVolume.clear();
         this.volume = List.of();
         this.normal = null;
         this.builtDepth = 0;
@@ -672,8 +723,18 @@ public final class PlayerProjectionState {
         this.lastStationary = false;
     }
 
+    /**
+     * Teardown restore — deliberately UNBUDGETED, unlike the per-pass one.
+     *
+     * <p>Every cleanup path calls this and then {@link #forget}, which drops
+     * the state. A deferred teardown restore has nothing left to revisit it,
+     * so the fake blocks would persist on that client until they relog. A
+     * one-off burst on a rare event (disconnect, out of range, zone removed,
+     * world change, world unload) is the right trade; the budget exists for
+     * the per-pass path, which runs at 5Hz forever.
+     */
     private void restore(ServerPlayerEntity player, ServerWorld sourceWorld) {
-        if (this.lastSent.isEmpty()) {
+        if (this.lastSent.isEmpty() && this.staleOutsideVolume.isEmpty()) {
             return;
         }
         ServerPlayNetworkHandler handler = handlerFor(player);
@@ -687,6 +748,12 @@ public final class PlayerProjectionState {
             return;
         }
         for (BlockPos pos : this.lastSent.keySet()) {
+            restoreOne(handler, sourceWorld, pos);
+        }
+        // Both buckets are "what the client is showing" — see
+        // staleOutsideVolume. Missing these is a leak on every teardown that
+        // follows a side flip.
+        for (BlockPos pos : this.staleOutsideVolume.keySet()) {
             restoreOne(handler, sourceWorld, pos);
         }
     }

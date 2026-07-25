@@ -155,6 +155,23 @@
             <AppenderRef ref="SysOut" />
             <AppenderRef ref="File" />
         </Logger>
+        <!-- In-house mod log level, driven by CUSTOMDIM_LOG_LEVEL in .env.
+             The immersive-portal diagnostics (projection counts, sightline
+             mask totals, deferred-packet counts, aura passes) are DEBUG, and
+             they are the primary evidence for a feature whose every defect so
+             far has been silent absence rather than a crash.
+
+             This exists as a config value because the documented alternative
+             was patching this file inside the running stack-config volume —
+             which every seed run reverts (AGENTS.md trap #12), so the patch
+             silently disappeared on the next `./dev up` and took the
+             diagnostics with it. Log4j2's Environment Lookup is evaluated at
+             configuration load, so a container restart is enough to change it;
+             no file editing, nothing to revert. -->
+        <Logger name="customdimensions" level="${env:CUSTOMDIM_LOG_LEVEL:-info}" additivity="false">
+            <AppenderRef ref="SysOut" />
+            <AppenderRef ref="File" />
+        </Logger>
         <Root level="info">
             <AppenderRef ref="SysOut" />
             <AppenderRef ref="File" />

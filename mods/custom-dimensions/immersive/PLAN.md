@@ -596,6 +596,11 @@ directory asserted something false.
   `PlayerBlockBreakEvents`; `setblock` does not. Any break-triggered logic is
   invisible to an RCON-only test — a 60-second "the block stayed air" probe
   proved nothing about the reported symptom.
+- **Mod DEBUG logging is `CUSTOMDIM_LOG_LEVEL` in `.env`**, read by
+  `log4j2-adventure.xml` via log4j2's Environment Lookup. The old recipe
+  patched that file inside the `stack-config` volume, which every seed run
+  reverts (trap #12) — the diagnostics vanished mid-session on the next
+  `./dev up`. Never re-introduce a post-install patch for this.
 - **Carpet ships.** `config/modrinth-mods.txt` carries `carpet:f2mvlGrg`.
   `mods/AGENTS.md`'s "install temporarily — LOCAL ONLY, never ship" recipe is
   stale; the bot is available without installing anything.

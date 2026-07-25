@@ -98,10 +98,16 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 
 ```bash
 # Mod DEBUG logging is off by default and audio/entity lines are DEBUG.
-# Patch the (read-only) stack-config volume via a helper container, restart mc:
-docker run --rm -v <brand>_stack-config:/v -w /v alpine:3.20 sh -c \
-  'cp log4j2-adventure.xml log4j2-adventure.xml.bak && sed -i \
-   "s|<Root level=\"info\">|<Logger name=\"customdimensions\" level=\"debug\" additivity=\"false\"><AppenderRef ref=\"SysOut\"/><AppenderRef ref=\"File\"/></Logger>\n<Root level=\"info\">|" log4j2-adventure.xml'
+# It is an ENV VAR, not a file patch: set CUSTOMDIM_LOG_LEVEL=debug in .env
+# and restart mc. log4j2-adventure.xml reads it via log4j2's Environment
+# Lookup (${env:CUSTOMDIM_LOG_LEVEL:-info}).
+#
+# The old recipe here hand-patched log4j2-adventure.xml inside the
+# stack-config volume. Every seed run reverts that volume (trap #12), so the
+# patch silently vanished on the next `./dev up` and took the diagnostics
+# with it — which is exactly what happened mid-session on 2026-07-25.
+echo "CUSTOMDIM_LOG_LEVEL='debug'" >> .env   # consumer repo
+docker stop -t 60 mc && docker start mc      # restart is enough; no recreate needed
 
 # Activation / teardown (INFO — always visible)
 docker exec mc sh -c 'grep -E "immersive: (projection|holding|released)" /data/logs/latest.log | tail'

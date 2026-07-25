@@ -20,6 +20,19 @@ cp mods/custom-dimensions/build/libs/customdimensions-*.jar \
 docker stop -t 60 mc && docker start mc
 ```
 
+**Mod DEBUG logging is an env var, not a file patch.** Set
+`CUSTOMDIM_LOG_LEVEL='debug'` in the consumer `.env` and restart mc;
+`log4j2-adventure.xml` reads it through log4j2's Environment Lookup. Do NOT
+hand-patch that file inside the `stack-config` volume — every seed run
+reverts it (AGENTS.md trap #12), so the diagnostics disappear on the next
+`./dev up` without a word.
+
+**`./dev up` overwrites your locally-built mod jar** with the bundle's, and
+**recreating mc outside `./dev up` breaks the mod set** — a
+`docker compose up --force-recreate --no-deps mc` skips the seed and booted
+with 4 mods instead of 287 (hit 2026-07-25). Use `docker stop`/`docker start`
+to keep both, and `./dev up` only when you want the bundle's jars back.
+
 Check for ghosts before believing any visual report — orphaned fake blocks
 from a previous session look identical to a live masking failure:
 
@@ -60,10 +73,13 @@ docker exec -i mc rcon-cli 'execute in <dim> if block <x> <y> <z> minecraft:air'
 ### V3 — Client frame-time near a portal
 **Why manual:** client-side cost is not observable from the server.
 - Walk past a portal at speed, then circle it, then sprint away. Watch F3
-  frame time. **A multi-second stall is a defect** (observed 2026-07-25).
+  frame time. A multi-second stall is a defect (observed 2026-07-25; root
+  cause was an unbudgeted ~1000-packet pass, fixed by `ProjectionBudget`).
 - Relog in range: the projection must reappear, not double-send.
-- *Move to automation:* a server-side packet-count budget per refresh pass is
-  automatable and should be — see audit priority 3.
+- *Now automated:* the per-pass packet ceiling and the side-flip carry-over
+  are asserted server-side from the `sightline mask` DEBUG line — no pass may
+  exceed the ceiling, and `deferred` must reach 0. What remains manual is
+  only whether the CLIENT still feels smooth.
 
 ### V4 — Portal presentation matches the destination
 **Why partly manual:** colour perception. The lookup itself is automatable
