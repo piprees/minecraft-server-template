@@ -212,6 +212,42 @@ class PortalScalingContractTest {
     }
 
     @Test
+    void theArrivalInteriorIsBuiltAtTheCOLUMNTHEPLAYERLANDSIN() {
+        // The bug this pins, live 2026-07-25: ServerWorldMixin built the
+        // arrival at `targetCentre + dx` while teleporting the player to
+        // `targetCentre`. dx is the PROJECTION offset (what you add to a
+        // SOURCE position to reach its target counterpart), so adding it to an
+        // already-scaled centre applies the shift twice.
+        //
+        // Real numbers: a source portal at (63, -619) into a scale-8
+        // dimension teleported the player to (8, -77) and built the portal at
+        // (-47, 465) — ~600 blocks away. The player arrived in raw terrain
+        // with no portal anywhere, which reads as "the return portal was
+        // never created".
+        Set<BlockPos> sourceInterior = doorwayX(63, 116, -619, 1);
+        var mapping = ProjectionVolume.scaledMapping(sourceInterior, 8.0);
+
+        int landingX = mapping.arrivalX();
+        int landingZ = mapping.arrivalZ();
+        assertEquals(8, landingX);
+        assertEquals(-77, landingZ);
+
+        // The interior must CONTAIN the block the player lands in.
+        Set<BlockPos> interior = PortalSite.standardInterior(
+                landingX, 192, landingZ, net.minecraft.util.math.Direction.Axis.X);
+        assertTrue(interior.contains(new BlockPos(landingX, 192, landingZ)),
+                "the arrival interior must contain the landing column");
+
+        // And the double-applied form must NOT — the guard on the actual bug.
+        int dx = landingX - 63;
+        int dz = landingZ - (-619);
+        Set<BlockPos> doubleApplied = PortalSite.standardInterior(
+                landingX + dx, 192, landingZ + dz, net.minecraft.util.math.Direction.Axis.X);
+        assertFalse(doubleApplied.contains(new BlockPos(landingX, 192, landingZ)),
+                "centre+offset builds the portal away from the player — this is the regression");
+    }
+
+    @Test
     void interiorMinYIsTheFloorRowNotTheCentre() {
         // The vertical remap anchors on the interior's LOWEST row — the row a
         // player's feet occupy. Anchoring on the centre would sink every

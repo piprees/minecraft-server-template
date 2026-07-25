@@ -164,8 +164,17 @@ public class ServerWorldMixin {
                         // ProjectionVolume.scaledMapping for the full note.
                         int targetCenterX = (int) Math.round(portalCenterX / scale);
                         int targetCenterZ = (int) Math.round(portalCenterZ / scale);
-                        int dx = targetCenterX - portalCenterX;
-                        int dz = targetCenterZ - portalCenterZ;
+                        // NB: there is deliberately no dx/dz here. The
+                        // difference (targetCentre - portalCentre) is the
+                        // PROJECTION offset — what ProjectionVolume adds to a
+                        // SOURCE position to reach its target counterpart. The
+                        // arrival centre is targetCentreX/Z and nothing else;
+                        // adding the offset to it applies the shift twice
+                        // (2*target - source) and builds the portal hundreds of
+                        // blocks from where the player is teleported.
+                        // Found live 2026-07-25: source (63, -619) at scale 8
+                        // teleported the player to (8, -77) while the portal
+                        // was built at (-47, 465).
 
                         // Arrival height comes from the target column's own
                         // surface — the SCALED centre, since source-portal
@@ -179,7 +188,7 @@ public class ServerWorldMixin {
                         // calcite at y=248" fix, and the reason the way home
                         // looks the same wherever you came from.
                         int siteY = com.customdimensions.portal.PortalSite.findArrivalY(
-                                targetWorld, targetCenterX + dx, targetCenterZ + dz, zone.axis, surfaceY);
+                                targetWorld, targetCenterX, targetCenterZ, zone.axis, surfaceY);
                         boolean carved = siteY == com.customdimensions.portal.PortalSite.NO_SITE;
                         if (carved) {
                             siteY = surfaceY;
@@ -187,7 +196,7 @@ public class ServerWorldMixin {
                         surfaceY = siteY;
                         HashSet<BlockPos> adjustedInterior = new HashSet<>(
                                 com.customdimensions.portal.PortalSite.standardInterior(
-                                        targetCenterX + dx, siteY, targetCenterZ + dz, zone.axis));
+                                        targetCenterX, siteY, targetCenterZ, zone.axis));
 
                         boolean isHorizontal = zone.axis == Direction.Axis.Y;
 
