@@ -215,6 +215,13 @@ public final class PlayerProjectionState {
     private List<BlockPos> volume = List.of();
     /** Depth the current {@link #volume} was built with (0 = none yet). */
     private int builtDepth;
+    /**
+     * The opening's in-plane ring — the mask's occluder set. A property of
+     * the zone, not of the viewer, so it is resolved once and reused; a
+     * partially-visible block is shown precisely because the rest of it is
+     * behind these.
+     */
+    private Set<BlockPos> frameRing = Set.of();
 
     /** 4c: player EYE position and server tick at the last send. */
     private Vec3d lastRefreshEye;
@@ -296,6 +303,7 @@ public final class PlayerProjectionState {
             this.builtDepth = depth;
             this.volume = ProjectionVolume.computeSourcePositions(this.zone.interior, this.zone.axis,
                     wanted, depth, settings.previewRadius());
+            this.frameRing = ProjectionVolume.frameRing(this.zone.interior, this.zone.axis);
         }
 
         // 4a: the positions directly behind the opening are sent as invisible
@@ -348,7 +356,7 @@ public final class PlayerProjectionState {
                 lights++;
             } else {
                 if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
-                        this.zone.interior, probe)) {
+                        this.zone.interior, this.frameRing, probe)) {
                     // Behind the frame wall from where this player is standing.
                     // A position that WAS visible and no longer is must be given
                     // its real block back here and now: the player walked, the
@@ -480,6 +488,7 @@ public final class PlayerProjectionState {
     public void forget() {
         this.lastSent.clear();
         this.volume = List.of();
+        this.frameRing = Set.of();
         this.normal = null;
         this.builtDepth = 0;
         this.lastRefreshEye = null;

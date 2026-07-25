@@ -217,7 +217,8 @@ public final class ProjectionVolume {
     private static final double EDGE_EPSILON = 1.0e-6;
 
     /**
-     * Can this viewer see ALL of {@code block} THROUGH the portal opening?
+     * Can this viewer see ANY PART of {@code block} through the portal
+     * opening, without any part of it also being visible AROUND the frame?
      *
      * <h2>Why this exists</h2>
      * {@link #computeSourcePositions} is a rectangular slab, so most of it
@@ -227,46 +228,59 @@ public final class ProjectionVolume {
      * just look in the general direction of the portal". A portal is a hole,
      * and you can only see through a hole along a line that goes through it.
      *
-     * <h2>The test: the WHOLE block, not its centre</h2>
+     * <h2>The test, and why it is neither of the two obvious ones</h2>
      * The block's shadow — the perspective projection of its full cube from
-     * {@code eye} onto the portal's mid-plane — must lie entirely inside the
-     * opening. Every cell that shadow touches is looked up in {@code interior}
-     * itself, never in its bounding box, so an irregular flood-filled frame
-     * (an L, an arch, a frame with a notch) masks per cell, exactly like
-     * {@code EntityPassthrough}'s swept-path test does.
+     * {@code eye} onto the portal's mid-plane — is walked cell by cell. The
+     * block is shown when the shadow <b>touches the aperture at least once</b>
+     * and <b>never leaves {@code interior} ∪ {@code frameRing}</b>. Cells are
+     * looked up in those sets themselves, never in a bounding box, so an
+     * irregular flood-filled frame (an L, an arch, a frame with a notch) masks
+     * per cell, exactly like {@code EntityPassthrough}'s swept-path test.
      *
-     * <p><b>Testing the centre was not enough</b>, and this is the second
-     * defect this method has had. A block whose centre-ray clears the aperture
-     * still renders as a full cube, so at grazing angles its outer half sticks
-     * out past the frame — reported in-game as "i'm side-on to the portal, it
-     * shouldn't have those leaves there; if i step slightly to the left it
-     * goes away". The mask was doing what it said; what it said was too
-     * permissive. Requiring full containment projects fewer positions, which
-     * is the correct trade: a slightly shallower-looking but CLEAN window
-     * beats a deeper one that smears geometry across the frame edge.
+     * <p>Both simpler rules were tried in game and both were reported:
+     * <ul>
+     *   <li><b>Centre only</b> — a block whose centre-ray clears the aperture
+     *       still renders as a whole cube, so at grazing angles its outer half
+     *       hangs past the frame edge: "i'm side-on to the portal, it shouldn't
+     *       have those leaves there".</li>
+     *   <li><b>Whole shadow inside the aperture</b> — correct but far too
+     *       conservative, because a block only fractionally behind the opening
+     *       is genuinely visible through it: "any block that is even slightly
+     *       in-frame should be rendered rather than only blocks that are fully
+     *       in frame".</li>
+     * </ul>
      *
-     * The result is still a view frustum — a narrow window at depth 1 that
-     * widens with depth and slides sideways as the player walks, which is
-     * where the parallax comes from — just a conservative one. Positions
-     * outside it keep their real blocks.
+     * <p>The ring is what reconciles them, and the reason is physical rather
+     * than a fudge: the parts of a partially-visible block that do NOT come
+     * through the aperture are behind the frame ring, which is real, solid,
+     * opaque geometry the client draws in front of them. They are occluded,
+     * not leaked. A shadow that runs past the ring is the case that actually
+     * leaks — those rays miss the frame altogether and reach the block in open
+     * air — and that is exactly the rule's cutoff.
+     *
+     * <p>The ring is one cell thick, matching the frame. A portal built into a
+     * wider WALL occludes more than that, so this stays slightly conservative
+     * for those; correcting it would mean probing real block states in the
+     * plane, which is a world read this class deliberately does not do.
      *
      * <h2>How the shadow is computed</h2>
      * Only the block's two faces ON THE NORMAL AXIS matter for the crossing
      * parameter, giving two values of {@code t}; each in-plane axis then has
      * two candidate coordinates. The four combinations per axis bound the
-     * shadow, and its axis-aligned bounding rectangle is what gets tested.
-     * That rectangle is a superset of the true (hexagonal) shadow, so this
-     * errs towards hiding — the direction we want.
+     * shadow, and its axis-aligned bounding rectangle is what gets walked.
+     * That rectangle is a superset of the true (hexagonal) shadow, so the
+     * ring bound errs towards hiding and the aperture touch errs towards
+     * showing — each in the direction that costs least if it is wrong.
      *
      * <h2>Cost</h2>
-     * A centre test first, which is the old one-division/one-lookup check:
-     * full containment implies centre containment, so a centre miss is a
-     * definite miss and the majority of the slab is rejected at the old
-     * price. Only positions that pass it pay for the extent test — two
-     * divisions, eight multiply-adds and typically one to four more
-     * {@code Set} lookups. No allocation when the caller passes a
-     * {@code scratch} it reuses across the volume; {@code scratch} may be null
-     * (tests, one-off calls), which costs one {@link BlockPos} per lookup.
+     * Two divisions, eight multiply-adds and typically one to six {@code Set}
+     * lookups per position, in a single walk that rejects on the first cell
+     * outside the ring. (The old centre pre-test is gone: it was a valid cheap
+     * reject only while full containment was required, and under this rule a
+     * block whose centre misses can still be visible.) No allocation when the
+     * caller passes a {@code scratch} it reuses across the volume;
+     * {@code scratch} may be null (tests, one-off calls), which costs one
+     * {@link BlockPos} per lookup.
      *
      * <h2>Boundary behaviour</h2>
      * A block is still in or out as a whole — that granularity is inherent, and
@@ -276,10 +290,29 @@ public final class ProjectionVolume {
      * a client-side renderer can clip sub-block accurately; see
      * {@code immersive/PHASE-5-CLIENT-COMPANION.md}.
      *
-     * An eye AT or PAST the plane (the player standing in the doorway, about
-     * to teleport) makes everything visible: from inside the aperture there is
-     * nothing left to mask, and returning false there would blank the whole
-     * preview in the last half-block before a traversal.
+     * <h2>The plane band, and the inversion that lived in it</h2>
+     * {@link #viewerFarSide} only flips the slab when the viewer's BLOCK
+     * coordinate passes the plane, so there is a one-block band on the normal
+     * axis inside which the eye can already be past the plane's midpoint while
+     * the slab still sits on the far side. This method used to treat that
+     * whole band as "the eye is in the doorway, nothing left to mask" and
+     * return true for every position in it.
+     *
+     * <p>That band is infinite in the in-plane axes. Walking sideways PAST a
+     * portal crosses it, and the entire slab — padding included — appeared at
+     * once, for a player who could not see the opening at all because the
+     * frame wall was between them and it. Reported in game 2026-07-25 with the
+     * exact signature: "I cannot see the portal from my direction at all
+     * because the planks are in the way, but it suddenly pops; one more step
+     * forward and it goes away", symmetric on both sides. It is also where the
+     * fake blocks a player could walk into and mine came from: those are the
+     * padded columns, which nothing but this branch ever showed.
+     *
+     * <p>So the shortcut now asks the question it always meant to ask — is the
+     * eye inside the APERTURE, not merely level with its plane — and answers
+     * false when it is not. A player in the doorway still keeps their preview
+     * through the last half-block before a traversal, which is what the
+     * shortcut is for.
      *
      * <h2>Eye POSITION, never camera angle — do not "fix" this</h2>
      * This takes a {@link Vec3d} position and nothing else. It must never
@@ -295,9 +328,13 @@ public final class ProjectionVolume {
      * legitimately does not as they LOOK. If that asymmetry is ever reported
      * as a bug, the bug is something else keyed to this mask that should not
      * be — as {@code PlayerProjectionState}'s 4a light layer once was.
+     *
+     * @param frameRing the opening's in-plane ring ({@link #frameRing}); an
+     *                  empty or null set degrades to the old strict
+     *                  whole-shadow-inside-the-aperture rule
      */
     public static boolean seesThroughOpening(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
-            int planeCoord, Set<BlockPos> interior, BlockPos.Mutable scratch) {
+            int planeCoord, Set<BlockPos> interior, Set<BlockPos> frameRing, BlockPos.Mutable scratch) {
         if (eye == null || block == null || normalAxis == null || interior == null || interior.isEmpty()) {
             return false;
         }
@@ -308,39 +345,29 @@ public final class ProjectionVolume {
         // Which side of the plane the slab is on, from this block.
         double blockSide = (blockN + 0.5) - plane;
         if (toPlane * blockSide <= 0.0) {
-            // The eye is AT the plane, PAST it, or level with the block: it is
-            // inside the doorway (viewerFarSide keeps the slab opposite the
-            // viewer otherwise). Nothing left to mask, and masking here would
-            // blank the preview in the last half-block before a traversal.
-            return true;
+            // The eye is level with, or past, the plane. Standing IN the
+            // doorway there is nothing left to mask; standing beside it there
+            // is nothing to see. Only the aperture test can tell those apart
+            // — see "The plane band" above.
+            return eyeInsideAperture(eye, normalAxis, planeCoord, interior, scratch);
         }
 
-        // Cheap reject first: full containment implies centre containment, so
-        // a centre miss is a definite miss. This is the whole cost for the
-        // majority of the slab, which lies outside the cone.
-        double tCentre = toPlane / ((blockN + 0.5) - eyeN);
-        if (!cellInside(eye, block, normalAxis, planeCoord, tCentre, tCentre, interior, scratch)) {
-            return false;
-        }
-
-        // Extent test: the block's two faces on the normal axis give the two
-        // crossing parameters that bound its shadow on the plane.
+        // The block's two faces on the normal axis give the two crossing
+        // parameters that bound its shadow on the plane.
         double tLow = toPlane / (blockN - eyeN);
         double tHigh = toPlane / ((blockN + 1.0) - eyeN);
-        return cellInside(eye, block, normalAxis, planeCoord, tLow, tHigh, interior, scratch);
+        return shadowFitsOpening(eye, block, normalAxis, planeCoord, tLow, tHigh,
+                interior, frameRing, scratch);
     }
 
     /**
-     * Is every cell the block's shadow touches — taken over the crossing
-     * parameters {@code t0..t1} and the block's full extent on each in-plane
-     * axis — part of the opening?
-     *
-     * Passing the same {@code t} twice degenerates this to the centre test,
-     * which is exactly how the cheap reject above reuses it.
+     * Does the block's shadow, taken over the crossing parameters
+     * {@code t0..t1} and the block's full extent on each in-plane axis, touch
+     * the opening at least once and stay within the opening plus its ring?
      */
-    private static boolean cellInside(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
-            int planeCoord, double t0, double t1, Set<BlockPos> interior, BlockPos.Mutable scratch) {
-        boolean centreOnly = t0 == t1;
+    private static boolean shadowFitsOpening(Vec3d eye, BlockPos block, Direction.Axis normalAxis,
+            int planeCoord, double t0, double t1, Set<BlockPos> interior, Set<BlockPos> frameRing,
+            BlockPos.Mutable scratch) {
         double uEye;
         double vEye;
         int uBlock;
@@ -362,27 +389,19 @@ public final class ProjectionVolume {
             vBlock = block.getY();
         }
 
-        int uMin;
-        int uMax;
-        int vMin;
-        int vMax;
-        if (centreOnly) {
-            uMin = uMax = (int) Math.floor(uEye + t0 * (uBlock + 0.5 - uEye));
-            vMin = vMax = (int) Math.floor(vEye + t0 * (vBlock + 0.5 - vEye));
-        } else {
-            long uSpan = shadowSpan(uEye, uBlock, t0, t1);
-            long vSpan = shadowSpan(vEye, vBlock, t0, t1);
-            uMin = (int) (uSpan >> 32);
-            uMax = (int) uSpan;
-            vMin = (int) (vSpan >> 32);
-            vMax = (int) vSpan;
-            if (uMax - uMin >= MAX_SHADOW_CELLS || vMax - vMin >= MAX_SHADOW_CELLS) {
-                // A shadow this wide cannot fit inside any aperture worth
-                // projecting through; refusing it also bounds the loop below.
-                return false;
-            }
+        long uSpan = shadowSpan(uEye, uBlock, t0, t1);
+        long vSpan = shadowSpan(vEye, vBlock, t0, t1);
+        int uMin = (int) (uSpan >> 32);
+        int uMax = (int) uSpan;
+        int vMin = (int) (vSpan >> 32);
+        int vMax = (int) vSpan;
+        if (uMax - uMin >= MAX_SHADOW_CELLS || vMax - vMin >= MAX_SHADOW_CELLS) {
+            // A shadow this wide cannot fit inside any aperture worth
+            // projecting through; refusing it also bounds the loop below.
+            return false;
         }
 
+        boolean touchesOpening = false;
         for (int u = uMin; u <= uMax; u++) {
             for (int v = vMin; v <= vMax; v++) {
                 int x;
@@ -402,13 +421,80 @@ public final class ProjectionVolume {
                     z = planeCoord;
                 }
                 // A Mutable hashes and compares as its coordinates (Vec3i), so
-                // a reused probe is a valid key for the interior set.
-                if (!interior.contains(scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z))) {
+                // a reused probe is a valid key for either set.
+                BlockPos probe = scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z);
+                if (interior.contains(probe)) {
+                    touchesOpening = true;
+                    continue;
+                }
+                if (frameRing == null || !frameRing.contains(probe)) {
+                    // Past the frame: these rays reach the block in open air,
+                    // which is the leak the whole mask exists to prevent.
                     return false;
                 }
             }
         }
-        return true;
+        return touchesOpening;
+    }
+
+    /**
+     * Is the eye's own cell, projected onto the portal plane, part of the
+     * opening? The test that distinguishes "standing in the doorway" from
+     * "standing beside it at the same depth" — see the plane-band section on
+     * {@link #seesThroughOpening}.
+     */
+    private static boolean eyeInsideAperture(Vec3d eye, Direction.Axis normalAxis, int planeCoord,
+            Set<BlockPos> interior, BlockPos.Mutable scratch) {
+        int x;
+        int y;
+        int z;
+        if (normalAxis == Direction.Axis.X) {
+            x = planeCoord;
+            y = (int) Math.floor(eye.y);
+            z = (int) Math.floor(eye.z);
+        } else if (normalAxis == Direction.Axis.Y) {
+            x = (int) Math.floor(eye.x);
+            y = planeCoord;
+            z = (int) Math.floor(eye.z);
+        } else {
+            x = (int) Math.floor(eye.x);
+            y = (int) Math.floor(eye.y);
+            z = planeCoord;
+        }
+        return interior.contains(scratch != null ? scratch.set(x, y, z) : new BlockPos(x, y, z));
+    }
+
+    /**
+     * The opening's in-plane ring: every position adjacent to the aperture
+     * within the portal's plane that is not itself part of the aperture.
+     *
+     * <p>For a valid zone these are exactly the frame blocks — zone validity
+     * is defined as this ring being made of frame material — which is what
+     * makes it usable as an occluder set by {@link #seesThroughOpening}
+     * without reading a single block state.
+     *
+     * <p>Derived from the normal axis rather than from
+     * {@code PortalHelper.planeDirections} so this class stays world- and
+     * mod-free; the two produce the same four directions by construction.
+     */
+    public static Set<BlockPos> frameRing(Set<BlockPos> interior, Direction.Axis portalAxis) {
+        if (interior == null || interior.isEmpty()) {
+            return Set.of();
+        }
+        Direction.Axis normal = normalAxis(portalAxis);
+        Set<BlockPos> ring = new HashSet<>();
+        for (BlockPos p : interior) {
+            for (Direction dir : Direction.values()) {
+                if (dir.getAxis() == normal) {
+                    continue;
+                }
+                BlockPos neighbour = p.offset(dir);
+                if (!interior.contains(neighbour)) {
+                    ring.add(neighbour);
+                }
+            }
+        }
+        return ring;
     }
 
     /**
