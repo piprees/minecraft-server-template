@@ -20,15 +20,18 @@ public class WorldLoaderMixin {
         PortalHelper.setServer(server);
         PortalHelper.loadPortalLinks();
         DimensionManager.getInstance().onServerStart(server);
-        // SEED_ROLL_MODE: the seed roller boots with a candidate-only config
-        // and drives registration/creation itself via /customdim create —
-        // skipping the boot pass keeps roll boots fast and the registry clean.
         boolean seedRollMode = "true".equalsIgnoreCase(System.getenv("SEED_ROLL_MODE"));
         if (seedRollMode) {
             MultiverseServer.LOGGER.info("SEED_ROLL_MODE active — skipping boot dimension creation (use /customdim create)");
         } else {
+            // Register dimension options into the registry so worlds CAN
+            // be created, but don't create any ServerWorld instances.
+            // Vanilla's createWorlds loop handles the overworld, nether,
+            // end, and paradise_lost. Custom dimensions are created lazily
+            // by getOrCreateDimension() when a player enters via portal
+            // or command — each lazy creation fires ServerWorldEvents.LOAD,
+            // so DH/BlueMap/c2me init only for dimensions actually visited.
             DimensionManager.getInstance().registerDimensions();
-            DimensionManager.getInstance().bootCreateDimensions();
         }
     }
 

@@ -119,6 +119,7 @@ public class DimensionManager {
         this.cleanupDatapack();
     }
 
+
     private void cleanupDatapack() {
         try {
             Path datapackDir = this.server.getSavePath(WorldSavePath.DATAPACKS).resolve("customdimensions");

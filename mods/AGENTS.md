@@ -69,7 +69,9 @@ unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep
 
 ### 2. Fast local loop
 
-Install straight into the local consumer's `data/mods/` and restart only the mc container — no release, no bundle, no full stack cycle:
+Install straight into the local consumer's `data/mods/` and restart only the mc container — no release, no bundle, no full stack cycle.
+
+**Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle into `data/mods/` on every run, silently overwriting your locally-built JAR with the old released version. Your test then runs the OLD code and "passes" while the change you're testing never executes (2026-07-25: an entire lazy-init feature appeared to not work across four boot cycles because every test was running the bundle JAR). Use `docker stop mc && docker start mc` (or `docker restart mc`) — these restart the container without touching the mod files. Only use `./dev up` when you deliberately want to reset to the bundle's shipped JARs.
 
 **Re-patch c2me BEFORE every stop/start in this loop.** c2me strips
 `useDensityFunctionCompiler` from `data/config/c2me.toml` on every boot
@@ -306,8 +308,8 @@ MultiverseServer (entrypoint)
 ├── WorldLoaderMixin → hooks server start/stop
 │   ├── MultiverseConfig.load() → reads repo-owned JSON config (read-only)
 │   ├── PortalHelper.loadPortalLinks() → JSON portal state
-│   ├── DimensionManager.registerDimensions() → unfreezes registry, adds entries
-│   └── DimensionManager.bootCreateDimensions() → queues all config dims for creation
+│   └── DimensionManager.registerDimensions() → unfreezes registry, adds entries
+│       (worlds are NOT created at boot — lazy creation on first player entry)
 ├── END_SERVER_TICK → drains pending world loads/unloads, reconciles orphans
 ├── ServerWorldMixin → per-tick logic
 │   ├── validates portal zones (removes broken ones)
