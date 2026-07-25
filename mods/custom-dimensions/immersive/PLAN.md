@@ -601,9 +601,12 @@ directory asserted something false.
   patched that file inside the `stack-config` volume, which every seed run
   reverts (trap #12) — the diagnostics vanished mid-session on the next
   `./dev up`. Never re-introduce a post-install patch for this.
-- **Carpet ships.** `config/modrinth-mods.txt` carries `carpet:f2mvlGrg`.
-  `mods/AGENTS.md`'s "install temporarily — LOCAL ONLY, never ship" recipe is
-  stale; the bot is available without installing anything.
+- **Carpet must NOT be shipped.** It was a platform default for eleven days
+  and crashed a player's server: carpet unconditionally nulls the
+  moving-piston BlockEntity and Supplementaries hard-errors on that, so any
+  piston tick is a coin flip on mixin order. Root-caused from the jar's
+  bytecode in `docs/known-issues/carpet-supplementaries-piston-crash.md`.
+  Add it to the consumer overlay for a bot run, then take it out.
 
 ### The scale inversion — the big one
 

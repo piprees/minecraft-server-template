@@ -175,9 +175,10 @@ sources must NOT be destroyed by one of them.
 - Break symmetry: mining one side clears both apertures; an anchor arrival
   shared by N sources survives one source being broken.
 
-**End-to-end (Carpet bot, local).** Carpet ships in `config/modrinth-mods.txt`
-(`carpet:f2mvlGrg`) — no temporary install needed, contrary to
-`mods/AGENTS.md`.
+**End-to-end (Carpet bot, local).** Carpet is NOT shipped — add
+`carpet:f2mvlGrg` to the consumer `overlay/mods-extra.txt` for the test run and
+remove it afterwards. It crashes on piston ticks alongside Supplementaries
+(`docs/known-issues/carpet-supplementaries-piston-crash.md`).
 - Build a portal beyond the usable radius of a scaled dimension, traverse,
   and assert the arrival is inside the destination border.
 - Assert the bot can actually break a block at the arrival — the check that

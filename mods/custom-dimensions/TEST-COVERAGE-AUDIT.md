@@ -105,9 +105,10 @@ traversing — 16/16 after. 8c proven by the new mask count: `12 suppressed by
 bodies` with a bot in the slab, `0` without. Boot clean, `Restarts=0`, no
 mixin failures.
 
-**Note:** carpet ships in `config/modrinth-mods.txt` (`carpet:f2mvlGrg`), so
-`mods/AGENTS.md`'s "install carpet temporarily — LOCAL ONLY, never ship"
-recipe is out of date; the bot is available without installing anything.
+**Note:** carpet is deliberately NOT shipped — it briefly was, and crashed a
+player's server through a mixin conflict with Supplementaries on piston ticks
+(`docs/known-issues/carpet-supplementaries-piston-crash.md`). Add it to the
+consumer overlay for a test run and remove it afterwards.
 
 Shipped alongside:
 - `PortalSite` refactored to pure cores (`findArrivalY`, `fits`) + new
