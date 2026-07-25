@@ -1,8 +1,16 @@
 # Phase 7 — Portal Identity: consistent doors, both ways
 
-> **Status:** partially shipped. The return-presentation rule and the
-> overworld's own portal identity are in; the End's activation model and the
-> sound half of the rule are specified here and not started.
+> **Status:** presentation SHIPPED and tested (v3.9.1). The End's activation
+> model and the sound half of the rule remain.
+>
+> The colour/particle half was implemented long before it worked. It fell back
+> to the DESTINATION's own portal whenever `getPortalFor(sourceWorld)` returned
+> null — which is every arrival from the overworld, i.e. almost all of them —
+> so the way home out of an ember dimension glowed ember. It had **zero tests**
+> (audit row 9), which is why it survived. Fixed by treating a null source
+> presentation as a BASE world and using `PortalHelper.NEUTRAL_PORTAL_COLOR`;
+> 6 tests in `PortalPresentationTest`, and verified in game (a fresh claymarsh
+> arrival now registers colour `0x8844ff`, not the claymarsh's own).
 > **Depends on:** nothing. Independent of the immersive stack.
 
 ## The rule

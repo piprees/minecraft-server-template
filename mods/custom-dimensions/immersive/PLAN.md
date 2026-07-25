@@ -1,11 +1,12 @@
 # Immersive Portals — Decision Record and Agent Briefing
 
 > **Location:** `mods/custom-dimensions/immersive/`
-> **Phase docs:** `PHASE-0-*.md` through `PHASE-6-*.md` in this directory
-> **Status:** Phases 0-4 and 6 shipped and verified in game; Phase 7 partly
-> shipped. Phase 5 (client companion) is specified and not started.
-> **Phase 8 (`PHASE-8-SOLIDITY.md`) is the highest-priority open work — it
-> opens with an unresolved live defect that can trap a player.**
+> **Phase docs:** open phases in this directory; shipped ones in `archive/`
+> (with a README listing corrections that outlived them — read it).
+> **Status as of v3.9.1 (2026-07-26):** Phases 0–4, 6 and 8 shipped and
+> verified in game. Phase 7's presentation half shipped and tested. Phase 9
+> (arrival placement) is the highest-priority open work. Phase 5 (client
+> companion) is specified and deliberately not started.
 
 ## What this is
 
@@ -176,10 +177,11 @@ Both are independent of each other.
 | 2 | `PHASE-2-CROSS-PORTAL-AUDIO.md` | Biome ambience + weather sounds leak through portal | S | 0 | Low |
 | 3 | `PHASE-3-ENTITY-PASSTHROUGH.md` | Items, projectiles, XP orbs pass through with velocity | S | 0 | Medium |
 | 4 | `PHASE-4-POLISH.md` | Lighting, edge particles, smart throttling, gateway hints | S | 0 | Low |
-| 5 | `PHASE-5-CLIENT-COMPANION.md` | Client mod: loading screen, portal transparency, ghost entities, real lighting/biome colour | L | n/a | High |
-| 6 | `PHASE-6-AURA-POLICY.md` | `aura.subsume` policy — may an aura convert player-placed blocks? Claims as a hard gate | M | n/a | Medium | **Shipped** |
-| 7 | `PHASE-7-PORTAL-IDENTITY.md` | Presentation describes where a portal GOES; overworld identity, End fill-activation | M | n/a | Medium | Partly shipped |
-| 8 | `PHASE-8-SOLIDITY.md` | Fake blocks must never trap a player — open live defect, highest priority | S | n/a | **High** |
+| 5 | `PHASE-5-CLIENT-COMPANION.md` | Client mod: loading screen, portal transparency, ghost entities, real lighting/biome colour | L | n/a | High — **not started, deliberately** |
+| 6 | `archive/PHASE-6-AURA-POLICY.md` | `aura.subsume` policy + claims hard gate | M | n/a | **Shipped v3.7.0** |
+| 7 | `PHASE-7-PORTAL-IDENTITY.md` | Presentation describes where a portal GOES | M | n/a | Presentation **shipped v3.9.1**; End activation + sounds open |
+| 8 | `archive/PHASE-8-SOLIDITY.md` | Arrival egress, portals stay breakable, no fake block in a body | S | n/a | **Shipped v3.9.0** |
+| 9 | `PHASE-9-ARRIVAL-PLACEMENT.md` | Arrival must be reachable, viable and symmetric | M | n/a | **Highest open priority** |
 
 **Total:** ~830 new lines across 4 new files + 5 modified files.
 
@@ -433,8 +435,16 @@ mixin classes (all changes are to existing mixins).
 
 ## Briefing for the next agent (start here)
 
-Phases 0–4 are shipped. Phase 5 (`PHASE-5-CLIENT-COMPANION.md`) is specified
-but not started, and is the only planned work that needs a client mod.
+**Start with `PHASE-9-ARRIVAL-PLACEMENT.md` § "Still open here".** Everything
+else in the portal system is shipped and covered; Phase 9 is where the
+remaining player-visible risk lives.
+
+Suite is **339 tests / 31 classes**. Read
+`../TEST-COVERAGE-AUDIT.md` first — it has the coverage matrix, the rule that
+came out of it (*a class that writes to the world, or decides whether a player
+can move, does not ship without a pure, tested core*), and what is still
+uncovered. `../MANUAL-VERIFICATION.md` has the handful of checks that genuinely
+cannot be automated, plus a known-wrong-assumptions table.
 
 **Read these before touching anything:** this file, your phase doc,
 `mods/AGENTS.md` (the Portal system section now carries the immersive contract
@@ -672,3 +682,78 @@ Phase 8 took one session including diagnosis: 273 → 316 tests, three new test
 classes, and an e2e proof driven with a Carpet bot (re-bury the real portal →
 0/16 air cells → traverse → 16/16). The e2e loop is genuinely fast once the
 bot is up; the expensive part was the false leads above.
+
+---
+
+## Session notes — 2026-07-26 (v3.9.0, v3.9.1)
+
+Continues the 2026-07-25 notes above. Everything here was found by a defect
+report from the owner, not by review — but *every one* was then reproducible
+headlessly, which is the point of the audit.
+
+### The coordinate bugs, which were three bugs wearing one coat
+
+They all presented as "portals are broken" and had to be peeled apart:
+
+1. **Entry multiplied instead of dividing.** `scale` is the Nether ratio as
+   people say it — "8 nether : 1 over". Entering divides, returning
+   multiplies. The README's one example said the opposite (`0.125 for
+   nether-style 1:8`) and two unit tests had been written to match it; 52
+   configs and every border said otherwise. **One stale doc line outvoted the
+   entire config set for months.**
+2. **The arrival was built where nobody lands.** `ServerWorldMixin` passed
+   `targetCentre + dx` to `PortalSite` while teleporting to `targetCentre`.
+   `dx` is the PROJECTION offset, so the shift applied twice. The portal was
+   real and registered — just ~600 blocks away. Symptom: "there is no return
+   portal at all".
+3. **The arrival preview sampled its own column.** `returnMapping` translated
+   by zero because `PortalReturnTarget` carried `sourceY` and no X/Z. At scale
+   1 that is the same place, so it looked fine forever. It now carries
+   `sourceX`/`sourceZ`; the preview went from **12 blocks to 198** in game.
+
+**The lesson worth keeping:** a preview is never scaled. N blocks out is N
+blocks on the other side, both directions. Both mappings are rigid
+translations; the only question is what they translate TO.
+
+### I overrode a correct test twice
+
+The CI portal e2e failed with `Arrival is ENTOMBED`. It was catching bug (2)
+above. I loosened the assertion twice (`minecraft:air` → an air list →
+`#minecraft:replaceable`) before finding the real cause. Only the third change
+was independently justified.
+
+If a test you just wrote fails on its first run, **the prior should be that it
+is right**. That is the entire premise of `TEST-COVERAGE-AUDIT.md`, and the
+same file already warns about encoding a bug as the spec — which the first
+version of `PortalScalingContractTest` did, pinning `236 × 8 = 1888` as
+correct because that is what the code did.
+
+### Surprises
+
+- **`patch-mod-data.py` ran in exactly one of three boot paths.** Production
+  had it; local (`dev-up.sh`) and CI (`smoke-test.yml`) did not. So local dev
+  had never had the Epic Dungeons loot repair, and CI booted with unpatched
+  carpet. Both fixed. If you add a fourth way to boot the server, it repairs
+  the jars too.
+- **carpet × Supplementaries is a hard crash and it is fully deterministic** —
+  one piston, one chest. It looked intermittent for eleven days only because
+  vanilla cannot push chests, so it needs a contraption. Root-caused from the
+  jar's bytecode; carpet ships patched.
+  See `docs/known-issues/carpet-supplementaries-piston-crash.md`.
+- **The DEBUG logger is `CUSTOMDIM_LOG_LEVEL` in `.env`**, not a file patch.
+  The old recipe edited `log4j2-adventure.xml` inside the `stack-config`
+  volume, which every seed run reverts — the diagnostics vanished mid-
+  investigation on the next `./dev up`.
+- **`gh run view --log` returns the STEP SOURCE as well as its output**, both
+  with `::error::` prefixes. Lines with unexpanded `$VAR` are the script
+  listing, not failures. Filter on the timestamped output or you will diagnose
+  a green run as red.
+- **`strings` on a jar entry silently produced nothing.** Use
+  `javap -p -classpath <jar> <class>` to prove a symbol reached the artefact.
+
+### What "shipped" cost
+
+Two releases in a day, both gated by the CI smoke test, which now drives a
+real Carpet bot through a real portal and asserts the arrival is inside the
+destination border, at the divided column, and not entombed. That gate has
+already caught two genuine bugs on its first two runs.

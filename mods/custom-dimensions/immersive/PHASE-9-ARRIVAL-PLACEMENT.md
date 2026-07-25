@@ -194,6 +194,38 @@ until something loads it — that is not a failure. And `worldborder get` reads
 the shared vanilla border, not the mod's per-world one; trust the
 `WorldBorderManager` boot log instead.
 
+## Also now shipped (was open when this doc was written)
+
+- **Entry divides by `scale`.** "8 nether : 1 over" — one block in the
+  destination is worth `scale` at home, so entering divides and returning
+  multiplies. The code multiplied. Fixed and pinned by
+  `PortalScalingContractTest`.
+- **The arrival is built where the player lands.** `ServerWorldMixin` passed
+  `targetCentre + dx` to `PortalSite` while teleporting to `targetCentre` —
+  `dx` is the PROJECTION offset, so the shift applied twice and the portal was
+  built hundreds of blocks away. That is what "there is no return portal at
+  all" was.
+- **The arrival preview translates to its source column.** `returnMapping`
+  translated by zero because `PortalReturnTarget` had no `sourceX`/`sourceZ`.
+  It does now; the preview went from 12 blocks to 198 in game.
+- **Presentation** — see PHASE-7.
+
+## Still open here
+
+1. **The NO_SITE fallback still uses the roof-reading heightmap.** When
+   `PortalSite.findArrivalY` finds nothing it falls back to `findSurfaceY`,
+   whose `MOTION_BLOCKING_NO_LEAVES` reads the CEILING in a nether-type
+   dimension. That silently undoes the whole point of `PortalSite`. Seen live
+   on 2026-07-25: an arrival at y=192, on the nether roof. The column bug was
+   making it fire far more often than it should, but the fallback is wrong on
+   its own terms and needs a carve-in-place instead.
+2. **`findArrivalY`'s ceilinged start uses `logicalHeight`.** For these
+   custom nether-type dims the generator fills well above it (open space was
+   found at y≈172 in `the_boneyard`), so the search band can miss the
+   playable space entirely.
+3. **9b config validation** and **9c symmetric portal breaking** — unchanged
+   from below.
+
 ## Out of scope
 
 Fixing the 58 configs is a content decision, not a code one: either raise the
