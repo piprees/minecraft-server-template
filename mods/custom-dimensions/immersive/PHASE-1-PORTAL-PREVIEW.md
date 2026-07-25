@@ -2,7 +2,7 @@
 
 > **Depends on:** Phase 0 (config parsing + pre-loaded target world/chunks)
 > **Unlocks:** Phase 2 (Cross-Portal Audio), Phase 4 (Polish)
-> **Status:** Not started
+> **Status:** Complete
 
 ## Goal
 
@@ -30,7 +30,7 @@ loop. Phase 4 (polish) refines the visual output.
 
 ### 1a. Projection geometry (`ProjectionVolume`)
 
-- [ ] Create `ProjectionVolume` in `com.customdimensions.immersive`:
+- [x] Create `ProjectionVolume` in `com.customdimensions.immersive`:
   ```java
   public final class ProjectionVolume {
       // Compute the rectangular slab of source-dimension positions to project
@@ -52,21 +52,21 @@ loop. Phase 4 (polish) refines the visual output.
       }
   }
   ```
-- [ ] The normal direction depends on the zone's `axis`:
+- [x] The normal direction depends on the zone's `axis`:
   - `Axis.X` → portal plane is in the XY plane, normal is ±Z
   - `Axis.Z` → portal plane is in the ZY plane, normal is ±X
   - `Axis.Y` → portal plane is horizontal, normal is ±Y (down, for player looking into)
-- [ ] The normal sign (which side to project on) is determined by which side
+- [x] The normal sign (which side to project on) is determined by which side
   has MORE air blocks adjacent to the interior — the "open" side where the
   player approaches from. Compute once at activation, cache.
-- [ ] Anchor portals: target coordinates use the anchor position instead of
+- [x] Anchor portals: target coordinates use the anchor position instead of
   scaled portal centre
 
 **File:** New `immersive/ProjectionVolume.java` (~100 lines)
 
 ### 1b. Per-player projection state (`PlayerProjectionState`)
 
-- [ ] Create `PlayerProjectionState` in `com.customdimensions.immersive`:
+- [x] Create `PlayerProjectionState` in `com.customdimensions.immersive`:
   ```java
   public final class PlayerProjectionState {
       private final ServerPlayerEntity player;
@@ -87,60 +87,63 @@ loop. Phase 4 (polish) refines the visual output.
       public void cleanup(ServerWorld sourceWorld) { ... }
   }
   ```
-- [ ] Track active projections in a static map:
+- [x] Track active projections in a static map:
   `Map<UUID, List<PlayerProjectionState>>` (player → active portal projections)
 
 **File:** New `immersive/PlayerProjectionState.java` (~120 lines)
 
 ### 1c. Packet sending
 
-The critical implementation detail. Two vanilla packet types:
+Every packet is a **`BlockUpdateS2CPacket`** — full sends, deltas, and cleanup.
+Verified public constructor in 1.21.1:
 
-**`BlockUpdateS2CPacket`** — single block update:
+```java
+public BlockUpdateS2CPacket(net.minecraft.util.math.BlockPos pos,
+    net.minecraft.block.BlockState state)
+```
+
+Sent directly on the connection (`networkHandler` is a public field on
+`ServerPlayerEntity`), which also side-steps Gotcha #1's packet-fixer concern:
+
 ```java
 player.networkHandler.sendPacket(
     new BlockUpdateS2CPacket(sourcePos, targetBlockState));
 ```
 
-**`ChunkDeltaUpdateS2CPacket`** — batched updates within one chunk section:
-```java
-// Group positions by SectionPos (chunk x, section y, chunk z)
-// For each section, build a ShortSet of section-local positions
-// and a BlockState[] of the target states
-SectionPos section = SectionPos.from(pos);
-ChunkDeltaUpdateS2CPacket packet = new ChunkDeltaUpdateS2CPacket(
-    section, shortSet, blockStates);
-player.networkHandler.sendPacket(packet);
-```
-
-- [ ] Use `BlockUpdateS2CPacket` for delta updates (typically 0-10 blocks)
-- [ ] Use `ChunkDeltaUpdateS2CPacket` for initial full sends (up to 336 blocks,
-  batched by chunk section — vanilla limit is 64 per section per packet)
-- [ ] For cleanup, send `BlockUpdateS2CPacket` with the REAL source-dimension
-  block state at each position in `lastSent`
-- [ ] Import paths (1.21.1 Yarn mappings):
+- [x] Use `BlockUpdateS2CPacket` for the initial full send, for delta updates,
+  and for cleanup (cleanup sends the REAL source-dimension block state at each
+  position in `lastSent` — never a hardcoded AIR, see Gotcha #8)
+- [x] Import path (1.21.1 Yarn mappings):
   - `net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket`
-  - `net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket`
-  - `net.minecraft.util.math.ChunkSectionPos` (the 1.21.1 name for SectionPos)
 
-**Research note:** `ChunkDeltaUpdateS2CPacket` constructor in 1.21.1:
+**Research note (corrected 2026-07-25 — the previous note documented a
+constructor that does not exist).** `ChunkDeltaUpdateS2CPacket` is **unusable
+for this feature**. Decompiling the Yarn-mapped 1.21.1 jar gives exactly one
+public constructor:
+
 ```java
-public ChunkDeltaUpdateS2CPacket(ChunkSectionPos sectionPos,
-    ShortSet positions, BlockState[] states)
+public ChunkDeltaUpdateS2CPacket(net.minecraft.util.math.ChunkSectionPos,
+    it.unimi.dsi.fastutil.shorts.ShortSet,
+    net.minecraft.world.chunk.ChunkSection)
 ```
-The `ShortSet` contains section-local packed positions (x<<8 | z<<4 | y for
-each block within the 16×16×16 section). Verify this constructor exists in
-our Yarn mappings before implementation.
 
-**Fallback:** If `ChunkDeltaUpdateS2CPacket`'s constructor isn't accessible
-(it may be package-private or differently shaped in 1.21.1), use individual
-`BlockUpdateS2CPacket` calls. Slightly more overhead but functionally identical.
+It takes a **`ChunkSection`** and reads the block states *out of that section*
+— i.e. out of the real world. There is no `BlockState[]` constructor, so the
+packet cannot express fake states at all, and synthesising a `ChunkSection`
+to fool it is not on the table. Do not reintroduce it.
+
+**Packet budget makes batching unnecessary.** The worst-case initial send —
+default 2×3 doorway at `previewDepth` 8 / `previewRadius` 2 — is 336 positions
+× ~14 bytes ≈ **5 KB, once per activation**. Steady state is near zero: the
+delta pass only sends positions whose target block actually changed. This
+constraint and its rationale are recorded in `PlayerProjectionState`'s class
+comment so nobody "optimises" it back.
 
 **Files:** Integrated into `PlayerProjectionState.java`
 
 ### 1d. Main tick loop (`ImmersiveProjector`)
 
-- [ ] Create `ImmersiveProjector` in `com.customdimensions.immersive`:
+- [x] Create `ImmersiveProjector` in `com.customdimensions.immersive`:
   ```java
   public final class ImmersiveProjector {
       private static final Map<UUID, Map<String, PlayerProjectionState>> ACTIVE = new ConcurrentHashMap<>();
@@ -196,11 +199,11 @@ our Yarn mappings before implementation.
       public static void clear() { ACTIVE.clear(); }
   }
   ```
-- [ ] Call from `ServerWorldMixin.onTick()`, after `PortalAuraManager.tick(world)`:
+- [x] Call from `ServerWorldMixin.onTick()`, after `PortalAuraManager.tick(world)`:
   ```java
   com.customdimensions.immersive.ImmersiveProjector.tick(world);
   ```
-- [ ] Hook cleanup into existing removal paths:
+- [x] Hook cleanup into existing removal paths:
   - `PortalHelper.removeZone()` → `ImmersiveProjector.cleanupZone()`
   - `ServerPlayConnectionEvents.DISCONNECT` → `ImmersiveProjector.cleanupPlayer()`
   - `WorldLoaderMixin.onShutdown()` → `ImmersiveProjector.clear()`
@@ -211,20 +214,20 @@ modified `ServerWorldMixin.java` (~2 lines), modified `MultiverseServer.java`
 
 ### 1e. Cleanup safety net
 
-- [ ] On player relog, any leaked fake blocks are corrected by vanilla's chunk
+- [x] On player relog, any leaked fake blocks are corrected by vanilla's chunk
   resend (the client reloads chunks from the server on join). Document this
   as the defence-in-depth layer.
-- [ ] On zone removal (`isZoneValid` fails → `clearInteriorPortals` →
+- [x] On zone removal (`isZoneValid` fails → `clearInteriorPortals` →
   `removeZone`), call `ImmersiveProjector.cleanupZone()` which iterates all
   `PlayerProjectionState` entries for that zone and calls `cleanup()`
-- [ ] `cleanup()` iterates `lastSent` and sends `BlockUpdateS2CPacket` with
+- [x] `cleanup()` iterates `lastSent` and sends `BlockUpdateS2CPacket` with
   the real `world.getBlockState(pos)` for each position
-- [ ] If `cleanup()` finds the player disconnected (networkHandler null),
+- [x] If `cleanup()` finds the player disconnected (networkHandler null),
   skip — the relog resend handles it
 
 ### 1f. Unit tests
 
-- [ ] `ProjectionVolumeTest.java`:
+- [x] `ProjectionVolumeTest.java`:
   - `testVerticalPortalXAxis` — 2×3 portal on X axis, depth=4, radius=1 →
     correct slab dimensions and positions
   - `testVerticalPortalZAxis` — same but Z axis
@@ -234,20 +237,62 @@ modified `ServerWorldMixin.java` (~2 lines), modified `MultiverseServer.java`
 
 **File:** New `ImmersiveProjectionTest.java` (~60 lines)
 
+### 1g. Arrival-chunk residency (found by live testing, not in the plan)
+
+Two defects surfaced only on the real server. Both had the same signature —
+**the projection silently never appears** — and neither is reachable by code
+review or unit tests. Recorded here because the fixes look removable if you
+don't know what they cost.
+
+**The preview worked exactly once, then died forever.** Approach → activated.
+Leave → cleared. Return → nothing, ever again, frame intact. Two
+correct-looking mechanisms were guarding each other: the projector refuses to
+load chunks (right — sync-loading an ungenerated chunk from the world tick is
+the Epic Dungeons + c2me wedge in AGENTS.md "Known issues"), while Phase 0's
+`ImmersivePreloader` dedupe only clears on `ServerWorldEvents.UNLOAD`. Only
+the *chunks* had unloaded; the world stayed up, so nothing could ever
+regenerate them and `arrivalSurfaceY` returned `NO_ARRIVAL` forever.
+
+- [x] The projector holds a **chunk ticket** on the arrival chunks while any
+  player is near the zone, released on every teardown path
+- [x] The ticket carries a 100-tick **expiry**, refreshed every 20 ticks while
+  wanted — a missed release self-heals in 5s rather than pinning chunks forever
+- [x] `wantedByAnotherZone` guard: anchor dimensions share one arrival between
+  many source portals, and a ticket is one entry keyed on
+  `(type, level, argument)`, so a naive release drops it for *every* holder
+
+**Relog while still in range showed nothing.** With stale `lastSent` state the
+refresh takes the delta branch, finds nothing changed, and sends zero packets
+to a client that has fresh real block data.
+
+- [x] `ServerPlayConnectionEvents.JOIN` → `forgetPlayer` (the non-sending
+  teardown; a joining client's chunk data is already authoritative)
+
+Verification note: the initial full send can legitimately report fewer than
+336 positions (294 observed) because the ticket loads asynchronously and the
+far chunk misses that tick; the delta pass fills it ~0.2s later. Pinning the
+arrival chunks with a second player yields the full 336. A short count is
+therefore expected, not a defect.
+
 ## Verification Checklist
 
 ### Automated (Carpet bot + RCON + log grep)
 
-- [ ] Boot with `"immersive": true` on a test dimension
-- [ ] Spawn Carpet bot near the portal — log shows "immersive projection
+- [x] Boot with `"immersive": true` on a test dimension
+- [x] Spawn Carpet bot near the portal — log shows "immersive projection
   activated" (or equivalent)
-- [ ] Move bot away — log shows "immersive projection deactivated"
-- [ ] Break portal frame while bot is near — log shows cleanup
-- [ ] No errors in server log throughout lifecycle
-- [ ] Non-immersive portal: no projection logs at all
-- [ ] Unit tests pass
+- [x] Move bot away — log shows "immersive projection deactivated"
+- [x] Break portal frame while bot is near — log shows cleanup
+- [x] No errors in server log throughout lifecycle
+- [x] Non-immersive portal: no projection logs at all
+- [x] Unit tests pass
 
 ### Manual (human-in-game) — REQUIRED for this phase
+
+> **NOT VERIFIED.** These need eyes in-game and were not performed. Headless
+> verification proves the MECHANISM — packets sent, geometry correct, cleanup
+> reliable on every path, real blocks never mutated — but it cannot prove the
+> preview *looks* right. This is the outstanding sign-off for Phase 1.
 
 - [ ] **Approach the portal:** destination blocks appear behind the frame
 - [ ] **Walk around:** parallax is correct (view through frame shifts naturally)

@@ -97,13 +97,46 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // pre-loading instead of silently no-opping forever (PLAN.md
         // Agent Gotcha #11).
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register(
-            (server, world) -> com.customdimensions.immersive.ImmersivePreloader.invalidate(world.getRegistryKey()));
+            (server, world) -> {
+                com.customdimensions.immersive.ImmersivePreloader.invalidate(world.getRegistryKey());
+                // Phase 1: release (or drop) any preview chunk tickets tied
+                // to this world before its chunk manager closes.
+                com.customdimensions.immersive.ImmersiveProjector.onWorldUnload(world);
+            });
+        // Immersive portals (Phase 1): a disconnecting player's fake-block
+        // projections are dropped without restore packets — there is no
+        // connection left to send them on, and vanilla's chunk resend on
+        // the next login corrects anything left over.
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+            com.customdimensions.immersive.ImmersiveProjector.forgetPlayer(
+                    handler.player.getUuid(), handler.player.getName().getString(),
+                    "player disconnected"));
+        // ...and again on JOIN. A reconnecting client has just been sent
+        // REAL chunk data, so any surviving delta baseline is a lie: a
+        // player who relogs while still inside activationRange would keep a
+        // non-null state, take the delta branch, compare every position
+        // equal, and see no projection at all until they walked out of
+        // range and back. Also the backstop for any path where DISCONNECT
+        // never fires.
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+            com.customdimensions.immersive.ImmersiveProjector.forgetPlayer(
+                    handler.player.getUuid(), handler.player.getName().getString(),
+                    "player joined"));
         // Per-dimension player luck (DimensionConfig.difficulty.playerLuck):
         // re-applied whenever a player joins or changes world.
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
             DifficultyManager.applyPlayerLuck(handler.player));
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(
-            (player, origin, destination) -> DifficultyManager.applyPlayerLuck(player));
+            (player, origin, destination) -> {
+                DifficultyManager.applyPlayerLuck(player);
+                // Immersive portals (Phase 1): the projections this player
+                // had in the world they LEFT must go — stepping THROUGH an
+                // immersive portal is the common case. Dropped without
+                // restore packets: those coordinates now address the
+                // destination dimension on their client.
+                com.customdimensions.immersive.ImmersiveProjector.forgetInWorld(
+                        player.getUuid(), player.getName().getString(), origin.getRegistryKey());
+            });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             DimensionManager.getInstance().processPendingWorldLoads();
             DimensionManager.getInstance().reconcileOrphansOnce();

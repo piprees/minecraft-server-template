@@ -236,6 +236,14 @@ public class ServerWorldMixin {
         // the exit-portal tick).
         com.customdimensions.portal.PortalAuraManager.tick(world);
 
+        // Immersive portals (Phase 1 — Portal Preview): per-player fake
+        // block projection of the far dimension through the frame. Must
+        // run AFTER the player teleport loop above (a player who stepped
+        // through this tick is already in the target world) and after the
+        // aura pass (so the projection samples post-aura blocks). Fetches
+        // its own zones and returns immediately when none are immersive.
+        com.customdimensions.immersive.ImmersiveProjector.tick(world);
+
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs
         // at tick HEAD, so a configured void exit fires BEFORE vanilla void
         // damage (Entity.tickInVoid runs later, during entity ticking).

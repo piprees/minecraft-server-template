@@ -269,6 +269,12 @@ public class PortalHelper {
     }
 
     public static void removeZone(PortalZone zone) {
+        // Immersive previews are per-player fake blocks anchored to this
+        // zone. Restore them BEFORE the zone leaves the list — afterwards
+        // nothing knows the projection existed and it leaks on every
+        // watching client until they relog. No-op for non-immersive zones
+        // and outside a running server (unit tests).
+        com.customdimensions.immersive.ImmersiveProjector.cleanupZone(zone);
         List<PortalZone> zones = PORTAL_ZONES.get(zone.sourceWorld);
         if (zones != null) {
             zones.remove(zone);
