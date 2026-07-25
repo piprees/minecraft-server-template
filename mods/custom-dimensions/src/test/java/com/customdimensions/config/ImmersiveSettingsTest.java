@@ -20,7 +20,7 @@ class ImmersiveSettingsTest {
         assertNotNull(imm);
         assertTrue(imm.enabled());
         assertEquals(8, imm.previewDepth());
-        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.previewRadius());
         assertEquals(4, imm.refreshInterval());
         assertEquals(24, imm.activationRange());
         assertTrue(imm.audio());
@@ -55,7 +55,7 @@ class ImmersiveSettingsTest {
         assertNotNull(imm);
         assertTrue(imm.enabled());
         assertEquals(8, imm.previewDepth());
-        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.previewRadius());
         assertEquals(4, imm.refreshInterval());
         assertEquals(24, imm.activationRange());
         assertTrue(imm.audio());
@@ -71,7 +71,7 @@ class ImmersiveSettingsTest {
         assertEquals(4, imm.previewDepth());
         assertFalse(imm.audio());
         // Untouched fields keep their defaults.
-        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.previewRadius());
         assertEquals(4, imm.refreshInterval());
         assertEquals(24, imm.activationRange());
         assertTrue(imm.entityPassthrough());

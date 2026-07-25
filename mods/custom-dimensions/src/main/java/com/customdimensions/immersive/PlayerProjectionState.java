@@ -10,6 +10,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -81,16 +82,25 @@ import java.util.UUID;
  *       retry, instead of forgetting a block that is still faked.</li>
  * </ul>
  *
- * <h2>The one exemption: the 4a light layer</h2>
- * {@link ProjectionVolume#lightPositions} — the aperture extruded one block —
- * bypasses the mask and is sent whenever the projection is active. It has to,
- * because a view-DEPENDENT set of light sources is a view-dependent amount of
- * light: the client relights the area every time the set changes, so walking
- * past a portal made the brightness swim while standing still and turning did
- * nothing. {@code Blocks.LIGHT} is invisible, so sending one for a position
- * that is behind the frame wall from this player's angle leaks no geometry —
- * the mask is there to keep VISIBLE blocks inside the opening, and this is not
- * one of those.
+ * <h2>The one exemption: the aperture</h2>
+ * The opening's own cells bypass the mask and are painted whenever the
+ * projection is active — {@code Blocks.LIGHT} at the portal's configured
+ * {@code lightLevel}, or plain air when it has none and the aperture is an
+ * arrival portal whose purple swirl needs hiding.
+ *
+ * <p>It has to bypass the mask, and it has to be the APERTURE rather than the
+ * slab layer behind it. A view-DEPENDENT set of light sources is a
+ * view-dependent amount of light — the client relights the area every time the
+ * set changes. Phase 4a fixed the first half of that by deriving the layer
+ * from the zone instead of the mask, but the layer was still the first slab
+ * layer, and the slab has a SIDE: {@code viewerFarSide} flips it when a player
+ * walks round the frame, so the light flipped too ("the light seems to flip
+ * sides when I move around the portal"). The aperture is the one piece of the
+ * geometry that is the same set of cells from everywhere.
+ *
+ * <p>{@code LIGHT} is invisible, so an aperture cell that sits behind the
+ * frame wall from this player's angle leaks no geometry — the mask exists to
+ * keep VISIBLE blocks inside the opening, and this is not one of those.
  *
  * The exemption is deliberately narrow: these positions still go through
  * {@code lastSent} and are restored by the same {@link #restore}, so there is
@@ -189,8 +199,8 @@ public final class PlayerProjectionState {
      * lever — that cost is the reason it is not this one. Lower it with
      * {@code .with(Properties.LEVEL_15, n)} here and nowhere else.
      */
-    private static BlockState lightState() {
-        return Blocks.LIGHT.getDefaultState();
+    private static BlockState lightState(int level) {
+        return Blocks.LIGHT.getDefaultState().with(Properties.LEVEL_15, level);
     }
 
     /**
@@ -328,12 +338,7 @@ public final class PlayerProjectionState {
         //
         // View-INDEPENDENT, and that is the whole point: derived from the
         // zone's own geometry, never from the mask. See lightPositions.
-        boolean lightLayer = depth >= LIGHT_LAYER_MIN_DEPTH;
         Direction.Axis normalAxis = wanted.getAxis();
-        int firstLayer = ProjectionVolume.firstLayerCoord(this.zone.interior, wanted);
-        Set<BlockPos> lightPositions = lightLayer
-                ? ProjectionVolume.lightPositions(this.zone.interior, wanted)
-                : Set.of();
 
         // Per-player sightline mask. Resolved once per pass: the plane never
         // moves, and the probe is a single Mutable reused across the volume
@@ -348,27 +353,7 @@ public final class PlayerProjectionState {
         int topY = targetWorld.getTopY();
         for (BlockPos pos : this.volume) {
             BlockState state;
-            // The cheap int compare gates the hash lookup: only one layer of
-            // the slab can hold light positions at all.
-            if (lightLayer && ProjectionVolume.coordOn(pos, normalAxis) == firstLayer
-                    && lightPositions.contains(pos)) {
-                // Sent unconditionally — no mask, no target sampling. LIGHT is
-                // invisible, so a light position that happens to sit behind
-                // the frame wall for THIS viewer leaks no geometry; the mask
-                // exists to stop VISIBLE blocks appearing outside the opening
-                // and this is not one of those. Routing it through the mask is
-                // what made the lighting swim as the player walked.
-                //
-                // Fake like every other position here: never placed in the
-                // world, so no neighbour updates and no piston crash class
-                // (PLAN.md Gotcha #2). It goes into lastSent below like
-                // anything else, so cleanup restores the real block
-                // (Gotcha #8) — one bookkeeping path, not two. lightState()
-                // returns a single interned instance, so the identity
-                // comparison below still short-circuits the delta pass.
-                state = lightState();
-                lights++;
-            } else {
+            {
                 if (!ProjectionVolume.seesThroughOpening(eye, pos, normalAxis, planeCoord,
                         this.zone.interior, occluders, probe)) {
                     // Behind the frame wall from where this player is standing.
@@ -410,38 +395,42 @@ public final class PlayerProjectionState {
             this.lastSent.put(pos, state);
         }
 
-        // The APERTURE itself, on the arrival side only.
+        // THE APERTURE, in both directions — the light layer and the
+        // swirl-killer, which turn out to be the same pass.
         //
-        // An arrival portal is made of REAL NETHER_PORTAL blocks, so it keeps
-        // vanilla's purple swirl and its client-side particle storm — you
-        // walk up to the way home and see a nether portal with a preview
-        // hiding behind it. The source side has no such problem because its
-        // zone interior is air by construction (mods/AGENTS.md), which is
-        // exactly what tells the two directions apart here without a flag
-        // threaded through the shared activation path.
+        // 4a used to light the preview from the first slab layer BEHIND the
+        // opening. That layer sits on whichever side the slab is on, and
+        // viewerFarSide flips the slab when a player walks round the frame —
+        // so the light flipped with it. Reported in game: "the light seems
+        // to flip sides when I move around the portal". Deriving it from the
+        // zone (rather than from the mask) fixed an earlier flicker but not
+        // this, because the SIDE is still a property of the viewer.
         //
-        // Faking the aperture to whatever the return world holds there —
-        // air, in practice, since it maps onto the source zone's interior —
-        // removes both: no swirl to draw and, because the client believes
-        // it is air, no randomDisplayTick to spawn particles from either.
-        // The real block is untouched, so traversal is unaffected, and
-        // restore() hands the portal block back (PLAN.md Gotcha #8).
-        if (overlaysPlane()) {
+        // The aperture is the one part of the geometry that has no side. It
+        // is the same set of cells from everywhere, so light emitted there
+        // cannot flip, and it is where a player would say the light is
+        // coming from anyway — the portal is the light source.
+        //
+        // It also solves the arrival side's purple swirl for free. An
+        // arrival aperture is real NETHER_PORTAL blocks, so it kept vanilla's
+        // texture AND its client-side particle storm in front of the preview;
+        // an invisible LIGHT over the top removes both, because a client that
+        // believes it is looking at LIGHT has nothing to draw and no
+        // randomDisplayTick to run. The real block is untouched, traversal is
+        // unaffected, and restore() hands the portal block back (Gotcha #8).
+        //
+        // Colour is not available: vanilla block light is white, and tinting
+        // it needs a shader. Noted for the client mod (PHASE-5 5d).
+        BlockState apertureState = apertureState();
+        if (apertureState != null) {
             for (BlockPos pos : this.zone.interior) {
-                BlockPos targetPos = ProjectionVolume.toTarget(pos, mapping, arrivalY);
-                if (targetPos.getY() < bottomY || targetPos.getY() >= topY) {
-                    continue;
-                }
-                BlockState state = sample(targetWorld, targetPos, chunks);
-                if (state == null) {
-                    continue;
-                }
+                lights++;
                 BlockState previous = this.lastSent.get(pos);
-                if (previous == state) {
+                if (previous == apertureState) {
                     continue;
                 }
-                handler.sendPacket(new BlockUpdateS2CPacket(pos, state));
-                this.lastSent.put(pos, state);
+                handler.sendPacket(new BlockUpdateS2CPacket(pos, apertureState));
+                this.lastSent.put(pos, apertureState);
             }
         }
 
@@ -454,10 +443,10 @@ public final class PlayerProjectionState {
             // blocks back rather than stranding them, and the light count is
             // the headless evidence that the 4a layer is a fixed size — it
             // must not move as the player does.
-            int maskable = this.volume.size() - lights;
+            int maskable = this.volume.size();
             MultiverseServer.LOGGER.debug(
                     "immersive: sightline mask for {} at zone {} -> {} of {} maskable visible, "
-                            + "{} restored, {} fixed light positions",
+                            + "{} restored, {} aperture cells overlaid",
                     this.playerName, this.sourceWorldKey.getValue(),
                     maskable - masked, maskable, unmasked, lights);
         }
@@ -531,6 +520,28 @@ public final class PlayerProjectionState {
         }
         return PortalHelper.isRegisteredPortalPosition(
                 this.sourceWorldKey, this.zone.interior.iterator().next());
+    }
+
+    /**
+     * What to paint over the aperture, or null to leave it alone.
+     *
+     * <p>{@code LIGHT} at the portal's configured {@code lightLevel} — the
+     * portal lighting itself, from a set of cells that has no side and so
+     * cannot flip as a player walks round. A dimension with
+     * {@code lightLevel: 0} wants no glow, and then the only reason left to
+     * touch the aperture is an ARRIVAL portal's purple swirl: plain air
+     * hides that without adding light. A source zone with no light
+     * configured is left entirely alone, which is exactly the old
+     * behaviour.
+     */
+    private BlockState apertureState() {
+        int level = this.zone.definition != null
+                ? Math.max(0, Math.min(15, this.zone.definition.getLightLevel()))
+                : 0;
+        if (level > 0) {
+            return lightState(level);
+        }
+        return overlaysPlane() ? Blocks.AIR.getDefaultState() : null;
     }
 
     /** Pure 4c predicate: elapsed ticks against the movement-scaled interval. */

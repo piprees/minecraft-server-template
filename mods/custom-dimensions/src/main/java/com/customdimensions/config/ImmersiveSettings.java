@@ -43,9 +43,26 @@ public record ImmersiveSettings(
     public static final int MIN_PREVIEW_DEPTH = 1;
     public static final int MAX_PREVIEW_DEPTH = 16;
 
-    public static final int DEFAULT_PREVIEW_RADIUS = 2;
+    /**
+     * How far past the frame the candidate slab extends on both in-plane
+     * axes.
+     *
+     * <p><b>This is the corner budget, not a look.</b> The visible cone
+     * widens with depth, so at 8 blocks deep it wants to reach 4-6 blocks
+     * laterally — and a position outside the slab is not a candidate at all,
+     * so no amount of mask work can show it. Reported in game as the corners
+     * of the opening staying unfilled at depth: *"the rectangle we sample
+     * from needs to be maybe 3-4 blocks wider/taller than the portal itself
+     * to really get the corners filled in"*. It was 2.
+     *
+     * <p>Raising it is cheap now in a way it was not before: the mask bounds
+     * what is SHOWN by real occlusion, so the extra candidates are rejected
+     * unless they are genuinely visible through the opening. It costs mask
+     * evaluations, not leaked geometry.
+     */
+    public static final int DEFAULT_PREVIEW_RADIUS = 4;
     public static final int MIN_PREVIEW_RADIUS = 0;
-    public static final int MAX_PREVIEW_RADIUS = 4;
+    public static final int MAX_PREVIEW_RADIUS = 8;
 
     public static final int DEFAULT_REFRESH_INTERVAL = 4;
     public static final int MIN_REFRESH_INTERVAL = 2;

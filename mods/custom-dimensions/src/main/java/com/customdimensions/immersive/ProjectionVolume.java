@@ -163,10 +163,11 @@ public final class ProjectionVolume {
      * The coordinate, along {@code normal}'s axis, of the slab layer nearest
      * the portal plane — the first block of projected depth.
      *
-     * 4a needs to name that layer without walking the volume, to gate its
-     * {@link #lightPositions} lookup on a cheap int compare. It must agree
-     * with {@link #computeSourcePositions}, which starts the slab one block
-     * past the plane — hence max+1 / min-1 here, the same arithmetic.
+     * Must agree with {@link #computeSourcePositions}, which starts the slab
+     * one block past the plane — hence max+1 / min-1 here, the same
+     * arithmetic. (Phase 4a used it to gate a light layer on that first
+     * layer; the light now lives in the APERTURE, which has no side and so
+     * cannot flip as a viewer walks round the frame.)
      */
     public static int firstLayerCoord(Set<BlockPos> interior, Direction normal) {
         if (interior == null || interior.isEmpty() || normal == null) {
@@ -595,52 +596,6 @@ public final class ProjectionVolume {
             cellMax = cellMin;
         }
         return ((long) cellMin << 32) | (cellMax & 0xFFFFFFFFL);
-    }
-
-    /**
-     * The 4a light layer: the OPENING's own cross-section extruded one block
-     * along {@code normal} — the positions directly behind the doorway, with
-     * no {@code previewRadius} padding.
-     *
-     * <h2>Why this is not just the first slab layer</h2>
-     * 4a's invisible {@code Blocks.LIGHT} substitution used to be applied
-     * inside the mask-filtered send loop, which made the set of level-15
-     * light sources a function of where the player stood. Every step changed
-     * which first-layer positions passed {@link #seesThroughOpening}, adding
-     * and removing light sources, and the client relit the area each time —
-     * reported in-game as "when I WALK around the portal the level of light
-     * coming out of it changes a lot, but when I stand still and LOOK around
-     * it doesn't". The mask was right; putting the lights behind it was not.
-     *
-     * So the light layer is derived from the zone alone. It is the same set
-     * for every viewer and every position they can stand in, which is what
-     * makes the lighting stable.
-     *
-     * Two properties make it the right set:
-     * <ul>
-     *   <li><b>It is per-cell, not a bounding box.</b> An irregular opening
-     *       gets an irregular light layer, so an arch does not light the
-     *       solid corners it does not have.</li>
-     *   <li><b>It has no radius padding.</b> The padded positions sit behind
-     *       the frame WALL; a light source there spills through real
-     *       geometry around the frame, which is precisely the glow that was
-     *       reported. Restricting to the aperture cuts the default doorway
-     *       from 42 sources to 6 and aims what is left through the hole.</li>
-     * </ul>
-     *
-     * Every returned position lies on {@link #firstLayerCoord} and inside
-     * {@link #computeSourcePositions} for any depth &gt;= 1 and radius &gt;= 0,
-     * so the caller can send these without a second bookkeeping path.
-     */
-    public static Set<BlockPos> lightPositions(Set<BlockPos> interior, Direction normal) {
-        if (interior == null || interior.isEmpty() || normal == null) {
-            return Set.of();
-        }
-        Set<BlockPos> out = new HashSet<>(interior.size() * 2);
-        for (BlockPos p : interior) {
-            out.add(p.offset(normal));
-        }
-        return out;
     }
 
     /** One coordinate of an eye position, chosen by axis. */

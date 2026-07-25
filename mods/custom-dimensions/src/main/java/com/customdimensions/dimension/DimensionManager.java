@@ -1112,13 +1112,48 @@ public class DimensionManager {
         return newWorld;
     }
 
+    /**
+     * Creating a ServerWorld is a main-thread job and cannot be made
+     * otherwise: it mutates the server's worlds map and fires
+     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons,
+     * BlueMap and c2me all build their per-level state. Several hundred
+     * milliseconds each, and none of it is movable.
+     *
+     * <p>What IS movable is how many of them land on the same tick. This used
+     * to create every queued world in one drain, so a player walking towards
+     * a cluster of portals — a hub, or the test beach — paid for ALL of them
+     * at once and rubber-banded. Reported in game: "quite a bit of server lag
+     * when dimensions get loaded... if dims take a sec to load that's not the
+     * end of the world and better than the rubber banding (which also
+     * inadvertently gives away that there's a portal nearby)".
+     *
+     * <p>One per tick spreads the same total work over N ticks instead of
+     * stacking it into one. Nothing is dropped — the rest stay queued and are
+     * created on the following ticks, which is exactly the "takes a sec"
+     * trade. The set is unordered, so which world goes first among several is
+     * arbitrary; that is fine, because the player is approaching all of them.
+     */
+    private static final int WORLD_LOADS_PER_TICK = 1;
+
     public void processPendingWorldLoads() {
         if (this.pendingWorldLoads.isEmpty()) {
             return;
         }
+        int created = 0;
         for (String name : new ArrayList<>(this.pendingWorldLoads)) {
+            if (created >= WORLD_LOADS_PER_TICK) {
+                break;
+            }
             this.pendingWorldLoads.remove(name);
             this.getOrCreateDimension(name);
+            created++;
+        }
+        if (!this.pendingWorldLoads.isEmpty()) {
+            // Counts, not events: a queue that never drains looks identical
+            // to one that drains instantly without this line.
+            MultiverseServer.LOGGER.debug(
+                    "dimension load queue: created {}, {} still pending",
+                    created, this.pendingWorldLoads.size());
         }
     }
 
