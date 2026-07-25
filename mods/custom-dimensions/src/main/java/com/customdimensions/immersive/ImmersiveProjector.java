@@ -718,7 +718,7 @@ public final class ImmersiveProjector {
         PortalHelper.PortalZone zone = new PortalHelper.PortalZone(
                 aperture, definition, axis, worldKey, target.sourceWorld);
         return new ArrivalPortal(key, seed, zone,
-                ProjectionVolume.returnMapping(aperture), target.sourceY);
+                ProjectionVolume.returnMapping(aperture, target.sourceX, target.sourceZ), target.sourceY);
     }
 
     /**

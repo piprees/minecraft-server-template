@@ -744,12 +744,37 @@ public final class ProjectionVolume {
      * somewhere that is not this portal's column at all.
      */
     public static TargetMapping returnMapping(Set<BlockPos> aperture) {
+        return returnMapping(aperture, null, null);
+    }
+
+    /**
+     * RETURN mapping — a rigid TRANSLATION to the source portal's column,
+     * exactly like {@link #scaledMapping} in the other direction.
+     *
+     * <h2>A preview is never scaled</h2>
+     * N blocks out from a portal is N blocks on the other side, both ways.
+     * Neither mapping scales distances; both translate the slab whole. The
+     * only question is where to translate TO.
+     *
+     * <p>This used to translate by zero, sampling the return world at the
+     * ARRIVAL's own column. At scale 1 that is the same place as the source
+     * portal and it looked correct; at scale 8 it sampled ~8x away, hit
+     * chunks nobody had ever visited, and painted nothing but the aperture —
+     * the "(12 blocks)" arrivals of 2026-07-25, against 718 for an unscaled
+     * dimension. Two mappings existed only because the arrival did not know
+     * its source COLUMN: {@code PortalReturnTarget} carried sourceY and
+     * nothing else.
+     *
+     * <p>With {@code sourceX}/{@code sourceZ} persisted there is one rule for
+     * both directions. Legacy records have no column, so they fall back to
+     * the old translation-free behaviour rather than guessing.
+     */
+    public static TargetMapping returnMapping(Set<BlockPos> aperture, Integer sourceX, Integer sourceZ) {
         if (aperture == null || aperture.isEmpty()) {
             return new TargetMapping(0, 0, 0, 0, 0);
         }
-        // Same integer accumulate-then-divide idiom as scaledMapping. Only
-        // picks the representative column for the chunk ticket — the mapping
-        // itself is horizontal identity, so truncation cannot misplace a block.
+        // Same integer accumulate-then-divide idiom as scaledMapping, so the
+        // two directions pick their representative column identically.
         int centreX = 0;
         int centreZ = 0;
         for (BlockPos p : aperture) {
@@ -759,7 +784,12 @@ public final class ProjectionVolume {
         int count = aperture.size();
         centreX /= count;
         centreZ /= count;
-        return new TargetMapping(0, 0, minOn(aperture, Direction.Axis.Y), centreX, centreZ);
+        if (sourceX == null || sourceZ == null) {
+            // Pre-column record: translate by zero, as before.
+            return new TargetMapping(0, 0, minOn(aperture, Direction.Axis.Y), centreX, centreZ);
+        }
+        return new TargetMapping(sourceX - centreX, sourceZ - centreZ,
+                minOn(aperture, Direction.Axis.Y), sourceX, sourceZ);
     }
 
     /**

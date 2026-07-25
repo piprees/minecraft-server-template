@@ -755,4 +755,88 @@ class ProjectionVolumeTest {
         // Scale is irrelevant for anchors: they never consult it.
         assertNotEquals(ProjectionVolume.scaledMapping(interior, 2.0).dx(), mapping.dx());
     }
+
+    // === Return mapping: ONE rule for both directions ====================
+    //
+    // A preview is never scaled — N blocks out is N blocks on the other side,
+    // both ways. Both mappings are rigid translations; the only question is
+    // where they translate TO. These pin that, after the arrival side spent
+    // months translating by zero because it did not know its source column.
+
+    @Test
+    void returnMappingTranslatesToTheSourceColumn() {
+        Set<BlockPos> aperture = doorwayX(-47, 192, 465);
+
+        ProjectionVolume.TargetMapping m = ProjectionVolume.returnMapping(aperture, 63, -619);
+
+        assertEquals(63, m.arrivalX(), "samples at the SOURCE portal's column");
+        assertEquals(-619, m.arrivalZ());
+        // dx is measured from the aperture's own representative column, which
+        // truncates TOWARDS ZERO like scaledMapping (a 2-wide aperture at -47
+        // has centre -46.5 -> -46). Assert the relationship, not a constant.
+        BlockPos anyCell = new BlockPos(-47, 192, 465);
+        BlockPos sampled = ProjectionVolume.toTarget(anyCell, m, 116);
+        assertEquals(-47 + m.dx(), sampled.getX(), "dx is applied as a plain translation");
+        assertEquals(465 + m.dz(), sampled.getZ());
+        assertNotEquals(0, m.dx(), "must actually translate");
+    }
+
+    @Test
+    void returnMappingPreservesDistances() {
+        // THE property: three blocks apart at the arrival must be three blocks
+        // apart on the far side. Never scaled.
+        Set<BlockPos> aperture = doorwayX(-47, 192, 465);
+        ProjectionVolume.TargetMapping m = ProjectionVolume.returnMapping(aperture, 63, -619);
+
+        BlockPos a = new BlockPos(-47, 192, 465);
+        BlockPos b = new BlockPos(-44, 192, 465);
+        BlockPos ta = ProjectionVolume.toTarget(a, m, 116);
+        BlockPos tb = ProjectionVolume.toTarget(b, m, 116);
+
+        assertEquals(3, tb.getX() - ta.getX(), "3 blocks is 3 blocks on the far side");
+        assertEquals(0, tb.getZ() - ta.getZ());
+    }
+
+    @Test
+    void returnMappingIsTheMirrorOfTheOutboundOne() {
+        // The two directions must be the same rule. Going out translates the
+        // source slab to the arrival column; coming back translates the
+        // arrival slab to the source column. Same shape, opposite sign.
+        Set<BlockPos> sourceInterior = doorwayX(63, 116, -619);
+        ProjectionVolume.TargetMapping out = ProjectionVolume.scaledMapping(sourceInterior, 8.0);
+
+        Set<BlockPos> arrival = doorwayX(out.arrivalX(), 192, out.arrivalZ());
+        ProjectionVolume.TargetMapping back = ProjectionVolume.returnMapping(arrival, 63, -619);
+
+        assertEquals(-out.dx(), back.dx(), "opposite translation");
+        assertEquals(-out.dz(), back.dz());
+    }
+
+    @Test
+    void aScaledArrivalDoesNotSampleItsOwnColumn() {
+        // The live defect: at scale 8 the arrival sampled its OWN column,
+        // ~8x from the source portal, hitting chunks nobody had visited. The
+        // preview then had nothing to paint but the aperture -- 12 blocks,
+        // against 718 for an unscaled dimension.
+        Set<BlockPos> aperture = doorwayX(-47, 192, 465);
+
+        ProjectionVolume.TargetMapping fixed = ProjectionVolume.returnMapping(aperture, 63, -619);
+        assertNotEquals(-47, fixed.arrivalX(), "must not sample the arrival's own column");
+        assertNotEquals(0, fixed.dx(), "translation-free is the bug");
+    }
+
+    @Test
+    void aLegacyRecordWithNoSourceColumnKeepsTheOldBehaviour() {
+        // Records written before the column was persisted have no source X/Z.
+        // Falling back to the previous translation-free mapping is correct;
+        // guessing a column would move an existing preview somewhere random.
+        Set<BlockPos> aperture = doorwayX(-47, 192, 465);
+
+        ProjectionVolume.TargetMapping m = ProjectionVolume.returnMapping(aperture, null, null);
+
+        assertEquals(0, m.dx());
+        assertEquals(0, m.dz());
+        assertEquals(ProjectionVolume.returnMapping(aperture).dx(), m.dx(),
+                "the one-arg overload is the legacy path");
+    }
 }

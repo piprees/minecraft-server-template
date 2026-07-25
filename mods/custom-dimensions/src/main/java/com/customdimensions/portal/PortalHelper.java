@@ -139,6 +139,10 @@ public class PortalHelper {
         if (target.exitMode != null) {
             link.put("exitMode", target.exitMode);
         }
+        if (target.sourceX != null && target.sourceZ != null) {
+            link.put("sourceX", target.sourceX);
+            link.put("sourceZ", target.sourceZ);
+        }
         return link;
     }
 
@@ -194,6 +198,10 @@ public class PortalHelper {
                     String particleType = link.has("particleType") ? link.get("particleType").getAsString() : null;
                     String exitMode = link.has("exitMode") ? link.get("exitMode").getAsString() : null;
                     PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType, exitMode);
+                    if (link.has("sourceX") && link.has("sourceZ")) {
+                        target.sourceX = link.get("sourceX").getAsInt();
+                        target.sourceZ = link.get("sourceZ").getAsInt();
+                    }
                     String portalWorld = link.has("portalWorld") ? link.get("portalWorld").getAsString() : null;
                     if (portalWorld != null) {
                         RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
@@ -282,6 +290,31 @@ public class PortalHelper {
             return candidate.getZ() < current.getZ();
         }
         return candidate.getY() < current.getY();
+    }
+
+    /**
+     * Record which source column an arrival belongs to, for every cell of it.
+     * Called straight after {@link #createTargetPortal}; separate from
+     * registration so the existing overloads stay untouched.
+     */
+    public static void setSourceColumn(RegistryKey<World> portalWorld, java.util.Collection<BlockPos> cells,
+            int sourceX, int sourceZ) {
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(portalWorld);
+        if (targets == null) {
+            return;
+        }
+        boolean changed = false;
+        for (BlockPos cell : cells) {
+            PortalReturnTarget t = targets.get(cell);
+            if (t != null && (t.sourceX == null || t.sourceZ == null)) {
+                t.sourceX = sourceX;
+                t.sourceZ = sourceZ;
+                changed = true;
+            }
+        }
+        if (changed) {
+            savePortalLinks();
+        }
     }
 
     public static PortalReturnTarget getPortalTarget(RegistryKey<World> portalWorld, BlockPos keyPos) {
@@ -1380,6 +1413,22 @@ public class PortalHelper {
         // "origin" | "bed" | "worldSpawn"; null keeps the legacy behaviour
         // (origin tracking with sourceWorld/sourceY as the fallback).
         public final String exitMode;
+        // The COLUMN of the source portal this arrival came from. Null on
+        // records written before this existed.
+        //
+        // Without it an arrival knows the Y it should return to but not the
+        // X/Z, which is why the immersive preview had a SECOND mapping that
+        // translated by zero — it sampled the return world at the arrival's
+        // own column instead of at the portal you actually came from. At
+        // scale 1 those are the same place and it looked fine; at scale 8 it
+        // sampled ~8x away, hit unvisited chunks, and painted nothing but the
+        // aperture (the "(12 blocks)" arrivals, 2026-07-25).
+        //
+        // A preview is never scaled — N blocks is N blocks. Both directions
+        // are a rigid translation; this is the missing half of the one going
+        // back.
+        public Integer sourceX;
+        public Integer sourceZ;
 
         public PortalReturnTarget(RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown) {
             this(sourceWorld, sourceY, color, cooldown, null, null);

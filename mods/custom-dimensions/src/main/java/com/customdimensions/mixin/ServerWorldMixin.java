@@ -221,6 +221,10 @@ public class ServerWorldMixin {
                         }
 
                         PortalHelper.createTargetPortal(targetWorld, adjustedInterior, zone.axis, def, worldKey, pos.getY());
+                        // Tell the new arrival which column it came from, so its
+                        // immersive preview translates to the real source portal
+                        // instead of to its own column. One mapping, both ways.
+                        PortalHelper.setSourceColumn(targetKey, adjustedInterior, portalCenterX, portalCenterZ);
                         com.customdimensions.portal.PortalAuraManager.onLink(
                                 world, zone, targetWorld, adjustedInterior);
                         MultiverseServer.LOGGER.info("Created portal in {} at ({}, {}, {})",
