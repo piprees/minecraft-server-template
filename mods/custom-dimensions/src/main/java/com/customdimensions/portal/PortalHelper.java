@@ -1,5 +1,6 @@
 package com.customdimensions.portal;
 
+import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -285,6 +286,17 @@ public class PortalHelper {
             return;
         }
         for (PortalZone zone : pending) {
+            // ImmersiveSettings is transient on PortalDefinition (never
+            // serialised into portal_links.json — Gotcha #9), so the
+            // Gson-restored definition's immersive field is always null
+            // here. Re-stamp from the live config so "immersive" stays
+            // boot-re-read for zones ignited before the setting existed
+            // (or before it last changed) — without this, every
+            // already-ignited immersive portal silently stops being
+            // immersive on the next restart. Stamping null is correct
+            // too: it's how turning "immersive" off in config takes
+            // effect for existing zones.
+            zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(zone.targetWorld));
             if (isZoneValid(world, zone)) {
                 PORTAL_ZONES.computeIfAbsent(worldKey, k -> new ArrayList<>()).add(zone);
             } else {

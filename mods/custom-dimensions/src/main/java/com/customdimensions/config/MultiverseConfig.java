@@ -1,7 +1,9 @@
 package com.customdimensions.config;
 
 import com.customdimensions.MultiverseServer;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -157,6 +159,33 @@ public class MultiverseConfig {
             }
         }
         return matches;
+    }
+
+    /**
+     * Live immersive settings for a target dimension, or null. Zone records
+     * in portal_links.json carry a Gson-deserialised PortalDefinition whose
+     * transient immersive field is always null — restoreZones re-stamps
+     * from here so "immersive" stays boot-re-read (PLAN.md: "Changes apply
+     * without a wipe") for zones ignited before the setting existed, or
+     * before it last changed. Never throws — a malformed/legacy
+     * targetDimension string on any live portal must not abort the lookup
+     * for every other zone.
+     */
+    public ImmersiveSettings getImmersiveFor(RegistryKey<World> targetWorld) {
+        if (targetWorld == null) {
+            return null;
+        }
+        for (PortalDefinition p : this.portals) {
+            try {
+                if (targetWorld.equals(p.getTargetKey())) {
+                    return p.getImmersive();
+                }
+            } catch (RuntimeException ignored) {
+                // Malformed targetDimension on an unrelated portal must
+                // never break the lookup for the rest of the list.
+            }
+        }
+        return null;
     }
 
     public PortalDefinition getDefaultPortalForFrameBlock(String blockId) {

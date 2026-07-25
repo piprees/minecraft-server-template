@@ -638,6 +638,7 @@ public class DimensionConfig {
             aura.fireChance = this.portal.aura.fireChance;
             def.setAura(aura);
         }
+        def.setImmersive(this.portal.getImmersiveSettings());
         return def;
     }
 
@@ -981,6 +982,20 @@ public class DimensionConfig {
          */
         @SerializedName("aura")
         public Aura aura;
+        /**
+         * Presentation-only immersive-portal tuning: "true" (all defaults) |
+         * "false"/absent (not immersive) | an object with per-field
+         * overrides. See {@link ImmersiveSettings#fromJson} for the exact
+         * parsing rules. NOT serialised into portal_links.json — kept
+         * transient on PortalDefinition and re-read from config every boot.
+         */
+        @SerializedName("immersive")
+        public JsonElement immersive;
+
+        /** Parsed immersive settings; null when this portal isn't immersive. */
+        public ImmersiveSettings getImmersiveSettings() {
+            return ImmersiveSettings.fromJson(this.immersive);
+        }
 
         public String getIgniteSound() {
             if (this.sounds != null && this.sounds.ignite != null) {

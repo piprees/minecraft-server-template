@@ -1,10 +1,13 @@
 package com.customdimensions.mixin;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.config.ImmersiveSettings;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.customdimensions.dimension.DimensionManager;
+import com.customdimensions.immersive.ImmersivePreloader;
 import com.customdimensions.portal.PortalHelper;
+import com.customdimensions.portal.PortalShape;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -62,6 +65,33 @@ public class ServerWorldMixin {
 
             for (PortalHelper.PortalZone zone : zones) {
                 PortalHelper.spawnParticles(world, zone);
+            }
+
+            // Immersive portals (Phase 0 — Instant Transition): once a
+            // player gets within activationRange of an immersive zone,
+            // pre-load its target world and pre-generate the arrival
+            // chunks, so stepping through feels instant instead of
+            // pausing on first visit. Zones without "immersive" configured
+            // skip this entirely — zero behavioural change for them.
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                BlockPos playerPos = player.getBlockPos();
+                for (PortalHelper.PortalZone zone : zones) {
+                    ImmersiveSettings imm = zone.definition.getImmersive();
+                    if (imm == null) {
+                        continue;
+                    }
+                    BlockPos centre = PortalShape.centreOf(zone.interior);
+                    if (centre == null || !centre.isWithinDistance(playerPos, imm.activationRange())) {
+                        continue;
+                    }
+                    RegistryKey<World> targetKey = zone.targetWorld;
+                    ServerWorld targetWorld = world.getServer().getWorld(targetKey);
+                    if (targetWorld == null) {
+                        DimensionManager.getInstance().requestWorldLoad(targetKey.getValue().getPath());
+                        continue;
+                    }
+                    ImmersivePreloader.preloadIfNeeded(targetWorld, zone, zone.definition);
+                }
             }
 
             List<ServerPlayerEntity> players = new ArrayList<>(world.getPlayers());

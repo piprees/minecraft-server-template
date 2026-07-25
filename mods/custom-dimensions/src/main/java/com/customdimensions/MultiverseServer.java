@@ -91,6 +91,13 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // Runtime-created dimensions get their border the moment they load.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register(
             (server, world) -> com.customdimensions.dimension.WorldBorderManager.onWorldLoad(world));
+        // Immersive portals (Phase 0): a pre-loaded-but-unvisited target
+        // world is closed by the idle unloader after its timeout. Drop
+        // that world's pre-load record so the next approach re-triggers
+        // pre-loading instead of silently no-opping forever (PLAN.md
+        // Agent Gotcha #11).
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register(
+            (server, world) -> com.customdimensions.immersive.ImmersivePreloader.invalidate(world.getRegistryKey()));
         // Per-dimension player luck (DimensionConfig.difficulty.playerLuck):
         // re-applied whenever a player joins or changes world.
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->

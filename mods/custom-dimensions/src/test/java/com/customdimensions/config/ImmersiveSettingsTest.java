@@ -1,0 +1,125 @@
+package com.customdimensions.config;
+
+import com.google.gson.Gson;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ImmersiveSettingsTest {
+    private static final Gson GSON = new Gson();
+
+    private PortalDefinition parsePortal(String json) {
+        DimensionConfig config = GSON.fromJson(json, DimensionConfig.class);
+        config.setName("d");
+        return config.toPortalDefinition();
+    }
+
+    @Test
+    void testBooleanTrue() {
+        ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":true}}").getImmersive();
+        assertNotNull(imm);
+        assertTrue(imm.enabled());
+        assertEquals(8, imm.previewDepth());
+        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.refreshInterval());
+        assertEquals(24, imm.activationRange());
+        assertTrue(imm.audio());
+        assertTrue(imm.entityPassthrough());
+    }
+
+    @Test
+    void testBooleanFalse() {
+        assertNull(parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":false}}").getImmersive());
+    }
+
+    @Test
+    void testAbsent() {
+        assertNull(parsePortal("{\"portal\":{\"frameBlock\":\"b\"}}").getImmersive());
+    }
+
+    @Test
+    void testObjectWithDefaults() {
+        ImmersiveSettings imm = parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":{}}}").getImmersive();
+        assertNotNull(imm);
+        assertTrue(imm.enabled());
+        assertEquals(8, imm.previewDepth());
+        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.refreshInterval());
+        assertEquals(24, imm.activationRange());
+        assertTrue(imm.audio());
+        assertTrue(imm.entityPassthrough());
+    }
+
+    @Test
+    void testObjectWithOverrides() {
+        ImmersiveSettings imm = parsePortal("""
+                {"portal":{"frameBlock":"b","immersive":{"previewDepth":4,"audio":false}}}
+                """).getImmersive();
+        assertNotNull(imm);
+        assertEquals(4, imm.previewDepth());
+        assertFalse(imm.audio());
+        // Untouched fields keep their defaults.
+        assertEquals(2, imm.previewRadius());
+        assertEquals(4, imm.refreshInterval());
+        assertEquals(24, imm.activationRange());
+        assertTrue(imm.entityPassthrough());
+    }
+
+    @Test
+    void testClampedValues() {
+        ImmersiveSettings imm = parsePortal("""
+                {"portal":{"frameBlock":"b","immersive":{"previewDepth":100,"previewRadius":-5,
+                 "refreshInterval":1,"activationRange":9999}}}
+                """).getImmersive();
+        assertNotNull(imm);
+        assertEquals(16, imm.previewDepth());
+        assertEquals(0, imm.previewRadius());
+        assertEquals(2, imm.refreshInterval());
+        assertEquals(64, imm.activationRange());
+    }
+
+    @Test
+    void enabledFalseInsideObjectMeansNotImmersive() {
+        // An explicit "enabled": false inside the object wins over any
+        // other fields set alongside it.
+        assertNull(parsePortal("""
+                {"portal":{"frameBlock":"b","immersive":{"enabled":false,"previewDepth":4}}}
+                """).getImmersive());
+    }
+
+    @Test
+    void immersiveSettingsAreNotSerialisedIntoPortalDefinitionJson() {
+        PortalDefinition def = parsePortal("{\"portal\":{\"frameBlock\":\"b\",\"immersive\":true}}");
+        assertNotNull(def.getImmersive());
+        String json = GSON.toJson(def);
+        assertFalse(json.contains("immersive"), "immersive settings must not leak into persisted zone JSON: " + json);
+    }
+
+    /**
+     * Regression test for the restart-loses-immersive bug: ImmersiveSettings
+     * is transient on PortalDefinition (correctly — see the test above), but
+     * that means a plain Gson round-trip — exactly what portal_links.json
+     * does to every restored PortalZone.definition — can NEVER resurrect it
+     * on its own. PortalHelper.restoreZones() MUST re-stamp immersive
+     * settings from the live MultiverseConfig after deserialising a zone,
+     * or every already-ignited immersive portal silently stops being
+     * immersive the moment the server restarts. Do not "fix" this test by
+     * removing the transient modifier — that would leak immersive settings
+     * into portal_links.json, which Gotcha #9 forbids.
+     */
+    @Test
+    void immersiveIsLostAcrossGsonRoundTripAndMustBeReStampedOnRestore() {
+        PortalDefinition def = new PortalDefinition("p", "minecraft:amethyst_block",
+                "minecraft:amethyst_shard", "minecraft:the_end", "9B59B6", 8);
+        def.setImmersive(ImmersiveSettings.DEFAULTS);
+        assertNotNull(def.getImmersive());
+
+        String json = GSON.toJson(def);
+        assertFalse(json.contains("immersive"), "immersive settings must not be serialised: " + json);
+
+        PortalDefinition restored = GSON.fromJson(json, PortalDefinition.class);
+        assertNull(restored.getImmersive(),
+                "a bare Gson round-trip must NOT resurrect immersive settings — "
+                        + "PortalHelper.restoreZones() is responsible for re-stamping them from live config");
+    }
+}

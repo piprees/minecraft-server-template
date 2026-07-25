@@ -3,6 +3,7 @@ package com.customdimensions.mixin;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
+import com.customdimensions.immersive.ImmersivePreloader;
 import com.customdimensions.portal.PortalHelper;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,6 +40,7 @@ public class WorldLoaderMixin {
     private void onShutdown(CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;
         PortalHelper.savePortalLinks();
+        ImmersivePreloader.clear();
         MultiverseServer.onServerStopping(server);
     }
 }

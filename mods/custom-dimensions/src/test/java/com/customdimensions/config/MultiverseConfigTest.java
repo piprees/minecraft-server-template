@@ -1,5 +1,9 @@
 package com.customdimensions.config;
 
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -172,5 +176,35 @@ class MultiverseConfigTest {
 
         assertTrue(config.getPortalsByIgniter("minecraft:torch", null).isEmpty());
         assertEquals("the_other", config.getPortalsByIgniter("minecraft:pink_petals", "x").get(0).getId());
+    }
+
+    // This is exactly what PortalHelper.restoreZones() calls to re-stamp a
+    // Gson-restored PortalDefinition's transient immersive field — see
+    // ImmersiveSettingsTest.immersiveIsLostAcrossGsonRoundTripAndMustBeReStampedOnRestore
+    // for why the re-stamp exists at all.
+    @Test
+    void getImmersiveForResolvesLiveSettingsByTargetDimension(@TempDir Path dir) throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_glasswood.json"), """
+                {"portal":{"frameBlock":"minecraft:amethyst_block","igniterItem":"minecraft:amethyst_shard",
+                 "immersive":{"previewDepth":4}}}
+                """);
+        Files.writeString(dims.resolve("the_other.json"), """
+                {"portal":{"frameBlock":"minecraft:mud_bricks","igniterItem":"minecraft:pink_petals"}}
+                """);
+        MultiverseConfig config = fromDirectory(dir);
+
+        RegistryKey<World> glasswoodKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("adventure:the_glasswood"));
+        RegistryKey<World> otherKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("adventure:the_other"));
+        RegistryKey<World> unrelatedKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of("minecraft:the_nether"));
+
+        ImmersiveSettings imm = config.getImmersiveFor(glasswoodKey);
+        assertNotNull(imm);
+        assertEquals(4, imm.previewDepth());
+
+        assertNull(config.getImmersiveFor(otherKey));      // no "immersive" configured for this portal
+        assertNull(config.getImmersiveFor(unrelatedKey));  // no portal targets this dimension at all
+        assertNull(config.getImmersiveFor(null));
     }
 }

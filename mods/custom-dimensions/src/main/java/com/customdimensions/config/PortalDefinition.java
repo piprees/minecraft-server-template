@@ -78,6 +78,13 @@ public class PortalDefinition {
     private Map<String, List<String>> framePartAccepts;
     private transient FrameMatcher frameMatcher;
     private transient Map<String, FrameMatcher> partMatchers;
+    /**
+     * Immersive-portal presentation tuning (Phase 0 onward). Deliberately
+     * transient: this is re-read from dimension config every boot and must
+     * never leak into portal_links.json zone records (PLAN.md Agent
+     * Gotcha #9). Null = not immersive.
+     */
+    private transient ImmersiveSettings immersive;
 
     public PortalDefinition() {
     }
@@ -434,6 +441,15 @@ public class PortalDefinition {
     }
 
     private AuraSettings aura;
+
+    /** Immersive-portal settings; null when this portal isn't immersive. */
+    public ImmersiveSettings getImmersive() {
+        return this.immersive;
+    }
+
+    public void setImmersive(ImmersiveSettings immersive) {
+        this.immersive = immersive;
+    }
 
     /**
      * Aura tuning snapshot — persisted into zone records and aura-site
