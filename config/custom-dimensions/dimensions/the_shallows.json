@@ -1,14 +1,23 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world.",
   "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
+  "biomes": [
+    "terralith:mirage_isles",
+    "minecraft:warm_ocean",
+    "minecraft:lukewarm_ocean",
+    "natures_spirit:tropical_shores",
+    "terralith:deep_warm_ocean",
+    "minecraft:beach"
+  ],
   "borders": {
     "player": 512,
     "generation": 512
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.8
   },
   "portal": {
     "frameBlock": "minecraft:prismarine",

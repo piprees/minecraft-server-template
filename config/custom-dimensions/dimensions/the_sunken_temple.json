@@ -9,16 +9,22 @@
     "terralith:deep_warm_ocean",
     "minecraft:jungle",
     "terralith:skylands_summer",
-    "terralith:mirage_isles"
+    "terralith:mirage_isles",
+    "minecraft:lukewarm_ocean",
+    "minecraft:beach"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 0.8
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
   },
   "structureDensity": "dense",
+  "settingsOverrides": {
+    "seaLevel": 90
+  },
   "portal": {
     "frameBlock": "minecraft:prismarine_bricks",
     "igniterItem": "minecraft:gold_ingot",

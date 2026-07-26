@@ -2,12 +2,19 @@
   "type": "nether",
   "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive.",
   "seed": 9213987570450868060,
+  "biomes": [
+    "minecraft:basalt_deltas",
+    "minecraft:nether_wastes",
+    "minecraft:crimson_forest",
+    "minecraft:soul_sand_valley"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {
@@ -23,6 +30,11 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "force": [
+      { "structure": "minecraft:bastion_remnant", "x": 200, "z": 0 }
+    ]
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -32,6 +44,7 @@
     "wants": {
       "bastion": "near_spawn",
       "blackstone_walls": "near_spawn",
+      "blackstone_pillars": "spread",
       "forbidden_castle": "spread",
       "fortress": "spread"
     },

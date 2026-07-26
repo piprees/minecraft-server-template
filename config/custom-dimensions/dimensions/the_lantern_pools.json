@@ -1,13 +1,24 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no.",
   "seed": 8598640343340391518,
+  "biomes": [
+    "terralith:desert_oasis",
+    "terralith:warm_river",
+    "minecraft:warm_ocean",
+    "minecraft:mangrove_swamp",
+    "terralith:lush_valley",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "terralith:orchid_swamp"
+  ],
   "borders": {
     "player": 512,
     "generation": 512
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 0.6,
+    "playerLuck": 1.8
   },
   "structureDensity": "sparse",
   "portal": {
@@ -17,6 +28,7 @@
     "lightLevel": 11,
     "scale": 16.0,
     "cooldown": 40,
+    "shape": "door",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -38,7 +50,8 @@
     "wants": {
       "desert_shrine": "spread",
       "mirage_outpost": "spread",
-      "guide_post_warm": "near_spawn"
+      "guide_post_warm": "near_spawn",
+      "abandoned_chapel": "spread"
     },
     "shuns": [
       "village",
@@ -49,15 +62,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no.",
-    "varietyBiomes": [
-      "terralith:desert_oasis",
-      "terralith:warm_river",
-      "minecraft:mangrove_swamp",
-      "minecraft:jungle",
-      "minecraft:warm_ocean",
-      "terralith:orchid_swamp"
-    ]
+    "description": "Serene oasis pools glowing at dusk. A hermit's paradise — shrines yes, towns no."
   },
   "spawn": [
     0,

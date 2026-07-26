@@ -1,13 +1,24 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company.",
   "seed": 8614947220682105760,
+  "biomes": [
+    "terralith:orchid_swamp",
+    "minecraft:mangrove_swamp",
+    "natures_spirit:marsh",
+    "minecraft:swamp",
+    "minecraft:river",
+    "minecraft:dark_forest",
+    "minecraft:beach",
+    "terralith:moonlight_valley"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.4
   },
   "structureDensity": "sparse",
   "portal": {
@@ -39,7 +50,8 @@
     "wants": {
       "swamp_ruin": "spread",
       "muddy_dungeon": "near_border",
-      "mausoleum": "spread"
+      "mausoleum": "spread",
+      "graveyard": "spread"
     },
     "shuns": [
       "village",

@@ -4,7 +4,7 @@
   "biomes": [
     "terralith:mirage_isles",
     "terralith:skylands_winter",
-    "nullscape:shadowlands"
+    "terralith:alpha_islands"
   ],
   "borders": {
     "player": 256,
@@ -22,6 +22,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
+    "shape": "door",
     "anchor": {
       "pos": "spawn",
       "exit": "bed"
@@ -39,6 +40,16 @@
     "enabled": true,
     "pos": "spawn",
     "target": "bed"
+  },
+  "exits": {
+    "void": { "target": "origin", "action": "teleport" }
+  },
+  "environment": {
+    "skyColor": "#0B0E2E",
+    "fogColor": "#05060F",
+    "ambientLight": 0.15,
+    "fixedTime": 18000,
+    "effects": "minecraft:the_end"
   },
   "structures": {
     "wants": {
@@ -63,7 +74,7 @@
     "spawnFilter": [
       "terralith:mirage_isles",
       "terralith:skylands_winter",
-      "nullscape:shadowlands"
+      "terralith:alpha_islands"
     ],
     "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down."
   }

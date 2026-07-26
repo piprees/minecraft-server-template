@@ -1,19 +1,22 @@
 {
   "type": "end",
-  "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith.",
+  "description": "The red monument — a monolith where the aura bleeds scarlet into the end barrens around it.",
   "seed": 847731309170024191,
   "biomes": [
-    "terralith:scarlet_mountains",
-    "minecraft:crimson_forest",
-    "terralith:red_oasis",
-    "minecraft:end_barrens"
+    "minecraft:end_barrens",
+    "minecraft:end_highlands",
+    "minecraft:the_end",
+    "nullscape:shadowlands",
+    "nullscape:crystal_peaks",
+    "minecraft:small_end_islands"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 2.0
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.8
   },
   "portal": {
     "frameBlock": "minecraft:red_sandstone",
@@ -23,6 +26,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
+    "shape": "end_exit",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -32,13 +36,17 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "skyColor": "#3B0F0F",
+    "fogColor": "#3B0F0F",
+    "ambientLight": 0.2
+  },
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
-      "minecraft:crimson_forest",
-      "minecraft:end_highlands",
       "minecraft:end_barrens",
-      "minecraft:basalt_deltas"
+      "minecraft:end_highlands",
+      "minecraft:the_end"
     ],
     "wants": {
       "monolith": "near_spawn",
@@ -47,36 +55,7 @@
       "end_city": "near_border",
       "ender_spire": "spread"
     },
-    "description": "The red monument — scarlet mountains bleeding into end barrens around a monolith.",
-    "structures": [
-      {
-        "name": "minecraft:end_cities",
-        "kind": "want",
-        "range": "near_spawn"
-      },
-      {
-        "name": "mes:ender_spire",
-        "kind": "want",
-        "range": "mid_range"
-      },
-      {
-        "name": "nullscape:rift",
-        "kind": "want",
-        "range": "far"
-      },
-      {
-        "name": "mes:ruined_pillar",
-        "kind": "want",
-        "range": "spread"
-      }
-    ],
-    "varietyBiomes": [
-      "minecraft:crimson_forest",
-      "minecraft:end_highlands",
-      "minecraft:end_barrens",
-      "minecraft:basalt_deltas",
-      "nullscape:void_barrens"
-    ]
+    "description": "The red monument — a monolith where the aura bleeds scarlet into the end barrens around it."
   },
   "spawn": [
     0,

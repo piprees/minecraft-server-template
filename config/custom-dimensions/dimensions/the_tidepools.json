@@ -30,7 +30,8 @@
     "wants": {
       "shipwreck": { "min": 0, "max": 256 },
       "buried_treasure": { "min": 0, "max": 256 },
-      "ocean_ruins": { "min": 256, "max": 2048 }
+      "ocean_ruins": { "min": 256, "max": 2048 },
+      "ocean_pillar": { "min": 256, "max": 2048 }
     },
     "shuns": { "village": {}, "monument": {} }
   },

@@ -29,7 +29,8 @@
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.2
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.5
   },
   "structureDensity": "sparse",
   "portal": {

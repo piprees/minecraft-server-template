@@ -1,7 +1,12 @@
 {
   "type": "superflat",
-  "description": "A flat blank canvas for building. Peaceful by decree.",
+  "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever.",
   "seed": -3604832347219380837,
+  "layers": [
+    { "block": "minecraft:bedrock", "height": 1 },
+    { "block": "minecraft:dirt", "height": 2 },
+    { "block": "minecraft:grass_block", "height": 1 }
+  ],
   "borders": {
     "player": 8192,
     "generation": 8192
@@ -25,6 +30,7 @@
     }
   },
   "seedRoll": {
-    "description": "A flat blank canvas for building. Peaceful by decree."
+    "skip": true,
+    "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever."
   }
 }

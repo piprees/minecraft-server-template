@@ -19,17 +19,18 @@
     "terralith:shrubland",
     "terralith:skylands_spring",
     "terralith:skylands_autumn",
+    "terralith:skylands_summer",
+    "terralith:skylands_winter",
     "terralith:mirage_isles",
-    "paradise_lost:highlands",
-    "paradise_lost:wisteria_woods",
-    "paradise_lost:tradewinds"
+    "minecraft:sunflower_plains"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
   },
   "portal": {
     "frameBlock": "minecraft:quartz_block",

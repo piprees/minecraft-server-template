@@ -19,8 +19,8 @@
     "terralith:haze_mountain",
     "terralith:granite_cliffs",
     "terralith:white_cliffs",
-    "nullscape:crystal_peaks",
-    "incendium:ash_barrens",
+    "terralith:scarlet_mountains",
+    "minecraft:eroded_badlands",
     "terralith:windswept_spires"
   ],
   "borders": {

@@ -1,13 +1,22 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border.",
   "seed": -1157745575203996945,
+  "biomes": [
+    "natures_spirit:redwood_forest",
+    "minecraft:dark_forest",
+    "terralith:shield",
+    "minecraft:old_growth_spruce_taiga",
+    "minecraft:forest",
+    "terralith:forested_highlands"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:rooted_dirt",
@@ -35,7 +44,8 @@
       "old_manor": "near_border",
       "spider_dungeon": "spread",
       "mansion": "near_border",
-      "lush_dungeon": "spread"
+      "lush_dungeon": "spread",
+      "creeping_crypt": "spread"
     },
     "shuns": [
       "monument",

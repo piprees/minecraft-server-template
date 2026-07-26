@@ -32,7 +32,8 @@
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.3
   },
   "portal": {
     "frameBlock": "minecraft:sandstone",
@@ -41,6 +42,7 @@
     "lightLevel": 11,
     "scale": 1.0,
     "cooldown": 40,
+    "shape": "doorway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -67,52 +69,10 @@
       "desert_pyramid": "spread",
       "dusty_tomb": "near_border"
     },
-    "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon.",
-    "structures": [
-      {
-        "name": "minecraft:villages",
-        "kind": "want",
-        "range": "near_spawn"
-      },
-      {
-        "name": "minecraft:desert_pyramids",
-        "kind": "want",
-        "range": "near_spawn"
-      },
-      {
-        "name": "minecraft:pillager_outposts",
-        "kind": "want",
-        "range": "mid_range"
-      },
-      {
-        "name": "minecraft:ruined_portals",
-        "kind": "want",
-        "range": "spread"
-      },
-      {
-        "name": "adventuredungeons:bygonedungeon",
-        "kind": "want",
-        "range": "far"
-      },
-      {
-        "name": "minecraft:ocean_monuments",
-        "kind": "shun",
-        "minDistance": 4000
-      }
+    "shuns": [
+      "monument"
     ],
-    "shuns": [],
-    "varietyBiomes": [
-      "minecraft:desert",
-      "minecraft:savanna",
-      "minecraft:badlands",
-      "minecraft:eroded_badlands",
-      "minecraft:wooded_badlands",
-      "terralith:arid_highlands",
-      "terralith:desert_canyon",
-      "terralith:hot_shrubland",
-      "terralith:fractured_savanna",
-      "terralith:brushland"
-    ]
+    "description": "Vast desert kingdoms — walled villages, sand dungeons and a keep on the horizon."
   },
   "spawn": [
     0,

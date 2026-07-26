@@ -3,22 +3,23 @@
   "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark.",
   "seed": -6084751356019635319,
   "biomes": [
-    "minecraft:soul_sand_valley",
-    "minecraft:basalt_deltas",
-    "minecraft:nether_wastes",
-    "incendium:ash_barrens",
-    "incendium:volcanic_deltas",
-    "incendium:infernal_dunes",
-    "incendium:toxic_heap",
-    "nullscape:shadowlands",
-    "terralith:cave/mantle_caves"
+    "terralith:ashen_savanna",
+    "minecraft:eroded_badlands",
+    "terralith:gravel_desert",
+    "terralith:volcanic_crater",
+    "minecraft:badlands",
+    "terralith:basalt_cliffs",
+    "terralith:moonlight_grove",
+    "minecraft:deep_dark",
+    "terralith:white_cliffs"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:polished_blackstone_bricks",
@@ -33,20 +34,25 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "skyColor": "#3A2E3E",
+    "fogColor": "#241B2E",
+    "ambientLight": 0.25,
+    "fixedTime": 13000
+  },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "desolate",
     "spawnFilter": [
-      "minecraft:soul_sand_valley",
-      "minecraft:basalt_deltas",
-      "incendium:ash_barrens",
-      "minecraft:nether_wastes",
-      "nullscape:shadowlands"
+      "terralith:ashen_savanna",
+      "minecraft:eroded_badlands",
+      "terralith:volcanic_crater",
+      "minecraft:deep_dark"
     ],
     "wants": {
-      "nether_graveyard": "near_spawn",
-      "giant_skull": "spread",
-      "lost_soul_dungeon": "spread",
-      "bone_dungeon": "spread"
+      "graveyard": "near_spawn",
+      "mausoleum": "spread",
+      "dusty_tomb": "spread",
+      "black_spiral": "near_border"
     },
     "shuns": [
       "village"

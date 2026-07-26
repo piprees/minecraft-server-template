@@ -6,6 +6,7 @@
     "generation": 8192
   },
   "difficulty": {
+    "mobMultiplier": 1.0,
     "depthScaling": {
       "enabled": true,
       "startY": 64,
@@ -13,20 +14,23 @@
       "minMultiplier": 1.0,
       "maxMultiplier": 1.5
     },
-    "mobMultiplier": 1.0
+    "playerLuck": 1.0
   },
   "portal": {
-    "frameBlock": "minecraft:mossy_stone_bricks",
-    "igniterItem": "minecraft:ender_eye",
-    "color": "7FC8F8",
-    "lightLevel": 11,
+    "frameBlock": "minecraft:stone",
+    "igniterItem": "minecraft:torch",
+    "color": "87CEEB",
+    "lightLevel": 15,
     "scale": 1.0,
     "cooldown": 40,
-    "particleType": "minecraft:cherry_leaves",
+    "particleType": "minecraft:cloud",
     "sounds": {
-      "ignite": "block.portal.trigger",
-      "enter": "block.portal.travel",
-      "exit": "block.portal.travel"
+      "ignite": "entity.parrot.ambient",
+      "enter": "entity.breeze.idle_air",
+      "exit": "entity.parrot.ambient"
+    },
+    "aura": {
+      "subsume": "none"
     }
   },
   "seedRoll": {
@@ -46,8 +50,11 @@
       "village": "near_spawn",
       "tavern": "near_spawn",
       "ruined_portal": "near_spawn",
+      "watchtower": "spread",
       "mineshaft": "spread",
+      "pillager_outpost": "spread",
       "trial_chambers": "spread",
+      "monument": "spread",
       "ancient_city": "near_border",
       "mansion": "near_border",
       "coliseum": "near_border"

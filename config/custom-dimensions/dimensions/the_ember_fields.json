@@ -5,16 +5,17 @@
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:crimson_forest",
-    "terralith:yellowstone",
     "incendium:infernal_dunes",
-    "minecraft:nether_wastes"
+    "minecraft:nether_wastes",
+    "incendium:volcanic_deltas"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:magma_block",
@@ -34,13 +35,14 @@
     "mood": "scenic",
     "spawnFilter": [
       "minecraft:crimson_forest",
-      "terralith:yellowstone",
-      "incendium:infernal_dunes"
+      "incendium:infernal_dunes",
+      "incendium:volcanic_deltas"
     ],
     "wants": {
       "piglin_village": "spread",
       "crimson_well": "near_spawn",
-      "fortress": "near_border"
+      "fortress": "near_border",
+      "nether_bridge": "spread"
     },
     "description": "Rolling ember meadows (overworld-shaped nether) — piglin villages in the geyser fields."
   },

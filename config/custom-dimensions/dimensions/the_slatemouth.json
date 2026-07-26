@@ -7,14 +7,18 @@
     "minecraft:soul_sand_valley",
     "incendium:toxic_heap",
     "incendium:quartz_flats",
-    "nullscape:void_barrens"
+    "minecraft:nether_wastes"
   ],
   "borders": {
     "player": 512,
     "generation": 512
   },
   "difficulty": {
-    "mobMultiplier": 2.5
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0
+  },
+  "settingsOverrides": {
+    "defaultFluid": "minecraft:lava"
   },
   "portal": {
     "frameBlock": "minecraft:deepslate",
@@ -32,6 +36,11 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "skyColor": "#1B0B0B",
+    "fogColor": "#1B0B0B",
+    "ambientLight": 0.05
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -39,22 +48,14 @@
       "minecraft:soul_sand_valley",
       "incendium:toxic_heap",
       "incendium:quartz_flats",
-      "nullscape:void_barrens",
-      "terralith:cave/mantle_caves"
+      "minecraft:nether_wastes"
     ],
     "description": "A basalt-and-soul void — the nether's kind of ending, without the nether's mercy.",
-    "terrain": "void",
-    "varietyBiomes": [
-      "minecraft:basalt_deltas",
-      "minecraft:soul_sand_valley",
-      "incendium:toxic_heap",
-      "incendium:quartz_flats"
-    ]
+    "terrain": "void"
   },
   "spawn": [
     0,
     64,
     0
-  ],
-  "fluid": "minecraft:lava"
+  ]
 }

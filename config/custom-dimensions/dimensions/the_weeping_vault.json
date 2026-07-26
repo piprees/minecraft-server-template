@@ -2,6 +2,11 @@
   "type": "nether",
   "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world.",
   "seed": 8939242886241437506,
+  "biomes": [
+    "incendium:weeping_valley",
+    "minecraft:crimson_forest",
+    "minecraft:basalt_deltas"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
@@ -18,6 +23,7 @@
     "lightLevel": 11,
     "scale": 8.0,
     "cooldown": 40,
+    "shape": "door",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",

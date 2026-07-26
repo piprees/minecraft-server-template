@@ -1,14 +1,26 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
   "seed": -4745410978042438563,
+  "biomes": [
+    "terralith:ashen_savanna",
+    "terralith:volcanic_peaks",
+    "terralith:volcanic_crater",
+    "minecraft:savanna",
+    "terralith:savanna_badlands",
+    "minecraft:badlands",
+    "minecraft:eroded_badlands",
+    "terralith:basalt_cliffs"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 0.7,
+    "playerLuck": 1.5
   },
+  "structureDensity": "sparse",
   "portal": {
     "frameBlock": "minecraft:tuff",
     "igniterItem": "minecraft:amethyst_shard",
@@ -16,6 +28,7 @@
     "lightLevel": 11,
     "scale": 8.0,
     "cooldown": 40,
+    "particleType": "minecraft:ash",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",

@@ -1,14 +1,28 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road.",
   "seed": 1407229080638003557,
   "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:frozen_ocean",
+    "minecraft:deep_frozen_ocean",
+    "terralith:ice_marsh",
+    "minecraft:snowy_beach",
+    "minecraft:snowy_plains",
+    "minecraft:frozen_river",
+    "minecraft:snowy_taiga",
+    "terralith:frozen_cliffs"
+  ],
   "borders": {
     "player": 512,
     "generation": 512
   },
+  "settingsOverrides": {
+    "seaLevel": 72
+  },
   "difficulty": {
-    "mobMultiplier": 2.0
+    "mobMultiplier": 2.2,
+    "playerLuck": 2.0
   },
   "portal": {
     "frameBlock": "minecraft:packed_ice",
@@ -44,7 +58,9 @@
       "igloo": "near_spawn",
       "guide_post_cold": "near_spawn",
       "ice_dungeon_m": "spread",
-      "frozen_dungeon": "spread"
+      "frozen_dungeon": "spread",
+      "shipwreck": "spread",
+      "buried_treasure": "near_border"
     },
     "shuns": [
       "village",

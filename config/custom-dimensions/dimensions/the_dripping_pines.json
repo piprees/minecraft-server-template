@@ -1,13 +1,22 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines.",
   "seed": 8954320106618531345,
+  "biomes": [
+    "terralith:siberian_taiga",
+    "natures_spirit:boreal_taiga",
+    "minecraft:old_growth_pine_taiga",
+    "minecraft:taiga",
+    "minecraft:old_growth_spruce_taiga",
+    "natures_spirit:fir_forest"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:dripstone_block",
@@ -37,7 +46,8 @@
       "taiga_ruin_deep": "spread",
       "mouldy_dungeon": "spread",
       "abandoned_camp": "spread",
-      "northern_ruin": "spread"
+      "northern_ruin": "spread",
+      "coldlair": "near_border"
     },
     "shuns": [
       "monument",

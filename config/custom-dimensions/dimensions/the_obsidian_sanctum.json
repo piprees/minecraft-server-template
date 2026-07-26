@@ -2,12 +2,19 @@
   "type": "nether",
   "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world.",
   "seed": 9026703353164040970,
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:nether_wastes",
+    "incendium:withered_forest",
+    "minecraft:basalt_deltas"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {
@@ -17,6 +24,7 @@
     "lightLevel": 11,
     "scale": 8.0,
     "cooldown": 40,
+    "shape": "doorway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",

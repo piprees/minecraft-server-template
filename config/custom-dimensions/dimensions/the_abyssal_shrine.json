@@ -5,19 +5,24 @@
   "biomes": [
     "paradise_lost:continental_plateau",
     "paradise_lost:highlands_grand_glade",
+    "paradise_lost:calcite_craglands",
     "minecraft:deep_ocean",
     "minecraft:deep_cold_ocean",
-    "nullscape:shadowlands",
-    "minecraft:deep_dark"
+    "minecraft:deep_dark",
+    "minecraft:dripstone_caves"
   ],
   "borders": {
     "player": 512,
     "generation": 512
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.5
   },
   "structureDensity": "dense",
+  "settingsOverrides": {
+    "seaLevel": 90
+  },
   "portal": {
     "frameBlock": "minecraft:dark_prismarine",
     "igniterItem": "minecraft:netherite_scrap",
@@ -25,6 +30,7 @@
     "lightLevel": 11,
     "scale": 16.0,
     "cooldown": 40,
+    "shape": "end_exit",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -42,7 +48,8 @@
       "para_vault": "near_spawn",
       "monument": "near_spawn",
       "para_palace": "spread",
-      "deepwater_dungeon": "spread"
+      "deepwater_dungeon": "spread",
+      "sculk_dungeon": "near_border"
     },
     "shuns": [
       "village",

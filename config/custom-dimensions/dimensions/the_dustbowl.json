@@ -1,14 +1,28 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else.",
   "seed": -6585932694360697170,
-  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "terralith:ancient_sands",
+    "natures_spirit:wooded_drylands",
+    "terralith:steppe",
+    "minecraft:desert",
+    "minecraft:badlands",
+    "terralith:arid_highlands",
+    "minecraft:savanna",
+    "terralith:hot_shrubland",
+    "natures_spirit:xeric_plains"
+  ],
   "borders": {
     "player": 512,
     "generation": 512
   },
+  "settingsOverrides": {
+    "seaLevel": -55
+  },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 2.0
   },
   "structureDensity": "sparse",
   "portal": {
@@ -30,7 +44,6 @@
       "terralith:ancient_sands",
       "natures_spirit:wooded_drylands",
       "terralith:steppe",
-      "natures_spirit:scorched_dunes",
       "minecraft:desert",
       "minecraft:badlands",
       "terralith:arid_highlands",
@@ -42,7 +55,9 @@
     "wants": {
       "outcast_desert": "spread",
       "ruins_desert": "spread",
-      "supply_cache_desert": "near_spawn"
+      "supply_cache_desert": "near_spawn",
+      "abandoned_camp": "spread",
+      "watchtower": "near_border"
     },
     "shuns": ["village", "tavern", "monument", "mansion", "coliseum", "ancient_city", "trial_chambers"],
     "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."

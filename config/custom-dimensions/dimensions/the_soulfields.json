@@ -6,14 +6,15 @@
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
-    "terralith:ashen_savanna"
+    "minecraft:nether_wastes"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
   },
   "portal": {
     "frameBlock": "minecraft:soul_soil",
@@ -33,13 +34,13 @@
     "mood": "desolate",
     "spawnFilter": [
       "minecraft:soul_sand_valley",
-      "incendium:ash_barrens",
-      "terralith:ashen_savanna"
+      "incendium:ash_barrens"
     ],
     "wants": {
       "nether_graveyard": "near_spawn",
       "giant_skull": "spread",
-      "lost_soul_dungeon": "spread"
+      "lost_soul_dungeon": "spread",
+      "bone_dungeon": "spread"
     },
     "description": "Soul-sand meadows and grave fields; the dead are the crop."
   },

@@ -4,17 +4,18 @@
   "seed": 5405923286239551039,
   "biomes": [
     "minecraft:lush_caves",
-    "incendium:quartz_flats",
     "terralith:cave/thermal_caves",
-    "minecraft:crimson_forest"
+    "terralith:cave/tuff_caves",
+    "minecraft:dripstone_caves"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.3,
-    "playerLuck": 1.5
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.2,
+    "hostileSpawning": false
   },
   "structureDensity": "sparse",
   "portal": {
@@ -30,15 +31,21 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#4B3B1B",
+    "ambientLight": 0.4
+  },
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
       "minecraft:lush_caves",
-      "incendium:quartz_flats"
+      "terralith:cave/thermal_caves"
     ],
     "wants": {
       "copper_tower": "spread",
-      "strange_outpost": "spread"
+      "strange_outpost": "spread",
+      "lush_dungeon": "near_spawn",
+      "sculk_dungeon": "spread"
     },
     "shuns": [
       "fortress",

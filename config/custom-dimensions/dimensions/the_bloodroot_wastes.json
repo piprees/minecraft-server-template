@@ -2,12 +2,19 @@
   "type": "nether",
   "description": "Crimson root-country; forges and fungus in the red haze.",
   "seed": 7849380135011039804,
+  "biomes": [
+    "minecraft:crimson_forest",
+    "incendium:weeping_valley",
+    "incendium:inverted_forest",
+    "minecraft:nether_wastes"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:crimson_nylium",
@@ -33,7 +40,8 @@
       "crimson_fungus": "near_spawn",
       "crimson_forge": "spread",
       "fortress": "spread",
-      "crimson_well": "near_spawn"
+      "crimson_well": "near_spawn",
+      "nether_bridge": "spread"
     },
     "description": "Crimson root-country; forges and fungus in the red haze."
   },

@@ -1,15 +1,24 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war.",
   "seed": 7030276223102451156,
   "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "terralith:amethyst_rainforest",
+    "terralith:amethyst_canyon",
+    "terralith:emerald_peaks",
+    "minecraft:grove",
+    "minecraft:meadow",
+    "terralith:moonlight_grove"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0,
-    "playerLuck": 2.0
+    "mobMultiplier": 0.0,
+    "playerLuck": 2.5,
+    "hostileSpawning": false
   },
   "portal": {
     "frameBlock": "minecraft:amethyst_block",
@@ -25,6 +34,10 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "skyColor": "#C9A8E8",
+    "ambientLight": 0.15
+  },
   "seedRoll": {
     "mood": "scenic",
     "spawnFilter": [
@@ -39,7 +52,8 @@
       "wizard_tower": "spread",
       "relic_temple": "near_border",
       "guide_post_warm": "near_spawn",
-      "abandoned_chapel": "spread"
+      "abandoned_chapel": "spread",
+      "shrine_tower": "spread"
     },
     "shuns": [
       "monument",

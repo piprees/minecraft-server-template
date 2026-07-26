@@ -9,14 +9,17 @@
     "natures_spirit:snowy_fir_forest",
     "terralith:snowy_cherry_grove",
     "terralith:skylands_winter",
-    "terralith:frozen_cliffs"
+    "terralith:frozen_cliffs",
+    "minecraft:snowy_plains",
+    "minecraft:snowy_slopes"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 0.8
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:snow_block",
@@ -45,7 +48,8 @@
       "para_remains": "near_spawn",
       "aurel_tower": "spread",
       "cold_dungeon": "spread",
-      "birdcage": "near_border"
+      "birdcage": "near_border",
+      "igloo": "near_spawn"
     },
     "shuns": [],
     "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",

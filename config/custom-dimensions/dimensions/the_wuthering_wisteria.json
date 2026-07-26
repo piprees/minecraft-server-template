@@ -8,7 +8,7 @@
     0
   ],
   "biomes": [
-    "paradise_lost:wisteria_woods",
+    "natures_spirit:wisteria_forest",
     "minecraft:cherry_grove",
     "terralith:sakura_grove",
     "minecraft:meadow",
@@ -23,14 +23,13 @@
     "minecraft:warm_ocean",
     "terralith:deep_warm_ocean",
     "terralith:shrubland",
-    "minecraft:meadow",
     "natures_spirit:floral_ridges",
     "natures_spirit:flowering_shrubland",
     "natures_spirit:golden_wilds",
     "natures_spirit:heather_fields",
     "natures_spirit:lavender_fields",
     "natures_spirit:maple_woodlands",
-    "natures_spirit:marigold_meadows",
+    "natures_spirit:carnation_fields",
     "natures_spirit:prairie"
   ],
   "borders": {
@@ -50,6 +49,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:cherry_leaves",
+    "shape": "door",
     "sounds": {
       "ignite": "block.azalea_leaves.place",
       "enter": "entity.parrot.ambient",
@@ -58,6 +58,10 @@
     "aura": {
       "subsume": "none"
     }
+  },
+  "environment": {
+    "fogColor": "#F0D8E8",
+    "fixedTime": 12000
   },
   "structures": {
     "wants": {
@@ -86,7 +90,7 @@
   "seedRoll": {
     "mood": "serene",
     "spawnFilter": [
-      "paradise_lost:wisteria_woods",
+      "natures_spirit:wisteria_forest",
       "terralith:sakura_grove",
       "minecraft:cherry_grove"
     ],

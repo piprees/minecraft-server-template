@@ -1,13 +1,22 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns.",
   "seed": 9135545649734435741,
+  "biomes": [
+    "natures_spirit:aspen_forest",
+    "natures_spirit:maple_woodlands",
+    "minecraft:dark_forest",
+    "minecraft:forest",
+    "terralith:moonlight_grove",
+    "minecraft:birch_forest"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.6
   },
   "structureDensity": "dense",
   "portal": {

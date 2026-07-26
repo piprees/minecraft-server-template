@@ -5,9 +5,9 @@
   "biomes": [
     "minecraft:deep_dark",
     "terralith:cave/infested_caves",
-    "incendium:withered_forest",
+    "terralith:cave/mantle_caves",
     "terralith:cave/fungal_caves",
-    "nullscape:shadowlands",
+    "terralith:cave/tuff_caves",
     "terralith:cave/deep_caves"
   ],
   "borders": {
@@ -40,11 +40,17 @@
     "spawnFilter": [
       "minecraft:deep_dark",
       "terralith:cave/infested_caves",
-      "incendium:withered_forest",
+      "terralith:cave/mantle_caves",
       "terralith:cave/fungal_caves",
-      "nullscape:shadowlands",
+      "terralith:cave/tuff_caves",
       "terralith:cave/deep_caves"
     ],
+    "wants": {
+      "sculk_dungeon": "near_spawn",
+      "trial_chambers": "spread",
+      "ancient_city": "near_border",
+      "bone_dungeon": "spread"
+    },
     "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on."
   },
   "spawn": [

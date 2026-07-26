@@ -7,15 +7,17 @@
     "terralith:amethyst_canyon",
     "terralith:windswept_spires",
     "natures_spirit:lavender_fields",
-    "nullscape:crystal_peaks",
-    "terralith:skylands_spring"
+    "terralith:haze_mountain",
+    "terralith:skylands_spring",
+    "minecraft:cherry_grove"
   ],
   "borders": {
     "player": 683,
     "generation": 683
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:purpur_block",
@@ -24,6 +26,7 @@
     "lightLevel": 11,
     "scale": 12.0,
     "cooldown": 40,
+    "shape": "door",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -35,9 +38,7 @@
     "spawnFilter": [
       "paradise_lost:wisteria_woods",
       "terralith:amethyst_canyon",
-      "minecraft:cherry_grove",
-      "minecraft:flower_forest",
-      "terralith:moonlight_grove"
+      "minecraft:cherry_grove"
     ],
     "wants": {
       "aurel_tower": "near_spawn",

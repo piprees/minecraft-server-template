@@ -5,7 +5,6 @@
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
-    "minecraft:deep_dark",
     "minecraft:basalt_deltas"
   ],
   "borders": {
@@ -13,7 +12,8 @@
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {
@@ -31,6 +31,9 @@
     "aura": {
       "subsume": "everything"
     }
+  },
+  "environment": {
+    "fogColor": "#D8C8A0"
   },
   "seedRoll": {
     "mood": "hard",

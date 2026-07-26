@@ -5,14 +5,19 @@
   "biomes": [
     "minecraft:end_highlands",
     "nullscape:crystal_peaks",
-    "minecraft:end_midlands"
+    "minecraft:end_midlands",
+    "minecraft:the_end",
+    "minecraft:end_barrens",
+    "nullscape:void_barrens",
+    "minecraft:small_end_islands"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 2.0
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {
@@ -23,6 +28,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
+    "shape": "doorway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",

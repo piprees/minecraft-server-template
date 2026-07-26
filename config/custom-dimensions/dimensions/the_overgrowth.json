@@ -1,14 +1,25 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall.",
   "seed": 88447297175691575,
   "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "terralith:rocky_jungle",
+    "terralith:jungle_mountains",
+    "natures_spirit:tropical_basin",
+    "terralith:cloud_forest",
+    "minecraft:jungle",
+    "minecraft:sparse_jungle",
+    "minecraft:bamboo_jungle",
+    "minecraft:dark_forest"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.5
   },
   "structureDensity": "sparse",
   "portal": {
@@ -42,7 +53,8 @@
       "infested_temple": "spread",
       "webbed_dungeon": "near_border",
       "lush_dungeon": "spread",
-      "jungle_tree_house": "spread"
+      "jungle_tree_house": "spread",
+      "murkydungeon": "spread"
     },
     "shuns": [
       "village",

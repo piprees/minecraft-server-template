@@ -1,14 +1,25 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "The breadbasket. Rolling prairie and sunflowers, villages and taverns close to spawn, honest mineshafts — a place to live, not to fight.",
   "seed": 948538165005714500,
   "noiseSettings": "adventure:wide",
+  "biomes": [
+    "minecraft:sunflower_plains",
+    "minecraft:meadow",
+    "minecraft:plains",
+    "terralith:brushland",
+    "terralith:steppe",
+    "minecraft:savanna",
+    "terralith:shield_clearing",
+    "terralith:highlands"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
   },
   "portal": {
     "frameBlock": "minecraft:grass_block",
@@ -39,24 +50,15 @@
       "tavern": "near_spawn",
       "farmstead": "near_spawn",
       "watchtower": "spread",
-      "mineshaft": "spread"
+      "mineshaft": "spread",
+      "guide_post_warm": "near_spawn"
     },
     "shuns": [
       "ancient_city",
       "coliseum",
       "mansion"
     ],
-    "description": "The breadbasket. Rolling prairie and sunflowers, villages and taverns close to spawn, honest mineshafts — a place to live, not to fight.",
-    "varietyBiomes": [
-      "minecraft:sunflower_plains",
-      "minecraft:meadow",
-      "minecraft:plains",
-      "terralith:brushland",
-      "terralith:steppe",
-      "minecraft:savanna",
-      "terralith:shield_clearing",
-      "terralith:highlands"
-    ]
+    "description": "The breadbasket. Rolling prairie and sunflowers, villages and taverns close to spawn, honest mineshafts — a place to live, not to fight."
   },
   "spawn": [
     0,

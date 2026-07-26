@@ -12,22 +12,21 @@
     "minecraft:dark_forest",
     "minecraft:old_growth_spruce_taiga",
     "minecraft:river",
-    "minecraft:crimson_forest",
-    "minecraft:warped_forest",
     "terralith:orchid_swamp",
     "terralith:moonlight_grove",
     "terralith:moonlight_valley",
     "terralith:cloud_forest",
     "terralith:cave/deep_caves",
     "terralith:cave/underground_jungle",
-    "incendium:withered_forest"
+    "terralith:cave/infested_caves"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {

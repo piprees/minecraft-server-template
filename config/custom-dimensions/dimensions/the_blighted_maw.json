@@ -2,12 +2,27 @@
   "type": "nether",
   "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger.",
   "seed": 9209138044254743191,
+  "biomes": [
+    "incendium:toxic_heap",
+    "minecraft:soul_sand_valley",
+    "incendium:withered_forest",
+    "incendium:ash_barrens",
+    "minecraft:nether_wastes"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 100,
+      "endY": 10,
+      "minMultiplier": 1.2,
+      "maxMultiplier": 2.2
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -37,7 +52,8 @@
       "ruined_lab": "spread",
       "nether_reactor": "spread",
       "bastion": "spread",
-      "fortress": "spread"
+      "fortress": "spread",
+      "lost_soul_dungeon": "near_border"
     },
     "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger."
   },

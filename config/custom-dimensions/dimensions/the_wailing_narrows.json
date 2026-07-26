@@ -2,12 +2,18 @@
   "type": "nether",
   "description": "Narrow bridged chasms — quartz spans over the wail.",
   "seed": 9215546969771092822,
+  "biomes": [
+    "minecraft:soul_sand_valley",
+    "minecraft:basalt_deltas",
+    "incendium:quartz_flats"
+  ],
   "borders": {
     "player": 683,
     "generation": 683
   },
   "difficulty": {
-    "mobMultiplier": 2.5
+    "mobMultiplier": 2.5,
+    "playerLuck": 2.0
   },
   "portal": {
     "frameBlock": "minecraft:quartz_bricks",
@@ -16,6 +22,7 @@
     "lightLevel": 11,
     "scale": 12.0,
     "cooldown": 40,
+    "shape": "door",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",

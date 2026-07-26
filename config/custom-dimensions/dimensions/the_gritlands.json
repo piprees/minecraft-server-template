@@ -1,13 +1,25 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins — nobody could live here, and nothing organised survives.",
   "seed": 5190387473893419670,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "terralith:gravel_desert",
+    "terralith:basalt_cliffs",
+    "terralith:ashen_savanna",
+    "terralith:volcanic_peaks",
+    "minecraft:windswept_gravelly_hills",
+    "minecraft:stony_shore",
+    "terralith:rocky_shrubland",
+    "terralith:cold_shrubland"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.6
   },
   "structureDensity": "sparse",
   "portal": {
@@ -40,7 +52,8 @@
       "ruined_portal": "near_spawn",
       "field_ruins": "spread",
       "mineshaft": "spread",
-      "scorched_tomb": "near_border"
+      "scorched_tomb": "near_border",
+      "badlands_ruins": "spread"
     },
     "shuns": [
       "village",

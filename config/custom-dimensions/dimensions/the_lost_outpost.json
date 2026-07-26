@@ -1,13 +1,22 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Outpost country gone feral — pillager lookouts, bandit towers and campsites contest every hill.",
   "seed": -4857143333049984274,
+  "biomes": [
+    "natures_spirit:oak_savanna",
+    "natures_spirit:golden_wilds",
+    "minecraft:savanna",
+    "terralith:fractured_savanna",
+    "terralith:savanna_slopes",
+    "minecraft:windswept_savanna"
+  ],
   "borders": {
     "player": 512,
     "generation": 512
   },
   "difficulty": {
-    "mobMultiplier": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
   },
   "structureDensity": "dense",
   "portal": {
@@ -37,7 +46,8 @@
       "bandit_towers": "spread",
       "illager_campsite": "near_spawn",
       "nomad_outpost": "spread",
-      "bandit_village": "near_border"
+      "bandit_village": "near_border",
+      "illager_fort": "near_border"
     },
     "shuns": [
       "monument"

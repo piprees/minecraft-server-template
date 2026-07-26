@@ -1,14 +1,24 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Rolling chalk downs in heather and carnation. Villages in the hollows, nothing sinister for miles.",
   "seed": 7979793790560277687,
-  "noiseSettings": "adventure:wide",
+  "biomes": [
+    "natures_spirit:heather_fields",
+    "natures_spirit:carnation_fields",
+    "terralith:blooming_plateau",
+    "minecraft:meadow",
+    "minecraft:plains",
+    "minecraft:sunflower_plains",
+    "minecraft:flower_forest",
+    "natures_spirit:lavender_fields"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.2
   },
   "portal": {
     "frameBlock": "minecraft:calcite",

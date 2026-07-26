@@ -9,14 +9,17 @@
     "terralith:glacial_chasm",
     "natures_spirit:tundra",
     "terralith:skylands_winter",
-    "nullscape:void_barrens"
+    "minecraft:frozen_peaks",
+    "terralith:frozen_cliffs",
+    "minecraft:snowy_slopes"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 0.8
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.6
   },
   "structureDensity": "sparse",
   "portal": {
@@ -38,9 +41,7 @@
     "spawnFilter": [
       "paradise_lost:autumnal_tundra",
       "paradise_lost:calcite_craglands",
-      "paradise_lost:highlands",
-      "paradise_lost:highlands_forest",
-      "paradise_lost:highlands_shield"
+      "minecraft:ice_spikes"
     ],
     "wants": {
       "para_remains": "near_spawn",
@@ -56,42 +57,6 @@
     "heightRange": [
       -60,
       440
-    ],
-    "structures": [
-      {
-        "name": "paradise_lost:remains",
-        "kind": "want",
-        "range": "near_spawn"
-      },
-      {
-        "name": "paradise_lost:aurel_tower",
-        "kind": "want",
-        "range": "mid_range"
-      },
-      {
-        "name": "paradise_lost:vault",
-        "kind": "want",
-        "range": "mid_range"
-      },
-      {
-        "name": "paradise_lost:palace",
-        "kind": "want",
-        "range": "far"
-      },
-      {
-        "name": "paradise_lost:birdcage",
-        "kind": "want",
-        "range": "near_spawn"
-      }
-    ],
-    "varietyBiomes": [
-      "paradise_lost:autumnal_tundra",
-      "paradise_lost:calcite_craglands",
-      "paradise_lost:highlands",
-      "paradise_lost:highlands_forest",
-      "paradise_lost:highlands_shield",
-      "paradise_lost:continental_plateau",
-      "paradise_lost:highlands_thicket"
     ]
   },
   "spawn": [

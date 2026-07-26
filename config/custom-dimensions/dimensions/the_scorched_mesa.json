@@ -1,14 +1,29 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Painted canyon country baked to the bone. Dramatic tiered mesas, tomb-riddled badlands, no soft ground anywhere.",
   "seed": -8777423045116236165,
   "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "terralith:painted_mountains",
+    "terralith:bryce_canyon",
+    "minecraft:eroded_badlands",
+    "natures_spirit:stratified_desert",
+    "terralith:desert_canyon",
+    "minecraft:badlands",
+    "minecraft:wooded_badlands",
+    "terralith:savanna_badlands",
+    "minecraft:savanna"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
+  "settingsOverrides": {
+    "seaLevel": -55
+  },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.5
   },
   "portal": {
     "frameBlock": "minecraft:terracotta",
@@ -41,7 +56,8 @@
       "badlands_ruins": "spread",
       "badlands_pyramid": "spread",
       "dusty_tomb": "near_border",
-      "ruins_desert": "spread"
+      "ruins_desert": "spread",
+      "black_spiral": "spread"
     },
     "shuns": [
       "village",

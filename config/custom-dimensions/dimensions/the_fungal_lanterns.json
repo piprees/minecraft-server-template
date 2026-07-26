@@ -5,15 +5,16 @@
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
-    "minecraft:mushroom_fields",
-    "terralith:cave/fungal_caves"
+    "incendium:inverted_forest",
+    "minecraft:nether_wastes"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.3
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.5
   },
   "structureDensity": "sparse",
   "portal": {
@@ -35,11 +36,12 @@
     "spawnFilter": [
       "minecraft:crimson_forest",
       "minecraft:warped_forest",
-      "minecraft:mushroom_fields"
+      "incendium:inverted_forest"
     ],
     "wants": {
       "crimson_fungus": "near_spawn",
-      "warped_outpost": "spread"
+      "warped_outpost": "spread",
+      "warped_greatsword": "spread"
     },
     "shuns": [
       "fortress",

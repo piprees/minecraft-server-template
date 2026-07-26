@@ -7,14 +7,18 @@
     "nullscape:crystal_peaks",
     "nullscape:shadowlands",
     "minecraft:end_highlands",
-    "terralith:basalt_cliffs"
+    "minecraft:end_midlands",
+    "nullscape:void_barrens",
+    "minecraft:small_end_islands",
+    "minecraft:end_barrens"
   ],
   "borders": {
     "player": 8192,
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 2.0
+    "mobMultiplier": 2.0,
+    "playerLuck": 1.8
   },
   "structureDensity": "dense",
   "portal": {
@@ -25,6 +29,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
+    "shape": "end_gateway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -38,13 +43,15 @@
     "mood": "hard",
     "spawnFilter": [
       "nullscape:crystal_peaks",
-      "nullscape:shadowlands"
+      "nullscape:shadowlands",
+      "minecraft:end_highlands"
     ],
     "wants": {
       "mega_ship_deepslate": "spread",
       "ruined_pillar": "near_spawn",
       "end_ruins": "spread",
-      "end_city": "spread"
+      "end_city": "spread",
+      "dragon_skeleton": "spread"
     },
     "description": "Crumbling solid end — crystal peaks shearing into shadow, crashed ships in the rubble."
   },

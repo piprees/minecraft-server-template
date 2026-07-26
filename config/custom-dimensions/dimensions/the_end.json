@@ -5,7 +5,23 @@
     "generation": 4096
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:end_portal_frame",
+    "igniterItem": "minecraft:ender_eye",
+    "color": "1B0033",
+    "lightLevel": 15,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:portal",
+    "shape": "end_exit",
+    "sounds": {
+      "ignite": "block.end_portal_frame.fill",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
   },
   "seedRoll": {
     "mood": "hard",
@@ -17,44 +33,11 @@
     ],
     "wants": {
       "end_city": "spread",
-      "phantom_citadel": "near_border"
+      "phantom_citadel": "near_border",
+      "enderkeep": "near_border",
+      "monolith": "spread"
     },
-    "shuns": [],
-    "structures": [
-      {
-        "name": "minecraft:end_cities",
-        "kind": "want",
-        "range": "spread"
-      },
-      {
-        "name": "friendsandfoes:citadel",
-        "kind": "want",
-        "range": "spread"
-      },
-      {
-        "name": "nova_structures:end_ship",
-        "kind": "want",
-        "range": "spread"
-      },
-      {
-        "name": "mes:enderwatch_tower",
-        "kind": "want",
-        "range": "spread"
-      },
-      {
-        "name": "nullscape:dragon_skeleton",
-        "kind": "want",
-        "range": "spread"
-      }
-    ],
-    "varietyBiomes": [
-      "minecraft:end_highlands",
-      "minecraft:end_midlands",
-      "minecraft:end_barrens",
-      "nullscape:void_barrens",
-      "nullscape:shadowlands",
-      "nullscape:crystal_peaks"
-    ]
+    "shuns": []
   },
   "seed": 5758021621088668177,
   "spawn": [

@@ -2,12 +2,20 @@
   "type": "nether",
   "description": "Basalt drama — pillars, bridges and a bastion in the columns.",
   "seed": 9194112441437988152,
+  "biomes": [
+    "minecraft:basalt_deltas",
+    "incendium:volcanic_deltas",
+    "incendium:ash_barrens",
+    "minecraft:nether_wastes",
+    "minecraft:soul_sand_valley"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5
+    "mobMultiplier": 1.5,
+    "playerLuck": 1.3
   },
   "portal": {
     "frameBlock": "minecraft:basalt",
@@ -32,34 +40,11 @@
     "wants": {
       "blackstone_pillars": "near_spawn",
       "bastion": "spread",
-      "nether_bridge": "spread"
+      "nether_bridge": "spread",
+      "warped_greatsword": "spread",
+      "crimson_forge": "near_border"
     },
-    "description": "Basalt drama — pillars, bridges and a bastion in the columns.",
-    "structures": [
-      {
-        "name": "incendium:lesser_structures",
-        "kind": "want",
-        "range": "near_spawn"
-      },
-      {
-        "name": "incendium:greater_structures",
-        "kind": "want",
-        "range": "mid_range"
-      },
-      {
-        "name": "nova_structures:nether_structures",
-        "kind": "want",
-        "range": "mid_range"
-      }
-    ],
-    "varietyBiomes": [
-      "minecraft:basalt_deltas",
-      "incendium:volcanic_deltas",
-      "incendium:ash_barrens",
-      "minecraft:nether_wastes",
-      "minecraft:crimson_forest",
-      "minecraft:soul_sand_valley"
-    ]
+    "description": "Basalt drama — pillars, bridges and a bastion in the columns."
   },
   "spawn": [
     0,

@@ -5,14 +5,15 @@
   "biomes": [
     "minecraft:warped_forest",
     "incendium:inverted_forest",
-    "terralith:warped_mesa"
+    "minecraft:crimson_forest"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.3
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:warped_wart_block",
@@ -30,17 +31,21 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#1B4B4B"
+  },
   "seedRoll": {
     "mood": "scenic",
     "spawnFilter": [
       "minecraft:warped_forest",
       "incendium:inverted_forest",
-      "terralith:warped_mesa"
+      "minecraft:crimson_forest"
     ],
     "wants": {
       "warped_greatsword": "spread",
       "warped_outpost": "near_spawn",
-      "bastion": "spread"
+      "bastion": "spread",
+      "crimson_forge": "spread"
     },
     "description": "Warped corruption spreading over a mesa world — teal fungus over red rock."
   },

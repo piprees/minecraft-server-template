@@ -45,7 +45,7 @@
     "scale": 1.0,
     "cooldown": 40,
     "particleType": "minecraft:cherry_leaves",
-    "immersive": true,
+    "shape": "doorway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -65,7 +65,8 @@
       "tavern": "spread",
       "farmstead": "near_spawn",
       "guide_post_warm": "near_spawn",
-      "giant_mushroom": "spread"
+      "giant_mushroom": "spread",
+      "abandoned_chapel": "spread"
     },
     "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring."
   },

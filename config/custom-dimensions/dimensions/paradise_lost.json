@@ -1,15 +1,31 @@
 {
+  "seed": -6907794329645529399,
   "scale": 1.0,
   "borders": {
-    "player": 4096,
-    "generation": 4096
+    "player": 8192,
+    "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 0.8,
+    "playerLuck": 1.5
+  },
+  "portal": {
+    "frameBlock": "minecraft:glowstone",
+    "igniterItem": "minecraft:water_bucket",
+    "color": "F5E8B8",
+    "lightLevel": 15,
+    "scale": 1.0,
+    "cooldown": 40,
+    "particleType": "minecraft:end_rod",
+    "sounds": {
+      "ignite": "item.bucket.empty",
+      "enter": "block.portal.travel",
+      "exit": "block.portal.travel"
+    }
   },
   "seedRoll": {
     "mood": "scenic",
-    "description": "Paradise Lost — the skylands. Serene island heights with towers, vaults and a palace worth the climb.",
+    "description": "Paradise Lost — the skylands proper. Vast island heights strung with towers, vaults and a palace at the world's edge; wisteria drifts on the updrafts between plateaus.",
     "spawnFilter": [
       "paradise_lost:highlands",
       "paradise_lost:highlands_forest",
@@ -17,25 +33,14 @@
       "paradise_lost:tradewinds"
     ],
     "wants": {
-      "paradise_lost:remains": "near_spawn",
-      "paradise_lost:aurel_tower": "spread",
-      "paradise_lost:vault": "spread",
-      "paradise_lost:palace": "near_border"
+      "para_remains": "near_spawn",
+      "birdcage": "near_spawn",
+      "aurel_tower": "spread",
+      "para_vault": "spread",
+      "para_palace": "near_border"
     },
-    "shuns": [],
-    "varietyBiomes": [
-      "paradise_lost:highlands",
-      "paradise_lost:highlands_forest",
-      "paradise_lost:calcite_craglands",
-      "paradise_lost:highlands_thicket",
-      "paradise_lost:continental_plateau",
-      "paradise_lost:highlands_shield",
-      "paradise_lost:highlands_grand_glade",
-      "paradise_lost:autumnal_tundra",
-      "paradise_lost:wisteria_woods"
-    ]
+    "shuns": []
   },
-  "seed": -6907794329645529399,
   "spawn": [
     0,
     64,

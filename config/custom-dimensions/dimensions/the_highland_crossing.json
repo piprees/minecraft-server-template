@@ -32,7 +32,8 @@
     "generation": 8192
   },
   "difficulty": {
-    "mobMultiplier": 1.2
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.3
   },
   "portal": {
     "frameBlock": "minecraft:raw_copper_block",

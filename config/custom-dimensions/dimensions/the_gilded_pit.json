@@ -2,6 +2,11 @@
   "type": "nether",
   "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs.",
   "seed": 9194906980739314006,
+  "biomes": [
+    "minecraft:nether_wastes",
+    "minecraft:basalt_deltas",
+    "minecraft:crimson_forest"
+  ],
   "borders": {
     "player": 683,
     "generation": 683
@@ -18,6 +23,7 @@
     "lightLevel": 11,
     "scale": 12.0,
     "cooldown": 40,
+    "shape": "doorway",
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
@@ -26,6 +32,11 @@
     "aura": {
       "subsume": "everything"
     }
+  },
+  "structures": {
+    "force": [
+      { "structure": "minecraft:bastion_remnant", "x": 200, "z": 0 }
+    ]
   },
   "seedRoll": {
     "mood": "hard",
@@ -36,7 +47,8 @@
     "wants": {
       "bastion": "near_spawn",
       "crimson_forge": "spread",
-      "sanctum": "near_border"
+      "sanctum": "near_border",
+      "blackstone_walls": "spread"
     },
     "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs."
   },

@@ -1,13 +1,25 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel.",
   "seed": 9155801355435215650,
+  "noiseSettings": "adventure:compressed",
+  "biomes": [
+    "terralith:moonlight_grove",
+    "minecraft:old_growth_spruce_taiga",
+    "natures_spirit:snowy_fir_forest",
+    "minecraft:dark_forest",
+    "minecraft:taiga",
+    "natures_spirit:fir_forest",
+    "minecraft:old_growth_pine_taiga",
+    "terralith:birch_taiga"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.2,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:cobbled_deepslate",
@@ -21,6 +33,11 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "environment": {
+    "skyColor": "#141B2E",
+    "fogColor": "#1E2438",
+    "fixedTime": 18000
   },
   "seedRoll": {
     "mood": "adventurous",
@@ -39,10 +56,12 @@
       "old_manor": "spread",
       "zombie_dungeon": "spread",
       "mansion": "near_border",
-      "dark_settlement": "spread"
+      "dark_settlement": "spread",
+      "creeping_crypt": "spread"
     },
     "shuns": [
-      "monument"
+      "monument",
+      "coliseum"
     ],
     "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel."
   },

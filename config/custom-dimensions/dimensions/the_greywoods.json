@@ -1,13 +1,22 @@
 {
-  "type": "overworld",
+  "type": "multi_biome",
   "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone.",
   "seed": 6737624617755405423,
+  "biomes": [
+    "natures_spirit:cedar_thicket",
+    "minecraft:dark_forest",
+    "terralith:birch_taiga",
+    "natures_spirit:fir_forest",
+    "terralith:moonlight_grove",
+    "minecraft:swamp"
+  ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.3,
+    "playerLuck": 1.4
   },
   "portal": {
     "frameBlock": "minecraft:polished_andesite",
@@ -22,20 +31,26 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#8B968B",
+    "ambientLight": 0.1
+  },
   "seedRoll": {
-    "mood": "standard",
+    "mood": "adventurous",
     "spawnFilter": [
       "natures_spirit:cedar_thicket",
       "minecraft:dark_forest",
       "terralith:birch_taiga",
-      "natures_spirit:fir_forest"
+      "natures_spirit:fir_forest",
+      "terralith:moonlight_grove"
     ],
     "wants": {
       "graveyard": "near_spawn",
       "abandoned_chapel": "spread",
       "zombie_dungeon": "spread",
       "old_manor": "near_border",
-      "skeleton_dungeon": "near_border"
+      "skeleton_dungeon": "near_border",
+      "dark_settlement": "spread"
     },
     "shuns": [
       "monument",

@@ -7,7 +7,8 @@
     "terralith:frozen_cliffs",
     "terralith:wintry_lowlands",
     "minecraft:ice_spikes",
-    "nullscape:void_barrens",
+    "minecraft:snowy_slopes",
+    "minecraft:frozen_peaks",
     "terralith:skylands_winter"
   ],
   "borders": {
@@ -15,7 +16,8 @@
     "generation": 683
   },
   "difficulty": {
-    "mobMultiplier": 1.0
+    "mobMultiplier": 1.0,
+    "playerLuck": 1.6
   },
   "structureDensity": "sparse",
   "portal": {
@@ -31,6 +33,11 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "skyColor": "#E8F0F5",
+    "fogColor": "#E8F0F5",
+    "ambientLight": 0.3
+  },
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
@@ -43,7 +50,8 @@
     "wants": {
       "para_remains": "spread",
       "birdcage": "spread",
-      "frozen_dungeon": "near_border"
+      "frozen_dungeon": "near_border",
+      "aurel_tower": "spread"
     },
     "shuns": [
       "village",
