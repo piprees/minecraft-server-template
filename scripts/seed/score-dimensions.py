@@ -647,15 +647,32 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
 
     if not tasks:
         return
+    # A cold bank is tens of minutes of CPU across every core. Without a
+    # progress line it looks hung, and without a cap it starves anything else
+    # on the machine — a local Minecraft server took three times as long to
+    # boot beside it (2026-07-27).
+    workers = getattr(args, "census_workers", 0) or min(multiprocessing.cpu_count(), 8)
+    workers = max(1, workers)
     if not quiet:
-        print(f"noise census: computing {len(tasks)} candidate layout(s) "
-              f"(cached thereafter)...", flush=True)
+        print(f"noise census: computing {len(tasks)} candidate layout(s) on "
+              f"{workers} worker(s) — cached thereafter, so this is a one-off "
+              f"per candidate", flush=True)
 
-    workers = min(multiprocessing.cpu_count(), 8)
     t0 = time.time()
+    computed = []
+    step = max(1, len(tasks) // 20)
     if workers > 1 and len(tasks) > 1:
         with multiprocessing.Pool(workers) as pool:
-            computed = pool.map(_census_task, tasks, chunksize=1)
+            for done, result in enumerate(
+                    pool.imap_unordered(_census_task, tasks, chunksize=1), 1):
+                computed.append(result)
+                if not quiet and (done % step == 0 or done == len(tasks)):
+                    elapsed = time.time() - t0
+                    rate = done / elapsed if elapsed > 0 else 0
+                    remaining = (len(tasks) - done) / rate if rate > 0 else 0
+                    print(f"  {done}/{len(tasks)} ({done * 100 // len(tasks)}%) "
+                          f"— {elapsed / 60:.1f} min elapsed, "
+                          f"~{remaining / 60:.1f} min left", flush=True)
     else:
         computed = [_census_task(t) for t in tasks]
 
@@ -1630,6 +1647,11 @@ def main():
     ap.add_argument("--dims", help="comma-separated subset of dimension names")
     ap.add_argument("--no-worlds", action="store_true",
                     help="manifest: no @worlds slots (skip world-seed rolling)")
+    ap.add_argument("--census-workers", type=int, default=0,
+                    help="processes for the noise-census backfill "
+                         "(default: CPU count capped at 8). Lower it to leave "
+                         "room for a local server — a cold bank saturates "
+                         "every core for tens of minutes")
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--viewer", action="store_true")
     ap.add_argument("--open-viewer", action="store_true")

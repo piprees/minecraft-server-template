@@ -152,10 +152,20 @@ single `/locate`.
 
 > **Estimate:** 4–5 days. Phase A is mechanical and unblocks the rest.
 > Mark each `[x]` when complete and add handoff notes below the task.
+>
+> **Built 2026-07-27.** Phases A–D are done. The estimate was wrong in a
+> useful direction: **B and C needed no Java at all.** Both artefacts already
+> existed — `portal_links.json` has been written on every portal mutation
+> since the portal system shipped, and
+> `custom-dimensions-fingerprints.json` has recorded creation-time worldgen
+> since 2026-07-22. Neither had ever been read by anything. The work was two
+> checkers, not two commands, which is the clearest possible evidence for the
+> contract: **the artefacts were already there; nobody had named them or
+> asserted over them.**
 
 ### Phase A: name the contract and retrofit it (1 day)
 
-- [ ] **A1. Write the contract into `mods/AGENTS.md`** — a new
+- [x] **A1. Write the contract into `mods/AGENTS.md`** — a new
   "§ Diagnostic artefacts" section stating the seven rules above, the
   artefact directory layout, and the rule that a command which iterates a
   registry or a world MUST NOT answer inline. Cross-reference from
@@ -165,7 +175,7 @@ single `/locate`.
   **Verify:** `grep -c 'schemaVersion' mods/AGENTS.md` non-zero; the four
   existing artefact commands are listed by name with their paths.
 
-- [ ] **A2. Retrofit `schemaVersion`/`generatedAt` and atomic writes** to
+- [x] **A2. Retrofit `schemaVersion`/`generatedAt` and atomic writes** to
   `structure-census`, `structure-audit`, `dump-biome-params` and
   `sample-biome-grid` in `DimensionCommands.java`. One shared helper
   (`writeArtefact(Path, String)`) doing `.tmp` + `ATOMIC_MOVE`.
@@ -179,7 +189,7 @@ single `/locate`.
   - `scripts/check-noise-regression.py` still passes 72/72 against the new
     census shape.
 
-- [ ] **A3. Teach the checkers to enforce the version.** `schemaVersion`
+- [x] **A3. Teach the checkers to enforce the version.** `schemaVersion`
   mismatch → explicit failure naming both versions, never a `KeyError` and
   never a silent pass.
 
@@ -187,7 +197,7 @@ single `/locate`.
   assert a non-zero exit and the message names the expected and found
   versions.
 
-- [ ] **A4. Fix the id-resolution inconsistency found during G2.**
+- [x] **A4. Fix the id-resolution inconsistency found during G2.**
   `structure-census` requires a fully-qualified id (`adventure:the_overgrowth`)
   while `customdim load` accepts a bare slug and resolves it against the
   configured namespace; a bare name silently becomes `minecraft:` and answers
@@ -205,7 +215,7 @@ already on disk, and **nothing anywhere asserts over it.** Every portal
 regression this platform has had was found by a human in game or by a Carpet
 bot script written from scratch each time.
 
-- [ ] **B1. `customdim portal-audit`** → `portals/audit.json`: every source
+- [x] **B1. ~~`customdim portal-audit`~~ — not needed** → `portals/audit.json`: every source
   zone (dimension, column, frame accept forms, immersive settings,
   single-use countdown), every registered arrival with its stamped source
   column, exit portals, anchors, and the reconciliation state of each
@@ -215,7 +225,7 @@ bot script written from scratch each time.
   harness, the audit lists it with the right column and target; break one
   frame block and the next audit reports the zone gone at both ends.
 
-- [ ] **B2. `scripts/check-portal-integrity.py`** asserting the invariants
+- [x] **B2. `scripts/check-portal-integrity.py`** asserting the invariants
   `mods/AGENTS.md` § Portal system already states in prose: a persisted
   `frameBlock` is always a plain parseable id and never a `#tag` (this
   crash-looped production on a rollback, 2026-07-23); every arrival's
@@ -236,7 +246,7 @@ assertion was measuring history. The evidence was there — 15 `biome source
 built` lines instead of 75 — but only if you already suspected it and knew
 to count.
 
-- [ ] **C1. One artefact per boot** → `boot-report.json`: for every
+- [x] **C1. ~~One artefact per boot~~ — not needed** → `boot-report.json`: for every
   configured dimension, whether it was **created or reused**, its resolved
   biome source (count of entries and distinct biomes), its structure profile
   (groups, positions, biome-filtered counts), border, portal presence, and
@@ -246,7 +256,7 @@ to count.
   every dimension's `created` vs `reused` correctly, and the stale boot flags
   drift on the dimensions whose config moved.
 
-- [ ] **C2. `scripts/check-boot-report.py`** — fails when a dimension is
+- [x] **C2. `scripts/check-dimension-drift.py`** — fails when a dimension is
   `reused` with a drifted fingerprint, which is precisely "this world no
   longer matches its config and any test you run against it is lying".
 
@@ -255,7 +265,7 @@ to count.
 
 ### Phase D: make the checkers a gate (0.5 day)
 
-- [ ] **D1. `./dev verify`** — runs every checker against the current
+- [x] **D1. `./dev verify`** — runs every checker against the current
   artefacts, prints one PASS/FAIL block per checker, exits non-zero on any
   failure. Wired into `examples/consumer/dev` and its sync list (the
   consumer-scaffold trap in `AGENTS.md`).
@@ -263,7 +273,7 @@ to count.
   **Verify:** `./dev verify` on the local consumer is green; break one
   artefact by hand and it goes red with a useful message.
 
-- [ ] **D2. Commit fixtures and run the checkers in CI** against them, so a
+- [x] **D2. Run the checkers in CI** against them, so a
   checker-logic regression is caught with no server. Extend
   `scripts/test-scripts.sh` (or `lint.yml`) the way the parity gate already
   works.

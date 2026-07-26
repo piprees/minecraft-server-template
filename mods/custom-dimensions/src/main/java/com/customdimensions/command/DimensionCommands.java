@@ -164,15 +164,15 @@ public class DimensionCommands {
      */
     private static int structureCensus(CommandContext<ServerCommandSource> ctx) {
         ServerCommandSource source = ctx.getSource();
-        Identifier dimensionId = IdentifierArgumentType.getIdentifier(ctx, "dimension");
-        ServerWorld world = source.getServer().getWorld(
-                RegistryKey.of(RegistryKeys.WORLD, dimensionId));
+        ServerWorld world = resolveWorld(ctx);
         if (world == null) {
             source.sendError(Text.literal(
-                "Dimension not loaded: " + dimensionId
+                "Dimension not loaded: "
+                + IdentifierArgumentType.getIdentifier(ctx, "dimension")
                 + " (visit it or use /customdim load first)"));
             return 0;
         }
+        Identifier dimensionId = world.getRegistryKey().getValue();
 
         var calculator = world.getChunkManager().getStructurePlacementCalculator();
         StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-census"));
