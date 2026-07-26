@@ -120,8 +120,22 @@ jobs:
 
       - name: Check all ops/dev commands resolve to manifest entries
         run: |
-          MANIFEST=$(grep -oE "scripts/[^ \")]+\.sh" scripts/build-stack-bundle.sh | sort -u)
+          MANIFEST=$(grep -oE "scripts/[^ \")]+\.(sh|py)" scripts/build-stack-bundle.sh | sort -u)
           ERRORS=0
+
+          # Anything `dev` execs straight out of the bundle. This job used to
+          # scan only `ops`, which is how `./dev pin` shipped broken for every
+          # consumer: pin-mod-versions.sh (and the modrinth-api.py it calls)
+          # were referenced by `dev` alone and never made the MANIFEST, while
+          # CI stayed green.
+          DEV_DIRECT=$(grep -oE '\$STACK_SCRIPTS/[a-zA-Z0-9_-]+\.(sh|py)' examples/consumer/dev \
+            | sed 's|\$STACK_SCRIPTS/|scripts/|' | sort -u)
+          for target in $DEV_DIRECT; do
+            if ! echo "$MANIFEST" | grep -qF "$target"; then
+              echo "::error::dev execs $target which is missing from build-stack-bundle.sh MANIFEST"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
 
           # Build the resolved script list from the ops case statement.
           # Each explicit script_file="X" mapping, plus every ALLOWED_COMMANDS

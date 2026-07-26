@@ -65,6 +65,11 @@ MANIFEST=(
   scripts/backup-now.sh
   scripts/reset-seed.sh
   scripts/migrate-to-v4-config.sh
+  # `./dev pin` execs pin-mod-versions.sh from the bundle; it in turn runs
+  # modrinth-api.py from the same directory. Both must ship or `./dev pin`
+  # dies with a missing file on every consumer.
+  scripts/pin-mod-versions.sh
+  scripts/modrinth-api.py
   scripts/seed/candidates.py
   scripts/seed/roll-seeds.sh
   scripts/seed/roll-all.sh
