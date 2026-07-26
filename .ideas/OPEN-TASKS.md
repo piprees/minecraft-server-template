@@ -45,6 +45,31 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | 4.2 | **Immersive Phase 5 — client companion mod.** Not started, deliberately. The doc enumerates exactly what a server-side approach provably cannot do (the dimension-change loading screen, portal transparency, ghost entities, real lighting/biome colour). The bar for taking on a client mod is high and the doc says so. | `mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md` |
 | 4.3 | **Client-pack parity gap.** 2026-07-24 audit, status "gap confirmed", recommendations unactioned. Consumers fork the client manifest entirely and there is no merge, diff, or sync mechanism between the server overlay and the client manifest. | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) |
 
+## Decision record — 2026-07-26
+
+Every open item verified against the current code and decided. Corrections to the original claims are inline.
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| 1.1 | **Do now** | Add holds check to `pin-mod-versions.sh` server loop. `c2me-fabric` is server-only; its `_clientMods.holds` entry enforces nothing. Ships in bundle → needs a release. |
+| 1.2 | **Do now** | Switch `discord-sync.py` to ID-based role matching using the existing `DISCORD_ADMIN_ROLE_ID`/`DISCORD_PLAYER_ROLE_ID` env vars. Eliminates silent-break-on-rename. Ships as image → needs a release. |
+| 1.3 | **Do now** | Fix the stale "keep in sync" comments in `deploy.sh`. The kuma-init asymmetry is intentional and compensated in 3 of 4 paths — document why, don't "fix" to match. |
+| 2.1 | **Do now** | Docstring fixed today. Follow-on: `.claude/skills/discord-integration-ops/SKILL.md` still narrates the old bug present-tense — update to past tense. |
+| 2.2 | **Do now** | Fix `examples/consumer/AGENTS.md` client-mod row. `overlay/modpack/manifest.json` is a real merge mechanism — the "not here" claim is wrong. |
+| 2.3 | **Do now** | Fix `examples/consumer/overlay/modpack/README.md` worked example. Two bugs: wrong top-level key (`_clientMods` → `add`) and wrong item shape (objects → strings). |
+| 2.4 | **Do now** | Add missing commands to `examples/consumer/commands.json`: ops `shutdown`/`startup`/`reboot`, dev `refresh-config`/`seed-viewer`. |
+| 2.5 | **Do now** (fix the inconsistency the other way) | Cache Purge permission is intentional and useful. Fix `docs/credentials.md` and `setup.sh` to list 6 permissions matching `.env.example`, not remove it. |
+| 3.1 | **Do now**: gitignore + untrack. **Do later**: `git filter-repo` to prune history (force-push, coordinate first). | `mods-cache/` is still tracked and ungitignored — worse than stated. The cache earns its working-tree presence (`sync-mods.sh`); git tracking does not. Each mod update adds new blobs permanently. `sync-mods.sh` rebuilds the cache from Modrinth CDN via `modrinth-resolve-cache.json` (committed, ~80KB). |
+| 3.2 | **Do now** | `config/custom-dimensions/extractors/` (2.6 MB) confirmed dead weight: the mod never reads it (zero grep hits in source). Exclude from the Dockerfile COPY. Needs a release. |
+| 3.3 | **Do now** | [CORRECTION] 15 reports now (not 6); `scripts/seed/README.md` lists only 6. Update the README table. |
+| 3.5 | **Do now** | Make `mod-build.yml` iterate `mods/local-mods.manifest` instead of hardcoding `mods/custom-dimensions`. Prevents a latent CI gap when a second mod is added. |
+| 3.6 | **Do now** | Rewrite `CONTRIBUTING.md` to recommend a consumer-repo-alongside-template setup (like elfydd) instead of bare `./scripts/dev-up.sh`. The current instruction resolves `CONSUMER_DIR` to a nonsense path. |
+| 3.7a | **Do now** | Add `brew install gnu-tar` note to `CONTRIBUTING.md`. |
+| 3.7 | **Do now** | Fix to `attributefix:XwbErf6s?` (optional at line end), delete the stale `# FIXME: no 1.21.x build` — the pinned version IS a real 1.21.1 build. [CORRECTION] Worse than described: `pin-mod-versions.sh` extracts `attributefix?` as the slug (invalid on Modrinth), creating a self-perpetuating false negative. |
+| 4.1 | **Needs a spike** | Investigate the End portal activation model (`fill` vs `ignite`). Design decisions needed before code. |
+| 4.2 | **Do now** (prep only) | Create `mods/custom-dimensions/client/` with the Phase 5 docs and a kickoff prompt for agent-driven implementation. No mod code yet — just documentation staging. |
+| 4.3 | **Do now** (R3 + R4) | [CORRECTION] R1 (lint warning) and R2 (README checklist) already shipped in commit `6a48a44`. R3: implement auto-filter in `build-modpack.sh` to consume `overlay/mods-remove.txt`. R4: one additional smoke-test job that boots with a sacrificial mod in `overlay/mods-remove.txt` and verifies the boot succeeds without it (~8 min, single run, not a per-mod matrix). Update the audit doc status. |
+
 ## 5. Watch list
 
 Not tasks — things that will bite if forgotten. Full detail under their ids.
