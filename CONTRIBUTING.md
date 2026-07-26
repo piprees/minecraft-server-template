@@ -11,10 +11,13 @@ This is a Minecraft server template built as infrastructure-as-code. Bug fixes, 
 ## Which workflow am I in?
 
 - **Platform contributor** (you cloned this repo to improve scripts, configs, images, or workflows):
+  Create a consumer repo alongside this checkout (copy `examples/consumer/` or use an existing one like `elfydd`). Platform changes are tested through the consumer's stack — the same way a real consumer uses them:
   ```bash
+  # In your consumer repo:
   cp .env.example .env
-  ./scripts/dev-up.sh
+  ./dev up                  # pulls the stack bundle + starts everything
   ```
+  To test an unreleased platform change locally, point `STACK_VERSION` at a local path or build images with `docker compose build`. Do not run `./scripts/dev-up.sh` directly from a platform checkout — its path math assumes bundle nesting and resolves incorrectly.
 - **Consumer contributor** (you cloned a consumer repo to add mods or overlays):
   ```bash
   cp .env.example .env
@@ -24,6 +27,8 @@ This is a Minecraft server template built as infrastructure-as-code. Bug fixes, 
 Most people reading this file are platform contributors — it lives in the platform repo. If you're working in a consumer repo, see that repo's README instead.
 
 The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account.
+
+**Note:** `build-stack-bundle.sh` uses GNU tar for reproducible bundles. On macOS, `brew install gnu-tar` provides `gtar`; without it, locally-built bundles won't byte-match CI's output (harmless — CI does the real build on Linux).
 
 ## Quality gates
 

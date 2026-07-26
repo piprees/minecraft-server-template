@@ -46,6 +46,7 @@ with exactly these permissions:
 | Account | Workers Scripts | Edit |
 | Zone | DNS | Edit |
 | Zone | Zone | Read |
+| Zone | Cache Purge | Purge |
 
 Zone Resources: *Include → Specific zone → your `DOMAIN`* (or All zones).
 

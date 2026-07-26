@@ -49,6 +49,7 @@ dist/
 
 # === Asset cache (Docker images, mod JARs, offline bundles) ===
 cache/
+mods-cache/
 
 # === In-house mod build artifacts ===
 mods/*/build/
