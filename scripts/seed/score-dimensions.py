@@ -550,9 +550,6 @@ def cmd_rescore(args, config, profiles):
     print(f"\nrescored {total} candidate(s) across {len(profiles)} target(s) "
           f"into {candidates.candidates_dir(cfg)}")
 
-    # Renders are NOT triggered here — they run async in the viewer server
-    # (./dev seed-viewer), which lets the user see them as they come in.
-    # cmd_status warns when top-10 candidates are missing renders.
 
 
 def cmd_status(args, config, profiles):
