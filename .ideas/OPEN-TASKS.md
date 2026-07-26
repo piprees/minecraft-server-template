@@ -42,7 +42,7 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | # | Task | Notes |
 | --- | --- | --- |
 | 4.1 | **Immersive Phase 7 tail** — presentation shipped v3.9.1; the End's activation model and the sound half of the rule remain. **Needs a spike**: investigate the End portal activation model (`fill` vs `ignite` schema). | `mods/custom-dimensions/immersive/PHASE-7-PORTAL-IDENTITY.md` |
-| 4.2 | **Immersive Phase 5 — client companion mod.** Not started, deliberately. The doc enumerates exactly what a server-side approach provably cannot do (the dimension-change loading screen, portal transparency, ghost entities, real lighting/biome colour). The bar for taking on a client mod is high and the doc says so. | `mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md` |
+| 4.2 | ~~**Immersive Phase 5 — client companion mod.**~~ Documentation staged in `mods/custom-dimensions/client/`: SPEC.md (full spec, canonical copy stays in `immersive/`), KICKOFF.md (agent brief with constraints, first steps, and vertical-slice plan), README.md (orientation). Ready for agent-driven implementation. | `mods/custom-dimensions/client/KICKOFF.md` |
 | 4.3 | **Client-pack parity gap.** 2026-07-24 audit, status "gap confirmed", recommendations unactioned. Consumers fork the client manifest entirely and there is no merge, diff, or sync mechanism between the server overlay and the client manifest. | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) |
 
 ## Decision record — 2026-07-26
