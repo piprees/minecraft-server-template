@@ -46,6 +46,29 @@ who reads them, and how they differ from `data/config` — is fully explained
 in `references/volume-model.md`. Read that before hand-patching anything; the
 two "config" areas look similar and are not the same mechanism.
 
+## Verify from artefacts, not from RCON output
+
+Before the table below sends you to a `docker exec … rcon-cli` one-liner:
+**the mod's diagnostic commands write versioned JSON to
+`data/config/custom-dimensions/`, and checkers in `scripts/` assert over
+those files with no server running.**
+
+```bash
+./dev verify        # every checker; safe while the server is up, paused, or down
+```
+
+RCON concatenates feedback lines with no separator, truncates at a few KB,
+and cannot tell a timeout from a success — so parsing its output is how a
+broken world produces a green run
+([T17](../../../TROUBLESHOOTING.md#t17)). Use RCON to *trigger* a dump and to
+run short commands; read the answer from the file.
+
+**Run `scripts/check-dimension-drift.py` first** whenever you are about to
+assert anything about worldgen. Worldgen is creation-time-only, so a world
+created before your config change still generates the OLD world and every
+other assertion is measuring history — this is the single most likely reason
+a local test disagrees with the config in front of you.
+
 ## The verification principle — read this twice
 
 **Verify the rendered state, never the patch.** Checking that your edit is

@@ -65,6 +65,14 @@ for py in scripts/*.py scripts/seed/*.py; do
   fi
 done
 
+echo "  Running verification-checker tests..."
+if python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'; then
+  echo "  ✓ Verification checkers pass"
+else
+  warn "Verification checker tests failed"
+  PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+fi
+
 echo "  Running seed-roll regression tests..."
 if python3 -B -m unittest discover -s scripts/seed -p 'test_*.py'; then
   echo "  ✓ Seed-roll regression tests pass"

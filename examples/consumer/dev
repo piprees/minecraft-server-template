@@ -25,6 +25,7 @@ usage() {
   echo "  rollback Revert to a previous stack bundle version"
   echo "  sync     (deprecated, use ./ops sync) Full local+remote alignment"
   echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
+  echo "  verify      Run every offline checker over the server's artefacts (no RCON)"
   echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
   echo "  seed-status Candidate-bank status: counts, winners, score freshness"
   echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
@@ -352,6 +353,35 @@ case "$CMD" in
     ensure_docker
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/roll-all.sh" "$@"
+    ;;
+  verify)
+    # Offline verification: every checker reads artefacts the mod already
+    # wrote and asserts over them. No Docker, no RCON, no running server —
+    # so it is safe while the server is up, paused, or down.
+    ensure_stack
+    export CONSUMER_DIR
+    VERIFY_CFG="$CONSUMER_DIR/config/custom-dimensions"
+    [[ -d "$VERIFY_CFG/dimensions" ]] || VERIFY_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
+    VERIFY_FAILED=0
+    for check in check-dimension-drift check-portal-integrity; do
+      script="$CONSUMER_DIR/$STACK_SCRIPTS/$check.py"
+      if [[ ! -f "$script" ]]; then
+        echo "  SKIP $check (not in this stack version)"
+        continue
+      fi
+      echo "== $check"
+      python3 "$script" --data "$CONSUMER_DIR/data" || VERIFY_FAILED=1
+    done
+    CENSUS_DIR="$CONSUMER_DIR/data/config/custom-dimensions/census"
+    if [[ -d "$CENSUS_DIR" ]]; then
+      echo "== check-noise-regression"
+      python3 "$CONSUMER_DIR/$STACK_SCRIPTS/check-noise-regression.py" \
+        --census "$CENSUS_DIR" --config "$VERIFY_CFG" || VERIFY_FAILED=1
+    else
+      echo "  SKIP check-noise-regression (no census dumps — run"
+      echo "       'customdim structure-census <ns>:<slug>' for the dims you care about)"
+    fi
+    exit $VERIFY_FAILED
     ;;
   seed-rescore | seed-status)
     # v4 candidate bank: rescore = recompute scores from banked measurements

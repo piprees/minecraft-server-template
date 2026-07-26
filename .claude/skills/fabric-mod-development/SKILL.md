@@ -84,7 +84,40 @@ docker restart mc
 
 **Verify via log grep, never by inspecting the config file afterwards** — the key's absence from `c2me.toml` post-boot is expected (c2me strips it after reading it): `docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log`.
 
-## 4. Exercise via RCON, headless
+## 4. Verify via artefacts and checkers, not RCON output
+
+**Start here, not with RCON.** The mod's diagnostic commands write versioned
+JSON to `data/config/custom-dimensions/` and answer with one line plus a
+path; checkers in `scripts/` assert over those files with no server running.
+RCON concatenates feedback lines with no separator, truncates at a few KB,
+and cannot distinguish a timeout from a success — so parsing its output is
+how you get a green run over a broken world. Full contract:
+`mods/AGENTS.md` § Diagnostic artefacts.
+
+```bash
+./dev verify                 # every checker, no Docker needed, safe while paused
+```
+
+Run `check-dimension-drift.py` FIRST if you are about to assert anything
+about worldgen. Worldgen is creation-time-only, so a world created before
+your config change still generates the OLD world, and every other assertion
+is then measuring history. On 2026-07-27 a jungle dimension "failed" a
+structure-filter check with igloos in its pool; the filter was correct and
+the world was three configs old.
+
+| Question | Artefact | Checker |
+| --- | --- | --- |
+| Does this world still match its config? | `custom-dimensions-fingerprints.json` | `check-dimension-drift.py` |
+| Which structures reached each group, and where? | `census/<ns>__<slug>.json` | `check-noise-regression.py` |
+| Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
+| How was each set classified? | `structure-audit.txt` | human-read |
+
+`/locate` is the wrong instrument for placement: it proves one instance
+exists and takes minutes doing it. Measured 2026-07-27 — locating a vanilla
+village in the **stock overworld** times out at 120 s, and Chunky
+pre-generation does not help.
+
+## 5. Exercise via RCON, headless
 
 Dimensions are created automatically at boot from `config/custom-dimensions/` — there is no `/dimension create` or `/portal link` command. Resolve the namespace first (it isn't always `adventure`):
 
@@ -101,7 +134,7 @@ docker exec -i mc rcon-cli "execute in ${NS}:the_blossom_gardens run seed"   # p
 docker exec mc cat /data/logs/latest.log | grep -i "registered dimension\|Created runtime" | tail -10
 ```
 
-## 5. Player-dependent paths: drive a Carpet fake player
+## 6. Player-dependent paths: drive a Carpet fake player
 
 Paths that only trigger on real player presence (portal traversal, zone entry, presence timers) can be tested headlessly by puppeting a bot. **Carpet ships as a platform default** (`config/modrinth-mods.txt`) and is already loaded — there is nothing to install and no extra restart needed. Its known crash next to Supplementaries is pre-patched by `scripts/patch-mod-data.py` on every deploy and every `./dev up`; don't re-investigate that crash, see `docs/known-issues/carpet-supplementaries-piston-crash.md` if you ever bump the carpet pin.
 
@@ -120,7 +153,7 @@ Full traversal recipes, every assertion pattern, and ~20 gotchas (aiming, ignite
 - Source portal interiors have **no** portal blocks — assert traversal (`Dimension`/`Pos`), never probe the source interior for portal state.
 - Profile an arrival column **before** traversing — probing afterwards measures the portal you just built, not the ground it was built on.
 
-## 6. Soak time-based paths
+## 7. Soak time-based paths
 
 Anything on a timer (idle unload, cooldowns, periodic saves) must be soaked through its **real** window, not assumed from reading the code:
 
@@ -131,7 +164,7 @@ docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentMo
 
 See `references/runtime-invariants.md` for why a world-tick mixin that mutates the worlds map, adds/removes a `ServerWorld` without firing `ServerWorldEvents`, or sync-loads a chunk from a tick will eventually produce exactly this failure — and how to avoid writing one.
 
-## 7. Ship and verify at each layer
+## 8. Ship and verify at each layer
 
 Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production). Then verify **outcomes, not script output**:
 

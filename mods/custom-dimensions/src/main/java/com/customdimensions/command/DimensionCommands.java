@@ -175,8 +175,8 @@ public class DimensionCommands {
         }
 
         var calculator = world.getChunkManager().getStructurePlacementCalculator();
-        StringBuilder json = new StringBuilder();
-        json.append("{\n \"dimension\": \"").append(dimensionId).append("\",\n");
+        StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-census"));
+        json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
         json.append(" \"seed\": ").append(world.getSeed()).append(",\n");
         json.append(" \"groups\": {");
 
@@ -280,11 +280,9 @@ public class DimensionCommands {
         json.append(forcedGroups > 0 ? "\n }" : "}").append("\n}\n");
 
         try {
-            Path outputPath = FabricLoader.getInstance().getConfigDir()
-                .resolve("custom-dimensions").resolve("census")
+            Path outputPath = Artefacts.dir("census")
                 .resolve(dimensionId.getNamespace() + "__" + dimensionId.getPath() + ".json");
-            Files.createDirectories(outputPath.getParent());
-            Files.writeString(outputPath, json.toString());
+            Artefacts.write(outputPath, json.toString());
             final String message = "structure-census " + dimensionId + ": "
                     + groupCount + " groups, " + total + " noise positions"
                     + (forcedTotal > 0 ? ", " + forcedTotal + " forced" : "")
@@ -357,16 +355,14 @@ public class DimensionCommands {
         // few KB, so ~280 rows come back as one unreadable, half-missing
         // string — which looks like a working command until you try to use it.
         try {
-            Path outputPath = FabricLoader.getInstance().getConfigDir()
-                .resolve("custom-dimensions").resolve("structure-audit.txt");
-            Files.createDirectories(outputPath.getParent());
-            StringBuilder body = new StringBuilder();
+            Path outputPath = Artefacts.dir().resolve("structure-audit.txt");
+            StringBuilder body = new StringBuilder(Artefacts.textHeader("structure-audit"));
             body.append("# ").append(summary).append('\n');
             body.append("# set_id group rarity theme source spacing\n");
             for (String line : lines) {
                 body.append(line).append('\n');
             }
-            Files.writeString(outputPath, body.toString());
+            Artefacts.write(outputPath, body.toString());
             summary.append(" -> ").append(outputPath);
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to write structure audit", e);
@@ -480,10 +476,36 @@ public class DimensionCommands {
         return count;
     }
 
+    /**
+     * Resolve the {@code dimension} argument to a loaded world.
+     *
+     * Brigadier's identifier argument defaults a bare name to the
+     * {@code minecraft} namespace, so {@code structure-census the_overgrowth}
+     * asked about {@code minecraft:the_overgrowth} and answered "Dimension
+     * not loaded" while the dimension sat there loaded under the configured
+     * namespace — whereas {@code customdim load} takes bare names happily.
+     * Two commands in the same tree disagreeing about what a name means is a
+     * trap; the configured namespace is tried as a fallback so both spellings
+     * work everywhere. A real {@code minecraft:} world still wins, because it
+     * is tried first.
+     */
     private static ServerWorld resolveWorld(CommandContext<ServerCommandSource> ctx) {
         Identifier dimId = IdentifierArgumentType.getIdentifier(ctx, "dimension");
-        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, dimId);
-        return ctx.getSource().getServer().getWorld(worldKey);
+        ServerWorld world = ctx.getSource().getServer()
+                .getWorld(RegistryKey.of(RegistryKeys.WORLD, dimId));
+        if (world != null || !"minecraft".equals(dimId.getNamespace())) {
+            return world;
+        }
+        String namespace = MultiverseConfig.getInstance().getNamespace();
+        if (namespace == null || namespace.isBlank() || "minecraft".equals(namespace)) {
+            return null;
+        }
+        Identifier managed = Identifier.tryParse(namespace + ":" + dimId.getPath());
+        if (managed == null) {
+            return null;
+        }
+        return ctx.getSource().getServer()
+                .getWorld(RegistryKey.of(RegistryKeys.WORLD, managed));
     }
 
     private static int locateBiome(CommandContext<ServerCommandSource> ctx, int timeout) {
@@ -668,10 +690,14 @@ public class DimensionCommands {
         json.append("\n]\n");
 
         try {
-            Path outputPath = FabricLoader.getInstance().getConfigDir()
-                .resolve("custom-dimensions").resolve("biome_params.json");
-            Files.createDirectories(outputPath.getParent());
-            Files.writeString(outputPath, json.toString());
+            // No schemaVersion header here, deliberately: this artefact is a
+            // bare JSON ARRAY that the seed roller loads as a list
+            // (scripts/seed/biome_params.json). Wrapping it in an object to
+            // carry a version would break every roller that reads it. It
+            // still gets the atomic write, which is what matters — the dump
+            // is large and the roller reads it straight afterwards.
+            Path outputPath = Artefacts.dir().resolve("biome_params.json");
+            Artefacts.write(outputPath, json.toString());
             int staticCount = staticBiomes.size();
             int newBiomes = sortedDiscovered.size();
             int newEntries = discoveredCount;
@@ -789,7 +815,9 @@ public class DimensionCommands {
         NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
         var sampler = noiseConfig.getMultiNoiseSampler();
 
-        StringBuilder csv = new StringBuilder();
+        // Leading '#' comment line, so a reader must skip comments — the rows
+        // themselves stay plain `x,z,biome`.
+        StringBuilder csv = new StringBuilder(Artefacts.textHeader("biome-grid"));
         int count = 0;
         for (int x = -radius; x <= radius; x += step) {
             for (int z = -radius; z <= radius; z += step) {
@@ -805,10 +833,8 @@ public class DimensionCommands {
         }
 
         try {
-            Path outputPath = FabricLoader.getInstance().getConfigDir()
-                .resolve("custom-dimensions").resolve("biome_grid.csv");
-            Files.createDirectories(outputPath.getParent());
-            Files.writeString(outputPath, csv.toString());
+            Path outputPath = Artefacts.dir().resolve("biome_grid.csv");
+            Artefacts.write(outputPath, csv.toString());
             int finalCount = count;
             source.sendFeedback(() -> Text.literal(
                 "grid " + finalCount + " points"), false);

@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T16](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T17](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
@@ -58,6 +58,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Snapshot count / R2 usage growing without bound | [T14](#t14) |
 | A released dimension-config change deploys green and changes nothing | [T15](#t15) |
 | Launchers download HTML instead of mod JARs | [T16](#t16) |
+| RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -198,6 +199,31 @@ Each of these has caused a real incident.
 - **Symptom:** Launchers download HTML instead of mod JARs; packwiz auto-update serves stale mods.
 - **Cause:** `modpack/dist/mods/` and `modpack/dist/packwiz/` are generated and pruned by `build-modpack.sh` — never hand-edit them. Mod downloads route via `mods.DOMAIN/mods/` (a tunnel path-rule straight to pack-web, bypassing nav-proxy) with Modrinth's CDN as the `.mrpack` fallback; launchers hash-verify either source. The packwiz index drives auto-updates on every launch.
 - **Invariants:** `/mods/` in `pack-web.conf` must return a clean 404 (not the site-wide 301-to-homepage) or launchers download HTML instead of falling back; `.toml` files must never become edge-cached (they're the update signal, and `.toml` isn't in Cloudflare's default cache list — keep it that way); don't publish this pack on Modrinth (their upload validation rejects non-whitelisted mirror URLs).
+
+<a id="t17"></a>
+### T17 — RCON cannot carry an answer, and a green check may be reading nothing
+
+- **Symptom:** a diagnostic command "works" but its output is one run-on
+  string with lines concatenated and the end missing; or a check passes
+  against a server that is paused, mid-restart, or returning empty responses
+  under load; or `/locate` never returns and the terminal appears wedged.
+- **Cause:** RCON concatenates feedback lines with no separator and truncates
+  the response at a few KB, so ~280 audit rows come back unreadable and
+  half-missing. It also carries no error type — a parse failure, a timeout
+  and an empty result are indistinguishable, so an empty response under load
+  reads exactly like success. Separately, slow commands are slow because of
+  the COMMAND, not the channel: locating a vanilla village in the stock
+  overworld times out at 120 s, and Chunky pre-generation does not change it
+  (measured 2026-07-27).
+- **Fix:** do not parse RCON output. Diagnostic commands write versioned JSON
+  under `data/config/custom-dimensions/` and answer with a summary plus a
+  path; checkers in `scripts/` assert over those files with no server
+  running. `./dev verify` runs all of them. Contract and the full table:
+  `mods/AGENTS.md` § Diagnostic artefacts. Rationale and rejected
+  alternatives: `docs/spikes/SPIKE-REPLACE-RCON.md`.
+- **Corollary:** run `scripts/check-dimension-drift.py` before trusting any
+  worldgen assertion — see [D2](#d2). A world created under an older config
+  makes every other check measure history.
 
 ---
 

@@ -132,6 +132,68 @@ docker exec -i mc rcon-cli 'execute in <ns>:<dim> positioned <ax> <ay> <az> run 
 
 Config negatives are worth exercising because they run the whole parse->gate path: `"immersive": {"enabled": true, "audio": false}` must give a projection with zero audio DEBUG lines, and `{"entityPassthrough": false}` must put entities back to not crossing.
 
+## Diagnostic artefacts — the answer goes in a file, never down the wire
+
+**RCON is a doorbell, not a delivery van.** It concatenates feedback lines
+with no separator and truncates the response at a few KB, so any command that
+iterates a registry or a world comes back as one unreadable, half-missing
+string — which looks like a working command until you try to use it. It also
+carries no error type: a parse failure, a timeout and an empty result are
+indistinguishable, and under load an empty response reads exactly like
+success.
+
+So verification does not parse command output. **A diagnostic command answers
+with a one-line summary plus a path, writes the real answer to a versioned
+file, and a checker in `scripts/` asserts over that file with no server
+running.** Full argument and the rejected alternatives (including why Recon
+cannot be used): `docs/spikes/SPIKE-REPLACE-RCON.md`.
+
+### The contract
+
+1. **One line back, everything else on disk** —
+   `<command> <subject>: <summary> -> <path>`. The summary must be
+   independently useful (counts, not "OK").
+2. **Artefacts live under `config/custom-dimensions/`** in the server data
+   directory (`data/config/custom-dimensions/…` on the host).
+3. **JSON by default.** `structure-audit.txt` and `biome_grid.csv` are
+   grandfathered because their consumer is a human or a spreadsheet.
+4. **Every artefact carries `schemaVersion` and `generatedAt`**
+   (`Artefacts.jsonHeader` / `Artefacts.textHeader`). A checker meeting an
+   unexpected version must fail loudly, never mis-read silently.
+   `biome_params.json` is the one exception — it is a bare JSON array the
+   seed roller loads as a list, and wrapping it would break every roller.
+5. **Writes are atomic** — `Artefacts.write` does `.tmp` + `ATOMIC_MOVE`. A
+   62k-position census takes real time to serialise and a checker reading
+   mid-write would report a fault that does not exist.
+6. **Every artefact has a checker** in `scripts/` that runs with no Docker
+   and exits non-zero on failure.
+7. **A command that iterates a registry or a world MUST NOT answer inline.**
+
+### What exists today
+
+| Artefact | Written by | Checked by |
+| --- | --- | --- |
+| `census/<ns>__<slug>.json` | `customdim structure-census <ns>:<slug>` | `scripts/check-noise-regression.py` |
+| `structure-audit.txt` | `customdim structure-audit [group]` | — (human-read) |
+| `biome_params.json` | `customdim dump-biome-params <dim>` | the seed roller consumes it |
+| `biome_grid.csv` | `customdim sample-biome-grid <dim> <r> <step>` | — (ad-hoc) |
+| `custom-dimensions-fingerprints.json` | the mod, at world creation | `scripts/check-dimension-drift.py` |
+| `portal_links.json` | the mod, on every portal mutation | `scripts/check-portal-integrity.py` |
+
+`./dev verify` runs every checker in one pass. It needs no server: run it
+while the server is up, paused, or down.
+
+**Start any "is the mod behaving?" question here, not with RCON.** The census
+answers which structures reached a pool and where they were placed; a
+`/locate` proves one instance exists and takes minutes doing it (see the
+locate note below).
+
+**A checker is only meaningful against a world created under the config it
+is checking** — worldgen is creation-time-only
+([D2](../TROUBLESHOOTING.md#d2)). `check-dimension-drift.py` is the guard:
+run it FIRST, and if it reports drift, every other result is measuring an
+older config. That mistake cost hours on 2026-07-27.
+
 ## Verification loop
 
 There is no automated test framework for Fabric mods in this repo — verification happens against the real modded server, locally first. A release→deploy cycle costs 10–15 minutes and restarts production; the local loop costs ~1 minute. **Never cut a release for a change you haven't run through this loop.**
