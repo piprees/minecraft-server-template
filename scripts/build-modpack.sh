@@ -58,11 +58,15 @@ if [[ ! -f "$MANIFEST" ]]; then
 fi
 
 # --- client/server parity lint (warn-only) -------------------------------------
-# Server-mod removals (overlay/mods-remove.txt) do NOT feed this build — the
-# client manifest is consumer-forked. A slug removed server-side but still in
-# _clientMods.required is a JOIN FAILURE for every player (Fabric registry
-# handshake kick; 52 such both-required mods audited 2026-07-24). Warn loudly
-# so the fork gets synced; never fail the build (the consumer may be mid-sync).
+# Inside the modpack-builder container, entrypoint.sh already auto-strips
+# overlay/mods-remove.txt slugs from _clientMods before this script runs
+# (strip-removed-mods.py) — so in that path $MANIFEST is already clean and
+# this lint normally reports nothing. It stays as a belt-and-braces check
+# for any invocation that bypasses the container (calling this script
+# directly against a manifest that was never passed through the stripper).
+# A slug removed server-side but still in _clientMods.required is a JOIN
+# FAILURE for every player (Fabric registry handshake kick; 52 such
+# both-required mods audited 2026-07-24). Warn loudly; never fail the build.
 MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
 if [[ -f "$MODS_REMOVE" ]]; then
   python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'

@@ -18,6 +18,7 @@ COPY scripts/modrinth-api.py       /app/modrinth-api.py
 COPY scripts/lib.sh                /app/lib.sh
 COPY docker/modpack-builder/entrypoint.sh    /app/entrypoint.sh
 COPY docker/modpack-builder/merge-manifest.py /app/merge-manifest.py
+COPY docker/modpack-builder/strip-removed-mods.py /app/strip-removed-mods.py
 
 RUN chmod +x /app/*.sh /app/*.py
 

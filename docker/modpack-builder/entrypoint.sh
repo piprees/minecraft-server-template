@@ -4,6 +4,10 @@
 # Mounts:
 #   /overlay (ro)   — consumer overlay dir (may be empty/absent)
 #   /work/dist (rw) — output directory
+#
+# /overlay/mods-remove.txt (server-side mod removals) is consumed here to
+# auto-strip matching slugs from the client manifest's _clientMods before
+# build-modpack.sh runs — see strip-removed-mods.py.
 set -euo pipefail
 
 MC_VERSION="${MC_VERSION:-1.21.1}"
@@ -24,6 +28,20 @@ if [[ -f /overlay/modpack/manifest.json ]]; then
   python3 /app/merge-manifest.py \
     /work/src/manifest.json \
     /overlay/modpack/manifest.json \
+    /work/src/manifest.json
+fi
+
+# Server-mod removals (overlay/mods-remove.txt) do not update the client
+# manifest on their own -- it's a consumer-forked file with no native link
+# to config/modrinth-mods.txt. Auto-strip any matching slug from
+# _clientMods so a server-side removal never ships a client pack that gets
+# players kicked at join (registry mismatch). Warn-only: never fails the
+# build (the parity lint in build-modpack.sh is the belt-and-braces check
+# for any invocation path that bypasses this container).
+if [[ -f /overlay/mods-remove.txt ]]; then
+  python3 /app/strip-removed-mods.py \
+    /work/src/manifest.json \
+    /overlay/mods-remove.txt \
     /work/src/manifest.json
 fi
 

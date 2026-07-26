@@ -39,6 +39,17 @@ cat > "$OVERLAY/modpack/manifest.json" << PATCH
 }
 PATCH
 
+# Server-side removal (overlay/mods-remove.txt) — a DIFFERENT required mod
+# from the one removed via the manifest patch above, to prove
+# strip-removed-mods.py runs independently of merge-manifest.py's own
+# "remove" key. lootr ships pinned (lootr:<versionId>) in the default
+# manifest, so this also proves slug-only matching against a pinned entry.
+SERVER_REMOVED_MOD="lootr"
+cat > "$OVERLAY/mods-remove.txt" << EOF
+# smoke: server-side removal that must also vanish from the client pack
+${SERVER_REMOVED_MOD}
+EOF
+
 DIST="$TEST_DIR/dist"
 mkdir -p "$DIST"
 
@@ -70,8 +81,13 @@ assert() {
   fi
 }
 
-# Merged manifest has the added mod
-MERGED_INDEX="$DIST/modrinth.index.json"
+# modrinth.index.json is never written loose into $DIST -- build-modpack.sh
+# only ever zips it inside the .mrpack (from a scratch WORK_DIR it deletes
+# on exit) -- so pull it out of the prod pack for the content assertions.
+PROD_PACK="$DIST/testserver-1.21.1-latest.mrpack"
+INDEX_CHECK="$(mktemp -d)"
+(cd "$INDEX_CHECK" && unzip -qo "$PROD_PACK" modrinth.index.json 2>/dev/null)
+MERGED_INDEX="$INDEX_CHECK/modrinth.index.json"
 assert "index.json exists" test -f "$MERGED_INDEX"
 
 # The added mod should appear in the files array (by filename pattern)
@@ -91,6 +107,17 @@ idx = json.load(open('$MERGED_INDEX'))
 paths = [f['path'] for f in idx.get('files', [])]
 sys.exit(1 if any('$REMOVED_MOD' in p.lower().replace('-', '') for p in paths) else 0)
 "
+
+# The server-side removal (mods-remove.txt) must ALSO be stripped from the
+# client pack (R3: auto-filter), independently of the manifest patch above.
+assert "server-removed mod ($SERVER_REMOVED_MOD) absent from index" \
+  python3 -c "
+import json, sys
+idx = json.load(open('$MERGED_INDEX'))
+paths = [f['path'] for f in idx.get('files', [])]
+sys.exit(1 if any('$SERVER_REMOVED_MOD' in p.lower().replace('-', '') for p in paths) else 0)
+"
+rm -rf "$INDEX_CHECK"
 
 # Both .mrpack variants produced
 assert "prod .mrpack exists" \
@@ -118,7 +145,6 @@ sys.exit(0 if b'mc.test.example.com' in data else 1)
 rm -rf "$LOCAL_CHECK"
 
 # The prod pack should have the prod entry but NOT the local dev one
-PROD_PACK="$DIST/testserver-1.21.1-latest.mrpack"
 PROD_CHECK="$(mktemp -d)"
 (cd "$PROD_CHECK" && unzip -qo "$PROD_PACK" overrides/servers.dat 2>/dev/null)
 assert "prod pack servers.dat has prod entry" \

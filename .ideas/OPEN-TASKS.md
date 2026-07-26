@@ -43,7 +43,7 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | --- | --- | --- |
 | 4.1 | **Immersive Phase 7 tail** — presentation shipped v3.9.1; the End's activation model and the sound half of the rule remain. **Needs a spike**: investigate the End portal activation model (`fill` vs `ignite` schema). | `mods/custom-dimensions/immersive/PHASE-7-PORTAL-IDENTITY.md` |
 | 4.2 | ~~**Immersive Phase 5 — client companion mod.**~~ Documentation staged in `mods/custom-dimensions/client/`: SPEC.md (full spec, canonical copy stays in `immersive/`), KICKOFF.md (agent brief with constraints, first steps, and vertical-slice plan), README.md (orientation). Ready for agent-driven implementation. | `mods/custom-dimensions/client/KICKOFF.md` |
-| 4.3 | **Client-pack parity gap.** 2026-07-24 audit, status "gap confirmed", recommendations unactioned. Consumers fork the client manifest entirely and there is no merge, diff, or sync mechanism between the server overlay and the client manifest. | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) |
+| 4.3 | ~~**Client-pack parity gap.**~~ R1 (lint) + R2 (README checklist) shipped `6a48a44`. R3: `strip-removed-mods.py` added to the modpack-builder — `overlay/mods-remove.txt` slugs are now auto-stripped from `_clientMods.required`/`.optional` before the pack build. R4: already covered by the existing `removal` matrix variant in `smoke-test.yml`. Audit doc status updated. | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) |
 
 ## Decision record — 2026-07-26
 
