@@ -75,6 +75,8 @@ PENDING_ACTIONS_PATH = Path("/data/discord-pending-actions.json")
 
 PLAYER_ROLE = "Player"
 ADMIN_ROLE = "Admin"
+PLAYER_ROLE_ID = int(os.environ.get("DISCORD_PLAYER_ROLE_ID", "0") or "0")
+ADMIN_ROLE_ID = int(os.environ.get("DISCORD_ADMIN_ROLE_ID", "0") or "0")
 MOJANG_API = "https://api.mojang.com/users/profiles/minecraft/"
 
 # Chunky pre-generation markers (written by idle-tasks.sh on completion)
@@ -575,8 +577,8 @@ async def restore_pending_actions() -> None:
             log.warning("Ignoring malformed pending Discord action: %r", action)
 
 
-def member_roles(member: discord.Member) -> set[str]:
-    return {r.name for r in member.roles}
+def member_role_ids(member: discord.Member) -> set[int]:
+    return {r.id for r in member.roles}
 
 
 # === Bot class (role sync) ====================================================
@@ -606,6 +608,8 @@ class SyncBot(discord.Client):
 
     async def on_ready(self) -> None:
         log.info("Logged in as %s (id=%s)", self.user, self.user.id)
+        if not PLAYER_ROLE_ID or not ADMIN_ROLE_ID:
+            log.warning("DISCORD_PLAYER_ROLE_ID=%s DISCORD_ADMIN_ROLE_ID=%s — role sync will not match until both are set", PLAYER_ROLE_ID, ADMIN_ROLE_ID)
         if self._sync_task is None:
             self._sync_task = asyncio.create_task(self._sync_loop())
             asyncio.create_task(self._command_log_watcher())
@@ -642,9 +646,9 @@ class SyncBot(discord.Client):
             if member is None:
                 continue
 
-            roles = member_roles(member)
-            has_player = PLAYER_ROLE in roles
-            has_admin = ADMIN_ROLE in roles
+            roles = member_role_ids(member)
+            has_player = PLAYER_ROLE_ID in roles
+            has_admin = ADMIN_ROLE_ID in roles
             current = (has_player, has_admin)
             previous = self._last_sync_state.get(discord_id)
 
@@ -761,7 +765,7 @@ def is_admin():
     async def predicate(interaction: discord.Interaction) -> bool:
         if not isinstance(interaction.user, discord.Member):
             return False
-        return ADMIN_ROLE in member_roles(interaction.user)
+        return ADMIN_ROLE_ID in member_role_ids(interaction.user)
 
     return app_commands.check(predicate)
 
@@ -848,8 +852,8 @@ async def mc_status(interaction: discord.Interaction) -> None:
     for discord_id, mc_name in sorted(mappings.items(), key=lambda x: x[1].lower()):
         member = guild.get_member(int(discord_id)) if guild else None
         discord_name = f"@{member.display_name}" if member else f"<{discord_id}>"
-        roles = member_roles(member) if member else set()
-        role = "Admin" if ADMIN_ROLE in roles else "Player" if PLAYER_ROLE in roles else "None"
+        roles = member_role_ids(member) if member else set()
+        role = "Admin" if ADMIN_ROLE_ID in roles else "Player" if PLAYER_ROLE_ID in roles else "None"
         status = "online" if mc_name in online else "offline"
         roster_lines.append(f"  {mc_name}  <->  {discord_name}  {role}  {status}")
 
