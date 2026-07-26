@@ -25,12 +25,14 @@ public final class PortalSafetyValidator {
         for (DimensionConfig config : configs) {
             knownIds.add(config.getDimensionId());
         }
+        int sourceRadius = overworldBorderRadius(configs);
         for (DimensionConfig config : configs) {
             validateLinks(config, knownIds, warnings);
             if (config.isBaseWorld()) {
                 continue;
             }
             validateFrameConfig(config, warnings);
+            validateArrivalReachability(config, sourceRadius, warnings);
             // Death-only exits: a dimension whose ONLY way out is dying is
             // stranding-by-config for anyone who wants to leave alive.
             if (!config.getExits().isEmpty() && config.getPortal() == null
@@ -63,6 +65,102 @@ public final class PortalSafetyValidator {
             }
         }
         return warnings;
+    }
+
+    /**
+     * Slack subtracted from the destination border before deciding whether an
+     * arrival fits. <b>Zero, deliberately.</b>
+     *
+     * <p>PHASE-9 specified a non-zero margin here so an arrival's frame ring
+     * and egress pocket would be inside the border too, not just its centre
+     * cell. That is a real concern — vanilla forbids placing blocks outside
+     * the border, so a portal centred one block inside cannot be built. But
+     * every dimension in the shipped set is authored as EXACTLY
+     * {@code overworldBorder / scale} (8192/8 = 1024, 8192/1 = 8192, and so
+     * on), so any margin at all makes all 74 of them fail by exactly that
+     * margin. A warning that fires on every dimension is not a warning; it is
+     * something people learn to scroll past, and this check only earns its
+     * place by being quiet until something is actually wrong.
+     *
+     * <p>So the boot check answers the first-order question — does the scaled
+     * arrival COLUMN land inside the border — and the last few blocks at the
+     * extreme corner are left to the arrival site search, which is where
+     * "nudge inward until it fits" belongs anyway. Raising this to 8 is a
+     * one-character change if the authoring convention ever gains headroom.
+     */
+    static final int ARRIVAL_MARGIN = 0;
+
+    /**
+     * The radius a portal can be built at in the world portals come FROM.
+     *
+     * <p>The overworld, in practice: it is where almost every portal into a
+     * custom dimension is lit, and it is the widest world in the set. A
+     * chained dimension's own (smaller) border only ever makes the check more
+     * permissive, so using the overworld's is the conservative reading.
+     */
+    private static int overworldBorderRadius(Collection<DimensionConfig> configs) {
+        for (DimensionConfig config : configs) {
+            if ("overworld".equals(config.getName())) {
+                return config.getPlayerBorderRadius();
+            }
+        }
+        return DimensionConfig.DEFAULT_BORDER_RADIUS;
+    }
+
+    /**
+     * Can every portal a player could build actually be arrived at?
+     *
+     * <p>Entering DIVIDES by scale, so a portal at source radius R arrives at
+     * R / scale and needs {@code destBorder >= R / scale + margin}. Outside
+     * the destination's PLAYER border vanilla forbids breaking AND placing
+     * every block, so the player arrives unable to touch the portal, the
+     * frame, or the ground — and every diagnosis of that symptom points at
+     * protection code rather than at a number in a config file. That cost two
+     * sessions on 2026-07-25; this is the check that would have made it a boot
+     * warning instead.
+     *
+     * <p>Anchor dimensions are exempt: their arrival is a fixed configured
+     * position, not a scaled one, so the source radius is irrelevant.
+     *
+     * <p>Note for anyone re-deriving this: PHASE-9 originally specified the
+     * test as {@code destinationBorder < sourceBorder * scale}. That is the
+     * MULTIPLY-on-entry formula and it is wrong in the same direction the
+     * code was; {@link com.customdimensions.portal.ArrivalReachability} has
+     * the corrected arithmetic and is the authority.
+     */
+    private static void validateArrivalReachability(DimensionConfig config, int sourceRadius,
+                                                    List<String> warnings) {
+        DimensionConfig.Portal portal = config.getPortal();
+        if (portal == null || portal.anchor != null) {
+            return;
+        }
+        double scale = config.getScale();
+        int destRadius = config.getPlayerBorderRadius();
+        if (destRadius <= 0) {
+            return; // 0 = explicitly borderless, so nothing can land outside it
+        }
+        if (com.customdimensions.portal.ArrivalReachability.allArrivalsReachable(
+                scale, sourceRadius, destRadius, ARRIVAL_MARGIN)) {
+            return;
+        }
+        int usable = com.customdimensions.portal.ArrivalReachability.usableSourceRadius(
+                scale, destRadius, ARRIVAL_MARGIN);
+        int required = com.customdimensions.portal.ArrivalReachability.requiredDestBorderRadius(
+                scale, sourceRadius, ARRIVAL_MARGIN);
+        warnings.add(String.format(
+                "Dimension %s: portal.scale %s against borders.player %d means only portals built "
+                + "within %d blocks of origin arrive inside this dimension's border — beyond that a "
+                + "player lands outside it and cannot break or place ANY block, including the portal "
+                + "they arrived through. Raise borders.player to %d, or lower portal.scale. KEEPING "
+                + "the config as written (never auto-fixed).",
+                config.getName(), trimScale(scale), destRadius, usable, required));
+    }
+
+    /** "8" rather than "8.0" — these are ratios people say out loud. */
+    private static String trimScale(double scale) {
+        return scale == Math.floor(scale) && !Double.isInfinite(scale)
+                ? String.valueOf((long) scale)
+                : String.valueOf(scale);
     }
 
     private static final java.util.Set<String> ORIENTATIONS = java.util.Set.of(

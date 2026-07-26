@@ -28,3 +28,19 @@ archived text still says otherwise):
   a player.
 - **PHASE-6's header said "not started"** for weeks after it shipped in
   v3.7.0. Trust `mods/AGENTS.md` and the code over a phase doc's status line.
+- **A phase doc's SPEC can be wrong too, not just its status.** PHASE-9
+  specified its boot check as `destinationBorder < sourceBorder × scale` —
+  the multiply-on-entry formula, wrong in the same direction the code had
+  been. The code (`ArrivalReachability`) was already right. When a document
+  and the code disagree about arithmetic, derive the answer from the configs
+  and vanilla's own semantics; do not assume either one is the authority
+  (2026-07-26).
+- **PHASE-9's "58 dimensions can strand a player" table is historical.** It
+  was measured under the inverted transform. Against the real config set with
+  divide-on-entry, **three** fail, for an unrelated reason (pocket dims at
+  scale 1 into a 256 border). See `PLAN.md § Outstanding for the owner`.
+- **The mod README documented `/dimension create`, `/dimension delete`,
+  `/portal link` and `/portal delete` long after all four stopped existing** —
+  and its `/portal link` example still carried `0.125` as the way to write
+  "1:8 scaling", which is the single line that caused the scale inversion.
+  Corrected 2026-07-26; the only command root is `/customdim`.

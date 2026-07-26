@@ -36,6 +36,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -152,6 +153,9 @@ public class PortalHelper {
         PORTAL_ZONES.clear();
         PENDING_ZONES.clear();
         AURA_SITES.clear();
+        // Deferred breaks are per-session: a boot re-reads the registry from
+        // disk, and anything a break already deregistered is simply not in it.
+        PENDING_BREAKS.clear();
         // Presence is per-session state about live entities, never persisted:
         // a boot starts with nobody standing anywhere.
         clearArrivalPresence();
@@ -949,6 +953,10 @@ public class PortalHelper {
         if (targets == null) {
             return;
         }
+        // Read the link BEFORE the aperture is deregistered below — this is
+        // the only record of which source portal built this arrival, and the
+        // removal loop is about to delete it.
+        PortalReturnTarget brokenTarget = targets.get(pos);
         // Grow over the REGISTRY rather than over block states: the block the
         // player just broke is already gone, so a state-based flood fill would
         // stop at the hole and leave the rest of the portal standing.
@@ -978,10 +986,188 @@ public class PortalHelper {
                         Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
             }
         }
+        int linked = breakLinkedSourceZone(world, brokenTarget);
         savePortalLinks();
         com.customdimensions.MultiverseServer.LOGGER.info(
-                "Arrival portal broken by a player in {} at {} ({} blocks removed)",
-                worldKey.getValue(), pos.toShortString(), aperture.size());
+                "Arrival portal broken by a player in {} at {} ({} blocks removed, {} source zone(s) closed)",
+                worldKey.getValue(), pos.toShortString(), aperture.size(), linked);
+    }
+
+    // ------------------------------------------------------------------
+    // Symmetric breaking (Phase 9c) — see PortalBreakLink for the rules
+    // ------------------------------------------------------------------
+
+    /**
+     * Arrival broken -> close the source zone that built it.
+     *
+     * <p>The source frame is deliberately left standing. Deregistering the
+     * zone is what closes the way: the frame becomes ordinary blocks the
+     * player can mine, keep, or re-ignite. Breaking somebody's build because
+     * they mined the other end of it would be a bigger surprise than the one
+     * this fixes, and re-lighting it is a normal thing to want.
+     *
+     * @return how many source zones were closed (0 or 1 in practice)
+     */
+    private static int breakLinkedSourceZone(ServerWorld world, PortalReturnTarget broken) {
+        if (broken == null || !PortalBreakLink.breaksSymmetrically(broken)) {
+            return 0;
+        }
+        List<PortalZone> zones = PORTAL_ZONES.get(broken.sourceWorld);
+        if (zones == null || zones.isEmpty()) {
+            return 0;
+        }
+        RegistryKey<World> arrivalWorld = world.getRegistryKey();
+        List<PortalZone> matched = new ArrayList<>();
+        for (PortalZone zone : zones) {
+            if (zone.definition != null && zone.definition.hasAnchor()) {
+                continue;
+            }
+            if (PortalBreakLink.zoneMatchesColumn(zone.interior, zone.targetWorld, arrivalWorld,
+                    broken.sourceX, broken.sourceZ)) {
+                matched.add(zone);
+            }
+        }
+        for (PortalZone zone : matched) {
+            // The source world may not even be loaded, so never touch blocks
+            // here — removeZone is pure memory plus the immersive teardown,
+            // both of which are safe from any world's tick.
+            removeZone(zone);
+        }
+        return matched.size();
+    }
+
+    /**
+     * Source frame broken -> clear the arrival it built.
+     *
+     * <p>Called from the zone-validity loop, which is the one place that knows
+     * a player has broken the frame. Deliberately NOT called from
+     * {@link #removeZone}: single-use expiry goes through that too, and "the
+     * way in crumbles behind you" must never crumble the way home.
+     *
+     * <p>The arrival is usually in a different world, and that world may be
+     * unloaded or its chunk cold. Registration is dropped immediately (pure
+     * memory, always correct) and the BLOCKS are cleared now if the chunk is
+     * loaded, or queued for {@link #processPendingBreaks} if not. Never
+     * sync-loads a chunk from a tick path — that is the c2me wedge.
+     *
+     * @return how many arrival cells were deregistered
+     */
+    public static int breakLinkedArrival(ServerWorld sourceWorld, PortalZone zone) {
+        if (zone.definition != null && zone.definition.hasAnchor()) {
+            // One arrival shared by every source into that dimension: one
+            // player mining their own frame must not take everybody's home.
+            return 0;
+        }
+        int[] centre = PortalBreakLink.centreColumn(zone.interior);
+        if (centre == null) {
+            return 0;
+        }
+        Map<BlockPos, PortalReturnTarget> targets = PORTAL_TARGETS.get(zone.targetWorld);
+        Set<BlockPos> cells = PortalBreakLink.arrivalCellsFor(
+                targets, zone.sourceWorld, centre[0], centre[1]);
+        if (cells.isEmpty()) {
+            return 0;
+        }
+        Map<BlockPos, Integer> frames = PORTAL_FRAMES.get(zone.targetWorld);
+        for (BlockPos p : cells) {
+            targets.remove(p);
+            if (frames != null) {
+                frames.remove(p);
+            }
+        }
+        ServerWorld targetWorld = sourceWorld.getServer() != null
+                ? sourceWorld.getServer().getWorld(zone.targetWorld)
+                : null;
+        int cleared = targetWorld != null ? clearLoaded(targetWorld, cells) : 0;
+        if (cleared < cells.size()) {
+            // Whatever could not be reached now is remembered rather than
+            // orphaned: an unregistered portal block left standing is a
+            // doorway to nowhere that nothing will ever tidy up.
+            PENDING_BREAKS.computeIfAbsent(zone.targetWorld, k -> new HashSet<>()).addAll(cells);
+        }
+        // Persist immediately. Destroying a portal is a deliberate,
+        // player-visible act, and the zone-validity path this runs from has no
+        // save of its own — so without this the deregistration lived only in
+        // memory until shutdown, and a crash in between would bring back a
+        // portal the player had already broken. Verified stale on 2026-07-26:
+        // the log reported the break while portal_links.json still listed
+        // every cell of it.
+        savePortalLinks();
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "Source portal broken in {} — closed its arrival in {} ({} cells, {} cleared now, {} deferred)",
+                zone.sourceWorld.getValue(), zone.targetWorld.getValue(),
+                cells.size(), cleared, cells.size() - cleared);
+        return cells.size();
+    }
+
+    /** Portal blocks awaiting a loaded chunk before they can be cleared. */
+    private static final Map<RegistryKey<World>, Set<BlockPos>> PENDING_BREAKS = new HashMap<>();
+
+    /**
+     * Clears whatever of {@code cells} sits in a loaded chunk, and reports how
+     * many that was. A cold chunk is skipped, never loaded.
+     */
+    private static int clearLoaded(ServerWorld world, Collection<BlockPos> cells) {
+        int cleared = 0;
+        for (BlockPos p : cells) {
+            if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
+                continue;
+            }
+            if (isPortalBlock(world.getBlockState(p))) {
+                world.setBlockState(p, Blocks.AIR.getDefaultState(),
+                        Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+            }
+            // Counted either way: the chunk was loaded and we have now seen
+            // this position, so there is nothing left to defer about it.
+            cleared++;
+        }
+        return cleared;
+    }
+
+    /**
+     * Drains deferred symmetric breaks for this world, one tick at a time.
+     *
+     * <p>The counterpart of a broken portal frequently lives in an unloaded
+     * chunk — the whole point of the destination is that nobody is there. This
+     * runs from the world tick and clears whatever has since loaded, so a
+     * portal broken while its far side was cold still goes away the moment
+     * anyone gets near it, instead of standing as an unregistered doorway.
+     */
+    public static void processPendingBreaks(ServerWorld world) {
+        Set<BlockPos> pending = PENDING_BREAKS.get(world.getRegistryKey());
+        if (pending == null || pending.isEmpty()) {
+            return;
+        }
+        Set<BlockPos> done = new HashSet<>();
+        for (BlockPos p : pending) {
+            if (!world.getChunkManager().isChunkLoaded(p.getX() >> 4, p.getZ() >> 4)) {
+                continue;
+            }
+            if (isPortalBlock(world.getBlockState(p))) {
+                world.setBlockState(p, Blocks.AIR.getDefaultState(),
+                        Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+            }
+            done.add(p);
+        }
+        if (done.isEmpty()) {
+            return;
+        }
+        pending.removeAll(done);
+        if (pending.isEmpty()) {
+            PENDING_BREAKS.remove(world.getRegistryKey());
+        }
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "Cleared {} deferred portal cell(s) in {} ({} still waiting on cold chunks)",
+                done.size(), world.getRegistryKey().getValue(), pending.size());
+    }
+
+    /** Deferred cells still outstanding — for tests asserting the queue drains. */
+    public static int pendingBreakCount() {
+        int total = 0;
+        for (Set<BlockPos> cells : PENDING_BREAKS.values()) {
+            total += cells.size();
+        }
+        return total;
     }
 
     public static void createTargetPortal(ServerWorld targetWorld, Set<BlockPos> interior, Direction.Axis axis, PortalDefinition definition, RegistryKey<World> sourceWorld, int sourceY) {
@@ -1056,6 +1242,27 @@ public class PortalHelper {
 
         if (axis == Direction.Axis.Y) {
             for (BlockPos p : interior) {
+                BlockPos below = p.down();
+                if (!targetWorld.getBlockState(below).isSolid()) {
+                    targetWorld.setBlockState(below, frameState, frameFlags);
+                }
+            }
+        } else {
+            // Floor under a VERTICAL arrival's bottom row. PortalSite.fits
+            // requires solid support, so a site it chose already has one —
+            // but PortalSite.findCarveY's second pass deliberately accepts an
+            // unsupported site rather than refusing the traversal, and a
+            // portal opening over a drop is the same trap as one with no
+            // egress. Only the bottom row, and only where nothing solid is
+            // already there, so a normal arrival writes no blocks at all.
+            int floorY = Integer.MAX_VALUE;
+            for (BlockPos p : interior) {
+                floorY = Math.min(floorY, p.getY());
+            }
+            for (BlockPos p : interior) {
+                if (p.getY() != floorY) {
+                    continue;
+                }
                 BlockPos below = p.down();
                 if (!targetWorld.getBlockState(below).isSolid()) {
                     targetWorld.setBlockState(below, frameState, frameFlags);

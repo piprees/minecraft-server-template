@@ -128,6 +128,134 @@ class PortalSiteTest {
         assertEquals(PortalSite.NO_SITE, y, "the only fit is below `lowest`");
     }
 
+    // === findCeilingY — what replaced logicalHeight ======================
+
+    @Test
+    void ceilingIsTheHighestSolidBlockInTheColumn() {
+        // A nether-type column: bedrock roof at 127, open below it.
+        Predicate<BlockPos> opaque = p -> p.getY() <= 127;
+
+        assertEquals(127, PortalSite.findCeilingY(0, 0, 255, 1, opaque));
+    }
+
+    @Test
+    void ceilingIsFoundWellAboveTheDeclaredLogicalHeight() {
+        // THE BONEYARD CASE. logicalHeight for a nether-type dimension is 128,
+        // but the generator roofs this column at 190 — so a band anchored to
+        // logicalHeight tops out at 126 and cannot see the playable space at
+        // all. Asking the column gets the real number.
+        Predicate<BlockPos> opaque = p -> p.getY() <= 190;
+
+        assertEquals(190, PortalSite.findCeilingY(0, 0, 255, 1, opaque),
+                "the band must come from the world, never from logicalHeight");
+    }
+
+    @Test
+    void openColumnHasNoCeiling() {
+        assertEquals(PortalSite.NO_SITE, PortalSite.findCeilingY(0, 0, 255, 1, NONE_SOLID));
+    }
+
+    @Test
+    void aSiteUnderTheCeilingIsNeverOnTopOfIt() {
+        // The regression this whole change exists for: an arrival at y=192, on
+        // the nether roof. Roof surface at 190, open air above it to the build
+        // limit. Starting the scan under the ceiling makes the roof-top site
+        // unreachable by construction — the interior's TOP is still below the
+        // highest solid block in the column.
+        int ceilingY = PortalSite.findCeilingY(0, 0, 255, 1, p -> p.getY() <= 190);
+        int highest = ceilingY - PortalSite.STANDARD_HEIGHT - 2;
+
+        assertTrue(highest + PortalSite.STANDARD_HEIGHT - 1 < ceilingY,
+                "the whole interior sits below the roof, so standing ON the roof cannot be chosen");
+        assertTrue(highest < 191, "y=192 must be out of the band entirely");
+    }
+
+    @Test
+    void roofUndersideSkipsTheWholeContiguousSlab() {
+        // Measured live in the_boneyard 2026-07-26: the roof is not a
+        // one-block bedrock lid, it is a solid mass roughly y=145 to y=190.
+        // Starting the search a few blocks under its TOP starts it inside the
+        // rock, and on an entombed column the carve then opens a pocket near
+        // the top of a 45-block slab.
+        Predicate<BlockPos> opaque = p -> p.getY() >= 145 && p.getY() <= 190;
+
+        assertEquals(190, PortalSite.findCeilingY(400, 400, 255, 1, opaque));
+        assertEquals(144, PortalSite.findRoofUndersideY(400, 400, 190, 1, opaque),
+                "the first open block below the slab, not the block below its top");
+    }
+
+    @Test
+    void roofUndersideIsNoSiteWhenTheColumnIsSolidToBedrock() {
+        assertEquals(PortalSite.NO_SITE,
+                PortalSite.findRoofUndersideY(0, 0, 190, 1, ALL_SOLID));
+    }
+
+    @Test
+    void roofUndersideIsTheCeilingItselfWhenTheSlabIsOneBlockThick() {
+        // A vanilla-shaped lid: one opaque layer with open space under it.
+        Predicate<BlockPos> opaque = p -> p.getY() == 127;
+
+        assertEquals(126, PortalSite.findRoofUndersideY(0, 0, 127, 1, opaque));
+    }
+
+    // === findCarveY — the NO_SITE path ===================================
+
+    @Test
+    void carveSitePrefersSolidGroundUnderTheFloorRow() {
+        // Solid rock everywhere: every Y is carveable, and every Y has
+        // support, so the highest one wins (same walk-down rule as an open
+        // site, so a carve lands near the ceiling rather than at bedrock).
+        int y = PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60,
+                p -> true, ALL_SOLID);
+
+        assertEquals(120, y);
+    }
+
+    @Test
+    void carveSiteSkipsBedrock() {
+        // Bedrock is the one thing a carve cannot open, so a band whose upper
+        // half is bedrock must yield a site in the lower half — never a Y the
+        // carve would silently decline to clear.
+        Predicate<BlockPos> carveable = p -> p.getY() < 100;
+        int y = PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60, carveable, ALL_SOLID);
+
+        assertTrue(y < 100, "a site inside bedrock is a site the carve cannot deliver");
+        // The interior is 3 tall and occupies [y, y+2], so the highest base
+        // row whose WHOLE interior clears the bedrock is 97, not 99.
+        assertEquals(97, y, "highest fully carveable interior");
+    }
+
+    @Test
+    void carveSiteFallsBackToAnUnsupportedYRatherThanRefusing() {
+        // Nothing solid anywhere (a void column): there is no supported site,
+        // but the interior is still carveable, and createTargetPortal lays a
+        // floor. Refusing here would strand the player in the source world for
+        // no good reason.
+        int y = PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60,
+                p -> true, NONE_SOLID);
+
+        assertEquals(120, y);
+    }
+
+    @Test
+    void carveSiteRefusesWhenNothingIsCarveable() {
+        // Bedrock all the way down. NO_SITE here is the honest answer and the
+        // caller refuses the traversal — the old code invented a Y from the
+        // heightmap instead, which is how players ended up on the roof.
+        assertEquals(PortalSite.NO_SITE,
+                PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60, p -> false, ALL_SOLID));
+    }
+
+    @Test
+    void carveSitePrefersASupportedYBelowAnUnsupportedOne() {
+        // Open void down to y=80, solid rock below. The supported site wins
+        // even though the unsupported one is met first walking down.
+        Predicate<BlockPos> opaque = p -> p.getY() <= 80;
+        int y = PortalSite.findCarveY(0, 0, Direction.Axis.X, 120, 60, p -> true, opaque);
+
+        assertEquals(81, y, "ground beats a floor we would have to build");
+    }
+
     // === fits ============================================================
 
     @Test

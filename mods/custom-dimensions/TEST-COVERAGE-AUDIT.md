@@ -50,8 +50,8 @@ and the tests that currently cover them.
 |---|---|---|---|---|
 | 1 | Portals must not spawn inside rock | `PortalSite.findArrivalY` | ✅ | 23 tests incl. the entombed-column case |
 | 2 | You must always be able to step out of an arrival | `PortalSite.ensureEgress` | ✅ | Unit + e2e (0/16 air cells -> 16/16 after traversal) |
-| 3 | Portals must break properly when mined | `onPlayerBrokePortalBlock` | ⚠️ partial | `healPortalHole` removed; still no test that a broken pane STAYS broken |
-| 4 | Surrounding blocks must stay breakable | world border + `PortalAuraManager` | ⚠️ partial | Root cause was the border, now fixed; no regression test |
+| 3 | Portals must break properly when mined | `onPlayerBrokePortalBlock` + `PortalBreakLink` | ✅ | 17 tests + e2e both directions; breaking either end takes the other, persisted |
+| 4 | Surrounding blocks must stay breakable | world border + `PortalAuraManager` | ✅ | `ArrivalReachability` wired into the boot validator; 15 unit + 4 data-driven tests over the real config set |
 | 5 | Masks must not leak geometry outside the frame | `ProjectionVolume.occluders` | ✅ good | 32 tests — the one well-covered area |
 | 6 | No fake block inside/in front of a player | `ProjectionVolume.occupiedCells` | ✅ | 9 tests + e2e (`12 suppressed by bodies`) |
 | 7 | Fake blocks must always be cleaned up | `ImmersiveProjector` (6 paths) | ❌ 2 tests | No test per teardown path; leaked blocks seen live |
@@ -63,6 +63,19 @@ and the tests that currently cover them.
 **Updated 2026-07-25 (end of session):** 1, 2, 5, 6 and 8 are now covered by
 unit tests AND e2e. 3, 4 and 11 are partial; 7, 9 and 10 remain uncovered.
 Two of eleven still have zero automated coverage, down from five.
+
+**Updated 2026-07-26 (Phase 9):** 3 and 4 are now covered by unit tests AND
+e2e — symmetric breaking closed 3, and wiring `ArrivalReachability` into the
+boot validator closed 4. Eight of eleven fully covered; 11 remains partial;
+7, 9 and 10 remain uncovered.
+
+### A failure mode this audit does not measure
+
+`ArrivalReachability` shipped **fully written, with zero callers**. It is not
+an untested class — it is an unreached one, and it never appeared as a gap
+because the audit counts tests per class, not whether anything calls the class
+at all. A green build and a green suite both said fine; the check simply did
+not run. Worth a periodic grep for public classes nothing references.
 
 ## The rule this suggests
 
@@ -98,6 +111,23 @@ Suite baseline at audit time: **273 tests / 25 classes**.
 | 2026-07-25 | `BodySuppressionTest` (9) — Phase 8c, never paint a fake block into a body | 316 / 28 |
 | 2026-07-25 | `ProjectionBudgetTest` (11) — packet ceiling; restores outrank sends | 327 / 29 |
 | 2026-07-25 | budget WIRED into `PlayerProjectionState.send()`; e2e: 192 max/pass, 0 over ceiling, backlog drains | 327 / 29 |
+| 2026-07-26 | `PortalSiteTest` +12 (9a) — search band from the column, not `logicalHeight`; roof-underside skip; carve preference order | 351 / 30 |
+| 2026-07-26 | `ArrivalReachabilityTest` (15) + `ShippedDimensionReachabilityTest` (4) — 9b, the boot check that had no callers | 370 / 32 |
+| 2026-07-26 | `PortalBreakLinkTest` (17) — 9c symmetric breaking, both directions, anchor/exit-portal exemptions | 387 / 33 |
+
+**Note on the earlier baseline:** the audit recorded "273 tests / 25 classes"
+and PLAN.md later said "339 / 31". The class count was one high — measured
+from the JUnit XML on 2026-07-26, the pre-Phase-9 suite was **339 / 30**.
+Counts here are now taken from `build/test-results/test/*.xml`, not by hand.
+
+**In-game verification (Carpet bot, local elfydd, 2026-07-26):** arrival
+placement proven on a deliberately entombed column (netherrack y=40→195, so
+the old band was entirely rock) — new code found real open space at y=24 with
+body-height egress on both faces, where the old code would have taken the
+heightmap and landed at ~196 on the roof. Symmetric breaking proven in both
+directions against `portal_links.json`, not just the log: 3 zones/18 cells →
+2/12 on a source-frame break, → 1/6 on an arrival break, unrelated portals
+untouched. Boot clean, `Restarts=0`, no CME.
 
 **In-game verification (Carpet bot, local elfydd, 2026-07-25):** egress fix
 proven by re-burying the real ember-fields portal (0/16 air cells) and
@@ -177,19 +207,24 @@ slab is too big for the interval, and looks identical to a healthy one
 without the number.
 
 ### Still open, in priority order
-2. Phase 8c — never paint a fake block into a body. Prerequisite for fixing
-   the scaled-portal preview safely.
-3. `WorldBorderManager` — 93 loc, 0 tests. Per-dimension borders scaled
-   against the overworld maximum.
-4. Return-destination routing — which dimension a return portal sends you to,
+
+1. `WorldBorderManager` — 93 loc, 0 tests. Per-dimension borders scaled
+   against the overworld maximum. (`ArrivalReachability` now tests the
+   ARITHMETIC that consumes these borders, but not the class that applies
+   them to a world.)
+2. Return-destination routing — which dimension a return portal sends you to,
    including chains that do not end at the overworld. `ExitTarget` has 4
    tests; nothing covers a chained return.
-5. Scaled return fallback — `returnMapping` is translation-free, so a scale-8
+3. Scaled return fallback — `returnMapping` is translation-free, so a scale-8
    player without a tracked origin returns ~1650 blocks from where they left.
-6. `healPortalHole` removal needs a regression test: a broken pane must STAY
-   broken, and one break must take the whole aperture down.
-7. Sweep the phase docs (`immersive/PHASE-*.md`) and `.ideas/` for stated
+4. `ImmersiveProjector` teardown — 6 documented cleanup paths, 2 tests total.
+5. Sweep the phase docs (`immersive/PHASE-*.md`) and `.ideas/` for stated
    behaviours with no assertion behind them.
+
+**Closed since this list was written:** Phase 8c body suppression (9 tests),
+and the `healPortalHole` removal regression — `PortalBreakLinkTest` plus the
+2026-07-26 e2e now prove a broken portal stays broken at BOTH ends and that
+one break takes the whole aperture down.
 
 ## What in-game testing is still for
 

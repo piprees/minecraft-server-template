@@ -21,7 +21,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Coordinate scaling** -- `portal.scale` is the Nether-style travel ratio, stated the way people say it: **"8 nether : 1 over"**. One block walked in the DESTINATION is worth `scale` blocks back home, so **entering divides and returning multiplies**.
   - `scale: 8` -- walk 10 blocks in the dimension, you have covered 80 at home. A portal at overworld `(1888, -3624)` arrives at `(236, -453)`.
   - `scale: 1` -- no compaction; coordinates match 1:1.
-  - `scale: 0.125` -- the inverse: a *sprawling* dimension, 10 blocks there is 1.25 at home.
+  - `scale: 0.125` -- the inverse: a *sprawling* dimension, 10 blocks there is 1.25 at home. **This is almost always a mistake.** An earlier version of this file gave `0.125` as the way to write "nether-style 1:8", two unit tests were written to match it, and the code multiplied on entry for months — arrivals landed outside their own dimension's border, where vanilla forbids breaking or placing anything, and the symptom looked like a protection bug. All 52 non-1.0 dimensions use whole ratios; `ShippedDimensionReachabilityTest` fails the build if a fractional scale reappears.
   - A dimension's `borders.player` must be `overworldBorder / scale`, or portals built near the overworld border arrive outside the destination's border -- where vanilla forbids breaking or placing any block, stranding the player.
 - **Coloured particles** -- hex colour per portal, rendered on both source and target sides
 - **Per-portal cooldown** -- configurable teleport cooldown (0-200 ticks) per portal link
@@ -49,93 +49,77 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 
 ## Commands
 
-### `/dimension create`
+All commands live under one root, `/customdim`, and require permission level 4.
 
-```
-/dimension create <name> <type> [seed] [biome] [peaceful]
-```
+> **There is no `/dimension create` and no `/portal link`.** Both were
+> documented here for a long time after they stopped existing. Dimensions are
+> created at boot from `config/custom-dimensions/dimensions/*.json`, and
+> portals are configured in each dimension's `portal` block — there is no
+> runtime portal-linking command at all. See `mods/AGENTS.md` § Portal system.
 
-| Argument | Type | Required | Description |
-| --- | --- | --- | --- |
-| `name` | string | yes | Lowercase, alphanumeric with `_`, `-`, `/` |
-| `type` | word | yes | `overworld`, `nether`, `end`, `void`, `superflat`, `amplified`, `large_biomes`, `single_biome` |
-| `seed` | long | no | World seed (null = server seed) |
-| `biome` | identifier | no | Biome ID for `single_biome` type (required for that type) |
-| `peaceful` | boolean | no | `true` to disable hostile mob spawning |
-
-### `/dimension delete`
-
-```
-/dimension delete <name>
-```
-
-Removes a dimension definition from the config. Does not delete world files.
-
-### `/portal link`
-
-```
-/portal link <id> <frame> <igniter> <target> <color> <light> [scale] [cooldown]
-```
-
-| Argument   | Type       | Required | Description                                                                  |
-| ---------- | ---------- | -------- | ---------------------------------------------------------------------------- |
-| `id`       | string     | yes      | Unique portal identifier                                                     |
-| `frame`    | identifier | yes      | Block ID for the portal frame (e.g., `minecraft:obsidian`)                   |
-| `igniter`  | identifier | yes      | Item ID to ignite the portal (e.g., `minecraft:flint_and_steel`)             |
-| `target`   | identifier | yes      | Target dimension (e.g., `minecraft:the_nether` or `minecraft:cherry_pocket`) |
-| `color`    | string     | yes      | 6-digit hex colour for particles (e.g., `FF0000`)                            |
-| `light`    | integer    | yes      | Light level 0-15                                                             |
-| `scale`    | double     | no       | Coordinate scale factor, default 1.0 (0.001-1000)                            |
-| `cooldown` | integer    | no       | Teleport cooldown in ticks, default 40 (0-200)                               |
-
-### `/portal delete`
-
-```
-/portal delete <id>
-```
+| Command | What it does |
+| --- | --- |
+| `/customdim create <name> <type> <seed> [noiseSettings] [structureDensity] [biome…]` | Create a runtime dimension. Prefer a config file; this is a debugging tool. |
+| `/customdim destroy <name>` | Unload a runtime dimension. Does **not** scrub its `level.dat` entry — see the level.dat trap in `AGENTS.md`. |
+| `/customdim list` | List managed dimensions. |
+| `/customdim load <name>` | Queue a world load (drained on `END_SERVER_TICK`). |
+| `/customdim locate biome <dimension> <biome_id> [timeout]` | Async biome locate; returns a ticket UUID. |
+| `/customdim locate structure <dimension> <structure_id> [timeout]` | Async structure locate; returns a ticket UUID. |
+| `/customdim locate-result <uuid>` | Collect the result of an async locate. |
+| `/customdim dump-biome-params <dimension>` | Dump TerraBlender + mod biome parameters (feeds the seed roller's `biome_params.json`). |
+| `/customdim sample-noise <dimension> <x> <z>` | Generation ground-truth oracle: the router climate point at `(x & ~3, 0, z & ~3)`. |
+| `/customdim sample-biome-grid <dimension> <radius> <step>` | Sample the biome layout on a grid. |
+| `/customdim debug-prng <seed>` | PRNG diagnostics. |
 
 ## Examples
 
-**Standard overworld dimension:**
+Dimensions and portals are **config**, not commands. A pocket dimension with a
+cherry-blossom portal is one file, `config/custom-dimensions/dimensions/cherry_pocket.json`:
 
-```
-/dimension create adventure overworld
-```
-
-**Cherry grove pocket dimension (peaceful, custom seed):**
-
-```
-/dimension create cherry_pocket single_biome 98765 minecraft:cherry_grove true
-/portal link cherry minecraft:cherry_blossom minecraft:cherry_blossom_petals minecraft:cherry_pocket FF9EC6 8
-```
-
-**Nether hub with 1:8 coordinate scaling:**
-
-```
-/dimension create nether_hub void
-/portal link nether_gate minecraft:obsidian minecraft:flint_and_steel minecraft:nether_hub AA0000 11 0.125
-```
-
-**Superflat redstone world:**
-
-```
-/dimension create redstone_lab superflat
-/portal link lab minecraft:iron_block minecraft:redstone minecraft:redstone_lab FF0000 15
+```jsonc
+{
+  "type": "single_biome",
+  "seed": 98765,
+  "biomes": ["minecraft:cherry_grove"],
+  "borders": { "player": 256, "generation": 256 },
+  "difficulty": { "hostileSpawning": false },
+  "portal": {
+    "frameBlock": "minecraft:cherry_log",
+    "framePlaceBlock": "minecraft:cherry_log",
+    "igniterItem": "minecraft:cherry_sapling",
+    "color": "#FF9EC6",
+    "lightLevel": 8,
+    "scale": 1.0
+  }
+}
 ```
 
-**Amplified terrain with custom seed:**
+A nether-style hub at **8 destination blocks : 1 overworld block**. Note the
+scale is `8`, not `0.125` — entering DIVIDES (see § Coordinate scaling in
+Features). The border must be `overworldBorder / scale`:
 
-```
-/dimension create epic_terrain amplified 42
+```jsonc
+{
+  "type": "nether",
+  "borders": { "player": 1024, "generation": 1024 },
+  "portal": {
+    "frameBlock": "minecraft:obsidian",
+    "igniterItem": "minecraft:flint_and_steel",
+    "color": "#AA0000",
+    "lightLevel": 11,
+    "scale": 8.0,
+    "cooldown": 5
+  }
+}
 ```
 
-**Near-instant hub portal (5-tick cooldown):**
+`PortalSafetyValidator` WARNs at boot if `borders.player` is too small for the
+scale, naming the usable source radius and the border that would fix it. It
+never auto-fixes.
 
-```
-/portal link hub_gate minecraft:gold_block minecraft:ender_pearl minecraft:hub FFD700 12 1.0 5
-```
-
-**Horizontal floor portal:** Build a frame flat on the ground (e.g., a ring of obsidian), then right-click the top face with the igniter item. The portal detects the horizontal plane and creates a Y-axis portal you walk onto.
+**Horizontal floor portal:** build a frame flat on the ground (e.g. a ring of
+obsidian), then right-click the top face with the igniter. The portal detects
+the horizontal plane and creates a Y-axis portal you walk onto.
 
 ## Configuration
 

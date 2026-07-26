@@ -58,6 +58,13 @@ public final class PortalSite {
     /** How far below the starting Y the scan is willing to look. */
     private static final int SCAN_DEPTH = 48;
 
+    /**
+     * Clearance kept between the top of an arrival and the ceiling above it,
+     * so the frame ring has somewhere to go and the player is not standing
+     * with their head in the roof.
+     */
+    private static final int CEILING_CLEARANCE = 2;
+
     /** Clearance kept either side of the plane so arrivals can step out. */
     public static final int EGRESS_DEPTH = 1;
 
@@ -110,17 +117,128 @@ public final class PortalSite {
      */
     public static int findArrivalY(ServerWorld world, int centreX, int centreZ,
             Direction.Axis axis, int surfaceY) {
-        int start = world.getDimension().hasCeiling()
-                // The heightmap reads the ROOF here, so it is worse than
-                // useless — start just under the logical ceiling instead.
-                ? world.getBottomY() + world.getDimension().logicalHeight() - 2
-                : surfaceY;
+        Predicate<BlockPos> opaque = pos -> world.getBlockState(pos).isOpaqueFullCube(world, pos);
         int floor = world.getBottomY() + 1;
-        int lowest = Math.max(floor, start - SCAN_DEPTH);
-        int highest = Math.min(start, world.getTopY() - STANDARD_HEIGHT - 2);
+        int highest;
+        int lowest;
+        if (world.getDimension().hasCeiling()) {
+            // The heightmap reads the ROOF here, so it is worse than useless.
+            // The declared logicalHeight is no better: it is a vanilla-nether
+            // number (128) that these dimensions' generators ignore — the
+            // boneyard's playable space runs to y~172, so a band anchored to
+            // logicalHeight could not see it at all and every arrival fell
+            // through to the NO_SITE path (found live 2026-07-25).
+            //
+            // Ask the column instead. The first opaque block walking DOWN from
+            // the build limit is the underside of whatever roofs this column,
+            // whatever height the generator actually put it at, and the
+            // playable band is everything below it.
+            int ceilingY = findCeilingY(centreX, centreZ,
+                    world.getTopY() - 1, floor, opaque);
+            highest = ceilingY == NO_SITE
+                    // No roof in this column at all (an open shaft). Fall back
+                    // to the heightmap surface rather than to a constant.
+                    ? Math.min(surfaceY, world.getTopY() - STANDARD_HEIGHT - CEILING_CLEARANCE)
+                    : ceilingY - STANDARD_HEIGHT - CEILING_CLEARANCE;
+            // Scan the WHOLE band under the ceiling, not SCAN_DEPTH of it: a
+            // ceilinged dimension's floor can sit a hundred blocks below its
+            // roof, and stopping short is how an arrival ends up carved into
+            // the roof itself.
+            lowest = floor;
+        } else {
+            highest = Math.min(surfaceY, world.getTopY() - STANDARD_HEIGHT - CEILING_CLEARANCE);
+            lowest = Math.max(floor, highest - SCAN_DEPTH);
+        }
         return findArrivalY(centreX, centreZ, axis, highest, lowest,
-                pos -> isClear(world, pos),
-                pos -> world.getBlockState(pos).isOpaqueFullCube(world, pos));
+                pos -> isClear(world, pos), opaque);
+    }
+
+    /**
+     * Pure: the Y of the lowest block of whatever roofs this column — the
+     * first opaque position walking DOWN from {@code fromY} — or
+     * {@link #NO_SITE} when the column is open all the way down.
+     *
+     * <p>This is what replaced {@code logicalHeight} as the top of the search
+     * band. {@code logicalHeight} is a property of the dimension TYPE and says
+     * nothing about where a modded generator actually put the roof; this asks
+     * the world. In a nether-type dimension it answers the bedrock roof, and
+     * everything below it is the space a player can be in — which is exactly
+     * the discrimination that "an arrival at y=192, on top of the roof" fails.
+     *
+     * <p>Reads one column rather than the interior's whole footprint. The
+     * footprint is at most 3 blocks wide and {@link #fits} checks every cell
+     * of it anyway, so a roof that steps down over those three blocks costs
+     * at worst a slightly conservative start.
+     */
+    public static int findCeilingY(int centreX, int centreZ, int fromY, int toY,
+            Predicate<BlockPos> isOpaque) {
+        for (int y = fromY; y >= toY; y--) {
+            if (isOpaque.test(new BlockPos(centreX, y, centreZ))) {
+                return y;
+            }
+        }
+        return NO_SITE;
+    }
+
+    /**
+     * The first open Y beneath the roof slab — walk down from {@code ceilingY}
+     * through the CONTIGUOUS opaque blocks and stop at the first that is not.
+     *
+     * <p>The roof in these dimensions is not a one-block bedrock lid. Measured
+     * live in {@code the_boneyard} 2026-07-26, the solid mass runs from about
+     * y=145 to y=190 — forty-five blocks thick, and highly variable. Starting
+     * the search at {@code ceilingY - a few} therefore starts it INSIDE the
+     * roof, and on an entombed column the carve happily opens a pocket five
+     * blocks below the top of it: technically under cover, and a genuinely
+     * horrible place to arrive. Skipping the slab puts the search where the
+     * dimension actually is.
+     *
+     * @return the first non-opaque Y below the slab, or {@link #NO_SITE} when
+     *         the column is opaque all the way to {@code toY}
+     */
+    public static int findRoofUndersideY(int centreX, int centreZ, int ceilingY, int toY,
+            Predicate<BlockPos> isOpaque) {
+        for (int y = ceilingY; y >= toY; y--) {
+            if (!isOpaque.test(new BlockPos(centreX, y, centreZ))) {
+                return y;
+            }
+        }
+        return NO_SITE;
+    }
+
+    /**
+     * The top of the search band for a ceilinged world: below the roof slab,
+     * and below the highest solid block in the column.
+     *
+     * <p>Two bounds, and both matter:
+     * <ul>
+     *   <li><b>Under the highest solid block</b> ({@code ceilingY}) is what
+     *       makes "standing on the roof" unreachable by construction — the
+     *       whole interior sits below something, so there is always cover
+     *       overhead. This is the y=192 fix.</li>
+     *   <li><b>Under the roof's UNDERSIDE</b> is what stops an entombed column
+     *       being carved out near the top of a forty-block slab instead of at
+     *       the open space below it.</li>
+     * </ul>
+     *
+     * <p>Known limitation, stated rather than silently accepted: a column with
+     * an isolated solid mass floating ABOVE the roof would take its underside
+     * as the bound and could put a site on the roof top beneath it. No
+     * generator in this pack does that — the "roof" here is terrain whose top
+     * varies between roughly y=180 and y=190 with open sky above it, not a
+     * flat lid with things on top — so this is a note for whoever adds one,
+     * not a live defect.
+     */
+    private static int ceilingBandTop(int centreX, int centreZ, int ceilingY, int floor,
+            Predicate<BlockPos> isOpaque) {
+        int underside = findRoofUndersideY(centreX, centreZ, ceilingY, floor, isOpaque);
+        int belowHighestSolid = ceilingY - STANDARD_HEIGHT - CEILING_CLEARANCE;
+        if (underside == NO_SITE) {
+            // Opaque from the ceiling to bedrock. There is no "under the roof"
+            // to aim for, so the only bound left is the cover one.
+            return belowHighestSolid;
+        }
+        return Math.min(belowHighestSolid, underside - STANDARD_HEIGHT);
     }
 
     /**
@@ -145,6 +263,89 @@ public final class PortalSite {
             }
         }
         return NO_SITE;
+    }
+
+    /**
+     * Where to CARVE when {@link #findArrivalY} found no open pocket at all.
+     *
+     * <h2>Why this is not "just use the heightmap"</h2>
+     * It used to be. {@code ServerWorldMixin} did
+     * {@code if (siteY == NO_SITE) siteY = surfaceY;} — and {@code surfaceY}
+     * is {@code MOTION_BLOCKING_NO_LEAVES}, which reads the ROOF in a
+     * ceilinged dimension. So the one path that exists to rescue a bad column
+     * put the player on the nether roof, which is the exact failure
+     * {@code PortalSite} was written to prevent. Seen live 2026-07-25 in
+     * {@code the_boneyard}: an arrival at y=192, on the roof. Falling back to
+     * a number known to be wrong is not a fallback.
+     *
+     * <p>So: search the same band again with the requirement relaxed from
+     * "already open" to "openable". Rock is openable; bedrock and block
+     * entities are not (same exclusions as {@link #clear}, so what this
+     * promises is what {@link #carveEgress} can actually deliver).
+     *
+     * <p>Two passes, in preference order:
+     * <ol>
+     *   <li>a carveable site with something solid under its floor row — the
+     *       player lands on ground;</li>
+     *   <li>failing that, any carveable site — {@code createTargetPortal}
+     *       lays a floor under it.</li>
+     * </ol>
+     * {@link #NO_SITE} only when the whole band is bedrock or occupied, and
+     * the caller must then refuse the traversal rather than invent a Y.
+     *
+     * @param isCarveable may this position be turned into air (or already be air)
+     */
+    public static int findCarveY(int centreX, int centreZ, Direction.Axis axis,
+            int highest, int lowest, Predicate<BlockPos> isCarveable, Predicate<BlockPos> isOpaque) {
+        int unsupported = NO_SITE;
+        for (int y = highest; y >= lowest; y--) {
+            Set<BlockPos> interior = standardInterior(centreX, y, centreZ, axis);
+            boolean carveable = true;
+            boolean supported = false;
+            for (BlockPos p : interior) {
+                if (!isCarveable.test(p)) {
+                    carveable = false;
+                    break;
+                }
+                if (p.getY() == y && isOpaque.test(p.down())) {
+                    supported = true;
+                }
+            }
+            if (!carveable) {
+                continue;
+            }
+            if (supported) {
+                return y;
+            }
+            if (unsupported == NO_SITE) {
+                unsupported = y;
+            }
+        }
+        return unsupported;
+    }
+
+    /**
+     * World-facing {@link #findCarveY}: the same band {@link #findArrivalY}
+     * just failed over, with the carve predicates bound to this world.
+     */
+    public static int findCarveY(ServerWorld world, int centreX, int centreZ,
+            Direction.Axis axis, int surfaceY) {
+        Predicate<BlockPos> opaque = pos -> world.getBlockState(pos).isOpaqueFullCube(world, pos);
+        int floor = world.getBottomY() + 1;
+        int highest;
+        int lowest;
+        if (world.getDimension().hasCeiling()) {
+            int ceilingY = findCeilingY(centreX, centreZ, world.getTopY() - 1, floor, opaque);
+            highest = ceilingY == NO_SITE
+                    ? Math.min(surfaceY, world.getTopY() - STANDARD_HEIGHT - CEILING_CLEARANCE)
+                    : ceilingBandTop(centreX, centreZ, ceilingY, floor, opaque);
+            lowest = floor;
+        } else {
+            highest = Math.min(surfaceY, world.getTopY() - STANDARD_HEIGHT - CEILING_CLEARANCE);
+            lowest = Math.max(floor, highest - SCAN_DEPTH);
+        }
+        return findCarveY(centreX, centreZ, axis, highest, lowest,
+                pos -> isCarveable(world, pos), opaque);
     }
 
     /**
@@ -311,11 +512,24 @@ public final class PortalSite {
 
     private static void clear(ServerWorld world, BlockPos pos, int flags) {
         BlockState state = world.getBlockState(pos);
-        if (state.isAir() || PortalHelper.isPortalBlock(state) || state.isOf(Blocks.BEDROCK)
-                || world.getBlockEntity(pos) != null) {
+        if (state.isAir() || PortalHelper.isPortalBlock(state) || !isCarveable(world, pos)) {
             // Never punch through bedrock, a portal, or somebody's chest.
             return;
         }
         world.setBlockState(pos, Blocks.AIR.getDefaultState(), flags);
+    }
+
+    /**
+     * Can this position be made into air? Air already is; bedrock and
+     * anything with a block entity behind it are the two things a carve
+     * refuses to touch.
+     *
+     * <p>Shared with {@link #clear} deliberately: {@link #findCarveY} must
+     * only ever promise sites the carve can actually deliver, or the "no open
+     * site" path swaps one silent failure for another.
+     */
+    private static boolean isCarveable(ServerWorld world, BlockPos pos) {
+        return !world.getBlockState(pos).isOf(Blocks.BEDROCK)
+                && world.getBlockEntity(pos) == null;
     }
 }

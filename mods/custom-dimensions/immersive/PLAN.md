@@ -3,10 +3,11 @@
 > **Location:** `mods/custom-dimensions/immersive/`
 > **Phase docs:** open phases in this directory; shipped ones in `archive/`
 > (with a README listing corrections that outlived them — read it).
-> **Status as of v3.9.1 (2026-07-26):** Phases 0–4, 6 and 8 shipped and
-> verified in game. Phase 7's presentation half shipped and tested. Phase 9
-> (arrival placement) is the highest-priority open work. Phase 5 (client
-> companion) is specified and deliberately not started.
+> **Status as of 2026-07-26:** Phases 0–4, 6, 8 and **9** shipped and verified
+> in game. Phase 7's presentation half shipped and tested; its End activation
+> and sounds remain open. Phase 5 (client companion) is specified and
+> deliberately not started. **No code work is open on the portal system.** One
+> CONTENT decision is outstanding — see "Outstanding for the owner".
 
 ## What this is
 
@@ -181,7 +182,7 @@ Both are independent of each other.
 | 6 | `archive/PHASE-6-AURA-POLICY.md` | `aura.subsume` policy + claims hard gate | M | n/a | **Shipped v3.7.0** |
 | 7 | `PHASE-7-PORTAL-IDENTITY.md` | Presentation describes where a portal GOES | M | n/a | Presentation **shipped v3.9.1**; End activation + sounds open |
 | 8 | `archive/PHASE-8-SOLIDITY.md` | Arrival egress, portals stay breakable, no fake block in a body | S | n/a | **Shipped v3.9.0** |
-| 9 | `PHASE-9-ARRIVAL-PLACEMENT.md` | Arrival must be reachable, viable and symmetric | M | n/a | **Highest open priority** |
+| 9 | `PHASE-9-ARRIVAL-PLACEMENT.md` | Arrival must be reachable, viable and symmetric | M | 1 | **Shipped 2026-07-26** (9a, 9b, 9c) |
 
 **Total:** ~830 new lines across 4 new files + 5 modified files.
 
@@ -433,13 +434,40 @@ mixin classes (all changes are to existing mixins).
 
 ---
 
+## Outstanding for the owner (not code — a content call)
+
+**Three dimensions can strand a player, and the fix is an authoring decision.**
+Phase 9b's boot check now WARNs about them on every start, verified live:
+
+| dimension | scale | `borders.player` | usable overworld radius |
+|---|---:|---:|---:|
+| `the_emberglass_foundry` | 1.0 | 256 | **256** |
+| `the_tidepools` | 1.0 | 256 | **256** |
+| `the_wuthering_wisteria` | 1.0 | 256 | **256** |
+
+A portal built more than 256 blocks from the overworld origin arrives outside
+their border, where vanilla forbids breaking or placing any block — the exact
+"I can't break anything" symptom that cost two sessions.
+
+All three are pocket dimensions. `the_starwell` is the same kind of place with
+the same scale/border pair and is fine, because it declares a `portal.anchor`
+(a fixed arrival, not a scaled one). **That is very probably the fix**, but
+PHASE-9's own policy is that 9b makes the choice visible and does not make it,
+so nothing has been re-authored. The three options are: add an anchor, raise
+`borders.player` to 8192, or drop the scale.
+
+They are pinned as an allow-list in
+`ShippedDimensionReachabilityTest.KNOWN_UNREACHABLE`, so a NEW dimension with
+this defect fails the build — and fixing one of these also fails the build
+until it is removed from the list. Nothing is silently muted.
+
 ## Briefing for the next agent (start here)
 
-**Start with `PHASE-9-ARRIVAL-PLACEMENT.md` § "Still open here".** Everything
-else in the portal system is shipped and covered; Phase 9 is where the
-remaining player-visible risk lives.
+**The portal system has no open code work.** Phases 0–4, 6, 8 and 9 are
+shipped and verified in game. What is left is Phase 7's End activation and
+sounds, Phase 5 (deliberately not started), and the content call above.
 
-Suite is **339 tests / 31 classes**. Read
+Suite is **387 tests / 33 classes**. Read
 `../TEST-COVERAGE-AUDIT.md` first — it has the coverage matrix, the rule that
 came out of it (*a class that writes to the world, or decides whether a player
 can move, does not ship without a pure, tested core*), and what is still
@@ -449,10 +477,11 @@ cannot be automated, plus a known-wrong-assumptions table.
 **Read these before touching anything:** this file, your phase doc,
 `mods/AGENTS.md` (the Portal system section now carries the immersive contract
 and its verification recipes), and the source of `ImmersiveProjector`,
-`PlayerProjectionState`, `ProjectionVolume`, `ArrivalResolver` and
-`EntityPassthrough` — the class comments in those files are where the hard-won
-reasoning lives, and several of them exist specifically to stop a future change
-reintroducing a bug that cost real debugging time.
+`PlayerProjectionState`, `ProjectionVolume`, `ArrivalResolver`,
+`EntityPassthrough`, `PortalSite` and `PortalBreakLink` — the class comments in
+those files are where the hard-won reasoning lives, and several of them exist
+specifically to stop a future change reintroducing a bug that cost real
+debugging time.
 
 ### The five rules this feature runs on
 
@@ -757,3 +786,103 @@ Two releases in a day, both gated by the CI smoke test, which now drives a
 real Carpet bot through a real portal and asserts the arrival is inside the
 destination border, at the divided column, and not entombed. That gate has
 already caught two genuine bugs on its first two runs.
+
+---
+
+## Session notes — 2026-07-26 (Phase 9 shipped: 9a, 9b, 9c)
+
+Suite 339 → **387 tests, 30 → 33 classes**. All of Phase 9 landed together.
+Full detail is in `PHASE-9-ARRIVAL-PLACEMENT.md`; this is what generalises.
+
+### A fallback to a number you know is wrong is not a fallback
+
+The whole of 9a-1 was four characters of intent and none of execution:
+
+```java
+boolean carved = siteY == PortalSite.NO_SITE;
+if (carved) { siteY = surfaceY; }
+```
+
+`carved` was never read again. The variable is named for the thing the code
+does not do, and `surfaceY` is the heightmap — the exact value `PortalSite`
+exists to avoid, because it reads the ROOF in a ceilinged dimension. So the
+one path that existed to rescue a bad column was the one guaranteed to
+strand somebody, and it read as handled.
+
+**Look for rescue paths that resolve to a known-bad default.** They are worse
+than an unhandled case, because an unhandled case eventually throws.
+
+### Ask the world, not the dimension type
+
+`logicalHeight` is 128 for anything nether-shaped and these generators ignore
+it completely. Measured in `the_boneyard`: the roof is terrain roughly forty-
+five blocks thick whose top varies between y=180 and y=190, with the playable
+floor near y=100. The search band was anchored at 126.
+
+Both replacements read the actual column — the highest opaque block (so the
+whole interior always has cover overhead, which makes "on the roof"
+unreachable by construction) and the underside of the contiguous roof slab (so
+an entombed column is not carved out five blocks below the top of a forty-
+block mass). Neither number exists in any config.
+
+### The decisive test was one I had to build
+
+Three natural columns all landed fine, and none of them discriminated: the
+boneyard's floor sits near y=100 everywhere sampled, comfortably inside the
+old band. The failure needs a column where the old band is *entirely* solid —
+so I filled one with netherrack from y=40 to y=195 and traversed into it. Old
+behaviour: `NO_SITE` → heightmap → ~196, on the roof. New: an open site at
+y=24, under the whole slab, with egress on both faces.
+
+**When the live world will not produce the failing case, construct it.** Three
+passing traversals proved nothing about the path under test.
+
+### The log line said it worked; the file said otherwise
+
+9c's break fired and logged `6 cells, 6 cleared now, 0 deferred`. The
+persisted `portal_links.json` still listed every one of them — the mutation
+was memory-only, and the zone-validity path it runs from has no save of its
+own, so a broken portal survived until a clean shutdown and would come back
+on a crash.
+
+This is the standing rule in `mods/AGENTS.md` ("verify outcomes, not script
+output") applying to our OWN log lines. A log line is a claim about intent;
+the persisted file is the outcome.
+
+### A stale spec outvoted the code again
+
+PHASE-9 specified 9b's check as `destinationBorder < sourceBorder × scale` —
+the multiply-on-entry formula, wrong in the same direction the code had been.
+`ArrivalReachability` already had the corrected arithmetic and was the
+authority; the document was the stale half. Same shape as the README's
+`0.125` line that started the whole scale mess.
+
+Related: the spec asked for a safety margin on the border check. Implemented
+literally, it warned on **all 74 dimensions**, because every one is authored
+as exactly `overworldBorder / scale`. A warning that fires on everything is
+not a warning. Margin is 0, with the reasoning recorded at the constant.
+
+### A class can ship complete and never run
+
+`ArrivalReachability` was fully written, well commented, and had **zero
+callers and zero tests**. Nothing failed; the check simply did not exist.
+`TEST-COVERAGE-AUDIT.md` measures untested classes — this is the neighbouring
+failure mode, and it is invisible to both a green build and a green suite.
+Worth a grep for public classes nothing references.
+
+### Live-loop gotchas that cost time
+
+- **`player Bot attack once` does not break a portal block.** A single click
+  does not finish the break even in creative. Use `attack continuous` then
+  `attack stop`. `attack once` silently does nothing and looks exactly like a
+  broken event hook — I nearly went looking for one.
+- **RCON `fill` into an unloaded dimension silently does nothing.** The reply
+  is `Unknown dimension '<ns>:<dim>'`, which is easy to scroll past when it is
+  three lines above a result that looks right. Load the world by teleporting a
+  player there first, and read the command's own output.
+- **Probing an arrival column after building the portal measures the portal.**
+  `if block … minecraft:air` at the interior answers SOLID because there is a
+  `NETHER_PORTAL` there. Profile the column BEFORE traversing.
+- **Carpet bots do not despawn over RCON here.** `player Bot kill`,
+  `player Bot stop` and `kick Bot` all left it in `list`. It goes on the next
+  `mc` restart; do not spend time on it.

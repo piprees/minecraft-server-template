@@ -99,10 +99,27 @@ and currently untested (audit row 9).
 **Why manual:** integration of many systems under real worldgen.
 - Arrive: you can move immediately, in every direction you would expect.
 - The way home is visible and obviously the way home.
-- **Regression watch:** arriving encased in terrain. Now covered by
-  `PortalSiteTest` and `PortalSite.ensureEgress`, but worldgen is the one
-  input a unit test cannot enumerate — spot-check in a ceilinged
+- **Regression watch:** arriving encased in terrain, or on top of the roof.
+  Now covered by `PortalSiteTest` and `PortalSite.ensureEgress`/`findCarveY`,
+  and proven headlessly on a deliberately entombed column — but worldgen is
+  the one input a unit test cannot enumerate, so spot-check in a ceilinged
   (nether-type) dimension specifically, which is where it failed.
+- **What to look at:** the creation log says how the site was chosen —
+  `Created portal in <dim> at (x, y, z) [open site]` or `[carved site]`.
+  Occasional carves are normal; carves on EVERY arrival in one dimension mean
+  its search band is wrong and nothing else will tell you.
+
+### V7 — A broken portal feels broken
+**Why manual:** the automated half proves the records and blocks; this is
+about whether it reads as intended in the world.
+- Mine one pane of an arrival: the whole portal goes, and stays gone.
+- The counterpart closes too — walking back into the frame on the other side
+  does nothing. **The frame itself is deliberately left standing**, so it
+  should look like a dead doorway you can re-light, not like your build was
+  destroyed.
+- *Covered automatically:* both link directions, the anchor/exit-portal
+  exemptions, and persistence (`PortalBreakLinkTest` + e2e against
+  `portal_links.json`).
 
 ## Known-wrong assumptions (do not re-derive these)
 
@@ -113,3 +130,7 @@ and currently untested (audit row 9).
 | An RCON `setblock` reproduces a player break | It does not. Player breaks fire `PlayerBlockBreakEvents`; `setblock` does not, so break-triggered logic is invisible to it. |
 | "Arrival portal broken" absent from the log = the hook is broken | It only logs for REGISTERED positions. Breaking nearby terrain logs nothing and is correct. |
 | Budget-exhausted aura is still writing | `budgetSpent >= budget` makes `tick()` skip the site entirely. Check the record before blaming the aura. |
+| `player Bot attack once` breaks a block | Not one that needs more than a click — including portal blocks, even in creative. Use `attack continuous` then `attack stop`. `attack once` silently does nothing and looks exactly like a dead event hook. |
+| RCON `fill` worked because the next command looked right | Against an unloaded dimension it does nothing and answers `Unknown dimension`. Load the world by teleporting a player there first, and read each command's own output. |
+| Probing an arrival column tells you what the terrain was | After traversal it tells you about the portal you just built — the interior reads SOLID because there is a `NETHER_PORTAL` in it. Profile BEFORE traversing. |
+| Our own log line means the state was persisted | It means the in-memory mutation happened. Check `portal_links.json`: a symmetric break logged "6 cells cleared" while the file still listed all six (2026-07-26). |
