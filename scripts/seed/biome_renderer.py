@@ -664,11 +664,16 @@ def batch_render(config_path, seedtest_path, biome_params_path,
     for name, dim in all_targets.items():
         profile = build_profile(dim, config, difficulty)
         store = cmod.load_store(cdir / f"{name}.json")
+        current_hash = store.get("configHash", "")
         scored = []
         for seed, cand in store["candidates"].items():
-            best_score = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
-            if best_score > 0:
-                scored.append((best_score, seed))
+            scores = cand.get("scores", {})
+            if current_hash and current_hash in scores:
+                s = scores[current_hash].get("total", 0)
+            else:
+                s = max((sc.get("total", 0) for sc in scores.values()), default=0)
+            if s > 0:
+                scored.append((s, seed))
         scored.sort(reverse=True)
 
         dim_type = dim.get("type", "")
