@@ -24,11 +24,11 @@ Ask me for a decision on each open item. **Batch the questions** — use `AskUse
 
 Offer these outcomes per item: **do now** / **do later** (stays in the file, deferred) / **won't do** (with reason recorded) / **needs a spike** (can't be decided without investigation).
 
-Flag anything irreversible or outward-facing explicitly and separately — I want to see those, not have them buried in a batch:
+Batch everything, including the items with wider blast radius — just state the consequence in the item's line so I'm deciding with it in view rather than after:
 
-- **3.1** (`mods-cache` history rewrite) is a force-push that rewrites shared history. Do not do it in the same session as other work, and do not do it without me saying so in that session.
-- **1.1** changes `pin-mod-versions.sh`, which now ships in the stack bundle, so it needs a release to reach consumers.
-- Anything touching `config/` or the mod lists triggers a full deploy for consumers on the next push.
+- **3.1** rewrites shared git history (force-push).
+- **1.1** changes `pin-mod-versions.sh`, which ships in the stack bundle, so it needs a release to reach consumers.
+- **3.2** and **3.7** touch platform `config/`. Note that platform config does *not* match `FULL_PATTERNS` — that's consumer paths only. Platform config reaches consumers via a release, and the resolved-tag comparison is what forces their full deploy, on their next push after the release. A full deploy is fine and currently cheap: the resolve cache is warm and baked into `defaults-seed`, so zero Modrinth API calls and only changed jars hit the CDN.
 
 When every item has a decision, **write them into `.ideas/OPEN-TASKS.md` as a decision record before doing any of the work**: a dated table of item → decision → rationale, with the deferred and won't-do items keeping their detail so the reasoning survives. Commit that on its own. If the session dies mid-implementation, the decisions must not die with it.
 

@@ -35,7 +35,7 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | 3.5 | **`mod-build.yml` hardcodes `mods/custom-dimensions`** while `release.yml` iterates `mods/local-mods.manifest`. A second in-house mod would build in release but not in PR CI. | `FINDINGS.md` §8.4 |
 | 3.6 | **`CONTRIBUTING.md` tells platform contributors to run `./scripts/dev-up.sh` directly**, but that script's path math assumes bundle nesting and resolves `CONSUMER_DIR` to `/Users` from a plain checkout. Either document `CONSUMER_DIR="$(pwd)"` or point at `docker compose --profile local up -d`. | `FINDINGS.md` §8.2 |
 | 3.7a | **`build-stack-bundle.sh` warns `GNU tar not available` on macOS** — a locally-built bundle won't byte-match a CI one. Harmless (CI does the real build on Linux) but worth knowing before anyone diffs them. Fix: `brew install gnu-tar`. | Low |
-| 3.7 | **`config/modrinth-mods.txt` has one malformed optional marker**: `attributefix?:XwbErf6s` — the `?` is before the colon, so the re-pin script's optional detection doesn't recognise it. Harmless today (resolution is by immutable version id) but not a pattern to copy. | `FINDINGS.md` §8.1 |
+| 3.7 | **`config/modrinth-mods.txt`: `attributefix?:XwbErf6s` has a misplaced `?` AND a stale comment.** The `?` sits before the colon so the re-pin script's optional detection never fires. Separately, the `# FIXME: no 1.21.x build - attributefix?` above it is **wrong** — verified 2026-07-26, it resolves to `attributefix-fabric-1.21.1-21.1.3.jar`, a real 1.21.1 build. Decide both: delete the stale FIXME, and note that moving the `?` is a *semantic* change (required ↔ optional on resolution failure), not a tidy-up. | `FINDINGS.md` §8.1 + verified |
 
 ## 4. Feature work
 
