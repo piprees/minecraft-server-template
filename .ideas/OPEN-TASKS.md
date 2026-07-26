@@ -10,7 +10,7 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 
 | # | Task | Evidence |
 | --- | --- | --- |
-| 1.1 | **Version holds don't bind the server mod list.** `pin-mod-versions.sh` reads `_clientMods.holds` inside its client loop only; the loop that rewrites `config/modrinth-mods.txt` has no holds check. `c2me-fabric` is held because a newer alpha wedges fresh-world creation, is server-only, and is therefore protected by nothing but human review of the Monday PR. Fix: have the server loop consult the same map, or move holds to a top-level key both loops read. | `FINDINGS.md` §3 |
+| 1.1 | ~~**Version holds don't bind the server mod list.**~~ Server loop now reads `_clientMods.holds` from the manifest before re-pinning and skips held slugs, matching what the client loop already did. `c2me-fabric` is now mechanically protected. Changed: `scripts/pin-mod-versions.sh` (ships in bundle — needs a release to reach consumers). | `FINDINGS.md` §3 |
 | 1.2 | **Discord role sync matches by role NAME, not id.** `PLAYER_ROLE = "Player"` / `ADMIN_ROLE = "Admin"` are literal case-sensitive strings; `DISCORD_ADMIN_ROLE_ID`/`DISCORD_PLAYER_ROLE_ID` are used only for `<@&id>` mentions. Renaming either Discord role silently stops whitelist and op sync, with no error. The variable names actively imply the opposite mechanism. | `FINDINGS.md` §5 |
 | 1.3 | **`deploy.sh` comments claim a sidecar list is in sync with `infra-deploy.sh` when it isn't**, and a bare manual `deploy.sh` over SSH is the one path that never refreshes `kuma-init`. Fix the comments; decide whether the manual path should refresh it too. | `FINDINGS.md` §6 |
 

@@ -79,6 +79,21 @@ for ((i = MINOR - 1; i >= 0; i--)); do
   fi
 done
 
+# --- load holds from client manifest ------------------------------------------
+# Holds protect specific mods from automatic re-pinning. The client manifest
+# loop (below) already reads these; this makes the server-list loop respect
+# them too — a server-only mod like c2me-fabric was previously unprotected.
+_holds_manifest="${PROJECT_DIR}/modpack/adventure.mrpack.json"
+HELD_SLUGS=""
+if [[ -f "$_holds_manifest" ]]; then
+  HELD_SLUGS=$(python3 -c "
+import json, sys
+m = json.load(open(sys.argv[1]))
+for slug in m.get('_clientMods', {}).get('holds', {}):
+    print(slug)
+" "$_holds_manifest" 2>/dev/null || true)
+fi
+
 echo "Target: $TARGET_VERSION"
 FALLBACK_CSV=$(
   IFS=,
@@ -135,6 +150,12 @@ for i in "${!LINE_TYPES[@]}"; do
   slug="${LINE_SLUGS[$i]}"
   result=$(echo "$API_RESULTS" | sed -n "$((slug_idx + 1))p")
   slug_idx=$((slug_idx + 1))
+
+  if [[ -n "$HELD_SLUGS" ]] && echo "$HELD_SLUGS" | grep -qx "$slug"; then
+    echo "  $slug - HELD (version hold in adventure.mrpack.json)"
+    OUTPUT_LINES+=("${LINE_ORIGINALS[$i]}")
+    continue
+  fi
 
   status=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','none'))" 2> /dev/null || echo "none")
 
