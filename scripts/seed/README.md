@@ -302,3 +302,12 @@ Detailed R&D reports from the spike phase live in `spike/`:
 | `03-mca-format-spec.md` | .mca binary format and NBT structure |
 | `04-improved-renderer-research.md` | Surface blocks, colours, water rendering |
 | `05-terrain-height-research.md` | Density functions, spline system, Terralith mods |
+| `06-surface-rules-implementation.md` | `surface_rules.py` build report: biome → surface colour/vegetation mapping |
+| `07-terrain-height-implementation.md` | `terrain_height.py` build report: spline evaluator + extracted spline data |
+| `08-biome-params-data-gap.md` | Phase 3 follow-up: consumer's `biome_params.json` missing families/entries |
+| `09-phase1-integration-report.md` | Enhanced Python renderer: modules built, rendering improvements applied |
+| `10-non-overworld-quality-investigation.md` | Phase 4 root cause: height formula ignores weirdness outside overworld |
+| `11-missing-dimensions-investigation.md` | Per-dimension breakdown of zero-candidate spawn-filter rejections |
+| `12-viewer-upgrade-plan.md` | Plan for config-editing, filtering, and re-roll features in the viewer |
+| `13-mod-spline-extraction.md` | Terrain spline extraction from Incendium (nether) and Nullscape (end) JARs |
+| `14-non-overworld-render-quality.md` | Investigation + fix brief for noisy nether/end/paradise_lost renders |

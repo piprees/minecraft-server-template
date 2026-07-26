@@ -21,7 +21,11 @@ COPY config/uptime-kuma/  /defaults/config/uptime-kuma/
 COPY config/nginx/        /defaults/config/nginx/
 COPY config/datapacks/    /defaults/config/datapacks/
 # v4 per-dimension configs (custom-dimensions mod): settings.json + dimensions/
-COPY config/custom-dimensions/ /defaults/config/custom-dimensions/
+# extractors/ (authoring-only worldgen extraction data, ~2.6MB) is deliberately
+# excluded — the mod never reads it, and deploy.sh/dev-up.sh already skip it
+# when syncing data/config, so it would only ever bloat this image.
+COPY config/custom-dimensions/settings.json    /defaults/config/custom-dimensions/settings.json
+COPY config/custom-dimensions/dimensions/      /defaults/config/custom-dimensions/dimensions/
 
 COPY modpack/adventure.mrpack.json /defaults/config/modpack-manifest.json
 

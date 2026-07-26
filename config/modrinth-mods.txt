@@ -214,8 +214,7 @@ starter-kit:OUsoZwOx
 # configurable-difficulty was absorbed into the custom-dimensions mod
 # (v4 Phase 2): per-dimension DimensionConfig.difficulty drives mob
 # attribute scaling, depth scaling, and player luck.
-# FIXME: no 1.21.x build - attributefix?
-attributefix?:XwbErf6s
+attributefix:XwbErf6s?
 
 # === server defaults ===
 boring-default-game-rules:4cRPF0s7
