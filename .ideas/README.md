@@ -4,6 +4,7 @@ Findings and proposals that aren't yet code. Not a changelog and not documentati
 
 | File | What it is |
 | --- | --- |
+| [`NEXT-SESSION-PROMPT.md`](NEXT-SESSION-PROMPT.md) | Hand-off prompt: decide every open item, record the decisions, then action them. Paste into a fresh session. |
 | [`OPEN-TASKS.md`](OPEN-TASKS.md) | **Start here.** Everything left to action, ordered by consequence: correctness bugs, doc-vs-code drift, hygiene, feature work, watch list. |
 | [`FINDINGS.md`](FINDINGS.md) | Repo problems surfaced during the 2026-07-26 skills/docs audit. Sections 0 and several §7 rows are done and marked; the rest are open. |
 | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) | 2026-07-24 audit of server-mod removal impact on client packs. Status: **gap confirmed**, recommendations not yet actioned. Nothing links it and it isn't a guide, so it lives here rather than `docs/`. |
