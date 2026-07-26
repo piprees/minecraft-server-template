@@ -36,7 +36,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Idle dimension unloading** -- empty dimensions are saved and unloaded after a configurable idle period (default 5 min), re-created on demand
 - **Per-dimension mob control** -- disable hostile mob spawning per dimension for peaceful pocket worlds
 - **Per-dimension difficulty** -- `difficulty.mobMultiplier` scales hostile mob health/damage/armor at spawn (attribute modifiers, persisted in NBT); optional `depthScaling` makes mobs harder underground; `playerLuck` boosts loot quality while inside the dimension (absorbed from the configurable-difficulty mod)
-- **Per-dimension world borders** -- `borders.player` sets each world's vanilla border at boot (replaces the deploy-time ChunkyBorder dance); `borders.generation` is tooling metadata for Chunky/BlueMap bounds
+- **Per-dimension world borders** -- `borders.player` sets each world's vanilla border at boot; `borders.generation` is tooling metadata for Chunky/render bounds
 - **Custom dimension types** -- an `environment` block (fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks, respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight, ambientLight) registers a per-dimension `DimensionType` as `{ns}:{slug}_type`; unset fields inherit the base type (skyColor/fogColor are client-side and configurator-only)
 - **Per-dimension config files** -- one self-contained JSON per dimension under `config/custom-dimensions/dimensions/` (portal, difficulty, borders, seedRoll included); global defaults in `settings.json`; consumer overlays merge/replace/skip per file. The monolithic `multiverse_config.json` still loads as a deprecated fallback. Portal link state saved to `portal_links.json`
 
@@ -640,10 +640,6 @@ Sound fields (`igniteSound`, `enterSound`, `exitSound`) are config-file-only -- 
 ### Idle unloading
 
 `idleUnloadMinutes` (default 5) controls how long a dimension with no players stays loaded before being saved and removed from memory. Vanilla dimensions (overworld, nether, end) and paradise_lost are never unloaded. Dimensions with forceloaded chunks are never unloaded. Re-created automatically when a player teleports in.
-
-### BlueMap integration (auto-unfreeze on first visit)
-
-BlueMap runs as a standalone CLI sidecar container (since v2.14.0), so the mod has no map integration at all. Unvisited dimensions cost the renderer nothing via `min-inhabited-time: 1` in each map's conf — the old freeze/unfreeze dance (deploy froze each map once; the mod unfroze on first visit) is gone along with the in-process BlueMap mod that required it.
 
 ## Building
 

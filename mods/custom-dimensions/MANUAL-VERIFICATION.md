@@ -24,7 +24,7 @@ docker stop -t 60 mc && docker start mc
 `CUSTOMDIM_LOG_LEVEL='debug'` in the consumer `.env` and restart mc;
 `log4j2-adventure.xml` reads it through log4j2's Environment Lookup. Do NOT
 hand-patch that file inside the `stack-config` volume — every seed run
-reverts it (AGENTS.md trap #12), so the diagnostics disappear on the next
+reverts it (TROUBLESHOOTING.md#t12), so the diagnostics disappear on the next
 `./dev up` without a word.
 
 **`./dev up` overwrites your locally-built mod jar** with the bundle's, and

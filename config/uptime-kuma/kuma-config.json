@@ -47,7 +47,7 @@
       "retryInterval": 60,
       "monitors": [
         {
-          "_comment": "GET, not HEAD: BlueMap's built-in webserver 400s HEAD requests, so a HEAD monitor is DOWN exactly when the server is awake (the nginx sleeping fallback answers HEAD fine, inverting the truth). GET returns 200 in both states: the real map when awake, nav-proxy's sleeping page when autopaused.",
+          "_comment": "GET, not HEAD. The map is static files served by nav-proxy, so it answers whether or not mc is running - this monitor tracks nav-proxy and the tunnel, never the game server.",
           "name": "Map",
           "type": "http",
           "url": "https://map.${DOMAIN}",

@@ -4,7 +4,7 @@ This is a Minecraft server template built as infrastructure-as-code. Bug fixes, 
 
 ## Before you start
 
-1. **Read the docs.** [`README.md`](README.md) has the architecture and quickstart; [`AGENTS.md`](AGENTS.md) has the constraints and architecture traps that apply to every change.
+1. **Read the docs.** [`README.md`](README.md) has the architecture and quickstart; [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) has every known problem; [`AGENTS.md`](AGENTS.md) has the constraints and architecture traps that apply to every change.
 2. **Check existing issues** for related discussion before opening a new one.
 3. **For large changes**, open an issue first to discuss the approach. Small bug fixes and documentation improvements can go straight to a PR.
 
@@ -117,7 +117,7 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" \
 If you add a mod with server-side configuration, you need to touch two places:
 
 1. Config files in `config/<modname>/`
-2. The directory added to `MC_PATTERNS` in `.github/workflows/deploy.yml` so changes trigger a full deploy
+2. A `COPY` line in `docker/defaults-seed/Dockerfile` so the seed image carries the default (without it the config never reaches a consumer)
 
 Config seeding is handled automatically by `deploy.sh` step 8 — it copies all files from the bundle's `config/` into `data/config/` (skip-if-exists for defaults, force-overwrite for consumer overlay). This runs before mc starts so mods don't create their own defaults first.
 

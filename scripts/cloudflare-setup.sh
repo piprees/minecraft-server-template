@@ -274,7 +274,7 @@ tunnel: ${TUNNEL_ID}
 credentials-file: /etc/cloudflared/${TUNNEL_ID}.json
 
 ingress:
-  # BlueMap web map (via nav-proxy for nav bar injection)
+  # uNmINeD static world map (via nav-proxy for nav bar injection)
   - hostname: map.${DOMAIN}
     service: http://nav-proxy:80
 
@@ -366,7 +366,7 @@ echo " Cloudflare setup complete."
 echo ""
 echo " DNS records:"
 echo "   mc.${DOMAIN}        > ${DROPLET_IP} (A, DNS-only, game port)"
-echo "   map.${DOMAIN}   > tunnel (CNAME, proxied, BlueMap)"
+echo "   map.${DOMAIN}   > tunnel (CNAME, proxied, world map)"
 echo "   pack.${DOMAIN}  > tunnel (CNAME, proxied, modpack)"
 echo "   status.${DOMAIN} > tunnel (CNAME, proxied, monitoring)"
 echo "   mods.${DOMAIN}   > tunnel (CNAME, proxied, mod status)"

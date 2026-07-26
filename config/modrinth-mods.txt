@@ -48,8 +48,6 @@ wwoo:JBbDOEnc
 geophilic:jDzSPLta
 
 # === dimensions ===
-# custom-dimensions:dUVY8Eps              # disabled: broken on 1.21.1 (missing refMap, wrong mixin targets, unregistered accessors) — replaced by in-house fork in mods/custom-dimensions/
-# seeded-dimensions:dBzRdUj8              # removed: functionality covered by in-house custom-dimensions mod
 incendium:7mVvV9Th
 nullscape:3fv8O3xX
 paradise-lost:kpnTCH47
@@ -165,10 +163,6 @@ betterdays:dTNbe6uN
 pause-day-cycle:KQWm3NrZ
 
 # === quality of life ===
-# balm:jR9x1yws                               # removed: only dep was waystones+netherportalfix (both removed)
-# netherportalfix:9KrnphgC                    # removed: custom-dimensions handles portal linking; also clashed with its NetherPortalBlockMixin
-# waystones:CxLc6vVg                          # removed: unused, disliked
-# nether-portal-spread:KkeWVnMV              # retired v3.7.0: replaced by custom-dimensions portal auras (better integrated: per-dimension palettes, budgets, exclusion sets — and it ate custom arrival frames); opt-in preset in the mod README
 fallingtree:wxGXaJMA
 carry-on:eFWFmwmL
 bountiful:LFm1BWOE
@@ -190,7 +184,6 @@ name-tag-tweaks:IFWMImfs
 nutritious-milk:ZPSKkcnK
 healing-campfire:OQXaaklM
 double-doors:KgGapm4H
-# just-mob-heads                               # disabled: mob heads are decorative only, adds clutter
 easy-elytra-takeoff:7JjYvNu3
 
 # === archery ===
@@ -229,8 +222,6 @@ boring-default-game-rules:4cRPF0s7
 configured-defaults:DsINYFQi
 
 # === datapacks ===
-# datapack:fast-nether-portals:a05ug6MQ       # replaced by playersNetherPortalDefaultDelay gamerule
-# datapack:extra_enchantments                   # disabled: all versions use 1.21.2 registry keys incompatible with 1.21.1
 
 # === ambient audio ===
 sound-physics-remastered:tVu2EZ4u
@@ -238,8 +229,6 @@ sound-physics-remastered:tVu2EZ4u
 # === admin / community ===
 luckperms:l47d4ZWk
 open-parties-and-claims:cNfQARzn
-# bluemap runs as a standalone CLI sidecar container (see docker-compose.yml),
-# not as a server mod - do not re-add the mod pin here.
 simple-voice-chat:jd1cFrJn
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3

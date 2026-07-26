@@ -106,16 +106,16 @@ fi
 # --- disk ---
 USEP=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 if [ "$USEP" -ge 90 ]; then
-  res FAIL "disk ${USEP}% used - free space urgently (check data/bluemap first)"
+  res FAIL "disk ${USEP}% used - free space urgently (check data/unmined-web and data/world first)"
 elif [ "$USEP" -ge 80 ]; then
   res WARN "disk ${USEP}% used"
 else
   res OK "disk ${USEP}% used"
 fi
-res INFO "largest dirs: $(du -sh data/world data/bluemap backups modpack/dist 2> /dev/null | sort -rh | head -3 | awk '{printf "%s %s  ", $1, $2}')"
+res INFO "largest dirs: $(du -sh data/world data/unmined-web backups modpack/dist 2> /dev/null | sort -rh | head -3 | awk '{printf "%s %s  ", $1, $2}')"
 
 # --- containers ---
-for c in mc mc-backup uptime-kuma nav-proxy cloudflared pack-web mod-checker discord-sync idle-tasks; do
+for c in mc mc-backup uptime-kuma nav-proxy cloudflared pack-web mod-checker discord-sync idle-tasks unmined-render; do
   STATE=$(docker inspect "$c" --format '{{.State.Status}}' 2> /dev/null || echo missing)
   RESTARTS=$(docker inspect "$c" --format '{{.RestartCount}}' 2> /dev/null || echo 0)
   if [ "$STATE" = "missing" ]; then

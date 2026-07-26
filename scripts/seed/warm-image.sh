@@ -54,11 +54,7 @@ printf '{"namespace":"adventure"}\n' > "$BUILD_DIR/data/config/custom-dimensions
 rm -f "$BUILD_DIR/data/config/multiverse_config.json"
 printf '[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n' \
   > "$BUILD_DIR/data/config/c2me.toml"
-rm -rf "$BUILD_DIR/data/config/bluemap" "$BUILD_DIR/data/config/DistantHorizons"
-mkdir -p "$BUILD_DIR/data/config/bluemap/maps"
-printf 'accept-download: true\ndata: "bluemap"\nmetrics: false\n' \
-  > "$BUILD_DIR/data/config/bluemap/core.conf"
-printf 'enabled: false\n' > "$BUILD_DIR/data/config/bluemap/webserver.conf"
+rm -rf "$BUILD_DIR/data/config/DistantHorizons"
 
 # Write the Dockerfile — COPY bakes everything into the image layer.
 # No RUN steps, no network calls, no entrypoint execution during build.

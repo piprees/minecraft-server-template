@@ -14,6 +14,7 @@ before changing it.
 | 4 | Aperture light layer, edge particles, refresh cadence |
 | 6 | `aura.subsume` policy and the claims hard veto |
 | 8 | Solidity — arrival egress, portals stay broken, no fake block in a body |
+| 9 | Arrival placement: reachable, viable, symmetric (`ArrivalReachability`) |
 
 **Corrections that outlived their documents** (these are wrong where the
 archived text still says otherwise):

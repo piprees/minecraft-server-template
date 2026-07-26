@@ -91,7 +91,7 @@ CREATE_SUCCESS_RESPONSES = ("Queued dimension", "Created dimension")
 
 
 # ---------------------------------------------------------------------------
-# Minimal PNG crop (BlueMap lowres tiles are 8-bit RGB/RGBA). sips crops
+# Minimal PNG crop for 8-bit RGB/RGBA tiles. sips crops
 # CENTRED and ignores --cropOffset on some macOS builds — it silently
 # produced blank thumbnails from the empty middle of the tile.
 # ---------------------------------------------------------------------------
@@ -326,8 +326,7 @@ def start_container(name, workdir, memory, seed="1"):
     if image == _WARM_IMAGE:
         mounts = ["-v", f"{workdir}/world:/data/world",
                   "-v", f"{workdir}/config/custom-dimensions:/data/config/custom-dimensions",
-                  "-v", f"{workdir}/config/c2me.toml:/data/config/c2me.toml",
-                  "-v", f"{workdir}/config/bluemap:/data/config/bluemap"]
+                  "-v", f"{workdir}/config/c2me.toml:/data/config/c2me.toml"]
     else:
         mounts = ["-v", f"{workdir}:/data"]
     docker("run", "-d", "--name", name,
@@ -1030,7 +1029,7 @@ def measure_candidate(rcon, worker_id, container, dim, profile, err_before,
 
 # ---------------------------------------------------------------------------
 # Render via unmined-cli — flat top-down map, runs natively on macOS (~1s).
-# Replaces the broken BlueMap Docker approach that produced unusable tiles.
+
 # ---------------------------------------------------------------------------
 _UNMINED_CLI = None
 
@@ -1173,11 +1172,6 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
     c2me.write_text(
         "[vanillaWorldGenOptimizations]\n\tuseDensityFunctionCompiler = false\n")
 
-    bm = cfg / "bluemap"
-    shutil.rmtree(bm, ignore_errors=True)
-    (bm / "maps").mkdir(parents=True)
-    (bm / "core.conf").write_text('accept-download: true\ndata: "bluemap"\nmetrics: false\n')
-    (bm / "webserver.conf").write_text("enabled: false\n")
     shutil.rmtree(cfg / "DistantHorizons", ignore_errors=True)
 
     dp_template = workdir / "world-datapacks-template"

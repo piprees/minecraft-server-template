@@ -5,11 +5,9 @@
 > every local `./dev up`. Not a bug in this project's code.
 >
 > **This file exists because the previous investigation was lost.** On
-> 2026-07-14 an agent wrote `mods/.ideas/supplementaries-piston-crash.md` and
-> the commit (`9432f98`) that referenced it changed **only** `mods/AGENTS.md`
-> — the note itself was never committed and `mods/.ideas/` no longer exists.
-> The finding evaporated, and the crash was rediscovered from scratch eleven
-> days later. Investigation notes go in a tracked path.
+> Investigation notes go in a tracked path. This crash was diagnosed once,
+> written to an untracked file, lost, and rediscovered from scratch eleven
+> days later.
 
 ## Symptom
 

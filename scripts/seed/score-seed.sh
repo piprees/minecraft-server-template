@@ -5,9 +5,8 @@
 #
 # Since the v3 measure/score split, rolls bank raw measurements and scoring
 # happens at report time: report-top.sh --profile <name>. This script's
-# behaviour is preserved as scripts/seed/profiles/classic.profile; it remains
-# here as a standalone calculator for hand-checking individual seeds only —
-# roll-seeds.sh no longer calls it.
+# behaviour is preserved as scripts/seed/profiles/classic.profile. This is a
+# standalone calculator for hand-checking individual seeds; nothing calls it.
 #
 # Takes raw distances (blocks) and a spawn biome, outputs a numeric score.
 # Closer structures = higher score. Green/open spawn biome = bonus points.

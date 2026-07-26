@@ -559,17 +559,6 @@ if [[ -n "$MANIFEST" ]]; then
   [[ $PRUNED -gt 0 ]] && echo "  Pruned $PRUNED stale mod jar(s)"
 fi
 
-# --- Auto-accept BlueMap download ---------------------------------------------
-BLUEMAP_CONF="$CONSUMER_DIR/data/config/bluemap/core.conf"
-if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
-  if [[ "$(uname)" == "Darwin" ]]; then
-    sed -i '' 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
-  else
-    sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
-  fi
-  echo "  BlueMap: auto-accepted resource download."
-fi
-
 # --- Grant op via RCON in offline mode ----------------------------------------
 # In offline mode the itzg image can't resolve usernames to UUIDs via Mojang,
 # so the OPS env var silently fails. Grant op via RCON post-boot instead —

@@ -304,12 +304,12 @@ services:
       AWS_ACCESS_KEY_ID: minioadmin
       AWS_SECRET_ACCESS_KEY: minioadmin123
       RESTIC_PASSWORD: local-dev-backups
-      BACKUP_INTERVAL: "${BACKUP_INTERVAL:-6h}"
+      BACKUP_INTERVAL: "${BACKUP_INTERVAL:-12h}"
       INITIAL_DELAY: 2m
       PRUNE_RESTIC_RETENTION: >-
-        --keep-daily ${RESTIC_RETENTION_DAILY:-7}
-        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
-        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+        --keep-daily ${RESTIC_RETENTION_DAILY:-3}
+        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-1}
+        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-1}
       BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
       POST_BACKUP_SCRIPT: *backup-post-script
       # Local dev: leave unset unless you want test-pack notifications too.
@@ -329,7 +329,7 @@ services:
   # mc-backup - Automated offsite backups via restic to Cloudflare R2
   # R2 uses Cloudflare's account ID as the S3 endpoint subdomain.
   # ==========================================================================
-  # Runs alongside the game server and performs daily (by default) backups
+  # Runs alongside the game server and performs backups on BACKUP_INTERVAL
   # to an R2 bucket using restic (S3-compatible). Also keeps local tar
   # snapshots in ./backups as a belt-and-braces fallback.
   #
@@ -359,15 +359,15 @@ services:
       RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
 
       # --- Schedule ---
-      BACKUP_INTERVAL: ${BACKUP_INTERVAL:-6h}
+      BACKUP_INTERVAL: ${BACKUP_INTERVAL:-12h}
       INITIAL_DELAY: 2m
 
       # --- Retention policy ---
       # Prune old snapshots to keep storage costs sensible.
       PRUNE_RESTIC_RETENTION: >-
-        --keep-daily ${RESTIC_RETENTION_DAILY:-7}
-        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-4}
-        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-2}
+        --keep-daily ${RESTIC_RETENTION_DAILY:-3}
+        --keep-weekly ${RESTIC_RETENTION_WEEKLY:-1}
+        --keep-monthly ${RESTIC_RETENTION_MONTHLY:-1}
 
       # --- Hard size cap + Discord notify (see x-backup-post at the top) ---
       BACKUP_SIZE_CAP_GIB: "${BACKUP_SIZE_CAP_GIB:-10}"
@@ -377,7 +377,7 @@ services:
       # --- Exclude regenerable data from backups ---
       # Only world/ and config/ are irreplaceable; everything else is
       # re-downloaded or regenerated on deploy.
-      EXCLUDES: bluemap,unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
+      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
 
       # --- RCON connection to the game server ---
       RCON_HOST: mc
@@ -496,7 +496,7 @@ services:
   # ==========================================================================
   # nav-proxy - Reverse proxy that injects the site nav bar
   # ==========================================================================
-  # Sits in front of all web services (BlueMap, Uptime Kuma, pack-web),
+  # Sits in front of all web services (world map, Uptime Kuma, pack-web),
   # using nginx sub_filter to inject a consistent nav bar with logo into
   # every HTML page. Cloudflared routes all subdomains here.
   # ==========================================================================
@@ -512,7 +512,7 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}
-    # No mc dependency: since the map moved to the bluemap sidecar,
+    # No mc dependency: the map is static files, so nav-proxy serves it
     # nav-proxy has no mc upstream — web services come up (and stay up)
     # independently of the game server.
     depends_on:
@@ -532,7 +532,7 @@ services:
   # ==========================================================================
   # cloudflared - Cloudflare Tunnel for HTTP services
   # ==========================================================================
-  # Provides secure HTTPS ingress to web services (Uptime Kuma, BlueMap,
+  # Provides secure HTTPS ingress to web services (Uptime Kuma, world map,
   # modpack downloads) without opening extra ports on the droplet. The game
   # port itself is NOT tunnelled - players connect directly via UDP/TCP.
   #

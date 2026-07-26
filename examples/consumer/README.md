@@ -184,7 +184,7 @@ All four surfaces ship with one shared dark palette and get the nav bar injected
 | `pack.DOMAIN` (download page) | `overlay/modpack/template/index.html` | Replaces the whole page template; rebuild with `./dev pack` or push |
 | `mods.DOMAIN` (mod status) | `overlay/config/mods-page.css` | Appended after the default styles, so override selectively |
 | `status.DOMAIN` (Uptime Kuma) | `overlay/config/uptime-kuma/kuma-config.json` | Full config replacement; copy the default from the template repo and edit `statusPage.customCSS` |
-| `map.DOMAIN` (BlueMap) | upstream webapp | Only the nav bar is ours |
+| `map.DOMAIN` (world map) | rendered by the `unmined-render` sidecar | Static output; only the nav bar and viewer shell are ours |
 
 The nav bar itself lives in the template's `config/nginx/nav-proxy.conf` (platform-level; open an issue or PR there for structural changes).
 
@@ -233,7 +233,7 @@ Cubemap faces must be **square** screenshots at **exactly 90° FOV** (`fov:0.5` 
 
 Signs with place names show the text as an on-screen title when entering/leaving the area ([Areas](https://modrinth.com/mod/areas)).
 
-> The web map runs as a standalone renderer container — it has no live player markers and no sign-marker layers (those needed the old in-process BlueMap mod). In exchange, the map stays online 24/7, even while the server is asleep.
+> The web map is a static render, so it shows terrain only — no live player positions or marker layers. It stays online 24/7, even while the server is asleep.
 
 ### Starter kit
 

@@ -182,9 +182,17 @@ Both are independent of each other.
 | 6 | `archive/PHASE-6-AURA-POLICY.md` | `aura.subsume` policy + claims hard gate | M | n/a | **Shipped v3.7.0** |
 | 7 | `PHASE-7-PORTAL-IDENTITY.md` | Presentation describes where a portal GOES | M | n/a | Presentation **shipped v3.9.1**; End activation + sounds open |
 | 8 | `archive/PHASE-8-SOLIDITY.md` | Arrival egress, portals stay breakable, no fake block in a body | S | n/a | **Shipped v3.9.0** |
-| 9 | `PHASE-9-ARRIVAL-PLACEMENT.md` | Arrival must be reachable, viable and symmetric | M | 1 | **Shipped 2026-07-26** (9a, 9b, 9c) |
+| 9 | `archive/PHASE-9-ARRIVAL-PLACEMENT.md` | Arrival must be reachable, viable and symmetric | M | 1 | **Shipped 2026-07-26** (9a, 9b, 9c) |
 
-**Total:** ~830 new lines across 4 new files + 5 modified files.
+**Outstanding work is Phase 5 and the tail of Phase 7.** Everything else is
+shipped and lives in `archive/` — read the archived doc that owns the code you
+are touching before changing it, and `archive/README.md` for the corrections
+that outlived their documents.
+
+| Still open | What's left |
+|---|---|
+| Phase 5 | Not started, deliberately. A client mod is the only way to reach the items listed in its doc; the bar for taking it on is high. |
+| Phase 7 | Presentation shipped v3.9.1. The End's activation model and the sound half of the rule remain. |
 
 ---
 
@@ -644,7 +652,7 @@ directory asserted something false.
 - **Mod DEBUG logging is `CUSTOMDIM_LOG_LEVEL` in `.env`**, read by
   `log4j2-adventure.xml` via log4j2's Environment Lookup. The old recipe
   patched that file inside the `stack-config` volume, which every seed run
-  reverts (trap #12) — the diagnostics vanished mid-session on the next
+  reverts (TROUBLESHOOTING.md#t12) — the diagnostics vanished mid-session on the next
   `./dev up`. Never re-introduce a post-install patch for this.
 - **Carpet ships, and is patched on the way in.** Stock carpet
   unconditionally nulls the moving-piston BlockEntity; Supplementaries

@@ -5,7 +5,7 @@
 # The stack bundle must already be installed (.stack/current exists).
 # Idempotent. Does the first-boot-only work deploy.sh assumes exists:
 # RCON password generation, data/backups dirs, restic repo init (R2),
-# BlueMap defaults, image pull. Then delegates to deploy.sh --non-interactive.
+# image pull. Then delegates to deploy.sh --non-interactive.
 #
 # Usage:
 #   cd ~/server && .stack/current/stack/scripts/initial-setup.sh
@@ -123,23 +123,6 @@ if command -v restic &> /dev/null \
     restic init 2> /dev/null \
     && echo "  Restic repository initialised" \
     || echo "  Restic repository already initialised (or will init on first backup)"
-fi
-
-# --- auto-accept BlueMap download ---------------------------------------------
-BLUEMAP_CONF="$SERVER_DIR/data/config/bluemap/core.conf"
-if [[ -f "$BLUEMAP_CONF" ]] && grep -q 'accept-download: false' "$BLUEMAP_CONF"; then
-  sed -i 's/accept-download: false/accept-download: true/' "$BLUEMAP_CONF"
-  echo "  BlueMap: auto-accepted resource download."
-fi
-
-BLUEMAP_WEBAPP="$SERVER_DIR/data/config/bluemap/webapp.conf"
-if [[ -f "$BLUEMAP_WEBAPP" ]]; then
-  sed -i 's/enable-free-flight: true/enable-free-flight: false/' "$BLUEMAP_WEBAPP"
-  sed -i 's/default-to-flat-view: false/default-to-flat-view: true/' "$BLUEMAP_WEBAPP"
-  if [[ -n "${SPAWN_X:-}" && -n "${SPAWN_Z:-}" ]]; then
-    sed -i "s/start-pos: {.*}/start-pos: { x: ${SPAWN_X}, z: ${SPAWN_Z} }/" "$BLUEMAP_WEBAPP"
-  fi
-  echo "  BlueMap: webapp defaults set (flat view, free-flight off, centred on spawn)."
 fi
 
 # --- pull images --------------------------------------------------------------

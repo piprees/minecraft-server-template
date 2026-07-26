@@ -437,14 +437,6 @@ OVERRIDES_SRC="$PROJECT_DIR/modpack/overrides"
 if [[ -d "$OVERRIDES_SRC" ]]; then
   cp -r "$OVERRIDES_SRC" "$WORK_DIR/overrides"
 
-  # Substitute domain and port in maplink config
-  if [[ -f "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5" ]]; then
-    sed_i "s|mc\.example\.com:25577|mc.${DOMAIN:-example.com}:${SERVER_PORT:-25577}|g" \
-         "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5"
-    sed_i "s|https://map\.example\.com|https://map.${DOMAIN:-example.com}|g" \
-         "$WORK_DIR/overrides/configureddefaults/config/maplink/general.json5"
-  fi
-
   python3 -c "
 import struct, io
 

@@ -38,7 +38,7 @@ if [[ $ONCE -eq 1 ]]; then
     uptime
     free -h | head -2
     df -h / | tail -1 | awk "{printf \"Disk: %s used / %s (%s)\n\", \$3, \$2, \$5}"
-    cd ~/'"${SERVER_DIR}"' && du -sh data/world data/bluemap 2>/dev/null
+    cd ~/'"${SERVER_DIR}"' && du -sh data/world data/unmined-web 2>/dev/null
     echo ""
     echo "--- Containers ---"
     sudo docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.PIDs}}"

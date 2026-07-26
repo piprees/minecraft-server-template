@@ -2,7 +2,7 @@
 
 Every in-game command, RCON admin command, and Discord command for the Adventure Server.
 
-> Operations and how-tos live in [README.md](README.md); agent constraints and architecture traps in [AGENTS.md](AGENTS.md). This file is the command reference - what exists, who can run it, and the exact syntax.
+> Operations and how-tos live in [README.md](README.md); the agent contract in [AGENTS.md](AGENTS.md), problems and traps in [TROUBLESHOOTING.md](TROUBLESHOOTING.md). This file is the command reference - what exists, who can run it, and the exact syntax.
 
 ## Permission model
 
@@ -48,7 +48,6 @@ Available to all players via the `player` LuckPerms group. No teleportation or c
 | Voice chat        | Press `V` to configure, proximity-based                            | Simple Voice Chat       |
 | View recipes      | Press `E` to open inventory, search with EMI                       | EMI                     |
 | Bounty quests     | Interact with a bounty board in a village                          | Bountiful               |
-| Fill your minimap | `/maplink download_tiles 2048 2048 0 0` then open the map with `M` | MapLink                 |
 
 ## Admin commands
 
@@ -190,17 +189,16 @@ minecraft.command.gamemode.*      # all gamemode access
 | `/spark gc`          | `/spark gc`             | Request garbage collection            |
 | `/spark heapsummary` | `/spark heapsummary`    | Show heap memory breakdown            |
 
-### BlueMap (web map)
+### World map (uNmINeD)
 
-BlueMap runs as a standalone sidecar container (`bluemap`), not a server mod — there are no `/bluemap` in-game or RCON commands. It watches the world files and updates the map automatically; players never appear on it. Manage it with Docker (or `./ops map ...` from your Mac):
+The map is rendered by the `unmined-render` sidecar into static tiles — no server mod, no RCON commands, no player positions. It renders on `UNMINED_INTERVAL` and only re-renders regions whose files changed. Manage it with Docker, or `./ops map ...` from your Mac:
 
-| Task                                     | Command                                                           |
-| ---------------------------------------- | ----------------------------------------------------------------- |
-| Render status + recent activity          | `docker logs bluemap --tail 15`                                   |
-| Container health                         | `docker inspect bluemap --format '{{.State.Health.Status}}'`      |
-| Restart the renderer (re-scans all maps) | `docker restart bluemap`                                          |
-| Force re-render everything               | `./ops map render` (see [Map rendering](#map-rendering))          |
-| Purge one map's render data              | stop the sidecar, delete `data/bluemap/web/maps/<map>/`, start it |
+| Task                            | Command                                                  |
+| ------------------------------- | -------------------------------------------------------- |
+| Render status + recent activity | `docker logs unmined-render --tail 15`                   |
+| Container state                 | `docker inspect unmined-render --format '{{.State.Status}}'` |
+| Force a render pass now         | `./ops map render` (restarts the container, which renders immediately) |
+| Purge one map's tiles           | delete `data/unmined-web/maps/<name>/`, then force a pass |
 
 ### Chunky (chunk pre-generation)
 
@@ -354,11 +352,11 @@ docker exec -i mc rcon-cli "spark gc"
 ### Map and rendering
 
 ```bash
-# Map render status (BlueMap is a sidecar container, no RCON)
-docker logs bluemap --tail 15
+# Map render status (the renderer is a sidecar container, no RCON)
+docker logs unmined-render --tail 15
 
-# Restart the map renderer (re-scans every map for changes)
-docker restart bluemap
+# Force a render pass now
+docker restart unmined-render
 
 # Pre-generate chunks (Chunky)
 docker exec -i mc rcon-cli "chunky world minecraft:overworld"
@@ -476,7 +474,8 @@ All `/mc` commands are audit-logged to `#minecraft`. Commands that target a play
 | `/mc enchant <player> <enchantment> [level]` | Enchant the item the player is holding (above vanilla limits) | Max level 255 |
 | `/mc gamemode <player> <mode> [minutes]` | Change game mode (auto-reverts to survival if minutes given; pending timers survive bot restarts) | Max 60 min auto-revert |
 | `/mc xp <player> <amount>` | Give experience levels | Max 100 levels |
-| `/mc claims <player> <count>` | Set a player's maximum claim chunks | Max 128 |
+| `/mc claims <player> <count>` | Set a player's maximum claim chunks |
+| `/mc border <radius>` | Set the player world border and matching Chunky pre-gen bounds | Max 128 |
 
 #### Safety model
 
@@ -516,17 +515,16 @@ Start, stop, restart, or check status of individual services — both locally (`
 | `./dev restart <service>` | Force-recreate a service locally          |
 | `./dev status`            | Show all local container statuses         |
 
-Services: `mc`, `bluemap`, `nav-proxy`, `pack-web`, `cloudflared`, `uptime-kuma`, `kuma-init`, `mc-backup`, `idle-tasks`, `mod-checker`, `discord-sync`, `seed`.
+Services: `mc`, `unmined-render`, `nav-proxy`, `pack-web`, `cloudflared`, `uptime-kuma`, `kuma-init`, `mc-backup`, `idle-tasks`, `mod-checker`, `discord-sync`, `seed`.
 
 ### Map rendering
 
-Manage the BlueMap sidecar from your Mac. Normal updates are automatic (the sidecar watches the world files); `render` is for forcing a full rebuild after texture or config changes. It stops the watcher, streams the render to your terminal (Ctrl+C aborts), bumps threads for speed, and restarts the sidecar either way.
+Manage the renderer from your Mac. Passes run automatically on `UNMINED_INTERVAL` and are incremental; `render` forces one immediately.
 
-| Command                  | Description                                                |
-| ------------------------ | ---------------------------------------------------------- |
-| `./ops map render`       | Force-render all 4 maps with progress tracking (3 threads) |
-| `./ops map render <map>` | Force-render one map (e.g. `world`, `paradise_lost`)       |
-| `./ops map status`       | One-shot render progress check                             |
+| Command            | Description                                             |
+| ------------------ | -------------------------------------------------------- |
+| `./ops map render` | Force a render pass now (restarts the container)        |
+| `./ops map status` | Container state + recent render activity                |
 | `./ops map threads <n>`  | Manually set render thread count                           |
 
 Map IDs: `world`, `world_the_nether`, `world_the_end`, `paradise_lost`.

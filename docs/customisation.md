@@ -42,9 +42,9 @@ How to make this template your own. The template ships with generic placeholder 
 | `config/essentialcommands/rules.txt` | In-game `/rules` text |
 | `config/essentialcommands/EssentialCommands.properties` | MOTD shown on join |
 | `modpack/template/index.html` | Pack download page (themed via CSS custom properties) |
-| `config/uptime-kuma/custom.css` | Status page styling |
+| `config/uptime-kuma/kuma-config.json` | Status page styling (`statusPage.customCSS`) |
 | `config/cloudflare/maintenance-worker.js` | Offline/maintenance page |
-| `config/nginx/nav-proxy.conf.template` | Nav bar injected into all web pages (five copies - keep in sync) |
+| `config/nginx/nav-proxy.conf.template` | Nav bar injected into all web pages (four copies, one per `server` block - keep in sync) |
 | `DESIGN.md` | Design token reference (colours, typography, spacing, components) |
 | `PRODUCT.md` | Product vision doc (adapt or replace for your server) |
 | `assets/` | All brand imagery |
@@ -202,35 +202,7 @@ for f in panorama_*.png; do pngquant --quality=80-100 --speed 1 --force --output
 
 ## Map markers
 
-> **Note:** The BlueMap Sign Markers mod was removed in v2.14.0 (BlueMap moved to a standalone sidecar). Player-placed sign markers and live player positions are no longer available on the web map. Static config markers (below) still work.
-
-### Static config markers (admin-placed)
-
-For permanent landmarks that shouldn't depend on a sign existing in-world, add markers directly to the BlueMap map config. Per-map config lives in `config/bluemap/maps/` (synced to `data/config/bluemap/maps/` on deploy; consumers override via `overlay/config/bluemap/maps/`). **Overlay files replace the template file wholesale**, so copy the template's `world.conf` first, then append a marker set:
-
-```hocon
-marker-sets: {
-    places: {
-        label: "Places"
-        toggleable: true
-        default-hidden: false
-        markers: {
-            spawn-town: {
-                type: "poi"
-                label: "Saltmere"
-                position: { x: 120, y: 64, z: -340 }
-                max-distance: 10000
-            }
-        }
-    }
-}
-```
-
-Full marker reference (icons, lines, areas): [bluemap.bluecolored.de/wiki/customization/Markers.html](https://bluemap.bluecolored.de/wiki/customization/Markers.html).
-
-### Map sync
-
-Markers don't stop at the web map: the client pack ships [MapLink](https://modrinth.com/mod/maplink), which mirrors BlueMap markers and area overlays into every player's Xaero's minimap and world map in-game. Waystone markers are already tracked; if a marker set of yours doesn't appear in Xaero's, check the `markerLayers` lists in `modpack/overrides/configureddefaults/config/maplink/general.json5`.
+The world map is a static terrain render produced by the `unmined-render` sidecar. It has no marker layer and no live player positions — there is nothing to configure. In-game waypoints are the client's own (Xaero's minimap and world map ship in the pack as optional mods).
 
 ## Starter kit
 

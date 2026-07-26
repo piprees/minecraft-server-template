@@ -68,10 +68,6 @@
                 <RegexFilter regex=".*Couldn't find template pool reference.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Block-attached entity at invalid position.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex=".*Failed to parse either.*Not a string: null.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <!-- BlueMap inotify exhaustion (harmless — maps still render, just won't auto-update) -->
-                <RegexFilter regex=".*inotify instances reached.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <RegexFilter regex=".*watch-service.*stopped unexpectedly.*" onMatch="DENY" onMismatch="NEUTRAL" />
-                <RegexFilter regex=".*Failed to create update-watcher for map.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- ModernFix class loading noise -->
                 <RegexFilter regex=".*\[ModernFix\].*Skipping.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- DramaticDoors dead optional integrations: its bundled recipes for
@@ -163,7 +159,7 @@
 
              This exists as a config value because the documented alternative
              was patching this file inside the running stack-config volume —
-             which every seed run reverts (AGENTS.md trap #12), so the patch
+             which every seed run reverts (TROUBLESHOOTING.md#t12), so the patch
              silently disappeared on the next `./dev up` and took the
              diagnostics with it. Log4j2's Environment Lookup is evaluated at
              configuration load, so a container restart is enough to change it;

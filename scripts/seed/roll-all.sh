@@ -93,7 +93,7 @@ ledger-* styled-chat-* essential_commands-* NoChatReports-* packetfixer-*
 sound-physics-remastered-* appleskin-* bettercombat-* player-animation-lib-*
 carryon-* netherportalfix-* netherportalspread-* FallingTree-*
 letmedespawn-* Almanac-* fabric-seasons-* open-parties-and-claims-*
-chipped-* DramaticDoors-* handcrafted-* c2me-* bluemap-*"
+chipped-* DramaticDoors-* handcrafted-* c2me-*"
 
 prepare_base_dir() {
   local WORK_BASE="$SEEDTEST/base"
@@ -119,7 +119,7 @@ prepare_base_dir() {
     done
   done
   rm -rf "$WORK_BASE/mods/luckperms"
-  rm -rf "$WORK_BASE/config/bluemap" "$WORK_BASE/config/DistantHorizons"
+  rm -rf "$WORK_BASE/config/DistantHorizons"
   rm -rf "$WORK_BASE/config/custom-dimensions"
   echo "  $(ls "$WORK_BASE/mods/"*.jar | wc -l | tr -d ' ') mod JARs ($removed stripped)"
   touch "$WORK_BASE/.ready"

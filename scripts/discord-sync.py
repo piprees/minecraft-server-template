@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Discord bot: role sync, /register, /mc admin commands, and in-game command logging.
 
-Runs in the discord-sync container (both compose profiles) with this file
-bind-mounted read-only - changes need a force-recreate, not a restart
-(deploy.sh and the CI infra step both do this).
+Runs in the discord-sync container (both compose profiles). This file is
+COPYed into the image at build time, so a code change ships as a new image:
+push to main rebuilds it, a release tags it, and a consumer's next full
+deploy pulls the tag. Restarting or force-recreating the container picks up
+a new .env, never new code.
 
 What it does:
   - /register + /unregister: Discord<->Minecraft username linking, verified
@@ -837,7 +839,7 @@ async def mc_status(interaction: discord.Interaction) -> None:
                     chunky_lines.append(f"    {dim:14s} queued")
 
     # Map render status (unmined-render sidecar - queried via Docker, not RCON)
-    bluemap_lines = await asyncio.to_thread(get_map_render_status)
+    map_lines = await asyncio.to_thread(get_map_render_status)
 
     # Roster from mappings
     mappings = load_mappings()
@@ -867,7 +869,7 @@ async def mc_status(interaction: discord.Interaction) -> None:
     parts.extend(chunky_lines)
     parts.append("")
     parts.append("  Map renders:")
-    parts.extend(bluemap_lines)
+    parts.extend(map_lines)
     parts.append("")
     parts.append(f"  Roster ({len(mappings)} registered):")
     parts.extend(roster_lines or ["  (none)"])
@@ -1064,11 +1066,11 @@ async def mc_map_refresh(interaction: discord.Interaction) -> None:
             f"Map refresh on cooldown - try again in **{remaining}s**.", ephemeral=True
         )
         return
-    # BlueMap runs as a CLI sidecar; restarting the container makes it
-    # re-scan every map for changes (its file watcher covers normal updates).
-    await interaction.response.send_message("Map renderer restarting - it will re-scan all maps.", ephemeral=True)
+    # The renderer runs a pass on startup, then sleeps UNMINED_INTERVAL, so a
+    # restart is how you force an immediate pass. Renders are incremental.
+    await interaction.response.send_message("Map renderer restarting - a render pass starts immediately.", ephemeral=True)
     await asyncio.to_thread(
-        subprocess.run, ["docker", "restart", "bluemap"],
+        subprocess.run, ["docker", "restart", "unmined-render"],
         capture_output=True, timeout=60,
     )
     await audit(interaction, "restarted the map renderer")

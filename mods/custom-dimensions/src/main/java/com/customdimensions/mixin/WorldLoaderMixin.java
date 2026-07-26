@@ -33,7 +33,7 @@ public class WorldLoaderMixin {
             // end, and paradise_lost. Custom dimensions are created lazily
             // by getOrCreateDimension() when a player enters via portal
             // or command — each lazy creation fires ServerWorldEvents.LOAD,
-            // so DH/BlueMap/c2me init only for dimensions actually visited.
+            // so DH/c2me init only for dimensions actually visited.
             DimensionManager.getInstance().registerDimensions();
         }
     }

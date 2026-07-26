@@ -6,7 +6,7 @@
 # the server with the new seed.
 #
 # Deletes: all world data (overworld, nether, end, dimensions/),
-# player data (playerdata, stats, advancements), BlueMap render data,
+# player data (playerdata, stats, advancements), uNmINeD map renders,
 # Chunky markers + task state + .skip-pause, Distant Horizons cache,
 # POI, ledger, dynamic-data-pack-cache.
 #
@@ -95,7 +95,7 @@ echo "   1. Back up the world (restic + local tar.gz on the droplet)"
 echo "   2. Stop all containers on the droplet"
 echo "   3. Delete world data (Overworld, Nether, End, dimensions/)"
 echo "   4. Delete player data (playerdata, stats, advancements)"
-echo "   5. Delete BlueMap render data"
+echo "   5. Delete uNmINeD map renders (data/unmined-web)"
 echo "   6. Delete all Chunky markers, task state, and .skip-pause"
 echo "   7. Delete Distant Horizons LOD cache"
 echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
@@ -166,7 +166,7 @@ BACKUP_PATH="backups/${BACKUP_NAME}"
 echo ""
 echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
-  --exclude='data/bluemap' \
+  --exclude='data/unmined-web' \
   --exclude='data/mods' \
   --exclude='data/libraries' \
   --exclude='data/versions' \
@@ -199,7 +199,7 @@ echo "==> Deleting world and player data on the droplet..."
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && \
   rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/ && \
   rm -rf data/playerdata/ data/stats/ data/advancements/ && \
-  rm -rf data/bluemap/web/maps/ && \
+  rm -rf data/unmined-web/maps/ data/unmined-web/index.html && \
   rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete && \
   rm -f  data/.skip-pause && \
   rm -rf data/config/chunky/tasks/ && \
@@ -208,7 +208,7 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && \
 
 echo "  Deleted: world data (all dimensions)"
 echo "  Deleted: player data (playerdata, stats, advancements)"
-echo "  Deleted: BlueMap render data (config preserved)"
+echo "  Deleted: uNmINeD map renders (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
 echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
 

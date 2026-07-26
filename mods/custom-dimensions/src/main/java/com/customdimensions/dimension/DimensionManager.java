@@ -917,7 +917,7 @@ public class DimensionManager {
         lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
         // Fabric contract for dynamic world registration: mods that add a
         // ServerWorld outside createWorlds MUST fire LOAD, or every mod that
-        // builds a per-level map from this event (Distant Horizons, BlueMap,
+        // builds a per-level map from this event (Distant Horizons,
         // c2me) never learns the world exists. Skipping it NPE'd Distant
         // Horizons on the first portal teleport in production (2026-07-12).
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
@@ -1116,7 +1116,7 @@ public class DimensionManager {
      * Creating a ServerWorld is a main-thread job and cannot be made
      * otherwise: it mutates the server's worlds map and fires
      * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons,
-     * BlueMap and c2me all build their per-level state. Several hundred
+     * and c2me build their per-level state. Several hundred
      * milliseconds each, and none of it is movable.
      *
      * <p>What IS movable is how many of them land on the same tick. This used

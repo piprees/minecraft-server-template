@@ -80,7 +80,7 @@ Cross-family biome mixing is real: the mod builds multi-noise sources from the F
 1. `score-dimensions.py manifest` — splits dims across workers; each candidate slot carries spare seeds for spawn-filter re-rolls; every attempt seed gets a config entry in the worker's roll config (the seed/density/peaceful mixins resolve by config name — without an entry a candidate silently clones the main world).
 2. `seed_worker.py` (one per worker) — boots `SEED_ROLL_MODE=true` containers, `customdim create → measure → destroy` over a native RCON socket (~10ms/call), writes `worker-<n>.csv`.
 3. World pass — fresh boots per world-seed candidate.
-4. Winners render pass — top N per dimension re-created and rendered via BlueMap (spawn 144×144, per-family lighting, nether roof cut).
+4. Winners render pass — top N per dimension re-created and rendered by the Python biome renderer (spawn 144×144, per-family lighting, nether roof cut).
 5. `finalise` — merge, score, write winners + `worldSeed`, generate `viewer.html`, sync the consumer `data/config` copy.
 
 ## Reference extractors

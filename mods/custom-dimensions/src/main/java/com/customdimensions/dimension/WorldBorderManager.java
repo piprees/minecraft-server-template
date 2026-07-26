@@ -18,7 +18,7 @@ import java.util.List;
  * installed for PRE-GENERATION only; its border-enforcement role is gone.
  *
  * borders.generation is deliberately NOT applied here: it is metadata for
- * tooling (Chunky pre-gen bounds, BlueMap render bounds in deploy.sh).
+ * tooling (Chunky pre-gen bounds, unmined-render's render bounds).
  *
  * Ordering trap: vanilla links every createWorlds-time world's border to
  * the overworld's via WorldBorderListener.WorldBorderSyncer, and loads the

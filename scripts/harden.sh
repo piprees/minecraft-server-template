@@ -353,7 +353,7 @@ if ! grep -q '^net.ipv4.ip_forward=1' /etc/sysctl.conf 2> /dev/null; then
 fi
 echo "  IP forwarding enabled"
 
-# BlueMap needs one inotify watcher per map — 78+ maps exhaust the default 128 limit
+# Headroom for container file watchers; the stock 128-instance limit is tight
 sysctl -w fs.inotify.max_user_instances=512 > /dev/null
 sysctl -w fs.inotify.max_user_watches=65536 > /dev/null
 for param in 'fs.inotify.max_user_instances=512' 'fs.inotify.max_user_watches=65536'; do
@@ -425,7 +425,7 @@ backup /etc/fail2ban/jail.local
 cat > /etc/fail2ban/jail.local << EOF
 [DEFAULT]
 # Never ban Docker bridge networks (healthchecks, sidecars), localhost,
-# or Cloudflare's IP ranges (tunnel traffic, BlueMap, modpack downloads).
+# or Cloudflare's IP ranges (tunnel traffic, web map, modpack downloads).
 # localhost + Docker bridge + private networks
 ignoreip = 127.0.0.0/8 ::1 172.16.0.0/12 10.0.0.0/8
 # The machine that ran setup (so SSH probes during provisioning don't self-ban)

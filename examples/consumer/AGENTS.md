@@ -4,7 +4,7 @@
 
 This is a **consumer repo** powered by [minecraft-server-template](https://github.com/piprees/minecraft-server-template). The template owns the Docker images, compose files, default configs, and operational scripts — this repo owns only the overlay (custom mods, config overrides, branding) and the `.env` secrets.
 
-For the full platform architecture, fixed decisions, architecture traps, and scripting conventions, see the [template's AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/AGENTS.md). Everything there applies here.
+Every known trap, quirk, and open issue lives in the template's [TROUBLESHOOTING.md](https://github.com/piprees/minecraft-server-template/blob/main/TROUBLESHOOTING.md) — cite entries by id (`#t14`). For the full platform architecture, fixed decisions, and scripting conventions, see the [template's AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/AGENTS.md). Everything there applies here.
 
 ## What lives where
 
