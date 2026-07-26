@@ -138,6 +138,30 @@ class ShippedDimensionReachabilityTest {
     }
 
     @Test
+    void noShippedDimensionIsConfiguredSoItCanNeverIgnite() {
+        // The validator already says "the portal can never ignite" out loud at
+        // boot for a self-contradictory config. Nobody read it: five
+        // dimensions shipped with a vertical shape (door/doorway) pinned to
+        // orientation "horizontal", so ignition could not succeed on any axis
+        // and the dimensions were simply unreachable (2026-07-26).
+        //
+        // A warning that only exists in a boot log is a warning that gets
+        // scrolled past. This is the same class of defect as the reachability
+        // check above, so it gets the same treatment: fail the build.
+        List<String> unignitable = PortalSafetyValidator.validate(shipped().values()).stream()
+                .filter(w -> w.contains("can never ignite"))
+                .toList();
+
+        assertEquals(List.of(), unignitable,
+                "these dimensions cannot be entered at all — the portal config contradicts itself, "
+                + "so ignition fails on every axis. Note that removing `orientation` is not always "
+                + "the fix: a shape preset implies its own orientation (door/doorway are vertical, "
+                + "end_exit is horizontal), so a dimension that is MEANT to have a floor portal "
+                + "wants the shape dropped instead, leaving free-form flood-fill plus "
+                + "\"orientation\": \"horizontal\".");
+    }
+
+    @Test
     void noShippedDimensionUsesAFractionalScale() {
         // A fractional scale is the fingerprint of the inverted reading that
         // caused all of this — the old README's "0.125 for nether-style 1:8".

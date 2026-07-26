@@ -34,8 +34,7 @@
     },
     "aura": {
       "subsume": "none"
-    },
-    "orientation": "horizontal"
+    }
   },
   "exitPortal": {
     "enabled": true,

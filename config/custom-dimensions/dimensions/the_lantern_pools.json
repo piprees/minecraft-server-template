@@ -41,8 +41,7 @@
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
-    },
-    "orientation": "horizontal"
+    }
   },
   "seedRoll": {
     "mood": "serene",

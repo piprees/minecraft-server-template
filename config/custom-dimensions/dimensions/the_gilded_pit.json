@@ -44,8 +44,7 @@
         "minecraft:blackstone",
         "minecraft:gold_block"
       ]
-    },
-    "orientation": "horizontal"
+    }
   },
   "structures": {
     "force": [

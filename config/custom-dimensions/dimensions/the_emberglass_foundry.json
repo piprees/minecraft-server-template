@@ -37,8 +37,7 @@
       "ignite": "item.firecharge.use",
       "enter": "block.blastfurnace.fire_crackle",
       "exit": "block.fire.extinguish"
-    },
-    "orientation": "horizontal"
+    }
   },
   "structures": {
     "wants": {
