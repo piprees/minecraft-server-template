@@ -74,7 +74,9 @@ docker-compose.override.yml
 
 # === Claude Code / AI agent state ===
 .github/.hooks-state/
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/.github/
 docker-compose.modrinth.yml
 config/nginx/nav-proxy-local.conf
 
