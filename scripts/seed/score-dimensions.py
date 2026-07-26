@@ -550,6 +550,23 @@ def cmd_rescore(args, config, profiles):
     print(f"\nrescored {total} candidate(s) across {len(profiles)} target(s) "
           f"into {candidates.candidates_dir(cfg)}")
 
+    # Re-render top candidates whose images may be stale after the rescore
+    # reshuffled the ranking. Existing files are skipped by the renderer,
+    # so this only costs time for newly-promoted seeds.
+    biome_params = str(Path(__file__).resolve().parent / "biome_params.json")
+    if Path(biome_params).exists():
+        print("\nre-rendering top candidates (newly promoted seeds only)...")
+        for size, scale, _ in ((1024, 8, "normal"), (2048, 16, "hires")):
+            cmd = [sys.executable, str(Path(__file__).resolve().parent / "biome_renderer.py"),
+                   "batch", "--config", args.config, "--seedtest", args.seedtest,
+                   "--biome-params", biome_params,
+                   "--top", "10", "--size", str(size), "--scale", str(scale)]
+            if size == 2048:
+                cmd += ["--suffix", "_hires"]
+            subprocess.run(cmd)
+    else:
+        print("\nbiome_params.json not found — skipping render backfill")
+
 
 def cmd_status(args, config, profiles):
     """Candidate-bank status per target: counts, winner, score freshness."""
@@ -591,6 +608,23 @@ def cmd_status(args, config, profiles):
         pin = " 📌" if store["winnerPinned"] else ""
         print(f"{name:30} {len(store['candidates']):>5} {len(store['rejected']):>4} "
               f"{len(store['abandoned']):>5} {winner or '-':>21} {wscore:>6}  {state}{pin}")
+    # Check for missing renders in the current top-10
+    renders_dir = Path(args.seedtest) / "renders"
+    missing_render_count = 0
+    for name in profiles:
+        store = candidates.load_store(cdir / f"{name}.json")
+        chash = candidates.config_hash(sources.get(name))
+        scored = []
+        for seed, cand in store["candidates"].items():
+            s = cand.get("scores", {}).get(chash)
+            if s:
+                scored.append((s["total"], seed))
+        scored.sort(reverse=True)
+        missing = sum(1 for _, seed in scored[:10]
+                      if not (renders_dir / name / f"{seed}.png").exists())
+        if missing:
+            missing_render_count += 1
+
     if stale_count:
         print(f"\n{stale_count} target(s) have stale scores — ./dev seed-rescore refreshes "
               "them from banked measurements (no re-rolling)")
@@ -598,6 +632,9 @@ def cmd_status(args, config, profiles):
         print(f"{drifted_count} target(s) have winners measured under a different "
               "generation fingerprint — their measurements no longer describe the "
               "configured world; re-roll those dimensions")
+    if missing_render_count:
+        print(f"{missing_render_count} target(s) have top-10 candidates missing renders — "
+              "./dev seed-rescore or ./dev seed-viewer backfills them")
 
 
 def print_summary(results, profiles, rejected=None):
