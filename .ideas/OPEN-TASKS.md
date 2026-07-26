@@ -12,7 +12,7 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | --- | --- | --- |
 | 1.1 | ~~**Version holds don't bind the server mod list.**~~ Server loop now reads `_clientMods.holds` from the manifest before re-pinning and skips held slugs, matching what the client loop already did. `c2me-fabric` is now mechanically protected. Changed: `scripts/pin-mod-versions.sh` (ships in bundle — needs a release to reach consumers). | `FINDINGS.md` §3 |
 | 1.2 | ~~**Discord role sync matches by role NAME, not id.**~~ Role sync now uses `DISCORD_PLAYER_ROLE_ID` / `DISCORD_ADMIN_ROLE_ID` (integer IDs) for matching. Name strings kept for display messages only. Env vars added to docker-compose.yml's discord-sync environment block. Logs a warning at startup if either ID is unset. Changed: `scripts/discord-sync.py`, `docker-compose.yml`. Ships as an image change → needs a release. | `FINDINGS.md` §5 |
-| 1.3 | **`deploy.sh` comments claim a sidecar list is in sync with `infra-deploy.sh` when it isn't**, and a bare manual `deploy.sh` over SSH is the one path that never refreshes `kuma-init`. Fix the comments; decide whether the manual path should refresh it too. | `FINDINGS.md` §6 |
+| 1.3 | ~~**`deploy.sh` comments claim a sidecar list is in sync with `infra-deploy.sh` when it isn't.**~~ Both comments (header + inline at the sidecar list) now explain WHY kuma-init is intentionally omitted: CI and `./ops update` refresh it separately, so only a bare manual `deploy.sh` over SSH skips it. Changed: `scripts/deploy.sh`. | `FINDINGS.md` §6 |
 
 ## 2. Documentation that describes a different mechanism than the code
 

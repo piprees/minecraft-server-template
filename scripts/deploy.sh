@@ -24,7 +24,8 @@
 #
 # Gotchas:
 #   - Don't run while CI is deploying (races).
-#   - The force-recreate sidecar list below must match infra-deploy.sh.
+#   - The sidecar list below intentionally omits kuma-init (CI and
+#     ./ops update refresh it separately; infra-deploy.sh includes it).
 #   - Game rules here must match config/boring_default_game_rules/config.json.
 set -euo pipefail
 
@@ -661,7 +662,9 @@ suspend_autopause
 pause_backups
 
 # Force-recreate sidecars so config/script changes actually load.
-# Keep this list in sync with infra-deploy.sh.
+# This list intentionally omits kuma-init: CI refreshes it in a separate
+# step (deploy-reusable.yml), and ./ops update does the same. A bare
+# manual deploy.sh over SSH is the one path that skips kuma-init.
 # shellcheck disable=SC2086
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
   unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
