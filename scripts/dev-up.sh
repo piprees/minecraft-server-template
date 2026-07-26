@@ -113,6 +113,18 @@ case "$ACTION" in
       done
     cd "$CONSUMER_DIR"
 
+    # The staged dimension overlay is DERIVED from overlay/config/custom-dimensions,
+    # never authored in data/, so clear it unconditionally before rebuilding.
+    #
+    # Clearing it only when a source directory exists (which is what this used
+    # to do) means REMOVING a consumer overlay never takes effect: the staged
+    # copy survives and keeps replacing every platform dimension file, silently,
+    # for good. Hit on elfydd 2026-07-26 — an overlay deleted from the consumer
+    # repo days earlier was still overriding all 82 dimensions, so a released
+    # config change reached the server and did nothing at all. The symptom is a
+    # boot warning about config you have already fixed.
+    rm -rf "$local_data_cfg/custom-dimensions/overlay"
+
     if [[ -d "$CONSUMER_DIR/overlay/config" ]]; then
       echo "Reapplying consumer overlay..."
       cd "$CONSUMER_DIR/overlay/config"
@@ -127,7 +139,6 @@ case "$ACTION" in
       done
       cd "$CONSUMER_DIR"
       if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
-        rm -rf "$local_data_cfg/custom-dimensions/overlay"
         mkdir -p "$local_data_cfg/custom-dimensions/overlay"
         cp -R "$CONSUMER_DIR/overlay/config/custom-dimensions/." \
           "$local_data_cfg/custom-dimensions/overlay/"
