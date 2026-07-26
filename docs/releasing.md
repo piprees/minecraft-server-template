@@ -40,7 +40,7 @@ This prevents accidental `git push origin v2.7.0` which would create a broken re
 | Workflow | Triggers | Produces |
 | --- | --- | --- |
 | `release.yml` (Release Bundle) | Manual dispatch only | Stack bundle tarball → draft release → publish |
-| `publish.yml` (Publish Container Images) | `release: published`, push to main (Dockerfile/script changes), manual dispatch | GHCR images tagged `X.Y.Z`, `X.Y`, `X`, `latest` |
+| `publish.yml` (Publish Container Images) | `release: published`, **any** push to main (no path filter), manual dispatch | GHCR images tagged `X.Y.Z`, `X.Y`, `X`, `latest` |
 
 Pushing to `main` triggers `publish.yml` independently (images tagged `latest` + sha), so consumers on `latest` get image updates between releases. But only `release.yml` produces the bundle tarball that consumers need for `./dev update`.
 
