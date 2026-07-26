@@ -1,253 +1,323 @@
-# Spike — Replace RCON as the server control channel
+# Spike — Verification without RCON
 
-> **Date:** 2026-07-27 | **Status:** research, not scheduled
+> **Date:** 2026-07-27 | **Status:** decided, ready to build
 > **Prompted by:** the owner, after a session where RCON commands routinely
-> took minutes or timed out entirely.
-> **Trigger artefact:** <https://modrinth.com/plugin/recon> /
-> <https://github.com/yamak493/Recon>
+> took minutes or timed out entirely, and by
+> <https://modrinth.com/plugin/recon> / <https://github.com/yamak493/Recon>
+> as a candidate replacement.
+> **Decision:** don't replace the channel. Stop sending answers through it.
 
-## Verdict up front
+## Kickoff prompt
 
-**Recon cannot be used on this platform, and it would not fix the problem we
-actually have.** Two independent reasons, either one sufficient:
+/goal
+
+Read this spike in full (`docs/spikes/SPIKE-REPLACE-RCON.md`), then
+`AGENTS.md`, `README.md`, `TROUBLESHOOTING.md` and `mods/AGENTS.md`
+(§ Verification loop and § Noise structure placement), then
+`mods/custom-dimensions/src/main/java/com/customdimensions/command/DimensionCommands.java`
+and `scripts/check-noise-regression.py` — the pattern this plan generalises.
+Start with Phase A (write the artefact contract down, then retrofit it).
+
+Implement the artefact contract for the custom-dimensions mod: every
+diagnostic command answers with a one-line summary plus a path, writes the
+real answer to a versioned JSON file, and ships with a checker in `scripts/`
+that asserts over that file with no server running.
+
+For testing, use `~/Projects/elfydd` as the local consumer. Do not push to
+elfydd's `main`. Follow the local loop in `mods/AGENTS.md` § Verification
+loop — never `./dev up` to test a local mod build, and re-patch c2me's
+`useDensityFunctionCompiler` before every `docker stop`/`start`.
+
+Review all of the mentioned documentation, then say "Ready to start".
+
+## Verdict
+
+**Recon cannot be used, and replacing RCON would not fix what hurts.**
 
 1. **Recon is a Bukkit plugin.** Its Modrinth loader list is
    `Bukkit, BungeeCord, Folia, Paper, Purpur, Spigot, Velocity, Waterfall` —
-   no Fabric, no Forge, and no NeoForge. It is written against the Bukkit
-   API (`JavaPlugin`, `Bukkit.getScheduler`, `config.yml`, `users.yml`), not
-   the Minecraft server internals a Fabric mod hooks. There is no "slight
-   adjustment" that loads a Bukkit plugin on Fabric; the class it extends
-   does not exist in our runtime. **Fabric is a fixed platform decision**
-   (`AGENTS.md` § Fixed decisions) and ~150 of our mods are Fabric-only, so
+   no Fabric, no Forge, no NeoForge. It extends `JavaPlugin` against the
+   Bukkit API; that class does not exist in our runtime. There is no "slight
+   adjustment" that loads it. Fabric is a fixed platform decision
+   (`AGENTS.md` § Fixed decisions) with ~150 Fabric-only mods behind it, so
    moving to Paper to gain Recon is not on the table either.
-2. **The pain is not the transport.** Measured this session (see Evidence),
-   the slow thing is the *command*, not the pipe it arrives through. A REST
-   request that runs the same command on the same thread waits exactly as
-   long — it just gets an HTTP 504 instead of an RCON timeout.
+2. **The transport was never the bottleneck.** Measured below: the slow
+   thing is the command, on the server thread. A REST request running the
+   same command waits exactly as long and returns HTTP 504 instead of an
+   RCON timeout.
 
-That said, the frustration is real and there IS a spike's worth of work
-here. It is just aimed somewhere else. Read the Evidence before deciding.
+What IS true is the owner's read: *"We basically cannot use rcon for
+anything, and never have been able to."* The fix is to stop asking it to
+carry answers.
 
-## Evidence — what is actually slow
+## Evidence
 
-Collected 2026-07-27 on the local consumer, on a **freshly generated world**,
-using the mod's own async locate (which calls the identical vanilla
+Collected 2026-07-27 on the local consumer, on a **freshly generated
+world**, using the mod's async locate — which calls the identical
 `ChunkGenerator.locateStructure(world, entries, origin, 100, false)` that
-`/locate structure` calls, off the server thread):
+`/locate structure` calls, off the server thread:
 
-| Probe | Dimension | Chunks pre-generated? | Result |
+| Probe | Dimension | Pre-generated? | Result |
 | --- | --- | --- | --- |
 | `minecraft:jungle_pyramid` (noise-placed) | `the_overgrowth` (1024 border) | no | timed out at 180 s |
-| `minecraft:jungle_pyramid` | `the_overgrowth` | **yes — full Chunky pass, 16 384 chunks** | timed out at 240 s |
-| `minecraft:village_plains` | **`minecraft:overworld`** — vanilla, untouched, no custom placement anywhere | yes (spawn region) | **timed out at 120 s** |
+| `minecraft:jungle_pyramid` | `the_overgrowth` | **yes — full Chunky pass, 16,384 chunks, 59 cps** | timed out at 240 s |
+| `minecraft:village_plains` | **`minecraft:overworld`** — stock vanilla, no custom placement in the path | yes | **timed out at 120 s** |
 
-The last row is the control that settles it. The overworld's village
-placement is stock vanilla; nothing this platform wrote is in that code
-path. It is just as slow.
+The last row settles ownership. Nothing this platform wrote is in that code
+path and it is just as slow. Three conclusions:
 
-Three conclusions follow, and they are the reason this spike exists:
+- **Locate latency is a vanilla-plus-150-structure-mods property.** Not
+  RCON's, not noise placement's, not custom dimensions'.
+- **Chunky pre-generation does not fix it.** This was the plan of record
+  (owner, 2026-07-26: *"Pre-warming a world down the line with chunky will
+  help us there"*). Tested properly; it got slower, not faster. Retired in
+  `mods/AGENTS.md`.
+- **A better channel would not have helped**, because this already runs
+  off-thread through our own async command — which is, as the owner put it,
+  *"just a wrapped command… not really a better alternative but at least it
+  doesn't crash the server."*
 
-- **Locate latency is a vanilla-plus-150-mods property**, not an RCON
-  property and not a custom-dimensions property. `/locate` walks 100 rings
-  of placement cells and asks each candidate whether a structure would
-  validate there; with this many structure mods that is a lot of work.
-- **Chunky pre-generation does not fix it.** This was the accepted plan of
-  record (owner's ruling, 2026-07-26: *"Pre-warming a world down the line
-  with chunky will help us there"*). It was tried properly here — a complete
-  1024-radius pass — and the locate got *slower*, not faster. That
-  assumption should be retired.
-- **Replacing RCON would not have helped any of these.** They are already
-  running off-thread through our own async command.
+### What is genuinely wrong with RCON
 
-## What IS wrong with RCON here
+| Problem | Real? | Fixed by a REST channel? | Fixed by the artefact contract? |
+| --- | --- | --- | --- |
+| Long commands block the server thread | Yes | No — same thread, same wait | Yes — the answer is a file that appears when ready |
+| Responses truncate at a few KB | Yes | Yes | Yes — nothing large crosses the wire |
+| Feedback lines concatenate with no separator | Yes | Yes | Yes |
+| Empty response under load reads as success | Yes | Partly | Yes — the file is absent or stale, unambiguously |
+| Silent during autopause | Yes | **No** — the JVM is frozen | N/A, and deliberate |
+| One connection, no streaming | Yes | Yes | Yes |
 
-Separating the genuine grievances from the misattributed one, because a
-spike that fixes the wrong thing is worse than no spike:
+**The autopause trap is the constraint any alternative must respect.**
+`AGENTS.md` and `TROUBLESHOOTING.md` both carry it: never touch the game
+port on an interval, it defeats autopause, and several Kuma monitor designs
+died on that rule. A new control channel with a healthcheck or keepalive
+would wake a paused server forever. The artefact contract adds no listener
+at all, so it cannot break this.
 
-| Problem | Real? | Would a REST channel fix it? |
-| --- | --- | --- |
-| Long-running commands block the server thread | **Yes** | **No.** Same thread, same wait. Only running the work off-thread fixes it, which is what `customdim locate` already does. |
-| Responses truncate at a few KB | **Yes** | Yes. This is why `structure-audit` and `structure-census` write files instead of answering (`mods/AGENTS.md`). |
-| Feedback lines concatenate with no separator | **Yes** | Yes — 380 audit rows came back as one unreadable string. |
-| Empty response under load reads as success | **Yes** | Partly — a typed error beats an empty string, but a timeout is still a timeout. |
-| RCON goes silent during autopause | **Yes** | **No.** The JVM is frozen; nothing answers, over any protocol. And this is *deliberate* — see below. |
-| One connection, no streaming or events | Yes | Yes |
-| Password in `.env`, plaintext TCP | Yes, but | It never leaves the Docker network (`AGENTS.md`: RCON is not exposed publicly) |
+## Decision: the artefact contract
 
-**The autopause interaction is the trap in this whole idea.** `AGENTS.md`
-and `TROUBLESHOOTING.md` both carry the rule: *never add anything that
-touches the game port on an interval — it defeats autopause*, and several
-Kuma monitor designs died on it. Any replacement control channel that
-health-checks, polls, or keeps a connection warm will wake a paused server
-and burn the host's idle savings. Whatever we build must be as silent as
-RCON is when nobody is playing.
+**Diagnostic commands answer with a summary and a path. The file is the
+answer. A checker asserts over the file, with no server running.**
 
-## Options, if this is worth doing
+This is not a new idea — it is three independent inventions of the same idea
+that nobody has named. `structure-audit` writes `structure-audit.txt`
+because 380 rows came back over RCON as one unreadable, half-missing string.
+`structure-census` writes JSON because a large dimension holds tens of
+thousands of positions. `sample-biome-grid` writes `biome_grid.csv`. All
+three were written to dodge the same wall.
 
-### A. Fix the command side, not the channel (cheapest, highest value)
+**It is also the only thing that worked under load this session.** G2's 72
+assertions came from census JSON via `scripts/check-noise-regression.py`;
+RCON's entire role was one short "go" command with a one-line answer — the
+shape it handles perfectly well. The same session could not complete a
+single `/locate`.
 
-Extend the pattern the mod already proved: `LocateManager` submits work to a
-pool, returns a UUID immediately, and `locate-result` polls it. That
-converts an unbounded main-thread stall into a bounded, cancellable job with
-a typed status — over plain RCON, with no new protocol, no new port and no
-new dependency.
+### The contract
 
-Candidates for the same treatment: anything that scans, walks or generates —
-census dumps, audits, chunk operations. `structure-audit` and
-`structure-census` already dodge the truncation problem by writing files;
-that is the same instinct.
+1. **One line back, everything else on disk.**
+   `<command> <subject>: <summary> -> <path>`. The summary must be
+   independently useful (counts, not "OK") and must fit comfortably inside
+   RCON's truncation limit.
+2. **Artefacts live under `config/custom-dimensions/<kind>/`** in the server
+   data directory — `data/config/custom-dimensions/…` on the host, already
+   bind-mounted and already where the four existing ones land.
+3. **JSON by default**, with two grandfathered exceptions kept because their
+   consumer is a human or a spreadsheet: `structure-audit.txt`,
+   `biome_grid.csv`.
+4. **Every artefact carries `schemaVersion` and `generatedAt`.** A checker
+   that meets an unknown version fails loudly. Silent mis-reading of a
+   changed shape is the failure mode this platform keeps hitting.
+5. **Writes are atomic** — `.tmp` then rename, exactly as
+   `scripts/seed/candidates.py` already does. A checker must never read a
+   half-written file, and a large census takes real time to serialise.
+6. **Every artefact has a checker in `scripts/`** that runs with no Docker
+   and exits non-zero on failure.
+7. **Checkers are runnable against committed fixtures**, so a logic
+   regression is caught in CI without a server —
+   `scripts/seed/testdata/census/` already pins Java output this way for the
+   parity gate.
 
-**Cost:** small, incremental, per command. **Risk:** low — the pattern is in
-production. **Does not solve:** truncation for commands that legitimately
-want to answer inline.
+### What stays on RCON, permanently
 
-### B. An in-house Fabric control mod (Recon's idea, our runtime)
+- `itzg/mc-backup`'s `save-off`/`save-on`. Third-party, not ours to change,
+  and short fire-and-forget commands are what RCON is adequate for. **RCON
+  can therefore never be removed, only demoted** — any plan promising
+  otherwise is wrong.
+- Interactive admin: `whitelist add`, `op`, `/mc restart`, `list`. Short in,
+  short out.
+- The "go" that triggers an artefact write.
 
-We already build and ship a Fabric mod (`mods/custom-dimensions`) through a
-release pipeline with jar verification. Adding a second one that exposes a
-small authenticated HTTP endpoint is entirely within the existing machinery.
+## Task list
 
-What it would need to earn its place:
-- Bound to the Docker network only, exactly like RCON today — never
-  published through the Cloudflare tunnel (game-adjacent traffic must not
-  go through it; `AGENTS.md` fixed decision).
-- **No polling, no keepalive, no healthcheck of its own.** See the autopause
-  trap above.
-- Async by default: every command returns a job id; results are fetched.
-  This is the actual fix, and it is worth more than the transport change.
-- Chunked/streamed responses, so an audit can answer inline.
-- Consumers to migrate: `scripts/lib.sh` (`rcon()`), `scripts/rcon.sh`,
-  `deploy.sh`, `doctor.sh`, `setup-permissions.sh`, `idle-tasks.sh`,
-  `chunky.sh`, `live-stats.sh`, `dev-up.sh`, `initial-setup.sh`,
-  `discord-sync.py` (`ThreadSafeRcon`), the seed roller's
-  `seed_worker.py`/`warmup_biomes.py`, and the `mc-backup` sidecar's
-  save-off/save-on (third-party — **cannot** be migrated, so RCON stays
-  enabled regardless).
+> **Estimate:** 4–5 days. Phase A is mechanical and unblocks the rest.
+> Mark each `[x]` when complete and add handoff notes below the task.
 
-That last point is decisive for scoping: `itzg/mc-backup` speaks RCON and we
-do not control it. **RCON cannot be removed, only supplemented.** Any spike
-that promises "get rid of RCON" should be re-framed as "stop using RCON for
-the things it is bad at".
+### Phase A: name the contract and retrofit it (1 day)
 
-### C. An existing Fabric alternative
+- [ ] **A1. Write the contract into `mods/AGENTS.md`** — a new
+  "§ Diagnostic artefacts" section stating the seven rules above, the
+  artefact directory layout, and the rule that a command which iterates a
+  registry or a world MUST NOT answer inline. Cross-reference from
+  `TROUBLESHOOTING.md`'s symptom index ("RCON output truncated or
+  concatenated").
 
-Nothing credible found. `CraftControl RCON` (CurseForge) supports Fabric but
-is an RCON *companion*, not a replacement. Worth one more search before
-building anything, but the ecosystem does not appear to have a maintained
-Fabric equivalent of Recon.
+  **Verify:** `grep -c 'schemaVersion' mods/AGENTS.md` non-zero; the four
+  existing artefact commands are listed by name with their paths.
 
-### D. Stop using the control channel for verification at all
+- [ ] **A2. Retrofit `schemaVersion`/`generatedAt` and atomic writes** to
+  `structure-census`, `structure-audit`, `dump-biome-params` and
+  `sample-biome-grid` in `DimensionCommands.java`. One shared helper
+  (`writeArtefact(Path, String)`) doing `.tmp` + `ATOMIC_MOVE`.
 
-Owner, 2026-07-27: *"I'm not sure if changing RCON now would help, we may
-need to just come up with a better validation mechanism."*
+  **Verify (JUnit + local server):**
+  - A unit test on the helper: a write that throws mid-way leaves the
+    previous file intact and no `.tmp` behind.
+  - Live: dump each of the four, assert every file parses and carries both
+    keys; re-dump while reading in a loop and assert the reader never sees a
+    partial file.
+  - `scripts/check-noise-regression.py` still passes 72/72 against the new
+    census shape.
 
-This is the strongest option and it is already half-built, by accident.
+- [ ] **A3. Teach the checkers to enforce the version.** `schemaVersion`
+  mismatch → explicit failure naming both versions, never a `KeyError` and
+  never a silent pass.
 
-**Everything that worked today wrote a file.** G2's 72 assertions came from
-`/customdim structure-census` dumping JSON to
-`config/custom-dimensions/census/`, which `scripts/check-noise-regression.py`
-reads and asserts over. RCON's entire role was to say "go" — one short
-command, one one-line answer, the shape RCON handles fine. No truncation
-because nothing large came back through it. No timeout because nothing slow
-ran inside the request. No parsing of chat feedback.
+  **Verify:** unit test feeding a checker an artefact with a bumped version;
+  assert a non-zero exit and the message names the expected and found
+  versions.
 
-The same pattern already exists in three places, each invented independently
-to dodge the same wall: `structure-audit.txt` (380 rows that came back as
-one unreadable half-string over RCON), the census dumps, and
-`biome_grid.csv` from `sample-biome-grid`. That is not three workarounds, it
-is a design that nobody has named yet.
+- [ ] **A4. Fix the id-resolution inconsistency found during G2.**
+  `structure-census` requires a fully-qualified id (`adventure:the_overgrowth`)
+  while `customdim load` accepts a bare slug and resolves it against the
+  configured namespace; a bare name silently becomes `minecraft:` and answers
+  "Dimension not loaded". Make every `customdim` subcommand resolve ids the
+  same way.
 
-**Name it and finish it:**
+  **Verify:** live, `customdim structure-census the_overgrowth` and
+  `... adventure:the_overgrowth` produce identical files; an id in a
+  genuinely different namespace still resolves or errors clearly.
 
-- Every diagnostic command answers `<summary> -> <path>` and writes the real
-  answer to a known location. Already true for three commands.
-- The files are the contract: versioned, diffable, committable as fixtures.
-  `scripts/seed/testdata/census/` already pins Java output this way for the
-  Python parity gate.
-- Checkers live in `scripts/` and run with no server at all
-  (`check-noise-regression.py` needs Docker only to *produce* the dumps, not
-  to check them). They run in CI against committed fixtures.
-- Anything slow becomes "trigger, then wait for the file to appear" —
-  which is a job API without building one, and it survives the RCON call
-  timing out, because the work is not inside the request.
+### Phase B: the untested surface — portals (1.5 days)
 
-**Cost:** one command at a time, no new protocol, no new port, no new mod,
-no autopause risk. **What it does not give you:** interactive admin
-(`/mc restart`, whitelist changes) — but those are short commands and RCON
-already does them adequately.
+`portal_links.json` is the mod's largest piece of persisted state, it is
+already on disk, and **nothing anywhere asserts over it.** Every portal
+regression this platform has had was found by a human in game or by a Carpet
+bot script written from scratch each time.
 
-## Recommendation
+- [ ] **B1. `customdim portal-audit`** → `portals/audit.json`: every source
+  zone (dimension, column, frame accept forms, immersive settings,
+  single-use countdown), every registered arrival with its stamped source
+  column, exit portals, anchors, and the reconciliation state of each
+  (orphaned zone, missing counterpart, dangling target dimension).
 
-**Do D. Reconsider B only if D leaves something genuinely undone.**
+  **Verify (local server):** with a known portal built by the Carpet-bot
+  harness, the audit lists it with the right column and target; break one
+  frame block and the next audit reports the zone gone at both ends.
 
-The earlier draft of this spike recommended B (an in-house Fabric control
-mod) on the strength of this owner note: *"We basically cannot use rcon for
-anything, and never have been able to. It's trash. Our async locate command
-is just a wrapped command to be honest, not really a better alternative but
-at least it doesn't crash the server."*
+- [ ] **B2. `scripts/check-portal-integrity.py`** asserting the invariants
+  `mods/AGENTS.md` § Portal system already states in prose: a persisted
+  `frameBlock` is always a plain parseable id and never a `#tag` (this
+  crash-looped production on a rollback, 2026-07-23); every arrival's
+  `exitMode` is one of the three known values; anchor dimensions have an
+  exit portal; every referenced target dimension exists in config; no zone
+  references a dimension that has left the config.
 
-Both halves of that are right, and neither points at the transport. Option A
-is per-command whack-a-mole — the async locate proves it: it stopped
-`/locate` wedging the server and it still cannot tell you where a village
-is, because the command was always the slow part. And option B would buy a
-better pipe for output we have already stopped sending through a pipe.
+  **Verify:** run against a real `portal_links.json` — passes; against
+  hand-crafted broken fixtures (a `#tag` frameBlock, a dangling dimension,
+  an anchor with no exit portal) — one clear failure each.
 
-D is the same instinct as B (structured, complete, typed answers) at a
-fraction of the cost, and it is the one this session actually validated
-under load. **Ship D. Keep RCON as the doorbell, not the delivery van.**
+### Phase C: the boot report (1 day)
 
-If D is ever exhausted, B remains available, and it would look like this:
+The bug that ate the most time this session was invisible for hours: 63 of
+78 dimensions were silently reusing generators baked into `level.dat` under
+an older config ([D2](../../TROUBLESHOOTING.md#d2)), so every biome-filter
+assertion was measuring history. The evidence was there — 15 `biome source
+built` lines instead of 75 — but only if you already suspected it and knew
+to count.
 
-- Every command returns a job id immediately; results are fetched, streamed,
-  or long-polled. Short commands complete inline on the first response.
-- Responses are typed and complete — no 4 KB cliff, no lines concatenated
-  without separators, no empty-string-means-either-success-or-timeout.
-- Errors are errors: a parse failure, a timeout and an exception are three
-  distinguishable outcomes, which RCON cannot express at all.
-- Bound to the Docker network only. Never through the Cloudflare tunnel.
-- **No polling, no keepalive, no healthcheck of its own** — the autopause
-  rule above is the one hard constraint the design must not break.
+- [ ] **C1. One artefact per boot** → `boot-report.json`: for every
+  configured dimension, whether it was **created or reused**, its resolved
+  biome source (count of entries and distinct biomes), its structure profile
+  (groups, positions, biome-filtered counts), border, portal presence, and
+  its **fingerprint drift state** against the current config.
 
-Then migrate our own consumers off RCON in one pass (list in B above) and
-leave RCON enabled purely for `itzg/mc-backup`'s save-off/save-on, which is
-third-party and not ours to change. **"Get rid of RCON" is therefore
-"stop using RCON for anything we control"** — the sidecar keeps it alive
-whatever we do, and that is fine because save-off/save-on is exactly the
-kind of short, fire-and-forget command RCON is adequate for.
+  **Verify:** boot a stale world and a fresh one; the report distinguishes
+  every dimension's `created` vs `reused` correctly, and the stale boot flags
+  drift on the dimensions whose config moved.
 
-**Do A only where it is free** — if a command is being written anyway, write
-it async. Not as a programme of work.
+- [ ] **C2. `scripts/check-boot-report.py`** — fails when a dimension is
+  `reused` with a drifted fingerprint, which is precisely "this world no
+  longer matches its config and any test you run against it is lying".
 
-**Drop Recon itself.** Wrong loader (Bukkit), and its protocol design solves
-authentication and encryption, which are not our problems on a private
-Docker network. What is worth stealing from it: the job/queue model, the
-per-user permissions, and the fact that a JSON body cannot truncate silently.
+  **Verify:** passes on the fresh world; fails on the pre-wipe backup at
+  `data/world.bak.*`, naming the drifted dimensions.
 
-**Retire the "Chunky will fix locate" assumption** from `mods/AGENTS.md` and
-`NOISE-IMPL-LOG.md`. It has now been tested properly and it does not. Under
-D it also stops mattering: a two-minute search is a file that appears when
-it is ready, not a terminal you sit in front of.
+### Phase D: make the checkers a gate (0.5 day)
 
-## If D is chosen, the work is
+- [ ] **D1. `./dev verify`** — runs every checker against the current
+  artefacts, prints one PASS/FAIL block per checker, exits non-zero on any
+  failure. Wired into `examples/consumer/dev` and its sync list (the
+  consumer-scaffold trap in `AGENTS.md`).
 
-1. Write down the artefact contract in `mods/AGENTS.md`: a diagnostic
-   command answers with a summary plus a path, and never with the data.
-   Three commands already do it; the rule is what is missing.
-2. Fold `check-noise-regression.py` into the repeatable gates and commit a
-   fixture set, the way `scripts/seed/testdata/census/` already pins the
-   parity fixtures.
-3. Audit the remaining `customdim` commands for anything that answers inline
-   and could truncate. `list` and `sample-noise` are small enough; anything
-   that iterates the registry is not.
-4. Leave RCON exactly as it is. It rings the doorbell perfectly well.
+  **Verify:** `./dev verify` on the local consumer is green; break one
+  artefact by hand and it goes red with a useful message.
 
-## Open questions for the owner
+- [ ] **D2. Commit fixtures and run the checkers in CI** against them, so a
+  checker-logic regression is caught with no server. Extend
+  `scripts/test-scripts.sh` (or `lint.yml`) the way the parity gate already
+  works.
 
-- Which validations are still missing a file to assert over? Portal state
-  and dimension lifecycle are the obvious gaps — `portal_links.json` is
-  already on disk but nothing asserts over it.
-- Should the checkers run in CI against committed fixtures (fast, catches
-  logic regressions) as well as against a live server (slow, catches
-  integration regressions)? The parity gate already does both.
-- If D proves insufficient, is a second in-house mod acceptable maintenance
-  surface, or should an endpoint live inside `custom-dimensions`?
+  **Verify:** `./scripts/test-scripts.sh --quick` green; deliberately break
+  a checker's logic and confirm CI would fail.
+
+### Phase E: retire the fragile RCON parsing (1 day, optional)
+
+- [ ] **E1. `doctor.sh`'s `spark health` grep** (`grep -iE "tps|memory"` over
+  prose) is the last load-bearing parse of RCON output. Either accept it as
+  best-effort and say so in the header, or replace it with a `customdim`
+  artefact carrying TPS/MSPT/memory as numbers.
+
+  **Verify:** `./ops doctor` reports TPS on a live server and degrades to a
+  clear WARN — never a false PASS — when the value cannot be read.
+
+## Risks
+
+| Risk | Mitigation |
+| --- | --- |
+| Artefacts drift from the code that writes them | `schemaVersion` + checker enforcement (A2/A3); a mismatch is a loud failure |
+| A checker passes because the artefact is stale, not because the world is right | `generatedAt` + a max-age assertion in `./dev verify`; the C1 boot report is regenerated every boot |
+| Growing artefacts bloat `data/config/` | Census files are already the largest at ~1 MB for `the_end_citadel`; keep them out of backups (`AGENTS.md` § Backups excludes) and prune on write |
+| A new command answers inline out of habit | A1 states the rule; review catches it; the truncation symptom is in the index |
+| Scope creep into "replace RCON" | Explicitly out of scope — `mc-backup` pins RCON in place regardless |
+
+## Files touched
+
+| File | Change |
+| --- | --- |
+| `mods/AGENTS.md` | **New** § Diagnostic artefacts — the contract |
+| `TROUBLESHOOTING.md` | Symptom-index row for truncated/concatenated RCON output |
+| `command/DimensionCommands.java` | `writeArtefact` helper; version stamps; id resolution; `portal-audit`; boot report |
+| `scripts/check-noise-regression.py` | Version enforcement |
+| `scripts/check-portal-integrity.py` | **New** |
+| `scripts/check-boot-report.py` | **New** |
+| `examples/consumer/dev` | `verify` subcommand + sync-list entry |
+| `scripts/test-scripts.sh` | Run the checkers against committed fixtures |
+
+## Rejected alternatives
+
+**A. Per-command async job wrappers.** What `LocateManager` already does.
+Whack-a-mole: each slow command needs someone to notice and hand-write a
+wrapper, and the result still cannot tell you where a village is. Do it when
+a command is being written anyway; not as a programme.
+
+**B. An in-house Fabric HTTP control mod.** Recon's idea in our runtime,
+with job semantics as the default, typed errors and streamed responses. Real
+value, and buildable — we already ship a Fabric mod through a verified
+release pipeline. Rejected *for now* because it is a week of work and a new
+network listener (with the autopause hazard) to deliver structured output we
+can have today by writing a file. Reconsider if Phase B/C leave genuine gaps.
+
+**C. An existing Fabric alternative.** None found. `CraftControl RCON`
+(CurseForge) supports Fabric but is an RCON companion, not a replacement.
+Worth one more search before ever building B.
