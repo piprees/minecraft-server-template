@@ -18,10 +18,10 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 
 | # | Task | Evidence |
 | --- | --- | --- |
-| 2.1 | **`discord-sync.py`'s own docstring says it is bind-mounted read-only.** It is `COPY`d into the image. A force-recreate picks up nothing; shipping a bot change needs a new image → release → full deploy. Docstring corrected 2026-07-26, but check nothing else repeats the claim. | `FINDINGS.md` §4 |
-| 2.2 | **`examples/consumer/AGENTS.md` says client mods can't be added in a consumer repo.** `overlay/modpack/manifest.json` is a real merge mechanism (`entrypoint.sh` → `merge-manifest.py`) supporting `add.required`, `add.optional`, `remove`. | `FINDINGS.md` §7.6 |
-| 2.3 | **`examples/consumer/overlay/modpack/README.md`'s worked example is the wrong shape.** It shows `{"_clientMods": {...}}`; `merge-manifest.py` reads `{"add": {"required": ["slug:versionId"]}}`. Copying the shipped example produces a no-op. | `FINDINGS.md` §7.5 |
-| 2.4 | **`examples/consumer/commands.json` is out of sync with the dispatchers.** Missing ops: `shutdown`, `startup`, `reboot`. Missing dev: `refresh-config`, `seed-viewer`. | `FINDINGS.md` §7.8 |
+| 2.1 | ~~**`discord-sync.py`'s own docstring says it is bind-mounted read-only.**~~ Docstring fixed earlier today. Follow-on: discord-integration-ops skill doc reworded to state the mechanism plainly without referencing the old bug. | `FINDINGS.md` §4 |
+| 2.2 | ~~**`examples/consumer/AGENTS.md` says client mods can't be added in a consumer repo.**~~ Row now points at `overlay/modpack/manifest.json` with the correct `add`/`remove` keys. Notes that genuinely new slugs still need a template-repo PR. | `FINDINGS.md` §7.6 |
+| 2.3 | ~~**`examples/consumer/overlay/modpack/README.md`'s worked example is the wrong shape.**~~ Both examples rewritten to match `merge-manifest.py`'s actual schema: `add.required`/`add.optional` (string arrays), `remove` (slug array), `name`/`versionId` (scalar overrides only). | `FINDINGS.md` §7.5 |
+| 2.4 | ~~**`examples/consumer/commands.json` is out of sync with the dispatchers.**~~ Added missing ops (`shutdown`, `startup`, `reboot`) and dev (`refresh-config`, `seed-viewer`) entries. | `FINDINGS.md` §7.8 |
 | 2.5 | ~~**`.env.example` lists a 6th Cloudflare token permission.**~~ Cache Purge permission is intentional. Fixed the inconsistency the other way: added the 6th permission to `docs/credentials.md` and `setup.sh` so all three agree. | `FINDINGS.md` §7.10 |
 
 ## 3. Repo hygiene
@@ -29,19 +29,19 @@ Problems already written up with a permanent id live in [`TROUBLESHOOTING.md`](.
 | # | Task | Notes |
 | --- | --- | --- |
 | 3.1 | ~~**`mods-cache/` is 719 MB in git history, permanently.**~~ Gitignored and untracked (271 files). Working tree copy stays for `sync-mods.sh`; git no longer grows with each mod update. History prune via `git filter-repo` deferred (needs force-push coordination). | Decision, not a bug |
-| 3.2 | **`config/custom-dimensions/extractors/` (2.6 MB) ships to every consumer** via the seed image `COPY`, but `dev-up.sh` explicitly excludes it from the `data/config` sync — it's authoring data, not runtime config. Probably shouldn't be in the seed image at all. | Unverified: check whether the mod reads it |
-| 3.3 | **`scripts/seed/spike/`** — six R&D reports from the seed-roller spike phase. Archived research, still referenced from `scripts/seed/README.md`. Keep or move under a clearer `archive/` marker. | Low |
+| 3.2 | ~~**`config/custom-dimensions/extractors/` (2.6 MB) ships to every consumer.**~~ Confirmed the mod never reads it (zero grep hits in source). Dockerfile COPY split into `settings.json` + `dimensions/` only — extractors/ no longer reaches the seed image. Needs a release. | Verified: mod never reads it |
+| 3.3 | ~~**`scripts/seed/spike/`** — fifteen R&D reports (not six).~~ `scripts/seed/README.md` research-notes table updated to list all 15 reports (00–14). | Low |
 | 3.4 | ~~`lint.yml`'s bundle-manifest coverage gap~~ — **fixed in v3.10.3.** It had a live victim: `pin-mod-versions.sh` and `modrinth-api.py` were referenced by `dev` alone, never made the MANIFEST, and `./dev pin` died on a missing file for every consumer while CI stayed green. The job now resolves every `$STACK_SCRIPTS/...` exec in `dev` and matches `.py` as well as `.sh`. | — |
 | 3.5 | ~~**`mod-build.yml` hardcodes `mods/custom-dimensions`.**~~ Now iterates `mods/local-mods.manifest` (same as `release.yml`), using the manifest's jar name, project dir, and refmap fields. A second in-house mod gets PR CI automatically. | `FINDINGS.md` §8.4 |
 | 3.6 | ~~**`CONTRIBUTING.md` tells platform contributors to run `./scripts/dev-up.sh` directly.**~~ Rewritten to recommend a consumer-repo-alongside-template setup. Added GNU tar note (3.7a). | `FINDINGS.md` §8.2 |
 | 3.7a | ~~**`build-stack-bundle.sh` warns `GNU tar not available` on macOS.**~~ Documented in CONTRIBUTING.md with the `brew install gnu-tar` fix. | Low |
-| 3.7 | **`config/modrinth-mods.txt`: `attributefix?:XwbErf6s` has a misplaced `?` AND a stale comment.** The `?` sits before the colon so the re-pin script's optional detection never fires. Separately, the `# FIXME: no 1.21.x build - attributefix?` above it is **wrong** — verified 2026-07-26, it resolves to `attributefix-fabric-1.21.1-21.1.3.jar`, a real 1.21.1 build. Decide both: delete the stale FIXME, and note that moving the `?` is a *semantic* change (required ↔ optional on resolution failure), not a tidy-up. | `FINDINGS.md` §8.1 + verified |
+| 3.7 | ~~**`config/modrinth-mods.txt`: `attributefix?:XwbErf6s` has a misplaced `?` AND a stale comment.**~~ Fixed to `attributefix:XwbErf6s?` (optional marker at line end). Deleted the wrong FIXME comment. Also confirmed `resolve-mods.py` uses the same `endswith("?")` check — both scripts now parse it correctly. | `FINDINGS.md` §8.1 + verified |
 
 ## 4. Feature work
 
 | # | Task | Notes |
 | --- | --- | --- |
-| 4.1 | **Immersive Phase 7 tail** — presentation shipped v3.9.1; the End's activation model and the sound half of the rule remain. | `mods/custom-dimensions/immersive/PHASE-7-PORTAL-IDENTITY.md` |
+| 4.1 | **Immersive Phase 7 tail** — presentation shipped v3.9.1; the End's activation model and the sound half of the rule remain. **Needs a spike**: investigate the End portal activation model (`fill` vs `ignite` schema). | `mods/custom-dimensions/immersive/PHASE-7-PORTAL-IDENTITY.md` |
 | 4.2 | **Immersive Phase 5 — client companion mod.** Not started, deliberately. The doc enumerates exactly what a server-side approach provably cannot do (the dimension-change loading screen, portal transparency, ghost entities, real lighting/biome colour). The bar for taking on a client mod is high and the doc says so. | `mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md` |
 | 4.3 | **Client-pack parity gap.** 2026-07-24 audit, status "gap confirmed", recommendations unactioned. Consumers fork the client manifest entirely and there is no merge, diff, or sync mechanism between the server overlay and the client manifest. | [`client-pack-parity-audit.md`](client-pack-parity-audit.md) |
 

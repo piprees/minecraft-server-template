@@ -140,12 +140,11 @@ Every player/Discord-facing message template lives in
 
 ## Deploying a change to discord-sync.py
 
-The bot's docstring says the script is "bind-mounted read-only" - **that
-comment is stale.** `docker/discord-sync/Dockerfile` does `COPY
-scripts/discord-sync.py /app/` at image build time; `docker-compose.yml`'s
-`discord-sync` service has no script bind mount (only `./data:/data` and
-the Docker socket for `/mc restart`). A plain `docker restart discord-sync`
-re-runs the **same image** - it will never pick up a code change.
+`docker/discord-sync/Dockerfile` does `COPY scripts/discord-sync.py /app/`
+at image build time; `docker-compose.yml`'s `discord-sync` service has no
+script bind mount (only `./data:/data` and the Docker socket for `/mc
+restart`). A plain `docker restart discord-sync` re-runs the **same
+image** - it will never pick up a code change.
 
 `discord-sync.py` is platform-repo code, so shipping a change is a
 **platform release**, not a consumer overlay tweak: push to `main` rebuilds
@@ -209,7 +208,8 @@ either way - it reuses whatever image is already local.
 8. **Role sync is name-matched, not ID-matched** (see Player management
    above) - a Discord-side role rename breaks it invisibly.
 9. **discord-sync.py is image-baked, not bind-mounted** (see Deploying
-   above) - its own docstring is out of date on this point; don't trust it.
+   above) - restarting or force-recreating the container never picks up a
+   code change, only a new image does.
 
 ## Validation
 

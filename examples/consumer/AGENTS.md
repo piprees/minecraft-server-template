@@ -92,10 +92,12 @@ Before pushing: check no CI run is in progress (`gh run list --limit 3`), check 
 | Change branding | `.env` (BRAND_NAME, MOTD, etc.) + `overlay/assets/` | Push |
 | Reset the world / new seed | `.env` (`SEED`) | `./ops reset-seed <seed>` (triple-confirmed, backs up first) |
 | Update to the latest platform | — | `./dev sync` |
-| Add a client mod | Not here — PR to the template repo | — |
+| Add/remove a client mod | `overlay/modpack/manifest.json` (`add.required`/`add.optional`/`remove`, existing catalogue slugs only) | Push (CI rebuilds `.mrpack`) |
 | Change game rules | Not here — PR to the template repo | — |
 | Change permissions | Not here — PR to the template repo | — |
 | Add/change custom dimensions | `overlay/config/custom-dimensions/dimensions/` (add/override/disable per file); platform defaults via PR to the template repo (`config/custom-dimensions/` + [mods/AGENTS.md](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md)) | `./dev up` or push |
+
+`overlay/modpack/manifest.json`'s `add`/`remove` only work against slugs already resolvable by the platform's modpack build (i.e. already in some consumer's catalogue). A mod that's genuinely new to the ecosystem still needs a PR to the template repo first — see the [modpack overlay README](overlay/modpack/README.md) for the patch schema.
 
 ## Safety rules
 

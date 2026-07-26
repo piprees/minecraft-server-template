@@ -6,25 +6,30 @@ client mods for your instance.
 
 ## Patch schema
 
-The patch object is merged shallowly into the base manifest. To add client
-mods, provide the relevant keys:
+The patch is deep-merged onto the base manifest (see
+`docker/modpack-builder/merge-manifest.py` in the template repo). To add or
+remove client mods, use `add`/`remove` with `slug:versionId` entries — the
+same format as the base manifest's own `_clientMods` lists:
 
 ```json
 {
-  "_clientMods": {
-    "required": [
-      { "slug": "my-extra-mod", "versionId": "abc123" }
-    ]
-  }
+  "add": {
+    "required": ["my-extra-mod:abc123"]
+  },
+  "remove": ["some-default-mod"]
 }
 ```
 
-To override metadata (name, description, etc.):
+`add.required`/`add.optional` append slugs (duplicates are skipped);
+`remove` drops slugs from both `required` and `optional`. Only slugs
+already in the platform's mod catalogue can be added this way — a mod
+that's genuinely new needs a PR to the template repo first.
+
+To override top-level metadata:
 
 ```json
 {
-  "name": "My Server Pack",
-  "summary": "The official modpack for My Server"
+  "name": "My Server Pack"
 }
 ```
 

@@ -1,6 +1,6 @@
 # Client Pack Parity Audit
 
-**Date:** 2026-07-24 | **Scope:** server-mod removal impact on client packs | **Status:** gap confirmed
+**Date:** 2026-07-24 | **Scope:** server-mod removal impact on client packs | **Status:** R1+R2 shipped (2026-07-24), R3+R4 in progress (2026-07-26)
 
 ## Executive summary
 
@@ -140,13 +140,13 @@ For the 52 both-required overlap mods, removal on one side without the other:
 
 ## 4. Recommendations
 
-### R1. Lint: flag server removals with client overlap (Size: S)
+### R1. Lint: flag server removals with client overlap (Size: S) — SHIPPED `6a48a44`
 
 Add a CI step (or extend `check-pack-coherence.py`) that reads `overlay/mods-remove.txt` and cross-references against `_clientMods.required` in the manifest. If a removed slug appears in the client required list with `client_side: required` on Modrinth, the build warns or fails with a message like: "Removing `supplementaries` from the server requires removing it from the client pack too — edit `modpack/adventure.mrpack.json` or fork it."
 
 **Cost:** ~50 lines of Python; runs in existing CI. No architectural change.
 
-### R2. Document the fork-sync checklist in consumer README (Size: S)
+### R2. Document the fork-sync checklist in consumer README (Size: S) — SHIPPED `6a48a44`
 
 The consumer README's "Remove a default mod" section already notes the gap ("Client packs are a separate system... not audited"). Expand it with a concrete checklist:
 
