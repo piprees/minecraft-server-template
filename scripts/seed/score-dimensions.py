@@ -550,22 +550,9 @@ def cmd_rescore(args, config, profiles):
     print(f"\nrescored {total} candidate(s) across {len(profiles)} target(s) "
           f"into {candidates.candidates_dir(cfg)}")
 
-    # Re-render top candidates whose images may be stale after the rescore
-    # reshuffled the ranking. Existing files are skipped by the renderer,
-    # so this only costs time for newly-promoted seeds.
-    biome_params = str(Path(__file__).resolve().parent / "biome_params.json")
-    if Path(biome_params).exists():
-        print("\nre-rendering top candidates (newly promoted seeds only)...")
-        for size, scale, _ in ((1024, 8, "normal"), (2048, 16, "hires")):
-            cmd = [sys.executable, str(Path(__file__).resolve().parent / "biome_renderer.py"),
-                   "batch", "--config", args.config, "--seedtest", args.seedtest,
-                   "--biome-params", biome_params,
-                   "--top", "10", "--size", str(size), "--scale", str(scale)]
-            if size == 2048:
-                cmd += ["--suffix", "_hires"]
-            subprocess.run(cmd)
-    else:
-        print("\nbiome_params.json not found — skipping render backfill")
+    # Renders are NOT triggered here — they run async in the viewer server
+    # (./dev seed-viewer), which lets the user see them as they come in.
+    # cmd_status warns when top-10 candidates are missing renders.
 
 
 def cmd_status(args, config, profiles):
