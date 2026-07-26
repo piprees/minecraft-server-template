@@ -973,9 +973,14 @@ def main():
                 continue
             radius = int(profile["radius"])
 
+            current_hash = store.get("configHash", "")
             scored = []
             for seed_str, cand in store["candidates"].items():
-                best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
+                scores = cand.get("scores", {})
+                if current_hash and current_hash in scores:
+                    best = scores[current_hash].get("total", 0)
+                else:
+                    best = max((s.get("total", 0) for s in scores.values()), default=0)
                 if best > 0:
                     scored.append((best, seed_str))
             scored.sort(reverse=True)
@@ -1034,9 +1039,14 @@ def main():
                     or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
                 biome_filter = config_biomes if config_biomes else None
 
+                current_hash = store.get("configHash", "")
                 scored = []
                 for seed_str, cand in store["candidates"].items():
-                    best = max((s.get("total", 0) for s in cand.get("scores", {}).values()), default=0)
+                    scores = cand.get("scores", {})
+                    if current_hash and current_hash in scores:
+                        best = scores[current_hash].get("total", 0)
+                    else:
+                        best = max((s.get("total", 0) for s in scores.values()), default=0)
                     if best > 0:
                         scored.append((best, seed_str))
                 scored.sort(reverse=True)
