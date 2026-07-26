@@ -43,7 +43,44 @@ If `seedRoll.mood` is omitted, `build_profile()` derives one: mob difficulty mul
 
 **`structures.wants` and `seedRoll.wants` are scored identically once resolved to a `(lo, hi)` block-distance window** (`want_range()` in `dimension_profiles.py` normalises both to the same shape) — the difference is purely in how the author writes them, not how the roller judges them. See the format-mismatch trap in the main SKILL.md; it's a config-authoring crash, not a scoring difference.
 
-### Want scoring (`want_score` in `score-dimensions.py`)
+## Structures: the census model (2026-07-26)
+
+Noise structure placement changed what a structure distance MEANS. Sets are no longer placed on their own vanilla grid — they are sorted into seven groups, biome-filtered, and each group is placed by its own noise field. "How far is the nearest village" stopped being a statement about the world, because the villages set does not have a grid any more; it has a share of the `settlements` group.
+
+So the structures component is now two views, combined in `census_scoring.py`:
+
+```
+structures = 0.6 * census + 0.4 * battery          (whichever exist)
+census     = mean over resolved groups of
+             0.7 * distribution_match + 0.3 * count_satisfaction
+```
+
+**`distribution_match(hist, radial)`** bins a group's census positions by radial decile, divides each bin by its **annulus area**, and takes the cosine similarity against the group's own radial curve. The area step is load-bearing: equal-width radial bins cover unequal areas, so a perfectly uniform layout puts more structures in the outer bins, and comparing raw counts to a flat curve would read that as a border bias. 1.0 means the layout realises the curve; an inverted layout (border-heavy against an `inner` curve) scores under 0.4; an empty group scores 0.2 — a mild penalty, not zero, because the dimension is still playable.
+
+**`count_satisfaction(count, radiusChunks)`** is a FLOOR, not a modelled expectation: `max(3, radiusChunks/16)`. Placement density is a nonlinear eligibility function thinned by a rank filter whose strength depends on local density, so any closed form would be a fitted constant wearing a derivation. The floor targets the failure that actually happened — a group that resolves and places nothing (`the_overgrowth` shipped with zero settlements before frequency scaling landed).
+
+**The battery is kept, not deleted**, because it is still exactly true for the sets noise never took over. Each entry is routed structure → set → group:
+
+| Battery entry | Scored by |
+| --- | --- |
+| Forced placement (`structures.force`) | The old positional `want_score`/`shun_score` — a forced position is exact |
+| Set in an ACTIVE noise group | Band occupancy from that group's histogram (`census_want_score`) |
+| Set in a group the dimension SUPPRESSED | The structure does not generate here: want 0.0, shun 1.0 |
+| Set noise never owned (custom placement type, unclassified) | The old positional scoring, unchanged |
+
+673 of the 676 battery entries across the shipped set map to a group. `structure-groups.json` supplies set → group; the structure → set map is rebuilt from the warmup extraction under `<seedtest>/.structure_sets`.
+
+**Dimensions with no noise groups keep the old model exactly** — `structureDensity: "none"`, `structures.noise: false`, voids, superflats and the four base worlds all fall through to the grid battery below, byte-for-byte as before. `the_dustbowl` scoring identically before and after is the regression that proves it.
+
+### The census is banked, not recomputed
+
+A census is a pure function of (seed, placement config), so it is computed once per candidate and cached in the candidate store under `noiseCensus`, keyed by `dimension_profiles.noise_fingerprint()` — the noise payload only, so a biome-list or `seedRoll` edit does NOT throw the cache away (only the generation fingerprint moves, and that means re-rolling anyway).
+
+Cost, 8 workers: ~370 pocket-dimension candidates in 5 s; ~200 candidates of a dimension at the 512-chunk radius cap in about 3 minutes. **A cold bank across every shipped dimension is roughly an hour**, dominated by the 21 dimensions at the cap, and free on every rescore after that. `seed-rescore` prints `noise census: computing N candidate layout(s)` when it is doing this — that line is why the first rescore after this change is slow and the second is instant.
+
+### Grid want scoring (`want_score` in `score-dimensions.py`)
+
+Still the model for everything above that noise does not own.
 
 - Inside `[lo, hi]`: 1.0, plus up to +0.1 "comfort bonus" for sitting near the range's centre.
 - Too close (`dist < lo`): scales from -0.5 at spawn up to 1.0 at `lo` — being found WAY too close actively costs points, not just zeroes them.

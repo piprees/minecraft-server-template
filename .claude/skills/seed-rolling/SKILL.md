@@ -38,7 +38,7 @@ Every candidate gets 0–100 from four weighted components (weights come from `M
 | **namesake** | Spawn biome matches `seedRoll.spawnFilter` (or first 4 config biomes if unset) | Full credit (1.0) only within 48 blocks of origin; partial credit scales down to 1024 blocks away; total absence within the 768-block sampling window rejects the candidate outright (see Zero candidates below) |
 | **variety** | Listed biomes actually locatable near spawn (`locate`-equivalent), proximity-weighted so fringe/border-only biomes don't inflate a monoculture | Sampled down to 8 evenly-spaced biomes for lists longer than 8 |
 | **terrain** | Relief / grain / water fraction from a 3×3 climate grid vs targets keyed by `noiseSettings` (`compressed` wants violence, `wide` wants gentle rolling, voids want zero land, islands want real gaps) | Mood shifts the targets: `hard`/`dramatic` want more relief, `serene`/`pastoral` want less |
-| **structures** | Every `want` scored by placement-band distance, every `shun` scored by absence/distance | A mob difficulty ≥ 2.0 shifts weight FROM namesake/variety INTO structures — dangerous worlds must be worth it |
+| **structures** | For a noise dimension: how well each group's radial spread matches its curve, plus whether the group is populated at all, plus wants/shuns answered from their group's histogram. For a suppressed one: the old want/shun distance battery | A mob difficulty ≥ 2.0 shifts weight FROM namesake/variety INTO structures — dangerous worlds must be worth it |
 
 A void dimension overrides the weights entirely (`namesake 30 / variety 55 / terrain 15 / structures 0` — there's no terrain to score). `clearSpawnRadius` (from `structures.clearSpawnRadius` or the mood default in `MOOD_CLEAR_SPAWN`) penalises any battery structure found too close to spawn regardless of its want range.
 
@@ -101,6 +101,31 @@ from a seeded noise field per structure GROUP, mirrored bit-for-bit in
   banker's rounding. The module docstring lists every such rule. Change
   `StructureNoise.java` / `NoiseFieldIndex.java` and `noise_placement.py`
   together, then re-run the parity test.
+
+### Scoring: `distribution_match`, not nearest distance
+
+`census_scoring.py` scores a seed's LAYOUT, because a nearest-instance
+distance no longer describes a world where whole groups share one noise
+field:
+
+```
+structures = 0.6 * census + 0.4 * battery
+census     = mean over groups of 0.7*distribution_match + 0.3*count_satisfaction
+```
+
+`distribution_match` bins each group's positions by radial decile, converts
+to a per-annulus DENSITY (equal-width bins cover unequal areas) and cosine-
+compares that with the group's radial curve. Wants and shuns still count,
+answered from their owning group's histogram — except for forced placements
+and the sets that keep grid placement, which stay positional because for
+them the old model is still true. A dimension with no noise groups scores
+exactly as it did before.
+
+Censuses are **banked per candidate** (`noiseCensus`, keyed by
+`noise_fingerprint()`), so the first `seed-rescore` after this change prints
+`noise census: computing N candidate layout(s)` and takes about an hour over
+a full bank; every rescore after it is free. Full detail:
+`references/scoring-model.md`.
 
 ### Fingerprint impact — expect a wave of DRIFTED
 
