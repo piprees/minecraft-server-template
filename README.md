@@ -6,7 +6,7 @@ Runs Fabric on Docker (`itzg/minecraft-server`) with ~150 pinned server mods (Te
 
 [![Deploy Minecraft Server](../../actions/workflows/deploy-reusable.yml/badge.svg)](../../actions/workflows/deploy-reusable.yml)
 
-> **AI agents:** read [`AGENTS.md`](AGENTS.md) before making any changes. It has the constraints, architecture traps, and access details that apply to every task.
+> **AI agents:** read [`AGENTS.md`](AGENTS.md) before making any changes. It has the constraints and access details that apply to every task, and points at [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) for every known problem.
 >
 > **Commands:** see [`COMMANDS.md`](COMMANDS.md) for in-game commands, RCON recipes, and Discord `/mc` commands.
 
@@ -84,7 +84,7 @@ Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/vi
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v1` to track the latest v1.x.y):
+Bump `STACK_VERSION` in `.env` (or leave it as `v3` to track the latest v3.x.y):
 
 ```bash
 ./dev update                     # re-pulls the bundle + Docker images
@@ -104,7 +104,7 @@ Each GitHub release `vX.Y.Z` on this repo:
 - **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
 - **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 
-Consumers pinning `STACK_VERSION=v1` automatically receive minor and patch updates. See [docs/releasing.md](docs/releasing.md) for the full release process and pipeline details.
+Consumers pinning `STACK_VERSION=v3` automatically receive minor and patch updates. See [docs/releasing.md](docs/releasing.md) for the full release process and pipeline details.
 
 ## Architecture
 
@@ -165,7 +165,7 @@ Three layers, one direction of truth:
 ### Example `.env` settings
 
 ```bash
-STACK_VERSION=v1
+STACK_VERSION=v3
 BRAND_NAME="My Server"
 MC_VERSION=1.21.1
 SEED=your_seed
@@ -187,7 +187,8 @@ This is the **platform repo** — it builds and publishes images, the stack bund
 
 ```
 .
-├── AGENTS.md                        # AI agent constraints, traps, and access — read first
+├── AGENTS.md                        # AI agent constraints and access — read first
+├── TROUBLESHOOTING.md               # Every known trap, quirk, and open issue (T/P/D/K ids)
 ├── COMMANDS.md                      # Command reference (player, admin, RCON, Discord)
 ├── README.md                        # This file
 ├── docker/                          # Dockerfiles for all published GHCR images
@@ -227,7 +228,6 @@ Scripts fall into three categories depending on where they live and who runs the
 | `initial-setup.sh` | server | First boot: restic init, config seed, image pull |
 | `deploy.sh` | server (CI) | The deploy: countdown → kick → restart → config sync → rules → whitelist |
 | `setup-permissions.sh` | server | LuckPerms groups/permissions via RCON (called by deploy.sh) |
-| `setup-dimensions.sh` | _(removed)_ | Replaced by mod-owned boot-time creation from `config/multiverse_config.json` |
 | `cloudflare-setup.sh` | Mac | Tunnel + A/SRV/CNAME records + R2 bucket + maintenance Worker |
 | `infra-deploy.sh` | server (CI) | Infra-tier deploy: pull + recreate sidecars without touching mc |
 | `github-env-sync.sh` | Mac | Create GitHub production environment, push secrets/vars from .env |
@@ -269,6 +269,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `client-defaults.sh`         | Diff/sync shipped client defaults against the source Prism instance |
 | `test-scripts.sh`            | shellcheck + py_compile + compose validation                        |
 | `build-stack-bundle.sh`      | Assemble the release tarball                                        |
+| `sync-mod-cache.sh`          | Reconcile `mods-cache/` against the pinned mod lists (`--apply`)   |
 
 Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
 
@@ -352,11 +353,11 @@ Troubleshooting:
 
 ### Backups
 
-Automatic every **6h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency. Retention: 3 daily, 1 weekly, 1 monthly (fits R2's free 10GB). Override the interval with `BACKUP_INTERVAL`.
+Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency. Retention: 3 daily, 1 weekly, 1 monthly (fits R2's free 10GB). Override the interval with `BACKUP_INTERVAL`.
 
-**Size cap + Discord notify**: after every backup, if the restic repo's raw size still exceeds `BACKUP_SIZE_CAP_GIB` (default 10) despite retention, the oldest snapshot is forgotten and pruned — repeated until it fits, but never below one snapshot (a genuinely oversized world keeps one copy and the notification carries a warning instead of silently deleting your only backup). Every run posts to `DISCORD_WEBHOOK_URL` if set: backup OK with the current size and snapshot count, or backup failed with the exit code. Restic's hostname is brand-scoped (`${BRAND_SLUG}-mc-backup`) so retention groups correctly across deploys — see AGENTS.md trap #14 if snapshot counts ever look wrong.
+**Size cap + Discord notify**: after every backup, if the restic repo's raw size still exceeds `BACKUP_SIZE_CAP_GIB` (default 10) despite retention, the oldest snapshot is forgotten and pruned — repeated until it fits, but never below one snapshot (a genuinely oversized world keeps one copy and the notification carries a warning instead of silently deleting your only backup). Every run posts to `DISCORD_WEBHOOK_URL` if set: backup OK with the current size and snapshot count, or backup failed with the exit code. Restic's hostname is brand-scoped (`${BRAND_SLUG}-mc-backup`) so retention groups correctly across deploys — see [TROUBLESHOOTING.md#t14](TROUBLESHOOTING.md#t14) if snapshot counts ever look wrong.
 
-**Excludes** (regenerable data): `bluemap`, `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`. Only world, player data, and config are backed up.
+**Excludes** (regenerable data): `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`. Only world, player data, and config are backed up.
 
 ```bash
 ./ops backup                                     # manual backup
@@ -369,7 +370,7 @@ docker logs mc-backup --tail 50                      # verify (look for "snapsho
 docker compose --profile cloud down
 export RESTIC_REPOSITORY="s3:https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}"
 export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" RESTIC_PASSWORD
-restic snapshots --last 5
+restic snapshots --latest 5
 restic restore latest --target /tmp/mc-restore       # or a specific snapshot ID
 rsync -av /tmp/mc-restore/data/ ./data/ && rm -rf /tmp/mc-restore
 docker compose --profile cloud up -d
@@ -406,7 +407,7 @@ RCON is never exposed publicly — it only exists inside the Docker network, rea
 
 ### Reset the world (launch events)
 
-`./ops reset-seed <seed>` — backs up (restic + tar), stops the stack, deletes world/BlueMap/Chunky/DH data, updates the seed, and restarts. Triple-confirmed and prints undo instructions. Commit `.env` afterwards.
+`./ops reset-seed <seed>` — backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates the seed, and restarts. Triple-confirmed and prints undo instructions. Commit `.env` afterwards.
 
 ## Contributing
 
@@ -429,7 +430,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checkl
 
 ## Troubleshooting
 
-See [docs/troubleshooting.md](docs/troubleshooting.md) for the full diagnostic guide covering server startup, connections, backups, voice chat, BlueMap, Uptime Kuma, Discord, and performance.
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for traps, platform quirks, and open issues, with a symptom index and permanent per-entry anchors.
 
 ## More documentation
 

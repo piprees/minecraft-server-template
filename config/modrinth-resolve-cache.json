@@ -1,1 +1,626 @@
-{}
+{
+ "3d-placeable-food:F9DGEOfs": {
+  "filename": "3d_placeable_food-2.0.0-fabric-1.21-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/MFgnFY8Z/versions/F9DGEOfs/3d_placeable_food-2.0.0-fabric-1.21-1.21.1.jar"
+ },
+ "adventure-dungeons:EIun1fbq": {
+  "filename": "adventuredungeons-fabric-1.21-1.3.1.jar",
+  "url": "https://cdn.modrinth.com/data/ADHjiwby/versions/EIun1fbq/adventuredungeons-fabric-1.21-1.3.1.jar"
+ },
+ "almanac:hUgNmeCO": {
+  "filename": "Almanac-1.21.1-2-fabric-1.5.2.jar",
+  "url": "https://cdn.modrinth.com/data/Gi02250Z/versions/hUgNmeCO/Almanac-1.21.1-2-fabric-1.5.2.jar"
+ },
+ "amendments:eDkdvpvV": {
+  "filename": "amendments-fabric-1.21-2.1.7.jar",
+  "url": "https://cdn.modrinth.com/data/6iTJugQR/versions/eDkdvpvV/amendments-fabric-1.21-2.1.7.jar"
+ },
+ "animal_feeding_trough:BgW2cRLu": {
+  "filename": "animal_feeding_trough-1.1.2+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/bRFWnJ87/versions/BgW2cRLu/animal_feeding_trough-1.1.2%2B1.21.1.jar"
+ },
+ "appleskin:b5ZiCjAr": {
+  "filename": "appleskin-fabric-mc1.21-3.0.6.jar",
+  "url": "https://cdn.modrinth.com/data/EsAfCjCV/versions/b5ZiCjAr/appleskin-fabric-mc1.21-3.0.6.jar"
+ },
+ "architectury-api:Wto0RchG": {
+  "filename": "architectury-13.0.8-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/lhGA9TYQ/versions/Wto0RchG/architectury-13.0.8-fabric.jar"
+ },
+ "artifacts:WTnRdeH6": {
+  "filename": "artifacts-fabric-13.2.1.jar",
+  "url": "https://cdn.modrinth.com/data/P0Mu4wcQ/versions/WTnRdeH6/artifacts-fabric-13.2.1.jar"
+ },
+ "athena-ctm:JfyYsWKP": {
+  "filename": "athena-fabric-1.21.1-4.0.6.jar",
+  "url": "https://cdn.modrinth.com/data/b1ZV3DIJ/versions/JfyYsWKP/athena-fabric-1.21.1-4.0.6.jar"
+ },
+ "ati-structures-fabricforge:K7cpaKjN": {
+  "filename": "ATi Structures V1.4.4 (1.21+).zip",
+  "url": "https://cdn.modrinth.com/data/bii8qPSt/versions/K7cpaKjN/ATi%20Structures%20V1.4.4%20%281.21%2B%29.zip"
+ },
+ "attributefix?:XwbErf6s": {
+  "filename": "attributefix-fabric-1.21.1-21.1.3.jar",
+  "url": "https://cdn.modrinth.com/data/lOOpEntO/versions/XwbErf6s/attributefix-fabric-1.21.1-21.1.3.jar"
+ },
+ "beautiful-enchanted-books-mod-edition:kcGH3Tr5": {
+  "filename": "BEB-Fabric-1.21-6.0.0.jar",
+  "url": "https://cdn.modrinth.com/data/pcqEicMM/versions/kcGH3Tr5/BEB-Fabric-1.21-6.0.0.jar"
+ },
+ "better-combat:JJQpBecL": {
+  "filename": "bettercombat-fabric-2.4.0+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/5sy6g3kz/versions/JJQpBecL/bettercombat-fabric-2.4.0%2B1.21.1.jar"
+ },
+ "betterdays:dTNbe6uN": {
+  "filename": "betterdays-1.21.1-3.3.6.3-FABRIC.jar",
+  "url": "https://cdn.modrinth.com/data/tPLE214j/versions/dTNbe6uN/betterdays-1.21.1-3.3.6.3-FABRIC.jar"
+ },
+ "betterspawn:I0Kiorjk": {
+  "filename": "betterspawn-1.0.7-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/I3GVrHsq/versions/I0Kiorjk/betterspawn-1.0.7-1.21.1.jar"
+ },
+ "bookshelf-lib:kpkjWpa5": {
+  "filename": "bookshelf-fabric-1.21.1-21.1.81.jar",
+  "url": "https://cdn.modrinth.com/data/uy4Cnpcm/versions/kpkjWpa5/bookshelf-fabric-1.21.1-21.1.81.jar"
+ },
+ "boring-default-game-rules:4cRPF0s7": {
+  "filename": "boring_default_game_rules-1.2.1+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/kHR1aAVN/versions/4cRPF0s7/boring_default_game_rules-1.2.1%2B1.21.1.jar"
+ },
+ "borrow-their-arrows:Qq8BwuBw": {
+  "filename": "borrow their arrows! 1.0.zip",
+  "url": "https://cdn.modrinth.com/data/ok6danK8/versions/Qq8BwuBw/borrow%20their%20arrows%21%201.0.zip"
+ },
+ "bouncier-beds:2u5kjJ75": {
+  "filename": "bouncierbeds-1.21.1-2.5.jar",
+  "url": "https://cdn.modrinth.com/data/DqIJgy14/versions/2u5kjJ75/bouncierbeds-1.21.1-2.5.jar"
+ },
+ "bountiful:LFm1BWOE": {
+  "filename": "bountiful-fabric-8.0.0-beta.2.jar",
+  "url": "https://cdn.modrinth.com/data/BpwWFOVM/versions/LFm1BWOE/bountiful-fabric-8.0.0-beta.2.jar"
+ },
+ "c2me-fabric:GC7ouKxZ": {
+  "filename": "c2me-fabric-mc1.21.1-0.4.0-alpha.0.19.jar",
+  "url": "https://cdn.modrinth.com/data/VSNURh3q/versions/GC7ouKxZ/c2me-fabric-mc1.21.1-0.4.0-alpha.0.19.jar"
+ },
+ "carpet:f2mvlGrg": {
+  "filename": "fabric-carpet-1.21-1.4.147+v240613.jar",
+  "url": "https://cdn.modrinth.com/data/TQTTVgYE/versions/f2mvlGrg/fabric-carpet-1.21-1.4.147%2Bv240613.jar"
+ },
+ "carry-on:eFWFmwmL": {
+  "filename": "carryon-fabric-1.21.1-2.2.5.8.jar",
+  "url": "https://cdn.modrinth.com/data/joEfVgkn/versions/eFWFmwmL/carryon-fabric-1.21.1-2.2.5.8.jar"
+ },
+ "charm-of-undying:RX60LMvX": {
+  "filename": "charmofundying-fabric-9.1.0+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/b5GyyYkp/versions/RX60LMvX/charmofundying-fabric-9.1.0%2B1.21.1.jar"
+ },
+ "chipped:6h2mVZcb": {
+  "filename": "chipped-fabric-1.21.1-4.0.2.jar",
+  "url": "https://cdn.modrinth.com/data/BAscRYKm/versions/6h2mVZcb/chipped-fabric-1.21.1-4.0.2.jar"
+ },
+ "chunky:RVFHfo1D": {
+  "filename": "Chunky-Fabric-1.4.23.jar",
+  "url": "https://cdn.modrinth.com/data/fALzjamp/versions/RVFHfo1D/Chunky-Fabric-1.4.23.jar"
+ },
+ "chunkyborder:uT1cdd3k": {
+  "filename": "ChunkyBorder-1.2.18.jar",
+  "url": "https://cdn.modrinth.com/data/s86X568j/versions/uT1cdd3k/ChunkyBorder-1.2.18.jar"
+ },
+ "clumps:3ene3W1l": {
+  "filename": "Clumps-fabric-1.21.1-19.0.0.1.jar",
+  "url": "https://cdn.modrinth.com/data/Wnxd13zP/versions/3ene3W1l/Clumps-fabric-1.21.1-19.0.0.1.jar"
+ },
+ "collective:4XRlrKGN": {
+  "filename": "collective-1.21.1-8.39.jar",
+  "url": "https://cdn.modrinth.com/data/e0M1UDsY/versions/4XRlrKGN/collective-1.21.1-8.39.jar"
+ },
+ "comforts:LUPOTXbk": {
+  "filename": "comforts-fabric-9.0.5+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/SaCpeal4/versions/LUPOTXbk/comforts-fabric-9.0.5%2B1.21.1.jar"
+ },
+ "configured-defaults:DsINYFQi": {
+  "filename": "ConfiguredDefaults-v21.1.3-1.21.1-Fabric.jar",
+  "url": "https://cdn.modrinth.com/data/SISoSFPP/versions/DsINYFQi/ConfiguredDefaults-v21.1.3-1.21.1-Fabric.jar"
+ },
+ "creeper-overhaul:O6yuPiE8": {
+  "filename": "CreeperOverhaul-fabric-1.21.1-4.0.6.jar",
+  "url": "https://cdn.modrinth.com/data/MI1LWe93/versions/O6yuPiE8/CreeperOverhaul-fabric-1.21.1-4.0.6.jar"
+ },
+ "cristel-lib:K1dyr5gj": {
+  "filename": "cristellib-fabric-1.21.1-3.1.7.jar",
+  "url": "https://cdn.modrinth.com/data/cl223EMc/versions/K1dyr5gj/cristellib-fabric-1.21.1-3.1.7.jar"
+ },
+ "critters-and-companions:YuM4Jtu5": {
+  "filename": "crittersandcompanions-fabric-1.21.1-2.4.1.jar",
+  "url": "https://cdn.modrinth.com/data/Yd4wb5wZ/versions/YuM4Jtu5/crittersandcompanions-fabric-1.21.1-2.4.1.jar"
+ },
+ "dcintegration:I3kp6jxL": {
+  "filename": "dcintegration-fabric-3.0.7.2-1.21.jar",
+  "url": "https://cdn.modrinth.com/data/rbJ7eS5V/versions/I3kp6jxL/dcintegration-fabric-3.0.7.2-1.21.jar"
+ },
+ "deadly-deadly-dungeon:MlHPA0g5": {
+  "filename": "deadly-deadly-dungeon-1.0.4.jar",
+  "url": "https://cdn.modrinth.com/data/H1POBnTh/versions/MlHPA0g5/deadly-deadly-dungeon-1.0.4.jar"
+ },
+ "deimos:mxzk31z4": {
+  "filename": "deimos-1.21.1-fabric-2.7.jar",
+  "url": "https://cdn.modrinth.com/data/WQaxNzFg/versions/mxzk31z4/deimos-1.21.1-fabric-2.7.jar"
+ },
+ "distanthorizons:ZpKb4kZp": {
+  "filename": "DistantHorizons-3.2.0-b-1.21.1-fabric-neoforge.jar",
+  "url": "https://cdn.modrinth.com/data/uCdwusMi/versions/ZpKb4kZp/DistantHorizons-3.2.0-b-1.21.1-fabric-neoforge.jar"
+ },
+ "double-doors:KgGapm4H": {
+  "filename": "doubledoors-1.21.1-7.2.jar",
+  "url": "https://cdn.modrinth.com/data/JrvR9OHr/versions/KgGapm4H/doubledoors-1.21.1-7.2.jar"
+ },
+ "dramatic-doors:X5oMCwaA": {
+  "filename": "DramaticDoors-NeoQuiFab-1.21.1-3.3.2.jar",
+  "url": "https://cdn.modrinth.com/data/aQ7h7gal/versions/X5oMCwaA/DramaticDoors-NeoQuiFab-1.21.1-3.3.2.jar"
+ },
+ "dungeons+:m8RPwRlg": {
+  "filename": "dungeons+-1.10.1.jar",
+  "url": "https://cdn.modrinth.com/data/nHORcEHd/versions/m8RPwRlg/dungeons%2B-1.10.1.jar"
+ },
+ "dungeons-and-taverns:EUlNXs9V": {
+  "filename": "dungeons-and-taverns-v4.4.4.jar",
+  "url": "https://cdn.modrinth.com/data/tpehi7ww/versions/EUlNXs9V/dungeons-and-taverns-v4.4.4.jar"
+ },
+ "dungeonsreborn:PIK4U4ip": {
+  "filename": "dungeons_reborn-0.2.0-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/PQBSg5Tz/versions/PIK4U4ip/dungeons_reborn-0.2.0-1.21.1.jar"
+ },
+ "easy-elytra-takeoff:7JjYvNu3": {
+  "filename": "easyelytratakeoff-1.21.1-4.5.jar",
+  "url": "https://cdn.modrinth.com/data/3hqwGCUB/versions/7JjYvNu3/easyelytratakeoff-1.21.1-4.5.jar"
+ },
+ "elytra-slot:jxx2pc4h": {
+  "filename": "elytraslot-fabric-9.0.1+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/mSQF1NpT/versions/jxx2pc4h/elytraslot-fabric-9.0.1%2B1.21.1.jar"
+ },
+ "enchanting-commands:1LHfij4k": {
+  "filename": "enchantingcommands-1.21.1-3.6.jar",
+  "url": "https://cdn.modrinth.com/data/w8ljvewX/versions/1LHfij4k/enchantingcommands-1.21.1-3.6.jar"
+ },
+ "enchantment-descriptions:YSJWkwEM": {
+  "filename": "enchdesc-fabric-1.21.1-21.1.10.jar",
+  "url": "https://cdn.modrinth.com/data/UVtY3ZAC/versions/YSJWkwEM/enchdesc-fabric-1.21.1-21.1.10.jar"
+ },
+ "ender-dragon-destroys-end-island:19ntjDUW": {
+  "filename": "enderdragondestroysendisland-2.2.2+mc1.21-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/hsDp2t4Z/versions/19ntjDUW/enderdragondestroysendisland-2.2.2%2Bmc1.21-fabric.jar"
+ },
+ "epic-structures-dungeons:enEtoyym": {
+  "filename": "Epic Dungeons 1.2.3.jar",
+  "url": "https://cdn.modrinth.com/data/t0YT91nL/versions/enEtoyym/Epic%20Dungeons%201.2.3.jar"
+ },
+ "essential-commands:kev3hDqV": {
+  "filename": "essential_commands-0.35.2-mc1.21.jar",
+  "url": "https://cdn.modrinth.com/data/6VdDUivB/versions/kev3hDqV/essential_commands-0.35.2-mc1.21.jar"
+ },
+ "expanded-bow-enchanting:yAnAJwGZ": {
+  "filename": "expanded-bow-enchanting-1.1.2.jar",
+  "url": "https://cdn.modrinth.com/data/5GZUvxmB/versions/yAnAJwGZ/expanded-bow-enchanting-1.1.2.jar"
+ },
+ "explorers-compass:qSRKiE4D": {
+  "filename": "ExplorersCompass-1.21.1-2.6.0-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/RV1qfVQ8/versions/qSRKiE4D/ExplorersCompass-1.21.1-2.6.0-fabric.jar"
+ },
+ "explorify:CuBdAr31": {
+  "filename": "Explorify v1.6.5.mod.jar",
+  "url": "https://cdn.modrinth.com/data/HSfsxuTo/versions/CuBdAr31/Explorify%20v1.6.5.mod.jar"
+ },
+ "fabric-api:aUrTRV7H": {
+  "filename": "fabric-api-0.116.14+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/aUrTRV7H/fabric-api-0.116.14%2B1.21.1.jar"
+ },
+ "fabric-language-kotlin:bdhiINYC": {
+  "filename": "fabric-language-kotlin-1.13.13+kotlin.2.4.10.jar",
+  "url": "https://cdn.modrinth.com/data/Ha28R6CL/versions/bdhiINYC/fabric-language-kotlin-1.13.13%2Bkotlin.2.4.10.jar"
+ },
+ "fabric-seasons-delight-compat:KIzyS8hk": {
+  "filename": "fabric-seasons-delight-1.3.9-compat-1.0.jar",
+  "url": "https://cdn.modrinth.com/data/4VYO7ir0/versions/KIzyS8hk/fabric-seasons-delight-1.3.9-compat-1.0.jar"
+ },
+ "fabric-seasons-extras:W9dvZHrP": {
+  "filename": "fabric-seasons-extras-1.3.2-BETA+1.21.jar",
+  "url": "https://cdn.modrinth.com/data/64FYdx5z/versions/W9dvZHrP/fabric-seasons-extras-1.3.2-BETA%2B1.21.jar"
+ },
+ "fabric-seasons-terralith-compat:MJ2OF7eg": {
+  "filename": "fabric-seasons-terralith-2.3.7-compat-1.0.jar",
+  "url": "https://cdn.modrinth.com/data/D53qveoj/versions/MJ2OF7eg/fabric-seasons-terralith-2.3.7-compat-1.0.jar"
+ },
+ "fabric-seasons:2mIvRTNp": {
+  "filename": "fabric-seasons-2.4.2-BETA+1.21.jar",
+  "url": "https://cdn.modrinth.com/data/KJe6y9Eu/versions/2mIvRTNp/fabric-seasons-2.4.2-BETA%2B1.21.jar"
+ },
+ "fallingtree:wxGXaJMA": {
+  "filename": "FallingTree-1.21.1-1.21.1.11.jar",
+  "url": "https://cdn.modrinth.com/data/Fb4jn8m6/versions/wxGXaJMA/FallingTree-1.21.1-1.21.1.11.jar"
+ },
+ "farmers-delight-refabricated:NCLOIK5z": {
+  "filename": "FarmersDelight-1.21.1-3.3.3+refabricated.jar",
+  "url": "https://cdn.modrinth.com/data/7vxePowz/versions/NCLOIK5z/FarmersDelight-1.21.1-3.3.3%2Brefabricated.jar"
+ },
+ "ferrite-core:sOzRw3CG": {
+  "filename": "ferritecore-7.0.3-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/sOzRw3CG/ferritecore-7.0.3-fabric.jar"
+ },
+ "fire-arrows-ignite-fire:aacuCUt5": {
+  "filename": "firearrows-fabric-1.21.1-13.3.jar",
+  "url": "https://cdn.modrinth.com/data/NoajjpZQ/versions/aacuCUt5/firearrows-fabric-1.21.1-13.3.jar"
+ },
+ "fire-spread-tweaks:fAAi76Fv": {
+  "filename": "firespreadtweaks-1.21.1-2.8.jar",
+  "url": "https://cdn.modrinth.com/data/vgI7KTun/versions/fAAi76Fv/firespreadtweaks-1.21.1-2.8.jar"
+ },
+ "forge-config-api-port:N5qzq0XV": {
+  "filename": "ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar",
+  "url": "https://cdn.modrinth.com/data/ohNO6lps/versions/N5qzq0XV/ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar"
+ },
+ "friends-and-foes:SJvhiYGe": {
+  "filename": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/POQ2i9zu/versions/SJvhiYGe/friendsandfoes-fabric-4.0.26%2Bmc1.21.1.jar"
+ },
+ "geckolib:dnJdtm0u": {
+  "filename": "geckolib-fabric-1.21.1-4.9.2.jar",
+  "url": "https://cdn.modrinth.com/data/8BmcQJ2H/versions/dnJdtm0u/geckolib-fabric-1.21.1-4.9.2.jar"
+ },
+ "geophilic:jDzSPLta": {
+  "filename": "Geophilic v3.6.mod.jar",
+  "url": "https://cdn.modrinth.com/data/hl5OLM95/versions/jDzSPLta/Geophilic%20v3.6.mod.jar"
+ },
+ "grabby-mobs:a40un6os": {
+  "filename": "grabbymobs-1.21.1-1.6.jar",
+  "url": "https://cdn.modrinth.com/data/O6Sh7btX/versions/a40un6os/grabbymobs-1.21.1-1.6.jar"
+ },
+ "ground-clear:tf5mozqp": {
+  "filename": "groudclear-1.0.0.jar",
+  "url": "https://cdn.modrinth.com/data/Xx5qH7f2/versions/tf5mozqp/groudclear-1.0.0.jar"
+ },
+ "guard-villagers-(fabricquilt):ea8J4gbH": {
+  "filename": "guardvillagers-2.1.2-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/59rkB3YY/versions/ea8J4gbH/guardvillagers-2.1.2-1.21.1.jar"
+ },
+ "handcrafted:f0pKpUWd": {
+  "filename": "handcrafted-fabric-1.21.1-4.0.3.jar",
+  "url": "https://cdn.modrinth.com/data/pJmCFF0p/versions/f0pKpUWd/handcrafted-fabric-1.21.1-4.0.3.jar"
+ },
+ "healing-campfire:OQXaaklM": {
+  "filename": "healingcampfire-1.21.1-6.3.jar",
+  "url": "https://cdn.modrinth.com/data/kOuPUitF/versions/OQXaaklM/healingcampfire-1.21.1-6.3.jar"
+ },
+ "hide-invis-msgs:t2fMQNrr": {
+  "filename": "hideinvismsgs-1.0.jar",
+  "url": "https://cdn.modrinth.com/data/kKHaHIUL/versions/t2fMQNrr/hideinvismsgs-1.0.jar"
+ },
+ "immersive-armors:4m0lwLNO": {
+  "filename": "immersive_armors-1.7.6+1.21.1-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/eE2Db4YU/versions/4m0lwLNO/immersive_armors-1.7.6%2B1.21.1-fabric.jar"
+ },
+ "incendium:7mVvV9Th": {
+  "filename": "Incendium_1.21.x_v5.4.4.jar",
+  "url": "https://cdn.modrinth.com/data/ZVzW5oNS/versions/7mVvV9Th/Incendium_1.21.x_v5.4.4.jar"
+ },
+ "inmis:iE11BIfP": {
+  "filename": "inmis-2.8.2-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/I0UYcPa0/versions/iE11BIfP/inmis-2.8.2-1.21.1.jar"
+ },
+ "kambrik:eMIEIbFZ": {
+  "filename": "kambrik-fabric-8.0.0-beta.2.jar",
+  "url": "https://cdn.modrinth.com/data/zfbCkvdZ/versions/eMIEIbFZ/kambrik-fabric-8.0.0-beta.2.jar"
+ },
+ "krypton:Acz3ttTp": {
+  "filename": "krypton-0.2.8.jar",
+  "url": "https://cdn.modrinth.com/data/fQEb0iXm/versions/Acz3ttTp/krypton-0.2.8.jar"
+ },
+ "ledger:t1AtqfxZ": {
+  "filename": "ledger-1.3.5.jar",
+  "url": "https://cdn.modrinth.com/data/LVN9ygNV/versions/t1AtqfxZ/ledger-1.3.5.jar"
+ },
+ "lets-do-vinery:BV45cdzS": {
+  "filename": "letsdo-vinery-fabric-1.5.3.jar",
+  "url": "https://cdn.modrinth.com/data/1DWmBJVA/versions/BV45cdzS/letsdo-vinery-fabric-1.5.3.jar"
+ },
+ "lithium:N08Z8wog": {
+  "filename": "lithium-fabric-0.15.4+mc1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/N08Z8wog/lithium-fabric-0.15.4%2Bmc1.21.1.jar"
+ },
+ "lithostitched:JWtSqSeY": {
+  "filename": "lithostitched-1.7.13-fabric-21.1.jar",
+  "url": "https://cdn.modrinth.com/data/XaDC71GB/versions/JWtSqSeY/lithostitched-1.7.13-fabric-21.1.jar"
+ },
+ "lmd:Wb7jqi55": {
+  "filename": "letmedespawn-1.21.x-fabric-1.5.0.jar",
+  "url": "https://cdn.modrinth.com/data/vE2FN5qn/versions/Wb7jqi55/letmedespawn-1.21.x-fabric-1.5.0.jar"
+ },
+ "lootr:uapIrG9e": {
+  "filename": "lootr-fabric-1.21.1-1.11.37.122.jar",
+  "url": "https://cdn.modrinth.com/data/EltpO5cN/versions/uapIrG9e/lootr-fabric-1.21.1-1.11.37.122.jar"
+ },
+ "luckperms:l47d4ZWk": {
+  "filename": "LuckPerms-Fabric-5.4.140.jar",
+  "url": "https://cdn.modrinth.com/data/Vebnzrzj/versions/l47d4ZWk/LuckPerms-Fabric-5.4.140.jar"
+ },
+ "macaws-bridges:pl1CA7dW": {
+  "filename": "mcw-bridges-3.1.2-mc1.21.1fabric.jar",
+  "url": "https://cdn.modrinth.com/data/GURcjz8O/versions/pl1CA7dW/mcw-bridges-3.1.2-mc1.21.1fabric.jar"
+ },
+ "macaws-doors:Zsfvgzu6": {
+  "filename": "mcw-doors-1.1.5-mc1.21.1fabric.jar",
+  "url": "https://cdn.modrinth.com/data/kNxa8z3e/versions/Zsfvgzu6/mcw-doors-1.1.5-mc1.21.1fabric.jar"
+ },
+ "macaws-furniture:x2pXgG0s": {
+  "filename": "mcw-furniture-3.4.1-mc1.21.1fabric.jar",
+  "url": "https://cdn.modrinth.com/data/dtWC90iB/versions/x2pXgG0s/mcw-furniture-3.4.1-mc1.21.1fabric.jar"
+ },
+ "macaws-roofs:BgPUaaiV": {
+  "filename": "mcw-roofs-2.3.2-mc1.21.1fabric.jar",
+  "url": "https://cdn.modrinth.com/data/B8jaH3P1/versions/BgPUaaiV/mcw-roofs-2.3.2-mc1.21.1fabric.jar"
+ },
+ "mes-moogs-end-structures:JW80uvhz": {
+  "filename": "MoogsEndStructures-1.21-2.0.3.jar",
+  "url": "https://cdn.modrinth.com/data/r4PuRGfV/versions/JW80uvhz/MoogsEndStructures-1.21-2.0.3.jar"
+ },
+ "mns-moogs-nether-structures:RFeEhpv4": {
+  "filename": "MoogsNetherStructures-1.21-3.0.0.jar",
+  "url": "https://cdn.modrinth.com/data/nGUXvjTa/versions/RFeEhpv4/MoogsNetherStructures-1.21-3.0.0.jar"
+ },
+ "modernfix:NnNX8LBn": {
+  "filename": "modernfix-fabric-5.25.1+mc1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/nmDcB62a/versions/NnNX8LBn/modernfix-fabric-5.25.1%2Bmc1.21.1.jar"
+ },
+ "moogs-structure-lib:6YYQZweF": {
+  "filename": "moogs_structures-fabric-1.21.1-3.0.3.jar",
+  "url": "https://cdn.modrinth.com/data/1oUDhxuy/versions/6YYQZweF/moogs_structures-fabric-1.21.1-3.0.3.jar"
+ },
+ "moogs-voyager-structures:uEZeTQ4b": {
+  "filename": "MoogsVoyagerStructures-1.21-5.0.14.jar",
+  "url": "https://cdn.modrinth.com/data/OQAgZMH1/versions/uEZeTQ4b/MoogsVoyagerStructures-1.21-5.0.14.jar"
+ },
+ "moonlight:OtIOgMN8": {
+  "filename": "moonlight-fabric-1.21.1-3.1.1.jar",
+  "url": "https://cdn.modrinth.com/data/twkfQtEc/versions/OtIOgMN8/moonlight-fabric-1.21.1-3.1.1.jar"
+ },
+ "more-villagers-re-employed:6A4P2wqq": {
+  "filename": "MoreVillagers-Re-1.21.1-fabric-1.25.12.4.jar",
+  "url": "https://cdn.modrinth.com/data/1fOqTPRO/versions/6A4P2wqq/MoreVillagers-Re-1.21.1-fabric-1.25.12.4.jar"
+ },
+ "mss-moogs-soaring-structures:i1RQPVjQ": {
+  "filename": "MoogsSoaringStructures-1.21-2.1.2.jar",
+  "url": "https://cdn.modrinth.com/data/RJCLIx7k/versions/i1RQPVjQ/MoogsSoaringStructures-1.21-2.1.2.jar"
+ },
+ "mtr-moogs-temples-reimagined:pI3PZZrR": {
+  "filename": "MoogsTemplesReimagined-1.21-1.1.3.jar",
+  "url": "https://cdn.modrinth.com/data/UNanzCXS/versions/pI3PZZrR/MoogsTemplesReimagined-1.21-1.1.3.jar"
+ },
+ "name-tag-tweaks:IFWMImfs": {
+  "filename": "nametagtweaks-1.21.1-4.1.jar",
+  "url": "https://cdn.modrinth.com/data/LrLZEnPl/versions/IFWMImfs/nametagtweaks-1.21.1-4.1.jar"
+ },
+ "natures-compass:dtrDpgsF": {
+  "filename": "NaturesCompass-1.21.1-2.6.0-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/fPetb5Kh/versions/dtrDpgsF/NaturesCompass-1.21.1-2.6.0-fabric.jar"
+ },
+ "natures-spirit:TRMapjpU": {
+  "filename": "naturespirit-2.2.5-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/WBvnqHfV/versions/TRMapjpU/naturespirit-2.2.5-1.21.1.jar"
+ },
+ "no-animal-tempt-delay:NA7TkDk6": {
+  "filename": "noanimaltemptdelay-1.21.1-1.2.jar",
+  "url": "https://cdn.modrinth.com/data/7YM5AXYm/versions/NA7TkDk6/noanimaltemptdelay-1.21.1-1.2.jar"
+ },
+ "no-chat-reports:D8K0KJXM": {
+  "filename": "NoChatReports-FABRIC-1.21.1-v2.9.1.jar",
+  "url": "https://cdn.modrinth.com/data/qQyHxfxd/versions/D8K0KJXM/NoChatReports-FABRIC-1.21.1-v2.9.1.jar"
+ },
+ "noisium:4sGQgiu2": {
+  "filename": "noisium-fabric-2.3.0+mc1.21-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/KuNKN7d2/versions/4sGQgiu2/noisium-fabric-2.3.0%2Bmc1.21-1.21.1.jar"
+ },
+ "nullscape:3fv8O3xX": {
+  "filename": "Nullscape_1.21.x_v1.2.14.jar",
+  "url": "https://cdn.modrinth.com/data/LPjGiSO4/versions/3fv8O3xX/Nullscape_1.21.x_v1.2.14.jar"
+ },
+ "nutritious-milk:ZPSKkcnK": {
+  "filename": "nutritiousmilk-1.21.1-3.5.jar",
+  "url": "https://cdn.modrinth.com/data/V4iy0Bhx/versions/ZPSKkcnK/nutritiousmilk-1.21.1-3.5.jar"
+ },
+ "open-parties-and-claims:cNfQARzn": {
+  "filename": "open-parties-and-claims-fabric-1.21.1-0.27.8.jar",
+  "url": "https://cdn.modrinth.com/data/gF3BGWvG/versions/cNfQARzn/open-parties-and-claims-fabric-1.21.1-0.27.8.jar"
+ },
+ "otterlib:lMOoBAw6": {
+  "filename": "otterlib-0.2.2.0+1.21.1-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/zVVpzurY/versions/lMOoBAw6/otterlib-0.2.2.0%2B1.21.1-fabric.jar"
+ },
+ "overstacked-enchantments:66Chl80b": {
+  "filename": "OverstackedEnchanting-1.21.6.jar",
+  "url": "https://cdn.modrinth.com/data/Tji16YTM/versions/66Chl80b/OverstackedEnchanting-1.21.6.jar"
+ },
+ "packet-fixer:2C41Q8WX": {
+  "filename": "packetfixer-3.3.1-1.20.5-1.21.X-merged.jar",
+  "url": "https://cdn.modrinth.com/data/c7m1mi73/versions/2C41Q8WX/packetfixer-3.3.1-1.20.5-1.21.X-merged.jar"
+ },
+ "paradise-lost:kpnTCH47": {
+  "filename": "paradise-lost-2.4.6-beta+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/IKpsG0nF/versions/kpnTCH47/paradise-lost-2.4.6-beta%2B1.21.1.jar"
+ },
+ "pause-day-cycle:KQWm3NrZ": {
+  "filename": "pause-day-cycle-1.1.1.jar",
+  "url": "https://cdn.modrinth.com/data/8fDygXCb/versions/KQWm3NrZ/pause-day-cycle-1.1.1.jar"
+ },
+ "philips-ruins:hWBO2GFM": {
+  "filename": "Philips-Ruins1.21.1-1.9-Fabric.jar",
+  "url": "https://cdn.modrinth.com/data/KdJhOYVV/versions/hWBO2GFM/Philips-Ruins1.21.1-1.9-Fabric.jar"
+ },
+ "playeranimator:CkedfDp3": {
+  "filename": "player-animation-lib-fabric-2.0.4+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/gedNE4y2/versions/CkedfDp3/player-animation-lib-fabric-2.0.4%2B1.21.1.jar"
+ },
+ "prickle:Ef7P6Rb7": {
+  "filename": "prickle-fabric-1.21.1-21.1.11.jar",
+  "url": "https://cdn.modrinth.com/data/aaRl8GiW/versions/Ef7P6Rb7/prickle-fabric-1.21.1-21.1.11.jar"
+ },
+ "puzzles-lib:pqCNhF6A": {
+  "filename": "PuzzlesLib-v21.1.52-1.21.1-Fabric.jar",
+  "url": "https://cdn.modrinth.com/data/QAGBst4M/versions/pqCNhF6A/PuzzlesLib-v21.1.52-1.21.1-Fabric.jar"
+ },
+ "resourceful-config:dQh99ERC": {
+  "filename": "resourcefulconfig-fabric-1.21-3.0.11.jar",
+  "url": "https://cdn.modrinth.com/data/M1953qlQ/versions/dQh99ERC/resourcefulconfig-fabric-1.21-3.0.11.jar"
+ },
+ "resourceful-lib:Hf91FuVF": {
+  "filename": "resourcefullib-fabric-1.21-3.0.12.jar",
+  "url": "https://cdn.modrinth.com/data/G1hIVOrD/versions/Hf91FuVF/resourcefullib-fabric-1.21-3.0.12.jar"
+ },
+ "servercore:GQ2a51Rl": {
+  "filename": "servercore-fabric-1.5.19+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/4WWQxlQP/versions/GQ2a51Rl/servercore-fabric-1.5.19%2B1.21.1.jar"
+ },
+ "simple-voice-chat:jd1cFrJn": {
+  "filename": "voicechat-fabric-1.21.1-2.6.21.jar",
+  "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/jd1cFrJn/voicechat-fabric-1.21.1-2.6.21.jar"
+ },
+ "sit!:wstK3UaY": {
+  "filename": "sit!-1.2.5.1+1.21-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/EsYqsGV4/versions/wstK3UaY/sit%21-1.2.5.1%2B1.21-1.21.1.jar"
+ },
+ "smarter-farmers-farmers-replant:bsYbob1i": {
+  "filename": "smarterfarmers-1.21-2.2.4-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/Bh6ZOMvp/versions/bsYbob1i/smarterfarmers-1.21-2.2.4-fabric.jar"
+ },
+ "softer-hay-bales:RnWSv8yZ": {
+  "filename": "softerhaybales-1.21.1-3.4.jar",
+  "url": "https://cdn.modrinth.com/data/RtmujAUl/versions/RnWSv8yZ/softerhaybales-1.21.1-3.4.jar"
+ },
+ "sound-physics-remastered:tVu2EZ4u": {
+  "filename": "sound-physics-remastered-fabric-1.21.1-1.5.1.jar",
+  "url": "https://cdn.modrinth.com/data/qyVF9oeo/versions/tVu2EZ4u/sound-physics-remastered-fabric-1.21.1-1.5.1.jar"
+ },
+ "spark:cALUj9l1": {
+  "filename": "spark-1.10.109-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/l6YH9Als/versions/cALUj9l1/spark-1.10.109-fabric.jar"
+ },
+ "stack-refill:5RkgQCwL": {
+  "filename": "stackrefill-1.21.1-4.9.jar",
+  "url": "https://cdn.modrinth.com/data/mQWkB9ON/versions/5RkgQCwL/stackrefill-1.21.1-4.9.jar"
+ },
+ "starter-kit:OUsoZwOx": {
+  "filename": "starterkit-1.21.1-8.1.jar",
+  "url": "https://cdn.modrinth.com/data/6L3ydNi8/versions/OUsoZwOx/starterkit-1.21.1-8.1.jar"
+ },
+ "structory-towers:ziO4YIv1": {
+  "filename": "Structory_Towers_26.2_v1.0.17.jar",
+  "url": "https://cdn.modrinth.com/data/j3FONRYr/versions/ziO4YIv1/Structory_Towers_26.2_v1.0.17.jar"
+ },
+ "structory:TUbwu7eG": {
+  "filename": "Structory_26.2_v1.3.7.jar",
+  "url": "https://cdn.modrinth.com/data/aKCwCJlY/versions/TUbwu7eG/Structory_26.2_v1.3.7.jar"
+ },
+ "styled-chat:4e1xZSk3": {
+  "filename": "styled-chat-2.6.1+1.21.jar",
+  "url": "https://cdn.modrinth.com/data/doqSKB0e/versions/4e1xZSk3/styled-chat-2.6.1%2B1.21.jar"
+ },
+ "supplementaries:kVl8AtPd": {
+  "filename": "supplementaries-fabric-1.21.1-3.8.2.jar",
+  "url": "https://cdn.modrinth.com/data/fFEIiSDQ/versions/kVl8AtPd/supplementaries-fabric-1.21.1-3.8.2.jar"
+ },
+ "tectonic:L87Phsbl": {
+  "filename": "tectonic-3.0.26-fabric-21.1.jar",
+  "url": "https://cdn.modrinth.com/data/lWDHr9jE/versions/L87Phsbl/tectonic-3.0.26-fabric-21.1.jar"
+ },
+ "terrablender:XNtIBXyQ": {
+  "filename": "TerraBlender-fabric-1.21.1-4.1.0.8.jar",
+  "url": "https://cdn.modrinth.com/data/kkmrDlKT/versions/XNtIBXyQ/TerraBlender-fabric-1.21.1-4.1.0.8.jar"
+ },
+ "terralith:eWDLFabb": {
+  "filename": "Terralith_1.21.x_v2.6.2.jar",
+  "url": "https://cdn.modrinth.com/data/8oi3bsk5/versions/eWDLFabb/Terralith_1.21.x_v2.6.2.jar"
+ },
+ "towns-and-towers:5PS5OhIh": {
+  "filename": "t_and_t-neoforge-fabric-1.13.9+1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/DjLobEOy/versions/5PS5OhIh/t_and_t-neoforge-fabric-1.13.9%2B1.21.1.jar"
+ },
+ "trinkets:JagCscwi": {
+  "filename": "trinkets-3.10.0.jar",
+  "url": "https://cdn.modrinth.com/data/5aaWibi9/versions/JagCscwi/trinkets-3.10.0.jar"
+ },
+ "universal-sawmill:xpemrBXJ": {
+  "filename": "sawmill-fabric-1.21-1.7.7.jar",
+  "url": "https://cdn.modrinth.com/data/WRaRZdTd/versions/xpemrBXJ/sawmill-fabric-1.21-1.7.7.jar"
+ },
+ "untitled-duck-mod:1iG0fXae": {
+  "filename": "untitledduckmod-1.6.0-fabric-1.21.1.jar",
+  "url": "https://cdn.modrinth.com/data/ojFjz7JF/versions/1iG0fXae/untitledduckmod-1.6.0-fabric-1.21.1.jar"
+ },
+ "villager-names-serilum:2PLlKTES": {
+  "filename": "villagernames-1.21.1-8.5.jar",
+  "url": "https://cdn.modrinth.com/data/gqRXDo8B/versions/2PLlKTES/villagernames-1.21.1-8.5.jar"
+ },
+ "villagerapi:5cNuAKiT": {
+  "filename": "Villager-API-1.21.1-fabric-1.26.1.3.jar",
+  "url": "https://cdn.modrinth.com/data/9Tp2Becg/versions/5cNuAKiT/Villager-API-1.21.1-fabric-1.26.1.3.jar"
+ },
+ "when-dungeons-arise:g8oglmT0": {
+  "filename": "DungeonsArise-1.21.1-2.1.68-fabric-release.jar",
+  "url": "https://cdn.modrinth.com/data/8DfbfASn/versions/g8oglmT0/DungeonsArise-1.21.1-2.1.68-fabric-release.jar"
+ },
+ "wwoo:JBbDOEnc": {
+  "filename": "wwoo-fabric-2.6.7.jar",
+  "url": "https://cdn.modrinth.com/data/II7t6llZ/versions/JBbDOEnc/wwoo-fabric-2.6.7.jar"
+ },
+ "yacl:o3cDn8Vp": {
+  "filename": "yet_another_config_lib_v3-3.8.2+1.21.1-fabric.jar",
+  "url": "https://cdn.modrinth.com/data/1eAoo2KR/versions/o3cDn8Vp/yet_another_config_lib_v3-3.8.2%2B1.21.1-fabric.jar"
+ },
+ "your-items-are-safe:lFkq1P1J": {
+  "filename": "youritemsaresafe-1.21.1-4.7.jar",
+  "url": "https://cdn.modrinth.com/data/lL35xmSR/versions/lFkq1P1J/youritemsaresafe-1.21.1-4.7.jar"
+ },
+ "yungs-api:9aZPNrZC": {
+  "filename": "YungsApi-1.21.1-Fabric-5.1.6.jar",
+  "url": "https://cdn.modrinth.com/data/Ua7DFN59/versions/9aZPNrZC/YungsApi-1.21.1-Fabric-5.1.6.jar"
+ },
+ "yungs-better-desert-temples:M6eeDRkC": {
+  "filename": "YungsBetterDesertTemples-1.21.1-Fabric-4.1.5.jar",
+  "url": "https://cdn.modrinth.com/data/XNlO7sBv/versions/M6eeDRkC/YungsBetterDesertTemples-1.21.1-Fabric-4.1.5.jar"
+ },
+ "yungs-better-dungeons:fQ7EjDPE": {
+  "filename": "YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar",
+  "url": "https://cdn.modrinth.com/data/o1C1Dkj5/versions/fQ7EjDPE/YungsBetterDungeons-1.21.1-Fabric-5.1.4.jar"
+ },
+ "yungs-better-end-island:zpUYcjIg": {
+  "filename": "YungsBetterEndIsland-1.21.1-Fabric-3.1.2.jar",
+  "url": "https://cdn.modrinth.com/data/2BwBOmBQ/versions/zpUYcjIg/YungsBetterEndIsland-1.21.1-Fabric-3.1.2.jar"
+ },
+ "yungs-better-jungle-temples:uiGCmR8O": {
+  "filename": "YungsBetterJungleTemples-1.21.1-Fabric-3.1.2.jar",
+  "url": "https://cdn.modrinth.com/data/z9Ve58Ih/versions/uiGCmR8O/YungsBetterJungleTemples-1.21.1-Fabric-3.1.2.jar"
+ },
+ "yungs-better-mineshafts:4ybDuGhA": {
+  "filename": "YungsBetterMineshafts-1.21.1-Fabric-5.1.1.jar",
+  "url": "https://cdn.modrinth.com/data/HjmxVlSr/versions/4ybDuGhA/YungsBetterMineshafts-1.21.1-Fabric-5.1.1.jar"
+ },
+ "yungs-better-nether-fortresses:gxBGYcIL": {
+  "filename": "YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar",
+  "url": "https://cdn.modrinth.com/data/Z2mXHnxP/versions/gxBGYcIL/YungsBetterNetherFortresses-1.21.1-Fabric-3.1.5.jar"
+ },
+ "yungs-better-ocean-monuments:TGK6gpeO": {
+  "filename": "YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar",
+  "url": "https://cdn.modrinth.com/data/3dT9sgt4/versions/TGK6gpeO/YungsBetterOceanMonuments-1.21.1-Fabric-4.1.2.jar"
+ },
+ "yungs-better-strongholds:uYZShp1p": {
+  "filename": "YungsBetterStrongholds-1.21.1-Fabric-5.1.3.jar",
+  "url": "https://cdn.modrinth.com/data/kidLKymU/versions/uYZShp1p/YungsBetterStrongholds-1.21.1-Fabric-5.1.3.jar"
+ },
+ "yungs-better-witch-huts:bdpPtvTn": {
+  "filename": "YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar",
+  "url": "https://cdn.modrinth.com/data/t5FRdP87/versions/bdpPtvTn/YungsBetterWitchHuts-1.21.1-Fabric-4.1.1.jar"
+ },
+ "yungs-bridges:8h9N9fvs": {
+  "filename": "YungsBridges-1.21.1-Fabric-5.1.1.jar",
+  "url": "https://cdn.modrinth.com/data/Ht4BfYp6/versions/8h9N9fvs/YungsBridges-1.21.1-Fabric-5.1.1.jar"
+ }
+}

@@ -179,6 +179,16 @@ echo "Pinned mod list written to: config/modrinth-mods.pinned.txt"
 if [[ $APPLY -eq 1 ]]; then
   cp "$OUTPUT_FILE" "$MODS_FILE"
   echo "Applied to: config/modrinth-mods.txt"
+
+  # Refresh the offline resolve cache in the same breath. A pin change is the
+  # ONLY thing that invalidates it, and a cold cache means the seed calls the
+  # Modrinth API at boot - the exact dependency this cache exists to remove.
+  if [[ -f "$PROJECT_DIR/scripts/gen-resolve-cache.py" ]]; then
+    echo "Refreshing config/modrinth-resolve-cache.json..."
+    python3 "$PROJECT_DIR/scripts/gen-resolve-cache.py" || {
+      echo "WARNING: resolve-cache refresh failed - commit it separately before releasing" >&2
+    }
+  fi
 fi
 
 echo ""
@@ -190,7 +200,7 @@ echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
 # newest build for TARGET_VERSION, exactly like modrinth-mods.txt. Bare slugs
 # (legacy) are pinned too. Slugs listed in _clientMods.holds keep their current
 # pin (holds map slug -> reason; used when a newer build breaks a dependant,
-# e.g. Xaero WM 1.42 vs maplink). Resource/shader packs are left alone (they
+# e.g. a client mod whose mixin breaks against a newer dependency). Resource/shader packs are left alone (they
 # follow their own resolution in build-modpack.sh and don't cause registry
 # mismatches).
 MANIFEST="$PROJECT_DIR/modpack/adventure.mrpack.json"

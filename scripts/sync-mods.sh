@@ -21,6 +21,13 @@
 # cannot be fetched — booting without a worldgen mod corrupts chunks, so a
 # missing jar must block the boot loudly.
 #
+# Offline cache: when mods-cache/server/ exists beside the repo root (platform
+# checkouts and CI), a matching filename there is copied instead of downloaded,
+# and every successful download is copied back into it. Production servers have
+# no such directory and fall through to the CDN unchanged. Point MOD_CACHE_DIR
+# elsewhere to relocate it, or set it empty to disable. Keep the cache in step
+# with the pins using scripts/sync-mod-cache.sh.
+#
 # Gotchas: URL filenames are percent-encoded (%2B -> +, %20 -> space);
 # itzg decodes them and so do we, or every boot re-downloads mismatched
 # names. Must run on macOS bash 3.2 - no mapfile, no ${var,,}.
@@ -51,7 +58,17 @@ if [[ -z "$(echo "$MOD_URLS" | tr -d '[:space:]')" ]]; then
 fi
 
 FETCHED=0
+FROM_CACHE=0
 FAILED=0
+
+# Offline jar cache. When present, a hit here means zero network for that file.
+# Default: mods-cache/server/ beside the repo root this script was run from
+# (platform checkouts and CI have it; a consumer/production server does not,
+# and simply falls through to the CDN). Override or disable with MOD_CACHE_DIR.
+if [[ -z "${MOD_CACHE_DIR+x}" ]]; then
+  MOD_CACHE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/mods-cache/server"
+fi
+[[ -d "$MOD_CACHE_DIR" ]] || MOD_CACHE_DIR=""
 
 fetch_missing() {
   # $1 = newline-separated URL list, $2 = destination directory
@@ -65,11 +82,22 @@ fetch_missing() {
     # Percent-decode to itzg's on-disk filename (%2B -> +, %20 -> space).
     name=$(printf '%b' "${name//%/\\x}")
     [[ -f "$dest_dir/$name" ]] && continue
+    # Cache hit: copy, don't download. Filenames in the cache are the same
+    # percent-decoded CDN basenames computed above, so this is an exact match.
+    if [[ -n "$MOD_CACHE_DIR" && -s "$MOD_CACHE_DIR/$name" ]]; then
+      cp "$MOD_CACHE_DIR/$name" "$dest_dir/$name"
+      echo "  cached:  $name"
+      FROM_CACHE=$((FROM_CACHE + 1))
+      continue
+    fi
     if curl -fsSL --retry 3 --retry-delay 2 --max-time 120 \
       -o "$dest_dir/$name.part" "$url" && [[ -s "$dest_dir/$name.part" ]]; then
       mv "$dest_dir/$name.part" "$dest_dir/$name"
       echo "  fetched: $name"
       FETCHED=$((FETCHED + 1))
+      # Seed the cache so the next machine/run doesn't need the CDN either.
+      # Only when the cache already exists - never create it implicitly.
+      [[ -n "$MOD_CACHE_DIR" ]] && cp "$dest_dir/$name" "$MOD_CACHE_DIR/$name" 2> /dev/null || true
     else
       rm -f "$dest_dir/$name.part"
       echo "  FAILED: $name ($url)" >&2
@@ -84,6 +112,9 @@ fetch_missing "$DATAPACK_URLS" "$DATA_DIR/world/datapacks"
 if [[ $FAILED -gt 0 ]]; then
   echo "ERROR: $FAILED managed file(s) could not be downloaded - refusing to boot without them" >&2
   exit 1
+fi
+if [[ $FROM_CACHE -gt 0 ]]; then
+  echo "  Restored $FROM_CACHE file(s) from the offline cache"
 fi
 if [[ $FETCHED -gt 0 ]]; then
   echo "  Downloaded $FETCHED missing managed file(s)"
