@@ -824,7 +824,7 @@ These remain in the config for scoring but change meaning:
 
 ### Phase E: Locate + census command (1 day)
 
-- [ ] **E1. Verify `/locate` works with noise placements** Noise-placed structures must be locatable via vanilla `/locate structure`. Verify the region-index approach produces correct results.
+- [x] **E1. Verify `/locate` works with noise placements** Noise-placed structures must be locatable via vanilla `/locate structure`. Verify the region-index approach produces correct results.
 
   **Verify (local server, RCON):**
   - Pick 3 dims with different profiles (a natural overworld, a sparse nether, a cluster end dim).
@@ -873,6 +873,47 @@ These remain in the config for scoring but change meaning:
   re-run the batteries above. That belongs with G1/G2, which need a generated
   world anyway. Do not run a bare synchronous `/locate` against a fresh custom
   dimension — it will wedge RCON.
+
+  ---
+
+  **2026-07-27 — closed. Chunky was tried properly and does NOT fix locate;
+  a vanilla control proves the latency is not ours.**
+
+  The prescribed fix was carried out in full: `the_overgrowth` (1024 border)
+  was Chunky pre-generated over its entire playable area — 16,384 chunks at
+  59 chunks/s, ~9 minutes, task completed, container healthy, `Restarts=0`.
+  Then the same async locate was re-run. It timed out at **240 s**, having
+  timed out at 180 s before pre-generation. Pre-generating made it no better.
+
+  The control that settles ownership — and it is a stronger one than
+  `the_dustbowl`:
+
+  ```
+  customdim locate structure minecraft:overworld "minecraft:village_plains" 120
+    -> timed_out
+  ```
+
+  That is the **stock vanilla overworld**, a stock vanilla structure, and a
+  placement this platform has never touched. The async command calls the
+  identical `ChunkGenerator.locateStructure(world, entries, origin, 100,
+  false)` that `/locate structure` calls. It is just as slow. Locate latency
+  is a property of vanilla's 100-ring search across ~150 structure mods, and
+  nothing in noise placement, custom dimensions or RCON is implicated.
+
+  **What IS verified**, and it is the whole contract vanilla's locate depends
+  on: `NoiseFieldIndexTest`'s 24 tests pin `startFor` answering within the
+  cell it was asked about and a populated cell never answering with a
+  non-placement; F4 proves the positions themselves match the mod bit for
+  bit; and the live `structure-census` proves those positions exist in the
+  world's real `StructurePlacementCalculator` — the same object generation
+  and `/locate` consult.
+
+  **The verification surface that works is the census file, not locate.**
+  G2's 72 assertions all come from it. See `docs/spikes/SPIKE-REPLACE-RCON.md`
+  for the generalisation.
+
+  Owner's out-of-scope ruling on locate latency therefore stands, now with a
+  vanilla-path control behind it rather than an inference.
 
 - [x] **E2. Implement `/customdim structure-census <dim>` command** Dumps all noise-placed positions grouped by group name. Output format matches roller's `structure_all` for comparison. Handles: empty groups, force-only dims, very small dims.
 
@@ -1091,7 +1132,7 @@ These remain in the config for scoring but change meaning:
 
   _Handoff notes:_
 
-- [ ] **G2. Regression suite for shipped dimensions** Check 10 representative dims explicitly against expected behaviour.
+- [x] **G2. Regression suite for shipped dimensions** Check 10 representative dims explicitly against expected behaviour.
 
   **Verify (local server, RCON):**
   - `the_dustbowl` (none+force): only the forced farmstead. No other structures. `locate` for anything else fails.
@@ -1105,7 +1146,66 @@ These remain in the config for scoring but change meaning:
   - `the_shattered_skies` (sky_islands): sky structures present, ocean/maritime absent.
   - `the_sunken_temple` (paradise_lost): paradise_lost structures present.
 
-  _Handoff notes:_
+  _Handoff notes:_ **Done. 72 assertions, 0 failures, 0 skipped**, via a new
+  repeatable checker: `scripts/check-noise-regression.py`, run against the
+  `/customdim structure-census` dumps of all ten dimensions.
+
+  ```
+  ./scripts/check-noise-regression.py --census <consumer>/data/config/custom-dimensions/census
+  72 passed, 0 failed, 0 dimension(s) skipped
+  ```
+
+  **`/locate` is the wrong instrument for this and the census is the right
+  one.** A locate proves one instance exists; the census carries every
+  group's resolved inputs, its full structure POOL with weights, and every
+  position — so "igloos are absent from a jungle dimension" is answered
+  exactly rather than inferred from a search that found something else.
+
+  **The finding that nearly went the other way: the first run "failed" on
+  the headline feature, and the bug was the test rig.** `the_overgrowth`
+  (jungle-only biome list) had `minecraft:igloo` AND
+  `minecraft:desert_pyramid` in its pool, and its pool was 398 structures —
+  byte-identical in size to `the_frozen_strait`'s, which is a different
+  biome list entirely. Two `multi_biome` dimensions cannot legitimately
+  produce identical pools.
+
+  The cause was not the filter. `customdim sample-biome-grid` showed the
+  live world producing `minecraft:forest`, `birch_forest`,
+  `natures_spirit:chaparral`, `lavender_fields`, `lukewarm_ocean` — none of
+  them in the config. **The world predated the config**
+  ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2): worldgen is
+  creation-time-only and the generator is serialised into `level.dat`), so
+  the biome filter was correctly filtering against a biome source from an
+  older config. Only 15 of 78 dimensions logged `biome source built` on that
+  boot; the rest were reusing persisted generators.
+
+  Wiping `data/world` and re-creating every dimension fixed it: **75 biome
+  sources built**, and `the_overgrowth`'s pool became genuinely jungle —
+  `minecraft:jungle_pyramid`, `bettermineshafts:mineshaft_jungle`,
+  `towns_and_towers:village_jungle`, `dungeons_plus:lush_dungeon` — with
+  igloos and desert pyramids gone, and one whole group (`maritime`) dropping
+  out because no maritime structure's biomes intersect a jungle world
+  (7 groups/169 positions -> 6 groups/130). The checker's header carries this
+  as its first gotcha, because a stale world is the most likely reason it
+  will ever fail.
+
+  **Two spike expectations were stale and the checker encodes the shipped
+  behaviour instead**, both deliberate and both recorded in
+  `NOISE-IMPL-LOG.md`:
+
+  - `the_luminous_caverns` is asserted to have **no** dungeons. The spike
+    wanted "dungeons + loot"; the C2 peaceful-shift fix means a
+    `mobMultiplier: 0.0` world has no dungeons unless the author names a
+    profile for them. The checker asserts the rule, not the wish.
+  - `the_gilded_pit` is not "forced-only" — its config is `dense`, so it
+    runs noise AND nine forced placements. What is asserted is that the nine
+    forced structures are removed from the noise pool, which is the
+    invariant `force` actually promises.
+
+  Also noted: **`structure-census` needs a FULLY-QUALIFIED dimension id**
+  (`adventure:the_overgrowth`); a bare name resolves into `minecraft:` and
+  answers "Dimension not loaded", while `customdim load` accepts the bare
+  name. Worth aligning next time either file is touched.
 
 - [x] **G3. Update skills and documentation** Update: `.claude/skills/custom-dimension-authoring/SKILL.md` (noise placement), `references/schema-reference.md` (new fields), `.claude/skills/seed-rolling/SKILL.md` (census scoring). Update `mods/AGENTS.md` architecture tree (NoiseStructurePlacement in the component list).
 

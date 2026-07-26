@@ -462,6 +462,82 @@ from `build-stack-bundle.sh`'s MANIFEST — F1's module had never been added,
 so `./dev seed-roll` on a consumer would have died on import the moment this
 shipped. `test-scripts.sh --quick` catches it; it is why that gate exists.
 
+## E1/G2: the world was the test rig, and it was stale
+
+**G2's first run failed on the headline feature, and the feature was fine.**
+`the_overgrowth` — biome list: jungles plus `dark_forest`, nothing else —
+had `minecraft:igloo` and `minecraft:desert_pyramid` in its structure pool.
+Worse, its pool was **398 structures, exactly the same size as
+`the_frozen_strait`'s**, and those two dimensions share no biomes. Two
+`multi_biome` dimensions cannot legitimately agree to the structure on how
+many structures they support. The obvious read was that
+`NoisePoolBuilder`'s biome filter was a no-op for `multi_biome`.
+
+It was not. `customdim sample-biome-grid` on the live world returned
+`minecraft:forest`, `birch_forest`, `natures_spirit:chaparral`,
+`lavender_fields`, `white_cliffs`, `lukewarm_ocean` — a general overworld
+spread, none of it in the config. The filter was filtering correctly against
+a biome source that genuinely could produce all of that.
+
+**The generator was older than the config.** Worldgen is creation-time-only
+(`TROUBLESHOOTING.md#d2`): the biome source is serialised into `level.dat` at
+world creation and `registerDimensions` skips keys already in the registry.
+Only **15 of 78** dimensions logged `biome source built` on that boot — the
+rest were running generators built under an earlier config. Every
+biome-filter assertion on that world was measuring history.
+
+Wiping `data/world` and letting every dimension be created fresh: **75 biome
+sources built**, and `the_overgrowth`'s pool became what the spike promised —
+`minecraft:jungle_pyramid`, `bettermineshafts:mineshaft_jungle`,
+`towns_and_towers:village_jungle`, `dungeons_plus:lush_dungeon`; no igloos,
+no desert pyramids; and the whole `maritime` group dropped out because no
+maritime structure's biomes intersect a jungle world (7 groups/169 positions
+-> 6 groups/130). Then 72 assertions, zero failures.
+
+Lesson, and it is the same shape as the F3 bug earlier in this log: **the
+thing that looked broken was the thing measuring it.** A structure-placement
+assertion is only meaningful on a world created under the config being
+asserted. `scripts/check-noise-regression.py` carries that as its first
+gotcha.
+
+### Chunky does not fix locate, and the latency was never ours
+
+The handoff's plan for E1 was "pre-generate with Chunky, then re-run the
+batteries". Carried out in full — `the_overgrowth`'s entire playable area,
+16,384 chunks at 59 chunks/s, task completed, container healthy. The same
+async locate then timed out at **240 s**, having timed out at 180 s
+*before* pre-generation.
+
+The control settles it, and it is stronger than `the_dustbowl`:
+
+```
+customdim locate structure minecraft:overworld "minecraft:village_plains" 120
+  -> timed_out
+```
+
+Stock vanilla overworld, stock vanilla structure, placement code this
+platform has never touched — and `LocateManager` calls the identical
+`ChunkGenerator.locateStructure(world, entries, origin, 100, false)` that
+`/locate structure` calls. The cost is vanilla's 100-ring search across ~150
+structure mods. Nothing in noise placement, custom dimensions or RCON is
+implicated, and pre-generation is irrelevant because the search does not
+read saved chunks.
+
+`mods/AGENTS.md` and the spike are updated: the "Chunky will fix it"
+assumption is retired, with the measurement behind it.
+
+### What replaced locate as the verification surface
+
+The census file. Every G2 assertion — pool membership after biome filtering,
+which groups the world type and the peaceful shift left active, each group's
+radial curve, forced structures being removed from the pool — is answered
+exactly from `/customdim structure-census` output by
+`scripts/check-noise-regression.py`. RCON's only job is to say "go".
+
+That pattern already existed in three places invented independently to dodge
+the same wall (`structure-audit.txt`, the census dumps, `biome_grid.csv`).
+It is now named and argued in `docs/spikes/SPIKE-REPLACE-RCON.md`.
+
 ## Status at handoff
 
 **12 of 17 spike tasks complete.** Gates: 472 Java tests, 269 Python tests,

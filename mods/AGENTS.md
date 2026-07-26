@@ -403,11 +403,17 @@ no config at all. Full design + every deviation from the spike:
   dimension.** It can block the main thread long enough to wedge RCON while
   `docker ps` stays healthy — no crash, the game log just stops advancing
   (recover with `docker stop -t 90 mc && docker start mc`). **This is
-  pre-existing and explicitly out of scope** (owner, 2026-07-26): a
-  `density=none` dimension on the untouched `FixedStructurePlacement` path,
-  with exactly one placement in the whole world, is just as slow. It is why
-  `customdim locate structure` is async. The fix is Chunky pre-generation —
-  don't go looking for a placement bug.
+  pre-existing and explicitly out of scope** (owner, 2026-07-26). The
+  control, measured 2026-07-27: `customdim locate structure
+  minecraft:overworld "minecraft:village_plains"` — the **stock vanilla
+  overworld**, a stock vanilla structure, a placement this platform never
+  touches — also times out, at 120 s. Vanilla's 100-ring search across ~150
+  structure mods is the cost. Don't go looking for a placement bug.
+  **Chunky pre-generation does NOT fix it** — a complete 1024-radius pass
+  over `the_overgrowth` (16,384 chunks) left the same locate timing out at
+  240 s, having timed out at 180 s before. Verify placement with
+  `structure-census` and `scripts/check-noise-regression.py` instead; locate
+  proves one instance, the census proves the whole layout.
 - **A large dense dimension takes seconds to build its placements, and that
   is accepted** (owner, 2026-07-26). `the_end_citadel` (8192 border, `dense`,
   5 groups) is ~2.5 s for 62,556 positions; it logs a warning, runs once per
