@@ -452,32 +452,20 @@ Suggested `v3.10.0`: no `.env` keys, overlay contract or compose structure
 change, but arrival placement moves where portals land, which is more than a
 patch. Local elfydd is already running the built jar, installed by hand.
 
-### 2. Three unreachable dimensions — a content call
+### 2. ~~Three unreachable dimensions~~ — RESOLVED 2026-07-26
 
-**Three dimensions can strand a player, and the fix is an authoring decision.**
-Phase 9b's boot check now WARNs about them on every start, verified live:
+`the_emberglass_foundry`, `the_tidepools` and `the_wuthering_wisteria` were
+pocket dimensions whose scale/border pair put arrivals outside their own
+border. All three were given a `portal.anchor` by the owner — a fixed arrival
+is not scaled, so the source radius stops mattering, which is the same fix
+`the_starwell` already had.
 
-| dimension | scale | `borders.player` | usable overworld radius |
-|---|---:|---:|---:|
-| `the_emberglass_foundry` | 1.0 | 256 | **256** |
-| `the_tidepools` | 1.0 | 256 | **256** |
-| `the_wuthering_wisteria` | 1.0 | 256 | **256** |
-
-A portal built more than 256 blocks from the overworld origin arrives outside
-their border, where vanilla forbids breaking or placing any block — the exact
-"I can't break anything" symptom that cost two sessions.
-
-All three are pocket dimensions. `the_starwell` is the same kind of place with
-the same scale/border pair and is fine, because it declares a `portal.anchor`
-(a fixed arrival, not a scaled one). **That is very probably the fix**, but
-PHASE-9's own policy is that 9b makes the choice visible and does not make it,
-so nothing has been re-authored. The three options are: add an anchor, raise
-`borders.player` to 8192, or drop the scale.
-
-They are pinned as an allow-list in
-`ShippedDimensionReachabilityTest.KNOWN_UNREACHABLE`, so a NEW dimension with
-this defect fails the build — and fixing one of these also fails the build
-until it is removed from the list. Nothing is silently muted.
+**The whole shipped set now satisfies the invariant**, and there is no
+exception list. `ShippedDimensionReachabilityTest` asserts ZERO unreachable
+dimensions and names any offender in the failure message. The expectation is
+deliberately a fixed value rather than something derived from the configs: a
+derived expectation passes whatever the configs say, which is the one thing a
+config test must not do.
 
 ## Briefing for the next agent (start here)
 

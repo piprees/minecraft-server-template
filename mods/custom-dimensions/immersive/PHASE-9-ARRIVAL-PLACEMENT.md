@@ -2,8 +2,9 @@
 
 > **Status:** 9a, 9b and 9c SHIPPED 2026-07-26. The root cause (entry
 > multiplied instead of dividing) was fixed 2026-07-25.
-> **Remaining:** nothing in code. One CONTENT decision is outstanding for the
-> owner — see "Outstanding: three unreachable dimensions".
+> **Remaining:** nothing. The three dimensions 9b flagged were given anchors by
+> the owner on 2026-07-26; the shipped set now satisfies the invariant with no
+> exceptions.
 > **Depends on:** Phase 8 (shipped) — `PortalSite.ensureEgress` and
 > `PortalSite.hasEgress` are the building blocks this phase extended.
 
@@ -46,7 +47,9 @@ corrected divide-on-entry the requirement inverts to `border ≥ 8192 / scale`,
 which is exactly how the dimensions are authored — so the old table of "58
 dimensions can strand a player" is a record of what WAS broken under the
 inverted transform, not what is. Measured against the real config set on
-2026-07-26, **three** dimensions fail, and for an unrelated reason (see below).
+2026-07-26 the check found **three** genuine failures, for an unrelated reason
+(pocket dimensions at scale 1 into a 256 border); all three were fixed the
+same day and the set is now clean.
 
 ### Why this was expensive to diagnose
 
@@ -205,28 +208,25 @@ corner are left to the site search, which is where "nudge inward until it
 fits" belongs. `PortalSafetyValidator.ARRIVAL_MARGIN` is a one-character
 change if the authoring convention ever gains headroom.
 
-### Outstanding: three unreachable dimensions (owner decision)
+### It found three real ones, and they are fixed
 
-The check fires at boot on exactly three dimensions, verified live:
+On first run the check fired at boot on exactly three dimensions —
+`the_emberglass_foundry`, `the_tidepools` and `the_wuthering_wisteria`, all
+pocket dimensions at `scale 1.0` into a 256-block border. A portal built more
+than 256 blocks from the overworld origin arrived outside their border, and
+the player could touch nothing: the "I can't break anything" symptom, sitting
+in the shipped config set, found by a check that had never run.
 
-```
-Dimension the_emberglass_foundry: portal.scale 1 against borders.player 256 …
-Dimension the_tidepools: portal.scale 1 against borders.player 256 …
-Dimension the_wuthering_wisteria: portal.scale 1 against borders.player 256 …
-```
+The owner gave all three a `portal.anchor` on 2026-07-26 — a fixed arrival is
+not scaled, so the source radius stops mattering. That is the same fix the
+sibling pocket dimension `the_starwell` already had.
 
-All three are pocket dimensions at `scale 1.0` into a 256-block border, so a
-portal built more than 256 blocks from the overworld origin arrives outside
-their border and the player can touch nothing.
-
-The sibling pocket dimension `the_starwell` has the **same** scale/border pair
-and is fine, because it declares a `portal.anchor` — a fixed arrival rather
-than a scaled one. That is very probably the fix, but this phase's own stated
-policy is that *9b makes the choice visible; it does not make it*, so the code
-does not re-author somebody's dimensions. They are recorded as an explicit
-allow-list in `ShippedDimensionReachabilityTest.KNOWN_UNREACHABLE`: a NEW
-dimension with the same defect fails the build, and fixing one of these fails
-the build until it is removed from the list.
+**The shipped set now satisfies the invariant with no exceptions.**
+`ShippedDimensionReachabilityTest` asserts ZERO unreachable dimensions and
+names any offender in the failure message. There is deliberately no allow-list
+and the expectation is deliberately not derived from the configs — a derived
+expectation passes whatever the configs say, which is the one thing a config
+test must not do.
 
 ---
 

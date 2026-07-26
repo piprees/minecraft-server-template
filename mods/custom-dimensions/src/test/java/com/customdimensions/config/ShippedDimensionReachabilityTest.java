@@ -49,26 +49,21 @@ class ShippedDimensionReachabilityTest {
     }
 
     /**
-     * Dimensions known to fail the invariant, awaiting a CONTENT decision.
+     * There is deliberately no allow-list here.
      *
-     * <p>All three are "pocket" dimensions: {@code scale 1.0} into a 256-block
-     * border, so a portal built more than 256 blocks from the overworld origin
-     * arrives outside their border and the player can touch nothing. The
-     * sibling pocket dimension {@code the_starwell} has exactly the same
-     * scale/border pair and is fine, because it declares a {@code portal.anchor}
-     * — a fixed arrival, not a scaled one. That is very probably the fix for
-     * these three too, but PHASE-9's stated policy is that 9b "makes the choice
-     * visible; it does not make it", so the code does not quietly re-author
-     * somebody's dimensions.
+     * <p>An earlier version of this test carried three known-bad dimensions as
+     * an explicit exception list, because they were awaiting a content
+     * decision (pocket dimensions at {@code scale 1.0} into a 256-block
+     * border). All three were given a {@code portal.anchor} on 2026-07-26 — a
+     * fixed arrival rather than a scaled one, the same fix
+     * {@code the_starwell} already had — so the exception list is gone rather
+     * than being kept around empty.
      *
-     * <p>This list is an ALLOW-list, not a mute button: a new dimension with
-     * the same defect fails the build, and fixing one of these fails the build
-     * too until it is removed from here. See PLAN.md § "Outstanding for the
-     * owner".
+     * <p>Deriving the expected set from the configs would make the assertion
+     * tautological: it would pass whatever the configs said, which is the one
+     * thing a config test must not do. The expectation is a fixed value —
+     * ZERO — and any offender is named in the failure message.
      */
-    private static final List<String> KNOWN_UNREACHABLE = List.of(
-            "the_emberglass_foundry", "the_tidepools", "the_wuthering_wisteria");
-
     private List<String> unreachableDimensions(Map<String, DimensionConfig> dims) {
         DimensionConfig overworld = dims.get("overworld");
         assertNotNull(overworld, "the overworld config is the source radius this check is built on");
@@ -93,19 +88,20 @@ class ShippedDimensionReachabilityTest {
     }
 
     @Test
-    void noNewDimensionCanStrandAPlayerOutsideItsOwnBorder() {
+    void noShippedDimensionCanStrandAPlayerOutsideItsOwnBorder() {
         List<String> unreachable = unreachableDimensions(shipped());
 
-        assertEquals(KNOWN_UNREACHABLE, unreachable.stream().sorted().toList(),
-                "the set of dimensions whose portals can strand a player has CHANGED. A new entry is "
-                + "a new trap: a portal built beyond `border * scale` from the overworld origin "
-                + "arrives outside this dimension's border, where vanilla forbids breaking or "
-                + "placing any block. A missing entry means one was fixed — delete it from "
-                + "KNOWN_UNREACHABLE.");
+        assertEquals(List.of(), unreachable.stream().sorted().toList(),
+                "these dimensions' portals can strand a player: a portal built further than "
+                + "`borders.player * portal.scale` from the overworld origin arrives OUTSIDE this "
+                + "dimension's border, where vanilla forbids breaking or placing any block — "
+                + "including the portal they arrived through. Fix by raising borders.player, "
+                + "lowering portal.scale, or giving the dimension a portal.anchor (a fixed arrival "
+                + "is not scaled, so the source radius stops mattering).");
     }
 
     @Test
-    void theBootValidatorWarnsAboutExactlyTheKnownUnreachableDimensions() {
+    void theBootValidatorAgreesWithThePureCheck() {
         // Same invariant through the path that actually runs at boot, so a
         // regression in the WIRING is caught as well as one in the configs.
         // ArrivalReachability shipped fully written with no callers at all;
@@ -116,8 +112,9 @@ class ShippedDimensionReachabilityTest {
                 .sorted()
                 .toList();
 
-        assertEquals(KNOWN_UNREACHABLE, warned,
-                "the boot warning must fire for exactly the dimensions the pure check flags");
+        assertEquals(unreachableDimensions(shipped()).stream().sorted().toList(), warned,
+                "the boot warning must fire for exactly the dimensions the pure check flags — "
+                + "no more (noise) and no fewer (a silent trap)");
     }
 
     @Test

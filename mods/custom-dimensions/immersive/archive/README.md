@@ -37,8 +37,9 @@ archived text still says otherwise):
   (2026-07-26).
 - **PHASE-9's "58 dimensions can strand a player" table is historical.** It
   was measured under the inverted transform. Against the real config set with
-  divide-on-entry, **three** fail, for an unrelated reason (pocket dims at
-  scale 1 into a 256 border). See `PLAN.md § Outstanding for the owner`.
+  divide-on-entry the check found **three** genuine failures, for an unrelated
+  reason (pocket dims at scale 1 into a 256 border); all three were given
+  anchors on 2026-07-26 and the shipped set is now clean.
 - **The mod README documented `/dimension create`, `/dimension delete`,
   `/portal link` and `/portal delete` long after all four stopped existing** —
   and its `/portal link` example still carried `0.125` as the way to write
