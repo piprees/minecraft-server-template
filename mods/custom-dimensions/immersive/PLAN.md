@@ -434,7 +434,25 @@ mixin classes (all changes are to existing mixins).
 
 ---
 
-## Outstanding for the owner (not code — a content call)
+## Outstanding for the owner
+
+### 1. Cutting the release — needs your go-ahead
+
+Phase 9 is committed and pushed to `main` (`8fe7bc6`), so the images and the
+mod jar build in CI, but **no release has been cut**. `AGENTS.md § Confirm
+before proceeding` lists cutting a release as requiring a human first — a
+burnt tag cannot be reused and a broken release breaks every consumer update —
+so this is deliberately left for you:
+
+```bash
+gh workflow run release.yml -f version=vX.Y.Z    # never `gh release create`
+```
+
+Suggested `v3.10.0`: no `.env` keys, overlay contract or compose structure
+change, but arrival placement moves where portals land, which is more than a
+patch. Local elfydd is already running the built jar, installed by hand.
+
+### 2. Three unreachable dimensions — a content call
 
 **Three dimensions can strand a player, and the fix is an authoring decision.**
 Phase 9b's boot check now WARNs about them on every start, verified live:
