@@ -125,6 +125,11 @@ public class FixedStructurePlacement extends RandomSpreadStructurePlacement {
         return index.positions().stream().map(p -> List.of(p.x, p.z)).toList();
     }
 
+    /** The exact configured positions. Used by /customdim structure-census. */
+    public List<ChunkPos> positions() {
+        return index.positions();
+    }
+
     @Override
     public ChunkPos getStartChunk(long seed, int chunkX, int chunkZ) {
         return index.startFor(chunkX, chunkZ);

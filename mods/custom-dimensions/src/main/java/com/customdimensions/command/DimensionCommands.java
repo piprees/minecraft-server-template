@@ -4,6 +4,9 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionManager;
+import com.customdimensions.dimension.FixedStructurePlacement;
+import com.customdimensions.dimension.NoiseStructurePlacement;
+import com.customdimensions.dimension.StructureGroupRegistry;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -23,6 +26,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
+import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.gen.noise.NoiseConfig;
 
 import java.io.IOException;
@@ -42,6 +46,8 @@ import java.util.UUID;
  *   /customdim locate structure <dimension> <structure_id> [timeout]
  *   /customdim locate-result <uuid>
  *   /customdim dump-biome-params <dimension>
+ *   /customdim structure-audit [group]
+ *   /customdim structure-census <dimension>
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
@@ -132,7 +138,244 @@ public class DimensionCommands {
                         .then(CommandManager.argument("radius", IntegerArgumentType.integer(64, 8192))
                             .then(CommandManager.argument("step", IntegerArgumentType.integer(16, 512))
                                 .executes(DimensionCommands::sampleBiomeGrid)))))
+                .then(CommandManager.literal("structure-audit")
+                    .executes(ctx -> structureAudit(ctx, null))
+                    .then(CommandManager.argument("group", StringArgumentType.word())
+                        .executes(ctx -> structureAudit(ctx,
+                            StringArgumentType.getString(ctx, "group")))))
+                .then(CommandManager.literal("structure-census")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .executes(DimensionCommands::structureCensus)))
         );
+    }
+
+    /**
+     * Dumps every noise-placed structure position in a dimension, grouped, to
+     * config/custom-dimensions/census/&lt;namespace&gt;__&lt;path&gt;.json.
+     *
+     * A file rather than command output: a large dimension holds thousands of
+     * positions per group, which no RCON response can carry. The format
+     * mirrors the roller's `structure_all` so F4 can diff the two directly.
+     *
+     * Reads the world's LIVE StructurePlacementCalculator — the same objects
+     * chunk generation and /locate consult — rather than recomputing from
+     * config. Recomputing would be the one thing guaranteed to agree with
+     * itself while disagreeing with the world.
+     */
+    private static int structureCensus(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        Identifier dimensionId = IdentifierArgumentType.getIdentifier(ctx, "dimension");
+        ServerWorld world = source.getServer().getWorld(
+                RegistryKey.of(RegistryKeys.WORLD, dimensionId));
+        if (world == null) {
+            source.sendError(Text.literal(
+                "Dimension not loaded: " + dimensionId
+                + " (visit it or use /customdim load first)"));
+            return 0;
+        }
+
+        var calculator = world.getChunkManager().getStructurePlacementCalculator();
+        StringBuilder json = new StringBuilder();
+        json.append("{\n \"dimension\": \"").append(dimensionId).append("\",\n");
+        json.append(" \"seed\": ").append(world.getSeed()).append(",\n");
+        json.append(" \"groups\": {");
+
+        int groupCount = 0;
+        int total = 0;
+        StringBuilder summary = new StringBuilder();
+        for (var entry : calculator.getStructureSets()) {
+            if (!(entry.value().placement() instanceof NoiseStructurePlacement noise)) {
+                continue;
+            }
+            if (groupCount > 0) {
+                json.append(',');
+            }
+            // The RESOLVED placement inputs, so the parity check (F4) can
+            // rebuild the field directly instead of re-deriving them from
+            // config. Config resolution is unit-tested on both sides
+            // separately; mixing the two here would make a parity failure
+            // ambiguous between "the maths diverged" and "the two sides read
+            // the config differently".
+            var index = noise.index();
+            json.append("\n  \"").append(noise.group()).append("\": {\n");
+            json.append("   \"profile\": \"").append(index.profileId()).append("\",\n");
+            json.append("   \"noiseSeed\": ").append(index.noiseSeed()).append(",\n");
+            json.append("   \"exclusion\": ").append(index.exclusion()).append(",\n");
+            json.append("   \"radiusChunks\": ").append(index.radiusChunks()).append(",\n");
+            json.append("   \"spawnChunkX\": ").append(index.spawnChunkX()).append(",\n");
+            json.append("   \"spawnChunkZ\": ").append(index.spawnChunkZ()).append(",\n");
+            json.append("   \"radial\": ");
+            double[] radial = index.radial();
+            if (radial == null) {
+                json.append("null");
+            } else {
+                json.append('[');
+                for (int i = 0; i < radial.length; i++) {
+                    if (i > 0) {
+                        json.append(", ");
+                    }
+                    json.append(radial[i]);
+                }
+                json.append(']');
+            }
+            json.append(",\n");
+            json.append("   \"spacing\": ").append(noise.getSpacing()).append(",\n");
+            // An OBJECT of id -> weight. Written as an array once, which is
+            // invalid JSON the moment a weight appears ( ["a":1] ), and the
+            // file parsed nowhere.
+            json.append("   \"structures\": {");
+            int n = 0;
+            for (var weighted : entry.value().structures()) {
+                if (n++ > 0) {
+                    json.append(", ");
+                }
+                json.append('"')
+                        .append(weighted.structure().getKey()
+                                .map(k -> k.getValue().toString()).orElse("?"))
+                        .append("\": ").append(weighted.weight());
+            }
+            json.append("},\n   \"positions\": [");
+            int i = 0;
+            for (var pos : noise.index().positions()) {
+                if (i++ > 0) {
+                    json.append(", ");
+                }
+                json.append('[').append(pos.x).append(',').append(pos.z).append(']');
+            }
+            json.append("]\n  }");
+            groupCount++;
+            total += i;
+            summary.append(' ').append(noise.group()).append('=').append(i);
+        }
+        json.append(groupCount > 0 ? "\n }" : "}");
+
+        // Forced placements are not noise, but a census that omitted them
+        // would look like a "none + force" dimension had nothing at all.
+        json.append(",\n \"forced\": {");
+        int forcedGroups = 0;
+        int forcedTotal = 0;
+        for (var entry : calculator.getStructureSets()) {
+            if (!(entry.value().placement() instanceof FixedStructurePlacement fixed)) {
+                continue;
+            }
+            for (var weighted : entry.value().structures()) {
+                if (forcedGroups++ > 0) {
+                    json.append(',');
+                }
+                json.append("\n  \"")
+                        .append(weighted.structure().getKey()
+                                .map(k -> k.getValue().toString()).orElse("?"))
+                        .append("\": [");
+                int i = 0;
+                for (var pos : fixed.positions()) {
+                    if (i++ > 0) {
+                        json.append(", ");
+                    }
+                    json.append('[').append(pos.x).append(',').append(pos.z).append(']');
+                }
+                json.append(']');
+                forcedTotal += i;
+            }
+        }
+        json.append(forcedGroups > 0 ? "\n }" : "}").append("\n}\n");
+
+        try {
+            Path outputPath = FabricLoader.getInstance().getConfigDir()
+                .resolve("custom-dimensions").resolve("census")
+                .resolve(dimensionId.getNamespace() + "__" + dimensionId.getPath() + ".json");
+            Files.createDirectories(outputPath.getParent());
+            Files.writeString(outputPath, json.toString());
+            final String message = "structure-census " + dimensionId + ": "
+                    + groupCount + " groups, " + total + " noise positions"
+                    + (forcedTotal > 0 ? ", " + forcedTotal + " forced" : "")
+                    + " ->" + summary + " | " + outputPath;
+            source.sendFeedback(() -> Text.literal(message), false);
+            return total;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write structure census", e);
+            source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /**
+     * Lists every structure set the server knows with its noise group, rarity
+     * tier and where that classification came from — `registry` for a row in
+     * structure_themes.json (baked or consumer overlay), `inferred` for a set
+     * neither knew about, which lands in `deco` with a spacing-derived rarity.
+     *
+     * Output is one set per line so RCON can be grepped; a trailing summary
+     * counts each group and flags the inferred ones, since a large inferred
+     * count means a consumer's structure mods are all being treated as
+     * scenery.
+     */
+    private static int structureAudit(CommandContext<ServerCommandSource> ctx, String groupFilter) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld overworld = source.getServer().getOverworld();
+        var registry = overworld.getRegistryManager().get(RegistryKeys.STRUCTURE_SET);
+
+        java.util.Map<String, Integer> byGroup = new java.util.TreeMap<>();
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        int inferred = 0;
+
+        for (var entry : registry.getEntrySet()) {
+            String setId = entry.getKey().getValue().toString();
+            var placement = entry.getValue().placement();
+            int spacing = placement instanceof RandomSpreadStructurePlacement random
+                    ? random.getSpacing() : -1;
+            var classification = StructureGroupRegistry.classify(setId, spacing);
+            byGroup.merge(classification.group(), 1, Integer::sum);
+            if (classification.source() == StructureGroupRegistry.Source.INFERRED) {
+                inferred++;
+            }
+            if (groupFilter != null && !groupFilter.equalsIgnoreCase(classification.group())) {
+                continue;
+            }
+            lines.add(String.format("%s group=%s rarity=%s theme=%s source=%s spacing=%s",
+                    setId, classification.group(), classification.rarity(),
+                    classification.theme() == null ? "-" : classification.theme(),
+                    classification.source().name().toLowerCase(java.util.Locale.ROOT),
+                    spacing < 0 ? "n/a" : spacing));
+        }
+
+        java.util.Collections.sort(lines);
+
+        StringBuilder summary = new StringBuilder("structure-audit: ")
+                .append(registry.size()).append(" sets");
+        if (groupFilter != null) {
+            summary.append(" (").append(lines.size()).append(" matching group ")
+                    .append(groupFilter).append(")");
+        }
+        summary.append(" |");
+        for (var e : byGroup.entrySet()) {
+            summary.append(' ').append(e.getKey()).append('=').append(e.getValue());
+        }
+        summary.append(" | inferred=").append(inferred);
+
+        // The rows go to a file, not the command output. RCON concatenates
+        // feedback lines with no separator and truncates the response at a
+        // few KB, so ~280 rows come back as one unreadable, half-missing
+        // string — which looks like a working command until you try to use it.
+        try {
+            Path outputPath = FabricLoader.getInstance().getConfigDir()
+                .resolve("custom-dimensions").resolve("structure-audit.txt");
+            Files.createDirectories(outputPath.getParent());
+            StringBuilder body = new StringBuilder();
+            body.append("# ").append(summary).append('\n');
+            body.append("# set_id group rarity theme source spacing\n");
+            for (String line : lines) {
+                body.append(line).append('\n');
+            }
+            Files.writeString(outputPath, body.toString());
+            summary.append(" -> ").append(outputPath);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write structure audit", e);
+            summary.append(" (write failed: ").append(e.getMessage()).append(')');
+        }
+
+        final String summaryText = summary.toString();
+        source.sendFeedback(() -> Text.literal(summaryText), false);
+        return lines.size();
     }
 
     private static boolean unset(String value) {

@@ -86,6 +86,8 @@ MANIFEST=(
   scripts/seed/biome_source_mixing.py
   scripts/seed/fast_roller.py
   scripts/seed/structure_placement.py
+  scripts/seed/noise_placement.py
+  scripts/seed/census_scoring.py
   scripts/seed/surface_rules.py
   scripts/seed/terrain_height.py
   scripts/seed/warmup_biomes.py

@@ -82,6 +82,41 @@ Warmup (`roll-all.sh` phase 1) extracts structure sets from mod JARs into `.seed
 
 A warmup failure ("ERROR: biome param dump failed") leaves scoring incomplete but does not stop the roll — dimensions in the affected family will simply zero-candidate per the diagnostic above.
 
+## Noise structure placement and the roller
+
+Since noise placement landed (2026-07-26), structure positions are no longer
+a vanilla grid the roller re-derives from spacing/separation/salt. They come
+from a seeded noise field per structure GROUP, mirrored bit-for-bit in
+`scripts/seed/noise_placement.py`.
+
+- `noise_census(world_seed, dim_name, dim_config, type_defaults)` returns
+  `{group: [(chunk_x, chunk_z), ...]}` — a complete census of the dimension,
+  not a nearest-instance search.
+- Ground truth is `/customdim structure-census <dim>` on a running server,
+  which dumps the LIVE placement calculator plus each group's resolved inputs.
+  `test_noise_parity.py` diffs the two with zero tolerance; the committed
+  fixtures live in `scripts/seed/testdata/census/`.
+- **The mirror must stay bit-exact.** Java longs wrap and `>>>` is unsigned;
+  ranks compare UNSIGNED; `Math.round` is `floor(x + 0.5)`, not Python's
+  banker's rounding. The module docstring lists every such rule. Change
+  `StructureNoise.java` / `NoiseFieldIndex.java` and `noise_placement.py`
+  together, then re-run the parity test.
+
+### Fingerprint impact — expect a wave of DRIFTED
+
+`generation_payload()` gained a **conditional** `noisePlacement` key. Of the
+shipped set: 73 dimensions carry it and will report **DRIFTED** (correct —
+noise genuinely changed their worlds, so their banked measurements describe a
+world the config no longer generates, and only a re-roll fixes it); 5
+suppressed dimensions keep byte-identical fingerprints; the 4 base worlds are
+unaffected (they never get noise — the mod only rebuilds placements for
+managed namespaces).
+
+**Two fields became generation-affecting for the first time:**
+`borders.player` (sets the scanned radius AND the noise frequency scale) and
+`difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both
+used to be scoring-only. Editing either now re-rolls the dimension.
+
 ## Traps
 
 1. **The fingerprint corollary.** Any new generation-affecting config field must be added to `dimension_profiles.generation_payload()` or seed-group rolling silently lies — two dimensions sharing a fingerprint AND a seed are literal world clones sharing a doubly-measured world. Worked instance (2026-07-24): derived exit-shrine spacing made `borders.player` generation-affecting for `exitShrines` dims — the payload gained a *conditional* `shrineSpacing` key, added only when `exitShrines.enabled` and no explicit `structures.spacing` override exists, specifically so every pre-existing non-shrine fingerprint stayed byte-stable (an always-present key would have DRIFTED every candidate store at once).

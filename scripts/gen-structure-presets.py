@@ -19,6 +19,11 @@ Output:   config/datapacks/structures/            (active platform default)
           (variants; a consumer copies one over
            overlay/config/datapacks/structures/ to swap preset)
 
+          NOT structure_themes.json — scripts/gen-structure-groups.py owns
+          that (and config/custom-dimensions/structure-groups.json) since the
+          noise-placement work. Run it after any pin bump too; it needs no
+          network.
+
 Usage:    scripts/gen-structure-presets.py [--cache DIR]
           Downloads each needed pinned jar once (cached); vanilla files come
           from misode/mcmeta (1.21.1-data).
@@ -347,17 +352,14 @@ def main():
     shutil.copytree(PRESETS_OUT / "default/structures", ACTIVE_OUT)
     print(f"active pack refreshed: {ACTIVE_OUT} ({counts['default']} overrides)")
 
-    # Theme map for the custom-dimensions mod (per-dimension structure
-    # control needs runtime theme knowledge; jar resource, not a datapack).
-    themes = {}
-    for row in rows:
-        set_id = row["structure_set"]
-        if ":" not in set_id or "(" in set_id:
-            continue  # marker rows (e.g. dungeons_reborn placed-features note)
-        themes[set_id] = row["theme"]
-    themes_path = REPO / "mods/custom-dimensions/src/main/resources/structure_themes.json"
-    themes_path.write_text(json.dumps(dict(sorted(themes.items())), indent=1) + "\n")
-    print(f"theme map: {len(themes)} entries -> {themes_path}")
+    # The mod's runtime theme/group/rarity map is NOT written here. It used to
+    # be, as a side effect of this run — but this script needs network (it
+    # downloads every pinned jar) and the map is pure CSV -> JSON, so the two
+    # jobs were split. scripts/gen-structure-groups.py owns
+    # structure_themes.json and structure-groups.json now; two writers to one
+    # file silently fought, with whichever ran last winning.
+    print("theme map: owned by scripts/gen-structure-groups.py — run it "
+          "after refreshing structure-sets-extracted.csv")
 
 
 if __name__ == "__main__":

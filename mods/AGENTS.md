@@ -341,6 +341,87 @@ making the noise presets survive Tectonic/Terralith removal:
   order). Any closure walk must resolve conflicts by runtime priority, not
   first-found.
 
+### Noise structure placement (2026-07-26)
+
+Noise placement is the **default** for every managed dimension. It replaces
+the vanilla grid for whole structure GROUPS rather than per set: sets are
+sorted into seven meta-groups (deco / settlements / dungeons / landmarks /
+maritime / endgame / loot), biome-filtered against the dimension's own biome
+source, and each active group gets one `NoiseStructurePlacement`. A dimension
+with nothing but `type` and `biomes` gets biome-appropriate structures with
+no config at all. Full design + every deviation from the spike:
+`mods/custom-dimensions/immersive/NOISE-IMPL-LOG.md`.
+
+- **Placement is ORDER-FREE, and that is load-bearing.** A chunk places iff
+  it is above threshold AND no above-threshold chunk within the exclusion
+  radius outranks it, where rank is white noise (`mix64` of seed+coords,
+  compared **unsigned**) and ties break on the chunk key. This is the
+  parallel formulation of dart throwing. It is not a greedy spiral, and it
+  must not become one: the roller mirrors this in Python and parity is a set
+  comparison, not two traversals that have to agree step for step. It also
+  means the traversal can be optimised freely — swapping an O(r^3) ring walk
+  for an O(r^2) scan produced byte-identical output.
+- **Rank on white noise, never on the placement field itself.** Local maxima
+  of a *smooth* field occur about once per noise feature, so their density is
+  fixed by frequency alone — the threshold barely participates and the
+  exclusion radius is completely inert. Measured: a 1024-block pocket
+  dimension produced ONE structure, and changing exclusion from 3 to 20
+  changed nothing. Two dials, two jobs: noise + radial curve decide what
+  fraction of the world qualifies, rank decides how far apart the survivors
+  sit.
+- **Frequency scales with the playable radius**
+  (`REFERENCE_RADIUS_CHUNKS / radiusChunks`). `sparse`'s 0.015 is a 67-chunk
+  lattice period; a 1024-block dimension is 128 chunks across, so without
+  scaling the whole world is ~2 periods — one blob, and whether a group gets
+  anything is a coin flip. `the_overgrowth` had zero settlements this way.
+- **Chunk coordinates must never land on the noise lattice.** Perlin is
+  exactly 0 at a lattice point, which normalises to 0.5 for EVERY seed — and
+  0.025 is 1/40, so every 40th chunk on both axes would be a fixed,
+  seed-independent candidate, placing under `dense` in every world ever
+  generated. `StructureNoise.sampleChunk` adds irrational origin offsets;
+  never sample raw chunk coordinates.
+- **Doubles everywhere, and our own Perlin.** `float` rounds differently from
+  Python's always-double floats (`1.3f` is `1.29999995231628418`) and would
+  cost the parity gate for nothing. Vanilla's `PerlinNoiseSampler` is avoided
+  because mirroring it means mirroring `net.minecraft.util.math.random.Random`
+  too, and it drags Bootstrap into unit tests.
+- **The peaceful shift outranks `structureDensity`.** A coarse density dial
+  must not resurrect a group the dimension's own difficulty says is not
+  there. Only an explicit per-group `structures.noise` entry can undo it.
+- **Data is jar-baked, not read from config.** `structure_themes.json` and
+  `structure_type_defaults.json` are resources (self-containment rule above);
+  the copies under `config/custom-dimensions/` exist for the seed roller,
+  which resolves consumer-mode config from `data/config/`. Regenerate both
+  with `scripts/gen-structure-groups.py` after any structure-mod pin bump —
+  `--check` gates staleness.
+- **Over half of all sets never enter a group.** 155 of ~280 have a custom
+  placement type (YUNG's, and everything Cristel Lib rewrites at runtime —
+  explorify, towns_and_towers) and pass through on grid placement, exactly as
+  the density path has always left them. A `groups=4/5` boot line is also
+  normal: a group whose pool is empty after biome filtering is skipped.
+- **Never run a bare synchronous `/locate` into an ungenerated custom
+  dimension.** It can block the main thread long enough to wedge RCON while
+  `docker ps` stays healthy — no crash, the game log just stops advancing
+  (recover with `docker stop -t 90 mc && docker start mc`). **This is
+  pre-existing and explicitly out of scope** (owner, 2026-07-26): a
+  `density=none` dimension on the untouched `FixedStructurePlacement` path,
+  with exactly one placement in the whole world, is just as slow. It is why
+  `customdim locate structure` is async. The fix is Chunky pre-generation —
+  don't go looking for a placement bug.
+- **A large dense dimension takes seconds to build its placements, and that
+  is accepted** (owner, 2026-07-26). `the_end_citadel` (8192 border, `dense`,
+  5 groups) is ~2.5 s for 62,556 positions; it logs a warning, runs once per
+  world load, and is off the tick loop. Do **not** "optimise" it by capping
+  positions, shrinking `MAX_RADIUS_CHUNKS`, or raising exclusion for large
+  dimensions — all three change worldgen. The counts are already
+  conservative: 39,570 `deco` placements replace 144 structure sets vanilla
+  would each place every 20-30 chunks, so noise `deco` is *sparser* than the
+  grid it replaces.
+- `/customdim structure-audit` and `/customdim structure-census <dim>` both
+  **write files** and return a summary — RCON concatenates feedback lines
+  with no separator and truncates at a few KB, so hundreds of rows come back
+  as one unreadable, half-missing string.
+
 ### Structure placement lessons (fixed placements, 2026-07-24)
 
 - **Vanilla CubicSpline EXTRAPOLATES LINEARLY beyond its endpoints** using
@@ -433,11 +514,21 @@ MultiverseServer (entrypoint)
 │   (SERVER_STARTED, overworld first — vanilla's border syncer trap)
 ├── DimensionTypeBuilder → "environment" block registers {ns}:{slug}_type
 │   (invalid heights fall back to the base type, never a crash)
-├── ServerChunkLoadingManagerMixin → per-dimension structure density
-│   └── rebuilds the world's StructurePlacementCalculator with rescaled
-│       UNREGISTERED placement copies (DimensionStructures) — the global
-│       registry is never mutated; custom placement types pass through
-│       unchanged (only whole-set drops apply to them)
+├── ServerChunkLoadingManagerMixin → per-dimension structure placement
+│   └── rebuilds the world's StructurePlacementCalculator with UNREGISTERED
+│       placement copies (DimensionStructures) — the global registry is never
+│       mutated; custom placement types pass through unchanged
+│       ├── NoiseGroupPlan → which groups are active, at what profile,
+│       │   radial curve and exclusion (pure; config -> type defaults)
+│       ├── NoisePoolBuilder → sorts sets into groups, biome-filters against
+│       │   the dimension's biome source, weights by rarity + biome affinity
+│       ├── NoiseStructurePlacement → one per active group (thin shell)
+│       │   └── NoiseFieldIndex → all the placement maths, no Bootstrap
+│       │       └── NoiseProfile → natural/dense/sparse/cluster constants
+│       │           └── StructureNoise → own Perlin (see below)
+│       ├── StructureGroupRegistry → group/rarity per set + type defaults,
+│       │   both jar-baked; unknown sets infer to deco + spacing rarity
+│       └── FixedStructurePlacement → structures.force, unchanged
 ├── MinecraftServerAccessor → server internals access
 ├── StructurePlacementAccessor / StructurePlacementCalculatorInvoker
 │   └── placement field access + the private calculator ctor (the public

@@ -1,0 +1,315 @@
+{
+ "curves": {
+  "inner": [
+   1.5,
+   1.3,
+   1.0,
+   0.8,
+   0.5,
+   0.3,
+   0.1,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "outer": [
+   0.0,
+   0.0,
+   0.1,
+   0.3,
+   0.6,
+   0.8,
+   1.0,
+   1.3,
+   1.5,
+   2.0
+  ],
+  "even": [
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "mid": [
+   0.3,
+   0.5,
+   1.0,
+   1.2,
+   1.2,
+   1.0,
+   0.8,
+   0.5,
+   0.3,
+   0.1
+  ]
+ },
+ "groupDefaults": {
+  "deco": {
+   "profile": "natural",
+   "radial": "even",
+   "exclusion": 3
+  },
+  "loot": {
+   "profile": "natural",
+   "radial": "even",
+   "exclusion": 4
+  },
+  "settlements": {
+   "profile": "natural",
+   "radial": "even",
+   "exclusion": 6
+  },
+  "maritime": {
+   "profile": "natural",
+   "radial": "even",
+   "exclusion": 6
+  },
+  "dungeons": {
+   "profile": "sparse",
+   "radial": "even",
+   "exclusion": 8
+  },
+  "landmarks": {
+   "profile": "sparse",
+   "radial": "mid",
+   "exclusion": 12
+  },
+  "endgame": {
+   "profile": "sparse",
+   "radial": "outer",
+   "exclusion": 20
+  }
+ },
+ "rarityShares": {
+  "common": 8.0,
+  "uncommon": 3.0,
+  "rare": 1.0,
+  "endgame": 0.3
+ },
+ "difficultyShifts": {
+  "hostile": {
+   "minMobMultiplier": 2.0,
+   "radial": {
+    "dungeons": "even",
+    "endgame": "mid"
+   }
+  },
+  "peaceful": {
+   "maxMobMultiplier": 0.5,
+   "profiles": {
+    "dungeons": "none",
+    "endgame": "none"
+   }
+  }
+ },
+ "types": {
+  "multi_biome": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer"
+   }
+  },
+  "overworld": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer"
+   }
+  },
+  "large_biomes": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer"
+   }
+  },
+  "checkerboard": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer"
+   }
+  },
+  "single_biome": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer"
+   }
+  },
+  "amplified": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame",
+    "loot"
+   ],
+   "profiles": {
+    "landmarks": "natural"
+   },
+   "radial": {
+    "settlements": "inner",
+    "dungeons": "outer",
+    "endgame": "outer"
+   }
+  },
+  "cave": {
+   "groups": [
+    "deco",
+    "dungeons",
+    "loot"
+   ],
+   "profiles": {
+    "dungeons": "natural",
+    "loot": "dense"
+   },
+   "radial": {
+    "dungeons": "outer"
+   }
+  },
+  "sky_islands": {
+   "groups": [
+    "deco",
+    "settlements",
+    "landmarks",
+    "loot"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "even",
+    "landmarks": "even"
+   }
+  },
+  "nether": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "endgame"
+   ],
+   "profiles": {
+    "dungeons": "natural"
+   },
+   "radial": {
+    "dungeons": "even",
+    "settlements": "even",
+    "landmarks": "even",
+    "endgame": "even"
+   }
+  },
+  "nether_islands": {
+   "groups": [
+    "deco",
+    "settlements",
+    "dungeons",
+    "landmarks",
+    "endgame"
+   ],
+   "profiles": {
+    "dungeons": "natural"
+   },
+   "radial": {
+    "dungeons": "even",
+    "settlements": "even",
+    "landmarks": "even",
+    "endgame": "even"
+   }
+  },
+  "end": {
+   "groups": [
+    "deco",
+    "dungeons",
+    "landmarks",
+    "maritime",
+    "endgame"
+   ],
+   "profiles": {
+    "endgame": "natural"
+   },
+   "radial": {
+    "dungeons": "even",
+    "landmarks": "even",
+    "maritime": "even",
+    "endgame": "even"
+   }
+  },
+  "paradise_lost:paradise_lost": {
+   "groups": [
+    "deco",
+    "settlements",
+    "landmarks"
+   ],
+   "profiles": {},
+   "radial": {
+    "settlements": "even",
+    "landmarks": "even"
+   }
+  },
+  "void": {
+   "groups": [],
+   "profiles": {},
+   "radial": {}
+  },
+  "superflat": {
+   "groups": [],
+   "profiles": {},
+   "radial": {}
+  }
+ }
+}

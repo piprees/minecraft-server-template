@@ -1,0 +1,189 @@
+{
+ "_comment": [
+  "Noise-placement defaults per world type. Hand-authored (unlike",
+  "structure-groups.json, which is generated) — this is design intent, not",
+  "derived data. Read at boot by StructureGroupRegistry; a dimension config's",
+  "structures.noise / structures.radial / structureDensity override anything",
+  "here, per group.",
+  "",
+  "Resolution order for a group's profile, most specific first:",
+  "  1. structures.noise.<group>        (per-group override)",
+  "  2. structures.noise                (string form: all groups)",
+  "  3. structureDensity                (none kills noise entirely)",
+  "  4. difficultyShifts                (mobMultiplier-driven)",
+  "  5. types.<type>.profiles.<group>   (this file)",
+  "  6. groupDefaults.<group>.profile   (this file)",
+  "",
+  "Radial resolution is the same shape, with structures.radial taking a raw",
+  "10-point curve instead of a named one.",
+  "",
+  "Base worlds (minecraft:overworld / the_nether / the_end and the",
+  "paradise_lost base world) are NOT in this file and never get noise: the",
+  "mod only rebuilds the placement calculator for managed-namespace worlds,",
+  "so the main overworld keeps vanilla grid placement. That is deliberate —",
+  "noise placement is creation-time worldgen and the base worlds already",
+  "have chunks."
+ ],
+
+ "curves": {
+  "_comment": "10-point piecewise-linear weights, spawn (index 0) -> border (index 9). Multiplied into the noise before the threshold test, so 0.0 suppresses a band outright and 2.0 roughly doubles the hit rate there.",
+  "inner": [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0],
+  "outer": [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0],
+  "even": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+  "mid": [0.3, 0.5, 1.0, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3, 0.1]
+ },
+
+ "groupDefaults": {
+  "_comment": [
+   "profile   — noise shape (natural | dense | sparse | cluster | none)",
+   "radial    — named curve from `curves`",
+   "exclusion — minimum chunks between two placements IN THIS GROUP. Groups",
+   "            are independent, so a village and a ruin may sit adjacent;",
+   "            two villages may not. Scaled by the profile's exclusion",
+   "            multiplier (dense 0.6x, sparse 1.5x, cluster 0.4x).",
+   "            SPACING for /locate probing is exclusion * 2, so each locate",
+   "            cell holds at most one placement.",
+   "",
+   "The spike gives an exclusion-per-RARITY table and also says all",
+   "structures in a group share the group's exclusion. Both cannot hold, and",
+   "per-group is the one that makes the placement well-defined (a single",
+   "NoiseStructurePlacement serves the whole group and has one exclusion",
+   "radius). Values below blend the concept spike's per-theme table with the",
+   "implementation spike's per-rarity table, keyed on each group's",
+   "characteristic rarity. Rarity still governs a set's SHARE of its group's",
+   "placements — that is where common-vs-endgame is expressed."
+  ],
+  "deco": { "profile": "natural", "radial": "even", "exclusion": 3 },
+  "loot": { "profile": "natural", "radial": "even", "exclusion": 4 },
+  "settlements": { "profile": "natural", "radial": "even", "exclusion": 6 },
+  "maritime": { "profile": "natural", "radial": "even", "exclusion": 6 },
+  "dungeons": { "profile": "sparse", "radial": "even", "exclusion": 8 },
+  "landmarks": { "profile": "sparse", "radial": "mid", "exclusion": 12 },
+  "endgame": { "profile": "sparse", "radial": "outer", "exclusion": 20 }
+ },
+
+ "rarityShares": {
+  "_comment": "Relative weight of a set within its group's placements. A group holding three `common` sets and one `rare` gives each common 8/25 of the placements and the rare 1/25. Overridden per dimension by structures.rarity.",
+  "common": 8.0,
+  "uncommon": 3.0,
+  "rare": 1.0,
+  "endgame": 0.3
+ },
+
+ "difficultyShifts": {
+  "_comment": [
+   "Applied before the per-type table, after any explicit dimension config.",
+   "difficulty.mobMultiplier is the input. A dangerous world puts threat",
+   "everywhere and brings the prize within reach; a peaceful world has",
+   "neither. `hostileGroups` names the groups a peaceful world suppresses —",
+   "the same intent as the existing peaceful overlay dropping dungeon-theme",
+   "sets, expressed in group terms."
+  ],
+  "hostile": {
+   "minMobMultiplier": 2.0,
+   "radial": { "dungeons": "even", "endgame": "mid" }
+  },
+  "peaceful": {
+   "maxMobMultiplier": 0.5,
+   "profiles": { "dungeons": "none", "endgame": "none" }
+  }
+ },
+
+ "types": {
+  "_comment": [
+   "`groups` is the enabled set for the type. Biome filtering then removes",
+   "individual structures whose biome predicate does not intersect the",
+   "dimension's biome source, so a jungle multi_biome gets jungle temples",
+   "and not igloos without either being named here.",
+   "",
+   "Every type in the roller's OVERWORLD_FAMILY / NETHER_FAMILY /",
+   "END_FAMILY has an entry, plus void, superflat, single_biome and",
+   "paradise_lost:paradise_lost. Types the spike did not list",
+   "(large_biomes, checkerboard, single_biome) are overworld-family and",
+   "take the overworld defaults."
+  ],
+
+  "multi_biome": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "inner", "dungeons": "outer" }
+  },
+  "overworld": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "inner", "dungeons": "outer" }
+  },
+  "large_biomes": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "inner", "dungeons": "outer" }
+  },
+  "checkerboard": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "inner", "dungeons": "outer" }
+  },
+  "single_biome": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "inner", "dungeons": "outer" }
+  },
+  "amplified": {
+   "_comment": "Dramatic terrain already carries the landscape, so landmarks are allowed to be a normal feature of it rather than a rare event.",
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "maritime", "endgame", "loot"],
+   "profiles": { "landmarks": "natural" },
+   "radial": { "settlements": "inner", "dungeons": "outer", "endgame": "outer" }
+  },
+  "cave": {
+   "_comment": "No sky, no sea, no villages. Loot caches are the reward for going deep, so they run dense.",
+   "groups": ["deco", "dungeons", "loot"],
+   "profiles": { "dungeons": "natural", "loot": "dense" },
+   "radial": { "dungeons": "outer" }
+  },
+  "sky_islands": {
+   "_comment": "Islands over void: nothing maritime, and the danger is the fall rather than the mobs.",
+   "groups": ["deco", "settlements", "landmarks", "loot"],
+   "profiles": {},
+   "radial": { "settlements": "even", "landmarks": "even" }
+  },
+
+  "nether": {
+   "_comment": "Hostility is the ambient condition, not a destination — dungeons run at natural density and spread evenly rather than hiding at the border.",
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "endgame"],
+   "profiles": { "dungeons": "natural" },
+   "radial": { "dungeons": "even", "settlements": "even", "landmarks": "even", "endgame": "even" }
+  },
+  "nether_islands": {
+   "groups": ["deco", "settlements", "dungeons", "landmarks", "endgame"],
+   "profiles": { "dungeons": "natural" },
+   "radial": { "dungeons": "even", "settlements": "even", "landmarks": "even", "endgame": "even" }
+  },
+
+  "end": {
+   "_comment": "End cities and their kin ARE the content — endgame runs at natural density here instead of sparse. Maritime covers the void-ship sets.",
+   "groups": ["deco", "dungeons", "landmarks", "maritime", "endgame"],
+   "profiles": { "endgame": "natural" },
+   "radial": { "dungeons": "even", "landmarks": "even", "maritime": "even", "endgame": "even" }
+  },
+
+  "paradise_lost:paradise_lost": {
+   "_comment": "Skylands: gentle, built, no hostile mega-content.",
+   "groups": ["deco", "settlements", "landmarks"],
+   "profiles": {},
+   "radial": { "settlements": "even", "landmarks": "even" }
+  },
+
+  "void": {
+   "_comment": "No terrain to stand on. Nothing generates; a config may still force placements.",
+   "groups": [],
+   "profiles": {},
+   "radial": {}
+  },
+  "superflat": {
+   "_comment": "Not rollable and never noise-placed — a flat world's structures are whatever its layers config allows.",
+   "groups": [],
+   "profiles": {},
+   "radial": {}
+  }
+ }
+}

@@ -569,6 +569,12 @@ def main():
 
     profiles = {name: prof for name, prof in all_targets}
     data = sd.gather_measurements(fargs)
+    # Noise census (spike F2): the structure layout each accepted seed
+    # actually produces. Computed once per candidate and cached in the store,
+    # so this is the slow part of the FIRST roll of a large dimension and
+    # free on every rescore afterwards.
+    sd.attach_battery_groups(profiles, args.seedtest, args.config)
+    sd.ensure_censuses(fargs, config, profiles, data)
     results_scored, rejected_counts = sd.score_all(profiles, data)
     sd.persist_candidates(fargs, config, profiles, results_scored, data)
 

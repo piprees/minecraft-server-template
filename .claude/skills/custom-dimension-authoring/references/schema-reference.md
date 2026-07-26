@@ -260,3 +260,37 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
 ## Legacy: base-world overrides
 
 `overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` are **reserved filenames** — they override vanilla/existing worlds (map to `minecraft:overworld` etc.) rather than creating a new dimension. They only really use `seed`, `spawn`, `scale`, `borders`, `difficulty`, `seedRoll` — no `type`/`biomes`/`portal` (a portal doesn't make sense for the overworld itself). Don't create a new file with one of these names unless you deliberately mean to override that base world.
+
+## `structures` — noise placement fields
+
+Noise placement is the default for every managed dimension; these fields
+override it. All are creation-time-affecting (they change the world a seed
+generates) and all are fingerprinted by the seed roller.
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `structureDensity` | `"none"` / `"sparse"` / `"normal"` / `"dense"` | `"normal"` | Global profile for every group. `"normal"` means "use the world type's defaults", not a profile. `"none"` suppresses noise entirely; `force` still applies. |
+| `structures.noise` | string, object, or `false` | type defaults | String = every group uses that profile. Object = `{group: profile}`, per group, `"none"` drops that group, unmentioned groups keep the type default. `false` = fall back to vanilla grid placement (escape hatch). |
+| `structures.radial` | `{group: number[10]}` | type defaults | 10-point piecewise-linear weight curve, spawn (index 0) to border (index 9). Values 0.0–3.0. Multiplied into the noise before the threshold test, so `0.0` suppresses a band absolutely. Wrong length or out-of-range warns and falls back. |
+| `structures.rarity` | `{set_id: tier}` | derived from spacing | `common` / `uncommon` / `rare` / `endgame`. Changes a set's share of its group's placements, and can move it between groups — the `endgame` group requires a rare-or-rarer tier. Uses structure SET ids. |
+| `structures.exclude` | `string[]` | `[]` | Structure SET ids removed from the noise pool entirely. |
+| `structures.include` | `string[]` | `[]` | Structure SET ids forced into the pool, bypassing the biome filter. The escape hatch for a filter that is too aggressive. |
+| `structures.force[].exclusive` | boolean | `true` | Whether forcing a structure also removes it from the noise pool. Absent = true. |
+
+**Groups:** `deco`, `settlements`, `dungeons`, `landmarks`, `maritime`,
+`endgame`, `loot`. Which are enabled comes from the world type — see
+`config/custom-dimensions/structure-type-defaults.json`, and
+`config/custom-dimensions/structure-groups.json` for every set's
+classification.
+
+**Profiles:** `natural`, `dense`, `sparse`, `cluster`, `none`.
+
+**Difficulty shifts apply automatically and outrank `structureDensity`:**
+`difficulty.mobMultiplier >= 2.0` puts `dungeons` on an even curve and
+`endgame` on a mid curve; `<= 0.5` suppresses both. Only an explicit
+per-group `structures.noise` entry overrides a shift.
+
+**Two fields changed meaning:** `borders.player` and
+`difficulty.mobMultiplier` are now generation-affecting (the border sets the
+scanned radius AND the noise frequency scale; the multiplier drives the
+shifts). Editing either re-rolls the dimension.

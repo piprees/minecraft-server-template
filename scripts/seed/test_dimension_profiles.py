@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import dimension_profiles as dp
 from dimension_profiles import (
     build_profile,
     family_of,
@@ -577,3 +578,112 @@ class BuildProfileV4Tests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNoisePlacementFingerprint(unittest.TestCase):
+    """Spike task F3 — the fingerprint corollary for noise placement.
+
+    Noise placement is generation-affecting and makes two previously
+    scoring-only fields into worldgen inputs: `borders.player` (it sets both
+    the scanned radius and the frequency scale) and
+    `difficulty.mobMultiplier` (it drives the peaceful/hostile shifts). The
+    key must therefore be present for dims that get noise and ABSENT for
+    those that don't, or the wrong half of the candidate stores goes DRIFTED.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import os
+        repo = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        cls.config_dir = os.path.join(repo, "config", "custom-dimensions")
+        dp.set_noise_defaults_dir(cls.config_dir)
+        if dp._NOISE_DEFAULTS is None:
+            raise unittest.SkipTest("structure-type-defaults.json not found")
+
+    def test_noise_dims_carry_the_key(self):
+        payload = dp.generation_payload({"type": "multi_biome",
+                                         "borders": {"player": 1024}})
+        self.assertIn("noisePlacement", payload)
+        self.assertEqual(payload["noisePlacement"]["radiusChunks"], 64)
+        self.assertEqual(len(payload["noisePlacement"]["groups"]), 7)
+
+    def test_suppressed_dims_stay_byte_stable(self):
+        """The whole point of making the key conditional."""
+        for dim in ({"type": "multi_biome", "structureDensity": "none"},
+                    {"type": "void", "biomes": ["minecraft:the_end"]},
+                    {"type": "superflat"},
+                    {"type": "multi_biome", "structures": {"noise": False}},
+                    {"type": "multi_biome", "structures": {"mode": "none"}}):
+            payload = dp.generation_payload(dim)
+            self.assertNotIn("noisePlacement", payload, dim)
+
+    def test_base_worlds_are_unaffected(self):
+        self.assertIsNone(dp.generation_payload({"seed": 1}))
+
+    def test_player_border_is_now_generation_affecting(self):
+        """It was scoring-only before noise (bar exit-shrine dims)."""
+        a = dp.generation_fingerprint({"type": "multi_biome",
+                                       "borders": {"player": 1024}})
+        b = dp.generation_fingerprint({"type": "multi_biome",
+                                       "borders": {"player": 2048}})
+        self.assertNotEqual(a, b)
+
+    def test_mob_multiplier_is_now_generation_affecting(self):
+        """Peaceful suppresses whole groups; hostile changes radial curves."""
+        normal = dp.generation_fingerprint({"type": "multi_biome"})
+        peaceful = dp.generation_fingerprint(
+            {"type": "multi_biome", "difficulty": {"mobMultiplier": 0.0}})
+        hostile = dp.generation_fingerprint(
+            {"type": "multi_biome", "difficulty": {"mobMultiplier": 2.5}})
+        self.assertNotEqual(normal, peaceful)
+        self.assertNotEqual(normal, hostile)
+        self.assertNotEqual(peaceful, hostile)
+
+    def test_per_group_profile_changes_the_fingerprint(self):
+        a = dp.generation_fingerprint({"type": "multi_biome"})
+        b = dp.generation_fingerprint({
+            "type": "multi_biome",
+            "structures": {"noise": {"dungeons": "cluster"}}})
+        self.assertNotEqual(a, b)
+
+    def test_radial_curve_changes_the_fingerprint(self):
+        a = dp.generation_fingerprint({"type": "multi_biome"})
+        b = dp.generation_fingerprint({
+            "type": "multi_biome",
+            "structures": {"radial": {"dungeons": [1.0] * 10}}})
+        self.assertNotEqual(a, b)
+
+    def test_pool_filters_change_the_fingerprint(self):
+        """Same positions, different structures on them — not clones."""
+        base = dp.generation_fingerprint({"type": "multi_biome"})
+        for block in ({"rarity": {"minecraft:trial_chambers": "common"}},
+                      {"exclude": ["minecraft:villages"]},
+                      {"include": ["mes:phantom_citadel"]}):
+            self.assertNotEqual(
+                base,
+                dp.generation_fingerprint({"type": "multi_biome",
+                                           "structures": block}), block)
+
+    def test_exclusive_force_changes_the_fingerprint(self):
+        """An exclusive force removes a structure from the noise pool."""
+        excl = dp.generation_fingerprint({
+            "type": "multi_biome",
+            "structures": {"force": [{"structure": "a:b", "x": 0, "z": 0}]}})
+        shared = dp.generation_fingerprint({
+            "type": "multi_biome",
+            "structures": {"force": [{"structure": "a:b", "x": 0, "z": 0,
+                                      "exclusive": False}]}})
+        self.assertNotEqual(excl, shared)
+
+    def test_identical_noise_config_shares_a_fingerprint(self):
+        """Seed-group rolling still works — this is what it is for."""
+        a = dp.generation_fingerprint({"type": "multi_biome",
+                                       "borders": {"player": 1024},
+                                       "biomes": ["minecraft:plains"]})
+        b = dp.generation_fingerprint({"type": "multi_biome",
+                                       "borders": {"player": 1024},
+                                       "biomes": ["minecraft:plains"],
+                                       "description": "different text",
+                                       "portal": {"scale": 8.0}})
+        self.assertEqual(a, b)

@@ -60,16 +60,8 @@
       "campsite": "near_spawn",
       "lighthouse": "near_border"
     },
-    "shuns": [
-      "ancient_city",
-      "coliseum",
-      "mansion"
-    ],
+    "shuns": ["ancient_city", "coliseum", "mansion"],
     "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight."
   },
-  "spawn": [
-    0,
-    64,
-    0
-  ]
+  "spawn": [0, 64, 0]
 }

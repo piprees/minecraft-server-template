@@ -9,7 +9,6 @@
     "terralith:glacial_chasm",
     "terralith:frozen_cliffs",
     "terralith:cave/frostfire_caves",
-    "terralith:snowy_cherry_grove",
     "terralith:alpha_islands_winter"
   ],
   "borders": {
@@ -52,15 +51,10 @@
       "terralith:glacial_chasm",
       "terralith:frozen_cliffs",
       "terralith:cave/frostfire_caves",
-      "terralith:snowy_cherry_grove",
       "terralith:alpha_islands_winter"
     ],
     "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
     "terrain": "void"
   },
-  "spawn": [
-    0,
-    64,
-    0
-  ]
+  "spawn": [0, 64, 0]
 }

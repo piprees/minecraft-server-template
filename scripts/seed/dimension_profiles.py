@@ -303,14 +303,24 @@ BASE_WORLD_IDS = {
 }
 
 
-def load_dimension_configs(config_dir):
+def load_dimension_configs(config_dir, set_noise_defaults=True):
     """Scan {config_dir}/dimensions/*.json -> {slug: raw config dict}.
     The slug comes from the filename (never the JSON), matching the mod's
-    loader. Unparseable files are skipped with a warning, not fatal."""
+    loader. Unparseable files are skipped with a warning, not fatal.
+
+    `set_noise_defaults=False` for a directory that holds dimension files but
+    NOT the noise data beside them — the staged consumer overlay. Adopting it
+    silently zeroed the type defaults, and with them every `noisePlacement`
+    fingerprint key, on every consumer that has an overlay (which is all of
+    them). The unit tests missed it because they set the directory by hand."""
     import json
     import sys
     from pathlib import Path
     configs = {}
+    # Noise placement is generation-affecting, so the fingerprint needs the
+    # type defaults that live beside the dimension files.
+    if set_noise_defaults:
+        set_noise_defaults_dir(config_dir)
     dims_dir = Path(config_dir) / "dimensions"
     if not dims_dir.is_dir():
         return configs
@@ -382,6 +392,7 @@ def monolith_from_dir(config_dir):
     resolved exactly like the mod does at boot."""
     import json
     from pathlib import Path
+    set_noise_defaults_dir(config_dir)
     p = Path(config_dir)
     settings = {}
     settings_file = p / "settings.json"
@@ -389,7 +400,7 @@ def monolith_from_dir(config_dir):
         settings = json.loads(settings_file.read_text())
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
-    overlay_files = load_dimension_configs(p / "overlay")
+    overlay_files = load_dimension_configs(p / "overlay", set_noise_defaults=False)
     namespaces = {}
     if overlay_files:
         resolved = resolve_overlay(files, overlay_files, ns)
@@ -635,6 +646,91 @@ def generation_payload(dim):
     if well_formed_force:
         payload["forcedStructures"] = sorted(
             [f["structure"], f["x"], f["z"]] for f in well_formed_force)
+    noise = _noise_payload(dim)
+    if noise is not None:
+        payload["noisePlacement"] = noise
+    return payload
+
+
+# Type defaults for noise placement, set by whoever loaded the configs so
+# generation_payload() can resolve a dimension's groups without being handed
+# the directory on every call.
+_NOISE_DEFAULTS = None
+_NOISE_DEFAULTS_DIR = None
+
+
+def set_noise_defaults_dir(config_dir):
+    """Point the noise fingerprint at a config directory. Idempotent."""
+    global _NOISE_DEFAULTS, _NOISE_DEFAULTS_DIR
+    config_dir = str(config_dir)
+    if config_dir == _NOISE_DEFAULTS_DIR:
+        return
+    _NOISE_DEFAULTS_DIR = config_dir
+    try:
+        import noise_placement
+        _NOISE_DEFAULTS = noise_placement.load_type_defaults(config_dir)
+    except Exception:
+        _NOISE_DEFAULTS = None
+
+
+def _noise_payload(dim):
+    """Noise-placement contribution to the fingerprint, or None.
+
+    Noise placement is generation-affecting, and it makes two fields that
+    used to be scoring-only into worldgen inputs for the first time:
+
+    - `borders.player` sets the scanned radius AND the frequency scale, so it
+      changes every position in every group.
+    - `difficulty.mobMultiplier` drives the peaceful/hostile shifts, which can
+      suppress a whole group or change its radial curve.
+
+    Conditional, per the fingerprint corollary: the key appears ONLY when
+    noise actually runs. A `structureDensity: "none"` dimension, a void, a
+    superflat and a base world all keep byte-identical fingerprints, so they
+    do not go DRIFTED for a feature that does not touch them. Every dimension
+    that DOES get noise drifts — which is correct, not spurious: its world
+    genuinely changed.
+
+    MIRRORED against NoiseGroupPlan.resolve + NoiseFieldIndex; the values
+    here are exactly the inputs that decide a position.
+    """
+    if _NOISE_DEFAULTS is None:
+        return None
+    try:
+        import noise_placement
+        groups = noise_placement.resolve_groups(dim, _NOISE_DEFAULTS)
+    except Exception:
+        return None
+    if not groups:
+        return None
+
+    borders = dim.get("borders") or {}
+    radius = borders.get("player")
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool) or radius <= 0:
+        radius = DEFAULT_BORDER_RADIUS
+    radius_chunks = min(int(radius) // 16, noise_placement.MAX_RADIUS_CHUNKS)
+
+    struct_block = dim.get("structures") or {}
+    payload = {
+        "radiusChunks": radius_chunks,
+        "groups": sorted(
+            [name, cfg["profile"].id, cfg["exclusion"], cfg["radial"]]
+            for name, cfg in groups.items()),
+    }
+    # Pool composition: these change WHICH structures land on the positions,
+    # so two dims agreeing on positions but not on these are not clones.
+    if struct_block.get("rarity"):
+        payload["rarity"] = sorted(struct_block["rarity"].items())
+    if struct_block.get("exclude"):
+        payload["exclude"] = sorted(struct_block["exclude"])
+    if struct_block.get("include"):
+        payload["include"] = sorted(struct_block["include"])
+    exclusive = sorted(
+        f["structure"] for f in (struct_block.get("force") or [])
+        if isinstance(f, dict) and f.get("structure")
+        and f.get("exclusive", True))
+    if exclusive:
+        payload["forceExclusive"] = exclusive
     return payload
 
 
@@ -653,6 +749,24 @@ def _derived_shrine_spacing(dim):
         border = DEFAULT_BORDER_RADIUS
     spacing = max(12, min(48, int(border) // 32))
     return [spacing, spacing // 2]
+
+
+def noise_fingerprint(dim):
+    """sha256[:12] of just the noise-placement payload, or None when the
+    dimension has no noise groups.
+
+    The census cache is keyed on this rather than on the full generation
+    fingerprint: a biome-list edit re-keys the generation fingerprint (every
+    measurement is invalid) but moves no structure position, and recomputing
+    13k censuses to discover that would cost an hour for nothing.
+    """
+    import hashlib
+    import json
+    payload = _noise_payload(dim) if isinstance(dim, dict) and "type" in dim else None
+    if payload is None:
+        return None
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:12]
 
 
 def generation_fingerprint(dim):

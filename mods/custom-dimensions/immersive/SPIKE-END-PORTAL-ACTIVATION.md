@@ -50,6 +50,7 @@ Zero hits for `EndPortalFrameBlock`, `end_portal_frame`, or `Properties.EYE`. Th
 ### New hook
 
 A mixin on `EndPortalFrameBlock.onUse` (or a broader `Block.onUse` with frame-block filtering) that:
+
 1. After an eye is placed, scans the frame for completeness using the portal's shape geometry.
 2. On completion, calls the existing `registerAndFinish` path.
 3. Does NOT cancel the vanilla eye-placement interaction — it must let the block state update happen first.
@@ -75,6 +76,8 @@ Alternatively: a block-state change listener (`ServerBlockEvents` or a mixin on 
 
 1. **Vanilla-only or generic?** If fill mode only needs to support `end_portal_frame` (which has a built-in `EYE` block state), the implementation is simpler — piggyback on vanilla's state. A generic fill model for arbitrary frame blocks needs custom per-position persistence, which is significantly more work.
 
+> Decision: Generic, we should support arbitrary frame blocks and not just vanilla End portal frames. This allows for more creative portal designs. Many blocks can be "filled" with an item, and we should not limit the mod's capabilities to just vanilla blocks as we haven't so far. We should ensure that vanilla behaviour is preserved for vanilla portals and our new behaviour works through thorough testing. This would also let us use candles / fire being lit as a portal activation mechanic, for example, or any other block that can be "filled" with an item, or water-logging a block, or any other mechanic that can be used to "fill" a portal frame, plants being placed in a block, etc. This would allow for more creative portal designs and gameplay mechanics, particularly in combination with the one-time-use mechanics; We could make the_end a harder dimension to reach by simply equiring fresh eyes to be placed in the portal frames and closing the portal after a given time, preventing players from reusing the portal without significant effort.
+
 2. **Computed or configured fill count?** The shape's frame positions are known at parse time. Computing the count from geometry eliminates a config field and prevents misconfiguration, but means the config can't require fewer than all positions (e.g., a "partial fill" variant).
 
-**Recommendation:** vanilla-only for v1 (End portal frames with `Properties.EYE`), computed fill count from shape geometry. Extend to generic fills only if a concrete use case appears.
+> Decision: We should allow for more flexibility in portal designs, as we can easily change the shape without having to update the configuration. I would like to see a partial fill variant too; a portal could lead to a different dimension if only some of the frames are filled, for example, or a portal could be dialled to a different dimension if only some of the frames are filled. This would allow for more creative portal designs and gameplay mechanics. We may need to allow the portal config to be an array rather than a single object; if it is a single object we could cast it to an array of one object.

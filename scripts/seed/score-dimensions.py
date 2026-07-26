@@ -44,6 +44,7 @@ import argparse
 import csv
 import html
 import json
+import multiprocessing
 import os
 import shutil
 import subprocess
@@ -54,8 +55,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import candidates  # noqa: E402
+import census_scoring  # noqa: E402
+import noise_placement  # noqa: E402
 from dimension_profiles import (  # noqa: E402
-    build_profile, generation_fingerprint, load_config, load_difficulty, rollable,
+    build_profile, generation_fingerprint, load_config, load_difficulty,
+    noise_fingerprint, rollable,
 )
 
 LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
@@ -358,18 +362,47 @@ def score_candidate(profile, rows):
         if land < 0.5 and profile["terrain"]["water"][1] < 0.5:
             parts["terrain"] *= 0.5  # unexpectedly voidy/ocean-swallowed
 
-    # Structures: wants judged by their block range, shuns by distance.
-    # clearSpawnRadius penalises ANY battery structure found too close to
-    # spawn — the player needs breathing room regardless of the want range.
-    # Density bias: found structures nudge the score by structureDensity —
-    # sparse dims slightly prefer fewer hits, dense dims slightly prefer more.
+    # Structures. Two views, combined by census_scoring.blend():
+    #
+    #   census  — the layout the seed's noise field actually produces, group
+    #             by group (spike F2). Present for every dimension noise
+    #             placement owns; None for suppressed/void/base-world dims,
+    #             which fall through to the grid battery exactly as before.
+    #   battery — the author's wants and shuns. Still positional (and still
+    #             exact) for forced placements and for the ~155 sets that
+    #             kept grid placement; answered from the owning group's
+    #             histogram for everything noise took over, because a grid
+    #             distance for a noise-placed set is fiction.
+    census = rows.get("_census")
+    census_part = census_scoring.distribution_component(census)
+    census_groups = (census or {}).get("groups") or {}
+    census_radius_chunks = (census or {}).get("radiusChunks") or 0
+    lookup = profile.get("_battery_groups")
+    found_count = 0
+
     if profile["battery"]:
         ss, n = 0.0, 0
-        found_count = 0
         clear_r = profile.get("clear_spawn_radius", 0)
-        for name, _sid, spec, kind in profile["battery"]:
+        for name, sid, spec, kind in profile["battery"]:
             v = rows.get(f"structure_{name}_dist")
             d = float(v) if v is not None else None
+            group = battery_group_for(sid, lookup) if (lookup and census_part is not None) else None
+            forced = any(f.get("structure") == sid.lstrip("#")
+                         for f in profile.get("forced_structures") or [])
+            if group is not None and not forced:
+                # Noise owns this set. If the dimension resolved the group,
+                # score against its layout; if it didn't, the structure
+                # genuinely does not generate here.
+                entry = census_groups.get(group)
+                if kind == "shun":
+                    s = census_scoring.census_shun_score(entry, spec, census_radius_chunks)
+                else:
+                    s = census_scoring.census_want_score(entry, spec, census_radius_chunks)
+                ss += s
+                n += 1
+                if entry and entry.get("count"):
+                    found_count += 1
+                continue
             if kind == "shun":
                 s = shun_score(d, profile["radius"], spec)
             else:
@@ -380,7 +413,11 @@ def score_candidate(profile, rows):
             n += 1
             if d is not None and d >= 0:
                 found_count += 1
-        parts["structures"] = ss / n if n else 0.0
+        battery_part = ss / n if n else None
+    else:
+        battery_part = None
+
+    if battery_part is not None:
         # Density bias: each found structure nudges the score. When
         # enrichment data exists (structure_all from a render pass), use
         # the TOTAL structure count — it includes unlisted structures
@@ -391,13 +428,14 @@ def score_candidate(profile, rows):
         struct_count = int(enriched) if enriched is not None else found_count
         density = profile.get("density")
         if density == "sparse":
-            parts["structures"] = max(0.0, parts["structures"] - struct_count * 0.012)
+            battery_part = max(0.0, battery_part - struct_count * 0.012)
         elif density == "dense":
-            parts["structures"] = min(1.1, parts["structures"] + struct_count * 0.008)
+            battery_part = min(1.1, battery_part + struct_count * 0.008)
         else:
-            parts["structures"] = max(0.0, parts["structures"] - struct_count * 0.003)
-    else:
-        parts["structures"] = 0.0
+            battery_part = max(0.0, battery_part - struct_count * 0.003)
+
+    combined = census_scoring.blend(census_part, battery_part)
+    parts["structures"] = 0.0 if combined is None else combined
 
     w = profile["weights"]
     wsum = sum(w.values()) or 1
@@ -457,6 +495,182 @@ def gather_measurements(args):
     return data
 
 
+# ---------------------------------------------------------------------------
+# Noise census (spike F2) — the structure layout a seed actually produces
+# ---------------------------------------------------------------------------
+_STRUCT_LOOKUP_CACHE = {}
+
+
+def structure_group_lookup(seedtest, config_dir):
+    """-> (structure_id -> set_id, set_id -> group), for noise ownership.
+
+    A battery entry names a STRUCTURE (or a tag); noise placement owns whole
+    SETS. The set list comes from the warmup extraction under
+    `<seedtest>/.structure_sets` (present whenever anything has been rolled)
+    and the set -> group map from `structure-groups.json`. Sets missing from
+    the extraction are the ones whose placement is not a plain random_spread
+    — YUNG's and friends — which is exactly the population noise never takes
+    over, so "unknown" correctly means "still on the grid".
+    """
+    key = (str(seedtest), str(config_dir))
+    cached = _STRUCT_LOOKUP_CACHE.get(key)
+    if cached is not None:
+        return cached
+    from structure_placement import load_structure_sets
+    set_to_group = {sid: meta.get("group")
+                    for sid, meta in
+                    noise_placement.load_structure_groups(config_dir).items()}
+    struct_to_set = {}
+    sets_dir = Path(seedtest) / ".structure_sets"
+    if sets_dir.is_dir():
+        for set_id, cfg in load_structure_sets(str(sets_dir)).items():
+            known = set_id in set_to_group
+            for s in cfg.get("structures") or []:
+                # A set extracted from a NESTED datapack path
+                # (…/data/structures/data/dungeons_arise/…) mints its
+                # namespace from the first "data" segment and comes out as
+                # `structures:major_structures`. Whichever copy the
+                # filesystem yields first would otherwise win and the real
+                # set id would never be seen — every Dungeons Arise want
+                # silently fell back to grid scoring. A classified set id
+                # always beats an unclassified one.
+                if s["id"] not in struct_to_set or (
+                        known and struct_to_set[s["id"]] not in set_to_group):
+                    struct_to_set[s["id"]] = set_id
+    result = (struct_to_set, set_to_group)
+    _STRUCT_LOOKUP_CACHE[key] = result
+    return result
+
+
+def battery_group_for(sid, lookup):
+    """Which noise group owns a battery entry's structure, or None for
+    "noise never touched it" (grid placement, or an unclassified set)."""
+    struct_to_set, set_to_group = lookup
+    clean = sid.lstrip("#")
+    set_id = struct_to_set.get(clean)
+    if set_id is None and sid.startswith("#"):
+        # Tag wants (e.g. #minecraft:village) name no single structure; match
+        # the tag's path against structure ids the same way the roller's
+        # tier-1 set resolution does.
+        tag_path = clean.split(":")[-1] if ":" in clean else clean
+        for struct_id, candidate_set in struct_to_set.items():
+            if tag_path in struct_id:
+                set_id = candidate_set
+                break
+    if set_id is None and clean in set_to_group:
+        set_id = clean
+    if set_id is None:
+        return None
+    return set_to_group.get(set_id)
+
+
+def attach_battery_groups(profiles, seedtest, config_dir):
+    """Stamp the structure -> group lookup onto every profile once."""
+    if not Path(config_dir).is_dir():
+        return
+    lookup = structure_group_lookup(seedtest, config_dir)
+    for profile in profiles.values():
+        profile["_battery_groups"] = lookup
+
+
+def _with_group_settings(summary, group_settings):
+    """Re-attach the per-DIMENSION placement config to a banked summary.
+
+    The stored summary is per candidate and carries only counts and the
+    radial histogram; the radial curve a group was given is the same for
+    every candidate, so it is resolved from the config here rather than
+    repeated a few hundred times on disk.
+    """
+    groups = {}
+    for group, entry in (summary.get("groups") or {}).items():
+        settings = (group_settings or {}).get(group) or {}
+        merged = dict(entry)
+        merged["radial"] = settings.get("radial")
+        profile = settings.get("profile")
+        if profile is not None:
+            merged["profile"] = profile.id
+            merged["exclusion"] = settings.get("exclusion")
+        groups[group] = merged
+    return {"radiusChunks": summary.get("radiusChunks"), "groups": groups}
+
+
+def _census_task(task):
+    """Worker: one candidate's census summary. Top-level for pickling."""
+    name, seed, dim_config, type_defaults, radius_chunks = task
+    return (name, seed, noise_placement.census_summary(
+        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks))
+
+
+def ensure_censuses(args, config, profiles, data, quiet=False):
+    """Attach a noise census summary to every scoreable candidate.
+
+    Cached in the candidate store under `noiseCensus`, keyed by the
+    dimension's NOISE fingerprint — the census is a pure function of the seed
+    and the placement config, so it survives biome edits, seedRoll rewrites
+    and rescoring, and only a real placement change invalidates it.
+
+    Computing one is 30ms for a pocket dimension and ~5s for an 8192-border
+    one, so a cold bank is a genuinely long job; it is parallelised and it
+    reports progress rather than looking hung.
+    """
+    cfg = Path(args.config)
+    if not cfg.is_dir():
+        return  # legacy monolith mode has no per-dimension config to resolve
+    type_defaults = noise_placement.load_type_defaults(cfg)
+    if not type_defaults:
+        return
+    sources = {d["name"]: d for d in config.get("dimensions", [])}
+    cdir = candidates.candidates_dir(cfg)
+
+    stores = {}
+    settings = {}
+    tasks = []
+    for name in profiles:
+        src = sources.get(name)
+        if src is None:
+            continue  # base worlds never get noise
+        fp = noise_fingerprint(src)
+        if fp is None:
+            continue
+        radius_chunks = noise_placement.census_radius_chunks(src)
+        store = candidates.load_store(cdir / f"{name}.json")
+        stores[name] = (store, fp)
+        settings[name] = noise_placement.resolve_groups(src, type_defaults)
+        for seed, rows in data.get(name, {}).items():
+            if rows.get("rejected") == "1" or "errors" not in rows:
+                continue
+            cached = (store["candidates"].get(seed) or {}).get("noiseCensus")
+            if cached and cached.get("fp") == fp:
+                rows["_census"] = _with_group_settings(cached, settings[name])
+                continue
+            tasks.append((name, seed, src, type_defaults, radius_chunks))
+
+    if not tasks:
+        return
+    if not quiet:
+        print(f"noise census: computing {len(tasks)} candidate layout(s) "
+              f"(cached thereafter)...", flush=True)
+
+    workers = min(multiprocessing.cpu_count(), 8)
+    t0 = time.time()
+    if workers > 1 and len(tasks) > 1:
+        with multiprocessing.Pool(workers) as pool:
+            computed = pool.map(_census_task, tasks, chunksize=1)
+    else:
+        computed = [_census_task(t) for t in tasks]
+
+    for name, seed, summary in computed:
+        store, fp = stores[name]
+        summary["fp"] = fp
+        cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
+        cand["noiseCensus"] = summary
+        data[name][seed]["_census"] = _with_group_settings(summary, settings[name])
+    for name, (store, _fp) in stores.items():
+        candidates.save_store(cdir / f"{name}.json", store)
+    if not quiet:
+        print(f"noise census: {len(tasks)} computed in {time.time() - t0:.1f}s")
+
+
 def load_abandoned(seedtest):
     """abandoned-worker-*.csv (target,seed,reason) -> {dim: {seed: reason}}."""
     out = defaultdict(dict)
@@ -486,7 +700,13 @@ def persist_candidates(args, config, profiles, results, data, winners=None):
         # status/finalise time); existing candidates keep their stamp.
         fp = generation_fingerprint(sources[name]) if name in sources else None
         for seed, rows in data.get(name, {}).items():
-            candidates.merge_rows(store, seed, rows, fingerprint=fp)
+            # Underscore keys are derived views injected at gather/score time
+            # (the census summary, the enriched structure count) — they have
+            # their own homes in the store and must not bloat `measurements`.
+            candidates.merge_rows(
+                store, seed,
+                {k: v for k, v in rows.items() if not k.startswith("_")},
+                fingerprint=fp)
         for seed, reason in abandoned.get(name, {}).items():
             store["abandoned"].setdefault(str(seed), reason)
         for c in results.get(name, []):
@@ -522,6 +742,8 @@ def score_all(profiles, data):
 
 def cmd_score(args, config, profiles):
     data = gather_measurements(args)
+    attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_censuses(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     out = Path(args.seedtest) / "scores.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -543,6 +765,8 @@ def cmd_rescore(args, config, profiles):
     if not cfg.is_dir():
         sys.exit("rescore needs the v4 config directory (config/custom-dimensions)")
     data = gather_measurements(args)
+    attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_censuses(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     persist_candidates(args, config, profiles, results, data)
     print_summary(results, profiles, rejected)
@@ -785,6 +1009,8 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
 
 def cmd_finalise(args, config, profiles, world_profiles=None):
     data = gather_measurements(args)
+    attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_censuses(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     world_profiles = world_profiles or {}
     dir_mode = Path(args.config).is_dir()

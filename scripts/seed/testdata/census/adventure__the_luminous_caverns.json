@@ -1,0 +1,31 @@
+{
+ "dimension": "adventure:the_luminous_caverns",
+ "seed": -5330479768150853702,
+ "groups": {
+  "loot": {
+   "profile": "sparse",
+   "noiseSeed": 2417994111316946267,
+   "exclusion": 6,
+   "radiusChunks": 64,
+   "spawnChunkX": 0,
+   "spawnChunkZ": 0,
+   "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+   "spacing": 12,
+   "structures": {"nova_structures:shrine_combat_tier_1": 11, "nova_structures:shrine_combat_tier_2": 11, "nova_structures:shrine_combat_tier_3": 26, "nova_structures:shrine_combat_tier_4": 21, "nova_structures:shrine_combat_tier_5": 16},
+   "positions": [[1,-7], [8,7], [-7,-13], [-17,-2], [9,19], [17,13], [27,-13], [-22,21], [-8,-31], [-19,-26], [-15,29], [27,22], [24,-26], [36,4], [26,30], [-31,25], [35,-20], [17,39], [-5,-43], [43,-7], [-30,32], [-28,-35], [-41,-21], [27,-39], [-45,16], [10,47], [46,15], [-49,3], [-22,-44], [49,-17], [34,40], [-48,27], [-15,53], [-32,46], [1,-57], [-7,61], [46,-41], [28,-55], [61,10], [18,60], [54,32], [-63,-2], [-41,-48], [-14,-62], [54,-34]]
+  },
+  "deco": {
+   "profile": "sparse",
+   "noiseSeed": 4437454984228971693,
+   "exclusion": 5,
+   "radiusChunks": 64,
+   "spawnChunkX": 0,
+   "spawnChunkZ": 0,
+   "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+   "spacing": 10,
+   "structures": {"bettermineshafts:mineshaft_lush": 8, "bettermineshafts:mineshaft_dripstone": 8, "nova_structures:remnant_big_remnant": 1, "nova_structures:remnant_big_remnant_2": 1, "nova_structures:remnant_big_remnant_3": 1, "nova_structures:remnant_bridge_remnant": 1, "nova_structures:remnant_medium_remnant": 1, "nova_structures:remnant_medium_remnant_2": 1, "nova_structures:remnant_miner_hut": 1, "nova_structures:remnant_school_remnant": 1, "supplementaries:road_sign": 4, "minecraft:ruined_portal": 2, "nova_structures:wild_ruin": 2},
+   "positions": [[0,0], [3,7], [-6,-14], [-14,-7], [1,17], [6,-16], [17,-10], [-14,14], [-5,-20], [14,16], [-33,-1], [-15,-32], [13,33], [-13,33], [-30,-19], [32,17], [36,8], [33,-18], [-7,-38], [9,-38], [39,-9], [-20,-35], [-40,14], [-31,-29], [30,32], [31,-34], [-31,34], [-8,-48], [-39,31], [-49,-13], [36,36], [23,50], [-55,6], [-31,46], [-8,55], [20,-52], [38,-41], [54,15], [-37,-43], [-45,-35], [36,45], [57,-9], [35,-46], [31,49], [53,-25], [52,28], [7,59], [-14,-58], [60,1], [17,-58], [60,17], [47,41], [-26,57], [-53,34], [34,-54], [-58,27]]
+  }
+ },
+ "forced": {}
+}

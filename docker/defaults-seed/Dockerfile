@@ -26,6 +26,12 @@ COPY config/datapacks/    /defaults/config/datapacks/
 # when syncing data/config, so it would only ever bloat this image.
 COPY config/custom-dimensions/settings.json    /defaults/config/custom-dimensions/settings.json
 COPY config/custom-dimensions/dimensions/      /defaults/config/custom-dimensions/dimensions/
+# Noise-placement data. The MOD reads its own jar-baked copies of both, so
+# these are not the runtime source — they ship because the seed roller reads
+# them, and in consumer mode the roller resolves config from
+# data/config/custom-dimensions/ (roll-all.sh) rather than a repo checkout.
+COPY config/custom-dimensions/structure-groups.json         /defaults/config/custom-dimensions/structure-groups.json
+COPY config/custom-dimensions/structure-type-defaults.json  /defaults/config/custom-dimensions/structure-type-defaults.json
 
 COPY modpack/adventure.mrpack.json /defaults/config/modpack-manifest.json
 

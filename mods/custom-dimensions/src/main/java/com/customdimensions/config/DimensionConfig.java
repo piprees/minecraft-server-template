@@ -799,6 +799,49 @@ public class DimensionConfig {
          */
         @SerializedName("force")
         public List<ForcedStructure> force;
+
+        // --- noise placement (spike: structure noise) ---------------------
+        /**
+         * Per-group noise profile. Two shapes:
+         * <pre>
+         *   "noise": "sparse"                        every group
+         *   "noise": {"dungeons": "sparse", ...}     per group
+         * </pre>
+         * A group set to "none" is suppressed; groups not mentioned keep the
+         * world type's default. JsonElement because Gson cannot express
+         * string-or-map — the same reason `seed`, `frameBlock` and
+         * `immersive` are JsonElement.
+         *
+         * Creation-time-affecting: mirrored in
+         * scripts/seed/dimension_profiles.generation_payload().
+         */
+        @SerializedName("noise")
+        public JsonElement noise;
+        /**
+         * Per-group radial curves: {@code {"settlements": [1.5, 1.2, ...]}},
+         * 10 points from spawn to border. Overrides the world type's named
+         * curve for that group. Values outside 0.0-3.0, or a length other
+         * than 10, warn and fall back to the type default.
+         */
+        @SerializedName("radial")
+        public Map<String, List<Double>> radial;
+        /**
+         * Per-structure-set rarity override, e.g.
+         * {@code {"minecraft:trial_chambers": "common"}}. Changes the set's
+         * share of its group's placements, and can move it between groups —
+         * the endgame group requires a rare-or-rarer tier.
+         */
+        @SerializedName("rarity")
+        public Map<String, String> rarity;
+        /** Structure SET ids removed from the noise pool entirely. */
+        @SerializedName("exclude")
+        public List<String> exclude;
+        /**
+         * Structure SET ids forced INTO the noise pool, bypassing the biome
+         * filter. The escape hatch for a filter that is too aggressive.
+         */
+        @SerializedName("include")
+        public List<String> include;
     }
 
     /** One fixed structure placement (Structures.force). */
@@ -809,6 +852,19 @@ public class DimensionConfig {
         public Integer x;
         @SerializedName("z")
         public Integer z;
+        /**
+         * Whether forcing this structure also removes it from the noise pool.
+         * Defaults to TRUE (absent = true): "put exactly this here" normally
+         * means "and nowhere else", which is what makes a hand-placed
+         * landmark a landmark. Set false to keep organic copies as well.
+         */
+        @SerializedName("exclusive")
+        public Boolean exclusive;
+
+        /** Null-safe accessor for the defaults-to-true semantics. */
+        public boolean isExclusive() {
+            return exclusive == null || exclusive;
+        }
     }
 
     /** Explicit placement values for one structure set (see Structures.spacing). */
