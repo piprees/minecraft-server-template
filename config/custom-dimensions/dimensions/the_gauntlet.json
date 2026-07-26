@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is.",
+  "description": "The gauntlet — the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling.",
   "seed": 9206337873968108447,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -29,7 +29,14 @@
   },
   "difficulty": {
     "mobMultiplier": 3.0,
-    "playerLuck": 2.0
+    "playerLuck": 2.5,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": -64,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -47,6 +54,10 @@
     "aura": {
       "subsume": "everything"
     }
+  },
+  "environment": {
+    "fogColor": "#4B5B6B",
+    "ambientLight": 0.1
   },
   "seedRoll": {
     "mood": "hard",
@@ -67,14 +78,16 @@
       "trial_chambers": "spread",
       "ice_dungeon_l": "spread",
       "keep_kayra": "near_border",
-      "coliseum": "near_border"
+      "coliseum": "near_border",
+      "scorched_mines": "spread",
+      "lone_citadel": "near_border"
     },
     "shuns": [
       "village",
       "tavern",
       "farmstead"
     ],
-    "description": "The gauntlet: brutal peaks, ancient cities, trial chambers and a keep — every reward guarded. The hardest overworld there is."
+    "description": "The gauntlet — the hardest overworld there is. Brutal peaks, ancient cities, trial chambers, and a keep. Every reward is guarded. The humans who built here were testing themselves, not settling."
   },
   "spawn": [
     0,

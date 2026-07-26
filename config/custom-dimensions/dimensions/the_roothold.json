@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border.",
+  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own.",
   "seed": -1157745575203996945,
   "biomes": [
     "natures_spirit:redwood_forest",
@@ -45,13 +45,15 @@
       "spider_dungeon": "spread",
       "mansion": "near_border",
       "lush_dungeon": "spread",
-      "creeping_crypt": "spread"
+      "creeping_crypt": "spread",
+      "infested_dungeon": "spread",
+      "mouldy_dungeon": "spread"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
-    "description": "Deep old-growth forest with roots in everything. Overgrown manors and spider dens under a closed canopy; a mansion looms near the border."
+    "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own."
   },
   "spawn": [
     0,

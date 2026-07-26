@@ -1,11 +1,20 @@
 {
   "type": "superflat",
-  "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever.",
+  "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write.",
   "seed": -3604832347219380837,
   "layers": [
-    { "block": "minecraft:bedrock", "height": 1 },
-    { "block": "minecraft:dirt", "height": 2 },
-    { "block": "minecraft:grass_block", "height": 1 }
+    {
+      "block": "minecraft:bedrock",
+      "height": 1
+    },
+    {
+      "block": "minecraft:dirt",
+      "height": 2
+    },
+    {
+      "block": "minecraft:grass_block",
+      "height": 1
+    }
   ],
   "borders": {
     "player": 8192,
@@ -16,6 +25,7 @@
     "playerLuck": 2.0,
     "hostileSpawning": false
   },
+  "structureDensity": "none",
   "portal": {
     "frameBlock": "minecraft:white_concrete",
     "igniterItem": "minecraft:amethyst_shard",
@@ -23,14 +33,19 @@
     "lightLevel": 11,
     "scale": 1.0,
     "cooldown": 40,
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
-    }
+    },
+    "orientation": "horizontal"
   },
   "seedRoll": {
     "skip": true,
-    "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever."
+    "description": "A flat blank canvas for building. Peaceful by decree — bedrock, dirt and grass, nothing else, forever. No history, no ruins, no narrative. This one is yours to write."
   }
 }

@@ -1,12 +1,14 @@
 {
   "type": "cave",
-  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies.",
+  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
   "seed": 5405923286239551039,
   "biomes": [
     "minecraft:lush_caves",
     "terralith:cave/thermal_caves",
     "terralith:cave/tuff_caves",
-    "minecraft:dripstone_caves"
+    "minecraft:dripstone_caves",
+    "terralith:cave/andesite_caves",
+    "terralith:cave/diorite_caves"
   ],
   "borders": {
     "player": 1024,
@@ -45,14 +47,16 @@
       "copper_tower": "spread",
       "strange_outpost": "spread",
       "lush_dungeon": "near_spawn",
-      "sculk_dungeon": "spread"
+      "sculk_dungeon": "spread",
+      "underground_camp": "near_spawn",
+      "mineshaft": "spread"
     },
     "shuns": [
       "fortress",
       "bastion",
       "sanctum"
     ],
-    "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof, no armies."
+    "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed."
   },
   "spawn": [
     0,

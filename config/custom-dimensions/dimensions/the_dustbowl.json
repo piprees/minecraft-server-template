@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else.",
+  "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
   "seed": -6585932694360697170,
   "biomes": [
     "terralith:ancient_sands",
@@ -24,7 +24,17 @@
     "mobMultiplier": 1.8,
     "playerLuck": 2.0
   },
-  "structureDensity": "sparse",
+  "structureDensity": "none",
+  "structures": {
+    "force": [
+      {
+        "structure": "explorify:farmstead",
+        "x": -87,
+        "z": -312
+      }
+    ],
+    "clearSpawnRadius": 128
+  },
   "portal": {
     "frameBlock": "minecraft:packed_mud",
     "igniterItem": "minecraft:netherite_scrap",
@@ -59,8 +69,20 @@
       "abandoned_camp": "spread",
       "watchtower": "near_border"
     },
-    "shuns": ["village", "tavern", "monument", "mansion", "coliseum", "ancient_city", "trial_chambers"],
-    "description": "A tiny, exhausted dust plain. Outcasts and buried ruins; the wind owns everything else."
+    "shuns": [
+      "village",
+      "tavern",
+      "monument",
+      "mansion",
+      "coliseum",
+      "ancient_city",
+      "trial_chambers"
+    ],
+    "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away."
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

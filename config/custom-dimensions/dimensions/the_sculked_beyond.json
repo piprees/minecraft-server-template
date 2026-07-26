@@ -1,6 +1,6 @@
 {
   "type": "cave",
-  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on.",
+  "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped.",
   "seed": 2639304234547348987,
   "biomes": [
     "minecraft:deep_dark",
@@ -16,7 +16,14 @@
   },
   "difficulty": {
     "mobMultiplier": 3.0,
-    "playerLuck": 2.0
+    "playerLuck": 2.5,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 2.5
+    }
   },
   "portal": {
     "frameBlock": "minecraft:sculk",
@@ -35,6 +42,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.03
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -49,9 +60,16 @@
       "sculk_dungeon": "near_spawn",
       "trial_chambers": "spread",
       "ancient_city": "near_border",
-      "bone_dungeon": "spread"
+      "bone_dungeon": "spread",
+      "underground_camp": "near_spawn"
     },
-    "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on."
+    "shuns": [
+      "village",
+      "tavern",
+      "farmstead",
+      "piglin_village"
+    ],
+    "description": "Sculk-eaten caverns. The deep dark outlived the world it consumed and tunnelled on — this is where the underground sculk broke through from the ancient cities. The humans who explored too deep triggered this, and the infection never stopped."
   },
   "spawn": [
     0,

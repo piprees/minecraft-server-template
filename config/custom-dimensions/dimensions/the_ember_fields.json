@@ -1,13 +1,14 @@
 {
   "type": "nether",
-  "description": "Rolling ember meadows (overworld-shaped nether) — piglin villages in the geyser fields.",
+  "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
   "seed": -1428534289047767583,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:crimson_forest",
     "incendium:infernal_dunes",
     "minecraft:nether_wastes",
-    "incendium:volcanic_deltas"
+    "incendium:volcanic_deltas",
+    "incendium:weeping_valley"
   ],
   "borders": {
     "player": 1024,
@@ -42,9 +43,15 @@
       "piglin_village": "spread",
       "crimson_well": "near_spawn",
       "fortress": "near_border",
-      "nether_bridge": "spread"
+      "nether_bridge": "spread",
+      "infernal_altar": "near_border",
+      "crimson_fungus": "near_spawn"
     },
-    "description": "Rolling ember meadows (overworld-shaped nether) — piglin villages in the geyser fields."
+    "shuns": [
+      "sanctum",
+      "forbidden_castle"
+    ],
+    "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat."
   },
   "spawn": [
     0,

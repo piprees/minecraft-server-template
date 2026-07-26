@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything.",
+  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
   "seed": -8536168897606233021,
   "biomes": [
     "natures_spirit:wisteria_forest",
@@ -34,6 +34,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#E8D0C8"
+  },
   "seedRoll": {
     "mood": "scenic",
     "spawnFilter": [
@@ -59,7 +62,7 @@
       "ancient_city",
       "coliseum"
     ],
-    "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Scenic first, gentle everything."
+    "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences."
   },
   "spawn": [
     0,

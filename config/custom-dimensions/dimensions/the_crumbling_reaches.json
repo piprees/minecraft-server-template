@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Crumbling solid end — crystal peaks shearing into shadow, crashed ships in the rubble.",
+  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story.",
   "seed": 9222271493615113425,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -47,13 +47,18 @@
       "minecraft:end_highlands"
     ],
     "wants": {
-      "mega_ship_deepslate": "spread",
-      "ruined_pillar": "near_spawn",
-      "end_ruins": "spread",
-      "end_city": "spread",
-      "dragon_skeleton": "spread"
+      "mega_ship_deepslate": "near_spawn",
+      "mega_ship_crashed": "spread",
+      "ruined_pillar": "spread",
+      "dragon_skeleton": "near_spawn",
+      "end_ruins": "spread"
     },
-    "description": "Crumbling solid end — crystal peaks shearing into shadow, crashed ships in the rubble."
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "enderkeep"
+    ],
+    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story."
   },
   "spawn": [
     0,

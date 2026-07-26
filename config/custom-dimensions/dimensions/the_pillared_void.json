@@ -1,13 +1,14 @@
 {
   "type": "end",
-  "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else.",
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
   "seed": 9223110004402776460,
   "biomes": [
     "nullscape:void_barrens",
     "minecraft:end_barrens",
     "minecraft:the_end",
     "minecraft:small_end_islands",
-    "minecraft:end_highlands"
+    "minecraft:end_highlands",
+    "nullscape:crystal_peaks"
   ],
   "borders": {
     "player": 8192,
@@ -18,6 +19,9 @@
     "playerLuck": 1.8
   },
   "structureDensity": "sparse",
+  "structures": {
+    "clearSpawnRadius": 128
+  },
   "portal": {
     "frameBlock": "minecraft:polished_basalt",
     "igniterItem": "minecraft:ender_eye",
@@ -54,9 +58,16 @@
       "ender_spire": "spread",
       "ruined_pillar": "near_spawn",
       "dragon_skeleton": "spread",
-      "mystical_archway": "spread"
+      "mystical_archway": "spread",
+      "endscraps": "spread",
+      "monolith": "near_border"
     },
-    "description": "Lonely pillars in the void — spires, a dragon's skeleton, nothing else.",
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "enderkeep"
+    ],
+    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
     "terrain": "void"
   },
   "spawn": [

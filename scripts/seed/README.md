@@ -26,12 +26,16 @@ roll-all.sh orchestration
 
 | Command | What it does |
 | --- | --- |
-| `./dev seed-roll-all` | Full run: warmup → roll → render → viewer |
-| `./dev seed-roll-all --dims the_gauntlet` | Single dimension |
-| `./dev seed-roll-all --no-render` | Roll only, skip map rendering |
-| `./dev seed-roll-all --render-only` | Re-render existing candidates |
+| `./dev seed-roll` | Full run: warmup → roll (all dimensions) |
+| `./dev seed-roll --dims the_gauntlet` | Single dimension |
+| `./dev seed-roll --pool 10000 --count 200` | Bigger screening pool |
+| `./dev seed-roll --no-write` | Measure + score only, don't write winners |
+| `./dev seed-roll --reset` | Wipe all seed data and start fresh |
+| `./dev seed-rescore` | Recompute scores vs current configs (no re-rolling) |
+| `./dev seed-status` | Candidate-bank status: counts, winners, freshness |
+| `./dev seed-viewer` | Interactive picker + background rendering |
 
-Environment variables `ROLL_POOL`, `ROLL_COUNT`, `ROLL_RENDER_TOP`, `ROLL_RENDER_SIZE` control pool size, candidate count, render count, and render area.
+Environment variables `ROLL_POOL`, `ROLL_COUNT`, `ROLL_MEMORY` control pool size, candidate count, and warmup container memory.
 
 ## Data Files
 
@@ -244,7 +248,7 @@ unmined-cli requires full block state data in .mca format — there is no biome-
 
 1. **Create the dimension config** at `config/custom-dimensions/dimensions/<slug>.json` with `type`, `biomes`, `seedRoll` (mood, spawnFilter, wants, shuns), and optionally `noiseSettings`, `structureDensity`, `difficulty`.
 
-2. **Check the biome parameter table**: ensure every biome listed in the config exists in `biome_params.json` with the correct family tag. If the dimension uses biomes from a new mod, re-run warmup (`./dev seed-roll-all` with Docker) to regenerate the params.
+2. **Check the biome parameter table**: ensure every biome listed in the config exists in `biome_params.json` with the correct family tag. If the dimension uses biomes from a new mod, re-run warmup (`./dev seed-roll` with Docker) to regenerate the params.
 
 3. **Check noise configs**: if the dimension's family isn't covered in `noise_configs.json`, add the family's noise parameters (extract from the mod JAR's `worldgen/noise_settings/` data).
 
@@ -254,7 +258,7 @@ unmined-cli requires full block state data in .mca format — there is no biome-
 
 6. **Add a height function** (if needed): if the dimension family doesn't match overworld/nether/end/paradise_lost, add a branch in `biome_renderer.py`'s render loop (the `elif family == "..."` chain starting around line 225).
 
-7. **Test**: run `./dev seed-roll-all --dims <slug>` and check the renders in `.seedtest/renders/<slug>/`.
+7. **Test**: run `./dev seed-roll --dims <slug>` and check the renders in `.seedtest/renders/<slug>/`.
 
 ## Troubleshooting
 

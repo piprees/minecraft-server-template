@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world.",
+  "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world — altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer.",
   "seed": 9026703353164040970,
   "biomes": [
     "minecraft:soul_sand_valley",
@@ -31,6 +31,11 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "skyColor": "#1B0B2B",
+    "fogColor": "#1B0B2B",
+    "ambientLight": 0.05
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -38,13 +43,19 @@
       "minecraft:nether_wastes"
     ],
     "wants": {
-      "sanctum": "spread",
-      "infernal_altar": "spread",
+      "sanctum": "near_spawn",
+      "infernal_altar": "near_spawn",
       "forbidden_castle": "near_border",
-      "bastion": "spread",
-      "nether_tower": "near_spawn"
+      "nether_temple": "spread"
     },
-    "description": "The sanctum is the point: Incendium's cathedral dungeons saturate a small hard world."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "crimson_forge",
+      "warped_outpost",
+      "bastion"
+    ],
+    "description": "The sanctum is the point. Incendium's cathedral dungeons in a small, dark world — altars and forbidden castles saturating the space. The piglins built their holiest places here, and the obsidian remembers every prayer."
   },
   "spawn": [
     0,

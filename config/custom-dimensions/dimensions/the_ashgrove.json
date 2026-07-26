@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
+  "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
   "seed": -4745410978042438563,
   "biomes": [
     "terralith:ashen_savanna",
@@ -35,6 +35,13 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "clearSpawnRadius": 96
+  },
+  "environment": {
+    "fogColor": "#7B6B5B",
+    "ambientLight": 0.2
+  },
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
@@ -50,14 +57,16 @@
       "graveyard": "spread",
       "scorched_tomb": "near_border",
       "ruin_grassy": "spread",
-      "pumpkin_ruins": "spread"
+      "pumpkin_ruins": "spread",
+      "field_ruins": "spread",
+      "dusty_tomb": "near_border"
     },
     "shuns": [
       "village",
       "tavern",
       "monument"
     ],
-    "description": "Ash-grey savanna under a volcanic sky. Abandoned camps and scorched tombs; the grove remembers the fire.",
+    "description": "Ash-grey savanna under a volcanic sky. A settlement burned here once — abandoned camps and scorched tombs are all that remain. The grove remembers the fire, but not who set it.",
     "water": "none"
   },
   "spawn": [

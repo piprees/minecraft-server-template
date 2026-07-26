@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "Narrow bridged chasms — quartz spans over the wail.",
+  "description": "Narrow bridged chasms — quartz spans over the wail. The quarantine that didn't hold: the zombified remnants of the boneyard war were driven here, deeper and deeper. The deeper you go, the worse it gets.",
   "seed": 9215546969771092822,
   "biomes": [
     "minecraft:soul_sand_valley",
@@ -13,7 +13,14 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 2.0
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 80,
+      "endY": 20,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 3.0
+    }
   },
   "portal": {
     "frameBlock": "minecraft:quartz_bricks",
@@ -32,6 +39,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#2B1B3B",
+    "ambientLight": 0.06
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -42,9 +53,14 @@
       "nether_bridge": "near_spawn",
       "fortress": "spread",
       "giant_skull": "spread",
-      "blackstone_pillars": "spread"
+      "blackstone_pillars": "near_border"
     },
-    "description": "Narrow bridged chasms — quartz spans over the wail."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "bastion"
+    ],
+    "description": "Narrow bridged chasms — quartz spans over the wail. The quarantine that didn't hold: the zombified remnants of the boneyard war were driven here, deeper and deeper. The deeper you go, the worse it gets."
   },
   "spawn": [
     0,

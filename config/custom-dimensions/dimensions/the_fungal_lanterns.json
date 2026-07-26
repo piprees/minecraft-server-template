@@ -1,12 +1,13 @@
 {
   "type": "nether",
-  "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms.",
+  "description": "Shroomlight groves — the nether's gentlest rooms. Even the piglins left these alone; the fungus was here before them and will outlast them. No fortresses, no bastions, just light.",
   "seed": 194573149100713462,
   "biomes": [
     "minecraft:crimson_forest",
     "minecraft:warped_forest",
     "incendium:inverted_forest",
-    "minecraft:nether_wastes"
+    "minecraft:nether_wastes",
+    "incendium:quartz_flats"
   ],
   "borders": {
     "player": 1024,
@@ -41,14 +42,16 @@
     "wants": {
       "crimson_fungus": "near_spawn",
       "warped_outpost": "spread",
-      "warped_greatsword": "spread"
+      "warped_greatsword": "spread",
+      "strange_outpost": "near_border",
+      "nether_bridge": "near_border"
     },
     "shuns": [
       "fortress",
       "bastion",
       "sanctum"
     ],
-    "description": "Shroomlight groves and mushroom fields — the nether's gentlest rooms."
+    "description": "Shroomlight groves — the nether's gentlest rooms. Even the piglins left these alone; the fungus was here before them and will outlast them. No fortresses, no bastions, just light."
   },
   "spawn": [
     0,

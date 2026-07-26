@@ -1,6 +1,6 @@
 {
   "type": "large_biomes",
-  "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge.",
+  "description": "The endless expanse — what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point.",
   "seed": 8301660540697123312,
   "borders": {
     "player": 8192,
@@ -44,9 +44,11 @@
       "mansion": "near_border",
       "coliseum": "near_border",
       "watchtower": "spread",
-      "ancient_city": "near_border"
+      "ancient_city": "near_border",
+      "desert_pyramid": "spread",
+      "ruined_portal": "near_spawn"
     },
-    "description": "The endless expanse — large biomes, big civilisation, room for a coliseum and a mansion at the far edge."
+    "description": "The endless expanse — what humans and villagers built when they had room. Large biomes, big civilisation, a coliseum and a mansion at the far edge. The scale is the point."
   },
   "spawn": [
     0,

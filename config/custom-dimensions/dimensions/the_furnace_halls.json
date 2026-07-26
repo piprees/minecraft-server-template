@@ -1,19 +1,21 @@
 {
   "type": "nether",
-  "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down.",
+  "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down.",
   "seed": 9038274477995635546,
   "biomes": [
     "minecraft:nether_wastes",
     "minecraft:basalt_deltas",
-    "minecraft:crimson_forest"
+    "minecraft:crimson_forest",
+    "incendium:volcanic_deltas",
+    "minecraft:soul_sand_valley"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5,
-    "playerLuck": 1.4
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.6
   },
   "portal": {
     "frameBlock": "minecraft:chiseled_nether_bricks",
@@ -30,7 +32,16 @@
   },
   "structures": {
     "force": [
-      { "structure": "minecraft:fortress", "x": 200, "z": 0 }
+      {
+        "structure": "betterfortresses:fortress",
+        "x": 138,
+        "z": 57
+      },
+      {
+        "structure": "mns:mega_fortress",
+        "x": -476,
+        "z": -83
+      }
     ]
   },
   "seedRoll": {
@@ -42,10 +53,16 @@
     "wants": {
       "fortress": "near_spawn",
       "nether_brick_hall": "spread",
-      "nether_reactor": "spread",
-      "blackstone_pillars": "spread"
+      "nether_reactor": "near_border",
+      "copper_tower": "spread",
+      "pipeline": "spread",
+      "blackstone_walls": "spread"
     },
-    "description": "Classic nether halls — fortress corridors close to spawn, brick and fire all the way down."
+    "shuns": [
+      "piglin_village",
+      "warped_outpost"
+    ],
+    "description": "Classic nether halls — fortress corridors that defined piglin military power. A mega-fortress anchors the far end, built when the piglin empire was at its height. Brick and fire all the way down."
   },
   "spawn": [
     0,

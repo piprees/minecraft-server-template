@@ -1,6 +1,6 @@
 {
   "type": "amplified",
-  "description": "Amplified madness — cliffs beyond reason, keeps on the peaks.",
+  "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks — engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind.",
   "seed": -9159371576077905675,
   "borders": {
     "player": 8192,
@@ -8,7 +8,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.2,
-    "playerLuck": 1.3
+    "playerLuck": 1.3,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 200,
+      "endY": -64,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.8
+    }
   },
   "portal": {
     "frameBlock": "minecraft:cracked_deepslate_bricks",
@@ -40,12 +47,18 @@
       "engineer_tower": "spread",
       "wizard_tower": "spread",
       "ancient_temple": "spread",
-      "keep_kayra": "near_border"
+      "keep_kayra": "near_border",
+      "nomad_outpost": "spread",
+      "campsite": "near_spawn"
     },
     "shuns": [
       "monument"
     ],
-    "description": "Amplified madness — cliffs beyond reason, keeps on the peaks."
+    "description": "The human frontier pushed vertical. Cliffs beyond reason, keeps on the peaks — engineers and explorers who refused to stop climbing. The deeper valleys hide what they left behind."
   },
-  "spawn": [0, 64, 0]
+  "spawn": [
+    0,
+    64,
+    0
+  ]
 }

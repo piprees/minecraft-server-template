@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road.",
+  "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel.",
   "seed": 1407229080638003557,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -60,14 +60,16 @@
       "ice_dungeon_m": "spread",
       "frozen_dungeon": "spread",
       "shipwreck": "spread",
-      "buried_treasure": "near_border"
+      "buried_treasure": "near_border",
+      "ocean_ruins": "spread",
+      "lighthouse": "near_border"
     },
     "shuns": [
       "village",
       "mansion",
       "coliseum"
     ],
-    "description": "Frozen channels between ice sheets. Igloos and cold dungeons; the sea is the road."
+    "description": "Frozen channels between ice sheets. Igloos and cold dungeons mark where people tried to cross; shipwrecks mark where they failed. The sea is the road, and the road is cruel."
   },
   "spawn": [
     0,

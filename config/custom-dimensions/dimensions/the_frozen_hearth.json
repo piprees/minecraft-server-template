@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold.",
+  "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements.",
   "seed": -1692870054349687441,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -58,9 +58,16 @@
       "taiga_outpost": "spread",
       "cold_dungeon": "spread",
       "ice_dungeon_l": "near_border",
-      "frozen_dungeon": "near_border"
+      "frozen_dungeon": "near_border",
+      "campsite": "near_spawn",
+      "guide_post_cold": "near_spawn",
+      "firetower": "spread"
     },
-    "description": "The warm hearth in a frozen world — snowy villages and taigas with dungeons out in the cold."
+    "shuns": [
+      "monument",
+      "coliseum"
+    ],
+    "description": "The warm hearth in a frozen world. Snowy villages and taigas where villagers adapted to the cold — igloos, outposts, campsites. The dungeons out in the ice are older than the settlements."
   },
   "spawn": [
     0,

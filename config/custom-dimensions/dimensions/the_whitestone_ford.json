@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water.",
+  "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good.",
   "seed": 8552618426369524335,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -26,11 +26,20 @@
     "lightLevel": 11,
     "scale": 8.0,
     "cooldown": 40,
+    "anchor": {
+      "pos": [
+        -493,
+        64,
+        278
+      ],
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
-    }
+    },
+    "orientation": "horizontal"
   },
   "seedRoll": {
     "mood": "pastoral",
@@ -46,13 +55,15 @@
       "farmstead": "near_spawn",
       "lighthouse": "spread",
       "watchtower": "spread",
-      "guide_post_warm": "near_spawn"
+      "guide_post_warm": "near_spawn",
+      "campsite": "near_spawn",
+      "tavern": "spread"
     },
     "shuns": [
       "coliseum",
       "ancient_city"
     ],
-    "description": "Wide river country crossed at white cliffs — fords, lighthouses and farms along the water."
+    "description": "Wide river country crossed at white cliffs — the ford where the villager trade routes converged. Lighthouses and farms along the water, built where the crossing was easy and the fish were good."
   },
   "spawn": [
     0,

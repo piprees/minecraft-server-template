@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless.",
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate.",
   "seed": 9202718971865095650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -28,7 +28,14 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 1.5
+    "playerLuck": 2.0,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -32,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -47,6 +54,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#2B4B2B",
+    "ambientLight": 0.1
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -61,14 +72,16 @@
       "infested_temple": "spread",
       "webbed_dungeon": "spread",
       "trial_chambers": "spread",
-      "murkydungeon": "spread"
+      "murkydungeon": "spread",
+      "lush_dungeon": "spread",
+      "underground_camp": "near_spawn"
     },
     "shuns": [
       "village",
       "tavern",
       "farmstead"
     ],
-    "description": "A compressed jungle gauntlet — infested temples and webbed dungeons in terrain that fights back. Dense and merciless."
+    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate."
   },
   "spawn": [
     0,

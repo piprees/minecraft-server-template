@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world.",
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
   "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -26,11 +26,20 @@
     "lightLevel": 11,
     "scale": 16.0,
     "cooldown": 40,
+    "anchor": {
+      "pos": [
+        327,
+        64,
+        -189
+      ],
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
-    }
+    },
+    "orientation": "horizontal"
   },
   "seedRoll": {
     "mood": "serene",
@@ -46,7 +55,8 @@
       "buried_treasure": "near_spawn",
       "ocean_ruins": "spread",
       "lighthouse": "spread",
-      "ocean_pillar": "spread"
+      "ocean_pillar": "spread",
+      "ocean_fortress": "near_border"
     },
     "shuns": [
       "village",
@@ -55,7 +65,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water; a swimmer's world."
+    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
   },
   "spawn": [
     0,

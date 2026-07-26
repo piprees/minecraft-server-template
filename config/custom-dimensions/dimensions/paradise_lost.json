@@ -25,7 +25,7 @@
   },
   "seedRoll": {
     "mood": "scenic",
-    "description": "Paradise Lost — the skylands proper. Vast island heights strung with towers, vaults and a palace at the world's edge; wisteria drifts on the updrafts between plateaus.",
+    "description": "The oldest living world — skylands where towers and vaults grew like coral long before anyone named them. Wisteria drifts on the updrafts between plateaus. Whatever built this place wasn't human, wasn't piglin, wasn't enderman. It just grew.",
     "spawnFilter": [
       "paradise_lost:highlands",
       "paradise_lost:highlands_forest",

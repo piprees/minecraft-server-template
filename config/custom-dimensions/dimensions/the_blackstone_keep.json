@@ -1,20 +1,28 @@
 {
   "type": "nether",
-  "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive.",
+  "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back — as if the keep itself remembers the threat.",
   "seed": 9213987570450868060,
   "biomes": [
     "minecraft:basalt_deltas",
     "minecraft:nether_wastes",
     "minecraft:crimson_forest",
-    "minecraft:soul_sand_valley"
+    "minecraft:soul_sand_valley",
+    "incendium:ash_barrens"
   ],
   "borders": {
     "player": 1024,
     "generation": 1024
   },
   "difficulty": {
-    "mobMultiplier": 1.5,
-    "playerLuck": 1.8
+    "mobMultiplier": 1.8,
+    "playerLuck": 1.8,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 80,
+      "endY": 20,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.5
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -30,9 +38,17 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#1B1B2B",
+    "ambientLight": 0.08
+  },
   "structures": {
     "force": [
-      { "structure": "minecraft:bastion_remnant", "x": 200, "z": 0 }
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 185,
+        "z": 42
+      }
     ]
   },
   "seedRoll": {
@@ -45,10 +61,16 @@
       "bastion": "near_spawn",
       "blackstone_walls": "near_spawn",
       "blackstone_pillars": "spread",
-      "forbidden_castle": "spread",
-      "fortress": "spread"
+      "forbidden_castle": "near_border",
+      "nether_tower": "spread",
+      "copper_tower": "spread"
     },
-    "description": "A keep-world: bastions and blackstone walls from spawn. Small, fortified, expensive."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "description": "The piglin military frontier. Bastions and blackstone walls from spawn, fortified against something that came from below. The deeper you dig, the harder it fights back — as if the keep itself remembers the threat."
   },
   "spawn": [
     0,

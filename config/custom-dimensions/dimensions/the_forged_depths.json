@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "The forge itself — crimson forges and reactors in a small brutal deep.",
+  "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep — the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets.",
   "seed": 8768619481766417318,
   "biomes": [
     "minecraft:basalt_deltas",
@@ -14,7 +14,14 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 2.2
+    "playerLuck": 2.2,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 90,
+      "endY": 10,
+      "minMultiplier": 1.5,
+      "maxMultiplier": 3.5
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -34,6 +41,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#4B2B1B",
+    "ambientLight": 0.08
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -48,7 +59,12 @@
       "fortress": "spread",
       "ruined_lab": "spread"
     },
-    "description": "The forge itself — crimson forges and reactors in a small brutal deep."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "description": "The last piglin forge still burning. Crimson forges and reactors in a small brutal deep — the fires here never went out because nobody survived to bank them. The deeper you go, the hotter and harder it gets."
   },
   "spawn": [
     0,

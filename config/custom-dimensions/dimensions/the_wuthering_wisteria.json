@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall.",
+  "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing.",
   "seed": 5004021960434439426,
   "spawn": [
     0,
@@ -46,10 +46,14 @@
     "igniterItem": "minecraft:pink_petals",
     "color": "D8A0E8",
     "lightLevel": 11,
-    "scale": 1.0,
+    "scale": 16.0,
     "cooldown": 40,
     "particleType": "minecraft:cherry_leaves",
     "shape": "door",
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.azalea_leaves.place",
       "enter": "entity.parrot.ambient",
@@ -94,6 +98,6 @@
       "terralith:sakura_grove",
       "minecraft:cherry_grove"
     ],
-    "description": "A broken torii gate opens onto a pocket grove of wisteria, sweet blossom on the breeze, a stream winding beneath the canopy toward a distant waterfall."
+    "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing."
   }
 }

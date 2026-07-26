@@ -24,7 +24,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "description": "The nether — 1:8 travel makes its playable disc small, so it earns its keep: fortresses and bastions in reach, Incendium's sanctum near the rim.",
+    "description": "The nether — piglin heartland, 1:8 compressed. Fortresses and bastions in reach, Incendium's sanctum near the rim. Every civilisation that touched this place left infrastructure; only the piglins called it home.",
     "spawnFilter": [
       "minecraft:nether_wastes",
       "minecraft:crimson_forest",

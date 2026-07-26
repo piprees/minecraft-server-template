@@ -1,6 +1,6 @@
 {
   "type": "nether_islands",
-  "description": "The maw: sculk-corrupted nether terrain, oppressive and chaotic. The catalyst is still feeding.",
+  "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic — the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable.",
   "seed": 9093123537521721615,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -37,6 +37,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#0B2B3B",
+    "ambientLight": 0.06
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -52,7 +56,12 @@
       "fortress": "near_border",
       "ruined_lab": "spread"
     },
-    "description": "The maw: sculk-corrupted nether terrain, oppressive and chaotic. The catalyst is still feeding."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "description": "The sculk that fed on the boneyard war escaped here. Corrupted nether terrain, oppressive and chaotic — the catalyst is still feeding, still growing. The reactors and bastions it consumed are unrecognisable."
   },
   "spawn": [
     0,

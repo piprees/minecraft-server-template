@@ -1,6 +1,6 @@
 {
   "type": "nether_islands",
-  "description": "Burning islands in a void sea — nether archipelago on end-island bones.",
+  "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder.",
   "seed": 5613206028346317650,
   "biomes": [
     "minecraft:crimson_forest",
@@ -59,7 +59,10 @@
       "warped_outpost": "near_spawn",
       "ruined_portal": "near_spawn"
     },
-    "description": "Burning islands in a void sea — nether archipelago on end-island bones."
+    "shuns": [
+      "piglin_village"
+    ],
+    "description": "Burning islands in a void sea — nether terrain on end-island bones. The piglins and endermen fought across these straits; the islands that survived still smoulder."
   },
   "spawn": [
     0,

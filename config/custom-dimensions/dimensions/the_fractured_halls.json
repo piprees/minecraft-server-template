@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country.",
+  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
   "seed": 9185324862121826233,
   "biomes": [
     "minecraft:end_highlands",
@@ -44,13 +44,20 @@
       "nullscape:shadowlands"
     ],
     "wants": {
-      "end_gate_fortress": "spread",
+      "end_gate_fortress": "near_spawn",
       "enderkeep": "spread",
-      "end_city": "spread",
       "astral_hideaway": "near_spawn",
-      "end_ruins": "near_spawn"
+      "ender_spire": "spread",
+      "mega_ship_crashed": "near_border",
+      "end_ruins": "spread",
+      "end_tower": "near_border"
     },
-    "description": "Fractured halls — gate fortresses and enderkeeps in broken crystal country."
+    "shuns": [
+      "end_city",
+      "phantom_citadel",
+      "monolith"
+    ],
+    "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
   },
   "spawn": [
     0,

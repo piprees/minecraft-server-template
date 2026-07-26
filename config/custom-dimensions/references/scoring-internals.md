@@ -1,6 +1,6 @@
 # Seed-Roller Scoring Internals
 
-Ground truth: `/Users/pip/Projects/minecraft-server-template/scripts/seed/dimension_profiles.py`. The mod itself ignores all of this at runtime — it only matters for `./dev seed-roll-all`, which is how a hand-written config gets turned into an actual playable world with a chosen seed. Understanding this shapes how you should fill in `seedRoll` and `structures` so the roller can actually find and reward a good seed.
+Ground truth: `/Users/pip/Projects/minecraft-server-template/scripts/seed/dimension_profiles.py`. The mod itself ignores all of this at runtime — it only matters for `./dev seed-roll`, which is how a hand-written config gets turned into an actual playable world with a chosen seed. Understanding this shapes how you should fill in `seedRoll` and `structures` so the roller can actually find and reward a good seed.
 
 ## Mood weights
 

@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Citadel country — end cities and phantom citadels saturate the highlands.",
+  "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
   "seed": 9063126249592024391,
   "biomes": [
     "minecraft:end_highlands",
@@ -48,13 +48,18 @@
       "minecraft:end_midlands"
     ],
     "wants": {
-      "end_city": "spread",
+      "end_city": "near_spawn",
       "phantom_citadel": "spread",
-      "enderkeep": "spread",
       "enderwatch_tower": "near_spawn",
-      "end_tower": "near_spawn"
+      "end_tower": "spread",
+      "monolith": "near_border"
     },
-    "description": "Citadel country — end cities and phantom citadels saturate the highlands."
+    "shuns": [
+      "dragon_skeleton",
+      "ruined_pillar",
+      "end_ruins"
+    ],
+    "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
   },
   "spawn": [
     0,

@@ -35,7 +35,7 @@
   },
   "seedRoll": {
     "mood": "standard",
-    "description": "The main overworld — safe, fairly vanilla spawn with interesting features nearby to kick off the journey; a real world players want to live in, with hard dungeons waiting near the border.",
+    "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone — and something stirs in them.",
     "spawnFilter": [
       "minecraft:plains",
       "minecraft:meadow",

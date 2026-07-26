@@ -1,11 +1,13 @@
 {
   "type": "nether",
-  "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world.",
+  "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
   "seed": 8939242886241437506,
   "biomes": [
     "incendium:weeping_valley",
     "minecraft:crimson_forest",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    "minecraft:soul_sand_valley",
+    "incendium:withered_forest"
   ],
   "borders": {
     "player": 1024,
@@ -33,6 +35,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#3B1B4B",
+    "ambientLight": 0.06
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -43,9 +49,16 @@
       "forbidden_castle": "spread",
       "nether_dungeon": "near_spawn",
       "sanctum": "near_border",
-      "bastion": "spread"
+      "bastion": "spread",
+      "infernal_altar": "spread",
+      "nether_tower": "near_border"
     },
-    "description": "A vault of crying obsidian: castle dungeons and a sanctum at the edge of a small dense world."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
   },
   "spawn": [
     0,

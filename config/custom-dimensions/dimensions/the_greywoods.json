@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone.",
+  "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
   "seed": 6737624617755405423,
   "biomes": [
     "natures_spirit:cedar_thicket",
@@ -50,13 +50,15 @@
       "zombie_dungeon": "spread",
       "old_manor": "near_border",
       "skeleton_dungeon": "near_border",
-      "dark_settlement": "spread"
+      "dark_settlement": "spread",
+      "mausoleum": "near_border",
+      "swamp_ruin": "spread"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
-    "description": "Gloomy cedar woodland where the fog sits low. Graveyards, chapels and a manor that should probably be left alone."
+    "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step.",
+  "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them.",
   "seed": -710009041145965796,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -17,7 +17,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.3,
-    "playerLuck": 1.4
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.6
+    }
   },
   "portal": {
     "frameBlock": "minecraft:podzol",
@@ -31,6 +38,9 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "environment": {
+    "fogColor": "#5B6B4B"
   },
   "seedRoll": {
     "mood": "dramatic",
@@ -47,13 +57,16 @@
       "taiga_outpost": "spread",
       "taiga_ruin": "spread",
       "cold_dungeon": "near_border",
-      "stray_fort": "near_border"
+      "stray_fort": "near_border",
+      "foraging_outpost": "near_spawn",
+      "campsite": "near_spawn",
+      "northern_ruin": "spread"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
-    "description": "Steep pine cliffs and fire towers. Dramatic conifer country that punishes a careless step."
+    "description": "Steep pine cliffs and fire towers. Human frontier country where the dramatic terrain punishes a careless step. The outposts here were built by people who respected the mountain; the dungeons were here before them."
   },
   "spawn": [
     0,

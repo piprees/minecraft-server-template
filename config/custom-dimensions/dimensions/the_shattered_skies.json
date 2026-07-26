@@ -1,6 +1,6 @@
 {
   "type": "sky_islands",
-  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
+  "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
   "seed": -5208023471198691652,
   "biomes": [
     "minecraft:plains",
@@ -46,7 +46,7 @@
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
+      "subsume": "natural"
     }
   },
   "seedRoll": {
@@ -68,9 +68,18 @@
       "sky_castle_ruin": "spread",
       "sky_arena": "spread",
       "sky_volcano": "near_border",
-      "sky_castle_tower": "near_border"
+      "sky_castle_tower": "near_border",
+      "guide_post_warm": "near_spawn",
+      "abandoned_camp": "near_spawn"
     },
-    "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning.",
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "monument",
+      "coliseum"
+    ],
+    "description": "Floating garden islands — sakura and skylands adrift in a void slowly winning. The animals' paradise, where nothing was ever built to last and nothing needs to. Sky houses and castle ruins dot the islands like driftwood.",
     "terrain": "islands"
   },
   "spawn": [

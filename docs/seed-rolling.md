@@ -1,11 +1,16 @@
 # Seed rolling — the all-dimensions roller
 
-`./dev seed-roll-all` rolls candidate seeds for **every configured dimension AND the shared world seed** (overworld / the_nether / the_end / paradise_lost), **indefinitely**: workers cycle their dimensions forever (one accepted candidate per dimension per cycle, attempts bounded by the adaptive spawn gate below), report every acceptance and rejection live on the console, and **auto-write the current winners into the config every 45s** (one timestamped backup per session; `--no-write` disables). The live viewer is served at `http://127.0.0.1:8765/viewer.html` — **"Make Winner" pins your own pick** over the score ranking (saved to `.seedtest/winner-overrides.json`, honoured by every later finalise). **Ctrl+C finalises** the same way. Re-runs resume; accepted candidates persist and rejected seeds are never re-tried. Void/superflat dimensions are skipped (no worldgen to roll).
+`./dev seed-roll` rolls candidate seeds for **every configured dimension AND the shared world seed** (overworld / the_nether / the_end / paradise_lost). Two phases: a one-time warmup (extract structure sets from mod JARs, dump biome params from a short-lived MC server boot), then pure-Python fast rolling (thousands of candidates/sec, no Docker, no RCON). Winners are **auto-written into the individual dimension config files every 45s** (one timestamped backup per session; `--no-write` disables). **Ctrl+C finalises.** Re-runs resume; accepted candidates persist and rejected seeds are never re-tried. Void/superflat dimensions are skipped (no worldgen to roll).
 
 ```bash
-./dev seed-roll-all                          # everything, 6x parallel, renders
-./dev seed-roll-all --dims the_gauntlet --workers 1   # focused session
-./dev seed-roll-all --render off --no-write           # measure + score only
+./dev seed-roll                              # roll all dimensions (default)
+./dev seed-roll --dims the_gauntlet          # single dimension
+./dev seed-roll --pool 10000 --count 200     # bigger screening pool
+./dev seed-roll --no-write                   # measure + score only
+./dev seed-roll --reset                      # wipe all seed data and start fresh
+./dev seed-rescore                           # recompute scores vs current configs
+./dev seed-status                            # candidate-bank status
+./dev seed-viewer                            # interactive picker + background rendering
 ```
 
 Crashes are survivable by design: a broken candidate is logged and skipped, a dead container is rebooted (unlimited retries), a dead worker process is respawned by the orchestrator. The world seed rolls in parallel with the dimensions — overworld/nether/end candidates are measured as runtime clones inside the same containers (an overworld-type clone with seed S generates identically to a world booted with SEED=S), gated by the overworld's spawn filter; a dedicated boot stream covers paradise_lost (static mod dimension) and prioritises seeds the clone stream already accepted.

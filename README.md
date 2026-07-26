@@ -65,25 +65,22 @@ Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` ha
 Find a great world seed by testing against the real modded server. Rolls bank raw measurements; scoring happens at report time against a named profile, so re-weighting never requires re-rolling:
 
 ```bash
-./dev seed-roll --profile overworld-natural    # measure world seeds (resumable)
-./dev seed-report --profile overworld-natural  # score + top-N markdown report
-
-# Roll one custom dimension's seed (N candidates per boot):
-./dev seed-roll --dimension the_gauntlet --profile dim-hard-overworld --candidates 16
-./dev seed-report --profile dim-hard-overworld --target the_gauntlet
+./dev seed-roll                              # roll all dimensions (default)
+./dev seed-roll --dims the_gauntlet          # single dimension
+./dev seed-roll --pool 10000 --count 200     # bigger screening pool
+./dev seed-roll --no-write                   # measure + score only
+./dev seed-roll --reset                      # wipe all seed data and start fresh
 ```
 
-Pick your favourite from the generated report, explore it in spectator mode, then set `SEED=<your_seed>` in `.env` (dimension seeds go into that dimension's entry in `config/multiverse_config.json`). Profiles live in `scripts/seed/profiles/` — `classic` reproduces the pre-v3 taste.
-
-To roll **every custom dimension at once**, fully automated (three measurement containers, per-dimension philosophy-driven scoring, then BlueMap renders for the top three candidates per target when the run finalises):
+Winners are auto-written into the individual dimension config files. Ctrl+C finalises with whatever has been measured so far; re-runs resume.
 
 ```bash
-./dev seed-roll-all                          # 3 workers; shortlist rendering at finalise
-./dev seed-roll-all --dims the_gauntlet --workers 1 --render-top 1
-./dev seed-roll-all --render all             # opt in to rendering every accepted candidate
+./dev seed-rescore                           # recompute scores vs current configs
+./dev seed-status                            # candidate-bank status
+./dev seed-viewer                            # interactive picker + background rendering
 ```
 
-Everything lands in `.seedtest/` (measurements.csv, renders, viewer.html — opened automatically at the end). Ctrl+C finalises with whatever has been measured so far; re-runs resume. Use `--render off` to skip thumbnails completely.
+Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/viewer.html` — "Make Winner" pins your pick over the score ranking.
 
 ## Upgrading
 

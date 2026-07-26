@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall.",
+  "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate.",
   "seed": 88447297175691575,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -36,6 +36,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#3B5B2B"
+  },
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
@@ -54,7 +57,9 @@
       "webbed_dungeon": "near_border",
       "lush_dungeon": "spread",
       "jungle_tree_house": "spread",
-      "murkydungeon": "spread"
+      "murkydungeon": "spread",
+      "giant_mushroom": "spread",
+      "abandoned_camp": "near_spawn"
     },
     "shuns": [
       "village",
@@ -62,7 +67,7 @@
       "mansion",
       "monument"
     ],
-    "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain — the wild reclaimed every wall."
+    "description": "Nature won. Jungle-swallowed ruins and infested temples in compressed, tangled terrain. Villager settlements once stood here; the wild reclaimed every wall. The jungle doesn't negotiate."
   },
   "spawn": [
     0,

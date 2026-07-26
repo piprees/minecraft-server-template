@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns.",
+  "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
   "seed": 9135545649734435741,
   "biomes": [
     "natures_spirit:aspen_forest",
@@ -47,13 +47,15 @@
       "abandoned_temple": "spread",
       "skeleton_dungeon": "spread",
       "pumpkin_ruins": "near_spawn",
-      "ancient_crypt": "near_border"
+      "ancient_crypt": "near_border",
+      "graveyard": "spread",
+      "mausoleum": "near_border"
     },
     "shuns": [
       "village",
       "tavern"
     ],
-    "description": "Autumn woods strewn with ruins — every clearing has bones of something older. Rich pickings, no living towns."
+    "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry."
   },
   "spawn": [
     0,

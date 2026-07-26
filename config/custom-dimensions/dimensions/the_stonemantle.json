@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone.",
+  "description": "Craggy quarry country — bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder.",
   "seed": 9192136150769168028,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -19,7 +19,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.2,
-    "playerLuck": 1.4
+    "playerLuck": 1.4,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.6
+    }
   },
   "portal": {
     "frameBlock": "minecraft:smooth_stone",
@@ -33,6 +40,9 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "environment": {
+    "fogColor": "#7B7B8B"
   },
   "seedRoll": {
     "mood": "dramatic",
@@ -51,13 +61,15 @@
       "quarter_outpost": "spread",
       "engineer_tower": "spread",
       "ancient_temple": "near_border",
-      "firetower": "spread"
+      "firetower": "spread",
+      "scorched_mines": "near_border",
+      "coldlair": "near_border"
     },
     "shuns": [
       "village",
       "monument"
     ],
-    "description": "Craggy quarry country — bare spires, engineers' towers and old workings in the stone."
+    "description": "Craggy quarry country — bare spires, engineers' towers, and old workings in the stone. The humans' industrial heartland, where they mined the raw materials for the sun kingdoms and the highland crossing. The deeper shafts are harder."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took.",
+  "description": "An ancient buried age — nether ruins and towers of a piglin civilisation the lava took. Pipelines and copper towers stand in flooded halls. Nobody shunned the bastions; the bastions are buried.",
   "seed": 4043512277582323411,
   "biomes": [
     "minecraft:nether_wastes",
@@ -33,6 +33,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#3B2B1B",
+    "ambientLight": 0.1
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -44,9 +48,15 @@
       "nether_lava_ruins": "spread",
       "nether_tower": "spread",
       "pipeline": "spread",
-      "warped_outpost": "near_border"
+      "copper_tower": "near_border"
     },
-    "description": "An ancient buried age — nether ruins and towers of a civilisation the lava took."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost",
+      "bastion"
+    ],
+    "description": "An ancient buried age — nether ruins and towers of a piglin civilisation the lava took. Pipelines and copper towers stand in flooded halls. Nobody shunned the bastions; the bastions are buried."
   },
   "spawn": [
     0,

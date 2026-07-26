@@ -1,6 +1,6 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "Violet spires in the sky — wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
+  "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
   "seed": 9126336716251728441,
   "biomes": [
     "paradise_lost:wisteria_woods",
@@ -45,13 +45,15 @@
       "birdcage": "spread",
       "wizard_tower": "spread",
       "para_palace": "near_border",
-      "relic_temple": "near_border"
+      "relic_temple": "near_border",
+      "shrine_tower": "spread",
+      "mystical_archway": "spread"
     },
     "shuns": [
       "village",
       "monument"
     ],
-    "description": "Violet spires in the sky — wisteria islands and amethyst canyons; vertical, arcane, breathtaking.",
+    "description": "Violet spires in the sky — where endermen architecture meets the natural skylands. Wisteria islands and amethyst canyons, aurel towers and birdcages. Arcane but not hostile; a place where two worlds overlapped and neither broke.",
     "family": "overworld",
     "terrain": "islands",
     "heightRange": [

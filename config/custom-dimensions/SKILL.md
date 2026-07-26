@@ -333,9 +333,12 @@ Loud failures: invalid JSON, `structures.wants`/`shuns` format violations. Silen
 
 ```bash
 ./dev up                            # stage config first
-./dev seed-roll-all --dims <slug>   # roll candidates
-./dev seed-status                   # check counts/winner/freshness
-./dev seed-viewer                   # interactive picker (optional)
+./dev seed-roll                     # roll all dimensions (default)
+./dev seed-roll --dims <slug>       # roll a single dimension
+./dev seed-roll --pool 10000 --count 200  # bigger screening pool
+./dev seed-rescore                  # recompute scores vs current configs (no re-rolling)
+./dev seed-status                   # candidate-bank status: counts, winners, freshness
+./dev seed-viewer                   # interactive picker + background rendering
 ```
 
 **Rollable requirements**: not `skip: true`, not `superflat`, `void` needs a `biomes` list.

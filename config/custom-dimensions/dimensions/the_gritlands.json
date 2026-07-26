@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins — nobody could live here, and nothing organised survives.",
+  "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives.",
   "seed": 5190387473893419670,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -21,7 +21,27 @@
     "mobMultiplier": 1.3,
     "playerLuck": 1.6
   },
-  "structureDensity": "sparse",
+  "structureDensity": "none",
+  "structures": {
+    "force": [
+      {
+        "structure": "minecraft:ruined_portal_mountain",
+        "x": 678,
+        "z": -412
+      },
+      {
+        "structure": "philipsruins:field_stone_ruins",
+        "x": -592,
+        "z": 701
+      },
+      {
+        "structure": "minecraft:mineshaft",
+        "x": -718,
+        "z": -389
+      }
+    ],
+    "clearSpawnRadius": 256
+  },
   "portal": {
     "frameBlock": "minecraft:coarse_dirt",
     "igniterItem": "minecraft:amethyst_shard",
@@ -34,6 +54,10 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "environment": {
+    "fogColor": "#8B7B6B",
+    "ambientLight": 0.18
   },
   "seedRoll": {
     "mood": "desolate",
@@ -64,7 +88,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "A roughed-up 1024-block cluster of gravel, basalt and ash where it all went wrong. Dead workings, broken portals, stone ruins — nobody could live here, and nothing organised survives."
+    "description": "Gravel, basalt, and ash where it all went wrong. A ruined portal near the border, stone ruins, a dead mineshaft — the remains of something that tried to exist here and couldn't. Nobody could live here. Nothing organised survives."
   },
   "spawn": [
     0,

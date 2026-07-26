@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark.",
+  "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities — ashen savanna and eroded badlands over a deep dark that shouldn't be this close to the surface.",
   "seed": -6084751356019635319,
   "biomes": [
     "terralith:ashen_savanna",
@@ -52,12 +52,15 @@
       "graveyard": "near_spawn",
       "mausoleum": "spread",
       "dusty_tomb": "spread",
-      "black_spiral": "near_border"
+      "black_spiral": "near_border",
+      "scorched_tomb": "spread",
+      "ancient_ruins": "near_border",
+      "ruins_standard": "spread"
     },
     "shuns": [
       "village"
     ],
-    "description": "Soul-sand drifting into shadow — the nether's graveyard on overworld bones, edged with the end's dark."
+    "description": "Soul-sand drifting into shadow. The surface scar where the underground sculk infection broke through from the ancient cities — ashen savanna and eroded badlands over a deep dark that shouldn't be this close to the surface."
   },
   "spawn": [
     0,

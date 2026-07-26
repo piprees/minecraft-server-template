@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war.",
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
   "seed": 7030276223102451156,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -58,9 +58,11 @@
     "shuns": [
       "monument",
       "mansion",
-      "coliseum"
+      "coliseum",
+      "trial_chambers",
+      "ancient_city"
     ],
-    "description": "Amethyst rainforest and emerald peaks — a jewel-box world with wizard towers, not war."
+    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
   },
   "spawn": [
     0,

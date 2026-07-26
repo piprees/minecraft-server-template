@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel.",
+  "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning.",
   "seed": 9155801355435215650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -57,13 +57,15 @@
       "zombie_dungeon": "spread",
       "mansion": "near_border",
       "dark_settlement": "spread",
-      "creeping_crypt": "spread"
+      "creeping_crypt": "spread",
+      "spider_dungeon": "spread",
+      "undead_crypt": "near_border"
     },
     "shuns": [
       "monument",
       "coliseum"
     ],
-    "description": "Moonlit spruce dark. Graveyards, manors, a mansion deep in — the woods keep their own counsel."
+    "description": "Where the villagers who listened too long to the endermen withdrew. Moonlit spruce dark, graveyards, manors — the woods keep their own counsel. The witches came from here: students who couldn't stop learning."
   },
   "spawn": [
     0,

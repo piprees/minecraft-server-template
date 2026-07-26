@@ -1,6 +1,6 @@
 {
   "type": "void",
-  "description": "A void where a frozen world used to be — the biomes remain, the ground does not. The disintegration finished here.",
+  "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
   "seed": 9219718437578432475,
   "biomes": [
     "minecraft:deep_dark",
@@ -20,6 +20,7 @@
     "mobMultiplier": 2.5,
     "playerLuck": 2.2
   },
+  "structureDensity": "none",
   "portal": {
     "frameBlock": "minecraft:blue_ice",
     "igniterItem": "minecraft:netherite_scrap",
@@ -54,7 +55,7 @@
       "terralith:snowy_cherry_grove",
       "terralith:alpha_islands_winter"
     ],
-    "description": "A void where a frozen world used to be — the biomes remain, the ground does not. The disintegration finished here.",
+    "description": "A void where a frozen world used to be. The biomes remain — their cold, their fog, their sounds — but the ground does not. The disintegration finished here. Whatever broke this world left only the memory of ice.",
     "terrain": "void"
   },
   "spawn": [

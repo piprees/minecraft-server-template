@@ -1,6 +1,6 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
+  "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands — half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
   "seed": 4738366115120948309,
   "biomes": [
     "paradise_lost:tradewinds",
@@ -51,9 +51,11 @@
       "monument": "spread",
       "deepwater_dungeon": "spread",
       "para_remains": "near_spawn",
-      "ocean_fortress": "near_border"
+      "ocean_fortress": "near_border",
+      "birdcage": "spread",
+      "aurel_tower": "near_spawn"
     },
-    "description": "Temple-hunting across drowned skyland basins — monuments and fortresses where the water pooled between islands.",
+    "description": "Temple-hunting across drowned skyland basins. Monuments and fortresses sit where the water pooled between paradise islands — half-submerged architecture that predates the flooding. Something sacred was kept here, and the rising water couldn't wash it away.",
     "shuns": [],
     "family": "overworld",
     "terrain": "islands",

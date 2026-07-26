@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger.",
+  "description": "A toxic, dense little hell. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard. The labs are ruins now; the blight won. Loot escalates with the danger.",
   "seed": 9209138044254743191,
   "biomes": [
     "incendium:toxic_heap",
@@ -41,6 +41,10 @@
       "subsume": "everything"
     }
   },
+  "environment": {
+    "fogColor": "#3B1B1B",
+    "ambientLight": 0.08
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [
@@ -49,13 +53,19 @@
       "incendium:withered_forest"
     ],
     "wants": {
-      "ruined_lab": "spread",
+      "ruined_lab": "near_spawn",
       "nether_reactor": "spread",
       "bastion": "spread",
       "fortress": "spread",
-      "lost_soul_dungeon": "near_border"
+      "lost_soul_dungeon": "near_border",
+      "pipeline": "spread"
     },
-    "description": "A toxic, dense little hell — ruined labs and reactors in the blight. Loot escalates with the danger."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost"
+    ],
+    "description": "A toxic, dense little hell. Piglin scientists built labs and reactors here to study the sculk infection from the boneyard. The labs are ruins now; the blight won. Loot escalates with the danger."
   },
   "spawn": [
     0,

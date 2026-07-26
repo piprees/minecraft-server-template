@@ -1,11 +1,12 @@
 {
   "type": "nether",
-  "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong.",
+  "description": "The battlefield. Piglins met endermen here and neither side won. Bones of giants lie in soul sand, a crashed ship rusts in the distance, and the sculk that crept in wasn't either side's weapon — it fed on the war itself.",
   "seed": 9201742130235930622,
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
-    "minecraft:basalt_deltas"
+    "minecraft:basalt_deltas",
+    "incendium:withered_forest"
   ],
   "borders": {
     "player": 1024,
@@ -32,6 +33,40 @@
       "subsume": "everything"
     }
   },
+  "structures": {
+    "force": [
+      {
+        "structure": "mns:giant_skull",
+        "x": 172,
+        "z": 38
+      },
+      {
+        "structure": "mns:giant_skull",
+        "x": -284,
+        "z": 193
+      },
+      {
+        "structure": "philipsruins:bone_dungeon",
+        "x": 47,
+        "z": -311
+      },
+      {
+        "structure": "betterdungeons:skeleton_dungeon",
+        "x": -218,
+        "z": -176
+      },
+      {
+        "structure": "nova_structures:skeleton_camp_soul",
+        "x": 335,
+        "z": 267
+      },
+      {
+        "structure": "mes:mega_ship_crashed",
+        "x": -412,
+        "z": -378
+      }
+    ]
+  },
   "environment": {
     "fogColor": "#D8C8A0"
   },
@@ -44,12 +79,19 @@
     "wants": {
       "giant_skull": "near_spawn",
       "nether_graveyard": "near_spawn",
-      "fortress": "spread",
-      "bastion": "spread",
       "bone_dungeon": "near_spawn",
-      "sculk_dungeon": "spread"
+      "lost_soul_dungeon": "spread",
+      "nether_bridge": "spread",
+      "nether_dungeon": "spread",
+      "infernal_altar": "near_border"
     },
-    "description": "Bones of giants in soul sand, with sculk creeping in. Dense, hard, deeply wrong."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "crimson_forge",
+      "warped_outpost"
+    ],
+    "description": "The battlefield. Piglins met endermen here and neither side won. Bones of giants lie in soul sand, a crashed ship rusts in the distance, and the sculk that crept in wasn't either side's weapon — it fed on the war itself."
   },
   "spawn": [
     0,

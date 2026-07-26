@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs.",
+  "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs.",
   "seed": 9194906980739314006,
   "biomes": [
     "minecraft:nether_wastes",
@@ -13,7 +13,7 @@
   },
   "difficulty": {
     "mobMultiplier": 2.5,
-    "playerLuck": 2.0
+    "playerLuck": 3.0
   },
   "structureDensity": "dense",
   "portal": {
@@ -24,19 +24,78 @@
     "scale": 12.0,
     "cooldown": 40,
     "shape": "doorway",
+    "anchor": {
+      "pos": [
+        -412,
+        64,
+        217
+      ],
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     },
     "aura": {
-      "subsume": "everything"
-    }
+      "subsume": "everything",
+      "palette": [
+        "minecraft:gilded_blackstone",
+        "minecraft:blackstone",
+        "minecraft:gold_block"
+      ]
+    },
+    "orientation": "horizontal"
   },
   "structures": {
     "force": [
-      { "structure": "minecraft:bastion_remnant", "x": 200, "z": 0 }
-    ]
+      {
+        "structure": "minecraft:bastion_remnant",
+        "x": 278,
+        "z": 31
+      },
+      {
+        "structure": "betterfortresses:fortress",
+        "x": -291,
+        "z": -47
+      },
+      {
+        "structure": "incendium:forbidden_castle",
+        "x": 52,
+        "z": 326
+      },
+      {
+        "structure": "mns:crimson_forge",
+        "x": -38,
+        "z": -342
+      },
+      {
+        "structure": "minecraft:trial_chambers",
+        "x": 237,
+        "z": 218
+      },
+      {
+        "structure": "dungeons_arise:shiraz_palace",
+        "x": -263,
+        "z": 229
+      },
+      {
+        "structure": "dungeons_arise:foundry",
+        "x": 241,
+        "z": -234
+      },
+      {
+        "structure": "dungeons_arise:keep_kayra",
+        "x": 372,
+        "z": 411
+      },
+      {
+        "structure": "philipsruins:antiquus_crypta",
+        "x": -389,
+        "z": 358
+      }
+    ],
+    "clearSpawnRadius": 64
   },
   "seedRoll": {
     "mood": "hard",
@@ -45,12 +104,14 @@
       "minecraft:basalt_deltas"
     ],
     "wants": {
-      "bastion": "near_spawn",
-      "crimson_forge": "spread",
+      "bastion": "near_border",
+      "crimson_forge": "near_border",
       "sanctum": "near_border",
-      "blackstone_walls": "spread"
+      "blackstone_walls": "near_border",
+      "forbidden_castle": "near_border",
+      "nether_tower": "near_border"
     },
-    "description": "The gilded pit: a bastion at spawn and gold in every wall. Greed pays and costs."
+    "description": "The piglin capital. Every portal drops you at the same ledge overlooking what remains: a bastion, a forge, a palace, a forbidden castle — gold in every wall, treasure in every ruin. Nothing within arm's reach of the landing. Greed pays and costs."
   },
   "spawn": [
     0,

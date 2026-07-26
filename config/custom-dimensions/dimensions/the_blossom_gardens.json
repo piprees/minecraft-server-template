@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring.",
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
   "seed": -2033868061535873206,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -46,11 +46,16 @@
     "cooldown": 40,
     "particleType": "minecraft:cherry_leaves",
     "shape": "doorway",
+    "anchor": {
+      "pos": "spawn",
+      "exit": "bed"
+    },
     "sounds": {
       "ignite": "block.portal.trigger",
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
-    }
+    },
+    "orientation": "horizontal"
   },
   "seedRoll": {
     "mood": "serene",
@@ -66,9 +71,18 @@
       "farmstead": "near_spawn",
       "guide_post_warm": "near_spawn",
       "giant_mushroom": "spread",
-      "abandoned_chapel": "spread"
+      "abandoned_chapel": "spread",
+      "campsite": "near_spawn",
+      "lighthouse": "near_border"
     },
-    "description": "Cherry-blossom gardens: sakura and wisteria at spawn, villages and taverns among the petals. Peaceful, never boring."
+    "shuns": [
+      "ancient_city",
+      "trial_chambers",
+      "mansion",
+      "coliseum",
+      "monument"
+    ],
+    "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it."
   },
   "spawn": [
     0,

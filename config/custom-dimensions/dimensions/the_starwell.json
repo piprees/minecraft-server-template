@@ -1,6 +1,6 @@
 {
   "type": "sky_islands",
-  "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down.",
+  "description": "A well of night sky — a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch.",
   "biomes": [
     "terralith:mirage_isles",
     "terralith:skylands_winter",
@@ -19,7 +19,7 @@
     "igniterItem": "minecraft:ender_eye",
     "color": "9B7BD8",
     "lightLevel": 13,
-    "scale": 1.0,
+    "scale": 16.0,
     "cooldown": 40,
     "particleType": "minecraft:end_rod",
     "shape": "door",
@@ -34,7 +34,8 @@
     },
     "aura": {
       "subsume": "none"
-    }
+    },
+    "orientation": "horizontal"
   },
   "exitPortal": {
     "enabled": true,
@@ -42,7 +43,10 @@
     "target": "bed"
   },
   "exits": {
-    "void": { "target": "origin", "action": "teleport" }
+    "void": {
+      "target": "origin",
+      "action": "teleport"
+    }
   },
   "environment": {
     "skyColor": "#0B0E2E",
@@ -76,6 +80,6 @@
       "terralith:skylands_winter",
       "terralith:alpha_islands"
     ],
-    "description": "A well of night sky — a few silvered islands adrift around a monolith, and a long way down."
+    "description": "A well of night sky — a few silvered islands adrift around a monolith. The endermen's last gift: a pocket of void where nothing hunts, falling sends you home, and the stars are close enough to touch."
   }
 }

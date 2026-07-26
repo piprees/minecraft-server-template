@@ -1,6 +1,6 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",
+  "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
   "seed": -1792310558452177569,
   "biomes": [
     "paradise_lost:autumnal_tundra",
@@ -49,10 +49,12 @@
       "aurel_tower": "spread",
       "cold_dungeon": "spread",
       "birdcage": "near_border",
-      "igloo": "near_spawn"
+      "igloo": "near_spawn",
+      "frozen_dungeon": "near_border",
+      "guide_post_cold": "near_spawn"
     },
     "shuns": [],
-    "description": "A snowbound island adrift in the sky — fir forests and drifts on floating ground.",
+    "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
     "family": "overworld",
     "terrain": "islands",
     "heightRange": [

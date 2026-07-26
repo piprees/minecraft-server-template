@@ -1,11 +1,12 @@
 {
   "type": "nether",
-  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock.",
+  "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide.",
   "seed": 9204094914283411112,
   "biomes": [
     "minecraft:warped_forest",
     "incendium:inverted_forest",
-    "minecraft:crimson_forest"
+    "minecraft:crimson_forest",
+    "minecraft:nether_wastes"
   ],
   "borders": {
     "player": 1024,
@@ -45,9 +46,14 @@
       "warped_greatsword": "spread",
       "warped_outpost": "near_spawn",
       "bastion": "spread",
-      "crimson_forge": "spread"
+      "crimson_forge": "spread",
+      "nether_bridge": "spread",
+      "strange_outpost": "spread"
     },
-    "description": "Warped corruption spreading over a mesa world — teal fungus over red rock."
+    "shuns": [
+      "piglin_village"
+    ],
+    "description": "Warped corruption spreading over a mesa world — teal fungus over red rock. The nether bleeding through, but slowly, almost beautifully. The piglins who lived here didn't flee; they adapted. Their outposts stand in the fungus like houses in a rising tide."
   },
   "spawn": [
     0,

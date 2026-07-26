@@ -1,6 +1,6 @@
 {
   "type": "void",
-  "description": "A basalt-and-soul void — the nether's kind of ending, without the nether's mercy.",
+  "description": "A basalt-and-soul void — the nether's kind of ending. Whatever was here, the void consumed it completely. No structures, no ruins, no evidence. The piglins' word for this place translates roughly as 'the mouth that swallowed.'",
   "seed": 9064486879499980563,
   "biomes": [
     "minecraft:basalt_deltas",
@@ -17,6 +17,7 @@
     "mobMultiplier": 2.5,
     "playerLuck": 2.0
   },
+  "structureDensity": "none",
   "settingsOverrides": {
     "defaultFluid": "minecraft:lava"
   },
@@ -50,7 +51,7 @@
       "incendium:quartz_flats",
       "minecraft:nether_wastes"
     ],
-    "description": "A basalt-and-soul void — the nether's kind of ending, without the nether's mercy.",
+    "description": "A basalt-and-soul void — the nether's kind of ending. Whatever was here, the void consumed it completely. No structures, no ruins, no evidence. The piglins' word for this place translates roughly as 'the mouth that swallowed.'",
     "terrain": "void"
   },
   "spawn": [

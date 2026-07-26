@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "The red monument — a monolith where the aura bleeds scarlet into the end barrens around it.",
+  "description": "The red monument — a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away.",
   "seed": 847731309170024191,
   "biomes": [
     "minecraft:end_barrens",
@@ -55,7 +55,12 @@
       "end_city": "near_border",
       "ender_spire": "spread"
     },
-    "description": "The red monument — a monolith where the aura bleeds scarlet into the end barrens around it."
+    "shuns": [
+      "dragon_skeleton",
+      "ruined_pillar",
+      "end_ruins"
+    ],
+    "description": "The red monument — a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company.",
+  "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
   "seed": 8614947220682105760,
   "biomes": [
     "terralith:orchid_swamp",
@@ -34,6 +34,12 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "clearSpawnRadius": 80
+  },
+  "environment": {
+    "fogColor": "#4B5B3B"
+  },
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
@@ -51,7 +57,9 @@
       "swamp_ruin": "spread",
       "muddy_dungeon": "near_border",
       "mausoleum": "spread",
-      "graveyard": "spread"
+      "graveyard": "spread",
+      "abandoned_camp": "spread",
+      "mangrove_hut": "near_spawn"
     },
     "shuns": [
       "village",
@@ -61,7 +69,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk; too wet for roads, too quiet for company."
+    "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands.",
+  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
   "seed": -6748313849734002813,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -33,7 +33,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.2,
-    "playerLuck": 1.3
+    "playerLuck": 1.3,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 128,
+      "endY": 0,
+      "minMultiplier": 0.8,
+      "maxMultiplier": 1.5
+    }
   },
   "portal": {
     "frameBlock": "minecraft:raw_copper_block",
@@ -67,12 +74,14 @@
       "engineer_tower": "spread",
       "keep_kayra": "near_border",
       "nomad_outpost": "spread",
-      "campsite": "near_spawn"
+      "campsite": "near_spawn",
+      "watchtower": "spread",
+      "lighthouse": "near_border"
     },
     "shuns": [
       "monument"
     ],
-    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands."
+    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Untouched wilds that whisper — redwoods, moon groves, abandoned camps of those who didn't stay.",
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
   "seed": 3367832196571995414,
   "biomes": [
     "minecraft:dark_forest",
@@ -33,6 +33,9 @@
     "playerLuck": 1.5
   },
   "structureDensity": "sparse",
+  "structures": {
+    "clearSpawnRadius": 96
+  },
   "portal": {
     "frameBlock": "minecraft:dark_oak_planks",
     "igniterItem": "minecraft:amethyst_shard",
@@ -45,6 +48,9 @@
       "enter": "block.portal.travel",
       "exit": "block.portal.travel"
     }
+  },
+  "environment": {
+    "fogColor": "#2B4B2B"
   },
   "seedRoll": {
     "mood": "desolate",
@@ -59,7 +65,10 @@
       "forest_ruin": "spread",
       "firetower": "spread",
       "campsite": "near_spawn",
-      "old_manor": "near_border"
+      "old_manor": "near_border",
+      "northern_ruin": "spread",
+      "taiga_ruin": "spread",
+      "foraging_outpost": "near_spawn"
     },
     "shuns": [
       "village",
@@ -67,7 +76,7 @@
       "mansion",
       "coliseum"
     ],
-    "description": "Untouched wilds that whisper — redwoods, moon groves, abandoned camps of those who didn't stay."
+    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
   },
   "spawn": [
     0,

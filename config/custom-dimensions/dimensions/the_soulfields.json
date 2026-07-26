@@ -1,12 +1,14 @@
 {
   "type": "nether",
-  "description": "Soul-sand meadows and grave fields; the dead are the crop.",
+  "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
   "seed": 8788869748950071596,
   "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
-    "minecraft:nether_wastes"
+    "minecraft:nether_wastes",
+    "incendium:weeping_valley",
+    "incendium:withered_forest"
   ],
   "borders": {
     "player": 1024,
@@ -30,6 +32,12 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "clearSpawnRadius": 80
+  },
+  "environment": {
+    "fogColor": "#3B5B7B"
+  },
   "seedRoll": {
     "mood": "desolate",
     "spawnFilter": [
@@ -42,7 +50,13 @@
       "lost_soul_dungeon": "spread",
       "bone_dungeon": "spread"
     },
-    "description": "Soul-sand meadows and grave fields; the dead are the crop."
+    "shuns": [
+      "piglin_village",
+      "crimson_fungus",
+      "warped_outpost",
+      "bastion"
+    ],
+    "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
   },
   "spawn": [
     0,

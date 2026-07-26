@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines.",
+  "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them.",
   "seed": 8954320106618531345,
   "biomes": [
     "terralith:siberian_taiga",
@@ -31,6 +31,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "environment": {
+    "fogColor": "#6B8B7B"
+  },
   "seedRoll": {
     "mood": "scenic",
     "spawnFilter": [
@@ -53,7 +56,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines."
+    "description": "Rain-soaked taiga, moss on everything, ruins rotting under the pines. A place people passed through but never stayed — the damp took their camps and the forest closed behind them."
   },
   "spawn": [
     0,

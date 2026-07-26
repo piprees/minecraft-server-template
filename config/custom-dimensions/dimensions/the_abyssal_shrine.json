@@ -1,6 +1,6 @@
 {
   "type": "paradise_lost:paradise_lost",
-  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows; guardians below, sky above.",
+  "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
   "seed": 801303553111466439,
   "biomes": [
     "paradise_lost:continental_plateau",
@@ -55,7 +55,7 @@
       "village",
       "tavern"
     ],
-    "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows; guardians below, sky above.",
+    "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
     "family": "overworld",
     "terrain": "islands",
     "heightRange": [

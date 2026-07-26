@@ -1,8 +1,13 @@
 {
   "type": "cave",
-  "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark.",
+  "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm.",
   "seed": 9181733818447442817,
-  "biomes": ["terralith:cave/thermal_caves", "terralith:cave/granite_caves", "terralith:cave/tuff_caves", "minecraft:dripstone_caves"],
+  "biomes": [
+    "terralith:cave/thermal_caves",
+    "terralith:cave/granite_caves",
+    "terralith:cave/tuff_caves",
+    "minecraft:dripstone_caves"
+  ],
   "borders": {
     "player": 256,
     "generation": 512
@@ -16,25 +21,43 @@
     "igniterItem": "minecraft:blaze_rod",
     "color": "E8641E",
     "lightLevel": 13,
-    "scale": 1.0,
+    "scale": 16.0,
     "cooldown": 40,
     "shape": "door",
+    "anchor": {
+      "pos": [
+        148,
+        64,
+        -97
+      ],
+      "exit": "bed"
+    },
     "particleType": "minecraft:small_flame",
     "sounds": {
       "ignite": "item.firecharge.use",
       "enter": "block.blastfurnace.fire_crackle",
       "exit": "block.fire.extinguish"
-    }
+    },
+    "orientation": "horizontal"
   },
   "structures": {
     "wants": {
-      "mining_complex": { "min": 0, "max": 256 },
-      "foundry": { "min": 128, "max": 512 }
+      "mining_complex": {
+        "min": 0,
+        "max": 256
+      },
+      "foundry": {
+        "min": 128,
+        "max": 512
+      }
     }
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["terralith:cave/thermal_caves", "terralith:cave/granite_caves"],
-    "description": "A pocket foundry burrowed in glassy rock — basalt columns, thermal vents and quartz light in the dark."
+    "spawnFilter": [
+      "terralith:cave/thermal_caves",
+      "terralith:cave/granite_caves"
+    ],
+    "description": "A pocket foundry burrowed in glassy rock. Basalt columns, thermal vents, quartz light in the dark — piglin engineers built this as a proving ground. Small, self-contained, still warm."
   }
 }

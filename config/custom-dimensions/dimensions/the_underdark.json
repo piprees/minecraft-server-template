@@ -1,6 +1,6 @@
 {
   "type": "cave",
-  "description": "The deep dark as an endless cavern world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic.",
+  "description": "The deep dark as an endless cavern world. Ancient cities built by the endermen, abandoned during their migration, colonised by the sculk. The humans found them and the sculk woke. Mushroom light and sculk glow in equal measure.",
   "seed": 9208335081282643310,
   "biomes": [
     "minecraft:lush_caves",
@@ -26,7 +26,14 @@
   },
   "difficulty": {
     "mobMultiplier": 1.5,
-    "playerLuck": 1.8
+    "playerLuck": 1.8,
+    "depthScaling": {
+      "enabled": true,
+      "startY": 64,
+      "endY": -64,
+      "minMultiplier": 1.0,
+      "maxMultiplier": 2.0
+    }
   },
   "structureDensity": "dense",
   "portal": {
@@ -45,6 +52,10 @@
     "aura": {
       "subsume": "everything"
     }
+  },
+  "environment": {
+    "fogColor": "#1B2B1B",
+    "ambientLight": 0.06
   },
   "seedRoll": {
     "mood": "hard",
@@ -65,14 +76,16 @@
       "underground_camp": "near_spawn",
       "mineshaft": "near_spawn",
       "infested_dungeon": "spread",
-      "bone_dungeon": "spread"
+      "bone_dungeon": "spread",
+      "coldlair": "spread",
+      "murkydungeon": "spread"
     },
     "shuns": [
       "village",
       "tavern",
       "farmstead"
     ],
-    "description": "The deep dark as an endless cavern world — ancient cities, sculk dungeons and mushroom light. Hard, rich, claustrophobic."
+    "description": "The deep dark as an endless cavern world. Ancient cities built by the endermen, abandoned during their migration, colonised by the sculk. The humans found them and the sculk woke. Mushroom light and sculk glow in equal measure."
   },
   "spawn": [
     0,
