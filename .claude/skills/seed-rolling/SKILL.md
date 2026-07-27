@@ -124,7 +124,11 @@ exactly as it did before.
 Censuses are **banked per candidate** (`noiseCensus`, keyed by
 `noise_fingerprint()`), so the first `seed-rescore` after this change prints
 `noise census: computing N candidate layout(s)` and takes about an hour over
-a full bank; every rescore after it is free. Full detail:
+a full bank; every rescore after it is free. It reports an ETA every 5% —
+if you see no progress line at all, you are on an older build, not a hung
+job. Pass `--census-workers N` to leave room for anything else on the
+machine: the default saturates every core, and a local Minecraft server
+booting beside it took three times as long. Full detail:
 `references/scoring-model.md`.
 
 ### Fingerprint impact — expect a wave of DRIFTED
