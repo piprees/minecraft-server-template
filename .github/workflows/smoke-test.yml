@@ -356,8 +356,8 @@ jobs:
             echo "::error::peaceful overlay did not suppress dungeons/endgame for the_blossom_gardens"
             exit 1
           fi
-          grep -qE -- "Loaded .* structure-set themes" <<<"$LOG" || {
-            echo "::error::structure theme map failed to load from the jar"
+          grep -qE -- "Loaded [0-9]+ structure-set classifications" <<<"$LOG" || {
+            echo "::error::structure classification map failed to load from the jar"
             exit 1
           }
 
