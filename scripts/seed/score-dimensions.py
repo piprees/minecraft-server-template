@@ -1557,35 +1557,113 @@ def _terrain_section(c, profile):
 
 
 
-def _structure_section(c, profile):
-    """Wants and shuns, each against the range the dimension asked for.
+def _hist_bar(hist, radius_blocks, lo=None, hi=None):
+    """The group's radial histogram, with the wanted band shaded behind it.
 
-    Sorted by SEVERITY, not distance: with scoring this good most rows pass,
-    so a distance-sorted list buries the one structure that is actually wrong
-    somewhere in the middle. Counts come from the enrichment pass; typical
-    spacing is derived from count over the scanned area rather than measured
-    pairwise, which would be O(n^2) over hundreds of instances.
+    This is the whole census in one glyph: which rings the noise field
+    actually populated, against the ring the dimension asked for.
+    """
+    if not hist:
+        return ""
+    peak = max(hist) or 1
+    bins = len(hist)
+    cells = []
+    for i, count in enumerate(hist):
+        bin_lo = i * radius_blocks / bins
+        bin_hi = (i + 1) * radius_blocks / bins
+        inband = (lo is not None and hi is not None
+                  and min(bin_hi, hi) - max(bin_lo, lo) > 0)
+        cells.append(
+            "<span class='hcell{}' style='--h:{:.0f}%' "
+            "title='{:.0f}–{:.0f} blocks: {} placement(s)'></span>".format(
+                " inband" if inband else "", count / peak * 100,
+                bin_lo, bin_hi, count))
+    return "<span class='hist'>{}</span>".format("".join(cells))
+
+
+def _structure_section(c, profile):
+    """Structures as the SCORER sees them, which is not as a grid distance.
+
+    Noise placement owns a whole group behind one field: the mod builds one
+    StructureSet per group holding every eligible structure, so the field
+    decides where and vanilla's weighted entry list decides which. A grid
+    distance for such a set is fiction — score_candidate already discards it
+    and scores the group's layout instead, so showing it here was showing a
+    number nothing depends on. Worse than meaningless: a dungeons group whose
+    placements all sit beyond 4900 blocks was being reported as a dungeon 355
+    blocks away.
+
+    Grid-placed and forced sets keep their positional row, because for those
+    the old model is still exactly true.
     """
     battery = profile.get("battery") or []
     if not battery:
         return ""
-    struct_all = c.get("structure_all") or {}
+    census = c["metrics"].get("_census") or {}
+    groups = census.get("groups") or {}
+    radius_chunks = census.get("radiusChunks") or 0
+    radius_blocks = radius_chunks * 16.0
+    lookup = profile.get("_battery_groups")
     radius = float(profile.get("radius") or 0) or 1.0
     clear_r = float(profile.get("clear_spawn_radius") or 0)
-    rows = []
-    for sname, _sid, spec, kind in battery:
+    struct_all = c.get("structure_all") or {}
+    forced_ids = {f.get("structure") for f in (profile.get("forced_structures") or [])}
+
+    noise_rows, grid_rows, seen_groups = [], [], {}
+    for sname, sid, spec, kind in battery:
+        pretty = html.escape(sname.replace("_", " ").title())
+        group = (battery_group_for(sid, lookup)
+                 if (lookup and groups) else None)
+        if group is not None and sid.lstrip("#") not in forced_ids:
+            entry = groups.get(group)
+            seen_groups.setdefault(group, []).append(pretty)
+            if not entry or not entry.get("count"):
+                noise_rows.append((2, "<div class='mrow sev2'>"
+                    "<span class='mname'>{} <span class='kind'>{}</span></span>"
+                    "<span class='mval'>—</span><span></span>"
+                    "<span class='mtarget'>{}</span>"
+                    "<span class='mdev'>group absent here</span></div>".format(
+                        pretty, group, "avoid" if kind == "shun" else "want")))
+                continue
+            count = entry["count"]
+            if kind == "shun":
+                threshold = float(spec) if isinstance(spec, (int, float)) else radius
+                inside = census_scoring.band_mass(entry, 0.0, threshold, radius_chunks)
+                sev = 2 if inside > 0 else 0
+                noise_rows.append((sev, "<div class='mrow sev{}'>"
+                    "<span class='mname'>{} <span class='kind'>avoid</span></span>"
+                    "<span class='mval'>{:.0f}</span>{}"
+                    "<span class='mtarget'>none within {:.0f}</span>"
+                    "<span class='mdev'>{}</span></div>".format(
+                        sev, pretty, inside,
+                        _hist_bar(entry.get("hist"), radius_blocks, 0, threshold),
+                        threshold,
+                        "clear" if sev == 0 else "in the exclusion")))
+                continue
+            lo, hi = spec
+            hi_eff = min(hi, radius)
+            mass = census_scoring.band_mass(entry, lo, hi_eff, radius_chunks)
+            sev = 0 if mass >= census_scoring.WANT_BAND_TARGET else (1 if mass > 0 else 2)
+            verdict = ("{:.0f} in band".format(mass) if mass > 0
+                       else "none in band")
+            noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'>"
+                "<span class='mname'>{} <span class='kind'>{}</span></span>"
+                "<span class='mval'>{:.0f}</span>{}"
+                "<span class='mtarget'>want {:.0f}–{:.0f}</span>"
+                "<span class='mdev'>{}</span>"
+                "<span class='mspread'>{} placement(s) in the group, shared with "
+                "the rest of its pool by weight</span></div>".format(
+                    sev, int(lo), int(hi_eff), pretty, group, mass,
+                    _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
+                    lo, hi_eff, verdict, count)))
+            continue
+
+        # Grid or forced: the positional model still holds.
         v = c["metrics"].get("structure_{}_dist".format(sname))
         d = float(v) if v is not None else -1.0
         hits = sorted(struct_all.get(sname) or [], key=lambda h: h[0])
-        count = len(hits)
         nearest = hits[0][0] if hits else (d if d >= 0 else None)
-        farthest = hits[-1][0] if hits else None
-        pretty = html.escape(sname.replace("_", " ").title())
-
         if kind == "shun":
-            # `nearest` may come from the distance metric while `count` needs
-            # the enrichment pass, so show the DISTANCE here: a found-but-
-            # unenriched shun would otherwise read "—  inside the exclusion".
             threshold = float(spec) if isinstance(spec, (int, float)) else radius
             if nearest is None or nearest < 0:
                 sev, value, verdict = 0, "absent", "ok"
@@ -1594,55 +1672,78 @@ def _structure_section(c, profile):
                 verdict = "{:.0f} inside the exclusion".format(threshold - nearest)
             else:
                 sev, value, verdict = 0, "{:.0f}".format(nearest), "clear"
-            if count > 1:
-                value += " <span class='meta'>({}x)</span>".format(count)
-            rows.append((sev, 0.0,
-                "<div class='mrow sev{} shun'>"
+            grid_rows.append((sev, "<div class='mrow sev{} shun'>"
                 "<span class='mname'>{} <span class='kind'>avoid</span></span>"
                 "<span class='mval'>{}</span>"
                 "<span class='mtarget'>none within {:.0f}</span>"
-                "<span class='mdev'>{}</span>"
-                "</div>".format(sev, pretty, value, threshold, verdict)))
+                "<span class='mdev'>{}</span></div>".format(
+                    sev, pretty, value, threshold, verdict)))
             continue
-
         lo, hi = spec
         hi_eff = min(hi, radius)
         sev, phrase = _deviation(nearest, lo, hi_eff)
-        # Being inside the clear-spawn radius is its own, worse, failure: the
-        # scorer multiplies the want down toward zero for it.
         if nearest is not None and 0 <= nearest < clear_r:
-            sev = 2
-            phrase = "inside the {:.0f} clear-spawn radius".format(clear_r)
-        marks = [(clear_r, "clear-spawn {:.0f}".format(clear_r), "#e05252")] if clear_r else []
+            sev, phrase = 2, "inside the {:.0f} clear-spawn radius".format(clear_r)
+        marks = [(clear_r, "clear-spawn", "#e05252")] if clear_r else []
         spread = ""
-        if count > 1:
-            # Expected spacing if `count` points were spread evenly over the
-            # scanned disc — a density figure, not a measured nearest-neighbour.
-            typical = (3.14159 * radius * radius / count) ** 0.5
+        if len(hits) > 1:
+            typical = (3.14159 * radius * radius / len(hits)) ** 0.5
             spread = ("<span class='mspread'>{} found · {:.0f}–{:.0f} out · "
-                      "~{:.0f} apart</span>".format(count, hits[0][0], farthest, typical))
-        elif count == 1:
-            spread = "<span class='mspread'>1 found</span>"
-        rows.append((sev, -(nearest if nearest is not None else 1e9),
-            "<div class='mrow sev{}'>"
+                      "~{:.0f} apart</span>".format(
+                          len(hits), hits[0][0], hits[-1][0], typical))
+        # Exact positions only for grid-placed sets — the map overlay plots
+        # these as points, and plotting a noise-placed set's grid position
+        # would draw a structure where none exists.
+        pos_attr = ""
+        if hits:
+            pos_attr = " data-pos='{}'".format(
+                ";".join("{:.0f},{:.0f}".format(h[1], h[2]) for h in hits[:400]))
+        grid_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
             "<span class='mname'>{}</span>"
-            "<span class='mval'>{}</span>"
-            "{}"
+            "<span class='mval'>{}</span>{}"
             "<span class='mtarget'>want {:.0f}–{:.0f}</span>"
-            "<span class='mdev'>{}</span>"
-            "{}"
-            "</div>".format(
-                sev, pretty,
+            "<span class='mdev'>{}</span>{}</div>".format(
+                sev, int(lo), int(hi_eff), pos_attr, pretty,
                 "{:.0f}".format(nearest) if nearest is not None and nearest >= 0 else "—",
                 _band_bar(nearest, lo, hi_eff, cap=radius, marks=marks),
                 lo, hi_eff, phrase, spread)))
 
-    rows.sort(key=lambda r: (-r[0], r[1]))
-    return ("<div class='section-header'>Structures <span class='meta'>"
-            "the {} sets this dimension asks for or avoids, within {:.0f} blocks"
-            "</span></div><div class='mlist'>{}</div>".format(
-                len(battery), radius, "".join(r[2] for r in rows)))
-
+    noise_rows.sort(key=lambda r: -r[0])
+    grid_rows.sort(key=lambda r: -r[0])
+    out = []
+    coverage = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
+    if noise_rows:
+        out.append("<div class='sub-header'>Noise-placed <span class='meta'>"
+                   "one field per group decides where; the group's pool decides "
+                   "which. Counts are placements in the whole GROUP</span></div>")
+        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
+            coverage, "".join(r[1] for r in noise_rows)))
+    if grid_rows:
+        out.append("<div class='sub-header'>Grid-placed <span class='meta'>"
+                   "still on vanilla spacing/separation, so an exact position "
+                   "is real</span></div>")
+        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
+            coverage, "".join(r[1] for r in grid_rows)))
+    if groups:
+        rows = []
+        for group, entry in sorted(groups.items(),
+                                   key=lambda kv: -(kv[1].get("count") or 0)):
+            members = ", ".join(seen_groups.get(group, [])) or "—"
+            rows.append("<div class='mrow sev0'>"
+                        "<span class='mname'>{}</span>"
+                        "<span class='mval'>{}</span>{}"
+                        "<span class='mtarget' style='grid-column:span 2'>{}</span>"
+                        "</div>".format(
+                            html.escape(group), entry.get("count", 0),
+                            _hist_bar(entry.get("hist"), radius_blocks),
+                            html.escape(members)))
+        out.append("<div class='sub-header'>Full census <span class='meta'>"
+                   "every placement the noise field produces, by group and "
+                   "radial decile out to {:.0f} blocks</span></div>"
+                   "<div class='mlist'>{}</div>".format(radius_blocks, "".join(rows)))
+    if not out:
+        return ""
+    return ("<div class='section-header'>Structures</div>" + "".join(out))
 
 
 def _biome_label(biome_id):

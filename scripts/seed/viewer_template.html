@@ -1024,6 +1024,8 @@
   <!-- Filter bar -->
   <div class="filter-bar">
     <div class="family-btns">{{FAMILY_BUTTONS}}</div>
+    <details class="more-filters"><summary>Filters</summary>
+    <div class="more-filters-body">
     <select id="f-type" aria-label="Filter by type">
       {{TYPE_OPTIONS}}
     </select>
@@ -1043,6 +1045,7 @@
     <label><input type="checkbox" id="f-ungrouped" /> Flat view</label>
     <label><input type="checkbox" id="f-hidden" /> Show hidden</label>
     <label><input type="checkbox" id="f-borders" /> Show borders</label>
+    </div></details>
   </div>
 
   <!-- Roller controls. The viewer drives generation itself: rolling,
@@ -1178,6 +1181,7 @@
       <div class="lb-image">
         <img width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
         <img class="lb-structs" width="2048" loading="lazy" height="2048" decoding="async" alt="" />
+        <svg id="lb-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
         <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
           Structures
         </button>
@@ -2425,4 +2429,91 @@
     .spts { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
     .sloss { text-align: right; opacity: .6; font-size: .9em; color: #e8a735; }
   </style>
+  <style>
+    /* Radial histogram: one cell per decile of the play radius, height =
+       placements. The shaded cells are the band the dimension asked for, so
+       "wrong ring" is visible at a glance rather than inferred from numbers. */
+    .hist { display: flex; align-items: flex-end; gap: 1px; height: 18px; }
+    .hcell { flex: 1; min-width: 2px; height: max(2px, var(--h));
+             background: #3d4653; border-radius: 1px; align-self: flex-end; }
+    .hcell.inband { background: #4f9c5f; }
+    .mrow.sev1 .hcell.inband { background: #b8862c; }
+    .mrow.sev2 .hcell.inband { background: #b04242; }
+  </style>
+  <style>
+    /* The filter row was two dense lines of always-on controls for a task
+       that is mostly "look at maps and pick one". Family, search and sort
+       stay out; the rest fold away until wanted. */
+    .more-filters { display: inline-block; }
+    .more-filters > summary { cursor: pointer; font-size: .82rem;
+        color: var(--text-muted); list-style: none; padding: .25rem .6rem;
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: var(--radius-sm); user-select: none; }
+    .more-filters > summary::-webkit-details-marker { display: none; }
+    .more-filters > summary::after { content: " ▾"; opacity: .6; }
+    .more-filters[open] > summary::after { content: " ▴"; }
+    .more-filters-body { display: flex; flex-wrap: wrap; gap: .5rem;
+        align-items: center; padding: .5rem; margin-top: .35rem;
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: var(--radius-sm); position: absolute; z-index: 120; }
+    /* Map overlay: hovering a structure row draws its wanted band as a ring
+       and, where the positions are real, the placements as points. */
+    .lb-image { position: relative; }
+    #lb-overlay { position: absolute; inset: 0; pointer-events: none; }
+    #lb-overlay circle.band { fill: none; stroke: #6ec96e; stroke-opacity: .85; }
+    #lb-overlay circle.pt { fill: #ffd850; stroke: #000; stroke-width: .5; }
+    .mrow[data-band] { cursor: crosshair; }
+    .mrow[data-band]:hover { background: rgba(91,141,208,.12); }
+  </style>
+  <script>
+    // Hover a structure row -> draw it on the map. The wanted band becomes a
+    // pair of rings, so "is that in range" is answered spatially instead of
+    // by comparing two numbers. Exact points are drawn only where they are
+    // real: a noise-placed set has no grid position to plot.
+    ;(function () {
+      var svg = document.getElementById('lb-overlay')
+      var info = document.querySelector('#lightbox .lb-info')
+      if (!svg || !info) return
+      var NS = 'http://www.w3.org/2000/svg'
+
+      function clear () { while (svg.firstChild) svg.removeChild(svg.firstChild) }
+
+      function ring (r, cls, dash) {
+        var c = document.createElementNS(NS, 'circle')
+        c.setAttribute('cx', 50); c.setAttribute('cy', 50)
+        c.setAttribute('r', r); c.setAttribute('class', cls)
+        c.setAttribute('vector-effect', 'non-scaling-stroke')
+        if (dash) c.setAttribute('stroke-dasharray', dash)
+        svg.appendChild(c)
+        return c
+      }
+
+      info.addEventListener('mouseover', function (e) {
+        var row = e.target.closest('.mrow[data-band]')
+        if (!row) return
+        var list = row.closest('[data-coverage]')
+        var coverage = list && parseFloat(list.dataset.coverage)
+        if (!coverage) return
+        var band = row.dataset.band.split(',').map(Number)
+        clear()
+        // viewBox is 0-100 across the full render; a distance d in blocks is
+        // d/coverage of the full width, so its radius is that x 100.
+        ring(band[0] / coverage * 100, 'band', '2 2')
+        ring(band[1] / coverage * 100, 'band')
+        var pos = row.dataset.pos
+        if (pos) {
+          pos.split(';').forEach(function (pair) {
+            var xz = pair.split(',').map(Number)
+            var c = document.createElementNS(NS, 'circle')
+            c.setAttribute('cx', 50 + xz[0] / coverage * 100)
+            c.setAttribute('cy', 50 + xz[1] / coverage * 100)
+            c.setAttribute('r', 0.5)
+            c.setAttribute('class', 'pt')
+            svg.appendChild(c)
+          })
+        }
+      })
+      info.addEventListener('mouseleave', clear)
+    })()
+  </script>
 </html>
