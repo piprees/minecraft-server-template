@@ -18,8 +18,8 @@ with your own brand before going live.
    dimensions.
 2. Update references in these files:
    - `modpack/template/index.html` (favicon and OG image `<meta>` tags)
-   - `config/uptime-kuma/custom.css` (if you add a logo/background)
-   - `config/nginx/nav-proxy.conf` (OG image and favicon references, not owned by this asset set; coordinate with the nav-proxy config)
+   - `config/uptime-kuma/kuma-config.json` (`statusPage.customCSS` if you add a logo/background)
+   - `config/nginx/nav-proxy.conf.template` (OG image and favicon references in the `sub_filter` injections)
    - `scripts/build-modpack.sh` (copies `assets/` into `modpack/dist/` at build time)
 3. If you need raster favicons (`.ico`, `.png`), generate them from your
    SVGs. One-liner examples:
