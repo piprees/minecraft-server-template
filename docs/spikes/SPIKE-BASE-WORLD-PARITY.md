@@ -1,6 +1,6 @@
 # Spike — Base worlds are managed everywhere except structure placement
 
-> **Date:** 2026-07-27 | **Status:** built; E open **Prompted by:** the owner, 2026-07-27: _"The end, like the nether, is not a base world; just like the nether, overworld, and paradise_lost, our mod manages all worlds and dimensions. That's why we can specify a custom seed etc right? If not, this was one of the design goals of the project so we should add another spike for that."_
+> **Date:** 2026-07-27 | **Status:** BUILT (A–F complete) **Prompted by:** the owner, 2026-07-27: _"The end, like the nether, is not a base world; just like the nether, overworld, and paradise_lost, our mod manages all worlds and dimensions. That's why we can specify a custom seed etc right? If not, this was one of the design goals of the project so we should add another spike for that."_
 
 ## The answer: half right, and the half that is wrong is a real gap
 
