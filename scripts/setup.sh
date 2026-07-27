@@ -1234,12 +1234,12 @@ echo ""
 if ask_yes_no "Start seed rolling?" "N"; then
   echo ""
   # Optional feature: a seed-rolling failure must not kill the wizard.
-  run_script "Rolling seeds" "$SCRIPT_DIR/seed/roll-seeds.sh"
-  run_script "Building seed report" "$SCRIPT_DIR/seed/report-top.sh"
+  run_script "Rolling seeds" "$SCRIPT_DIR/seed/roll-all.sh"
 
   echo ""
   step "Choose your seed"
-  echo "  Review seed-report-top25.md, then set your chosen seed:"
+  echo "  Winners are written into the dimension configs; review with"
+  echo "  ./dev seed-status, or override the overworld seed here:"
   prompt_value CHOSEN_SEED "Winning seed" ""
   if [[ -n "$CHOSEN_SEED" ]]; then
     persist_secret SEED "$CHOSEN_SEED"
@@ -1587,7 +1587,7 @@ else
   echo "  Start server:     ./scripts/dev-up.sh"
   echo "  Stop server:      ./scripts/dev-up.sh --down"
   echo "  Watch logs:       ./scripts/dev-up.sh --logs"
-  echo "  Roll seeds:       ./scripts/seed/roll-seeds.sh"
+  echo "  Roll seeds:       ./dev seed-roll"
   echo "  Build modpack:    ./dev pack"
   echo "  Teardown:         ./scripts/teardown.sh --target local"
   echo ""

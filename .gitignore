@@ -35,7 +35,6 @@ seedtest-data/
 seedtest-data-*/
 seedtest-data-*/*
 scripts/seed/seed-results.csv
-scripts/seed/seed-report-top25.md
 
 __pycache__
 */__pycache__/*

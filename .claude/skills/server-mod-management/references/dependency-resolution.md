@@ -57,7 +57,7 @@ Source: `scripts/pin-mod-versions.sh` header + argument parsing.
 
 Fallback chain: it tries the exact target version first, then walks backwards through `1.21.x` down to `1.21` looking for a build. A mod with no match anywhere in that chain is left as-is with a `# FIXME: no 1.21.x build - <slug>` comment inserted above it — `build-mod-update-report.py`'s `FIXME_RE` (`#\s*FIXME:\s*no [\d.]+x? build - (\S+)`) picks these up and surfaces them in the weekly PR body under "Needs attention".
 
-The same invocation also re-pins `modpack/adventure.mrpack.json` (`_clientMods.required`/`.optional`, plus `_resourcePacks`/`_shaderPacks`) using the same fallback chain — slugs listed in `_clientMods.holds` are skipped. This is the **only** place holds are checked; the server-list loop above it has no equivalent (see the "Version holds" trap in `SKILL.md`).
+The same invocation also re-pins `modpack/adventure.mrpack.json` (`_clientMods.required`/`.optional`, plus `_resourcePacks`/`_shaderPacks`) using the same fallback chain. Slugs listed in the manifest's top-level `_holds` are skipped by this loop and by the server-list loop above it — one map, both lists.
 
 **Inline comments on a mod line do not survive a re-pin** — every mod line is rewritten as bare `slug:versionId[?]`. Comment-only lines (starting with `#`) are preserved untouched. Put context on the line above the mod, not trailing on it — see the `carpet:f2mvlGrg` entry in `config/modrinth-mods.txt` for the pattern (a multi-line comment block above the pin, nothing after the pin itself).
 

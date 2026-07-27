@@ -218,7 +218,7 @@ without the number.
 3. Scaled return fallback — `returnMapping` is translation-free, so a scale-8
    player without a tracked origin returns ~1650 blocks from where they left.
 4. `ImmersiveProjector` teardown — 6 documented cleanup paths, 2 tests total.
-5. Sweep the phase docs (`immersive/PHASE-*.md`) and `.ideas/` for stated
+5. Sweep `mods/AGENTS.md`'s portal and immersive invariants for stated
    behaviours with no assertion behind them.
 
 **Closed since this list was written:** Phase 8c body suppression (9 tests),

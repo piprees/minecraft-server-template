@@ -19,15 +19,10 @@ import java.util.Set;
 /**
  * The mod's runtime view of the dimension configuration.
  *
- * v4: reads the per-dimension directory config/custom-dimensions/
+ * Reads the per-dimension directory config/custom-dimensions/
  * (settings.json + dimensions/*.json + overlay/) via DimensionConfigLoader.
- * Backwards compatible: when the directory is absent and the old monolithic
- * config/multiverse_config.json exists, that is converted instead (with a
- * deprecation warning).
- *
- * The public API surface is unchanged in shape — getDimension/getDimensions,
- * getPortal/getPortals, getWorld, getWorldSeedOverride — but everything now
- * resolves against a single Map&lt;String, DimensionConfig&gt;.
+ * Everything — getDimension/getDimensions, getPortal/getPortals, getWorld,
+ * getWorldSeedOverride — resolves against one Map&lt;String, DimensionConfig&gt;.
  */
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();

@@ -109,12 +109,8 @@ Dimensions are created automatically at boot from `config/custom-dimensions/` �
 
 ```bash
 NS=$(python3 -c "
-import json, os
-p = 'data/config/custom-dimensions/settings.json'
-if os.path.exists(p):
-    print(json.load(open(p)).get('namespace', 'adventure'))
-else:
-    print(json.load(open('data/config/multiverse_config.json')).get('namespace', 'adventure'))
+import json
+print(json.load(open('data/config/custom-dimensions/settings.json')).get('namespace', 'adventure'))
 ")
 docker exec -i mc rcon-cli "execute in ${NS}:the_blossom_gardens run seed"   # proves the dimension was created from config
 docker exec mc cat /data/logs/latest.log | grep -i "registered dimension\|Created runtime" | tail -10
@@ -152,7 +148,7 @@ See `references/runtime-invariants.md` for why a world-tick mixin that mutates t
 
 ## 8. Ship and verify at each layer
 
-Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production). Then verify **outcomes, not script output**:
+Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev update` (or `./ops update` for production). Then verify **outcomes, not script output**:
 
 - Script counters count commands _sent_, not commands that _succeeded_ — a brigadier parse error still increments a "Created: N" counter. Check the persisted result instead (e.g. count entries in the config) and spot-check entities via RCON.
 - Snapshot production state, never stream it: `docker logs mc --tail 50`, `docker inspect mc --format '... RestartCount ...'`. A `RestartCount` above 0 means a crash you haven't explained yet.

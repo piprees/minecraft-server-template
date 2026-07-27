@@ -115,7 +115,7 @@ The four base worlds take noise placement like any other dimension. Their genera
 - **`is_world` is keyed on identity** — `name`/`dimensionId` against `BASE_WORLD_IDS` — never on whether a `type` is present. Keying it on the field sends a base world down the custom-dimension path, where `paradise_lost` resolves family `overworld` (wrong biome sampler, every measurement invalid) and the scale comes from `portal.scale` instead of the top-level `scale`.
 - `monolith_from_dir` carries `structures`, `structureDensity` and `exitShrines` into the `worlds[]` entry alongside the type; without them the roller scores a world whose structures the mod is placing while believing it places none.
 
-The progression floors that gate the Nether and the End are in `scripts/check-noise-regression.py`; the argument behind them is `docs/spikes/SPIKE-BASE-WORLD-PARITY.md`.
+The progression floors that gate the Nether and the End are in `scripts/check-noise-regression.py`.
 
 **Two fields became generation-affecting for the first time:** `borders.player` (sets the scanned radius AND the noise frequency scale) and `difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both used to be scoring-only. Editing either now re-rolls the dimension.
 

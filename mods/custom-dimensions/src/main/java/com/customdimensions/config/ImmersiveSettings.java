@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 
 /**
  * Presentation-only tuning for immersive portal previews (Phase 0 onward of
- * the immersive-portals feature — see immersive/PLAN.md). Parsed from the
+ * the immersive-portals feature). Parsed from the
  * "immersive" field on {@link DimensionConfig.Portal}:
  *
  * <pre>

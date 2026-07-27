@@ -76,14 +76,14 @@ This is a **silent failure** — nothing crashes, no warning, the mod just runs 
 
 ## Version holds
 
-Holds live in `modpack/adventure.mrpack.json` → `_clientMods.holds` (keyed by slug, value is the reason) and are respected by `pin-mod-versions.sh`'s **client manifest** re-pin step and by the weekly `mod-updates.yml`. Current holds:
+Holds live in `modpack/adventure.mrpack.json` → `_holds` (keyed by slug, value is the reason). Both of `pin-mod-versions.sh`'s re-pin loops read that one map — the server list and the client manifest alike — and so does the weekly `mod-updates.yml`. It sits at the manifest's top level rather than inside `_clientMods` because a hold is a statement about a mod, not about a distribution channel. Current holds:
 
 | Slug | Held at | Why |
 | --- | --- | --- |
 | `c2me-fabric` | `0.4.0-alpha.0.19` (`GC7ouKxZ`) | `0.4.0-alpha.0.21` wedges fresh-world creation — the server thread parks forever in `getChunkBlocking` while locating spawn (verified via thread dump, 2026-07-22) |
 | `critters-and-companions` | `1.21.1-2.4.1` (`YuM4Jtu5`) | `2.6.x` claims 1.21.1 but needs a newer Architectury than the newest 1.21.1 build provides — `AbstractMethodError` at boot killed the v3.2.0 smoke test (2026-07-22) |
 
-**Trap**: `c2me-fabric` is a _server-only_ mod (it's in `config/modrinth-mods.txt`, not in `_clientMods.required`/`.optional`). The holds map only gates `pin-mod-versions.sh`'s client-manifest re-pin loop — the server-list loop (the one that rewrites `config/modrinth-mods.txt`) has **no holds check at all**. Its entry in `_clientMods.holds` documents intent but enforces nothing for the server pin. The only thing stopping `./scripts/pin-mod-versions.sh --apply` (or the Monday `mod-updates.yml`, which runs `--apply` unattended) from silently bumping `c2me-fabric` past the wedge is a human reviewing the diff in the resulting PR before merging. Treat any server-list mod with a documented hold as "review this line by hand every time the weekly PR touches it" — the tooling won't stop you.
+`c2me-fabric` is a _server-only_ mod — it lives in `config/modrinth-mods.txt`, not in `_clientMods.required`/`.optional` — which is exactly why holds are read by both loops: `./scripts/pin-mod-versions.sh --apply`, and the Monday `mod-updates.yml` that runs it unattended, leave it on its held pin and print `c2me-fabric - HELD`.
 
 Never bump a held slug manually; remove the hold only once its stated blocker clears. Read the live table from `modpack/adventure.mrpack.json` rather than trusting this copy — holds come and go.
 

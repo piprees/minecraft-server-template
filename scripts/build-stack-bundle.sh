@@ -64,21 +64,16 @@ MANIFEST=(
   scripts/map-render.sh
   scripts/backup-now.sh
   scripts/reset-seed.sh
-  scripts/migrate-to-v4-config.sh
   # `./dev pin` execs pin-mod-versions.sh from the bundle; it in turn runs
   # modrinth-api.py from the same directory. Both must ship or `./dev pin`
   # dies with a missing file on every consumer.
   scripts/pin-mod-versions.sh
   scripts/modrinth-api.py
   scripts/seed/candidates.py
-  scripts/seed/roll-seeds.sh
   scripts/seed/roll-all.sh
   scripts/seed/seed_worker.py
   scripts/seed/dimension_profiles.py
   scripts/seed/score-dimensions.py
-  scripts/seed/score-seed.sh
-  scripts/seed/report-top.sh
-  scripts/seed/score-report.py
   scripts/seed/viewer-server.py
   scripts/seed/viewer_template.html
   scripts/seed/biome_renderer.py
@@ -97,13 +92,6 @@ MANIFEST=(
   scripts/seed/terrain_splines.json
   scripts/seed/biome_params.json
   scripts/seed/noise_configs.json
-  scripts/seed/profiles/classic.profile
-  scripts/seed/profiles/overworld-natural.profile
-  scripts/seed/profiles/dim-hard-overworld.profile
-  scripts/seed/profiles/dim-hard-nether.profile
-  scripts/seed/profiles/dim-pastoral.profile
-  scripts/seed/profiles/dim-end-chaos.profile
-  scripts/seed/profiles/dim-nether-rolling.profile
   scripts/server-power.sh
   scripts/discord-notify.sh
   scripts/discord-cleanup.sh

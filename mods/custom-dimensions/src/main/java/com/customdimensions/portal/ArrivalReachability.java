@@ -20,7 +20,7 @@ package com.customdimensions.portal;
  * nowhere near the cause.
  *
  * <p>Pure arithmetic over plain values: no world, no config objects, no
- * Minecraft runtime. See {@code immersive/PHASE-9-ARRIVAL-PLACEMENT.md}.
+ * Minecraft runtime.
  */
 public final class ArrivalReachability {
 

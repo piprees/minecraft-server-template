@@ -2,8 +2,7 @@
 """dimension_profiles.py — per-dimension seed-roll scoring profiles.
 
 Derives a measurement plan and a scoring profile for every dimension in
-the v4 config directory (config/custom-dimensions/) or the deprecated
-monolithic config/multiverse_config.json — load_config() accepts either.
+the config directory (config/custom-dimensions/).
 This is the single source of truth for WHAT gets measured (locate
 battery, biome probes, terrain grid) and HOW candidates are judged
 (placement bands, terrain targets, weights).
@@ -346,16 +345,11 @@ def load_dimension_configs(config_dir, set_noise_defaults=True):
 
 
 def load_config(config_path):
-    """A monolith-shaped config dict from either format: a directory
-    (config/custom-dimensions/) is synthesised into the legacy in-memory
-    shape (namespace/dimensions/portals/worlds/worldSeed) so every
-    downstream consumer keeps working; a file is read as-is."""
-    import json
+    """The config directory (config/custom-dimensions/), flattened into one
+    dict — namespace/dimensions/portals/worlds/worldSeed — which is the shape
+    every scoring and rolling consumer downstream reads."""
     from pathlib import Path
-    p = Path(config_path)
-    if p.is_dir():
-        return monolith_from_dir(p)
-    return json.loads(p.read_text())
+    return monolith_from_dir(Path(config_path))
 
 
 def _deep_merge(base, over):

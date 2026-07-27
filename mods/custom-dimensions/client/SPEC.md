@@ -1,14 +1,8 @@
-# Phase 5 — Client Companion Mod
+# Client Companion Mod
 
-> **Canonical source:** this is a staged copy of
-> [`mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md`](../immersive/PHASE-5-CLIENT-COMPANION.md).
-> That file is the one Phase 0–9 numbering and cross-references live in — if
-> it and this copy ever disagree, the `immersive/` original wins. This copy
-> exists so an agent starting the client mod has the spec and the kickoff
-> brief in the same directory as the new Gradle project.
-
-> **Depends on:** Phases 0–4 (shipped). This phase does not modify them.
-> **Status:** Not started — specification only.
+> **Status:** specification only — no code yet. The server-side immersive
+> portal work this extends is shipped; everything below is what a vanilla
+> client cannot be made to do from the server.
 > **Nature:** This is the first phase that requires a CLIENT mod. Everything
 > before it is server-side and works on a vanilla client.
 

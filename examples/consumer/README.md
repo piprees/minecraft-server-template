@@ -243,7 +243,7 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev pack`              | Build the client modpack into `./modpack-dist/`                                    |
 | `./dev pin`               | Re-pin `overlay/mods-extra.txt` to latest mod builds                               |
 | `./dev update`            | Pull the latest stack bundle + Docker images                                       |
-| `./dev sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
+| `./ops sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
 | `./dev seed-roll`         | Parallel-roll seeds for every dimension, auto-pick winners                         |
 | `./dev seed-rescore`      | Recompute candidate scores vs current configs (no re-rolling)                      |
 | `./dev seed-status`       | Candidate-bank status: counts, winners, score freshness                            |

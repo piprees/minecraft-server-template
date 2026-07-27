@@ -31,7 +31,7 @@ The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v2
 
 ```bash
 ./dev update    # pull the latest stack bundle + Docker images (local only)
-./dev sync      # everything: local down → update → env sync to GitHub → server update → local up
+./ops sync      # everything: local down → update → env sync to GitHub → server update → local up
 ./ops update    # update the production server only (pull bundle, images, full redeploy)
 ```
 
@@ -91,7 +91,7 @@ Before pushing: check no CI run is in progress (`gh run list --limit 3`), check 
 | Override a config | `overlay/config/<modname>/file` | Push |
 | Change branding | `.env` (BRAND_NAME, MOTD, etc.) + `overlay/assets/` | Push |
 | Reset the world / new seed | `.env` (`SEED`) | `./ops reset-seed <seed>` (triple-confirmed, backs up first) |
-| Update to the latest platform | — | `./dev sync` |
+| Update to the latest platform | — | `./ops sync` |
 | Add/remove a client mod | `overlay/modpack/manifest.json` (`add.required`/`add.optional`/`remove`, existing catalogue slugs only) | Push (CI rebuilds `.mrpack`) |
 | Change game rules | Not here — PR to the template repo | — |
 | Change permissions | Not here — PR to the template repo | — |

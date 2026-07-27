@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link #preloadIfNeeded} calls {@code ServerWorld.getChunk} — a
  * synchronous chunk-system call that must ONLY be invoked from the server
  * thread (it is always called from {@code ServerWorldMixin.onTick}, which
- * already runs there; see immersive/PLAN.md Agent Gotcha #3 — c2me's
+ * already runs there — c2me's
  * multi-threaded chunk system behaves unpredictably off-thread).
  */
 public final class ImmersivePreloader {

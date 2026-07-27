@@ -14,7 +14,6 @@ seed-results.csv
 seed-errors.log
 seed-results.csv.lock
 seed-errors.log.lock
-seed-report-top25.md
 seedtest-data/
 seedtest-data-*/
 

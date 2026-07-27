@@ -2,8 +2,7 @@
 
 > Read [`SPEC.md`](SPEC.md) in this directory in full before writing any code.
 > It is the staged copy of the canonical spec at
-> [`mods/custom-dimensions/immersive/PHASE-5-CLIENT-COMPANION.md`](../immersive/PHASE-5-CLIENT-COMPANION.md)
-> and [`mods/custom-dimensions/immersive/PLAN.md`](../immersive/PLAN.md) (the
+> [`SPEC.md`](SPEC.md) (the
 > decision record for the whole immersive-portals feature — read its
 > Architecture Decision section for why a client mod was rejected for the MVP
 > and only reconsidered here). Also read [`mods/AGENTS.md`](../../AGENTS.md)
@@ -130,7 +129,6 @@ agent picking it up.
 - Immersive presentation layer you're extending:
   `mods/custom-dimensions/src/main/java/**/immersive/` (see `mods/AGENTS.md`
   for the full architecture diagram)
-- Phase docs and the decision record: `mods/custom-dimensions/immersive/`
 - Client pack manifest (if/when a client mod entry is needed):
   `modpack/adventure.mrpack.json`
 - This staging directory: `mods/custom-dimensions/client/` — move your new

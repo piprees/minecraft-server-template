@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """score-dimensions.py — plan, score, and finalise parallel dimension seed rolls.
 
-Subcommands (all take --config and --seedtest <dir>). --config accepts the
-v4 config directory (config/custom-dimensions/) or, backwards-compatibly,
-the deprecated monolithic multiverse_config.json; directory mode writes
-winners into the individual dimensions/{slug}.json files.
+Subcommands (all take --config and --seedtest <dir>). --config is the
+config directory (config/custom-dimensions/); winners are written into the
+individual dimensions/{slug}.json files.
 
   manifest  Split dimensions across workers and generate, per worker:
               .seedtest/work-<w>.txt      dim|candidateName|seed lines
@@ -1635,8 +1634,7 @@ def main():
     ap.add_argument("command", choices=["manifest", "world-manifest", "render-manifest",
                                         "score", "finalise", "rescore", "status"])
     ap.add_argument("--config", required=True,
-                    help="config/custom-dimensions/ directory (v4) or the "
-                         "deprecated monolithic multiverse_config.json")
+                    help="config/custom-dimensions/ directory")
     ap.add_argument("--winner-overlay",
                     help="consumer mode: write winners as {\"overrides\"} files "
                          "into this overlay/config/custom-dimensions/ directory "

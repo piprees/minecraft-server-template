@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T18](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T18](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
@@ -56,7 +56,6 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | A local test passed but the change was never live | [T12](#t12) |
 | Map missing a dimension, or a quiet render log | [T13](#t13), [D8](#d8) |
 | Snapshot count / R2 usage growing without bound | [T14](#t14) |
-| A released dimension-config change deploys green and changes nothing | [T15](#t15) |
 | Launchers download HTML instead of mod JARs | [T16](#t16) |
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
@@ -182,18 +181,6 @@ Each of these has caused a real incident.
   docker exec mc-backup restic stats --mode raw-data                           # real usage, not snapshot count
   ```
 
-<a id="t15"></a>
-### T15 — A removed consumer dimension overlay used to keep applying forever
-
-- **Symptom:** a released dimension-config change deploys green and changes nothing. The boot log warns about config you have already fixed. `data/config/custom-dimensions/dimensions/*.json` looks correct on the server, and the mod still uses something else.
-- **Cause:** the staged overlay at `data/config/custom-dimensions/overlay/` is DERIVED from `overlay/config/custom-dimensions/`, but both `deploy.sh` and `dev-up.sh` only cleared it *inside* the "does the source directory exist" guard. Delete the consumer overlay and the staged copy survives — silently full-replacing every platform dimension file, for good. Found 2026-07-26 with 82 stale dimensions on the local consumer and 81 on production.
-- **Fixed in v3.10.1** (both scripts now clear it unconditionally before rebuilding). **A server that predates v3.10.1 needs one manual clear**, because the stale copy is what stops the fix mattering:
-  ```bash
-  rm -rf ~/server/data/config/custom-dimensions/overlay        # then redeploy
-  ls ~/server/data/config/custom-dimensions/overlay/dimensions | wc -l   # expect 0, or the consumer's own count
-  ```
-- **General rule:** anything staged into `data/` from a source directory is derived state. Clear it unconditionally and rebuild; never make the clear conditional on the source still existing, or removal becomes unrepresentable.
-
 <a id="t16"></a>
 ### T16 — The mod mirror and packwiz index are build output
 
@@ -220,8 +207,7 @@ Each of these has caused a real incident.
   under `data/config/custom-dimensions/` and answer with a summary plus a
   path; checkers in `scripts/` assert over those files with no server
   running. `./dev verify` runs all of them. Contract and the full table:
-  `mods/AGENTS.md` § Diagnostic artefacts. Rationale and rejected
-  alternatives: `docs/spikes/SPIKE-REPLACE-RCON.md`.
+  `mods/AGENTS.md` § Diagnostic artefacts.
 - **Corollary:** run `scripts/check-dimension-drift.py` before trusting any
   worldgen assertion — see [D2](#d2). A world created under an older config
   makes every other check measure history.
@@ -359,14 +345,12 @@ Open, unfixed, on the watch list.
 
 **Recovery:** `docker stop -t 90 mc && docker start mc` (local only; production restarts go through deploy.sh), plus the [D3](#d3) scrub when the trigger is a regenerating deleted dim, or it wedges again every boot.
 
-Upstream candidate — the loot table id is the mod's data bug.
-
 <a id="k2"></a>
 ### K2 — c2me `TheChunkSystem` ConcurrentModificationException
 
 `Error executing task on Chunk source main thread executor for <dim>` … `TheChunkSystem.lambda$onItemUpgrade$0`.
 
-c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. **Do NOT filter it from logs** (real error, upstream candidate). If it starts crashing servers, the module can be bypassed only by removing c2me; revisit on c2me updates.
+c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. **Do NOT filter it from logs** — it is a real error. If it starts crashing servers, the only lever on our side is removing c2me.
 
 ---
 

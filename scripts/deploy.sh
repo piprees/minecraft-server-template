@@ -761,7 +761,7 @@ for dim in minecraft:the_nether minecraft:the_end paradise_lost:paradise_lost; d
 done
 echo "  Dimensions activated (nether, end, paradise lost)"
 
-# --- Custom dimensions (from multiverse_config.json) --------------------------
+# --- Custom dimensions (from config/custom-dimensions/) -----------------------
 # One-time setup per dimension: load once so the world exists on disk.
 # Gated on a marker file so each dimension is set up exactly once — a
 # dimension can be added to the config in one deploy and only get this
@@ -771,9 +771,7 @@ echo "  Dimensions activated (nether, end, paradise lost)"
 # deploy.sh doesn't forceload them, and once this one-time setup is done,
 # nothing here ever touches them again. (Map rendering is uNmINeD's job
 # now — it picks a dimension up automatically once region files exist.)
-# v4 directory preferred; the monolithic file is the deprecated fallback.
 MULTIVERSE_CONFIG="$STACK_DIR/config/custom-dimensions"
-[[ -d "$MULTIVERSE_CONFIG/dimensions" ]] || MULTIVERSE_CONFIG="$STACK_DIR/config/multiverse_config.json"
 SETUP_MARKERS_DIR="$SERVER_DIR/data/.dimension-setup"
 if [[ -e "$MULTIVERSE_CONFIG" ]]; then
   DIM_DATA=$(
@@ -892,9 +890,6 @@ try:
     v4 = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
     if os.path.exists(v4):
         ow = json.load(open(v4))
-    else:
-        cfg = json.load(open('$SERVER_DIR/data/config/multiverse_config.json'))
-        ow = next((w for w in cfg.get('worlds', []) if w.get('name') == 'overworld'), {})
     print('yes' if isinstance(ow.get('spawn'), list) and len(ow['spawn']) == 3 else 'no')
 except Exception:
     print('no')

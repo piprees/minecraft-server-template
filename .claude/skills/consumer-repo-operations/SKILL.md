@@ -70,7 +70,7 @@ Full merge semantics, worked examples, and the client-pack patch schema are in [
 | `./ops update` | Production only | Ships and runs `remote-update.sh` on the server: pulls bundle + images, full redeploy |
 | `./ops sync` | Everything | `dev-up.sh down` → `dev update` → `github-env-sync.sh --allow-missing` → `ops update --quick` → `dev-up.sh up` — the one command that touches local, GitHub, and the server in sequence |
 
-`./dev sync` still exists but is a **deprecated alias** that prints a warning and execs `./ops sync` — it does not run the flow itself. Prefer `./ops sync` directly; `./dev sync` is scheduled for removal in the next major version.
+Full local + remote alignment is `./ops sync` — it touches production, which is why it lives on `ops`.
 
 ## `dev` vs `ops` is a safety boundary, not a naming convention
 

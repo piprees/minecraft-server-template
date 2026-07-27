@@ -15,7 +15,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Portal shape presets** -- optional `shape`: `door` (1x2), `doorway` (2x3), `end_exit` (horizontal ring, optional `centreBlock` pedestal); absent = free-form flood-fill. Shapes imply orientation; mod-built exit portals follow the dimension's shape
 - **Per-part frame materials** -- `frameMaterials` {top, sides, bottom} each accepting any frame form ("stone base, log pillars, plank lintel"); flood-fill accepts the union, validation checks each ring position's part; mod-built frames place per part (vertical portals only)
 - **Portal auras** -- portals affect their surroundings: by default each linked pair leaks the other side's sampled nature through (terrain, flora, trees, fluids), bounded by per-side budgets; `portal.aura` overrides palettes, adds explicit conversions (obsidian→crying) and fire, or switches it off
-- **Immersive portals** -- `portal.immersive` turns a portal into a window: the destination's real terrain is visible through the frame with natural parallax (server-sent fake blocks, masked to what you could actually see through the aperture), its biome ambience leaks back, and items, projectiles, XP orbs, mobs and villagers walk through. Server-side only — a vanilla client gets all of it, no client mod. `true` for defaults or an object to tune `previewDepth` / `previewRadius` / `refreshInterval` / `activationRange` / `audio` / `entityPassthrough`. Boot-re-read like the rest of `portal`. Known limits (vanilla's dimension-change screen still shows, approximate lighting and biome colours, far-side entities invisible) and the client mod that would lift them are specified in [`immersive/PHASE-5-CLIENT-COMPANION.md`](immersive/PHASE-5-CLIENT-COMPANION.md)
+- **Immersive portals** -- `portal.immersive` turns a portal into a window: the destination's real terrain is visible through the frame with natural parallax (server-sent fake blocks, masked to what you could actually see through the aperture), its biome ambience leaks back, and items, projectiles, XP orbs, mobs and villagers walk through. Server-side only — a vanilla client gets all of it, no client mod. `true` for defaults or an object to tune `previewDepth` / `previewRadius` / `refreshInterval` / `activationRange` / `audio` / `entityPassthrough`. Boot-re-read like the rest of `portal`. Known limits (vanilla's dimension-change screen still shows, approximate lighting and biome colours, far-side entities invisible) and the client mod that would lift them are specified in [`client/SPEC.md`](client/SPEC.md)
 - **Horizontal portals** -- floor and ceiling portals (Y-axis) alongside vertical X/Z portals
 - **Per-dimension seeds** -- each dimension can use its own world seed
 - **Coordinate scaling** -- `portal.scale` is the Nether-style travel ratio, stated the way people say it: **"8 nether : 1 over"**. One block walked in the DESTINATION is worth `scale` blocks back home, so **entering divides and returning multiplies**.
@@ -38,7 +38,7 @@ Runtime dimension creation with custom portal frames, configurable igniters, coo
 - **Per-dimension difficulty** -- `difficulty.mobMultiplier` scales hostile mob health/damage/armor at spawn (attribute modifiers, persisted in NBT); optional `depthScaling` makes mobs harder underground; `playerLuck` boosts loot quality while inside the dimension (absorbed from the configurable-difficulty mod)
 - **Per-dimension world borders** -- `borders.player` sets each world's vanilla border at boot; `borders.generation` is tooling metadata for Chunky/render bounds
 - **Custom dimension types** -- an `environment` block (fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks, respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight, ambientLight) registers a per-dimension `DimensionType` as `{ns}:{slug}_type`; unset fields inherit the base type (skyColor/fogColor are client-side and configurator-only)
-- **Per-dimension config files** -- one self-contained JSON per dimension under `config/custom-dimensions/dimensions/` (portal, difficulty, borders, seedRoll included); global defaults in `settings.json`; consumer overlays merge/replace/skip per file. The monolithic `multiverse_config.json` still loads as a deprecated fallback. Portal link state saved to `portal_links.json`
+- **Per-dimension config files** -- one self-contained JSON per dimension under `config/custom-dimensions/dimensions/` (portal, difficulty, borders, seedRoll included); global defaults in `settings.json`; consumer overlays merge/replace/skip per file. Portal link state saved to `portal_links.json`
 
 ## Requirements
 
@@ -527,7 +527,7 @@ Known limits, and none of them are bugs:
 - Entities on the far side are not visible.
 - Gateway portals (`shape: end_gateway`) get particles, not projection.
 
-`immersive/PHASE-5-CLIENT-COMPANION.md` specifies the client mod that
+`client/SPEC.md` specifies the client mod that
 would lift each of those, and records which ones a client mod cannot help
 with either.
 
@@ -624,10 +624,6 @@ Unlike worldgen config (creation-time-only, baked into `level.dat`), the whole p
 **`portal.singleUse`** — the countdown starts at the source portal's first traversal and persists with the zone, so a restart resumes it. On expiry the interior clears and the frame breaks per `breakMode`: `"destroy"` (blocks removed, no drops), `"decay"` (each frame block swapped via the decay map — defaults cover obsidian→crying_obsidian, the cracked-brick families, `*_log`→stripped, `*_planks`→air; `decayMap` entries override), or `"partial"` (1–2 deterministically-picked frame blocks decay; the frame looks — and is — repairable and re-ignitable; note the pick doesn't check reachability, so a frame partly buried in terrain can decay a buried block). The igniter is not refunded.
 
 **`exitPortal`** — the mod builds a small frame (the dimension's own `frameBlock`) at a deterministic offset from `pos` (`"spawn"` or `[x, y, z]`), registered as a permanent exit targeting the overworld with `target` semantics (`"bed"` default | `"worldSpawn"` | `"origin"`), and rebuilds it whenever it's found broken. Boot validation logs a WARN (never a crash, never an auto-fix) for any dimension with `singleUse.enabled` or an `anchor` but no exit portal — stranding by config is a bug, not a feature.
-
-### `multiverse_config.json` (deprecated fallback)
-
-The pre-v4 monolithic format (top-level `dimensions[]` + `portals[]` + `worlds[]` arrays) still loads when `config/custom-dimensions/` does not exist, with a deprecation warning. Migrate with `scripts/migrate-to-v4-config.sh`.
 
 ### `portal_links.json`
 

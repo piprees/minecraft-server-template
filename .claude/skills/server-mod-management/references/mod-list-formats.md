@@ -59,12 +59,12 @@ One **slug only** per line (no version ID) — must match a slug that exists in 
 # Lines starting with # are ignored. Blank lines are ignored.
 ```
 
-## Version holds (`modpack/adventure.mrpack.json` → `_clientMods.holds`)
+## Version holds (`modpack/adventure.mrpack.json` → `_holds`)
 
-Not a separate file — a JSON object inside the client pack manifest, keyed by slug with a free-text reason as the value:
+Not a separate file — a top-level JSON object in the client pack manifest, keyed by slug with a free-text reason as the value. It governs both mod lists: the server list and the client manifest are re-pinned by the same script, and both loops read this map.
 
 ```jsonc
-"holds": {
+"_holds": {
   "c2me-fabric": "0.4.0-alpha.0.21 wedges fresh-world creation: ...",
   "critters-and-companions": "2.6.x claims 1.21.1 but is built against a newer Architectury ...",
   "xaeros-world-map": "1.42.0 removed Waypoint's int x/y/z fields; ...",

@@ -183,9 +183,7 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" | python3 -c "import 
 
 Every required dependency must already be in the pack or added alongside. Libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional. Verify the resolved version actually targets 1.21.1 - Modrinth metadata lies sometimes (e.g. `extra_enchantments` claimed 1.21.1 but shipped 1.21.2 registry keys). Then pin: `./scripts/pin-mod-versions.sh --apply`.
 
-**Version holds:** `_clientMods.holds` in `modpack/adventure.mrpack.json` maps slug → reason for mods that must NOT be re-pinned (e.g. `c2me-fabric`, whose newer alpha wedges fresh-world creation). **Never bump a held slug manually**; remove a hold only when its stated blocker clears. Hold era-pairs together — Xaero's minimap and world map share code and must move as a pair.
-
-**Holds only bind the client manifest.** `pin-mod-versions.sh` reads `_clientMods.holds` inside its client loop; the loop that rewrites `config/modrinth-mods.txt` does not consult it. A hold on a server-only slug is advisory — the weekly `mod-updates.yml` PR will still propose the bump, and only review catches it.
+**Version holds:** `_holds` in `modpack/adventure.mrpack.json` maps slug → reason for mods that must NOT be re-pinned (e.g. `c2me-fabric`, whose newer alpha wedges fresh-world creation). It sits at the manifest's top level because a hold is a statement about a mod, not about a distribution channel: `pin-mod-versions.sh` reads the same map in both loops, so a server-only slug is protected as firmly as a client one. **Never bump a held slug manually**; remove a hold only when its stated blocker clears. Hold era-pairs together — Xaero's minimap and world map share code and must move as a pair.
 
 **Resource/shader packs**: `_resourcePacks.packs` / `_shaderPacks.packs` in the manifest - plain slug (primary file) or `{slug, files: [...]}` to also fetch named companion micropacks from the same version. `build-modpack.sh` resolves each to the newest `MC_VERSION`-tagged Modrinth version (falling back to newest upload if untagged). Resource packs are **enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt` (`resourcePacks:` array, last entry = highest priority); the build fails on an enabled filename that wasn't downloaded, so refresh `options.txt` whenever a pack's version bumps. See the consumer README § Resource packs or [CUSTOMISATION.md](CUSTOMISATION.md) for the full reference.
 
@@ -267,7 +265,7 @@ These actions are allowed but carry irreversible consequences — pause and ask 
 - **Cutting a release** — a burnt tag can't be reused; a broken release breaks all consumer updates.
 - **Running `./ops reset-seed`** — deletes the world, map renders, Chunky, and DH data.
 - **Changing `FULL_PATTERNS`** in the reusable workflow — alters deploy behaviour for all consumers.
-- **Modifying `config/multiverse_config.json`** — worldgen changes can't be undone on existing chunks.
+- **Modifying `config/custom-dimensions/`** — worldgen changes can't be undone on existing chunks.
 - **Deleting or modifying `data/` on production** — the world can't be replaced.
 - **Running `./ops teardown`** — destroys cloud resources.
 

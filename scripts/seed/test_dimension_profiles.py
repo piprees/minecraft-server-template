@@ -126,14 +126,14 @@ class MonolithFromDirTests(unittest.TestCase):
             # consumer-added dimensions are namespaced by BRAND_SLUG
             self.assertEqual(dims["added"]["dimensionId"], "mybrand:added")
 
-    def test_load_config_dispatches_on_path_type(self):
+    def test_load_config_reads_the_config_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.make_tree(tmp)
-            from_dir = load_config(tmp)
-            self.assertEqual(len(from_dir["dimensions"]), 1)
-            mono = Path(tmp) / "multiverse_config.json"
-            mono.write_text(json.dumps({"namespace": "x", "dimensions": [], "portals": [], "worlds": []}))
-            self.assertEqual(load_config(mono)["namespace"], "x")
+            cfg = load_config(tmp)
+            self.assertEqual(len(cfg["dimensions"]), 1)
+            self.assertEqual(cfg["namespace"], "adventure")
+            self.assertEqual({w["name"] for w in cfg["worlds"]},
+                             {"overworld", "the_nether"})
 
 
 class StructureRangeTests(unittest.TestCase):
@@ -493,7 +493,7 @@ class GenerationFingerprintTests(unittest.TestCase):
 class BaseWorldParityTests(unittest.TestCase):
     """Base worlds are managed exactly like custom dimensions.
 
-    Spike: docs/spikes/SPIKE-BASE-WORLD-PARITY.md. The mod's side is
+    The mod's side is
     MultiverseConfig.getBaseWorld (exact dimension id, never a namespace) and
     DimensionConfig.getType's family fallback — change both together.
     """

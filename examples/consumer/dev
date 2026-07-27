@@ -23,7 +23,6 @@ usage() {
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
   echo "  rollback Revert to a previous stack bundle version"
-  echo "  sync     (deprecated, use ./ops sync) Full local+remote alignment"
   echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
   echo "  verify      Run every offline checker over the server's artefacts (no RCON)"
   echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
@@ -340,12 +339,6 @@ case "$CMD" in
     fi
     ln -sfn "$target" "$CONSUMER_DIR/.stack/current"
     echo "Rolled back to $target. Run ./dev up to restart."
-    ;;
-  sync)
-    echo "Note: sync touches production — use ./ops sync instead."
-    echo "      ./dev sync will be removed in the next major version."
-    echo ""
-    exec bash "$CONSUMER_DIR/ops" sync "$@"
     ;;
   seed-roll)
     ensure_env

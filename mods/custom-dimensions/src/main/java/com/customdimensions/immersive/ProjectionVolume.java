@@ -294,7 +294,7 @@ public final class ProjectionVolume {
      * a defect to be smoothed: hysteresis or fading would reintroduce the
      * stuck-fake-block class this feature spent three rounds eliminating. Only
      * a client-side renderer can clip sub-block accurately; see
-     * {@code immersive/PHASE-5-CLIENT-COMPANION.md}.
+     * {@code client/SPEC.md}.
      *
      * <h2>The plane band, and the inversion that lived in it</h2>
      * {@link #viewerFarSide} only flips the slab when the viewer's BLOCK

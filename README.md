@@ -441,7 +441,6 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for 
 | Credentials & API tokens                 | `server-provisioning` skill (references/credentials.md) |
 | Server customisation                     | [CUSTOMISATION.md](CUSTOMISATION.md)           |
 | Releasing                                | `platform-release-management` skill (references/releasing-procedure.md) |
-| Open technical spikes                    | [docs/spikes/](docs/spikes/)                   |
 
 ## Changelog
 

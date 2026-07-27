@@ -24,7 +24,7 @@ What replaces it, per the spike:
     runtime placement is not RandomSpreadStructurePlacement — keep the old
     positional scoring, because for them it is still true.
 
-DEVIATIONS from the spike, and why (see NOISE-IMPL-LOG.md):
+Properties that are load-bearing, and why:
 
   1. `expected_count(profile, radius, group)` is not modelled from the
      profile's hit rate. Placement density is eligibility (a nonlinear

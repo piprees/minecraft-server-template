@@ -35,7 +35,7 @@ Every `dev` command operates only on the local Docker stack. None of these touch
 
 Two `dev` commands exist in the actual script but not in `commands.json`: `refresh-config` (force-refresh platform config defaults, backing up `data/config`; overlay still wins) and `seed-viewer` (launches the interactive seed viewer). Both are documented in `./dev help` output, just missing from the JSON index.
 
-`./dev sync` also exists but is a deprecated shim — see the main SKILL.md's update-commands table. It isn't in `commands.json` either.
+`./ops sync` is the full alignment flow — see the main SKILL.md's update-commands table. It isn't in `commands.json` either.
 
 ## `./ops` — production, with two 1Password exceptions
 

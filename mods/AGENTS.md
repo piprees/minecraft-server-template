@@ -59,7 +59,7 @@ gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
 - **`subsume` gates explicit `conversions` too.** A conversion map names what an author wants changed; it does not carry permission to eat a player's walls. An author who means that says `everything`.
 - **`none` also withholds fire and fluids**, which only fill air and would otherwise pass a literal reading of "never replaces an existing block". They are the two things an aura does that damage what is around them, and `none` exists for dimensions meant to be unassuming. Flora and configured trees still appear.
 
-**Immersive portals** (`portal.immersive`): a presentation layer over an existing portal — see through it, hear the far side, throw things through. Server-side only; no client mod. Decision record and per-phase docs live in `mods/custom-dimensions/immersive/`.
+**Immersive portals** (`portal.immersive`): a presentation layer over an existing portal — see through it, hear the far side, throw things through. Server-side only; no client mod.
 
 ```jsonc
 "portal": {
@@ -145,8 +145,8 @@ success.
 So verification does not parse command output. **A diagnostic command answers
 with a one-line summary plus a path, writes the real answer to a versioned
 file, and a checker in `scripts/` asserts over that file with no server
-running.** Full argument and the rejected alternatives (including why Recon
-cannot be used): `docs/spikes/SPIKE-REPLACE-RCON.md`.
+running.** RCON's job is to trigger the dump and to run short commands; the
+answer is read from the file.
 
 ### The contract
 
@@ -243,15 +243,10 @@ If the persisted state format changed (config schema, namespace, IDs), delete th
 Dimensions are now created automatically at boot from `config/custom-dimensions/` (one file per dimension; the monolithic `config/multiverse_config.json` remains a deprecated fallback) — there are no `/dimension create` or `/portal link` commands. Verify via RCON that dimensions loaded correctly:
 
 ```bash
-# Namespace comes from custom-dimensions/settings.json (default "adventure";
-# legacy fallback: multiverse_config.json "namespace" field)
+# Namespace comes from custom-dimensions/settings.json (default "adventure")
 NS=$(python3 -c "
-import json, os
-p = 'data/config/custom-dimensions/settings.json'
-if os.path.exists(p):
-    print(json.load(open(p)).get('namespace', 'adventure'))
-else:
-    print(json.load(open('data/config/multiverse_config.json')).get('namespace', 'adventure'))
+import json
+print(json.load(open('data/config/custom-dimensions/settings.json')).get('namespace', 'adventure'))
 ")
 docker exec -i mc rcon-cli "execute in ${NS}:the_blossom_gardens run seed"   # proves dimension was created from config
 docker exec -i mc rcon-cli "execute in ${NS}:the_canvas run seed"
@@ -333,7 +328,7 @@ Gotchas learned the hard way:
 Anything on a timer (idle unload, cooldowns, periodic saves) must be soaked through its **real** window, not assumed from reading the code — the tick-loop crash class only shows up when the timer actually fires:
 
 ```bash
-# Add a test dimension to multiverse_config.json, restart mc, then:
+# Add a test dimension under config/custom-dimensions/dimensions/, restart mc, then:
 # wait out the full timer window (e.g. idle unload = 5 min + the check cadence), then:
 docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'   # Restarts must be 0
 docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentModification'  # expect the feature line, no CME
@@ -347,7 +342,7 @@ docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentMo
 
 ### 5. Ship and verify at each layer
 
-Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production only). Then verify **outcomes, not script output**:
+Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev update` (or `./ops update` for production only). Then verify **outcomes, not script output**:
 
 - Script counters count commands _sent_, not commands that _succeeded_ — a brigadier parse error still increments "Created: 74". Check the persisted result instead (e.g. count entries in `data/config/multiverse_config.json`) and spot-check entities via RCON.
 - Snapshot production state, never stream: `docker logs mc --tail 50`, `docker inspect mc --format '... RestartCount ...'`. A RestartCount above 0 means a crash you haven't explained yet.
@@ -411,8 +406,7 @@ sorted into seven meta-groups (deco / settlements / dungeons / landmarks /
 maritime / endgame / loot), biome-filtered against the dimension's own biome
 source, and each active group gets one `NoiseStructurePlacement`. A dimension
 with nothing but `type` and `biomes` gets biome-appropriate structures with
-no config at all. Full design + every deviation from the spike:
-`mods/custom-dimensions/immersive/NOISE-IMPL-LOG.md`.
+no config at all.
 
 - **Placement is ORDER-FREE, and that is load-bearing.** A chunk places iff
   it is above threshold AND no above-threshold chunk within the exclusion
@@ -498,7 +492,6 @@ no config at all. Full design + every deviation from the spike:
   **reachability floor** for both: expected instances within a radius,
   `positions_within x weight / pool_weight` — presence in a pool says nothing
   about reach when vanilla picks the member by weight.
-  Spike: `docs/spikes/SPIKE-BASE-WORLD-PARITY.md`.
 - `/customdim structure-audit` and `/customdim structure-census <dim>` both
   **write files** and return a summary — RCON concatenates feedback lines
   with no separator and truncates at a few KB, so hundreds of rows come back

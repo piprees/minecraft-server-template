@@ -35,7 +35,7 @@ docker pull ghcr.io/<owner>/<repo>/discord-sync:2.14.0   # or whichever image wa
 
 ## 2. Release published without a bundle
 
-**Symptom:** `release-guard.yml` fails on `release: published` with `Release <TAG> is missing the stack bundle tarball!`. Consumer `./dev sync`/`./dev update` 404s trying to fetch it.
+**Symptom:** `release-guard.yml` fails on `release: published` with `Release <TAG> is missing the stack bundle tarball!`. Consumer `./dev update` 404s trying to fetch it.
 
 **Cause:** almost always `gh release create` was run directly instead of dispatching `release.yml`. Immutable releases don't allow attaching assets after publish, so a hand-created release has no tarball, no `.sha256`, nothing.
 

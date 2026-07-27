@@ -79,17 +79,17 @@ for ((i = MINOR - 1; i >= 0; i--)); do
   fi
 done
 
-# --- load holds from client manifest ------------------------------------------
-# Holds protect specific mods from automatic re-pinning. The client manifest
-# loop (below) already reads these; this makes the server-list loop respect
-# them too — a server-only mod like c2me-fabric was previously unprotected.
+# --- load version holds -------------------------------------------------------
+# Holds protect specific mods from automatic re-pinning, and they are a
+# statement about a MOD rather than about a distribution channel — so they live
+# at the manifest's top level and both loops below read the same map.
 _holds_manifest="${PROJECT_DIR}/modpack/adventure.mrpack.json"
 HELD_SLUGS=""
 if [[ -f "$_holds_manifest" ]]; then
   HELD_SLUGS=$(python3 -c "
 import json, sys
 m = json.load(open(sys.argv[1]))
-for slug in m.get('_clientMods', {}).get('holds', {}):
+for slug in m.get('_holds', {}):
     print(slug)
 " "$_holds_manifest" 2>/dev/null || true)
 fi
@@ -219,7 +219,7 @@ echo "  cp config/modrinth-mods.pinned.txt config/modrinth-mods.txt"
 # --- re-pin the client manifest (adventure.mrpack.json) -----------------------
 # Every slug:versionId entry in _clientMods gets its versionId bumped to the
 # newest build for TARGET_VERSION, exactly like modrinth-mods.txt. Bare slugs
-# (legacy) are pinned too. Slugs listed in _clientMods.holds keep their current
+# (legacy) are pinned too. Slugs listed in _holds keep their current
 # pin (holds map slug -> reason; used when a newer build breaks a dependant,
 # e.g. a client mod whose mixin breaks against a newer dependency). Resource/shader packs are left alone (they
 # follow their own resolution in build-modpack.sh and don't cause registry
@@ -237,7 +237,7 @@ fallbacks = fallback_csv.split(",")
 m = json.load(open(manifest_path))
 ua = "adventure/pin-mod-versions"
 updated = 0
-holds = m.get("_clientMods", {}).get("holds", {})
+holds = m.get("_holds", {})
 
 def resolve_latest(slug):
     """Return (version_id, version_number, matched_mc) or None."""

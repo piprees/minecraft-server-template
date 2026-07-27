@@ -2,7 +2,7 @@
 #
 # Catches the mistake of using `gh release create` directly instead of
 # dispatching release.yml, which builds and attaches the bundle before
-# publishing. Without the bundle, consumer `./dev sync` 404s.
+# publishing. Without the bundle, consumer `./dev update` 404s.
 #
 # Fires on release:published — the same event that triggers publish.yml
 # for container images. Runs fast (no checkout needed) and fails loudly.
@@ -35,7 +35,7 @@ jobs:
             echo "::error::Release $TAG is missing the stack bundle tarball!"
             echo ""
             echo "This release was likely created with 'gh release create' instead of"
-            echo "the release.yml workflow. Consumer './dev sync' will 404."
+            echo "the release.yml workflow. Consumer './dev update' will 404."
             echo ""
             echo "To cut a release correctly:"
             echo "  gh workflow run release.yml -f version=$TAG"

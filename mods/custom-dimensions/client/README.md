@@ -11,8 +11,7 @@ work in one place:
 
 - **[`SPEC.md`](SPEC.md)** — the feature spec: what's impossible server-side
   and why. Staged from the canonical copy at
-  [`../immersive/PHASE-5-CLIENT-COMPANION.md`](../immersive/PHASE-5-CLIENT-COMPANION.md)
-  (that file remains the source of truth if the two ever diverge).
+
 - **[`KICKOFF.md`](KICKOFF.md)** — the brief for an agent starting
   implementation: goal, constraints, first steps.
 

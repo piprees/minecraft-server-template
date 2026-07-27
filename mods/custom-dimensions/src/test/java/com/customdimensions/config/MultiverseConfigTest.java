@@ -14,97 +14,15 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Runtime API behaviour of MultiverseConfig over both load paths: the v4
- * directory format and the deprecated monolithic multiverse_config.json.
+ * Runtime API behaviour of MultiverseConfig over the per-dimension
+ * directory format.
  */
 class MultiverseConfigTest {
-
-    private MultiverseConfig fromLegacy(Path dir, String json) throws IOException {
-        Path legacy = dir.resolve("multiverse_config.json");
-        Files.writeString(legacy, json);
-        MultiverseConfig config = new MultiverseConfig();
-        config.applyLoadResult(DimensionConfigLoader.loadLegacyWithSettings(legacy));
-        return config;
-    }
 
     private MultiverseConfig fromDirectory(Path dir) {
         MultiverseConfig config = new MultiverseConfig();
         config.applyLoadResult(DimensionConfigLoader.loadAllWithSettings(dir, dir.resolve("overlay")));
         return config;
-    }
-
-    @Test
-    void legacyDimensionsResolveThroughPublicApi(@TempDir Path dir) throws IOException {
-        MultiverseConfig config = fromLegacy(dir, """
-                {"namespace":"adventure",
-                 "dimensions":[{"name":"test_world","type":"overworld","dimensionId":"adventure:test_world",
-                                "seed":42,"biome":"minecraft:plains","hostileSpawning":false,
-                                "noiseSettings":"adventure:wide"}],
-                 "portals":[],"worlds":[]}
-                """);
-        assertEquals(1, config.getDimensions().size());
-        DimensionConfig dim = config.getDimension("test_world");
-        assertNotNull(dim);
-        assertEquals("test_world", dim.getName());
-        assertEquals("overworld", dim.getType());
-        assertEquals(42L, dim.getSeed());
-        assertEquals("minecraft:plains", dim.getBiome());
-        assertFalse(dim.isHostileSpawningEnabled());
-        assertEquals("adventure:wide", dim.getNoiseSettings());
-        assertTrue(config.getDimensionNames().contains("test_world"));
-    }
-
-    @Test
-    void legacyPortalsBecomePortalViews(@TempDir Path dir) throws IOException {
-        MultiverseConfig config = fromLegacy(dir, """
-                {"dimensions":[{"name":"nether_gate","type":"nether","dimensionId":"adventure:nether_gate"}],
-                 "portals":[{"id":"nether_gate","frameBlock":"minecraft:obsidian",
-                             "igniterItem":"minecraft:flint_and_steel","targetDimension":"adventure:nether_gate",
-                             "color":"AA0000","lightLevel":11,"scale":0.125,"cooldown":80}],
-                 "worlds":[]}
-                """);
-        assertEquals(1, config.getPortals().size());
-        PortalDefinition portal = config.getPortal("nether_gate");
-        assertNotNull(portal);
-        assertEquals("minecraft:obsidian", portal.getFrameBlock());
-        assertEquals(0.125, portal.getScale());
-        assertEquals(80, portal.getCooldown());
-        assertTrue(config.getPortalByIgniter("minecraft:flint_and_steel").isPresent());
-        assertFalse(config.getPortalByIgniter("minecraft:stick").isPresent());
-        // default sounds fill in
-        assertEquals("block.portal.trigger", portal.getIgniteSound());
-        assertEquals("block.portal.travel", portal.getEnterSound());
-    }
-
-    @Test
-    void frameAndIdleDefaultsSurviveEmptyConfig(@TempDir Path dir) throws IOException {
-        MultiverseConfig config = fromLegacy(dir, "{\"dimensions\":[],\"portals\":[],\"worlds\":[]}");
-        assertEquals("minecraft:mossy_stone_bricks", config.getFrameOverworld());
-        assertEquals("minecraft:obsidian", config.getFrameNether());
-        assertEquals("minecraft:end_stone_bricks", config.getFrameEnd());
-        assertEquals(5, config.getIdleUnloadMinutes());
-        assertNotNull(config.getDefaultPortalForFrameBlock("minecraft:mossy_stone_bricks"));
-        assertNull(config.getDefaultPortalForFrameBlock("minecraft:dirt"));
-    }
-
-    @Test
-    void worldSeedOverridesResolveByDimensionId(@TempDir Path dir) throws IOException {
-        MultiverseConfig config = fromLegacy(dir, """
-                {"worldSeed":4955897124001752590,
-                 "dimensions":[],"portals":[],
-                 "worlds":[{"name":"overworld","dimensionId":"minecraft:overworld"},
-                           {"name":"the_nether","dimensionId":"minecraft:the_nether","seed":111},
-                           {"name":"the_end","dimensionId":"minecraft:the_end"}]}
-                """);
-        assertEquals(4955897124001752590L, config.getWorldSeedOverride("minecraft:overworld"));
-        assertEquals(111L, config.getWorldSeedOverride("minecraft:the_nether"));
-        assertNull(config.getWorldSeedOverride("minecraft:the_end"));
-        assertNull(config.getWorldSeedOverride("adventure:nowhere"));
-        assertNotNull(config.getWorld("overworld"));
-        assertNull(config.getWorld("the_claymarsh"));
-        // base worlds never appear as custom dimensions
-        assertNull(config.getDimension("overworld"));
-        assertTrue(config.getDimensions().isEmpty());
     }
 
     @Test
