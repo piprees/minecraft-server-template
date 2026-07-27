@@ -1021,50 +1021,65 @@
     }
   </style>
 
-  <!-- Filter bar -->
+  <!-- Single nav row. The view settings keep their checkbox inputs behind
+       icon labels so every existing filter handler still reads .checked;
+       only the presentation changed. -->
   <div class="filter-bar">
     <div class="family-btns">{{FAMILY_BUTTONS}}</div>
+
     <details class="more-filters"><summary>Filters</summary>
-    <div class="more-filters-body">
-    <select id="f-type" aria-label="Filter by type">
-      {{TYPE_OPTIONS}}
-    </select>
-    <select id="f-mood" aria-label="Filter by mood">
-      {{MOOD_OPTIONS}}
-    </select>
-    <select id="f-sort" aria-label="Sort order">
-      <option value="name">Sort: Name</option>
-      <option value="score-desc">Sort: Score ↓</option>
-      <option value="score-asc">Sort: Score ↑</option>
-      <option value="family">Sort: Family</option>
-      <option value="candidates">Sort: Most tested</option>
-    </select>
+      <div class="more-filters-body">
+        <select id="f-type" aria-label="Filter by type">{{TYPE_OPTIONS}}</select>
+        <select id="f-mood" aria-label="Filter by mood">{{MOOD_OPTIONS}}</select>
+        <select id="f-sort" aria-label="Sort order">
+          <option value="name">Sort: Name</option>
+          <option value="score-desc">Sort: Score ↓</option>
+          <option value="score-asc">Sort: Score ↑</option>
+          <option value="family">Sort: Family</option>
+          <option value="candidates">Sort: Most tested</option>
+        </select>
+      </div>
+    </details>
+
     <input id="f-search" type="text" placeholder="Search…" aria-label="Search dimensions" />
-    <label><input type="checkbox" id="f-flagged" /> Below threshold</label>
-    <label><input type="checkbox" id="f-shortlisted" /> Shortlisted</label>
-    <label><input type="checkbox" id="f-ungrouped" /> Flat view</label>
-    <label><input type="checkbox" id="f-hidden" /> Show hidden</label>
-    <label><input type="checkbox" id="f-borders" /> Show borders</label>
-    </div></details>
-  </div>
 
-  <!-- Roller controls. The viewer drives generation itself: rolling,
-       enriching, re-ranking and rendering all happen behind this bar and the
-       grid below repaints as the ranking changes. -->
-  <div class="toolbar roller-bar">
-    <button type="button" class="action-btn" id="roll-start">Start</button>
-    <button type="button" class="action-btn" id="roll-stop" hidden>Stop</button>
-    <label>Seeds <input type="number" id="roll-count" value="100" min="1"
-                        max="100000" step="25" /></label>
-    <label>Dimension <select id="roll-dim"><option value="">All</option></select></label>
-    <span id="roll-stage" class="roller-stage">idle</span>
-    <span id="roll-activity" class="roller-activity"></span>
-  </div>
+    <span class="nav-sep" aria-hidden="true"></span>
 
-  <h1>Dimension seed candidates
-    <button type="button" class="action-btn" id="new-dim-btn"
+    <span class="roller-group">
+      <!-- Swaps to a progress bar while rolling: the seed count is an input
+           until you commit to it, and a readout afterwards. -->
+      <input type="number" id="roll-count" value="100" min="1" max="100000"
+             step="25" aria-label="Seeds to roll" title="Seeds to roll" />
+      <span id="roll-progress" hidden>
+        <span class="rp-bar"><span id="rp-fill"></span></span>
+        <span id="rp-text" class="rp-text"></span>
+      </span>
+      <select id="roll-dim" aria-label="Dimension to roll"
+              title="Dimension to roll"><option value="">All</option></select>
+      <button type="button" id="roll-toggle" class="icon-btn"
+              aria-label="Start rolling" title="Start rolling">▶</button>
+    </span>
+
+    <span class="nav-sep" aria-hidden="true"></span>
+
+    <span class="view-toggles">
+      <label class="icon-toggle" title="Below threshold only">
+        <input type="checkbox" id="f-flagged" /><span>⚠</span></label>
+      <label class="icon-toggle" title="Shortlisted only">
+        <input type="checkbox" id="f-shortlisted" /><span>★</span></label>
+      <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
+        <input type="checkbox" id="f-ungrouped" /><span>▤</span></label>
+      <label class="icon-toggle" title="Show hidden dimensions">
+        <input type="checkbox" id="f-hidden" /><span>👁</span></label>
+      <label class="icon-toggle" title="Show world borders on renders">
+        <input type="checkbox" id="f-borders" /><span>◎</span></label>
+    </span>
+
+    <button type="button" class="action-btn nav-right" id="new-dim-btn"
             onclick="openConfigDialog('create', '', '')">New dimension</button>
-  </h1>
+  </div>
+
+  <h1 class="sr-only">Dimension seed candidates</h1>
   <p class="summary">{{SUMMARY_STATS}}</p>
   <p class="summary" id="progress" aria-live="polite"></p>
 
@@ -2292,23 +2307,23 @@
     // grid is delegated from document.
     ;(function () {
       if (location.protocol === 'file:') return
-      var startBtn = document.getElementById('roll-start')
-      var stopBtn = document.getElementById('roll-stop')
+      var toggleBtn = document.getElementById('roll-toggle')
       var countEl = document.getElementById('roll-count')
+      var progEl = document.getElementById('roll-progress')
+      var fillEl = document.getElementById('rp-fill')
+      var textEl = document.getElementById('rp-text')
       var dimEl = document.getElementById('roll-dim')
-      var stageEl = document.getElementById('roll-stage')
-      var activityEl = document.getElementById('roll-activity')
-      if (!startBtn) return
+      var statusEl = document.getElementById('progress')
+      if (!toggleBtn) return
 
       var lastGeneration = -1
+      var running = false
 
-      // Populate the dimension picker from the grid itself, so it always
-      // matches what is actually configured.
       ;(function fillDims () {
         var seen = {}
         document.querySelectorAll('[data-dim]').forEach(function (el) {
           var d = el.getAttribute('data-dim')
-          if (d && !seen[d]) { seen[d] = 1 }
+          if (d) seen[d] = 1
         })
         Object.keys(seen).sort().forEach(function (d) {
           var o = document.createElement('option')
@@ -2325,11 +2340,7 @@
         }).then(function (r) { return r.json() })
       }
 
-      // Swap the grid in place rather than reloading: a full reload would
-      // throw away scroll position and any open lightbox mid-roll.
       function refreshGrid () {
-        // finalise writes index.html, not viewer.html — refetch whatever page
-        // this actually is rather than guessing its name.
         fetch(location.pathname + '?t=' + Date.now())
           .then(function (r) { return r.text() })
           .then(function (html) {
@@ -2337,9 +2348,6 @@
             var fresh = doc.getElementById('grid')
             var live = document.getElementById('grid')
             if (fresh && live) live.innerHTML = fresh.innerHTML
-            var freshSummary = doc.querySelector('.summary')
-            var liveSummary = document.querySelector('.summary')
-            if (freshSummary && liveSummary) liveSummary.innerHTML = freshSummary.innerHTML
             if (window.applyFilters) window.applyFilters()
           })
           .catch(function () {})
@@ -2348,20 +2356,38 @@
       function poll () {
         fetch('/pipeline-status').then(function (r) { return r.json() })
           .then(function (st) {
-            stageEl.textContent = st.stage + (st.dim ? ' · ' + st.dim : '')
-            var bits = []
-            if (st.running || st.rolled) {
-              bits.push(st.rolled + '/' + st.target + ' rolled')
-              bits.push(st.enriched + ' enriched')
-              bits.push(st.surveyed + ' surveyed')
+            running = !!st.running
+            // The seeds input is only meaningful before you commit to a run;
+            // while rolling, the same slot carries the progress instead.
+            countEl.hidden = running
+            progEl.hidden = !running
+            toggleBtn.textContent = running ? '■' : '▶'
+            toggleBtn.classList.toggle('running', running)
+            toggleBtn.title = toggleBtn.ariaLabel =
+              running ? 'Stop rolling' : 'Start rolling'
+            dimEl.disabled = running
+            if (running && st.target) {
+              // Rolling finishes in seconds; rendering then runs for minutes.
+              // A bar pinned at 100% for that whole tail would read as done,
+              // so it goes indeterminate once there is nothing left to count.
+              var doneRolling = st.rolled >= st.target
+              fillEl.classList.toggle('indeterminate', doneRolling)
+              fillEl.style.width = doneRolling
+                ? '' : Math.min(100, st.rolled / st.target * 100) + '%'
+              textEl.textContent = (doneRolling
+                ? st.stage.replace('_', ' ')
+                : st.rolled + '/' + st.target) + (st.dim ? ' · ' + st.dim : '')
             }
+            // Everything else that used to crowd the bar lives on the status
+            // line under it, where it can wrap without reflowing the nav.
+            var bits = []
             if (st.backfill) bits.push('enriching bank ' + st.backfill)
+            if (st.enriched) bits.push(st.enriched + ' enriched')
+            if (st.surveyed) bits.push(st.surveyed + ' surveyed')
             if ((st.rendering_low || []).length) bits.push('rendering low')
             if ((st.rendering_high || []).length) bits.push('rendering high')
             if (st.error) bits.push('error: ' + st.error)
-            activityEl.textContent = bits.join(' · ')
-            startBtn.hidden = !!st.running
-            stopBtn.hidden = !st.running
+            if (statusEl) statusEl.textContent = bits.join(' · ')
             if (st.generation !== lastGeneration) {
               lastGeneration = st.generation
               if (lastGeneration > 0) refreshGrid()
@@ -2371,16 +2397,18 @@
           .then(function () { setTimeout(poll, 2000) })
       }
 
-      startBtn.addEventListener('click', function () {
-        startBtn.disabled = true
+      toggleBtn.addEventListener('click', function () {
+        if (running) { post('/pipeline/stop'); return }
+        toggleBtn.disabled = true
         post('/pipeline/start', {
           count: parseInt(countEl.value, 10) || 100,
           dim: dimEl.value || null
         })
-          .then(function (r) { if (r.error) activityEl.textContent = r.error })
-          .then(function () { startBtn.disabled = false })
+          .then(function (r) {
+            if (r.error && statusEl) statusEl.textContent = r.error
+          })
+          .then(function () { toggleBtn.disabled = false })
       })
-      stopBtn.addEventListener('click', function () { post('/pipeline/stop') })
 
       poll()
     })()
@@ -2516,4 +2544,51 @@
       info.addEventListener('mouseleave', clear)
     })()
   </script>
+  <style>
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0;
+               margin: -1px; overflow: hidden; clip: rect(0 0 0 0);
+               white-space: nowrap; border: 0; }
+    .filter-bar { flex-wrap: nowrap; overflow-x: auto; gap: .4rem; }
+    .filter-bar #f-search { flex: 0 1 12rem; min-width: 6rem; }
+    .nav-sep { width: 1px; align-self: stretch; background: var(--border);
+               margin: 0 .15rem; flex: none; }
+    .nav-right { margin-left: auto; flex: none; white-space: nowrap; }
+    .roller-group, .view-toggles { display: flex; align-items: center;
+                                   gap: .3rem; flex: none; }
+    .roller-group #roll-count { width: 5.5rem; }
+    .roller-group select { max-width: 11rem; }
+    .icon-btn { font: inherit; line-height: 1; padding: .3rem .55rem;
+                background: var(--bg-card); color: var(--text);
+                border: 1px solid var(--border); border-radius: var(--radius-sm);
+                cursor: pointer; }
+    .icon-btn:hover { border-color: var(--border-hover); }
+    .icon-btn.running { color: var(--score-red); border-color: #6b3030; }
+    /* The checkbox stays in the DOM and keeps driving every filter handler;
+       the label is what becomes an icon. */
+    .icon-toggle { position: relative; cursor: pointer; }
+    .icon-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .icon-toggle span { display: inline-block; padding: .28rem .5rem;
+                        border: 1px solid var(--border); border-radius: var(--radius-sm);
+                        background: var(--bg-card); color: var(--text-muted);
+                        font-size: .85rem; line-height: 1.15; }
+    .icon-toggle input:checked + span { background: #2a3545; color: var(--accent-hover);
+                                        border-color: var(--accent); }
+    .icon-toggle input:focus-visible + span { outline: 2px solid var(--accent);
+                                              outline-offset: 2px; }
+    /* Rolling: the seeds input gives way to a progress readout in the same slot. */
+    #roll-progress { display: flex; align-items: center; gap: .4rem; }
+    .rp-bar { display: block; width: 5.5rem; height: 6px; border-radius: 3px;
+              background: var(--bg-card); border: 1px solid var(--border);
+              overflow: hidden; }
+    #rp-fill { display: block; height: 100%; width: 0; background: var(--accent);
+               transition: width .3s; }
+    .rp-text { font-size: .76rem; color: var(--text-muted); white-space: nowrap; }
+  </style>
+  <style>
+    #rp-fill.indeterminate { width: 40%; animation: rp-slide 1.1s ease-in-out infinite alternate; }
+    @keyframes rp-slide { from { transform: translateX(-100%) } to { transform: translateX(250%) } }
+    @media (prefers-reduced-motion: reduce) {
+      #rp-fill.indeterminate { animation: none; width: 100%; opacity: .5; }
+    }
+  </style>
 </html>

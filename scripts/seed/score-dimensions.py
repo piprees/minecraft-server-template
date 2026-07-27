@@ -1248,6 +1248,15 @@ def _biome_groups(profile):
     return sorted(groups)
 
 
+# Shown on hover over any score, replacing the permanent legend bar: the
+# scale is something you read once, and it was competing with the grid for
+# the top of the page every time you loaded it.
+SCORE_HELP = ("Score 0–100 · spawn (correct starting biome), variety (biome "
+              "diversity), terrain (landscape shape), structures (right sets "
+              "at the right distances), each weighted per dimension. "
+              "good >70 · OK 50–70 · weak 30–50 · poor <30")
+
+
 def _score_colour(score):
     if score > 70:
         return "#6ec96e"
@@ -1299,20 +1308,6 @@ def render_viewer(results, profiles, winners, rejected=None,
     summary = ("<b>{}</b> dimensions &middot; <b>{}</b> seeds tested &middot; "
                "Generated {}").format(total_dims, total_cands,
                                       time.strftime("%Y-%m-%d %H:%M"))
-    legend = ("<div style='font-size:.75rem;color:#9aa;background:#191c21;"
-              "border:1px solid #262b33;border-radius:6px;padding:.35rem .7rem;"
-              "margin:.4rem 0 .2rem;line-height:1.6'>"
-              "<b style=\"color:#c8d2dc\">Score</b> (0–100) rates each seed: "
-              "<b style=\"color:#c8d2dc\">spawn</b> (correct starting biome), "
-              "<b style=\"color:#c8d2dc\">variety</b> (biome diversity), "
-              "<b style=\"color:#c8d2dc\">terrain</b> (landscape shape), "
-              "<b style=\"color:#c8d2dc\">structures</b> (buildings at right distances). "
-              "<span style='color:#6ec96e'>&#9632;</span>&nbsp;good&nbsp;(&gt;70) "
-              "<span style='color:#e6e6e6'>&#9632;</span>&nbsp;OK&nbsp;(50–70) "
-              "<span style='color:#e8a735'>&#9632;</span>&nbsp;weak&nbsp;(30–50) "
-              "<span style='color:#e05252'>&#9632;</span>&nbsp;poor&nbsp;(&lt;30)"
-              "</div>")
-
     dims_html = []
     for name, profile in profiles.items():
         dims_html.append(_render_dim_section(
@@ -1325,7 +1320,7 @@ def render_viewer(results, profiles, winners, rejected=None,
             .replace("{{FAMILY_BUTTONS}}", family_btns)
             .replace("{{TYPE_OPTIONS}}", type_opts)
             .replace("{{MOOD_OPTIONS}}", mood_opts)
-            .replace("{{SUMMARY_STATS}}", summary + legend)
+            .replace("{{SUMMARY_STATS}}", summary)
             .replace("{{DIMENSIONS_HTML}}", "\n".join(dims_html)))
 
 
@@ -1388,11 +1383,12 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     out.append(img_html)
     out.append("<div class='dim-name'>{}</div>".format(html.escape(name)))
     out.append("<div class='dim-meta'>"
-               "<span class='dim-score' style='color:{}'>{:.1f}</span>"
+               "<span class='dim-score' title='{}' style='color:{}'>{:.1f}</span>"
                "<span class='badge'>{}</span>"
                "<span class='badge'>{}</span>"
                "<span>{} seeds</span>"
-               "</div>".format(score_col, best_score, ptype, pmood, n_cands))
+               "</div>".format(html.escape(SCORE_HELP, quote=True),
+                                score_col, best_score, ptype, pmood, n_cands))
     blurb = profile.get("blurb", "")
     if blurb:
         out.append("<div class='dim-blurb'>{}</div>".format(
@@ -1929,7 +1925,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "alt='Map render — {} seed {}' onerror=\"this.onerror=null\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
-        "<div class='score' style='color:{}'>{:.1f}{}</div>"
+        "<div class='score' title='{}' style='color:{}'>{:.1f}{}</div>"
         "<div class='seed'>{}</div>"
         "<div class='cand-detail' style='display:none'>"
         "<div class='lb-header'>"
@@ -1952,7 +1948,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             img, hires, placeholder_colour(c.get("spawn_biome")),
             esc_dim, c["seed"],
             html.escape(dim_name),
-            sc, c["score"], crown, c["seed"],
+            html.escape(SCORE_HELP, quote=True), sc, c["score"], crown, c["seed"],
             html.escape(dim_name),
             sc, c["score"], crown,
             c["seed"],
