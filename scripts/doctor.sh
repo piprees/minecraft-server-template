@@ -159,6 +159,11 @@ fi
 LIST=$(timeout 8 docker exec mc rcon-cli list 2> /dev/null || true)
 if [ -n "$LIST" ]; then
   res OK "RCON: $LIST"
+  # Best-effort ONLY: this greps spark's human-readable prose, which the mod
+  # can reword at any version bump. It is deliberately reported as INFO and
+  # never as a PASS/FAIL, so a reworded or truncated response degrades to
+  # "no spark line" rather than to a false green (TROUBLESHOOTING.md#t17 —
+  # RCON cannot carry a structured answer, so nothing gates on this).
   SPARK=$(timeout 10 docker exec mc rcon-cli "spark health" 2> /dev/null | grep -iE "tps|memory" | head -2 | tr -s ' ' | tr '\n' ' | ')
   [ -n "$SPARK" ] && res INFO "spark: $SPARK"
 else

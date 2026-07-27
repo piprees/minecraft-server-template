@@ -1,6 +1,6 @@
 # Spike — Verification without RCON
 
-> **Date:** 2026-07-27 | **Status:** decided, ready to build
+> **Date:** 2026-07-27 | **Status:** BUILT (phases A-E complete)
 > **Prompted by:** the owner, after a session where RCON commands routinely
 > took minutes or timed out entirely, and by
 > <https://modrinth.com/plugin/recon> / <https://github.com/yamak493/Recon>
@@ -283,7 +283,7 @@ to count.
 
 ### Phase E: retire the fragile RCON parsing (1 day, optional)
 
-- [ ] **E1. `doctor.sh`'s `spark health` grep** (`grep -iE "tps|memory"` over
+- [x] **E1. `doctor.sh`'s `spark health` grep** (`grep -iE "tps|memory"` over
   prose) is the last load-bearing parse of RCON output. Either accept it as
   best-effort and say so in the header, or replace it with a `customdim`
   artefact carrying TPS/MSPT/memory as numbers.
