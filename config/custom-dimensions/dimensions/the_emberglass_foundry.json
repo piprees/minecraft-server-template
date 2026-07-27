@@ -49,6 +49,9 @@
         "min": 128,
         "max": 512
       }
+    },
+    "noise": {
+      "endgame": "sparse"
     }
   },
   "seedRoll": {

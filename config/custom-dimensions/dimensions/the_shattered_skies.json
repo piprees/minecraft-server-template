@@ -86,5 +86,10 @@
     0,
     64,
     0
-  ]
+  ],
+  "structures": {
+    "noise": {
+      "endgame": "sparse"
+    }
+  }
 }

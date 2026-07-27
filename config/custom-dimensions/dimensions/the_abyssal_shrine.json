@@ -67,5 +67,11 @@
     0,
     64,
     0
-  ]
+  ],
+  "structures": {
+    "noise": {
+      "dungeons": "dense",
+      "maritime": "dense"
+    }
+  }
 }

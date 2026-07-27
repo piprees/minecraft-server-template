@@ -34,6 +34,12 @@
 #     A stale world is the single most likely reason for a failure.
 #   - Dimensions idle-unload after `idleUnloadMinutes` (default 5). Pair each
 #     load with its census immediately.
+#   - `structures.noise` (and the rest of the structures block) is read at
+#     BOOT, not per census. Editing it and re-dumping without restarting mc
+#     gives you the old groups and looks like the edit did nothing. It does
+#     NOT need a world wipe though — unlike biomes/type/noiseSettings, which
+#     are creation-time-only (D2), placement is rebuilt from config every
+#     time a world loads.
 #   - Over half of all structure sets never enter a noise group: anything
 #     whose runtime placement is not exactly RandomSpreadStructurePlacement
 #     (YUNG's, and what Cristel Lib rewrites) keeps grid placement. Absence
@@ -106,23 +112,23 @@ CHECKS = [
     },
     {
         "slug": "the_luminous_caverns",
-        "why": "peaceful cave (mobMultiplier 0): the peaceful shift outranks density",
-        "groups_include": ["deco", "loot"],
-        "groups_absent": ["dungeons", "endgame", "settlements", "maritime"],
+        "why": "peaceful cave: the shift suppresses endgame, but an explicit structures.noise.dungeons outranks the shift",
+        "groups_include": ["deco", "loot", "dungeons", "landmarks"],
+        "groups_absent": ["endgame", "settlements", "maritime"],
     },
     {
         "slug": "the_shattered_skies",
         "why": "sky_islands: no maritime group at all for this world type",
-        "groups_include": ["deco", "landmarks", "settlements", "loot"],
-        "groups_absent": ["maritime", "endgame"],
+        "groups_include": ["deco", "landmarks", "settlements", "loot", "endgame"],
+        "groups_absent": ["maritime"],
         "absent": ["minecraft:end_city", "minecraft:fortress"],
     },
     {
         "slug": "the_sunken_temple",
         "why": "paradise_lost clone: its own mod's structures reach the pool",
-        "groups_include": ["deco", "landmarks", "settlements"],
+        "groups_include": ["deco", "landmarks", "settlements", "dungeons", "maritime"],
         "present": ["paradise_lost:"],
-        "groups_absent": ["dungeons", "endgame", "maritime", "loot"],
+        "groups_absent": ["endgame", "loot"],
     },
 ]
 
@@ -280,12 +286,93 @@ def run_dimension(spec, census_dir, report):
                      not clash, f"still pooled: {clash}")
 
 
+def audit_unsatisfiable_wants(config_dir, report, strict=False):
+    """Wants for a group the dimension's world type never enables.
+
+    Noise placement made `seedRoll.wants` checkable for the first time: a want
+    names a structure, the structure belongs to a SET, the set belongs to a
+    GROUP, and a world type enables only some groups. A want whose group is
+    not enabled can never be satisfied — the structure does not generate in
+    that dimension at all, so the roller scores it 0 for every seed and the
+    dimension is permanently capped below its own ceiling.
+
+    Before noise this was invisible: the roller computed a vanilla grid
+    position for the set and cheerfully reported a distance, for a structure
+    the world was never going to contain.
+
+    Reported as a WARNING by default — it is an authoring smell in shipped
+    config, not a broken world. `--strict` makes it fail.
+    """
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(Path(__file__).resolve().parent / "seed"))
+        import noise_placement as npl
+        from dimension_profiles import load_config, load_difficulty, build_profile
+    except ImportError as e:
+        print(f"\nSKIP unsatisfiable-want audit (roller modules unavailable: {e})")
+        return
+    type_defaults = npl.load_type_defaults(config_dir)
+    if not type_defaults:
+        print("\nSKIP unsatisfiable-want audit (no structure-type-defaults.json)")
+        return
+
+    # The structure -> set -> group map needs the warmup extraction; without
+    # it every want looks unclassified and the audit would report nothing at
+    # all, which is indistinguishable from a clean run. Say so instead.
+    seedtest = Path(config_dir).parents[1] / ".seedtest"
+    if not (seedtest / ".structure_sets").is_dir():
+        print("\nSKIP unsatisfiable-want audit (no warmup extraction at "
+              f"{seedtest}/.structure_sets — run a seed roll first)")
+        return
+
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "score_dimensions", Path(__file__).resolve().parent / "seed" / "score-dimensions.py")
+    sd = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sd)
+    lookup = sd.structure_group_lookup(seedtest, config_dir)
+
+    config = load_config(config_dir)
+    difficulty = load_difficulty(config_dir)
+    print("\nunsatisfiable wants — a want whose group this world type never enables")
+    findings = 0
+    for raw in config.get("dimensions", []):
+        active = set(npl.resolve_groups(raw, type_defaults))
+        if not active:
+            continue
+        profile = build_profile(raw, config, difficulty)
+        dead = []
+        for name, sid, _spec, kind in profile["battery"]:
+            if kind != "want":
+                continue
+            group = sd.battery_group_for(sid, lookup)
+            if group is not None and group not in active:
+                dead.append((name, group))
+        if not dead:
+            continue
+        findings += len(dead)
+        detail = ", ".join(f"{n} (needs {g})" for n, g in dead)
+        if strict:
+            report.check(raw["name"], f"{raw['name']}: every want is reachable",
+                         False, detail)
+        else:
+            print(f"  WARN {raw['name']:26} {detail}")
+    if findings == 0:
+        print("  none — every want names a group its dimension actually enables")
+    elif not strict:
+        print(f"  {findings} want(s) can never be satisfied. Either name a structure in an "
+              f"active group, or enable the group explicitly with "
+              f"structures.noise: {{\"<group>\": \"sparse\"}}.")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--census", help="directory of structure-census JSON dumps")
-    ap.add_argument("--config", help="config/custom-dimensions directory (unused today, "
-                                     "reserved for config cross-checks)")
+    ap.add_argument("--config", help="config/custom-dimensions directory — enables the "
+                                     "unsatisfiable-want audit")
+    ap.add_argument("--strict", action="store_true",
+                    help="treat an unsatisfiable want as a failure, not a warning")
     ap.add_argument("--list", action="store_true", help="print what is checked and exit")
     args = ap.parse_args()
 
@@ -299,6 +386,8 @@ def main():
     report = Report()
     for spec in CHECKS:
         run_dimension(spec, args.census, report)
+    if args.config:
+        audit_unsatisfiable_wants(args.config, report, strict=args.strict)
 
     print(f"\n{report.passed} passed, {len(report.failed)} failed, "
           f"{len(report.skipped)} dimension(s) skipped")

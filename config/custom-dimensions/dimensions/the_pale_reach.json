@@ -21,7 +21,10 @@
   },
   "structureDensity": "sparse",
   "structures": {
-    "clearSpawnRadius": 96
+    "clearSpawnRadius": 96,
+    "noise": {
+      "dungeons": "sparse"
+    }
   },
   "portal": {
     "frameBlock": "minecraft:end_stone",
