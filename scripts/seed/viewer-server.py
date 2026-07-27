@@ -267,13 +267,14 @@ class Pipeline:
         self.biome_params = biome_params
         self.lock = threading.Lock()
         self.thread = None
+        self._backfill = None
         self.stop_flag = threading.Event()
         self.state = {
             "running": False, "target": 0, "cycles": 0, "rolled": 0,
             "enriched": 0, "surveyed": 0, "rendered": 0,
             "stage": "idle", "dim": None, "only_dim": None,
             "enriching": [], "rendering_low": [], "rendering_high": [],
-            "generation": 0, "log": [], "error": None,
+            "generation": 0, "log": [], "error": None, "backfill": None,
         }
 
     def snapshot(self):
@@ -417,6 +418,70 @@ class Pipeline:
                     _write_structure_overlays(self.seedtest, name, seed_str, sa, scale)
         except Exception as exc:
             self._log(f"{name}: overlays failed — {exc}")
+
+    def enrich_all_async(self):
+        """Backfill structures and biomes for every banked dimension.
+
+        Enrichment used to happen only as part of rolling a dimension, so the
+        detail panel's structure and biome lists were empty for anything the
+        current session had not rolled — 79 of 81 dimensions on a real bank.
+        Clicking almost any candidate showed the thin fallback, which reads as
+        the lists having been lost rather than never populated.
+
+        It is pure arithmetic over banked seeds, so it runs at startup in the
+        background and needs neither Docker nor a roll.
+        """
+        if self._backfill and self._backfill.is_alive():
+            return
+        self._backfill = threading.Thread(target=self._enrich_all, daemon=True)
+        self._backfill.start()
+
+    def _enrich_all(self):
+        try:
+            from dimension_profiles import load_config, load_difficulty, rollable
+            from structure_placement import load_structure_sets
+            import candidates as cmod
+
+            if not Path(self.biome_params).exists():
+                return
+            config = load_config(self.config)
+            difficulty = load_difficulty(self.config)
+            targets = {**{w["name"]: w for w in config.get("worlds", [])},
+                       **{d["name"]: d for d in config["dimensions"] if rollable(d)}}
+            cdir = cmod.candidates_dir(Path(self.config))
+            ssd = Path(self.seedtest) / ".structure_sets"
+            all_sets = load_structure_sets(str(ssd)) if ssd.exists() else {}
+
+            total = len(targets)
+            done = added = 0
+            for name, dim in targets.items():
+                if self.stop_flag.is_set():
+                    break
+                try:
+                    added += _enrich_dim(name, dim, config, difficulty, cdir,
+                                         all_sets, ENRICH_TOP)
+                    added += _survey_dim(name, dim, config, difficulty, cdir,
+                                         self.biome_params, ENRICH_TOP)
+                except Exception as exc:
+                    self._log(f"{name}: backfill failed — {exc}")
+                done += 1
+                with self.lock:
+                    self.state["backfill"] = f"{done}/{total}"
+            with self.lock:
+                self.state["backfill"] = None
+            if added:
+                self._log(f"backfill: enriched {added} candidate record(s)")
+                # Enrichment feeds the clutter score, so the ranking can move.
+                self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                          "rescore", "--config", self.config,
+                          "--seedtest", self.seedtest], 1800)
+                self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                          "finalise", *self.finalise_args], 900)
+                self._bump()
+        except Exception as exc:
+            self._log(f"backfill failed: {exc}")
+            with self.lock:
+                self.state["backfill"] = None
 
     def _ensure_warmup(self):
         """Warmup is a prerequisite, not a separate command the user runs.
@@ -1296,6 +1361,9 @@ def main():
     # it is driven from the page rather than run once at startup: the page
     # is usable immediately against whatever is already banked, and Start
     # kicks off generation. Nothing blocks the server thread.
+    # Backfill structures/biomes for everything already banked, so the detail
+    # panel's lists are populated for dimensions this session never rolled.
+    _pipeline.enrich_all_async()
     print("Open the viewer and press Start to generate seeds.", flush=True)
 
     try:

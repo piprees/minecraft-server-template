@@ -1472,6 +1472,294 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     return "\n".join(out)
 
 
+
+# ---------------------------------------------------------------------------
+# Candidate detail rendering
+#
+# The guiding rule: never show a verdict without the criterion that produced
+# it. Every tick used to stand alone, so "too close" never said what it was
+# close to and "relief 16" never said the target was 18-90. Scoring got good
+# enough that almost everything passes, which made a column of ticks pure
+# noise — signal has to come from how far a value sits from its target, not
+# from whether it cleared it.
+# ---------------------------------------------------------------------------
+
+def _band_bar(value, lo, hi, cap=None, marks=None):
+    """A proportional bar with the target band shaded and `value` marked.
+
+    cap sets the axis maximum (defaults to a little past the band or the
+    value, whichever is larger); marks is [(pos, label, colour)] for extra
+    reference lines such as the clear-spawn radius.
+    """
+    span = cap if cap else max(hi * 1.25, (value or 0) * 1.1, 1)
+    span = max(span, 1e-9)
+    pct = lambda v: max(0.0, min(100.0, (v / span) * 100.0))
+    band_l, band_r = pct(lo), pct(hi)
+    out = ["<span class='bar' aria-hidden='true'>"]
+    out.append("<span class='bar-band' style='left:{:.1f}%;width:{:.1f}%'></span>".format(
+        band_l, max(band_r - band_l, 0.6)))
+    for mpos, mlabel, mcol in (marks or []):
+        out.append("<span class='bar-mark' title='{}' style='left:{:.1f}%;background:{}'></span>".format(
+            html.escape(str(mlabel), quote=True), pct(mpos), mcol))
+    if value is not None and value >= 0:
+        inside = lo <= value <= hi
+        col = "#6ec96e" if inside else ("#e8a735" if value < lo else "#7aa7d8")
+        out.append("<span class='bar-val' style='left:{:.1f}%;background:{}'></span>".format(
+            pct(value), col))
+    out.append("</span>")
+    return "".join(out)
+
+
+def _deviation(value, lo, hi):
+    """(severity, human phrase) for a value against a target band."""
+    if value is None or value < 0:
+        return 2, "not found"
+    if lo <= value <= hi:
+        return 0, "in range"
+    if value < lo:
+        return 1, "{:.0f} below".format(lo - value)
+    return 1, "{:.0f} above".format(value - hi)
+
+
+def _terrain_section(c, profile):
+    relief, grain, water, land = terrain_metrics(c["metrics"])
+    t = profile.get("terrain") or {}
+    if not t or (relief == 0 and grain == 0):
+        return ""
+    rows = []
+    for key, value, fmt in (("relief", relief, "{:.0f}"),
+                            ("grain", grain, "{:.1f}"),
+                            ("water", water, "{:.0%}")):
+        band = t.get(key)
+        if not band:
+            continue
+        lo, hi = band
+        sev, phrase = _deviation(value, lo, hi)
+        lofmt, hifmt = fmt.format(lo), fmt.format(hi)
+        rows.append(
+            "<div class='mrow sev{}'>"
+            "<span class='mname'>{}</span>"
+            "<span class='mval'>{}</span>"
+            "{}"
+            "<span class='mtarget'>target {}–{}</span>"
+            "<span class='mdev'>{}</span>"
+            "</div>".format(sev, key, fmt.format(value),
+                            _band_bar(value, lo, hi), lofmt, hifmt, phrase))
+    if not rows:
+        return ""
+    note = ""
+    if land < 1.0:
+        note = ("<div class='meta'>{:.0f}% of the sample grid had a surface"
+                "</div>".format(land * 100))
+    return ("<div class='section-header'>Terrain <span class='meta'>"
+            "measured on a 3×3 grid across the play area</span></div>"
+            "<div class='mlist'>{}</div>{}".format("".join(rows), note))
+
+
+
+def _structure_section(c, profile):
+    """Wants and shuns, each against the range the dimension asked for.
+
+    Sorted by SEVERITY, not distance: with scoring this good most rows pass,
+    so a distance-sorted list buries the one structure that is actually wrong
+    somewhere in the middle. Counts come from the enrichment pass; typical
+    spacing is derived from count over the scanned area rather than measured
+    pairwise, which would be O(n^2) over hundreds of instances.
+    """
+    battery = profile.get("battery") or []
+    if not battery:
+        return ""
+    struct_all = c.get("structure_all") or {}
+    radius = float(profile.get("radius") or 0) or 1.0
+    clear_r = float(profile.get("clear_spawn_radius") or 0)
+    rows = []
+    for sname, _sid, spec, kind in battery:
+        v = c["metrics"].get("structure_{}_dist".format(sname))
+        d = float(v) if v is not None else -1.0
+        hits = sorted(struct_all.get(sname) or [], key=lambda h: h[0])
+        count = len(hits)
+        nearest = hits[0][0] if hits else (d if d >= 0 else None)
+        farthest = hits[-1][0] if hits else None
+        pretty = html.escape(sname.replace("_", " ").title())
+
+        if kind == "shun":
+            # `nearest` may come from the distance metric while `count` needs
+            # the enrichment pass, so show the DISTANCE here: a found-but-
+            # unenriched shun would otherwise read "—  inside the exclusion".
+            threshold = float(spec) if isinstance(spec, (int, float)) else radius
+            if nearest is None or nearest < 0:
+                sev, value, verdict = 0, "absent", "ok"
+            elif nearest < threshold:
+                sev, value = 2, "{:.0f}".format(nearest)
+                verdict = "{:.0f} inside the exclusion".format(threshold - nearest)
+            else:
+                sev, value, verdict = 0, "{:.0f}".format(nearest), "clear"
+            if count > 1:
+                value += " <span class='meta'>({}x)</span>".format(count)
+            rows.append((sev, 0.0,
+                "<div class='mrow sev{} shun'>"
+                "<span class='mname'>{} <span class='kind'>avoid</span></span>"
+                "<span class='mval'>{}</span>"
+                "<span class='mtarget'>none within {:.0f}</span>"
+                "<span class='mdev'>{}</span>"
+                "</div>".format(sev, pretty, value, threshold, verdict)))
+            continue
+
+        lo, hi = spec
+        hi_eff = min(hi, radius)
+        sev, phrase = _deviation(nearest, lo, hi_eff)
+        # Being inside the clear-spawn radius is its own, worse, failure: the
+        # scorer multiplies the want down toward zero for it.
+        if nearest is not None and 0 <= nearest < clear_r:
+            sev = 2
+            phrase = "inside the {:.0f} clear-spawn radius".format(clear_r)
+        marks = [(clear_r, "clear-spawn {:.0f}".format(clear_r), "#e05252")] if clear_r else []
+        spread = ""
+        if count > 1:
+            # Expected spacing if `count` points were spread evenly over the
+            # scanned disc — a density figure, not a measured nearest-neighbour.
+            typical = (3.14159 * radius * radius / count) ** 0.5
+            spread = ("<span class='mspread'>{} found · {:.0f}–{:.0f} out · "
+                      "~{:.0f} apart</span>".format(count, hits[0][0], farthest, typical))
+        elif count == 1:
+            spread = "<span class='mspread'>1 found</span>"
+        rows.append((sev, -(nearest if nearest is not None else 1e9),
+            "<div class='mrow sev{}'>"
+            "<span class='mname'>{}</span>"
+            "<span class='mval'>{}</span>"
+            "{}"
+            "<span class='mtarget'>want {:.0f}–{:.0f}</span>"
+            "<span class='mdev'>{}</span>"
+            "{}"
+            "</div>".format(
+                sev, pretty,
+                "{:.0f}".format(nearest) if nearest is not None and nearest >= 0 else "—",
+                _band_bar(nearest, lo, hi_eff, cap=radius, marks=marks),
+                lo, hi_eff, phrase, spread)))
+
+    rows.sort(key=lambda r: (-r[0], r[1]))
+    return ("<div class='section-header'>Structures <span class='meta'>"
+            "the {} sets this dimension asks for or avoids, within {:.0f} blocks"
+            "</span></div><div class='mlist'>{}</div>".format(
+                len(battery), radius, "".join(r[2] for r in rows)))
+
+
+
+def _biome_label(biome_id):
+    ns, _, path = biome_id.partition(":")
+    pretty = (path or ns).replace("_", " ").title()
+    return "{}<span class='ns'>{}</span>".format(
+        html.escape(pretty), html.escape(ns) if path else "")
+
+
+def _biome_section(c, profile):
+    """Biomes split by the ROLE the config gives them.
+
+    One flat alphabet of sixty ticks says nothing: a spawn-filter biome, a
+    requested variety biome and a biome the noise map happened to produce are
+    three different facts. Only the first two are things the dimension asked
+    for, and only those two move the score.
+    """
+    survey = c.get("biome_survey") or {}
+    spawn_targets = list(profile.get("namesake") or [])
+    variety = [b for b in (profile.get("variety_biomes") or [])
+               if b not in set(spawn_targets)]
+    spawn_biome = c.get("spawn_biome")
+    radius = float(profile.get("radius") or 0) or 1.0
+
+    # Without a survey, fall back to the variety distance metrics.
+    dists = {}
+    if survey:
+        dists = {b: float(v[0]) for b, v in survey.items()}
+    else:
+        for metric, value in c["metrics"].items():
+            if metric.startswith("biome_") and metric.endswith("_dist"):
+                dists[metric[6:-5]] = float(value)
+
+    def row(bid, note=""):
+        d = dists.get(bid)
+        found = d is not None and d >= 0
+        sev = 0 if found else 2
+        near = "{:.0f}".format(d) if found else "not found"
+        flag = ""
+        if bid == spawn_biome:
+            flag = "<span class='kind spawned'>you spawn here</span>"
+        return ("<div class='mrow sev{}'>"
+                "<span class='mname'>{} {}</span>"
+                "<span class='mval'>{}</span>"
+                "<span class='mdev'>{}</span>"
+                "</div>".format(sev, _biome_label(bid), flag, near, note))
+
+    out = []
+    if spawn_targets:
+        hit = spawn_biome in set(spawn_targets)
+        out.append("<div class='sub-header'>Spawn targets <span class='meta'>"
+                   "any of these qualifies a spawn — {}</span></div>".format(
+                       "matched" if hit else "none matched, partial credit only"))
+        out.append("<div class='mlist'>{}</div>".format(
+            "".join(row(b) for b in sorted(spawn_targets,
+                                           key=lambda b: dists.get(b, 1e9)))))
+    if variety:
+        found_n = sum(1 for b in variety if dists.get(b, -1) >= 0)
+        out.append("<div class='sub-header'>Requested variety <span class='meta'>"
+                   "{} of {} present within {:.0f} blocks</span></div>".format(
+                       found_n, len(variety), radius))
+        out.append("<div class='mlist'>{}</div>".format(
+            "".join(row(b) for b in sorted(variety,
+                                           key=lambda b: dists.get(b, 1e9)))))
+    requested = set(spawn_targets) | set(variety)
+    incidental = sorted(((d, b) for b, d in dists.items()
+                         if b not in requested and d >= 0))
+    if incidental:
+        out.append(
+            "<details class='incidental'><summary>{} incidental biomes "
+            "<span class='meta'>present from the noise map, not requested — "
+            "they do not affect the score</span></summary>"
+            "<div class='mlist'>{}</div></details>".format(
+                len(incidental),
+                "".join("<div class='mrow sev0'><span class='mname'>{}</span>"
+                        "<span class='mval'>{:.0f}</span></div>".format(
+                            _biome_label(b), d) for d, b in incidental)))
+    if not out:
+        return ""
+    return "<div class='section-header'>Biomes</div>" + "".join(out)
+
+
+def _score_section(c, profile):
+    """What each component actually contributed, in points, against its weight.
+
+    A raw percentage per axis cannot explain a total: variety at 40% costs
+    six points when its weight is 10, while terrain at 99% earns forty at a
+    weight of 40. The weights are the missing half of that sentence.
+    """
+    w = profile.get("weights") or {}
+    wsum = sum(w.values()) or 1
+    labels = {"namesake": "spawn biome", "variety": "biome variety",
+              "terrain": "terrain shape", "structures": "structures"}
+    rows = []
+    for key in ("namesake", "variety", "terrain", "structures"):
+        if key not in c["parts"]:
+            continue
+        frac = c["parts"][key]
+        weight = w.get(key, 0)
+        earned = frac * weight / wsum * 100
+        possible = weight / wsum * 100
+        lost = possible - earned
+        rows.append(
+            "<div class='srow'>"
+            "<span class='sname'>{}</span>"
+            "<span class='sbar'><span style='width:{:.0f}%'></span></span>"
+            "<span class='spts'>{:.1f}<span class='meta'>/{:.0f}</span></span>"
+            "<span class='sloss'>{}</span>"
+            "</div>".format(labels.get(key, key),
+                            max(0.0, min(100.0, frac * 100)),
+                            earned, possible,
+                            "&minus;{:.1f}".format(lost) if lost >= 0.05 else ""))
+    return ("<div class='section-header'>Score {:.1f} <span class='meta'>"
+            "points earned of each component's weight</span></div>"
+            "<div class='slist'>{}</div>".format(c["score"], "".join(rows)))
+
+
 def _render_candidate(idx, c, dim_name, profile, winners, default_show,
                       shortlist_set=None):
     esc_dim = html.escape(dim_name, quote=True)
@@ -1479,62 +1767,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
     img = "renders/{}/{}.png".format(dim_name, c["seed"])
     hires = "renders/{}/{}_hires.png".format(dim_name, c["seed"])
-    _axis_labels = {"namesake": "spawn", "variety": "variety",
-                    "terrain": "terrain", "structures": "structures"}
-    # Terrain summary
-    relief, grain, water, _land = terrain_metrics(c["metrics"])
-    t = profile.get("terrain", {})
-    terrain_html = ""
-    if relief > 0 or grain > 0:
-        terrain_html = ("<div class='section-header'>Terrain</div>"
-                        "<div class='terrain-summary'>"
-                        "<span>relief <b>{:.0f}</b></span>"
-                        "<span>grain <b>{:.1f}</b></span>"
-                        "<span>water <b>{:.0%}</b></span>"
-                        "</div>".format(relief, grain, water))
-    # Structure hit/miss list — sorted by distance from spawn
-    # Use enriched structure_all data if available, fall back to nearest-only
-    struct_all = c.get("structure_all", {})
-    struct_items = []
-    for sname, _sid, spec, kind in profile.get("battery", []):
-        v = c["metrics"].get(f"structure_{sname}_dist")
-        d = float(v) if v is not None else -1
-        pretty = sname.replace("_", " ").title()
-        all_hits = struct_all.get(sname, [])
-        count_str = " <span class='meta'>({})</span>".format(len(all_hits)) if len(all_hits) > 1 else ""
-        if kind == "shun":
-            tip = "Avoid: should not appear nearby"
-            if d < 0 and not all_hits:
-                struct_items.append((9999, "<span title='{}'>{}</span> {} — absent".format(
-                    tip, "&#x2705;", html.escape(pretty))))
-            else:
-                n = len(all_hits) if all_hits else 1
-                struct_items.append((d if d >= 0 else 0, "<span title='{}'>{}</span> {} ({}){}".format(
-                    tip, "&#x274C;", html.escape(pretty), int(d) if d >= 0 else "found",
-                    " <span class='meta'>({} total)</span>".format(n) if n > 1 else "")))
-        else:
-            lo, hi = spec
-            tip = "Wanted: {}-{} blocks from spawn".format(int(lo), int(hi))
-            if d < 0 and not all_hits:
-                struct_items.append((9998, "<span title='{}'>{}</span> {} — not found".format(
-                    tip, "&#x274C;", html.escape(pretty))))
-            elif d >= 0 and lo <= d <= hi:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({}){}".format(
-                    tip, "&#x2705;", html.escape(pretty), int(d), count_str)))
-            elif d >= 0 and d < lo:
-                struct_items.append((d, "<span title='{}'>{}</span> {} ({}, too close){}".format(
-                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty), int(d), count_str)))
-            else:
-                struct_items.append((d if d >= 0 else 9998,
-                    "<span title='{}'>{}</span> {} ({}{}){}".format(
-                    tip, "&#x26A0;&#xFE0F;", html.escape(pretty),
-                    int(d) if d >= 0 else "?", ", too far" if d >= 0 else "",
-                    count_str)))
-    struct_items.sort(key=lambda x: x[0])
-    struct_html = ("<div class='section-header'>Structures</div>"
-                   "<div class='struct-list'>{}</div>".format(
-        "".join("<div>{}</div>".format(s) for _, s in struct_items))
-        if struct_items else "")
+    terrain_html = _terrain_section(c, profile)
+    struct_html = _structure_section(c, profile)
     spawn = c["spawn_biome"]
     spawn_html = ("<b>{}</b>".format(html.escape(spawn))
                   if spawn in profile["namesake"]
@@ -1563,34 +1797,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Fork dimension <kbd>F</kbd></button>".format(
                           esc_dim, c["seed"]))
-    # Biome list — use survey data (all unique biomes found) if available,
-    # fall back to the variety-biome distance metrics
-    biome_survey = c.get("biome_survey", {})
-    biome_items = []
-    if biome_survey:
-        for biome_id, (dist, bx, bz) in biome_survey.items():
-            pretty = biome_id.split(":")[-1].replace("_", " ").title()
-            ns = biome_id.split(":")[0].title() if ":" in biome_id else ""
-            label = f"{ns}:{pretty}" if ns else pretty
-            biome_items.append((dist, "<div>&#x2705; {} ({})</div>".format(
-                html.escape(label), int(dist))))
-    else:
-        for metric, value in c["metrics"].items():
-            if metric.startswith("biome_") and metric.endswith("_dist"):
-                bname = metric[6:-5].replace("_", " ").title()
-                d = float(value)
-                if d >= 0:
-                    biome_items.append((d, "<div>&#x2705; {} ({})</div>".format(
-                        html.escape(bname), int(d))))
-                else:
-                    biome_items.append((9999, "<div>&#x274C; {} — not found</div>".format(
-                        html.escape(bname))))
-    biome_items.sort(key=lambda x: x[0])
-    biome_html = ("<div class='section-header'>Biomes ({})</div>"
-                  "<div class='struct-list'>"
-                  "{}</div>".format(len(biome_items),
-                      "".join(s for _, s in biome_items))
-                  if biome_items else "")
+    biome_html = _biome_section(c, profile)
 
     # Dimension meta badges for the lightbox
     meta_parts = []
@@ -1613,8 +1820,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
 
     shortlisted_attr = " data-shortlisted='1'" if shortlisted else ""
     # Inline score summary for the detail panel header
-    score_parts = " | ".join("{} {:.0%}".format(
-        _axis_labels.get(k, k).title(), v) for k, v in c["parts"].items())
+    score_parts = _score_section(c, profile)
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"

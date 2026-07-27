@@ -2351,6 +2351,7 @@
               bits.push(st.enriched + ' enriched')
               bits.push(st.surveyed + ' surveyed')
             }
+            if (st.backfill) bits.push('enriching bank ' + st.backfill)
             if ((st.rendering_low || []).length) bits.push('rendering low')
             if ((st.rendering_high || []).length) bits.push('rendering high')
             if (st.error) bits.push('error: ' + st.error)
@@ -2380,4 +2381,48 @@
       poll()
     })()
   </script>
+  <style>
+    /* --- Candidate detail: measurement rows ------------------------------
+       Every row is value + target + deviation. Severity drives colour so the
+       eye lands on what is wrong, not on a wall of identical ticks. */
+    .mlist { display: flex; flex-direction: column; gap: 1px; margin-bottom: .6rem; }
+    .mrow { display: grid; gap: .5rem; align-items: center; padding: .2rem .4rem;
+            grid-template-columns: minmax(9rem, 1.4fr) 3.5rem minmax(4rem, 1fr) 7rem 8rem;
+            border-left: 2px solid transparent; font-size: .82rem; }
+    .mrow.shun { grid-template-columns: minmax(9rem,1.4fr) 3.5rem 1fr 8rem; }
+    .mrow.sev0 { border-left-color: #2f5d3a; }
+    .mrow.sev1 { border-left-color: #8a6a25; background: rgba(232,167,53,.06); }
+    .mrow.sev2 { border-left-color: #8a3232; background: rgba(224,82,82,.09); }
+    .mname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .mname .ns { opacity: .45; font-size: .85em; margin-left: .35rem; }
+    .mval { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .mtarget, .mdev, .mspread { opacity: .7; font-size: .92em; }
+    .mrow.sev1 .mdev, .mrow.sev2 .mdev { opacity: 1; font-weight: 600; }
+    .mspread { grid-column: 1 / -1; opacity: .55; padding-left: .2rem; }
+    .kind { font-size: .72em; text-transform: uppercase; letter-spacing: .04em;
+            opacity: .6; margin-left: .35rem; }
+    .kind.spawned { color: #6ec96e; opacity: 1; }
+    /* Range bar: shaded target band, a marker for the measured value, and
+       optional reference lines (clear-spawn radius). */
+    .bar { position: relative; display: block; height: 6px; border-radius: 3px;
+           background: #23262b; overflow: hidden; }
+    .bar-band { position: absolute; top: 0; bottom: 0; background: #2f5d3a; opacity: .55; }
+    .bar-val { position: absolute; top: -2px; width: 2px; height: 10px; border-radius: 1px; }
+    .bar-mark { position: absolute; top: 0; bottom: 0; width: 1px; opacity: .8; }
+    .sub-header { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em;
+                  opacity: .8; margin: .55rem 0 .2rem; }
+    .section-header .meta, .sub-header .meta { text-transform: none; letter-spacing: 0;
+                  font-weight: 400; opacity: .55; margin-left: .4rem; }
+    details.incidental { margin: .4rem 0 .2rem; }
+    details.incidental summary { cursor: pointer; font-size: .78rem; opacity: .75; }
+    details.incidental .mrow { grid-template-columns: 1fr 4rem; }
+    /* --- Score contribution ---------------------------------------------- */
+    .slist { display: flex; flex-direction: column; gap: 2px; margin-bottom: .6rem; }
+    .srow { display: grid; grid-template-columns: 8rem 1fr 4.5rem 3rem;
+            gap: .5rem; align-items: center; font-size: .82rem; }
+    .sbar { height: 6px; border-radius: 3px; background: #23262b; overflow: hidden; }
+    .sbar span { display: block; height: 100%; background: #4a7ea8; }
+    .spts { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .sloss { text-align: right; opacity: .6; font-size: .9em; color: #e8a735; }
+  </style>
 </html>
