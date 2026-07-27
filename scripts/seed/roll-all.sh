@@ -98,6 +98,7 @@ fi
 SEEDTEST="$PROJECT_ROOT/.seedtest"
 DIMS=""
 WRITE_CONFIG=1
+WARMUP_ONLY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -105,6 +106,9 @@ while [[ $# -gt 0 ]]; do
     --count)       ROLL_COUNT="$2"; shift 2 ;;
     --dims)        DIMS="$2"; shift 2 ;;
     --no-write)    WRITE_CONFIG=0; shift ;;
+    # Warmup is a prerequisite the viewer drives itself, not a step a user
+    # should have to know about — this exposes it without rolling anything.
+    --warmup-only) WARMUP_ONLY=1; shift ;;
     --reset)
       echo "Resetting ALL seed data..."
       rm -rf "$SEEDTEST"
@@ -289,6 +293,12 @@ finalise() {
 # Main
 # ===========================================================================
 warmup
+
+if [[ "$WARMUP_ONLY" == 1 ]]; then
+  echo "Warmup complete."
+  exit 0
+fi
+
 roll
 finalise
 

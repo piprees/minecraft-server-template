@@ -29,6 +29,7 @@ import json
 import subprocess
 import sys
 import threading
+from urllib.parse import parse_qs, urlparse
 import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -116,6 +117,106 @@ def _write_structure_overlays(seedtest, dim, seed_str, structure_all, dim_scale,
     return written
 
 
+def biome_placeholder(biome_id):
+    """Hex colour standing in for a thumbnail that has not rendered yet.
+
+    The spawn biome's surface colour is the one thing already known about a
+    candidate the moment it is measured, so a card can carry its eventual
+    character before any render exists — a snowy seed reads white, a desert
+    sandy. Unknown biomes fall back to a neutral slate rather than black,
+    which would read as a broken image.
+    """
+    try:
+        from surface_rules import biome_surface, SURFACE_COLOURS
+        rgb = SURFACE_COLOURS.get(biome_surface(biome_id or ""))
+    except Exception:
+        rgb = None
+    if not rgb:
+        rgb = (90, 96, 104)
+    return "#%02x%02x%02x" % tuple(rgb)
+
+
+def _enrich_dim(name, dim, config, difficulty, cdir, all_sets, top_n):
+    """Structure enumeration for one dimension. Returns how many were added."""
+    from dimension_profiles import build_profile
+    from structure_placement import find_all_in_radius
+    import candidates as cmod
+
+    profile = build_profile(dim, config, difficulty)
+    battery = profile.get("battery", [])
+    store_path = cdir / f"{name}.json"
+    if not battery or not store_path.exists():
+        return 0
+    store = cmod.load_store(store_path)
+    radius = int(profile["radius"])
+    added = 0
+    for seed_str in _top_seeds(store, top_n):
+        cand = store["candidates"][seed_str]
+        if "structure_all" in cand:
+            continue
+        sa = {}
+        for sname, sid, _spec, _kind in battery:
+            cfg = all_sets.get(sid.lstrip("#"))
+            if not cfg:
+                continue
+            hits = find_all_in_radius(
+                int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
+                radius, spread_type=cfg.get("spread_type", "linear"),
+                frequency=cfg.get("frequency", 1.0))
+            sa[sname] = [(d, x, z) for d, x, z in hits]
+        cand["structure_all"] = sa
+        added += 1
+    if added:
+        cmod.save_store(store_path, store)
+    return added
+
+
+def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
+    """Biome survey for one dimension. Returns how many were added."""
+    from dimension_profiles import build_profile
+    from biome_sampler import BiomeSampler, load_noise_configs
+    import candidates as cmod
+
+    FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
+                    "end": "end", "paradise_lost": "paradise_lost"}
+    TYPE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
+
+    store_path = cdir / f"{name}.json"
+    if not store_path.exists():
+        return 0
+    profile = build_profile(dim, config, difficulty)
+    store = cmod.load_store(store_path)
+    radius = int(profile["radius"])
+    noise_configs = load_noise_configs()
+    noise_fam = TYPE_OVERRIDE.get(dim.get("type", ""),
+                                  FAMILY_NOISE.get(profile.get("family", "overworld"),
+                                                   "overworld"))
+    nc = noise_configs.get(noise_fam, noise_configs.get("overworld"))
+    config_biomes = list(dim.get("biomes") or []) \
+        or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+
+    added = 0
+    step = max(64, radius // 32)
+    for seed_str in _top_seeds(store, top_n):
+        cand = store["candidates"][seed_str]
+        if "biome_survey" in cand:
+            continue
+        sampler = BiomeSampler(int(seed_str), biome_params, noise_config=nc,
+                               family=noise_fam,
+                               biome_filter=config_biomes or None)
+        biome_map = {}
+        for bx in range(-radius, radius + 1, step):
+            for bz in range(-radius, radius + 1, step):
+                biome = sampler.biome_at(bx, bz)
+                if biome not in biome_map:
+                    biome_map[biome] = [int((bx * bx + bz * bz) ** 0.5), bx, bz]
+        cand["biome_survey"] = biome_map
+        added += 1
+    if added:
+        cmod.save_store(store_path, store)
+    return added
+
+
 def _find_dim_config(config_path, dim):
     """Find the JSON file for a dimension in the config directory or
     monolith config. Returns (path, is_overlay) or (None, False)."""
@@ -167,6 +268,295 @@ def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
             _jobs[job_id]["status"] = "failed"
             _jobs[job_id]["error"] = str(exc)[:500]
 
+
+class Pipeline:
+    """Roll -> enrich -> re-rank -> render, driven from the page.
+
+    One controller thread per viewer, cycling dimensions round-robin. The
+    ordering is the whole point: rolling and enriching are arithmetic, while
+    a render is minutes of CPU, so nothing is rendered until the re-rank has
+    decided it is still in the top RENDER_TOP.
+
+    Re-ranking is GLOBAL, not per-candidate — clutter is scored against the
+    median of a dimension's own candidates, so an arrival can demote a seed
+    that has already been rendered. Renders are therefore recomputed from the
+    current top each cycle rather than queued once on arrival; an already
+    rendered PNG is skipped, so demotion costs nothing but promotion is
+    always honoured.
+    """
+
+    def __init__(self, config, seedtest, finalise_args, biome_params):
+        self.config = config
+        self.seedtest = seedtest
+        self.finalise_args = finalise_args
+        self.biome_params = biome_params
+        self.lock = threading.Lock()
+        self.thread = None
+        self.stop_flag = threading.Event()
+        self.state = {
+            "running": False, "target": 0, "cycles": 0, "rolled": 0,
+            "enriched": 0, "surveyed": 0, "rendered": 0,
+            "stage": "idle", "dim": None,
+            "enriching": [], "rendering_low": [], "rendering_high": [],
+            "generation": 0, "log": [], "error": None,
+        }
+
+    def snapshot(self):
+        with self.lock:
+            return dict(self.state, log=list(self.state["log"])[-40:])
+
+    def _set(self, **kw):
+        with self.lock:
+            self.state.update(kw)
+
+    def _log(self, msg):
+        with self.lock:
+            self.state["log"].append(msg)
+            del self.state["log"][:-200]
+
+    def _bump(self):
+        """Signal the page that the ranking changed."""
+        with self.lock:
+            self.state["generation"] += 1
+
+    def start(self, count, pool):
+        with self.lock:
+            if self.state["running"]:
+                return False
+            self.stop_flag.clear()
+            self.state.update(running=True, target=int(count), stage="starting",
+                              error=None, cycles=0)
+        self.thread = threading.Thread(target=self._run, args=(int(count), int(pool)),
+                                       daemon=True)
+        self.thread.start()
+        return True
+
+    def stop(self):
+        self.stop_flag.set()
+        self._set(stage="stopping")
+
+    def _sh(self, argv, timeout):
+        return subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+
+    def _run(self, count, pool):
+        try:
+            self._ensure_warmup()
+            from dimension_profiles import load_config, load_difficulty, rollable
+            from structure_placement import load_structure_sets
+            import candidates as cmod
+
+            config = load_config(self.config)
+            difficulty = load_difficulty(self.config)
+            targets = {**{w["name"]: w for w in config.get("worlds", [])},
+                       **{d["name"]: d for d in config["dimensions"] if rollable(d)}}
+            cdir = cmod.candidates_dir(Path(self.config))
+            ssd = Path(self.seedtest) / ".structure_sets"
+            all_sets = load_structure_sets(str(ssd)) if ssd.exists() else {}
+
+            names = list(targets)
+            while not self.stop_flag.is_set() and self.state["rolled"] < count:
+                for name in names:
+                    if self.stop_flag.is_set() or self.state["rolled"] >= count:
+                        break
+                    dim = targets[name]
+                    batch = max(1, min(BATCH_SEEDS, count - self.state["rolled"]))
+                    self._cycle(name, dim, config, difficulty, cdir, all_sets, batch, pool)
+                with self.lock:
+                    self.state["cycles"] += 1
+            self._set(stage="stopped" if self.stop_flag.is_set() else "complete",
+                      dim=None, running=False)
+        except Exception as exc:
+            self._log(f"pipeline failed: {exc}")
+            self._set(stage="failed", error=str(exc)[:400], running=False)
+
+    def _cycle(self, name, dim, config, difficulty, cdir, all_sets, batch, pool):
+        # 1. Generate + disqualify (fast_roller banks rejects itself).
+        self._set(stage="rolling", dim=name)
+        r = self._sh([sys.executable, str(SCRIPT_DIR / "fast_roller.py"),
+                      "--config", self.config, "--seedtest", self.seedtest,
+                      "--dims", name, "--count", str(batch),
+                      "--tier1-pool", str(pool)], 1800)
+        if r.returncode != 0:
+            self._log(f"{name}: roll failed — {(r.stderr or '').strip()[-200:]}")
+            return
+        with self.lock:
+            self.state["rolled"] += batch
+        self._log(f"{name}: rolled {batch}")
+
+        # 2. Enrich what survived.
+        self._set(stage="enriching", enriching=[name])
+        n = _enrich_dim(name, dim, config, difficulty, cdir, all_sets, ENRICH_TOP)
+        s = _survey_dim(name, dim, config, difficulty, cdir, self.biome_params, ENRICH_TOP)
+        with self.lock:
+            self.state["enriched"] += n
+            self.state["surveyed"] += s
+            self.state["enriching"] = []
+        if n or s:
+            self._log(f"{name}: enriched {n}, surveyed {s}")
+
+        # 3. Re-rank on the enriched data, then republish the page data.
+        self._set(stage="ranking")
+        self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"), "rescore",
+                  "--config", self.config, "--seedtest", self.seedtest], 600)
+        self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                  "finalise", *self.finalise_args], 600)
+        self._bump()
+
+        # 4. Render the survivors: low res first so a thumbnail appears early.
+        for label, size, scale, res, suffix in (
+                ("rendering_low", 1024, 8, 256, ""),
+                ("rendering_high", 2048, 16, 512, "_hires")):
+            if self.stop_flag.is_set():
+                return
+            self._set(stage=label, **{label: [name]})
+            self._sh([sys.executable, str(SCRIPT_DIR / "biome_renderer.py"), "batch",
+                      "--config", self.config, "--seedtest", self.seedtest,
+                      "--dims", name, "--top", str(RENDER_TOP), "--size", str(size),
+                      "--scale", str(scale), "--sample-res", str(res)]
+                     + (["--suffix", suffix] if suffix else []), 3600)
+            self._set(**{label: []})
+            self._bump()
+
+        # 5. Overlays for whatever is now in the rendered top.
+        self._write_overlays(name, dim, config, difficulty, cdir)
+        with self.lock:
+            self.state["rendered"] += 1
+
+    def _write_overlays(self, name, dim, config, difficulty, cdir):
+        try:
+            from dimension_profiles import build_profile
+            import candidates as cmod
+            store_path = cdir / f"{name}.json"
+            if not store_path.exists():
+                return
+            store = cmod.load_store(store_path)
+            scale = float(build_profile(dim, config, difficulty).get("scale", 1.0) or 1.0)
+            for seed_str in _top_seeds(store, RENDER_TOP):
+                sa = store["candidates"][seed_str].get("structure_all")
+                if sa:
+                    _write_structure_overlays(self.seedtest, name, seed_str, sa, scale)
+        except Exception as exc:
+            self._log(f"{name}: overlays failed — {exc}")
+
+    def _ensure_warmup(self):
+        """Warmup is a prerequisite, not a separate command the user runs.
+
+        roll-all.sh owns the Docker-backed extraction; calling it with a zero
+        pool performs warmup and rolls nothing, so the viewer works from a
+        clean checkout with no prior seed-roll.
+        """
+        have_sets = (Path(self.seedtest) / ".structure_sets").exists()
+        have_params = Path(self.biome_params).exists()
+        if have_sets and have_params:
+            return
+        self._set(stage="warmup")
+        self._log("warmup: extracting structure sets and biome params (needs Docker)")
+        r = self._sh(["bash", str(SCRIPT_DIR / "roll-all.sh"),
+                      "--warmup-only"], 3600)
+        if r.returncode != 0:
+            raise RuntimeError(f"warmup failed: {(r.stderr or '').strip()[-300:]}")
+        self._log("warmup: done")
+
+
+BATCH_SEEDS = 25
+_pipeline = None
+
+
+def _ranked_payload(config_path, seedtest, only_dim=None):
+    """Ranked candidates for the live grid.
+
+    Deliberately cheap and render-agnostic: it reports whether each render
+    EXISTS rather than waiting for one, so the page can show a placeholder-
+    tinted card the moment a seed is measured and swap in the thumbnail when
+    it lands, without a second request per candidate.
+    """
+    from dimension_profiles import load_config, load_difficulty, build_profile, rollable
+    import candidates as cmod
+
+    config = load_config(config_path)
+    difficulty = load_difficulty(config_path)
+    targets = {**{w["name"]: w for w in config.get("worlds", [])},
+               **{d["name"]: d for d in config["dimensions"] if rollable(d)}}
+    cdir = cmod.candidates_dir(Path(config_path))
+    renders = Path(seedtest) / "renders"
+
+    out = {}
+    for name, dim in targets.items():
+        if only_dim and name != only_dim:
+            continue
+        store_path = cdir / f"{name}.json"
+        if not store_path.exists():
+            continue
+        store = cmod.load_store(store_path)
+        chash = store.get("configHash", "")
+        winner = store.get("winner")
+        cands = []
+        for seed_str in _top_seeds(store, RENDER_TOP):
+            cand = store["candidates"][seed_str]
+            scores = cand.get("scores", {})
+            entry = scores.get(chash) or (max(scores.values(),
+                                              key=lambda s: s.get("total", 0))
+                                          if scores else {})
+            measurements = cand.get("measurements", {})
+            biome = measurements.get("spawn_biome", "unknown")
+            sa = cand.get("structure_all") or {}
+            cands.append({
+                "seed": seed_str,
+                "score": round(entry.get("total", 0), 1),
+                "spawn_biome": biome,
+                "placeholder": biome_placeholder(biome),
+                "enriched": bool(sa),
+                "structures": sum(len(v) for v in sa.values()),
+                "biomes": len(cand.get("biome_survey") or {}),
+                "render_low": (renders / name / f"{seed_str}.png").exists(),
+                "render_high": (renders / name / f"{seed_str}_hires.png").exists(),
+                "winner": str(winner) == seed_str,
+            })
+        out[name] = {
+            "candidates": cands,
+            "total": len(store["candidates"]),
+            "rejected": len(store.get("rejected") or {}),
+            "description": (dim.get("seedRoll") or {}).get("description")
+                           or dim.get("description") or "",
+        }
+    return out
+
+
+def _candidate_detail(config_path, dim, seed):
+    """Every structure and biome banked for one candidate, nearest first."""
+    import candidates as cmod
+    cdir = cmod.candidates_dir(Path(config_path))
+    store_path = cdir / f"{dim}.json"
+    if not store_path.exists():
+        return {"error": f"no candidate store for {dim}"}
+    cand = cmod.load_store(store_path)["candidates"].get(str(seed))
+    if cand is None:
+        return {"error": f"{dim} has no candidate {seed}"}
+
+    structures = []
+    for sname, hits in (cand.get("structure_all") or {}).items():
+        ordered = sorted(hits, key=lambda h: h[0])
+        structures.append({
+            "name": sname,
+            "count": len(ordered),
+            "nearest": ordered[0][0] if ordered else None,
+            "positions": [{"dist": d, "x": x, "z": z} for d, x, z in ordered[:200]],
+        })
+    structures.sort(key=lambda s: (-s["count"], s["name"]))
+
+    biomes = [{"id": bid, "dist": v[0], "x": v[1], "z": v[2]}
+              for bid, v in (cand.get("biome_survey") or {}).items()]
+    biomes.sort(key=lambda b: b["dist"])
+
+    return {
+        "dim": dim, "seed": str(seed),
+        "spawn_biome": cand.get("measurements", {}).get("spawn_biome", "unknown"),
+        "structures": structures,
+        "structure_total": sum(s["count"] for s in structures),
+        "biomes": biomes,
+        "enriched": bool(cand.get("structure_all")),
+        "surveyed": bool(cand.get("biome_survey")),
+    }
 
 _fork_schema_cache = None
 
@@ -456,7 +846,6 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
         if self.path.startswith("/dim-config"):
-            from urllib.parse import parse_qs, urlparse
             dim = (parse_qs(urlparse(self.path).query).get("dim") or [""])[0]
             path = self._resolve_dim_config(dim) if dim else None
             if not path:
@@ -467,6 +856,24 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                                     "config": json.loads(path.read_text())})
             except (OSError, json.JSONDecodeError) as exc:
                 self._respond_json({"error": str(exc)[:300]}, 500)
+            return
+        if self.path == "/pipeline-status":
+            self._respond_json(_pipeline.snapshot() if _pipeline
+                               else {"running": False, "stage": "unavailable"})
+            return
+        if self.path.startswith("/ranked"):
+            q = parse_qs(urlparse(self.path).query)
+            self._respond_json(_ranked_payload(self.config_path, self.seedtest,
+                                               q.get("dim", [None])[0]))
+            return
+        if self.path.startswith("/candidate-detail"):
+            q = parse_qs(urlparse(self.path).query)
+            dim = (q.get("dim") or [""])[0]
+            seed = (q.get("seed") or [""])[0]
+            if not dim or not seed:
+                self._respond_json({"error": "dim and seed required"}, 400)
+                return
+            self._respond_json(_candidate_detail(self.config_path, dim, seed))
             return
         if self.path.startswith("/job/"):
             job_id = self.path[5:]
@@ -489,6 +896,12 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             self._handle_reroll()
         elif self.path == "/edit-config":
             self._handle_edit_config()
+        elif self.path == "/pipeline/start":
+            self._handle_pipeline_start()
+        elif self.path == "/pipeline/stop":
+            if _pipeline:
+                _pipeline.stop()
+            self._respond_json({"ok": True})
         elif self.path == "/preview":
             self._handle_preview()
         elif self.path == "/create-dimension":
@@ -586,6 +999,34 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         subprocess.Popen(["code", str(target)],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self._respond_json({"ok": True, "path": str(target)})
+
+    def _handle_pipeline_start(self):
+        if not _pipeline:
+            self._respond_json({"error": "pipeline unavailable"}, 500)
+            return
+        try:
+            body = self._read_json()
+        except Exception:
+            body = {}
+        # `or` would swallow a literal 0 and silently substitute the default,
+        # starting a full run for a request that asked for none.
+        raw_count = body.get("count")
+        raw_pool = body.get("pool")
+        try:
+            count = 100 if raw_count in (None, "") else int(raw_count)
+            pool = 5000 if raw_pool in (None, "") else int(raw_pool)
+        except (TypeError, ValueError):
+            self._respond_json({"error": "count and pool must be integers"}, 400)
+            return
+        if count < 1:
+            self._respond_json({"error": "count must be >= 1"}, 400)
+            return
+        if pool < 1:
+            self._respond_json({"error": "pool must be >= 1"}, 400)
+            return
+        started = _pipeline.start(count, pool)
+        self._respond_json({"ok": started,
+                            "error": None if started else "already running"})
 
     def _handle_preview(self):
         """Hi-res 16km biome render (1024×1024). ~10-30s depending on family."""
@@ -957,6 +1398,10 @@ def main():
     ViewerHandler.finalise_args = finalise_args
     ViewerHandler.winner_overlay = args.winner_overlay or ""
 
+    global _pipeline
+    _pipeline = Pipeline(args.config, args.seedtest, finalise_args,
+                         str(SCRIPT_DIR / "biome_params.json"))
+
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     print(f"viewer server: http://127.0.0.1:{args.port}/", flush=True)
 
@@ -964,157 +1409,12 @@ def main():
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
-    biome_params = str(SCRIPT_DIR / "biome_params.json")
+    # The pipeline owns rolling, enriching, ranking and rendering now, and
+    # it is driven from the page rather than run once at startup: the page
+    # is usable immediately against whatever is already banked, and Start
+    # kicks off generation. Nothing blocks the server thread.
+    print("Open the viewer and press Start to generate seeds.", flush=True)
 
-    # Enumerate all structure placements within the border. Runs BEFORE the
-    # renders and over a wider pool than they cover, so the re-rank below
-    # decides what is worth rendering rather than the other way round.
-    print(f"\n=== Enumerating structures (top {args.enrich_top}) ===", flush=True)
-    try:
-        from dimension_profiles import load_config, load_difficulty, build_profile, rollable
-        from structure_placement import load_structure_sets, find_all_in_radius
-        import candidates as cmod
-
-        config = load_config(args.config)
-        difficulty = load_difficulty(args.config)
-        dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
-        worlds = {w["name"]: w for w in config.get("worlds", [])}
-        all_targets = {**worlds, **dims}
-        cdir = cmod.candidates_dir(Path(args.config))
-
-        struct_sets_dir = Path(args.seedtest) / ".structure_sets"
-        all_sets = load_structure_sets(str(struct_sets_dir)) if struct_sets_dir.exists() else {}
-
-        enriched = 0
-        for name, dim in all_targets.items():
-            profile = build_profile(dim, config, difficulty)
-            store = cmod.load_store(cdir / f"{name}.json")
-            battery = profile.get("battery", [])
-            if not battery:
-                continue
-            radius = int(profile["radius"])
-
-            changed = False
-            for seed_str in _top_seeds(store, args.enrich_top):
-                cand = store["candidates"][seed_str]
-                if "structure_all" in cand:
-                    continue
-                sa = {}
-                for sname, sid, spec, kind in battery:
-                    clean = sid.lstrip("#")
-                    cfg = all_sets.get(clean)
-                    if not cfg:
-                        continue
-                    hits = find_all_in_radius(
-                        int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
-                        radius, spread_type=cfg.get("spread_type", "linear"),
-                        frequency=cfg.get("frequency", 1.0))
-                    sa[sname] = [(d, x, z) for d, x, z in hits]
-                cand["structure_all"] = sa
-                changed = True
-                enriched += 1
-
-            if changed:
-                cmod.save_store(cdir / f"{name}.json", store)
-
-        print(f"Enriched {enriched} candidates with full structure data",
-              flush=True)
-
-        # Biome survey: sample a grid within the border, record all unique biomes + positions
-        print("=== Surveying biomes ===", flush=True)
-        from biome_sampler import BiomeSampler, load_noise_configs
-        noise_configs = load_noise_configs()
-        biome_params = str(SCRIPT_DIR / "biome_params.json")
-        if Path(biome_params).exists():
-            FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
-                            "end": "end", "paradise_lost": "paradise_lost"}
-            TYPE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
-            bio_enriched = 0
-            for name, dim in all_targets.items():
-                profile = build_profile(dim, config, difficulty)
-                store = cmod.load_store(cdir / f"{name}.json")
-                radius = int(profile["radius"])
-                dim_type = dim.get("type", "")
-                fam = profile.get("family", "overworld")
-                noise_fam = TYPE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
-                nc = noise_configs.get(noise_fam, noise_configs.get("overworld"))
-
-                config_biomes = list(dim.get("biomes") or []) \
-                    or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
-                biome_filter = config_biomes if config_biomes else None
-
-                changed = False
-                step = max(64, radius // 32)
-                for seed_str in _top_seeds(store, args.enrich_top):
-                    cand = store["candidates"][seed_str]
-                    if "biome_survey" in cand:
-                        continue
-                    sampler = BiomeSampler(int(seed_str), biome_params,
-                                          noise_config=nc, family=noise_fam,
-                                          biome_filter=biome_filter)
-                    biome_map = {}
-                    for bx in range(-radius, radius + 1, step):
-                        for bz in range(-radius, radius + 1, step):
-                            biome = sampler.biome_at(bx, bz)
-                            if biome not in biome_map:
-                                dist = int((bx * bx + bz * bz) ** 0.5)
-                                biome_map[biome] = [dist, bx, bz]
-                    cand["biome_survey"] = biome_map
-                    changed = True
-                    bio_enriched += 1
-
-                if changed:
-                    cmod.save_store(cdir / f"{name}.json", store)
-
-            print(f"Surveyed biomes for {bio_enriched} candidates", flush=True)
-    except Exception as e:
-        print(f"Structure enumeration failed: {e}", flush=True)
-
-    # Re-rank on the enriched data, THEN render. Rendering is minutes per
-    # dimension and enrichment is arithmetic, so the cheap pass decides what
-    # the expensive one spends its time on.
-    print("\n=== Re-ranking on enriched data ===", flush=True)
-    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                    "rescore", "--config", args.config, "--seedtest", args.seedtest],
-                   capture_output=True, text=True)
-    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                    "finalise", *finalise_args], capture_output=True, text=True)
-
-    if Path(biome_params).exists():
-        _batch_render(args.config, args.seedtest, biome_params,
-                      1024, 8, 256, f"Rendering normal-res (1024px, top {RENDER_TOP})")
-        _batch_render(args.config, args.seedtest, biome_params,
-                      2048, 16, 512, f"Rendering hires (2048px, top {RENDER_TOP})",
-                      suffix="_hires")
-
-    # Overlays last: they must match the geometry of the base render they
-    # stack over, and only the rendered set has one to stack over.
-    print("\n=== Writing structure overlays ===", flush=True)
-    overlays = 0
-    try:
-        import candidates as cmod
-        from dimension_profiles import load_config, load_difficulty, build_profile, rollable
-        config = load_config(args.config)
-        difficulty = load_difficulty(args.config)
-        dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
-        worlds = {w["name"]: w for w in config.get("worlds", [])}
-        cdir = cmod.candidates_dir(Path(args.config))
-        for name, dim in {**worlds, **dims}.items():
-            store_path = cdir / f"{name}.json"
-            if not store_path.exists():
-                continue
-            store = cmod.load_store(store_path)
-            dim_scale = float(build_profile(dim, config, difficulty).get("scale", 1.0) or 1.0)
-            for seed_str in _top_seeds(store, RENDER_TOP):
-                sa = store["candidates"][seed_str].get("structure_all")
-                if sa:
-                    overlays += _write_structure_overlays(
-                        args.seedtest, name, seed_str, sa, dim_scale)
-        print(f"{overlays} overlay image(s) written", flush=True)
-    except Exception as e:
-        print(f"Overlay generation failed: {e}", flush=True)
-
-    print("\nRenders complete. Server running — Ctrl+C to stop.", flush=True)
     try:
         server_thread.join()
     except KeyboardInterrupt:
