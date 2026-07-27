@@ -538,9 +538,90 @@ That pattern already existed in three places invented independently to dodge
 the same wall (`structure-audit.txt`, the census dumps, `biome_grid.csv`).
 It is now named and argued in `docs/spikes/SPIKE-REPLACE-RCON.md`.
 
+## F5/G1: the score drop that was a config bug, and a resolver that ignored the fix
+
+**F5**: median 83.3 -> 86.7, 49 improved, 22 worse.
+`the_burning_archipelago` 48.6 -> **91.3**, `the_end_citadel` 93.7 -> 87.0,
+`the_dustbowl` 86.0 -> 86.0 exactly (the suppressed path, untouched).
+
+Two assertions failed and neither was a scoring bug.
+
+**`the_end` 42.7, unmoved, needs >= 60 — impossible by construction.**
+`generation_payload()` returns None without a `type`, base-world files have
+none, so a base world gets no fingerprint and no census. `DimensionStructures
+.transformed` also gates on managed NAMESPACE, and base worlds are
+deliberately excluded from that set. There is no mechanism by which a base
+world's structure score can respond to this feature. Spiked separately:
+`docs/spikes/SPIKE-BASE-WORLD-PARITY.md`.
+
+**`the_emberglass_foundry` 81.2 -> 64.3** — a `cave` dimension whose only two
+wants (`mining_complex`, `foundry`) are in the `endgame` group, which the
+`cave` type never enables. Those structures cannot generate there, so both
+wants score 0 for every seed and the battery collapses. Auditing that across
+the shipped set: **9 dimensions, 22 unsatisfiable wants**, concentrated in
+`cave` and `paradise_lost`, whose type defaults enable few groups.
+
+Before noise this was invisible — the roller computed a vanilla grid position
+for a set noise had taken over and reported a distance for a structure the
+world could not contain. It is now a permanent check
+(`check-noise-regression.py`'s unsatisfiable-want audit).
+
+### The fix did nothing, silently, for eight of the nine
+
+Naming the group under `structures.noise` looked like the obvious remedy —
+it is the documented escape hatch. It changed exactly one dimension.
+
+`NoiseGroupPlan.resolve` iterated `StructureGroupRegistry.groupsForType()`
+and nothing else, so a group the world type omits was never visited no matter
+what the config said. `the_luminous_caverns` worked only because `dungeons`
+IS in the `cave` list and was merely suppressed by the peaceful shift.
+
+Fixed: an explicit `structures.noise` entry now ADDS the group. The type list
+is a default; an author writing `{"endgame": "sparse"}` on a cave dimension
+has said what they want. Mirrored in `noise_placement.resolve_groups`, F4
+parity re-run and still exact (2383 positions), 472 Java tests green.
+
+Live after the fix: `the_sunken_temple` 3 -> 5 groups and 54,956 -> 73,079
+positions; every one of the nine gained its groups; the audit reports zero.
+
+**G1** then passed cleanly: median **87.3** (target >= 75), no dimension lost
+its candidates, minimum bank 40. All nine recovered —
+`the_emberglass_foundry` 64.3 -> **81.7**, `the_abyssal_shrine` 67.4 -> 79.1.
+
+### G1 caught a bug that would have broken every consumer roll
+
+```
+PicklingError: Can't pickle <function _census_task>: No module named 'score_dimensions'
+```
+
+`fast_roller` loads `score-dimensions.py` by path under that name but never
+registered it in `sys.modules`, so the pool's children could not resolve the
+function and the whole roll died at the census fold. **Running
+`score-dimensions.py` directly hides it** — there the function lives in
+`__main__` — which is exactly why `seed-rescore` worked all session and
+`seed-roll` did not. Any module loaded by path whose functions reach a `Pool`
+needs registering before `exec_module`.
+
+### The 63 DRIFTED warnings are a one-time artefact, NOT 63 broken worlds
+
+`finalise` warned on 63 of 81 winners. **60 of those carry a current census**,
+so their structure scoring is up to date; only the STAMP is old. A
+candidate's fingerprint is written once at measurement and never updated, and
+these were measured while the F3 bug had `noisePlacement` missing from every
+payload. Fixing that bug moved the fingerprint for every noise dimension —
+but the WORLD never changed, because the mod was doing noise placement all
+along and only the roller's record of it was incomplete.
+
+**Do not mass re-roll on the strength of these.** The measurements
+(biomes, terrain) are still valid, the structure half is recomputed from a
+current census, and the next full roll re-stamps them naturally. Genuine
+drift is distinguishable: a genuinely changed world also changes `type`,
+`biomes` or `noiseSettings`, which `scripts/check-dimension-drift.py` reports
+field by field.
+
 ## Status at handoff
 
-**12 of 17 spike tasks complete.** Gates: 472 Java tests, 269 Python tests,
+**17 of 17 spike tasks complete.** Gates: 472 Java tests, 322 Python tests,
 `./scripts/test-scripts.sh --quick` — all green. Local server healthy,
 `Restarts=0`.
 
@@ -553,15 +634,15 @@ It is now named and argued in `docs/spikes/SPIKE-REPLACE-RCON.md`.
 | C1 `StructureGroupRegistry` + `structure-audit` | done |
 | C2 noise path wired as the default | done |
 | D1 config fields + backwards compatibility | done |
-| E1 `/locate` | **partial** — contract tested, live run blocked (see below) |
+| E1 `/locate` | done — Chunky tried; latency proven pre-existing by a vanilla control |
 | E2 `structure-census` | done |
 | F1 Python mirror | done |
-| F2 `distribution_match()` scoring | **not started** |
+| F2 `distribution_match()` scoring | done — census_scoring.py |
 | F3 fingerprinting | done |
 | F4 bit-exact parity | done — 2383 positions, exact |
-| F5 rescore banked candidates | **not started** (needs F2) |
-| G1 full seed-roll pass | **not started** (needs F2) |
-| G2 regression suite for 10 dims | **not started** (needs a generated world) |
+| F5 rescore banked candidates | done — median 83.3 -> 86.7 |
+| G1 full seed-roll pass | done — median 87.3, no dim lost candidates |
+| G2 regression suite for 10 dims | done — 73 assertions, 0 failures |
 | G3 skills + docs | done for everything that exists |
 
 ### What is left, and what it depends on

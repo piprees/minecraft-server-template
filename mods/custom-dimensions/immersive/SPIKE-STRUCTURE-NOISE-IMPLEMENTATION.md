@@ -1106,7 +1106,7 @@ These remain in the config for scoring but change meaning:
   change that would break parity fails locally rather than waiting for
   someone to re-dump a census.
 
-- [ ] **F5. Full rescore of banked candidates** Run `./dev seed-rescore` with new scoring. Compare before/after scores. Large-radius dims (the_burning_archipelago, the_end, the_end_citadel) should climb from 40-60 range to 70+.
+- [x] **F5. Full rescore of banked candidates** Run `./dev seed-rescore` with new scoring. Compare before/after scores. Large-radius dims (the_burning_archipelago, the_end, the_end_citadel) should climb from 40-60 range to 70+.
 
   **Verify (seed roller output):**
   - Snapshot current scores BEFORE: `./dev seed-status > /tmp/before-noise-scores.txt`.
@@ -1121,7 +1121,7 @@ These remain in the config for scoring but change meaning:
 
 ### Phase G: Final validation + docs (2 days)
 
-- [ ] **G1. End-to-end: full seed-roll pass with new system** Roll all dimensions with the noise system active. This is the ultimate integration test — the roller exercises every config, every profile, every biome filter.
+- [x] **G1. End-to-end: full seed-roll pass with new system** Roll all dimensions with the noise system active. This is the ultimate integration test — the roller exercises every config, every profile, every biome filter.
 
   **Verify (seed roller, local server running):**
   - `./dev seed-roll --count 50` (abbreviated run for all dims).
