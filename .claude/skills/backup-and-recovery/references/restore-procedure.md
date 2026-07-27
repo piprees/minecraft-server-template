@@ -31,7 +31,7 @@ export RESTIC_PASSWORD
 
 Run this from `~/server` with `.env` already sourced (`set -a && source .env && set +a`) so the `R2_*` and `RESTIC_PASSWORD` variables resolve. `RESTIC_PASSWORD` unset or wrong fails every restic command below with a decrypt error, not a helpful message — check it's actually exported (`echo ${RESTIC_PASSWORD:+set}`) before assuming the repository itself is broken.
 
-**Verify:** `restic snapshots --latest 1` returns a snapshot, not an error. If it says `"repository does not exist"`, the bucket/account id/credentials are wrong, or the repo was genuinely never initialised (`docs/credentials.md` has the R2 credential reference; `docs/troubleshooting.md § Backup fails` is the shorter triage version).
+**Verify:** `restic snapshots --latest 1` returns a snapshot, not an error. If it says `"repository does not exist"`, the bucket/account id/credentials are wrong, or the repo was genuinely never initialised (the credentials reference in the `server-provisioning` skill has the R2 credential table; `TROUBLESHOOTING.md` § Common symptoms → Backups is the shorter triage version).
 
 ## 3. List snapshots and pick one
 

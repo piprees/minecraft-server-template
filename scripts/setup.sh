@@ -960,7 +960,7 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
 
   step "Create a Discord bot"
   echo ""
-  echo "  Quick setup (see docs/setup-guide.md for the full version):"
+  echo "  Quick setup:"
   echo ""
   echo "    1. Go to https://discord.com/developers/applications"
   echo "    2. Click 'New Application', name it after your server"

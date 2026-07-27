@@ -96,7 +96,7 @@ Note: an in-flight deploy executes the **pre-pull** `deploy.sh` - changes to dep
 
 ## Cutting a release (platform repo only)
 
-See [docs/releasing.md](docs/releasing.md) for the full procedure, compatibility promise, and consumer impact.
+See the `platform-release-management` skill for the full procedure, compatibility promise, and consumer impact.
 
 **Key constraints for agents:**
 

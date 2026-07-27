@@ -58,7 +58,7 @@ The `ops` script delegates to the bundle's operational scripts:
 ./ops cloudflare                 # tunnel + DNS records + R2 bucket
 ```
 
-Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow. See [docs/setup-guide.md](docs/setup-guide.md) for the full step-by-step walkthrough, and [docs/credentials.md](docs/credentials.md) for exactly which API tokens/keys each provider needs (and the Cloudflare traps).
+Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow. The full step-by-step walkthrough and credential guide live in the `server-provisioning` skill.
 
 ### Roll seeds locally (Mac)
 
@@ -104,7 +104,7 @@ Each GitHub release `vX.Y.Z` on this repo:
 - **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
 - **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 
-Consumers pinning `STACK_VERSION=v3` automatically receive minor and patch updates. See [docs/releasing.md](docs/releasing.md) for the full release process and pipeline details.
+Consumers pinning `STACK_VERSION=v3` automatically receive minor and patch updates. See the `platform-release-management` skill for the full release process and pipeline details.
 
 ## Architecture
 
@@ -415,7 +415,7 @@ This is the platform repo. Contributors work here to improve the images, bundle 
 
 **Repo layout:** `docker/` contains Dockerfiles for all GHCR images. `scripts/` has the operational scripts shipped in the bundle plus template-only tooling. `config/` holds the default configs seeded by the `defaults-seed` image. `mods/` holds the in-house Fabric mods — changes there must go through the [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop) (build → inspect the remapped jar → local RCON exercise → soak timed paths) before a release ships them.
 
-**How defaults get released:** push to `main` triggers image builds. Cut a release with `vX.Y.Z` tag to publish the stack bundle and tag images. See [docs/releasing.md](docs/releasing.md).
+**How defaults get released:** push to `main` triggers image builds. Cut a release with `vX.Y.Z` tag to publish the stack bundle and tag images. See the `platform-release-management` skill.
 
 **Local development:** contributors can run the full stack from a checkout:
 
@@ -436,11 +436,11 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for 
 
 | Topic                                    | Link                                           |
 | ---------------------------------------- | ---------------------------------------------- |
-| Deployment targets & backup alternatives | [docs/setup-guide.md](docs/setup-guide.md) (§ Per-OS notes, § Home hosting) |
+| Deployment targets & backup alternatives | `server-provisioning` skill (§ Per-OS notes, § Home hosting) |
 | Security hardening                       | [SECURITY.md](SECURITY.md)                     |
-| Credentials & API tokens                 | [docs/credentials.md](docs/credentials.md)     |
+| Credentials & API tokens                 | `server-provisioning` skill (references/credentials.md) |
 | Server customisation                     | [docs/customisation.md](docs/customisation.md) |
-| Releasing                                | [docs/releasing.md](docs/releasing.md)         |
+| Releasing                                | `platform-release-management` skill (references/releasing-procedure.md) |
 | Open technical spikes                    | [docs/spikes/](docs/spikes/)                   |
 
 ## Changelog

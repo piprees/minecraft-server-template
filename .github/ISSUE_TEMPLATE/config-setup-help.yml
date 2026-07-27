@@ -9,7 +9,7 @@ body:
 
         Before opening this issue, check:
         - [README.md quickstart](../blob/main/README.md#try-it-locally-in-10-minutes) for the fastest path
-        - [docs/setup-guide.md](../blob/main/docs/setup-guide.md) for the full walkthrough
+        - The `server-provisioning` skill for the full setup walkthrough
         - [Troubleshooting](../blob/main/README.md#troubleshooting) for common problems
 
   - type: dropdown

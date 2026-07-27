@@ -6,7 +6,7 @@ tags: [cloudflare, hetzner, digitalocean, discord, r2, restic, api-token, creden
 
 # Credential Sourcing
 
-This is the "how do I obtain X" companion to `docs/credentials.md` (the canonical table — check there for rotation guidance and anything not covered here). Order follows `./ops setup`'s phases, since that's the order an agent running the wizard will hit them.
+This is the "how do I obtain X" companion to `references/credentials.md` (the canonical table — check there for rotation guidance and anything not covered here). Order follows `./ops setup`'s phases, since that's the order an agent running the wizard will hit them.
 
 **Never print or reproduce a real credential value.** Placeholders only, even when quoting a `.env` line back to a user.
 
@@ -30,7 +30,7 @@ Cloud console → **API → Tokens/Keys → Generate New Token** → Read + Writ
 
 ## 2. Cloudflare — three systems, only two used
 
-Read `docs/credentials.md`'s "three credentials people mix up" section before creating anything here. Summary of what to actually create:
+Read `references/credentials.md`'s "three credentials people mix up" section before creating anything here. Summary of what to actually create:
 
 ### `CLOUDFLARE_API_TOKEN` (the only "token" that goes in `.env`)
 
@@ -82,7 +82,7 @@ Legacy `X-Auth-Email` + `X-Auth-Key` scheme. Nothing in this stack reads it. If 
 
 ## 3. Discord bot
 
-Full click-by-click steps (intents, OAuth scopes, invite URL): `docs/setup-guide.md` §4 — not duplicated here. Credentials collected:
+Full click-by-click steps (intents, OAuth scopes, invite URL): `references/setup-walkthrough.md` §4 — not duplicated here. Credentials collected:
 
 | Variable | Format | Where |
 | --- | --- | --- |

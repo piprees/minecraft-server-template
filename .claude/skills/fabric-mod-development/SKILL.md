@@ -7,7 +7,7 @@ description: Builds, verifies, and ships an in-house Fabric mod under mods/<name
 
 Building, verifying, and shipping the in-house Fabric mods in `mods/` (currently `mods/custom-dimensions` — target MC 1.21.1, Fabric Loader 0.16+, Java 21). This skill owns **procedure**: does the jar you built actually work, how do you iterate on it without lying to yourself, and how do you prove a player-dependent path is safe before you restart production. It does not own the mod's internal architecture (portal system, immersive portals, auras) — that lives in `mods/AGENTS.md` and changes often enough that duplicating it here would drift. Read it there; this skill tells you what to *do* with it.
 
-**Out of scope:** authoring or editing a dimension's JSON config (`custom-dimension-authoring` skill, `.claude/skills/custom-dimension-authoring/SKILL.md`); dimension lifecycle on a live world — level.dat scrubs, orphan reconciliation (root `AGENTS.md` § Dimension lifecycle traps); cutting a platform release (root `AGENTS.md` § Cutting a release, `docs/releasing.md`).
+**Out of scope:** authoring or editing a dimension's JSON config (`custom-dimension-authoring` skill, `.claude/skills/custom-dimension-authoring/SKILL.md`); dimension lifecycle on a live world — level.dat scrubs, orphan reconciliation (root `AGENTS.md` § Dimension lifecycle traps); cutting a platform release (root `AGENTS.md` § Cutting a release, `platform-release-management` skill).
 
 ## MANDATORY reading before you touch a mod
 

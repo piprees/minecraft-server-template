@@ -31,7 +31,7 @@ You are working with the `.env` model for this platform (or a consumer repo buil
 | `config/1password.env` | The `op://` reference map — field names here must match what `op-sync-env.sh` writes. |
 | `.github/workflows/deploy-reusable.yml` (`secrets:` block + "Generate server .env" step) | The fourth place, and the actual mechanism that regenerates the server's `.env` on every full deploy. |
 
-Also skim `docs/credentials.md` for the per-variable provider/format table and the rotation reference.
+Also skim the credentials reference in the `server-provisioning` skill for the per-variable provider/format table and the rotation reference.
 
 ## The truth hierarchy
 
@@ -77,7 +77,7 @@ Every `${VAR}` in `docker-compose.yml` carries an inline `${VAR:-default}` (e.g.
 
 ## Rotation
 
-Provider dashboard → paste the new value into local `.env` → `./ops op-sync-env` → `./ops github-env-sync` → trigger a full deploy if the server needs it at runtime. See `docs/credentials.md` for the per-credential quick reference.
+Provider dashboard → paste the new value into local `.env` → `./ops op-sync-env` → `./ops github-env-sync` → trigger a full deploy if the server needs it at runtime. See the credentials reference in the `server-provisioning` skill for the per-credential quick reference.
 
 **`RESTIC_PASSWORD` is the one exception: do not rotate it.** All existing restic backups become permanently unreadable without the original passphrase. If it must change, that's a new backup repository, not a rotation.
 
