@@ -227,7 +227,7 @@ overlay/modpack/overrides/configureddefaults/resourcepacks/server-panorama/
     └── panorama_5.png   (Down)
 ```
 
-Cubemap faces must be **square** screenshots at **exactly 90° FOV** (`fov:0.5` in options.txt) with `fovEffectScale:0.0`. See the [template docs](https://github.com/piprees/minecraft-server-template/blob/main/docs/customisation.md#capturing-cubemap-faces) for the step-by-step capture guide.
+Cubemap faces must be **square** screenshots at **exactly 90° FOV** (`fov:0.5` in options.txt) with `fovEffectScale:0.0`. See the [panorama capture guide](https://github.com/piprees/minecraft-server-template/blob/main/.claude/skills/consumer-customisation/references/panorama-capture.md) for the step-by-step process.
 
 ### Area titles from signs
 
