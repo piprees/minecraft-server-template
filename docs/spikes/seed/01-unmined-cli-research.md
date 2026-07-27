@@ -7,7 +7,7 @@
 ## What unmined-cli Reads
 
 | Data | Required? | Used for |
-|------|-----------|----------|
+| --- | --- | --- |
 | Block states (palette + data per section) | **YES — mandatory** | Every pixel's colour comes from block→tag→colour mapping |
 | Biome palette per section | Yes for full quality | Biome tints on grass/foliage/water, biome-specific styling |
 | Heightmaps | Yes for shadows | Elevation gradients, shadow calculations |
@@ -43,13 +43,13 @@ No `--biome` flag. No seed-based rendering. No heightmap-only mode.
 
 ## Alternative Renderers — All Need Block Data
 
-| Renderer | Status | Block data needed? | Notes |
-|----------|--------|-------------------|-------|
-| unmined-cli | Active | Yes | Best for top-down maps |
-| BlueMap CLI | Active (in stack) | Yes + light data | 3D isometric, needs MORE than unmined |
-| Overviewer | Dead | Yes | Devs recommend BlueMap |
-| Mapcrafter | Dead | Yes | Last release for MC 1.13 |
-| PapyrusCS | Active | Yes | Bedrock only (LevelDB) |
+| Renderer    | Status            | Block data needed? | Notes                                 |
+| ----------- | ----------------- | ------------------ | ------------------------------------- |
+| unmined-cli | Active            | Yes                | Best for top-down maps                |
+| BlueMap CLI | Active (in stack) | Yes + light data   | 3D isometric, needs MORE than unmined |
+| Overviewer  | Dead              | Yes                | Devs recommend BlueMap                |
+| Mapcrafter  | Dead              | Yes                | Last release for MC 1.13              |
+| PapyrusCS   | Active            | Yes                | Bedrock only (LevelDB)                |
 
 **No existing renderer can produce terrain maps from biomes + heightmaps alone.** Every renderer is a block-state-to-colour mapper.
 

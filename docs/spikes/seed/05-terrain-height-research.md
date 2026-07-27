@@ -42,12 +42,12 @@ surface_Y ≈ 128 * (offset + 0.5 - 0.2734375 / factor) + 8
 
 ### What the Approximation Misses
 
-| Component | Effect | Impact on Top-Down Map |
-|---|---|---|
-| base_3d_noise | ±10-20 block variation | Averages out at map scale |
-| jaggedness | Mountain peaks sharper | Off by 10-30 blocks in peaks only |
-| cave openings | Surface caves lower visible Y | Not significant for map rendering |
-| aquifer system | Underwater caves | Invisible from above |
+| Component      | Effect                        | Impact on Top-Down Map            |
+| -------------- | ----------------------------- | --------------------------------- |
+| base_3d_noise  | ±10-20 block variation        | Averages out at map scale         |
+| jaggedness     | Mountain peaks sharper        | Off by 10-30 blocks in peaks only |
+| cave openings  | Surface caves lower visible Y | Not significant for map rendering |
+| aquifer system | Underwater caves              | Invisible from above              |
 
 **Accuracy: ±5-15 blocks for most terrain.** Mountain peaks may be off by more. Oceans and plains very accurate. **Good enough for hillshade on a top-down map.**
 
@@ -62,20 +62,21 @@ offset = spline(continentalness →
 ```
 
 Each spline has:
+
 - **coordinate**: which density function to sample
 - **points**: array of {location, value (scalar or nested spline), derivative}
 
 ### Vanilla Continentalness Breakpoints (in offset.json)
 
-| Continentalness | Terrain Type |
-|---|---|
-| -1.2 to -1.05 | Mushroom Fields |
-| -1.05 to -0.455 | Deep Ocean |
-| -0.455 to -0.19 | Ocean |
-| -0.19 to -0.11 | Coast |
-| -0.11 to 0.03 | Near-inland |
-| 0.03 to 0.3 | Mid-inland |
-| 0.3 to 1.0 | Far-inland (mountains) |
+| Continentalness | Terrain Type           |
+| --------------- | ---------------------- |
+| -1.2 to -1.05   | Mushroom Fields        |
+| -1.05 to -0.455 | Deep Ocean             |
+| -0.455 to -0.19 | Ocean                  |
+| -0.19 to -0.11  | Coast                  |
+| -0.11 to 0.03   | Near-inland            |
+| 0.03 to 0.3     | Mid-inland             |
+| 0.3 to 1.0      | Far-inland (mountains) |
 
 ## Terralith's Modifications
 
@@ -89,6 +90,7 @@ Each spline has:
 - `noise_settings/overworld.json` — 7,418 lines including complete surface rule tree
 
 Also adds/modifies:
+
 - `base_erosion.json`, `erosion.json` — modified climate noise parameters
 - `caves/entrances.json`, `caves/pillars.json` — custom cave shapes
 - 294 biome JSON files
@@ -137,6 +139,7 @@ surface_y = int(128 * (offset + 0.5))
 ### Step 5: Use in Renderer
 
 Replace the current hillshade (from continentalness/erosion) with actual computed surface heights. This gives:
+
 - Realistic coastlines (height drops below sea level at the right continentalness)
 - Mountain profiles that match the actual game
 - Accurate valley depths
@@ -149,19 +152,19 @@ cubiomes does **NOT** currently compute terrain height for 1.18+. It has `approx
 
 After determining height, surface rules determine the actual block:
 
-| Biome(s) | Top Block | Below (3-4 layers) |
-|---|---|---|
-| Most biomes | grass_block | dirt |
-| Desert, Beach | sand | sandstone |
-| Badlands | red_sand | terracotta bands |
-| Mushroom Fields | mycelium | dirt |
-| Old Growth Taiga | podzol | dirt |
-| Ice Spikes | snow_block | dirt |
-| Mangrove Swamp | mud | mud |
-| Stony Shore / steep mountains | stone | stone |
-| Nether Wastes | netherrack | netherrack |
-| Crimson Forest | crimson_nylium | netherrack |
-| Warped Forest | warped_nylium | netherrack |
-| End biomes | end_stone | end_stone |
+| Biome(s)                      | Top Block      | Below (3-4 layers) |
+| ----------------------------- | -------------- | ------------------ |
+| Most biomes                   | grass_block    | dirt               |
+| Desert, Beach                 | sand           | sandstone          |
+| Badlands                      | red_sand       | terracotta bands   |
+| Mushroom Fields               | mycelium       | dirt               |
+| Old Growth Taiga              | podzol         | dirt               |
+| Ice Spikes                    | snow_block     | dirt               |
+| Mangrove Swamp                | mud            | mud                |
+| Stony Shore / steep mountains | stone          | stone              |
+| Nether Wastes                 | netherrack     | netherrack         |
+| Crimson Forest                | crimson_nylium | netherrack         |
+| Warped Forest                 | warped_nylium  | netherrack         |
+| End biomes                    | end_stone      | end_stone          |
 
 Surface depth: `floor(surface_noise(X,Z) * 2.75 + 3.0 + positional_noise * 0.25)`

@@ -49,10 +49,18 @@ public final class DimensionStructures {
     public static StructurePlacementCalculator transformed(ServerWorld world, BiomeSource biomeSource,
             NoiseConfig noiseConfig, StructurePlacementCalculator original) {
         Identifier key = world.getRegistryKey().getValue();
-        if (!MultiverseConfig.getInstance().isManagedNamespace(key.getNamespace())) {
-            return null;
+        DimensionConfig def;
+        if (MultiverseConfig.getInstance().isManagedNamespace(key.getNamespace())) {
+            def = com.customdimensions.dimension.DimensionManager.getInstance()
+                    .resolveDefinition(key.getPath());
+        } else {
+            // Base worlds (minecraft:overworld/the_nether/the_end,
+            // paradise_lost:paradise_lost) resolve by EXACT dimension id.
+            // They are absent from the managed-namespace set on purpose —
+            // those namespaces hold other mods' dimensions and the lookup
+            // above is by path.
+            def = MultiverseConfig.getInstance().getBaseWorld(key.toString());
         }
-        DimensionConfig def = com.customdimensions.dimension.DimensionManager.getInstance().resolveDefinition(key.getPath());
         if (def == null) {
             return null;
         }

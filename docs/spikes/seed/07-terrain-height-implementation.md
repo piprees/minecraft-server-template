@@ -37,10 +37,10 @@ evaluator.offset_raw(continentalness, erosion, weirdness)       # → float (raw
 
 ## Height Distribution (Synthetic Grid Test)
 
-| Metric | Value |
-|---|---|
-| Min height | -37 (deep ocean) |
-| Max height | 228 (mountain peaks) |
+| Metric      | Value                          |
+| ----------- | ------------------------------ |
+| Min height  | -37 (deep ocean)               |
+| Max height  | 228 (mountain peaks)           |
 | Mean height | 69.4 (just above sea level 63) |
 
 Peak of the distribution is at Y=60-70 (sea level area), with a long tail to Y=228 for mountain peaks. This matches what Terralith terrain actually looks like.
@@ -48,6 +48,7 @@ Peak of the distribution is at Y=60-70 (sea level area), with a long tail to Y=2
 ## Spline Data
 
 Extracted from Terralith's `offset.json` and `factor.json`:
+
 - Offset spline: 3-4 levels deep, 12 top-level continentalness breakpoints
 - Factor spline: similar structure, controls vertical stretch
 - Self-referencing coordinates at lower levels (a ridges spline can reference continentalness again)

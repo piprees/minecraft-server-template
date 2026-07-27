@@ -132,6 +132,69 @@ CHECKS = [
     },
 ]
 
+# The four base worlds. They are managed exactly like custom dimensions, so
+# they are checked exactly like them — the census comes from the same command
+# and the same live placement calculator.
+#
+# `reachable` is the PROGRESSION FLOOR. Vanilla places fortresses and end
+# cities on a dense grid on purpose, because blaze rods and elytra are behind
+# them; dissolving those sets into a noise group must not push them out of
+# reach. Re-run this after any change to either world's groups.
+BASE_WORLD_CHECKS = [
+    {
+        "slug": "overworld",
+        "base_world": True,
+        "why": "the world everyone is standing in: villages near spawn, nothing alien",
+        "groups_include": ["deco", "settlements", "dungeons", "landmarks", "maritime"],
+        "absent": ["minecraft:end_city", "minecraft:fortress"],
+        "radial": {"settlements": "inner", "dungeons": "outer"},
+        "reachable": [
+            # A village is the overworld's opening move, not progression — but
+            # a spawn with no settlement within 1500 blocks is a bad world.
+            {"structure": "minecraft:village_", "within": 1500, "min_expected": 1.0},
+        ],
+    },
+    {
+        "slug": "the_nether",
+        "base_world": True,
+        "why": "PROGRESSION: blaze rods come from fortresses and nothing else",
+        "groups_include": ["deco", "dungeons"],
+        "absent": ["minecraft:village_plains", "minecraft:igloo", "minecraft:end_city"],
+        "reachable": [
+            # borders.player is 1024 here (nether scale 8), so the whole
+            # playable world is 64 chunks of radius. A floor of one expected
+            # fortress inside HALF of that is deliberately strict: a player
+            # who has to sweep the entire nether for blaze rods has been
+            # regressed even if the structure technically exists.
+            {"structure": "minecraft:fortress", "within": 512, "min_expected": 1.0},
+        ],
+    },
+    {
+        "slug": "the_end",
+        "base_world": True,
+        "why": "PROGRESSION: elytra come from end cities and nothing else",
+        "groups_include": ["deco", "endgame"],
+        "absent": ["minecraft:village_plains", "minecraft:fortress", "minecraft:igloo"],
+        "reachable": [
+            {"structure": "minecraft:end_city", "within": 2048, "min_expected": 1.0},
+        ],
+    },
+    {
+        "slug": "paradise_lost",
+        "base_world": True,
+        "why": "the skylands base world: its own mod's content, no hostile mega-content",
+        # `settlements` is enabled by the type and still does not appear: no
+        # settlement-themed set's biomes intersect the paradise biome source,
+        # so the pool comes out empty and the group is skipped. That is the
+        # documented normal case, and asserting the type's list here instead
+        # of the world's actual pools would be asserting the wish.
+        "groups_include": ["deco", "landmarks"],
+        "groups_absent": ["endgame", "dungeons", "maritime", "loot"],
+        "present": ["paradise_lost:"],
+        "absent": ["minecraft:end_city", "minecraft:fortress"],
+    },
+]
+
 CURVES = {
     "inner": [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0],
     "outer": [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0],
@@ -206,6 +269,48 @@ def positions_of(census, group=None):
     return out
 
 
+def check_reachable(slug, census, groups, forced, req, report):
+    """The progression floor: EXPECTED instances of one structure within a
+    radius, not "the pool contains it".
+
+    A noise group is one StructureSet holding the whole pool behind one
+    placement, and vanilla picks which member lands on a start chunk by
+    WEIGHT. So a group with 400 positions and a 0.3-weight fortress in a pool
+    weighing 900 does not put a fortress anywhere near spawn — presence in the
+    pool says nothing about reach. The expectation
+    `positions_within * weight / pool_weight` is the honest quantity, and
+    every input is in the census: per-group positions, and the per-group pool
+    with its resolved weights.
+
+    Forced placements count in full — they are certainties, not draws.
+    """
+    needle = req["structure"]
+    within = req["within"]
+    floor = req.get("min_expected", 1.0)
+    expected = 0.0
+    detail = []
+    for group, entry in groups.items():
+        pool = entry.get("structures") or {}
+        weight = sum(w for sid, w in pool.items() if needle in sid)
+        if not weight:
+            continue
+        total_weight = sum(pool.values()) or 1
+        near = sum(1 for cx, cz in (entry.get("positions") or [])
+                   if math.hypot(cx, cz) * 16 <= within)
+        share = near * weight / total_weight
+        expected += share
+        detail.append(f"{group}: {near} pos x {weight}/{total_weight} = {share:.2f}")
+    certain = sum(1 for k, v in forced.items() if needle in k
+                  for cx, cz in v if math.hypot(cx, cz) * 16 <= within)
+    expected += certain
+    if certain:
+        detail.append(f"forced: {certain}")
+    report.check(slug,
+                 f"reachable: >= {floor} expected {needle} within {within} blocks",
+                 expected >= floor,
+                 f"expected {expected:.2f} ({'; '.join(detail) or 'not in any pool'})")
+
+
 def run_dimension(spec, census_dir, report):
     slug = spec["slug"]
     print(f"\n{slug} — {spec['why']}")
@@ -272,6 +377,9 @@ def run_dimension(spec, census_dir, report):
         total = len(positions_of(census))
         report.check(slug, f"at least {spec['min_positions']} placements",
                      total >= spec["min_positions"], f"got {total}")
+
+    for req in spec.get("reachable", []):
+        check_reachable(slug, census, groups, forced, req, report)
 
     for needle in spec.get("forced_contains", []):
         report.check(slug, f"forced placement {needle}",
@@ -386,15 +494,16 @@ def main():
     args = ap.parse_args()
 
     if args.list:
-        for spec in CHECKS:
+        for spec in CHECKS + BASE_WORLD_CHECKS:
             print(f"{spec['slug']:26} {spec['why']}")
         return 0
     if not args.census:
         ap.error("--census is required")
 
     report = Report()
-    for spec in CHECKS:
+    for spec in CHECKS + BASE_WORLD_CHECKS:
         run_dimension(spec, args.census, report)
+
     if args.config:
         audit_unsatisfiable_wants(args.config, report, strict=args.strict)
 

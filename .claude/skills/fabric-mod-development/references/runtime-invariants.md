@@ -46,7 +46,7 @@ This is the "Epic Dungeons + c2me wedge" documented in this repo's known issues:
 
 `deploy.sh` (step 8c) and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml` on every boot; the rest of c2me stays enabled. Two sharp edges:
 
-1. **c2me strips the unknown key when it rewrites its own config at boot**, after reading it. The key is read first, so enforcement holds — but only because both boot paths re-apply the patch every single time. The key's absence from `c2me.toml` after boot is *expected*, not a sign the patch failed.
+1. **c2me strips the unknown key when it rewrites its own config at boot**, after reading it. The key is read first, so enforcement holds — but only because both boot paths re-apply the patch every single time. The key's absence from `c2me.toml` after boot is _expected_, not a sign the patch failed.
 2. **A bare `docker restart mc` in the local loop boots WITHOUT the patch.** After any manual restart, re-apply the patch (or re-run `./dev up`) before trusting seed-dependent results. See the main SKILL.md § Fast local loop for the exact idempotent snippet.
 
 **Verify via log grep, never by inspecting the config file**:

@@ -5,6 +5,7 @@
 ### Cubiomes is vanilla-only but the noise is reusable
 
 cubiomes (C library by Cubitect) replicates MC's exact multinoise algorithm for 1.18+:
+
 - Six `DoublePerlinNoise` generators for temperature, humidity, continentalness, erosion, depth, weirdness
 - `sampleBiomeNoise()` samples all six climate parameters at a coordinate
 - `climateToBiome()` maps the 6D climate vector to a biome ID via a spline-based decision tree
@@ -14,6 +15,7 @@ cubiomes (C library by Cubitect) replicates MC's exact multinoise algorithm for 
 ### How modded biomes actually work
 
 Terralith, Incendium, Nullscape, and Nature's Spirit are datapacks that modify:
+
 1. **The multinoise biome source JSON** (`worldgen/world_preset/`) — they add custom biome entries mapping climate parameter ranges to custom biome resource locations (e.g., `terralith:yellowstone`)
 2. **Density functions** (`worldgen/density_function/`) — alter terrain shape, xz_scale in shifted noise
 
@@ -22,6 +24,7 @@ The key insight: modded biome placement is defined by **JSON parameter mappings*
 ### Our biome_sampler.py IS the modded cubiomes
 
 The existing `biome_sampler.py` already does exactly what a "modded cubiomes" would do:
+
 - Same Xoroshiro128++ PRNG
 - Same DoublePerlinNoiseSampler (two OctavePerlinNoiseSamplers combined)
 - Same coordinate shifts from offset noise
@@ -51,17 +54,18 @@ Chunk index: `i = (chunkX & 31) + (chunkZ & 31) * 32`
 
 ### Chunk data
 
-| Offset | Size | Description |
-|--------|------|-------------|
-| 0–3 | 4 bytes | Length (big-endian, excludes padding) |
-| 4 | 1 byte | Compression (1=GZip, 2=Zlib, 3=Uncompressed, 4=LZ4) |
-| 5+ | Length-1 | Compressed NBT data |
+| Offset | Size     | Description                                         |
+| ------ | -------- | --------------------------------------------------- |
+| 0–3    | 4 bytes  | Length (big-endian, excludes padding)               |
+| 4      | 1 byte   | Compression (1=GZip, 2=Zlib, 3=Uncompressed, 4=LZ4) |
+| 5+     | Length-1 | Compressed NBT data                                 |
 
 File size must be a multiple of 4096 bytes.
 
 ### Biome storage (1.18+)
 
 Each section's biomes compound:
+
 - **palette:** List of strings (biome resource locations)
 - **data:** LongArray of packed indices
   - 64 biome entries per section (4×4×4 grid in a 16×16×16 section)
@@ -73,6 +77,7 @@ Each section's biomes compound:
 ### Block state storage (1.18+)
 
 Each section's block_states compound:
+
 - **palette:** List of compounds (block state with Name + Properties)
 - **data:** LongArray of packed indices
   - 4096 entries per section (16×16×16)
@@ -110,12 +115,12 @@ Each section's block_states compound:
 
 ## Tools for Writing .mca
 
-| Tool | Language | .mca Write? | Biome Write? | Notes |
-|------|----------|-------------|--------------|-------|
-| amulet-core | Python | Yes | Yes (1.18+) | Most complete, handles packing |
-| anvil-parser2 | Python | Yes | TODO | Block writing works |
-| mca crate | Rust | Yes | Manual NBT | 147 MiB/s, need fastnbt for serialisation |
-| Hand-roll | C/Python | Yes | Manual | Format is simple: header + zlib-compressed NBT |
+| Tool          | Language | .mca Write? | Biome Write? | Notes                                          |
+| ------------- | -------- | ----------- | ------------ | ---------------------------------------------- |
+| amulet-core   | Python   | Yes         | Yes (1.18+)  | Most complete, handles packing                 |
+| anvil-parser2 | Python   | Yes         | TODO         | Block writing works                            |
+| mca crate     | Rust     | Yes         | Manual NBT   | 147 MiB/s, need fastnbt for serialisation      |
+| Hand-roll     | C/Python | Yes         | Manual       | Format is simple: header + zlib-compressed NBT |
 
 ### Alternative: deepslate (TypeScript, by misode)
 

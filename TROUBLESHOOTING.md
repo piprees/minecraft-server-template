@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T17](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T18](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
@@ -59,6 +59,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | A released dimension-config change deploys green and changes nothing | [T15](#t15) |
 | Launchers download HTML instead of mod JARs | [T16](#t16) |
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
+| `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -224,6 +225,28 @@ Each of these has caused a real incident.
 - **Corollary:** run `scripts/check-dimension-drift.py` before trusting any
   worldgen assertion — see [D2](#d2). A world created under an older config
   makes every other check measure history.
+
+<a id="t18"></a>
+### T18 — A custom dimension is created on first entry, so it is absent until then
+
+- **Symptom:** `execute in adventure:<slug> run seed` answers
+  `Unknown dimension`, and the dimension is missing from every command that
+  takes a dimension argument, on a healthy server with the config plainly
+  present.
+- **Cause:** `CreateWorldsMixin` filters vanilla's `createWorlds` loop down to
+  the base worlds, so the ~80 custom dimensions are built by
+  `DimensionManager.getOrCreateDimension` when a player first enters one.
+  Distant Horizons and c2me build per-level state from
+  `ServerWorldEvents.LOAD`, and paying that for every dimension at every boot
+  is what this avoids.
+- **Fix:** load it and poll — creation is queued to `END_SERVER_TICK`, so it
+  lands a tick or two later, not immediately.
+  ```bash
+  docker exec -i mc rcon-cli "customdim load the_overgrowth"   # bare slug
+  docker exec -i mc rcon-cli "execute in adventure:the_overgrowth run seed"
+  ```
+  The four base worlds are exempt: vanilla asks for them by key from paths
+  with no lazy-creation hook, so they exist from the first tick.
 
 ---
 

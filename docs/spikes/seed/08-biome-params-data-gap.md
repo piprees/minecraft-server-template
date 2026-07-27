@@ -22,8 +22,8 @@ Unique biomes: 10 — ALL paradise_lost:*
 1. **All dimension renders look the same** — the BiomeSampler finds only Paradise Lost biomes regardless of the `family` filter, because no family tags exist in the data
 2. **The old renders looked correct** because they were generated during a different warmup run that produced a complete biome_params.json with all 4 families (overworld/nether/end/paradise_lost) and family tags
 3. **Overworld biomes** (plains, forest, desert, ocean, rivers, mountains, etc.) are entirely missing — the renderer can't distinguish terrain types it can't sample
-4. **Nether biomes** (nether_wastes, crimson_forest, basalt_deltas, incendium:*, etc.) are missing
-5. **End biomes** (end_highlands, nullscape:*, etc.) are missing
+4. **Nether biomes** (nether_wastes, crimson_forest, basalt_deltas, incendium:\*, etc.) are missing
+5. **End biomes** (end_highlands, nullscape:\*, etc.) are missing
 
 ## Root Cause
 
@@ -32,12 +32,15 @@ The warmup step (`scripts/seed/roll-all.sh` → server boot → `/customdim dump
 ## Required Fix (Phase 3)
 
 1. **Re-run the warmup** to regenerate `biome_params.json` with all 4 families:
+
    ```bash
    ./dev seed-roll --warmup-only
    ```
+
    This boots the MC server in Docker, creates one dimension per family, and runs `/customdim dump-biome-params` which extracts the full modded biome parameter table including TerraBlender entries.
 
 2. **Verify the output** contains entries for all families:
+
    ```python
    import json
    params = json.load(open('biome_params.json'))

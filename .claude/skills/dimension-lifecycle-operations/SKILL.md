@@ -11,7 +11,7 @@ You are operating on a **custom-dimensions** dimension that already exists on a 
 
 ## The timing question — ask this first
 
-Every dimension-lifecycle task reduces to one question: *does this field apply on restart, or does it require destroying data?* Get this wrong and you either wipe a world that didn't need it, or spend an hour restarting a server that was never going to pick up the change.
+Every dimension-lifecycle task reduces to one question: _does this field apply on restart, or does it require destroying data?_ Get this wrong and you either wipe a world that didn't need it, or spend an hour restarting a server that was never going to pick up the change.
 
 | Field group | Timing | To apply a change |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Full field-by-field reference, with the exact source line for each classificatio
 
 The dimension's chunk generator is serialised into `level.dat`'s `Data.WorldGenSettings.dimensions` entry the first time the dimension is created. `registerDimensions` skips any key already present in that registry, and vanilla re-persists the stored generator on every save — so a config edit to `type`/`noiseSettings`/`biomes`/`seed` has **zero effect** on a dimension that already exists, forever, until the world is wiped. Two shortcuts that look like they should work and don't:
 
-- **Deleting the dimension's region directory** (`data/world/dimensions/<ns>/<slug>/region/`) only regenerates *old-style* chunks using the *same stored generator* — it does not pick up your config change.
+- **Deleting the dimension's region directory** (`data/world/dimensions/<ns>/<slug>/region/`) only regenerates _old-style_ chunks using the _same stored generator_ — it does not pick up your config change.
 - **`customdim destroy <name>`** unloads the world from memory. It does **not** touch `level.dat`. The next boot re-reads the config, sees the dimension key still in the registry, and recreates it — with the OLD generator, not your edit (verified empirically 2026-07-22, converting a dimension to `type: cave`).
 
 If the goal is "change this dimension's terrain/biomes on a world with players already in it", the honest answer is a world wipe (local: delete `data/world`; production: the reset-seed ritual). If a re-read alternative can meet the actual goal — a different portal, difficulty, structure density, or border — offer that instead of the wipe.
@@ -60,7 +60,7 @@ cp config/custom-dimensions/dimensions/<slug>.json <consumer>/overlay/config/cus
 The map renderer (`docker/unmined-render/render-loop.sh`) needs no per-dimension registration at all:
 
 - It walks `data/world/dimensions/<ns>/<slug>/region/*.mca` directly on every pass (default every `UNMINED_INTERVAL`, 6h) and renders whatever it finds. A dimension appears **automatically** once it has real generated chunks — no config file to write, no reload command to run.
-- It reads `borders.generation` from the dimension's own config (falling back to `settings.json`'s `defaults.borders.generation`, then `PREGEN_BORDER_RADIUS`) to clamp the rendered area — **this is the only place `borders.generation` is actually consumed**. `WorldBorderManager` (the mod) explicitly does *not* apply it; it is tooling metadata for the renderer alone.
+- It reads `borders.generation` from the dimension's own config (falling back to `settings.json`'s `defaults.borders.generation`, then `PREGEN_BORDER_RADIUS`) to clamp the rendered area — **this is the only place `borders.generation` is actually consumed**. `WorldBorderManager` (the mod) explicitly does _not_ apply it; it is tooling metadata for the renderer alone.
 - Served at `map.DOMAIN` via `nav-proxy` from `data/unmined-web/`, always up regardless of `mc`'s state (plain files).
 
 ```bash
@@ -87,7 +87,7 @@ Two independent triggers land on the same hang: `docker ps` stays healthy, RCON 
 1. **Epic Dungeons loot ids.** `epic:chests/DungeonZombie` (uppercase — invalid identifier path) throws `Non [a-z0-9/._-] character in path` during chunk feature placement when a dungeon generates. Under c2me the chunk upgrade fails once (`Error upgrading chunk [x, z] to "minecraft:features"`), and any main-thread sync chunk load waiting on that chunk hangs forever.
 2. **A regenerating deleted dimension.** Delete a world directory without scrubbing `level.dat` (above) and the next boot recreates the dimension and regenerates its spawn chunks — if a dungeon lands there, the boot itself wedges.
 
-**Diagnosis caveat:** spark's `Timed out waiting for world statistics` alone is *not* proof of the wedge — mass dimension creation legitimately runs 10+ minutes. Confirm with `Error upgrading chunk` / `DungeonZombie` counts and whether the log has stopped advancing.
+**Diagnosis caveat:** spark's `Timed out waiting for world statistics` alone is _not_ proof of the wedge — mass dimension creation legitimately runs 10+ minutes. Confirm with `Error upgrading chunk` / `DungeonZombie` counts and whether the log has stopped advancing.
 
 **Recovery:** `docker stop -t 90 mc && docker start mc` (local only; production goes through `deploy.sh`). If the trigger was a regenerating deleted dimension, you must also do the level.dat scrub — restarting alone reproduces the wedge on the very next boot.
 
@@ -100,7 +100,7 @@ Two independent triggers land on the same hang: `docker ps` stays healthy, RCON 
 5. **Template and consumer configs must stay in sync.** `config/custom-dimensions/` (this repo) is the source of truth; `data/config/custom-dimensions/` (a consumer's live copy) must be an exact mirror after any edit. Always copy, never diff-and-decide.
 6. **The wedge's diagnosis is ambiguous — see § The wedge above.** Don't declare a hang "just a slow boot" or "definitely the wedge" from a single log line.
 7. **`LEVEL_TYPE=flat` on the overworld breaks structure placement in every custom dimension.** The generator templates off `overworldOpts`; a flat overworld makes every custom dimension fall through to the default (flat) branch regardless of its own `type`.
-8. **c2me's density-function compiler must stay disabled**, or every custom dimension silently clones the main world's terrain (it ignores per-dimension seeds). Both `deploy.sh` and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml` on every boot — but c2me *strips* that key from the file after reading it, so a bare `docker restart mc` (skipping the boot script that re-patches it) boots unpatched. Verify with the locate oracle (`execute in <dim> run locate biome/structure` — different seeds must give different results), never by reading `c2me.toml` afterwards.
+8. **c2me's density-function compiler must stay disabled**, or every custom dimension silently clones the main world's terrain (it ignores per-dimension seeds). Both `deploy.sh` and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml` on every boot — but c2me _strips_ that key from the file after reading it, so a bare `docker restart mc` (skipping the boot script that re-patches it) boots unpatched. Verify with the locate oracle (`execute in <dim> run locate biome/structure` — different seeds must give different results), never by reading `c2me.toml` afterwards.
 9. **Never mutate the server's worlds map from a world-tick context**, and always fire `ServerWorldEvents.LOAD` when adding a `ServerWorld` / `UNLOAD` before closing one. Distant Horizons and c2me build per-level state exclusively from these events — skipping `LOAD` NPE'd Distant Horizons and locked a player out of production (2026-07-12).
 
 ## Validation
@@ -142,6 +142,6 @@ Dimensions and portals are config, not commands — there is **no** `/dimension 
 
 ## See also
 
-- `.claude/skills/custom-dimension-authoring/SKILL.md` (`custom-dimension-authoring`) — the JSON schema, biome/structure catalogues, mood scoring. Consult it for anything about what to *write*; this skill is about what happens once it's written and live.
+- `.claude/skills/custom-dimension-authoring/SKILL.md` (`custom-dimension-authoring`) — the JSON schema, biome/structure catalogues, mood scoring. Consult it for anything about what to _write_; this skill is about what happens once it's written and live.
 - `references/field-timing.md` — every config field classified, with the source line backing each classification.
 - `references/removal-procedure.md` — the full level.dat scrub, step by step.

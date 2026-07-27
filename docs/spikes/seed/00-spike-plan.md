@@ -1,17 +1,16 @@
 # Seed Render Pipeline — Spike Plan
 
-> Synthesised from 5 research reports (01–05 in this directory).
-> Target: render 713 dimension candidates in <30 minutes on an 18-core Mac with quality significantly better than flat biome maps.
+> Synthesised from 5 research reports (01–05 in this directory). Target: render 713 dimension candidates in <30 minutes on an 18-core Mac with quality significantly better than flat biome maps.
 
 ## The Problem
 
 Two existing render implementations, both inadequate:
 
-| | unmined-cli (via MC server) | biome_renderer.py |
-|---|---|---|
-| Quality | Excellent — real block textures, shadows, vegetation | Poor — flat colour blobs with hillshade |
-| Speed | ~2 min/render, crashes after ~15 | ~1s/render, 713 in 14 min |
-| Dependencies | Docker + MC server + forceload + save | None (pure Python) |
+|              | unmined-cli (via MC server)                          | biome_renderer.py                       |
+| ------------ | ---------------------------------------------------- | --------------------------------------- |
+| Quality      | Excellent — real block textures, shadows, vegetation | Poor — flat colour blobs with hillshade |
+| Speed        | ~2 min/render, crashes after ~15                     | ~1s/render, 713 in 14 min               |
+| Dependencies | Docker + MC server + forceload + save                | None (pure Python)                      |
 
 ## What We Learned
 
@@ -48,6 +47,7 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 **What:** Improve biome_renderer.py with surface-block colouring, computed terrain heights, water depth shading, and vegetation density.
 
 **Why it wins:**
+
 - Zero new dependencies
 - Already fast (14 min for 713 with 18 workers)
 - Quality improvements are incremental and testable
@@ -56,7 +56,7 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 **Improvements in priority order:**
 
 | # | Improvement | Impact | Effort | Description |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | Surface-block colours | HIGH | LOW | Replace flat biome colours with MC map colours of the surface block. Desert = sandy yellow, mountains = grey stone. |
 | 2 | Spline-based terrain height | HIGH | MEDIUM | Parse Terralith's offset.json, implement cubic Hermite interp, compute real surface Y. Replaces crude continentalness/erosion hillshade. |
 | 3 | Water depth shading | HIGH | LOW | Continentalness < -0.19 → water with depth gradient. Bathymetric effect. |
@@ -71,6 +71,7 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 **What:** Generate .mca files with surface blocks + biomes + heightmaps, render with unmined-cli natively.
 
 **How:**
+
 1. For each candidate: sample biome grid (existing sampler), compute surface height (spline), determine surface block (biome lookup)
 2. Write .mca files with:
    - 24 sections per chunk, most all-air with biome palette
@@ -80,11 +81,13 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 3. unmined-cli renders in ~1s per file natively
 
 **Advantages over Phase 1:**
+
 - unmined's block→colour pipeline is battle-tested and handles edge cases
 - Proper shadow/lighting from unmined's stylesheet
 - Modded block texture support via `--java-client-jar`
 
 **Disadvantages:**
+
 - Significantly more code (NBT serialisation, .mca writer, block state packing)
 - New dependency (amulet-nbt or hand-rolled NBT)
 - Surface blocks are an approximation anyway — no vegetation placement, no features
@@ -97,6 +100,7 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 **What:** Run 4-6 Docker containers simultaneously, each processing batches of candidates.
 
 **Why not:**
+
 - Still ~30s per candidate per container = 713 / 6 × 30s = ~60 min minimum
 - Memory pressure: 10GB Docker limit means frequent restarts
 - Complexity: container lifecycle management, VirtioFS lag, RCON health monitoring
@@ -110,6 +114,7 @@ BlueMap (already in our stack), Overviewer (dead), Mapcrafter (dead for modern M
 **What:** Write a small Java program using MC's own NoiseChunkGenerator to generate chunks.
 
 **Why not:**
+
 - Requires setting up the full mod stack (129 JARs) in a headless Java environment
 - Effectively building a headless MC server, which is what the Docker approach already does
 - Complex classloading, mod initialisation, registry bootstrapping
@@ -148,6 +153,7 @@ Only if Phase 1 renders aren't good enough for seed evaluation. The .mca writer 
 The current `biome_params.json` only contains 10 Paradise Lost biomes — no overworld, nether, or end biomes at all. This means the renderer produces the same green/grey palette for every dimension regardless of type.
 
 **Fix:** Re-run the warmup step to regenerate biome_params.json with all 4 dimension families:
+
 ```bash
 ./dev seed-roll --warmup-only
 ```
@@ -158,38 +164,38 @@ This requires Docker Desktop and the full mod stack. See `spike/08-biome-params-
 
 ## Implementation Status
 
-| Component | Status | Notes |
-|---|---|---|
-| `terrain_height.py` | DONE | Spline evaluator, 2µs/eval, ±5-15 block accuracy |
-| `terrain_splines.json` | DONE | 11KB, extracted from Terralith JAR |
-| `surface_rules.py` | DONE | 123 biomes mapped, MC map colours, vegetation density |
-| `biome_renderer.py` upgrade | DONE | Blended colours, spline heights, water depth, vegetation |
-| `biome_sampler.py` optimisation | DONE | 2.4× faster nearest-neighbour with early-exit pruning |
-| `biome_params.json` | DONE | Recovered from stack bundle (1803 entries, 177 biomes, 4 families) |
-| Visual verification | DONE | Overworld + nether renders tested with full biome data |
-| Per-family terrain heights | DONE | Nether, end, paradise_lost height functions with ridges_folded |
-| BiomeSampler filter fix | DONE | biome_filter overrides family filter for multi_biome dims |
-| fast_roller spawn gate fix | DONE | Lenient gate when namesake biomes aren't in sampler |
-| 5 missing dimension candidates | DONE | 27 candidates generated, 13 renders produced |
+| Component                       | Status | Notes                                                              |
+| ------------------------------- | ------ | ------------------------------------------------------------------ |
+| `terrain_height.py`             | DONE   | Spline evaluator, 2µs/eval, ±5-15 block accuracy                   |
+| `terrain_splines.json`          | DONE   | 11KB, extracted from Terralith JAR                                 |
+| `surface_rules.py`              | DONE   | 123 biomes mapped, MC map colours, vegetation density              |
+| `biome_renderer.py` upgrade     | DONE   | Blended colours, spline heights, water depth, vegetation           |
+| `biome_sampler.py` optimisation | DONE   | 2.4× faster nearest-neighbour with early-exit pruning              |
+| `biome_params.json`             | DONE   | Recovered from stack bundle (1803 entries, 177 biomes, 4 families) |
+| Visual verification             | DONE   | Overworld + nether renders tested with full biome data             |
+| Per-family terrain heights      | DONE   | Nether, end, paradise_lost height functions with ridges_folded     |
+| BiomeSampler filter fix         | DONE   | biome_filter overrides family filter for multi_biome dims          |
+| fast_roller spawn gate fix      | DONE   | Lenient gate when namesake biomes aren't in sampler                |
+| 5 missing dimension candidates  | DONE   | 27 candidates generated, 13 renders produced                       |
 
 ## Files to Create/Modify
 
-| File | Action | Purpose |
-|---|---|---|
-| `scripts/seed/terrain_splines.json` | Create | Parsed spline data from Terralith's offset.json |
-| `scripts/seed/terrain_height.py` | Create | Spline evaluator + surface height computation |
-| `scripts/seed/biome_renderer.py` | Modify | Surface-block colours, computed heights, water depth, vegetation |
-| `scripts/seed/surface_rules.py` | Create | Biome → surface block → colour mapping |
+| File                                | Action | Purpose                                                          |
+| ----------------------------------- | ------ | ---------------------------------------------------------------- |
+| `scripts/seed/terrain_splines.json` | Create | Parsed spline data from Terralith's offset.json                  |
+| `scripts/seed/terrain_height.py`    | Create | Spline evaluator + surface height computation                    |
+| `scripts/seed/biome_renderer.py`    | Modify | Surface-block colours, computed heights, water depth, vegetation |
+| `scripts/seed/surface_rules.py`     | Create | Biome → surface block → colour mapping                           |
 
 ## Research Reports
 
-| File | Contents |
-|---|---|
-| `spike/01-unmined-cli-research.md` | unmined-cli capabilities, what it reads, alternative renderers |
-| `spike/02-cubiomes-and-mca-research.md` | cubiomes internals, mod support, existing Python sampler analysis |
-| `spike/03-mca-format-spec.md` | .mca binary format, NBT structure, packing rules |
-| `spike/04-improved-renderer-research.md` | Surface blocks, colours, vegetation density, water rendering |
-| `spike/05-terrain-height-research.md` | Density functions, spline system, Terralith modifications |
+| File                                     | Contents                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------- |
+| `spike/01-unmined-cli-research.md`       | unmined-cli capabilities, what it reads, alternative renderers    |
+| `spike/02-cubiomes-and-mca-research.md`  | cubiomes internals, mod support, existing Python sampler analysis |
+| `spike/03-mca-format-spec.md`            | .mca binary format, NBT structure, packing rules                  |
+| `spike/04-improved-renderer-research.md` | Surface blocks, colours, vegetation density, water rendering      |
+| `spike/05-terrain-height-research.md`    | Density functions, spline system, Terralith modifications         |
 
 ### Phase 6: Integration & E2E Tests (CI-verified)
 

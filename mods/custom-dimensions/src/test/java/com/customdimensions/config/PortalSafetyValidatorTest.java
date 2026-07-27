@@ -148,11 +148,15 @@ class PortalSafetyValidatorTest {
     }
 
     @Test
-    void baseWorldsAreNeverChecked() {
+    void baseWorldsAreCheckedLikeAnyOther() {
+        // Base-world portals are real portals — same registry, same rules —
+        // so the same authoring traps apply to them.
         DimensionConfig overworld = parse("overworld", """
                 {"portal":{"frameBlock":"b","singleUse":{"enabled":true}}}
                 """);
-        assertTrue(PortalSafetyValidator.validate(List.of(overworld)).isEmpty());
+        List<String> warnings = PortalSafetyValidator.validate(List.of(overworld));
+        assertEquals(1, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).contains("singleUse"));
     }
 
     @Test

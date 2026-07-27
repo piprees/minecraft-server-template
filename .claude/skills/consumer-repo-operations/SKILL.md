@@ -25,15 +25,15 @@ Prefer the bundle cache — `main` on GitHub may be ahead of what this repo is p
 
 ## What lives where
 
-| This repo (consumer) | Template repo (platform) |
-| --- | --- |
-| `overlay/mods-extra.txt` — extra server mods | `config/modrinth-mods.txt` — default mod list |
-| `overlay/mods-remove.txt` — mods to exclude | `docker/` — all GHCR image Dockerfiles |
-| `overlay/config/` — config overrides | `config/` — default configs |
-| `overlay/assets/` — branding | `scripts/` — all operational scripts |
-| `overlay/modpack/` — client pack patch + overrides | `docker-compose.yml` — the stack definition |
-| `.env` — secrets and settings | `.github/workflows/deploy-reusable.yml` — CI implementation |
-| `ops` / `dev` — thin dispatchers | the actual scripts they dispatch to |
+| This repo (consumer)                               | Template repo (platform)                                    |
+| -------------------------------------------------- | ----------------------------------------------------------- |
+| `overlay/mods-extra.txt` — extra server mods       | `config/modrinth-mods.txt` — default mod list               |
+| `overlay/mods-remove.txt` — mods to exclude        | `docker/` — all GHCR image Dockerfiles                      |
+| `overlay/config/` — config overrides               | `config/` — default configs                                 |
+| `overlay/assets/` — branding                       | `scripts/` — all operational scripts                        |
+| `overlay/modpack/` — client pack patch + overrides | `docker-compose.yml` — the stack definition                 |
+| `.env` — secrets and settings                      | `.github/workflows/deploy-reusable.yml` — CI implementation |
+| `ops` / `dev` — thin dispatchers                   | the actual scripts they dispatch to                         |
 
 ## The overlay contract (short form)
 

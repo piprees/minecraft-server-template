@@ -296,103 +296,81 @@ The aura runs by default and needs no config. This block is for tuning it; the p
 
 ## Noise structure placement — the DEFAULT, no config needed
 
-Every managed dimension gets noise-placed structures. You do not opt in; you
-override parts of it or switch it off. A dimension with nothing but `type`
-and `biomes` gets structures appropriate to those biomes, at sensible
-density, distributed by a seeded noise field rather than a fixed grid.
+Every managed dimension gets noise-placed structures. You do not opt in; you override parts of it or switch it off. A dimension with nothing but `type` and `biomes` gets structures appropriate to those biomes, at sensible density, distributed by a seeded noise field rather than a fixed grid.
 
-**The biome filter is what makes zero-config work.** Structures whose own
-valid-biome list does not intersect your `biomes` are dropped from the pool
-automatically — a jungle `multi_biome` gets jungle temples and not igloos
-without either being named. Structures matching MORE of your biomes are
-weighted higher, so generation leans towards what belongs.
+**The biome filter is what makes zero-config work.** Structures whose own valid-biome list does not intersect your `biomes` are dropped from the pool automatically — a jungle `multi_biome` gets jungle temples and not igloos without either being named. Structures matching MORE of your biomes are weighted higher, so generation leans towards what belongs.
 
-Sets are sorted into seven **groups**, and each active group is placed
-independently:
+Sets are sorted into seven **groups**, and each active group is placed independently:
 
-| Group | What is in it | Default profile |
-| --- | --- | --- |
-| `deco` | small environmental detail, ruins, guide posts, dead trees | `natural` |
-| `settlements` | villages, taverns, farmsteads, campsites, outposts | `natural` |
-| `dungeons` | hostile interiors: dungeons, trial chambers, crypts | `sparse` |
-| `landmarks` | towers, temples, monuments, castles, igloos, pyramids | `sparse` |
-| `maritime` | ships, ocean ruins, monuments, lighthouses | `natural` |
-| `endgame` | flagship mega-content: coliseums, mega ships, mega fortresses | `sparse` |
-| `loot` | caches, shrines, buried treasure | `natural` |
+| Group         | What is in it                                                 | Default profile |
+| ------------- | ------------------------------------------------------------- | --------------- |
+| `deco`        | small environmental detail, ruins, guide posts, dead trees    | `natural`       |
+| `settlements` | villages, taverns, farmsteads, campsites, outposts            | `natural`       |
+| `dungeons`    | hostile interiors: dungeons, trial chambers, crypts           | `sparse`        |
+| `landmarks`   | towers, temples, monuments, castles, igloos, pyramids         | `sparse`        |
+| `maritime`    | ships, ocean ruins, monuments, lighthouses                    | `natural`       |
+| `endgame`     | flagship mega-content: coliseums, mega ships, mega fortresses | `sparse`        |
+| `loot`        | caches, shrines, buried treasure                              | `natural`       |
 
 Four **profiles** control the shape of a group's distribution:
 
-| Profile | Feel | Chunks above threshold |
-| --- | --- | --- |
-| `natural` | even, slightly sparser than vanilla | ~22% |
-| `dense` | structures around every corner | ~59% |
-| `sparse` | wide empty stretches; finding one is an event | ~5% |
-| `cluster` | mostly empty, then a dense pocket | ~2% |
-| `none` | this group does not generate here | — |
+| Profile   | Feel                                          | Chunks above threshold |
+| --------- | --------------------------------------------- | ---------------------- |
+| `natural` | even, slightly sparser than vanilla           | ~22%                   |
+| `dense`   | structures around every corner                | ~59%                   |
+| `sparse`  | wide empty stretches; finding one is an event | ~5%                    |
+| `cluster` | mostly empty, then a dense pocket             | ~2%                    |
+| `none`    | this group does not generate here             | —                      |
 
 ### What you can write
 
 ```jsonc
 {
-  "structureDensity": "sparse",        // every group uses this profile
+  "structureDensity": "sparse", // every group uses this profile
   "structures": {
-    "noise": "cluster",                // same, but as a profile name
+    "noise": "cluster", // same, but as a profile name
     // ...or per group:
     "noise": { "dungeons": "sparse", "settlements": "none" },
-    "radial": {                        // 10 points, spawn -> border, 0.0-3.0
-      "settlements": [1.5, 1.2, 1.0, 0.7, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0]
+    "radial": {
+      // 10 points, spawn -> border, 0.0-3.0
+      "settlements": [1.5, 1.2, 1.0, 0.7, 0.4, 0.2, 0.0, 0.0, 0.0, 0.0],
     },
-    "rarity": { "minecraft:trial_chambers": "common" },   // set id -> tier
-    "exclude": ["minecraft:villages"],                    // out of the pool
-    "include": ["mes:phantom_citadel"],                   // in, past the biome filter
-    "force": [{ "structure": "explorify:farmstead", "x": -87, "z": -312,
-                "exclusive": true }]
-  }
+    "rarity": { "minecraft:trial_chambers": "common" }, // set id -> tier
+    "exclude": ["minecraft:villages"], // out of the pool
+    "include": ["mes:phantom_citadel"], // in, past the biome filter
+    "force": [{ "structure": "explorify:farmstead", "x": -87, "z": -312, "exclusive": true }],
+  },
 }
 ```
 
-**Precedence, most specific first:** `structures.noise.<group>` ->
-`structures.noise` as a string -> `structureDensity` -> the difficulty shifts
--> the world type's defaults -> the group's own default.
+**Precedence, most specific first:** `structures.noise.<group>` -> `structures.noise` as a string -> `structureDensity` -> the difficulty shifts -> the world type's defaults -> the group's own default.
 
-**Difficulty shifts happen on their own.** `mobMultiplier >= 2.0` spreads
-dungeons evenly and brings endgame in from the border; `mobMultiplier <= 0.5`
-suppresses `dungeons` and `endgame` entirely. A peaceful dimension therefore
-has no dungeons even if you also set `structureDensity: "dense"` — the shift
-outranks the density dial. Only naming the group explicitly
-(`"noise": {"dungeons": "dense"}`) puts it back.
+**Difficulty shifts happen on their own.** `mobMultiplier >= 2.0` spreads dungeons evenly and brings endgame in from the border; `mobMultiplier <= 0.5` suppresses `dungeons` and `endgame` entirely. A peaceful dimension therefore has no dungeons even if you also set `structureDensity: "dense"` — the shift outranks the density dial. Only naming the group explicitly (`"noise": {"dungeons": "dense"}`) puts it back.
 
-**`force` is exclusive by default.** Forcing a structure removes it from the
-noise pool everywhere else in that dimension — "put exactly this here" almost
-always means "and nowhere else". Add `"exclusive": false` to keep organic
-copies too. Other structures in the same group are unaffected.
+**`force` is exclusive by default.** Forcing a structure removes it from the noise pool everywhere else in that dimension — "put exactly this here" almost always means "and nowhere else". Add `"exclusive": false` to keep organic copies too. Other structures in the same group are unaffected.
+
+### Base worlds
+
+`overworld.json`, `the_nether.json`, `the_end.json` and `paradise_lost.json` get noise placement like everything else. Their generator is vanilla's, so they name no `type` and the mod resolves their groups against their family (`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`). Write an explicit `type` only to move one deliberately onto another family's group set.
+
+Two things to hold in mind when tuning them:
+
+- **Placement is boot-re-read, so no world wipe is needed** — but already-generated chunks keep the structures they have, and the boundary shows, the same way a `structures.spacing` change shows. The overworld is the world everyone is already standing in.
+- **The Nether gates blaze rods on fortresses and the End gates elytra on end cities.** `scripts/check-noise-regression.py` holds a reachability floor for both. Re-run it after any change to either world's groups, density or border.
 
 ### Switching it off
 
-- `"structureDensity": "none"` — no noise at all. `force` still works. This
-  is the `the_dustbowl` pattern and is unchanged from before noise existed.
-- `"structures": {"noise": false}` — falls back to vanilla grid placement.
-  An escape hatch for one major version; prefer fixing the config.
+- `"structureDensity": "none"` — no noise at all. `force` still works. This is the `the_dustbowl` pattern and is unchanged from before noise existed.
+- `"structures": {"noise": false}` — falls back to vanilla grid placement. An escape hatch for one major version; prefer fixing the config.
 - `type: "void"` and `type: "superflat"` never get noise.
 
 ### Traps specific to noise
 
-- **It is creation-time worldgen.** Changing any of these affects only newly
-  generated chunks; existing chunks keep what they have. The seed roller
-  fingerprints all of it, so a change re-rolls that dimension.
-- **`borders.player` and `difficulty.mobMultiplier` are now
-  generation-affecting.** They used to be scoring/runtime only. The border
-  sets both the scanned radius and the noise frequency scale; the multiplier
-  drives the shifts above. Changing either changes the world.
-- **An unknown profile name suppresses the group** rather than silently
-  becoming `natural`, and warns at boot. An unknown group name in `noise` or
-  `radial` is ignored with a warning.
-- **A radial curve must be exactly 10 values in 0.0-3.0** or it is rejected
-  with a warning and the type default is used. A trailing `0.0` suppresses
-  that band absolutely — it does not merely reduce it.
-- **Not every structure is noise-placed.** Sets with a custom placement type
-  (YUNG's, explorify, towns_and_towers) keep grid placement and ignore all of
-  the above.
+- **It is creation-time worldgen.** Changing any of these affects only newly generated chunks; existing chunks keep what they have. The seed roller fingerprints all of it, so a change re-rolls that dimension.
+- **`borders.player` and `difficulty.mobMultiplier` are now generation-affecting.** They used to be scoring/runtime only. The border sets both the scanned radius and the noise frequency scale; the multiplier drives the shifts above. Changing either changes the world.
+- **An unknown profile name suppresses the group** rather than silently becoming `natural`, and warns at boot. An unknown group name in `noise` or `radial` is ignored with a warning.
+- **A radial curve must be exactly 10 values in 0.0-3.0** or it is rejected with a warning and the type default is used. A trailing `0.0` suppresses that band absolutely — it does not merely reduce it.
+- **Not every structure is noise-placed.** Sets with a custom placement type (YUNG's, explorify, towns_and_towers) keep grid placement and ignore all of the above.
 
 ## Traps (read this before you write JSON)
 

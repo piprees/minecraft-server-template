@@ -36,15 +36,15 @@ Read `references/credentials.md`'s "three credentials people mix up" section bef
 
 **My Profile → API Tokens → Create Token → Create Custom Token**, with exactly:
 
-| Scope | Permission | Access |
-| --- | --- | --- |
-| Account | Cloudflare Tunnel | Edit |
-| Account | Workers R2 Storage | Edit |
-| Account | Workers Scripts | Edit |
-| Zone | DNS | Edit |
-| Zone | Zone | Read |
+| Scope   | Permission         | Access |
+| ------- | ------------------ | ------ |
+| Account | Cloudflare Tunnel  | Edit   |
+| Account | Workers R2 Storage | Edit   |
+| Account | Workers Scripts    | Edit   |
+| Zone    | DNS                | Edit   |
+| Zone    | Zone               | Read   |
 
-Zone Resources: *Include → Specific zone → your `DOMAIN`*. Format: 40+ chars, newer tokens start `cfut_`.
+Zone Resources: _Include → Specific zone → your `DOMAIN`_. Format: 40+ chars, newer tokens start `cfut_`.
 
 Note: `.env.example`'s comment additionally lists `Zone/Cache Purge:Purge` as a permission to add. It isn't exercised by any script read for this skill (no `/purge_cache` API call found in `cloudflare-setup.sh` or elsewhere) — treat the five permissions above as the verified minimum; add Cache Purge only if a future script needs it.
 
@@ -66,11 +66,11 @@ curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
 
 The result page shows **three** values:
 
-| Value shown | Goes in `.env` as | Format |
-| --- | --- | --- |
-| Token value | nothing — not used anywhere in this stack | — |
-| Access Key ID | `R2_ACCESS_KEY_ID` | 32 hex chars |
-| Secret Access Key | `R2_SECRET_ACCESS_KEY` | 64 hex chars, shown once |
+| Value shown       | Goes in `.env` as                         | Format                   |
+| ----------------- | ----------------------------------------- | ------------------------ |
+| Token value       | nothing — not used anywhere in this stack | —                        |
+| Access Key ID     | `R2_ACCESS_KEY_ID`                        | 32 hex chars             |
+| Secret Access Key | `R2_SECRET_ACCESS_KEY`                    | 64 hex chars, shown once |
 
 `setup.sh` validates both against these exact regexes on entry and re-prompts if they don't match — a fast way to catch "I copied the wrong box."
 
@@ -102,11 +102,11 @@ You invent this one (or let `setup.sh` auto-generate it: 32 chars from `/dev/ura
 
 ## Format-validation regexes (from `preflight-check.sh`, for self-checking without running preflight)
 
-| Variable | Pattern |
-| --- | --- |
-| `R2_ACCESS_KEY_ID` | `^[0-9a-fx]{32}$` |
-| `R2_SECRET_ACCESS_KEY` | `^[0-9a-fx]{64}$` |
-| Any credential var | fails if empty, contains `xxxx`, contains `REPLACE`, or starts `change-me` |
+| Variable               | Pattern                                                                    |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `R2_ACCESS_KEY_ID`     | `^[0-9a-fx]{32}$`                                                          |
+| `R2_SECRET_ACCESS_KEY` | `^[0-9a-fx]{64}$`                                                          |
+| Any credential var     | fails if empty, contains `xxxx`, contains `REPLACE`, or starts `change-me` |
 
 ## Cross-reference
 

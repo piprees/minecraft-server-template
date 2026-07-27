@@ -8,16 +8,17 @@ For nether, continentalness noise doesn't even exist, so `cont` defaults to 0.0,
 
 ## Available Noise Per Family
 
-| Family | temperature | humidity | continentalness | erosion | weirdness |
-|---|---|---|---|---|---|
-| overworld | yes | yes | yes | yes | yes |
-| nether | yes | yes | NO | yes | yes |
-| end | yes | yes | yes | yes | yes |
-| paradise_lost | yes | yes | NO | yes | yes |
+| Family        | temperature | humidity | continentalness | erosion | weirdness |
+| ------------- | ----------- | -------- | --------------- | ------- | --------- |
+| overworld     | yes         | yes      | yes             | yes     | yes       |
+| nether        | yes         | yes      | NO              | yes     | yes       |
+| end           | yes         | yes      | yes             | yes     | yes       |
+| paradise_lost | yes         | yes      | NO              | yes     | yes       |
 
 ## Fix: Per-Family Height Functions
 
 ### Nether (y=0..128, bedrock ceiling)
+
 ```python
 rf = ridges_folded(weirdness)
 h = 64.0 + erosion * 25.0 + rf * 15.0
@@ -25,6 +26,7 @@ h = clamp(8.0, 120.0)
 ```
 
 ### End (floating islands, void gaps)
+
 ```python
 rf = ridges_folded(weirdness)
 if continentalness < -0.1:
@@ -36,6 +38,7 @@ else:
 ```
 
 ### Paradise Lost (elevated highland terrain)
+
 ```python
 rf = ridges_folded(weirdness)
 h = 80.0 + erosion * 25.0 + rf * 20.0

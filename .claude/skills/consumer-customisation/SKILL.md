@@ -39,16 +39,16 @@ You are customising a consumer server built from the Adventure Server template. 
 
 ### Files to check
 
-| File | What to customise |
-| --- | --- |
-| `.env` | `BRAND_NAME`, `BRAND_SLUG`, `MOTD` |
-| `config/.env` | `DOMAIN`, `SEED`, spawn coords, Discord IDs, `DISCORD_INVITE_URL` |
-| `config/messages.json` | All player/Discord-facing messages, including the welcome pin |
-| `config/essentialcommands/rules.txt` | In-game `/rules` text |
-| `modpack/template/index.html` | Pack download page (themed via CSS custom properties) |
-| `config/uptime-kuma/kuma-config.json` | Status page styling (`statusPage.customCSS`) |
-| `DESIGN.md` | Design token reference |
-| `assets/` | All brand imagery |
+| File                                  | What to customise                                                 |
+| ------------------------------------- | ----------------------------------------------------------------- |
+| `.env`                                | `BRAND_NAME`, `BRAND_SLUG`, `MOTD`                                |
+| `config/.env`                         | `DOMAIN`, `SEED`, spawn coords, Discord IDs, `DISCORD_INVITE_URL` |
+| `config/messages.json`                | All player/Discord-facing messages, including the welcome pin     |
+| `config/essentialcommands/rules.txt`  | In-game `/rules` text                                             |
+| `modpack/template/index.html`         | Pack download page (themed via CSS custom properties)             |
+| `config/uptime-kuma/kuma-config.json` | Status page styling (`statusPage.customCSS`)                      |
+| `DESIGN.md`                           | Design token reference                                            |
+| `assets/`                             | All brand imagery                                                 |
 
 ## Loading screen
 
@@ -72,16 +72,16 @@ Show it (hidden by default) — create `overlay/modpack/overrides/configureddefa
 
 ### Config reference
 
-| Key | Default | Values |
-| --- | --- | --- |
-| `backgroundImage` | `true` | `true` / `false` |
-| `logoStyle` | `"Hidden"` | `"Mojang"`, `"Aspect1to1"`, `"Hidden"` |
-| `logoBlend` | `false` | `true` / `false` |
-| `splashBackgroundColor` | `"#1E2233"` | hex colour |
-| `splashProgressBarColor` | `"#E87420"` | hex colour |
-| `splashProgressFrameColor` | `"#6B4226"` | hex colour |
-| `splashProgressBackgroundColor` | `"#141824"` | hex colour |
-| `progressBarType` | `"Vanilla"` | `"Vanilla"`, `"Custom"`, `"SpinningCircle"`, `"Hidden"` |
+| Key                             | Default     | Values                                                  |
+| ------------------------------- | ----------- | ------------------------------------------------------- |
+| `backgroundImage`               | `true`      | `true` / `false`                                        |
+| `logoStyle`                     | `"Hidden"`  | `"Mojang"`, `"Aspect1to1"`, `"Hidden"`                  |
+| `logoBlend`                     | `false`     | `true` / `false`                                        |
+| `splashBackgroundColor`         | `"#1E2233"` | hex colour                                              |
+| `splashProgressBarColor`        | `"#E87420"` | hex colour                                              |
+| `splashProgressFrameColor`      | `"#6B4226"` | hex colour                                              |
+| `splashProgressBackgroundColor` | `"#141824"` | hex colour                                              |
+| `progressBarType`               | `"Vanilla"` | `"Vanilla"`, `"Custom"`, `"SpinningCircle"`, `"Hidden"` |
 
 ## Title screen panorama
 
@@ -119,15 +119,16 @@ Consumers override any of these via `overlay/config/` (same relative paths).
 
 ## Adding and removing mods
 
-| What | Edit | Then |
-| --- | --- | --- |
-| Add a server mod | `overlay/mods-extra.txt` (`slug:versionId`) | `./dev up` or push to `main` |
-| Remove a default mod | `overlay/mods-remove.txt` (one slug per line) | Same |
-| Client mod | `modpack/adventure.mrpack.json` (`_clientMods`) | Push (CI rebuilds `.mrpack`) |
+| What                 | Edit                                            | Then                         |
+| -------------------- | ----------------------------------------------- | ---------------------------- |
+| Add a server mod     | `overlay/mods-extra.txt` (`slug:versionId`)     | `./dev up` or push to `main` |
+| Remove a default mod | `overlay/mods-remove.txt` (one slug per line)   | Same                         |
+| Client mod           | `modpack/adventure.mrpack.json` (`_clientMods`) | Push (CI rebuilds `.mrpack`) |
 
 **Every default mod is removable** without breaking the boot — this is a platform promise, guarded by CI's smoke test removal-matrix. The structures datapack strips removed mods' overrides automatically via `ownership.json`.
 
 **Two consumer responsibilities when removing:**
+
 1. Remove dependents together (e.g. `fabric-seasons-terralith-compat` goes when `terralith` goes)
 2. Keep the client pack in sync — a slug in `mods-remove.txt` that's still in `_clientMods.required` gets players kicked at the Fabric handshake
 
@@ -142,6 +143,7 @@ Declared in `modpack/adventure.mrpack.json` under `_resourcePacks.packs`. Two en
 ## Multi-instance
 
 Each clone can run independently:
+
 - `COMPOSE_PROJECT_NAME` — derived from the directory name by `setup.sh`; isolates Docker networks and volumes
 - `CONTAINER_PREFIX` — set automatically on name clash (e.g. two stacks both wanting `mc`)
 - Ports — `GAME_PORT`, `VOICE_PORT`, `WEB_PORT`, `KUMA_PORT` are all configurable; `setup.sh` detects clashes

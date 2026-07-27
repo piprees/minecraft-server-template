@@ -28,9 +28,6 @@ public final class PortalSafetyValidator {
         int sourceRadius = overworldBorderRadius(configs);
         for (DimensionConfig config : configs) {
             validateLinks(config, knownIds, warnings);
-            if (config.isBaseWorld()) {
-                continue;
-            }
             validateFrameConfig(config, warnings);
             validateArrivalReachability(config, sourceRadius, warnings);
             // Death-only exits: a dimension whose ONLY way out is dying is

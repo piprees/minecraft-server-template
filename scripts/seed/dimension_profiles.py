@@ -302,6 +302,16 @@ BASE_WORLD_IDS = {
     "paradise_lost": "paradise_lost:paradise_lost",
 }
 
+# The world type each base world resolves its structure groups against. Its
+# generator is vanilla's, so the file names no type and this supplies one.
+# MIRRORS DimensionConfig.BASE_WORLD_TYPES — change both together.
+BASE_WORLD_TYPES = {
+    "overworld": "overworld",
+    "the_nether": "nether",
+    "the_end": "end",
+    "paradise_lost": "paradise_lost:paradise_lost",
+}
+
 
 def load_dimension_configs(config_dir, set_noise_defaults=True):
     """Scan {config_dir}/dimensions/*.json -> {slug: raw config dict}.
@@ -419,9 +429,15 @@ def monolith_from_dir(config_dir):
                     world_seed = int(seed)
                 else:
                     w["seed"] = int(seed)
-            for key in ("spawn", "scale", "seedRoll", "difficulty", "borders"):
+            # Base worlds are managed like any other dimension, so everything
+            # that drives placement travels with them. A base world's
+            # generator is vanilla's and its file names no type, so the family
+            # is stamped here — mirrors DimensionConfig.getType().
+            for key in ("spawn", "scale", "seedRoll", "difficulty", "borders",
+                        "type", "structures", "structureDensity", "exitShrines"):
                 if key in f:
                     w[key] = f[key]
+            w.setdefault("type", BASE_WORLD_TYPES[slug])
             worlds.append(w)
             continue
 
@@ -599,8 +615,15 @@ def generation_payload(dim):
     spacing joins the payload for those dims (and only those: a plain dim's
     player border stays scoring-only). Everything else — seedRoll, portal,
     difficulty multipliers, description, colours — is scoring or runtime
-    and shares freely. Base-world entries (no "type") return None: never
-    grouped."""
+    and shares freely.
+
+    A base world's payload carries its dimension id, so it forms a seed group
+    of exactly itself: it is never a clone of a custom dimension that agrees
+    on every other field, because vanilla builds it from the level's world
+    preset while the mod templates a custom dimension off overworldOpts, and
+    the roller measures the two through different plumbing (world_family vs
+    family_of). An entry with no type at all — a raw config dict that has not
+    been through monolith synthesis — returns None."""
     if "type" not in dim:
         return None
     raw_biomes = dim.get("biomes")
@@ -628,6 +651,9 @@ def generation_payload(dim):
         "exitShrines": bool((dim.get("exitShrines") or {}).get("enabled")),
         "spacingOverrides": (dim.get("structures") or {}).get("spacing") or {},
     }
+    # A base world groups with itself and nothing else.
+    if dim.get("name") in BASE_WORLD_IDS:
+        payload["baseWorld"] = BASE_WORLD_IDS[dim["name"]]
     # Added only when applicable so every pre-existing non-shrine
     # fingerprint stays byte-stable (no spurious DRIFTED warnings).
     derived = _derived_shrine_spacing(dim)
@@ -876,7 +902,13 @@ def build_profile(dim, config, difficulty=None):
     array, "portal" block, "difficulty" block). Handles both runtime
     dimensions and base-world entries (no "type" key = base world)."""
     name = dim["name"]
-    is_world = "type" not in dim  # base-world entries have no type
+    # Base worlds are identified by IDENTITY, never by the absence of a
+    # "type" — they carry one. Keying on the field sends a base world down the
+    # custom-dimension path, where paradise_lost resolves family "overworld"
+    # instead of "paradise_lost" (wrong biome sampler, every measurement
+    # invalid) and the scale comes from portal.scale rather than the
+    # top-level one.
+    is_world = name in BASE_WORLD_IDS or dim.get("dimensionId") in set(BASE_WORLD_IDS.values())
     dim_type = dim.get("type", "world")
     sr_early = dim.get("seedRoll") or {}
     # Config dictates everything; type-string heuristics are only fallbacks.

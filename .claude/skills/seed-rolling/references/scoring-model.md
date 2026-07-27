@@ -26,6 +26,7 @@ Every measured candidate gets a 0–100 score from four weighted components. The
 If `seedRoll.mood` is omitted, `build_profile()` derives one: mob difficulty multiplier → `mood_from_difficulty()` (`<=0.0` serene, `<=0.9` scenic, `<=1.2` standard, `<=1.7` adventurous, else hard); if there's no difficulty figure and the family is `nether`, `nether_difficulty(scale)` applies the smaller-world-is-harder rule (`scale>=12` hard, `scale>=8` adventurous, else standard); `hostileSpawning: false` always forces `serene` regardless of the above; `structureDensity: dense` nudges `standard`/`adventurous` up to `adventurous`.
 
 **Two overrides replace the mood table entirely, not just its weights:**
+
 - **Void dimensions**: `{namesake: 30, variety: 55, terrain: 15, structures: 0}` — there's no terrain to score, so variety (what's actually findable in the fog) carries the world.
 - **Mob difficulty ≥ 2.0**: `structures += 10`, `namesake -= 5` (floor 5), `variety -= 5` (floor 5) — a genuinely dangerous world must be worth it in loot/structure terms, not just survivable.
 
@@ -33,11 +34,11 @@ If `seedRoll.mood` is omitted, `build_profile()` derives one: mob difficulty mul
 
 `BANDS` gives each legacy band-name shorthand a fraction range of the **playable radius** (`borders.player` when set, else `8192 / portal.scale`):
 
-| Band | Fraction range | Meaning |
-| --- | --- | --- |
-| `near_spawn` | 0.00 – 0.30 | Close enough to matter immediately |
-| `spread` | 0.15 – 0.65 | Broad mid-distance exploration target |
-| `near_border` | 0.45 – 1.00 | Far-flung, a destination in itself |
+| Band          | Fraction range | Meaning                               |
+| ------------- | -------------- | ------------------------------------- |
+| `near_spawn`  | 0.00 – 0.30    | Close enough to matter immediately    |
+| `spread`      | 0.15 – 0.65    | Broad mid-distance exploration target |
+| `near_border` | 0.45 – 1.00    | Far-flung, a destination in itself    |
 
 `structureDensity` shifts bands via `DENSITY_SHIFT`: `dense` pulls everything closer (`near_border`→`spread`, `spread`→`near_spawn`); `sparse` pushes everything further (`near_spawn`→`spread`, `spread`→`near_border`). This shift applies ONLY to band-name shorthand in `seedRoll.wants` — an explicit `{"min": N, "max": M}` range in `structures.wants` is absolute and is never density-shifted.
 
@@ -100,11 +101,11 @@ Binary: 0.0 if the structure exists closer than its threshold (the shun's `minDi
 
 `TERRAIN_TARGETS`, keyed by the `noiseSettings` preset's path suffix (`compressed`/`wide`/unset), gives `{relief, grain, water}` ranges measured from a 3×3 sample grid (spacing from `grid_pitch()`, roughly a quarter of the playable radius):
 
-| Preset | Relief (height spread) | Grain (adjacent Δheight) | Water fraction |
-| --- | --- | --- | --- |
-| `compressed` | 40–160 | 6–26 | 0.0–0.30 |
-| `wide` | 10–60 | 0–6 | 0.05–0.45 |
-| unset (default) | 18–90 | 2–14 | 0.0–0.45 |
+| Preset          | Relief (height spread) | Grain (adjacent Δheight) | Water fraction |
+| --------------- | ---------------------- | ------------------------ | -------------- |
+| `compressed`    | 40–160                 | 6–26                     | 0.0–0.30       |
+| `wide`          | 10–60                  | 0–6                      | 0.05–0.45      |
+| unset (default) | 18–90                  | 2–14                     | 0.0–0.45       |
 
 Mood modulates the targets further: `hard`/`dramatic` widen relief to `(lo*1.25, hi*1.4)` and grain to `(max(lo,3), hi*1.3)` — these moods want MORE violence than the noise preset alone implies. `serene`/`pastoral` narrow relief to `(lo*0.7, hi*0.8)` — gentler than the preset's own range. `seedRoll.water` (`"none"|"high"|"sea"`) overrides the water target outright regardless of preset (`none` → 0.0–0.10, `high` → 0.25–0.8, `sea` → 0.5–1.0).
 

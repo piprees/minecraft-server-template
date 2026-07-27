@@ -620,6 +620,11 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
     if not type_defaults:
         return
     sources = {d["name"]: d for d in config.get("dimensions", [])}
+    # Base worlds are here too: one that opts in to structure management (a
+    # "type" in its config) has a noise fingerprint and a real layout to
+    # score. One that has not opts out through noise_fingerprint returning
+    # None, exactly like a suppressed dimension.
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
     cdir = candidates.candidates_dir(cfg)
 
     stores = {}
@@ -628,7 +633,7 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
     for name in profiles:
         src = sources.get(name)
         if src is None:
-            continue  # base worlds never get noise
+            continue
         fp = noise_fingerprint(src)
         if fp is None:
             continue

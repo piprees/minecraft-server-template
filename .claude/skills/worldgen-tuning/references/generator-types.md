@@ -91,7 +91,7 @@ Fixed biome patches over the generated layout, three modes per patch. Creation-t
 
 1. **Stamp** (no `replace`): the listed biome claims every column in the area.
 2. **Clipped swap** (`replace` set): within the area, only columns resolving to the `replace` biome are substituted — the natural blob keeps its organic shape, recoloured. `"*"` matches any biome ≈ a stamp.
-3. **Global swap** (`"scope": "global"`): dimension-wide wholesale replacement — an explicit `replace` id swaps that biome everywhere (no area needed); without one the area becomes a *selector*: every distinct biome touching it swaps globally (selector sampling sweeps up to 256 blocks of the radius).
+3. **Global swap** (`"scope": "global"`): dimension-wide wholesale replacement — an explicit `replace` id swaps that biome everywhere (no area needed); without one the area becomes a _selector_: every distinct biome touching it swaps globally (selector sampling sweeps up to 256 blocks of the radius).
 
 ### Shared knobs
 

@@ -12,26 +12,26 @@ This table is **derived from `examples/consumer/commands.json`**, which is the s
 
 Every `dev` command operates only on the local Docker stack. None of these touch production.
 
-| Command | Description (commands.json) |
-| --- | --- |
-| `up` | Start the local dev stack |
-| `down` | Stop the local dev stack |
-| `logs` | Tail the Minecraft server logs |
-| `rcon` | Run an RCON command locally |
-| `pack` | Build the client modpack into `./modpack-dist/` |
-| `pin` | Re-pin `overlay/mods-extra.txt` to latest mod builds |
-| `pull` | Fetch the stack bundle only |
-| `update` | Pull the latest stack bundle + Docker images |
-| `rollback` | Revert to a previous stack bundle version |
-| `doctor` | Local health check (containers, RCON, seed exit) |
-| `seed-roll` | Parallel-roll seeds for every dimension, auto-pick winners |
+| Command        | Description (commands.json)                                   |
+| -------------- | ------------------------------------------------------------- |
+| `up`           | Start the local dev stack                                     |
+| `down`         | Stop the local dev stack                                      |
+| `logs`         | Tail the Minecraft server logs                                |
+| `rcon`         | Run an RCON command locally                                   |
+| `pack`         | Build the client modpack into `./modpack-dist/`               |
+| `pin`          | Re-pin `overlay/mods-extra.txt` to latest mod builds          |
+| `pull`         | Fetch the stack bundle only                                   |
+| `update`       | Pull the latest stack bundle + Docker images                  |
+| `rollback`     | Revert to a previous stack bundle version                     |
+| `doctor`       | Local health check (containers, RCON, seed exit)              |
+| `seed-roll`    | Parallel-roll seeds for every dimension, auto-pick winners    |
 | `seed-rescore` | Recompute candidate scores vs current configs (no re-rolling) |
-| `seed-status` | Candidate-bank status: counts, winners, score freshness |
-| `cache` | Snapshot Docker images, mod JARs, offline client bundles |
-| `start` | Start a stopped local service |
-| `stop` | Stop a running local service |
-| `restart` | Force-recreate a local service |
-| `status` | Show local container status |
+| `seed-status`  | Candidate-bank status: counts, winners, score freshness       |
+| `cache`        | Snapshot Docker images, mod JARs, offline client bundles      |
+| `start`        | Start a stopped local service                                 |
+| `stop`         | Stop a running local service                                  |
+| `restart`      | Force-recreate a local service                                |
+| `status`       | Show local container status                                   |
 
 Two `dev` commands exist in the actual script but not in `commands.json`: `refresh-config` (force-refresh platform config defaults, backing up `data/config`; overlay still wins) and `seed-viewer` (launches the interactive seed viewer). Both are documented in `./dev help` output, just missing from the JSON index.
 
@@ -83,8 +83,8 @@ Two `dev` commands exist in the actual script but not in `commands.json`: `refre
 
 `shutdown`, `startup`, and `reboot` (power the cloud VPS off / on / restart it) are in the `ops` script's `ALLOWED_COMMANDS` allowlist, dispatch to `server-power.sh`, and are documented in `./ops help`'s "Server control" section — but they have **no entry in `commands.json`**. If you're building a command list from `commands.json` alone (as this reference does, per the house rule that it must be derived from that file), you will miss these three. Verify against `./ops help` or the `ops` script itself if completeness matters for your task.
 
-| Command (not in commands.json) | What it does | Dispatches to |
-| --- | --- | --- |
-| `shutdown` | Power off the cloud VPS (saves costs) | `server-power.sh shutdown` |
-| `startup` | Power on a stopped cloud VPS | `server-power.sh startup` |
-| `reboot` | Reboot the cloud VPS | `server-power.sh reboot` |
+| Command (not in commands.json) | What it does                          | Dispatches to              |
+| ------------------------------ | ------------------------------------- | -------------------------- |
+| `shutdown`                     | Power off the cloud VPS (saves costs) | `server-power.sh shutdown` |
+| `startup`                      | Power on a stopped cloud VPS          | `server-power.sh startup`  |
+| `reboot`                       | Reboot the cloud VPS                  | `server-power.sh reboot`   |

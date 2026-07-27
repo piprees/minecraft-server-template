@@ -6,15 +6,11 @@ tags: [testing, dev-up, docker, rcon, c2me, nginx, map-render, mod-build]
 
 # Testing Recipes
 
-One recipe per row of the decision table in `SKILL.md`. Each ends with a
-verification step that checks the **rendered** state, not the patch.
+One recipe per row of the decision table in `SKILL.md`. Each ends with a verification step that checks the **rendered** state, not the patch.
 
 ## 1. An in-house mod jar (`mods/custom-dimensions/`)
 
-Never `./dev up` for this — it overwrites `data/mods/<mod>.jar` from the
-bundle's `stack/local-mods/` on every run (2026-07-25 incident: a whole
-lazy-init feature looked broken across four boot cycles because every test
-ran the old bundle jar).
+Never `./dev up` for this — it overwrites `data/mods/<mod>.jar` from the bundle's `stack/local-mods/` on every run (2026-07-25 incident: a whole lazy-init feature looked broken across four boot cycles because every test ran the old bundle jar).
 
 ```bash
 cd mods/custom-dimensions
@@ -29,18 +25,13 @@ docker inspect mc --format '{{.State.Health.Status}}'   # must be healthy
 docker logs mc 2>&1 | grep -iE 'mixin apply|customdimensions|error' | tail -20
 ```
 
-If the persisted state format changed (config schema, namespace, IDs),
-delete the mod's state file(s) under `data/config/` before restarting —
-otherwise stale state from the previous build masks the bug you're testing.
+If the persisted state format changed (config schema, namespace, IDs), delete the mod's state file(s) under `data/config/` before restarting — otherwise stale state from the previous build masks the bug you're testing.
 
-Re-patch c2me before this restart if the change touches worldgen/seeds (see
-recipe 4).
+Re-patch c2me before this restart if the change touches worldgen/seeds (see recipe 4).
 
 ## 2. Content baked into the `defaults-seed` image
 
-Covers `config/modrinth-mods.txt`, `config/nginx/*.template`, anything with
-a `COPY` line in `docker/defaults-seed/Dockerfile`. See
-`references/volume-model.md` for why a plain `compose up` reverts this.
+Covers `config/modrinth-mods.txt`, `config/nginx/*.template`, anything with a `COPY` line in `docker/defaults-seed/Dockerfile`. See `references/volume-model.md` for why a plain `compose up` reverts this.
 
 ```bash
 # Patch the volume directly — do NOT touch data/config, this is the
@@ -55,14 +46,7 @@ docker run --rm -v "${COMPOSE_PROJECT_NAME:-myserver}_stack-config":/v alpine \
 docker exec nav-proxy grep 'proxy_pass http://new' /etc/nginx/conf.d/default.conf
 ```
 
-For a mod-list change (`config/modrinth-mods.txt`), patch
-`/v/../mods/modrinth-mods.txt` inside `stack-mods` the same way, then
-`./dev restart mc` is not available (mc is excluded from `service.sh`) — you
-need a real `./dev up` to re-run `seed` and `sync-mods.sh`, or accept that
-mod-list changes to the image genuinely require the seed to rerun (this
-category doesn't have a `--no-deps` shortcut; test mod-list changes by
-letting `./dev up` re-seed, and confirm via `docker logs seed` showing the
-new count).
+For a mod-list change (`config/modrinth-mods.txt`), patch `/v/../mods/modrinth-mods.txt` inside `stack-mods` the same way, then `./dev restart mc` is not available (mc is excluded from `service.sh`) — you need a real `./dev up` to re-run `seed` and `sync-mods.sh`, or accept that mod-list changes to the image genuinely require the seed to rerun (this category doesn't have a `--no-deps` shortcut; test mod-list changes by letting `./dev up` re-seed, and confirm via `docker logs seed` showing the new count).
 
 ## 3. A config seeded by `dev-up.sh` into `data/config/` (skip-if-exists)
 
@@ -77,8 +61,7 @@ rm <consumer>/data/config/multiverse_config.json
 ./dev up
 ```
 
-Verify the new fields actually landed (don't just check the file exists —
-check the field you added):
+Verify the new fields actually landed (don't just check the file exists — check the field you added):
 
 ```bash
 python3 -c "import json; print(json.load(open('data/config/multiverse_config.json')).get('noiseSettings'))"
@@ -86,8 +69,7 @@ python3 -c "import json; print(json.load(open('data/config/multiverse_config.jso
 
 ## 4. Per-dimension seeds / worldgen / anything c2me-adjacent
 
-The c2me snippet is inline in `SKILL.md` — reproduce it exactly, or use
-`./dev up` which applies it automatically.
+The c2me snippet is inline in `SKILL.md` — reproduce it exactly, or use `./dev up` which applies it automatically.
 
 ```bash
 # Manual re-patch before a bare restart:
@@ -127,10 +109,7 @@ docker exec -i mc rcon-cli "execute in adventure:<dim2> run locate structure min
 docker exec nav-proxy grep <expected-string> /etc/nginx/conf.d/default.conf
 ```
 
-If the change lives in the platform's `config/nginx/` source rather than a
-volume you've already hand-patched, you need recipe 2 first (patch the
-volume, then restart), since `nav-proxy` never reads `config/nginx/`
-directly — only what `seed` copied into `stack-config`.
+If the change lives in the platform's `config/nginx/` source rather than a volume you've already hand-patched, you need recipe 2 first (patch the volume, then restart), since `nav-proxy` never reads `config/nginx/` directly — only what `seed` copied into `stack-config`.
 
 ## 6. Map render config or map data
 
@@ -140,9 +119,7 @@ docker restart unmined-render
 docker exec unmined-render find /web -name '*.webp' -newer /tmp/marker -mmin -2 | head
 ```
 
-Don't wait on the `-u` watcher locally — on macOS Docker its file-change
-events are unreliable and may never fire. The explicit restart is the only
-reliable local trigger; trust the watcher only on Linux production.
+Don't wait on the `-u` watcher locally — on macOS Docker its file-change events are unreliable and may never fire. The explicit restart is the only reliable local trigger; trust the watcher only on Linux production.
 
 ## Reset to a clean baseline
 

@@ -178,6 +178,102 @@ class MultiverseConfigTest {
         assertEquals("the_other", config.getPortalsByIgniter("minecraft:pink_petals", "x").get(0).getId());
     }
 
+    // --- base worlds --------------------------------------------------------
+
+    @Test
+    void baseWorldsResolveByExactDimensionId(@TempDir Path dir) throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_end.json"), "{\"seed\":5,\"borders\":{\"player\":4096}}");
+        Files.writeString(dims.resolve("paradise_lost.json"), "{\"seed\":6}");
+        MultiverseConfig config = fromDirectory(dir);
+
+        DimensionConfig end = config.getBaseWorld("minecraft:the_end");
+        assertNotNull(end);
+        assertEquals(4096, end.getPlayerBorderRadius());
+        assertNotNull(config.getBaseWorld("paradise_lost:paradise_lost"));
+        assertNull(config.getBaseWorld("minecraft:overworld"));   // not configured
+        assertNull(config.getBaseWorld(null));
+
+        // Managing a base world must never widen the namespace set: the
+        // lookup behind that gate is by PATH, and these namespaces carry
+        // other mods' dimensions.
+        assertFalse(config.isManagedNamespace("minecraft"));
+        assertFalse(config.isManagedNamespace("paradise_lost"));
+        // ...nor make it a custom dimension.
+        assertNull(config.getDimension("the_end"));
+        assertTrue(config.getDimensions().isEmpty());
+    }
+
+    @Test
+    void aForeignDimensionWithACollidingPathNeverResolves(@TempDir Path dir) throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_end.json"), "{\"seed\":5}");
+        Files.writeString(dims.resolve("the_claymarsh.json"), "{\"type\":\"overworld\",\"seed\":1}");
+        MultiverseConfig config = fromDirectory(dir);
+
+        assertNull(config.getBaseWorld("someothermod:the_end"));
+        assertNull(config.getBaseWorld("someothermod:the_claymarsh"));
+        assertNull(config.getBaseWorld("minecraft:the_claymarsh"));
+    }
+
+    @Test
+    void baseWorldsTakeTheirFamilysWorldTypeWithoutConfiguringOne(@TempDir Path dir)
+            throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        for (String slug : DimensionConfig.BASE_WORLD_TYPES.keySet()) {
+            Files.writeString(dims.resolve(slug + ".json"), "{\"seed\":1}");
+        }
+        MultiverseConfig config = fromDirectory(dir);
+        for (var e : DimensionConfig.BASE_WORLD_TYPES.entrySet()) {
+            DimensionConfig def = config.getWorld(e.getKey());
+            assertNotNull(def, e.getKey());
+            assertEquals(e.getValue(), def.getType(), e.getKey());
+            assertFalse(com.customdimensions.dimension.StructureGroupRegistry
+                            .groupsForType(def.getType()).isEmpty(),
+                    e.getKey() + " type " + def.getType() + " enables no groups");
+        }
+        // An explicit type still wins — that is how a consumer moves a base
+        // world onto another family's group set.
+        Files.writeString(dims.resolve("the_end.json"), "{\"seed\":1,\"type\":\"nether\"}");
+        assertEquals("nether", fromDirectory(dir).getWorld("the_end").getType());
+    }
+
+    @Test
+    void baseWorldPortalsAreRegisteredLikeAnyOther(@TempDir Path dir) throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_nether.json"), """
+                {"seed":111,"portal":{"frameBlock":"minecraft:obsidian",
+                 "igniterItem":"minecraft:flint_and_steel","scale":8.0,"color":"AA0000"}}
+                """);
+        MultiverseConfig config = fromDirectory(dir);
+
+        PortalDefinition portal = config.getPortal("the_nether");
+        assertNotNull(portal, "a base world's portal must reach the portal registry");
+        assertEquals("minecraft:the_nether", portal.getTargetDimension());
+        assertEquals(8.0, portal.getScale());
+        assertTrue(config.getPortalByIgniter("minecraft:flint_and_steel").isPresent());
+
+        RegistryKey<World> netherKey = RegistryKey.of(RegistryKeys.WORLD,
+                Identifier.of("minecraft:the_nether"));
+        assertNotNull(config.getPortalFor(netherKey));
+    }
+
+    @Test
+    void baseWorldSeedOverridesResolveByExactId(@TempDir Path dir) throws IOException {
+        Path dims = dir.resolve("dimensions");
+        Files.createDirectories(dims);
+        Files.writeString(dims.resolve("the_nether.json"), "{\"seed\":111}");
+        Files.writeString(dims.resolve("the_end.json"), "{\"seed\":222}");
+        MultiverseConfig config = fromDirectory(dir);
+        assertEquals(111L, config.getWorldSeedOverride("minecraft:the_nether"));
+        assertEquals(222L, config.getWorldSeedOverride("minecraft:the_end"));
+        assertNull(config.getWorldSeedOverride("adventure:nowhere"));
+    }
+
     // This is exactly what PortalHelper.restoreZones() calls to re-stamp a
     // Gson-restored PortalDefinition's transient immersive field — see
     // ImmersiveSettingsTest.immersiveIsLostAcrossGsonRoundTripAndMustBeReStampedOnRestore

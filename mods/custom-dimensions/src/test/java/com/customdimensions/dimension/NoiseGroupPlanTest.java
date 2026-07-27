@@ -263,6 +263,45 @@ class NoiseGroupPlanTest {
         }
     }
 
+    // --- base worlds -------------------------------------------------------
+
+    @Test
+    void aBaseWorldResolvesItsFamilysGroupsFromItsNameAlone() {
+        // A base-world file names no type — its generator is vanilla's — so
+        // the family comes from the filename the loader stamped.
+        DimensionConfig config = GSON.fromJson(
+                "{\"seed\": 42, \"borders\": {\"player\": 1024}}", DimensionConfig.class);
+        config.setName("the_nether");
+        NoiseGroupPlan p = NoiseGroupPlan.resolve(config);
+        assertFalse(p.isSuppressed(), p.reason());
+        assertEquals(java.util.Set.of("deco", "settlements", "dungeons", "landmarks", "endgame"),
+                p.groups().keySet());
+    }
+
+    @Test
+    void eachBaseWorldCanonicalTypeResolvesToItsFamilysGroups() {
+        assertEquals(StructureGroupRegistry.knownGroups(),
+                plan("{\"type\": \"overworld\"}").groups().keySet());
+        assertEquals(java.util.Set.of("deco", "settlements", "dungeons", "landmarks", "endgame"),
+                plan("{\"type\": \"nether\"}").groups().keySet());
+        assertEquals(java.util.Set.of("deco", "dungeons", "landmarks", "maritime", "endgame"),
+                plan("{\"type\": \"end\"}").groups().keySet());
+        assertEquals(java.util.Set.of("deco", "settlements", "landmarks"),
+                plan("{\"type\": \"paradise_lost:paradise_lost\"}").groups().keySet());
+    }
+
+    @Test
+    void baseWorldDifficultyStillDrivesTheShifts() {
+        // the_end ships mobMultiplier 1.5 and the_nether higher still — the
+        // shifts must apply to a base world exactly as to any other dimension.
+        NoiseGroupPlan hostile = plan("{\"type\": \"nether\", "
+                + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
+        assertEquals(1.0, hostile.groups().get("dungeons").radial()[0], 1e-6);
+        NoiseGroupPlan peaceful = plan("{\"type\": \"overworld\", "
+                + "\"difficulty\": {\"mobMultiplier\": 0.0}}");
+        assertFalse(peaceful.groups().containsKey("dungeons"));
+    }
+
     // --- salts -------------------------------------------------------------
 
     @Test

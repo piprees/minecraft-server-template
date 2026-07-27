@@ -1,5 +1,5 @@
 {
-  "seed": 3185709267456367864,
+  "seed": -4234339176563703533,
   "scale": 1.0,
   "borders": {
     "player": 8192,
@@ -35,7 +35,7 @@
   },
   "seedRoll": {
     "mood": "standard",
-    "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone — and something stirs in them.",
+    "description": "The world where it all begins. Villagers settled the plains and humans arrived through the stone gate. Safe at spawn, but the ancient cities near the border predate everyone \u2014 and something stirs in them.",
     "spawnFilter": [
       "minecraft:plains",
       "minecraft:meadow",

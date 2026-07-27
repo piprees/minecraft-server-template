@@ -25,17 +25,17 @@ Config files follow a separate path in the same container: `rsync -a --delete /d
 For every `slug:versionId` in the merged list:
 
 - Looks up a cache first: a repo-committed `config/modrinth-resolve-cache.json` (baked into the image — known pins resolve with **zero** API calls, survives a full Modrinth outage) overlaid by a runtime cache persisted in the `stack-mods` volume (`.resolve-cache.json`).
-- On a cache miss, calls `GET /v2/version/{versionId}` (paced 0.35s apart), takes the `primary` file's URL + filename, and writes the result into the cache. Version IDs are immutable on Modrinth, so **this cache never goes stale** — a warm cache means the *entire* merged list resolves with zero API calls.
+- On a cache miss, calls `GET /v2/version/{versionId}` (paced 0.35s apart), takes the `primary` file's URL + filename, and writes the result into the cache. Version IDs are immutable on Modrinth, so **this cache never goes stale** — a warm cache means the _entire_ merged list resolves with zero API calls.
 - 429 responses honour `Retry-After` (or an exponential backoff starting at 2s, capped at 60s) across up to 6 attempts. 5xx responses get the same backoff treatment (added 2026-07-17 after Modrinth 5xx flapping killed five consecutive CI runs).
 - A `datapack:` prefix routes the URL to the datapacks output list instead of mods. A trailing `?` marks the entry optional: if optional and unresolvable, it's skipped with a stderr warning and the boot continues. If **required** and unresolvable, its slug is collected as a failure — after all entries are processed, any failures cause the script (and therefore the seed container, and therefore the whole boot) to exit 1.
 
 Outputs, written into the `stack-mods` volume:
 
-| File | Consumed by |
-| --- | --- |
-| `mods-urls.txt` | `mc` container's `MODS_FILE` env var |
-| `datapacks-urls.txt` | `mc` container's `DATAPACKS_FILE` env var |
-| `mods-manifest.txt` | The stale-jar prune in `deploy.sh`/`dev-up.sh` (expected filenames) |
+| File                 | Consumed by                                                         |
+| -------------------- | ------------------------------------------------------------------- |
+| `mods-urls.txt`      | `mc` container's `MODS_FILE` env var                                |
+| `datapacks-urls.txt` | `mc` container's `DATAPACKS_FILE` env var                           |
+| `mods-manifest.txt`  | The stale-jar prune in `deploy.sh`/`dev-up.sh` (expected filenames) |
 
 ## Stage 3: fetch what's missing (`scripts/sync-mods.sh`, host-side)
 

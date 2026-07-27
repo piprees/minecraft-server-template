@@ -485,6 +485,20 @@ no config at all. Full design + every deviation from the spike:
   conservative: 39,570 `deco` placements replace 144 structure sets vanilla
   would each place every 20-30 chunks, so noise `deco` is *sparser* than the
   grid it replaces.
+- **Base worlds are managed like every other dimension** — seed, border,
+  difficulty, portal and structures. Their generator is vanilla's, so their
+  files name no `type` and `DimensionConfig.getType()` supplies the family
+  from `BASE_WORLD_TYPES`; an explicit `type` still wins. **They resolve by
+  EXACT dimension id, never by namespace** (`MultiverseConfig.getBaseWorld`):
+  `minecraft:` and `paradise_lost:` carry other mods' dimensions, and the
+  lookup behind the managed-namespace gate is by PATH, so widening that set
+  would let a third party's `minecraft:whatever` resolve against one of our
+  configs. The Nether gates blaze rods on fortresses and the End gates elytra
+  on end cities, so `scripts/check-noise-regression.py` holds a
+  **reachability floor** for both: expected instances within a radius,
+  `positions_within x weight / pool_weight` — presence in a pool says nothing
+  about reach when vanilla picks the member by weight.
+  Spike: `docs/spikes/SPIKE-BASE-WORLD-PARITY.md`.
 - `/customdim structure-audit` and `/customdim structure-census <dim>` both
   **write files** and return a summary — RCON concatenates feedback lines
   with no separator and truncates at a few KB, so hundreds of rows come back

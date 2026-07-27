@@ -41,7 +41,7 @@ restic snapshots --latest 5
 
 Note: `restic snapshots` has no `--last` flag — it's `--latest n`. If you're troubleshooting off an older doc or note that says `--last`, that's wrong; use `--latest`.
 
-**Verify:** the timestamp of the snapshot you intend to restore is the one you expect, and its host matches the current `hostname:` in `docker-compose.yml`'s `mc-backup` service (`${BRAND_SLUG:-adventure}-mc-backup`) — a snapshot from a stale/dead hostname group (see the retention trap in `SKILL.md`) is still valid data, just check you're not restoring something unexpectedly old because the wrong host's snapshots are listed. Restoring `latest` restores the most recent snapshot from *any* host in that grouping; pin a specific snapshot ID if you need a particular one.
+**Verify:** the timestamp of the snapshot you intend to restore is the one you expect, and its host matches the current `hostname:` in `docker-compose.yml`'s `mc-backup` service (`${BRAND_SLUG:-adventure}-mc-backup`) — a snapshot from a stale/dead hostname group (see the retention trap in `SKILL.md`) is still valid data, just check you're not restoring something unexpectedly old because the wrong host's snapshots are listed. Restoring `latest` restores the most recent snapshot from _any_ host in that grouping; pin a specific snapshot ID if you need a particular one.
 
 ## 4. Restore to a scratch directory — never straight into `data/`
 

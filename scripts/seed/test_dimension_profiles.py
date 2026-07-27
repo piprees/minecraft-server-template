@@ -454,7 +454,9 @@ class GenerationFingerprintTests(unittest.TestCase):
         self.assertEqual(base, self.fp(environment={"minY": -64, "ambientLight": 0.5,
                                                     "hasSkyLight": False}))
 
-    def test_base_worlds_never_group(self):
+    def test_a_raw_entry_with_no_type_has_no_payload(self):
+        # Base worlds get theirs stamped by monolith synthesis; a raw dict
+        # that has not been through it has nothing to resolve groups against.
         self.assertIsNone(generation_fingerprint({"name": "overworld", "seed": 1}))
         self.assertIsNone(generation_payload({"name": "the_nether", "scale": 8.0}))
 
@@ -486,6 +488,114 @@ class GenerationFingerprintTests(unittest.TestCase):
         }
         self.assertEqual(generation_fingerprint(raw),
                          generation_fingerprint(synthesised))
+
+
+class BaseWorldParityTests(unittest.TestCase):
+    """Base worlds are managed exactly like custom dimensions.
+
+    Spike: docs/spikes/SPIKE-BASE-WORLD-PARITY.md. The mod's side is
+    MultiverseConfig.getBaseWorld (exact dimension id, never a namespace) and
+    DimensionConfig.getType's family fallback — change both together.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import os
+        repo = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        cls.config_dir = os.path.join(repo, "config", "custom-dimensions")
+        dp.set_noise_defaults_dir(cls.config_dir)
+
+    def test_base_world_gets_a_payload_of_its_own(self):
+        dim = {"name": "the_end", "dimensionId": "minecraft:the_end",
+               "type": "end", "borders": {"player": 4096, "generation": 4096},
+               "difficulty": {"mobMultiplier": 1.5}}
+        payload = generation_payload(dim)
+        self.assertIsNotNone(payload)
+        self.assertEqual(payload["baseWorld"], "minecraft:the_end")
+        self.assertIn("noisePlacement", payload)
+        self.assertEqual(payload["noisePlacement"]["radiusChunks"], 256)
+        self.assertIsNotNone(dp.noise_fingerprint(dim))
+
+    def test_every_base_world_carries_its_family_after_synthesis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {f"dimensions/{slug}.json": {"seed": 1}
+                             for slug in dp.BASE_WORLD_TYPES})
+            cfg = monolith_from_dir(tmp)
+        worlds = {w["name"]: w for w in cfg["worlds"]}
+        for slug, expected in dp.BASE_WORLD_TYPES.items():
+            self.assertEqual(worlds[slug]["type"], expected, slug)
+            self.assertIsNotNone(generation_fingerprint(worlds[slug]), slug)
+
+    def test_a_base_world_never_shares_a_group_with_a_custom_dimension(self):
+        """Vanilla builds a base world from the level's world preset; the mod
+        templates a custom dimension off overworldOpts, and the roller
+        measures the two through different plumbing. Agreeing on every other
+        field does not make them clones."""
+        world = {"name": "overworld", "dimensionId": "minecraft:overworld",
+                 "type": "overworld", "borders": {"player": 8192, "generation": 8192}}
+        custom = {"name": "the_twin", "dimensionId": "adventure:the_twin",
+                  "type": "overworld", "borders": {"player": 8192, "generation": 8192}}
+        self.assertNotEqual(generation_fingerprint(world),
+                            generation_fingerprint(custom))
+
+    def test_no_shipped_dimension_collides_with_a_base_world(self):
+        """The discriminator has to hold against the real config set, not a
+        hand-built pair."""
+        cfg = load_config(self.config_dir)
+        by_fp = {}
+        for entry in cfg["dimensions"] + cfg["worlds"]:
+            probe = dict(entry)
+            probe.setdefault("type", "overworld")   # force every one to fingerprint
+            fp = generation_fingerprint(probe)
+            if fp is None:
+                continue
+            by_fp.setdefault(fp, []).append(entry["name"])
+        base = set(dp.BASE_WORLD_IDS)
+        for fp, names in by_fp.items():
+            if base & set(names):
+                self.assertEqual(1, len(names),
+                                 f"base world grouped with {names} under {fp}")
+
+    def test_is_world_is_keyed_on_identity_not_on_the_type_field(self):
+        """Keying `is_world` on the ABSENCE of a type sends a base world down
+        the custom-dimension path: paradise_lost resolves family 'overworld'
+        and the scale comes from portal.scale."""
+        cfg = {"namespace": "adventure", "dimensions": [], "portals": [], "worlds": []}
+        for name, dim_id, family in (
+                ("overworld", "minecraft:overworld", "overworld"),
+                ("the_nether", "minecraft:the_nether", "nether"),
+                ("the_end", "minecraft:the_end", "end"),
+                ("paradise_lost", "paradise_lost:paradise_lost", "paradise_lost")):
+            typed = {"name": name, "dimensionId": dim_id, "scale": 4.0,
+                     "type": dp.BASE_WORLD_TYPES[name]}
+            profile = build_profile(typed, cfg)
+            self.assertTrue(profile["is_world"], name)
+            self.assertEqual(profile["family"], family, name)
+            self.assertEqual(profile["scale"], 4.0, name)
+
+    def test_monolith_carries_a_base_worlds_structure_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {
+                "dimensions/the_end.json": {
+                    "seed": 5, "borders": {"player": 4096},
+                    "structureDensity": "sparse",
+                    "structures": {"noise": {"endgame": "natural"},
+                                   "force": [{"structure": "minecraft:end_city",
+                                              "x": 300, "z": 300}]},
+                },
+                "dimensions/overworld.json": {"seed": 9},
+            })
+            cfg = monolith_from_dir(tmp)
+        end = next(w for w in cfg["worlds"] if w["name"] == "the_end")
+        self.assertEqual(end["type"], "end")
+        self.assertEqual(end["structureDensity"], "sparse")
+        self.assertEqual(end["structures"]["noise"], {"endgame": "natural"})
+        # An explicit type in the file still wins over the family default.
+        with tempfile.TemporaryDirectory() as tmp:
+            write_tree(tmp, {"dimensions/the_end.json": {"seed": 5, "type": "nether"}})
+            cfg = monolith_from_dir(tmp)
+        self.assertEqual(cfg["worlds"][0]["type"], "nether")
 
 
 class BuildProfileV4Tests(unittest.TestCase):

@@ -61,7 +61,7 @@ PROJECT_DIR="${CONSUMER_DIR:-${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")
 
 Precedence, highest first:
 
-1. **`CONSUMER_DIR`** — set by the `ops`/`dev` dispatchers before they exec into a bundle script. This is what lets one bundle of scripts operate on a *consumer* repo's `.env` even though the scripts themselves live in `.stack/current/stack/scripts/`.
+1. **`CONSUMER_DIR`** — set by the `ops`/`dev` dispatchers before they exec into a bundle script. This is what lets one bundle of scripts operate on a _consumer_ repo's `.env` even though the scripts themselves live in `.stack/current/stack/scripts/`.
 2. **Pre-set `PROJECT_DIR`** — used when a container entrypoint or another script has already exported it.
 3. **Derived** — `..` relative to the script's own location (`scripts/` → repo root). This is the fallback when a script is run standalone, e.g. directly from a platform checkout.
 
@@ -71,7 +71,7 @@ If a script seems to be reading the wrong `.env` (or none at all), check which o
 
 `config/1password.env` is not a `.env` file itself — it's a template of `op://` reference URIs, one per line, in `VAR=op://vault/item/field` shape. Two things make it non-obvious:
 
-**Item name substitution.** The literal item name in the file is always `Minecraft Server` — `op-env.sh` and `op-sync-env.sh` both rewrite that substring to the per-brand item name (`Minecraft Server - <BRAND_SLUG>`, or `$OP_ITEM_NAME` if set) *at read/write time*. Don't "fix" the file to hardcode a real brand name — that breaks every other consumer repo built from this template.
+**Item name substitution.** The literal item name in the file is always `Minecraft Server` — `op-env.sh` and `op-sync-env.sh` both rewrite that substring to the per-brand item name (`Minecraft Server - <BRAND_SLUG>`, or `$OP_ITEM_NAME` if set) _at read/write time_. Don't "fix" the file to hardcode a real brand name — that breaks every other consumer repo built from this template.
 
 **Per-environment sections.** A handful of fields are nested under `local`/`prod` sections **within the same 1Password item**, not separate items:
 
@@ -81,7 +81,7 @@ KUMA_PASSWORD=op://Dev/Minecraft Server/${MC_ENV:-local}/KUMA_PASSWORD
 ONLINE_MODE=op://Dev/Minecraft Server/${MC_ENV:-local}/ONLINE_MODE
 ```
 
-`op-env.sh` exports `MC_ENV` (from its own `local`/`prod` argument) before resolving these, so `./scripts/op-env.sh prod` and `./scripts/op-env.sh local` pull different RCON/Kuma passwords and a different `ONLINE_MODE` from the *same* vault item. `op-sync-env.sh` writes these with an explicit `local.` prefix (`sync_field "local.RCON_PASSWORD" ...`) — there's no equivalent `prod.` sync from this script; production values in that section are set once at provisioning time and not routinely overwritten by a local sync.
+`op-env.sh` exports `MC_ENV` (from its own `local`/`prod` argument) before resolving these, so `./scripts/op-env.sh prod` and `./scripts/op-env.sh local` pull different RCON/Kuma passwords and a different `ONLINE_MODE` from the _same_ vault item. `op-sync-env.sh` writes these with an explicit `local.` prefix (`sync_field "local.RCON_PASSWORD" ...`) — there's no equivalent `prod.` sync from this script; production values in that section are set once at provisioning time and not routinely overwritten by a local sync.
 
 **Field name mismatches happen.** `KUMA_API_KEY` in `.env` resolves to the 1Password field `KUMA_UPTIME_CHECKS_API_KEY` — the var name and the vault field name are not always identical. When a value fails to resolve, check the actual `op://` line in `config/1password.env` rather than assuming the field is named after the environment variable.
 

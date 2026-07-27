@@ -4,11 +4,11 @@ DataVersion: **3955** for MC 1.21.1.
 
 ## File Layout
 
-| Offset | Size | Description |
-|--------|------|-------------|
-| 0 | 4096 bytes | Location table — 1024 entries × 4 bytes |
-| 4096 | 4096 bytes | Timestamp table — 1024 entries × 4 bytes |
-| 8192+ | variable | Chunk data sectors (4096-byte aligned) |
+| Offset | Size       | Description                              |
+| ------ | ---------- | ---------------------------------------- |
+| 0      | 4096 bytes | Location table — 1024 entries × 4 bytes  |
+| 4096   | 4096 bytes | Timestamp table — 1024 entries × 4 bytes |
+| 8192+  | variable   | Chunk data sectors (4096-byte aligned)   |
 
 ### Location Table Entry (4 bytes, big-endian)
 
@@ -25,12 +25,12 @@ i = (chunkX & 31) + (chunkZ & 31) * 32
 
 ### Chunk Data
 
-| Offset | Size | Description |
-|--------|------|-------------|
-| 0–3 | 4 bytes | Length (big-endian signed int32) |
-| 4 | 1 byte | Compression type (2 = zlib standard) |
-| 5+ | length-1 | Compressed NBT data |
-| ... | padding | Zero-padded to 4096-byte boundary |
+| Offset | Size     | Description                          |
+| ------ | -------- | ------------------------------------ |
+| 0–3    | 4 bytes  | Length (big-endian signed int32)     |
+| 4      | 1 byte   | Compression type (2 = zlib standard) |
+| 5+     | length-1 | Compressed NBT data                  |
+| ...    | padding  | Zero-padded to 4096-byte boundary    |
 
 ## Chunk NBT Structure (1.21.1)
 
@@ -91,6 +91,7 @@ TAG_Compound
 - Values represent `actual_y - world_min_y + 1` (0 = no block)
 
 Types in fully generated chunks:
+
 - MOTION_BLOCKING, MOTION_BLOCKING_NO_LEAVES, OCEAN_FLOOR, WORLD_SURFACE
 
 ## Minimum Viable Synthetic Chunk for Renderers
@@ -115,17 +116,17 @@ For unmined-cli to render something visible:
 
 ## NBT Tag Types
 
-| ID | Type | Payload |
-|----|------|---------|
-| 0 | TAG_End | Nothing |
-| 1 | TAG_Byte | 1 byte signed |
-| 2 | TAG_Short | 2 bytes BE signed |
-| 3 | TAG_Int | 4 bytes BE signed |
-| 4 | TAG_Long | 8 bytes BE signed |
-| 7 | TAG_Byte_Array | 4-byte length + N bytes |
-| 8 | TAG_String | 2-byte length + UTF-8 |
-| 9 | TAG_List | 1-byte type + 4-byte length + N payloads |
-| 10 | TAG_Compound | Named tags until TAG_End |
-| 12 | TAG_Long_Array | 4-byte length + N×8-byte longs |
+| ID  | Type           | Payload                                  |
+| --- | -------------- | ---------------------------------------- |
+| 0   | TAG_End        | Nothing                                  |
+| 1   | TAG_Byte       | 1 byte signed                            |
+| 2   | TAG_Short      | 2 bytes BE signed                        |
+| 3   | TAG_Int        | 4 bytes BE signed                        |
+| 4   | TAG_Long       | 8 bytes BE signed                        |
+| 7   | TAG_Byte_Array | 4-byte length + N bytes                  |
+| 8   | TAG_String     | 2-byte length + UTF-8                    |
+| 9   | TAG_List       | 1-byte type + 4-byte length + N payloads |
+| 10  | TAG_Compound   | Named tags until TAG_End                 |
+| 12  | TAG_Long_Array | 4-byte length + N×8-byte longs           |
 
 Named tag: `[type_id: 1B][name_len: 2B BE][name: UTF-8][payload]`

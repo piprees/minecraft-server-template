@@ -27,7 +27,7 @@ gh run list --limit 5                                                          #
 gh release list --limit 5 --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName'  # the real latest, not just the most recent
 ```
 
-The last command exists because `gh release list --limit 1` returns the most *recently published* release, not the highest version — a backported patch (e.g. `v5.1.0` published after `v6.0.0`) sorts first by publish time, not by semver.
+The last command exists because `gh release list --limit 1` returns the most _recently published_ release, not the highest version — a backported patch (e.g. `v5.1.0` published after `v6.0.0`) sorts first by publish time, not by semver.
 
 ## Version selection
 
@@ -85,7 +85,7 @@ Also check `CHANGELOG.md` on `main` actually picked up the new version — the c
 3. **The publish.yml cancellation collision (2026-07-13).** Pushing to `main` while `release.yml` is running cancels the release's in-flight image builds via the shared `publish-${{ github.ref }}` concurrency group. Recovery: `gh run rerun <release-run-id> --failed` rebuilds only the cancelled jobs — the release and tag are unaffected if the `bundle` job ("Build bundle and publish release") already succeeded. Full detail in `references/release-recovery.md`.
 4. **Bundle manifest trap.** A new bundle script not added to the `MANIFEST` array in `scripts/build-stack-bundle.sh` is never shipped to consumers. `lint.yml`'s `bundle-manifest` job catches this only for scripts reached via an `ops` case mapping, an `ops` `ALLOWED_COMMANDS` default, or a `$SCRIPT_DIR/*.sh` reference inside another bundle script — a script added some other way can still slip through silently. Details: `references/bundle-contents.md`.
 5. **Stale local major tag.** Releases force-move `vN` (e.g. `v3`) to the new release commit; a stale local copy makes every subsequent `git fetch` complain. Refresh with the explicit refspec shown above, not a plain `git fetch`.
-6. **A release sitting on GitHub changes nothing on its own.** Consumers only pick it up when *something* pushes to their repo and tier detection resolves their symbolic `STACK_VERSION` pin against the newly-tagged release.
+6. **A release sitting on GitHub changes nothing on its own.** Consumers only pick it up when _something_ pushes to their repo and tier detection resolves their symbolic `STACK_VERSION` pin against the newly-tagged release.
 7. **Never trust training data for version numbers.** Before bumping any `image:` tag, `uses:` action, or pinned tool/library version touched by a release, look it up live (`gh release list --repo <owner/repo> --limit 5`, checked against `isLatest` — not `--limit 1`). Separately confirm the tag is actually pushed to the registry you're pulling from; some projects publish GitHub releases without a matching image push.
 8. **`smoke-test` failing does not burn anything.** The version string isn't consumed until the `bundle` job's `gh release create` call, which only runs after `smoke-test` passes — a failed smoke test is safe to fix and re-dispatch with the identical version.
 

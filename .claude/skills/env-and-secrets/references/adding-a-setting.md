@@ -87,13 +87,13 @@ S_EXAMPLE_API_TOKEN: ${{ secrets.EXAMPLE_API_TOKEN }}
 emit EXAMPLE_API_TOKEN "$S_EXAMPLE_API_TOKEN"
 ```
 
-Skipping (b) and (c) is the single most common way this goes wrong — the `secrets:` declaration alone makes GitHub *pass* the value into the job, but nothing then writes it into the file that ends up on the server.
+Skipping (b) and (c) is the single most common way this goes wrong — the `secrets:` declaration alone makes GitHub _pass_ the value into the job, but nothing then writes it into the file that ends up on the server.
 
 **If it's `required: true` in the workflow**, also add it to the `MISSING` validation block in the same step so a blank value fails the deploy loudly instead of shipping an empty line.
 
 ## Worked example: adding a plain variable (no server runtime need)
 
-Not everything needs step 4. `OP_ITEM_NAME` or `OP_VAULT`-style overrides, or a variable only a *script* reads locally (never the running server), stop after the GitHub environment step — there's nothing for the reusable workflow to carry.
+Not everything needs step 4. `OP_ITEM_NAME` or `OP_VAULT`-style overrides, or a variable only a _script_ reads locally (never the running server), stop after the GitHub environment step — there's nothing for the reusable workflow to carry.
 
 Use an existing entry as the template — `BACKUP_INTERVAL` in `OPTIONAL_VARS` (`scripts/github-env-sync.sh`) is a real one that already completes all the steps a "plain variable, server needs it" setting requires:
 

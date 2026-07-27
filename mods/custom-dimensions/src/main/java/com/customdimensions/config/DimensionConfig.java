@@ -30,10 +30,29 @@ public class DimensionConfig {
     public static final Set<String> BASE_WORLDS =
             Set.of("overworld", "the_nether", "the_end", "paradise_lost");
 
-    private static final Map<String, String> BASE_WORLD_IDS = Map.of(
+    private static final Map<String, String> BASE_WORLD_ID_BY_NAME = Map.of(
             "overworld", "minecraft:overworld",
             "the_nether", "minecraft:the_nether",
             "the_end", "minecraft:the_end",
+            "paradise_lost", "paradise_lost:paradise_lost");
+
+    /** Full dimension ids of the base worlds, for callers that work in ids. */
+    public static final Set<String> BASE_WORLD_IDS =
+            Set.copyOf(BASE_WORLD_ID_BY_NAME.values());
+
+    /**
+     * The world type each base world's structure groups resolve against.
+     *
+     * <p>A base world's generator is vanilla's, so its file carries no
+     * {@code type}; this supplies the one its structure groups are resolved
+     * against ({@link #getType()}). An explicit {@code type} in the file wins,
+     * which is how a consumer moves a base world onto another family's group
+     * set.
+     */
+    public static final Map<String, String> BASE_WORLD_TYPES = Map.of(
+            "overworld", "overworld",
+            "the_nether", "nether",
+            "the_end", "end",
             "paradise_lost", "paradise_lost:paradise_lost");
 
     public static final int DEFAULT_BORDER_RADIUS = 8192;
@@ -138,7 +157,16 @@ public class DimensionConfig {
         }
     }
 
+    /**
+     * The world type structure groups resolve against. Base worlds fall back
+     * to their family ({@link #BASE_WORLD_TYPES}) — they generate with
+     * vanilla's generator, so their files name no type, but they are managed
+     * like any other dimension and need one.
+     */
     public String getType() {
+        if (this.type == null && this.name != null) {
+            return BASE_WORLD_TYPES.get(this.name);
+        }
         return this.type;
     }
 
@@ -157,8 +185,8 @@ public class DimensionConfig {
 
     /** Full dimension id for an explicit namespace: {namespace}:{slug} (base worlds keep vanilla ids). */
     public String getDimensionId(String namespace) {
-        if (this.name != null && BASE_WORLD_IDS.containsKey(this.name)) {
-            return BASE_WORLD_IDS.get(this.name);
+        if (this.name != null && BASE_WORLD_ID_BY_NAME.containsKey(this.name)) {
+            return BASE_WORLD_ID_BY_NAME.get(this.name);
         }
         if (this.dimensionId != null && !this.dimensionId.isBlank()) {
             return this.dimensionId.toLowerCase();

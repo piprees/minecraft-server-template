@@ -35,7 +35,7 @@ For nether/end, we extracted splines from Incendium and Nullscape, and added the
 ### Relevant files
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `scripts/seed/biome_renderer.py` | The renderer — `render_biome_map()` computes heights + hillshade per pixel |
 | `scripts/seed/terrain_height.py` | `TerrainEvaluator` — loads and evaluates per-family splines |
 | `scripts/seed/terrain_splines.json` | Extracted spline data: overworld (Terralith), nether (Incendium), end (Nullscape) |
@@ -46,6 +46,7 @@ For nether/end, we extracted splines from Incendium and Nullscape, and added the
 ### Research notes
 
 Extensive R&D documentation is at `scripts/seed/spike/`:
+
 - `01-unmined-cli-research.md` — why we can't use unmined-cli (needs full block data)
 - `02-cubiomes-and-mca-research.md` — why biome_sampler.py IS the modded cubiomes
 - `05-terrain-height-research.md` — how MC terrain heights work (density functions, splines)
@@ -60,6 +61,7 @@ Extensive R&D documentation is at `scripts/seed/spike/`:
 - **Paradise Lost** — a separate dimension mod; delegates terrain to Terralith's overworld spline
 
 The mod JARs are at `/Users/pip/Projects/elfydd/data/mods/`:
+
 - `Terralith_1.21.x_v2.6.2.jar`
 - `Incendium_1.21.x_v5.4.4.jar`
 - `Nullscape_1.21.x_v1.2.14.jar`
@@ -99,6 +101,7 @@ The high `shade_k` values (0.20-0.25) amplify the noise. Reducing to 0.05-0.08 w
 ## Success Criteria
 
 A fixed render should show:
+
 - **Nether**: distinct biome regions (crimson reds, warped cyan, basalt grey, soul sand brown) with smooth terrain variation — lava lakes as dark areas, high terrain as lighter areas, biome boundaries clear
 - **Paradise Lost**: sky island shapes visible, with highland/forest/cragland terrain variation within islands, void/sky between islands
 - **End**: floating islands against void (already partially working), with better internal terrain detail

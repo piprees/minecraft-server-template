@@ -29,7 +29,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 
 | Key | Type | Timing | Notes |
 | --- | --- | --- | --- |
-| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any new (non-base-world) dimension. |
+| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any new (non-base-world) dimension. On a **base world** it selects nothing — it is the opt-in to structure management; see [Base worlds](#base-worlds). |
 | `description` | string | — | Documentation only; never parsed by the mod. Still worth writing well — good practice, and useful for humans skimming files. |
 | `seed` | number \| `"env"` | creation-time | Per-dimension world seed. `"env"` reads the `SEED` env var. Changing this after the world exists does nothing. |
 | `spawn` | `[x, y, z]` | boot-re-read | Spawn point. The seed roller overwrites this when it finalises a winner. |
@@ -257,15 +257,28 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
 | `wants` | **Band-name** form: short-name → `"near_spawn"`/`"spread"`/`"near_border"`. Different format from `structures.wants` — see main SKILL.md traps. |
 | `shuns` | Bare list of short names (or map form) to penalise. |
 
-## Legacy: base-world overrides
+## Base worlds
 
-`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` are **reserved filenames** — they override vanilla/existing worlds (map to `minecraft:overworld` etc.) rather than creating a new dimension. They only really use `seed`, `spawn`, `scale`, `borders`, `difficulty`, `seedRoll` — no `type`/`biomes`/`portal` (a portal doesn't make sense for the overworld itself). Don't create a new file with one of these names unless you deliberately mean to override that base world.
+`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` are **reserved filenames** — they override vanilla/existing worlds (map to `minecraft:overworld` etc.) rather than creating a new dimension. Don't create a new file with one of these names unless you deliberately mean to override that base world.
+
+They are managed like any other dimension: `seed`, `spawn`, `scale`, `borders`, `difficulty`, `seedRoll`, `structureDensity`, `structures` and `portal` all apply. The mod resolves them by **exact dimension id**, never by namespace — `minecraft:` and `paradise_lost:` hold other mods' dimensions too.
+
+**A base world names no `type`** — vanilla owns its generator — and its structure groups resolve against its family instead:
+
+| File | Family |
+| --- | --- |
+| `overworld.json` | `overworld` |
+| `the_nether.json` | `nether` |
+| `the_end.json` | `end` |
+| `paradise_lost.json` | `paradise_lost:paradise_lost` |
+
+Writing an explicit `type` overrides that, which is how you move a base world onto another family's group set.
+
+**A base world's `portal` block is live**: `the_nether.json`'s obsidian/flint-and-steel portal is the way to the Nether, at its configured scale, colour and sounds. `portal.scale` and `borders.player` must agree — a portal built at the source world's border divides by the scale on arrival and must land inside the destination's border. `ShippedDimensionReachabilityTest` pins that for every shipped dimension, base worlds included.
 
 ## `structures` — noise placement fields
 
-Noise placement is the default for every managed dimension; these fields
-override it. All are creation-time-affecting (they change the world a seed
-generates) and all are fingerprinted by the seed roller.
+Noise placement is the default for every managed dimension; these fields override it. All are creation-time-affecting (they change the world a seed generates) and all are fingerprinted by the seed roller.
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
@@ -277,20 +290,10 @@ generates) and all are fingerprinted by the seed roller.
 | `structures.include` | `string[]` | `[]` | Structure SET ids forced into the pool, bypassing the biome filter. The escape hatch for a filter that is too aggressive. |
 | `structures.force[].exclusive` | boolean | `true` | Whether forcing a structure also removes it from the noise pool. Absent = true. |
 
-**Groups:** `deco`, `settlements`, `dungeons`, `landmarks`, `maritime`,
-`endgame`, `loot`. Which are enabled comes from the world type — see
-`config/custom-dimensions/structure-type-defaults.json`, and
-`config/custom-dimensions/structure-groups.json` for every set's
-classification.
+**Groups:** `deco`, `settlements`, `dungeons`, `landmarks`, `maritime`, `endgame`, `loot`. Which are enabled comes from the world type — see `config/custom-dimensions/structure-type-defaults.json`, and `config/custom-dimensions/structure-groups.json` for every set's classification.
 
 **Profiles:** `natural`, `dense`, `sparse`, `cluster`, `none`.
 
-**Difficulty shifts apply automatically and outrank `structureDensity`:**
-`difficulty.mobMultiplier >= 2.0` puts `dungeons` on an even curve and
-`endgame` on a mid curve; `<= 0.5` suppresses both. Only an explicit
-per-group `structures.noise` entry overrides a shift.
+**Difficulty shifts apply automatically and outrank `structureDensity`:** `difficulty.mobMultiplier >= 2.0` puts `dungeons` on an even curve and `endgame` on a mid curve; `<= 0.5` suppresses both. Only an explicit per-group `structures.noise` entry overrides a shift.
 
-**Two fields changed meaning:** `borders.player` and
-`difficulty.mobMultiplier` are now generation-affecting (the border sets the
-scanned radius AND the noise frequency scale; the multiplier drives the
-shifts). Editing either re-rolls the dimension.
+**Two fields changed meaning:** `borders.player` and `difficulty.mobMultiplier` are now generation-affecting (the border sets the scanned radius AND the noise frequency scale; the multiplier drives the shifts). Editing either re-rolls the dimension.

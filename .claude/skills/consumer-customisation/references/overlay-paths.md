@@ -14,7 +14,7 @@ Consumer repos customise the platform through `overlay/` — files that replace 
 | --- | --- | --- |
 | `overlay/config/<modname>/` | `config/<modname>/` | Full-file replacement. The overlay file wins. |
 | `overlay/config/messages.json` | `config/messages.json` | Player/Discord messages |
-| `overlay/config/essentialcommands/rules.txt` | In-game `/rules` text | |
+| `overlay/config/essentialcommands/rules.txt` | In-game `/rules` text |  |
 | `overlay/config/tectonic.json` | `config/tectonic.json` | Must be COMPLETE (every key) — partial file silently falls back to factory defaults |
 | `overlay/config/datapacks/structures/` | `config/datapacks/structures/` | Same-name pack wins. Delete to return to platform default. |
 | `overlay/config/starterkit/` | `config/starterkit/` | Kit files: `kits/<Name>.txt`, `descriptions/<Name>.txt` |
@@ -24,10 +24,10 @@ Consumer repos customise the platform through `overlay/` — files that replace 
 
 ## Mod management
 
-| Overlay path | What it does |
-| --- | --- |
-| `overlay/mods-extra.txt` | Server mods to ADD (format: `slug:versionId`, one per line) |
-| `overlay/mods-remove.txt` | Default mods to REMOVE (one slug per line) |
+| Overlay path              | What it does                                                |
+| ------------------------- | ----------------------------------------------------------- |
+| `overlay/mods-extra.txt`  | Server mods to ADD (format: `slug:versionId`, one per line) |
+| `overlay/mods-remove.txt` | Default mods to REMOVE (one slug per line)                  |
 
 ## Client pack (modpack)
 
@@ -40,12 +40,12 @@ Consumer repos customise the platform through `overlay/` — files that replace 
 
 ## Assets and branding
 
-| Overlay path | What it overrides |
-| --- | --- |
-| `overlay/assets/icon.svg` | 128×128 square icon |
-| `overlay/assets/logo.svg` | Horizontal logo with wordmark |
-| `overlay/assets/cover.svg` | 1280×640 social/OG cover |
-| `overlay/assets/favicon.svg` | 32×32 browser tab icon |
+| Overlay path                 | What it overrides             |
+| ---------------------------- | ----------------------------- |
+| `overlay/assets/icon.svg`    | 128×128 square icon           |
+| `overlay/assets/logo.svg`    | Horizontal logo with wordmark |
+| `overlay/assets/cover.svg`   | 1280×640 social/OG cover      |
+| `overlay/assets/favicon.svg` | 32×32 browser tab icon        |
 
 ## Rules
 

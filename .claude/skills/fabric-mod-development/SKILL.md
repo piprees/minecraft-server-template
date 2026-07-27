@@ -5,7 +5,7 @@ description: Builds, verifies, and ships an in-house Fabric mod under mods/<name
 
 # Fabric Mod Development
 
-Building, verifying, and shipping the in-house Fabric mods in `mods/` (currently `mods/custom-dimensions` — target MC 1.21.1, Fabric Loader 0.16+, Java 21). This skill owns **procedure**: does the jar you built actually work, how do you iterate on it without lying to yourself, and how do you prove a player-dependent path is safe before you restart production. It does not own the mod's internal architecture (portal system, immersive portals, auras) — that lives in `mods/AGENTS.md` and changes often enough that duplicating it here would drift. Read it there; this skill tells you what to *do* with it.
+Building, verifying, and shipping the in-house Fabric mods in `mods/` (currently `mods/custom-dimensions` — target MC 1.21.1, Fabric Loader 0.16+, Java 21). This skill owns **procedure**: does the jar you built actually work, how do you iterate on it without lying to yourself, and how do you prove a player-dependent path is safe before you restart production. It does not own the mod's internal architecture (portal system, immersive portals, auras) — that lives in `mods/AGENTS.md` and changes often enough that duplicating it here would drift. Read it there; this skill tells you what to _do_ with it.
 
 **Out of scope:** authoring or editing a dimension's JSON config (`custom-dimension-authoring` skill, `.claude/skills/custom-dimension-authoring/SKILL.md`); dimension lifecycle on a live world — level.dat scrubs, orphan reconciliation (root `AGENTS.md` § Dimension lifecycle traps); cutting a platform release (root `AGENTS.md` § Cutting a release, `platform-release-management` skill).
 
@@ -86,24 +86,13 @@ docker restart mc
 
 ## 4. Verify via artefacts and checkers, not RCON output
 
-**Start here, not with RCON.** The mod's diagnostic commands write versioned
-JSON to `data/config/custom-dimensions/` and answer with one line plus a
-path; checkers in `scripts/` assert over those files with no server running.
-RCON concatenates feedback lines with no separator, truncates at a few KB,
-and cannot distinguish a timeout from a success — so parsing its output is
-how you get a green run over a broken world. Full contract:
-`mods/AGENTS.md` § Diagnostic artefacts.
+**Start here, not with RCON.** The mod's diagnostic commands write versioned JSON to `data/config/custom-dimensions/` and answer with one line plus a path; checkers in `scripts/` assert over those files with no server running. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
 
 ```bash
 ./dev verify                 # every checker, no Docker needed, safe while paused
 ```
 
-Run `check-dimension-drift.py` FIRST if you are about to assert anything
-about worldgen. Worldgen is creation-time-only, so a world created before
-your config change still generates the OLD world, and every other assertion
-is then measuring history. On 2026-07-27 a jungle dimension "failed" a
-structure-filter check with igloos in its pool; the filter was correct and
-the world was three configs old.
+Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. On 2026-07-27 a jungle dimension "failed" a structure-filter check with igloos in its pool; the filter was correct and the world was three configs old.
 
 | Question | Artefact | Checker |
 | --- | --- | --- |
@@ -112,10 +101,7 @@ the world was three configs old.
 | Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
 | How was each set classified? | `structure-audit.txt` | human-read |
 
-`/locate` is the wrong instrument for placement: it proves one instance
-exists and takes minutes doing it. Measured 2026-07-27 — locating a vanilla
-village in the **stock overworld** times out at 120 s, and Chunky
-pre-generation does not help.
+`/locate` is the wrong instrument for placement: it proves one instance exists and takes minutes doing it. Measured 2026-07-27 — locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 
@@ -168,7 +154,7 @@ See `references/runtime-invariants.md` for why a world-tick mixin that mutates t
 
 Once the local loop passes: commit → `gh workflow run release.yml -f version=vX.Y.Z` → consumer `./dev sync` (or `./ops update` for production). Then verify **outcomes, not script output**:
 
-- Script counters count commands *sent*, not commands that *succeeded* — a brigadier parse error still increments a "Created: N" counter. Check the persisted result instead (e.g. count entries in the config) and spot-check entities via RCON.
+- Script counters count commands _sent_, not commands that _succeeded_ — a brigadier parse error still increments a "Created: N" counter. Check the persisted result instead (e.g. count entries in the config) and spot-check entities via RCON.
 - Snapshot production state, never stream it: `docker logs mc --tail 50`, `docker inspect mc --format '... RestartCount ...'`. A `RestartCount` above 0 means a crash you haven't explained yet.
 - Under deploy load (world creation, Chunky, mod sync) RCON responses can time out and come back empty — treat an empty response as a failure to re-check, never as success.
 - If production's persisted mod state predates a format/namespace change, stop `mc`, delete the state file, and re-run `deploy.sh` — deploys recreate everything idempotently.

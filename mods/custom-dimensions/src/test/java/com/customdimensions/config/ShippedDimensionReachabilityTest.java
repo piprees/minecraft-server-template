@@ -71,9 +71,8 @@ class ShippedDimensionReachabilityTest {
 
         List<String> unreachable = new ArrayList<>();
         for (DimensionConfig config : dims.values()) {
-            if (config.isBaseWorld() || config.getPortal() == null
-                    || config.getPortal().anchor != null) {
-                continue; // base worlds have no scaled arrival; anchors are fixed
+            if (config.getPortal() == null || config.getPortal().anchor != null) {
+                continue; // no portal to arrive through; anchors are fixed
             }
             int destRadius = config.getPlayerBorderRadius();
             if (destRadius <= 0) {
@@ -126,8 +125,7 @@ class ShippedDimensionReachabilityTest {
         Map<String, DimensionConfig> dims = shipped();
         int scaled = 0;
         for (DimensionConfig config : dims.values()) {
-            if (!config.isBaseWorld() && config.getPortal() != null
-                    && config.getPortal().anchor == null) {
+            if (config.getPortal() != null && config.getPortal().anchor == null) {
                 scaled++;
             }
         }

@@ -7,7 +7,7 @@ description: Writes or edits any script shipped by this platform — bundle scri
 
 You are writing or editing a shell (or Python) script in the `minecraft-server-template` platform repo. There are ~77 shell scripts and ~20 Python scripts in `scripts/`, and they obey a house style that contradicts most agents' defaults: macOS bash 3.2 (not bash 4+/5), no PCRE grep, a header comment that is the authoritative reference, and three shipping destinies that only partly overlap with "where the file lives in this repo."
 
-This skill is about **how** to write the script and **where it ends up**. What a specific script should *do* is out of scope — use the relevant operational skill for that.
+This skill is about **how** to write the script and **where it ends up**. What a specific script should _do_ is out of scope — use the relevant operational skill for that.
 
 ## The three destinies — pick one before you write anything
 
@@ -63,14 +63,14 @@ Every new script needs: shebang, one-line name + purpose, a **Context** paragrap
 
 Every script must run on **macOS bash 3.2** — the platform default there is far newer, and that gap is a reflex agents fall into constantly. `#!/usr/bin/env bash` + `set -euo pipefail` always; idempotent (safe to run twice); `backup()` before overwriting; support `--non-interactive` for CI. No `grep -P` anywhere — BSD grep has no PCRE support at all, use `grep -oE` or `sed`.
 
-| Don't | Do |
-| --- | --- |
-| `declare -A map` | Parallel arrays, a `case`, or a `printf`+`grep` lookup |
+| Don't                   | Do                                                          |
+| ----------------------- | ----------------------------------------------------------- |
+| `declare -A map`        | Parallel arrays, a `case`, or a `printf`+`grep` lookup      |
 | `${var,,}` / `${var^^}` | `tr '[:upper:]' '[:lower:]'` / `tr '[:lower:]' '[:upper:]'` |
-| `mapfile -t arr < f` | `while IFS= read -r line; do arr+=("$line"); done < f` |
-| `grep -P` | `grep -oE`, or `sed` |
-| `od -An -td8` | `od -An -tu8`, or a `python3` struct one-liner |
-| `cmd \|& other` | `cmd 2>&1 \| other` |
+| `mapfile -t arr < f`    | `while IFS= read -r line; do arr+=("$line"); done < f`      |
+| `grep -P`               | `grep -oE`, or `sed`                                        |
+| `od -An -td8`           | `od -An -tu8`, or a `python3` struct one-liner              |
+| `cmd \|& other`         | `cmd 2>&1 \| other`                                         |
 
 This is the short version — **full table with the "why" and a repo citation for each row is in [`references/portability.md`](references/portability.md); read it before you write anything relying on a bash 4+ feature or a GNU-only flag.**
 
@@ -94,7 +94,7 @@ It provides `PROJECT_DIR` resolution, colour codes, `log`/`warn`/`die`, `load_en
 
 `README.md` and `overlay/` are **deliberately** excluded from the consumer sync — those are consumer-owned content, never overwrite them.
 
-`.github/workflows/lint.yml`'s `bundle-manifest` job only catches part of this: it cross-checks `examples/consumer/ops`'s `script_file="X"` mappings and `ALLOWED_COMMANDS` entries against `MANIFEST`, and checks that any `$SCRIPT_DIR/foo.sh` referenced *from inside* a manifested bundle script is itself in `MANIFEST`. It only greps for `scripts/*.sh` paths — **a standalone script nobody calls by name yet (or a `.py` file) has no automated check at all**, beyond the narrower `scripts/seed/*.py` import-graph check in `test-scripts.sh` Phase 1 (which only covers the seed roller's own dependency tree). Don't rely on CI to catch a forgotten manifest entry outside those two cases — add it by hand and verify with the validation commands below.
+`.github/workflows/lint.yml`'s `bundle-manifest` job only catches part of this: it cross-checks `examples/consumer/ops`'s `script_file="X"` mappings and `ALLOWED_COMMANDS` entries against `MANIFEST`, and checks that any `$SCRIPT_DIR/foo.sh` referenced _from inside_ a manifested bundle script is itself in `MANIFEST`. It only greps for `scripts/*.sh` paths — **a standalone script nobody calls by name yet (or a `.py` file) has no automated check at all**, beyond the narrower `scripts/seed/*.py` import-graph check in `test-scripts.sh` Phase 1 (which only covers the seed roller's own dependency tree). Don't rely on CI to catch a forgotten manifest entry outside those two cases — add it by hand and verify with the validation commands below.
 
 ## Safety: no unbounded loops
 
@@ -102,7 +102,7 @@ A single `sleep N` outside a loop, for a known duration, is fine. Any loop that 
 
 ## Versions: never trust training data
 
-Before pinning any Docker image tag, GitHub Actions `uses:`, CLI tool, or library version, look it up live (`gh release list --repo <owner/repo> --limit 5`, Context7, or the project's releases page). Two traps: `gh release list --limit 1` returns the most *recently published* release, not the highest semver (backported patches republish old minors) — use `--limit 5` and filter on `isLatest`. And a GitHub release tag doesn't guarantee a matching Docker Hub tag — some projects stop pushing to Docker Hub while still cutting GitHub releases; verify with `docker pull` before pinning.
+Before pinning any Docker image tag, GitHub Actions `uses:`, CLI tool, or library version, look it up live (`gh release list --repo <owner/repo> --limit 5`, Context7, or the project's releases page). Two traps: `gh release list --limit 1` returns the most _recently published_ release, not the highest semver (backported patches republish old minors) — use `--limit 5` and filter on `isLatest`. And a GitHub release tag doesn't guarantee a matching Docker Hub tag — some projects stop pushing to Docker Hub while still cutting GitHub releases; verify with `docker pull` before pinning.
 
 ## User-facing strings
 
@@ -118,7 +118,7 @@ Run this before every push. CI's `lint.yml` runs the same plus `yamllint -c .yam
 
 ## Traps (read this before you write anything)
 
-1. **`grep -P` on macOS.** Documented in `AGENTS.md`, then hit *again* in the seed-rolling scripts after that. BSD grep silently produces no match rather than erroring — "no output" reads as "nothing to fix", not as "this tool doesn't exist here". Use `grep -oE` or `sed`.
+1. **`grep -P` on macOS.** Documented in `AGENTS.md`, then hit _again_ in the seed-rolling scripts after that. BSD grep silently produces no match rather than erroring — "no output" reads as "nothing to fix", not as "this tool doesn't exist here". Use `grep -oE` or `sed`.
 2. **A Bundle script missing from `MANIFEST` never ships.** The build succeeds, `test-scripts.sh` passes locally (you have the file on disk), and the first symptom is a consumer's `./ops <thing>` failing with `Script not found: <path>` after `./dev update` pulls a release tarball that never contained it.
 3. **A consumer scaffold file missing from the `update)` sync list never reaches existing consumers.** New consumers created via `degit`/curl get everything under `examples/consumer/` for free; existing consumers only receive what the explicit copy loops in `examples/consumer/dev`'s `update)` case name. `README.md` and `overlay/` are excluded on purpose — don't "fix" that.
 4. **`cp` over a running script corrupts it.** Bash reads a script incrementally as it executes; `cp` rewrites the destination inode in place, and an interpreter mid-execution hits shifted bytes and dies with a bogus `unexpected EOF`/parse error. Use write-to-temp + `mv` — see the executable-entry-points loop in `examples/consumer/dev`'s `update)` case, which does exactly this because that loop replaces the very script bash is executing.

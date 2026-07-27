@@ -11,7 +11,7 @@ Maps biome IDs to rendering parameters: surface block colour, vegetation density
 ## API
 
 | Function | Returns | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `biome_surface(biome_id)` | `str` | Surface type key ("grass", "sand", "stone", etc.) |
 | `vegetation_density(biome_id)` | `float` | Canopy darkness multiplier (0.62 = very dense, 1.0 = open) |
 | `grass_tint(biome_id)` | `(float, float, float)` | RGB multiplier for grass biomes based on climate |
@@ -39,12 +39,12 @@ Maps biome IDs to rendering parameters: surface block colour, vegetation density
 
 ## Vegetation Density Scale
 
-| Level | Multiplier | Example Biomes |
-|---|---|---|
-| Very Dense | 0.62 | dark_forest, jungle, bamboo_jungle, old_growth_taiga |
-| Dense | 0.78 | forest, birch_forest, taiga, cherry_grove |
-| Moderate | 0.90 | sparse_jungle, swamp, savanna, grove |
-| Open | 1.00 | plains, desert, beach, ocean, snowy_plains |
+| Level      | Multiplier | Example Biomes                                       |
+| ---------- | ---------- | ---------------------------------------------------- |
+| Very Dense | 0.62       | dark_forest, jungle, bamboo_jungle, old_growth_taiga |
+| Dense      | 0.78       | forest, birch_forest, taiga, cherry_grove            |
+| Moderate   | 0.90       | sparse_jungle, swamp, savanna, grove                 |
+| Open       | 1.00       | plains, desert, beach, ocean, snowy_plains           |
 
 ## Verification
 

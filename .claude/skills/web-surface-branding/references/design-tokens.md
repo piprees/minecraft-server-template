@@ -68,14 +68,14 @@ Flat by default. Depth conveyed through tonal layering (bg → surface → surfa
 
 ## Spacing & shape
 
-| Token | Value |
-| --- | --- |
-| `rounded.xs` | 3px |
-| `rounded.sm` | 4px |
-| `rounded.nav` | 6px |
-| `rounded.md` | 8px (button/details radius) |
-| `rounded.lg` | 14px |
-| `spacing.xs`–`spacing.xxl` | 0.25rem – 3rem |
+| Token                      | Value                       |
+| -------------------------- | --------------------------- |
+| `rounded.xs`               | 3px                         |
+| `rounded.sm`               | 4px                         |
+| `rounded.nav`              | 6px                         |
+| `rounded.md`               | 8px (button/details radius) |
+| `rounded.lg`               | 14px                        |
+| `spacing.xs`–`spacing.xxl` | 0.25rem – 3rem              |
 
 One width (65ch) across all pages — consistency over variety.
 

@@ -3,6 +3,7 @@
 Every problem found during the skills work, 2026-07-26. Building a skill means verifying every path and command against the repo rather than trusting the docs, which is why this list exists — none of it was the goal, all of it fell out of the checking.
 
 **Confidence column:**
+
 - **Verified** — I confirmed it myself against the file or a command's output.
 - **Agent-reported** — a sub-agent found it and gave specific evidence; plausible and specific, but I have not independently re-checked.
 
@@ -37,7 +38,7 @@ Nothing below has been fixed except the five items in § 0.
 # RESTIC_RETENTION_MONTHLY=1
 ```
 
-Per that file's own conventions block, `# VAR=` means *"optional — uncomment to override the platform default"*. So those four lines documented the intended policy while the actual platform default was whatever `docker-compose.yml` fell back to: **`6h` interval, `7/4/2` retention**.
+Per that file's own conventions block, `# VAR=` means _"optional — uncomment to override the platform default"_. So those four lines documented the intended policy while the actual platform default was whatever `docker-compose.yml` fell back to: **`6h` interval, `7/4/2` retention**.
 
 `~/Projects/elfydd/.env` contains **none** of those four keys. It ran entirely on the compose fallbacks — twice the snapshot rate and roughly double the retention slots that the docs promised, against a 10 GiB cap.
 
@@ -83,7 +84,7 @@ minio, minio-init, mod-checker, nav-proxy, pack-web, seed, unmined-render, uptim
 
 ### 2c. Still correct, leave alone
 
-`AGENTS.md:173` (seedtest dirs still get `config/bluemap` — true, *because* of the Dockerfile COPY above), `AGENTS.md:180` (historical incident context), `README.md:359` (the restic `EXCLUDES` list genuinely still contains `bluemap`), `mods/AGENTS.md:285` (architectural history).
+`AGENTS.md:173` (seedtest dirs still get `config/bluemap` — true, _because_ of the Dockerfile COPY above), `AGENTS.md:180` (historical incident context), `README.md:359` (the restic `EXCLUDES` list genuinely still contains `bluemap`), `mods/AGENTS.md:285` (architectural history).
 
 **Note the coupling:** fixing 2b's Dockerfile COPY also invalidates `AGENTS.md:173`. Do them together.
 
@@ -93,14 +94,14 @@ minio, minio-init, mod-checker, nav-proxy, pack-web, seed, unmined-render, uptim
 
 **Verified.** `scripts/pin-mod-versions.sh` reads holds from `modpack/adventure.mrpack.json` → `_clientMods.holds` (line 209) and has exactly **one** `if slug in holds` check (line 234), inside the client-manifest re-pin loop. The loop that rewrites `config/modrinth-mods.txt` has no holds check at all.
 
-| Held slug | In client pack | In server list | Hold effective? |
-| --- | --- | --- | --- |
-| `c2me-fabric` | No | **Yes** | **No — enforces nothing** |
-| `critters-and-companions` | Yes | Yes | Client entry only |
-| `xaeros-world-map` | Yes | No | Yes |
-| `xaeros-minimap` | Yes | No | Yes |
+| Held slug                 | In client pack | In server list | Hold effective?           |
+| ------------------------- | -------------- | -------------- | ------------------------- |
+| `c2me-fabric`             | No             | **Yes**        | **No — enforces nothing** |
+| `critters-and-companions` | Yes            | Yes            | Client entry only         |
+| `xaeros-world-map`        | Yes            | No             | Yes                       |
+| `xaeros-minimap`          | Yes            | No             | Yes                       |
 
-`c2me-fabric`'s hold reason is *"0.4.0-alpha.0.21 wedges fresh-world creation"* — the same failure class as the standing known-issues wedge. The weekly `mod-updates.yml --apply` would re-pin it to latest and nothing mechanical would stop it; it survives only because a human reads the PR diff.
+`c2me-fabric`'s hold reason is _"0.4.0-alpha.0.21 wedges fresh-world creation"_ — the same failure class as the standing known-issues wedge. The weekly `mod-updates.yml --apply` would re-pin it to latest and nothing mechanical would stop it; it survives only because a human reads the PR diff.
 
 `AGENTS.md:242` states "`pin-mod-versions.sh` and the weekly `mod-updates.yml` respect holds" without qualification. True for client mods only.
 
@@ -143,12 +144,12 @@ Literal, case-sensitive strings checked against `member.roles` names. `DISCORD_A
 
 That is compensated in three of four paths:
 
-| Path | Refreshes kuma-init |
-| --- | --- |
-| CI, any non-pull tier | `deploy-reusable.yml:491` "Refresh kuma-init" |
-| `./ops update` | `remote-update.sh:81` |
-| Infra tier | inline in `infra-deploy.sh:43` |
-| **Bare manual `deploy.sh --non-interactive` over SSH** | **Nothing** |
+| Path                                                   | Refreshes kuma-init                           |
+| ------------------------------------------------------ | --------------------------------------------- |
+| CI, any non-pull tier                                  | `deploy-reusable.yml:491` "Refresh kuma-init" |
+| `./ops update`                                         | `remote-update.sh:81`                         |
+| Infra tier                                             | inline in `infra-deploy.sh:43`                |
+| **Bare manual `deploy.sh --non-interactive` over SSH** | **Nothing**                                   |
 
 So a hand-run deploy leaves Kuma un-reprovisioned — relevant given the Kuma maintenance-window trap. The comments should say this rather than asserting a symmetry that doesn't hold, or someone will "fix" the asymmetry and break the CI path.
 
@@ -163,7 +164,7 @@ So a hand-run deploy leaves Kuma un-reprovisioned — relevant given the Kuma ma
 | 7.3 | `config/nginx/nav-proxy-local.conf` | Not a sixth nav copy — it's a stray **empty directory**, gitignored, referenced by nothing. Classic bind-mount-to-nonexistent-path artefact | Agent-reported |
 | 7.4 | `config/uptime-kuma/custom.css` | Dead file. The live mechanism is the `customCSS` string inside `kuma-config.json`, applied by `kuma-provision.py`. `docs/customisation.md` points at the dead file | Agent-reported |
 | 7.5 | `examples/consumer/overlay/modpack/README.md` | Its worked example shows `{"_clientMods": {"required": [{"slug":…, "versionId":…}]}}`. `merge-manifest.py` doesn't read that shape at all — it reads `{"add": {"required": ["slug:versionId"]}}`. Copying the shipped example produces a no-op | Agent-reported |
-| 7.6 | `examples/consumer/AGENTS.md` | "Add a client mod → Not here — PR to the template repo." Wrong: `overlay/modpack/manifest.json` is a real merge mechanism (`entrypoint.sh` → `merge-manifest.py`) supporting `add.required`, `add.optional`, `remove`. A consumer *can* add or remove a client mod for slugs already in the catalogue | Agent-reported |
+| 7.6 | `examples/consumer/AGENTS.md` | "Add a client mod → Not here — PR to the template repo." Wrong: `overlay/modpack/manifest.json` is a real merge mechanism (`entrypoint.sh` → `merge-manifest.py`) supporting `add.required`, `add.optional`, `remove`. A consumer _can_ add or remove a client mod for slugs already in the catalogue | Agent-reported |
 | 7.7 | `COMMANDS.md` | Documents 19 `/mc` subcommands; the code has 20. **`/mc border` is missing** (sets the player world border and matching Chunky pre-gen borders, fully audit-logged). `setup-permissions.sh`'s header says to keep COMMANDS.md in step and nothing enforces it — this is that gap already having fired | Agent-reported |
 | 7.8 | `examples/consumer/commands.json` | Out of sync with the dispatchers. Missing ops: `shutdown`, `startup`, `reboot` (→ `server-power.sh`). Missing dev: `refresh-config`, `seed-viewer` | Agent-reported |
 | 7.9 | `examples/consumer/AGENTS.md` | Documents `./dev sync` as a real command. It is a deprecation shim that prints a warning and `exec`s `./ops sync` | **Verified** |
@@ -186,7 +187,7 @@ So a hand-run deploy leaves Kuma un-reprovisioned — relevant given the Kuma ma
 
 ---
 
-## 9. Narration — docs describing what the repo *was* rather than what it *is*
+## 9. Narration — docs describing what the repo _was_ rather than what it _is_
 
 A handbook describes the car you bought. It does not describe the trim levels that were cancelled, the previous model's dashboard, or the twenty thousand decisions that never shipped. A lot of this repo's prose does exactly that.
 
@@ -194,7 +195,7 @@ A handbook describes the car you bought. It does not describe the trim levels th
 
 Two things look similar and are not:
 
-| | Example | Verdict |
+|  | Example | Verdict |
 | --- | --- | --- |
 | **Present-tense absence** | "There is no RCON interface." "There is no `~/server/scripts/` — `deploy.sh` ships in the bundle." "There is no cross-portal weather relay and there cannot be one." | **Keep.** This stops a reader hunting for something, or attempting something impossible. It describes the thing as it is. |
 | **Past-tense change narration** | "X was removed in v2.14.0." "Replaced by Y." "The old Z used to…" "…historically never fired." | **Delete.** The reader was not here before. The change is in the git log and the CHANGELOG, which is what those are for. |
@@ -222,7 +223,7 @@ Incident evidence in `AGENTS.md` traps (`2026-07-13: a nav-proxy upstream change
 | 9.5 | `docs/known-issues/carpet-supplementaries-piston-crash.md:10` | "— the note itself was never committed and `mods/.ideas/` no longer exists." Narration about a missing file. |
 | 9.6 | `scripts/seed/score-seed.sh:10` | "`roll-seeds.sh` no longer calls it." If nothing calls it, the question is whether the script should exist, not whether the comment is accurate. |
 | 9.7 | `scripts/seed/roll-seeds.sh:52` | "The old wide `seed-results.csv` is NOT written any more" — describes an output that doesn't exist. |
-| 9.8 | `AGENTS.md` trap 15 | Legitimately live *for now* — it carries a real remediation for servers predating v3.10.1. Worth deleting once every server is past it, or it becomes narration by attrition. Flagging so it doesn't quietly outlive its purpose. |
+| 9.8 | `AGENTS.md` trap 15 | Legitimately live _for now_ — it carries a real remediation for servers predating v3.10.1. Worth deleting once every server is past it, or it becomes narration by attrition. Flagging so it doesn't quietly outlive its purpose. |
 | 9.9 | `scripts/harden.sh:356` | Raises the inotify watcher limit with the comment "BlueMap needs one inotify watcher per map — 78+ maps exhaust the default 128 limit". The current renderer polls on an interval and watches nothing. The sysctl is harmless; the justification is void. |
 | 9.10 | `scripts/idle-tasks.sh:162,258` | Two comments explaining that no map trigger is needed because "the bluemap sidecar watches region files". The conclusion still holds; the stated reason is wrong (the current renderer runs on `UNMINED_INTERVAL`). |
 | 9.11 | `docker-compose.yml` restic `EXCLUDES` | Still lists `bluemap`. Harmless and defensive, but it is a path that is never created. |

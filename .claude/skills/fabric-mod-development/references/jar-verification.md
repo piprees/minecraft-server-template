@@ -110,7 +110,7 @@ And after `build-stack-bundle.sh` runs, a final check confirms every manifest-li
 tar -tzf "dist/stack-${VERSION}.tar.gz" | grep -qx "stack/local-mods/$JAR_NAME"
 ```
 
-Three separate gates (mod-build.yml on push/PR, release.yml's build step, release.yml's bundle-contents check) exist because each catches a different failure point: a broken build, a broken jar, and a broken packaging step. Don't treat a green `mod-build.yml` run as proof the *release* pipeline will also succeed — they build independently.
+Three separate gates (mod-build.yml on push/PR, release.yml's build step, release.yml's bundle-contents check) exist because each catches a different failure point: a broken build, a broken jar, and a broken packaging step. Don't treat a green `mod-build.yml` run as proof the _release_ pipeline will also succeed — they build independently.
 
 ## `smoke-test.yml`'s mirror
 

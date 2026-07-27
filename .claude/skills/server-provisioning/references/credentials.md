@@ -1,12 +1,8 @@
 # Credentials
 
-Every secret the stack uses, where to create it, and exactly what it looks
-like. `.env` is the single env file; these are its secret values.
+Every secret the stack uses, where to create it, and exactly what it looks like. `.env` is the single env file; these are its secret values.
 
-**Naming rule:** every variable names its provider and its job. If a
-dashboard page offers you several values, this table tells you which one
-goes where. When in doubt, check the format column — most paste mistakes
-are caught by format alone.
+**Naming rule:** every variable names its provider and its job. If a dashboard page offers you several values, this table tells you which one goes where. When in doubt, check the format column — most paste mistakes are caught by format alone.
 
 | Variable | What it is | Where to create it | Format |
 | --- | --- | --- | --- |
@@ -27,28 +23,24 @@ are caught by format alone.
 
 ## Cloudflare: the three credentials people mix up
 
-Cloudflare has **three different credential systems**. This stack uses the
-first two. They are created on different pages and are not interchangeable.
+Cloudflare has **three different credential systems**. This stack uses the first two. They are created on different pages and are not interchangeable.
 
 ### 1. `CLOUDFLARE_API_TOKEN` — the API Token (the only "token" in .env)
 
-Used as a `Authorization: Bearer` header for everything `./ops cloudflare`
-does: DNS records, tunnel creation, R2 *bucket* creation, and the
-maintenance Worker (wrangler reads the same env var).
+Used as a `Authorization: Bearer` header for everything `./ops cloudflare` does: DNS records, tunnel creation, R2 _bucket_ creation, and the maintenance Worker (wrangler reads the same env var).
 
-Create at **My Profile → API Tokens → Create Token → Create Custom Token**
-with exactly these permissions:
+Create at **My Profile → API Tokens → Create Token → Create Custom Token** with exactly these permissions:
 
-| Scope | Permission | Access |
-| --- | --- | --- |
-| Account | Cloudflare Tunnel | Edit |
-| Account | Workers R2 Storage | Edit |
-| Account | Workers Scripts | Edit |
-| Zone | DNS | Edit |
-| Zone | Zone | Read |
-| Zone | Cache Purge | Purge |
+| Scope   | Permission         | Access |
+| ------- | ------------------ | ------ |
+| Account | Cloudflare Tunnel  | Edit   |
+| Account | Workers R2 Storage | Edit   |
+| Account | Workers Scripts    | Edit   |
+| Zone    | DNS                | Edit   |
+| Zone    | Zone               | Read   |
+| Zone    | Cache Purge        | Purge  |
 
-Zone Resources: *Include → Specific zone → your `DOMAIN`* (or All zones).
+Zone Resources: _Include → Specific zone → your `DOMAIN`_ (or All zones).
 
 Verify it before blaming anything else (preflight does this for you):
 
@@ -60,41 +52,21 @@ curl -s "https://api.cloudflare.com/client/v4/user/tokens/verify" \
 
 ### 2. `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` — the S3 keypair
 
-Used by **restic** (the `mc-backup` container) to talk to R2 over the
-S3 protocol. S3 clients cannot use Bearer tokens — this keypair is a
-separate credential.
+Used by **restic** (the `mc-backup` container) to talk to R2 over the S3 protocol. S3 clients cannot use Bearer tokens — this keypair is a separate credential.
 
-Create at **R2 → Overview → Manage API Tokens → Create Account API token**
-with **Object Read & Write**, scoped to your bucket.
+Create at **R2 → Overview → Manage API Tokens → Create Account API token** with **Object Read & Write**, scoped to your bucket.
 
-The common mistake: that page also calls its product an "API token" and
-shows three values (Token value, Access Key ID, Secret Access Key). Only
-the last two go in `.env`, as `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`.
-Pasting the Token value into `CLOUDFLARE_API_TOKEN` produces
-`Invalid API Token` on every DNS and tunnel call, because it is scoped to
-R2 only. (The Access Key ID is the token's ID and the Secret is the
-SHA-256 of the token value, which is why the page shows all three.)
+The common mistake: that page also calls its product an "API token" and shows three values (Token value, Access Key ID, Secret Access Key). Only the last two go in `.env`, as `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY`. Pasting the Token value into `CLOUDFLARE_API_TOKEN` produces `Invalid API Token` on every DNS and tunnel call, because it is scoped to R2 only. (The Access Key ID is the token's ID and the Secret is the SHA-256 of the token value, which is why the page shows all three.)
 
 ### 3. Global API Key — not used
 
-The legacy `X-Auth-Email` + `X-Auth-Key` scheme (My Profile → API Tokens →
-Global API Key). It grants access to your entire account and nothing in
-this stack reads it. Tutorials that ask for "your API key and email" mean
-this scheme; it does not apply here.
+The legacy `X-Auth-Email` + `X-Auth-Key` scheme (My Profile → API Tokens → Global API Key). It grants access to your entire account and nothing in this stack reads it. Tutorials that ask for "your API key and email" mean this scheme; it does not apply here.
 
 ## 1Password backup (`./ops op-env` / `./ops op-sync-env`)
 
-Secrets are mirrored to a 1Password item for recovery. The item is named
-**`Minecraft Server - <BRAND_SLUG>`** — one item per server — overridable
-with `OP_ITEM_NAME` in `.env` (`OP_VAULT` for the vault, default `Dev`).
-Keep custom names free of parentheses and punctuation: `op://` secret
-references reject them, which breaks restores.
+Secrets are mirrored to a 1Password item for recovery. The item is named **`Minecraft Server - <BRAND_SLUG>`** — one item per server — overridable with `OP_ITEM_NAME` in `.env` (`OP_VAULT` for the vault, default `Dev`). Keep custom names free of parentheses and punctuation: `op://` secret references reject them, which breaks restores.
 
-`op-sync-env` pushes your local `.env` **over** the 1Password item
-(empty local values are skipped, non-empty ones overwrite). Rotate a
-credential in `.env` first, then sync — never the other way round while a
-stale `.env` exists anywhere, or the stale copy wins the next sync.
-Per-brand item names keep two server repos from clobbering each other.
+`op-sync-env` pushes your local `.env` **over** the 1Password item (empty local values are skipped, non-empty ones overwrite). Rotate a credential in `.env` first, then sync — never the other way round while a stale `.env` exists anywhere, or the stale copy wins the next sync. Per-brand item names keep two server repos from clobbering each other.
 
 ## Rotation quick reference
 

@@ -5,13 +5,13 @@ description: Add, remove, pin, hold, or troubleshoot server-side Fabric mods and
 
 # Server Mod Management
 
-This is CONTRIBUTING.md's own warning: *"the most common type of change and the one most likely to break things."* The knowledge is scattered across `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, and four scripts — this skill collects it into one path so you don't ship a mod whose config never reaches consumers, or bump a pin that's meant to be held.
+This is CONTRIBUTING.md's own warning: _"the most common type of change and the one most likely to break things."_ The knowledge is scattered across `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, and four scripts — this skill collects it into one path so you don't ship a mod whose config never reaches consumers, or bump a pin that's meant to be held.
 
 **Out of scope**: client mods, resource/shader packs (client-side only, `modpack/adventure.mrpack.json` `_clientMods`/`_resourcePacks`/`_shaderPacks`), in-house Fabric mods under `mods/` (see `mods/AGENTS.md`), and which deploy tier a change triggers (see the deploy-pipeline skill — this skill only tells you what to edit).
 
 ## Which repo am I in? (get this wrong and the mod silently never ships)
 
-| | Platform repo (this one) | Consumer repo (e.g. `elfydd`) |
+|  | Platform repo (this one) | Consumer repo (e.g. `elfydd`) |
 | --- | --- | --- |
 | Add a mod | `config/modrinth-mods.txt` | `overlay/mods-extra.txt` |
 | Remove a default mod | Delete/comment the line in `config/modrinth-mods.txt` | `overlay/mods-remove.txt` (slug per line, must match a slug in the platform defaults) |
@@ -37,7 +37,7 @@ curl -s "https://api.modrinth.com/v2/project/{project_id}" \
 
 Every `required` dependency must already be in the pack or be added alongside it. **Never mark these libraries optional** — they're relied on across dozens of mods: `fabric-api`, `yungs-api`, `moonlight`, `lithostitched`, `fabric-language-kotlin`.
 
-`AGENTS.md`/`CONTRIBUTING.md` also list `balm` in that never-optional set, but check `config/modrinth-mods.txt` before assuming it's there: it's currently commented out (*"removed: only dep was waystones+netherportalfix (both removed)"*) — there is no live `balm` pin to protect. Only re-add it if a new mod actually needs it.
+`AGENTS.md`/`CONTRIBUTING.md` also list `balm` in that never-optional set, but check `config/modrinth-mods.txt` before assuming it's there: it's currently commented out (_"removed: only dep was waystones+netherportalfix (both removed)"_) — there is no live `balm` pin to protect. Only re-add it if a new mod actually needs it.
 
 Verify the resolved version genuinely targets 1.21.1 — Modrinth metadata isn't always honest (`extra_enchantments` claimed 1.21.1 support but shipped 1.21.2 registry keys; it's disabled in the mod list for exactly this reason).
 
@@ -83,7 +83,7 @@ Holds live in `modpack/adventure.mrpack.json` → `_clientMods.holds` (keyed by 
 | `c2me-fabric` | `0.4.0-alpha.0.19` (`GC7ouKxZ`) | `0.4.0-alpha.0.21` wedges fresh-world creation — the server thread parks forever in `getChunkBlocking` while locating spawn (verified via thread dump, 2026-07-22) |
 | `critters-and-companions` | `1.21.1-2.4.1` (`YuM4Jtu5`) | `2.6.x` claims 1.21.1 but needs a newer Architectury than the newest 1.21.1 build provides — `AbstractMethodError` at boot killed the v3.2.0 smoke test (2026-07-22) |
 
-**Trap**: `c2me-fabric` is a *server-only* mod (it's in `config/modrinth-mods.txt`, not in `_clientMods.required`/`.optional`). The holds map only gates `pin-mod-versions.sh`'s client-manifest re-pin loop — the server-list loop (the one that rewrites `config/modrinth-mods.txt`) has **no holds check at all**. Its entry in `_clientMods.holds` documents intent but enforces nothing for the server pin. The only thing stopping `./scripts/pin-mod-versions.sh --apply` (or the Monday `mod-updates.yml`, which runs `--apply` unattended) from silently bumping `c2me-fabric` past the wedge is a human reviewing the diff in the resulting PR before merging. Treat any server-list mod with a documented hold as "review this line by hand every time the weekly PR touches it" — the tooling won't stop you.
+**Trap**: `c2me-fabric` is a _server-only_ mod (it's in `config/modrinth-mods.txt`, not in `_clientMods.required`/`.optional`). The holds map only gates `pin-mod-versions.sh`'s client-manifest re-pin loop — the server-list loop (the one that rewrites `config/modrinth-mods.txt`) has **no holds check at all**. Its entry in `_clientMods.holds` documents intent but enforces nothing for the server pin. The only thing stopping `./scripts/pin-mod-versions.sh --apply` (or the Monday `mod-updates.yml`, which runs `--apply` unattended) from silently bumping `c2me-fabric` past the wedge is a human reviewing the diff in the resulting PR before merging. Treat any server-list mod with a documented hold as "review this line by hand every time the weekly PR touches it" — the tooling won't stop you.
 
 Never bump a held slug manually; remove the hold only once its stated blocker clears. Read the live table from `modpack/adventure.mrpack.json` rather than trusting this copy — holds come and go.
 
@@ -91,7 +91,7 @@ Never bump a held slug manually; remove the hold only once its stated blocker cl
 
 ## Removal is not symmetric with addition
 
-| | Platform | Consumer |
+|  | Platform | Consumer |
 | --- | --- | --- |
 | Remove | Delete/comment the line in `config/modrinth-mods.txt` | Add the slug to `overlay/mods-remove.txt` (one per line; must match a slug present in the platform defaults, or the seed logs a warning and ignores it) |
 

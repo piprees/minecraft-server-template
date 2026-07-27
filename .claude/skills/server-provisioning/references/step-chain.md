@@ -1,7 +1,19 @@
 ---
 title: Step Chain
 description: Every script in the provisioning chain — preconditions, what it does, what it restarts or destroys, and how to re-run it alone
-tags: [setup, preflight, provision, harden, prepare-droplet, cloudflare-setup, initial-setup, github-env-sync, teardown, idempotent]
+tags:
+  [
+    setup,
+    preflight,
+    provision,
+    harden,
+    prepare-droplet,
+    cloudflare-setup,
+    initial-setup,
+    github-env-sync,
+    teardown,
+    idempotent,
+  ]
 ---
 
 # Step Chain

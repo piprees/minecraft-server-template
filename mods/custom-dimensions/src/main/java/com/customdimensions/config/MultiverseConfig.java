@@ -77,11 +77,16 @@ public class MultiverseConfig {
         this.managedNamespaces = new LinkedHashSet<>();
         this.managedNamespaces.add(this.settings.namespace);
         for (DimensionConfig config : this.configs.values()) {
+            // Base worlds are deliberately NOT added to managedNamespaces:
+            // minecraft: and paradise_lost: are namespaces other mods also
+            // populate, and the mixins' definition lookup behind that gate is
+            // by PATH. They are resolved by exact dimension id instead
+            // (getBaseWorld) — same management, no path collisions.
             if (!config.isBaseWorld()) {
                 this.managedNamespaces.add(config.getNamespace());
-                if (config.hasPortal()) {
-                    this.portals.add(config.toPortalDefinition());
-                }
+            }
+            if (config.hasPortal()) {
+                this.portals.add(config.toPortalDefinition());
             }
         }
         for (String warning : PortalSafetyValidator.validate(this.configs.values())) {
@@ -295,6 +300,28 @@ public class MultiverseConfig {
                 .filter(s -> s != null)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * The base-world config for an EXACT dimension id, or null.
+     *
+     * <p>Base worlds are managed exactly like custom dimensions — seed,
+     * border, difficulty, portal, structures — but they are resolved by full
+     * id rather than through {@link #isManagedNamespace}. {@code minecraft:}
+     * and {@code paradise_lost:} carry other mods' dimensions, and the lookup
+     * behind the namespace gate is by PATH, so a third party's
+     * {@code minecraft:whatever} would resolve against one of our configs.
+     */
+    public DimensionConfig getBaseWorld(String dimensionId) {
+        if (dimensionId == null) {
+            return null;
+        }
+        for (DimensionConfig config : this.configs.values()) {
+            if (config.isBaseWorld() && dimensionId.equals(config.getDimensionId())) {
+                return config;
+            }
+        }
+        return null;
     }
 
     /** The base-world config for a given name (e.g. "overworld"), or null. */

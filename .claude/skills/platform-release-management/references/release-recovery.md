@@ -31,7 +31,7 @@ gh run list --workflow publish.yml --limit 3
 docker pull ghcr.io/<owner>/<repo>/discord-sync:2.14.0   # or whichever image was missing
 ```
 
-**Prevention:** never push to `main` while a release is in flight. Check `gh run list --limit 5` (or `gh run list --workflow release.yml --json status`) before any push, not only before cutting a release yourself — this collision is triggered by *anyone's* push, release-related or not.
+**Prevention:** never push to `main` while a release is in flight. Check `gh run list --limit 5` (or `gh run list --workflow release.yml --json status`) before any push, not only before cutting a release yourself — this collision is triggered by _anyone's_ push, release-related or not.
 
 ## 2. Release published without a bundle
 

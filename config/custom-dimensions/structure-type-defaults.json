@@ -17,12 +17,15 @@
   "Radial resolution is the same shape, with structures.radial taking a raw",
   "10-point curve instead of a named one.",
   "",
-  "Base worlds (minecraft:overworld / the_nether / the_end and the",
-  "paradise_lost base world) are NOT in this file and never get noise: the",
-  "mod only rebuilds the placement calculator for managed-namespace worlds,",
-  "so the main overworld keeps vanilla grid placement. That is deliberate —",
-  "noise placement is creation-time worldgen and the base worlds already",
-  "have chunks."
+  "The base worlds resolve against the entries below by family: overworld ->",
+  "overworld, the_nether -> nether, the_end -> end, paradise_lost ->",
+  "paradise_lost:paradise_lost. Their files name no type (vanilla owns their",
+  "generator) and the mod supplies one; the Nether and the End additionally",
+  "carry a progression floor in scripts/check-noise-regression.py.",
+  "",
+  "Placement is boot-re-read, not creation-time, so a change here reaches",
+  "newly generated chunks only — already-explored terrain keeps the",
+  "structures it has, and the seam is the same one a spacing change makes."
  ],
 
  "curves": {

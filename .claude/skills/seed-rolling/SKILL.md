@@ -84,71 +84,44 @@ A warmup failure ("ERROR: biome param dump failed") leaves scoring incomplete bu
 
 ## Noise structure placement and the roller
 
-Since noise placement landed (2026-07-26), structure positions are no longer
-a vanilla grid the roller re-derives from spacing/separation/salt. They come
-from a seeded noise field per structure GROUP, mirrored bit-for-bit in
-`scripts/seed/noise_placement.py`.
+Since noise placement landed (2026-07-26), structure positions are no longer a vanilla grid the roller re-derives from spacing/separation/salt. They come from a seeded noise field per structure GROUP, mirrored bit-for-bit in `scripts/seed/noise_placement.py`.
 
-- `noise_census(world_seed, dim_name, dim_config, type_defaults)` returns
-  `{group: [(chunk_x, chunk_z), ...]}` — a complete census of the dimension,
-  not a nearest-instance search.
-- Ground truth is `/customdim structure-census <dim>` on a running server,
-  which dumps the LIVE placement calculator plus each group's resolved inputs.
-  `test_noise_parity.py` diffs the two with zero tolerance; the committed
-  fixtures live in `scripts/seed/testdata/census/`.
-- **The mirror must stay bit-exact.** Java longs wrap and `>>>` is unsigned;
-  ranks compare UNSIGNED; `Math.round` is `floor(x + 0.5)`, not Python's
-  banker's rounding. The module docstring lists every such rule. Change
-  `StructureNoise.java` / `NoiseFieldIndex.java` and `noise_placement.py`
-  together, then re-run the parity test.
+- `noise_census(world_seed, dim_name, dim_config, type_defaults)` returns `{group: [(chunk_x, chunk_z), ...]}` — a complete census of the dimension, not a nearest-instance search.
+- Ground truth is `/customdim structure-census <dim>` on a running server, which dumps the LIVE placement calculator plus each group's resolved inputs. `test_noise_parity.py` diffs the two with zero tolerance; the committed fixtures live in `scripts/seed/testdata/census/`.
+- **The mirror must stay bit-exact.** Java longs wrap and `>>>` is unsigned; ranks compare UNSIGNED; `Math.round` is `floor(x + 0.5)`, not Python's banker's rounding. The module docstring lists every such rule. Change `StructureNoise.java` / `NoiseFieldIndex.java` and `noise_placement.py` together, then re-run the parity test.
 
 ### Scoring: `distribution_match`, not nearest distance
 
-`census_scoring.py` scores a seed's LAYOUT, because a nearest-instance
-distance no longer describes a world where whole groups share one noise
-field:
+`census_scoring.py` scores a seed's LAYOUT, because a nearest-instance distance no longer describes a world where whole groups share one noise field:
 
 ```
 structures = 0.6 * census + 0.4 * battery
 census     = mean over groups of 0.7*distribution_match + 0.3*count_satisfaction
 ```
 
-`distribution_match` bins each group's positions by radial decile, converts
-to a per-annulus DENSITY (equal-width bins cover unequal areas) and cosine-
-compares that with the group's radial curve. Wants and shuns still count,
-answered from their owning group's histogram — except for forced placements
-and the sets that keep grid placement, which stay positional because for
-them the old model is still true. A dimension with no noise groups scores
-exactly as it did before.
+`distribution_match` bins each group's positions by radial decile, converts to a per-annulus DENSITY (equal-width bins cover unequal areas) and cosine- compares that with the group's radial curve. Wants and shuns still count, answered from their owning group's histogram — except for forced placements and the sets that keep grid placement, which stay positional because for them the old model is still true. A dimension with no noise groups scores exactly as it did before.
 
-Censuses are **banked per candidate** (`noiseCensus`, keyed by
-`noise_fingerprint()`), so the first `seed-rescore` after this change prints
-`noise census: computing N candidate layout(s)` and takes about an hour over
-a full bank; every rescore after it is free. It reports an ETA every 5% —
-if you see no progress line at all, you are on an older build, not a hung
-job. Pass `--census-workers N` to leave room for anything else on the
-machine: the default saturates every core, and a local Minecraft server
-booting beside it took three times as long. Full detail:
-`references/scoring-model.md`.
+Censuses are **banked per candidate** (`noiseCensus`, keyed by `noise_fingerprint()`), so the first `seed-rescore` after this change prints `noise census: computing N candidate layout(s)` and takes about an hour over a full bank; every rescore after it is free. It reports an ETA every 5% — if you see no progress line at all, you are on an older build, not a hung job. Pass `--census-workers N` to leave room for anything else on the machine: the default saturates every core, and a local Minecraft server booting beside it took three times as long. Full detail: `references/scoring-model.md`.
 
 ### Fingerprint impact — expect a wave of DRIFTED
 
-`generation_payload()` gained a **conditional** `noisePlacement` key. Of the
-shipped set: 73 dimensions carry it and will report **DRIFTED** (correct —
-noise genuinely changed their worlds, so their banked measurements describe a
-world the config no longer generates, and only a re-roll fixes it); 5
-suppressed dimensions keep byte-identical fingerprints; the 4 base worlds are
-unaffected (they never get noise — the mod only rebuilds placements for
-managed namespaces).
+`generation_payload()` gained a **conditional** `noisePlacement` key. Of the shipped set: 73 dimensions carry it and will report **DRIFTED** (correct — noise genuinely changed their worlds, so their banked measurements describe a world the config no longer generates, and only a re-roll fixes it); 5 suppressed dimensions keep byte-identical fingerprints.
 
-**Two fields became generation-affecting for the first time:**
-`borders.player` (sets the scanned radius AND the noise frequency scale) and
-`difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both
-used to be scoring-only. Editing either now re-rolls the dimension.
+### Base worlds
+
+The four base worlds take noise placement like any other dimension. Their generator is vanilla's, so their files name no `type` and `monolith_from_dir` stamps the family from `BASE_WORLD_TYPES` (`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`) — mirroring `DimensionConfig.getType()`. An explicit `type` in the file wins.
+
+- **A base world's payload carries a `baseWorld` key**, so it forms a seed group of exactly itself. It never shares measurements with a custom dimension that agrees on every other field: vanilla builds a base world from the level's world preset, the mod templates a custom dimension off `overworldOpts`, and the roller measures the two through different plumbing (`world_family` vs `family_of`).
+- **`is_world` is keyed on identity** — `name`/`dimensionId` against `BASE_WORLD_IDS` — never on whether a `type` is present. Keying it on the field sends a base world down the custom-dimension path, where `paradise_lost` resolves family `overworld` (wrong biome sampler, every measurement invalid) and the scale comes from `portal.scale` instead of the top-level `scale`.
+- `monolith_from_dir` carries `structures`, `structureDensity` and `exitShrines` into the `worlds[]` entry alongside the type; without them the roller scores a world whose structures the mod is placing while believing it places none.
+
+The progression floors that gate the Nether and the End are in `scripts/check-noise-regression.py`; the argument behind them is `docs/spikes/SPIKE-BASE-WORLD-PARITY.md`.
+
+**Two fields became generation-affecting for the first time:** `borders.player` (sets the scanned radius AND the noise frequency scale) and `difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both used to be scoring-only. Editing either now re-rolls the dimension.
 
 ## Traps
 
-1. **The fingerprint corollary.** Any new generation-affecting config field must be added to `dimension_profiles.generation_payload()` or seed-group rolling silently lies — two dimensions sharing a fingerprint AND a seed are literal world clones sharing a doubly-measured world. Worked instance (2026-07-24): derived exit-shrine spacing made `borders.player` generation-affecting for `exitShrines` dims — the payload gained a *conditional* `shrineSpacing` key, added only when `exitShrines.enabled` and no explicit `structures.spacing` override exists, specifically so every pre-existing non-shrine fingerprint stayed byte-stable (an always-present key would have DRIFTED every candidate store at once).
+1. **The fingerprint corollary.** Any new generation-affecting config field must be added to `dimension_profiles.generation_payload()` or seed-group rolling silently lies — two dimensions sharing a fingerprint AND a seed are literal world clones sharing a doubly-measured world. Worked instance (2026-07-24): derived exit-shrine spacing made `borders.player` generation-affecting for `exitShrines` dims — the payload gained a _conditional_ `shrineSpacing` key, added only when `exitShrines.enabled` and no explicit `structures.spacing` override exists, specifically so every pre-existing non-shrine fingerprint stayed byte-stable (an always-present key would have DRIFTED every candidate store at once).
 2. **Fingerprint drift is a warning, not an error, and only a re-roll fixes it.** `./dev seed-status` prints `DRIFTED (generation config changed since measurement — re-roll)` when a winner's stamped fingerprint no longer matches the dimension's current `generation_fingerprint()`. Rescoring cannot fix this — the banked measurements describe a world the config no longer generates. `STALE` (a plain config-hash mismatch, no fingerprint involved) is the milder case `seed-rescore` DOES fix for free.
 3. **Measurements never transfer across differing biome lists, even "similar" ones.** `generation_payload()` includes the FULL ordered biome list — one biome's difference re-deals the whole layout and re-keys the fingerprint. Same-or-nothing.
 4. **`structures.wants` vs `seedRoll.wants` use different value formats — mixing them crashes Gson with "config invalid — skipped".** `structures.wants` is `{"short_name": {"min": N, "max": M}}` (absolute blocks, `Map<String, StructureWant>` server-side); `seedRoll.wants` is `{"short_name": "near_spawn"|"spread"|"near_border"}` (band-name strings, roller-only, free-form). Putting a band string in `structures.wants` or a `{min,max}` object in `seedRoll.wants` crashes the mod's Gson parser at boot. Same family of bug: `structures.shuns` must be MAP form (`{"village": {}}`); `seedRoll.shuns` accepts a bare list. This is duplicated from `custom-dimension-authoring` on purpose — the roller (and the viewer's fork-form validation in `viewer-server.py`) is where the crash actually surfaces.
