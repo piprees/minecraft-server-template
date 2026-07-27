@@ -131,26 +131,12 @@ Add the slug to `overlay/mods-remove.txt`:
 distant-horizons
 ```
 
-Every default mod is removable without breaking the boot — including the
-worldgen pair (Tectonic, Terralith): the platform's structure datapacks
-strip removed mods' overrides automatically, and the custom-dimension
-noise presets are self-contained. Two caveats: remove a mod's dependents
-with it (e.g. `fabric-seasons-terralith-compat` goes when `terralith`
-goes), and removing a worldgen mod changes NEW terrain — existing chunks
-keep their shape, new chunks generate with vanilla semantics, so expect
-borders. CI's smoke removal matrix guards this promise.
+Every default mod is removable without breaking the boot — including the worldgen pair (Tectonic, Terralith): the platform's structure datapacks strip removed mods' overrides automatically, and the custom-dimension noise presets are self-contained. Two caveats: remove a mod's dependents with it (e.g. `fabric-seasons-terralith-compat` goes when `terralith` goes), and removing a worldgen mod changes NEW terrain — existing chunks keep their shape, new chunks generate with vanilla semantics, so expect borders. CI's smoke removal matrix guards this promise.
 
-**Keep the CLIENT pack in sync.** The client manifest is yours (forked),
-and ~50 default mods are required on BOTH sides — removing one of those
-server-side while clients still carry it gets every player kicked at the
-Fabric handshake ("Incompatible mod set"). The pack build warns when a
-slug in `mods-remove.txt` is still in `_clientMods.required`. Checklist
-per removed slug:
+**Keep the CLIENT pack in sync.** The client manifest is yours (forked), and ~50 default mods are required on BOTH sides — removing one of those server-side while clients still carry it gets every player kicked at the Fabric handshake ("Incompatible mod set"). The pack build warns when a slug in `mods-remove.txt` is still in `_clientMods.required`. Checklist per removed slug:
 
 1. Is it in `_clientMods.required` in `modpack/adventure.mrpack.json`?
-2. If yes, remove it there too — along with any client-only dependents
-   (e.g. removing `trinkets` also takes `charm-of-undying` and
-   `elytra-slot`).
+2. If yes, remove it there too — along with any client-only dependents (e.g. removing `trinkets` also takes `charm-of-undying` and `elytra-slot`).
 3. Rebuild the pack; the coherence check catches dangling dependencies.
 
 ### Override a config file
@@ -247,53 +233,53 @@ Resource packs are declared in the template's manifest and auto-install with the
 
 ### `./dev` (local development)
 
-| Command | Description |
-| --- | --- |
-| `./dev up` | Start the local dev stack |
-| `./dev down` | Stop the local dev stack |
-| `./dev logs` | Tail the Minecraft server logs |
-| `./dev rcon "list"` | Run an RCON command locally |
-| `./dev rcon` | Interactive RCON console |
-| `./dev pack` | Build the client modpack into `./modpack-dist/` |
-| `./dev pin` | Re-pin `overlay/mods-extra.txt` to latest mod builds |
-| `./dev update` | Pull the latest stack bundle + Docker images |
-| `./dev sync` | Update everything: local down, update, env sync to GitHub, server update, local up |
-| `./dev seed-roll` | Parallel-roll seeds for every dimension, auto-pick winners |
-| `./dev seed-rescore` | Recompute candidate scores vs current configs (no re-rolling) |
-| `./dev seed-status` | Candidate-bank status: counts, winners, score freshness |
-| `./dev cache` | Snapshot Docker images, mod JARs, offline client bundles |
-| `./dev start <service>` | Start a stopped local service |
-| `./dev stop <service>` | Stop a running local service |
-| `./dev restart <service>` | Force-recreate a local service |
-| `./dev status` | Show all local container statuses |
+| Command                   | Description                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `./dev up`                | Start the local dev stack                                                          |
+| `./dev down`              | Stop the local dev stack                                                           |
+| `./dev logs`              | Tail the Minecraft server logs                                                     |
+| `./dev rcon "list"`       | Run an RCON command locally                                                        |
+| `./dev rcon`              | Interactive RCON console                                                           |
+| `./dev pack`              | Build the client modpack into `./modpack-dist/`                                    |
+| `./dev pin`               | Re-pin `overlay/mods-extra.txt` to latest mod builds                               |
+| `./dev update`            | Pull the latest stack bundle + Docker images                                       |
+| `./dev sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
+| `./dev seed-roll`         | Parallel-roll seeds for every dimension, auto-pick winners                         |
+| `./dev seed-rescore`      | Recompute candidate scores vs current configs (no re-rolling)                      |
+| `./dev seed-status`       | Candidate-bank status: counts, winners, score freshness                            |
+| `./dev cache`             | Snapshot Docker images, mod JARs, offline client bundles                           |
+| `./dev start <service>`   | Start a stopped local service                                                      |
+| `./dev stop <service>`    | Stop a running local service                                                       |
+| `./dev restart <service>` | Force-recreate a local service                                                     |
+| `./dev status`            | Show all local container statuses                                                  |
 
 ### `./ops` (production)
 
-| Command | Description |
-| --- | --- |
-| `./ops setup` | Interactive wizard: credentials, .env, deploy |
-| `./ops preflight` | Validate everything before provisioning |
-| `./ops provision` | Create the cloud server |
-| `./ops harden` | Lock down SSH, firewall, fail2ban |
-| `./ops prepare` | Deploy key, .env on server, GitHub env sync |
-| `./ops cloudflare` | Tunnel + DNS records + R2 bucket |
-| `./ops update` | Pull latest bundle + images on server, restart |
-| `./ops doctor` | Full production health triage |
-| `./ops ssh` | Drop into server shell |
-| `./ops ssh '<command>'` | Run a one-shot command on the server |
-| `./ops rcon "list"` | RCON command (always targets production) |
-| `./ops chunky` | Chunky pre-generation status |
-| `./ops status` | All container statuses |
-| `./ops logs mc --tail 200` | Recent log snapshot |
-| `./ops stats --once` | System + container stats snapshot |
-| `./ops backup` | Trigger an immediate backup |
-| `./ops wipe-chunk --block X Z` | Delete a region file (regenerates from seed) |
-| `./ops reset-seed <seed>` | World reset (triple-confirmed, backs up first) |
-| `./ops github-env-sync` | Push local .env to GitHub production environment |
-| `./ops start <service>` | Start a stopped production service |
-| `./ops stop <service>` | Stop a running production service |
-| `./ops restart <service>` | Force-recreate a production service |
-| `./ops map render` | Force a full map re-render (normal updates are automatic) |
+| Command                        | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| `./ops setup`                  | Interactive wizard: credentials, .env, deploy             |
+| `./ops preflight`              | Validate everything before provisioning                   |
+| `./ops provision`              | Create the cloud server                                   |
+| `./ops harden`                 | Lock down SSH, firewall, fail2ban                         |
+| `./ops prepare`                | Deploy key, .env on server, GitHub env sync               |
+| `./ops cloudflare`             | Tunnel + DNS records + R2 bucket                          |
+| `./ops update`                 | Pull latest bundle + images on server, restart            |
+| `./ops doctor`                 | Full production health triage                             |
+| `./ops ssh`                    | Drop into server shell                                    |
+| `./ops ssh '<command>'`        | Run a one-shot command on the server                      |
+| `./ops rcon "list"`            | RCON command (always targets production)                  |
+| `./ops chunky`                 | Chunky pre-generation status                              |
+| `./ops status`                 | All container statuses                                    |
+| `./ops logs mc --tail 200`     | Recent log snapshot                                       |
+| `./ops stats --once`           | System + container stats snapshot                         |
+| `./ops backup`                 | Trigger an immediate backup                               |
+| `./ops wipe-chunk --block X Z` | Delete a region file (regenerates from seed)              |
+| `./ops reset-seed <seed>`      | World reset (triple-confirmed, backs up first)            |
+| `./ops github-env-sync`        | Push local .env to GitHub production environment          |
+| `./ops start <service>`        | Start a stopped production service                        |
+| `./ops stop <service>`         | Stop a running production service                         |
+| `./ops restart <service>`      | Force-recreate a production service                       |
+| `./ops map render`             | Force a full map re-render (normal updates are automatic) |
 
 For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms permission model, see the [Commands reference](https://github.com/piprees/minecraft-server-template/blob/main/COMMANDS.md).
 
