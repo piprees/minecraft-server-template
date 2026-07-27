@@ -607,10 +607,23 @@ def resolve_groups(dim_config, type_defaults):
 
     world_type = dim_config.get("type")
     type_entry = (type_defaults.get("types") or {}).get(world_type)
-    if not type_entry or not type_entry.get("groups"):
+    if not type_entry:
         return {}
 
     group_defaults = type_defaults["groupDefaults"]
+
+    # A group named explicitly under `structures.noise` is ADDED, not merely
+    # re-profiled — the world type's list is a DEFAULT and an explicit entry is
+    # the author saying what they want. MIRRORS NoiseGroupPlan.resolve; change
+    # both together.
+    enabled = list(type_entry.get("groups") or [])
+    noise_cfg = structures.get("noise")
+    if isinstance(noise_cfg, dict):
+        for name, value in noise_cfg.items():
+            if isinstance(value, str) and name not in enabled and name in group_defaults:
+                enabled.append(name)
+    if not enabled:
+        return {}
     curves = type_defaults["curves"]
     shifts = type_defaults["difficultyShifts"]
     difficulty = dim_config.get("difficulty") or {}
@@ -627,7 +640,7 @@ def resolve_groups(dim_config, type_defaults):
     radial_overrides = structures.get("radial") or {}
 
     resolved = {}
-    for group in type_entry["groups"]:
+    for group in enabled:
         gd = group_defaults.get(group)
         if not gd:
             continue

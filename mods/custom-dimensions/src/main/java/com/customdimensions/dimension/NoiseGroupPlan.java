@@ -4,6 +4,7 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.google.gson.JsonElement;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -82,13 +83,26 @@ public final class NoiseGroupPlan {
             return new NoiseGroupPlan(Map.of(), true, "structures.noise=false (grid mode)");
         }
 
-        List<String> enabled = StructureGroupRegistry.groupsForType(worldType);
+        var defaults = StructureGroupRegistry.defaults();
+
+        // A group named explicitly under `structures.noise` is ADDED, not just
+        // re-profiled. The world type's list is a DEFAULT, and an author who
+        // writes {"endgame": "sparse"} on a cave dimension has said what they
+        // want plainly; iterating the type list alone silently ignored them.
+        // Found 2026-07-27: nine shipped dimensions carried wants for
+        // structures whose group their type omits, so the wants could never be
+        // satisfied and the fix did nothing until this landed.
+        List<String> enabled = new ArrayList<>(StructureGroupRegistry.groupsForType(worldType));
+        for (String named : explicitGroups(block)) {
+            if (!enabled.contains(named) && StructureGroupRegistry.groupDefault(named) != null) {
+                enabled.add(named);
+            }
+        }
         if (enabled.isEmpty()) {
             return new NoiseGroupPlan(Map.of(), true,
                     worldType == null ? "no world type" : "type " + worldType + " enables no groups");
         }
 
-        var defaults = StructureGroupRegistry.defaults();
         var typeEntry = defaults.types().get(worldType);
         double mobMultiplier = def.getDifficulty() != null
                 ? def.getDifficulty().getMobMultiplier() : 1.0;
@@ -213,6 +227,26 @@ public final class NoiseGroupPlan {
             curve[i] = v;
         }
         return curve;
+    }
+
+    /**
+     * Group names the author wrote under `structures.noise`, in config order.
+     * A `"none"` entry is included: it names the group, and resolution below
+     * turns it into a suppression rather than a group that never existed.
+     */
+    private static List<String> explicitGroups(DimensionConfig.Structures block) {
+        if (block == null || block.noise == null || !block.noise.isJsonObject()) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>();
+        for (String key : block.noise.getAsJsonObject().keySet()) {
+            JsonElement value = block.noise.getAsJsonObject().get(key);
+            if (value != null && value.isJsonPrimitive()
+                    && value.getAsJsonPrimitive().isString()) {
+                out.add(key);
+            }
+        }
+        return out;
     }
 
     private static String perGroupNoise(DimensionConfig.Structures block, String group) {
