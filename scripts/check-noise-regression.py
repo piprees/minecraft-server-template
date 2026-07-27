@@ -319,10 +319,19 @@ def audit_unsatisfiable_wants(config_dir, report, strict=False):
     # The structure -> set -> group map needs the warmup extraction; without
     # it every want looks unclassified and the audit would report nothing at
     # all, which is indistinguishable from a clean run. Say so instead.
-    seedtest = Path(config_dir).parents[1] / ".seedtest"
-    if not (seedtest / ".structure_sets").is_dir():
-        print("\nSKIP unsatisfiable-want audit (no warmup extraction at "
-              f"{seedtest}/.structure_sets — run a seed roll first)")
+    # Consumer layout is <consumer>/data/config/custom-dimensions with the
+    # warmup at <consumer>/.seedtest; a platform checkout is
+    # <repo>/config/custom-dimensions with <repo>/.seedtest. Try both rather
+    # than guessing a depth.
+    config_path = Path(config_dir).resolve()
+    seedtest = None
+    for parent in config_path.parents:
+        if (parent / ".seedtest" / ".structure_sets").is_dir():
+            seedtest = parent / ".seedtest"
+            break
+    if seedtest is None:
+        print("\nSKIP unsatisfiable-want audit (no warmup extraction found "
+              "above the config directory — run a seed roll first)")
         return
 
     import importlib.util
