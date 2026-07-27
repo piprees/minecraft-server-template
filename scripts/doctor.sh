@@ -5,8 +5,8 @@
 # PASS/WARN/FAIL per item (same pattern as preflight-check.sh, but for the
 # RUNNING server rather than credentials). Checks, in order:
 #
-#   - deployed commit vs origin/main (drift = a push that never deployed)
-#   - stashed pre-deploy hotfixes (deploy.sh stashes silently - review them)
+#   - deployed commit (.deployed consumer_sha) vs origin/main - drift means a
+#     push that never deployed
 #   - disk usage (WARN >=80%, FAIL >=90%) + biggest data/ consumers
 #   - every expected container: running, healthy, restart count
 #   - stale .deployed state file (mc missing but state file present)
@@ -94,14 +94,10 @@ set -a
 . ./.env 2> /dev/null || true
 set +a
 
-# --- git state ---
-res SHA "$(git rev-parse HEAD 2> /dev/null || echo unknown)"
-STASHES=$(git stash list 2> /dev/null | wc -l)
-if [ "$STASHES" -eq 0 ]; then
-  res OK "no stashed pre-deploy hotfixes"
-else
-  res WARN "$STASHES stashed pre-deploy change(s) on the server - review with: git stash list / git stash show -p 'stash@{0}'"
-fi
+# --- deployed commit ---
+# ~/server is rsynced from the consumer repo, not cloned, so there is no git
+# checkout here to interrogate. .deployed is the record of what actually landed.
+res SHA "$(sed -n 's/^consumer_sha=//p' .deployed 2> /dev/null || echo unknown)"
 
 # --- disk ---
 USEP=$(df --output=pcent / | tail -1 | tr -dc '0-9')
@@ -333,8 +329,10 @@ if [[ -n "$MAIN_SHA" && -n "$SERVER_SHA" && "$SERVER_SHA" != "unknown" ]]; then
   else
     report WARN "server is on ${SERVER_SHA:0:7} but origin/main is ${MAIN_SHA:0:7} - a deploy may be pending or failed (gh run list)"
   fi
+elif [[ -z "$MAIN_SHA" ]]; then
+  report WARN "could not read origin/main - run doctor from the consumer repo checkout"
 else
-  report WARN "could not compare server commit with origin/main"
+  report WARN "no consumer_sha in the server's .deployed - dispatch a deploy to record one"
 fi
 
 echo ""

@@ -558,7 +558,10 @@ jobs:
 
           BOTPOS=$(docker exec mc rcon-cli "data get entity SmokeBot Pos" 2>/dev/null)
           echo "Arrived at: $BOTPOS"
-          read -r AX AY AZ <<<"$(printf '%s' "$BOTPOS" | python3 -c 'import re,sys; v=re.findall(r"-?\d+\.?\d*", sys.stdin.read().split("[")[-1]); print(int(float(v[0])), int(float(v[1])), int(float(v[2])))')"
+          # `data get` always renders doubles with a decimal point (100.0d),
+          # so requiring one skips the prose before the coordinate list.
+          PYPOS='import re,sys;print(*(int(float(v)) for v in re.findall(r"-?\d+\.\d+", sys.argv[1])[:3]))'
+          read -r AX AY AZ <<<"$(python3 -c "$PYPOS" "$BOTPOS")"
           echo "Arrival block coords: $AX $AY $AZ"
 
           # The arrival must be inside the destination's PLAYER border, or the
