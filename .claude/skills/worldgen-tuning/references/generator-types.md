@@ -6,7 +6,7 @@ tags: [worldgen, checkerboard, superflat, biomePatches, structures, noiseSetting
 
 # Generator types and advanced worldgen fields
 
-All fields documented here go in a dimension config file at `config/custom-dimensions/dimensions/<slug>.json`. Unless noted otherwise, they are **creation-time-only** — baked into `level.dat` at world creation; changes need a world wipe ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2)).
+All fields documented here go in a dimension config file at `config/custom-dimensions/dimensions/<slug>.json`. Unless noted otherwise, they are **creation-time-only** — baked into `level.dat` at world creation; changes need a world wipe ([TROUBLESHOOTING.md#d2](../../../../TROUBLESHOOTING.md#d2)).
 
 ## noiseSettings and structureDensity
 

@@ -8,9 +8,9 @@ description: |
 
 # Worldgen Tuning
 
-You are changing how the world generates — terrain shape, structure frequency, or per-dimension worldgen profiles. All worldgen config is **creation-time-only** ([TROUBLESHOOTING.md#d2](../../TROUBLESHOOTING.md#d2)): changes affect newly generated chunks only, never existing terrain. Expect visible seams at the boundary between old and new terrain on an existing world.
+You are changing how the world generates — terrain shape, structure frequency, or per-dimension worldgen profiles. All worldgen config is **creation-time-only** ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2)): changes affect newly generated chunks only, never existing terrain. Expect visible seams at the boundary between old and new terrain on an existing world.
 
-**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → [seed-rolling](../seed-rolling/SKILL.md); consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../mods/custom-dimensions/README.md).
+**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → [seed-rolling](../seed-rolling/SKILL.md); consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../../mods/custom-dimensions/README.md).
 
 ## MANDATORY: read before editing
 
@@ -19,8 +19,8 @@ You are changing how the world generates — terrain shape, structure frequency,
 | [references/tectonic-dials.md](references/tectonic-dials.md) | The full Tectonic 3.x dial table with verified semantics and the platform's shipped values |
 | [references/structure-presets.md](references/structure-presets.md) | The three preset variants, what each changes, what's deliberately untouched, and consumer swap instructions |
 | [references/generator-types.md](references/generator-types.md) | Checkerboard, superflat, settingsOverrides, per-biome parameters, biomePatches, and per-dimension structure control |
-| [config/tectonic.json](../../config/tectonic.json) | The actual shipped config — every key, every comment |
-| [TROUBLESHOOTING.md#d2](../../TROUBLESHOOTING.md#d2) | ALL worldgen config is creation-time-only |
+| [config/tectonic.json](../../../config/tectonic.json) | The actual shipped config — every key, every comment |
+| [TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2) | ALL worldgen config is creation-time-only |
 
 ## Three layers of worldgen control
 
@@ -98,10 +98,10 @@ See [references/generator-types.md](references/generator-types.md) for the full 
 
 ## Traps
 
-1. **ALL worldgen config is creation-time-only** ([TROUBLESHOOTING.md#d2](../../TROUBLESHOOTING.md#d2)). The dimension's generator is serialised into `level.dat` at creation. Applying a worldgen change requires wiping `data/world`. The mod fingerprints creation-time config and WARNs at boot when drift is detected — that's information, not a failure.
+1. **ALL worldgen config is creation-time-only** ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2)). The dimension's generator is serialised into `level.dat` at creation. Applying a worldgen change requires wiping `data/world`. The mod fingerprints creation-time config and WARNs at boot when drift is detected — that's information, not a failure.
 2. **Tectonic config must be COMPLETE** — a partial file silently falls back to factory defaults for missing keys. Always copy the full platform file as a starting point.
 3. **`max_y` and noise presets interact.** `adventure:wide` assumes 448 height. Dropping `max_y` back to 320 trims pinned-wide dimensions at 320.
-4. **c2me's density-function compiler must stay disabled** ([TROUBLESHOOTING.md#d6](../../TROUBLESHOOTING.md#d6)). `deploy.sh` and `dev-up.sh` enforce this. A bare `docker restart mc` boots unpatched.
+4. **c2me's density-function compiler must stay disabled** ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)). `deploy.sh` and `dev-up.sh` enforce this. A bare `docker restart mc` boots unpatched.
 5. **Structure `frequency` is the safe knob; `spacing`/`salt` re-roll the grid.** Changing spacing on an existing world creates visible inconsistency near explored-terrain borders.
 6. **Consumer-added structure mods keep their defaults** — they aren't themed until the consumer adds `overlay/config/structure_themes.json` mapping each set id to a theme.
 7. **`structures.force` guarantees the attempt, not the biome check.** The structure's biome predicate still applies — pick a spot whose biome the structure accepts.

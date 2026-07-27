@@ -19,7 +19,7 @@ You are customising a consumer server built from the Adventure Server template. 
 | [references/overlay-paths.md](references/overlay-paths.md) | Every overlay path and what it overrides |
 | [references/panorama-capture.md](references/panorama-capture.md) | Step-by-step cubemap capture for the title screen |
 | [references/resource-packs.md](references/resource-packs.md) | Resource pack system: slug forms, filename pinning, options.txt enable order |
-| [examples/consumer/README.md](../../examples/consumer/README.md) | The consumer-facing quick reference |
+| [examples/consumer/README.md](../../../examples/consumer/README.md) | The consumer-facing quick reference |
 
 ## Brand identity — quick start
 

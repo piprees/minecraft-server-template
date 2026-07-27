@@ -6,7 +6,7 @@ tags: [tectonic, terrain, worldgen, erosion, mountains, oceans]
 
 # Tectonic 3.x dial reference
 
-Source of truth: [config/tectonic.json](../../../config/tectonic.json) (read the comments — every CHANGED value has rationale). Verified against the pinned jar (tectonic 3.0.26-fabric-21.1): the mod reads `config/tectonic.json` (flat, NOT `config/tectonic/tectonic.json`) via `ApollibConfigHolder`; every key and default was extracted from `ConfigState` bytecode. A parse failure is SILENT — grep boot logs for `"Couldn't load tectonic config file"`.
+Source of truth: [config/tectonic.json](../../../../config/tectonic.json) (read the comments — every CHANGED value has rationale). Verified against the pinned jar (tectonic 3.0.26-fabric-21.1): the mod reads `config/tectonic.json` (flat, NOT `config/tectonic/tectonic.json`) via `ApollibConfigHolder`; every key and default was extracted from `ConfigState` bytecode. A parse failure is SILENT — grep boot logs for `"Couldn't load tectonic config file"`.
 
 ## Dial table
 
