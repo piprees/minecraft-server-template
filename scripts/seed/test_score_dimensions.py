@@ -768,6 +768,63 @@ class EnrichedDensityBiasTests(unittest.TestCase):
             data = score_dimensions.gather_measurements(args)
             self.assertEqual(data["test_dim"]["42"]["_enriched_structure_count"], "3")
 
+    def test_enrichment_counts_instances_not_structure_types(self):
+        """A cluttered and a barren world must not enrich to the same number.
+
+        structure_all's KEYS are the battery set names, identical for every
+        seed in a dimension. Counting them made _enriched_structure_count a
+        per-dimension constant, so the density bias shifted every candidate
+        equally and could never reorder anything.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "custom-dimensions"
+            (cfg / "dimensions").mkdir(parents=True, exist_ok=True)
+            (cfg / "dimensions" / "test_dim.json").write_text(
+                json.dumps({"type": "overworld",
+                            "seedRoll": {"spawnFilter": ["minecraft:plains"]}}))
+            seedtest = Path(tmp) / "seedtest"
+            seedtest.mkdir()
+            store = candidates.empty_store()
+            for seed in (11, 22):
+                candidates.merge_rows(store, seed, {
+                    "spawn_biome": "minecraft:plains", "errors": "0"})
+            # Same two keys either side — only the hit counts differ.
+            store["candidates"]["11"]["structure_all"] = {
+                "village": [[1, 0, 0]] * 40, "tavern": [[2, 0, 0]] * 10}
+            store["candidates"]["22"]["structure_all"] = {
+                "village": [[1, 0, 0]], "tavern": []}
+            candidates.save_store(cfg / "candidates" / "test_dim.json", store)
+
+            args = SimpleNamespace(config=str(cfg), seedtest=str(seedtest),
+                                   csv=str(seedtest / "measurements.csv"))
+            data = score_dimensions.gather_measurements(args)
+            self.assertEqual(data["test_dim"]["11"]["_enriched_structure_count"], "50")
+            self.assertEqual(data["test_dim"]["22"]["_enriched_structure_count"], "1")
+
+    def test_clutter_bias_is_relative_and_bounded(self):
+        """Clutter scores against the dimension's own median, and the
+        adjustment stays inside the band the type-count version could reach."""
+        profile = build_profile(
+            {"name": "d", "type": "overworld", "structureDensity": "sparse",
+             "seedRoll": {"spawnFilter": ["minecraft:plains"]}},
+            sample_config(), {})
+        base_rows = {"spawn_biome": "minecraft:plains", "errors": "0"}
+
+        profile["_clutter_median"] = 50.0
+        _, typical = score_dimensions.score_candidate(
+            profile, {**base_rows, "_enriched_structure_count": "50"})
+        _, cluttered = score_dimensions.score_candidate(
+            profile, {**base_rows, "_enriched_structure_count": "5000"})
+        _, barren = score_dimensions.score_candidate(
+            profile, {**base_rows, "_enriched_structure_count": "1"})
+
+        # sparse rewards emptiness, so barren >= typical >= cluttered
+        self.assertGreaterEqual(barren["structures"], typical["structures"])
+        self.assertGreaterEqual(typical["structures"], cluttered["structures"])
+        # and a 100x overshoot cannot swing it further than the clamp allows
+        self.assertLessEqual(
+            barren["structures"] - cluttered["structures"], 0.25)
+
     def test_enrichment_absent_no_synthetic_key(self):
         """Without structure_all, no _enriched_structure_count appears."""
         with tempfile.TemporaryDirectory() as tmp:

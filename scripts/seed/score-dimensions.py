@@ -46,6 +46,7 @@ import json
 import multiprocessing
 import os
 import shutil
+import statistics
 import subprocess
 import sys
 import time
@@ -417,21 +418,33 @@ def score_candidate(profile, rows):
         battery_part = None
 
     if battery_part is not None:
-        # Density bias: each found structure nudges the score. When
-        # enrichment data exists (structure_all from a render pass), use
-        # the TOTAL structure count — it includes unlisted structures
-        # that the battery never asked about. This lets later roll rounds
-        # dethrone earlier winners when enrichment reveals a cluttered or
-        # empty world. Without enrichment, fall back to battery-found-count.
+        # Density bias: how cluttered this world is versus its siblings.
+        #
+        # Enriched candidates carry a total INSTANCE count, which scales with
+        # the dimension's area — a 512-radius pocket and an 8192 overworld are
+        # not comparable in absolute terms. So the bias is taken against the
+        # median of this dimension's own enriched candidates: 1.0 is typical,
+        # and the adjustment is clamped to the same +/-0.12 band the old
+        # type-count version could reach, so no dimension is upended by it.
+        #
+        # Without enrichment there is no median to compare against, and the
+        # battery-found-count keeps its original absolute coefficients.
         enriched = rows.get("_enriched_structure_count")
-        struct_count = int(enriched) if enriched is not None else found_count
         density = profile.get("density")
-        if density == "sparse":
-            battery_part = max(0.0, battery_part - struct_count * 0.012)
-        elif density == "dense":
-            battery_part = min(1.1, battery_part + struct_count * 0.008)
+        median = profile.get("_clutter_median")
+        if enriched is not None and median:
+            rel = int(enriched) / median
+            offset = max(-1.0, min(1.0, rel - 1.0))
+            coeff = {"sparse": -0.12, "dense": 0.08}.get(density, -0.03)
+            battery_part = max(0.0, min(1.1, battery_part + coeff * offset))
         else:
-            battery_part = max(0.0, battery_part - struct_count * 0.003)
+            struct_count = int(enriched) if enriched is not None else found_count
+            if density == "sparse":
+                battery_part = max(0.0, battery_part - struct_count * 0.012)
+            elif density == "dense":
+                battery_part = min(1.1, battery_part + struct_count * 0.008)
+            else:
+                battery_part = max(0.0, battery_part - struct_count * 0.003)
 
     combined = census_scoring.blend(census_part, battery_part)
     parts["structures"] = 0.0 if combined is None else combined
@@ -482,7 +495,14 @@ def gather_measurements(args):
                     data[slug][seed].update(cand.get("measurements", {}))
                     sa = cand.get("structure_all")
                     if sa:
-                        data[slug][seed]["_enriched_structure_count"] = str(len(sa))
+                        # INSTANCES, not structure types. The keys of
+                        # structure_all are the battery set names, which are
+                        # identical for every seed in a dimension — counting
+                        # them made this a per-dimension constant, so the
+                        # density bias below shifted every candidate by the
+                        # same amount and never reordered anything.
+                        data[slug][seed]["_enriched_structure_count"] = str(
+                            sum(len(v) for v in sa.values()))
                 for seed in store["rejected"]:
                     data[slug][seed].setdefault("rejected", "1")
     sources = [Path(args.csv)] if getattr(args, "csv", None) else []
@@ -746,6 +766,14 @@ def score_all(profiles, data):
     for name, profile in profiles.items():
         cands = []
         rej = 0
+        # Clutter is judged against this dimension's own enriched candidates,
+        # so the median has to be known before any of them is scored. Only
+        # enriched candidates contribute — an unenriched majority would drag
+        # the median toward zero and make every enriched world look cluttered.
+        counts = [int(r["_enriched_structure_count"])
+                  for r in data.get(name, {}).values()
+                  if r.get("_enriched_structure_count") is not None]
+        profile["_clutter_median"] = statistics.median(counts) if counts else None
         for seed, rows in data.get(name, {}).items():
             if rows.get("rejected") == "1" or "errors" not in rows:
                 rej += 1

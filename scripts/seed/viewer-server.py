@@ -59,6 +59,30 @@ def _batch_render(config, seedtest, biome_params, size, scale, sample_res,
 BATCH_GEOMETRIES = ((1024, 8, ""), (2048, 16, "_hires"))
 
 
+# How many candidates each pass covers. Enrichment is cheap arithmetic and
+# rendering is minutes of CPU, so they are DELIBERATELY not the same number:
+# enrich wide, re-rank, then render only the survivors. Rendering first would
+# spend the expensive pass on a ranking the cheap pass is about to change.
+ENRICH_TOP = 25
+RENDER_TOP = 10
+
+
+def _top_seeds(store, limit):
+    """The store's best `limit` seeds by current-config score, best first."""
+    current_hash = store.get("configHash", "")
+    scored = []
+    for seed_str, cand in store["candidates"].items():
+        scores = cand.get("scores", {})
+        if current_hash and current_hash in scores:
+            best = scores[current_hash].get("total", 0)
+        else:
+            best = max((s.get("total", 0) for s in scores.values()), default=0)
+        if best > 0:
+            scored.append((best, seed_str))
+    scored.sort(reverse=True)
+    return [s for _, s in scored[:limit]]
+
+
 def _load_structure_all(config_path, dim, seed):
     """Read a candidate's banked structure_all from the candidate store.
     Returns None when absent — callers skip overlay generation entirely
@@ -905,6 +929,9 @@ def main():
                     help="consumer mode passthrough to score-dimensions finalise")
     ap.add_argument("--refresh", action="store_true",
                     help="wipe existing renders and regenerate all in background")
+    ap.add_argument("--enrich-top", type=int, default=ENRICH_TOP,
+                    help=f"candidates per dim to enrich before re-ranking "
+                         f"(default {ENRICH_TOP}; renders cover the top {RENDER_TOP})")
     args = ap.parse_args()
 
     finalise_args = ["--config", args.config, "--seedtest", args.seedtest, "--viewer"]
@@ -937,17 +964,12 @@ def main():
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
-    # Render top candidates via multiprocessing batch (fast, output to CLI)
     biome_params = str(SCRIPT_DIR / "biome_params.json")
-    if Path(biome_params).exists():
-        _batch_render(args.config, args.seedtest, biome_params,
-                      1024, 8, 256, "Rendering normal-res (1024px)")
-        _batch_render(args.config, args.seedtest, biome_params,
-                      2048, 16, 512, "Rendering hires (2048px)",
-                      suffix="_hires")
 
-    # Enumerate all structure placements within border for top 10 candidates
-    print("\n=== Enumerating structures ===", flush=True)
+    # Enumerate all structure placements within the border. Runs BEFORE the
+    # renders and over a wider pool than they cover, so the re-rank below
+    # decides what is worth rendering rather than the other way round.
+    print(f"\n=== Enumerating structures (top {args.enrich_top}) ===", flush=True)
     try:
         from dimension_profiles import load_config, load_difficulty, build_profile, rollable
         from structure_placement import load_structure_sets, find_all_in_radius
@@ -964,7 +986,6 @@ def main():
         all_sets = load_structure_sets(str(struct_sets_dir)) if struct_sets_dir.exists() else {}
 
         enriched = 0
-        overlays = 0
         for name, dim in all_targets.items():
             profile = build_profile(dim, config, difficulty)
             store = cmod.load_store(cdir / f"{name}.json")
@@ -973,48 +994,31 @@ def main():
                 continue
             radius = int(profile["radius"])
 
-            current_hash = store.get("configHash", "")
-            scored = []
-            for seed_str, cand in store["candidates"].items():
-                scores = cand.get("scores", {})
-                if current_hash and current_hash in scores:
-                    best = scores[current_hash].get("total", 0)
-                else:
-                    best = max((s.get("total", 0) for s in scores.values()), default=0)
-                if best > 0:
-                    scored.append((best, seed_str))
-            scored.sort(reverse=True)
-
-            dim_scale = float(profile.get("scale", 1.0) or 1.0)
             changed = False
-            for _, seed_str in scored[:10]:
+            for seed_str in _top_seeds(store, args.enrich_top):
                 cand = store["candidates"][seed_str]
-                if "structure_all" not in cand:
-                    sa = {}
-                    for sname, sid, spec, kind in battery:
-                        clean = sid.lstrip("#")
-                        cfg = all_sets.get(clean)
-                        if not cfg:
-                            continue
-                        hits = find_all_in_radius(
-                            int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
-                            radius, spread_type=cfg.get("spread_type", "linear"),
-                            frequency=cfg.get("frequency", 1.0))
-                        sa[sname] = [(d, x, z) for d, x, z in hits]
-                    cand["structure_all"] = sa
-                    changed = True
-                    enriched += 1
-                # Transparent marker overlays stacked over the batch renders
-                # by the viewer. Same top-10 as the renders; nothing else
-                # gets one (missing seeds fill in on the next finalise).
-                overlays += _write_structure_overlays(
-                    args.seedtest, name, seed_str, cand["structure_all"], dim_scale)
+                if "structure_all" in cand:
+                    continue
+                sa = {}
+                for sname, sid, spec, kind in battery:
+                    clean = sid.lstrip("#")
+                    cfg = all_sets.get(clean)
+                    if not cfg:
+                        continue
+                    hits = find_all_in_radius(
+                        int(seed_str), cfg["spacing"], cfg["separation"], cfg["salt"],
+                        radius, spread_type=cfg.get("spread_type", "linear"),
+                        frequency=cfg.get("frequency", 1.0))
+                    sa[sname] = [(d, x, z) for d, x, z in hits]
+                cand["structure_all"] = sa
+                changed = True
+                enriched += 1
 
             if changed:
                 cmod.save_store(cdir / f"{name}.json", store)
 
-        print(f"Enriched {enriched} candidates with full structure data "
-              f"({overlays} overlay images written)", flush=True)
+        print(f"Enriched {enriched} candidates with full structure data",
+              flush=True)
 
         # Biome survey: sample a grid within the border, record all unique biomes + positions
         print("=== Surveying biomes ===", flush=True)
@@ -1039,21 +1043,9 @@ def main():
                     or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
                 biome_filter = config_biomes if config_biomes else None
 
-                current_hash = store.get("configHash", "")
-                scored = []
-                for seed_str, cand in store["candidates"].items():
-                    scores = cand.get("scores", {})
-                    if current_hash and current_hash in scores:
-                        best = scores[current_hash].get("total", 0)
-                    else:
-                        best = max((s.get("total", 0) for s in scores.values()), default=0)
-                    if best > 0:
-                        scored.append((best, seed_str))
-                scored.sort(reverse=True)
-
                 changed = False
                 step = max(64, radius // 32)
-                for _, seed_str in scored[:10]:
+                for seed_str in _top_seeds(store, args.enrich_top):
                     cand = store["candidates"][seed_str]
                     if "biome_survey" in cand:
                         continue
@@ -1077,6 +1069,50 @@ def main():
             print(f"Surveyed biomes for {bio_enriched} candidates", flush=True)
     except Exception as e:
         print(f"Structure enumeration failed: {e}", flush=True)
+
+    # Re-rank on the enriched data, THEN render. Rendering is minutes per
+    # dimension and enrichment is arithmetic, so the cheap pass decides what
+    # the expensive one spends its time on.
+    print("\n=== Re-ranking on enriched data ===", flush=True)
+    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                    "rescore", "--config", args.config, "--seedtest", args.seedtest],
+                   capture_output=True, text=True)
+    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+                    "finalise", *finalise_args], capture_output=True, text=True)
+
+    if Path(biome_params).exists():
+        _batch_render(args.config, args.seedtest, biome_params,
+                      1024, 8, 256, f"Rendering normal-res (1024px, top {RENDER_TOP})")
+        _batch_render(args.config, args.seedtest, biome_params,
+                      2048, 16, 512, f"Rendering hires (2048px, top {RENDER_TOP})",
+                      suffix="_hires")
+
+    # Overlays last: they must match the geometry of the base render they
+    # stack over, and only the rendered set has one to stack over.
+    print("\n=== Writing structure overlays ===", flush=True)
+    overlays = 0
+    try:
+        import candidates as cmod
+        from dimension_profiles import load_config, load_difficulty, build_profile, rollable
+        config = load_config(args.config)
+        difficulty = load_difficulty(args.config)
+        dims = {d["name"]: d for d in config["dimensions"] if rollable(d)}
+        worlds = {w["name"]: w for w in config.get("worlds", [])}
+        cdir = cmod.candidates_dir(Path(args.config))
+        for name, dim in {**worlds, **dims}.items():
+            store_path = cdir / f"{name}.json"
+            if not store_path.exists():
+                continue
+            store = cmod.load_store(store_path)
+            dim_scale = float(build_profile(dim, config, difficulty).get("scale", 1.0) or 1.0)
+            for seed_str in _top_seeds(store, RENDER_TOP):
+                sa = store["candidates"][seed_str].get("structure_all")
+                if sa:
+                    overlays += _write_structure_overlays(
+                        args.seedtest, name, seed_str, sa, dim_scale)
+        print(f"{overlays} overlay image(s) written", flush=True)
+    except Exception as e:
+        print(f"Overlay generation failed: {e}", flush=True)
 
     print("\nRenders complete. Server running — Ctrl+C to stop.", flush=True)
     try:
