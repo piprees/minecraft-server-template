@@ -436,8 +436,8 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for 
 
 | Topic                                    | Link                                           |
 | ---------------------------------------- | ---------------------------------------------- |
-| Deployment targets & backup alternatives | [docs/deployment.md](docs/deployment.md)       |
-| Security hardening                       | [docs/security.md](docs/security.md)           |
+| Deployment targets & backup alternatives | [docs/setup-guide.md](docs/setup-guide.md) (§ Per-OS notes, § Home hosting) |
+| Security hardening                       | [SECURITY.md](SECURITY.md)                     |
 | Credentials & API tokens                 | [docs/credentials.md](docs/credentials.md)     |
 | Server customisation                     | [docs/customisation.md](docs/customisation.md) |
 | Releasing                                | [docs/releasing.md](docs/releasing.md)         |

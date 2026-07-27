@@ -11,7 +11,7 @@
 	// half-apply it. Non-default values are marked CHANGED with rationale from
 	// mods/.ideas/customising-terrain.md. Existing worlds get terrain seams at
 	// the border of already-generated chunks — this tune is intended for NEW
-	// worlds and new custom dimensions (see docs/migration-v3.md).
+	// worlds and new custom dimensions — expect terrain seams at chunk borders.
 	//
 	// Consumers override via overlay/config/tectonic.json.
 	"minor_version": 1,

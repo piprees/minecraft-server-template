@@ -108,6 +108,6 @@ Loud failures: missing `.env` values (preflight lists each one), `provision.sh` 
 - `references/step-chain.md` — every script in the chain: preconditions, what it does, what it restarts, how to re-run it alone.
 - `docs/credentials.md` — canonical credential table and rotation guide.
 - `docs/setup-guide.md` — full human walkthrough, Discord bot setup, GitHub environment tables.
-- `docs/deployment.md` — provider costs, WSL2 and home-hosting caveats, TCPShield.
-- `docs/security.md` — what `harden.sh` actually applies.
+- `docs/setup-guide.md` § Per-OS notes — WSL2 networking, home-hosting, TCPShield, DDNS.
+- `SECURITY.md` (repo root) — attack surface table and hardening summary.
 - Sibling skills: `env-and-secrets` (`.env` lifecycle, four-places rule, rotation), `deploy-pipeline-operations` (ongoing deploys after first boot), `production-triage` (something's wrong on a running server).

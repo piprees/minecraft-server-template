@@ -102,7 +102,7 @@ docker exec mc-backup restic stats --mode raw-data
 ./ops doctor                                       # snapshot-age check: FAIL >48h, WARN >26h (schedule is 12h)
 ```
 
-`"repository does not exist"` from any restic command means either the R2 bucket/credentials in `.env` are wrong or the repo was never initialised — `restic -r <repo> init` (see `docs/deployment.md § Backup alternatives` for swapping the backend to B2, local path, sftp, MinIO, or Wasabi, and re-initialising against the new one). `docs/troubleshooting.md § Backup fails` covers the same triage: verify R2 credentials, check `restic snapshots`, check disk (`df -h`), check `docker logs mc-backup --tail 50`.
+`"repository does not exist"` from any restic command means either the R2 bucket/credentials in `.env` are wrong or the repo was never initialised — `restic -r <repo> init`. To swap the backend: set `RESTIC_REPOSITORY` in `.env` to a different target (Backblaze B2 `s3:https://s3.REGION.backblazeb2.com/BUCKET`, local path, `sftp:user@host:/path`, MinIO, Wasabi), init the new repo, restart `mc-backup`, and test with `./ops backup`. `TROUBLESHOOTING.md` § Common symptoms → Backups covers the same triage: verify R2 credentials, check `restic snapshots`, check disk (`df -h`), check `docker logs mc-backup --tail 50`.
 
 ## References
 

@@ -313,8 +313,8 @@ config tuned for wide, realistically proportioned terrain (see the comments
 in the file for every dial and its rationale). Consumers override any of it
 via `overlay/config/tectonic.json`; the file must stay COMPLETE (every key)
 so a partial parse can never silently fall back to factory defaults — start
-from the platform copy. Changes apply to newly generated chunks only; see
-[docs/migration-v3.md](migration-v3.md) for the seam tradeoff.
+from the platform copy. Changes apply to newly generated chunks only —
+expect visible seams at the boundary between old and new terrain.
 
 `max_y` interacts with the two jar-baked noise presets: `adventure:wide`
 assumes the 448 height; dropping global `max_y` back to 320 trims pinned-wide
@@ -538,8 +538,8 @@ with copyable examples in
 § "Difficulty, exits, and the remaining fields". That README is the
 source of truth for the dimension-file schema.
 
-The shipped 74-dimension mapping is documented in
-[docs/dimension-profiles-v3.md](dimension-profiles-v3.md).
+The shipped dimension mapping lives in the individual config files under
+`config/custom-dimensions/dimensions/`.
 
 ## Portals
 
