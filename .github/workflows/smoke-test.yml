@@ -334,17 +334,28 @@ jobs:
             exit 1
           fi
 
-          # Per-dimension structure control: the fixture gives
-          # the_smoke_compressed structureDensity=dense, and
-          # the_blossom_gardens is peaceful (hostileSpawning:false).
-          grep -qF -- "Dimension the_smoke_compressed structure profile: density=dense" <<<"$LOG" || {
-            echo "::error::structureDensity=dense was not applied to the_smoke_compressed"
+          # Per-dimension structure control. Noise placement is the default,
+          # so the dials are visible in the noise line's per-group detail
+          # rather than in a "density=" summary: structureDensity=dense puts
+          # every group on the dense profile, and a peaceful dimension
+          # (hostileSpawning:false) has no dungeons and no endgame at all.
+          # Group order in that line is map order — assert on substrings.
+          SMOKE_LINE=$(grep -F -- "Dimension the_smoke_compressed structure profile:" <<<"$LOG" | tail -1)
+          echo "the_smoke_compressed: $SMOKE_LINE"
+          grep -qF -- "noise " <<<"$SMOKE_LINE" && grep -qF -- "dungeons=dense/" <<<"$SMOKE_LINE" || {
+            echo "::error::structureDensity=dense did not reach placement for the_smoke_compressed"
             exit 1
           }
-          grep -qF -- "Dimension the_blossom_gardens structure profile: density=normal+peaceful" <<<"$LOG" || {
-            echo "::error::peaceful structure overlay was not applied to the_blossom_gardens"
+          GARDENS_LINE=$(grep -F -- "Dimension the_blossom_gardens structure profile:" <<<"$LOG" | tail -1)
+          echo "the_blossom_gardens: $GARDENS_LINE"
+          grep -qF -- "noise " <<<"$GARDENS_LINE" || {
+            echo "::error::the_blossom_gardens did not take the noise path"
             exit 1
           }
+          if grep -qE -- "(dungeons|endgame)=" <<<"$GARDENS_LINE"; then
+            echo "::error::peaceful overlay did not suppress dungeons/endgame for the_blossom_gardens"
+            exit 1
+          fi
           grep -qE -- "Loaded .* structure-set themes" <<<"$LOG" || {
             echo "::error::structure theme map failed to load from the jar"
             exit 1
