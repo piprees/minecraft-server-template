@@ -1045,36 +1045,25 @@
     <label><input type="checkbox" id="f-borders" /> Show borders</label>
   </div>
 
+  <!-- Roller controls. The viewer drives generation itself: rolling,
+       enriching, re-ranking and rendering all happen behind this bar and the
+       grid below repaints as the ranking changes. -->
+  <div class="toolbar roller-bar">
+    <button type="button" class="action-btn" id="roll-start">Start</button>
+    <button type="button" class="action-btn" id="roll-stop" hidden>Stop</button>
+    <label>Seeds <input type="number" id="roll-count" value="100" min="1"
+                        max="100000" step="25" /></label>
+    <label>Dimension <select id="roll-dim"><option value="">All</option></select></label>
+    <span id="roll-stage" class="roller-stage">idle</span>
+    <span id="roll-activity" class="roller-activity"></span>
+  </div>
+
   <h1>Dimension seed candidates
     <button type="button" class="action-btn" id="new-dim-btn"
             onclick="openConfigDialog('create', '', '')">New dimension</button>
   </h1>
   <p class="summary">{{SUMMARY_STATS}}</p>
   <p class="summary" id="progress" aria-live="polite"></p>
-
-  <!-- Roller control + live results. The pipeline is driven from here, so
-       the page works against whatever is already banked and Start only adds
-       to it: enrich -> re-rank -> render, with renders trailing the ranking
-       rather than leading it. -->
-  <section id="roller">
-    <div class="roller-bar">
-      <button type="button" id="roll-start" class="action-btn">Start</button>
-      <button type="button" id="roll-stop" class="action-btn" hidden>Stop</button>
-      <label>Seeds <input type="number" id="roll-count" value="100" min="1"
-                          max="100000" step="25" /></label>
-      <span id="roll-stage" class="roller-stage">idle</span>
-      <span id="roll-counts" class="roller-counts"></span>
-    </div>
-    <div id="roll-activity" class="roller-activity"></div>
-    <div id="live-grid" class="live-grid"></div>
-  </section>
-
-  <dialog id="cand-detail">
-    <h3 id="cdet-title">Candidate</h3>
-    <div id="cdet-body" class="cdet-body">Loading…</div>
-    <menu><button type="button" id="cdet-close" class="action-btn">Close</button></menu>
-  </dialog>
-
 
   <!-- Grouped mode: dimension cards -->
   <div class="grid" id="grid">{{DIMENSIONS_HTML}}</div>
@@ -2280,49 +2269,49 @@
     })()
   </script>
   <style>
-    #roller { margin: 0 0 1.25rem; }
-    .roller-bar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap;
-                  padding: .6rem .75rem; border: 1px solid #3a3f47; border-radius: 6px; }
-    .roller-bar input[type=number] { width: 7rem; }
+    .roller-bar { align-items: center; }
+    .roller-bar input[type=number] { width: 6rem; }
     .roller-stage { font-weight: 600; text-transform: capitalize; }
-    .roller-counts, .roller-activity { opacity: .75; font-size: .9em; }
-    .roller-activity { margin: .4rem 0 .8rem; min-height: 1.2em; }
-    .live-grid { display: flex; flex-direction: column; gap: 1rem; }
-    .live-dim h4 { margin: 0 0 .35rem; }
-    .live-cards { display: flex; gap: .5rem; flex-wrap: wrap; }
-    .live-card { width: 132px; border: 1px solid #3a3f47; border-radius: 6px;
-                 overflow: hidden; cursor: pointer; background: #23262b; }
-    .live-card.is-winner { outline: 2px solid #d9a441; }
-    .live-thumb { width: 132px; height: 132px; display: block; background-size: cover;
-                  position: relative; }
-    /* Placeholder is the spawn biome's own surface colour, so a card reads as
-       snowy/sandy/verdant before any render exists. */
-    .live-thumb[data-placeholder="1"]::after { content: "rendering…"; position: absolute;
-                  inset: auto 0 0 0; font-size: .7em; text-align: center;
-                  background: rgba(0,0,0,.45); padding: 2px 0; }
-    .live-meta { padding: .3rem .4rem; font-size: .78em; line-height: 1.3; }
-    .live-score { font-weight: 700; }
-    .live-biome { opacity: .7; overflow: hidden; text-overflow: ellipsis;
-                  white-space: nowrap; display: block; }
-    .cdet-body { max-height: 65vh; overflow-y: auto; font-size: .85em; }
-    .cdet-body table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
-    .cdet-body th, .cdet-body td { text-align: left; padding: 2px 6px;
-                                   border-bottom: 1px solid #333; }
+    .roller-activity { opacity: .75; font-size: .9em; }
+    /* A candidate whose render has not landed yet still carries its spawn
+       biome's surface colour, so the card reads snowy/sandy/verdant rather
+       than as a broken image. */
+    .cand img[data-pending] { background-size: cover; }
+    .cand img[data-pending]::after { content: ""; }
   </style>
   <script>
-    // ---- Roller pipeline: control, live re-ranked grid, candidate detail ----
-    (function () {
+    // ---- Roller controls -------------------------------------------------
+    // Deliberately does NOT render its own candidate grid: the server-rendered
+    // one below already carries the map lightbox, structure overlays, score
+    // breakdown and pick actions. On a re-rank this refetches the regenerated
+    // viewer.html and swaps #grid, which is safe because every handler on the
+    // grid is delegated from document.
+    ;(function () {
+      if (location.protocol === 'file:') return
       var startBtn = document.getElementById('roll-start')
       var stopBtn = document.getElementById('roll-stop')
       var countEl = document.getElementById('roll-count')
+      var dimEl = document.getElementById('roll-dim')
       var stageEl = document.getElementById('roll-stage')
-      var countsEl = document.getElementById('roll-counts')
       var activityEl = document.getElementById('roll-activity')
-      var gridEl = document.getElementById('live-grid')
-      var dlg = document.getElementById('cand-detail')
-      if (!startBtn || !gridEl) return
+      if (!startBtn) return
 
       var lastGeneration = -1
+
+      // Populate the dimension picker from the grid itself, so it always
+      // matches what is actually configured.
+      ;(function fillDims () {
+        var seen = {}
+        document.querySelectorAll('[data-dim]').forEach(function (el) {
+          var d = el.getAttribute('data-dim')
+          if (d && !seen[d]) { seen[d] = 1 }
+        })
+        Object.keys(seen).sort().forEach(function (d) {
+          var o = document.createElement('option')
+          o.value = d; o.textContent = d
+          dimEl.appendChild(o)
+        })
+      })()
 
       function post (path, body) {
         return fetch(path, {
@@ -2332,63 +2321,23 @@
         }).then(function (r) { return r.json() })
       }
 
-      function card (dim, c) {
-        var el = document.createElement('div')
-        el.className = 'live-card' + (c.winner ? ' is-winner' : '')
-        var thumb = document.createElement('div')
-        thumb.className = 'live-thumb'
-        // A rendered thumbnail wins; until one exists the spawn biome's own
-        // surface colour stands in, so the card is never blank and never lies
-        // about what it will look like.
-        if (c.render_low) {
-          thumb.style.backgroundImage = 'url("renders/' + dim + '/' + c.seed + '.png")'
-        } else {
-          thumb.style.background = c.placeholder
-          thumb.setAttribute('data-placeholder', '1')
-        }
-        el.appendChild(thumb)
-        var meta = document.createElement('div')
-        meta.className = 'live-meta'
-        var score = document.createElement('span')
-        score.className = 'live-score'
-        score.textContent = c.score
-        meta.appendChild(score)
-        meta.appendChild(document.createTextNode(
-          c.enriched ? ' · ' + c.structures + ' str · ' + c.biomes + ' bio' : ' · enriching…'))
-        var biome = document.createElement('span')
-        biome.className = 'live-biome'
-        biome.textContent = (c.spawn_biome || '').replace(/^[a-z_]+:/, '')
-        meta.appendChild(biome)
-        el.appendChild(meta)
-        el.title = 'seed ' + c.seed + ' — click for structures and biomes'
-        el.addEventListener('click', function () { showDetail(dim, c.seed) })
-        return el
-      }
-
-      function paint (data) {
-        gridEl.textContent = ''
-        Object.keys(data).sort().forEach(function (dim) {
-          var info = data[dim]
-          if (!info.candidates.length) return
-          var sec = document.createElement('div')
-          sec.className = 'live-dim'
-          var h = document.createElement('h4')
-          h.textContent = dim + ' — ' + info.candidates.length + ' ranked of ' +
-            info.total + ' measured (' + info.rejected + ' rejected)'
-          sec.appendChild(h)
-          var row = document.createElement('div')
-          row.className = 'live-cards'
-          info.candidates.forEach(function (c) { row.appendChild(card(dim, c)) })
-          sec.appendChild(row)
-          gridEl.appendChild(sec)
-        })
-        if (!gridEl.childNodes.length) {
-          gridEl.textContent = 'No measured candidates yet — press Start.'
-        }
-      }
-
-      function refresh () {
-        fetch('/ranked').then(function (r) { return r.json() }).then(paint)
+      // Swap the grid in place rather than reloading: a full reload would
+      // throw away scroll position and any open lightbox mid-roll.
+      function refreshGrid () {
+        // finalise writes index.html, not viewer.html — refetch whatever page
+        // this actually is rather than guessing its name.
+        fetch(location.pathname + '?t=' + Date.now())
+          .then(function (r) { return r.text() })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html')
+            var fresh = doc.getElementById('grid')
+            var live = document.getElementById('grid')
+            if (fresh && live) live.innerHTML = fresh.innerHTML
+            var freshSummary = doc.querySelector('.summary')
+            var liveSummary = document.querySelector('.summary')
+            if (freshSummary && liveSummary) liveSummary.innerHTML = freshSummary.innerHTML
+            if (window.applyFilters) window.applyFilters()
+          })
           .catch(function () {})
       }
 
@@ -2396,95 +2345,38 @@
         fetch('/pipeline-status').then(function (r) { return r.json() })
           .then(function (st) {
             stageEl.textContent = st.stage + (st.dim ? ' · ' + st.dim : '')
-            countsEl.textContent = st.running || st.rolled
-              ? st.rolled + '/' + st.target + ' rolled · ' + st.enriched +
-                ' enriched · ' + st.surveyed + ' surveyed'
-              : ''
-            var busy = []
-            if ((st.enriching || []).length) busy.push('enriching ' + st.enriching.join(', '))
-            if ((st.rendering_low || []).length) busy.push('rendering low ' + st.rendering_low.join(', '))
-            if ((st.rendering_high || []).length) busy.push('rendering high ' + st.rendering_high.join(', '))
-            if (st.error) busy.push('error: ' + st.error)
-            activityEl.textContent = busy.join(' · ')
+            var bits = []
+            if (st.running || st.rolled) {
+              bits.push(st.rolled + '/' + st.target + ' rolled')
+              bits.push(st.enriched + ' enriched')
+              bits.push(st.surveyed + ' surveyed')
+            }
+            if ((st.rendering_low || []).length) bits.push('rendering low')
+            if ((st.rendering_high || []).length) bits.push('rendering high')
+            if (st.error) bits.push('error: ' + st.error)
+            activityEl.textContent = bits.join(' · ')
             startBtn.hidden = !!st.running
             stopBtn.hidden = !st.running
-            // The generation counter ticks whenever the ranking changes, so
-            // the grid repaints on re-rank and on each render batch instead
-            // of on a timer.
             if (st.generation !== lastGeneration) {
               lastGeneration = st.generation
-              refresh()
+              if (lastGeneration > 0) refreshGrid()
             }
           })
           .catch(function () {})
           .then(function () { setTimeout(poll, 2000) })
       }
 
-      function showDetail (dim, seed) {
-        if (!dlg) return
-        document.getElementById('cdet-title').textContent = dim + ' — seed ' + seed
-        var body = document.getElementById('cdet-body')
-        body.textContent = 'Loading…'
-        if (dlg.showModal) dlg.showModal()
-        fetch('/candidate-detail?dim=' + encodeURIComponent(dim) +
-              '&seed=' + encodeURIComponent(seed))
-          .then(function (r) { return r.json() })
-          .then(function (d) {
-            if (d.error) { body.textContent = d.error; return }
-            body.textContent = ''
-            var intro = document.createElement('p')
-            intro.textContent = 'Spawn biome ' + d.spawn_biome + ' · ' +
-              d.structure_total + ' structures across ' + d.structures.length +
-              ' types · ' + d.biomes.length + ' biomes'
-            body.appendChild(intro)
-            if (!d.enriched) {
-              var note = document.createElement('p')
-              note.textContent = 'Not enriched yet — full lists appear once it reaches the enrich pool.'
-              body.appendChild(note)
-            }
-            body.appendChild(table('Structure', ['Structure', 'Count', 'Nearest'],
-              d.structures.map(function (x) {
-                return [x.name, x.count, x.nearest == null ? '—' : x.nearest + ' blocks']
-              })))
-            body.appendChild(table('Biome', ['Biome', 'Nearest', 'X', 'Z'],
-              d.biomes.map(function (b) { return [b.id, b.dist, b.x, b.z] })))
-          })
-          .catch(function (e) { body.textContent = String(e) })
-      }
-
-      function table (caption, headers, rows) {
-        var wrap = document.createElement('div')
-        var h = document.createElement('h4')
-        h.textContent = caption + 's (' + rows.length + ')'
-        wrap.appendChild(h)
-        var t = document.createElement('table')
-        var thead = document.createElement('tr')
-        headers.forEach(function (x) {
-          var th = document.createElement('th'); th.textContent = x; thead.appendChild(th)
-        })
-        t.appendChild(thead)
-        rows.forEach(function (r) {
-          var tr = document.createElement('tr')
-          r.forEach(function (v) {
-            var td = document.createElement('td'); td.textContent = v; tr.appendChild(td)
-          })
-          t.appendChild(tr)
-        })
-        wrap.appendChild(t)
-        return wrap
-      }
-
       startBtn.addEventListener('click', function () {
         startBtn.disabled = true
-        post('/pipeline/start', { count: parseInt(countEl.value, 10) || 100 })
+        post('/pipeline/start', {
+          count: parseInt(countEl.value, 10) || 100,
+          dim: dimEl.value || null
+        })
           .then(function (r) { if (r.error) activityEl.textContent = r.error })
           .then(function () { startBtn.disabled = false })
       })
       stopBtn.addEventListener('click', function () { post('/pipeline/stop') })
-      var closeBtn = document.getElementById('cdet-close')
-      if (closeBtn) closeBtn.addEventListener('click', function () { dlg.close() })
 
-      refresh()
       poll()
     })()
   </script>

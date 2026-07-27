@@ -625,3 +625,24 @@ if __name__ == "__main__":
     ap.add_argument("--format", choices=["table", "csv"], default="table")
     args = ap.parse_args()
     _print_table(args.format)
+
+
+def placeholder_colour(biome_id):
+    """Hex colour standing in for a map render that does not exist yet.
+
+    The spawn biome is known the moment a candidate is measured, long before
+    anything is rendered, so a card can carry its eventual character
+    immediately — a snowy seed reads white, a desert sandy. Set as the img's
+    background: the render covers it when present and shows through when the
+    file 404s, so no filesystem check is needed at render time.
+
+    Resolution goes through biome_surface, the same mapping the renderer
+    itself uses, so the placeholder is a preview of the render rather than a
+    second opinion about it. A candidate with no measured spawn biome gets a
+    neutral slate; black would read as a broken image rather than a pending
+    one.
+    """
+    if not biome_id or biome_id == "unknown":
+        return "#5a6068"
+    rgb = SURFACE_COLOURS.get(biome_surface(biome_id)) or (90, 96, 104)
+    return "#%02x%02x%02x" % tuple(rgb)

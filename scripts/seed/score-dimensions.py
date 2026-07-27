@@ -20,7 +20,7 @@ individual dimensions/{slug}.json files.
   score     Score every measured candidate; prints a ranked table and writes
             .seedtest/scores.json.
   finalise  score + pick winners + write them into the config (with .bak),
-            generate .seedtest/viewer.html, print the summary table.
+            generate .seedtest/index.html, print the summary table.
             Options: --write-config --viewer --open-viewer
   rescore   Recompute all scores from banked measurements against the
             CURRENT configs — no Docker, no re-rolling (directory mode).
@@ -56,6 +56,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import candidates  # noqa: E402
 import census_scoring  # noqa: E402
+from surface_rules import placeholder_colour  # noqa: E402
 import noise_placement  # noqa: E402
 from dimension_profiles import (  # noqa: E402
     build_profile, generation_fingerprint, load_config, load_difficulty,
@@ -1617,7 +1618,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
-        "<img src='{}' data-hires='{}' loading='lazy' "
+        "<img src='{}' data-hires='{}' loading='lazy' style='background:{}' "
         "alt='Map render — {} seed {}' onerror=\"this.onerror=null\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
@@ -1641,7 +1642,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             " winner" if win else "", idx, c["score"],
             esc_dim, hidden, shortlisted_attr,
             html.escape(candidate_tooltip(c), quote=True),
-            img, hires,
+            img, hires, placeholder_colour(c.get("spawn_biome")),
             esc_dim, c["seed"],
             html.escape(dim_name),
             sc, c["score"], crown, c["seed"],

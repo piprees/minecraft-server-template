@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""viewer-server.py — serve .seedtest/viewer.html with winner picking.
+"""viewer-server.py — serve .seedtest/index.html with winner picking.
 
 A deliberately rudimentary localhost server: GET serves the seedtest
-directory (viewer.html, renders/), POST /pick records a human winner
+directory (index.html, renders/), POST /pick records a human winner
 choice and immediately re-finalises so the pick lands in the config
 (and the viewer regenerates with the pin).
 
@@ -38,20 +38,6 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 _jobs = {}
 _jobs_lock = threading.Lock()
-
-
-def _batch_render(config, seedtest, biome_params, size, scale, sample_res,
-                   label, suffix=""):
-    """Run biome_renderer.py batch with output to terminal."""
-    cmd = [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
-           "batch", "--config", config, "--seedtest", seedtest,
-           "--biome-params", biome_params,
-           "--top", "10", "--size", str(size), "--scale", str(scale),
-           "--sample-res", str(sample_res)]
-    if suffix:
-        cmd += ["--suffix", suffix]
-    print(f"\n=== {label} ===", flush=True)
-    subprocess.run(cmd)
 
 
 # (size, base blocks-per-pixel, filename suffix) of the two batch render
@@ -117,23 +103,12 @@ def _write_structure_overlays(seedtest, dim, seed_str, structure_all, dim_scale,
     return written
 
 
-def biome_placeholder(biome_id):
-    """Hex colour standing in for a thumbnail that has not rendered yet.
-
-    The spawn biome's surface colour is the one thing already known about a
-    candidate the moment it is measured, so a card can carry its eventual
-    character before any render exists — a snowy seed reads white, a desert
-    sandy. Unknown biomes fall back to a neutral slate rather than black,
-    which would read as a broken image.
-    """
-    try:
-        from surface_rules import biome_surface, SURFACE_COLOURS
-        rgb = SURFACE_COLOURS.get(biome_surface(biome_id or ""))
-    except Exception:
-        rgb = None
-    if not rgb:
-        rgb = (90, 96, 104)
-    return "#%02x%02x%02x" % tuple(rgb)
+def _target_names(config_path):
+    """Every rollable dimension plus the base worlds, as the roller sees them."""
+    from dimension_profiles import load_config, rollable
+    config = load_config(config_path)
+    return ({w["name"] for w in config.get("worlds", [])}
+            | {d["name"] for d in config["dimensions"] if rollable(d)})
 
 
 def _enrich_dim(name, dim, config, difficulty, cdir, all_sets, top_n):
@@ -296,7 +271,7 @@ class Pipeline:
         self.state = {
             "running": False, "target": 0, "cycles": 0, "rolled": 0,
             "enriched": 0, "surveyed": 0, "rendered": 0,
-            "stage": "idle", "dim": None,
+            "stage": "idle", "dim": None, "only_dim": None,
             "enriching": [], "rendering_low": [], "rendering_high": [],
             "generation": 0, "log": [], "error": None,
         }
@@ -319,14 +294,15 @@ class Pipeline:
         with self.lock:
             self.state["generation"] += 1
 
-    def start(self, count, pool):
+    def start(self, count, pool, only_dim=None):
         with self.lock:
             if self.state["running"]:
                 return False
             self.stop_flag.clear()
             self.state.update(running=True, target=int(count), stage="starting",
-                              error=None, cycles=0)
-        self.thread = threading.Thread(target=self._run, args=(int(count), int(pool)),
+                              error=None, cycles=0, only_dim=only_dim)
+        self.thread = threading.Thread(target=self._run,
+                                       args=(int(count), int(pool), only_dim),
                                        daemon=True)
         self.thread.start()
         return True
@@ -338,7 +314,7 @@ class Pipeline:
     def _sh(self, argv, timeout):
         return subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
 
-    def _run(self, count, pool):
+    def _run(self, count, pool, only_dim=None):
         try:
             self._ensure_warmup()
             from dimension_profiles import load_config, load_difficulty, rollable
@@ -354,6 +330,10 @@ class Pipeline:
             all_sets = load_structure_sets(str(ssd)) if ssd.exists() else {}
 
             names = list(targets)
+            if only_dim:
+                if only_dim not in targets:
+                    raise RuntimeError(f"unknown dimension: {only_dim}")
+                names = [only_dim]
             while not self.stop_flag.is_set() and self.state["rolled"] < count:
                 for name in names:
                     if self.stop_flag.is_set() or self.state["rolled"] >= count:
@@ -461,102 +441,6 @@ class Pipeline:
 BATCH_SEEDS = 25
 _pipeline = None
 
-
-def _ranked_payload(config_path, seedtest, only_dim=None):
-    """Ranked candidates for the live grid.
-
-    Deliberately cheap and render-agnostic: it reports whether each render
-    EXISTS rather than waiting for one, so the page can show a placeholder-
-    tinted card the moment a seed is measured and swap in the thumbnail when
-    it lands, without a second request per candidate.
-    """
-    from dimension_profiles import load_config, load_difficulty, build_profile, rollable
-    import candidates as cmod
-
-    config = load_config(config_path)
-    difficulty = load_difficulty(config_path)
-    targets = {**{w["name"]: w for w in config.get("worlds", [])},
-               **{d["name"]: d for d in config["dimensions"] if rollable(d)}}
-    cdir = cmod.candidates_dir(Path(config_path))
-    renders = Path(seedtest) / "renders"
-
-    out = {}
-    for name, dim in targets.items():
-        if only_dim and name != only_dim:
-            continue
-        store_path = cdir / f"{name}.json"
-        if not store_path.exists():
-            continue
-        store = cmod.load_store(store_path)
-        chash = store.get("configHash", "")
-        winner = store.get("winner")
-        cands = []
-        for seed_str in _top_seeds(store, RENDER_TOP):
-            cand = store["candidates"][seed_str]
-            scores = cand.get("scores", {})
-            entry = scores.get(chash) or (max(scores.values(),
-                                              key=lambda s: s.get("total", 0))
-                                          if scores else {})
-            measurements = cand.get("measurements", {})
-            biome = measurements.get("spawn_biome", "unknown")
-            sa = cand.get("structure_all") or {}
-            cands.append({
-                "seed": seed_str,
-                "score": round(entry.get("total", 0), 1),
-                "spawn_biome": biome,
-                "placeholder": biome_placeholder(biome),
-                "enriched": bool(sa),
-                "structures": sum(len(v) for v in sa.values()),
-                "biomes": len(cand.get("biome_survey") or {}),
-                "render_low": (renders / name / f"{seed_str}.png").exists(),
-                "render_high": (renders / name / f"{seed_str}_hires.png").exists(),
-                "winner": str(winner) == seed_str,
-            })
-        out[name] = {
-            "candidates": cands,
-            "total": len(store["candidates"]),
-            "rejected": len(store.get("rejected") or {}),
-            "description": (dim.get("seedRoll") or {}).get("description")
-                           or dim.get("description") or "",
-        }
-    return out
-
-
-def _candidate_detail(config_path, dim, seed):
-    """Every structure and biome banked for one candidate, nearest first."""
-    import candidates as cmod
-    cdir = cmod.candidates_dir(Path(config_path))
-    store_path = cdir / f"{dim}.json"
-    if not store_path.exists():
-        return {"error": f"no candidate store for {dim}"}
-    cand = cmod.load_store(store_path)["candidates"].get(str(seed))
-    if cand is None:
-        return {"error": f"{dim} has no candidate {seed}"}
-
-    structures = []
-    for sname, hits in (cand.get("structure_all") or {}).items():
-        ordered = sorted(hits, key=lambda h: h[0])
-        structures.append({
-            "name": sname,
-            "count": len(ordered),
-            "nearest": ordered[0][0] if ordered else None,
-            "positions": [{"dist": d, "x": x, "z": z} for d, x, z in ordered[:200]],
-        })
-    structures.sort(key=lambda s: (-s["count"], s["name"]))
-
-    biomes = [{"id": bid, "dist": v[0], "x": v[1], "z": v[2]}
-              for bid, v in (cand.get("biome_survey") or {}).items()]
-    biomes.sort(key=lambda b: b["dist"])
-
-    return {
-        "dim": dim, "seed": str(seed),
-        "spawn_biome": cand.get("measurements", {}).get("spawn_biome", "unknown"),
-        "structures": structures,
-        "structure_total": sum(s["count"] for s in structures),
-        "biomes": biomes,
-        "enriched": bool(cand.get("structure_all")),
-        "surveyed": bool(cand.get("biome_survey")),
-    }
 
 _fork_schema_cache = None
 
@@ -861,20 +745,6 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             self._respond_json(_pipeline.snapshot() if _pipeline
                                else {"running": False, "stage": "unavailable"})
             return
-        if self.path.startswith("/ranked"):
-            q = parse_qs(urlparse(self.path).query)
-            self._respond_json(_ranked_payload(self.config_path, self.seedtest,
-                                               q.get("dim", [None])[0]))
-            return
-        if self.path.startswith("/candidate-detail"):
-            q = parse_qs(urlparse(self.path).query)
-            dim = (q.get("dim") or [""])[0]
-            seed = (q.get("seed") or [""])[0]
-            if not dim or not seed:
-                self._respond_json({"error": "dim and seed required"}, 400)
-                return
-            self._respond_json(_candidate_detail(self.config_path, dim, seed))
-            return
         if self.path.startswith("/job/"):
             job_id = self.path[5:]
             with _jobs_lock:
@@ -1024,7 +894,20 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         if pool < 1:
             self._respond_json({"error": "pool must be >= 1"}, 400)
             return
-        started = _pipeline.start(count, pool)
+        # Validate the dimension HERE, not in the worker: an unknown name
+        # would otherwise return ok, flip the button to "running", and only
+        # surface as a failed stage seconds later.
+        only = (body.get("dim") or "").strip() or None
+        if only:
+            try:
+                known = _target_names(self.config_path)
+            except Exception as exc:
+                self._respond_json({"error": f"could not read config: {exc}"}, 500)
+                return
+            if only not in known:
+                self._respond_json({"error": f"unknown dimension: {only}"}, 400)
+                return
+        started = _pipeline.start(count, pool, only)
         self._respond_json({"ok": started,
                             "error": None if started else "already running"})
 
@@ -1387,7 +1270,7 @@ def main():
         shutil.rmtree(renders_dir)
         print("renders wiped (--refresh)", flush=True)
 
-    # Re-finalise to regenerate viewer.html with current scores
+    # Re-finalise to regenerate index.html with current scores
     subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
                    "finalise", *finalise_args],
                   capture_output=True, text=True)

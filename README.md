@@ -80,7 +80,7 @@ Winners are auto-written into the individual dimension config files. Ctrl+C fina
 ./dev seed-viewer                            # interactive picker + background rendering
 ```
 
-Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/viewer.html` — "Make Winner" pins your pick over the score ranking.
+Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/` — "Make Winner" pins your pick over the score ranking.
 
 ## Upgrading
 

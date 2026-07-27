@@ -305,7 +305,7 @@ finalise
 echo ""
 echo "Artefacts:"
 echo "  Candidates: $CONFIG/candidates/"
-echo "  Viewer:     $SEEDTEST/viewer.html"
+echo "  Viewer:     $SEEDTEST/index.html"
 echo ""
 echo "To view results and render maps: ./dev seed-viewer"
 echo "  (renders all top candidates in background; --refresh to regenerate)"

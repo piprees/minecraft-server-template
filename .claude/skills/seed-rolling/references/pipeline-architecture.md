@@ -19,7 +19,7 @@ roll-all.sh orchestration
 │   └── Output: .seedtest/renders/<dim>/<seed>.png
 └── Finalise: score + viewer
     ├── score-dimensions.py
-    └── Output: .seedtest/viewer.html
+    └── Output: .seedtest/index.html
 ```
 
 ### Entry points
