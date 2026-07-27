@@ -48,7 +48,6 @@ You are customising a consumer server built from the Adventure Server template. 
 | `modpack/template/index.html` | Pack download page (themed via CSS custom properties) |
 | `config/uptime-kuma/kuma-config.json` | Status page styling (`statusPage.customCSS`) |
 | `DESIGN.md` | Design token reference |
-| `PRODUCT.md` | Product vision doc |
 | `assets/` | All brand imagery |
 
 ## Loading screen

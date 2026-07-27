@@ -8,7 +8,7 @@ Purpose:  Build three variants of the `structures` override datapack
           mod jar (world datapacks shadow mod data at the same path), with
           only placement fields changed.
 
-Context:  docs/customisation.md "Worldgen: structure frequency". The default
+Context:  CUSTOMISATION.md "Worldgen tuning". The default
           preset encodes the "sparse and natural" main-overworld intent:
           big/hostile sets rarer, villages and small settlements more
           common, fortified villages and a couple of castle sets kept,

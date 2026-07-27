@@ -709,7 +709,7 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
     for f in docker-compose.yml \
              scripts/build-modpack.sh scripts/check-updates.sh scripts/cache-assets.sh \
              .github/workflows/deploy.yml AGENTS.md README.md CONTRIBUTING.md \
-             docs/customisation.md modpack/README.md \
+             CUSTOMISATION.md modpack/README.md \
              .github/ISSUE_TEMPLATE/mod-request.yml; do
       if [[ -f "$PROJECT_DIR/$f" ]]; then
         sed_i "s/adventure\.mrpack\.json/${BRAND_SLUG}.mrpack.json/g" "$PROJECT_DIR/$f"

@@ -439,7 +439,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for 
 | Deployment targets & backup alternatives | `server-provisioning` skill (§ Per-OS notes, § Home hosting) |
 | Security hardening                       | [SECURITY.md](SECURITY.md)                     |
 | Credentials & API tokens                 | `server-provisioning` skill (references/credentials.md) |
-| Server customisation                     | [docs/customisation.md](docs/customisation.md) |
+| Server customisation                     | [CUSTOMISATION.md](CUSTOMISATION.md)           |
 | Releasing                                | `platform-release-management` skill (references/releasing-procedure.md) |
 | Open technical spikes                    | [docs/spikes/](docs/spikes/)                   |
 
