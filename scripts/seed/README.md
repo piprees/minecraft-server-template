@@ -292,7 +292,7 @@ unmined-cli requires full block state data in .mca format — there is no biome-
 
 ## Research Notes
 
-Detailed R&D reports from the spike phase live in `spike/`:
+Detailed R&D reports from the spike phase live in [`docs/spikes/seed/`](../../docs/spikes/seed/):
 
 | File | Contents |
 | --- | --- |
