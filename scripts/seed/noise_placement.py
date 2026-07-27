@@ -783,3 +783,22 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
             hist[b] += 1
         out["groups"][group] = {"count": len(index), "hist": hist}
     return out
+
+
+def census_task(task):
+    """Pool worker: one candidate's census summary.
+
+    Lives here, not beside its caller in score-dimensions.py, because
+    pickling a function pickles a (module, qualname) pair and the child
+    re-imports that module BY NAME. `score-dimensions.py` is hyphenated, so
+    it is only ever loaded through importlib under the synthetic name
+    `score_dimensions` — which no child can import, and multiprocessing on
+    macOS spawns rather than forks. Registering the module in the parent's
+    sys.modules fixes the pickling half and leaves the unpickling half
+    failing in the worker with "No module named 'score_dimensions'".
+    Any function handed to a Pool must therefore live in a module whose
+    filename is a legal identifier.
+    """
+    name, seed, dim_config, type_defaults, radius_chunks = task
+    return (name, seed, census_summary(
+        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks))

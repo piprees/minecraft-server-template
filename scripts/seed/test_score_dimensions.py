@@ -861,5 +861,38 @@ class RenderManifestTests(unittest.TestCase):
             self.assertEqual((seedtest / "work-r1.txt").read_text(), "")
 
 
+class CensusWorkerPicklingTest(unittest.TestCase):
+    """The census pool worker must survive a round trip into a SPAWNED child.
+
+    `score-dimensions.py` is not a legal module identifier, so fast_roller
+    loads it through importlib as `score_dimensions`. Pickling a function
+    pickles a (module, qualname) pair, and a spawned worker re-imports that
+    module BY NAME — which fails for a name that maps to no importable file.
+    Registering the module in the PARENT's sys.modules makes dumps() succeed
+    and leaves loads() failing inside the worker, so a test that only pickles
+    in-process passes while every real roll dies with
+    "ModuleNotFoundError: No module named 'score_dimensions'".
+    """
+
+    def test_worker_resolves_without_the_synthetic_module(self):
+        import pickle
+        import sys
+
+        blob = pickle.dumps(score_dimensions._census_task)
+        fn = pickle.loads(blob)
+        self.assertNotEqual(
+            fn.__module__, "score_dimensions",
+            "pool workers must not be owned by the importlib-only module")
+        self.assertEqual(fn.__module__, "noise_placement")
+
+        # Simulate the child: the synthetic name is absent and unimportable.
+        saved = sys.modules.pop("score_dimensions", None)
+        try:
+            self.assertIsNotNone(pickle.loads(blob))
+        finally:
+            if saved is not None:
+                sys.modules["score_dimensions"] = saved
+
+
 if __name__ == "__main__":
     unittest.main()

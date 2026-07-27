@@ -593,11 +593,10 @@ def _with_group_settings(summary, group_settings):
     return {"radiusChunks": summary.get("radiusChunks"), "groups": groups}
 
 
-def _census_task(task):
-    """Worker: one candidate's census summary. Top-level for pickling."""
-    name, seed, dim_config, type_defaults, radius_chunks = task
-    return (name, seed, noise_placement.census_summary(
-        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks))
+# The pool worker lives in noise_placement, NOT here — this file's name is
+# not a legal module identifier, so a child process cannot import it to
+# unpickle a function defined in it. See noise_placement.census_task.
+_census_task = noise_placement.census_task
 
 
 def ensure_censuses(args, config, profiles, data, quiet=False):

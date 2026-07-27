@@ -36,17 +36,63 @@ LOCAL_DATA="$PROJECT_ROOT/data"
 
 # Config resolution
 CONFIG_DIR="$PROJECT_ROOT/config/custom-dimensions"
+BUNDLE_CONFIG="$(cd "$SCRIPT_DIR/../.." 2> /dev/null && pwd)/config"
 WINNER_FLAG=""
+
+# Stage the dimension configs out of the stack bundle, exactly as dev-up.sh
+# does. Rolling seeds needs the config files, not a booted world, so a
+# missing staged copy is something to FIX rather than to report — telling a
+# consumer to "run ./dev up first" is a quirk they should never have to
+# learn, and the previous behaviour (bail out) meant a clean checkout's
+# first roll always failed.
+stage_dimension_config() {
+  local staged="$LOCAL_DATA/config/custom-dimensions"
+  if [[ ! -d "$BUNDLE_CONFIG/custom-dimensions/dimensions" ]]; then
+    echo "Error: no dimension config anywhere." >&2
+    echo "  Looked in: $CONFIG_DIR/dimensions" >&2
+    echo "             $staged/dimensions" >&2
+    echo "             $BUNDLE_CONFIG/custom-dimensions/dimensions" >&2
+    echo "  Run ./dev update to fetch the stack bundle." >&2
+    exit 1
+  fi
+  echo "Staging dimension config from the stack bundle (first run)..."
+  mkdir -p "$staged"
+  (
+    cd "$BUNDLE_CONFIG/custom-dimensions" || exit 1
+    find . -type f -not -path './extractors/*' -not -path './candidates/*' \
+      | while IFS= read -r f; do
+        dest="$staged/${f#./}"
+        mkdir -p "$(dirname "$dest")"
+        cp "$f" "$dest"
+      done
+  )
+  echo "  Staged $(find "$staged/dimensions" -name '*.json' | wc -l | tr -d ' ') dimension(s)"
+}
+
+# The consumer's own overrides are a SEPARATE tree the mod merges at load
+# time; the roller reads the same merged view, so restage it every run
+# rather than only after a write (an edited overlay would otherwise be
+# invisible until the next ./dev up).
+# A REMOVED overlay must unstage too: clearing the source and finding the
+# old staged copy still in effect is the same class of bug as never staging
+# it, and harder to spot because the roll succeeds against stale overrides.
+stage_dimension_overlay() {
+  rm -rf "$LOCAL_DATA/config/custom-dimensions/overlay"
+  [[ -d "$PROJECT_ROOT/overlay/config/custom-dimensions" ]] || return 0
+  mkdir -p "$LOCAL_DATA/config/custom-dimensions/overlay"
+  cp -R "$PROJECT_ROOT/overlay/config/custom-dimensions/." \
+    "$LOCAL_DATA/config/custom-dimensions/overlay/"
+}
+
 if [[ -d "$CONFIG_DIR/dimensions" ]]; then
   CONFIG="$CONFIG_DIR"
-elif [[ -d "$LOCAL_DATA/config/custom-dimensions/dimensions" ]]; then
+else
+  [[ -d "$LOCAL_DATA/config/custom-dimensions/dimensions" ]] || stage_dimension_config
+  stage_dimension_overlay
   CONFIG="$LOCAL_DATA/config/custom-dimensions"
   WINNER_FLAG="--winner-overlay $PROJECT_ROOT/overlay/config/custom-dimensions"
   echo "Consumer mode: rolling against $CONFIG"
   echo "  Winners → overlay/config/custom-dimensions/dimensions/"
-else
-  echo "Error: no dimension config found — run ./dev up first" >&2
-  exit 1
 fi
 
 SEEDTEST="$PROJECT_ROOT/.seedtest"
@@ -70,12 +116,6 @@ while [[ $# -gt 0 ]]; do
     --clean)
       rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]* "$SEEDTEST"/wr
       shift ;;
-    # Backwards compat: silently accept old flags
-    --fast) shift ;;
-    --fast-count | --fast-pool | --candidates | --world-candidates | --workers)
-      shift 2 ;;
-    --no-worlds | --fresh | --no-render | --render-only) shift ;;
-    --render | --render-top | --render-size) shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
