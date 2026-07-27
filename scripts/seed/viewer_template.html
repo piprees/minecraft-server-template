@@ -1052,7 +1052,10 @@
              step="25" aria-label="Seeds to roll" title="Seeds to roll" />
       <span id="roll-progress" hidden>
         <span class="rp-bar"><span id="rp-fill"></span></span>
-        <span id="rp-text" class="rp-text"></span>
+        <span class="rp-lines">
+          <span id="rp-text" class="rp-text"></span>
+          <span id="rp-sub" class="rp-sub"></span>
+        </span>
       </span>
       <select id="roll-dim" aria-label="Dimension to roll"
               title="Dimension to roll"><option value="">All</option></select>
@@ -1256,7 +1259,17 @@
       document.addEventListener('click', function (e) {
         var img = e.target.closest('.cand img, img.winner-img')
         if (img && img.closest('.compact')) img = null
-        if (!img) return
+        // Anywhere on a candidate card counts: with borders on the render
+        // shrinks inside its box, and clicking the obvious target (the card)
+        // used to do nothing.
+        if (!img) {
+          var card = e.target.closest('.cand')
+          if (card && !e.target.closest('button, .lb-actions, a')) {
+            e.stopPropagation()
+            openCandInLightbox(card)
+          }
+          return
+        }
         e.stopPropagation()
         var cand = img.closest('.cand')
         if (cand) {
@@ -1319,7 +1332,8 @@
         var existingLbl = lbImageDiv.querySelector('.border-label')
         if (existingLbl) existingLbl.remove()
         var dimCard = cand.closest('.dim-card')
-        if (dimCard && dimCard.dataset.borderDiameter) {
+        if (dimCard && dimCard.dataset.borderDiameter &&
+            document.body.classList.contains('show-borders')) {
           var bDiam = parseFloat(dimCard.dataset.borderDiameter)
           var dScale = parseFloat(dimCard.dataset.dimScale || 1)
           var hiresCoverage = (2048 * 16) / dScale
@@ -1602,9 +1616,20 @@
         state.sort = sortEl.value
         applyState()
       })
+      // applyState re-filters every card in the grid, which is thousands of
+      // nodes here — running it per keystroke made typing lag. Wait for the
+      // typing to stop, and ignore one- and two-character terms that would
+      // match nearly everything anyway.
+      var searchTimer = null
       searchEl.addEventListener('input', function () {
-        state.search = searchEl.value
-        applyState()
+        clearTimeout(searchTimer)
+        searchTimer = setTimeout(function () {
+          var v = searchEl.value.trim()
+          var next = v.length >= 3 ? searchEl.value : ''
+          if (next === state.search) return
+          state.search = next
+          applyState()
+        }, 200)
       })
       flaggedEl.addEventListener('change', function () {
         state.flagged = flaggedEl.checked
@@ -1625,6 +1650,9 @@
       document.getElementById('f-borders').addEventListener('change', function (e) {
         var on = e.target.checked
         document.body.classList.toggle('show-borders', on)
+        if (lbCurrentCand && lb.classList.contains('open')) {
+          openCandInLightbox(lbCurrentCand)
+        }
         document.querySelectorAll('.img-wrap').forEach(function (wrap) {
           var img = wrap.querySelector('img')
           if (img) img.style.transform = on ? 'scale(' + wrap.dataset.borderScale + ')' : ''
@@ -2374,9 +2402,9 @@
               fillEl.classList.toggle('indeterminate', doneRolling)
               fillEl.style.width = doneRolling
                 ? '' : Math.min(100, st.rolled / st.target * 100) + '%'
-              textEl.textContent = (doneRolling
+              textEl.textContent = doneRolling
                 ? st.stage.replace('_', ' ')
-                : st.rolled + '/' + st.target) + (st.dim ? ' · ' + st.dim : '')
+                : st.rolled + '/' + st.target
             }
             // Everything else that used to crowd the bar lives on the status
             // line under it, where it can wrap without reflowing the nav.
@@ -2387,7 +2415,12 @@
             if ((st.rendering_low || []).length) bits.push('rendering low')
             if ((st.rendering_high || []).length) bits.push('rendering high')
             if (st.error) bits.push('error: ' + st.error)
-            if (statusEl) statusEl.textContent = bits.join(' · ')
+            var detail = bits.join(' · ')
+            // Second line under the counter, inside the nav group, so the
+            // bar keeps its width while the detail changes length.
+            var sub = document.getElementById('rp-sub')
+            if (sub) sub.textContent = running ? detail : ''
+            if (statusEl) statusEl.textContent = running ? '' : detail
             if (st.generation !== lastGeneration) {
               lastGeneration = st.generation
               if (lastGeneration > 0) refreshGrid()
@@ -2590,5 +2623,44 @@
     @media (prefers-reduced-motion: reduce) {
       #rp-fill.indeterminate { animation: none; width: 100%; opacity: .5; }
     }
+  </style>
+  <style>
+    .rp-lines { display: flex; flex-direction: column; line-height: 1.15; }
+    .rp-sub { font-size: .68rem; color: var(--text-muted); opacity: .8;
+              white-space: nowrap; max-width: 16rem; overflow: hidden;
+              text-overflow: ellipsis; }
+
+    /* The overlay must track the IMAGE, not its flex container: .lb-image
+       centres a square image vertically, so an inset:0 overlay was drawing
+       its rings against the letterboxed box and sitting off-centre. */
+    #lb-overlay { position: absolute; left: 0; top: 50%; width: 100%;
+                  aspect-ratio: 1; transform: translateY(-50%); height: auto;
+                  inset: auto auto auto 0; }
+
+    /* "in the exclusion" was clipping. The verdict column sizes to content
+       and the row may grow rather than truncating a word mid-way. */
+    .mrow { grid-template-columns: minmax(8rem, 1.3fr) 4.5rem minmax(3rem, .8fr)
+                                   minmax(7rem, auto) minmax(5rem, auto); }
+    .mdev { white-space: normal; }
+    .mval .ns { display: block; font-size: .72em; opacity: .5; margin: 0;
+                font-weight: 400; }
+    /* Biome and census rows carry fewer columns than a structure row. */
+    .mrow.biome-row { grid-template-columns: 1fr auto minmax(4rem, auto); }
+    .mrow.census-row { grid-template-columns: minmax(7rem, .8fr) 5rem
+                                              minmax(4rem, .7fr) 1fr; }
+
+    /* The whole card is the target. With borders on, the render shrinks
+       inside its box and only the image was clickable, so the obvious click
+       (anywhere on the card) did nothing. */
+    .cand { cursor: pointer; }
+  </style>
+  <style>
+    /* overflow-x:auto on the bar established a clipping context, so the
+       Filters popover was clipped to the bar's own height and rendered
+       behind the page. The bar keeps nowrap but must not clip. */
+    .filter-bar { overflow: visible; }
+    .more-filters { position: relative; }
+    .more-filters-body { z-index: 300; top: 100%; left: 0;
+                         box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   </style>
 </html>

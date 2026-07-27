@@ -1506,15 +1506,49 @@ def _band_bar(value, lo, hi, cap=None, marks=None):
     return "".join(out)
 
 
-def _deviation(value, lo, hi):
-    """(severity, human phrase) for a value against a target band."""
+def _deviation(value, lo, hi, fmt="{:.0f}"):
+    """(severity, human phrase) for a value against a target band.
+
+    `fmt` must match the units the value is displayed in. Water is a
+    fraction, so formatting its 0.28 shortfall with the default "{:.0f}"
+    rendered "0 below" — a value a quarter of the way off target reading as
+    exactly on it.
+    """
     if value is None or value < 0:
         return 2, "not found"
     if lo <= value <= hi:
         return 0, "in range"
     if value < lo:
-        return 1, "{:.0f} below".format(lo - value)
-    return 1, "{:.0f} above".format(value - hi)
+        return 1, fmt.format(lo - value) + " below target"
+    return 1, fmt.format(value - hi) + " above target"
+
+
+# What a terrain number MEANS, in the language of the world it describes.
+# "relief 38, target 18-90, in range" tells you the check passed and nothing
+# about whether you are looking at rolling hills or a cliff face.
+def _terrain_words(key, value):
+    if key == "relief":
+        # Peak-to-trough height across the sampled grid, in blocks.
+        for limit, word in ((12, "almost flat"), (30, "gently rolling"),
+                            (60, "hilly"), (110, "mountainous")):
+            if value < limit:
+                return word
+        return "extreme cliffs and peaks"
+    if key == "grain":
+        # Mean height change between neighbouring samples: how abruptly the
+        # landscape changes rather than how tall it gets.
+        for limit, word in ((3, "very smooth"), (7, "smooth"),
+                            (12, "broken up"), (20, "jagged")):
+            if value < limit:
+                return word
+        return "chaotic"
+    if key == "water":
+        for limit, word in ((0.05, "almost no water"), (0.2, "a few lakes"),
+                            (0.45, "lakes and coast"), (0.7, "mostly sea")):
+            if value < limit:
+                return word
+        return "open ocean"
+    return ""
 
 
 def _terrain_section(c, profile):
@@ -1523,34 +1557,36 @@ def _terrain_section(c, profile):
     if not t or (relief == 0 and grain == 0):
         return ""
     rows = []
-    for key, value, fmt in (("relief", relief, "{:.0f}"),
-                            ("grain", grain, "{:.1f}"),
-                            ("water", water, "{:.0%}")):
+    for key, value, fmt, unit in (("relief", relief, "{:.0f}", " blocks"),
+                                  ("grain", grain, "{:.1f}", ""),
+                                  ("water", water, "{:.0%}", "")):
         band = t.get(key)
         if not band:
             continue
         lo, hi = band
-        sev, phrase = _deviation(value, lo, hi)
-        lofmt, hifmt = fmt.format(lo), fmt.format(hi)
+        sev, phrase = _deviation(value, lo, hi, fmt)
         rows.append(
             "<div class='mrow sev{}'>"
-            "<span class='mname'>{}</span>"
+            "<span class='mname'>{}<span class='ns'>{}</span></span>"
             "<span class='mval'>{}</span>"
             "{}"
-            "<span class='mtarget'>target {}–{}</span>"
+            "<span class='mtarget'>wants {}–{}</span>"
             "<span class='mdev'>{}</span>"
-            "</div>".format(sev, key, fmt.format(value),
-                            _band_bar(value, lo, hi), lofmt, hifmt, phrase))
+            "</div>".format(sev, key,
+                            html.escape(_terrain_words(key, value)),
+                            fmt.format(value) + unit,
+                            _band_bar(value, lo, hi), fmt.format(lo),
+                            fmt.format(hi), phrase))
     if not rows:
         return ""
-    note = ""
-    if land < 1.0:
-        note = ("<div class='meta'>{:.0f}% of the sample grid had a surface"
-                "</div>".format(land * 100))
+    note = ("<div class='meta'>relief is peak-to-trough height, grain is how "
+            "abruptly it changes between samples, water is the share of the "
+            "grid under sea level{}</div>".format(
+                "" if land >= 1.0 else
+                " · {:.0f}% of the grid had any surface at all".format(land * 100)))
     return ("<div class='section-header'>Terrain <span class='meta'>"
-            "measured on a 3×3 grid across the play area</span></div>"
+            "sampled on a 3×3 grid across the play area</span></div>"
             "<div class='mlist'>{}</div>{}".format("".join(rows), note))
-
 
 
 def _hist_bar(hist, radius_blocks, lo=None, hi=None):
@@ -1571,7 +1607,7 @@ def _hist_bar(hist, radius_blocks, lo=None, hi=None):
                   and min(bin_hi, hi) - max(bin_lo, lo) > 0)
         cells.append(
             "<span class='hcell{}' style='--h:{:.0f}%' "
-            "title='{:.0f}–{:.0f} blocks: {} placement(s)'></span>".format(
+            "title='{:.0f}–{:.0f} blocks from spawn: {} site(s)'></span>".format(
                 " inband" if inband else "", count / peak * 100,
                 bin_lo, bin_hi, count))
     return "<span class='hist'>{}</span>".format("".join(cells))
@@ -1626,32 +1662,36 @@ def _structure_section(c, profile):
                 threshold = float(spec) if isinstance(spec, (int, float)) else radius
                 inside = census_scoring.band_mass(entry, 0.0, threshold, radius_chunks)
                 sev = 2 if inside > 0 else 0
-                noise_rows.append((sev, "<div class='mrow sev{}'>"
+                noise_rows.append((sev, "<div class='mrow sev{}' data-band='0,{}'>"
                     "<span class='mname'>{} <span class='kind'>avoid</span></span>"
-                    "<span class='mval'>{:.0f}</span>{}"
-                    "<span class='mtarget'>none within {:.0f}</span>"
-                    "<span class='mdev'>{}</span></div>".format(
-                        sev, pretty, inside,
+                    "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
+                    "<span class='mtarget'>wants none within {:.0f}</span>"
+                    "<span class='mdev'>{}</span>"
+                    "<span class='mspread'>This counts <b>{}</b> placements, not "
+                    "{} specifically — the shun is judged on its whole group, so "
+                    "it fails whenever the group is present.</span></div>".format(
+                        sev, int(threshold), pretty, inside, count,
                         _hist_bar(entry.get("hist"), radius_blocks, 0, threshold),
                         threshold,
-                        "clear" if sev == 0 else "in the exclusion")))
+                        "none present" if sev == 0 else "group present here",
+                        group, pretty)))
                 continue
             lo, hi = spec
             hi_eff = min(hi, radius)
             mass = census_scoring.band_mass(entry, lo, hi_eff, radius_chunks)
             sev = 0 if mass >= census_scoring.WANT_BAND_TARGET else (1 if mass > 0 else 2)
-            verdict = ("{:.0f} in band".format(mass) if mass > 0
-                       else "none in band")
+            verdict = "in the wanted ring" if mass > 0 else "wrong ring"
             noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'>"
-                "<span class='mname'>{} <span class='kind'>{}</span></span>"
-                "<span class='mval'>{:.0f}</span>{}"
-                "<span class='mtarget'>want {:.0f}–{:.0f}</span>"
+                "<span class='mname'>{}</span>"
+                "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
+                "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
-                "<span class='mspread'>{} placement(s) in the group, shared with "
-                "the rest of its pool by weight</span></div>".format(
-                    sev, int(lo), int(hi_eff), pretty, group, mass,
+                "<span class='mspread'>{:.0f} of the {} <b>{}</b> placements sit in "
+                "that band. Which of them are actually {} is decided by its share "
+                "of the {} pool.</span></div>".format(
+                    sev, int(lo), int(hi_eff), pretty, mass, count,
                     _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
-                    lo, hi_eff, verdict, count)))
+                    lo, hi_eff, verdict, mass, count, group, pretty, group)))
             continue
 
         # Grid or forced: the positional model still holds.
@@ -1725,18 +1765,24 @@ def _structure_section(c, profile):
         for group, entry in sorted(groups.items(),
                                    key=lambda kv: -(kv[1].get("count") or 0)):
             members = ", ".join(seen_groups.get(group, [])) or "—"
-            rows.append("<div class='mrow sev0'>"
+            rows.append("<div class='mrow sev0 census-row' data-band='0,{:.0f}'>"
                         "<span class='mname'>{}</span>"
-                        "<span class='mval'>{}</span>{}"
-                        "<span class='mtarget' style='grid-column:span 2'>{}</span>"
+                        "<span class='mval'>{}<span class='ns'>sites</span></span>{}"
+                        "<span class='mtarget' style='grid-column:span 2'>"
+                        "asked for here: {}</span>"
                         "</div>".format(
-                            html.escape(group), entry.get("count", 0),
+                            radius_blocks, html.escape(group),
+                            entry.get("count", 0),
                             _hist_bar(entry.get("hist"), radius_blocks),
                             html.escape(members)))
+        census_cov = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
         out.append("<div class='sub-header'>Full census <span class='meta'>"
-                   "every placement the noise field produces, by group and "
-                   "radial decile out to {:.0f} blocks</span></div>"
-                   "<div class='mlist'>{}</div>".format(radius_blocks, "".join(rows)))
+                   "every site the noise field produces, by group and radial "
+                   "decile out to {:.0f} blocks. A site hosts ONE structure "
+                   "drawn from its group's pool — these are not per-structure "
+                   "counts</span></div>"
+                   "<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
+                       radius_blocks, census_cov, "".join(rows)))
     if not out:
         return ""
     return ("<div class='section-header'>Structures</div>" + "".join(out))
@@ -1763,6 +1809,7 @@ def _biome_section(c, profile):
                if b not in set(spawn_targets)]
     spawn_biome = c.get("spawn_biome")
     radius = float(profile.get("radius") or 0) or 1.0
+    coverage = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
 
     # Without a survey, fall back to the variety distance metrics.
     dists = {}
@@ -1777,15 +1824,17 @@ def _biome_section(c, profile):
         d = dists.get(bid)
         found = d is not None and d >= 0
         sev = 0 if found else 2
-        near = "{:.0f}".format(d) if found else "not found"
+        near = ("{:.0f}<span class='ns'>blocks</span>".format(d)
+                if found else "not found")
         flag = ""
         if bid == spawn_biome:
             flag = "<span class='kind spawned'>you spawn here</span>"
-        return ("<div class='mrow sev{}'>"
+        band = " data-band='0,{:.0f}'".format(d) if found else ""
+        return ("<div class='mrow biome-row sev{}'{}>"
                 "<span class='mname'>{} {}</span>"
                 "<span class='mval'>{}</span>"
                 "<span class='mdev'>{}</span>"
-                "</div>".format(sev, _biome_label(bid), flag, near, note))
+                "</div>".format(sev, band, _biome_label(bid), flag, near, note))
 
     out = []
     if spawn_targets:
@@ -1793,17 +1842,17 @@ def _biome_section(c, profile):
         out.append("<div class='sub-header'>Spawn targets <span class='meta'>"
                    "any of these qualifies a spawn — {}</span></div>".format(
                        "matched" if hit else "none matched, partial credit only"))
-        out.append("<div class='mlist'>{}</div>".format(
-            "".join(row(b) for b in sorted(spawn_targets,
-                                           key=lambda b: dists.get(b, 1e9)))))
+        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
+            coverage, "".join(row(b) for b in sorted(spawn_targets,
+                                                     key=lambda b: dists.get(b, 1e9)))))
     if variety:
         found_n = sum(1 for b in variety if dists.get(b, -1) >= 0)
         out.append("<div class='sub-header'>Requested variety <span class='meta'>"
                    "{} of {} present within {:.0f} blocks</span></div>".format(
                        found_n, len(variety), radius))
-        out.append("<div class='mlist'>{}</div>".format(
-            "".join(row(b) for b in sorted(variety,
-                                           key=lambda b: dists.get(b, 1e9)))))
+        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
+            coverage, "".join(row(b) for b in sorted(variety,
+                                                     key=lambda b: dists.get(b, 1e9)))))
     requested = set(spawn_targets) | set(variety)
     incidental = sorted(((d, b) for b, d in dists.items()
                          if b not in requested and d >= 0))
@@ -1812,11 +1861,13 @@ def _biome_section(c, profile):
             "<details class='incidental'><summary>{} incidental biomes "
             "<span class='meta'>present from the noise map, not requested — "
             "they do not affect the score</span></summary>"
-            "<div class='mlist'>{}</div></details>".format(
-                len(incidental),
-                "".join("<div class='mrow sev0'><span class='mname'>{}</span>"
-                        "<span class='mval'>{:.0f}</span></div>".format(
-                            _biome_label(b), d) for d, b in incidental)))
+            "<div class='mlist' data-coverage='{:.0f}'>{}</div></details>".format(
+                len(incidental), coverage,
+                "".join("<div class='mrow biome-row sev0' data-band='0,{:.0f}'>"
+                        "<span class='mname'>{}</span>"
+                        "<span class='mval'>{:.0f}<span class='ns'>blocks</span>"
+                        "</span></div>".format(d, _biome_label(b), d)
+                        for d, b in incidental)))
     if not out:
         return ""
     return "<div class='section-header'>Biomes</div>" + "".join(out)
