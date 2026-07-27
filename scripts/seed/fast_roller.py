@@ -562,6 +562,14 @@ def main():
         "score_dimensions",
         str(SCRIPT_DIR / "score-dimensions.py"))
     sd = importlib.util.module_from_spec(spec)
+    # Register BEFORE exec: the census backfill hands `sd._census_task` to a
+    # multiprocessing pool, and pickling a function is pickling a
+    # (module, qualname) pair — so the module has to be importable by that
+    # name in the child or the whole roll dies with
+    # "Can't pickle <function _census_task>: No module named 'score_dimensions'".
+    # Running score-dimensions.py directly hides this, because there the
+    # function lives in __main__.
+    sys.modules[spec.name] = sd
     spec.loader.exec_module(sd)
 
     fargs = argparse.Namespace(
