@@ -39,7 +39,7 @@ From conventional commits since the last tag (`cliff.toml` parses the same prefi
 | `feat:` | minor (`v1.1` → `v1.2`) | Backwards-compatible — new features, new default mods, config additions |
 | `BREAKING CHANGE:` footer or `!` after type | major (`v1` → `v2`) | Breaking changes to `.env` keys, overlay contract, or compose structure — migration guide provided, but likely breaking to consumers pinned to the old major |
 
-Consumers pinning `STACK_VERSION=v1` (the common case) automatically receive minor and patch updates on their next deploy — they never see a major bump unless they change the pin themselves.
+Consumers pinning `STACK_VERSION=v4` (the common case) automatically receive minor and patch updates on their next deploy — they never see a major bump unless they change the pin themselves.
 
 ## The push freeze — read this before touching `main`
 

@@ -84,7 +84,7 @@ Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/vi
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v3` to track the latest v3.x.y):
+Bump `STACK_VERSION` in `.env` (or leave it as `v4` to track the latest v4.x.y):
 
 ```bash
 ./dev update                     # re-pulls the bundle + Docker images
@@ -104,7 +104,7 @@ Each GitHub release `vX.Y.Z` on this repo:
 - **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
 - **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
 
-Consumers pinning `STACK_VERSION=v3` automatically receive minor and patch updates. See the `platform-release-management` skill for the full release process and pipeline details.
+Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updates. See the `platform-release-management` skill for the full release process and pipeline details.
 
 ## Architecture
 
@@ -165,7 +165,7 @@ Three layers, one direction of truth:
 ### Example `.env` settings
 
 ```bash
-STACK_VERSION=v3
+STACK_VERSION=v4
 BRAND_NAME="My Server"
 MC_VERSION=1.21.1
 SEED=your_seed

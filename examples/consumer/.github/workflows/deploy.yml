@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v2
+    uses: piprees/minecraft-server-template/.github/workflows/deploy-reusable.yml@v4
     with:
       # Set the STACK_VERSION repository variable to pin a release line (v2)
       # or exact version (v2.0.1); unset = latest release.
