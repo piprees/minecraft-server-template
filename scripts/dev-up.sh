@@ -472,8 +472,6 @@ docker compose \
 # HEAD-checks anything). Run the seed alone first, then fetch any missing
 # managed jars host-side from its resolved URL lists BEFORE mc starts.
 # Zero network requests when nothing is missing.
-# Legacy hash-gate override cleanup:
-rm -f "$CONSUMER_DIR/.modrinth-override.yml"
 # --project-directory is critical: it makes ./data, ./overlay, ./modpack-dist,
 # ./backups resolve relative to the consumer dir, not .stack/current/stack.
 compose_up() {

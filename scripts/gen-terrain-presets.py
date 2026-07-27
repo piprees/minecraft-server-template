@@ -10,7 +10,7 @@ Purpose:  Clone Tectonic's (Terratonic) overworld noise settings and its full
           ChunkGeneratorSettings registry entries exist from chunk zero in
           every environment, fully independent of the runtime tectonic.json.
 
-Context:  mods/.ideas/customising-terrain.md — "fully independent
+Context:  "fully independent
           per-dimension tunes need the copies to inline their own constants".
           Semantics of the custom density-function types were verified against
           the pinned jar's bytecode (tectonic 3.0.26-fabric-21.1):

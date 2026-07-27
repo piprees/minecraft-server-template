@@ -19,7 +19,7 @@ This is CONTRIBUTING.md's own warning: _"the most common type of change and the 
 | Re-pin | `./scripts/pin-mod-versions.sh --apply` | `./dev pin` (wraps `pin-mod-versions.sh --file overlay/mods-extra.txt`) |
 | Ship it | Push to `main` (builds images) **then cut a release** (`gh workflow run release.yml -f version=vX.Y.Z`) — a bare push never reaches a running consumer server | Push to `main` — `overlay/mods-extra.txt`/`mods-remove.txt` match `FULL_PATTERNS` in `deploy-reusable.yml`, so it's a full deploy immediately |
 
-**The trap this table exists to prevent**: pushing a platform mod-list change to `main` builds Docker images but changes nothing on any running server. Consumers pin `STACK_VERSION` to a release tag (`v1`, `v2`, ...); the mod only reaches them once you cut the next release. Contrast this with a consumer repo, where the same kind of edit deploys on the next push.
+**The trap this table exists to prevent**: pushing a platform mod-list change to `main` builds Docker images but changes nothing on any running server. Consumers pin `STACK_VERSION` to a release tag (`v4`, `v5`, ...); the mod only reaches them once you cut the next release. Contrast this with a consumer repo, where the same kind of edit deploys on the next push.
 
 ## Step 1: the dependency checklist (mandatory, every time)
 

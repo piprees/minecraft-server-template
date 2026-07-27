@@ -20,7 +20,7 @@ Purpose:  The seed viewer's TerrainEvaluator (terrain_height.py) approximates
           verified against the live server's `customdim sample-noise` climate
           point (depth field) on elfydd.
 
-Context:  mods/.ideas/next-steps.md backlog item "Seed-viewer terrain-height
+Context:  seed-viewer terrain-height
           fidelity for preset dims". Viewer-only: measurements bank real
           server output and never touch this module.
 

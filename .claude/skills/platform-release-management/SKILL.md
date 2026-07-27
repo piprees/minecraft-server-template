@@ -73,7 +73,7 @@ A green workflow run is not proof the release is good — verify directly:
 ```bash
 gh release view vX.Y.Z --json assets --jq '.assets[].name'   # expect stack-vX.Y.Z.tar.gz + .sha256
 gh run list --workflow publish.yml --limit 3                 # confirm the images job actually ran to completion
-git fetch origin '+refs/tags/v3:refs/tags/v3'                 # refresh your local major tag (substitute the real major)
+git fetch origin '+refs/tags/v4:refs/tags/v4'                 # refresh your local major tag (substitute the real major)
 ```
 
 Also check `CHANGELOG.md` on `main` actually picked up the new version — the commit step is best-effort and can silently no-op after 3 failed rebase attempts.
@@ -94,7 +94,7 @@ Also check `CHANGELOG.md` on `main` actually picked up the new version — the c
 ```bash
 gh release view vX.Y.Z --json assets --jq '.assets[].name'   # bundle tarball + .sha256 present
 gh run list --workflow publish.yml --limit 3                 # images job ran and succeeded
-git fetch origin '+refs/tags/v3:refs/tags/v3'                 # local major tag matches (substitute real major)
+git fetch origin '+refs/tags/v4:refs/tags/v4'                 # local major tag matches (substitute real major)
 ```
 
 ## References

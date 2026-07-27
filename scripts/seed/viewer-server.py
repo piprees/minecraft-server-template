@@ -22,7 +22,7 @@ Additional endpoints (require the live server):
 
 Gotchas: binds 127.0.0.1 only — this is a local tool, not a web app.
 Started/stopped by roll-all.sh alongside the live reporter; safe to run
-standalone after a roll too (./dev seed-report leaves the data behind).
+standalone after a roll too (./dev seed-roll leaves the data behind).
 """
 import argparse
 import json

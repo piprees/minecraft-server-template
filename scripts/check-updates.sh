@@ -446,8 +446,6 @@ if [[ $NOTIFY_DISCORD -eq 1 && $UPDATES_AVAILABLE -gt 0 ]]; then
   # direction, which meant an @Admin ping on nearly every deploy.
   LEDGER_FILE="$STATE_DIR/.update-alerted-versions"
   mkdir -p "$STATE_DIR"
-  # Legacy state from the set-hash era
-  rm -f "$STATE_DIR/.update-alert-hash" 2> /dev/null || true
 
   CURRENT_PAIRS=""
   UPDATE_LINES=""

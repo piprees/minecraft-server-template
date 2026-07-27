@@ -62,7 +62,7 @@ Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` ha
 
 ### Roll seeds locally (Mac)
 
-Find a great world seed by testing against the real modded server. Rolls bank raw measurements; scoring happens at report time against a named profile, so re-weighting never requires re-rolling:
+Find a great world seed by testing against the real modded server. Rolls bank raw measurements; scoring happens separately against each dimension's own `seedRoll` block, so re-weighting never requires re-rolling:
 
 ```bash
 ./dev seed-roll                              # roll all dimensions (default)
@@ -100,9 +100,9 @@ Each GitHub release `vX.Y.Z` on this repo:
 
 ### Compatibility promise
 
-- **Major** (`v1` → `v2`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided, but likely breaking.
-- **Minor** (`v1.1` → `v1.2`): new features, new default mods, config additions. Backwards-compatible.
-- **Patch** (`v1.2.0` → `v1.2.1`): bug fixes, mod pin updates. Drop-in safe.
+- **Major** (`v4` → `v5`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided, but likely breaking.
+- **Minor** (`v4.1` → `v4.2`): new features, new default mods, config additions. Backwards-compatible.
+- **Patch** (`v4.1.0` → `v4.1.1`): bug fixes, mod pin updates. Drop-in safe.
 
 Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updates. See the `platform-release-management` skill for the full release process and pipeline details.
 
@@ -134,7 +134,7 @@ Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updat
 | --- | --- | --- | --- |
 | `mc` | `itzg/minecraft-server` | local, cloud | The game server. Fabric, autopause, RCON, healthcheck |
 | `defaults-seed` | `ghcr.io/.../defaults-seed` | local, cloud | Seeds default configs, mods, and datapacks into shared volumes; applies consumer overlay |
-| `mc-backup` | `itzg/mc-backup` | cloud | restic snapshots to R2 every 6h by default, `save-off` consistency |
+| `mc-backup` | `itzg/mc-backup` | cloud | restic snapshots to R2 every 12h by default, `save-off` consistency |
 | `minio` + `minio-init` + `mc-backup-local` | minio / itzg | local | Local S3 stand-in so backups work identically in dev |
 | `uptime-kuma` + `kuma-init` | louislam / ghcr.io/.../kuma-init | both | Monitoring + one-shot idempotent provisioning from `config/uptime-kuma/kuma-config.json` |
 | `nav-proxy` | nginx | both | Injects the server nav bar into every web page via `sub_filter` |
@@ -242,7 +242,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `discord-pin-sync.sh` | Mac | Sync the #general welcome pin from messages.json |
 | `ddns-update.sh` | local host | Cloudflare dynamic DNS for home hosting (cron-installable) |
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
-| `seed/*` | Mac | Batch seed testing, scoring, reports |
+| `seed/*` | Mac | Batch seed testing, scoring, interactive viewer |
 | `service.sh` | Mac | Start, stop, restart, or check status of sidecars (local or production; never MC) |
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
@@ -380,7 +380,7 @@ docker compose --profile cloud up -d
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. The workflow first **resolves the symbolic `STACK_VERSION` pin (`v2`, `latest`) to a concrete release tag**, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against **the server's currently deployed commit** and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. The workflow first **resolves the symbolic `STACK_VERSION` pin (`v4`, `latest`) to a concrete release tag**, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against **the server's currently deployed commit** and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |

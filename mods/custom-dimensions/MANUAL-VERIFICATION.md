@@ -45,8 +45,7 @@ docker inspect mc --format '{{.State.StartedAt}}'
 rebuilds render meshes from the client's local `ClientWorld` — it does not
 re-request chunks. Fake blocks arrive via `BlockUpdateS2CPacket`, land in
 `ClientWorld`, and survive it. Use a **relog**, or move beyond view distance
-and back. (`PHASE-8-SOLIDITY.md` and `PLAN.md § Ghosts` both assert
-otherwise; they are wrong and cost a diagnosis this session.)
+and back.
 
 The authoritative discriminator for "is this block real?" is never the
 client:

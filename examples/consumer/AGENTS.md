@@ -27,7 +27,7 @@ curl -sL https://raw.githubusercontent.com/piprees/minecraft-server-template/mai
 
 ## Keeping up to date
 
-The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v2`) resolves to the latest matching release.
+The platform ships as versioned releases; `STACK_VERSION` in `.env` (usually `v4`) resolves to the latest matching release.
 
 ```bash
 ./dev update    # pull the latest stack bundle + Docker images (local only)

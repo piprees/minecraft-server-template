@@ -8,7 +8,7 @@
 
 ## Why this phase exists
 
-The MVP deliberately ruled out a client mod (PLAN.md, Architecture Decision).
+The MVP deliberately ruled out a client mod.
 That was the right call: it bought ~80% of the experience for ~10% of the cost
 and zero Sodium/Iris risk. But in-game testing found a hard ceiling — a
 specific, enumerable set of things that **cannot** be done from the server, no
@@ -73,7 +73,7 @@ side of a bidirectional projection is looking through frosted glass.
 
 ### 5c. Entities visible through the portal
 
-Listed as a known limitation in PLAN.md and in Phase 1's research notes.
+A known limitation of the server-side approach.
 Showing mobs and players on the far side needs entity-spawn packets for
 entities that are not in the player's current world, positioned in the
 player's current world. Doing that with a vanilla client means lying to it
@@ -97,7 +97,7 @@ the projected geometry, which only a client renderer can do.
 Water, foliage and grass colour are computed client-side from the biome the
 client believes it is in. Projected blocks therefore take the SOURCE biome's
 palette — a swamp seen through a portal into a cherry grove is the wrong
-green. PLAN.md already documents this as a fundamental vanilla limitation.
+green. This is a fundamental vanilla limitation.
 
 Fixing it server-side would mean sending fake biome data, which risks breaking
 every other mod that reads biome state. A client mod can colour the projected
@@ -123,7 +123,7 @@ can describe. Two consequences follow, and neither is fixable server-side:
 **Do not attempt to smooth this server-side.** Hysteresis, fading, or holding a
 block "one more pass" all reintroduce the leaked-fake-block class the feature
 spent three rounds eliminating (a position that stops qualifying must be
-restored on the same pass — see PHASE-1 §1h). The honest fix is a client
+restored on the same pass). The honest fix is a client
 renderer that clips the projected volume against the portal's actual aperture
 rectangle per fragment, which removes both the quantised edge and the popping
 at once, and makes the conservative server mask unnecessary for anyone running

@@ -669,8 +669,6 @@ pause_backups
 $COMPOSE_CMD --profile cloud up -d --force-recreate --no-deps \
   unmined-render nav-proxy pack-web cloudflared mod-checker discord-sync idle-tasks 2> /dev/null || true
 
-# Remove any legacy Modrinth override left by pre-v2.12 deploys.
-rm -f "$SERVER_DIR/docker-compose.modrinth.yml"
 
 # =============================================================================
 # 12. Wait for RCON healthcheck

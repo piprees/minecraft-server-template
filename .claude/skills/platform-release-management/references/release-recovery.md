@@ -89,7 +89,7 @@ git add CHANGELOG.md && git commit -m "chore: update CHANGELOG.md for vX.Y.Z" &&
 
 ## 6. Major tag not advanced
 
-**Symptom:** `git fetch origin '+refs/tags/v3:refs/tags/v3'` (substituting the real major) shows the tag still points at an old commit after a release.
+**Symptom:** `git fetch origin '+refs/tags/v4:refs/tags/v4'` (substituting the real major) shows the tag still points at an old commit after a release.
 
 **Cause:** the "Advance major tag" step is also `continue-on-error: true` and can fail silently (e.g. a protected-tag rule blocking a force-push from the workflow's token).
 
