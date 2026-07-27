@@ -237,6 +237,18 @@ bot script written from scratch each time.
   hand-crafted broken fixtures (a `#tag` frameBlock, a dangling dimension,
   an anchor with no exit portal) — one clear failure each.
 
+  _Verified 2026-07-27, against state the MOD wrote, not a fixture._ A Carpet
+  fake player built a basalt frame at (3000, 100, 3000), lit it with flint
+  and steel and traversed to `adventure:the_basalt_spires`. The checker then
+  read the file the mod had just written: **1 source zone, 6 return targets,
+  1 aura site, 17 assertions, 0 failures** — including the load-bearing one,
+  that the persisted `frameBlock` is a plain `minecraft:basalt` and not a
+  `#tag`. Breaking one frame block with `setblock … air` cleared the zone
+  from the persisted file within seconds (1 → 0 zones) and the checker stayed
+  green on what remained. The negative fixtures live in
+  `scripts/tests/test_checkers.py`; this proved the positive path against the
+  real writer.
+
 ### Phase C: the boot report (1 day)
 
 The bug that ate the most time this session was invisible for hours: 63 of
