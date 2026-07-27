@@ -153,11 +153,34 @@ class Report:
         print(f"  SKIP {slug} — {reason}")
 
 
+# The artefact shape this checker understands (Artefacts.SCHEMA_VERSION on the
+# Java side). A census written by a newer mod is NOT read on a best-effort
+# basis: a silently mis-read artefact produces a green run over a world nobody
+# has actually checked, which is worse than no checker at all.
+SUPPORTED_SCHEMA_VERSION = 1
+
+
+class SchemaMismatch(Exception):
+    pass
+
+
 def load_census(census_dir, slug):
     matches = sorted(Path(census_dir).glob(f"*__{slug}.json"))
     if not matches:
         return None
-    return json.loads(matches[0].read_text())
+    census = json.loads(matches[0].read_text())
+    version = census.get("schemaVersion")
+    if version is None:
+        # Pre-contract dumps carry no version. They are still readable, but
+        # say so — an old artefact is a stale artefact more often than not.
+        print(f"  NOTE {matches[0].name} predates schemaVersion — "
+              f"re-dump it if anything below looks wrong")
+    elif version != SUPPORTED_SCHEMA_VERSION:
+        raise SchemaMismatch(
+            f"{matches[0].name} is schemaVersion {version}, this checker "
+            f"understands {SUPPORTED_SCHEMA_VERSION} — update "
+            f"scripts/check-noise-regression.py alongside the mod")
+    return census
 
 
 def pool_union(census):
@@ -179,8 +202,12 @@ def positions_of(census, group=None):
 
 def run_dimension(spec, census_dir, report):
     slug = spec["slug"]
-    census = load_census(census_dir, slug)
     print(f"\n{slug} — {spec['why']}")
+    try:
+        census = load_census(census_dir, slug)
+    except SchemaMismatch as e:
+        report.check(slug, "census schema is readable", False, str(e))
+        return
     if census is None:
         report.skip(slug, "no census file (load the dimension and dump one)")
         return

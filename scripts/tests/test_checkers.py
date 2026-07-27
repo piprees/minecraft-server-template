@@ -29,6 +29,7 @@ def load(name):
 
 drift = load("check-dimension-drift.py")
 portal = load("check-portal-integrity.py")
+noise = load("check-noise-regression.py")
 
 
 def write(path, body):
@@ -234,6 +235,43 @@ class PortalIntegrityTests(unittest.TestCase):
         self.assertEqual(self.check([aura]).failures, [])
         self.assertTrue(self.check([dict(aura, budgetSpent=-1)]).failures)
         self.assertTrue(self.check([dict(aura, interior=[])]).failures)
+
+
+class CensusSchemaTests(unittest.TestCase):
+    """A changed artefact shape must fail loudly, never read best-effort."""
+
+    CENSUS = {"schemaVersion": 1, "kind": "structure-census",
+              "dimension": "adventure:the_test", "groups": {}, "forced": {}}
+
+    def dump(self, tmp, body):
+        path = Path(tmp) / "adventure__the_test.json"
+        write(path, body)
+        return Path(tmp)
+
+    def test_supported_version_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            census_dir = self.dump(tmp, self.CENSUS)
+            self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
+
+    def test_future_version_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            census_dir = self.dump(tmp, dict(self.CENSUS, schemaVersion=99))
+            with self.assertRaises(noise.SchemaMismatch) as ctx:
+                noise.load_census(census_dir, "the_test")
+            self.assertIn("99", str(ctx.exception))
+            self.assertIn("understands 1", str(ctx.exception))
+
+    def test_versionless_artefact_still_loads(self):
+        """Pre-contract dumps stay readable — they just get a note."""
+        with tempfile.TemporaryDirectory() as tmp:
+            body = dict(self.CENSUS)
+            del body["schemaVersion"]
+            census_dir = self.dump(tmp, body)
+            self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
+
+    def test_missing_census_is_none_not_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(noise.load_census(Path(tmp), "never_dumped"))
 
 
 if __name__ == "__main__":
