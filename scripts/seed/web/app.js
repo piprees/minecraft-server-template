@@ -325,17 +325,27 @@
     cards.forEach(function (c) {
       if (c.dataset.pinned === '1' || c.dataset.shortlisted === '1' || c.dataset.hidden === '1') done++
     })
-    var el = document.getElementById('progress')
+    var el = document.getElementById('review-progress')
     if (!el) return
-    el.textContent =
-      'Reviewed ' +
-      done +
-      ' of ' +
-      total +
-      ' dimensions — ' +
-      (total - done) +
-      ' still to review (a dimension counts as reviewed ' +
-      'once a seed is pinned or shortlisted, or the dimension is hidden)'
+    // A bar, not a sentence. This is the one number that answers "how much of
+    // this job is left" across a session measured in hours, and it was
+    // previously a long clause nobody would re-read on every filter change.
+    var pct = total ? Math.round((done / total) * 100) : 0
+    el.innerHTML =
+      '<span class="review-meter" role="img" aria-label="' +
+      done + ' of ' + total + ' dimensions reviewed">' +
+      '<span class="review-meter-fill" style="width:' + pct + '%"></span></span>' +
+      '<b>' + done + '</b> of <b>' + total + '</b> dimensions reviewed' +
+      '<span class="review-note"> — pinned, shortlisted or hidden counts as reviewed</span>'
+  }
+
+  // The filtered set going empty used to render as blank space under a stats
+  // line that still claimed "81 dimensions", so a typo'd search was
+  // indistinguishable from a broken page.
+  function updateEmptyState(visibleCount) {
+    var el = document.getElementById('empty-state')
+    if (!el) return
+    el.hidden = visibleCount > 0
   }
 
   function applyState() {
@@ -394,7 +404,9 @@
         grid.appendChild(c)
       })
       sortCandsInGroups()
+      updateEmptyState(visible.length)
     }
+    if (state.ungrouped) updateEmptyState(ugGrid.children.length)
     updateProgress()
     writeHash(state)
   }
@@ -405,6 +417,20 @@
       applyState()
     })
   })
+
+  var clearBtn = document.getElementById('clear-filters')
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      state.family = 'All'
+      state.type = ''
+      state.mood = ''
+      state.search = ''
+      state.flagged = false
+      state.shortlisted = false
+      applyState()
+      searchEl.focus()
+    })
+  }
   typeEl.addEventListener('change', function () {
     state.type = typeEl.value
     applyState()
@@ -1051,6 +1077,10 @@
     if (!/^[a-z][a-z0-9_]*$/.test(name)) {
       errEl.textContent =
         'Name must start with a letter and contain only lowercase letters, numbers, and underscores.'
+      // The dialog is ~880px of accordion and Create sits at the bottom, so an
+      // error painted at the top is invisible from where the click happened.
+      errEl.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      $id('cd-name').focus()
       return
     }
     Array.prototype.forEach.call(document.querySelectorAll('#create-dim-dialog .cd-error'), function (el) {
@@ -1131,7 +1161,7 @@
   var fillEl = document.getElementById('rp-fill')
   var textEl = document.getElementById('rp-text')
   var dimEl = document.getElementById('roll-dim')
-  var statusEl = document.getElementById('progress')
+  var statusEl = document.getElementById('roll-status')
   if (!toggleBtn) return
 
   var lastGeneration = -1

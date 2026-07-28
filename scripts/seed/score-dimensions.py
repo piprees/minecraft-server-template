@@ -1913,7 +1913,8 @@ def _score_section(c, profile):
     labels = {"namesake": "spawn biome", "variety": "biome variety",
               "terrain": "terrain shape", "structures": "structures"}
     rows = []
-    for key in ("namesake", "variety", "terrain", "structures"):
+    segs = []
+    for key in SCORE_COMPONENTS:
         if key not in c["parts"]:
             continue
         frac = c["parts"][key]
@@ -1922,18 +1923,48 @@ def _score_section(c, profile):
         possible = weight / wsum * 100
         lost = possible - earned
         rows.append(
-            "<div class='srow'>"
-            "<span class='sname'>{}</span>"
+            "<div class='srow comp-{}'>"
+            "<span class='sname'><i class='swatch'></i>{}</span>"
             "<span class='sbar'><span style='width:{:.0f}%'></span></span>"
             "<span class='spts'>{:.1f}<span class='meta'>/{:.0f}</span></span>"
             "<span class='sloss'>{}</span>"
-            "</div>".format(labels.get(key, key),
+            "</div>".format(key, labels.get(key, key),
                             max(0.0, min(100.0, frac * 100)),
                             earned, possible,
                             "&minus;{:.1f}".format(lost) if lost >= 0.05 else ""))
+        segs.append((key, earned, possible))
     return ("<div class='section-header'>Score {:.1f} <span class='meta'>"
             "points earned of each component's weight</span></div>"
-            "<div class='slist'>{}</div>".format(c["score"], "".join(rows)))
+            "{}<div class='slist'>{}</div>".format(
+                c["score"], _contribution_bar(segs), "".join(rows)))
+
+
+#: The four score components, in the order they are always presented. Each
+#: owns one colour (--chart-1..4 via .comp-<key>) used for its swatch, its
+#: bar, its segment of the contribution bar and its delta — everywhere. A
+#: component's colour IS its name, so "structures carried this seed" is
+#: readable without reading a label.
+SCORE_COMPONENTS = ("namesake", "variety", "terrain", "structures")
+
+
+def _contribution_bar(segs):
+    """One bar, four segments: where this seed's points actually came from.
+
+    Four separate progress bars answer "how did each component do". They do
+    not answer "what shape is this candidate", which is the question you ask
+    when choosing between two of them — a seed carried by structures and a
+    seed carried by terrain can share a total and be nothing alike. The
+    segment widths are points earned; the unfilled tail is points lost.
+    """
+    total = sum(p for _k, _e, p in segs) or 1
+    parts = []
+    for key, earned, _possible in segs:
+        if earned <= 0:
+            continue
+        parts.append(
+            "<span class='cseg comp-{}' style='width:{:.2f}%' title='{} {:.1f} pts'></span>".format(
+                key, earned / total * 100, key, earned))
+    return "<div class='cbar' role='img' aria-hidden='true'>{}</div>".format("".join(parts))
 
 
 def _render_candidate(idx, c, dim_name, profile, winners, default_show,
