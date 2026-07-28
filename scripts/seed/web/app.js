@@ -408,6 +408,9 @@
     }
     if (state.ungrouped) updateEmptyState(ugGrid.children.length)
     updateProgress()
+    // The scatter honours the same filters; a scatter showing everything
+    // while the grid shows one family answers a different question.
+    if (window.refreshScatter) window.refreshScatter()
     writeHash(state)
   }
 

@@ -208,6 +208,58 @@
 }
 
 @layer components {
+  /* --- Cross-dimension scatter ----------------------------------------- */
+  .scatter {
+    @apply border-border-strong bg-card mt-3 rounded-lg border p-3;
+  }
+  .scatter[hidden] {
+    display: none;
+  }
+  /* The grid is the other view of the same data; showing both at once just
+     halves the space each gets. */
+  body.scatter-on #grid,
+  body.scatter-on #ungrouped-grid {
+    display: none;
+  }
+  .sc-controls {
+    @apply mb-2 flex flex-wrap items-center gap-3 text-[0.8125rem];
+  }
+  .sc-controls .field-label {
+    @apply mb-0 flex items-center gap-1.5;
+  }
+  .sc-controls select {
+    @apply bg-background border-border-strong text-foreground rounded-md border
+      px-1.5 py-0.5 text-[0.8125rem];
+  }
+  .sc-count,
+  .sc-legend {
+    @apply text-muted-foreground;
+  }
+  .sc-legend {
+    @apply ml-auto flex items-center gap-3 text-[0.75rem];
+  }
+  .sc-legend .swatch {
+    @apply mr-1;
+  }
+  .sc-plot {
+    @apply relative;
+    height: min(62vh, 560px);
+  }
+  .sc-plot canvas {
+    @apply block h-full w-full;
+    cursor: crosshair;
+  }
+  .sc-tip {
+    @apply bg-popover border-border-strong pointer-events-none absolute
+      rounded-md border px-2 py-1 text-[0.75rem] shadow-lg;
+  }
+  .sc-tip[hidden] {
+    display: none;
+  }
+  .sc-seed {
+    @apply text-muted-foreground font-mono text-[0.6875rem];
+  }
+
   /* --- Dartboard: every structure criterion on the map at once ---------- */
   .lb-dart-toggle {
     @apply border-border-strong text-foreground absolute rounded border

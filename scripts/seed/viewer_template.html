@@ -61,6 +61,8 @@
         <input type="checkbox" id="f-shortlisted" /><span>★</span></label>
       <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
         <input type="checkbox" id="f-ungrouped" /><span>▤</span></label>
+      <label class="icon-toggle" title="Scatter — every candidate across every dimension">
+        <input type="checkbox" id="f-scatter" /><span>⁘</span></label>
       <label class="icon-toggle" title="Show hidden dimensions">
         <input type="checkbox" id="f-hidden" /><span>👁</span></label>
       <label class="icon-toggle" title="Show world borders on renders">
@@ -84,6 +86,23 @@
     <b>No dimensions match.</b>
     <button type="button" class="btn btn-secondary" id="clear-filters">Clear filters</button>
   </p>
+
+  <!-- Cross-dimension scatter. Canvas, not SVG: ~7000 dots with hover is how
+       a page starts stuttering, and the bank only grows. -->
+  <section class="scatter" id="scatter-view" hidden aria-label="Candidate scatter">
+    <div class="sc-controls">
+      <label class="field-label">x <select class="sc-x" aria-label="X axis"></select></label>
+      <label class="field-label">y <select class="sc-y" aria-label="Y axis"></select></label>
+      <span class="sc-count"></span>
+      <span class="sc-legend">
+        <i class="swatch swatch-variety"></i>overworld
+        <i class="swatch swatch-structures"></i>nether
+        <i class="swatch swatch-terrain"></i>end
+        <i class="swatch swatch-namesake"></i>paradise_lost
+      </span>
+    </div>
+    <div class="sc-plot"><canvas></canvas><div class="sc-tip" hidden></div></div>
+  </section>
 
   <div class="grid" id="grid">{{DIMENSIONS_HTML}}</div>
 
@@ -222,4 +241,5 @@
   <script src="assets/app.js" defer></script>
   <script src="assets/compare.js" defer></script>
   <script src="assets/dartboard.js" defer></script>
+  <script src="assets/scatter.js" defer></script>
 </html>
