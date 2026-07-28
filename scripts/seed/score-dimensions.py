@@ -1211,7 +1211,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 #: so the build cache (.cache/, a 100MB Tailwind binary) can never be copied
 #: into a consumer's .seedtest by accident.
 #: source name in scripts/seed/web/ -> name served beside index.html.
-WEB_ASSETS = (("app.built.css", "app.css"),)
+WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"))
 
 
 def install_web_assets(seedtest):

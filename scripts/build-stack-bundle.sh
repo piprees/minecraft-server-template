@@ -82,6 +82,7 @@ MANIFEST=(
   # needs no JS toolchain and a consumer needs no network: score-dimensions
   # copies it into <seedtest>/assets/ beside index.html at finalise time.
   scripts/seed/web/app.built.css
+  scripts/seed/web/app.js
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
   scripts/seed/biome_source_mixing.py
