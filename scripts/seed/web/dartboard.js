@@ -51,31 +51,12 @@
     return 'good'
   }
 
-  // The overlay's geometry was CSS guesswork (aspect-ratio + translateY on a
-  // flex-centred image) and it does not survive .lb-inner clipping the image
-  // at max-height:90vh — the rings ended up centred above the map. Measure
-  // the <img> and put the SVG exactly on it instead. Cheap, and correct at
-  // any container size.
-  function alignToImage() {
-    var img = imageBox.querySelector('img')
-    if (!img) return
-    var ib = imageBox.getBoundingClientRect()
-    var r = img.getBoundingClientRect()
-    if (!r.width || !r.height) return
-    svg.style.position = 'absolute'
-    svg.style.left = r.left - ib.left + 'px'
-    svg.style.top = r.top - ib.top + 'px'
-    svg.style.width = r.width + 'px'
-    svg.style.height = r.height + 'px'
-    svg.style.aspectRatio = 'auto'
-    svg.style.transform = 'none'
-    svg.style.inset = 'auto'
-  }
-
   function draw() {
     clear()
     if (!on) return
-    alignToImage()
+    // One aligner, owned by the lightbox in app.js — this SVG has two
+    // consumers and must not carry two copies of the geometry.
+    if (window.alignLbOverlay) window.alignLbOverlay()
     var host = info.querySelector('[data-coverage]')
     var coverage = host && parseFloat(host.dataset.coverage)
     if (!coverage) return

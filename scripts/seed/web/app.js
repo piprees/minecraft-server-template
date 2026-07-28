@@ -130,6 +130,37 @@
     box.appendChild(el)
   }
 
+  // The overlay's position was pure CSS (top:50% + translateY(-50%) inside
+  // .lb-image with aspect-ratio:1). That centres against the CONTAINER, and
+  // .lb-image is not the image's box — .lb-inner clips at max-height:90vh, so
+  // the SVG ended up exactly half its own height above the map: measured
+  // -330px against a 660px image. Every ring the hover drew, and every band
+  // the dartboard drew, was offset by that.
+  //
+  // Measure the <img> and lay the SVG on it. Exported because dartboard.js
+  // draws into the same element and must not carry a second copy of this.
+  function alignOverlay() {
+    var svg = document.getElementById('lb-overlay')
+    var box = lb.querySelector('.lb-image')
+    var img = box && box.querySelector('img')
+    if (!svg || !img) return
+    var b = box.getBoundingClientRect()
+    var r = img.getBoundingClientRect()
+    if (!r.width || !r.height) return
+    svg.style.position = 'absolute'
+    svg.style.left = r.left - b.left + 'px'
+    svg.style.top = r.top - b.top + 'px'
+    svg.style.width = r.width + 'px'
+    svg.style.height = r.height + 'px'
+    svg.style.aspectRatio = 'auto'
+    svg.style.transform = 'none'
+    svg.style.inset = 'auto'
+  }
+  window.alignLbOverlay = alignOverlay
+  window.addEventListener('resize', alignOverlay)
+  // The hi-res swap replaces the src and relays the box out from under it.
+  lb.addEventListener('load', alignOverlay, true)
+
   function candDetailFor(cand) {
     var own = cand.querySelector('.cand-detail')
     if (own) return own
@@ -159,6 +190,7 @@
       var d0 = candDetailFor(cand)
       lbInfo.innerHTML = d0 ? d0.innerHTML : ''
       lbShow()
+      alignOverlay()
       return
     }
     lbImg.src = img.src
@@ -1363,6 +1395,8 @@
     if (!coverage) return
     var band = row.dataset.band.split(',').map(Number)
     clear()
+    // Same element the dartboard uses, same geometry requirement.
+    if (window.alignLbOverlay) window.alignLbOverlay()
     // viewBox is 0-100 across the full render; a distance d in blocks is
     // d/coverage of the full width, so its radius is that x 100.
     ring(band[0] / coverage * 100, 'band', '2 2')
