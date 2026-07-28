@@ -1193,6 +1193,7 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                     c["biome_survey"] = cand_entry["biome_survey"]
 
     if args.viewer:
+        install_web_assets(Path(args.seedtest))
         viewer = Path(args.seedtest) / "index.html"
         viewer.write_text(render_viewer(
             results, profiles, winners, rejected,
@@ -1203,6 +1204,32 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
 
     print_summary(results, profiles, rejected)
     return 0
+
+
+WEB_DIR = Path(__file__).resolve().parent / "web"
+#: Everything served alongside index.html. Kept as a list rather than a glob
+#: so the build cache (.cache/, a 100MB Tailwind binary) can never be copied
+#: into a consumer's .seedtest by accident.
+WEB_ASSETS = ("app.built.css", "app.js")
+
+
+def install_web_assets(seedtest):
+    """Copy the viewer's stylesheet and script into <seedtest>/assets/.
+
+    The page is opened two ways — over http://127.0.0.1:8765/ from
+    viewer-server.py, and as a plain file:// open of .seedtest/index.html
+    (roll-all.sh prints that path). Copying beside index.html is the only
+    arrangement that works for both with one relative href, and it needs no
+    extra route in the server. Copy is unconditional: a stale stylesheet
+    beside a fresh page is a debugging trap nobody would suspect.
+    """
+    dest = Path(seedtest) / "assets"
+    dest.mkdir(parents=True, exist_ok=True)
+    for name in WEB_ASSETS:
+        src = WEB_DIR / name
+        if src.exists():
+            shutil.copy2(src, dest / name)
+    return dest
 
 
 def range_label(profile, spec):

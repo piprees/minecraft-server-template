@@ -77,6 +77,11 @@ MANIFEST=(
   scripts/seed/score-dimensions.py
   scripts/seed/viewer-server.py
   scripts/seed/viewer_template.html
+  # The viewer's stylesheet, BUILT (Tailwind standalone CLI, see
+  # scripts/seed/web/build.sh) and committed. Ships built so release.yml
+  # needs no JS toolchain and a consumer needs no network: score-dimensions
+  # copies it into <seedtest>/assets/ beside index.html at finalise time.
+  scripts/seed/web/app.built.css
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
   scripts/seed/biome_source_mixing.py

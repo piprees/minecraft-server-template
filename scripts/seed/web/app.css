@@ -1,0 +1,285 @@
+/* app.css — Tailwind v4 source for the seed viewer.
+ *
+ * Built to app.built.css by ./build.sh with the pinned standalone Tailwind
+ * CLI (no Node, no npm). The BUILT file is committed and shipped in the
+ * stack bundle; nothing downloads anything at runtime. See build.sh.
+ *
+ * Token contract is shadcn/ui's (background/foreground/card/muted/primary/
+ * border/input/ring/chart-N + --radius), so shadcn's component recipes port
+ * across unchanged. The values are this platform's, not shadcn's defaults.
+ *
+ * THE ONE RULE THIS PALETTE EXISTS TO ENFORCE: the map renders are the only
+ * saturated thing on screen. Every chrome colour is held under 0.03 chroma
+ * so a 240px thumbnail of Minecraft terrain — which is violently green,
+ * blue, or nether-red — never competes with the UI around it. Colour in the
+ * chrome means something: copper is an action, the four chart hues are the
+ * four score components, and green/amber/red are score verdicts.
+ */
+
+@import 'tailwindcss';
+
+/* Both files the markup comes from: the shell below, and the Python that
+ * generates every card, candidate tile and measurement row. Miss the second
+ * and half the utilities get purged. */
+@source '../viewer_template.html';
+@source '../score-dimensions.py';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* The four score components. Fixed hues, equal lightness, ~85° apart, so
+   * they stay legible as adjacent segments of a stacked bar AND as a legend
+   * dot next to a number. Used identically in the bar, the legend, the
+   * per-component deltas and the compare view — a component's colour is a
+   * name you can point at. */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: calc(var(--radius) - 1px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+}
+
+:root {
+  color-scheme: dark;
+  --radius: 0.5rem;
+
+  /* Mineral tint: every neutral carries a little chroma toward hue 250,
+   * per DESIGN.md's Mineral Tint Rule. Never pure grey, never warm. */
+  --background: oklch(0.185 0.008 250);
+  --foreground: oklch(0.94 0.008 250);
+  --card: oklch(0.232 0.011 250);
+  --card-foreground: oklch(0.94 0.008 250);
+  --popover: oklch(0.255 0.012 250);
+  --popover-foreground: oklch(0.94 0.008 250);
+
+  /* Quarry Copper (#b05540), the platform's action colour, lifted to L 0.628
+   * so it clears 4.5:1 on --card as TEXT as well as working as a fill. Its
+   * foreground is near-black, not white: white on copper is only 3.73:1,
+   * near-black is 5.32:1. */
+  --primary: oklch(0.628 0.128 34);
+  --primary-foreground: oklch(0.145 0.01 34);
+
+  --secondary: oklch(0.285 0.012 250);
+  --secondary-foreground: oklch(0.94 0.008 250);
+  --muted: oklch(0.285 0.012 250);
+  /* 7.0:1 on --card. The old #9aaabb was fine; what was NOT fine was the
+   * pile of opacity modifiers stacked on top of it. There is one muted
+   * colour and nothing dims it further. */
+  --muted-foreground: oklch(0.735 0.021 250);
+  --accent: oklch(0.315 0.016 250);
+  --accent-foreground: oklch(0.96 0.008 250);
+  --destructive: oklch(0.65 0.17 25);
+  --destructive-foreground: oklch(0.98 0.005 25);
+
+  /* The single biggest visual defect in the old sheet was a card border at
+   * 1.25:1 — 81 cards with invisible edges read as one grey soup. --border
+   * is the quiet internal rule; --border-strong bounds anything the eye has
+   * to segment, at 3:1 per WCAG 1.4.11. */
+  --border: oklch(0.397 0.013 250); /* 1.8:1 on card — an internal rule    */
+  --border-strong: oklch(0.516 0.018 250); /* 3.0:1 on card — a real boundary    */
+  --input: oklch(0.516 0.018 250);
+  --ring: oklch(0.70 0.115 34); /* 6.0:1 on card                       */
+
+  --chart-1: oklch(0.76 0.14 85); /* namesake   — gold   */
+  --chart-2: oklch(0.74 0.13 165); /* variety    — teal   */
+  --chart-3: oklch(0.71 0.13 250); /* terrain    — blue   */
+  --chart-4: oklch(0.72 0.15 330); /* structures — orchid */
+
+  --good: oklch(0.78 0.15 148);
+  --warn: oklch(0.79 0.145 78);
+  --bad: oklch(0.68 0.17 25);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    /* 14px base with a hard 12px floor everywhere below it. The old sheet
+     * ran to 0.55rem (7.7px) on badges and border labels; at that size the
+     * numbers stop being readable and start being texture. */
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  /* Tabular figures everywhere a number is compared against another number,
+   * which in this tool is nearly everywhere. */
+  .tnum,
+  input[type='number'] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* --- shadcn component recipes, ported to plain markup ----------------
+   * Same names, same anatomy, same state vocabulary as shadcn/ui. The
+   * markup is generated by score-dimensions.py, so a recipe beats a
+   * 200-character utility string in an f-string every time. */
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md text-[0.8125rem]
+      font-medium whitespace-nowrap transition-colors select-none
+      disabled:pointer-events-none disabled:opacity-50;
+    /* WCAG 2.2 target size: 24px minimum, and these sit in dense rows. */
+    min-height: 1.75rem;
+    padding: 0.25rem 0.625rem;
+  }
+  /* The inner highlight is the whole trick behind a Tailwind Plus solid
+   * button: a 1px inset white line at the top edge reads as a lit surface
+   * rather than a flat rectangle. One shadow, no pseudo-element stack. */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:brightness-110;
+    box-shadow: inset 0 1px --alpha(#fff / 18%);
+  }
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground border-border-strong hover:bg-accent border;
+  }
+  .btn-ghost {
+    @apply text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-transparent;
+  }
+  .btn-destructive {
+    @apply text-destructive border-border hover:border-destructive hover:bg-destructive/10 border;
+  }
+  .btn-icon {
+    @apply px-2;
+    min-width: 1.75rem;
+  }
+
+  .card {
+    @apply bg-card text-card-foreground border-border-strong rounded-lg border;
+  }
+
+  /* Badge, Catalyst's idiom: a 15%-alpha wash of the badge's own colour
+   * behind the saturated text, rather than a grey pill with a border. It
+   * carries meaning at 11px where a border does not, and tinted washes stack
+   * legibly on both --card and --background. */
+  .badge {
+    @apply inline-flex items-center rounded-md px-1.5 py-px text-[0.6875rem]
+      leading-4 font-medium;
+    background: color-mix(in oklab, currentColor 15%, transparent);
+  }
+  .badge-neutral {
+    color: var(--color-muted-foreground);
+  }
+  .badge-good {
+    color: var(--color-good);
+  }
+  .badge-warn {
+    color: var(--color-warn);
+  }
+  .badge-bad {
+    color: var(--color-bad);
+  }
+  /* One class per score component, used for its badge, its legend dot, its
+   * bar segment and its delta — so a component's colour IS its name. */
+  .badge-namesake,
+  .swatch-namesake {
+    color: var(--color-chart-1);
+  }
+  .badge-variety,
+  .swatch-variety {
+    color: var(--color-chart-2);
+  }
+  .badge-terrain,
+  .swatch-terrain {
+    color: var(--color-chart-3);
+  }
+  .badge-structures,
+  .swatch-structures {
+    color: var(--color-chart-4);
+  }
+  .swatch {
+    @apply inline-block size-2 shrink-0 rounded-[2px] align-middle;
+    background: currentColor;
+  }
+
+  /* Dense rows (measurements, candidates in a list). White-alpha for the
+   * internal structure — Catalyst's table idiom — so rules read as texture
+   * rather than as 40 competing boundaries. */
+  .row-list > * + * {
+    border-top: 1px solid --alpha(var(--color-foreground) / 8%);
+  }
+  .row-hover:hover {
+    background: --alpha(var(--color-foreground) / 5%);
+  }
+
+  .field-label {
+    @apply text-muted-foreground mb-1 block text-[0.75rem] font-medium;
+  }
+  .input {
+    @apply bg-background border-border text-foreground placeholder:text-muted-foreground
+      focus-visible:border-ring w-full rounded-md border px-2 py-1 text-[0.8125rem];
+    min-height: 1.75rem;
+  }
+
+  /* Segmented control (shadcn ToggleGroup anatomy): one visual unit, one
+   * pressed state, real <button>s underneath. */
+  .segment {
+    @apply border-border-strong bg-card inline-flex overflow-hidden rounded-md border;
+  }
+  .segment > button {
+    @apply text-muted-foreground hover:bg-accent border-border border-l px-2.5 py-1
+      text-[0.8125rem] transition-colors first:border-l-0;
+    min-height: 1.75rem;
+  }
+  .segment > button[aria-pressed='true'] {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  /* Icon toggles keep a real checkbox behind the label so every existing
+   * filter handler still reads .checked. */
+  .toggle-chip {
+    @apply border-border-strong bg-card text-muted-foreground hover:bg-accent
+      relative inline-flex cursor-pointer items-center gap-1.5 rounded-md border
+      px-2 py-1 text-[0.75rem] transition-colors select-none;
+    min-height: 1.75rem;
+  }
+  .toggle-chip input {
+    @apply absolute h-0 w-0 opacity-0;
+  }
+  .toggle-chip:has(input:checked) {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+  .toggle-chip:has(input:focus-visible) {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}

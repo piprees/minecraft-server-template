@@ -95,3 +95,8 @@ __pycache__/
 
 # === Impeccable cache ===
 .impeccable
+
+# Tailwind standalone CLI cache for the seed viewer's stylesheet build.
+# The BUILT stylesheet (scripts/seed/web/app.built.css) is committed; the
+# ~100MB binary that produces it is not.
+scripts/seed/web/.cache/
