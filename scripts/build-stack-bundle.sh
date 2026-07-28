@@ -83,6 +83,7 @@ MANIFEST=(
   # copies it into <seedtest>/assets/ beside index.html at finalise time.
   scripts/seed/web/app.built.css
   scripts/seed/web/app.js
+  scripts/seed/web/compare.js
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
   scripts/seed/biome_source_mixing.py

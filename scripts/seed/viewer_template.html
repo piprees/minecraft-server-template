@@ -191,6 +191,19 @@
     <input type="hidden" id="cd-mode" value="fork" />
   </dialog>
 
+  <!-- Compare tray: appears once anything is selected, so the affordance is
+       invisible until it is relevant. -->
+  <div class="compare-tray" id="compare-tray" hidden>
+    <span class="compare-count"></span>
+    <button type="button" class="btn btn-primary compare-open">Compare</button>
+    <button type="button" class="btn btn-ghost compare-clear">Clear</button>
+  </div>
+
+  <dialog id="compare-dialog" aria-label="Compare two candidates">
+    <button type="button" class="cmp-close btn btn-ghost" aria-label="Close">&times;</button>
+    <div class="cmp-body"></div>
+  </dialog>
+
   <div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
     <div class="lb-inner">
       <button type="button" class="lb-close" aria-label="Close">&times;</button>
@@ -207,4 +220,5 @@
   </div>
 
   <script src="assets/app.js" defer></script>
+  <script src="assets/compare.js" defer></script>
 </html>

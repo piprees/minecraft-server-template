@@ -1211,7 +1211,8 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 #: so the build cache (.cache/, a 100MB Tailwind binary) can never be copied
 #: into a consumer's .seedtest by accident.
 #: source name in scripts/seed/web/ -> name served beside index.html.
-WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"))
+WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"),
+              ("compare.js", "compare.js"))
 
 
 def install_web_assets(seedtest):
@@ -2090,6 +2091,10 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     shortlist_btn = ("<button class='action-btn shortlist' "
                      "data-dim='{}' data-seed='{}'>{} <kbd>X</kbd></button>".format(
                          esc_dim, c["seed"], sl_label))
+    # Lives on the TILE, not in the lightbox: choosing two things to compare
+    # is something you do while looking at the grid of them.
+    compare_btn = ("<button type='button' class='cmp-pick' "
+                   "aria-label='Compare seed {}'>compare</button>".format(c["seed"]))
     create_dim_btn = ("<button class='action-btn create-dim' "
                       "data-dim='{}' data-seed='{}'>Fork dimension <kbd>F</kbd></button>".format(
                           esc_dim, c["seed"]))
@@ -2119,13 +2124,16 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     score_parts = _score_section(c, profile)
     return (
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
-        "data-dim='{}'{}{} title='{}'>"
+        "data-dim='{}'{}{} data-seed='{}' data-parts='{}' data-spawn='{}' "
+        "data-render='{}' title='{}'>"
         "<img src='{}' data-hires='{}' loading='lazy' style='background:{}' "
         "alt='Map render — {} seed {}' onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' title='{}' style='color:{}'>{:.1f}{}</div>"
-        "{}"        "<div class='seed'>{}</div>"
+        "{}"
+        "<div class='seed'>{}</div>"
+        "{}"
         "{}"
         "<div class='cand-detail' style='display:none'>"
         "<div class='lb-header'>"
@@ -2143,7 +2151,14 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "</div>"
         "</div>").format(
             " winner" if win else "", idx, c["score"],
-            esc_dim, hidden, shortlisted_attr,
+            esc_dim, hidden, shortlisted_attr, c["seed"],
+            # The compare, dartboard and scatter views all need the numbers,
+            # not the rendered markup. Scraping a formatted "3.5/10" back out
+            # of the DOM to subtract it is how those views rot.
+            html.escape(json.dumps({k: round(v, 4) for k, v in
+                                    (c.get("parts") or {}).items()}), quote=True),
+            html.escape(c.get("spawn_biome", ""), quote=True),
+            img,
             html.escape(candidate_tooltip(c), quote=True),
             img, hires, placeholder_colour(c.get("spawn_biome")),
             esc_dim, c["seed"],
@@ -2151,6 +2166,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             html.escape(SCORE_HELP, quote=True), sc, c["score"], crown,
             _relief_swatch(c, profile), c["seed"],
             _delta_vs(c, ref_cand, profile),
+            compare_btn,
             html.escape(dim_name),
             sc, c["score"], crown,
             c["seed"],

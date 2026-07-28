@@ -208,6 +208,115 @@
 }
 
 @layer components {
+  /* --- Compare -------------------------------------------------------- */
+  .cmp-pick {
+    @apply border-border-strong bg-card/90 text-muted-foreground
+      hover:border-primary hover:text-primary absolute rounded border
+      px-1.5 text-[0.6875rem] backdrop-blur-sm;
+    top: 0.4rem;
+    left: 0.4rem;
+    min-height: 1.25rem;
+    z-index: 3;
+  }
+  .cand.comparing {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+  .cand.comparing .cmp-pick {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+  /* Fixed, not sticky: the selection survives scrolling the grid, which is
+     exactly when you are choosing the second one. */
+  .compare-tray {
+    @apply bg-popover border-border-strong fixed right-6 bottom-6 z-50 flex
+      items-center gap-2 rounded-lg border px-3 py-2 text-[0.8125rem] shadow-lg;
+  }
+  .compare-tray[hidden] {
+    display: none;
+  }
+  .compare-count {
+    @apply text-muted-foreground;
+  }
+  #compare-dialog {
+    @apply bg-card text-foreground border-border-strong rounded-xl border p-5;
+    width: min(1100px, 94vw);
+    max-height: 90vh;
+    overflow: auto;
+  }
+  #compare-dialog::backdrop {
+    background: rgb(0 0 0 / 0.66);
+  }
+  .cmp-close {
+    @apply absolute top-3 right-3 text-lg;
+  }
+  .cmp-panels {
+    @apply grid gap-4;
+    grid-template-columns: 1fr 1fr;
+  }
+  .cmp-map {
+    @apply bg-background relative overflow-hidden rounded-lg;
+    aspect-ratio: 1;
+    /* Square renders at half a 1100px dialog are ~520px each, which pushed
+       the comparison table — the entire reason the dialog exists — below the
+       fold. The maps are context; the numbers are the decision. */
+    max-height: 34vh;
+  }
+  .cmp-map img {
+    @apply block h-full w-full object-cover;
+    image-rendering: pixelated;
+  }
+  .cmp-head {
+    @apply mt-2 flex items-baseline gap-2;
+  }
+  .cmp-score {
+    @apply text-lg font-bold;
+  }
+  .cmp-seed {
+    @apply text-muted-foreground font-mono text-[0.6875rem] break-all;
+  }
+  .cmp-spawn {
+    @apply text-muted-foreground text-[0.75rem];
+  }
+  .cmp-table {
+    @apply mt-4 w-full border-collapse text-[0.8125rem];
+  }
+  .cmp-table th[scope='col'] {
+    @apply text-muted-foreground pb-1 text-left font-medium;
+  }
+  .cmp-table th[scope='row'] {
+    @apply py-1 text-left font-normal;
+  }
+  .cmp-table th[scope='row'] .swatch {
+    @apply mr-1.5 inline-block size-2 rounded-[2px] align-middle;
+    background: var(--comp, var(--color-muted-foreground));
+  }
+  .cmp-table td {
+    @apply py-1 text-right;
+    font-variant-numeric: tabular-nums;
+  }
+  .cmp-table tbody tr + tr th,
+  .cmp-table tbody tr + tr td,
+  .cmp-table tfoot th,
+  .cmp-table tfoot td {
+    border-top: 1px solid --alpha(var(--color-foreground) / 8%);
+  }
+  .cmp-table tfoot th,
+  .cmp-table tfoot td {
+    @apply pt-2 font-semibold;
+  }
+  /* The winning side of each row is the only thing that needs colour — the
+     eye should land on "which one won this component", not read four
+     numbers and subtract. */
+  .cmp-num.cmp-win {
+    @apply text-good font-semibold;
+  }
+  .cmp-delta {
+    @apply text-muted-foreground text-[0.75rem];
+  }
+  .cmp-actions {
+    @apply mt-4 flex justify-end gap-2;
+  }
+
   /* Relief chip — 3x3 terrain shape from the grid already sampled at roll
      time. Stands in for a render that is minutes away, on the state that is
      the DEFAULT rather than the exception. */
