@@ -25,6 +25,7 @@ Started/stopped by roll-all.sh alongside the live reporter; safe to run
 standalone after a roll too (./dev seed-roll leaves the data behind).
 """
 import argparse
+import errno
 import json
 import subprocess
 import sys
@@ -1313,6 +1314,22 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         return path if path and path.exists() else None
 
 
+def _port_answers(port):
+    """Is the thing holding this port one of our own viewers?
+
+    /pipeline-status is served by nothing else, so a 200 with the expected
+    shape identifies a sibling viewer rather than some unrelated dev server
+    that happened to grab the port.
+    """
+    try:
+        import urllib.request
+        with urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/pipeline-status", timeout=1.5) as r:
+            return "stage" in json.loads(r.read().decode())
+    except Exception:
+        return False
+
+
 def main():
     import shutil
 
@@ -1362,7 +1379,28 @@ def main():
     _pipeline = Pipeline(args.config, args.seedtest, finalise_args,
                          str(biome_params_path(args.seedtest)))
 
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+    try:
+        server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
+    except OSError as exc:
+        if exc.errno not in (errno.EADDRINUSE, errno.EACCES):
+            raise
+        # Almost always a viewer you already have open, not a problem to
+        # debug — and a socketserver traceback says none of that. It also
+        # buries the useful fact, which is that the thing you wanted is
+        # already running at the address you were about to be given.
+        url = f"http://127.0.0.1:{args.port}/"
+        if _port_answers(args.port):
+            print(f"A seed viewer is already running at {url}", file=sys.stderr)
+            print("Open it, or stop it first:  pkill -f viewer-server.py",
+                  file=sys.stderr)
+        else:
+            print(f"Port {args.port} is taken by something that is not a "
+                  f"seed viewer.", file=sys.stderr)
+            print(f"  Find it:  lsof -nP -iTCP:{args.port} -sTCP:LISTEN",
+                  file=sys.stderr)
+            print(f"  Or pick another port:  ./dev seed-viewer --port "
+                  f"{args.port + 1}", file=sys.stderr)
+        return 2
     print(f"viewer server: http://127.0.0.1:{args.port}/", flush=True)
 
     # Serve in a background thread so batch renders can run with the server up
@@ -1385,4 +1423,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main() returns a code on the paths that refuse to start; without this
+    # `./dev seed-viewer` would exit 0 after printing why it did nothing.
+    sys.exit(main() or 0)
