@@ -109,54 +109,6 @@ BIOME_COLOURS = {
 
 FALLBACK_COLOUR = (128, 128, 128)
 
-# Structure marker colours, keyed by keyword matched against the battery
-# structure name (approximate the structure's dominant build material).
-STRUCT_MAT = {
-    "village": (104, 104, 104),     # cobblestone
-    "pillager": (60, 60, 60),       # dark stone
-    "mansion": (90, 60, 30),        # dark oak planks
-    "monument": (70, 130, 130),     # prismarine
-    "temple": (180, 170, 140),      # sandstone
-    "jungle_temple": (80, 90, 50),  # mossy cobblestone
-    "desert_pyramid": (210, 195, 145), # sandstone
-    "fortress": (55, 10, 10),       # nether brick
-    "stronghold": (80, 80, 80),     # stone brick
-    "mineshaft": (100, 72, 36),     # oak planks
-    "shipwreck": (90, 60, 30),      # planks
-    "ruined_portal": (40, 10, 40),  # obsidian
-    "bastion": (30, 30, 30),        # blackstone
-    "end_city": (200, 160, 200),    # purpur
-    "witch": (60, 80, 30),          # swamp hut
-    "igloo": (220, 220, 220),       # snow
-    "ancient_city": (20, 20, 30),   # deepslate
-    "trail_ruins": (140, 100, 60),  # terracotta
-    "outpost": (100, 72, 36),       # oak planks
-    "ocean_ruin": (70, 100, 80),    # mossy stone
-    "dungeon": (80, 80, 80),        # cobblestone
-    "treasure": (180, 170, 140),    # sandstone
-    "sanctum": (100, 60, 60),       # deepslate
-    "tower": (104, 104, 104),       # stone
-    "citadel": (80, 60, 40),        # dark planks
-    "keep": (50, 50, 50),           # blackstone
-    "shrine": (130, 110, 80),       # stone brick
-    "camp": (100, 72, 36),          # planks
-    "ruin": (90, 90, 80),           # cracked stone
-    "vault": (60, 50, 50),          # deepslate
-}
-_FOOTPRINT_LARGE = ("mansion", "monument", "fortress", "bastion")
-
-
-def _struct_style(name):
-    """(colour, footprint radius in px) for a battery structure name."""
-    for keyword, col in STRUCT_MAT.items():
-        if keyword in name:
-            if keyword == "village":
-                return col, 8
-            if keyword in _FOOTPRINT_LARGE:
-                return col, 5
-            return col, 3
-    return FALLBACK_COLOUR, 3
-
 
 def biome_colour(biome_id):
     if biome_id in BIOME_COLOURS:
@@ -550,60 +502,6 @@ def render_biome_map(seed, biome_params_path, output_path,
 
     write_png(output_path, bytes(pixels), size, size)
     return size
-
-
-def write_png_rgba(path, pixels, width, height):
-    """Write an RGBA pixel buffer as a PNG file. No dependencies."""
-    def chunk(tag, data):
-        raw = tag + data
-        return struct.pack(">I", len(data)) + raw + struct.pack(">I", zlib.crc32(raw) & 0xFFFFFFFF)
-
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    raw_rows = b""
-    for y in range(height):
-        raw_rows += b"\x00"
-        raw_rows += pixels[y * width * 4:(y + 1) * width * 4]
-
-    out = b"\x89PNG\r\n\x1a\n"
-    out += chunk(b"IHDR", ihdr)
-    out += chunk(b"IDAT", zlib.compress(raw_rows, 6))
-    out += chunk(b"IEND", b"")
-    Path(path).write_bytes(out)
-
-
-def render_structure_overlay(structure_all, out_path, size, total_blocks):
-    """Write a transparent RGBA overlay PNG plotting EVERY placement in
-    structure_all ({name: [(dist, x, z), ...]}, banked on the candidate by
-    viewer-server's finalise enrichment via find_all_in_radius).
-
-    size/total_blocks must match the base render the overlay stacks over —
-    the block→pixel mapping is identical to render_biome_map's. Placements
-    are RandomSpread rolls without biome validation: markers show where a
-    structure start CAN roll, not a guarantee it generates."""
-    half = total_blocks // 2
-    pixels = bytearray(size * size * 4)  # zeroed = fully transparent
-    for sname, hits in sorted(structure_all.items()):
-        col, r_fp = _struct_style(sname)
-        border = (max(0, col[0] - 70), max(0, col[1] - 70), max(0, col[2] - 70))
-        for _dist, bx, bz in hits:
-            cx = int((bx + half) / total_blocks * size)
-            cy = int((bz + half) / total_blocks * size)
-            if cx < -r_fp - 1 or cx > size + r_fp or cy < -r_fp - 1 or cy > size + r_fp:
-                continue
-            for dy in range(-r_fp - 1, r_fp + 2):
-                for dx in range(-r_fp - 1, r_fp + 2):
-                    npx, npy = cx + dx, cy + dy
-                    if not (0 <= npx < size and 0 <= npy < size):
-                        continue
-                    ring = max(abs(dx), abs(dy))
-                    off = (npy * size + npx) * 4
-                    if ring <= r_fp:
-                        pixels[off:off + 3] = bytes(col)
-                        pixels[off + 3] = 255
-                    elif pixels[off + 3] == 0:
-                        pixels[off:off + 3] = bytes(border)
-                        pixels[off + 3] = 200
-    write_png_rgba(out_path, bytes(pixels), size, size)
 
 
 FAMILY_NOISE = {

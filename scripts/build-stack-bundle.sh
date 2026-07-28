@@ -85,6 +85,7 @@ MANIFEST=(
   scripts/seed/web/app.js
   scripts/seed/web/compare.js
   scripts/seed/web/dartboard.js
+  scripts/seed/web/structicons.js
   scripts/seed/web/scatter.js
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
@@ -93,6 +94,7 @@ MANIFEST=(
   scripts/seed/structure_placement.py
   scripts/seed/noise_placement.py
   scripts/seed/census_scoring.py
+scripts/seed/sweep_structure_wants.py
   scripts/check-dimension-drift.py
   scripts/check-portal-integrity.py
   scripts/check-noise-regression.py

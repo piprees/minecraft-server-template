@@ -41,12 +41,6 @@ _jobs = {}
 _jobs_lock = threading.Lock()
 
 
-# (size, base blocks-per-pixel, filename suffix) of the two batch render
-# passes — structure overlays must be written with the same geometry as
-# the base render they stack over.
-BATCH_GEOMETRIES = ((1024, 8, ""), (2048, 16, "_hires"))
-
-
 # How many candidates each pass covers. Enrichment is cheap arithmetic and
 # rendering is minutes of CPU, so they are DELIBERATELY not the same number:
 # enrich wide, re-rank, then render only the survivors. Rendering first would
@@ -69,39 +63,6 @@ def _top_seeds(store, limit):
             scored.append((best, seed_str))
     scored.sort(reverse=True)
     return [s for _, s in scored[:limit]]
-
-
-def _load_structure_all(config_path, dim, seed):
-    """Read a candidate's banked structure_all from the candidate store.
-    Returns None when absent — callers skip overlay generation entirely
-    (no fallback recomputation; a later finalise fills the gap)."""
-    try:
-        sys.path.insert(0, str(SCRIPT_DIR))
-        import candidates as cmod
-        cdir = cmod.candidates_dir(Path(config_path))
-        store = cmod.load_store(cdir / f"{dim}.json")
-        return store["candidates"].get(str(seed), {}).get("structure_all")
-    except Exception:
-        return None
-
-
-def _write_structure_overlays(seedtest, dim, seed_str, structure_all, dim_scale,
-                              geometries=BATCH_GEOMETRIES, skip_existing=True):
-    """Write transparent {seed}{suffix}_structures.png overlays next to the
-    renders. Each geometry MUST match the base render it stacks over;
-    dim_scale shrinks coverage exactly like batch_render's effective_scale."""
-    from biome_renderer import render_structure_overlay
-    out_dir = Path(seedtest) / "renders" / dim
-    out_dir.mkdir(parents=True, exist_ok=True)
-    written = 0
-    for size, base_scale, suffix in geometries:
-        out = out_dir / f"{seed_str}{suffix}_structures.png"
-        if skip_existing and out.exists():
-            continue
-        eff_scale = max(1, int(base_scale / dim_scale))
-        render_structure_overlay(structure_all, str(out), size, size * eff_scale)
-        written += 1
-    return written
 
 
 def _target_names(config_path):
@@ -194,7 +155,7 @@ def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
 
 
 def _render_args_for(config_path, dim):
-    """The generation inputs a one-off render of `dim` needs, as CLI args.
+    """Every CLI arg a one-off HI-RES render of `dim` needs.
 
     _handle_preview and _handle_shortlist each used to resolve this
     themselves, from profile["family"] alone. That draws every custom
@@ -203,8 +164,19 @@ def _render_args_for(config_path, dim):
     biome_renderer.resolve_noise_family). They also dropped the biome
     filter and the noise preset, so the hi-res render was a different
     world from the batch thumbnail sitting next to it.
+
+    Geometry is part of "the same world" and lives here for the same
+    reason. Both callers used to hard-code `--size 1024 --scale 16`, which
+    covers 16384 blocks whatever the dimension's portal scale is, while
+    batch_render's hi-res pass covers 2048 * max(1, 16 // dim_scale). For a
+    16x pocket dimension that is 16384 against 2048 — an eightfold
+    disagreement between two files both called {seed}_hires.png, and every
+    overlay drawn over one of them reads its coverage from the other.
+    Half the pixel budget at twice the blocks per pixel lands on exactly
+    the batch coverage, so one file name now means one geometry.
     """
     family, dim_type, biomes, noise_settings = "overworld", "", [], ""
+    dim_scale = 1.0
     try:
         from dimension_profiles import load_config, load_difficulty, build_profile
         config = load_config(config_path)
@@ -213,16 +185,20 @@ def _render_args_for(config_path, dim):
         all_dims.update({w["name"]: w for w in config.get("worlds", [])})
         entry = all_dims.get(dim)
         if entry:
-            family = build_profile(entry, config, difficulty).get("family") or "overworld"
+            profile = build_profile(entry, config, difficulty)
+            family = profile.get("family") or "overworld"
+            dim_scale = float(profile.get("scale", 1.0) or 1.0) or 1.0
             dim_type = entry.get("type", "") or ""
             noise_settings = entry.get("noiseSettings", "") or ""
             biomes = list(entry.get("biomes") or []) or [
                 b.strip() for b in (entry.get("biome") or "").split(",") if b.strip()]
     except Exception:
         pass
+    blocks_per_pixel = 2 * max(1, int(16 / dim_scale))
     return ["--family", family, "--dim-type", dim_type,
             "--biome-filter", ",".join(biomes),
-            "--noise-settings", noise_settings]
+            "--noise-settings", noise_settings,
+            "--size", "1024", "--scale", str(blocks_per_pixel)]
 
 
 def _find_dim_config(config_path, dim):
@@ -431,26 +407,8 @@ class Pipeline:
             self._set(**{label: []})
             self._bump()
 
-        # 5. Overlays for whatever is now in the rendered top.
-        self._write_overlays(name, dim, config, difficulty, cdir)
         with self.lock:
             self.state["rendered"] += 1
-
-    def _write_overlays(self, name, dim, config, difficulty, cdir):
-        try:
-            from dimension_profiles import build_profile
-            import candidates as cmod
-            store_path = cdir / f"{name}.json"
-            if not store_path.exists():
-                return
-            store = cmod.load_store(store_path)
-            scale = float(build_profile(dim, config, difficulty).get("scale", 1.0) or 1.0)
-            for seed_str in _top_seeds(store, RENDER_TOP):
-                sa = store["candidates"][seed_str].get("structure_all")
-                if sa:
-                    _write_structure_overlays(self.seedtest, name, seed_str, sa, scale)
-        except Exception as exc:
-            self._log(f"{name}: overlays failed — {exc}")
 
     def enrich_all_async(self):
         """Backfill structures and biomes for every banked dimension.
@@ -1035,22 +993,11 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
              "render", "--seed", seed, "--output", str(out_path),
              "--biome-params", biome_params,
-             *_render_args_for(self.config_path, dim),
-             "--size", "1024", "--scale", "16"],
+             *_render_args_for(self.config_path, dim)],
             capture_output=True, text=True, timeout=120)
         if r.returncode == 0 and out_path.exists():
-            # Structures overlay matching THIS render's geometry (1024px,
-            # 16 b/px — narrower than the 2048px batch hires, so overwrite).
-            sa = _load_structure_all(self.config_path, dim, seed)
-            if sa:
-                try:
-                    _write_structure_overlays(
-                        self.seedtest, dim, seed, sa, 1.0,
-                        geometries=((1024, 16, "_hires"),), skip_existing=False)
-                except Exception:
-                    pass
-            rel = f"renders/{dim}/{seed}_hires.png"
-            self._respond_json({"ok": True, "path": rel})
+            self._respond_json({"ok": True,
+                                "path": f"renders/{dim}/{seed}_hires.png"})
         else:
             self._respond_json({"ok": False,
                                 "error": (r.stderr or r.stdout or "render failed")[:200]})
@@ -1100,17 +1047,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
                  "render", "--seed", seed, "--output", str(hires_path),
                  "--biome-params", biome_params,
-                 *_render_args_for(self.config_path, dim),
-                 "--size", "1024", "--scale", "16"],
+                 *_render_args_for(self.config_path, dim)],
                 capture_output=True, text=True, timeout=120)
-            sa = _load_structure_all(self.config_path, dim, seed)
-            if sa and hires_path.exists():
-                try:
-                    _write_structure_overlays(
-                        self.seedtest, dim, seed, sa, 1.0,
-                        geometries=((1024, 16, "_hires"),), skip_existing=False)
-                except Exception:
-                    pass
 
         self._respond_json({"ok": True, "shortlisted": True,
                             "hires": f"renders/{dim}/{seed}_hires.png"})

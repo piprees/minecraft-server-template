@@ -228,8 +228,12 @@
       <button type="button" class="lb-close" aria-label="Close">&times;</button>
       <div class="lb-image">
         <img width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
-        <img class="lb-structs" width="2048" loading="lazy" height="2048" decoding="async" alt="" />
-        <svg id="lb-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+        <!-- Two overlay layers over one map, each owned by one feature:
+             #lb-markers (structicons.js) draws the structures themselves,
+             #lb-overlay (the hover handler in app.js, and dartboard.js)
+             draws the criteria annotating them. Both carry .lb-layer, which
+             is what window.alignLbOverlay() measures and positions. -->
+        <svg id="lb-overlay" class="lb-layer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
         <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
           Structures
         </button>
@@ -241,5 +245,6 @@
   <script src="assets/app.js" defer></script>
   <script src="assets/compare.js" defer></script>
   <script src="assets/dartboard.js" defer></script>
+  <script src="assets/structicons.js" defer></script>
   <script src="assets/scatter.js" defer></script>
 </html>

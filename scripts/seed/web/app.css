@@ -1594,15 +1594,6 @@ img.winner-img {
   image-rendering: pixelated;
   display: block;
 }
-#lightbox .lb-image img.lb-structs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  display: none;
-}
-#lightbox .lb-image img.lb-structs.on {
-  display: block;
-}
 #lightbox .lb-structs-toggle {
   position: absolute;
   left: 0.6rem;
@@ -1859,6 +1850,43 @@ details.incidental .mrow { grid-template-columns: 6px 1fr 4rem; }
 #lb-overlay circle.pt { fill: #ffd850; stroke: #000; stroke-width: .5; }
 .mrow[data-band] { cursor: crosshair; }
 .mrow[data-band]:hover { background: rgba(91,141,208,.12); }
+
+/* --- Structure markers (structicons.js) -------------------------------
+   Real icons on the map, one per placement, replacing the pre-rendered
+   {seed}_structures.png of grey boxes. Two rules govern them:
+
+   1. They sit OVER a map render, which is the one saturated thing on
+      screen (app.css header). So they carry their own dark plate and a
+      light rim — legibility comes from the marker, never from an
+      assumption about the terrain under it.
+   2. The glyph colour is biome_renderer.STRUCT_MAT's material palette,
+      brightened by structicons.lift(). Same vocabulary as the PNG it
+      replaces, so nothing a reader had learned is invalidated. */
+#lb-markers { position: absolute; inset: 0; pointer-events: none; }
+#lb-markers.off { display: none; }
+.sm-plate { fill: rgba(8, 10, 14, .74); stroke: rgba(255, 255, 255, .38);
+            stroke-width: 1; }
+.sm-glyph { stroke: rgba(0, 0, 0, .55); stroke-width: .9;
+            stroke-linejoin: round; paint-order: stroke fill; }
+/* Hovering a row picks its own placements out of the crowd. Opacity, not
+   display: the others staying faintly visible is what makes "this one of
+   forty" readable rather than "here is one marker". */
+#lb-markers.focus .sm { opacity: .3; }
+#lb-markers.focus .sm.on { opacity: 1; }
+#lb-markers .sm { transition: opacity .12s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  #lb-markers .sm { transition: none; }
+}
+/* The row IS the legend — an inline chip in the name cell, so no separate
+   legend block competes for panel space. */
+/* display:inline-block is load-bearing — Tailwind's preflight sets every
+   svg to display:block, which put the chip on its own line above the name
+   in a row whose .mname is white-space:nowrap. */
+.sm-chip { display: inline-block; width: 1.05em; height: 1.05em;
+           vertical-align: -.2em; margin-right: .35rem; flex: none; }
+.sm-count { margin-left: .4rem; opacity: .7;
+            font-variant-numeric: tabular-nums; }
+#lightbox .lb-structs-toggle:disabled { opacity: .45; cursor: default; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0;
            margin: -1px; overflow: hidden; clip: rect(0 0 0 0);
