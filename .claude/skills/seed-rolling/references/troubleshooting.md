@@ -15,7 +15,7 @@ Expanded diagnostics for the seed roller. Check causes in the order given — th
    ```bash
    python3 -c "
    import json
-   params = json.load(open('scripts/seed/biome_params.json'))
+   params = json.load(open('.seedtest/biome_params.json'))
    family_biomes = {e['biome'] for e in params if e.get('family') == '<family>'}
    filter_biomes = ['<biome1>', '<biome2>']  # from the dimension's seedRoll.spawnFilter
    print('missing:', [b for b in filter_biomes if b not in family_biomes])
@@ -32,12 +32,14 @@ Expanded diagnostics for the seed roller. Check causes in the order given — th
    python3 -c "
    import json
    from collections import Counter
-   params = json.load(open('scripts/seed/biome_params.json'))
+   params = json.load(open('.seedtest/biome_params.json'))
    print(Counter(e.get('family') for e in params))
    "
    ```
 
-   Any family under 5 entries needs a warmup re-run (`roll-all.sh` triggers this automatically, but only when Docker is available and `data/mods/*.jar` is populated — run `./dev up` at least once first).
+   Any family under 5 entries needs a warmup re-run (`roll-all.sh` triggers this automatically, but only when Docker is available and mod jars exist in the shared cache `${MOD_CACHE_DIR:-~/.cache/adventure-mods}` or, failing that, `data/mods/` — run `./dev up` at least once to fill the cache).
+
+   The live table is `<consumer>/.seedtest/biome_params.json`. `scripts/seed/biome_params.json` inside the bundle is the read-only platform default that seeds it.
 
 3. **The dimension isn't rollable at all.** `dimension_profiles.rollable()` excludes `superflat` unconditionally, and `void` types unless they carry a non-empty `biomes`/`biome` list. Confirm with `./dev seed-status` — a non-rollable dimension simply never appears in its output table, which is easy to misread as "zero candidates" when it's actually "not attempted".
 
@@ -62,5 +64,5 @@ Expanded diagnostics for the seed roller. Check causes in the order given — th
 ## Warmup failures
 
 - **Docker Desktop isn't running.** `roll-all.sh`'s warmup phase hard-requires `command -v docker` and exits with an explicit error if it's absent — this isn't a silent failure, but it's easy to miss in a long roll log.
-- **The local server has never booted.** Warmup's `prepare_base_dir()` copies mod JARs, config, and Fabric installer files from `data/`; if `./dev up` hasn't run at least once, `data/mods/*.jar` is empty and warmup errors out (`ls "$LOCAL_DATA/mods/"*.jar > /dev/null 2>&1 || { echo "Error: no mods in data/mods — run ./dev up first"; exit 1; }`).
+- **No mod jars anywhere.** Warmup's `prepare_base_dir()` builds its boot directory from the shared mod cache (`${MOD_CACHE_DIR:-~/.cache/adventure-mods}`), falling back to `data/mods/` only when the cache is empty. If neither has jars — a fresh checkout, or a consumer whose `data/` was deleted to reset a world — warmup exits with `Error: no mod jars in <cache> or <data>/mods`. Run `./dev up` once to fill the cache.
 - **The MC server needs ~90 seconds to boot ~129 mods for the biome-param dump.** If `ROLL_MEMORY` is too low for the host, or the boot is otherwise slow, `warmup_biomes.py`'s timeout can expire before the dump completes — this fails **silently** in the sense that the roll continues rather than erroring loudly, but leaves `biome_params.json` stale or incomplete, which then surfaces downstream as zero candidates or all-green renders per the sections above. If a fresh warmup produces suspiciously low family counts, suspect a truncated boot before suspecting the config.

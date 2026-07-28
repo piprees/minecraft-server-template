@@ -192,6 +192,38 @@ def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
     return added
 
 
+def _render_args_for(config_path, dim):
+    """The generation inputs a one-off render of `dim` needs, as CLI args.
+
+    _handle_preview and _handle_shortlist each used to resolve this
+    themselves, from profile["family"] alone. That draws every custom
+    paradise_lost:paradise_lost dimension as an overworld world — the TYPE
+    decides the noise family, not the family (see
+    biome_renderer.resolve_noise_family). They also dropped the biome
+    filter and the noise preset, so the hi-res render was a different
+    world from the batch thumbnail sitting next to it.
+    """
+    family, dim_type, biomes, noise_settings = "overworld", "", [], ""
+    try:
+        from dimension_profiles import load_config, load_difficulty, build_profile
+        config = load_config(config_path)
+        difficulty = load_difficulty(config_path)
+        all_dims = {d["name"]: d for d in config.get("dimensions", [])}
+        all_dims.update({w["name"]: w for w in config.get("worlds", [])})
+        entry = all_dims.get(dim)
+        if entry:
+            family = build_profile(entry, config, difficulty).get("family") or "overworld"
+            dim_type = entry.get("type", "") or ""
+            noise_settings = entry.get("noiseSettings", "") or ""
+            biomes = list(entry.get("biomes") or []) or [
+                b.strip() for b in (entry.get("biome") or "").split(",") if b.strip()]
+    except Exception:
+        pass
+    return ["--family", family, "--dim-type", dim_type,
+            "--biome-filter", ",".join(biomes),
+            "--noise-settings", noise_settings]
+
+
 def _find_dim_config(config_path, dim):
     """Find the JSON file for a dimension in the config directory or
     monolith config. Returns (path, is_overlay) or (None, False)."""
@@ -510,7 +542,7 @@ _pipeline = None
 _fork_schema_cache = None
 
 
-def _build_fork_schema(config_path):
+def _build_fork_schema(config_path, seedtest=None):
     """One JSON blob of every option list the fork/create/edit form needs.
     Built lazily on first request, cached for the server's lifetime — it
     IS the documentation of valid moods/bands/structures/biomes, always
@@ -521,8 +553,9 @@ def _build_fork_schema(config_path):
     sys.path.insert(0, str(SCRIPT_DIR))
     from dimension_profiles import (BANDS, HOSTILE_STRUCTURES, MOOD_BLURBS,
                                     STRUCTS)
+    from seed_paths import biome_params_path
     biomes = {}
-    bp_path = SCRIPT_DIR / "biome_params.json"
+    bp_path = Path(biome_params_path(seedtest))
     if bp_path.exists():
         try:
             # A flat list of {biome, ..., family} rows (~1800), from the
@@ -564,8 +597,8 @@ def _build_fork_schema(config_path):
 # clean_config contains ONLY the validated fields (deep-merged over the
 # parent clone by the caller). Shuns must be the MAP form: the mod's Gson
 # crashes on list-form structures.shuns.
-def _validate_fork_config(raw, config_path):
-    schema = _build_fork_schema(config_path)
+def _validate_fork_config(raw, config_path, seedtest=None):
+    schema = _build_fork_schema(config_path, seedtest)
     sys.path.insert(0, str(SCRIPT_DIR))
     from dimension_profiles import resolve_struct
     clean, errors = {}, {}
@@ -790,7 +823,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/fork-schema":
             try:
-                self._respond_json(_build_fork_schema(self.config_path))
+                self._respond_json(_build_fork_schema(self.config_path,
+                                                      self.seedtest))
             except Exception as exc:
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
@@ -990,33 +1024,17 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{seed}_hires.png"
 
-        biome_params = str(SCRIPT_DIR / "biome_params.json")
+        from seed_paths import biome_params_path
+        biome_params = str(biome_params_path(self.seedtest))
         if not Path(biome_params).exists():
             self._respond_json({"ok": False, "error": "biome_params.json not found"})
             return
-
-        # Resolve the dimension's family from config
-        family = "overworld"
-        try:
-            from dimension_profiles import load_config, load_difficulty, build_profile
-            config = load_config(self.config_path)
-            difficulty = load_difficulty(self.config_path)
-            all_dims = {d["name"]: d for d in config.get("dimensions", [])}
-            all_dims.update({w["name"]: w for w in config.get("worlds", [])})
-            if dim in all_dims:
-                profile = build_profile(all_dims[dim], config, difficulty)
-                family = profile.get("family") or "overworld"
-        except Exception:
-            pass
-
-        # Map family to noise family (same as biome_renderer + fast_roller)
-        noise_family = {"paradise_lost": "paradise_lost"}.get(family, family)
 
         r = subprocess.run(
             [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
              "render", "--seed", seed, "--output", str(out_path),
              "--biome-params", biome_params,
-             "--family", noise_family,
+             *_render_args_for(self.config_path, dim),
              "--size", "1024", "--scale", "16"],
             capture_output=True, text=True, timeout=120)
         if r.returncode == 0 and out_path.exists():
@@ -1074,26 +1092,14 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         # Render hi-res if not already done
         hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}_hires.png"
         if not hires_path.exists():
-            biome_params = str(SCRIPT_DIR / "biome_params.json")
-            family = "overworld"
-            try:
-                from dimension_profiles import load_config, load_difficulty, build_profile
-                config = load_config(self.config_path)
-                difficulty = load_difficulty(self.config_path)
-                all_dims = {d["name"]: d for d in config.get("dimensions", [])}
-                all_dims.update({w["name"]: w for w in config.get("worlds", [])})
-                if dim in all_dims:
-                    profile = build_profile(all_dims[dim], config, difficulty)
-                    family = profile.get("family") or "overworld"
-            except Exception:
-                pass
-            noise_family = {"paradise_lost": "paradise_lost"}.get(family, family)
+            from seed_paths import biome_params_path
+            biome_params = str(biome_params_path(self.seedtest))
             hires_path.parent.mkdir(parents=True, exist_ok=True)
             subprocess.run(
                 [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"),
                  "render", "--seed", seed, "--output", str(hires_path),
                  "--biome-params", biome_params,
-                 "--family", noise_family,
+                 *_render_args_for(self.config_path, dim),
                  "--size", "1024", "--scale", "16"],
                 capture_output=True, text=True, timeout=120)
             sa = _load_structure_all(self.config_path, dim, seed)
@@ -1139,7 +1145,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
 
         clean_config, field_errors = ({}, {})
         if form_config is not None:
-            clean_config, field_errors = _validate_fork_config(form_config, self.config_path)
+            clean_config, field_errors = _validate_fork_config(
+                form_config, self.config_path, self.seedtest)
             if field_errors:
                 self._respond_json({"ok": False, "error": "validation failed",
                                     "errors": field_errors}, 422)
@@ -1350,9 +1357,10 @@ def main():
     ViewerHandler.finalise_args = finalise_args
     ViewerHandler.winner_overlay = args.winner_overlay or ""
 
+    from seed_paths import biome_params_path
     global _pipeline
     _pipeline = Pipeline(args.config, args.seedtest, finalise_args,
-                         str(SCRIPT_DIR / "biome_params.json"))
+                         str(biome_params_path(args.seedtest)))
 
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     print(f"viewer server: http://127.0.0.1:{args.port}/", flush=True)

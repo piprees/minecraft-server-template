@@ -116,7 +116,6 @@ def shun_score(dist, radius, min_distance=None):
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-BIOME_PARAMS = SCRIPT_DIR / "biome_params.json"
 
 WATER_BIOMES = {
     "minecraft:ocean", "minecraft:deep_ocean", "minecraft:cold_ocean",
@@ -456,6 +455,15 @@ def main():
                     help="output CSV path (default: <seedtest>/fast-roller.csv)")
     args = ap.parse_args()
 
+    # FIRST, before anything reads or writes the bank. load_seen_seeds()
+    # below reads the candidate store, and score-dimensions' persist step
+    # writes it; both resolve through candidates.candidates_dir(), which
+    # falls back to the legacy in-config location when no root is set. A
+    # root set later than the first read means the roller sees an empty
+    # bank and re-rolls seeds it already rejected, forever.
+    import candidates as _cmod
+    _cmod.set_bank_root(args.seedtest)
+
     config = load_config(args.config)
     difficulty = load_difficulty(args.config)
     noise_configs = load_noise_configs()
@@ -496,7 +504,8 @@ def main():
         print("Run ./dev seed-roll once to extract them.")
         return 1
 
-    biome_params_path = str(BIOME_PARAMS)
+    from seed_paths import biome_params_path as _resolve_params
+    biome_params_path = str(_resolve_params(args.seedtest))
     if not Path(biome_params_path).exists():
         print(f"ERROR: biome params not found at {biome_params_path}")
         return 1
@@ -573,11 +582,7 @@ def main():
     spec.loader.exec_module(sd)
 
     # score-dimensions.main() is never called here, so the bank root it
-    # normally sets has to be set explicitly or persist_candidates writes
-    # into the legacy in-config location.
-    import candidates as _cmod
-    _cmod.set_bank_root(args.seedtest)
-
+    # normally sets is the one set at the top of this function.
     fargs = argparse.Namespace(
         config=args.config, seedtest=args.seedtest, csv=csv_path)
 

@@ -194,6 +194,28 @@ jobs:
             fi
           done
 
+          # Every sibling module a shipped Python script imports must ship
+          # too. The shell check above only sees `$SCRIPT_DIR/x.sh`, which is
+          # how scripts/seed/preset_terrain.py went unshipped for two
+          # releases: biome_renderer imports it inside a try/except
+          # ImportError, so consumers silently rendered every adventure-preset
+          # dimension with the approximate terrain instead of the exact one.
+          SEED_MODULES=$(cd scripts/seed && ls *.py 2>/dev/null \
+            | sed 's/\.py$//' | grep -v '^test_' | sort -u)
+          for script in $(echo "$MANIFEST" | grep '^scripts/seed/.*\.py$'); do
+            [ -f "$script" ] || continue
+            for mod in $SEED_MODULES; do
+              # `import x`, `from x import ...`, at any indentation.
+              if grep -qE "^[[:space:]]*(import|from)[[:space:]]+${mod}([[:space:]]|,|$)" "$script"; then
+                target="scripts/seed/${mod}.py"
+                if ! echo "$MANIFEST" | grep -qF "$target"; then
+                  echo "::error::$script imports '$mod' but $target is missing from build-stack-bundle.sh MANIFEST"
+                  ERRORS=$((ERRORS + 1))
+                fi
+              fi
+            done
+          done
+
           if [ $ERRORS -gt 0 ]; then
             echo ""
             echo "Add missing scripts to the MANIFEST array in scripts/build-stack-bundle.sh"

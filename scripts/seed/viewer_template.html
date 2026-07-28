@@ -183,6 +183,27 @@
       max-width: 200px;
       width: 100%;
     }
+    /* A candidate is banked the instant it is measured; its render arrives
+       minutes later. Without this the whole grid shows broken-image icons
+       after a fresh roll, which reads as the viewer being broken rather
+       than the renders being queued. The failed <img> is REPLACED by this
+       div rather than restyled: a src-less <img> still draws the browser's
+       own broken-image chrome, and ::after does not render on it. */
+    .dim-card .no-render {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #101216;
+      border: 1px dashed #2a2f38;
+      display: grid;
+      place-items: center;
+      color: #5b6472;
+      font-size: 0.7rem;
+    }
+    .dim-card.expanded .no-render.winner-img {
+      max-width: 200px;
+      width: 100%;
+    }
     .dim-card .dim-name {
       font-size: 0.88rem;
       font-weight: 600;

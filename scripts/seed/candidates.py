@@ -29,6 +29,7 @@ at finalise time — no locking). Writes are atomic: .tmp + rename.
 """
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 # Keys that do NOT change a candidate's score: the seed/spawn are the
@@ -37,6 +38,7 @@ VOLATILE_KEYS = ("seed", "spawn", "name", "dimensionId")
 
 
 _BANK_ROOT = None
+_WARNED_NO_ROOT = False
 
 
 def set_bank_root(seedtest_dir):
@@ -64,9 +66,23 @@ def candidates_dir(config_dir):
     kind, so the bank belongs beside it. Callers that never set a root (the
     unit tests, which build a bare config directory) keep the old location,
     so this stays a relocation rather than a second storage format.
+
+    That fallback is LOUD, because silently it is worse than useless. A
+    consumer whose bundle carried a new candidates.py beside a stale
+    fast_roller.py banked 6911 candidates and 1189 rejects into
+    .stack/<version>/stack/config/custom-dimensions/candidates — inside the
+    stack bundle, invisible to the viewer, and thrown away by the next
+    `./dev update`. Nothing reported anything: the roll said "accepted",
+    the viewer said "no candidates" (2026-07-28).
     """
+    global _WARNED_NO_ROOT
     legacy = Path(config_dir) / "candidates"
     if _BANK_ROOT is None:
+        if not _WARNED_NO_ROOT:
+            _WARNED_NO_ROOT = True
+            print(f"WARNING: candidate bank root not set — using {legacy}. "
+                  "Entry points must call candidates.set_bank_root(<seedtest>) "
+                  "before touching the bank.", file=sys.stderr, flush=True)
         return legacy
     new = _BANK_ROOT / "candidates"
     # Migrate on first touch rather than stranding an existing bank.

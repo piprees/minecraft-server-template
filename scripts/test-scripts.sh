@@ -82,16 +82,28 @@ else
 fi
 
 echo "  Checking seed-roll bundle dependencies..."
+# Two independent questions, both of which have shipped a broken bundle:
+#   1. Does every script roll-all.sh execs appear in the manifest?
+#   2. Does every SIBLING MODULE a shipped seed script imports appear too?
+# (2) is the one that bit: scripts/seed/preset_terrain.py went unshipped for
+# two releases because the only import of it is INDENTED (inside a function
+# in biome_renderer.py) and wrapped in `except ImportError` — so consumers
+# silently rendered every adventure-preset dimension with the approximate
+# terrain, and the old column-0-anchored check saw nothing. Scan every
+# manifest-listed seed .py, at any indentation, not just roll-all's execs.
 BUNDLE_ERRORS=0
+SEED_MANIFEST=$(grep -oE 'scripts/seed/[[:alnum:]_.-]+\.(py|sh)' scripts/build-stack-bundle.sh | sort -u)
 SEED_RUNTIME_FILES=$(grep -hoE '\$SCRIPT_DIR/[[:alnum:]_.-]+\.(py|sh)' scripts/seed/roll-*.sh \
   | sed 's#\$SCRIPT_DIR/#scripts/seed/#' | sort -u)
-for bundle_file in $SEED_RUNTIME_FILES; do
-  [[ "$bundle_file" == *.py ]] || continue
-  while IFS= read -r module; do
-    local_module="scripts/seed/$module.py"
-    [[ -f "$local_module" ]] && SEED_RUNTIME_FILES="$SEED_RUNTIME_FILES $local_module"
-  done < <(sed -nE 's/^from ([[:alnum:]_]+) import .*/\1/p; s/^import ([[:alnum:]_]+).*/\1/p' \
-    "$bundle_file")
+SEED_MODULES=$(ls scripts/seed/*.py | sed 's#scripts/seed/##; s#\.py$##' | grep -v '^test_' | sort -u)
+for bundle_file in $SEED_MANIFEST; do
+  case "$bundle_file" in *.py) ;; *) continue ;; esac
+  [[ -f "$bundle_file" ]] || continue
+  for module in $SEED_MODULES; do
+    if grep -qE "^[[:space:]]*(import|from)[[:space:]]+${module}([[:space:]]|,|$)" "$bundle_file"; then
+      SEED_RUNTIME_FILES="$SEED_RUNTIME_FILES scripts/seed/$module.py"
+    fi
+  done
 done
 for bundle_file in $(printf '%s\n' $SEED_RUNTIME_FILES | sort -u); do
   if ! grep -Fxq "  $bundle_file" scripts/build-stack-bundle.sh; then

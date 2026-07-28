@@ -7,12 +7,14 @@ one memoised sampler across members changes NOTHING about any member's
 measured rows — sampling is deterministic, so group rows must be
 bit-identical to a solo run of the same (member, seed).
 """
+import inspect
 import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
+import candidates
 import fast_roller
 from biome_sampler import load_noise_configs
 from dimension_profiles import build_profile
@@ -128,6 +130,42 @@ class ProcessGroupTests(unittest.TestCase):
         name, results, _acc, _rej, pool, surv, *_ = result[0]
         self.assertEqual((name, pool, surv), ("a", 3, 2))
         self.assertEqual(len(results), 2)
+
+
+class BankRootOrderingTests(unittest.TestCase):
+    """The bank root must be set before ANYTHING reads or writes the bank.
+
+    fast_roller.main() used to set it only just before persisting, which
+    left load_seen_seeds() resolving through the legacy in-config path: an
+    empty `seen` set on every run, so seeds already banked as rejected were
+    drawn and re-measured forever. A consumer running the same mismatch
+    across a hand-patched bundle banked 6911 candidates into
+    .stack/<version>/stack/config/custom-dimensions/candidates and the
+    viewer reported "no candidates" (2026-07-28).
+    """
+
+    def test_main_sets_bank_root_before_reading_seen_seeds(self):
+        # Code only: the comments explaining the ordering name both calls.
+        src = "\n".join(ln for ln in inspect.getsource(fast_roller.main).splitlines()
+                        if not ln.lstrip().startswith("#"))
+        set_at = src.find("set_bank_root(")
+        read_at = src.find("load_seen_seeds(args")
+        self.assertNotEqual(set_at, -1, "fast_roller.main must set the bank root")
+        self.assertNotEqual(read_at, -1, "fast_roller.main must load seen seeds")
+        self.assertLess(set_at, read_at,
+                        "set_bank_root must come before load_seen_seeds")
+
+    def test_missing_root_warns_instead_of_failing_silently(self):
+        candidates.set_bank_root(None)
+        candidates._WARNED_NO_ROOT = False
+        with tempfile.TemporaryDirectory() as tmp:
+            import io
+            import contextlib
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                got = candidates.candidates_dir(Path(tmp))
+            self.assertEqual(got, Path(tmp) / "candidates")
+            self.assertIn("bank root not set", err.getvalue())
 
 
 if __name__ == "__main__":

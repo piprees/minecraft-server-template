@@ -12,7 +12,7 @@ Every biome id available on this server, grouped by **family** (which dimension 
 - `type: "paradise_lost:paradise_lost"` → use **paradise_lost** biomes
 - `type: "void"` → use biomes from **one** family (don't mix)
 
-All biomes below — including Nature's Spirit — are fully supported in both `biomes` lists and `seedRoll.spawnFilter`. The dump captures TerraBlender-injected biomes alongside vanilla and Terralith. If `biome_params.json` is stale (pre-hybrid-dump), re-run warmup: delete `scripts/seed/biome_params.json` and run `./dev seed-roll` (or `./dev seed-roll --reset`).
+All biomes below — including Nature's Spirit — are fully supported in both `biomes` lists and `seedRoll.spawnFilter`. The dump captures TerraBlender-injected biomes alongside vanilla and Terralith. If `biome_params.json` is stale (pre-hybrid-dump), re-run warmup: delete the LIVE table at `<consumer>/.seedtest/biome_params.json` and run `./dev seed-roll` (or `./dev seed-roll --reset`). `scripts/seed/biome_params.json` is the platform default the bundle ships; it seeds the live copy on first use and is never written back to.
 
 ---
 

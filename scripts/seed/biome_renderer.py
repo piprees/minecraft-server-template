@@ -617,12 +617,28 @@ TYPE_NOISE_OVERRIDE = {
 }
 
 
+def resolve_noise_family(dim_type, family):
+    """The noise family a dimension actually generates with.
+
+    The dimension TYPE wins over the profile family, and must: a custom
+    dimension of type paradise_lost:paradise_lost resolves family
+    "overworld" (family_of() maps it that way for scoring), so keying the
+    renderer on family alone draws it as an overworld world — oceans,
+    badlands, cherry groves — instead of paradise skylands. Only the base
+    world paradise_lost carries family "paradise_lost" directly.
+
+    Every renderer and sampler entry point must go through this. It is the
+    same mapping as fast_roller._TYPE_NOISE_OVERRIDE.
+    """
+    return TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
+
+
 def _render_one(task):
     """Multiprocessing worker: render one candidate."""
     (seed, dim_name, family, dim_type, biome_csv, biome_params_path,
      output_path, size, scale, sample_res, noise_settings) = task
     configs = load_noise_configs()
-    noise_family = TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
+    noise_family = resolve_noise_family(dim_type, family)
     noise_config = configs.get(noise_family, configs.get("overworld"))
     biome_filter = [b.strip() for b in biome_csv.split(",") if b.strip()] if biome_csv else None
     try:
@@ -736,6 +752,15 @@ def main():
     single.add_argument("--seed", type=int, required=True)
     single.add_argument("--output", required=True)
     single.add_argument("--family", default="overworld")
+    # The dimension's own generation inputs. Without them a one-off render
+    # is not the same world the batch pass draws: --dim-type picks the
+    # noise family (see resolve_noise_family), --biome-filter restricts the
+    # sampler to the dimension's configured biome list, and
+    # --noise-settings selects the adventure terrain preset.
+    single.add_argument("--dim-type", default="")
+    single.add_argument("--biome-filter", default="",
+                        help="comma-separated biome ids from the dim config")
+    single.add_argument("--noise-settings", default="")
     single.add_argument("--size", type=int, default=1024)
     single.add_argument("--scale", type=int, default=8)
     single.add_argument("--biome-params",
@@ -744,8 +769,9 @@ def main():
     batch = sub.add_parser("batch", help="Render top-N candidates per dimension")
     batch.add_argument("--config", required=True)
     batch.add_argument("--seedtest", required=True)
-    batch.add_argument("--biome-params",
-                       default=str(Path(__file__).resolve().parent / "biome_params.json"))
+    # Default resolved from --seedtest after parsing (see below): the live
+    # table is <seedtest>/biome_params.json, not the bundle's shipped copy.
+    batch.add_argument("--biome-params", default=None)
     batch.add_argument("--top", type=int, default=10)
     batch.add_argument("--size", type=int, default=1024)
     batch.add_argument("--scale", type=int, default=8)
@@ -759,19 +785,27 @@ def main():
 
     if args.command == "render":
         configs = load_noise_configs()
-        noise_config = configs.get(args.family)
+        noise_family = resolve_noise_family(args.dim_type, args.family)
+        noise_config = configs.get(noise_family)
         if not noise_config:
-            sys.exit(f"Unknown family '{args.family}'. Available: {', '.join(configs.keys())}")
+            sys.exit(f"Unknown family '{noise_family}'. Available: {', '.join(configs.keys())}")
+        biome_filter = [b.strip() for b in args.biome_filter.split(",") if b.strip()] or None
         import time
         t0 = time.time()
         sz = render_biome_map(args.seed, args.biome_params, args.output,
-                              noise_config=noise_config, family=args.family,
+                              noise_config=noise_config, family=noise_family,
+                              dim_type=args.dim_type or None,
+                              biome_filter=biome_filter,
+                              noise_settings=args.noise_settings or None,
                               size=args.size, blocks_per_pixel=args.scale)
         elapsed = time.time() - t0
         print(f"Rendered {sz}x{sz} px ({sz*args.scale}x{sz*args.scale} blocks) "
               f"in {elapsed:.1f}s → {args.output}")
 
     elif args.command == "batch":
+        if not args.biome_params:
+            from seed_paths import biome_params_path
+            args.biome_params = str(biome_params_path(args.seedtest))
         return batch_render(args.config, args.seedtest, args.biome_params,
                             top=args.top, size=args.size, scale=args.scale,
                             sample_resolution=args.sample_res,

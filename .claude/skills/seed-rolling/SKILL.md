@@ -25,7 +25,7 @@ All four subcommands (`seed-roll`, `seed-rescore`, `seed-status`, `seed-viewer`)
 
 - **Winners auto-write into the individual dimension config files every 45 seconds** during a roll session (one timestamped backup per session — `.config-backed-up` marker in `.seedtest/` prevents repeat backups; `--no-write` disables writing entirely and only measures + scores).
 - **Ctrl+C finalises** with whatever has been measured so far — it is not a discard. Re-runs resume from banked state; nothing is re-measured.
-- **Rejected seeds are banked in `candidates/{slug}.json`'s `rejected` map and never retried**, even across sessions and resets of `.seedtest/` (the candidate store under `config/custom-dimensions/candidates/` is the durable state — `--reset` wipes both, but a plain re-run of `seed-roll` does not).
+- **Rejected seeds are banked in `.seedtest/candidates/{slug}.json`'s `rejected` map and never retried** across sessions. `--reset` wipes the whole of `.seedtest/`, bank included; a plain re-run of `seed-roll` does not. (The bank used to live under `config/custom-dimensions/candidates/`, which for a consumer resolved inside `data/` — deleting `data/` to reset a world destroyed every measurement. See § Where the roller's state lives.)
 - **Void and superflat dimensions are skipped** — `dimension_profiles.rollable()` excludes `superflat` unconditionally and `void` unless it has a `biomes`/`biome` list (a void with no listed biomes has nothing to measure: no terrain, no listed biomes to locate).
 - Base-world entries (`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` — filenames matching `dimension_profiles.BASE_WORLD_IDS`) roll too, as `worlds[]` entries. The overworld winner becomes the top-level `worldSeed`; nether/end/paradise_lost winners are written as `seed` on their `worlds[]` entry. **New chunks generate on the winning seed; existing chunks keep the old terrain** — only a world wipe (`./ops reset-seed` on production) regenerates everything.
 
@@ -56,7 +56,7 @@ A dimension rolls only if `dimension_profiles.rollable()` says yes:
 Check causes **in this order**, cheapest first:
 
 1. **`seedRoll.spawnFilter` names a biome absent from `biome_params.json` for that dimension's family.** This is by far the most common cause. `fast_roller.tier2_measure` only gates on the spawn filter when at least one namesake biome is representable by the sampler for that family (`namesake_in_sampler = namesake_set & sampler_biomes`); if NONE of the filter biomes exist in the sampled family, every candidate is rejected outright. Cross-check every `spawnFilter` entry against `.claude/skills/custom-dimension-authoring/references/biome-catalogue.md` (the `custom-dimension-authoring` skill) (or `GET /fork-schema`, below) for the dimension's actual family — not just "does this biome exist in the game", but "does it exist for THIS family's noise config".
-2. **The dimension's family wasn't captured by warmup.** `biome_params.json` needs ≥5 entries tagged with a family for it to be usable; `roll-all.sh`'s warmup phase re-triggers automatically when a family's count is implausibly low, but only if Docker is available and `data/mods/` is populated (`./dev up` must have run at least once).
+2. **The dimension's family wasn't captured by warmup.** `.seedtest/biome_params.json` needs ≥5 entries tagged with a family for it to be usable; `roll-all.sh`'s warmup phase re-triggers automatically when a family's count is implausibly low, but only if Docker is available and mod jars exist in the shared cache (`${MOD_CACHE_DIR:-~/.cache/adventure-mods}`, filled by `./dev up`) or in `data/mods/`.
 3. **The dimension isn't rollable** — see Rollability rules above. Check with `./dev seed-status` (a non-rollable dim never appears in its output at all) or by re-reading the config against `dimension_profiles.rollable()`.
 
 **How the actual spawn gate works (verify this against `fast_roller.py`, not older prose):** for each survivor seed, `tier2_measure` samples a 768-block-radius, 256-block-step grid (`biome_sampler.spawn_filter`) for the nearest matching namesake biome. If nothing matches anywhere in that grid, the candidate is rejected and banked (never re-rolled) and the worker draws a fresh seed. If something matches, the candidate is **always accepted** — a match within 48 blocks scores full namesake credit; anything further out (up to the 768-block search radius) still banks `spawn_filter_dist` and earns partial proximity credit in scoring, capped below a true 48-block spawn. There is no multi-stage widening gate keyed on an attempt counter in the current pipeline — if you see that description elsewhere in older documentation, trust `fast_roller.py`'s `tier2_measure` instead; it's the code that actually runs for `./dev seed-roll`.
@@ -74,11 +74,13 @@ Prefer this over guessing a biome id or structure short name from memory — it'
 
 ## Warmup — when it must re-run
 
-Warmup (`roll-all.sh` phase 1) extracts structure sets from mod JARs into `.seedtest/.structure_sets/` and dumps `biome_params.json` from a short-lived, stripped-down MC server boot (`/customdim dump-biome-params`, ~90s). It needs **Docker** and a **local server that has booted at least once** (`./dev up`, so `data/mods/` is populated). It re-runs automatically when:
+Warmup (`roll-all.sh` phase 1) extracts structure sets from mod JARs into `.seedtest/.structure_sets/` and dumps `biome_params.json` from a short-lived, stripped-down MC server boot (`/customdim dump-biome-params`, ~90s). It needs **Docker** and mod jars in the shared cache (`${MOD_CACHE_DIR:-~/.cache/adventure-mods}`, filled by `./dev up`), falling back to `data/mods/` only if the cache is empty — the roller never requires `data/` to exist. It re-runs automatically when:
 
 - `.seedtest/.structure_sets/` doesn't exist yet.
-- `biome_params.json` doesn't exist, or a family's tagged biome count is implausibly low (< 5) — this is the automatic re-trigger `roll-all.sh` checks before every roll.
+- `.seedtest/biome_params.json` doesn't exist, or a family's tagged biome count is implausibly low (< 5) — this is the automatic re-trigger `roll-all.sh` checks before every roll.
 - You've changed worldgen mods and need `biome_catalog.json`/`biome_params.json` refreshed by hand: `scripts/seed/extract-biome-catalog.py <data-dir>`.
+
+**The live biome parameter table is `<consumer>/.seedtest/biome_params.json`**, seeded once from the read-only copy the bundle ships at `scripts/seed/biome_params.json` and never written back to it. It used to be written in place inside `.stack/<version>/`, so `./dev update` silently discarded every warmup and forced the ~90s Docker boot again on the next roll.
 
 A warmup failure ("ERROR: biome param dump failed") leaves scoring incomplete but does not stop the roll — dimensions in the affected family will simply zero-candidate per the diagnostic above.
 
@@ -119,6 +121,21 @@ The progression floors that gate the Nether and the End are in `scripts/check-no
 
 **Two fields became generation-affecting for the first time:** `borders.player` (sets the scanned radius AND the noise frequency scale) and `difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both used to be scoring-only. Editing either now re-rolls the dimension.
 
+## Where the roller's state lives
+
+Everything the roller derives is under `<consumer>/.seedtest/`, and nothing else. Not `data/` (the mc container's tree, deleted to reset a world) and not `.stack/<version>/` (an immutable release directory, replaced wholesale by `./dev update`).
+
+| State | Path |
+| --- | --- |
+| Candidate bank | `.seedtest/candidates/{slug}.json` |
+| Live biome parameter table | `.seedtest/biome_params.json` (seeded from the bundle's read-only copy) |
+| Structure sets | `.seedtest/.structure_sets/` |
+| Warmup boot dir | `.seedtest/base/` |
+| Renders | `.seedtest/renders/{slug}/` |
+| Winners | `overlay/config/custom-dimensions/dimensions/{slug}.json` (committed) |
+
+**The bank root is not derived — it is passed in.** Every entry point (`fast_roller.py`, `score-dimensions.py`, `viewer-server.py`, `biome_renderer.py batch`) must call `candidates.set_bank_root(<seedtest>)` **before the first read or write**, because `candidates_dir()` falls back to the legacy in-config location when no root is set. `fast_roller.main` sets it immediately after `parse_args()` for exactly this reason: it used to set it just before persisting, which left `load_seen_seeds()` reading the legacy path and re-rolling already-rejected seeds forever. The fallback now prints a `WARNING: candidate bank root not set` line to stderr — if you ever see it outside the unit tests, an entry point is missing the call and the bank is going somewhere you do not want it (`test_fast_roller.BankRootOrderingTests` guards the ordering).
+
 ## Traps
 
 1. **The fingerprint corollary.** Any new generation-affecting config field must be added to `dimension_profiles.generation_payload()` or seed-group rolling silently lies — two dimensions sharing a fingerprint AND a seed are literal world clones sharing a doubly-measured world. Worked instance (2026-07-24): derived exit-shrine spacing made `borders.player` generation-affecting for `exitShrines` dims — the payload gained a _conditional_ `shrineSpacing` key, added only when `exitShrines.enabled` and no explicit `structures.spacing` override exists, specifically so every pre-existing non-shrine fingerprint stayed byte-stable (an always-present key would have DRIFTED every candidate store at once).
@@ -130,7 +147,8 @@ The progression floors that gate the Nether and the End are in `scripts/check-no
 7. **DistantHorizons configs leak into seedtest dirs.** `roll-all.sh`'s `prepare_base_dir` already deletes `config/DistantHorizons` from the warmup base dir — if you build a custom warmup harness, copy this or expect 70+ map-loading warnings at boot.
 8. **macOS: `od -An -td8` produces single-byte values, not 64-bit longs** — the `8` is a field-width argument, not a byte-size one. Use `-tu8` for unsigned, or `python3 -c "import os,struct; print(struct.unpack('<q', os.urandom(8))[0])"` for a signed 64-bit random seed (this is exactly what `fast_roller.random_seed()` and `score-dimensions.random_signed_seed()` do). **`grep -P` does not exist on macOS BSD grep** — use `grep -oE` instead.
 9. **`LEVEL_TYPE=flat` on the overworld breaks structure placement in every custom dimension**, not just the flat one. The mod's `createDimensionOptions` templates off `overworldOpts`; a flat overworld makes that a `FlatChunkGenerator`, which fails the `instanceof NoiseChunkGenerator` check the `multi_biome` case (and others) rely on. Confirmed by A/B test (`AGENTS.md` platform traps). If every locate suddenly returns "Could not find" across the whole roll, check the overworld's `LEVEL_TYPE` before suspecting the roller.
-10. **Production `sample-noise` diverges from pure-vanilla evaluation of the same seed and settings** — stable, pre-existing, and prime suspect is c2me's chunk-system/noise modules (`mods/AGENTS.md`). The roller's climate model is vanilla-semantics, so any bias is shared and scoring stays relative between candidates — but don't trust an ABSOLUTE coordinate predicted headlessly against what production actually generates without checking `customdim sample-noise` first.
+10. **The dimension TYPE decides the noise family, not `profile["family"]`.** `build_profile()` reports family `overworld` for a custom dimension of type `paradise_lost:paradise_lost` — right for scoring, wrong for anything that samples or draws the world. Go through `biome_renderer.resolve_noise_family(dim_type, family)`, which mirrors `fast_roller._TYPE_NOISE_OVERRIDE`. The viewer's on-demand hi-res render keyed on family alone and drew every such dimension as an overworld world — oceans, badlands, cherry groves — next to a batch thumbnail of the correct skylands (fixed 2026-07-28; guarded by `test_biome_pipeline.TestNoiseFamilyResolution`).
+11. **Production `sample-noise` diverges from pure-vanilla evaluation of the same seed and settings** — stable, pre-existing, and prime suspect is c2me's chunk-system/noise modules (`mods/AGENTS.md`). The roller's climate model is vanilla-semantics, so any bias is shared and scoring stays relative between candidates — but don't trust an ABSOLUTE coordinate predicted headlessly against what production actually generates without checking `customdim sample-noise` first.
 
 ## Validation — do not skip
 

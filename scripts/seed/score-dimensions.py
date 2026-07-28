@@ -1360,7 +1360,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
         hires = "renders/{}/{}_hires.png".format(name, best["seed"])
         img_html = ("<img src='{}' data-hires='{}' loading='lazy' "
                     "alt='Map render — {} best seed' "
-                    "onerror=\"this.onerror=null\">").format(img, hires, esc_name)
+                    "onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">").format(img, hires, esc_name)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
             html.escape(best.get("spawn_biome", "")))
 
@@ -1406,7 +1406,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if best:
         out.append("<img class='winner-img' src='renders/{}/{}.png' loading='lazy' "
                    "alt='Map render — {} seed {}' "
-                   "onerror=\"this.onerror=null\">".format(
+                   "onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">".format(
                        name, best["seed"], esc_name, best["seed"]))
     out.append("<div class='detail-info'>")
     out.append("<h2>{}</h2>".format(html.escape(name)))
@@ -1973,7 +1973,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} title='{}'>"
         "<img src='{}' data-hires='{}' loading='lazy' style='background:{}' "
-        "alt='Map render — {} seed {}' onerror=\"this.onerror=null\">"
+        "alt='Map render — {} seed {}' onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' title='{}' style='color:{}'>{:.1f}{}</div>"

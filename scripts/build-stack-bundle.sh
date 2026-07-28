@@ -70,6 +70,7 @@ MANIFEST=(
   scripts/pin-mod-versions.sh
   scripts/modrinth-api.py
   scripts/seed/candidates.py
+  scripts/seed/seed_paths.py
   scripts/seed/roll-all.sh
   scripts/seed/seed_worker.py
   scripts/seed/dimension_profiles.py
@@ -88,6 +89,11 @@ MANIFEST=(
   scripts/check-noise-regression.py
   scripts/seed/surface_rules.py
   scripts/seed/terrain_height.py
+  # biome_renderer imports this for exact heights on the adventure noise
+  # presets and falls back to the Terralith spline approximation on
+  # ImportError — so leaving it out of the bundle silently downgrades every
+  # render a consumer sees instead of failing.
+  scripts/seed/preset_terrain.py
   scripts/seed/warmup_biomes.py
   scripts/seed/terrain_splines.json
   scripts/seed/biome_params.json

@@ -163,7 +163,14 @@ warmup() {
   local need_warmup=0
   [[ ! -d "$SEEDTEST/.structure_sets" ]] && need_warmup=1
 
-  local biome_params="$SCRIPT_DIR/biome_params.json"
+  # Live table in .seedtest, seeded from the bundle's shipped copy. Writing
+  # the warmed table back over the shipped one buried ~90s of Docker warmup
+  # inside .stack/<version>/, which the next `./dev update` replaces
+  # wholesale — and inside the git tree for anyone running from a checkout.
+  local biome_params="$SEEDTEST/biome_params.json"
+  if [[ ! -f "$biome_params" && -f "$SCRIPT_DIR/biome_params.json" ]]; then
+    cp "$SCRIPT_DIR/biome_params.json" "$biome_params"
+  fi
   local nether_count=0
   if [[ -f "$biome_params" ]]; then
     nether_count=$(python3 -c "
@@ -187,10 +194,16 @@ print(nether if tagged > 0 else 0)
     echo "Error: docker needed for first-time warmup (structure set extraction)" >&2
     exit 1
   }
-  ls "$LOCAL_DATA/mods/"*.jar > /dev/null 2>&1 || {
-    echo "Error: no mods in data/mods — run ./dev up first" >&2
+  # Jars come from the shared cache first, data/mods only as a fallback —
+  # the same order prepare_base_dir uses. Checking data/mods alone made a
+  # consumer with a full cache and no data/ (a world reset deletes it) fail
+  # warmup with "run ./dev up first" while the jars sat right there.
+  if ! compgen -G "$(mod_cache_dir)/*.jar" > /dev/null \
+     && ! compgen -G "$LOCAL_DATA/mods/*.jar" > /dev/null; then
+    echo "Error: no mod jars in $(mod_cache_dir) or $LOCAL_DATA/mods" >&2
+    echo "  Run ./dev up once to populate the mod cache." >&2
     exit 1
-  }
+  fi
 
   prepare_base_dir
 

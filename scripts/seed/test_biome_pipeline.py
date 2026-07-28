@@ -489,5 +489,43 @@ class TestSnapshotRenders(unittest.TestCase):
         self._check_snapshot("end")
 
 
+class TestNoiseFamilyResolution(unittest.TestCase):
+    """Every render and sample path must resolve the noise family the same
+    way, from the dimension TYPE first.
+
+    build_profile() reports family "overworld" for a custom dimension of
+    type paradise_lost:paradise_lost — correct for scoring, catastrophic
+    for rendering, which drew those dimensions as overworld worlds
+    (oceans, badlands, cherry groves) instead of paradise skylands. The
+    viewer's on-demand hi-res render keyed on family alone and did exactly
+    that, next to a batch thumbnail of the right world (2026-07-28).
+    """
+
+    def test_type_beats_family(self):
+        from biome_renderer import resolve_noise_family
+        self.assertEqual(
+            resolve_noise_family("paradise_lost:paradise_lost", "overworld"),
+            "paradise_lost")
+        self.assertEqual(resolve_noise_family("nether_islands", "overworld"),
+                         "nether")
+        self.assertEqual(resolve_noise_family("sky_islands", "overworld"),
+                         "overworld")
+
+    def test_plain_families_pass_through(self):
+        from biome_renderer import resolve_noise_family
+        for fam in ("overworld", "nether", "end", "paradise_lost"):
+            self.assertEqual(resolve_noise_family("multi_biome", fam), fam)
+        self.assertEqual(resolve_noise_family("", None), "overworld")
+
+    def test_matches_the_rollers_own_override_table(self):
+        """The roller measures through fast_roller's table; a renderer that
+        disagrees draws a different world from the one that was scored."""
+        import biome_renderer
+        import fast_roller
+        for dim_type, fam in fast_roller._TYPE_NOISE_OVERRIDE.items():
+            self.assertEqual(biome_renderer.resolve_noise_family(dim_type, "overworld"),
+                             fam, f"{dim_type} disagrees with fast_roller")
+
+
 if __name__ == "__main__":
     unittest.main()
