@@ -851,3 +851,142 @@ class TestNoisePlacementFingerprint(unittest.TestCase):
                                        "description": "different text",
                                        "portal": {"scale": 8.0}})
         self.assertEqual(a, b)
+
+
+class UnsatisfiableWantSweepTests(unittest.TestCase):
+    """A want the placement rules forbid outright is a CONSTANT deduction.
+
+    PlacesNothingTests above covers the loud case — a dimension that can
+    place nothing at all. This is the quiet one it cannot see: a dimension
+    that places plenty, asking for a structure in a ring where its group's
+    radial curve never clears the noise profile's threshold. Every candidate
+    loses the same points for it, so it contributes nothing to the ranking
+    while capping the ceiling.
+
+    The maths under test is exact, not a heuristic:
+    NoiseFieldIndex skips a chunk before sampling when
+    `radialWeight <= profile.threshold`, and the noise sample is clamped to
+    [0, 1], so `noise * weight > threshold` is unreachable there for any seed.
+    """
+
+    #: The shipped shapes, so a curve edit that breaks an assumption here
+    #: fails loudly rather than silently changing what is reachable.
+    OUTER = [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0]
+    INNER = [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0]
+
+    TYPE_DEFAULTS = {
+        "curves": {"outer": OUTER, "inner": INNER, "even": [1.0] * 10},
+        "groupDefaults": {
+            "dungeons": {"profile": "sparse", "radial": "outer", "exclusion": 8},
+            "settlements": {"profile": "natural", "radial": "inner", "exclusion": 6},
+        },
+        "difficultyShifts": {
+            "peaceful": {"maxMobMultiplier": 0.5, "profiles": {}},
+            "hostile": {"minMobMultiplier": 2.0, "radial": {}},
+        },
+        "types": {"multi_biome": {"groups": ["dungeons", "settlements"],
+                                  "profiles": {}, "radial": {}}},
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        import sweep_structure_wants
+        cls.sweep = sweep_structure_wants
+
+    def _dim(self, radius, wants, **over):
+        dim = {"name": "t", "type": "multi_biome", "dimensionId": "adventure:t",
+               "biomes": ["minecraft:plains"],
+               "borders": {"player": radius, "generation": radius},
+               "structures": {"wants": wants},
+               "seedRoll": {"mood": "standard"}}
+        dim.update(over)
+        return dim
+
+    def _run(self, dim, struct_to_set, set_to_group, struct_sets=None):
+        cfg = {"namespace": "adventure", "dimensions": [dim],
+               "portals": [], "worlds": []}
+        profile = build_profile(dim, cfg)
+        return self.sweep.sweep_dimension(
+            "t", dim, profile, struct_sets or {}, {}, struct_to_set,
+            set_to_group, self.TYPE_DEFAULTS)
+
+    # --- the exact reachability maths -----------------------------------
+    def test_max_curve_weight_is_the_peak_not_the_mean(self):
+        # The band spans the whole curve, so the peak is the curve's peak.
+        self.assertAlmostEqual(
+            self.sweep.max_curve_weight(self.OUTER, 0, 1000, 1000), 2.0)
+
+    def test_max_curve_weight_over_a_dead_inner_band(self):
+        # radial_weight puts control point i at fraction i/9, so the inner
+        # 30% of an `outer` curve tops out between points 2 and 3.
+        peak = self.sweep.max_curve_weight(self.OUTER, 0, 300, 1000)
+        self.assertLess(peak, 0.45)   # below even `dense`'s threshold
+
+    def test_max_curve_weight_with_no_curve_is_flat_one(self):
+        self.assertEqual(self.sweep.max_curve_weight(None, 0, 300, 1000), 1.0)
+
+    # --- what the sweep reports -----------------------------------------
+    def test_near_spawn_dungeon_want_is_flagged(self):
+        found = self._run(
+            self._dim(8192, {"trial_chambers": "near_spawn"}),
+            {"minecraft:trial_chambers": "minecraft:trial_chambers"},
+            {"minecraft:trial_chambers": "dungeons"})
+        self.assertEqual([f["code"] for f in found], ["CURVE-BELOW-THRESHOLD"])
+
+    def test_near_border_dungeon_want_is_not_flagged(self):
+        found = self._run(
+            self._dim(8192, {"trial_chambers": "near_border"}),
+            {"minecraft:trial_chambers": "minecraft:trial_chambers"},
+            {"minecraft:trial_chambers": "dungeons"})
+        self.assertEqual(found, [])
+
+    def test_near_border_settlement_want_is_flagged(self):
+        """The mirror image: `inner` ends in three hard zeros."""
+        found = self._run(
+            self._dim(1024, {"village": "near_border"}),
+            {"minecraft:village_plains": "minecraft:villages"},
+            {"minecraft:villages": "settlements"})
+        self.assertEqual([f["code"] for f in found], ["CURVE-BELOW-THRESHOLD"])
+
+    def test_band_starting_beyond_the_border_is_flagged(self):
+        found = self._run(
+            self._dim(256, {"village": {"min": 256, "max": 2048}}),
+            {"minecraft:village_plains": "minecraft:villages"},
+            {"minecraft:villages": "settlements"})
+        self.assertEqual([f["code"] for f in found], ["BAND-OUTSIDE-BORDER"])
+
+    def test_a_suppressed_group_is_flagged(self):
+        found = self._run(
+            self._dim(1024, {"trial_chambers": "near_border"},
+                      structureDensity="normal"),
+            {"minecraft:trial_chambers": "minecraft:trial_chambers"},
+            {"minecraft:trial_chambers": "endgame"})  # not in the type's groups
+        self.assertEqual([f["code"] for f in found], ["GROUP-SUPPRESSED"])
+
+    def test_a_want_with_no_set_and_no_group_is_flagged(self):
+        found = self._run(self._dim(1024, {"trial_chambers": "near_border"}),
+                          {}, {})
+        self.assertEqual([f["code"] for f in found], ["SET-NOT-EXTRACTED"])
+
+    def test_a_forced_want_is_never_flagged(self):
+        """structures.force is the strongest statement of intent in the
+        schema; the author put it exactly where they wanted it."""
+        dim = self._dim(
+            256, {"village": {"min": 256, "max": 2048}},
+            structures={"wants": {"village": {"min": 256, "max": 2048}},
+                        "force": [{"structure": "#minecraft:village",
+                                   "x": 100, "z": 100}]})
+        found = self._run(dim, {"minecraft:village_plains": "minecraft:villages"},
+                          {"minecraft:villages": "settlements"})
+        # The band check runs first and is about the CONFIG, not the seed, so
+        # it still fires; nothing group-related does.
+        self.assertNotIn("CURVE-BELOW-THRESHOLD", [f["code"] for f in found])
+
+    def test_shuns_are_not_swept(self):
+        """A shun that can never be violated is a free point, not a bug."""
+        dim = self._dim(8192, {})
+        dim["structures"] = {"wants": {}, "shuns": {"trial_chambers": {}}}
+        found = self._run(dim,
+                          {"minecraft:trial_chambers": "minecraft:trial_chambers"},
+                          {"minecraft:trial_chambers": "dungeons"})
+        self.assertEqual(found, [])
