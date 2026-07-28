@@ -2043,6 +2043,7 @@ def main():
     args = ap.parse_args()
     if not args.csv:
         args.csv = os.path.join(args.seedtest, "measurements.csv")
+    candidates.set_bank_root(args.seedtest)
 
     config = load_config(args.config)
     difficulty = load_difficulty(args.config)

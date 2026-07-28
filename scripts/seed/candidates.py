@@ -36,8 +36,53 @@ from pathlib import Path
 VOLATILE_KEYS = ("seed", "spawn", "name", "dimensionId")
 
 
+_BANK_ROOT = None
+
+
+def set_bank_root(seedtest_dir):
+    """Point the candidate bank at <seedtest>/candidates.
+
+    Every entry point already knows its --seedtest, so the location is
+    passed in rather than derived from the config path: deriving it meant
+    walking ABOVE the config directory, which lands outside the project
+    entirely for any layout that is not the exact consumer/platform shape.
+    """
+    global _BANK_ROOT
+    _BANK_ROOT = Path(seedtest_dir).resolve() if seedtest_dir else None
+
+
 def candidates_dir(config_dir):
-    return Path(config_dir) / "candidates"
+    """Where the candidate bank lives: <seedtest>/candidates.
+
+    NOT under the config directory. In a consumer that resolved to
+    <root>/data/config/custom-dimensions/candidates — inside `data/`, the
+    disposable runtime tree you wipe to reset a world. A bank is hours of
+    measurement and is not game data; losing it to a routine `rm -rf data/`
+    is a trap, and it cost a full bank on 2026-07-28.
+
+    Everything else in .seedtest is derived research state of exactly this
+    kind, so the bank belongs beside it. Callers that never set a root (the
+    unit tests, which build a bare config directory) keep the old location,
+    so this stays a relocation rather than a second storage format.
+    """
+    legacy = Path(config_dir) / "candidates"
+    if _BANK_ROOT is None:
+        return legacy
+    new = _BANK_ROOT / "candidates"
+    # Migrate on first touch rather than stranding an existing bank.
+    if legacy.is_dir() and not new.exists():
+        stores = sorted(legacy.glob("*.json"))
+        if stores:
+            new.mkdir(parents=True, exist_ok=True)
+            for f in stores:
+                target = new / f.name
+                if not target.exists():
+                    f.replace(target)
+            try:
+                legacy.rmdir()
+            except OSError:
+                pass   # other files in there; leave them be
+    return new
 
 
 def config_hash(dim_config):

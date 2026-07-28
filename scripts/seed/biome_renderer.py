@@ -646,6 +646,8 @@ def batch_render(config_path, seedtest_path, biome_params_path,
 
     from dimension_profiles import load_config, load_difficulty, build_profile, rollable
     import candidates as cmod
+    # Separate process: the bank root is not inherited, so set it here too.
+    cmod.set_bank_root(seedtest_path)
 
     config = load_config(config_path)
     difficulty = load_difficulty(config_path)

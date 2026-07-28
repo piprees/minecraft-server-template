@@ -43,6 +43,7 @@ jobs:
         variant: [default, removal]
     env:
       VARIANT: ${{ matrix.variant }}
+      MOD_CACHE_DIR: ${{ github.workspace }}/.modcache
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -72,13 +73,15 @@ jobs:
       - name: Restore mod cache
         uses: actions/cache@v6
         with:
-          path: data/mods
-          # Variant-suffixed: the removal variant prunes jars from data/mods,
-          # and a shared key would let it poison the default variant's cache.
-          key: mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-${{ matrix.variant }}
-          restore-keys: |
-            mc-mods-${{ hashFiles('config/modrinth-mods.txt') }}-
-            mc-mods-
+          # The shared jar cache (scripts/lib.sh mod_cache_dir), NOT data/mods.
+          # data/mods is a per-variant working directory that the removal
+          # variant prunes, which is why this used to need a variant-suffixed
+          # key to stop one variant poisoning the other. The cache holds every
+          # jar and is never pruned, so both variants share one entry and
+          # Modrinth sees one download instead of two.
+          path: ${{ github.workspace }}/.modcache
+          key: mc-jars-${{ hashFiles('config/modrinth-mods.txt') }}
+          restore-keys: mc-jars-
 
       - name: Write consumer mods-remove overlay (removal variant)
         if: matrix.variant == 'removal'

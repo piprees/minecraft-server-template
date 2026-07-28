@@ -191,6 +191,21 @@ if [[ "$CMD" != "help" && "$CMD" != "--help" && "$CMD" != "-h" ]]; then
   unset _banner _brand
 fi
 
+# Dimension config resolution for the seed tools. Order: this repo's own
+# config (platform), else the stack bundle (consumer). The consumer's
+# overrides live in overlay/ and are passed separately via SEED_OVERLAY_DIR.
+# data/ is the mc container's and is never read here.
+resolve_seed_config() {
+  SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
+  if [[ ! -d "$SEED_CFG/dimensions" ]]; then
+    SEED_CFG="$CONSUMER_DIR/.stack/current/stack/config/custom-dimensions"
+  fi
+  if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
+    SEED_OVERLAY_DIR="$CONSUMER_DIR/overlay/config/custom-dimensions"
+    export SEED_OVERLAY_DIR
+  fi
+}
+
 case "$CMD" in
   up)
     ensure_env
@@ -354,7 +369,7 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     VERIFY_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$VERIFY_CFG/dimensions" ]] || VERIFY_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
+    [[ -d "$VERIFY_CFG/dimensions" ]] || VERIFY_CFG="$CONSUMER_DIR/.stack/current/stack/config/custom-dimensions"
     VERIFY_FAILED=0
     for check in check-dimension-drift check-portal-integrity; do
       script="$CONSUMER_DIR/$STACK_SCRIPTS/$check.py"
@@ -365,7 +380,7 @@ case "$CMD" in
       echo "== $check"
       python3 "$script" --data "$CONSUMER_DIR/data" || VERIFY_FAILED=1
     done
-    CENSUS_DIR="$CONSUMER_DIR/data/config/custom-dimensions/census"
+    CENSUS_DIR="$CONSUMER_DIR/.seedtest/census"
     if [[ -d "$CENSUS_DIR" ]]; then
       echo "== check-noise-regression"
       python3 "$CONSUMER_DIR/$STACK_SCRIPTS/check-noise-regression.py" \
@@ -386,16 +401,14 @@ case "$CMD" in
     # checkouts), else the merged view the server boots (bundle defaults +
     # staged overlay under data/) — that is also where the candidate bank
     # lives for consumers.
-    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
+    resolve_seed_config
     exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
       --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
     ;;
   seed-viewer)
     ensure_stack
     export CONSUMER_DIR
-    SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$SEED_CFG/dimensions" ]] || SEED_CFG="$CONSUMER_DIR/data/config/custom-dimensions"
+    resolve_seed_config
     VIEWER_ARGS=(--config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest")
     # Consumer mode: pass overlay path so re-roll writes winners there
     if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then

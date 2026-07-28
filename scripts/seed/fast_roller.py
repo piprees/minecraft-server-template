@@ -572,6 +572,12 @@ def main():
     sys.modules[spec.name] = sd
     spec.loader.exec_module(sd)
 
+    # score-dimensions.main() is never called here, so the bank root it
+    # normally sets has to be set explicitly or persist_candidates writes
+    # into the legacy in-config location.
+    import candidates as _cmod
+    _cmod.set_bank_root(args.seedtest)
+
     fargs = argparse.Namespace(
         config=args.config, seedtest=args.seedtest, csv=csv_path)
 

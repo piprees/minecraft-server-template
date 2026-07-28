@@ -118,6 +118,13 @@ validate_targets() {
       if [[ "$ACTION" == "status" ]]; then
         continue
       fi
+      # Production only. The guard exists because a raw stop/restart there
+      # skips deploy.sh's countdown, kick, save-flush and whitelist dance
+      # with players connected — none of which exists locally, where
+      # stopping mc to swap a mod jar is the normal inner loop.
+      if [[ $LOCAL -eq 1 ]]; then
+        continue
+      fi
       die "Refusing raw MC lifecycle operation. Use deploy.sh or Discord /mc restart."
     fi
     is_sidecar "$target" || die "Unknown sidecar: $target"

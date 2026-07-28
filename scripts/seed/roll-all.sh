@@ -31,67 +31,41 @@ ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/../lib.sh"
 PROJECT_ROOT="${CONSUMER_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+# data/ belongs to the mc container. The roller reads exactly one thing from
+# it — the installed mod jars, to boot the warmup container — and writes
+# nothing. All seed-rolling state lives in .seedtest.
 LOCAL_DATA="$PROJECT_ROOT/data"
 
-# Config resolution
 CONFIG_DIR="$PROJECT_ROOT/config/custom-dimensions"
 BUNDLE_CONFIG="$(cd "$SCRIPT_DIR/../.." 2> /dev/null && pwd)/config"
 WINNER_FLAG=""
 
-# Stage the dimension configs out of the stack bundle, exactly as dev-up.sh
-# does. Rolling seeds needs the config files, not a booted world, so a
-# missing staged copy is something to FIX rather than to report — telling a
-# consumer to "run ./dev up first" is a quirk they should never have to
-# learn, and the previous behaviour (bail out) meant a clean checkout's
-# first roll always failed.
-stage_dimension_config() {
-  local staged="$LOCAL_DATA/config/custom-dimensions"
-  if [[ ! -d "$BUNDLE_CONFIG/custom-dimensions/dimensions" ]]; then
-    echo "Error: no dimension config anywhere." >&2
+# Config resolution. The roller reads the SAME sources the server does —
+# platform defaults and the consumer's overlay — straight from where they
+# live. It never reads (or writes) data/: that tree belongs to the mc
+# container and is wiped to reset a world, which must not disturb a
+# separate application.
+if [[ -d "$CONFIG_DIR/dimensions" ]]; then
+  CONFIG="$CONFIG_DIR"                      # platform repo
+else
+  CONFIG="$BUNDLE_CONFIG/custom-dimensions" # consumer: the stack bundle
+  if [[ ! -d "$CONFIG/dimensions" ]]; then
+    echo "Error: no dimension config found." >&2
     echo "  Looked in: $CONFIG_DIR/dimensions" >&2
-    echo "             $staged/dimensions" >&2
-    echo "             $BUNDLE_CONFIG/custom-dimensions/dimensions" >&2
+    echo "             $CONFIG/dimensions" >&2
     echo "  Run ./dev update to fetch the stack bundle." >&2
     exit 1
   fi
-  echo "Staging dimension config from the stack bundle (first run)..."
-  mkdir -p "$staged"
-  (
-    cd "$BUNDLE_CONFIG/custom-dimensions" || exit 1
-    find . -type f -not -path './extractors/*' -not -path './candidates/*' \
-      | while IFS= read -r f; do
-        dest="$staged/${f#./}"
-        mkdir -p "$(dirname "$dest")"
-        cp "$f" "$dest"
-      done
-  )
-  echo "  Staged $(find "$staged/dimensions" -name '*.json' | wc -l | tr -d ' ') dimension(s)"
-}
-
-# The consumer's own overrides are a SEPARATE tree the mod merges at load
-# time; the roller reads the same merged view, so restage it every run
-# rather than only after a write (an edited overlay would otherwise be
-# invisible until the next ./dev up).
-# A REMOVED overlay must unstage too: clearing the source and finding the
-# old staged copy still in effect is the same class of bug as never staging
-# it, and harder to spot because the roll succeeds against stale overrides.
-stage_dimension_overlay() {
-  rm -rf "$LOCAL_DATA/config/custom-dimensions/overlay"
-  [[ -d "$PROJECT_ROOT/overlay/config/custom-dimensions" ]] || return 0
-  mkdir -p "$LOCAL_DATA/config/custom-dimensions/overlay"
-  cp -R "$PROJECT_ROOT/overlay/config/custom-dimensions/." \
-    "$LOCAL_DATA/config/custom-dimensions/overlay/"
-}
-
-if [[ -d "$CONFIG_DIR/dimensions" ]]; then
-  CONFIG="$CONFIG_DIR"
-else
-  [[ -d "$LOCAL_DATA/config/custom-dimensions/dimensions" ]] || stage_dimension_config
-  stage_dimension_overlay
-  CONFIG="$LOCAL_DATA/config/custom-dimensions"
+  if [[ -d "$PROJECT_ROOT/overlay/config/custom-dimensions" ]]; then
+    SEED_OVERLAY_DIR="$PROJECT_ROOT/overlay/config/custom-dimensions"
+    export SEED_OVERLAY_DIR
+  fi
   WINNER_FLAG="--winner-overlay $PROJECT_ROOT/overlay/config/custom-dimensions"
-  echo "Consumer mode: rolling against $CONFIG"
+  echo "Consumer mode: platform dims from $CONFIG"
+  echo "  Overlay: ${SEED_OVERLAY_DIR:-none}"
   echo "  Winners → overlay/config/custom-dimensions/dimensions/"
 fi
 
@@ -111,10 +85,8 @@ while [[ $# -gt 0 ]]; do
     --warmup-only) WARMUP_ONLY=1; shift ;;
     --reset)
       echo "Resetting ALL seed data..."
+      # Everything the roller owns is in here, so this is the whole reset.
       rm -rf "$SEEDTEST"
-      for d in "$CONFIG/candidates" "$LOCAL_DATA/config/custom-dimensions/candidates"; do
-        [[ -d "$d" ]] && rm -rf "$d"
-      done
       echo "  Done."
       shift ;;
     --clean)
@@ -148,7 +120,22 @@ prepare_base_dir() {
     [[ -e "$LOCAL_DATA/$item" ]] && cp -a "$LOCAL_DATA/$item" "$WORK_BASE/"
   done
   cp "$LOCAL_DATA"/fabric-server-mc.*.jar "$WORK_BASE/" 2> /dev/null || true
-  cp "$LOCAL_DATA/mods/"*.jar "$WORK_BASE/mods/"
+  # Mods come from the shared cache, not from data/mods: the roller is a
+  # separate application from the server and must not depend on the
+  # container's tree being populated. Fall back to data/mods only when the
+  # cache has not been filled yet.
+  local jar_cache
+  jar_cache="$(mod_cache_dir)"
+  if compgen -G "$jar_cache/*.jar" > /dev/null; then
+    cp "$jar_cache/"*.jar "$WORK_BASE/mods/"
+  elif compgen -G "$LOCAL_DATA/mods/*.jar" > /dev/null; then
+    echo "  (mod cache empty — falling back to data/mods; run ./dev up or"
+    echo "   ./dev sync-mods to fill $jar_cache)"
+    cp "$LOCAL_DATA/mods/"*.jar "$WORK_BASE/mods/"
+  else
+    echo "Error: no mod jars in $jar_cache or $LOCAL_DATA/mods" >&2
+    exit 1
+  fi
   for dir in config defaultconfigs moonlight-global-datapacks villagerpacks; do
     [[ -d "$LOCAL_DATA/$dir" ]] && cp -a "$LOCAL_DATA/$dir" "$WORK_BASE/"
   done
@@ -277,16 +264,6 @@ finalise() {
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
     ${DIMS:+--dims "$DIMS"} $WRITE_FLAG $WINNER_FLAG --viewer || true
-
-  # Consumer mode: restage overlay into merged view
-  if [[ "$WRITE_CONFIG" == 1 && -n "$WINNER_FLAG" \
-    && -d "$PROJECT_ROOT/overlay/config/custom-dimensions" ]]; then
-    rm -rf "$LOCAL_DATA/config/custom-dimensions/overlay"
-    mkdir -p "$LOCAL_DATA/config/custom-dimensions/overlay"
-    cp -R "$PROJECT_ROOT/overlay/config/custom-dimensions/." \
-      "$LOCAL_DATA/config/custom-dimensions/overlay/"
-    echo "Restaged overlay into data/config/custom-dimensions/overlay/"
-  fi
 }
 
 # ===========================================================================
@@ -304,7 +281,7 @@ finalise
 
 echo ""
 echo "Artefacts:"
-echo "  Candidates: $CONFIG/candidates/"
+echo "  Candidates: $SEEDTEST/candidates/"
 echo "  Viewer:     $SEEDTEST/index.html"
 echo ""
 echo "To view results and render maps: ./dev seed-viewer"

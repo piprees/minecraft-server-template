@@ -33,6 +33,10 @@
 # names. Must run on macOS bash 3.2 - no mapfile, no ${var,,}.
 set -euo pipefail
 
+SYNC_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SYNC_SCRIPT_DIR/lib.sh"
+
 DATA_DIR="${1:?usage: sync-mods.sh <data-dir> [stack-mods-volume]}"
 VOLUME="${2:-}"
 
@@ -65,10 +69,12 @@ FAILED=0
 # Default: mods-cache/server/ beside the repo root this script was run from
 # (platform checkouts and CI have it; a consumer/production server does not,
 # and simply falls through to the CDN). Override or disable with MOD_CACHE_DIR.
-if [[ -z "${MOD_CACHE_DIR+x}" ]]; then
-  MOD_CACHE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/mods-cache/server"
-fi
-[[ -d "$MOD_CACHE_DIR" ]] || MOD_CACHE_DIR=""
+# The shared cache (scripts/lib.sh). It used to default to a repo-local
+# mods-cache/server and DISABLE ITSELF when that directory was absent — which
+# it is in every consumer — so the cache was off everywhere and every machine
+# re-downloaded the full mod set from Modrinth. It is now always on and always
+# created.
+MOD_CACHE_DIR="$(mod_cache_dir)"
 
 fetch_missing() {
   # $1 = newline-separated URL list, $2 = destination directory

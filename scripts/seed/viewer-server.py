@@ -1323,6 +1323,10 @@ def main():
                          f"(default {ENRICH_TOP}; renders cover the top {RENDER_TOP})")
     args = ap.parse_args()
 
+    sys.path.insert(0, str(SCRIPT_DIR))
+    import candidates as _cmod
+    _cmod.set_bank_root(args.seedtest)
+
     finalise_args = ["--config", args.config, "--seedtest", args.seedtest, "--viewer"]
     if args.write_config:
         finalise_args.append("--write-config")

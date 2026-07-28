@@ -344,12 +344,12 @@ def load_dimension_configs(config_dir, set_noise_defaults=True):
     return configs
 
 
-def load_config(config_path):
+def load_config(config_path, overlay_dir=None):
     """The config directory (config/custom-dimensions/), flattened into one
     dict — namespace/dimensions/portals/worlds/worldSeed — which is the shape
     every scoring and rolling consumer downstream reads."""
     from pathlib import Path
-    return monolith_from_dir(Path(config_path))
+    return monolith_from_dir(Path(config_path), overlay_dir)
 
 
 def _deep_merge(base, over):
@@ -389,22 +389,30 @@ def resolve_overlay(platform, overlay, namespace):
     return resolved
 
 
-def monolith_from_dir(config_dir):
+def monolith_from_dir(config_dir, overlay_dir=None):
     """Synthesise the legacy monolithic shape from the per-file directory.
-    A staged consumer overlay at {config_dir}/overlay/dimensions (the layout
-    deploy.sh/dev-up.sh produce inside data/config/custom-dimensions) is
-    resolved exactly like the mod does at boot."""
+
+    The consumer overlay is resolved exactly like the mod does at boot. Its
+    location is explicit: SEED_OVERLAY_DIR (or the `overlay_dir` argument)
+    points straight at `overlay/config/custom-dimensions` in the consumer
+    repo. The roller is a separate application from the server and must
+    never read `data/` — that tree belongs to the container and is wiped to
+    reset a world, which is not an event the roller should even notice.
+    """
     import json
+    import os
     from pathlib import Path
     set_noise_defaults_dir(config_dir)
     p = Path(config_dir)
+    if overlay_dir is None:
+        overlay_dir = os.environ.get("SEED_OVERLAY_DIR") or (p / "overlay")
     settings = {}
     settings_file = p / "settings.json"
     if settings_file.exists():
         settings = json.loads(settings_file.read_text())
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
-    overlay_files = load_dimension_configs(p / "overlay", set_noise_defaults=False)
+    overlay_files = load_dimension_configs(Path(overlay_dir), set_noise_defaults=False)
     namespaces = {}
     if overlay_files:
         resolved = resolve_overlay(files, overlay_files, ns)
