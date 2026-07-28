@@ -1733,11 +1733,10 @@ def _structure_section(c, profile):
                 "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
                 "<span class='mspread'>{:.0f} of the {} <b>{}</b> placements sit in "
-                "that band. Which of them are actually {} is decided by its share "
-                "of the {} pool.</span></div>".format(
+                "that band.</span></div>".format(
                     sev, int(lo), int(hi_eff), pretty, mass, count,
                     _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
-                    lo, hi_eff, verdict, mass, count, group, pretty, group)))
+                    lo, hi_eff, verdict, mass, count, group)))
             continue
 
         # Grid or forced: the positional model still holds.

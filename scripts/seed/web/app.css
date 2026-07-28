@@ -208,6 +208,39 @@
 }
 
 @layer components {
+  /* A src-less <img> in the lightbox draws the browser's broken-image chrome;
+     say what is actually true instead. */
+  .lb-noimg {
+    @apply bg-background text-muted-foreground grid w-full place-items-center
+      gap-2 p-8 text-center text-sm;
+    aspect-ratio: 1;
+    align-content: center;
+  }
+  .lb-noimg .relief-chip {
+    width: 5rem;
+  }
+  .lb-noimg p {
+    margin: 0;
+  }
+  .lb-noimg-sub {
+    @apply text-[0.75rem] opacity-80;
+    max-width: 28ch;
+  }
+
+  /* Six bare glyphs whose meaning lived only in a title attribute. The nav
+     wraps now, so above 1440px there is room to simply say what they do.
+     Below that the word is hidden rather than removed — the title still
+     carries it, and the glyph alone is what there is space for. */
+  .icon-toggle span b {
+    @apply ml-1 font-normal;
+    display: none;
+  }
+  @media (min-width: 1440px) {
+    .icon-toggle span b {
+      display: inline;
+    }
+  }
+
   /* --- Cross-dimension scatter ----------------------------------------- */
   .scatter {
     @apply border-border-strong bg-card mt-3 rounded-lg border p-3;

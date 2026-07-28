@@ -107,11 +107,60 @@
       return true
     })
   }
+  // A flat-view tile is a detail-stripped clone; (dim, seed) identifies the
+  // original, which still carries it.
+  // A src-less <img> renders as broken-image chrome, and alt text does not
+  // reliably paint in its place. Use a real element that says what is true,
+  // and reuse the candidate's own relief chip — the terrain shape IS known
+  // even when the render is not.
+  function setNoRender(on, cand) {
+    var box = lb.querySelector('.lb-image')
+    var old = box.querySelector('.lb-noimg')
+    if (old) old.remove()
+    lbImg.style.display = on ? 'none' : ''
+    if (!on) return
+    var el = document.createElement('div')
+    el.className = 'lb-noimg'
+    var chip = cand && cand.querySelector('.relief-chip')
+    el.innerHTML =
+      (chip ? chip.outerHTML : '') +
+      '<p>Render not produced yet</p>' +
+      '<p class="lb-noimg-sub">The measurements below are complete — a render ' +
+      'is minutes of CPU and arrives on its own.</p>'
+    box.appendChild(el)
+  }
+
+  function candDetailFor(cand) {
+    var own = cand.querySelector('.cand-detail')
+    if (own) return own
+    var d = cand.dataset.dim,
+      s = cand.dataset.seed
+    if (!d || !s) return null
+    var orig = document.querySelector(
+      '#grid .cand[data-dim="' + CSS.escape(d) + '"][data-seed="' + CSS.escape(s) + '"]'
+    )
+    return orig ? orig.querySelector('.cand-detail') : null
+  }
+
   function openCandInLightbox(cand) {
     if (!cand) return
     lbCurrentCand = cand
+    // No <img> means the render has not been produced yet — the onerror
+    // handler REPLACES the element with the "render queued" placeholder. This
+    // used to `return`, so clicking any un-rendered candidate silently did
+    // nothing... which is most candidates most of the time, since a render is
+    // minutes of CPU. The measurements are the point of this panel; the map
+    // is context. Open it either way.
     var img = cand.querySelector('img')
-    if (!img) return
+    setNoRender(!img, cand)
+    if (!img) {
+      lbImg.removeAttribute('src')
+      lbSetStructs('')
+      var d0 = candDetailFor(cand)
+      lbInfo.innerHTML = d0 ? d0.innerHTML : ''
+      lbShow()
+      return
+    }
     lbImg.src = img.src
     lbSetStructs(img.src)
     var hires = img.dataset.hires
@@ -123,7 +172,7 @@
       }
       p.src = hires
     }
-    var detail = cand.querySelector('.cand-detail')
+    var detail = candDetailFor(cand)
     lbInfo.innerHTML = detail ? detail.innerHTML : ''
     // Lightbox border ring: hires renders (32K) exceed most borders.
     // Show border ring at diameter/hirescoverage proportion.
@@ -294,6 +343,14 @@
         if (state.flagged && parseFloat(c.dataset.score || 100) >= 70) return
         var clone = c.cloneNode(true)
         clone.style.display = ''
+        // Drop the detail panel from the clone. It is the whole lightbox
+        // payload — terrain, structures, biomes, ~2700px of markup — and
+        // duplicating it per candidate took the DOM to 1618 .cand nodes at
+        // only 809 candidates. Sorting then rebuilt all of them, which is the
+        // cliff behind the hang seen while hi-res probes were in flight.
+        // candDetailFor() resolves it from the original instead.
+        var det = clone.querySelector('.cand-detail')
+        if (det) det.remove()
         var lbl = clone.querySelector('.cand-dim-label')
         if (lbl) lbl.style.display = 'block'
         clones.push(clone)
@@ -471,6 +528,10 @@
   })
   ungroupedEl.addEventListener('change', function () {
     state.ungrouped = ungroupedEl.checked
+    // Flat view exists to rank candidates ACROSS dimensions. Under the default
+    // name sort it only stripped the card chrome and left every dimension's
+    // candidates clustered in the same order — the mode silently did nothing.
+    if (state.ungrouped && state.sort === 'name') state.sort = 'score-desc'
     applyState()
   })
   hiddenEl.addEventListener('change', function () {
