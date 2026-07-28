@@ -72,6 +72,11 @@
 
 :root {
   color-scheme: dark;
+  /* Relief chip ramp — reads the same way as the real renders do, so the
+     chip and the render it stands in for never disagree. */
+  --relief-water: oklch(0.5 0.13 250);
+  --relief-low: oklch(0.55 0.11 145);
+  --relief-high: oklch(0.86 0.015 250);
   --radius: 0.5rem;
 
   /* Mineral tint: every neutral carries a little chroma toward hue 250,
@@ -203,6 +208,56 @@
 }
 
 @layer components {
+  /* Relief chip — 3x3 terrain shape from the grid already sampled at roll
+     time. Stands in for a render that is minutes away, on the state that is
+     the DEFAULT rather than the exception. */
+  .relief-chip {
+    @apply mt-1 grid overflow-hidden rounded-[3px];
+    grid-template-columns: repeat(3, 1fr);
+    width: 2.25rem;
+    aspect-ratio: 1;
+    gap: 1px;
+    background: var(--color-border);
+  }
+  .relief-chip i {
+    display: block;
+    aspect-ratio: 1;
+  }
+  .cand .relief-chip {
+    position: absolute;
+    right: 0.4rem;
+    bottom: 2.6rem;
+    box-shadow: 0 0 0 1px var(--color-card);
+  }
+
+  /* Per-component deltas against the current winner: the four subtractions
+     nobody should be doing in their head between two open panels. */
+  .deltas {
+    @apply mt-0.5 flex flex-wrap gap-1 text-[0.6875rem] leading-4;
+  }
+  .deltas .delta {
+    @apply rounded px-1 font-medium;
+    color: var(--comp, var(--color-muted-foreground));
+    background: color-mix(in oklab, currentColor 15%, transparent);
+  }
+
+  /* The expand affordance: a real <button> stretched over the compact face,
+     with a short accessible name of its own. The detail panel is a sibling,
+     not a descendant, so no interactive element contains another. */
+  .compact {
+    position: relative;
+  }
+  .compact-trigger {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    border-radius: var(--r-lg);
+  }
+
   /* --- The four score components own four colours -----------------------
      Used for the swatch, the per-component bar, the segment of the
      contribution bar and any delta. A component's colour is its name: it
@@ -515,7 +570,7 @@ h1 {
 }
 
 /* --- Focus indicators --- */
-.dim-card:focus-visible,
+.compact-trigger:focus-visible,
 .cand-toggle:focus-visible,
 .close-btn:focus-visible,
 .family-btn:focus-visible,

@@ -1394,8 +1394,17 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
 
     pinned_dim = "1" if winners.get(name, {}).get("pinned") else "0"
     out = []
+    # The card is a plain container. The expand affordance is a REAL button
+    # covering the compact face only, and the detail panel is its sibling.
+    # Previously role=button sat on the card itself, so once expanded that
+    # single button contained the close button, five action buttons and all
+    # ten candidate tiles — an interactive element containing other focusable
+    # elements, which is invalid ARIA, and its computed name was a ~700-word
+    # concatenation of everything inside it. Screen readers could not use the
+    # compare-and-pick flow at all.
+    panel_id = "detail-{}".format(esc_name)
     out.append(
-        "<div class='dim-card' role='button' tabindex='0' aria-expanded='false' "
+        "<div class='dim-card' "
         "data-family='{}' data-type='{}' "
         "data-mood='{}' data-flagged='{}' data-name='{}' "
         "data-score='{:.1f}' data-cands='{}' data-shortlisted='{}' "
@@ -1422,10 +1431,14 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
         out.append("<div class='dim-blurb'>{}</div>".format(
             html.escape(blurb[:80] + ("…" if len(blurb) > 80 else ""))))
     out.append(spawn_html)
+    out.append("<button type='button' class='compact-trigger' aria-expanded='false' "
+               "aria-controls='{}'><span class='sr-only'>Show candidates for "
+               "{}</span></button>".format(panel_id, html.escape(name)))
     out.append("</div>")
 
-    # Detail panel (visible when expanded)
-    out.append("<div class='detail'>")
+    # Detail panel (visible when expanded) — a SIBLING of the trigger, never a
+    # descendant of it.
+    out.append("<div class='detail' id='{}'>".format(panel_id))
     out.append("<button type='button' class='close-btn' "
                "aria-label='Close details'>&times;</button>")
 
@@ -1484,10 +1497,12 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
         out.append("<div class='all-cands'>")
         for idx, c in enumerate(cands[:10]):
             out.append(_render_candidate(idx, c, name, profile, winners, 10,
-                                         shortlist_set))
+                                         shortlist_set, ref_cand=best))
         out.append("</div>")
         if n_cands > 10:
-            out.append("<p class='cand-count'>Showing 10 of {}</p>".format(n_cands))
+            out.append("<p class='cand-count meta'>Top 10 by score · "
+                       "{} more banked below this dimension's criteria</p>".format(
+                           n_cands - 10))
     else:
         out.append("<p class='meta'>No seeds tested yet. Re-roll to generate candidates.</p>")
 
@@ -1967,8 +1982,82 @@ def _contribution_bar(segs):
     return "<div class='cbar' role='img' aria-hidden='true'>{}</div>".format("".join(parts))
 
 
+
+def _relief_swatch(c, profile):
+    """A 3x3 relief chip from the height/water grid already measured.
+
+    Most cards, most of the time, say "render queued" — a real render is
+    minutes of CPU and the bank is thousands of candidates deep, so the
+    unrendered state is the DEFAULT, not the exception. But every candidate
+    already carries a 3x3 grid of sampled heights and a water flag per cell,
+    measured at roll time. That is enough to say "high and dry in the north,
+    ocean in the south-west" without rendering anything, which is a real
+    answer to "is this worth opening" instead of a grey box.
+
+    Nine cells, sea-blue where the sample is water, and a green-to-stone ramp
+    by height elsewhere, normalised across this candidate's own range so the
+    shape reads even on a flat world.
+    """
+    rows = c.get("metrics") or {}
+    hmap, wmap = {}, {}
+    for metric, value in rows.items():
+        try:
+            if metric.startswith("height_r"):
+                hmap[(int(metric[8]), int(metric[10]))] = float(value)
+            elif metric.startswith("water_r"):
+                wmap[(int(metric[7]), int(metric[9]))] = float(value)
+        except (ValueError, IndexError):
+            continue
+    if len(hmap) < 9:
+        return ""
+    lo, hi = min(hmap.values()), max(hmap.values())
+    span = (hi - lo) or 1.0
+    cells = []
+    for r in range(3):
+        for col in range(3):
+            h = hmap.get((r, col), lo)
+            if wmap.get((r, col), 0.0) >= 0.5:
+                cells.append("var(--relief-water)")
+                continue
+            t = (h - lo) / span
+            # low ground green, high ground pale stone — the same reading as
+            # the real renders, so the chip and the render agree.
+            cells.append(
+                "color-mix(in oklab, var(--relief-high) {:.0f}%, var(--relief-low))".format(t * 100))
+    return ("<span class='relief-chip' role='img' aria-label='Terrain shape, "
+            "3 by 3 samples'>{}</span>".format(
+                "".join("<i style='background:{}'></i>".format(x) for x in cells)))
+
+
+def _delta_vs(c, ref, profile):
+    """Which components this candidate wins and loses on against `ref`.
+
+    The scores are already computed for both; asking someone to open two
+    candidates and subtract four pairs of numbers in their head is the
+    single most avoidable cost in the compare loop.
+    """
+    if not ref or ref is c:
+        return ""
+    w = profile.get("weights") or {}
+    wsum = sum(w.values()) or 1
+    bits = []
+    for key in SCORE_COMPONENTS:
+        a = c.get("parts", {}).get(key)
+        b = ref.get("parts", {}).get(key)
+        if a is None or b is None:
+            continue
+        d = (a - b) * w.get(key, 0) / wsum * 100
+        if abs(d) < 0.5:
+            continue
+        bits.append("<span class='delta comp-{}'>{}{:.1f}</span>".format(
+            key, "+" if d > 0 else "&minus;", abs(d)))
+    if not bits:
+        return "<div class='deltas meta'>same as winner</div>"
+    return "<div class='deltas' title='vs the current winner'>{}</div>".format("".join(bits))
+
+
 def _render_candidate(idx, c, dim_name, profile, winners, default_show,
-                      shortlist_set=None):
+                      shortlist_set=None, ref_cand=None):
     esc_dim = html.escape(dim_name, quote=True)
     shortlisted = (dim_name, c["seed"]) in (shortlist_set or set())
     win = winners.get(dim_name, {}).get("seed") == c["seed"]
@@ -2036,7 +2125,8 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"
         "<div class='score' title='{}' style='color:{}'>{:.1f}{}</div>"
-        "<div class='seed'>{}</div>"
+        "{}"        "<div class='seed'>{}</div>"
+        "{}"
         "<div class='cand-detail' style='display:none'>"
         "<div class='lb-header'>"
         "<div class='lb-title'><span class='dim-label'>{}</span>"
@@ -2058,7 +2148,9 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
             img, hires, placeholder_colour(c.get("spawn_biome")),
             esc_dim, c["seed"],
             html.escape(dim_name),
-            html.escape(SCORE_HELP, quote=True), sc, c["score"], crown, c["seed"],
+            html.escape(SCORE_HELP, quote=True), sc, c["score"], crown,
+            _relief_swatch(c, profile), c["seed"],
+            _delta_vs(c, ref_cand, profile),
             html.escape(dim_name),
             sc, c["score"], crown,
             c["seed"],

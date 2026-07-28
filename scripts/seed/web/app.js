@@ -578,7 +578,9 @@
   // --- Card expand/collapse ---
   function setExpanded(card, on) {
     card.classList.toggle('expanded', on)
-    card.setAttribute('aria-expanded', on ? 'true' : 'false')
+    // aria-expanded belongs on the control, not on the container it reveals.
+    var trigger = card.querySelector('.compact-trigger')
+    if (trigger) trigger.setAttribute('aria-expanded', on ? 'true' : 'false')
   }
   function expandCard(card) {
     if (card.classList.contains('expanded')) return
@@ -595,18 +597,18 @@
     if (!card) return
     expandCard(card)
   })
-  grid.addEventListener('keydown', function (e) {
-    if (e.key !== 'Enter' && e.key !== ' ') return
-    if (e.target.closest('.action-btn, .pick, .close-btn, .cand, button, input, select')) return
-    var card = e.target.closest('.dim-card')
-    if (!card || card.classList.contains('expanded')) return
-    e.preventDefault()
-    expandCard(card)
-  })
+  // No keydown shim: .compact-trigger is a real <button>, so Enter and Space
+  // are native. The old shim existed because the card was a div with
+  // role=button; keeping it would double-fire.
   grid.addEventListener('click', function (e) {
     var close = e.target.closest('.close-btn')
     if (close) {
-      setExpanded(close.closest('.dim-card'), false)
+      var card = close.closest('.dim-card')
+      setExpanded(card, false)
+      // The close button is inside the panel that just disappeared, so focus
+      // would land on <body>. Hand it back to the control that opened it.
+      var trigger = card.querySelector('.compact-trigger')
+      if (trigger) trigger.focus()
     }
   })
 
