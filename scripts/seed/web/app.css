@@ -208,6 +208,77 @@
 }
 
 @layer components {
+  /* --- Dartboard: every structure criterion on the map at once ---------- */
+  .lb-dart-toggle {
+    @apply border-border-strong text-foreground absolute rounded border
+      px-2 py-1 text-[0.75rem];
+    left: 0.6rem;
+    bottom: 2.6rem;
+    z-index: 6;
+    background: color-mix(in oklab, var(--color-background) 80%, transparent);
+    backdrop-filter: blur(2px);
+    cursor: pointer;
+  }
+  .lb-dart-toggle.on {
+    @apply bg-primary text-primary-foreground border-primary;
+  }
+  /* Strokes, never fills, so the terrain stays readable underneath — the map
+     is the thing being judged; the criteria are an annotation on it. */
+  #lb-overlay .db-grid {
+    fill: none;
+    stroke: --alpha(var(--color-foreground) / 14%);
+    stroke-width: 1;
+  }
+  #lb-overlay .db-gridlabel {
+    fill: --alpha(var(--color-foreground) / 45%);
+    font-size: 1.6px;
+    text-anchor: middle;
+    font-family: var(--font-mono);
+  }
+  #lb-overlay .db-band {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-opacity: 0.9;
+  }
+  #lb-overlay .db-shun {
+    stroke: none;
+    fill-opacity: 0.14;
+  }
+  #lb-overlay .db-pt {
+    stroke: #000;
+    stroke-width: 0.25;
+  }
+  /* Stroke only. Setting fill here too let the severity rule override
+     .db-band's `fill: none` — equal specificity, declared later — and every
+     target ring painted as a filled disc that swallowed the map. Fill is
+     opted into per shape, below, by the two shapes that actually want it. */
+  #lb-overlay .db-good {
+    stroke: var(--good);
+  }
+  #lb-overlay .db-warn {
+    stroke: var(--warn);
+  }
+  #lb-overlay .db-bad {
+    stroke: var(--bad);
+  }
+  #lb-overlay .db-shun.db-good,
+  #lb-overlay .db-pt.db-good {
+    fill: var(--good);
+  }
+  #lb-overlay .db-shun.db-warn,
+  #lb-overlay .db-pt.db-warn {
+    fill: var(--warn);
+  }
+  #lb-overlay .db-shun.db-bad,
+  #lb-overlay .db-pt.db-bad {
+    fill: var(--bad);
+  }
+  #lb-overlay .db-spawn {
+    fill: var(--color-primary);
+    stroke: #000;
+    stroke-width: 0.3;
+  }
+
   /* --- Compare -------------------------------------------------------- */
   .cmp-pick {
     @apply border-border-strong bg-card/90 text-muted-foreground

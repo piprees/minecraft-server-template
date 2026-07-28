@@ -1212,7 +1212,8 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 #: into a consumer's .seedtest by accident.
 #: source name in scripts/seed/web/ -> name served beside index.html.
 WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"),
-              ("compare.js", "compare.js"))
+              ("compare.js", "compare.js"),
+              ("dartboard.js", "dartboard.js"))
 
 
 def install_web_assets(seedtest):
