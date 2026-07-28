@@ -121,6 +121,25 @@ The progression floors that gate the Nether and the End are in `scripts/check-no
 
 **Two fields became generation-affecting for the first time:** `borders.player` (sets the scanned radius AND the noise frequency scale) and `difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Both used to be scoring-only. Editing either now re-rolls the dimension.
 
+## The viewer
+
+`./dev seed-viewer` is a Tailwind v4 page whose stylesheet and scripts live in `scripts/seed/web/` and are copied into `<seedtest>/assets/` at finalise time. **The built CSS is committed** — `web/build.sh` compiles it with the Tailwind standalone CLI (one executable, no Node, no npm) and consumers never run it. Nothing is fetched at runtime, so the viewer works offline and from a `file://` open of `.seedtest/index.html` as well as over `http://127.0.0.1:8765/`.
+
+Tokens follow shadcn/ui's contract (`--background/--card/--primary/--border/--ring/--chart-N/--radius`). **Do not reuse a contract name in the legacy bridge**: `--border: var(--color-border)` is a cycle, because `@theme inline` defines `--color-border` as `var(--border)`, and CSS drops a cyclic custom property — every card silently fell back to `currentColor`. The legacy names are `--edge` / `--rule` / `--action` / `--r-*` for this reason.
+
+What it shows beyond a grid of scores:
+
+| Feature | What it answers |
+| --- | --- |
+| **Contribution bar** + four fixed component colours | What SHAPE is this candidate — two seeds can share a total and be nothing alike |
+| **Relief chip** (3×3 from the sampled height/water grid) | Terrain shape for the majority of candidates whose real render has not been produced yet |
+| **Per-component deltas** vs the current winner | The four subtractions nobody should do in their head |
+| **Compare** (pick two tiles) | Both renders side by side with a weighted per-component diff and Use left / Use right |
+| **All criteria** dartboard (`D` in the lightbox) | Every structure band drawn at once on the map, spawn at centre, coloured by pass/fail |
+| **Scatter** (⁘ toggle) | The whole bank as one dataset — outliers, and which component actually discriminates |
+
+Every score component owns one colour (`--chart-1..4` via `.comp-<key>`) used identically in its swatch, bar, contribution segment and delta. A component's colour is its name.
+
 ## Where the roller's state lives
 
 Everything the roller derives is under `<consumer>/.seedtest/`, and nothing else. Not `data/` (the mc container's tree, deleted to reset a world) and not `.stack/<version>/` (an immutable release directory, replaced wholesale by `./dev update`).

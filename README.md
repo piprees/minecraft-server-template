@@ -80,7 +80,9 @@ Winners are auto-written into the individual dimension config files. Ctrl+C fina
 ./dev seed-viewer                            # interactive picker + background rendering
 ```
 
-Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/` — "Make Winner" pins your pick over the score ranking.
+Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/`; "Use this seed" pins your pick over the score ranking.
+
+The viewer does more than rank: pick any two candidates and **Compare** puts both renders side by side with a weighted per-component diff; **All criteria** (`D`) draws every structure band on the map at once with spawn at the centre; the **scatter** (⁘) plots the whole bank on two score axes to find outliers. Candidates whose render hasn't been produced yet still show a terrain chip built from the height grid measured at roll time. Its stylesheet and scripts live in `scripts/seed/web/` (Tailwind v4, built and committed — nothing is fetched at runtime).
 
 ## Upgrading
 
