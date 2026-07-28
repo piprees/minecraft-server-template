@@ -231,14 +231,13 @@
      wraps now, so above 1440px there is room to simply say what they do.
      Below that the word is hidden rather than removed — the title still
      carries it, and the glyph alone is what there is space for. */
+  /* Six glyphs whose meaning lived only in a title attribute. Gating the
+     labels behind a 1440px breakpoint meant they never appeared on a 1280px
+     laptop — which is the stated floor and the common case. The nav wraps
+     now, so a label can only make the toggle row take its own line; it can
+     never push a control off-screen. Always show it. */
   .icon-toggle span b {
     @apply ml-1 font-normal;
-    display: none;
-  }
-  @media (min-width: 1440px) {
-    .icon-toggle span b {
-      display: inline;
-    }
   }
 
   /* --- Cross-dimension scatter ----------------------------------------- */
