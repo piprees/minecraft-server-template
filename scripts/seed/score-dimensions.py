@@ -1675,7 +1675,8 @@ def _structure_section(c, profile):
     the old model is still exactly true.
     """
     battery = profile.get("battery") or []
-    if not battery:
+    forced = profile.get("forced_structures") or []
+    if not battery and not forced:
         return ""
     census = c["metrics"].get("_census") or {}
     groups = census.get("groups") or {}
@@ -1800,11 +1801,48 @@ def _structure_section(c, profile):
         out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
             coverage, "".join(r[1] for r in noise_rows)))
     if grid_rows:
-        out.append("<div class='sub-header'>Grid-placed <span class='meta'>"
-                   "still on vanilla spacing/separation, so an exact position "
-                   "is real</span></div>")
+        # The grid list is also where a row lands when battery_group_for()
+        # returns nothing — no census, no groups, no group for this set. The
+        # caption used to assert "an exact position is real" unconditionally,
+        # which is a claim about placement that is simply false for a
+        # fallback row. Say which case this is.
+        gridded = bool(groups)
+        out.append("<div class='sub-header'>Grid-placed <span class='meta'>{}"
+                   "</span></div>".format(
+                       "still on vanilla spacing/separation, so an exact "
+                       "position is real" if gridded else
+                       "no noise census for this dimension, so these fall "
+                       "back to a positional check"))
         out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
             coverage, "".join(r[1] for r in grid_rows)))
+    if forced:
+        # Hand-placed at fixed coordinates, identical for every seed — which
+        # is exactly why they are not in the battery and score nothing. They
+        # are still the only structures some dimensions have, and showing
+        # nothing at all read as "this world is empty".
+        frows = []
+        for f in forced:
+            fid = str(f.get("structure", ""))
+            fx, fz = f.get("x"), f.get("z")
+            try:
+                dist = (float(fx) ** 2 + float(fz) ** 2) ** 0.5 * 16.0
+            except (TypeError, ValueError):
+                dist = None
+            ns, _, short = fid.rpartition(":")
+            frows.append(
+                "<div class='mrow sev0 census-row'>"
+                "<span class='mname'>{}<span class='ns'>{}</span></span>"
+                "<span class='mval'>{}<span class='ns'>blocks</span></span>"
+                "<span class='mtarget'>chunk {}, {}</span>"
+                "<span class='mdev'>placed by hand</span></div>".format(
+                    html.escape(short.replace("_", " ").title() or fid),
+                    html.escape(ns), "{:.0f}".format(dist) if dist is not None else "—",
+                    html.escape(str(fx)), html.escape(str(fz))))
+        out.append("<div class='sub-header'>Fixed placements <span class='meta'>"
+                   "written into the config at these coordinates, so they are "
+                   "identical for every seed and score nothing</span></div>")
+        out.append("<div class='mlist'>{}</div>".format("".join(frows)))
+
     if groups:
         rows = []
         for group, entry in sorted(groups.items(),

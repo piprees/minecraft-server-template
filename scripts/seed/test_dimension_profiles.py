@@ -686,6 +686,60 @@ class BuildProfileV4Tests(unittest.TestCase):
         self.assertEqual(build_profile(world, cfg)["radius"], 4096.0)
 
 
+class PlacesNothingTests(unittest.TestCase):
+    """A dimension that cannot place an organic structure must not be scored
+    on structures it has deliberately switched off.
+
+    Three shipped dimensions inherited the family DEFAULT_WANTS battery
+    despite structureDensity "none" / an empty allow-list, then lost the full
+    structures weight on every candidate for absent Villages and Mineshafts.
+    That caps the dimension below 100 and makes structures a constant, so it
+    discriminates between candidates not at all (2026-07-28).
+    """
+
+    def _profile(self, **over):
+        dim = {"name": "t", "type": "multi_biome", "dimensionId": "adventure:t",
+               "biomes": ["minecraft:plains"], "seedRoll": {"mood": "serene"}}
+        dim.update(over)
+        cfg = {"namespace": "adventure", "dimensions": [dim], "portals": [], "worlds": []}
+        return build_profile(dim, cfg)
+
+    def test_density_none_empties_the_battery(self):
+        p = self._profile(structureDensity="none")
+        self.assertEqual(p["battery"], [])
+
+    def test_allow_with_empty_list_empties_the_battery(self):
+        p = self._profile(structures={"mode": "allow", "list": []})
+        self.assertEqual(p["battery"], [])
+
+    def test_mode_none_empties_the_battery(self):
+        p = self._profile(structures={"mode": "none"})
+        self.assertEqual(p["battery"], [])
+
+    def test_weight_is_redistributed_not_dropped(self):
+        p = self._profile(structureDensity="none")
+        w = p["weights"]
+        self.assertEqual(w["structures"], 0)
+        # Leaving the hole would silently lower the dimension's ceiling by
+        # whatever structures was worth.
+        self.assertAlmostEqual(sum(w.values()), 100.0, places=6)
+
+    def test_forced_placements_do_not_keep_it_scored(self):
+        """Forced structures sit at fixed coordinates, so they are identical
+        for every seed and carry no information for ranking candidates."""
+        p = self._profile(structureDensity="none",
+                          structures={"force": [{"structure": "minecraft:village_plains",
+                                                 "x": 10, "z": 10}]})
+        self.assertEqual(p["battery"], [])
+        self.assertEqual(p["weights"]["structures"], 0)
+        self.assertEqual(len(p["forced_structures"]), 1)
+
+    def test_a_normal_dimension_is_untouched(self):
+        p = self._profile(structures={"mode": "allow", "list": ["minecraft:villages"]})
+        self.assertTrue(p["battery"])
+        self.assertGreater(p["weights"]["structures"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
 

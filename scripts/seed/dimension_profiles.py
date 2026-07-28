@@ -1016,6 +1016,24 @@ def build_profile(dim, config, difficulty=None):
         if sid is not None:
             battery.append((sname, sid, shun_threshold(value, radius), "shun"))
 
+    # A dimension that cannot place ANY organic structure still inherited the
+    # family's DEFAULT_WANTS battery, and then lost the whole structures
+    # weight for not finding them. Three shipped dimensions were affected
+    # (the_dustbowl, the_gritlands, the_wuthering_wisteria): every candidate
+    # docked an identical 20 points for absent Villages and Mineshafts they
+    # had deliberately switched off, which caps the dimension at 80 and makes
+    # structures contribute nothing but a constant to the ranking.
+    #
+    # structures.force is deliberately NOT a reason to keep scoring: forced
+    # placements sit at fixed coordinates, so they are identical for every
+    # seed and carry no information for choosing between candidates.
+    places_nothing = (density == "none"
+                      or struct_block.get("mode") == "none"
+                      or (struct_block.get("mode") == "allow"
+                          and not struct_block.get("list")))
+    if places_nothing:
+        battery = []
+
     terrain = terrain_targets_for(noise)
     # Mood modulation: hard/dramatic want more violence, serene less.
     if mood in ("hard", "dramatic"):
@@ -1049,6 +1067,15 @@ def build_profile(dim, config, difficulty=None):
     if is_void:
         # No terrain in a void — variety and namesake carry the score.
         weights = {"namesake": 30, "variety": 55, "terrain": 15, "structures": 0}
+    elif places_nothing:
+        # Nothing to measure, so nothing to weigh. Spread the structures
+        # weight across the other three in proportion rather than leaving a
+        # hole: the remaining components should still total 100, or the
+        # dimension's ceiling silently drops by whatever structures was worth.
+        spare = weights.pop("structures")
+        rest = sum(weights.values()) or 1
+        weights = {k: v + spare * v / rest for k, v in weights.items()}
+        weights["structures"] = 0
     elif mob_difficulty is not None and mob_difficulty >= 2.0:
         # Very dangerous worlds must be WORTH IT: structures matter more.
         weights["structures"] += 10
