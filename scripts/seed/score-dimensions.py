@@ -1210,7 +1210,8 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 #: Everything served alongside index.html. Kept as a list rather than a glob
 #: so the build cache (.cache/, a 100MB Tailwind binary) can never be copied
 #: into a consumer's .seedtest by accident.
-WEB_ASSETS = ("app.built.css", "app.js")
+#: source name in scripts/seed/web/ -> name served beside index.html.
+WEB_ASSETS = (("app.built.css", "app.css"),)
 
 
 def install_web_assets(seedtest):
@@ -1225,10 +1226,10 @@ def install_web_assets(seedtest):
     """
     dest = Path(seedtest) / "assets"
     dest.mkdir(parents=True, exist_ok=True)
-    for name in WEB_ASSETS:
-        src = WEB_DIR / name
+    for src_name, served_name in WEB_ASSETS:
+        src = WEB_DIR / src_name
         if src.exists():
-            shutil.copy2(src, dest / name)
+            shutil.copy2(src, dest / served_name)
     return dest
 
 
