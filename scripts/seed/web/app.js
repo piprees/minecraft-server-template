@@ -17,34 +17,7 @@
   var lb = document.getElementById('lightbox')
   var lbImg = lb.querySelector('.lb-image img')
   var lbInfo = lb.querySelector('.lb-info')
-  var lbStructs = lb.querySelector('.lb-structs')
-  var lbStructsBtn = lb.querySelector('.lb-structs-toggle')
-  var lbStructsOn = true
   var lbReturnFocus = null
-  // Structure overlays are separate transparent PNGs written next to the
-  // renders ({seed}_structures.png / {seed}_hires_structures.png). Probe
-  // for one matching the displayed render; hide the toggle when absent.
-  function lbSetStructs(src) {
-    lbStructs.classList.remove('on')
-    lbStructs.removeAttribute('src')
-    lbStructsBtn.style.display = 'none'
-    if (!src) return
-    var base = src.split('?')[0]
-    if (!/\.png$/.test(base) || /_structures\.png$/.test(base)) return
-    var url = base.replace(/\.png$/, '_structures.png')
-    var probe = new Image()
-    probe.onload = function () {
-      lbStructs.src = probe.src
-      lbStructsBtn.style.display = ''
-      if (lbStructsOn) lbStructs.classList.add('on')
-    }
-    probe.src = url + '?t=' + Date.now()
-  }
-  lbStructsBtn.addEventListener('click', function () {
-    lbStructsOn = !lbStructsOn
-    lbStructsBtn.setAttribute('aria-pressed', String(lbStructsOn))
-    lbStructs.classList.toggle('on', lbStructsOn && !!lbStructs.getAttribute('src'))
-  })
   function lbShow() {
     if (!lb.classList.contains('open')) {
       lbReturnFocus = document.activeElement
@@ -77,7 +50,6 @@
       openCandInLightbox(cand)
     } else {
       lbImg.src = img.src
-      lbSetStructs(img.src)
       lbInfo.innerHTML = ''
       lbShow()
     }
@@ -137,29 +109,63 @@
   // -330px against a 660px image. Every ring the hover drew, and every band
   // the dartboard drew, was offset by that.
   //
-  // Measure the <img> and lay the SVG on it. Exported because dartboard.js
-  // draws into the same element and must not carry a second copy of this.
+  // Measure the <img> and lay every overlay layer on it. Exported because
+  // dartboard.js and structicons.js draw into their own layers over the same
+  // image and must not carry copies of this.
   function alignOverlay() {
-    var svg = document.getElementById('lb-overlay')
     var box = lb.querySelector('.lb-image')
     var img = box && box.querySelector('img')
-    if (!svg || !img) return
+    if (!img) return
     var b = box.getBoundingClientRect()
     var r = img.getBoundingClientRect()
-    if (!r.width || !r.height) return
-    svg.style.position = 'absolute'
-    svg.style.left = r.left - b.left + 'px'
-    svg.style.top = r.top - b.top + 'px'
-    svg.style.width = r.width + 'px'
-    svg.style.height = r.height + 'px'
-    svg.style.aspectRatio = 'auto'
-    svg.style.transform = 'none'
-    svg.style.inset = 'auto'
+    var layers = box.querySelectorAll('.lb-layer')
+    // No render for this candidate: the <img> is hidden behind the "render
+    // not produced yet" placeholder and has no box, so there is nothing for
+    // a ring or a marker to be measured against. Leaving the layers where
+    // the PREVIOUS candidate put them draws that candidate's map over this
+    // one's placeholder, which is worse than drawing nothing.
+    if (!r.width || !r.height) {
+      layers.forEach(function (svg) { svg.style.visibility = 'hidden' })
+      return
+    }
+    layers.forEach(function (svg) {
+      svg.style.visibility = ''
+      svg.style.position = 'absolute'
+      svg.style.left = r.left - b.left + 'px'
+      svg.style.top = r.top - b.top + 'px'
+      svg.style.width = r.width + 'px'
+      svg.style.height = r.height + 'px'
+      svg.style.aspectRatio = 'auto'
+      svg.style.transform = 'none'
+      svg.style.inset = 'auto'
+    })
   }
   window.alignLbOverlay = alignOverlay
   window.addEventListener('resize', alignOverlay)
   // The hi-res swap replaces the src and relays the box out from under it.
   lb.addEventListener('load', alignOverlay, true)
+
+  // How many blocks the image CURRENTLY on screen covers, edge to edge.
+  //
+  // Every overlay divides a block distance by this to get a viewBox
+  // fraction, and the lightbox shows two different renders of the same
+  // candidate: the 1024px low-res one immediately, then the 2048px hi-res
+  // one if a probe finds it. They cover different areas, so a single
+  // number is right for at most one of them — and since most candidates
+  // never get a hi-res render, the single number was wrong most of the
+  // time, drawing every ring at a quarter of its true radius.
+  //
+  // Both values are emitted by score-dimensions._coverage_attrs, computed
+  // the same way biome_renderer.batch_render picks its geometry.
+  function lbMapCoverage() {
+    var host = lbInfo.querySelector('[data-coverage]')
+    if (!host) return 0
+    var src = (lbImg.getAttribute('src') || '').split('?')[0]
+    var low = parseFloat(host.dataset.coverageLow || '')
+    if (low && !/_hires\.png$/.test(src)) return low
+    return parseFloat(host.dataset.coverage) || 0
+  }
+  window.lbMapCoverage = lbMapCoverage
 
   function candDetailFor(cand) {
     var own = cand.querySelector('.cand-detail')
@@ -186,7 +192,6 @@
     setNoRender(!img, cand)
     if (!img) {
       lbImg.removeAttribute('src')
-      lbSetStructs('')
       var d0 = candDetailFor(cand)
       lbInfo.innerHTML = d0 ? d0.innerHTML : ''
       lbShow()
@@ -194,13 +199,11 @@
       return
     }
     lbImg.src = img.src
-    lbSetStructs(img.src)
     var hires = img.dataset.hires
     if (hires) {
       var p = new Image()
       p.onload = function () {
         lbImg.src = hires
-        lbSetStructs(hires)
       }
       p.src = hires
     }
@@ -1390,8 +1393,9 @@
   info.addEventListener('mouseover', function (e) {
     var row = e.target.closest('.mrow[data-band]')
     if (!row) return
-    var list = row.closest('[data-coverage]')
-    var coverage = list && parseFloat(list.dataset.coverage)
+    // The coverage of the render actually on screen, not of the hi-res one
+    // that may never have been produced. See lbMapCoverage in the block above.
+    var coverage = window.lbMapCoverage ? window.lbMapCoverage() : 0
     if (!coverage) return
     var band = row.dataset.band.split(',').map(Number)
     clear()

@@ -1214,6 +1214,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"),
               ("compare.js", "compare.js"),
               ("dartboard.js", "dartboard.js"),
+              ("structicons.js", "structicons.js"),
               ("scatter.js", "scatter.js"))
 
 
@@ -1635,6 +1636,30 @@ def _terrain_section(c, profile):
             "<div class='mlist'>{}</div>{}".format("".join(rows), note))
 
 
+def _map_coverages(profile):
+    """(low-res, hi-res) blocks covered by this dimension's two renders.
+
+    MIRRORS biome_renderer.batch_render: it renders at `size` pixels and
+    `max(1, int(base_scale / dim_scale))` blocks per pixel, low pass
+    1024px/base 8 and hi pass 2048px/base 16. Every overlay drawn over one
+    of those images has to divide by the coverage of the image ACTUALLY on
+    screen, and the lightbox shows the low-res one until the hi-res probe
+    lands — which is most candidates, most of the time.
+
+    The old single value here was `32768 / scale`, which happens to equal
+    the hi-res coverage for scales 1/4/8/16 and is wrong for 12 (2731 vs
+    2048), and was four times too small for every low-res render.
+    """
+    s = float(profile.get("scale", 1.0) or 1.0) or 1.0
+    return (1024 * max(1, int(8 / s)), 2048 * max(1, int(16 / s)))
+
+
+def _coverage_attrs(profile):
+    """The data-coverage pair every .mlist carries for the map overlays."""
+    low, hi = _map_coverages(profile)
+    return "data-coverage='{:.0f}' data-coverage-low='{:.0f}'".format(hi, low)
+
+
 def _hist_bar(hist, radius_blocks, lo=None, hi=None):
     """The group's radial histogram, with the wanted band shaded behind it.
 
@@ -1691,25 +1716,29 @@ def _structure_section(c, profile):
     noise_rows, grid_rows, seen_groups = [], [], {}
     for sname, sid, spec, kind in battery:
         pretty = html.escape(sname.replace("_", " ").title())
+        # The marker layer (web/structicons.js) maps this to one of the ~30
+        # keyword families for its icon and colour. The row is the legend.
+        sattr = " data-struct='{}'".format(html.escape(sname, quote=True))
         group = (battery_group_for(sid, lookup)
                  if (lookup and groups) else None)
         if group is not None and sid.lstrip("#") not in forced_ids:
             entry = groups.get(group)
             seen_groups.setdefault(group, []).append(pretty)
             if not entry or not entry.get("count"):
-                noise_rows.append((2, "<div class='mrow sev2'>"
+                noise_rows.append((2, "<div class='mrow sev2'{}>"
                     "<span class='mname'>{} <span class='kind'>{}</span></span>"
                     "<span class='mval'>—</span><span></span>"
                     "<span class='mtarget'>{}</span>"
                     "<span class='mdev'>group absent here</span></div>".format(
-                        pretty, group, "avoid" if kind == "shun" else "want")))
+                        sattr, pretty, group,
+                        "avoid" if kind == "shun" else "want")))
                 continue
             count = entry["count"]
             if kind == "shun":
                 threshold = float(spec) if isinstance(spec, (int, float)) else radius
                 inside = census_scoring.band_mass(entry, 0.0, threshold, radius_chunks)
                 sev = 2 if inside > 0 else 0
-                noise_rows.append((sev, "<div class='mrow sev{}' data-band='0,{}'>"
+                noise_rows.append((sev, "<div class='mrow sev{}' data-band='0,{}'{}>"
                     "<span class='mname'>{} <span class='kind'>avoid</span></span>"
                     "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
                     "<span class='mtarget'>wants none within {:.0f}</span>"
@@ -1717,7 +1746,7 @@ def _structure_section(c, profile):
                     "<span class='mspread'>This counts <b>{}</b> placements, not "
                     "{} specifically — the shun is judged on its whole group, so "
                     "it fails whenever the group is present.</span></div>".format(
-                        sev, int(threshold), pretty, inside, count,
+                        sev, int(threshold), sattr, pretty, inside, count,
                         _hist_bar(entry.get("hist"), radius_blocks, 0, threshold),
                         threshold,
                         "none present" if sev == 0 else "group present here",
@@ -1728,14 +1757,14 @@ def _structure_section(c, profile):
             mass = census_scoring.band_mass(entry, lo, hi_eff, radius_chunks)
             sev = 0 if mass >= census_scoring.WANT_BAND_TARGET else (1 if mass > 0 else 2)
             verdict = "in the wanted ring" if mass > 0 else "wrong ring"
-            noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'>"
+            noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
                 "<span class='mname'>{}</span>"
                 "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
                 "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
                 "<span class='mspread'>{:.0f} of the {} <b>{}</b> placements sit in "
                 "that band.</span></div>".format(
-                    sev, int(lo), int(hi_eff), pretty, mass, count,
+                    sev, int(lo), int(hi_eff), sattr, pretty, mass, count,
                     _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
                     lo, hi_eff, verdict, mass, count, group)))
             continue
@@ -1754,12 +1783,12 @@ def _structure_section(c, profile):
                 verdict = "{:.0f} inside the exclusion".format(threshold - nearest)
             else:
                 sev, value, verdict = 0, "{:.0f}".format(nearest), "clear"
-            grid_rows.append((sev, "<div class='mrow sev{} shun'>"
+            grid_rows.append((sev, "<div class='mrow sev{} shun'{}>"
                 "<span class='mname'>{} <span class='kind'>avoid</span></span>"
                 "<span class='mval'>{}</span>"
                 "<span class='mtarget'>none within {:.0f}</span>"
                 "<span class='mdev'>{}</span></div>".format(
-                    sev, pretty, value, threshold, verdict)))
+                    sev, sattr, pretty, value, threshold, verdict)))
             continue
         lo, hi = spec
         hi_eff = min(hi, radius)
@@ -1780,12 +1809,12 @@ def _structure_section(c, profile):
         if hits:
             pos_attr = " data-pos='{}'".format(
                 ";".join("{:.0f},{:.0f}".format(h[1], h[2]) for h in hits[:400]))
-        grid_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
+        grid_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}{}>"
             "<span class='mname'>{}</span>"
             "<span class='mval'>{}</span>{}"
             "<span class='mtarget'>want {:.0f}–{:.0f}</span>"
             "<span class='mdev'>{}</span>{}</div>".format(
-                sev, int(lo), int(hi_eff), pos_attr, pretty,
+                sev, int(lo), int(hi_eff), sattr, pos_attr, pretty,
                 "{:.0f}".format(nearest) if nearest is not None and nearest >= 0 else "—",
                 _band_bar(nearest, lo, hi_eff, cap=radius, marks=marks),
                 lo, hi_eff, phrase, spread)))
@@ -1793,13 +1822,13 @@ def _structure_section(c, profile):
     noise_rows.sort(key=lambda r: -r[0])
     grid_rows.sort(key=lambda r: -r[0])
     out = []
-    coverage = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
+    cov_attrs = _coverage_attrs(profile)
     if noise_rows:
         out.append("<div class='sub-header'>Noise-placed <span class='meta'>"
                    "one field per group decides where; the group's pool decides "
                    "which. Counts are placements in the whole GROUP</span></div>")
-        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
-            coverage, "".join(r[1] for r in noise_rows)))
+        out.append("<div class='mlist' {}>{}</div>".format(
+            cov_attrs, "".join(r[1] for r in noise_rows)))
     if grid_rows:
         # The grid list is also where a row lands when battery_group_for()
         # returns nothing — no census, no groups, no group for this set. The
@@ -1813,35 +1842,59 @@ def _structure_section(c, profile):
                        "position is real" if gridded else
                        "no noise census for this dimension, so these fall "
                        "back to a positional check"))
-        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
-            coverage, "".join(r[1] for r in grid_rows)))
+        out.append("<div class='mlist' {}>{}</div>".format(
+            cov_attrs, "".join(r[1] for r in grid_rows)))
     if forced:
         # Hand-placed at fixed coordinates, identical for every seed — which
         # is exactly why they are not in the battery and score nothing. They
         # are still the only structures some dimensions have, and showing
         # nothing at all read as "this world is empty".
+        #
+        # structures.force x/z are BLOCK coordinates: the mod does
+        # `new ChunkPos(f.x >> 4, f.z >> 4)` in
+        # DimensionStructures.appendForcedPlacements, and its field doc says
+        # so. This row used to multiply by 16 and label the pair "chunk",
+        # reporting every fixed placement at sixteen times its real distance
+        # — the_wuthering_wisteria's campsite read as 7680 blocks out in a
+        # 256-block world. structure_placement.forced_distance (the scorer's
+        # side) had it right all along.
         frows = []
         for f in forced:
             fid = str(f.get("structure", ""))
             fx, fz = f.get("x"), f.get("z")
             try:
-                dist = (float(fx) ** 2 + float(fz) ** 2) ** 0.5 * 16.0
+                bx, bz = float(fx), float(fz)
+                dist = (bx * bx + bz * bz) ** 0.5
             except (TypeError, ValueError):
-                dist = None
+                bx = bz = dist = None
             ns, _, short = fid.rpartition(":")
+            pretty = short.replace("_", " ").title() or fid
+            # A fixed placement outside the player border is unreachable, and
+            # the row is the only place that would ever say so. Display only:
+            # forced placements score nothing either way.
+            sev, verdict = 0, "placed by hand"
+            if dist is not None and dist > radius:
+                sev = 1
+                verdict = "outside the {:.0f} border".format(radius)
+            attrs = " data-struct='{}'".format(html.escape(fid, quote=True))
+            if dist is not None:
+                attrs += " data-band='0,{:.0f}' data-pos='{:.0f},{:.0f}'".format(
+                    dist, bx, bz)
             frows.append(
-                "<div class='mrow sev0 census-row'>"
-                "<span class='mname'>{}<span class='ns'>{}</span></span>"
+                "<div class='mrow sev{} census-row'{}>"
+                "<span class='mname' title='{}'>{}<span class='ns'>{}</span></span>"
                 "<span class='mval'>{}<span class='ns'>blocks</span></span>"
-                "<span class='mtarget'>chunk {}, {}</span>"
-                "<span class='mdev'>placed by hand</span></div>".format(
-                    html.escape(short.replace("_", " ").title() or fid),
-                    html.escape(ns), "{:.0f}".format(dist) if dist is not None else "—",
-                    html.escape(str(fx)), html.escape(str(fz))))
+                "<span class='mtarget'>block {}, {}</span>"
+                "<span class='mdev'>{}</span></div>".format(
+                    sev, attrs, html.escape(fid, quote=True),
+                    html.escape(pretty), html.escape(ns),
+                    "{:.0f}".format(dist) if dist is not None else "—",
+                    html.escape(str(fx)), html.escape(str(fz)), verdict))
         out.append("<div class='sub-header'>Fixed placements <span class='meta'>"
-                   "written into the config at these coordinates, so they are "
-                   "identical for every seed and score nothing</span></div>")
-        out.append("<div class='mlist'>{}</div>".format("".join(frows)))
+                   "written into the config at these block coordinates, so they "
+                   "are identical for every seed and score nothing</span></div>")
+        out.append("<div class='mlist' {}>{}</div>".format(
+            cov_attrs, "".join(frows)))
 
     if groups:
         rows = []
@@ -1858,14 +1911,13 @@ def _structure_section(c, profile):
                             entry.get("count", 0),
                             _hist_bar(entry.get("hist"), radius_blocks),
                             html.escape(members)))
-        census_cov = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
         out.append("<div class='sub-header'>Full census <span class='meta'>"
                    "every site the noise field produces, by group and radial "
                    "decile out to {:.0f} blocks. A site hosts ONE structure "
                    "drawn from its group's pool — these are not per-structure "
                    "counts</span></div>"
-                   "<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
-                       radius_blocks, census_cov, "".join(rows)))
+                   "<div class='mlist' {}>{}</div>".format(
+                       radius_blocks, cov_attrs, "".join(rows)))
     if not out:
         return ""
     return ("<div class='section-header'>Structures</div>" + "".join(out))
@@ -1892,7 +1944,7 @@ def _biome_section(c, profile):
                if b not in set(spawn_targets)]
     spawn_biome = c.get("spawn_biome")
     radius = float(profile.get("radius") or 0) or 1.0
-    coverage = 32768.0 / float(profile.get("scale", 1.0) or 1.0)
+    cov_attrs = _coverage_attrs(profile)
 
     # Without a survey, fall back to the variety distance metrics.
     dists = {}
@@ -1925,16 +1977,16 @@ def _biome_section(c, profile):
         out.append("<div class='sub-header'>Spawn targets <span class='meta'>"
                    "any of these qualifies a spawn — {}</span></div>".format(
                        "matched" if hit else "none matched, partial credit only"))
-        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
-            coverage, "".join(row(b) for b in sorted(spawn_targets,
+        out.append("<div class='mlist' {}>{}</div>".format(
+            cov_attrs, "".join(row(b) for b in sorted(spawn_targets,
                                                      key=lambda b: dists.get(b, 1e9)))))
     if variety:
         found_n = sum(1 for b in variety if dists.get(b, -1) >= 0)
         out.append("<div class='sub-header'>Requested variety <span class='meta'>"
                    "{} of {} present within {:.0f} blocks</span></div>".format(
                        found_n, len(variety), radius))
-        out.append("<div class='mlist' data-coverage='{:.0f}'>{}</div>".format(
-            coverage, "".join(row(b) for b in sorted(variety,
+        out.append("<div class='mlist' {}>{}</div>".format(
+            cov_attrs, "".join(row(b) for b in sorted(variety,
                                                      key=lambda b: dists.get(b, 1e9)))))
     requested = set(spawn_targets) | set(variety)
     incidental = sorted(((d, b) for b, d in dists.items()
@@ -1944,8 +1996,8 @@ def _biome_section(c, profile):
             "<details class='incidental'><summary>{} incidental biomes "
             "<span class='meta'>present from the noise map, not requested — "
             "they do not affect the score</span></summary>"
-            "<div class='mlist' data-coverage='{:.0f}'>{}</div></details>".format(
-                len(incidental), coverage,
+            "<div class='mlist' {}>{}</div></details>".format(
+                len(incidental), cov_attrs,
                 "".join("<div class='mrow biome-row sev0' data-band='0,{:.0f}'>"
                         "<span class='mname'>{}</span>"
                         "<span class='mval'>{:.0f}<span class='ns'>blocks</span>"

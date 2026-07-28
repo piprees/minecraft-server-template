@@ -57,8 +57,9 @@
     // One aligner, owned by the lightbox in app.js — this SVG has two
     // consumers and must not carry two copies of the geometry.
     if (window.alignLbOverlay) window.alignLbOverlay()
-    var host = info.querySelector('[data-coverage]')
-    var coverage = host && parseFloat(host.dataset.coverage)
+    // The render on screen decides the scale: the lightbox shows the low-res
+    // one until the hi-res probe lands, and they cover different areas.
+    var coverage = window.lbMapCoverage ? window.lbMapCoverage() : 0
     if (!coverage) return
 
     var rows = info.querySelectorAll('.mrow[data-band]')
