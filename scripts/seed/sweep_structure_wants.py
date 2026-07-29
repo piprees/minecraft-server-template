@@ -301,6 +301,96 @@ def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
     return findings
 
 
+def unresolvable_structs(struct_sets):
+    """STRUCTS short names whose locate id exists in no extracted set.
+
+    A wrong id here is invisible: resolve_struct happily returns it, the
+    battery accepts it, and the roller banks -1 for it on every seed of every
+    dimension that wants it — indistinguishable from "this seed didn't have
+    one". `dungeons_arise:giant_mushroom` and `nova_structures:illager_manor`
+    were both wrong (2026-07-29); the first cost three dimensions a permanent
+    zero on a want they could never satisfy.
+    """
+    from dimension_profiles import STRUCTS
+    known = {s["id"] for cfg in struct_sets.values() for s in cfg["structures"]}
+    bad = {}
+    for short, sid in sorted(STRUCTS.items()):
+        if sid.startswith("#"):
+            tag = sid.lstrip("#").split(":")[-1]
+            if not any(tag in k for k in known):
+                bad[short] = sid
+        elif sid not in known:
+            bad[short] = sid
+    return bad
+
+
+def reachable_ring(radial, threshold, radius, steps=2000):
+    """(lo, hi) blocks where the radial weight clears the profile threshold.
+
+    The complement of max_curve_weight's verdict: not "is this band dead" but
+    "where is the live part". Sampled rather than solved because the curve is
+    piecewise-linear with up to ten segments and the answer only needs to be
+    good to a fraction of a chunk. -> (None, None) when the group is dead
+    everywhere.
+    """
+    if not radial:
+        return (0.0, radius)
+    lo = hi = None
+    for i in range(steps + 1):
+        d = radius * i / steps
+        if noise_placement.radial_weight(radial, d, radius) > threshold:
+            if lo is None:
+                lo = d
+            hi = d
+    return (lo, hi)
+
+
+def suggest_band(spec, radial, threshold, radius, censuses, group, settings):
+    """A band inside the reachable ring that the BANK says actually scores.
+
+    Preference order, and the reasoning behind it:
+
+      1. Keep the author's band WIDTH and slide it to the reachable edge. A
+         `near_spawn` want in a world whose dungeons cannot generate before
+         39% of the radius still means "as close in as this world allows";
+         sliding preserves that while widening it to the whole outer ring
+         would not.
+      2. Failing that, take the whole reachable ring.
+
+    Each candidate is scored against every banked census and accepted on the
+    MEDIAN, not the best — a band that works for one seed in a hundred is the
+    same standing deduction in a new hat.
+    """
+    lo, hi = spec
+    hi = min(hi, radius)
+    reach_lo, reach_hi = reachable_ring(radial, threshold, radius)
+    if reach_lo is None or reach_hi is None:
+        return None, "the group is below its threshold at every radius"
+    width = max(hi - lo, 0.3 * radius)
+    tries = [(reach_lo, min(reach_lo + width, reach_hi)), (reach_lo, reach_hi)]
+    for cand_lo, cand_hi in tries:
+        if cand_hi - cand_lo <= 0:
+            continue
+        scores = []
+        for summary in censuses:
+            raw = (summary.get("groups") or {}).get(group)
+            if raw is None:
+                continue
+            merged = dict(raw)
+            merged["radial"] = (settings.get(group) or {}).get("radial")
+            scores.append(census_scoring.census_want_score(
+                merged, (cand_lo, cand_hi), summary.get("radiusChunks") or 0))
+        if not scores:
+            continue
+        scores.sort()
+        median = scores[len(scores) // 2]
+        if median >= FULL_CREDIT:
+            return (int(cand_lo), int(cand_hi)), "median {:.2f} across {} banked".format(
+                median, len(scores))
+    return None, "no band inside the reachable ring {:.0f}-{:.0f} scores a median 1.00".format(
+        reach_lo, reach_hi)
+
+
 def bank_pass(name, entry, profile, struct_to_set, set_to_group,
               type_defaults, cdir):
     """Replay every want against every banked census. -> list of findings.
@@ -351,15 +441,25 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
         code = ("NEVER-SATISFIED" if best <= 0.0 else
                 "ALWAYS-WRONG-RING" if best <= census_scoring.WANT_WRONG_RING_SCORE
                 else "NEVER-FULL")
-        findings.append({
-            "dimension": name, "want": sname, "structure": sid,
-            "radius": int(radius), "band": "{:.0f}-{:.0f}".format(lo, hi_eff),
-            "code": code, "expected": "{:.2f}".format(best),
-            "detail": ("best score {:.2f} of 1.00 across {} banked candidate(s) "
-                       "— the '{}' group never puts {} placement(s) in "
-                       "{:.0f}-{:.0f}".format(
-                           best, len(censuses), group,
-                           census_scoring.WANT_BAND_TARGET, lo, hi_eff))})
+        detail = ("best score {:.2f} of 1.00 across {} banked candidate(s) "
+                  "— the '{}' group never puts {} placement(s) in "
+                  "{:.0f}-{:.0f}".format(
+                      best, len(censuses), group,
+                      census_scoring.WANT_BAND_TARGET, lo, hi_eff))
+        row = {"dimension": name, "want": sname, "structure": sid,
+               "radius": int(radius), "band": "{:.0f}-{:.0f}".format(lo, hi_eff),
+               "code": code, "expected": "{:.2f}".format(best), "detail": detail}
+        # A group the dimension never enables has no profile to suggest
+        # against — GROUP-SUPPRESSED is a different fix (enable it, or drop
+        # the want), not a band move.
+        gs = settings.get(group)
+        if gs:
+            band, why = suggest_band(spec, gs.get("radial"),
+                                     gs["profile"].threshold, radius,
+                                     censuses, group, settings)
+            row["suggest"] = ("{}-{}".format(*band) if band else "")
+            row["suggest_why"] = why
+        findings.append(row)
     return findings
 
 
@@ -415,6 +515,7 @@ def main():
         wanted = {d.strip() for d in args.dims.split(",")}
         targets = {k: v for k, v in targets.items() if k in wanted}
 
+    bad_ids = unresolvable_structs(struct_sets)
     rows = []
     clean = []
     for name, entry in targets.items():
@@ -434,7 +535,8 @@ def main():
     if args.format == "csv":
         w = csv.DictWriter(sys.stdout, fieldnames=[
             "dimension", "want", "structure", "radius", "band", "code",
-            "expected", "detail"], extrasaction="ignore")
+            "expected", "suggest", "suggest_why", "detail"],
+            extrasaction="ignore", restval="")
         w.writeheader()
         for r in sorted(rows, key=lambda r: (r["dimension"], r["want"])):
             w.writerow(r)
@@ -450,6 +552,21 @@ def main():
         print("{}  (playable radius {}b)".format(name, found[0]["radius"]))
         for r in found:
             print("  {:21} {:22} {}".format(r["code"], r["want"], r["detail"]))
+            if r.get("suggest"):
+                print("  {:21} {:22} -> try {} blocks ({})".format(
+                    "", "", r["suggest"], r["suggest_why"]))
+            elif r.get("suggest_why"):
+                print("  {:21} {:22} -> no band works: {}".format(
+                    "", "", r["suggest_why"]))
+        print()
+
+    if bad_ids:
+        print("-" * 78)
+        print("{} STRUCTS short name(s) resolve to a structure id that exists in "
+              "NO extracted set.\nEvery want using one banks -1 on every seed, "
+              "indistinguishable from bad luck:".format(len(bad_ids)))
+        for short, sid in sorted(bad_ids.items()):
+            print("  {:22} {}".format(short, sid))
         print()
 
     counts = {}

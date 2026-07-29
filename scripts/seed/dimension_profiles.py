@@ -98,7 +98,6 @@ ENDGAME_STRUCTURES = {
     # dungeons and taverns mega-dungeons (sp >= 100)
     "creeping_crypt", "undead_crypt", "illager_hideout",
     "shrine_tower", "trident_trial", "lone_citadel", "stray_fort",
-    "illager_manor",
     # philip's ruins mega crypt
     "antiquus_crypta",
     # friends & foes boss encounter
@@ -158,7 +157,14 @@ STRUCTS = {
     "infested_temple": "dungeons_arise:infested_temple", "abandoned_temple": "dungeons_arise:abandoned_temple",
     "bandit_towers": "dungeons_arise:bandit_towers", "bandit_village": "dungeons_arise:bandit_village",
     "illager_fort": "dungeons_arise:illager_fort", "illager_campsite": "dungeons_arise:illager_campsite",
-    "jungle_tree_house": "dungeons_arise:jungle_tree_house", "giant_mushroom": "dungeons_arise:giant_mushroom",
+    "jungle_tree_house": "dungeons_arise:jungle_tree_house",
+    # `dungeons_arise:giant_mushroom` does not exist and never did — the
+    # shipped ids are mushroom_house / mushroom_mines / mushroom_village.
+    # Three dimensions wanted it, so the roller banked -1 for it on every
+    # seed of every one of them (2026-07-29).
+    "giant_mushroom": "dungeons_arise:mushroom_house",
+    "mushroom_mines": "dungeons_arise:mushroom_mines",
+    "mushroom_village": "dungeons_arise:mushroom_village",
     "wizard_tower": "structory_towers:wizard_tower", "ancient_temple": "structory_towers:ancient_temple",
     "relic_temple": "structory_towers:sacred_relic_temple",
     "mansion": "minecraft:mansion", "monument": "minecraft:monument",
@@ -185,7 +191,9 @@ STRUCTS = {
     "trident_trial": "nova_structures:trident_trial_monument",
     "lone_citadel": "nova_structures:lone_citadel",
     "stray_fort": "nova_structures:stray_fort",
-    "illager_manor": "nova_structures:illager_manor",
+    # `nova_structures:illager_manor` does not exist either. Nothing used it,
+    # so it is replaced by the real camp rather than repointed.
+    "illager_camp": "nova_structures:illager_camp",
     # friends & foes
     "iceologer_citadel": "friendsandfoes:citadel",
     # moogs nether/reimagined boss structures

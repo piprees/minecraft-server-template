@@ -36,6 +36,24 @@
   var btn = lb.querySelector('.lb-structs-toggle')
   if (!info || !imageBox || !btn) return
 
+  // Glyphs shared by more than one family. A second-tier family often means
+  // the same silhouette in a different material — a mega ship is a ship, an
+  // illager fort is a fort — so the shape is named once and the colour does
+  // the distinguishing.
+  var G_SHIP = 'M-9 2 L9 2 L5.5 8 L-5.5 8 Z M-0.8 2 L-0.8 -9 L0.8 -9 L0.8 2 Z'
+    + ' M1.6 -8 L8 -4.5 L1.6 -1 Z'
+  var G_HOUSE = 'M-9 -0.5 L0 -8.5 L9 -0.5 L9 9 L-9 9 Z M-2 9 L-2 2 L2 2 L2 9 Z'
+  var G_RAILS = 'M-8.5 -7 h2.5 v14 h-2.5 Z M6 -7 h2.5 v14 h-2.5 Z'
+    + ' M-8.5 -3.5 h17 v2.6 h-17 Z M-8.5 1.5 h17 v2.6 h-17 Z'
+  var G_COLUMN = 'M-4 -9 h8 v2.6 h-8 Z M-2.8 -6.4 h5.6 v12.8 h-5.6 Z'
+    + ' M-5 6.4 h10 v2.6 h-10 Z'
+  var G_GRAVE = 'M-6 9 L-6 -2.5 A6 6 0 0 1 6 -2.5 L6 9 Z'
+    + ' M-3.4 -1.6 h6.8 v1.9 h-6.8 Z M-3.4 1.9 h6.8 v1.9 h-6.8 Z'
+  var G_ARENA = 'M0 -7.5 A10 7.5 0 1 0 0.01 -7.5 Z M0 -3.4 A5.4 4 0 1 1 -0.01 -3.4 Z'
+  var G_CHALICE = 'M-6.5 -8 L6.5 -8 L4.2 -1.5 L-4.2 -1.5 Z M-1.3 -1.5 h2.6 v6 h-2.6 Z'
+    + ' M-6 4.5 h12 v3.5 h-12 Z'
+  var G_MUSHROOM = 'M-9.5 -0.5 A9.5 8 0 0 1 9.5 -0.5 Z M-2.4 -0.5 h4.8 v9.5 h-4.8 Z'
+
   // Keyword families, in MATCH ORDER — the first whose keyword appears in the
   // structure name wins. Order is explicit and specific-first on purpose:
   // STRUCT_MAT is a dict matched by substring, so `jungle_temple` hit plain
@@ -131,6 +149,106 @@
     { k: 'ruin', c: [90, 90, 80],
       d: 'M-9.5 9 L-9.5 -1 L-4 -1 L-4 -7 L1 -7 L1 1.5 L5 1.5 L5 -3'
        + ' L9.5 -3 L9.5 9 Z' },
+
+    // --- second tier -------------------------------------------------
+    // Appended, never interleaved: every keyword above still wins, so no
+    // structure that had an icon loses or changes it. These cover the
+    // largest clusters of the 77 short names that were falling through to
+    // the generic diamond — the Dungeons Arise flagships, the crypt and
+    // ship families, and the nether/end furniture.
+    { k: 'lighthouse', c: [200, 200, 190],   // before `house`
+      d: 'M-3 9 L-2 -3 L2 -3 L3 9 Z M-4.5 -3 h9 v-2.2 h-9 Z'
+       + ' M-2.6 -5.2 L-2.6 -8.6 L2.6 -8.6 L2.6 -5.2 Z'
+       + ' M-9 -8 L-3.4 -6.9 L-3.4 -4.9 L-9 -3.8 Z'
+       + ' M9 -8 L3.4 -6.9 L3.4 -4.9 L9 -3.8 Z' },
+    { k: 'crypt', c: [70, 70, 78], d: G_GRAVE },
+    { k: 'tomb', c: [120, 105, 85], d: G_GRAVE },
+    { k: 'graveyard', c: [95, 95, 88], d: G_GRAVE },
+    { k: 'mausoleum', c: [150, 148, 140], d: G_GRAVE },
+    { k: 'coliseum', c: [190, 178, 150], d: G_ARENA },
+    { k: 'arena', c: [190, 178, 150], d: G_ARENA },
+    { k: 'palace', c: [190, 150, 60],
+      d: 'M-10 9 L-10 -2 A10 10 0 0 1 10 -2 L10 9 Z M-1.9 9 L-1.9 1.5'
+       + ' A1.9 1.9 0 0 1 1.9 1.5 L1.9 9 Z M-0.8 -12 h1.6 v3.4 h-1.6 Z' },
+    { k: 'fort', c: [70, 66, 62],        // before `illager`: a fort first
+      d: 'M-9.5 9 L-9.5 -5 L-7 -5 L-7 -7.6 L-4.5 -7.6 L-4.5 -5 L-2.4 -5'
+       + ' L-2.4 -7.6 L2.4 -7.6 L2.4 -5 L4.5 -5 L4.5 -7.6 L7 -7.6 L7 -5'
+       + ' L9.5 -5 L9.5 9 Z M-2 9 L-2 2 L2 2 L2 9 Z' },
+    { k: 'illager', c: [55, 58, 52],
+      d: 'M-4.2 9 L-4.2 -9 L-2.6 -9 L-2.6 9 Z'
+       + ' M-2.6 -8 L6.5 -8 L4.4 -4.5 L6.5 -1 L-2.6 -1 Z' },
+    { k: 'forge', c: [150, 60, 30],
+      d: 'M-9 1.5 L-4.5 -2 L4.5 -2 L9 1.5 L9 4 L-9 4 Z M-9 6 h18 v3 h-18 Z'
+       + ' M-1.4 -2 L-1.4 -9 L1.4 -9 L1.4 -2 Z' },
+    { k: 'foundry', c: [150, 60, 30],
+      d: 'M-9 1.5 L-4.5 -2 L4.5 -2 L9 1.5 L9 4 L-9 4 Z M-9 6 h18 v3 h-18 Z'
+       + ' M-1.4 -2 L-1.4 -9 L1.4 -9 L1.4 -2 Z' },
+    { k: 'mine', c: [110, 82, 46], d: G_RAILS },   // mines, mining_complex
+    { k: 'pillar', c: [160, 158, 150], d: G_COLUMN },
+    { k: 'spire', c: [150, 130, 190],
+      d: 'M0 -9.5 L3.4 -1 L2 -1 L4.6 9 L-4.6 9 L-2 -1 L-3.4 -1 Z' },
+    { k: 'monolith', c: [45, 45, 58],
+      d: 'M-3.6 9 L-3.6 -8 L3.6 -9.5 L3.6 9 Z' },
+    { k: 'ship', c: [80, 62, 44], d: G_SHIP },     // after `shipwreck`
+    { k: 'house', c: [120, 96, 62], d: G_HOUSE },
+    { k: 'hut', c: [96, 78, 50], d: G_HOUSE },
+    { k: 'farm', c: [140, 160, 70], d: G_HOUSE },
+    { k: 'settlement', c: [104, 104, 104], d: G_HOUSE },
+    { k: 'altar', c: [130, 70, 90], d: G_CHALICE },
+    { k: 'chapel', c: [150, 140, 120], d: G_CHALICE },
+    { k: 'castle', c: [90, 84, 78],
+      d: 'M-10 9 L-10 -4 L-10 -8 L-6 -8 L-6 -4 L-2 -4 L-2 -8 L2 -8 L2 -4'
+       + ' L6 -4 L6 -8 L10 -8 L10 9 Z M-2 9 L-2 2 A2 2 0 0 1 2 2 L2 9 Z' },
+    { k: 'skull', c: [220, 214, 200],
+      d: 'M0 -9 A8.5 8 0 0 1 8 3 L5.5 9 L-5.5 9 L-8 3 A8.5 8 0 0 1 0 -9 Z'
+       + ' M-4.4 -2.2 A2.4 2.4 0 1 1 -4.39 -2.2 Z'
+       + ' M4.4 -2.2 A2.4 2.4 0 1 1 4.41 -2.2 Z' },
+    { k: 'bridge', c: [110, 60, 60],
+      d: 'M-10 -2 h20 v2.6 h-20 Z M-9 0.6 h2.6 v8.4 h-2.6 Z'
+       + ' M6.4 0.6 h2.6 v8.4 h-2.6 Z M-1.3 0.6 h2.6 v8.4 h-2.6 Z' },
+    { k: 'well', c: [130, 125, 115],
+      d: 'M-6.5 1 h13 v8 h-13 Z M-8 -1.6 h16 v2.6 h-16 Z'
+       + ' M-5.5 -8.6 L0 -5.4 L5.5 -8.6 L5.5 -6 L0 -2.8 L-5.5 -6 Z' },
+    { k: 'post', c: [120, 96, 62],       // guide_post_warm / _cold
+      d: 'M-1.2 9 L-1.2 -9 L1.2 -9 L1.2 9 Z M1.2 -7.4 h7.4 v3.4 h-7.4 Z'
+       + ' M-8.6 -2.6 h7.4 v3.4 h-7.4 Z' },
+    { k: 'garden', c: [110, 175, 80],
+      d: 'M-1.2 9 h2.4 v-11 h-2.4 Z'
+       + ' M-1.6 -1 A7.5 7.5 0 0 1 -9 -8.4 A7.5 7.5 0 0 1 -1.6 -1 Z'
+       + ' M1.6 -3.5 A7.5 7.5 0 0 0 9 -10.9 A7.5 7.5 0 0 0 1.6 -3.5 Z' },
+    { k: 'nest', c: [120, 100, 70],
+      d: 'M-9.5 0 A9.5 6.5 0 0 0 9.5 0 Z M-9.5 0 h19 v-2 h-19 Z'
+       + ' M-4 -5.5 A2.6 2.6 0 1 1 -3.99 -5.5 Z M3.4 -4.6 A2.6 2.6 0 1 1 3.41 -4.6 Z' },
+    { k: 'crashed', c: [80, 62, 44], d: G_SHIP },
+    { k: 'remains', c: [140, 136, 125], d: G_COLUMN },
+    { k: 'hall', c: [100, 70, 45],
+      d: 'M-10 9 L-10 -3 L0 -9 L10 -3 L10 9 Z M-6 -0.5 h3 v3 h-3 Z'
+       + ' M-1.5 -0.5 h3 v3 h-3 Z M3 -0.5 h3 v3 h-3 Z M-1.8 9 L-1.8 4 L1.8 4 L1.8 9 Z' },
+    { k: 'trial', c: [90, 120, 130],      // trial_chambers, trident_trial
+      d: 'M-9 9 L-9 -6 L9 -6 L9 9 Z M-5 -2.6 h3.2 v3.2 h-3.2 Z'
+       + ' M1.8 -2.6 h3.2 v3.2 h-3.2 Z M-2 9 L-2 3 L2 3 L2 9 Z' },
+    { k: 'mushroom', c: [180, 100, 180], d: G_MUSHROOM },
+    { k: 'fungus', c: [160, 40, 60], d: G_MUSHROOM },
+    { k: 'mining', c: [110, 82, 46], d: G_RAILS },
+    { k: 'tavern', c: [140, 100, 55], d: G_HOUSE },
+    { k: 'manor', c: [90, 60, 30],
+      d: 'M-10 9 L-10 -5 L10 -5 L10 9 Z M-10 -5 L0 -9.5 L10 -5 Z'
+       + ' M-6.5 -1.5 h3 v3 h-3 Z M-1.5 -1.5 h3 v3 h-3 Z M3.5 -1.5 h3 v3 h-3 Z'
+       + ' M-1.8 9 L-1.8 3.5 L1.8 3.5 L1.8 9 Z' },
+    { k: 'pyramid', c: [200, 180, 120],
+      d: 'M0 -9 L8.5 6.5 L-8.5 6.5 Z M-10 6.5 L10 6.5 L10 9 L-10 9 Z' },
+    { k: 'archway', c: [150, 140, 190],
+      d: 'M-8 9 L-8 -2 A8 8 0 0 1 8 -2 L8 9 L4 9 L4 -2 A4 4 0 0 0 -4 -2 L-4 9 Z' },
+    { k: 'cache', c: [180, 170, 140],
+      d: 'M-9 -3 L-9 8.5 L9 8.5 L9 -3 Z M-9 -3 L-7 -7.5 L7 -7.5 L9 -3 Z'
+       + ' M-1.5 -0.5 h3 v4 h-3 Z' },
+    { k: 'outcast', c: [110, 96, 70], d: G_HOUSE },
+    { k: 'volcano', c: [170, 60, 30],
+      d: 'M-10 9 L-3.4 -6 L3.4 -6 L10 9 Z M-3 -6 L-1.4 -9.5 L1.4 -9.5 L3 -6 Z' },
+    { k: 'heavenly', c: [200, 195, 225], d: G_SHIP },
+    { k: 'skeleton', c: [225, 222, 210],
+      d: 'M-1.3 -9 h2.6 v18 h-2.6 Z M-8 -5.5 h16 v2.2 h-16 Z'
+       + ' M-6.5 -0.5 h13 v2.2 h-13 Z M-5 4.5 h10 v2.2 h-10 Z' },
   ]
   // Anything the 30 families do not name. A marker still has to appear —
   // "there is a structure here and I have no icon for it" is information;
