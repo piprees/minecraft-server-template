@@ -29,11 +29,31 @@
  ],
 
  "curves": {
-  "_comment": "10-point piecewise-linear weights, spawn (index 0) -> border (index 9). Multiplied into the noise before the threshold test, so 0.0 suppresses a band outright and 2.0 roughly doubles the hit rate there.",
-  "inner": [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0],
-  "outer": [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0],
+  "_comment": [
+   "10-point piecewise-linear RELATIVE DENSITY, spawn (index 0) -> border",
+   "(index 9). 1.0 is the profile's own density; 2.0 is twice as many",
+   "placements per unit area; 0.5 is half. The curve scales the exclusion",
+   "radius (d = exclusion / sqrt(weight), and Poisson-disc density goes as",
+   "1/d^2), so the number written here IS the density multiplier.",
+   "",
+   "Every curve below is normalised to an area-weighted mean of 1.0, so",
+   "switching a group's curve redistributes its content without changing how",
+   "much of it the world has. Total density stays owned by `profile` and",
+   "`exclusion`, which is what their names say. Measured over three seeds at",
+   "radius 512: every curve lands within 7% of `even`'s count.",
+   "",
+   "0.0 still suppresses a band outright, and is now the ONLY way to do so —",
+   "an author who wants a hard edge writes one deliberately. Before",
+   "2026-07-29 the curve multiplied into the noise before the threshold test,",
+   "which made every taper an accidental hard edge: `inner` gave 33",
+   "dimensions no village past a third of the radius and `outer` gave 54 no",
+   "dungeon inside half of it, while raising a peak from 1.6 to 3.0 changed",
+   "density not at all. See NoiseFieldIndex.exclusionFor."
+  ],
+  "inner": [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55],
+  "outer": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
   "even": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-  "mid": [0.3, 0.5, 1.0, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3, 0.1]
+  "mid": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35]
  },
 
  "groupDefaults": {

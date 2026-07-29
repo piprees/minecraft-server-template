@@ -23,17 +23,35 @@ import java.util.Set;
  * <h2>The rule</h2>
  *
  * <pre>
- * eligible(c) := noise(c) * radial(c) &gt; threshold
+ * eligible(c) := radial(c) &gt; 0 AND noise(c) &gt; threshold
  * placed(c)   := eligible(c)
- *                AND no eligible c' within `exclusion` chunks outranks c
+ *                AND no eligible c' within `exclusion(radial(c))` chunks
+ *                    outranks c
  *                    (rank = a white-noise priority per chunk; ties on the
  *                     chunk key, so the order is total)
  * </pre>
  *
- * Two knobs, two jobs. The smooth noise and the radial curve decide WHERE
- * structures may go and what fraction of the world qualifies — that is the
- * density dial. The priority then thins the qualifying chunks to a
- * Poisson-disc set with a hard minimum separation — that is the spacing dial.
+ * Three knobs, three jobs. The threshold decides what fraction of the world is
+ * candidate material, uniformly. The radial curve scales the exclusion radius,
+ * which sets how densely the candidates pack — see {@link #exclusionFor}, and
+ * note that the curve value IS the relative density multiplier. The priority
+ * then thins the candidates to a Poisson-disc set at that separation.
+ *
+ * <h3>Why the radial curve is not part of the eligibility test</h3>
+ *
+ * It was until 2026-07-29, and that was wrong. Multiplying the curve into the
+ * noise before the threshold makes it a binary gate: a chunk whose weight is
+ * below the threshold can never place however the noise falls, so every
+ * authored taper became a hard wall wherever it crossed the profile's
+ * threshold. Measured across the banked candidates: {@code inner} left 33
+ * dimensions with no village past a third of the radius, {@code outer} left 54
+ * with no dungeon inside half of it, and raising {@code inner}'s peak from 1.6
+ * to 3.0 changed density per unit area not at all — because the exclusion
+ * radius was fixed and the packing had already saturated against it. The curve
+ * could only decide where a group existed, never how much of it there was.
+ *
+ * Weight 0.0 still suppresses outright, so a hard edge is still expressible.
+ * It is now opt-in rather than the accidental consequence of a taper.
  *
  * <h3>Why not the local maximum of the noise itself</h3>
  *
@@ -60,7 +78,9 @@ import java.util.Set;
  * "not strictly higher" and both would place, breaking the separation
  * guarantee.
  *
- * MIRRORED in scripts/seed/structure_placement.py — change both together.
+ * MIRRORED in scripts/seed/noise_placement.py — change both together, then
+ * re-run test_noise_parity.py, which diffs this against a live
+ * {@code /customdim structure-census} dump with zero tolerance.
  */
 public final class NoiseFieldIndex {
 
@@ -71,6 +91,16 @@ public final class NoiseFieldIndex {
      * dimension uses, and is the spike's stated performance target.
      */
     public static final int MAX_RADIUS_CHUNKS = 512;
+
+    /**
+     * How far the radial curve may push the exclusion radius above a group's
+     * base, and the weight at which that cap bites. Reciprocal squares of each
+     * other; both spelled out as literals rather than derived so the Java and
+     * Python sides cannot drift by a rounding step. Without the cap, a weight
+     * approaching zero would grow the neighbourhood scan without bound.
+     */
+    public static final double MAX_EXCLUSION_SCALE = 4.0;
+    public static final double MIN_RADIAL_WEIGHT = 0.0625;
 
     private final Set<Long> placements;
     private final Map<Long, ChunkPos> byRegion;
@@ -103,7 +133,12 @@ public final class NoiseFieldIndex {
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
-        this.spacing = Math.max(2, excl * 2);
+        // The locate cell has to be sized from the SMALLEST separation the
+        // curve can ask for, not the base: a cell built for the base would hold
+        // two placements wherever the weight peaks, and byRegion keeps only the
+        // first, so locate would silently stop finding the rest. A uniform
+        // curve peaks at 1.0, which reproduces the old `excl * 2` exactly.
+        this.spacing = Math.max(2, Math.max(1, exclusionFor(excl, maxWeight(radial))) * 2);
         this.profileId = profile.id();
         this.noiseSeed = noiseSeed;
         this.exclusion = excl;
@@ -144,6 +179,16 @@ public final class NoiseFieldIndex {
                 if (distSq > rSquared) {
                     continue;   // outside the world, stays false
                 }
+                // Weight 0.0 is the author's explicit hard suppression, and the
+                // only reason the curve can rule a chunk out. Everything else
+                // is candidate material at the profile's own rate, and the
+                // weight decides the packing instead (see exclusionFor).
+                // Tested before the noise so a suppressed band costs no Perlin
+                // work; the samples are independent per chunk, so skipping one
+                // cannot change another.
+                if (radialWeight(radial, Math.sqrt(distSq), r) <= 0.0) {
+                    continue;
+                }
                 int cx = spawnChunkX + dx;
                 int cz = spawnChunkZ + dz;
                 double noise;
@@ -154,8 +199,7 @@ public final class NoiseFieldIndex {
                 } else {
                     noise = primary.sampleChunk(cx, cz, frequency);
                 }
-                double weight = radialWeight(radial, Math.sqrt(distSq), r);
-                if (noise * weight > threshold) {
+                if (noise > threshold) {
                     int idx = (dz + r) * side + (dx + r);
                     eligible[idx] = true;
                     ranks[idx] = priority(noiseSeed, cx, cz);
@@ -179,7 +223,16 @@ public final class NoiseFieldIndex {
                 }
                 int cx = spawnChunkX + dx;
                 int cz = spawnChunkZ + dz;
-                if (!outranksNeighbours(eligible, ranks, side, r, dx, dz, excl,
+                // Each candidate is judged against ITS OWN exclusion radius,
+                // which makes the relation asymmetric: a chunk in a low-weight
+                // band has to beat competitors a high-weight chunk never looks
+                // at. That asymmetry IS the density gradient. It stays
+                // order-free — every decision reads only the eligibility and
+                // rank arrays, never another decision — so parity with the
+                // Python mirror is still a set comparison.
+                int candidateExcl = exclusionFor(excl,
+                        radialWeight(radial, Math.sqrt((double) dx * dx + (double) dz * dz), r));
+                if (!outranksNeighbours(eligible, ranks, side, r, dx, dz, candidateExcl,
                         cx, cz, spawnChunkX, spawnChunkZ)) {
                     continue;
                 }
@@ -297,6 +350,45 @@ public final class NoiseFieldIndex {
         int hi = Math.min(lo + 1, radial.length - 1);
         double t = scaled - lo;
         return radial[lo] + t * (radial[hi] - radial[lo]);
+    }
+
+    /**
+     * The minimum separation a chunk of this radial weight asks for.
+     *
+     * A Poisson-disc set with minimum separation d has density proportional to
+     * 1/d^2, so d = base / sqrt(weight) makes the placement density directly
+     * proportional to the weight. That is what lets the config say "1.35" and
+     * mean "35% denser here than this group's own rate" — the curve value IS
+     * the density multiplier, and a curve is a density profile.
+     *
+     * Weight 0.0 returns 0, which the caller reads as ineligible rather than as
+     * a separation. {@link #MIN_RADIAL_WEIGHT} caps how large the disc can get,
+     * because the neighbourhood scan is O(d^2) per candidate.
+     *
+     * MIRRORED in scripts/seed/noise_placement.exclusion_for — Math.round is
+     * floor(x + 0.5), which is NOT Python's banker's rounding, so the mirror
+     * uses its own _java_round rather than round().
+     */
+    static int exclusionFor(int baseExclusion, double weight) {
+        if (weight <= 0.0) {
+            return 0;
+        }
+        double w = weight > MIN_RADIAL_WEIGHT ? weight : MIN_RADIAL_WEIGHT;
+        return Math.max(1, (int) Math.round(baseExclusion / Math.sqrt(w)));
+    }
+
+    /** The curve's peak, i.e. the densest weight it can ask for. */
+    static double maxWeight(double[] radial) {
+        if (radial == null || radial.length == 0) {
+            return 1.0;
+        }
+        double max = radial[0];
+        for (double v : radial) {
+            if (v > max) {
+                max = v;
+            }
+        }
+        return max;
     }
 
     static long regionKey(int regionX, int regionZ) {

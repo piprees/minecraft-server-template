@@ -51,6 +51,15 @@ FINE_SALT = 0xDEAD
 # NoiseFieldIndex.MAX_RADIUS_CHUNKS
 MAX_RADIUS_CHUNKS = 512
 
+# NoiseFieldIndex.MAX_EXCLUSION_SCALE / MIN_RADIAL_WEIGHT. The radial curve
+# scales the exclusion radius, and these bound how far it may push it: a
+# weight below MIN_RADIAL_WEIGHT is treated as MIN_RADIAL_WEIGHT, which caps
+# the separation at MAX_EXCLUSION_SCALE times the group's base. Reciprocal
+# squares of each other; both spelled out as literals so the Java and Python
+# sides cannot drift by a rounding step.
+MAX_EXCLUSION_SCALE = 4.0
+MIN_RADIAL_WEIGHT = 0.0625
+
 # NoiseProfile.REFERENCE_RADIUS_CHUNKS. Frequency scales as
 # REFERENCE / radius so every dimension sees the same NUMBER of noise
 # features whatever its size — without it, `sparse`'s 67-chunk lattice
@@ -321,6 +330,34 @@ def radial_weight(radial, dist_chunks, radius_chunks):
     return radial[lo] + t * (radial[hi] - radial[lo])
 
 
+def exclusion_for(base_exclusion, weight):
+    """NoiseFieldIndex.exclusionFor — the minimum separation at a radial weight.
+
+    A Poisson-disc set with minimum separation d has density proportional to
+    1/d^2, so d = base / sqrt(weight) makes the placement density directly
+    proportional to `weight`. That is the whole point of the change: the curve
+    value IS the relative density multiplier, 1.0 being the profile's own
+    density, and the shape of the curve is the shape of the density profile.
+
+    Before this, the curve multiplied into the noise before the threshold test,
+    which made it a binary eligibility gate rather than a dial. Measured on the
+    banked candidates: raising `inner`'s peak from 1.6 to 3.0 changed density
+    per unit area not at all (0.85 0.57 0.85 1.10 ... vs 0.85 0.85 1.03 1.34
+    ...), because `_outranks` used a FIXED exclusion radius and the packing
+    saturated at it. All the curve could do was decide where a group existed —
+    so `inner` gave 33 dimensions no village past a third of the radius, and
+    `outer` gave 54 no dungeon inside half of it.
+
+    Weight 0.0 still suppresses outright (returns 0, which the caller reads as
+    ineligible), so an author who genuinely wants a hard edge can still write
+    one. It is now opt-in rather than the accidental consequence of a taper.
+    """
+    if weight <= 0.0:
+        return 0
+    w = weight if weight > MIN_RADIAL_WEIGHT else MIN_RADIAL_WEIGHT
+    return max(1, _java_round(base_exclusion / math.sqrt(w)))
+
+
 def region_key(region_x, region_z):
     """NoiseFieldIndex.regionKey."""
     return _signed64(((region_x << 32) & M64) ^ (region_z & M32))
@@ -333,6 +370,19 @@ class NoiseFieldIndex:
     box, then keep the chunks that outrank every eligible neighbour inside the
     exclusion disc. Order-free by construction, so the ring walk below only
     fixes the ORDER of `positions`, never its contents.
+
+    The radial curve scales the EXCLUSION RADIUS (see `exclusion_for`), it does
+    not gate eligibility. Eligibility is `noise > threshold`, uniform across the
+    dimension, so the profile owns "what fraction of the world is candidate
+    material" and the curve owns "how densely the candidates pack". One knob,
+    one job, and no dead zones.
+
+    Each candidate is judged against its OWN exclusion radius, which makes the
+    relation asymmetric: a chunk in a low-weight band has to beat competitors a
+    high-weight chunk never looks at. That is exactly what "denser where the
+    weight is high" means, and it stays order-free — every decision reads only
+    the eligibility and rank arrays, never another decision — so parity with
+    the Java side is still a set comparison.
     """
 
     def __init__(self, noise_seed, profile, exclusion, radial, radius_chunks,
@@ -340,7 +390,13 @@ class NoiseFieldIndex:
         noise_seed &= M64
         r = max(0, min(radius_chunks, MAX_RADIUS_CHUNKS))
         excl = max(1, exclusion)
-        self.spacing = max(2, excl * 2)
+        # The locate cell has to be sized from the SMALLEST separation the
+        # curve can ask for, not the base: a cell built for the base would hold
+        # two placements wherever the weight peaks, and `by_region` keeps only
+        # the first, so locate would silently stop finding the rest. A uniform
+        # curve peaks at 1.0, which reproduces the old `excl * 2` exactly.
+        min_excl = max(1, exclusion_for(excl, max(radial) if radial else 1.0))
+        self.spacing = max(2, min_excl * 2)
         self.radius_chunks = r
 
         # Samplers bound ONCE, mirroring the Java constructor.
@@ -365,11 +421,15 @@ class NoiseFieldIndex:
         # parity fixtures — but a 512-radius group costs four million fewer
         # Python calls. Two exactness-preserving filters run before any
         # Perlin work:
-        #   1. outside the disc — as before;
-        #   2. radial weight <= threshold — `sample` is clamped to [0, 1], so
-        #      such a chunk can never satisfy `noise * weight > threshold`
-        #      however the noise falls. Whole deciles of most curves are 0.
+        #   1. outside the disc;
+        #   2. radial weight 0.0 — an author's explicit hard suppression.
+        # The old second filter (weight <= threshold) is gone with the gate it
+        # belonged to; the curve now scales the exclusion radius instead, so a
+        # low weight means sparse rather than absent and every chunk inside the
+        # border has to be sampled. Both caches are keyed on the integer
+        # dx^2+dz^2, which is exact for every chunk offset in range.
         weight_cache = {}
+        excl_cache = {}
         primary_perm = primary.permutation
         fine_perm = fine.permutation if is_cluster else None
         sqrt = math.sqrt
@@ -379,7 +439,6 @@ class NoiseFieldIndex:
             dz_sq = float(dz) * dz
             span = int(sqrt(max(r_squared - dz_sq, 0.0)))
             live_dx = []
-            live_weights = []
             for dx in range(-span, span + 1):
                 dist_sq = float(dx) * dx + dz_sq
                 if dist_sq > r_squared:
@@ -389,10 +448,9 @@ class NoiseFieldIndex:
                 if weight is None:
                     weight = radial_weight(radial, sqrt(dist_sq), r)
                     weight_cache[key] = weight
-                if weight <= threshold:
+                if weight <= 0.0:
                     continue
                 live_dx.append(dx)
-                live_weights.append(weight)
             if not live_dx:
                 continue
             live_cx = [spawn_chunk_x + dx for dx in live_dx]
@@ -409,22 +467,17 @@ class NoiseFieldIndex:
             else:
                 noises = sample_row(primary_perm, live_cx, cz, frequency)
             for i, noise in enumerate(noises):
-                if noise * live_weights[i] > threshold:
+                if noise > threshold:
                     dx = live_dx[i]
                     idx = row + (dx + r)
                     eligible[idx] = 1
                     ranks[idx] = priority(noise_seed, spawn_chunk_x + dx, cz)
 
-        # Precompute the exclusion disc offsets once.
-        offsets = []
-        excl_sq = excl * excl
-        for oz in range(-excl, excl + 1):
-            for ox in range(-excl, excl + 1):
-                if ox == 0 and oz == 0:
-                    continue
-                if ox * ox + oz * oz > excl_sq:
-                    continue
-                offsets.append((ox, oz))
+        # Exclusion disc offsets, one set per distinct radius the curve asks
+        # for. A 10-point curve over an integer exclusion yields a handful of
+        # distinct values, so this is a small memo rather than a per-candidate
+        # rebuild.
+        offsets_by_excl = {}
 
         # Single O(r^2) pass, mirroring the Java constructor. Walking outward
         # ring by ring and skipping each ring's interior is O(r^3) — 1.8e8
@@ -438,6 +491,15 @@ class NoiseFieldIndex:
                     continue
                 cx = spawn_chunk_x + dx
                 cz = spawn_chunk_z + dz
+                key = dx * dx + dz * dz
+                candidate_excl = excl_cache.get(key)
+                if candidate_excl is None:
+                    candidate_excl = exclusion_for(excl, weight_cache[key])
+                    excl_cache[key] = candidate_excl
+                offsets = offsets_by_excl.get(candidate_excl)
+                if offsets is None:
+                    offsets = _disc_offsets(candidate_excl)
+                    offsets_by_excl[candidate_excl] = offsets
                 if not self._outranks(eligible, ranks, side, r, dx, dz, offsets,
                                       cx, cz, spawn_chunk_x, spawn_chunk_z):
                     continue
@@ -505,6 +567,16 @@ class NoiseFieldIndex:
 
 def _floor_div(a, b):
     return a // b if b > 0 else math.floor(a / b)
+
+
+def _disc_offsets(exclusion):
+    """Chunk offsets inside an exclusion disc, self excluded. Mirrors the
+    bounds of NoiseFieldIndex.outranksNeighbours' double loop."""
+    excl_sq = exclusion * exclusion
+    return [(ox, oz)
+            for oz in range(-exclusion, exclusion + 1)
+            for ox in range(-exclusion, exclusion + 1)
+            if not (ox == 0 and oz == 0) and ox * ox + oz * oz <= excl_sq]
 
 
 # ---------------------------------------------------------------------------

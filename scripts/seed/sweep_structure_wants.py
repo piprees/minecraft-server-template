@@ -38,16 +38,20 @@ WHAT IT CHECKS, per want in the resolved battery
                        density or difficulty shift never enables that group
                        (noise_placement.resolve_groups), so its census entry
                        is always missing.
-  CURVE-BELOW-THRESHOLD
-                       the group IS enabled, but its radial curve never rises
-                       above its noise profile's threshold anywhere in the
-                       want's band, so no seed can put anything there. This is
-                       the big one: the shipped `dungeons` and `endgame` curves
-                       start [0.0, 0.0, 0.1, 0.3, ...] and `settlements` ends
-                       [..., 0.1, 0.0, 0.0, 0.0], and a `sparse` profile needs
-                       weight > 0.85 — so a near_spawn dungeon want, or a
-                       near_border village want, is asking for something the
-                       placement rules forbid outright.
+  CURVE-SUPPRESSED-BAND
+                       the group IS enabled, but its radial curve is exactly
+                       0.0 across the whole of the want's band, which suppresses
+                       placement outright. Since 2026-07-29 this is the only way
+                       a curve can make a band unsatisfiable, and it is always
+                       deliberate: the curve scales the exclusion radius, so any
+                       positive weight generates. Before that change the bar was
+                       `weight > profile.threshold` and 19 wants across 12
+                       dimensions were impossible by accident, the shipped
+                       tapers having crossed the threshold on their way down.
+  THIN-BAND            the curve averages less than 0.5x the group's own density
+                       across the band. Satisfiable, but the author is asking
+                       for something the config has deliberately made rare
+                       there — worth a look, never a fault.
   SPARSE-FOR-BORDER    a grid-placed set whose spacing means fewer than one
                        expected placement inside the playable radius.
   SET-NOT-EXTRACTED    the want resolves to no structure set at all in
@@ -116,7 +120,8 @@ SEVERITY = {
     "SET-FILTERED-OUT": 2,
     "GROUP-SUPPRESSED": 2,
     "SET-NOT-EXTRACTED": 2,
-    "CURVE-BELOW-THRESHOLD": 3,
+    "CURVE-SUPPRESSED-BAND": 3,
+    "THIN-BAND": 1,
     "SPARSE-FOR-BORDER": 1,
 }
 
@@ -161,16 +166,22 @@ def group_for(sid, struct_to_set, set_to_group):
 def max_curve_weight(radial, lo, hi, radius):
     """The largest radial weight anywhere in a block band.
 
-    THIS IS THE CHECK THAT MATTERS, and it is exact rather than heuristic.
-    NoiseFieldIndex's eligibility pass is
+    Exact rather than heuristic. NoiseFieldIndex's eligibility pass is
 
-        if weight <= threshold: continue     # before sampling anything
+        if radialWeight(...) <= 0.0: continue    # before sampling anything
         ...
-        if noise * weight > threshold: eligible
+        if noise > threshold: eligible
 
-    and `sample` is clamped to [0, 1]. So a chunk can host a placement only
-    where `weight > threshold` — a band whose entire radial weight sits at or
-    below its profile's threshold generates NOTHING, whatever the seed.
+    so the ONLY way a curve can rule a band out is a weight of exactly 0.0
+    across the whole of it. Anything positive generates; the weight then scales
+    the exclusion radius, which makes the band sparser or denser but never
+    empty.
+
+    Before 2026-07-29 the curve multiplied into the noise before the threshold
+    test, so the bar was `weight > profile.threshold` and 19 wants were
+    structurally impossible from config alone (22 confirmed against the bank).
+    That whole class of finding is gone by construction — see
+    NoiseFieldIndex.exclusionFor.
 
     The curve is piecewise-linear through `len(radial)` control points spanning
     [0, radius] (radial_weight puts point i at fraction i/(n-1)), so the
@@ -189,6 +200,31 @@ def max_curve_weight(radial, lo, hi, radius):
         if lo < d < hi:
             weights.append(w)
     return max(weights)
+
+
+# A want whose band the curve thins below this much of the group's own density
+# is reported as THIN-BAND: satisfiable, but the author is asking for something
+# the config has deliberately made rare there.
+THIN_BAND_WEIGHT = 0.5
+
+
+def mean_curve_weight(radial, lo, hi, radius, steps=200):
+    """The band's mean radial weight, i.e. its relative density.
+
+    Since 2026-07-29 the curve value IS the density multiplier, so this is
+    directly "how much of this group's usual density does the author's band
+    get". Sampled rather than integrated because the answer is a headline
+    number for a human, not an input to anything.
+    """
+    if not radial:
+        return 1.0
+    if radius <= 0 or hi <= lo:
+        return noise_placement.radial_weight(radial, max(lo, 0.0), radius)
+    total = 0.0
+    for i in range(steps + 1):
+        d = lo + (hi - lo) * i / steps
+        total += noise_placement.radial_weight(radial, d, radius)
+    return total / (steps + 1)
 
 
 def effective_placement(set_cfg, profile):
@@ -259,19 +295,26 @@ def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
                     "noise owns this set through the '{}' group, which this "
                     "dimension never enables".format(group))))
                 continue
-            settings = resolved_groups[group]
-            radial = settings["radial"]
-            profile_obj = settings["profile"]
+            radial = resolved_groups[group]["radial"]
             peak = max_curve_weight(radial, lo, hi_eff, radius)
-            if peak <= profile_obj.threshold:
+            if peak <= 0.0:
                 findings.append(dict(
-                    base, code="CURVE-BELOW-THRESHOLD",
-                    expected="{:.2f}".format(peak), detail=(
-                        "the '{}' group peaks at radial weight {:.2f} across "
-                        "{:.0f}-{:.0f}, and its '{}' profile needs more than "
-                        "{:.2f} — nothing can generate there on any seed"
-                        .format(group, peak, lo, hi_eff, profile_obj.id,
-                                profile_obj.threshold))))
+                    base, code="CURVE-SUPPRESSED-BAND",
+                    expected="0.00", detail=(
+                        "the '{}' group's radial curve is 0.0 across the whole "
+                        "of {:.0f}-{:.0f}, which suppresses placement outright "
+                        "— nothing can generate there on any seed"
+                        .format(group, lo, hi_eff))))
+                continue
+            mean = mean_curve_weight(radial, lo, hi_eff, radius)
+            if mean < THIN_BAND_WEIGHT:
+                findings.append(dict(
+                    base, code="THIN-BAND",
+                    expected="{:.2f}x".format(mean), detail=(
+                        "the '{}' group's curve averages {:.2f}x its own "
+                        "density across {:.0f}-{:.0f} (peak {:.2f}x), so the "
+                        "want is reachable but deliberately rare there"
+                        .format(group, mean, lo, hi_eff, peak))))
             continue
 
         set_cfg = resolve_set(sid, struct_sets, struct_to_sets)
@@ -324,28 +367,33 @@ def unresolvable_structs(struct_sets):
     return bad
 
 
-def reachable_ring(radial, threshold, radius, steps=2000):
-    """(lo, hi) blocks where the radial weight clears the profile threshold.
+def reachable_ring(radial, radius, steps=2000):
+    """(lo, hi) blocks where the radial weight is positive, i.e. where the group
+    can place at all.
 
     The complement of max_curve_weight's verdict: not "is this band dead" but
     "where is the live part". Sampled rather than solved because the curve is
     piecewise-linear with up to ten segments and the answer only needs to be
-    good to a fraction of a chunk. -> (None, None) when the group is dead
+    good to a fraction of a chunk. -> (None, None) when the group is suppressed
     everywhere.
+
+    Took a `threshold` argument until 2026-07-29, when the curve stopped gating
+    eligibility. For every shipped curve this is now the whole radius, and the
+    argument would have been a lie dressed as precision.
     """
     if not radial:
         return (0.0, radius)
     lo = hi = None
     for i in range(steps + 1):
         d = radius * i / steps
-        if noise_placement.radial_weight(radial, d, radius) > threshold:
+        if noise_placement.radial_weight(radial, d, radius) > 0.0:
             if lo is None:
                 lo = d
             hi = d
     return (lo, hi)
 
 
-def suggest_band(spec, radial, threshold, radius, censuses, group, settings):
+def suggest_band(spec, radial, radius, censuses, group, settings):
     """A band inside the reachable ring that the BANK says actually scores.
 
     Preference order, and the reasoning behind it:
@@ -363,9 +411,9 @@ def suggest_band(spec, radial, threshold, radius, censuses, group, settings):
     """
     lo, hi = spec
     hi = min(hi, radius)
-    reach_lo, reach_hi = reachable_ring(radial, threshold, radius)
+    reach_lo, reach_hi = reachable_ring(radial, radius)
     if reach_lo is None or reach_hi is None:
-        return None, "the group is below its threshold at every radius"
+        return None, "the group's curve suppresses it at every radius"
     width = max(hi - lo, 0.3 * radius)
     tries = [(reach_lo, min(reach_lo + width, reach_hi)), (reach_lo, reach_hi)]
     for cand_lo, cand_hi in tries:
@@ -454,8 +502,7 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
         # the want), not a band move.
         gs = settings.get(group)
         if gs:
-            band, why = suggest_band(spec, gs.get("radial"),
-                                     gs["profile"].threshold, radius,
+            band, why = suggest_band(spec, gs.get("radial"), radius,
                                      censuses, group, settings)
             row["suggest"] = ("{}-{}".format(*band) if band else "")
             row["suggest_why"] = why

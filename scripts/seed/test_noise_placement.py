@@ -17,9 +17,14 @@ import noise_placement as npl  # noqa: E402
 
 SEED = 0xC0FFEE
 
-INNER = [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0]
-OUTER = [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0]
+# The shipped curves (structure-type-defaults.json). Relative DENSITY per
+# radial decile, spawn -> border, each normalised to an area-weighted mean of
+# 1.0 so a curve redistributes content without changing how much there is.
+INNER = [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55]
+OUTER = [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55]
 EVEN = [1.0] * 10
+# A deliberate hard edge — the one thing a 0.0 in a curve still means.
+OUTER_HALF_ONLY = [0.0] * 5 + [1.0] * 5
 
 
 def build(profile, exclusion, radial, radius):
@@ -129,24 +134,91 @@ class TestFieldIndex(unittest.TestCase):
         self.assertGreater(len(build(npl.NATURAL, 2, EVEN, 96)),
                            len(build(npl.NATURAL, 16, EVEN, 96)))
 
-    def test_inner_curve_biases_towards_spawn(self):
-        index = build(npl.NATURAL, 3, INNER, 64)
-        self.assertGreater(len(index), 10)
-        limit = 64 * 0.30
-        within = sum(1 for x, z in index.positions()
-                     if (x * x + z * z) ** 0.5 <= limit)
-        self.assertGreater(within / len(index), 0.60)
+    @staticmethod
+    def _density(index, radius, decile, bins=10):
+        """Placements per unit area in one radial decile, normalised so a
+        uniform layout reads 1.0 everywhere. Density, not share: decile 9 is
+        19% of the disc and decile 0 is 1%, so raw counts would read every
+        uniform layout as border-biased."""
+        hist = [0] * bins
+        for x, z in index.positions():
+            b = min(bins - 1, int((x * x + z * z) ** 0.5 / radius * bins))
+            hist[b] += 1
+        if not len(index):
+            return 0.0
+        # Annulus areas go as 2i+1 and sum to 100 over ten bins.
+        return (hist[decile] / len(index)) / ((2 * decile + 1) / 100.0)
 
-    def test_outer_curve_biases_towards_the_border(self):
-        index = build(npl.NATURAL, 3, OUTER, 64)
-        self.assertGreater(len(index), 10)
-        limit = 64 * 0.45
-        outer = sum(1 for x, z in index.positions()
-                    if (x * x + z * z) ** 0.5 > limit)
-        self.assertGreater(outer / len(index), 0.60)
+    def test_inner_curve_is_denser_near_spawn(self):
+        index = build(npl.NATURAL, 3, INNER, 512)
+        self.assertGreater(len(index), 100)
+        near = self._density(index, 512, 0)
+        far = self._density(index, 512, 9)
+        self.assertGreater(near, 2.0 * far,
+                           "inner asks for 2.8 vs 0.55 (5.1x), measured %.2f vs %.2f"
+                           % (near, far))
+
+    def test_outer_curve_is_denser_at_the_border(self):
+        index = build(npl.NATURAL, 3, OUTER, 512)
+        self.assertGreater(len(index), 100)
+        near = self._density(index, 512, 0)
+        far = self._density(index, 512, 9)
+        self.assertGreater(far, 2.0 * near,
+                           "outer asks for 0.3 vs 1.55 (5.2x), measured %.2f vs %.2f"
+                           % (near, far))
+
+    def test_a_taper_thins_the_border_without_emptying_it(self):
+        """The regression the 2026-07-29 change exists for.
+
+        The curve used to multiply into the noise before the threshold test, so
+        the moment a taper fell below the profile's threshold the band went to
+        absolute zero — 33 dimensions had no village past a third of their
+        radius. A taper must thin, never delete.
+        """
+        index = build(npl.NATURAL, 3, INNER, 512)
+        for decile in range(10):
+            self.assertGreater(
+                self._density(index, 512, decile), 0.0,
+                "decile %d is empty under a curve that only tapers" % decile)
+
+    def test_a_zero_in_the_curve_still_suppresses_absolutely(self):
+        """0.0 is now the ONLY way to ask for a hard edge, so it has to keep
+        working or an author cannot express one at all."""
+        index = build(npl.NATURAL, 3, OUTER_HALF_ONLY, 512)
+        self.assertGreater(len(index), 100)
+        for x, z in index.positions():
+            self.assertGreater((x * x + z * z) ** 0.5 / 512.0, 0.44)
 
     def test_zero_curve_places_nothing(self):
         self.assertEqual(len(build(npl.NATURAL, 3, [0.0] * 10, 64)), 0)
+
+    def test_exclusion_scales_as_the_inverse_square_root_of_the_weight(self):
+        """d = base / sqrt(weight), so density (which goes as 1/d^2) is
+        directly proportional to the weight. Mirrors
+        NoiseFieldIndex.exclusionFor — Java's Math.round is floor(x + 0.5), so
+        the mirror must not use Python's banker's rounding."""
+        self.assertEqual(npl.exclusion_for(20, 1.0), 20)
+        self.assertEqual(npl.exclusion_for(20, 4.0), 10)
+        self.assertEqual(npl.exclusion_for(20, 0.25), 40)
+        # Capped so the neighbourhood scan stays bounded.
+        self.assertEqual(npl.exclusion_for(20, npl.MIN_RADIAL_WEIGHT), 80)
+        self.assertEqual(npl.exclusion_for(20, 0.0001), 80)
+        # Never below one chunk, whatever the peak.
+        self.assertEqual(npl.exclusion_for(1, 3.0), 1)
+        # Zero is not a separation, it is a suppression.
+        self.assertEqual(npl.exclusion_for(20, 0.0), 0)
+
+    def test_spacing_comes_from_the_curves_peak_not_its_base(self):
+        """The locate cell must fit the DENSEST packing the curve can ask for.
+        Sized from the base, a cell would hold two placements wherever the
+        weight peaks and by_region would silently drop all but the first."""
+        index = build(npl.NATURAL, 6, INNER, 512)
+        self.assertEqual(index.spacing, npl.exclusion_for(6, 2.8) * 2)
+        self.assertLess(index.spacing, 12)
+        # A uniform curve reproduces the unscaled separation exactly, or every
+        # `even` group in the shipped config would have moved for nothing.
+        self.assertEqual(build(npl.NATURAL, 7, EVEN, 64).spacing, 14)
+        self.assertEqual(build(npl.NATURAL, 7, None, 64).spacing, 14)
 
     def test_even_curve_matches_no_curve(self):
         self.assertEqual(build(npl.NATURAL, 3, EVEN, 48).positions(),
@@ -238,8 +310,13 @@ class TestGroupResolution(unittest.TestCase):
         self.assertEqual(len(groups), 7)
         self.assertIs(groups["settlements"]["profile"], npl.NATURAL)
         self.assertIs(groups["dungeons"]["profile"], npl.SPARSE)
-        self.assertAlmostEqual(groups["settlements"]["radial"][0], 1.5)
-        self.assertAlmostEqual(groups["dungeons"]["radial"][0], 0.0)
+        # settlements -> inner, dungeons -> outer per the type table. Compared
+        # against the named curves rather than literal values: what this owns is
+        # the MAPPING, and retuning a curve's numbers (as 2026-07-29 did) should
+        # not read as a broken precedence chain.
+        curves = self.defaults["curves"]
+        self.assertEqual(groups["settlements"]["radial"], curves["inner"])
+        self.assertEqual(groups["dungeons"]["radial"], curves["outer"])
 
     def test_suppression(self):
         for config in ({"type": "multi_biome", "structureDensity": "none"},

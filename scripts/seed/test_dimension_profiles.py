@@ -858,21 +858,29 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
 
     PlacesNothingTests above covers the loud case — a dimension that can
     place nothing at all. This is the quiet one it cannot see: a dimension
-    that places plenty, asking for a structure in a ring where its group's
-    radial curve never clears the noise profile's threshold. Every candidate
-    loses the same points for it, so it contributes nothing to the ranking
-    while capping the ceiling.
+    that places plenty, asking for a structure in a ring its group cannot
+    reach. Every candidate loses the same points for it, so it contributes
+    nothing to the ranking while capping the ceiling.
 
-    The maths under test is exact, not a heuristic:
-    NoiseFieldIndex skips a chunk before sampling when
-    `radialWeight <= profile.threshold`, and the noise sample is clamped to
-    [0, 1], so `noise * weight > threshold` is unreachable there for any seed.
+    The maths under test is exact, not a heuristic. Since 2026-07-29 the radial
+    curve scales the exclusion radius rather than gating eligibility, so the
+    only curve-driven way to make a band unreachable is a weight of exactly 0.0
+    across the whole of it — deliberate, and reported as
+    CURVE-SUPPRESSED-BAND. A band the curve merely thins is satisfiable and
+    reported as THIN-BAND, which is a question rather than a fault.
+
+    Before that change the bar was `radialWeight > profile.threshold`, and the
+    shipped tapers crossed it on their way down: 19 wants across 12 dimensions
+    were impossible by accident. Those cases now pass, which is the point.
     """
 
     #: The shipped shapes, so a curve edit that breaks an assumption here
-    #: fails loudly rather than silently changing what is reachable.
-    OUTER = [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0]
-    INNER = [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0]
+    #: fails loudly rather than silently changing what is reachable. Relative
+    #: DENSITY per radial decile, spawn -> border.
+    OUTER = [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55]
+    INNER = [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55]
+    #: A deliberate hard edge, the one thing a 0.0 still means.
+    OUTER_HALF_ONLY = [0.0] * 5 + [1.0] * 5
 
     TYPE_DEFAULTS = {
         "curves": {"outer": OUTER, "inner": INNER, "even": [1.0] * 10},
@@ -914,24 +922,38 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
     def test_max_curve_weight_is_the_peak_not_the_mean(self):
         # The band spans the whole curve, so the peak is the curve's peak.
         self.assertAlmostEqual(
-            self.sweep.max_curve_weight(self.OUTER, 0, 1000, 1000), 2.0)
+            self.sweep.max_curve_weight(self.OUTER, 0, 1000, 1000), max(self.OUTER))
 
-    def test_max_curve_weight_over_a_dead_inner_band(self):
+    def test_max_curve_weight_over_a_thinned_inner_band(self):
         # radial_weight puts control point i at fraction i/9, so the inner
         # 30% of an `outer` curve tops out between points 2 and 3.
         peak = self.sweep.max_curve_weight(self.OUTER, 0, 300, 1000)
-        self.assertLess(peak, 0.45)   # below even `dense`'s threshold
+        self.assertLess(peak, 0.6)
+        # Positive, so the band is thin rather than dead — the distinction the
+        # 2026-07-29 placement change created.
+        self.assertGreater(peak, 0.0)
+
+    def test_mean_curve_weight_is_the_bands_relative_density(self):
+        # `even` is 1.0 everywhere, so any band averages exactly its own density.
+        self.assertAlmostEqual(
+            self.sweep.mean_curve_weight([1.0] * 10, 0, 1000, 1000), 1.0)
+        # `inner` is front-loaded, so the inner third beats the outer third.
+        near = self.sweep.mean_curve_weight(self.INNER, 0, 333, 1000)
+        far = self.sweep.mean_curve_weight(self.INNER, 667, 1000, 1000)
+        self.assertGreater(near, 2.0 * far)
 
     def test_max_curve_weight_with_no_curve_is_flat_one(self):
         self.assertEqual(self.sweep.max_curve_weight(None, 0, 300, 1000), 1.0)
 
     # --- what the sweep reports -----------------------------------------
-    def test_near_spawn_dungeon_want_is_flagged(self):
+    def test_near_spawn_dungeon_want_is_thin_not_impossible(self):
+        """`outer` opens at 0.3x, so a near-spawn dungeon want is rare rather
+        than forbidden. This case used to be CURVE-BELOW-THRESHOLD."""
         found = self._run(
             self._dim(8192, {"trial_chambers": "near_spawn"}),
             {"minecraft:trial_chambers": "minecraft:trial_chambers"},
             {"minecraft:trial_chambers": "dungeons"})
-        self.assertEqual([f["code"] for f in found], ["CURVE-BELOW-THRESHOLD"])
+        self.assertEqual([f["code"] for f in found], ["THIN-BAND"])
 
     def test_near_border_dungeon_want_is_not_flagged(self):
         found = self._run(
@@ -940,13 +962,25 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
             {"minecraft:trial_chambers": "dungeons"})
         self.assertEqual(found, [])
 
-    def test_near_border_settlement_want_is_flagged(self):
-        """The mirror image: `inner` ends in three hard zeros."""
+    def test_near_border_settlement_want_is_no_longer_flagged(self):
+        """The headline fix. `inner` used to end in three hard zeros, so this
+        want was structurally impossible; it now tapers to 0.55x and a village
+        at the border is simply less common than one at spawn."""
         found = self._run(
             self._dim(1024, {"village": "near_border"}),
             {"minecraft:village_plains": "minecraft:villages"},
             {"minecraft:villages": "settlements"})
-        self.assertEqual([f["code"] for f in found], ["CURVE-BELOW-THRESHOLD"])
+        self.assertEqual(found, [])
+
+    def test_a_zero_band_is_still_reported(self):
+        """A curve an author has deliberately zeroed still makes a want
+        unsatisfiable, and the sweep must still say so."""
+        dim = self._dim(1024, {"village": "near_spawn"})
+        dim["structures"]["radial"] = {"settlements": self.OUTER_HALF_ONLY}
+        found = self._run(dim,
+                          {"minecraft:village_plains": "minecraft:villages"},
+                          {"minecraft:villages": "settlements"})
+        self.assertEqual([f["code"] for f in found], ["CURVE-SUPPRESSED-BAND"])
 
     def test_band_starting_beyond_the_border_is_flagged(self):
         found = self._run(
@@ -980,7 +1014,8 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
                           {"minecraft:villages": "settlements"})
         # The band check runs first and is about the CONFIG, not the seed, so
         # it still fires; nothing group-related does.
-        self.assertNotIn("CURVE-BELOW-THRESHOLD", [f["code"] for f in found])
+        self.assertNotIn("CURVE-SUPPRESSED-BAND", [f["code"] for f in found])
+        self.assertNotIn("THIN-BAND", [f["code"] for f in found])
 
     def test_shuns_are_not_swept(self):
         """A shun that can never be violated is a free point, not a bug."""
