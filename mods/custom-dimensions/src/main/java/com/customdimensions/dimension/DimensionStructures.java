@@ -257,6 +257,25 @@ public final class DimensionStructures {
 
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
                 def, original.getStructureSets(), biomeSource, plan);
+        // Which structures a group can draw from is decided HERE, from the
+        // dimension's biome source against each structure's own biome list, so
+        // the seed roller cannot derive it. Recording it is what lets the roller
+        // ask "is there a Village" rather than only "is there a settlement" —
+        // see StructurePoolRecord for why 167 shuns were unsatisfiable without
+        // it. Free: the pools are already built. The registry lookup lives here
+        // rather than in the record so the record stays Bootstrap-free.
+        java.util.Map<String, java.util.List<StructurePoolRecord.Entry>> poolIds =
+                new java.util.LinkedHashMap<>();
+        pools.pools().forEach((group, pool) -> {
+            java.util.List<StructurePoolRecord.Entry> ids = new ArrayList<>();
+            for (var weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(key -> ids.add(
+                        new StructurePoolRecord.Entry(
+                                key.getValue().toString(), weighted.weight())));
+            }
+            poolIds.put(group, ids);
+        });
+        StructurePoolRecord.record(def.getName(), poolIds);
 
         // Custom placement types pass through untouched: their rules are not
         // ours to reinterpret, and dropping them would silently delete every

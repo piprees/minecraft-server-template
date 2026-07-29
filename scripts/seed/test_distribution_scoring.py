@@ -26,8 +26,9 @@ SPEC.loader.exec_module(score_dimensions)
 
 CONFIG_DIR = Path(__file__).resolve().parents[2] / "config" / "custom-dimensions"
 
-INNER = [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0]
-OUTER = [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0]
+# The shipped curves — relative density per radial decile, spawn -> border.
+INNER = [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55]
+OUTER = [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55]
 EVEN = [1.0] * 10
 
 
@@ -78,7 +79,9 @@ class DistributionMatchTests(unittest.TestCase):
         # 10 bins over a 10-point curve: bin 0's centre is 5% of the radius,
         # which sits between curve points 0 and 1.
         got = census_scoring.desired_profile(INNER, 10)
-        self.assertAlmostEqual(got[0], 1.5 + (1.3 - 1.5) * (0.05 * 9))
+        # Derived from the curve rather than written out, so retuning the
+        # shipped numbers cannot break a test about interpolation.
+        self.assertAlmostEqual(got[0], INNER[0] + (INNER[1] - INNER[0]) * (0.05 * 9))
         self.assertEqual(len(got), 10)
 
 
@@ -153,6 +156,141 @@ class WantShunAgainstCensusTests(unittest.TestCase):
             census_scoring.census_shun_score(far, 100.0, self.RADIUS_CHUNKS), 1.0)
         self.assertEqual(
             census_scoring.census_shun_score(None, 100.0, self.RADIUS_CHUNKS), 1.0)
+
+
+class WeightShareTests(unittest.TestCase):
+    """A structure's expected share of its group's placements.
+
+    The census records per-GROUP counts, never which structure landed on which
+    position, so without a share both wants and shuns could only ask about the
+    group. That credited a Village want for any one of 96 settlement types on
+    the overworld, and failed every shun whose group was merely present — 167
+    shuns across 64 of 81 dimensions had never once been satisfied.
+    """
+
+    POOLS = {
+        "the_test": {
+            "settlements": {"minecraft:village_plains": 8,
+                            "explorify:farmstead": 2},
+            "maritime": {},
+        },
+    }
+
+    def test_a_known_structure_gets_its_weight_fraction(self):
+        self.assertAlmostEqual(census_scoring.weight_share(
+            self.POOLS, "the_test", "settlements", "minecraft:village_plains"), 0.8)
+        self.assertAlmostEqual(census_scoring.weight_share(
+            self.POOLS, "the_test", "settlements", "explorify:farmstead"), 0.2)
+
+    def test_a_structure_the_biome_filter_dropped_gets_zero(self):
+        """In the group but not in this dimension's pool means it cannot
+        generate here at all — which is the answer, not a missing measurement."""
+        self.assertEqual(census_scoring.weight_share(
+            self.POOLS, "the_test", "settlements", "minecraft:igloo"), 0.0)
+
+    def test_a_known_empty_group_gives_every_member_zero(self):
+        """A group the biome filter emptied cannot generate anything, and the
+        Python census mirror cannot discover that for itself — resolve_groups
+        knows the group's config but not which structures survived the filter.
+        Conflating "known empty" with "unknown" would report positions for a
+        group the server never placed."""
+        self.assertEqual(census_scoring.weight_share(
+            self.POOLS, "the_test", "maritime", "minecraft:shipwreck"), 0.0)
+
+    def test_absent_pool_data_falls_back_to_one(self):
+        """The whole design rests on this: no pool file means scoring behaves
+        exactly as it did before shares existed, so a bank rolled without them
+        is not invalidated by adding them."""
+        for args in (({}, "the_test", "settlements", "minecraft:village_plains"),
+                     (None, "the_test", "settlements", "minecraft:village_plains"),
+                     (self.POOLS, "other_dim", "settlements", "minecraft:village_plains"),
+                     (self.POOLS, "the_test", "dungeons", "minecraft:trial_chambers")):
+            self.assertEqual(census_scoring.weight_share(*args), 1.0, args)
+
+    def test_a_tag_want_claims_every_matching_pool_member(self):
+        """Asking for '#minecraft:village' when the pool holds nine village
+        variants is asking for any of the nine."""
+        pools = {"d": {"settlements": {"minecraft:village_plains": 5,
+                                       "minecraft:village_desert": 5,
+                                       "explorify:farmstead": 10}}}
+        self.assertAlmostEqual(
+            census_scoring.weight_share(pools, "d", "settlements", "#minecraft:village"),
+            0.5)
+
+    def test_pools_load_from_the_warmup_artefact(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(census_scoring.load_structure_pools(tmp), {})
+            (Path(tmp) / "structure_pools.json").write_text(json.dumps(
+                {"schemaVersion": 1, "dimensions": self.POOLS}))
+            loaded = census_scoring.load_structure_pools(tmp)
+            self.assertEqual(loaded["the_test"]["settlements"]
+                             ["minecraft:village_plains"], 8)
+
+    def test_unreadable_pool_data_is_not_fatal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "structure_pools.json").write_text("{ not json")
+            self.assertEqual(census_scoring.load_structure_pools(tmp), {})
+
+
+class PresenceProbabilityTests(unittest.TestCase):
+    """P(at least one of THIS structure in the band) = 1 - (1 - share)^n."""
+
+    RADIUS_CHUNKS = 64
+
+    def entry(self, hist):
+        return {"count": sum(hist), "hist": hist, "radial": EVEN}
+
+    def test_share_of_one_reduces_to_present_or_absent(self):
+        """The load-bearing compatibility property: at share 1.0 every answer is
+        the pre-share answer, exactly."""
+        present = self.entry([3] + [0] * 9)
+        self.assertEqual(census_scoring.presence_probability(
+            present, 0.0, 300.0, self.RADIUS_CHUNKS, 1.0), 1.0)
+        self.assertEqual(census_scoring.presence_probability(
+            present, 500.0, 900.0, self.RADIUS_CHUNKS, 1.0), 0.0)
+
+    def test_more_placements_make_a_small_share_more_likely(self):
+        one = self.entry([1] + [0] * 9)
+        ten = self.entry([10] + [0] * 9)
+        p_one = census_scoring.presence_probability(
+            one, 0.0, 300.0, self.RADIUS_CHUNKS, 0.1)
+        p_ten = census_scoring.presence_probability(
+            ten, 0.0, 300.0, self.RADIUS_CHUNKS, 0.1)
+        self.assertAlmostEqual(p_one, 0.1)
+        self.assertGreater(p_ten, 0.6)
+        self.assertLess(p_ten, 1.0)
+
+    def test_a_zero_share_is_impossible_however_many_placements(self):
+        crowded = self.entry([500] + [0] * 9)
+        self.assertEqual(census_scoring.presence_probability(
+            crowded, 0.0, 300.0, self.RADIUS_CHUNKS, 0.0), 0.0)
+
+    def test_a_shun_is_the_exact_complement_of_a_want(self):
+        entry = self.entry([4] + [0] * 9)
+        for share in (0.05, 0.25, 0.5, 1.0):
+            want = census_scoring.presence_probability(
+                entry, 0.0, 300.0, self.RADIUS_CHUNKS, share)
+            shun = census_scoring.census_shun_score(
+                entry, 300.0, self.RADIUS_CHUNKS, share)
+            self.assertAlmostEqual(want + shun, 1.0, msg="share %s" % share)
+
+    def test_a_rare_shunned_structure_no_longer_costs_the_whole_point(self):
+        """The bug this fixes. A shun used to score 0.0 whenever its group had
+        any placement in the ring; a structure that is 2% of a busy group is
+        mostly absent, and the score should say so."""
+        entry = self.entry([6] + [0] * 9)
+        before = census_scoring.census_shun_score(entry, 300.0, self.RADIUS_CHUNKS)
+        after = census_scoring.census_shun_score(entry, 300.0, self.RADIUS_CHUNKS, 0.02)
+        self.assertEqual(before, 0.0)
+        self.assertGreater(after, 0.85)
+
+    def test_a_want_still_reports_the_wrong_ring_rather_than_a_probability(self):
+        """Group present but nothing in the wanted band is a different failure
+        from 'not in this world', and keeps its own floor."""
+        entry = self.entry([0] * 9 + [12])
+        self.assertEqual(
+            census_scoring.census_want_score(entry, (0.0, 300.0), self.RADIUS_CHUNKS, 0.3),
+            census_scoring.WANT_WRONG_RING_SCORE)
 
 
 class BlendTests(unittest.TestCase):

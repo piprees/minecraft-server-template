@@ -7,6 +7,7 @@ import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.dimension.FixedStructurePlacement;
 import com.customdimensions.dimension.NoiseStructurePlacement;
 import com.customdimensions.dimension.StructureGroupRegistry;
+import com.customdimensions.dimension.StructurePoolRecord;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -146,7 +147,48 @@ public class DimensionCommands {
                 .then(CommandManager.literal("structure-census")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(DimensionCommands::structureCensus)))
+                .then(CommandManager.literal("dump-structure-pools")
+                    .executes(DimensionCommands::dumpStructurePools))
         );
+    }
+
+    /**
+     * Writes which structures each loaded dimension's noise groups can draw
+     * from, and with what weight, to
+     * config/custom-dimensions/structure_pools.json.
+     *
+     * The seed roller needs this to tell a Village from any-old-settlement; it
+     * cannot derive it, because membership depends on each structure's own biome
+     * list against the dimension's biome source. See
+     * {@link StructurePoolRecord} for the full reasoning and for why a partial
+     * dump is safe.
+     *
+     * Cheap by design — pools only, no positions. A dimension whose world has
+     * not loaded yet is simply absent, and the roller falls back to the
+     * group-level reading for it.
+     */
+    private static int dumpStructurePools(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        int dimensions = StructurePoolRecord.size();
+        if (dimensions == 0) {
+            source.sendError(Text.literal(
+                "No dimension has installed a structure pool yet — managed "
+                + "dimensions record theirs as their world loads."));
+            return 0;
+        }
+        try {
+            Path outputPath = Artefacts.dir().resolve("structure_pools.json");
+            Artefacts.write(outputPath,
+                    StructurePoolRecord.toJson(Artefacts.jsonHeader("structure-pools")));
+            final String message = "dump-structure-pools: " + dimensions
+                    + " dimension(s) -> " + outputPath;
+            source.sendFeedback(() -> Text.literal(message), false);
+            return dimensions;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write structure pools", e);
+            source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
     }
 
     /**

@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""warmup_structure_pools.py — dump which structures each dimension can place.
+
+A noise position is one weighted draw from its structure group's pool, so "is
+there a Village within 500 blocks" and "is there a settlement within 500 blocks"
+are different questions. The banked census answers only the second: it records
+per-GROUP counts and a radial histogram, never which structure landed where.
+That made two whole classes of criterion meaningless — 167 shuns across 64 of 81
+dimensions had never once been satisfied, because a shun failed whenever its
+group was present and an enabled group is populated by definition.
+
+The roller cannot derive the pool. Membership is decided server-side by
+NoisePoolBuilder, intersecting each structure's own biome list with the
+dimension's biome source — registry data extracted from ~150 mod jars, which the
+pure-Python roller has no access to. So it has to be told.
+
+WHAT THIS COSTS, AND WHY IT IS SHAPED THIS WAY
+
+The mod records a dimension's pool as its world loads (StructurePoolRecord), so
+a dump covers the dimensions loaded so far. Dimensions are REGISTERED at boot
+from config but their ServerWorlds are created lazily, so this walks the rollable
+list issuing `customdim load` and then dumps once.
+
+Loading a world is cheap for placement (a few ms) but it creates a level
+directory and generates spawn chunks, so this is a one-time warmup cost paid in
+the throwaway boot directory, never in a real world.
+
+GRACEFUL DEGRADATION IS THE POINT. A dimension missing from the dump makes
+census_scoring.weight_share return 1.0 for it, which is exactly the group-level
+reading used before pools existed. So a partial dump improves scoring for what it
+covers and changes nothing else — this script failing outright leaves the roller
+working, just less precise.
+
+Uses docker exec rcon-cli for ALL RCON commands, like warmup_biomes.py: the
+Python RCON socket enters a bad state after the boot warmup's create/destroy
+cycle.
+"""
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dimension_profiles as dp  # noqa: E402
+from seed_worker import boot, docker, prepare_boot_dir  # noqa: E402
+
+# How many `customdim load` calls to issue before waiting. The mod queues each
+# on END_SERVER_TICK, so they do not need to be serialised — but firing all 81
+# at once and then waiting once means a slow world starves the whole batch's
+# budget, and a batch small enough to finish inside the poll window keeps the
+# progress reporting honest.
+BATCH = 8
+POLL_SECONDS = 2
+BATCH_TIMEOUT = 60
+
+
+def rcon(container, cmd, timeout=60):
+    """One RCON command via docker exec rcon-cli (fresh connection)."""
+    try:
+        r = subprocess.run(
+            ["docker", "exec", container, "rcon-cli", cmd],
+            capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return ""
+    return r.stdout.strip()
+
+
+def recorded_count(container):
+    """How many dimensions have registered a structure pool.
+
+    This, not `customdim list`, is the progress signal. Two reasons:
+
+      - `customdim list` counts LOADED worlds, and the mod unloads an idle one
+        after idleUnloadMinutes (5 by default). Over a run long enough to load
+        78 dimensions the early ones unload again, so the loaded count is not
+        monotonic and would never reach the target.
+      - the pool record is an accumulator that survives unloading — verified on
+        a live server: the_overgrowth stayed in the dump after its world was
+        unloaded. So this number only ever goes up, and it is exactly the
+        coverage the roller will get.
+
+    RCON concatenates feedback lines with NO separator, which is why this is a
+    regex rather than a whitespace split: the reply is one run-together string
+    and the digits sit immediately before the phrase.
+
+    -> -1 when the reply cannot be parsed, which the caller treats as "not there
+    yet" rather than as zero.
+    """
+    out = rcon(container, "customdim dump-structure-pools", timeout=60)
+    match = re.search(r"(\d+) dimension", out)
+    return int(match.group(1)) if match else -1
+
+
+def rollable_slugs(config_dir):
+    """Every dimension the roller will score, base worlds excluded.
+
+    Base worlds load themselves at boot, so they are already in the record; a
+    `customdim load overworld` would be meaningless anyway.
+    """
+    configs = dp.load_dimension_configs(config_dir)
+    return sorted(slug for slug, cfg in configs.items()
+                  if slug not in dp.BASE_WORLD_IDS and dp.rollable(cfg))
+
+
+def load_all(container, slugs):
+    """Ask for every dimension's world, in batches, and report coverage.
+
+    Batched rather than fired all at once: the mod queues each load on
+    END_SERVER_TICK, and a batch small enough to settle inside the poll window
+    keeps the progress numbers honest and stops one slow world from swallowing
+    the whole run's time budget.
+    """
+    baseline = max(0, recorded_count(container))   # the base worlds load themselves
+    for start in range(0, len(slugs), BATCH):
+        batch = slugs[start:start + BATCH]
+        for slug in batch:
+            out = rcon(container, "customdim load %s" % slug, timeout=30)
+            if "Queued" not in out and "already" not in out.lower():
+                print("    %s did not queue: %s" % (slug, out[:80]), flush=True)
+        target = baseline + min(start + BATCH, len(slugs))
+        waited = 0
+        recorded = recorded_count(container)
+        while recorded < target and waited < BATCH_TIMEOUT:
+            time.sleep(POLL_SECONDS)
+            waited += POLL_SECONDS
+            recorded = recorded_count(container)
+        print("    %d/%d requested, %d recorded" % (
+            min(start + BATCH, len(slugs)), len(slugs), max(0, recorded - baseline)),
+            flush=True)
+    return max(0, recorded_count(container) - baseline)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--workdir", required=True)
+    ap.add_argument("--mvconfig", required=True)
+    ap.add_argument("--seedtest", required=True)
+    ap.add_argument("--config", required=True,
+                    help="config/custom-dimensions, for the rollable list")
+    ap.add_argument("--output", required=True)
+    ap.add_argument("--memory", default=os.environ.get("ROLL_MEMORY", "10G"))
+    args = ap.parse_args()
+
+    slugs = rollable_slugs(args.config)
+    if not slugs:
+        print("  No rollable dimensions — nothing to dump", flush=True)
+        return 0
+
+    container = "seedrollall-warmup-pools"
+    prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+    print("  Booting MC server for structure pool dump (%d dimensions)..."
+          % len(slugs), flush=True)
+    rcon_obj = boot("warmup", container, args.workdir, args.memory)
+    if rcon_obj is None:
+        print("  ERROR: server boot failed", flush=True)
+        docker("rm", "-f", container, check=False)
+        return 1
+    rcon_obj.close()
+
+    try:
+        load_all(container, slugs)
+        out = rcon(container, "customdim dump-structure-pools", timeout=60)
+        if "dump-structure-pools" not in out:
+            print("  dump failed: %s" % out[:160], flush=True)
+            return 1
+        dumped = (Path(args.workdir) / "config" / "custom-dimensions"
+                  / "structure_pools.json")
+        if not dumped.exists():
+            print("  structure_pools.json was not written", flush=True)
+            return 1
+        doc = json.loads(dumped.read_text())
+    finally:
+        docker("rm", "-f", container, check=False)
+
+    dimensions = doc.get("dimensions") or {}
+    Path(args.output).write_text(json.dumps(doc, indent=1) + "\n")
+
+    groups = sum(len(g) for g in dimensions.values())
+    structures = sum(len(w) for g in dimensions.values() for w in g.values())
+    print("  Dumped %d/%d dimension(s), %d groups, %d structure entries"
+          % (len(dimensions), len(slugs) + len(dp.BASE_WORLD_IDS),
+             groups, structures), flush=True)
+    missing = [s for s in slugs if s not in dimensions]
+    if missing:
+        # Named, not silently dropped: these dimensions keep the group-level
+        # reading, which is the pre-pool behaviour rather than a wrong answer.
+        print("  %d dimension(s) never loaded and keep group-level scoring: %s"
+              % (len(missing), ", ".join(missing[:8])
+                 + (" ..." if len(missing) > 8 else "")), flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

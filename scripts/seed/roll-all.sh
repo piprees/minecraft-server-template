@@ -240,6 +240,39 @@ print('  Done.')
       | xargs -I{} docker rm -f {} 2> /dev/null || true
   fi
 
+  # Structure pools: which structures each dimension's groups can actually draw
+  # from. Only the server knows — membership depends on each structure's own
+  # biome list against the dimension's biome source. Without it, scoring can
+  # only ask about a GROUP, which credited a Village want for any settlement and
+  # left 167 shuns permanently unsatisfiable.
+  #
+  # A failure here is NOT fatal and a partial dump is fine: a dimension the dump
+  # missed falls back to the group-level reading, which is exactly the behaviour
+  # from before pools existed (census_scoring.weight_share).
+  local pools="$SEEDTEST/structure_pools.json"
+  if [[ ! -f "$pools" ]]; then
+    if [[ ! -f "$SEEDTEST/mvconfig-roll.json" ]]; then
+      python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
+        --config "$CONFIG" --seedtest "$SEEDTEST" --workers 1 --no-worlds 2> /dev/null || true
+    fi
+    echo "  Dumping structure pools (one-time, loads each dimension once)..."
+    prepare_base_dir
+
+    python3 "$SCRIPT_DIR/warmup_structure_pools.py" \
+      --workdir "$SEEDTEST/base" \
+      --mvconfig "$SEEDTEST/mvconfig-roll.json" \
+      --seedtest "$SEEDTEST" \
+      --config "$CONFIG" \
+      --output "$pools" \
+      --memory "$ROLL_MEMORY" || {
+        echo "  WARNING: structure pool dump failed — wants and shuns will be" >&2
+        echo "  scored per GROUP rather than per structure (the old behaviour)" >&2
+      }
+
+    docker ps -a --format '{{.Names}}' | grep '^seedrollall-warmup' \
+      | xargs -I{} docker rm -f {} 2> /dev/null || true
+  fi
+
   echo "=== Warmup complete ==="
   echo ""
 }

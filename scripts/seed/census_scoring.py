@@ -66,12 +66,79 @@ COUNT_FLOOR_MIN = 3
 # dimension is still playable, it is just missing a category (spike F2).
 EMPTY_GROUP_SCORE = 0.2
 
-# Placements inside a want's band that count as full satisfaction.
+# Placements inside a want's band that count as full satisfaction, for the
+# group-level reading. Retained because the detail panel still explains a
+# want in these terms and because a share of 1.0 makes it moot.
 WANT_BAND_TARGET = 2.0
 
 # A want whose group exists but put nothing in the wanted band still earns
 # this — the structure IS reachable, just not where the author asked.
 WANT_WRONG_RING_SCORE = 0.25
+
+
+def load_structure_pools(seedtest):
+    """{dimension: {group: {structure_id: weight}}} from the warmup dump.
+
+    Which structures are eligible for a group is decided server-side by
+    NoisePoolBuilder, using each structure's own biome list against the
+    dimension's biome source — so the roller cannot derive it and has to be
+    told. The dump is a warmup artefact alongside biome_params.json, and it
+    is cheap: pools only, no positions.
+
+    -> {} when absent, and every caller then falls back to share 1.0 and the
+    old group-level reading. The attribution improves scoring where the data
+    exists; it never blocks it.
+    """
+    import json
+    from pathlib import Path
+    p = Path(seedtest) / "structure_pools.json"
+    if not p.exists():
+        return {}
+    try:
+        doc = json.loads(p.read_text())
+    except (OSError, ValueError):
+        return {}
+    return doc.get("dimensions") or doc
+
+
+def weight_share(pools, dim_name, group, structure_id):
+    """This structure's weight as a fraction of its group's pool.
+
+    -> 1.0 when the pool is UNKNOWN, which is the "behave as before" answer: a
+    share of 1 makes presence_probability collapse to the group-level
+    present/absent test, so a bank scored without pool data is unaffected.
+
+    -> 0.0 when the pool is KNOWN and EMPTY. These two cases must not be
+    conflated. An empty pool means the biome filter left this dimension with no
+    structures in the group at all, so nothing there can generate — and the
+    Python census mirror cannot discover that for itself, because
+    resolve_groups() knows the group's config but not which structures survived
+    the filter. The share is the only place that correction can happen: without
+    it the mirror reports positions for a group the server never placed.
+    """
+    by_dim = (pools or {}).get(dim_name)
+    if by_dim is None:
+        return 1.0
+    pool = by_dim.get(group)
+    if pool is None:
+        return 1.0
+    total = float(sum(pool.values()))
+    if total <= 0:
+        return 0.0
+    clean = structure_id.lstrip("#")
+    if clean in pool:
+        return float(pool[clean]) / total
+    # Tag wants name no single structure. Their share is every pool member
+    # whose id contains the tag's path — asking for "a village" when the pool
+    # holds nine village variants is asking for any of the nine.
+    if structure_id.startswith("#"):
+        tag = clean.split(":")[-1] if ":" in clean else clean
+        matched = sum(w for sid, w in pool.items() if tag in sid)
+        if matched:
+            return float(matched) / total
+    # In the group but not in the pool: the biome filter dropped it, so this
+    # dimension cannot generate it at all.
+    return 0.0
 
 
 def annulus_areas(bins):
@@ -197,22 +264,66 @@ def band_mass(entry, lo_blocks, hi_blocks, radius_chunks):
     return total
 
 
-def census_want_score(entry, band, radius_chunks):
-    """A want answered by its group's layout rather than a grid distance."""
+def presence_probability(entry, lo_blocks, hi_blocks, radius_chunks, share):
+    """P(at least one of THIS structure lands in the band).
+
+    `share` is the structure's weight as a fraction of its group's pool. A
+    noise position is one draw from that pool, so with `n` positions in the
+    band the chance none of them is this structure is `(1 - share)^n`.
+
+    THIS IS THE FIX FOR THE GROUP/STRUCTURE CONFLATION. The census knows how
+    many positions a GROUP put in a ring; it does not know which structure
+    landed on each. Scoring used to answer both questions with the group
+    count, which is wrong in both directions:
+
+      - a shun failed whenever its group was present, and an enabled group is
+        populated by definition, so all 167 satisfiable-looking shuns across
+        64 dimensions scored zero on every seed forever;
+      - a want was credited whenever ANY group member reached the band, so
+        asking for a Village was really asking for any one of forty
+        settlement types.
+
+    A share turns both into the same question asked from opposite ends, and
+    at `share = 1.0` (the structure is its group's only member) it reduces
+    exactly to the old behaviour: present means certain, absent means
+    impossible.
+    """
+    if entry is None or entry.get("count", 0) <= 0:
+        return 0.0
+    n = band_mass(entry, lo_blocks, hi_blocks, radius_chunks)
+    if n <= 0.0:
+        return 0.0
+    if share >= 1.0:
+        return 1.0
+    if share <= 0.0:
+        return 0.0
+    return 1.0 - (1.0 - share) ** n
+
+
+def census_want_score(entry, band, radius_chunks, share=1.0):
+    """A want answered by its group's layout rather than a grid distance.
+
+    `share` defaults to 1.0 so a caller with no pool data scores exactly as
+    before — the attribution is an improvement where it is available, never a
+    prerequisite.
+    """
     if entry is None or entry.get("count", 0) <= 0:
         return 0.0
     lo, hi = band
-    mass = band_mass(entry, lo, hi, radius_chunks)
-    if mass <= 0.0:
+    if band_mass(entry, lo, hi, radius_chunks) <= 0.0:
+        # The group exists but put nothing in this ring. Distinct from "the
+        # structure is not in this world", and scored as such.
         return WANT_WRONG_RING_SCORE
-    return min(1.0, mass / WANT_BAND_TARGET)
+    return presence_probability(entry, lo, hi, radius_chunks, share)
 
 
-def census_shun_score(entry, threshold_blocks, radius_chunks):
-    """A shun: any placement inside the threshold costs the point."""
+def census_shun_score(entry, threshold_blocks, radius_chunks, share=1.0):
+    """A shun: the probability the unwanted structure is NOT inside the
+    threshold. The exact complement of the want."""
     if entry is None or entry.get("count", 0) <= 0:
         return 1.0
-    return 0.0 if band_mass(entry, 0.0, threshold_blocks, radius_chunks) > 0.0 else 1.0
+    return 1.0 - presence_probability(
+        entry, 0.0, threshold_blocks, radius_chunks, share)
 
 
 def blend(census_part, battery_part):

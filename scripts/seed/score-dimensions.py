@@ -395,10 +395,19 @@ def score_candidate(profile, rows):
                 # score against its layout; if it didn't, the structure
                 # genuinely does not generate here.
                 entry = census_groups.get(group)
+                # This structure's expected share of the group's placements. A
+                # noise position is one weighted draw from the group's pool, so
+                # without the share both a want and a shun could only ask about
+                # the GROUP — which credited a Village want for any settlement,
+                # and failed every shun whose group was merely present.
+                share = census_scoring.weight_share(
+                    profile.get("_structure_pools"), profile["name"], group, sid)
                 if kind == "shun":
-                    s = census_scoring.census_shun_score(entry, spec, census_radius_chunks)
+                    s = census_scoring.census_shun_score(
+                        entry, spec, census_radius_chunks, share)
                 else:
-                    s = census_scoring.census_want_score(entry, spec, census_radius_chunks)
+                    s = census_scoring.census_want_score(
+                        entry, spec, census_radius_chunks, share)
                 ss += s
                 n += 1
                 if entry and entry.get("count"):
@@ -585,12 +594,25 @@ def battery_group_for(sid, lookup):
 
 
 def attach_battery_groups(profiles, seedtest, config_dir):
-    """Stamp the structure -> group lookup onto every profile once."""
+    """Stamp the structure -> group lookup and the pool weights onto every
+    profile once.
+
+    Both are per-run constants read from disk, so doing it here rather than in
+    score_candidate saves a file read per candidate — and there are tens of
+    thousands of candidates.
+
+    The pools are what let a want for a Village mean a Village rather than any
+    settlement (census_scoring.weight_share). Absent, every share is 1.0 and
+    scoring behaves exactly as it did before they existed, so a bank rolled
+    without them is not invalidated by adding them.
+    """
     if not Path(config_dir).is_dir():
         return
     lookup = structure_group_lookup(seedtest, config_dir)
+    pools = census_scoring.load_structure_pools(seedtest)
     for profile in profiles.values():
         profile["_battery_groups"] = lookup
+        profile["_structure_pools"] = pools
 
 
 def _with_group_settings(summary, group_settings):
@@ -1734,39 +1756,65 @@ def _structure_section(c, profile):
                         "avoid" if kind == "shun" else "want")))
                 continue
             count = entry["count"]
+            # The same share score_candidate uses, so the panel explains the
+            # number the ranking is actually built from. A share below 1.0 means
+            # the group holds other structures too, and the band's placements are
+            # draws from all of them.
+            share = census_scoring.weight_share(
+                profile.get("_structure_pools"), profile["name"], group, sid)
             if kind == "shun":
                 threshold = float(spec) if isinstance(spec, (int, float)) else radius
                 inside = census_scoring.band_mass(entry, 0.0, threshold, radius_chunks)
-                sev = 2 if inside > 0 else 0
+                risk = census_scoring.presence_probability(
+                    entry, 0.0, threshold, radius_chunks, share)
+                sev = 2 if risk >= 0.5 else (1 if risk > 0.05 else 0)
+                if share >= 1.0:
+                    why = ("This group holds <b>{}</b> and nothing else here, so "
+                           "any placement inside the ring is one.".format(pretty))
+                else:
+                    why = ("{:.0f} <b>{}</b> placements sit inside the ring, and "
+                           "{} is {:.1f}% of that group's pool here — about a "
+                           "{:.0f}% chance one of them is it.".format(
+                               inside, group, pretty, share * 100.0, risk * 100.0))
                 noise_rows.append((sev, "<div class='mrow sev{}' data-band='0,{}'{}>"
                     "<span class='mname'>{} <span class='kind'>avoid</span></span>"
                     "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
                     "<span class='mtarget'>wants none within {:.0f}</span>"
                     "<span class='mdev'>{}</span>"
-                    "<span class='mspread'>This counts <b>{}</b> placements, not "
-                    "{} specifically — the shun is judged on its whole group, so "
-                    "it fails whenever the group is present.</span></div>".format(
+                    "<span class='mspread'>{}</span></div>".format(
                         sev, int(threshold), sattr, pretty, inside, count,
                         _hist_bar(entry.get("hist"), radius_blocks, 0, threshold),
                         threshold,
-                        "none present" if sev == 0 else "group present here",
-                        group, pretty)))
+                        "{:.0f}% risk".format(risk * 100.0) if risk > 0.005
+                        else "none present",
+                        why)))
                 continue
             lo, hi = spec
             hi_eff = min(hi, radius)
             mass = census_scoring.band_mass(entry, lo, hi_eff, radius_chunks)
-            sev = 0 if mass >= census_scoring.WANT_BAND_TARGET else (1 if mass > 0 else 2)
-            verdict = "in the wanted ring" if mass > 0 else "wrong ring"
+            chance = census_scoring.presence_probability(
+                entry, lo, hi_eff, radius_chunks, share)
+            sev = 0 if chance >= 0.8 else (1 if mass > 0 else 2)
+            verdict = ("{:.0f}% likely".format(chance * 100.0) if mass > 0
+                       else "wrong ring")
+            if share >= 1.0:
+                why = ("{:.0f} of the {} <b>{}</b> placements sit in that "
+                       "band.".format(mass, count, group))
+            else:
+                why = ("{:.0f} of the {} <b>{}</b> placements sit in that band, "
+                       "and {} is {:.1f}% of that group's pool here — about a "
+                       "{:.0f}% chance of getting one.".format(
+                           mass, count, group, pretty, share * 100.0,
+                           chance * 100.0))
             noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
                 "<span class='mname'>{}</span>"
                 "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
                 "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
-                "<span class='mspread'>{:.0f} of the {} <b>{}</b> placements sit in "
-                "that band.</span></div>".format(
+                "<span class='mspread'>{}</span></div>".format(
                     sev, int(lo), int(hi_eff), sattr, pretty, mass, count,
                     _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
-                    lo, hi_eff, verdict, mass, count, group)))
+                    lo, hi_eff, verdict, why)))
             continue
 
         # Grid or forced: the positional model still holds.

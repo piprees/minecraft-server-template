@@ -107,6 +107,7 @@ MANIFEST=(
   # render a consumer sees instead of failing.
   scripts/seed/preset_terrain.py
   scripts/seed/warmup_biomes.py
+  scripts/seed/warmup_structure_pools.py
   scripts/seed/terrain_splines.json
   scripts/seed/biome_params.json
   scripts/seed/noise_configs.json
