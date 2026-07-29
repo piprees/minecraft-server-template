@@ -94,7 +94,8 @@ MANIFEST=(
   scripts/seed/structure_placement.py
   scripts/seed/noise_placement.py
   scripts/seed/census_scoring.py
-scripts/seed/sweep_structure_wants.py
+  scripts/seed/sweep_structure_wants.py
+  scripts/seed/seed_information.py
   scripts/check-dimension-drift.py
   scripts/check-portal-integrity.py
   scripts/check-noise-regression.py
