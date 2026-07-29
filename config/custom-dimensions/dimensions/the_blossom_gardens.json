@@ -69,7 +69,6 @@
       "tavern": "spread",
       "farmstead": "near_spawn",
       "guide_post_warm": "near_spawn",
-      "giant_mushroom": "spread",
       "abandoned_chapel": "spread",
       "campsite": "near_spawn",
       "lighthouse": "near_border"
@@ -87,5 +86,15 @@
     0,
     64,
     0
-  ]
+  ],
+  "structures": {
+    "force": [
+      {
+        "structure": "dungeons_arise:mushroom_house",
+        "x": -1450,
+        "z": 980,
+        "exclusive": false
+      }
+    ]
+  }
 }

@@ -45,5 +45,10 @@
     0,
     64,
     0
-  ]
+  ],
+  "structures": {
+    "noise": {
+      "dungeons": "sparse"
+    }
+  }
 }

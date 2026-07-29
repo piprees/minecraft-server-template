@@ -63,13 +63,17 @@
       "ruined_pillar": {
         "min": 0,
         "max": 256
-      },
-      "mystical_archway": {
-        "min": 256,
-        "max": 512
       }
     },
-    "shuns": {}
+    "shuns": {},
+    "force": [
+      {
+        "structure": "mes:mystical_archway",
+        "x": 384,
+        "z": 128,
+        "exclusive": false
+      }
+    ]
   },
   "seedRoll": {
     "mood": "scenic",
