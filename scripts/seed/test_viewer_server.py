@@ -126,3 +126,81 @@ class DeepMergeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RenderWorkerPlanTests(unittest.TestCase):
+    """Rendering runs whether or not anything is rolling, and always against
+    the CURRENT top ten.
+
+    It used to be step 4 of the roll cycle, so a viewer opened on a bank
+    with thousands of banked candidates produced no images at all until
+    someone pressed Start — measured on a real bank at 1457 missing images
+    across 74 of 81 targets (2026-07-29). The plan is recomputed from the
+    stores every pass rather than queued, so a candidate demoted by a
+    re-rank simply stops being in the answer.
+    """
+
+    def setUp(self):
+        import tempfile, json, shutil
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.cfg = self.tmp / "config"
+        (self.cfg / "dimensions").mkdir(parents=True)
+        (self.cfg / "dimensions" / "d1.json").write_text(json.dumps(
+            {"type": "overworld", "biomes": ["minecraft:plains"]}))
+        (self.cfg / "dimensions" / "d2.json").write_text(json.dumps(
+            {"type": "overworld", "biomes": ["minecraft:plains"]}))
+        self.seedtest = self.tmp / "seedtest"
+        (self.seedtest / "candidates").mkdir(parents=True)
+        import candidates as cmod
+        cmod.set_bank_root(str(self.seedtest))
+        self.cmod = cmod
+
+    def _store(self, name, seeds, chash="h"):
+        import json
+        store = {"configHash": chash, "candidates": {}, "rejected": {},
+                 "abandoned": {}, "winner": None, "winnerPinned": False}
+        for i, s in enumerate(seeds):
+            store["candidates"][str(s)] = {
+                "measurements": {}, "scores": {chash: {"total": 100 - i}}}
+        (self.seedtest / "candidates" / f"{name}.json").write_text(json.dumps(store))
+
+    def _worker(self):
+        return viewer_server.RenderWorker(str(self.cfg), str(self.seedtest))
+
+    def test_every_missing_image_is_planned(self):
+        self._store("d1", [11, 22])
+        plan = dict(self._worker()._plan())
+        # two seeds x two passes (low + hi-res)
+        self.assertEqual(plan.get("d1"), 4)
+
+    def test_existing_images_are_not_replanned(self):
+        self._store("d1", [11])
+        d = self.seedtest / "renders" / "d1"
+        d.mkdir(parents=True)
+        (d / "11.png").write_bytes(b"")
+        (d / "11_hires.png").write_bytes(b"")
+        self.assertEqual(dict(self._worker()._plan()).get("d1"), None)
+
+    def test_most_missing_first(self):
+        self._store("d1", [11])
+        self._store("d2", [21, 22, 23])
+        self.assertEqual([n for n, _ in self._worker()._plan()], ["d2", "d1"])
+
+    def test_only_the_current_top_n_is_planned(self):
+        self._store("d1", list(range(100, 100 + viewer_server.RENDER_TOP + 5)))
+        plan = dict(self._worker()._plan())
+        self.assertEqual(plan["d1"], viewer_server.RENDER_TOP * 2)
+
+    def test_a_stale_config_hash_leaves_nothing_to_render(self):
+        """Scores keyed to an old config hash still count — _top_seeds falls
+        back to the best score on record, so a config edit never blanks the
+        render plan while the rescore is still catching up."""
+        self._store("d1", [11], chash="old")
+        self.assertEqual(dict(self._worker()._plan()).get("d1"), 2)
+
+    def test_bump_sets_the_wake_flag(self):
+        w = self._worker()
+        self.assertFalse(w.wake.is_set())
+        w.bump()
+        self.assertTrue(w.wake.is_set())

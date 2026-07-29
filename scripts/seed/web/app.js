@@ -1333,8 +1333,14 @@
         if (st.backfill) bits.push('enriching bank ' + st.backfill)
         if (st.enriched) bits.push(st.enriched + ' enriched')
         if (st.surveyed) bits.push(st.surveyed + ' surveyed')
-        if ((st.rendering_low || []).length) bits.push('rendering low')
-        if ((st.rendering_high || []).length) bits.push('rendering high')
+        // Rendering is its own background lifecycle now, so this line is
+        // the only place it is visible — name the dimension and say how
+        // much is left rather than just "rendering".
+        var lo = (st.rendering_low || [])[0]
+        var hi = (st.rendering_high || [])[0]
+        if (lo) bits.push('rendering ' + lo)
+        else if (hi) bits.push('rendering ' + hi + ' (hi-res)')
+        if (st.render_pending) bits.push(st.render_pending + ' images queued')
         if (st.error) bits.push('error: ' + st.error)
         var detail = bits.join(' · ')
         // Second line under the counter, inside the nav group, so the

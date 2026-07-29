@@ -253,27 +253,186 @@ def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
             _jobs[job_id]["error"] = str(exc)[:500]
 
 
-class Pipeline:
-    """Roll -> enrich -> re-rank -> render, driven from the page.
+class RenderWorker:
+    """Renders the current top-RENDER_TOP of every target. Forever.
 
-    One controller thread per viewer, cycling dimensions round-robin. The
-    ordering is the whole point: rolling and enriching are arithmetic, while
-    a render is minutes of CPU, so nothing is rendered until the re-rank has
-    decided it is still in the top RENDER_TOP.
+    Rendering used to be step 4 of the roll cycle, which had two
+    consequences nobody wanted:
+
+      - Nothing rendered unless a roll was running. Open the viewer on a
+        bank that already has thousands of candidates and press nothing,
+        and no image is ever produced — the grid stays "render queued" for
+        as long as you leave it alone.
+      - The queue was chosen per dimension, mid-cycle, and a re-rank a
+        moment later could demote a candidate that was still about to be
+        rendered. Rendering is minutes of CPU; spending it on a seed that
+        has already dropped out of the top ten is the expensive mistake.
+
+    So it is its own thread with its own lifecycle. Play/pause owns rolling
+    and scoring; this owns rendering, and the only thing the two share is
+    `bump()` — "the ranking moved, re-plan".
+
+    Re-planning is the whole design. The plan is never a stored queue; it
+    is recomputed from the candidate stores every pass, so the newest top
+    ten is always what gets rendered and a demotion simply stops being in
+    the answer. `biome_renderer batch` re-reads the store itself and skips
+    files that already exist, so a pass costs nothing where there is
+    nothing to do.
+    """
+
+    #: The two batch passes, low first so a thumbnail appears while the
+    #: expensive one is still running. MIRRORS biome_renderer.batch_render's
+    #: geometry — and score-dimensions._map_coverages, which tells the
+    #: overlays how many blocks each of these covers.
+    PASSES = (("rendering_low", 1024, 8, 256, ""),
+              ("rendering_high", 2048, 16, 512, "_hires"))
+
+    #: How long to sleep when everything is rendered. Short enough that a
+    #: roll finishing elsewhere is picked up promptly even if bump() is
+    #: missed, long enough to cost nothing.
+    IDLE_SECONDS = 30
+
+    def __init__(self, config, seedtest, workers=0):
+        self.config = config
+        self.seedtest = seedtest
+        # A cold bank is 81 targets x up to 20 missing images, which is hours
+        # of CPU — and unlike the old arrangement it now starts the moment the
+        # viewer opens. batch_render defaults to every core, so leave two for
+        # the machine you are still using. Same lesson as --census-workers.
+        import multiprocessing
+        self.workers = workers or max(1, multiprocessing.cpu_count() - 2)
+        self.lock = threading.Lock()
+        self.thread = None
+        self.stop_flag = threading.Event()
+        self.wake = threading.Event()
+        self.state = {"rendering_low": [], "rendering_high": [],
+                      "render_pending": 0, "render_done": 0,
+                      "render_stage": "idle"}
+
+    def snapshot(self):
+        with self.lock:
+            return dict(self.state)
+
+    def _set(self, **kw):
+        with self.lock:
+            self.state.update(kw)
+
+    def bump(self):
+        """The ranking moved — drop the current plan and recompute."""
+        self.wake.set()
+
+    def start(self):
+        if self.thread and self.thread.is_alive():
+            return
+        self.stop_flag.clear()
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        self.stop_flag.set()
+        self.wake.set()
+
+    def _plan(self):
+        """[(name, missing_count)] for targets whose top-N lacks images.
+
+        Read fresh every pass from the candidate stores, so it is always the
+        CURRENT top ten. Most-missing first: a dimension with no renders at
+        all is more useful to work on than one that is nine-tenths done.
+        """
+        from dimension_profiles import load_config, rollable
+        import candidates as cmod
+        config = load_config(self.config)
+        targets = {**{w["name"]: w for w in config.get("worlds", [])},
+                   **{d["name"]: d for d in config["dimensions"] if rollable(d)}}
+        cdir = cmod.candidates_dir(Path(self.config))
+        renders = Path(self.seedtest) / "renders"
+        plan = []
+        for name in targets:
+            store_path = cdir / f"{name}.json"
+            if not store_path.exists():
+                continue
+            missing = 0
+            for seed in _top_seeds(cmod.load_store(store_path), RENDER_TOP):
+                for _label, _size, _scale, _res, suffix in self.PASSES:
+                    if not (renders / name / f"{seed}{suffix}.png").exists():
+                        missing += 1
+            if missing:
+                plan.append((name, missing))
+        plan.sort(key=lambda p: -p[1])
+        return plan
+
+    def _run(self):
+        while not self.stop_flag.is_set():
+            self.wake.clear()
+            try:
+                plan = self._plan()
+            except Exception as exc:
+                self._set(render_stage=f"plan failed: {str(exc)[:120]}")
+                self.wake.wait(self.IDLE_SECONDS)
+                continue
+            if not plan:
+                self._set(render_stage="idle", render_pending=0,
+                          rendering_low=[], rendering_high=[])
+                self.wake.wait(self.IDLE_SECONDS)
+                continue
+            self._set(render_pending=sum(n for _n, n in plan))
+            for name, _missing in plan:
+                if self.stop_flag.is_set():
+                    break
+                # A bump means the ranking moved under us. Abandon the rest
+                # of the plan and rebuild it rather than finishing a list
+                # that may no longer describe the top ten.
+                if self.wake.is_set():
+                    break
+                self._render_target(name)
+            self._set(rendering_low=[], rendering_high=[])
+
+    def _render_target(self, name):
+        for label, size, scale, res, suffix in self.PASSES:
+            if self.stop_flag.is_set() or self.wake.is_set():
+                return
+            self._set(render_stage=label, **{label: [name]})
+            argv = [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"), "batch",
+                    "--config", self.config, "--seedtest", self.seedtest,
+                    "--dims", name, "--top", str(RENDER_TOP), "--size", str(size),
+                    "--scale", str(scale), "--sample-res", str(res),
+                    "--workers", str(self.workers)]
+            if suffix:
+                argv += ["--suffix", suffix]
+            try:
+                subprocess.run(argv, capture_output=True, text=True, timeout=3600)
+            except Exception as exc:
+                self._set(render_stage=f"{name}: render failed — {str(exc)[:120]}")
+            self._set(**{label: []})
+            with self.lock:
+                self.state["render_done"] += 1
+
+
+class Pipeline:
+    """Roll -> enrich -> re-rank, driven from the page's play/pause.
+
+    One controller thread per viewer, cycling dimensions round-robin. This
+    is arithmetic only: generate seeds, enrich what survives, re-rank.
+
+    It does NOT render. Rendering is minutes of CPU per candidate and has
+    nothing to do with whether a roll is in progress, so it lives in
+    RenderWorker on its own thread and runs continuously. The one coupling
+    is `self.renderer.bump()` after a re-rank: the ranking moved, so the
+    render plan should be rebuilt from the new top ten.
 
     Re-ranking is GLOBAL, not per-candidate — clutter is scored against the
     median of a dimension's own candidates, so an arrival can demote a seed
-    that has already been rendered. Renders are therefore recomputed from the
-    current top each cycle rather than queued once on arrival; an already
-    rendered PNG is skipped, so demotion costs nothing but promotion is
-    always honoured.
+    that has already been rendered. That is exactly why the render plan is
+    recomputed rather than queued.
     """
 
-    def __init__(self, config, seedtest, finalise_args, biome_params):
+    def __init__(self, config, seedtest, finalise_args, biome_params,
+                 renderer=None):
         self.config = config
         self.seedtest = seedtest
         self.finalise_args = finalise_args
         self.biome_params = biome_params
+        self.renderer = renderer
         self.lock = threading.Lock()
         self.thread = None
         self._backfill = None
@@ -392,23 +551,11 @@ class Pipeline:
                   "finalise", *self.finalise_args], 600)
         self._bump()
 
-        # 4. Render the survivors: low res first so a thumbnail appears early.
-        for label, size, scale, res, suffix in (
-                ("rendering_low", 1024, 8, 256, ""),
-                ("rendering_high", 2048, 16, 512, "_hires")):
-            if self.stop_flag.is_set():
-                return
-            self._set(stage=label, **{label: [name]})
-            self._sh([sys.executable, str(SCRIPT_DIR / "biome_renderer.py"), "batch",
-                      "--config", self.config, "--seedtest", self.seedtest,
-                      "--dims", name, "--top", str(RENDER_TOP), "--size", str(size),
-                      "--scale", str(scale), "--sample-res", str(res)]
-                     + (["--suffix", suffix] if suffix else []), 3600)
-            self._set(**{label: []})
-            self._bump()
-
-        with self.lock:
-            self.state["rendered"] += 1
+        # Rendering is NOT step 4 any more. It belongs to RenderWorker, which
+        # runs whether or not anything is rolling — see its docstring. All the
+        # roll loop does is tell it the ranking moved.
+        if self.renderer is not None:
+            self.renderer.bump()
 
     def enrich_all_async(self):
         """Backfill structures and biomes for every banked dimension.
@@ -469,6 +616,8 @@ class Pipeline:
                 self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
                           "finalise", *self.finalise_args], 900)
                 self._bump()
+                if self.renderer is not None:
+                    self.renderer.bump()
         except Exception as exc:
             self._log(f"backfill failed: {exc}")
             with self.lock:
@@ -496,6 +645,7 @@ class Pipeline:
 
 BATCH_SEEDS = 25
 _pipeline = None
+_renderer = None
 
 
 _fork_schema_cache = None
@@ -800,8 +950,16 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
         if self.path == "/pipeline-status":
-            self._respond_json(_pipeline.snapshot() if _pipeline
-                               else {"running": False, "stage": "unavailable"})
+            if not _pipeline:
+                self._respond_json({"running": False, "stage": "unavailable"})
+                return
+            # Rolling state and rendering state are two different lifecycles
+            # now; the page shows one status line, so they merge here. The
+            # renderer's keys win — it is the one doing the rendering.
+            snap = _pipeline.snapshot()
+            if _renderer:
+                snap.update(_renderer.snapshot())
+            self._respond_json(snap)
             return
         if self.path.startswith("/job/"):
             job_id = self.path[5:]
@@ -1280,6 +1438,10 @@ def main():
                     help="consumer mode passthrough to score-dimensions finalise")
     ap.add_argument("--refresh", action="store_true",
                     help="wipe existing renders and regenerate all in background")
+    ap.add_argument("--render-workers", type=int, default=0,
+                    help="processes for the background render worker "
+                         "(default: CPU count minus 2). It runs continuously "
+                         "from viewer start, not only while rolling")
     ap.add_argument("--enrich-top", type=int, default=ENRICH_TOP,
                     help=f"candidates per dim to enrich before re-ranking "
                          f"(default {ENRICH_TOP}; renders cover the top {RENDER_TOP})")
@@ -1313,9 +1475,12 @@ def main():
     ViewerHandler.winner_overlay = args.winner_overlay or ""
 
     from seed_paths import biome_params_path
-    global _pipeline
+    global _pipeline, _renderer
+    _renderer = RenderWorker(args.config, args.seedtest,
+                             workers=args.render_workers)
     _pipeline = Pipeline(args.config, args.seedtest, finalise_args,
-                         str(biome_params_path(args.seedtest)))
+                         str(biome_params_path(args.seedtest)),
+                         renderer=_renderer)
 
     try:
         server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
@@ -1345,14 +1510,21 @@ def main():
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
-    # The pipeline owns rolling, enriching, ranking and rendering now, and
-    # it is driven from the page rather than run once at startup: the page
-    # is usable immediately against whatever is already banked, and Start
-    # kicks off generation. Nothing blocks the server thread.
-    # Backfill structures/biomes for everything already banked, so the detail
-    # panel's lists are populated for dimensions this session never rolled.
+    # Two independent background lifecycles, neither blocking the server:
+    #
+    #   RenderWorker  runs from now until the process exits, filling in the
+    #                 current top-10 renders of every target. It is NOT gated
+    #                 on play/pause — a bank that already has candidates gets
+    #                 its images whether or not you ever press Start.
+    #   Pipeline      rolls and scores, and only when the page says to.
+    #
+    # Plus a one-off backfill of structures/biomes for everything already
+    # banked, so the detail panel's lists are populated for dimensions this
+    # session never rolled.
+    _renderer.start()
     _pipeline.enrich_all_async()
-    print("Open the viewer and press Start to generate seeds.", flush=True)
+    print("Rendering the current top 10s in the background. "
+          "Press Start in the viewer to roll more seeds.", flush=True)
 
     try:
         server_thread.join()
