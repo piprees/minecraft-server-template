@@ -58,6 +58,7 @@ import candidates  # noqa: E402
 import census_scoring  # noqa: E402
 from surface_rules import placeholder_colour  # noqa: E402
 import noise_placement  # noqa: E402
+import terrain_survey  # noqa: E402
 from dimension_profiles import (  # noqa: E402
     build_profile, generation_fingerprint, load_config, load_difficulty,
     noise_fingerprint, rollable,
@@ -261,6 +262,43 @@ def shun_score(dist, radius, min_distance=None):
 
 
 def terrain_metrics(rows):
+    """(relief, grain, water, land_fraction) for one candidate.
+
+    WATER comes from the full-radius terrain survey when one exists
+    (ensure_terrain_surveys), because the 3x3 climate grid cannot see the ocean.
+    At radius 8192 the grid's columns sit at -512, 0, +512 — a 1024-block box at
+    spawn, 0.1% of the render's area, all of it in the middle. The overworld
+    winner measured 0.111 from the 3x3 and 0.358 from the survey: that is exactly
+    the reported bug, a winner captioned "almost no water" beside a render a
+    third ocean.
+
+    Water needs no recalibration to switch, because it is a FRACTION and its
+    target windows are scale-free. It also moves the overworld INTO its window
+    (six sampled candidates averaged 0.519 on the 3x3, outside the 0.00-0.45
+    target, and 0.391 surveyed).
+
+    RELIEF AND GRAIN DELIBERATELY STAY ON THE 3x3, even though the survey
+    measures them too and arguably measures them better. They are absolute block
+    figures and TERRAIN_TARGETS was fitted to what a 1024-block box produces, so
+    surveyed relief comes out 2-5x larger purely because a wider area holds more
+    height variation. Six candidates each, in-window counts before -> after
+    (measured 2026-07-29 with the real per-dimension biome filter applied):
+
+        overworld            (target  18-90 )   1/6 -> 0/6
+        the_blossom_gardens  (target   7-48 )   5/6 -> 0/6
+        the_overgrowth       (target  50-224)   0/6 -> 3/6
+        the_rosebluff        (target  18-90 )   2/6 -> 5/6
+        the_tidepools        (target  13-72 )   1/6 -> 5/6
+        the_stonemantle      (target  50-224)   1/6 -> 5/6
+
+    Four improve and two collapse. The surveyed figure is the truthful one — no
+    real 8192-radius overworld has relief under 48 blocks across its whole extent,
+    so the_blossom_gardens' window is describing a box at spawn and not a world.
+    Re-fitting those windows decides what "gentle rolling" and "violent" mean for
+    all 81 dimensions, which is Pip's call and not part of a bug fix. The survey
+    caches relief and grain regardless, so the switch is this docstring plus new
+    windows whenever that call is made.
+    """
     heights, waters = [], []
     hmap = {}
     for metric, value in rows.items():
@@ -280,6 +318,13 @@ def terrain_metrics(rows):
     grain = sum(grains) / len(grains) if grains else 0.0
     water = sum(waters) / len(waters) if waters else 0.0
     land_fraction = len(heights) / 9.0
+    survey = rows.get("_terrain")
+    if survey and "water" in survey:
+        water = float(survey["water"])
+        # land_fraction only distinguishes void/island worlds from solid ones, so
+        # the survey's wider look is strictly better there too and it is on the
+        # same 0-1 scale.
+        land_fraction = float(survey.get("land", land_fraction))
     return relief, grain, water, land_fraction
 
 
@@ -734,6 +779,115 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         print(f"noise census: {len(tasks)} computed in {time.time() - t0:.1f}s")
 
 
+_terrain_task = terrain_survey.survey_task
+
+# Which noise router a dimension's biome sampler reads. MIRRORS
+# biome_renderer.resolve_noise_family and viewer-server._survey_dim — the TYPE
+# wins over the family, because a clone type resolves an overworld family while
+# needing its own router.
+_FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
+                 "end": "end", "paradise_lost": "paradise_lost"}
+_TYPE_NOISE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
+
+
+def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
+    """Attach a full-radius terrain survey to every scoreable candidate.
+
+    The 3x3 climate grid the roller measures sits at
+    grid_pitch(radius) = max(64, min(512, radius/4)), so for an 8192-radius
+    dimension its three columns are at -512, 0, +512 — a 1024-block box against a
+    32768-block render, 0.1% of the area, all of it at spawn. That is why an
+    overworld winner could report `water 0%` beside a render a third ocean, and
+    it makes relief a statement about the hill next to spawn.
+
+    This re-measures relief, grain and water on a 9x9 lattice spanning the whole
+    playable radius, cached under `terrainSurvey`. A RESCORE, not a re-roll:
+    nothing the roller measured changes, and an unsurveyed candidate keeps the
+    3x3 numbers as a fallback.
+
+    Every candidate, not the top N. It moves the SCORE, so partial coverage would
+    have the ranking compare surveyed candidates against unsurveyed ones.
+
+    Keyed on the generation fingerprint plus the radius and grid, which is
+    conservative — see terrain_survey.fingerprint.
+    """
+    cfg = Path(args.config)
+    if not cfg.is_dir():
+        return  # legacy monolith mode has no per-dimension config to resolve
+    sources = {d["name"]: d for d in config.get("dimensions", [])}
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
+    cdir = candidates.candidates_dir(cfg)
+    biome_params = str(Path(args.seedtest) / "biome_params.json")
+    if not Path(biome_params).exists():
+        return  # no sampler table; the 3x3 fallback still scores
+
+    stores, tasks = {}, []
+    for name, profile in profiles.items():
+        src = sources.get(name)
+        if src is None:
+            continue
+        radius = int(profile.get("radius") or 0)
+        if radius <= 0:
+            continue
+        fam = profile.get("family") or "overworld"
+        # The TYPE decides the noise family, not the family: a custom
+        # paradise_lost:paradise_lost dimension resolves family "overworld" and
+        # would otherwise be surveyed against the wrong router entirely (the
+        # same trap _render_args_for documents).
+        noise_family = _TYPE_NOISE_OVERRIDE.get(src.get("type", "")) \
+            or _FAMILY_NOISE.get(fam, "overworld")
+        fp = terrain_survey.fingerprint(generation_fingerprint(src), radius)
+        store = candidates.load_store(cdir / f"{name}.json")
+        stores[name] = (store, fp)
+        spec = {
+            "biome_params": biome_params,
+            "noise_family": noise_family,
+            "biome_filter": list(src.get("biomes") or []) or [
+                b.strip() for b in (src.get("biome") or "").split(",") if b.strip()],
+            "radius": radius,
+            "is_void": bool(profile.get("is_void")),
+            # Only the overworld router carries a meaningful continentalness;
+            # fast_roller reads erosion for everything else, and the surveyed
+            # height has to be on the same scale to stay comparable.
+            "has_continentalness": fam == "overworld" and not profile.get("is_void"),
+        }
+        for seed, rows in data.get(name, {}).items():
+            if rows.get("rejected") == "1" or "errors" not in rows:
+                continue
+            cached = (store["candidates"].get(seed) or {}).get("terrainSurvey")
+            if cached and cached.get("fp") == fp:
+                rows["_terrain"] = cached
+                continue
+            tasks.append((name, seed, spec))
+
+    if not tasks:
+        return
+    workers = getattr(args, "census_workers", 0) or min(multiprocessing.cpu_count(), 8)
+    workers = max(1, workers)
+    if not quiet:
+        print(f"terrain survey: measuring {len(tasks)} candidate(s) over the full "
+              f"radius on {workers} worker(s) — 37ms each, cached thereafter",
+              flush=True)
+
+    t0 = time.time()
+    if workers > 1 and len(tasks) > 1:
+        with multiprocessing.Pool(workers) as pool:
+            computed = list(pool.imap_unordered(_terrain_task, tasks, chunksize=8))
+    else:
+        computed = [_terrain_task(t) for t in tasks]
+
+    for name, seed, result in computed:
+        store, fp = stores[name]
+        result["fp"] = fp
+        cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
+        cand["terrainSurvey"] = result
+        data[name][seed]["_terrain"] = result
+    for name, (store, _fp) in stores.items():
+        candidates.save_store(cdir / f"{name}.json", store)
+    if not quiet:
+        print(f"terrain survey: {len(tasks)} measured in {time.time() - t0:.1f}s")
+
+
 def load_abandoned(seedtest):
     """abandoned-worker-*.csv (target,seed,reason) -> {dim: {seed: reason}}."""
     out = defaultdict(dict)
@@ -815,6 +969,7 @@ def cmd_score(args, config, profiles):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_censuses(args, config, profiles, data)
+    ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     out = Path(args.seedtest) / "scores.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -838,6 +993,7 @@ def cmd_rescore(args, config, profiles):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_censuses(args, config, profiles, data)
+    ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     persist_candidates(args, config, profiles, results, data)
     print_summary(results, profiles, rejected)
@@ -1082,6 +1238,7 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_censuses(args, config, profiles, data)
+    ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
     world_profiles = world_profiles or {}
     dir_mode = Path(args.config).is_dir()

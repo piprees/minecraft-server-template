@@ -594,6 +594,7 @@ def main():
     # free on every rescore afterwards.
     sd.attach_battery_groups(profiles, args.seedtest, args.config)
     sd.ensure_censuses(fargs, config, profiles, data)
+    sd.ensure_terrain_surveys(fargs, config, profiles, data)
     results_scored, rejected_counts = sd.score_all(profiles, data)
     sd.persist_candidates(fargs, config, profiles, results_scored, data)
 
