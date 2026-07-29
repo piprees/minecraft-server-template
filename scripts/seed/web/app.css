@@ -65,8 +65,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 }
 
@@ -114,7 +113,7 @@
   --border: oklch(0.397 0.013 250); /* 1.8:1 on card — an internal rule    */
   --border-strong: oklch(0.516 0.018 250); /* 3.0:1 on card — a real boundary    */
   --input: oklch(0.516 0.018 250);
-  --ring: oklch(0.70 0.115 34); /* 6.0:1 on card                       */
+  --ring: oklch(0.7 0.115 34); /* 6.0:1 on card                       */
 
   --chart-1: oklch(0.76 0.14 85); /* namesake   — gold   */
   --chart-2: oklch(0.74 0.13 165); /* variety    — teal   */
@@ -1581,12 +1580,12 @@ img.winner-img {
 }
 #lightbox .lb-image {
   flex: 0 0 auto;
-  width: 55%;
-  max-width: 55%;
+  width: auto;
   display: flex;
   align-items: center;
   background: var(--bg-page);
   position: relative;
+  aspect-ratio: 1/1;
 }
 #lightbox .lb-image img {
   width: 100%;
@@ -1749,24 +1748,51 @@ img.winner-img {
   }
 }
 
-.roller-bar { align-items: center; }
-.roller-bar input[type=number] { width: 6rem; }
-.roller-stage { font-weight: 600; text-transform: capitalize; }
-.roller-activity { opacity: .75; font-size: .9em; }
+.roller-bar {
+  align-items: center;
+}
+.roller-bar input[type='number'] {
+  width: 6rem;
+}
+.roller-stage {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.roller-activity {
+  opacity: 0.75;
+  font-size: 0.9em;
+}
 /* A candidate whose render has not landed yet still carries its spawn
    biome's surface colour, so the card reads snowy/sandy/verdant rather
    than as a broken image. */
-.cand img[data-pending] { background-size: cover; }
-.cand img[data-pending]::after { content: ""; }
+.cand img[data-pending] {
+  background-size: cover;
+}
+.cand img[data-pending]::after {
+  content: '';
+}
 
 /* --- Candidate detail: measurement rows ------------------------------
    Every row is value + target + deviation. Severity drives colour so the
    eye lands on what is wrong, not on a wall of identical ticks. */
-.mlist { display: flex; flex-direction: column; gap: 1px; margin-bottom: .6rem; }
-.mrow { display: grid; gap: .5rem; align-items: center; padding: .25rem .4rem;
-        grid-template-columns: 6px minmax(9rem, 1.4fr) 3.5rem minmax(4rem, 1fr) 7rem 8rem;
-        border-radius: 4px; font-size: .82rem; }
-.mrow.shun { grid-template-columns: 6px minmax(9rem,1.4fr) 3.5rem 1fr 8rem; }
+.mlist {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 0.6rem;
+}
+.mrow {
+  display: grid;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0.4rem;
+  grid-template-columns: 6px minmax(9rem, 1.4fr) 3.5rem minmax(4rem, 1fr) 7rem 8rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+}
+.mrow.shun {
+  grid-template-columns: 6px minmax(9rem, 1.4fr) 3.5rem 1fr 8rem;
+}
 /* Severity was a coloured border-left stripe. Two problems: a side-stripe is
    never the right answer visually, and more importantly colour was the SOLE
    indicator, which fails WCAG 1.4.1 and fails anyone reading a 40-row list at
@@ -1782,74 +1808,245 @@ img.winner-img {
   margin-right: -0.2rem;
   background: var(--sev, transparent);
 }
-.mrow.sev0 { --sev: var(--good); }
-.mrow.sev1 { --sev: var(--warn); background: color-mix(in oklab, var(--warn) 8%, transparent); }
-.mrow.sev2 { --sev: var(--bad); background: color-mix(in oklab, var(--bad) 11%, transparent); }
-.mname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mname .ns { opacity: .45; font-size: .85em; margin-left: .35rem; }
-.mval { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.mtarget, .mdev, .mspread { opacity: .7; font-size: .92em; }
-.mrow.sev1 .mdev, .mrow.sev2 .mdev { opacity: 1; font-weight: 600; }
-.mspread { grid-column: 2 / -1; opacity: .55; padding-left: .2rem; }
-.kind { font-size: .72em; text-transform: uppercase; letter-spacing: .04em;
-        opacity: .6; margin-left: .35rem; }
-.kind.spawned { color: #6ec96e; opacity: 1; }
+.mrow.sev0 {
+  --sev: var(--good);
+}
+.mrow.sev1 {
+  --sev: var(--warn);
+  background: color-mix(in oklab, var(--warn) 8%, transparent);
+}
+.mrow.sev2 {
+  --sev: var(--bad);
+  background: color-mix(in oklab, var(--bad) 11%, transparent);
+}
+.mname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mname .ns {
+  opacity: 0.45;
+  font-size: 0.85em;
+  margin-left: 0.35rem;
+}
+.mval {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.mtarget,
+.mdev,
+.mspread {
+  opacity: 0.7;
+  font-size: 0.92em;
+}
+.mrow.sev1 .mdev,
+.mrow.sev2 .mdev {
+  opacity: 1;
+  font-weight: 600;
+}
+.mspread {
+  grid-column: 2 / -1;
+  opacity: 0.55;
+  padding-left: 0.2rem;
+}
+.kind {
+  font-size: 0.72em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+  margin-left: 0.35rem;
+}
+.kind.spawned {
+  color: #6ec96e;
+  opacity: 1;
+}
 /* Range bar: shaded target band, a marker for the measured value, and
    optional reference lines (clear-spawn radius). */
-.bar { position: relative; display: block; height: 6px; border-radius: 3px;
-       background: #23262b; overflow: hidden; }
-.bar-band { position: absolute; top: 0; bottom: 0; background: #2f5d3a; opacity: .55; }
-.bar-val { position: absolute; top: -2px; width: 2px; height: 10px; border-radius: 1px; }
-.bar-mark { position: absolute; top: 0; bottom: 0; width: 1px; opacity: .8; }
-.sub-header { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em;
-              opacity: .8; margin: .55rem 0 .2rem; }
-.section-header .meta, .sub-header .meta { text-transform: none; letter-spacing: 0;
-              font-weight: 400; opacity: .55; margin-left: .4rem; }
-details.incidental { margin: .4rem 0 .2rem; }
-details.incidental summary { cursor: pointer; font-size: .78rem; opacity: .75; }
-details.incidental .mrow { grid-template-columns: 6px 1fr 4rem; }
+.bar {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: #23262b;
+  overflow: hidden;
+}
+.bar-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #2f5d3a;
+  opacity: 0.55;
+}
+.bar-val {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 10px;
+  border-radius: 1px;
+}
+.bar-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  opacity: 0.8;
+}
+.sub-header {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+  margin: 0.55rem 0 0.2rem;
+}
+.section-header .meta,
+.sub-header .meta {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  opacity: 0.55;
+  margin-left: 0.4rem;
+}
+details.incidental {
+  margin: 0.4rem 0 0.2rem;
+}
+details.incidental summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+details.incidental .mrow {
+  grid-template-columns: 6px 1fr 4rem;
+}
 /* --- Score contribution ---------------------------------------------- */
-.slist { display: flex; flex-direction: column; gap: 2px; margin-bottom: .6rem; }
-.srow { display: grid; grid-template-columns: 8rem 1fr 4.5rem 3rem;
-        gap: .5rem; align-items: center; font-size: .82rem; }
-.sbar { height: 6px; border-radius: 3px; background: #23262b; overflow: hidden; }
-.sbar span { display: block; height: 100%; }
-.spts { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.sloss { text-align: right; opacity: .6; font-size: .9em; color: #e8a735; }
+.slist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 0.6rem;
+}
+.srow {
+  display: grid;
+  grid-template-columns: 8rem 1fr 4.5rem 3rem;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.82rem;
+}
+.sbar {
+  height: 6px;
+  border-radius: 3px;
+  background: #23262b;
+  overflow: hidden;
+}
+.sbar span {
+  display: block;
+  height: 100%;
+}
+.spts {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.sloss {
+  text-align: right;
+  opacity: 0.6;
+  font-size: 0.9em;
+  color: #e8a735;
+}
 
 /* Radial histogram: one cell per decile of the play radius, height =
    placements. The shaded cells are the band the dimension asked for, so
    "wrong ring" is visible at a glance rather than inferred from numbers. */
-.hist { display: flex; align-items: flex-end; gap: 1px; height: 18px; }
-.hcell { flex: 1; min-width: 2px; height: max(2px, var(--h));
-         background: #3d4653; border-radius: 1px; align-self: flex-end; }
-.hcell.inband { background: #4f9c5f; }
-.mrow.sev1 .hcell.inband { background: #b8862c; }
-.mrow.sev2 .hcell.inband { background: #b04242; }
+.hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 18px;
+}
+.hcell {
+  flex: 1;
+  min-width: 2px;
+  height: max(2px, var(--h));
+  background: #3d4653;
+  border-radius: 1px;
+  align-self: flex-end;
+}
+.hcell.inband {
+  background: #4f9c5f;
+}
+.mrow.sev1 .hcell.inband {
+  background: #b8862c;
+}
+.mrow.sev2 .hcell.inband {
+  background: #b04242;
+}
 
 /* The filter row was two dense lines of always-on controls for a task
    that is mostly "look at maps and pick one". Family, search and sort
    stay out; the rest fold away until wanted. */
-.more-filters { display: inline-block; }
-.more-filters > summary { cursor: pointer; font-size: .82rem;
-    color: var(--text-muted); list-style: none; padding: .25rem .6rem;
-    background: var(--bg-card); border: 1px solid var(--edge);
-    border-radius: var(--r-md); user-select: none; }
-.more-filters > summary::-webkit-details-marker { display: none; }
-.more-filters > summary::after { content: " ▾"; opacity: .6; }
-.more-filters[open] > summary::after { content: " ▴"; }
-.more-filters-body { display: flex; flex-wrap: wrap; gap: .5rem;
-    align-items: center; padding: .5rem; margin-top: .35rem;
-    background: var(--bg-card); border: 1px solid var(--edge);
-    border-radius: var(--r-md); position: absolute; z-index: 120; }
+.more-filters {
+  display: inline-block;
+}
+.more-filters > summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  list-style: none;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  user-select: none;
+}
+.more-filters > summary::-webkit-details-marker {
+  display: none;
+}
+.more-filters > summary::after {
+  content: ' ▾';
+  opacity: 0.6;
+}
+.more-filters[open] > summary::after {
+  content: ' ▴';
+}
+.more-filters-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  margin-top: 0.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  position: absolute;
+  z-index: 120;
+}
 /* Map overlay: hovering a structure row draws its wanted band as a ring
    and, where the positions are real, the placements as points. */
-.lb-image { position: relative; }
-#lb-overlay { position: absolute; inset: 0; pointer-events: none; }
-#lb-overlay circle.band { fill: none; stroke: #6ec96e; stroke-opacity: .85; }
-#lb-overlay circle.pt { fill: #ffd850; stroke: #000; stroke-width: .5; }
-.mrow[data-band] { cursor: crosshair; }
-.mrow[data-band]:hover { background: rgba(91,141,208,.12); }
+.lb-image {
+  position: relative;
+}
+#lb-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#lb-overlay circle.band {
+  fill: none;
+  stroke: #6ec96e;
+  stroke-opacity: 0.85;
+}
+#lb-overlay circle.pt {
+  fill: #ffd850;
+  stroke: #000;
+  stroke-width: 0.5;
+}
+.mrow[data-band] {
+  cursor: crosshair;
+}
+.mrow[data-band]:hover {
+  background: rgba(91, 141, 208, 0.12);
+}
 
 /* --- Structure markers (structicons.js) -------------------------------
    Real icons on the map, one per placement, replacing the pre-rendered
@@ -1862,120 +2059,298 @@ details.incidental .mrow { grid-template-columns: 6px 1fr 4rem; }
    2. The glyph colour is biome_renderer.STRUCT_MAT's material palette,
       brightened by structicons.lift(). Same vocabulary as the PNG it
       replaces, so nothing a reader had learned is invalidated. */
-#lb-markers { position: absolute; inset: 0; pointer-events: none; }
-#lb-markers.off { display: none; }
-.sm-plate { fill: rgba(8, 10, 14, .74); stroke: rgba(255, 255, 255, .38);
-            stroke-width: 1; }
-.sm-glyph { stroke: rgba(0, 0, 0, .55); stroke-width: .9;
-            stroke-linejoin: round; paint-order: stroke fill; }
+#lb-markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#lb-markers.off {
+  display: none;
+}
+.sm-plate {
+  fill: rgba(8, 10, 14, 0.74);
+  stroke: rgba(255, 255, 255, 0.38);
+  stroke-width: 1;
+}
+.sm-glyph {
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
 /* Hovering a row picks its own placements out of the crowd. Opacity, not
    display: the others staying faintly visible is what makes "this one of
    forty" readable rather than "here is one marker". */
-#lb-markers.focus .sm { opacity: .3; }
-#lb-markers.focus .sm.on { opacity: 1; }
-#lb-markers .sm { transition: opacity .12s ease-out; }
+#lb-markers.focus .sm {
+  opacity: 0.3;
+}
+#lb-markers.focus .sm.on {
+  opacity: 1;
+}
+#lb-markers .sm {
+  transition: opacity 0.12s ease-out;
+}
 @media (prefers-reduced-motion: reduce) {
-  #lb-markers .sm { transition: none; }
+  #lb-markers .sm {
+    transition: none;
+  }
 }
 /* The row IS the legend — an inline chip in the name cell, so no separate
    legend block competes for panel space. */
 /* display:inline-block is load-bearing — Tailwind's preflight sets every
    svg to display:block, which put the chip on its own line above the name
    in a row whose .mname is white-space:nowrap. */
-.sm-chip { display: inline-block; width: 1.05em; height: 1.05em;
-           vertical-align: -.2em; margin-right: .35rem; flex: none; }
-.sm-count { margin-left: .4rem; opacity: .7;
-            font-variant-numeric: tabular-nums; }
-#lightbox .lb-structs-toggle:disabled { opacity: .45; cursor: default; }
+.sm-chip {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.2em;
+  margin-right: 0.35rem;
+  flex: none;
+}
+.sm-count {
+  margin-left: 0.4rem;
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+#lightbox .lb-structs-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0;
-           margin: -1px; overflow: hidden; clip: rect(0 0 0 0);
-           white-space: nowrap; border: 0; }
-.filter-bar { flex-wrap: wrap; row-gap: .4rem; gap: .4rem; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.filter-bar {
+  flex-wrap: wrap;
+  row-gap: 0.4rem;
+  gap: 0.4rem;
+}
 /* Below 1300px the view toggles and New dimension take their own line rather
    than sliding off the right edge with no affordance that they exist. */
 @media (max-width: 1300px) {
-  .filter-bar .view-toggles { order: 10; }
-  .filter-bar .nav-right { order: 11; margin-left: 0; }
-  .filter-bar .nav-sep:last-of-type { display: none; }
+  .filter-bar .view-toggles {
+    order: 10;
+  }
+  .filter-bar .nav-right {
+    order: 11;
+    margin-left: 0;
+  }
+  .filter-bar .nav-sep:last-of-type {
+    display: none;
+  }
 }
-.filter-bar #f-search { flex: 0 1 12rem; min-width: 6rem; }
-.nav-sep { width: 1px; align-self: stretch; background: var(--edge);
-           margin: 0 .15rem; flex: none; }
-.nav-right { margin-left: auto; flex: none; white-space: nowrap; }
-.roller-group, .view-toggles { display: flex; align-items: center;
-                               gap: .3rem; flex: none; }
-.roller-group #roll-count { width: 5.5rem; }
-.roller-group select { max-width: 11rem; }
-.icon-btn { font: inherit; line-height: 1; padding: .3rem .55rem;
-            background: var(--bg-card); color: var(--text);
-            border: 1px solid var(--edge); border-radius: var(--r-md);
-            cursor: pointer; }
-.icon-btn:hover { border-color: var(--edge-hover); }
-.icon-btn.running { color: var(--score-red); border-color: #6b3030; }
+.filter-bar #f-search {
+  flex: 0 1 12rem;
+  min-width: 6rem;
+}
+.nav-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--edge);
+  margin: 0 0.15rem;
+  flex: none;
+}
+.nav-right {
+  margin-left: auto;
+  flex: none;
+  white-space: nowrap;
+}
+.roller-group,
+.view-toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: none;
+}
+.roller-group #roll-count {
+  width: 5.5rem;
+}
+.roller-group select {
+  max-width: 11rem;
+}
+.icon-btn {
+  font: inherit;
+  line-height: 1;
+  padding: 0.3rem 0.55rem;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  border-color: var(--edge-hover);
+}
+.icon-btn.running {
+  color: var(--score-red);
+  border-color: #6b3030;
+}
 /* The checkbox stays in the DOM and keeps driving every filter handler;
    the label is what becomes an icon. */
-.icon-toggle { position: relative; cursor: pointer; }
-.icon-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
-.icon-toggle span { display: inline-block; padding: .28rem .5rem;
-                    border: 1px solid var(--edge); border-radius: var(--r-md);
-                    background: var(--bg-card); color: var(--text-muted);
-                    font-size: .85rem; line-height: 1.15; }
-.icon-toggle input:checked + span { background: color-mix(in oklab, var(--action) 22%, var(--bg-card)); color: var(--action-hover);
-                                    border-color: var(--action); }
-.icon-toggle input:focus-visible + span { outline: 2px solid var(--action);
-                                          outline-offset: 2px; }
+.icon-toggle {
+  position: relative;
+  cursor: pointer;
+}
+.icon-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.icon-toggle span {
+  display: inline-block;
+  padding: 0.28rem 0.5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--r-md);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.15;
+}
+.icon-toggle input:checked + span {
+  background: color-mix(in oklab, var(--action) 22%, var(--bg-card));
+  color: var(--action-hover);
+  border-color: var(--action);
+}
+.icon-toggle input:focus-visible + span {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
 /* Rolling: the seeds input gives way to a progress readout in the same slot. */
 /* :not([hidden]) or this ID selector outranks the UA's [hidden] rule and
    the readout never un-shows — a finished roll left "rendering high"
    pinned in the nav until the next roll happened to overwrite it. */
-#roll-progress:not([hidden]) { display: flex; align-items: center; gap: .4rem; }
-.rp-bar { display: block; width: 5.5rem; height: 6px; border-radius: 3px;
-          background: var(--bg-card); border: 1px solid var(--edge);
-          overflow: hidden; }
-#rp-fill { display: block; height: 100%; width: 0; background: var(--action);
-           transition: width .3s; }
-.rp-text { font-size: .76rem; color: var(--text-muted); white-space: nowrap; }
-
-#rp-fill.indeterminate { width: 40%; animation: rp-slide 1.1s ease-in-out infinite alternate; }
-@keyframes rp-slide { from { transform: translateX(-100%) } to { transform: translateX(250%) } }
-@media (prefers-reduced-motion: reduce) {
-  #rp-fill.indeterminate { animation: none; width: 100%; opacity: .5; }
+#roll-progress:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.rp-bar {
+  display: block;
+  width: 5.5rem;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-card);
+  border: 1px solid var(--edge);
+  overflow: hidden;
+}
+#rp-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--action);
+  transition: width 0.3s;
+}
+.rp-text {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
-.rp-lines { display: flex; flex-direction: column; line-height: 1.15; }
-.rp-sub { font-size: .75rem; color: var(--text-muted); opacity: .8;
-          white-space: nowrap; max-width: 16rem; overflow: hidden;
-          text-overflow: ellipsis; }
+#rp-fill.indeterminate {
+  width: 40%;
+  animation: rp-slide 1.1s ease-in-out infinite alternate;
+}
+@keyframes rp-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #rp-fill.indeterminate {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
+.rp-lines {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.rp-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+  white-space: nowrap;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* The overlay must track the IMAGE, not its flex container: .lb-image
    centres a square image vertically, so an inset:0 overlay was drawing
    its rings against the letterboxed box and sitting off-centre. */
-#lb-overlay { position: absolute; left: 0; top: 50%; width: 100%;
-              aspect-ratio: 1; transform: translateY(-50%); height: auto;
-              inset: auto auto auto 0; }
+#lb-overlay {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  height: auto;
+  inset: auto auto auto 0;
+}
 
 /* "in the exclusion" was clipping. The verdict column sizes to content
    and the row may grow rather than truncating a word mid-way. */
-.mrow { grid-template-columns: 6px minmax(8rem, 1.3fr) 4.5rem minmax(3rem, .8fr)
-                               minmax(7rem, auto) minmax(5rem, auto); }
-.mdev { white-space: normal; }
-.mval .ns { display: block; font-size: .72em; opacity: .5; margin: 0;
-            font-weight: 400; }
+.mrow {
+  grid-template-columns:
+    6px minmax(8rem, 1.3fr) 4.5rem minmax(3rem, 0.8fr)
+    minmax(7rem, auto) minmax(5rem, auto);
+}
+.mdev {
+  white-space: normal;
+}
+.mval .ns {
+  display: block;
+  font-size: 0.72em;
+  opacity: 0.5;
+  margin: 0;
+  font-weight: 400;
+}
 /* Biome and census rows carry fewer columns than a structure row. */
-.mrow.biome-row { grid-template-columns: 6px 1fr auto minmax(4rem, auto); }
-.mrow.census-row { grid-template-columns: 6px minmax(7rem, .8fr) 5rem
-                                          minmax(4rem, .7fr) 1fr; }
+.mrow.biome-row {
+  grid-template-columns: 6px 1fr auto minmax(4rem, auto);
+}
+.mrow.census-row {
+  grid-template-columns:
+    6px minmax(7rem, 0.8fr) 5rem
+    minmax(4rem, 0.7fr) 1fr;
+}
 
 /* The whole card is the target. With borders on, the render shrinks
    inside its box and only the image was clickable, so the obvious click
    (anywhere on the card) did nothing. */
-.cand { cursor: pointer; }
+.cand {
+  cursor: pointer;
+}
 
 /* overflow-x:auto on the bar established a clipping context, so the
    Filters popover was clipped to the bar's own height and rendered
    behind the page. The bar keeps nowrap but must not clip. */
-.filter-bar { overflow: visible; }
-.more-filters { position: relative; }
-.more-filters-body { z-index: 300; top: 100%; left: 0;
-                     box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+.filter-bar {
+  overflow: visible;
+}
+.more-filters {
+  position: relative;
+}
+.more-filters-body {
+  z-index: 300;
+  top: 100%;
+  left: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}

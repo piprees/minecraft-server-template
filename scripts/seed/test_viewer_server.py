@@ -204,3 +204,112 @@ class RenderWorkerPlanTests(unittest.TestCase):
         self.assertFalse(w.wake.is_set())
         w.bump()
         self.assertTrue(w.wake.is_set())
+
+
+class FinaliseSerialisationTests(unittest.TestCase):
+    """One finalise at a time, and say so out loud.
+
+    Nine call sites spawn `score-dimensions.py finalise` — the roll thread, six
+    HTTP handlers, the re-roll job and startup. Two overlapping means two
+    processes rewriting the same candidate stores and index.html, and the
+    loser's writes vanish. Startup used to dodge this by running before the
+    port was open, which is precisely what made a cold start look dead for half
+    an hour, so the accident was replaced with a lock.
+    """
+
+    def setUp(self):
+        self.calls = []
+        self.overlaps = []
+        self.live = 0
+        self.live_lock = __import__("threading").Lock()
+        self._real_popen = viewer_server.subprocess.Popen
+        viewer_server._finalise_state.update(
+            running=False, reason="", since=0.0, line="", queued=0)
+
+    def tearDown(self):
+        viewer_server.subprocess.Popen = self._real_popen
+
+    def _fake_popen(self, lines=("one", "two"), delay=0.02):
+        import io
+        import time as _t
+        test = self
+
+        class FakeProc:
+            def __init__(self, *a, **kw):
+                test.calls.append(a[0] if a else kw.get("args"))
+                with test.live_lock:
+                    test.live += 1
+                    if test.live > 1:
+                        test.overlaps.append(test.live)
+                _t.sleep(delay)
+                self.stdout = io.StringIO("\n".join(lines) + "\n")
+
+            def wait(self):
+                with test.live_lock:
+                    test.live -= 1
+                return 0
+
+            def kill(self):
+                pass
+
+        return FakeProc
+
+    def test_two_callers_never_overlap(self):
+        import threading
+        viewer_server.subprocess.Popen = self._fake_popen()
+        threads = [threading.Thread(target=viewer_server.run_finalise,
+                                    args=(["--config", "x"], "caller%d" % i),
+                                    kwargs={"echo": False})
+                   for i in range(6)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=10)
+        self.assertEqual(len(self.calls), 6, "every caller must still run")
+        self.assertEqual(self.overlaps, [], "two finalises ran concurrently")
+
+    def test_the_child_gets_the_finalise_subcommand(self):
+        viewer_server.subprocess.Popen = self._fake_popen()
+        viewer_server.run_finalise(["--config", "cfg", "--viewer"], "test",
+                                   echo=False)
+        argv = self.calls[0]
+        self.assertIn("finalise", argv)
+        self.assertEqual(argv[argv.index("finalise") + 1:],
+                         ["--config", "cfg", "--viewer"])
+
+    def test_status_reports_the_latest_line_then_clears(self):
+        seen = {}
+        viewer_server.subprocess.Popen = self._fake_popen(
+            lines=("noise census: computing 4447 candidate layout(s)",
+                   "  222/4447 (4%)"))
+        real_set = viewer_server._set_finalise
+
+        def spy(**kw):
+            real_set(**kw)
+            if kw.get("line"):
+                seen["line"] = kw["line"]
+                seen["running"] = viewer_server.finalise_status()["running"]
+        viewer_server._set_finalise = spy
+        try:
+            viewer_server.run_finalise(["--config", "x"], "startup", echo=False)
+        finally:
+            viewer_server._set_finalise = real_set
+        # Mid-run the page can see progress...
+        self.assertEqual(seen["line"], "  222/4447 (4%)")
+        self.assertTrue(seen["running"])
+        # ...and afterwards it is not left claiming to be busy.
+        after = viewer_server.finalise_status()
+        self.assertFalse(after["running"])
+        self.assertEqual(after["line"], "")
+        self.assertEqual(after["queued"], 0)
+
+    def test_a_failed_spawn_is_not_fatal_and_releases_the_lock(self):
+        def boom(*a, **kw):
+            raise OSError("no such file")
+        viewer_server.subprocess.Popen = boom
+        self.assertEqual(
+            viewer_server.run_finalise(["--config", "x"], "broken", echo=False), 1)
+        self.assertFalse(viewer_server.finalise_status()["running"])
+        # The lock must be free, or every later finalise deadlocks.
+        self.assertTrue(viewer_server._FINALISE_LOCK.acquire(timeout=1))
+        viewer_server._FINALISE_LOCK.release()

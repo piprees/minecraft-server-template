@@ -1,7 +1,7 @@
 {
   "type": "multi_biome",
   "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing.",
-  "seed": 5004021960434439426,
+  "seed": 9136558242665021692,
   "spawn": [0, 64, 0],
   "biomes": [
     "natures_spirit:wisteria_forest",
@@ -11,7 +11,7 @@
     "minecraft:meadow"
   ],
   "borders": {
-    "player": 256,
+    "player": 512,
     "generation": 2048
   },
   "difficulty": {

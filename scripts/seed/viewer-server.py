@@ -40,6 +40,82 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 _jobs = {}
 _jobs_lock = threading.Lock()
 
+# Only one `score-dimensions.py finalise` may run at a time, process-wide.
+#
+# Nine call sites spawn one: the Pipeline's roll thread, six HTTP handlers, the
+# re-roll job, and startup. Two of those overlapping means two processes reading
+# and rewriting the same candidate stores and index.html, and the loser's writes
+# are silently lost. Startup used to be safe only because it ran before the
+# server was listening — which is exactly the thing that made a cold start look
+# dead for half an hour, so that accident is not worth keeping.
+_FINALISE_LOCK = threading.Lock()
+_finalise_state = {"running": False, "reason": "", "since": 0.0, "line": "",
+                   "queued": 0}
+_finalise_state_lock = threading.Lock()
+
+
+def finalise_status():
+    """What the page shows while a finalise is in flight."""
+    with _finalise_state_lock:
+        return dict(_finalise_state)
+
+
+def _set_finalise(**kw):
+    with _finalise_state_lock:
+        _finalise_state.update(kw)
+
+
+def run_finalise(finalise_args, reason, timeout=None, echo=True):
+    """Run one finalise, serialised, with its output VISIBLE.
+
+    Returns the child's exit code.
+
+    The output handling is the point. Every call site used to pass
+    `capture_output=True` and then throw the result away, so a finalise that
+    took forty minutes — which a placement-config change makes it do, since it
+    recomputes every invalidated census — printed absolutely nothing, and the
+    viewer looked hung rather than busy. Lines are echoed as they arrive and the
+    latest is exposed through /pipeline-status so the page can say so too.
+
+    `timeout` kills the child rather than abandoning it: a subprocess.run
+    timeout raises while leaving the process alive, and an orphaned finalise
+    still holds the stores this lock exists to protect.
+    """
+    argv = [sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
+            "finalise", *finalise_args]
+    with _finalise_state_lock:
+        _finalise_state["queued"] += 1
+    with _FINALISE_LOCK:
+        with _finalise_state_lock:
+            _finalise_state.update(running=True, reason=reason,
+                                   since=time.time(), line="")
+            _finalise_state["queued"] -= 1
+        timer = None
+        try:
+            proc = subprocess.Popen(argv, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, text=True,
+                                    bufsize=1)
+            if timeout:
+                timer = threading.Timer(timeout, proc.kill)
+                timer.daemon = True
+                timer.start()
+            for raw in proc.stdout or ():
+                line = raw.rstrip("\n")
+                if not line:
+                    continue
+                _set_finalise(line=line[:200])
+                if echo:
+                    print(f"[finalise:{reason}] {line}", flush=True)
+            return proc.wait()
+        except OSError as exc:
+            print(f"[finalise:{reason}] failed to start: {exc}", file=sys.stderr,
+                  flush=True)
+            return 1
+        finally:
+            if timer:
+                timer.cancel()
+            _set_finalise(running=False, line="")
+
 
 # How many candidates each pass covers. Enrichment is cheap arithmetic and
 # rendering is minutes of CPU, so they are DELIBERATELY not the same number:
@@ -238,10 +314,7 @@ def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
             capture_output=True, text=True, timeout=300)
 
         # Re-finalise.
-        subprocess.run(
-            [sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-             "finalise", *finalise_args],
-            capture_output=True, text=True, timeout=120)
+        run_finalise(finalise_args, "re-roll", timeout=120)
 
         with _jobs_lock:
             j = _jobs[job_id]
@@ -547,8 +620,7 @@ class Pipeline:
         self._set(stage="ranking")
         self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"), "rescore",
                   "--config", self.config, "--seedtest", self.seedtest], 600)
-        self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                  "finalise", *self.finalise_args], 600)
+        run_finalise(self.finalise_args, "re-rank", timeout=600)
         self._bump()
 
         # Rendering is NOT step 4 any more. It belongs to RenderWorker, which
@@ -613,8 +685,7 @@ class Pipeline:
                 self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
                           "rescore", "--config", self.config,
                           "--seedtest", self.seedtest], 1800)
-                self._sh([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                          "finalise", *self.finalise_args], 900)
+                run_finalise(self.finalise_args, "backfill", timeout=900)
                 self._bump()
                 if self.renderer is not None:
                     self.renderer.bump()
@@ -959,6 +1030,10 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             snap = _pipeline.snapshot()
             if _renderer:
                 snap.update(_renderer.snapshot())
+            # A finalise can be in flight without the roll loop running at all —
+            # at startup, or after any single-candidate action. The page needs
+            # to know, or a 30-minute cold census reads as a frozen viewer.
+            snap["finalise"] = finalise_status()
             self._respond_json(snap)
             return
         if self.path.startswith("/job/"):
@@ -1023,12 +1098,10 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         tmp.write_text(json.dumps(overrides, indent=2) + "\n")
         tmp.replace(overrides_path)
 
-        r = subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                           "finalise", *self.finalise_args],
-                          capture_output=True, text=True)
-        self._respond_json({"ok": r.returncode == 0, "dim": dim,
+        code = run_finalise(self.finalise_args, "use-seed")
+        self._respond_json({"ok": code == 0, "dim": dim,
                             "seed": seed, "overrides": overrides},
-                           200 if r.returncode == 0 else 500)
+                           200 if code == 0 else 500)
 
     def _handle_reroll(self):
         try:
@@ -1181,9 +1254,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         if action == "remove" or (action == "toggle" and key in shortlist):
             shortlist.pop(key, None)
             sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
-            subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                           "finalise", *self.finalise_args],
-                          capture_output=True, text=True)
+            run_finalise(self.finalise_args, "shortlist")
             self._respond_json({"ok": True, "shortlisted": False})
             return
 
@@ -1191,9 +1262,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         sl_path.write_text(json.dumps(shortlist, indent=2) + "\n")
 
         # Re-finalise to regenerate index.html with updated shortlist state
-        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                       "finalise", *self.finalise_args],
-                      capture_output=True, text=True)
+        run_finalise(self.finalise_args, "shortlist")
 
         # Render hi-res if not already done
         hires_path = Path(self.seedtest) / "renders" / dim / f"{seed}_hires.png"
@@ -1370,9 +1439,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         data["hidden"] = True
         path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
-        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                       "finalise", *self.finalise_args],
-                      capture_output=True, text=True)
+        run_finalise(self.finalise_args, "hide-dimension")
         self._respond_json({"ok": True})
 
     def _handle_remove_dimension(self):
@@ -1395,9 +1462,7 @@ class ViewerHandler(SimpleHTTPRequestHandler):
         removed_path = path.with_suffix(".json.removed")
         path.rename(removed_path)
 
-        subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                       "finalise", *self.finalise_args],
-                      capture_output=True, text=True)
+        run_finalise(self.finalise_args, "remove-dimension")
         self._respond_json({"ok": True, "path": str(removed_path)})
 
     def _resolve_dim_config(self, dim):
@@ -1463,11 +1528,6 @@ def main():
         shutil.rmtree(renders_dir)
         print("renders wiped (--refresh)", flush=True)
 
-    # Re-finalise to regenerate index.html with current scores
-    subprocess.run([sys.executable, str(SCRIPT_DIR / "score-dimensions.py"),
-                   "finalise", *finalise_args],
-                  capture_output=True, text=True)
-
     handler = partial(ViewerHandler, directory=args.seedtest)
     ViewerHandler.seedtest = args.seedtest
     ViewerHandler.config_path = args.config
@@ -1523,8 +1583,32 @@ def main():
     # session never rolled.
     _renderer.start()
     _pipeline.enrich_all_async()
+
+    # Regenerate index.html from the current scores — AFTER the port is open,
+    # on its own thread.
+    #
+    # This used to run synchronously before the bind, which was fine only while
+    # it was fast. It stops being fast the moment a placement-config change
+    # invalidates the banked censuses: 2026-07-29's radial change made it
+    # recompute 4447 of them, and because the call also passed
+    # capture_output=True the viewer sat there for 30 minutes printing nothing
+    # and answering nothing. Indistinguishable from a hang, and I lost a while
+    # to exactly that.
+    #
+    # Serving first means the page is up immediately, showing the PREVIOUS
+    # index.html until the new one lands — stale for a few minutes, which is
+    # strictly better than refusing to answer at all. run_finalise streams its
+    # progress to the terminal and to /pipeline-status, so both the operator and
+    # the page can see what it is doing.
+    threading.Thread(
+        target=run_finalise, args=(finalise_args, "startup"),
+        daemon=True).start()
+
     print("Rendering the current top 10s in the background. "
           "Press Start in the viewer to roll more seeds.", flush=True)
+    if not (Path(args.seedtest) / "index.html").exists():
+        print("No index.html yet — the page will 404 until the first finalise "
+              "finishes.", flush=True)
 
     try:
         server_thread.join()
