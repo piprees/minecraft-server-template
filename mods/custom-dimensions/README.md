@@ -221,11 +221,19 @@ existing roller `wants`/`shuns` and runtime `spacing`:
   chunk. Unknown structures (removed mods) warn and skip — never a boot
   break. Forced placements are additive after `mode` — `"mode": "none"` +
   `force` = ONLY the forced structures.
-- **Biome predicate still applies**: `force` guarantees the START ATTEMPT
-  at that chunk; vanilla still checks the structure's biome list at
-  placement. Force a spot whose biome the structure accepts (probe with
-  `/customdim locate biome` first) or it silently won't place and locate
-  falls back to organic instances.
+- **The biome predicate does NOT apply**: `force` is a literal override,
+  so an overworld structure forced into a nether dimension generates.
+  `ChunkGeneratorForcedBiomeMixin` replaces vanilla's
+  `Predicate<RegistryEntry<Biome>>` with one that always passes, for
+  forced start attempts only — every other set keeps vanilla behaviour
+  exactly. Each forced position that generates logs one INFO line:
+  `Dimension <slug>: forced <structure> generated at chunk [x, z]
+  (biome predicate bypassed)`.
+- **Out-of-biome forced structures generate but are NOT locatable.**
+  `/locate` reads `StructurePlacementCalculator`'s structure→placement
+  index, which vanilla builds only for structures whose valid biomes
+  intersect the dimension's biome source; that index is untouched on
+  purpose. Verify with `/customdim structure-census` and the log line.
 - Like `spacing`, this is a RUNTIME rebuild (re-read every boot, newly
   generated chunks only) — not creation-time worldgen. One forced position
   per 32-chunk region is locatable; extras in the same region still

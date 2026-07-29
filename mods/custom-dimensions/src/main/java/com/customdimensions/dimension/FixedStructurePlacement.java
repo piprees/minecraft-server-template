@@ -38,6 +38,12 @@ import java.util.Set;
  * the same region still GENERATE (isStartChunk is a set-membership test)
  * but locate returns the region's registered one — warned at build time.
  *
+ * A forced placement also DISABLES the structure's biome predicate for the
+ * chunks it claims — "put THIS structure at THIS spot" is a literal
+ * override, not a suggestion. StructurePlacementForcedBiomeMixin arms on
+ * this class specifically and ChunkGeneratorForcedBiomeMixin consumes it;
+ * see {@link ForcedBiomeBypass} for why the two are separated.
+ *
  * Instances live only in per-world rebuilt StructurePlacementCalculators
  * (never serialised into level.dat), but the type is registered anyway so
  * getType() stays honest.
@@ -50,6 +56,8 @@ public class FixedStructurePlacement extends RandomSpreadStructurePlacement {
 
     public static final MapCodec<FixedStructurePlacement> CODEC =
             RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    Codec.STRING.optionalFieldOf("dimension", "")
+                            .forGetter(FixedStructurePlacement::dimensionName),
                     Codec.list(Codec.INT.listOf())
                             .fieldOf("positions")
                             .forGetter(FixedStructurePlacement::positionPairs)
@@ -108,21 +116,28 @@ public class FixedStructurePlacement extends RandomSpreadStructurePlacement {
         }
     }
 
+    private final String dimensionName;
     private final Index index;
 
-    public FixedStructurePlacement(List<ChunkPos> positions) {
+    public FixedStructurePlacement(String dimensionName, List<ChunkPos> positions) {
         super(Vec3i.ZERO, StructurePlacement.FrequencyReductionMethod.DEFAULT,
                 1.0f, 0, Optional.empty(), SPACING, SPACING / 2, SpreadType.LINEAR);
+        this.dimensionName = dimensionName != null ? dimensionName : "";
         this.index = new Index(positions);
     }
 
-    private static FixedStructurePlacement fromPairs(List<List<Integer>> pairs) {
-        return new FixedStructurePlacement(
+    private static FixedStructurePlacement fromPairs(String dimensionName, List<List<Integer>> pairs) {
+        return new FixedStructurePlacement(dimensionName,
                 pairs.stream().map(p -> new ChunkPos(p.get(0), p.get(1))).toList());
     }
 
     private List<List<Integer>> positionPairs() {
         return index.positions().stream().map(p -> List.of(p.x, p.z)).toList();
+    }
+
+    /** The dimension that configured this placement. Only used for logging. */
+    public String dimensionName() {
+        return dimensionName;
     }
 
     /** The exact configured positions. Used by /customdim structure-census. */

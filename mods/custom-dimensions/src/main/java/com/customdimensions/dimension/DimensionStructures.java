@@ -383,6 +383,11 @@ public final class DimensionStructures {
      * per forced structure id, positioned by FixedStructurePlacement. Unknown
      * structure ids (e.g. from a removed mod) warn and skip — never a boot
      * break (optional-mods promise). Returns how many positions were added.
+     *
+     * The structure's biome predicate does NOT apply at a forced position —
+     * see FixedStructurePlacement and ForcedBiomeBypass. This line says what
+     * was configured; a second INFO line is logged when a forced position
+     * actually generates.
      */
     private static int appendForcedPlacements(List<RegistryEntry<StructureSet>> transformed,
                                               ServerWorld world, DimensionConfig def,
@@ -423,7 +428,7 @@ public final class DimensionStructures {
                 continue;
             }
             transformed.add(RegistryEntry.of(new StructureSet(
-                    entry.get(), new FixedStructurePlacement(e.getValue()))));
+                    entry.get(), new FixedStructurePlacement(def.getName(), e.getValue()))));
             forcedCount += e.getValue().size();
             MultiverseServer.LOGGER.info(
                     "Dimension {}: forced {} at chunk(s) {}",

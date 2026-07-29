@@ -140,9 +140,14 @@ Filter whole ORGANIC structure sets per dimension: `allow` keeps only sets in `l
 }
 ```
 
-An exact structure at an exact spot (STRUCTURE id, block coordinates; the start lands in that chunk). Forced placements are additive after `mode` (`"mode": "none"` + `force` = only the forced structures), exempt from density rescaling, and visible to `/locate`. The structure's biome predicate still applies — pick a spot whose biome the structure accepts, or it silently won't place. Unknown structure ids (removed mods) warn and skip.
+An exact structure at an exact spot (STRUCTURE id, block coordinates; the start lands in that chunk). Forced placements are additive after `mode` (`"mode": "none"` + `force` = only the forced structures) and exempt from density rescaling. Unknown structure ids (removed mods) warn and skip.
 
-Note: `/locate` returns the first find in ring order across sets. With the organic set still enabled it may name a farther organic instance even when your forced one exists.
+**The structure's biome predicate does not apply at a forced position.** `force` is a literal override: an overworld structure forced into a nether dimension generates. The mod replaces vanilla's biome predicate with one that always passes, for forced start attempts only — every other structure keeps vanilla behaviour exactly. Each forced position that generates logs one INFO line: `Dimension <slug>: forced <structure> generated at chunk [x, z] (biome predicate bypassed)`.
+
+Two `/locate` caveats:
+
+- **A forced structure whose biomes the dimension does not contain generates but is NOT locatable.** `/locate` reads `StructurePlacementCalculator`'s structure→placement index, which vanilla builds only for structures whose valid biomes intersect the dimension's biome source — that index is deliberately untouched. Verify with `/customdim structure-census` and the log line instead.
+- `/locate` returns the first find in ring order across sets. With the organic set still enabled it may name a farther organic instance even when your forced one exists.
 
 ### Combining structure fields
 

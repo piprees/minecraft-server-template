@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorAccessor",
+    "ChunkGeneratorForcedBiomeMixin",
     "CreateWorldsMixin",
     "EntityTickPortalMixin",
     "GameEventSuppressionMixin",
@@ -22,6 +23,7 @@
     "SimpleRegistryAccessor",
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
+    "StructurePlacementForcedBiomeMixin",
     "WorldLoaderMixin",
     "NetherPortalProtectionMixin",
     "EndGatewaySuppressionMixin"

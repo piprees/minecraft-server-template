@@ -513,16 +513,31 @@ no config at all.
   hit can be returned even when the forced one is closer. Oracle design:
   prove forced placements with `"mode": "none"` + `force` (organic sets
   gone → locate must return the exact forced spot or nothing).
-- **`force` guarantees the start ATTEMPT, not the biome check.** Vanilla
-  validates the structure's biome predicate at placement; 3D biomes make
-  peaks-area spots tricky (locate biome says stony_peaks but the surface
-  column may sample another biome at the structure's Y). Probe with
-  `customdim locate biome` and prefer broad-biome structures for fixtures.
-- **StructurePlacementCalculator prefilters by biome availability**
-  (`calculate()`: a set's placement is only indexed for structures whose
-  valid-biome list intersects the biome source's set). A forced structure
-  whose biomes don't exist in the dim's biome source is invisible to
-  locate AND generation — warn-and-skip territory, not a crash.
+- **`force` DISABLES the biome check** (2026-07-29). Vanilla builds the
+  biome predicate inline in `ChunkGenerator.trySetStructureStart`
+  (`structure.getValidBiomes()::contains`) and hands it to
+  `Structure.createStructureStart` — the placement is out of scope by
+  then, so `FixedStructurePlacement` alone could never reach it and a
+  forced structure in a biome it did not accept silently did not
+  generate. Two mixins carry the fact across:
+  `StructurePlacementForcedBiomeMixin` records, at the RETURN of every
+  `StructurePlacement.shouldGenerate`, whether a `FixedStructurePlacement`
+  claimed this chunk (all placements write, so a `/locate` probe cannot
+  leave a stale arm behind); `ChunkGeneratorForcedBiomeMixin` swaps the
+  predicate for `entry -> true` on exactly those attempts and logs one
+  INFO line per forced position that generates. `ForcedBiomeBypass` holds
+  the thread-local hand-off and the reasoning in full. **Vanilla
+  behaviour is unchanged for every other set.**
+- **StructurePlacementCalculator prefilters by biome availability**, and
+  that is a SEPARATE gate from the predicate above. `create()` drops
+  whole sets whose structures' valid biomes miss the biome source, and
+  `calculate()` indexes structure→placement on the same test. Our forced
+  sets are synthesised after `create()` and handed to the private
+  constructor (`StructurePlacementCalculatorInvoker`), so they bypass the
+  first filter and DO generate; `calculate()` still governs
+  `getPlacements`, so an out-of-biome forced structure is **not
+  locatable**. Verify with `structure-census` and the boot log, never
+  with locate.
 - **`customdim sample-noise` is a generation ground-truth oracle**: it
   returns the router climate point at (x&~3, 0, z&~3); for Terratonic
   graphs depth(y=0) = 1 + offset, so surface_Y = 128*depth. A c2me-free
@@ -603,7 +618,10 @@ MultiverseServer (entrypoint)
 │       │           └── StructureNoise → own Perlin (see below)
 │       ├── StructureGroupRegistry → group/rarity per set + type defaults,
 │       │   both jar-baked; unknown sets infer to deco + spacing rarity
-│       └── FixedStructurePlacement → structures.force, unchanged
+│       └── FixedStructurePlacement → structures.force; its chunks also
+│           skip the structure's biome predicate, via ForcedBiomeBypass
+│           (StructurePlacementForcedBiomeMixin arms,
+│           ChunkGeneratorForcedBiomeMixin swaps the predicate)
 ├── MinecraftServerAccessor → server internals access
 ├── StructurePlacementAccessor / StructurePlacementCalculatorInvoker
 │   └── placement field access + the private calculator ctor (the public
