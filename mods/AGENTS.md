@@ -447,7 +447,10 @@ no config at all.
 - **Data is jar-baked, not read from config.** `structure_themes.json` and
   `structure_type_defaults.json` are resources (self-containment rule above);
   the copies under `config/custom-dimensions/` exist for the seed roller,
-  which resolves consumer-mode config from `data/config/`. Regenerate both
+  which in a consumer reads the STACK BUNDLE
+  (`.stack/current/stack/config/custom-dimensions`) plus
+  `overlay/config/custom-dimensions` — never `data/`, which belongs to the mc
+  container and is wiped to reset a world. Regenerate both
   with `scripts/gen-structure-groups.py` after any structure-mod pin bump —
   `--check` gates staleness.
 - **Over half of all sets never enter a group.** 155 of ~280 have a custom

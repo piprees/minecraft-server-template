@@ -195,12 +195,51 @@ BASE_WORLD_CHECKS = [
     },
 ]
 
-CURVES = {
-    "inner": [1.5, 1.3, 1.0, 0.8, 0.5, 0.3, 0.1, 0.0, 0.0, 0.0],
-    "outer": [0.0, 0.0, 0.1, 0.3, 0.6, 0.8, 1.0, 1.3, 1.5, 2.0],
-    "even": [1.0] * 10,
-    "mid": [0.3, 0.5, 1.0, 1.2, 1.2, 1.0, 0.8, 0.5, 0.3, 0.1],
-}
+def _load_curves():
+    """The radial curve presets, read from the file that actually ships them.
+
+    These used to be hardcoded here, and drifted the moment the presets
+    changed: "make the radial curve a density dial, not an on/off gate"
+    (2026-07-29) retuned every curve so none of them reach 0.0 any more, and
+    updated the mod resource, the roller mirror, the unit tests and the census
+    fixture — but not this file, which then failed three dimensions for
+    matching the new presets exactly (2026-07-30). Reading the shipped values
+    makes that class of drift impossible.
+    """
+    here = Path(__file__).resolve().parent.parent
+    for candidate in (here / "config/custom-dimensions/structure-type-defaults.json",
+                      here / "mods/custom-dimensions/src/main/resources"
+                             "/structure_type_defaults.json"):
+        if candidate.exists():
+            curves = json.loads(candidate.read_text()).get("curves")
+            if curves:
+                return {k: v for k, v in curves.items() if not k.startswith("_")}
+    raise SystemExit(
+        "check-noise-regression: no structure-type-defaults.json found — "
+        "cannot resolve the radial curve presets")
+
+
+CURVES = _load_curves()
+
+
+def curve_inner_share(curve, frac=0.5, steps=2000):
+    """Fraction of a group's placements the curve puts inside `frac` of the
+    radius. The curve is a 10-point piecewise-linear DENSITY multiplier over
+    spawn->border, so the share is its area-weighted integral (2r dr), not the
+    plain mean. `even` gives 25% at frac=0.5 — the flat-disc answer."""
+    total = inside = 0.0
+    last = len(curve) - 1
+    for i in range(steps):
+        r = (i + 0.5) / steps
+        pos = r * last
+        lo = int(pos)
+        hi = min(lo + 1, last)
+        t = pos - lo
+        area = (curve[lo] * (1 - t) + curve[hi] * t) * 2 * r
+        total += area
+        if r <= frac:
+            inside += area
+    return inside / total if total else 0.0
 
 
 class Report:
@@ -361,9 +400,25 @@ def run_dimension(spec, census_dir, report):
         radius = entry.get("radiusChunks") or 1
         inner = sum(1 for cx, cz in positions
                     if math.hypot(cx, cz) <= radius * 0.5)
-        report.check(slug, f"{group} biased toward spawn (>60% inside half-radius)",
-                     inner / len(positions) > 0.6,
-                     f"{inner}/{len(positions)}")
+        # Assert against what the group's OWN curve predicts, not a fixed
+        # share. The old ">60% inside half-radius" encoded the pre-2026-07-29
+        # behaviour, where the curve multiplied into the noise before the
+        # threshold test and `inner` therefore put every settlement inside a
+        # third of the radius. That was the bug "make the radial curve a
+        # density dial, not an on/off gate" fixed, so the assertion had
+        # started demanding the defect back.
+        curve_name = (spec.get("radial") or {}).get(group)
+        expected = curve_inner_share(CURVES[curve_name]) if curve_name in CURVES else 0.25
+        n = len(positions)
+        observed = inner / n
+        # Two binomial standard deviations of headroom: a real census is a
+        # sample, and these groups are small in a sparse dimension.
+        floor = expected - 2.0 * math.sqrt(expected * (1 - expected) / n)
+        report.check(slug,
+                     f"{group} biased toward spawn (curve '{curve_name}' "
+                     f"predicts {expected:.0%} inside half-radius)",
+                     observed >= floor,
+                     f"{inner}/{n} = {observed:.0%}, floor {floor:.0%}")
 
     if "not_all_near_spawn" in spec:
         blocks = spec["not_all_near_spawn"]

@@ -136,6 +136,26 @@ prepare_base_dir() {
     echo "Error: no mod jars in $jar_cache or $LOCAL_DATA/mods" >&2
     exit 1
   fi
+  # The in-house mods are NOT in the shared cache and never will be: that
+  # cache holds what sync-mods.sh pulls from Modrinth, and local-mods ship in
+  # the stack bundle instead. Without them the warmup server has no
+  # `customdim` command at all, so `customdim load` / `dump-biome-params` /
+  # `dump-structure-pools` fail for every dimension and warmup silently
+  # degrades to the shipped biome table and no structure pools (2026-07-30:
+  # 77/77 dimensions failed to queue, structure_pools.json never written).
+  # The bundle copy is authoritative; data/mods is the platform-checkout
+  # fallback, where dev-up.sh has already installed the same jars.
+  local local_mods
+  local_mods="$(cd "$SCRIPT_DIR/../.." 2> /dev/null && pwd)/local-mods"
+  if compgen -G "$local_mods/*.jar" > /dev/null; then
+    cp "$local_mods/"*.jar "$WORK_BASE/mods/"
+  elif compgen -G "$LOCAL_DATA/mods/customdimensions*.jar" > /dev/null; then
+    cp "$LOCAL_DATA/mods/"customdimensions*.jar "$WORK_BASE/mods/"
+  else
+    echo "  WARNING: no in-house mod jars found (looked in $local_mods and" >&2
+    echo "  $LOCAL_DATA/mods) — customdim commands will be unavailable and" >&2
+    echo "  warmup will fall back to the shipped biome table." >&2
+  fi
   for dir in config defaultconfigs moonlight-global-datapacks villagerpacks; do
     [[ -d "$LOCAL_DATA/$dir" ]] && cp -a "$LOCAL_DATA/$dir" "$WORK_BASE/"
   done
@@ -305,11 +325,22 @@ roll() {
 # ---------------------------------------------------------------------------
 finalise() {
   WRITE_FLAG=""
-  [[ "$WRITE_CONFIG" == 1 ]] && WRITE_FLAG="--write-config"
+  OVERLAY_FLAG=""
+  # --no-write has to suppress BOTH flags. --winner-overlay is set during
+  # config resolution, before argument parsing, and on its own it is enough
+  # for finalise to write winners into the consumer's overlay — so gating
+  # only --write-config left --no-write completely ineffective in a consumer
+  # repo while appearing to work in a platform checkout, where the overlay
+  # flag is empty anyway (2026-07-30: a --no-write roll rewrote 33 of
+  # elfydd's overlay dimension files).
+  if [[ "$WRITE_CONFIG" == 1 ]]; then
+    WRITE_FLAG="--write-config"
+    OVERLAY_FLAG="$WINNER_FLAG"
+  fi
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
-    ${DIMS:+--dims "$DIMS"} $WRITE_FLAG $WINNER_FLAG --viewer || true
+    ${DIMS:+--dims "$DIMS"} $WRITE_FLAG $OVERLAY_FLAG --viewer || true
 }
 
 # ===========================================================================

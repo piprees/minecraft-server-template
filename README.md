@@ -70,6 +70,8 @@ Find a great world seed by testing against the real modded server. Rolls bank ra
 ./dev seed-roll --pool 10000 --count 200     # bigger screening pool
 ./dev seed-roll --no-write                   # measure + score only
 ./dev seed-roll --reset                      # wipe all seed data and start fresh
+./dev seed-roll --clean                      # wipe worker dirs, keep the candidate bank
+./dev seed-roll --warmup-only                # rebuild the warmup artefacts and stop
 ```
 
 Winners are auto-written into the individual dimension config files. Ctrl+C finalises with whatever has been measured so far; re-runs resume.
@@ -78,7 +80,15 @@ Winners are auto-written into the individual dimension config files. Ctrl+C fina
 ./dev seed-rescore                           # recompute scores vs current configs
 ./dev seed-status                            # candidate-bank status
 ./dev seed-viewer                            # interactive picker + background rendering
+./dev verify                                 # every offline checker; safe while the server runs
+./dev refresh-config                         # re-seed data/config from the bundle (backs up first)
 ```
+
+The roller reads the **stack bundle's** `config/custom-dimensions` plus your
+`overlay/config/custom-dimensions` — never `data/`, which belongs to the mc
+container. A dimension edited in `overlay/` is visible to the next roll
+immediately; editing `data/config/` changes the server's copy and does not
+affect a roll at all.
 
 Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/`; "Use this seed" pins your pick over the score ranking.
 

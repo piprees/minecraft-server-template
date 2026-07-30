@@ -397,10 +397,10 @@ case "$CMD" in
     # dimension candidate counts, winners, and score freshness.
     ensure_stack
     export CONSUMER_DIR
-    # Same resolution as roll-all.sh: full local copy first (platform
-    # checkouts), else the merged view the server boots (bundle defaults +
-    # staged overlay under data/) — that is also where the candidate bank
-    # lives for consumers.
+    # Same resolution as roll-all.sh: a full local config/ first (platform
+    # checkouts), else the stack bundle's defaults, with the consumer's
+    # overlay/ merged over the top. Never data/ — that is the mc container's
+    # tree and is wiped to reset a world.
     resolve_seed_config
     exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
       --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"

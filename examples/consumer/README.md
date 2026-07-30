@@ -247,6 +247,9 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev seed-roll`         | Parallel-roll seeds for every dimension, auto-pick winners                         |
 | `./dev seed-rescore`      | Recompute candidate scores vs current configs (no re-rolling)                      |
 | `./dev seed-status`       | Candidate-bank status: counts, winners, score freshness                            |
+| `./dev seed-viewer`       | Interactive viewer: compare candidates, pick winners, re-roll, edit configs         |
+| `./dev verify`            | Run every offline checker over the mod's artefacts (no Docker, no RCON)             |
+| `./dev refresh-config`    | Force-refresh platform config defaults into `data/config` (backs up first)          |
 | `./dev cache`             | Snapshot Docker images, mod JARs, offline client bundles                           |
 | `./dev start <service>`   | Start a stopped local service                                                      |
 | `./dev stop <service>`    | Stop a running local service                                                       |
