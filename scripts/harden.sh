@@ -48,10 +48,10 @@ if [[ "${1:-}" == "--remote" ]]; then
   REMOTE_IP="${REMOTE_HOST#*@}"
 
   # Try root first; if root is locked (already hardened), use deploy+sudo
-  if ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${REMOTE_IP}" 'true' 2>/dev/null; then
+  if ssh -o ConnectTimeout=5 -o BatchMode=yes "root@${REMOTE_IP}" 'true' 2> /dev/null; then
     UPLOAD_HOST="root@${REMOTE_IP}"
     UPLOAD_DIR="/root"
-  elif ssh -o ConnectTimeout=5 -o BatchMode=yes -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_IP}" 'true' 2>/dev/null; then
+  elif ssh -o ConnectTimeout=5 -o BatchMode=yes -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_IP}" 'true' 2> /dev/null; then
     UPLOAD_HOST="${DEPLOY_USER_VAL}@${REMOTE_IP}"
     UPLOAD_DIR="/tmp"
   else
@@ -60,12 +60,12 @@ if [[ "${1:-}" == "--remote" ]]; then
   fi
 
   echo "Uploading harden.sh to $UPLOAD_HOST..."
-  scp -i "$DEPLOY_KEY_FILE" "$SCRIPT_PATH" "${UPLOAD_HOST}:${UPLOAD_DIR}/harden.sh" 2>/dev/null \
+  scp -i "$DEPLOY_KEY_FILE" "$SCRIPT_PATH" "${UPLOAD_HOST}:${UPLOAD_DIR}/harden.sh" 2> /dev/null \
     || scp "$SCRIPT_PATH" "${UPLOAD_HOST}:${UPLOAD_DIR}/harden.sh"
 
   if [[ -f "$DEPLOY_KEY_PUB_EXPANDED" ]]; then
     echo "Uploading deploy public key..."
-    scp -i "$DEPLOY_KEY_FILE" "$DEPLOY_KEY_PUB_EXPANDED" "${UPLOAD_HOST}:${UPLOAD_DIR}/mc_deploy_key.pub" 2>/dev/null \
+    scp -i "$DEPLOY_KEY_FILE" "$DEPLOY_KEY_PUB_EXPANDED" "${UPLOAD_HOST}:${UPLOAD_DIR}/mc_deploy_key.pub" 2> /dev/null \
       || scp "$DEPLOY_KEY_PUB_EXPANDED" "${UPLOAD_HOST}:${UPLOAD_DIR}/mc_deploy_key.pub"
   fi
 
@@ -74,7 +74,7 @@ if [[ "${1:-}" == "--remote" ]]; then
   [[ -f "$PROJECT_DIR/.env" ]] && set -a && source "$PROJECT_DIR/.env" && set +a
 
   # Detect caller's public IP for fail2ban whitelisting
-  CALLER_IP=$(curl -s -4 https://ifconfig.me 2>/dev/null || true)
+  CALLER_IP=$(curl -s -4 https://ifconfig.me 2> /dev/null || true)
 
   # Run remotely via nohup so it survives SSH drops (Docker install takes 3+ min).
   SSH_FLAGS=()
@@ -89,7 +89,7 @@ if [[ "${1:-}" == "--remote" ]]; then
 
   # Move deploy key to /root if uploaded to /tmp (needs sudo)
   if [[ "$UPLOAD_DIR" == "/tmp" ]]; then
-    ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "sudo cp /tmp/harden.sh /root/harden.sh; sudo cp /tmp/mc_deploy_key.pub /root/mc_deploy_key.pub 2>/dev/null; sudo chmod +x /root/harden.sh" 2>/dev/null
+    ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "sudo cp /tmp/harden.sh /root/harden.sh; sudo cp /tmp/mc_deploy_key.pub /root/mc_deploy_key.pub 2>/dev/null; sudo chmod +x /root/harden.sh" 2> /dev/null
   fi
 
   ssh ${SSH_FLAGS[@]+"${SSH_FLAGS[@]}"} "$UPLOAD_HOST" "${RUN_PREFIX} bash -c 'chmod +x /root/harden.sh && \
@@ -116,24 +116,24 @@ if [[ "${1:-}" == "--remote" ]]; then
   while [[ $HARDEN_WAIT -lt $HARDEN_MAX ]]; do
     # Try deploy user first (root gets disabled during hardening)
     if ssh -o ConnectTimeout=5 -o BatchMode=yes -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_HOST#*@}" \
-        'test -f /root/.harden-done 2>/dev/null || sudo test -f /root/.harden-done' 2>/dev/null; then
+      'test -f /root/.harden-done 2>/dev/null || sudo test -f /root/.harden-done' 2> /dev/null; then
       echo ""
       echo "  Hardening complete. Fetching log..."
       ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_HOST#*@}" \
-        'sudo cat /root/harden.log' 2>/dev/null | tail -20
+        'sudo cat /root/harden.log' 2> /dev/null | tail -20
       exit 0
     fi
     if ssh -o ConnectTimeout=5 -o BatchMode=yes -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_HOST#*@}" \
-        'test -f /root/.harden-failed 2>/dev/null || sudo test -f /root/.harden-failed' 2>/dev/null; then
+      'test -f /root/.harden-failed 2>/dev/null || sudo test -f /root/.harden-failed' 2> /dev/null; then
       echo ""
       echo "  Hardening FAILED. Last 30 lines of log:"
       ssh -o ConnectTimeout=5 -i "$DEPLOY_KEY_FILE" "${DEPLOY_USER_VAL}@${REMOTE_HOST#*@}" \
-        'sudo cat /root/harden.log' 2>/dev/null | tail -30
+        'sudo cat /root/harden.log' 2> /dev/null | tail -30
       exit 1
     fi
     sleep 10
     HARDEN_WAIT=$((HARDEN_WAIT + 10))
-    if (( HARDEN_WAIT % 60 == 0 )); then
+    if ((HARDEN_WAIT % 60 == 0)); then
       echo "    ...still running (${HARDEN_WAIT}s / ${HARDEN_MAX}s)"
     fi
   done
@@ -409,7 +409,7 @@ if systemctl is-active --quiet docker; then
   systemctl restart docker
   echo "  Docker restarted with new daemon config."
 else
-  systemctl start docker 2>/dev/null || true
+  systemctl start docker 2> /dev/null || true
   echo "  Docker started with new daemon config."
 fi
 
@@ -570,20 +570,20 @@ systemctl daemon-reload
 systemctl daemon-reload
 # Log-pipe services need Docker; enable them but don't fail if Docker isn't installed yet.
 # They'll start on next boot once Docker is available.
-systemctl enable mc-log-pipe.service 2>/dev/null || true
-systemctl enable nginx-log-pipe@nav-proxy.service 2>/dev/null || true
-systemctl enable nginx-log-pipe@pack-web.service 2>/dev/null || true
-if command -v docker &>/dev/null; then
-  systemctl start mc-log-pipe.service 2>/dev/null || true
-  systemctl start nginx-log-pipe@nav-proxy.service 2>/dev/null || true
-  systemctl start nginx-log-pipe@pack-web.service 2>/dev/null || true
+systemctl enable mc-log-pipe.service 2> /dev/null || true
+systemctl enable nginx-log-pipe@nav-proxy.service 2> /dev/null || true
+systemctl enable nginx-log-pipe@pack-web.service 2> /dev/null || true
+if command -v docker &> /dev/null; then
+  systemctl start mc-log-pipe.service 2> /dev/null || true
+  systemctl start nginx-log-pipe@nav-proxy.service 2> /dev/null || true
+  systemctl start nginx-log-pipe@pack-web.service 2> /dev/null || true
   echo "  Log-pipe services active (mc, nav-proxy, pack-web -> /var/log/)"
 else
   echo "  Log-pipe services enabled (will start after Docker is installed)"
 fi
 
-systemctl enable fail2ban 2>/dev/null || true
-systemctl restart fail2ban 2>/dev/null || true
+systemctl enable fail2ban 2> /dev/null || true
+systemctl restart fail2ban 2> /dev/null || true
 echo "  fail2ban active:"
 echo "    - SSH: 4 failures in 10m > 24h ban"
 echo "    - MC connection spam: 10 disconnects in 2m > 1h ban"
@@ -630,7 +630,7 @@ else
   echo "  Swap enabled (2G, swappiness=10)."
 fi
 
-  # (Docker was installed and hardened in step 4, before fail2ban)
+# (Docker was installed and hardened in step 4, before fail2ban)
 
 # =============================================================================
 # 7. Log rotation and journald limits
@@ -640,7 +640,7 @@ echo "=== 7. Log management ==="
 
 # Cap journald at 200MB total. Default is 10% of disk which can be several GB.
 JOURNALD_CONF="/etc/systemd/journald.conf"
-if ! grep -q '^SystemMaxUse=200M' "$JOURNALD_CONF" 2>/dev/null; then
+if ! grep -q '^SystemMaxUse=200M' "$JOURNALD_CONF" 2> /dev/null; then
   backup "$JOURNALD_CONF"
   sed -i 's/^#\?SystemMaxUse=.*/SystemMaxUse=200M/' "$JOURNALD_CONF"
   if ! grep -q '^SystemMaxUse=' "$JOURNALD_CONF"; then
@@ -651,7 +651,7 @@ if ! grep -q '^SystemMaxUse=200M' "$JOURNALD_CONF" 2>/dev/null; then
 fi
 
 # Vacuum existing journal if oversized
-journalctl --vacuum-size=200M 2>/dev/null || true
+journalctl --vacuum-size=200M 2> /dev/null || true
 
 # Docker container logs are already limited by daemon.json (10m x 3 files).
 # MC's internal logs are limited by log4j2.xml (10MB x 3 days, auto-delete).
@@ -673,8 +673,8 @@ echo "  zip installed: $(zip --version 2> /dev/null | head -1 || echo 'unknown')
 # =============================================================================
 echo ""
 echo "=== 9. Applying SSH hardening ==="
-systemctl reload ssh 2>/dev/null || systemctl reload sshd 2>/dev/null \
-  || systemctl restart ssh 2>/dev/null || systemctl restart sshd 2>/dev/null || true
+systemctl reload ssh 2> /dev/null || systemctl reload sshd 2> /dev/null \
+  || systemctl restart ssh 2> /dev/null || systemctl restart sshd 2> /dev/null || true
 echo "  SSH reloaded: root login disabled, key-only auth active."
 
 # =============================================================================
