@@ -282,7 +282,18 @@ def main():
     if missing:
         # Named, not silently dropped: these dimensions keep the group-level
         # reading, which is the pre-pool behaviour rather than a wrong answer.
-        print("  %d dimension(s) never loaded and keep group-level scoring: %s"
+        #
+        # "recorded no pool", not "never loaded" — the usual member of this
+        # list is a SUPPRESSED dimension (structureDensity "none",
+        # structures.mode "none", structures.noise false). Its world loads
+        # normally but takes the legacy density path in DimensionStructures,
+        # which never calls StructurePoolRecord.record, so it has no pool to
+        # record and group-level scoring is the correct answer for it. All 5
+        # on 2026-07-30 were structureDensity "none". A world that genuinely
+        # failed to load lands here too, and is worth chasing — the
+        # difference shows in the container log.
+        print("  %d dimension(s) recorded no pool and keep group-level "
+              "scoring (expected for suppressed structures): %s"
               % (len(missing), ", ".join(missing[:8])
                  + (" ..." if len(missing) > 8 else "")), flush=True)
     return 0

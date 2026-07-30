@@ -226,7 +226,10 @@ prepare_base_dir() {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 1: Warmup — structure sets + biome params
+# Phase 1: Warmup — structure sets + biome params + structure pools
+#
+# Three independent artefacts, each with its own freshness check. They share
+# one early return, so every check must contribute to need_warmup.
 # ---------------------------------------------------------------------------
 warmup() {
   local need_warmup=0
@@ -254,10 +257,18 @@ print(nether if tagged > 0 else 0)
     need_warmup=1
   fi
 
+  # The pool dump is a third artefact with its own freshness question, and it
+  # has to be asked HERE. Warming it only when the structure sets or the biome
+  # table also needed rebuilding meant that every consumer already warm from
+  # before pools existed — which is all of them — returned at this line and
+  # never dumped one, no matter how many times `--warmup-only` was run.
+  local pools="$SEEDTEST/structure_pools.json"
+  [[ ! -f "$pools" ]] && need_warmup=1
+
   [[ "$need_warmup" == 0 ]] && return 0
 
   echo ""
-  echo "=== Warmup: extracting structure sets + biome params ==="
+  echo "=== Warmup: structure sets + biome params + structure pools ==="
 
   command -v docker > /dev/null || {
     echo "Error: docker needed for first-time warmup (structure set extraction)" >&2
@@ -318,7 +329,6 @@ print('  Done.')
   # A failure here is NOT fatal and a partial dump is fine: a dimension the dump
   # missed falls back to the group-level reading, which is exactly the behaviour
   # from before pools existed (census_scoring.weight_share).
-  local pools="$SEEDTEST/structure_pools.json"
   if [[ ! -f "$pools" ]]; then
     if [[ ! -f "$SEEDTEST/mvconfig-roll.json" ]]; then
       python3 "$SCRIPT_DIR/score-dimensions.py" manifest \
