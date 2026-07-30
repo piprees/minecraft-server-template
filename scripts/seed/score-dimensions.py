@@ -277,27 +277,28 @@ def terrain_metrics(rows):
     (six sampled candidates averaged 0.519 on the 3x3, outside the 0.00-0.45
     target, and 0.391 surveyed).
 
-    RELIEF AND GRAIN DELIBERATELY STAY ON THE 3x3, even though the survey
-    measures them too and arguably measures them better. They are absolute block
-    figures and TERRAIN_TARGETS was fitted to what a 1024-block box produces, so
-    surveyed relief comes out 2-5x larger purely because a wider area holds more
-    height variation. Six candidates each, in-window counts before -> after
-    (measured 2026-07-29 with the real per-dimension biome filter applied):
+    RELIEF AND GRAIN NOW COME FROM THE SURVEY TOO, over its CAPPED window
+    (terrain_survey.RELIEF_SPAN — a 9x9 lattice spanning min(radius, 2048)) and
+    not over the full radius.
 
-        overworld            (target  18-90 )   1/6 -> 0/6
-        the_blossom_gardens  (target   7-48 )   5/6 -> 0/6
-        the_overgrowth       (target  50-224)   0/6 -> 3/6
-        the_rosebluff        (target  18-90 )   2/6 -> 5/6
-        the_tidepools        (target  13-72 )   1/6 -> 5/6
-        the_stonemantle      (target  50-224)   1/6 -> 5/6
+    Both are absolute block figures, so the window they are measured over is part
+    of what they mean, and that is why the switch needed the cap first. Uncapped,
+    relief scaled with the dimension rather than with the terrain: median 15
+    blocks at radius 256 against 96 at radius 8192, a ~6x spread produced by the
+    measurement. No single window in TERRAIN_TARGETS can describe both ends of
+    that, which is exactly why this function used to keep the 3x3 numbers even
+    though they described a 1024-block box at spawn rather than a world.
 
-    Four improve and two collapse. The surveyed figure is the truthful one — no
-    real 8192-radius overworld has relief under 48 blocks across its whole extent,
-    so the_blossom_gardens' window is describing a box at spawn and not a world.
-    Re-fitting those windows decides what "gentle rolling" and "violent" mean for
-    all 81 dimensions, which is Pip's call and not part of a bug fix. The survey
-    caches relief and grain regardless, so the switch is this docstring plus new
-    windows whenever that call is made.
+    Capped, every dimension of radius >= 2048 is measured over the same
+    4096-block box. Measured residual size effect within a noise preset after
+    capping: compressed 1.2x (essentially gone), wide 1.9x, vanilla-default 3.1x
+    — and the last is a real property of vanilla continentalness, which needs
+    thousands of blocks to cross a band, not an artefact of the window.
+
+    The 3x3 rows stay as the fallback for any candidate not yet surveyed, so a
+    partially-surveyed bank still scores. TERRAIN_TARGETS was re-fitted for the
+    capped window in the same change — see its comment for why the windows come
+    from the feel vocabulary rather than from the bank's percentiles.
     """
     heights, waters = [], []
     hmap = {}
@@ -325,6 +326,18 @@ def terrain_metrics(rows):
         # the survey's wider look is strictly better there too and it is on the
         # same 0-1 scale.
         land_fraction = float(survey.get("land", land_fraction))
+    # Guarded on the key that only the capped survey writes. An older cached
+    # survey has no reliefSpan, and its relief was measured over the full
+    # radius — a different figure on a different window, which the re-fitted
+    # windows would score as if it were this one. Falling back to the 3x3 for
+    # those is wrong by a known bounded amount; using them would be wrong by an
+    # unknown one. In practice the fingerprint carries relief_span, so every
+    # survey is recomputed once and this branch is transitional.
+    if survey and survey.get("reliefSpan") is not None:
+        if survey.get("relief") is not None:
+            relief = float(survey["relief"])
+        if survey.get("grain") is not None:
+            grain = float(survey["grain"])
     return relief, grain, water, land_fraction
 
 

@@ -52,6 +52,30 @@ to a multiprocessing Pool must live in a file whose name is a legal identifier.
 # extent by far less than it beats 9 over a sliver of it.
 GRID = 9
 
+# How far RELIEF and GRAIN are allowed to look. Water is not capped.
+#
+# Relief is max-minus-min over the sampled grid, so it grows with the area
+# sampled whatever the terrain does — a wider window simply catches more of the
+# continentalness range. Measured across the bank at full radius: median relief
+# 15 blocks at radius 256 and 96 at radius 8192, a ~6x spread produced by the
+# window and not by the worlds. One target window cannot describe both, and
+# TERRAIN_TARGETS is a single set of absolute block figures.
+#
+# Capping the window at 2048 blocks makes every dimension of radius >= 2048 —
+# which is most of them, and all four base worlds — measure relief and grain
+# over the SAME 4096-block box, so their numbers are directly comparable and a
+# single window means one thing. Below 2048 a dimension is genuinely smaller
+# than the window and is measured over its own extent, which is the honest
+# reading: a 256-radius pocket has no terrain at 2048 blocks to have an opinion
+# about.
+#
+# WATER DELIBERATELY KEEPS THE FULL RADIUS. It is a FRACTION, so it does not
+# scale with the window, and the whole reason the full-radius survey exists is
+# that the 3x3 box at spawn could not see the ocean (an overworld winner
+# reported 0% water beside a render a third sea). Capping it would walk that
+# back for every dimension larger than the cap.
+RELIEF_SPAN = 2048
+
 # Mirrors fast_roller.WATER_BIOMES. Duplicated rather than imported: fast_roller
 # pulls in the whole rolling pipeline, and this module is imported by a
 # multiprocessing child that only needs a biome sampler. Verified complete for
@@ -123,22 +147,27 @@ def metrics_from_grid(heights, waters, grid=GRID):
     return relief, grain, water, land
 
 
-def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID):
-    """Walk a `grid` x `grid` lattice over [-radius, radius] on both axes.
+def _walk(sampler, span, grid, is_void, has_continentalness,
+          want_water=True, want_heights=True):
+    """One `grid` x `grid` lattice over [-span, span]. -> (heights, waters).
 
-    Corner-inclusive: the first and last columns sit exactly on the border, so
-    the samples span the whole playable area rather than a box inside it. That is
-    the entire point — the 3x3 this replaces spanned 6% of the radius.
+    Corner-inclusive: the first and last columns sit exactly on the edge of the
+    span, so the samples cover the whole box rather than one inside it.
+
+    The two `want_` flags exist because the two windows need different halves of
+    the answer: the wide walk is for water only and the capped one for
+    relief/grain only. Asking for both on both windows doubles the climate
+    lookups — the expensive half — to compute heights that are then discarded.
     """
-    step = (2 * radius) // (grid - 1) if grid > 1 and radius > 0 else 0
+    step = (2 * span) // (grid - 1) if grid > 1 and span > 0 else 0
     heights, waters = {}, []
     for r in range(grid):
         for c in range(grid):
-            x = -radius + c * step
-            z = -radius + r * step
-            biome = sampler.biome_at(x, z)
-            waters.append(1 if biome in WATER_BIOMES else 0)
-            if is_void:
+            x = -span + c * step
+            z = -span + r * step
+            if want_water:
+                waters.append(1 if sampler.biome_at(x, z) in WATER_BIOMES else 0)
+            if is_void or not want_heights:
                 continue
             climate = sampler.sample_climate(x, z)
             if has_continentalness:
@@ -147,6 +176,41 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID):
                 # Nether/end/paradise have no continentalness worth reading;
                 # fast_roller uses erosion on the same 64 + 30x scale.
                 heights[(r, c)] = 64.0 + climate.get("erosion", 0.0) * 30.0
+    return heights, waters
+
+
+def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
+           relief_span=RELIEF_SPAN):
+    """Terrain metrics for one seed, on TWO windows for one reason each.
+
+    - WATER (and land_fraction) over the full playable radius, because the
+      question is "how much of this world is sea" and a box at spawn cannot
+      answer it. This is the whole reason the survey replaced the 3x3.
+    - RELIEF and GRAIN over min(radius, relief_span), because both are
+      absolute block figures that grow with the window sampled: at full radius
+      the bank's median relief runs 15 blocks at radius 256 to 96 at 8192, a
+      spread the WINDOW produces rather than the worlds. See RELIEF_SPAN.
+
+    When radius <= relief_span the two windows are identical and only one walk
+    is done, which is the common case for pocket dimensions and keeps the cost
+    at the measured 37ms. Larger dimensions pay for a second walk.
+    """
+    span = min(int(radius), int(relief_span)) if relief_span else int(radius)
+    capped = span < int(radius)
+    # The wide walk answers water. When a capped walk follows it, the wide one
+    # needs no heights at all — computing them would be 81 discarded climate
+    # lookups, which is the expensive half of a survey.
+    heights, waters = _walk(sampler, int(radius), grid, is_void,
+                            has_continentalness, want_water=True,
+                            want_heights=not capped)
+    if capped:
+        # Relief and grain get their own, tighter window; water keeps the wide
+        # one measured above. land_fraction comes from this walk, which is
+        # equivalent: every non-void sample records a height, so land is 1.0 for
+        # any solid dimension and 0.0 for a void, whichever window is used.
+        heights, _ = _walk(sampler, span, grid, is_void,
+                           has_continentalness, want_water=False,
+                           want_heights=True)
     relief, grain, water, land = metrics_from_grid(heights, waters, grid)
     return {
         "relief": round(relief, 3),
@@ -155,6 +219,10 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID):
         "land": round(land, 5),
         "grid": grid,
         "radius": int(radius),
+        # The window relief/grain were measured over. Recorded because it is
+        # what makes them comparable across dimensions, and because a reader
+        # of a cached survey needs to know which box the numbers describe.
+        "reliefSpan": span,
     }
 
 
@@ -181,7 +249,7 @@ def survey_task(task):
         has_continentalness=spec["has_continentalness"]))
 
 
-def fingerprint(generation_fp, radius, grid=GRID):
+def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):
     """What a cached survey is valid FOR.
 
     The generation fingerprint already covers every input to the biome sampler
@@ -191,7 +259,11 @@ def fingerprint(generation_fp, radius, grid=GRID):
     survey read as current — is the failure that matters, and a superset cannot
     produce it.
 
-    `radius` and `grid` join it because they set where the samples are taken and
-    neither is part of the generation payload.
+    `radius`, `grid` and `relief_span` join it because they set WHERE the
+    samples are taken and none of them is part of the generation payload.
+    relief_span is in here so that changing the cap re-measures the bank rather
+    than silently scoring new windows against cached old numbers — the whole
+    point of the change is that the two are not the same figure.
     """
-    return "%s:%d:%d" % (generation_fp or "-", int(radius), int(grid))
+    return "%s:%d:%d:%d" % (generation_fp or "-", int(radius), int(grid),
+                            int(relief_span))

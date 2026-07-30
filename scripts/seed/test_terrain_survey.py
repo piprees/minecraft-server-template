@@ -114,6 +114,78 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(got["radius"], 0)
 
 
+class RampSampler:
+    """Height rises linearly with |x|, so relief is a known function of the
+    window sampled. That is the whole property under test: relief is an
+    absolute block figure, so a wider window reports a bigger number for
+    identical terrain."""
+
+    def __init__(self):
+        self.points = []
+        self.climate_points = []
+
+    def biome_at(self, x, z):
+        self.points.append((x, z))
+        return "minecraft:ocean" if x < 0 else "minecraft:plains"
+
+    def sample_climate(self, x, z):
+        self.climate_points.append((x, z))
+        # cont_to_height is monotonic, so a monotonic continentalness gives a
+        # monotonic height and max-minus-min scales with the span.
+        return {"continentalness": x / 8192.0, "erosion": x / 8192.0}
+
+
+class ReliefSpanTests(unittest.TestCase):
+    """Relief and grain are capped; water is not. See terrain_survey.RELIEF_SPAN.
+
+    Uncapped, relief measured the WINDOW rather than the world: median 15 blocks
+    at radius 256 against 96 at radius 8192 across the real bank, a ~6x spread
+    that no single TERRAIN_TARGETS window can describe.
+    """
+
+    def test_relief_uses_the_capped_window_not_the_radius(self):
+        wide = ts.survey(RampSampler(), 8192, grid=9, relief_span=0)
+        capped = ts.survey(RampSampler(), 8192, grid=9, relief_span=2048)
+        self.assertGreater(wide["relief"], capped["relief"],
+                           "a wider window must report more relief on the same ramp")
+        self.assertEqual(capped["reliefSpan"], 2048)
+        self.assertEqual(wide["reliefSpan"], 8192)
+
+    def test_climate_is_sampled_only_inside_the_cap(self):
+        s = RampSampler()
+        ts.survey(s, 8192, grid=9, relief_span=2048)
+        xs = [x for x, _z in s.climate_points]
+        self.assertEqual(min(xs), -2048)
+        self.assertEqual(max(xs), 2048)
+
+    def test_water_still_spans_the_full_radius(self):
+        """Capping water would walk back the bug the survey exists to fix — a
+        winner reporting 0% water beside a render a third ocean."""
+        s = RampSampler()
+        got = ts.survey(s, 8192, grid=9, relief_span=2048)
+        xs = [x for x, _z in s.points]
+        self.assertEqual(min(xs), -8192)
+        self.assertEqual(max(xs), 8192)
+        self.assertAlmostEqual(got["water"], 4 / 9.0, places=4)
+
+    def test_a_dimension_smaller_than_the_cap_walks_once(self):
+        """The common case for pocket dimensions, and it must not cost twice."""
+        s = RampSampler()
+        got = ts.survey(s, 512, grid=9, relief_span=2048)
+        self.assertEqual(got["reliefSpan"], 512)
+        self.assertEqual(len(s.climate_points), 81, "one 9x9 walk, not two")
+        self.assertEqual(len(s.points), 81)
+
+    def test_two_sizes_agree_once_both_are_inside_the_cap(self):
+        """The point of the cap: same terrain, same window, same number."""
+        a = ts.survey(RampSampler(), 4096, grid=9, relief_span=2048)
+        b = ts.survey(RampSampler(), 8192, grid=9, relief_span=2048)
+        self.assertAlmostEqual(a["relief"], b["relief"], places=6)
+        self.assertAlmostEqual(a["grain"], b["grain"], places=6)
+        # ...and their water figures still differ by world, not by window.
+        self.assertAlmostEqual(a["water"], b["water"], places=4)
+
+
 class FingerprintTests(unittest.TestCase):
     def test_radius_and_grid_are_part_of_validity(self):
         """Neither is in the generation payload, and both decide where the
@@ -123,6 +195,13 @@ class FingerprintTests(unittest.TestCase):
         self.assertNotEqual(ts.fingerprint("abc", 1024, grid=9),
                             ts.fingerprint("abc", 1024, grid=17))
         self.assertEqual(ts.fingerprint("abc", 1024), ts.fingerprint("abc", 1024))
+
+    def test_the_relief_span_is_part_of_validity(self):
+        """Changing the cap changes what relief MEANS, so it has to re-measure
+        the bank. Without this, re-fitted windows would score cached numbers
+        taken over a different box."""
+        self.assertNotEqual(ts.fingerprint("abc", 8192, relief_span=2048),
+                            ts.fingerprint("abc", 8192, relief_span=4096))
 
     def test_a_missing_generation_fingerprint_still_keys(self):
         self.assertTrue(ts.fingerprint(None, 512))
@@ -148,16 +227,32 @@ class ScoringIntegrationTests(unittest.TestCase):
         _r, _g, water, _l = score_dimensions.terrain_metrics(rows)
         self.assertAlmostEqual(water, 0.309)
 
-    def test_relief_and_grain_deliberately_stay_on_the_3x3(self):
-        """TERRAIN_TARGETS is fitted to what a 1024-block box produces. Surveyed
-        relief is ~3x larger for the same world, so switching would put two of
-        four sampled dimensions completely outside their window — a re-fit is a
-        design decision, not part of this fix."""
+    def test_relief_and_grain_come_from_a_capped_survey(self):
+        """TERRAIN_TARGETS is now fitted to the capped window, so the surveyed
+        figures are the ones it describes."""
         rows = self.rows([0] * 9, [60, 60, 60, 60, 90, 60, 60, 60, 60])
-        rows["_terrain"] = {"water": 0.3, "land": 1.0, "relief": 999.0, "grain": 42.0}
+        rows["_terrain"] = {"water": 0.3, "land": 1.0, "relief": 77.0,
+                            "grain": 9.0, "reliefSpan": 2048}
         relief, grain, _w, _l = score_dimensions.terrain_metrics(rows)
-        self.assertAlmostEqual(relief, 30.0)
+        self.assertAlmostEqual(relief, 77.0)
+        self.assertAlmostEqual(grain, 9.0)
+
+    def test_a_survey_with_no_relief_span_is_not_trusted_for_relief(self):
+        """A survey cached before the cap measured relief over the FULL radius.
+        That is a different figure on a different window, and the re-fitted
+        windows would score it as if it were this one. The 3x3 fallback is wrong
+        by a known bounded amount; a full-radius relief would be wrong by an
+        unknown one. reliefSpan is in the survey fingerprint, so this branch is
+        transitional — but it must not silently mis-score while it lasts.
+        """
+        rows = self.rows([0] * 9, [60, 60, 60, 60, 90, 60, 60, 60, 60])
+        rows["_terrain"] = {"water": 0.3, "land": 1.0, "relief": 999.0,
+                            "grain": 42.0}
+        relief, grain, water, _l = score_dimensions.terrain_metrics(rows)
+        self.assertAlmostEqual(relief, 30.0, msg="3x3 relief, not the stale survey")
         self.assertNotAlmostEqual(grain, 42.0)
+        # Water is scale-free and was never the problem, so it still applies.
+        self.assertAlmostEqual(water, 0.3)
 
     def test_no_survey_leaves_every_metric_exactly_as_before(self):
         rows = self.rows([1, 0, 0, 0, 0, 0, 0, 0, 0], [64] * 8 + [100])

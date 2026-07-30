@@ -843,10 +843,50 @@ def nether_difficulty(scale):
 # Terrain targets by noiseSettings flavour (matched on the id's path so
 # consumer preset namespaces work too): relief = max-min of grid heights,
 # grain = mean |dh| between adjacent points, water = wet grid fraction.
+#
+# RELIEF AND GRAIN ARE NOW READ FROM terrain_survey's CAPPED WINDOW — a 9x9
+# lattice over min(radius, terrain_survey.RELIEF_SPAN) — not from the 3x3 box at
+# spawn these numbers were originally fitted to. Both are absolute block
+# figures, so the window they are measured over IS part of their meaning: the
+# old 3x3 spanned 6% of an 8192-radius dimension, and the uncapped full-radius
+# survey made relief scale with dimension size (median 15 blocks at radius 256
+# against 96 at 8192). Water is unchanged and uncapped: it is a fraction and
+# scale-free, and the whole reason the survey exists is that a box at spawn
+# cannot see the ocean.
+#
+# THE WINDOWS BELOW ARE FITTED TO WHAT TERRAIN SHOULD FEEL LIKE, NOT TO THE
+# BANK'S PERCENTILES. Fitting to percentiles is circular: centring a window on
+# the observed median puts most candidates inside it, window_score returns 1.0
+# for all of them, and relief stops ordering anything — the component costs its
+# full weight and carries no information. So the numbers come from the plain-
+# English scale score-dimensions._terrain_words already uses to describe them,
+# which is the vocabulary a human reads in the viewer:
+#
+#   relief   <12 almost flat · <30 gently rolling · <60 hilly
+#            <110 mountainous · else extreme cliffs and peaks
+#   grain    <3 very smooth · <7 smooth · <12 broken up · <20 jagged
+#            else chaotic
+#
+# That scale is directly applicable to the capped window because grid_pitch
+# capped the OLD 3x3's step at 512 blocks and the capped 9x9's step is also 512
+# at any radius >= 2048 — the words were calibrated for samples this far apart.
+#
+#   compressed  adventure:compressed squeezes the vertical scale, so terrain is
+#               meant to be the violent kind: hilly through mountainous, and
+#               visibly craggy rather than smooth.
+#   wide        adventure:wide is long horizons and gentle ground: gently
+#               rolling through hilly, and smooth between samples. Deliberately
+#               NOT "almost flat" — gentle is not featureless.
+#   default     vanilla-ish: the broad middle, gently rolling through
+#               mountainous, smooth through broken up.
+#
+# Mood then modulates these (see build_profile): hard/dramatic want more
+# violence, serene/pastoral less. The preset says what the terrain CAN do; the
+# mood says what this dimension wants from it.
 TERRAIN_TARGETS = {
-    "compressed": {"relief": (40, 160), "grain": (6, 26), "water": (0.0, 0.30)},
-    "wide": {"relief": (10, 60), "grain": (0, 6), "water": (0.05, 0.45)},
-    None: {"relief": (18, 90), "grain": (2, 14), "water": (0.0, 0.45)},
+    "compressed": {"relief": (45, 130), "grain": (5, 16), "water": (0.0, 0.30)},
+    "wide": {"relief": (25, 75), "grain": (1, 7), "water": (0.05, 0.45)},
+    None: {"relief": (30, 110), "grain": (2, 11), "water": (0.0, 0.45)},
 }
 
 
