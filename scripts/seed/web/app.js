@@ -167,6 +167,18 @@
   }
   window.lbMapCoverage = lbMapCoverage
 
+  // WHICH candidate the panel is currently showing. The panel itself is a
+  // copy of .cand-detail's innerHTML, and (dim, seed) live on the .cand
+  // wrapper that was left behind — so anything needing to ask the server
+  // about the open candidate (structicons.js and /noise-census) has no way
+  // to identify it from the lightbox DOM alone.
+  window.lbCandidate = function () {
+    if (!lbCurrentCand) return null
+    var d = lbCurrentCand.dataset.dim
+    var s = lbCurrentCand.dataset.seed
+    return d && s ? { dim: d, seed: s } : null
+  }
+
   function candDetailFor(cand) {
     var own = cand.querySelector('.cand-detail')
     if (own) return own
@@ -1407,17 +1419,17 @@
     clear()
     // Same element the dartboard uses, same geometry requirement.
     if (window.alignLbOverlay) window.alignLbOverlay()
-    // viewBox is 0-100 across the full render; a distance d in blocks is
-    // d/coverage of the full width, so its radius is that x 100.
-    ring(band[0] / coverage * 100, 'band', '2 2')
-    ring(band[1] / coverage * 100, 'band')
+    // One projection, shared with dartboard.js and structicons.js — see
+    // assets/project.js for why it is not written out by hand here.
+    ring(window.lbProjectRadius(band[0], coverage), 'band', '2 2')
+    ring(window.lbProjectRadius(band[1], coverage), 'band')
     var pos = row.dataset.pos
     if (pos) {
       pos.split(';').forEach(function (pair) {
         var xz = pair.split(',').map(Number)
         var c = document.createElementNS(NS, 'circle')
-        c.setAttribute('cx', 50 + xz[0] / coverage * 100)
-        c.setAttribute('cy', 50 + xz[1] / coverage * 100)
+        c.setAttribute('cx', window.lbProject(xz[0], coverage))
+        c.setAttribute('cy', window.lbProject(xz[1], coverage))
         c.setAttribute('r', 0.5)
         c.setAttribute('class', 'pt')
         svg.appendChild(c)

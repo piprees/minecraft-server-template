@@ -18,8 +18,11 @@
  * are strokes, not fills.
  *
  * Coordinate note: the SVG viewBox is 0-100 across the render's full
- * coverage, which is why a distance d in blocks lands at d/coverage*100 from
- * a centre of 50. Same maths the hover overlay uses — if one changes, both do.
+ * coverage. The sum for that lives in assets/project.js — window.lbProject
+ * for a point, window.lbProjectRadius for a ring — because it is shared with
+ * the hover overlay in app.js and the marker layer in structicons.js, and
+ * three hand-written copies of it is three chances to draw something
+ * plausible in the wrong place.
  */
 ;(function () {
   if (location.protocol === 'file:') return
@@ -69,7 +72,7 @@
     // read as a number rather than just compared with its neighbours.
     var quarter = coverage / 2 / 4
     for (var g = 1; g <= 4; g++) {
-      var gr = ((quarter * g) / coverage) * 100
+      var gr = window.lbProjectRadius(quarter * g, coverage)
       var gc = document.createElementNS(NS, 'circle')
       gc.setAttribute('cx', 50)
       gc.setAttribute('cy', 50)
@@ -90,8 +93,8 @@
       if (band.length !== 2 || !isFinite(band[1])) return
       var sev = sevOf(row)
       var shun = row.classList.contains('shun')
-      var r0 = (band[0] / coverage) * 100
-      var r1 = (band[1] / coverage) * 100
+      var r0 = window.lbProjectRadius(band[0], coverage)
+      var r1 = window.lbProjectRadius(band[1], coverage)
 
       // A shun is an exclusion: the band is the area that should be EMPTY, so
       // it reads as a filled keep-out zone rather than a target ring.
@@ -124,8 +127,8 @@
           var xz = pair.split(',').map(Number)
           if (xz.length !== 2) return
           var p = document.createElementNS(NS, 'circle')
-          p.setAttribute('cx', 50 + (xz[0] / coverage) * 100)
-          p.setAttribute('cy', 50 + (xz[1] / coverage) * 100)
+          p.setAttribute('cx', window.lbProject(xz[0], coverage))
+          p.setAttribute('cy', window.lbProject(xz[1], coverage))
           p.setAttribute('r', 0.6)
           p.setAttribute('class', 'db-pt db-' + sev)
           svg.appendChild(p)

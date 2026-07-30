@@ -16,10 +16,15 @@
   <div class="filter-bar">
     <div class="family-btns">{{FAMILY_BUTTONS}}</div>
 
-    <details class="more-filters"><summary>Filters</summary>
+    <details class="more-filters">
+      <summary>Filters</summary>
       <div class="more-filters-body">
-        <select id="f-type" aria-label="Filter by type">{{TYPE_OPTIONS}}</select>
-        <select id="f-mood" aria-label="Filter by mood">{{MOOD_OPTIONS}}</select>
+        <select id="f-type" aria-label="Filter by type">
+          {{TYPE_OPTIONS}}
+        </select>
+        <select id="f-mood" aria-label="Filter by mood">
+          {{MOOD_OPTIONS}}
+        </select>
         <select id="f-sort" aria-label="Sort order">
           <option value="name">Sort: Name</option>
           <option value="score-desc">Sort: Score ↓</option>
@@ -37,8 +42,16 @@
     <span class="roller-group">
       <!-- Swaps to a progress bar while rolling: the seed count is an input
            until you commit to it, and a readout afterwards. -->
-      <input type="number" id="roll-count" value="100" min="1" max="100000"
-             step="25" aria-label="Seeds to roll" title="Seeds to roll" />
+      <input
+        type="number"
+        id="roll-count"
+        value="100"
+        min="1"
+        max="100000"
+        step="25"
+        aria-label="Seeds to roll"
+        title="Seeds to roll"
+      />
       <span id="roll-progress" hidden>
         <span class="rp-bar"><span id="rp-fill"></span></span>
         <span class="rp-lines">
@@ -46,31 +59,40 @@
           <span id="rp-sub" class="rp-sub"></span>
         </span>
       </span>
-      <select id="roll-dim" aria-label="Dimension to roll"
-              title="Dimension to roll"><option value="">All</option></select>
-      <button type="button" id="roll-toggle" class="icon-btn"
-              aria-label="Start rolling" title="Start rolling">▶</button>
+      <select id="roll-dim" aria-label="Dimension to roll" title="Dimension to roll">
+        <option value="">All</option>
+      </select>
+      <button type="button" id="roll-toggle" class="icon-btn" aria-label="Start rolling" title="Start rolling">
+        ▶
+      </button>
     </span>
 
     <span class="nav-sep" aria-hidden="true"></span>
 
     <span class="view-toggles">
       <label class="icon-toggle" title="Below threshold only">
-        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;70</b></span></label>
+        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;70</b></span></label
+      >
       <label class="icon-toggle" title="Shortlisted only">
-        <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label>
+        <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
+      >
       <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
-        <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label>
+        <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label
+      >
       <label class="icon-toggle" title="Scatter — every candidate across every dimension">
-        <input type="checkbox" id="f-scatter" /><span>⁘<b>scatter</b></span></label>
+        <input type="checkbox" id="f-scatter" /><span>⁘<b>scatter</b></span></label
+      >
       <label class="icon-toggle" title="Show hidden dimensions">
-        <input type="checkbox" id="f-hidden" /><span>👁<b>hidden</b></span></label>
+        <input type="checkbox" id="f-hidden" /><span>👁<b>hidden</b></span></label
+      >
       <label class="icon-toggle" title="Show world borders on renders">
-        <input type="checkbox" id="f-borders" /><span>◎<b>borders</b></span></label>
+        <input type="checkbox" id="f-borders" /><span>◎<b>borders</b></span></label
+      >
     </span>
 
-    <button type="button" class="action-btn nav-right" id="new-dim-btn"
-            onclick="openConfigDialog('create', '', '')">New dimension</button>
+    <button type="button" class="action-btn nav-right" id="new-dim-btn" onclick="openConfigDialog('create', '', '')">
+      New dimension
+    </button>
   </div>
 
   <h1 class="sr-only">Dimension seed candidates</h1>
@@ -91,17 +113,24 @@
        a page starts stuttering, and the bank only grows. -->
   <section class="scatter" id="scatter-view" hidden aria-label="Candidate scatter">
     <div class="sc-controls">
-      <label class="field-label">x <select class="sc-x" aria-label="X axis"></select></label>
-      <label class="field-label">y <select class="sc-y" aria-label="Y axis"></select></label>
+      <label class="field-label"
+        >x
+        <select class="sc-x" aria-label="X axis"></select
+      ></label>
+      <label class="field-label"
+        >y
+        <select class="sc-y" aria-label="Y axis"></select
+      ></label>
       <span class="sc-count"></span>
       <span class="sc-legend">
-        <i class="swatch swatch-variety"></i>overworld
-        <i class="swatch swatch-structures"></i>nether
-        <i class="swatch swatch-terrain"></i>end
-        <i class="swatch swatch-namesake"></i>paradise_lost
+        <i class="swatch swatch-variety"></i>overworld <i class="swatch swatch-structures"></i>nether
+        <i class="swatch swatch-terrain"></i>end <i class="swatch swatch-namesake"></i>paradise_lost
       </span>
     </div>
-    <div class="sc-plot"><canvas></canvas><div class="sc-tip" hidden></div></div>
+    <div class="sc-plot">
+      <canvas></canvas>
+      <div class="sc-tip" hidden></div>
+    </div>
   </section>
 
   <div class="grid" id="grid">{{DIMENSIONS_HTML}}</div>
@@ -121,16 +150,31 @@
         <label>Type<select id="cf-type"></select></label>
         <label>Noise preset<select id="cf-noise"></select></label>
         <label>Structure density<select id="cf-density"></select></label>
-        <label>Portal scale<select id="cf-scale">
-          <option value="">(inherit)</option><option>1</option><option>4</option>
-          <option>8</option><option>12</option><option>16</option></select></label>
-        <label>Border radius<select id="cf-border">
-          <option value="">(inherit)</option><option value="256">256 pocket</option>
-          <option value="512">512</option><option value="1024">1024</option>
-          <option value="2048">2048</option><option value="4096">4096</option>
-          <option value="8192">8192</option><option value="custom">custom…</option></select></label>
-        <label id="cf-border-custom-wrap" hidden>Custom radius
-          <input type="number" id="cf-border-custom" min="64" max="100000" step="64" /></label>
+        <label
+          >Portal scale<select id="cf-scale">
+            <option value="">(inherit)</option>
+            <option>1</option>
+            <option>4</option>
+            <option>8</option>
+            <option>12</option>
+            <option>16</option>
+          </select></label
+        >
+        <label
+          >Border radius<select id="cf-border">
+            <option value="">(inherit)</option>
+            <option value="256">256 pocket</option>
+            <option value="512">512</option>
+            <option value="1024">1024</option>
+            <option value="2048">2048</option>
+            <option value="4096">4096</option>
+            <option value="8192">8192</option>
+            <option value="custom">custom…</option>
+          </select></label
+        >
+        <label id="cf-border-custom-wrap" hidden
+          >Custom radius <input type="number" id="cf-border-custom" min="64" max="100000" step="64"
+        /></label>
       </div>
       <div class="cf-hint" id="cf-band-hint"></div>
       <div class="cd-error" data-err="type"></div>
@@ -242,6 +286,9 @@
     </div>
   </div>
 
+  <!-- project.js first: it owns the one block-offset -> viewBox sum every
+       overlay below depends on, and it must be defined before they run. -->
+  <script src="assets/project.js" defer></script>
   <script src="assets/app.js" defer></script>
   <script src="assets/compare.js" defer></script>
   <script src="assets/dartboard.js" defer></script>

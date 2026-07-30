@@ -1571,12 +1571,12 @@ img.winner-img {
   display: flex;
   gap: 1.5rem;
   max-width: 1200px;
-  width: 100%;
   max-height: 90vh;
   background: var(--bg-card);
   border-radius: var(--r-lg);
   overflow: hidden;
   position: relative;
+  aspect-ratio: auto 2 / 1;
 }
 #lightbox .lb-image {
   flex: 0 0 auto;
@@ -1588,8 +1588,8 @@ img.winner-img {
   aspect-ratio: 1/1;
 }
 #lightbox .lb-image img {
-  width: 100%;
-  height: auto;
+  width: auto;
+  height: 100%;
   image-rendering: pixelated;
   display: block;
 }
@@ -1617,7 +1617,8 @@ img.winner-img {
 #lightbox .lb-info {
   flex: 1;
   padding: 1rem;
-  overflow-y: auto;
+  padding-left: 0;
+  overflow: hidden;
   min-width: 0;
   font-size: 0.82rem;
   color: var(--text);
@@ -2095,6 +2096,24 @@ details.incidental .mrow {
     transition: none;
   }
 }
+/* Two kinds of marker, and they are NOT the same claim.
+
+   A grid placement means "this structure is at this block". A noise site
+   means "this group's field placed a site here, and it hosts one structure
+   drawn from the group's weighted pool" — which structure is unknowable, so
+   the marker carries the GROUP's glyph (structicons.GROUP_ICON) and is drawn
+   smaller with a quieter plate. The weight difference is the legend for the
+   difference in certainty; without it the map would assert per-structure
+   positions it does not have, which is the exact fiction the panel already
+   refuses to print as a distance. */
+.sm-noise .sm-plate {
+  fill: rgba(8, 10, 14, 0.58);
+  stroke: rgba(255, 255, 255, 0.24);
+}
+.sm-noise .sm-glyph {
+  stroke-width: 1.1;
+}
+
 /* The row IS the legend — an inline chip in the name cell, so no separate
    legend block competes for panel space. */
 /* display:inline-block is load-bearing — Tailwind's preflight sets every

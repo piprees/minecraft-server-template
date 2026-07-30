@@ -206,6 +206,167 @@ class RenderWorkerPlanTests(unittest.TestCase):
         self.assertTrue(w.wake.is_set())
 
 
+class SampleEvenlyTests(unittest.TestCase):
+    """The census is nearest-first, so a truncation is a lie about the world.
+
+    `[:50]` of a 9000-position group is 50 sites in a knot around spawn. Drawn
+    on the map that is a picture of the truncation, and it would flatly
+    contradict the radial histogram in the same panel. An even stride keeps the
+    radial shape, which is the one thing the map is asked about.
+    """
+
+    def test_short_lists_are_returned_whole(self):
+        self.assertEqual(viewer_server._sample_evenly([1, 2, 3], 10), [1, 2, 3])
+        self.assertEqual(viewer_server._sample_evenly([], 10), [])
+
+    def test_first_and_last_are_always_kept(self):
+        items = list(range(1000))
+        out = viewer_server._sample_evenly(items, 50)
+        self.assertEqual(len(out), 50)
+        self.assertEqual(out[0], 0)
+        self.assertEqual(out[-1], 999)
+
+    def test_the_stride_is_even_across_the_whole_list(self):
+        # The stride spans index 0 to index n-1 inclusive, so for 100 items and
+        # 11 picks it is 99/10 = 9.9 — NOT 10. Rounding that walk gives
+        # 0, 9.9, 19.8, ... 99, which is why the middle entries drift one below
+        # the round numbers. Getting this wrong by using n/limit would leave the
+        # last pick at index 90 and never sample the outermost ring at all.
+        out = viewer_server._sample_evenly(list(range(100)), 11)
+        self.assertEqual(out, [0, 10, 20, 30, 40, 50, 59, 69, 79, 89, 99])
+
+    def test_the_sample_spans_the_radius_rather_than_hugging_spawn(self):
+        # Positions ordered nearest-first, as noise_census returns them.
+        radii = list(range(0, 9000, 1))
+        out = viewer_server._sample_evenly(radii, 50)
+        # A nearest-first truncation would top out at 49; the stride must reach
+        # the far edge of the dimension.
+        self.assertGreater(max(out), 8900)
+        self.assertLess(min(out), 100)
+
+    def test_degenerate_limits(self):
+        self.assertEqual(viewer_server._sample_evenly([1, 2, 3], 1), [1])
+        self.assertEqual(viewer_server._sample_evenly([1, 2, 3], 0), [])
+
+
+class NoisePositionsTests(unittest.TestCase):
+    """GET /noise-census: real positions for ONE candidate.
+
+    The panel emits `data-pos` only where a grid position is real, which on a
+    modern overworld is nowhere — the winner carried 0 positional rows against
+    77 rows whose only spatial hint was a band, 53 of them starting at 0. The
+    positions exist in noise_placement; they are simply too big to bank per
+    candidate (62k for the largest shipped dimension), so they are computed on
+    demand here and cached in memory only.
+    """
+
+    def setUp(self):
+        import json
+        import shutil
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.cfg = self.tmp / "config"
+        (self.cfg / "dimensions").mkdir(parents=True)
+        # A real type-defaults file is required — resolve_groups returns {}
+        # without one, and a test that passed on an empty census would prove
+        # nothing at all.
+        src = (Path(__file__).resolve().parents[2]
+               / "config" / "custom-dimensions" / "structure-type-defaults.json")
+        if not src.exists():
+            self.skipTest("structure-type-defaults.json not found")
+        shutil.copy2(src, self.cfg / "structure-type-defaults.json")
+        (self.cfg / "dimensions" / "d1.json").write_text(json.dumps({
+            "name": "d1", "type": "overworld",
+            "biomes": ["minecraft:plains"],
+            # 1024 blocks = 64 chunks: small enough to census in milliseconds,
+            # big enough that every group lands several sites.
+            "borders": {"player": 1024, "generation": 1024},
+        }))
+        (self.cfg / "dimensions" / "suppressed.json").write_text(json.dumps({
+            "name": "suppressed", "type": "overworld",
+            "biomes": ["minecraft:plains"],
+            "structureDensity": "none",
+            "borders": {"player": 1024, "generation": 1024},
+        }))
+        viewer_server._CENSUS_POS_CACHE.clear()
+        del viewer_server._CENSUS_POS_ORDER[:]
+
+    def _positions(self, dim="d1", seed=12345, **kw):
+        return viewer_server.noise_positions(str(self.cfg), dim, seed, **kw)
+
+    def test_returns_block_positions_grouped(self):
+        out = self._positions()
+        self.assertEqual(out["dim"], "d1")
+        self.assertEqual(out["radiusChunks"], 64)
+        self.assertTrue(out["groups"], "an overworld resolves seven noise groups")
+        for group, entry in out["groups"].items():
+            self.assertGreater(entry["count"], 0, group)
+            self.assertEqual(entry["shown"], len(entry["pos"]))
+            for x, z in entry["pos"]:
+                # BLOCKS, not chunks — the client's coordinate model is the one
+                # data-pos already uses. x16 happens server-side so there is
+                # only one place to get it wrong.
+                self.assertEqual(x % 16, 0)
+                self.assertEqual(z % 16, 0)
+                self.assertLessEqual(abs(x), 64 * 16)
+                self.assertLessEqual(abs(z), 64 * 16)
+
+    def test_positions_match_noise_census_exactly(self):
+        """The endpoint must not become a second placement implementation."""
+        import noise_placement
+        src = viewer_server._dim_source(str(self.cfg), "d1")
+        defaults = noise_placement.load_type_defaults(self.cfg)
+        census = noise_placement.noise_census(12345, "d1", src, defaults)
+        out = self._positions(per_group=10_000)
+        self.assertEqual(sorted(out["groups"]), sorted(census))
+        for group, positions in census.items():
+            self.assertEqual(out["groups"][group]["count"], len(positions))
+            self.assertEqual(
+                out["groups"][group]["pos"],
+                [[cx * 16, cz * 16] for cx, cz in positions])
+
+    def test_per_group_caps_the_sample_not_the_count(self):
+        out = self._positions(per_group=5)
+        for group, entry in out["groups"].items():
+            self.assertLessEqual(entry["shown"], 5, group)
+            # The true total is still reported, so the UI can say what it left
+            # out instead of implying the world is emptier than it is.
+            self.assertGreaterEqual(entry["count"], entry["shown"], group)
+
+    def test_a_different_seed_is_a_different_layout(self):
+        a = self._positions(seed=1)
+        b = self._positions(seed=2)
+        self.assertNotEqual(a["groups"], b["groups"])
+
+    def test_suppressed_dimension_says_so_rather_than_looking_empty(self):
+        out = self._positions(dim="suppressed")
+        self.assertTrue(out["suppressed"])
+        self.assertEqual(out["groups"], {})
+
+    def test_unknown_dimension_raises_keyerror_for_a_404(self):
+        with self.assertRaises(KeyError):
+            self._positions(dim="does_not_exist")
+
+    def test_cached_per_dim_seed_and_fingerprint(self):
+        first = self._positions()
+        self.assertIs(self._positions(), first, "a repeat must not recompute")
+        # A placement-config edit must invalidate it. structureDensity is
+        # generation-affecting, so the noise fingerprint moves with it.
+        import json
+        p = self.cfg / "dimensions" / "d1.json"
+        data = json.loads(p.read_text())
+        data["structureDensity"] = "dense"
+        p.write_text(json.dumps(data))
+        self.assertIsNot(self._positions(), first)
+
+    def test_cache_is_bounded(self):
+        for seed in range(viewer_server._CENSUS_POS_MAX + 6):
+            self._positions(seed=seed)
+        self.assertLessEqual(len(viewer_server._CENSUS_POS_CACHE),
+                             viewer_server._CENSUS_POS_MAX)
+
+
 class FinaliseSerialisationTests(unittest.TestCase):
     """One finalise at a time, and say so out loud.
 

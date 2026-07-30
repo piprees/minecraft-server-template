@@ -9,19 +9,41 @@
  * those numbers for exactly that reason; the overlay was drawing them as
  * squares on the map anyway.
  *
- * Where the data comes from: the panel itself. score-dimensions.py emits
- * `data-pos` on precisely the rows whose positions are real (grid-placed
- * sets and fixed placements) and `data-struct` on every structure row. So
- * the marker layer needs no new plumbing and can never disagree with the
- * numbers next to it — it is the same rows, drawn spatially.
+ * TWO SOURCES OF POSITIONS, and they are different kinds of fact:
  *
- * Coordinate model, unchanged and not reinvented: the viewBox is 0-100
- * across the render's full coverage, so a block offset d lands at
- * d/coverage*100 from a centre of 50. window.lbMapCoverage() reports the
+ *   1. `data-pos` on a row — grid-placed sets and fixed placements. Exact
+ *      block coordinates, emitted by score-dimensions.py, and true per
+ *      STRUCTURE: a marker means "this structure is here".
+ *
+ *   2. `data-group` on a row plus GET /noise-census — noise-placed sets. One
+ *      seeded noise field per GROUP decides where the sites are; vanilla's
+ *      weighted entry list decides which structure each site hosts. So a
+ *      marker means "the dungeons field placed a site here", NOT "there is a
+ *      dungeon here", and it is drawn with the GROUP's glyph for that reason.
+ *
+ * The second source is why this file exists in its current form. On a modern
+ * overworld, noise owns every set: the winner's panel carried zero `data-pos`
+ * rows, so this layer drew zero markers, while 77 rows offered nothing but
+ * `data-band` — and 53 of those bands start at 0, so hovering almost any row
+ * painted the same disc from spawn to the border. A map that answers every
+ * question identically is not answering any of them.
+ *
+ * The positions were always computable (noise_placement.noise_census); they
+ * are just too big to bank. census_summary deliberately keeps a count and a
+ * 10-bin histogram instead, because the largest shipped dimension is 62k
+ * positions and the bank is thousands of candidates deep. The viewer looks at
+ * ONE candidate, so it can afford to ask for them — see the endpoint's own
+ * notes in viewer-server.py, including why the sample is strided rather than
+ * nearest-first.
+ *
+ * Coordinate model, unchanged and not reinvented: the viewBox is 0-100 across
+ * the render's full coverage, so a block offset d lands at 50 + d/coverage*100.
+ * That sum now lives in ONE place, assets/project.js (window.lbProject), and
+ * this file must not grow its own copy. window.lbMapCoverage() reports the
  * coverage of the image ACTUALLY on screen (the low-res render until the
- * hi-res probe lands), and window.alignLbOverlay() lays every `.lb-layer`
- * exactly on the <img>. Both live in app.js and both must be called before
- * anything is drawn.
+ * hi-res probe lands — never data-coverage on its own), and
+ * window.alignLbOverlay() lays every `.lb-layer` exactly on the <img>. Both
+ * live in app.js and both must be called before anything is drawn.
  *
  * Icons are inline path data — no font, no sprite, no request of any kind.
  * They map to the ~30 keyword families in biome_renderer.STRUCT_MAT plus a
@@ -289,6 +311,31 @@
   }
   window.structIconFamily = familyFor
 
+  // The seven noise GROUPS (structure-type-defaults.json groupDefaults) get
+  // their own glyphs, borrowed from the family list above so nothing new has
+  // to be drawn. Substring matching alone would only resolve two of them —
+  // `dungeons` and `settlements` — leaving deco, endgame, landmarks, loot and
+  // maritime all on the generic diamond, which is the whole map for a cave or
+  // an end dimension.
+  //
+  // A group marker must NOT borrow the icon of a structure named in the
+  // panel: a site hosts one structure drawn from the group's weighted pool,
+  // so "which one" is unknowable from here, and drawing a village glyph for a
+  // settlements site would assert something no data supports.
+  var GROUP_ICON = {
+    deco: 'well',
+    dungeons: 'dungeon',
+    endgame: 'vault',
+    landmarks: 'monument',
+    loot: 'treasure',
+    maritime: 'shipwreck',
+    settlements: 'village',
+  }
+  function familyForGroup(group) {
+    var key = GROUP_ICON[(group || '').toLowerCase()]
+    return key ? familyFor(key) : familyFor(group)
+  }
+
   // A village at vanilla spacing inside an 8192 border is ~700 placements,
   // and a dense dimension carries a couple of dozen criteria. Drawing all of
   // it is a grey haze, not a map. Nearest-first per row (data-pos is emitted
@@ -298,6 +345,46 @@
   var TOTAL = 320
   var MARKER = 3.0 // diameter in viewBox units, i.e. % of the map's width
   var PLATE = 12.5 // plate radius; glyphs are drawn in a -10..10 box
+
+  // Noise sites are drawn smaller than grid placements, deliberately. There
+  // are up to seven groups of them against a handful of grid rows, and the
+  // marker says less: "a site from this group", not "this structure". The
+  // size difference is the legend for that distinction.
+  var GROUP_MARKER = 2.2
+
+  // --- /noise-census ---------------------------------------------------
+  //
+  // Fetched per (dim, seed), kept for the session. The endpoint caches too,
+  // so an arrow-key walk back and forth costs one request per candidate at
+  // most; this second cache just stops a resize or a hi-res swap re-asking.
+  var censusCache = {}
+  var censusPending = {}
+
+  function censusKey(c) { return c.dim + ' ' + c.seed }
+
+  function fetchCensus(c, then) {
+    var key = censusKey(c)
+    if (censusCache[key]) { then(censusCache[key]); return }
+    if (censusPending[key]) return
+    censusPending[key] = true
+    fetch('/noise-census?dim=' + encodeURIComponent(c.dim) +
+          '&seed=' + encodeURIComponent(c.seed))
+      .then(function (r) { return r.json() })
+      .then(function (d) {
+        delete censusPending[key]
+        // An error response is cached as well as a good one: retrying a
+        // config the server cannot resolve on every resize would hammer it
+        // for the whole time the lightbox stays open.
+        censusCache[key] = d && d.ok ? d : { ok: false, groups: {},
+                                            error: (d && d.error) || 'unavailable' }
+        then(censusCache[key])
+      })
+      .catch(function () {
+        delete censusPending[key]
+        censusCache[key] = { ok: false, groups: {}, error: 'request failed' }
+        then(censusCache[key])
+      })
+  }
 
   var layer = document.createElementNS(NS, 'svg')
   layer.setAttribute('id', 'lb-markers')
@@ -315,12 +402,16 @@
   count.className = 'sm-count'
   btn.appendChild(count)
 
-  function marker(fam, cx, cy, rowIdx) {
+  function marker(fam, cx, cy, sel, size, kind) {
     var g = document.createElementNS(NS, 'g')
-    g.setAttribute('class', 'sm')
-    g.setAttribute('data-row', String(rowIdx))
+    g.setAttribute('class', 'sm sm-' + kind)
+    // `data-sel` rather than a row index: a noise group is named by several
+    // rows at once (every want and shun the field owns, plus its census
+    // row), and all of them mean the same sites. Hovering any of them must
+    // light up the same markers.
+    g.setAttribute('data-sel', sel)
     g.setAttribute('transform', 'translate(' + cx.toFixed(3) + ' ' + cy.toFixed(3) +
-      ') scale(' + (MARKER / (PLATE * 2)).toFixed(5) + ')')
+      ') scale(' + (size / (PLATE * 2)).toFixed(5) + ')')
     var plate = document.createElementNS(NS, 'circle')
     plate.setAttribute('r', String(PLATE))
     plate.setAttribute('class', 'sm-plate')
@@ -336,21 +427,47 @@
 
   function clear() { while (layer.firstChild) layer.removeChild(layer.firstChild) }
 
+  /** Distinct noise groups the panel names, in the order they first appear. */
+  function panelGroups() {
+    var seen = {}, out = []
+    Array.prototype.forEach.call(info.querySelectorAll('.mrow[data-group]'),
+      function (row) {
+        var g = row.dataset.group
+        if (g && !seen[g]) { seen[g] = 1; out.push(g) }
+      })
+    return out
+  }
+
+  /** Which markers a row is about: its group, or its own index among the
+   *  positional rows. Mirrored by the hover handler. */
+  function selectorFor(row, gridRows) {
+    if (row.dataset.group) return 'g:' + row.dataset.group
+    var idx = Array.prototype.indexOf.call(gridRows, row)
+    return idx < 0 ? '' : 'r:' + idx
+  }
+
   function draw() {
     clear()
     layer.classList.toggle('off', !on)
     btn.setAttribute('aria-pressed', String(on))
-    var rows = info.querySelectorAll('.mrow[data-pos]')
-    if (!rows.length) {
-      // Every structure here is noise-placed, so there is no single
-      // position to mark — a whole group shares one field. The control
-      // stays put and says so: a missing button reads as a broken
-      // feature, and this is a fact about the dimension, not a fault.
+    var gridRows = info.querySelectorAll('.mrow[data-pos]')
+    var groups = panelGroups()
+    var cand = window.lbCandidate ? window.lbCandidate() : null
+    // Noise positions come from the server, so a file:// open of
+    // .seedtest/index.html can only ever draw the positional rows. Say which
+    // case it is rather than reporting a smaller number without explanation.
+    var canFetch = location.protocol !== 'file:' && !!cand
+    if (!gridRows.length && !(groups.length && canFetch)) {
+      // Genuinely nothing to mark: no positional rows, and either no noise
+      // groups or no way to ask for their sites. The control stays put and
+      // says so — a missing button reads as a broken feature.
       btn.disabled = true
       count.textContent = '0'
-      btn.title = 'Nothing to mark: every structure in this dimension is ' +
-        'noise-placed, and a noise group has no single position — see the ' +
-        'radial histograms in the panel'
+      btn.title = groups.length
+        ? 'Structure sites for the ' + groups.length + ' noise group(s) here ' +
+          'need the viewer server — this page was opened as a file, so only ' +
+          'grid-placed sets could be marked, and there are none'
+        : 'Nothing to mark: this dimension places no structures'
       return
     }
     btn.disabled = false
@@ -368,32 +485,70 @@
       return
     }
 
-    var drawn = 0, dropped = 0
     var frag = document.createDocumentFragment()
-    Array.prototype.forEach.call(rows, function (row, rowIdx) {
+    var drawn = 0, dropped = 0, offmap = 0
+
+    function plot(fam, x, z, sel, size, kind) {
+      var cx = window.lbProject(x, coverage)
+      var cy = window.lbProject(z, coverage)
+      // Off the render entirely: a pocket dimension's fixed placement, and
+      // any site in a dimension whose border exceeds the rendered area, sits
+      // outside the image. A marker clamped to the edge would claim it is
+      // somewhere it is not.
+      if (!window.lbOnRender(cx) || !window.lbOnRender(cy)) { offmap++; return }
+      frag.appendChild(marker(fam, cx, cy, sel, size, kind))
+      drawn++
+    }
+
+    // 1. Grid-placed and forced sets — exact, per structure, already in the DOM.
+    Array.prototype.forEach.call(gridRows, function (row, rowIdx) {
       var fam = familyFor(row.dataset.struct || (row.querySelector('.mname') || {}).textContent)
       var pairs = (row.dataset.pos || '').split(';')
       for (var i = 0; i < pairs.length; i++) {
         var xz = pairs[i].split(',')
         var x = parseFloat(xz[0]), z = parseFloat(xz[1])
         if (!isFinite(x) || !isFinite(z)) continue
-        var cx = 50 + (x / coverage) * 100
-        var cy = 50 + (z / coverage) * 100
-        // Off the render entirely: a pocket dimension's fixed placement can
-        // sit outside the area the render covers, and a marker clamped to
-        // the edge would claim it is somewhere it is not.
-        if (cx < -1 || cx > 101 || cy < -1 || cy > 101) continue
         if (i >= PER_ROW || drawn >= TOTAL) { dropped++; continue }
-        frag.appendChild(marker(fam, cx, cy, rowIdx))
-        drawn++
+        plot(fam, x, z, 'r:' + rowIdx, MARKER, 'grid')
       }
     })
+
+    // 2. Noise sites — one strided sample per group, from the server.
+    var census = cand ? censusCache[censusKey(cand)] : null
+    var sites = 0, siteTotal = 0, censusNote = ''
+    if (groups.length && canFetch && !census) {
+      censusNote = 'loading structure sites…'
+      fetchCensus(cand, function () { draw() })
+    } else if (census && census.ok) {
+      groups.forEach(function (group) {
+        var entry = census.groups[group]
+        if (!entry || !entry.pos) return
+        var fam = familyForGroup(group)
+        siteTotal += entry.count
+        entry.pos.forEach(function (p) {
+          sites++
+          plot(fam, p[0], p[1], 'g:' + group, GROUP_MARKER, 'noise')
+        })
+      })
+      if (census.suppressed) censusNote = 'noise placement is off for this dimension'
+    } else if (census && !census.ok) {
+      censusNote = 'structure sites unavailable: ' + census.error
+    }
+
     layer.appendChild(frag)
-    count.textContent = dropped ? drawn + '+' : String(drawn)
-    btn.title = dropped
-      ? drawn + ' markers shown, ' + dropped + ' further placements not drawn ' +
-        '(nearest ' + PER_ROW + ' per criterion, ' + TOTAL + ' in total)'
-      : drawn + ' structure placements on the map'
+    count.textContent = dropped || (siteTotal > sites) ? drawn + '+' : String(drawn)
+    var bits = []
+    if (drawn - sites > 0) bits.push((drawn - sites) + ' exact placement(s)')
+    if (sites) {
+      bits.push(sites + ' of ' + siteTotal + ' noise site(s), sampled evenly ' +
+        'across the radius so the shape is honest — a site hosts ONE structure ' +
+        'drawn from its group\'s pool, so the glyph names the GROUP')
+    }
+    if (dropped) bits.push(dropped + ' further exact placement(s) not drawn ' +
+      '(nearest ' + PER_ROW + ' per criterion, ' + TOTAL + ' in total)')
+    if (offmap) bits.push(offmap + ' outside the rendered area')
+    if (censusNote) bits.push(censusNote)
+    btn.title = bits.length ? bits.join(' · ') : 'Nothing to mark on this render'
   }
 
   // The row is the legend: a marker's icon appears inline in the row that
@@ -401,17 +556,31 @@
   // whose positions are not real (noise-placed groups) still get the chip —
   // it says WHICH structure the row is about, which is the other half of the
   // legend's job.
+  function chip(fam, title) {
+    return '<svg class="sm-chip" viewBox="-13.5 -13.5 27 27" aria-hidden="true"' +
+      (title ? ' title="' + title + '"' : '') + '>' +
+      '<circle r="' + PLATE + '" class="sm-plate"></circle>' +
+      '<path class="sm-glyph" fill-rule="evenodd" fill="' + fam.fill +
+      '" d="' + fam.d + '"></path></svg>'
+  }
+
   function decorateRows() {
     Array.prototype.forEach.call(info.querySelectorAll('.mrow[data-struct]'), function (row) {
       var name = row.querySelector('.mname')
       if (!name || name.querySelector('.sm-chip')) return
-      var fam = familyFor(row.dataset.struct)
-      name.insertAdjacentHTML('afterbegin',
-        '<svg class="sm-chip" viewBox="-13.5 -13.5 27 27" aria-hidden="true">' +
-        '<circle r="' + PLATE + '" class="sm-plate"></circle>' +
-        '<path class="sm-glyph" fill-rule="evenodd" fill="' + fam.fill +
-        '" d="' + fam.d + '"></path></svg>')
+      name.insertAdjacentHTML('afterbegin', chip(familyFor(row.dataset.struct)))
     })
+    // The full-census rows name a GROUP and no structure, and they are the
+    // legend for the smaller markers on the map — the ones whose glyph is the
+    // group's, because which structure a site hosts is unknowable from here.
+    Array.prototype.forEach.call(
+      info.querySelectorAll('.mrow[data-group]:not([data-struct])'), function (row) {
+        var name = row.querySelector('.mname')
+        if (!name || name.querySelector('.sm-chip')) return
+        name.insertAdjacentHTML('afterbegin',
+          chip(familyForGroup(row.dataset.group),
+               'One noise field, ' + row.dataset.group + ' group'))
+      })
   }
 
   btn.addEventListener('click', function () {
@@ -423,13 +592,13 @@
   // Hovering a row picks its own markers out of the crowd. The ring the
   // hover handler draws answers "what radius"; this answers "which ones".
   info.addEventListener('mouseover', function (e) {
-    var row = e.target.closest('.mrow[data-pos]')
+    var row = e.target.closest('.mrow[data-pos], .mrow[data-group]')
     if (!row) return
-    var rows = Array.prototype.slice.call(info.querySelectorAll('.mrow[data-pos]'))
-    var idx = rows.indexOf(row)
+    var sel = selectorFor(row, info.querySelectorAll('.mrow[data-pos]'))
+    if (!sel) return
     layer.classList.add('focus')
     Array.prototype.forEach.call(layer.querySelectorAll('.sm'), function (g) {
-      g.classList.toggle('on', g.dataset.row === String(idx))
+      g.classList.toggle('on', g.dataset.sel === sel)
     })
   })
   info.addEventListener('mouseleave', function () {

@@ -17,6 +17,7 @@ finalise, including roll-all's end-of-run one.
 Additional endpoints (require the live server):
   POST /reroll     — re-roll a dimension's candidates in background
   GET  /job/<id>   — poll a background job's status
+  GET  /noise-census — real structure positions for ONE candidate
   POST /edit-config — open a dimension's config in VS Code
   POST /preview    — (stub) detailed candidate preview
 
@@ -962,6 +963,134 @@ def _validate_fork_config(raw, config_path, seedtest=None):
     return clean, errors
 
 
+# ---------------------------------------------------------------------------
+# Real structure positions for ONE candidate (GET /noise-census)
+# ---------------------------------------------------------------------------
+#
+# The panel emits `data-pos` only for grid-placed and forced sets, because for
+# noise-placed sets a grid position is fiction. On a modern overworld that is
+# every set: the winner's panel carried 0 positional rows and 77 rows whose only
+# spatial hint was `data-band`, 53 of them a band starting at 0. So every hover
+# drew a near-identical disc from the centre to the border, pointing at nothing,
+# and the marker layer drew literally no markers at all.
+#
+# The positions do exist — noise_placement.noise_census computes the complete
+# census — they were simply never asked for. The SCORER cannot afford them
+# (census_summary banks a count and a 10-bin histogram precisely because the
+# largest shipped dimension is 62k positions and the bank is thousands of
+# candidates deep, so positions per candidate would be gigabytes). The VIEWER
+# can: it is looking at one candidate at a time.
+#
+# Hence this endpoint rather than a new field in the candidate store. It is
+# computed on demand for the one open candidate and cached in memory only.
+_CENSUS_POS_CACHE = {}
+_CENSUS_POS_ORDER = []
+_CENSUS_POS_LOCK = threading.Lock()
+
+#: Censuses held in memory. Each is at most GROUPS x POSITIONS_PER_GROUP pairs
+#: (a few hundred), so this is kilobytes; the cap exists to stop an
+#: arrow-key walk through a thousand candidates growing without bound.
+_CENSUS_POS_MAX = 24
+
+#: Positions returned per group, sampled EVENLY across the nearest-first
+#: census rather than truncated to the nearest N.
+#:
+#: This is the whole reason the sampling lives server-side. The census is
+#: ordered nearest-first, so `[:50]` of a 9000-position group is 50 sites in a
+#: tight knot around spawn — which is a picture of the truncation, not of the
+#: world, and it would contradict the radial histogram sitting next to it in
+#: the panel. An even stride preserves the radial shape, which is the one
+#: thing the map is being asked about (the histogram already answers "how
+#: many").
+POSITIONS_PER_GROUP = 50
+
+
+def _sample_evenly(items, limit):
+    """`limit` items spanning the whole list, first and last always kept."""
+    n = len(items)
+    if limit <= 0 or n == 0:
+        return []
+    if n <= limit:
+        return list(items)
+    if limit == 1:
+        return [items[0]]
+    step = (n - 1) / (limit - 1)
+    return [items[int(round(i * step))] for i in range(limit)]
+
+
+def _dim_source(config_path, dim):
+    """The dimension's config entry as the ROLLER sees it (dims + base worlds).
+
+    Deliberately the same two dicts ensure_censuses merges, in the same
+    order: a base world is built by monolith_from_dir with its type stamped
+    from BASE_WORLD_TYPES, and reading its raw file instead would resolve no
+    type and therefore no noise groups at all.
+    """
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dimension_profiles import load_config
+    config = load_config(config_path)
+    sources = {d["name"]: d for d in config.get("dimensions", [])}
+    sources.update({w["name"]: w for w in config.get("worlds", [])})
+    return sources.get(dim)
+
+
+def noise_positions(config_path, dim, seed, per_group=POSITIONS_PER_GROUP):
+    """{group: {count, shown, pos: [[blockX, blockZ], ...]}} for one candidate.
+
+    Positions are BLOCK coordinates — noise_census speaks chunks, and the
+    x16 happens here so the client's coordinate model stays the one it
+    already uses for `data-pos` (blocks, offset from spawn at the render's
+    centre). The chunk's origin block is used, not its centre: that is the
+    corner `/customdim structure-census` reports and the quantisation is
+    16 blocks against a render spanning at least 1024.
+
+    Cached under (dim, seed, noise fingerprint), so editing a dimension's
+    placement config invalidates it exactly when it should.
+    """
+    sys.path.insert(0, str(SCRIPT_DIR))
+    import noise_placement
+    from dimension_profiles import noise_fingerprint
+
+    cfg = Path(config_path)
+    if not cfg.is_dir():
+        raise ValueError("noise positions need the config directory")
+    src = _dim_source(config_path, dim)
+    if src is None:
+        raise KeyError(f"unknown dimension '{dim}'")
+    fp = noise_fingerprint(src)
+    key = (dim, str(seed), fp, int(per_group))
+    with _CENSUS_POS_LOCK:
+        hit = _CENSUS_POS_CACHE.get(key)
+    if hit is not None:
+        return hit
+
+    radius_chunks = noise_placement.census_radius_chunks(src)
+    payload = {"dim": dim, "seed": str(seed), "radiusChunks": radius_chunks,
+               "coverage": radius_chunks * 32, "groups": {}}
+    if fp is None:
+        # Noise is suppressed for this dimension (structureDensity none,
+        # structures.mode none, structures.noise false, or a type with no
+        # groups). Not an error, and not an empty answer either — say so, so
+        # the client can explain the absence rather than look broken.
+        payload["suppressed"] = True
+    else:
+        type_defaults = noise_placement.load_type_defaults(cfg)
+        census = noise_placement.noise_census(int(seed), dim, src, type_defaults)
+        for group, positions in census.items():
+            sample = _sample_evenly(positions, per_group)
+            payload["groups"][group] = {
+                "count": len(positions),
+                "shown": len(sample),
+                "pos": [[cx * 16, cz * 16] for cx, cz in sample],
+            }
+    with _CENSUS_POS_LOCK:
+        _CENSUS_POS_CACHE[key] = payload
+        _CENSUS_POS_ORDER.append(key)
+        while len(_CENSUS_POS_ORDER) > _CENSUS_POS_MAX:
+            _CENSUS_POS_CACHE.pop(_CENSUS_POS_ORDER.pop(0), None)
+    return payload
+
+
 def _deep_merge(base, over):
     out = dict(base)
     for k, v in over.items():
@@ -987,6 +1116,29 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             super().handle_one_request()
         except (BrokenPipeError, ConnectionResetError):
             pass
+
+    #: Paths the browser must revalidate on every load. install_web_assets
+    #: copies the stylesheet and scripts UNCONDITIONALLY for exactly this
+    #: reason — a stale asset beside a fresh page is a debugging trap nobody
+    #: suspects — but copying the file does not reach a browser that has
+    #: already decided its cached copy is fresh. Measured: after restarting the
+    #: viewer on new code, `assets/app.js` was still the previous build in the
+    #: page, so a newly exported function read as undefined and the feature
+    #: looked broken rather than cached.
+    #:
+    #: Renders are deliberately NOT in here: renders/<dim>/<seed>.png is
+    #: immutable for its name, there are thousands of them, and re-fetching
+    #: them on every page load would be the expensive mistake.
+    NO_CACHE_PREFIXES = ("/assets/",)
+    NO_CACHE_PATHS = ("/", "/index.html")
+
+    def end_headers(self):
+        path = urlparse(self.path).path
+        if path in self.NO_CACHE_PATHS or path.startswith(self.NO_CACHE_PREFIXES):
+            # no-cache, not no-store: a conditional request is still made, so
+            # an unchanged asset still costs one 304 rather than a re-download.
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
 
     def _read_json(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -1018,6 +1170,30 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 self._respond_json({"ok": True, "dim": dim,
                                     "config": json.loads(path.read_text())})
             except (OSError, json.JSONDecodeError) as exc:
+                self._respond_json({"error": str(exc)[:300]}, 500)
+            return
+        if self.path.startswith("/noise-census"):
+            q = parse_qs(urlparse(self.path).query)
+            dim = (q.get("dim") or [""])[0]
+            seed = (q.get("seed") or [""])[0]
+            if not dim or not seed:
+                self._respond_json({"error": "expected ?dim=&seed="}, 400)
+                return
+            try:
+                per_group = int((q.get("per_group") or [POSITIONS_PER_GROUP])[0])
+            except (TypeError, ValueError):
+                self._respond_json({"error": "per_group must be an integer"}, 400)
+                return
+            per_group = max(1, min(per_group, 2000))
+            try:
+                self._respond_json(
+                    dict(noise_positions(self.config_path, dim, seed, per_group),
+                         ok=True))
+            except KeyError as exc:
+                self._respond_json({"error": str(exc).strip("'")}, 404)
+            except (ValueError, TypeError) as exc:
+                self._respond_json({"error": str(exc)[:300]}, 400)
+            except Exception as exc:  # noqa: BLE001 — a broken census must not 500 silently
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
         if self.path == "/pipeline-status":

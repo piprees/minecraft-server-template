@@ -1390,7 +1390,8 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 #: so the build cache (.cache/, a 100MB Tailwind binary) can never be copied
 #: into a consumer's .seedtest by accident.
 #: source name in scripts/seed/web/ -> name served beside index.html.
-WEB_ASSETS = (("app.built.css", "app.css"), ("app.js", "app.js"),
+WEB_ASSETS = (("app.built.css", "app.css"),
+              ("project.js", "project.js"), ("app.js", "app.js"),
               ("compare.js", "compare.js"),
               ("dartboard.js", "dartboard.js"),
               ("structicons.js", "structicons.js"),
@@ -1903,6 +1904,13 @@ def _structure_section(c, profile):
         if group is not None and sid.lstrip("#") not in forced_ids:
             entry = groups.get(group)
             seen_groups.setdefault(group, []).append(pretty)
+            # The marker layer needs to know WHICH noise field a row is about:
+            # it fetches real positions per group from /noise-census, and the
+            # group name is the only handle on them. Without it the row's only
+            # spatial hint is data-band, which for 53 of the overworld winner's
+            # 77 rows starts at 0 — a disc from spawn to the border, drawn
+            # near-identically for every hover, pointing at nothing.
+            sattr += " data-group='{}'".format(html.escape(group, quote=True))
             if not entry or not entry.get("count"):
                 noise_rows.append((2, "<div class='mrow sev2'{}>"
                     "<span class='mname'>{} <span class='kind'>{}</span></span>"
@@ -2106,13 +2114,19 @@ def _structure_section(c, profile):
         for group, entry in sorted(groups.items(),
                                    key=lambda kv: -(kv[1].get("count") or 0)):
             members = ", ".join(seen_groups.get(group, [])) or "—"
-            rows.append("<div class='mrow sev0 census-row' data-band='0,{:.0f}'>"
+            # data-group here as well as on the battery rows: this is the row
+            # that exists for EVERY group, including the ones no want or shun
+            # names, so it is what lets the marker layer draw a dimension's
+            # whole layout rather than only the parts something asked about.
+            rows.append("<div class='mrow sev0 census-row' data-band='0,{:.0f}' "
+                        "data-group='{}'>"
                         "<span class='mname'>{}</span>"
                         "<span class='mval'>{}<span class='ns'>sites</span></span>{}"
                         "<span class='mtarget' style='grid-column:span 2'>"
                         "asked for here: {}</span>"
                         "</div>".format(
-                            radius_blocks, html.escape(group),
+                            radius_blocks, html.escape(group, quote=True),
+                            html.escape(group),
                             entry.get("count", 0),
                             _hist_bar(entry.get("hist"), radius_blocks),
                             html.escape(members)))
