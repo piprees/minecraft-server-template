@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T18](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
@@ -59,6 +59,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Launchers download HTML instead of mod JARs | [T16](#t16) |
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
+| One listed biome covers a whole dimension; the rest never appear | [T19](#t19) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -233,6 +234,45 @@ Each of these has caused a real incident.
   ```
   The four base worlds are exempt: vanilla asks for them by key from paths
   with no lazy-creation hook, so they exist from the first tick.
+
+<a id="t19"></a>
+### T19 — A listed biome with no climate parameters swallows the whole dimension
+
+- **Symptom:** a `multi_biome` (or any biome-listed) dimension generates as
+  one biome nearly everywhere. The seed roller reports the rest as "not
+  found" no matter how many candidates are rolled, and re-rolling never
+  helps because the outcome is structural, not unlucky.
+- **Cause:** `DimensionManager.buildMixedSource` splits a dimension's biome
+  list into biomes that already have a hypercube in the base source
+  ("native") and biomes that do not ("foreign"). Every leftover hypercube in
+  the base source is then dealt to the foreign biomes **round-robin**, so a
+  single foreign biome receives all of them. The natives keep only the
+  climate regions they literally claim, which for a list of rare biomes is
+  almost nothing. Measured across the 34 affected dimensions before the fix:
+  the foreign biomes held 74–100% of the area, and 0 of 12 sampled seeds
+  contained every listed biome.
+- **Who has no climate parameters:** all 47 **Nature's Spirit** biomes (it
+  places through its own layer, not the vanilla multi-noise parameter list —
+  none of them appear in `scripts/seed/biome_params.json`), and
+  `minecraft:end_barrens` / `minecraft:end_midlands` (vanilla places those by
+  erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale).
+  Nullscape also gives `minecraft:the_end` and `minecraft:end_highlands`
+  the **same** full-span hypercube, so one of that pair can never win a
+  nearest-point lookup, and gates `nullscape:void_barrens` /
+  `nullscape:crystal_peaks` on `temperature >= 0` — an octave -11 noise that
+  barely moves inside one dimension, so ~1 seed in 5 loses both entirely.
+- **Fix:** give the biome an explicit hypercube. An object-form entry
+  (`{"id": ..., "parameters": {...}}`) withdraws it from the foreign
+  machinery, and once no foreign biomes remain the leftover pool is dropped
+  rather than dealt out. Band on an axis the dimension's climate noise
+  actually crosses at its own radius — **weirdness** for overworld and End
+  dimensions, **continentalness** for `paradise_lost` clones. Humidity and
+  temperature move far too little to separate biomes in a pocket dimension
+  (humidity spans 0.207 across a 512-radius world; weirdness spans 0.783).
+- **Creation-time.** `biomes` is worldgen config ([D2](#d2)), so this only
+  affects newly created worlds, and changing it re-keys the dimension's
+  generation fingerprint — every affected dimension needs a re-roll, not a
+  rescore.
 
 ---
 

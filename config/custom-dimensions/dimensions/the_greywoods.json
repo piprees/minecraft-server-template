@@ -3,12 +3,42 @@
   "description": "Gloomy cedar woodland where the fog sits low. The witches' territory — graveyards, chapels, and a manor that should probably be left alone. They came from the darkpine depths and brought their knowledge with them.",
   "seed": 6737624617755405423,
   "biomes": [
-    "natures_spirit:cedar_thicket",
-    "minecraft:dark_forest",
-    "terralith:birch_taiga",
-    "natures_spirit:fir_forest",
-    "terralith:moonlight_grove",
-    "minecraft:swamp"
+    {
+      "id": "natures_spirit:cedar_thicket",
+      "parameters": {
+        "weirdness": [-0.0398, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [-0.1649, -0.0951]
+      }
+    },
+    {
+      "id": "terralith:birch_taiga",
+      "parameters": {
+        "weirdness": [0.0777, 2.0]
+      }
+    },
+    {
+      "id": "natures_spirit:fir_forest",
+      "parameters": {
+        "weirdness": [0.017, 0.0777]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [-2.0, -0.1649]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0398]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

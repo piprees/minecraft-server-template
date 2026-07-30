@@ -3,15 +3,61 @@
   "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
   "seed": -8536168897606233021,
   "biomes": [
-    "natures_spirit:wisteria_forest",
-    "terralith:sakura_grove",
-    "minecraft:cherry_grove",
-    "terralith:lavender_forest",
-    "terralith:white_cliffs",
-    "minecraft:flower_forest",
-    "minecraft:meadow",
-    "terralith:blooming_valley",
-    "minecraft:birch_forest"
+    {
+      "id": "natures_spirit:wisteria_forest",
+      "parameters": {
+        "weirdness": [0.0571, 0.0996]
+      }
+    },
+    {
+      "id": "terralith:sakura_grove",
+      "parameters": {
+        "weirdness": [-0.1933, -0.1404]
+      }
+    },
+    {
+      "id": "minecraft:cherry_grove",
+      "parameters": {
+        "weirdness": [0.0996, 2.0]
+      }
+    },
+    {
+      "id": "terralith:lavender_forest",
+      "parameters": {
+        "weirdness": [-0.0187, 0.017]
+      }
+    },
+    {
+      "id": "terralith:white_cliffs",
+      "parameters": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.0951, -0.0597]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "parameters": {
+        "weirdness": [0.017, 0.0571]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [-2.0, -0.1933]
+      }
+    },
+    {
+      "id": "terralith:blooming_valley",
+      "parameters": {
+        "weirdness": [-0.0597, -0.0187]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "parameters": {
+        "weirdness": [-0.1404, -0.0951]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

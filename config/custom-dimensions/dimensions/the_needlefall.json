@@ -4,12 +4,42 @@
   "seed": -710009041145965796,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "natures_spirit:fir_forest",
-    "terralith:siberian_taiga",
-    "natures_spirit:coniferous_covert",
-    "minecraft:old_growth_pine_taiga",
-    "minecraft:taiga",
-    "minecraft:snowy_taiga"
+    {
+      "id": "natures_spirit:fir_forest",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0398]
+      }
+    },
+    {
+      "id": "terralith:siberian_taiga",
+      "parameters": {
+        "weirdness": [-0.0398, 0.017]
+      }
+    },
+    {
+      "id": "natures_spirit:coniferous_covert",
+      "parameters": {
+        "weirdness": [-0.1649, -0.0951]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "parameters": {
+        "weirdness": [0.017, 0.0777]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "parameters": {
+        "weirdness": [-2.0, -0.1649]
+      }
+    },
+    {
+      "id": "minecraft:snowy_taiga",
+      "parameters": {
+        "weirdness": [0.0777, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

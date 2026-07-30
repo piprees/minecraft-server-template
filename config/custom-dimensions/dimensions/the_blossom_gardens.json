@@ -9,24 +9,73 @@
     "minecraft:flower_forest",
     "minecraft:birch_forest",
     "minecraft:old_growth_birch_forest",
-    "minecraft:plains",
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "temperature": [-0.45, 0.2],
+        "humidity": [-1.0, -0.1],
+        "weirdness": [0.0178, 0.0575]
+      }
+    },
     "minecraft:sunflower_plains",
-    "minecraft:forest",
+    {
+      "id": "minecraft:forest",
+      "parameters": {
+        "temperature": [-0.45, 0.55],
+        "humidity": [-0.1, 0.1],
+        "weirdness": [0.0575, 0.0964]
+      }
+    },
     "minecraft:river",
     "minecraft:beach",
     "terralith:lavender_valley",
     "terralith:blooming_valley",
-    "terralith:sakura_valley",
+    {
+      "id": "terralith:sakura_valley",
+      "parameters": {
+        "temperature": [-0.155, 0.55],
+        "humidity": [0.3, 1.0],
+        "weirdness": [-0.1401, -0.1031]
+      }
+    },
     "terralith:sakura_grove",
     "terralith:moonlight_valley",
     "terralith:moonlight_grove",
     "terralith:blooming_plateau",
     "terralith:lush_valley",
     "terralith:temperate_highlands",
-    "natures_spirit:wisteria_forest",
-    "natures_spirit:lavender_fields",
-    "natures_spirit:carnation_fields",
-    "terralith:lavender_forest"
+    {
+      "id": "natures_spirit:wisteria_forest",
+      "parameters": {
+        "temperature": [-0.15, 1.0],
+        "humidity": [-0.1, 1.0],
+        "weirdness": [0.0964, 0.1357]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "parameters": {
+        "temperature": [-0.15, 1.0],
+        "humidity": [-1.0, 0.1],
+        "weirdness": [-0.1031, -0.0603]
+      }
+    },
+    {
+      "id": "natures_spirit:carnation_fields",
+      "parameters": {
+        "temperature": [-0.15, 1.0],
+        "humidity": [-1.0, 0.1],
+        "weirdness": [-0.0603, -0.0201]
+      }
+    },
+    {
+      "id": "terralith:lavender_forest",
+      "parameters": {
+        "temperature": [-0.45, -0.155],
+        "humidity": [0.565, 1.0],
+        "weirdness": [-0.0201, 0.0178]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

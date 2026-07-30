@@ -3,12 +3,42 @@
   "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
   "seed": 9223110004402776460,
   "biomes": [
-    "nullscape:void_barrens",
-    "minecraft:end_barrens",
-    "minecraft:the_end",
-    "minecraft:small_end_islands",
-    "minecraft:end_highlands",
-    "nullscape:crystal_peaks"
+    {
+      "id": "nullscape:void_barrens",
+      "parameters": {
+        "continentalness": [0.177, 0.3015]
+      }
+    },
+    {
+      "id": "minecraft:end_barrens",
+      "parameters": {
+        "continentalness": [-0.1771, -0.0546]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "parameters": {
+        "continentalness": [-0.0546, 0.0636]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [-2.0, -0.1771]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [0.0636, 0.177]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [0.3015, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

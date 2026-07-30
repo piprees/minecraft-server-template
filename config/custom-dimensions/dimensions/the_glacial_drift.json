@@ -3,15 +3,60 @@
   "description": "A glacial drift among the skylands — frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
   "seed": 3730788643567922115,
   "biomes": [
-    "paradise_lost:autumnal_tundra",
-    "paradise_lost:calcite_craglands",
-    "minecraft:ice_spikes",
-    "terralith:glacial_chasm",
-    "natures_spirit:tundra",
-    "terralith:skylands_winter",
-    "minecraft:frozen_peaks",
-    "terralith:frozen_cliffs",
-    "minecraft:snowy_slopes"
+    {
+      "id": "paradise_lost:autumnal_tundra",
+      "parameters": {
+        "continentalness": [-0.0241, 0.0144]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "continentalness": [0.0546, 0.1028]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "parameters": {
+        "continentalness": [0.0144, 0.0546]
+      }
+    },
+    {
+      "id": "terralith:glacial_chasm",
+      "parameters": {
+        "continentalness": [-2.0, -0.159]
+      }
+    },
+    {
+      "id": "natures_spirit:tundra",
+      "parameters": {
+        "continentalness": [-0.1125, -0.0674]
+      }
+    },
+    {
+      "id": "terralith:skylands_winter",
+      "parameters": {
+        "continentalness": [-0.159, -0.1125]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "parameters": {
+        "continentalness": [0.1028, 0.1501]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "continentalness": [-0.0674, -0.0241]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "parameters": {
+        "continentalness": [0.1501, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

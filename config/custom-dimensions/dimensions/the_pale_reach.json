@@ -3,13 +3,48 @@
   "description": "The pale desolate reach — calcite crags floating in white silence. The skylands' frozen edge, where even the animal kingdoms thin out. Remains and birdcages drift in the whiteness, built by hands that left no other trace.",
   "seed": -458653036088005852,
   "biomes": [
-    "paradise_lost:calcite_craglands",
-    "terralith:frozen_cliffs",
-    "terralith:wintry_lowlands",
-    "minecraft:ice_spikes",
-    "minecraft:snowy_slopes",
-    "minecraft:frozen_peaks",
-    "terralith:skylands_winter"
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "continentalness": [0.0008, 0.0304]
+      }
+    },
+    {
+      "id": "terralith:frozen_cliffs",
+      "parameters": {
+        "continentalness": [-0.095, -0.0627]
+      }
+    },
+    {
+      "id": "terralith:wintry_lowlands",
+      "parameters": {
+        "continentalness": [-0.0627, -0.0318]
+      }
+    },
+    {
+      "id": "minecraft:ice_spikes",
+      "parameters": {
+        "continentalness": [-0.0318, 0.0008]
+      }
+    },
+    {
+      "id": "minecraft:snowy_slopes",
+      "parameters": {
+        "continentalness": [0.0304, 0.0613]
+      }
+    },
+    {
+      "id": "minecraft:frozen_peaks",
+      "parameters": {
+        "continentalness": [0.0613, 2.0]
+      }
+    },
+    {
+      "id": "terralith:skylands_winter",
+      "parameters": {
+        "continentalness": [-2.0, -0.095]
+      }
+    }
   ],
   "borders": {
     "player": 683,

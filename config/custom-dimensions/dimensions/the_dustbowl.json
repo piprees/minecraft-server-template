@@ -3,15 +3,60 @@
   "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
   "seed": -6585932694360697170,
   "biomes": [
-    "terralith:ancient_sands",
-    "natures_spirit:wooded_drylands",
-    "terralith:steppe",
-    "minecraft:desert",
-    "minecraft:badlands",
-    "terralith:arid_highlands",
-    "minecraft:savanna",
-    "terralith:hot_shrubland",
-    "natures_spirit:xeric_plains"
+    {
+      "id": "terralith:ancient_sands",
+      "parameters": {
+        "weirdness": [-0.0762, -0.0484]
+      }
+    },
+    {
+      "id": "natures_spirit:wooded_drylands",
+      "parameters": {
+        "weirdness": [0.0026, 0.0252]
+      }
+    },
+    {
+      "id": "terralith:steppe",
+      "parameters": {
+        "weirdness": [-0.0484, -0.0245]
+      }
+    },
+    {
+      "id": "minecraft:desert",
+      "parameters": {
+        "weirdness": [-0.1028, -0.0762]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "parameters": {
+        "weirdness": [-2.0, -0.161]
+      }
+    },
+    {
+      "id": "terralith:arid_highlands",
+      "parameters": {
+        "weirdness": [-0.0245, 0.0026]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [-0.161, -0.1298]
+      }
+    },
+    {
+      "id": "terralith:hot_shrubland",
+      "parameters": {
+        "weirdness": [0.0252, 2.0]
+      }
+    },
+    {
+      "id": "natures_spirit:xeric_plains",
+      "parameters": {
+        "weirdness": [-0.1298, -0.1028]
+      }
+    }
   ],
   "borders": {
     "player": 512,

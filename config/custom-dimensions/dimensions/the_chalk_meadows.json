@@ -3,14 +3,54 @@
   "description": "Rolling chalk downs in heather and carnation. Villager country — settlements in the hollows, nothing sinister for miles. The people here never went looking for ancient cities, and the ancient cities never found them.",
   "seed": 7979793790560277687,
   "biomes": [
-    "natures_spirit:heather_fields",
-    "natures_spirit:carnation_fields",
-    "terralith:blooming_plateau",
-    "minecraft:meadow",
-    "minecraft:plains",
-    "minecraft:sunflower_plains",
-    "minecraft:flower_forest",
-    "natures_spirit:lavender_fields"
+    {
+      "id": "natures_spirit:heather_fields",
+      "parameters": {
+        "weirdness": [-0.0398, 0.0053]
+      }
+    },
+    {
+      "id": "natures_spirit:carnation_fields",
+      "parameters": {
+        "weirdness": [-0.1308, -0.0825]
+      }
+    },
+    {
+      "id": "terralith:blooming_plateau",
+      "parameters": {
+        "weirdness": [-0.0825, -0.0398]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [0.0948, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [0.0498, 0.0948]
+      }
+    },
+    {
+      "id": "minecraft:sunflower_plains",
+      "parameters": {
+        "weirdness": [-2.0, -0.1868]
+      }
+    },
+    {
+      "id": "minecraft:flower_forest",
+      "parameters": {
+        "weirdness": [0.0053, 0.0498]
+      }
+    },
+    {
+      "id": "natures_spirit:lavender_fields",
+      "parameters": {
+        "weirdness": [-0.1868, -0.1308]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

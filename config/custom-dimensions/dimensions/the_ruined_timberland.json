@@ -3,12 +3,42 @@
   "description": "Autumn woods strewn with ruins. Every clearing has bones of something older — temples, crypts, pumpkin ruins from a harvest festival that was never finished. Rich pickings, no living towns. Whoever these people were, they left in a hurry.",
   "seed": 9135545649734435741,
   "biomes": [
-    "natures_spirit:aspen_forest",
-    "natures_spirit:maple_woodlands",
-    "minecraft:dark_forest",
-    "minecraft:forest",
-    "terralith:moonlight_grove",
-    "minecraft:birch_forest"
+    {
+      "id": "natures_spirit:aspen_forest",
+      "parameters": {
+        "weirdness": [-0.0398, 0.017]
+      }
+    },
+    {
+      "id": "natures_spirit:maple_woodlands",
+      "parameters": {
+        "weirdness": [-0.1649, -0.0951]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [0.017, 0.0777]
+      }
+    },
+    {
+      "id": "minecraft:forest",
+      "parameters": {
+        "weirdness": [-2.0, -0.1649]
+      }
+    },
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [0.0777, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:birch_forest",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0398]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

@@ -3,13 +3,48 @@
   "description": "A shrine over the abyss — plateau islands ringing deep drowned hollows. Something is worshipped here, or was. Guardians circle below; the sky above is indifferent.",
   "seed": 801303553111466439,
   "biomes": [
-    "paradise_lost:continental_plateau",
-    "paradise_lost:highlands_grand_glade",
-    "paradise_lost:calcite_craglands",
-    "minecraft:deep_ocean",
-    "minecraft:deep_cold_ocean",
-    "minecraft:deep_dark",
-    "minecraft:dripstone_caves"
+    {
+      "id": "paradise_lost:continental_plateau",
+      "parameters": {
+        "continentalness": [-0.0488, -0.024]
+      }
+    },
+    {
+      "id": "paradise_lost:highlands_grand_glade",
+      "parameters": {
+        "continentalness": [-0.024, -0.0062]
+      }
+    },
+    {
+      "id": "paradise_lost:calcite_craglands",
+      "parameters": {
+        "continentalness": [0.0404, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:deep_ocean",
+      "parameters": {
+        "continentalness": [-2.0, -0.0766]
+      }
+    },
+    {
+      "id": "minecraft:deep_cold_ocean",
+      "parameters": {
+        "continentalness": [-0.0766, -0.0488]
+      }
+    },
+    {
+      "id": "minecraft:deep_dark",
+      "parameters": {
+        "continentalness": [-0.0062, 0.0171]
+      }
+    },
+    {
+      "id": "minecraft:dripstone_caves",
+      "parameters": {
+        "continentalness": [0.0171, 0.0404]
+      }
+    }
   ],
   "borders": {
     "player": 512,

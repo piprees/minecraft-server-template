@@ -3,11 +3,36 @@
   "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
   "seed": 9185324862121826233,
   "biomes": [
-    "minecraft:end_highlands",
-    "nullscape:crystal_peaks",
-    "nullscape:shadowlands",
-    "minecraft:end_midlands",
-    "minecraft:small_end_islands"
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [0.1296, 0.2753]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [0.2753, 2.0]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "continentalness": [-2.0, -0.1522]
+      }
+    },
+    {
+      "id": "minecraft:end_midlands",
+      "parameters": {
+        "continentalness": [-0.0085, 0.1296]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [-0.1522, -0.0085]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

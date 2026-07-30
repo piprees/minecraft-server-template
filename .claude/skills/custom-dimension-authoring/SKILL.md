@@ -316,10 +316,11 @@ Two things to hold in mind when tuning them:
 10. **Don't mix biome families** — a void dim with overworld AND end biomes confuses the roller (it can't pick a family for noise sampling). Stick to one family per dimension.
 11. **`type: "overworld"` uses ALL biomes**, not just the ones in your `biomes` list. Your list only affects roller scoring. Use `multi_biome` for a curated biome selection.
 12. **Don't change `portal.scale` on existing dimensions** — it shifts all portal coordinates and can strand players. Treat it as effectively permanent after first play.
-13. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
-14. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
-15. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
-16. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
+13. **A listed biome with no climate parameters swallows the dimension.** Every Nature's Spirit biome, plus `minecraft:end_barrens` and `minecraft:end_midlands`, is absent from the multi-noise parameter table, and the mod deals ALL leftover climate regions to such biomes round-robin — one of them takes 74–100% of the world and the rest of your list never appears. Give those entries an explicit `{"id": ..., "parameters": {"weirdness": [lo, hi]}}` band (continentalness for `paradise_lost` clones). See [TROUBLESHOOTING.md#t19](../../../TROUBLESHOOTING.md#t19).
+14. **`spawnFilter` biomes must exist in the biome parameter table for the dimension's family** — a biome id that exists in-game but isn't in the roller's table for that family causes every candidate to be rejected (zero candidates). Cross-check against `references/biome-catalogue.md`.
+15. **Immersive is ON when you say nothing** — `"immersive": false` is the opt-out, not `true` the opt-in. Writing `"immersive": true` is harmless but redundant.
+16. **`subsume: "everything"` is destructive by design** and belongs in the dimension's `description` as well as its JSON. Never add it to a peaceful or scenic dimension because a keyword matched — see the `subsume` section.
+17. **Aura `trees` are never inferred, only configured.** Sampling them turned a beach into an impassable thicket.
 
 ## Validation (do not skip this)
 

@@ -4,15 +4,60 @@
   "seed": -8777423045116236165,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:painted_mountains",
-    "terralith:bryce_canyon",
-    "minecraft:eroded_badlands",
-    "natures_spirit:stratified_desert",
-    "terralith:desert_canyon",
-    "minecraft:badlands",
-    "minecraft:wooded_badlands",
-    "terralith:savanna_badlands",
-    "minecraft:savanna"
+    {
+      "id": "terralith:painted_mountains",
+      "parameters": {
+        "weirdness": [-2.0, -0.1933]
+      }
+    },
+    {
+      "id": "terralith:bryce_canyon",
+      "parameters": {
+        "weirdness": [0.017, 0.0571]
+      }
+    },
+    {
+      "id": "minecraft:eroded_badlands",
+      "parameters": {
+        "weirdness": [-0.1404, -0.0951]
+      }
+    },
+    {
+      "id": "natures_spirit:stratified_desert",
+      "parameters": {
+        "weirdness": [0.0571, 0.0996]
+      }
+    },
+    {
+      "id": "terralith:desert_canyon",
+      "parameters": {
+        "weirdness": [-0.0597, -0.0187]
+      }
+    },
+    {
+      "id": "minecraft:badlands",
+      "parameters": {
+        "weirdness": [-0.1933, -0.1404]
+      }
+    },
+    {
+      "id": "minecraft:wooded_badlands",
+      "parameters": {
+        "weirdness": [0.0996, 2.0]
+      }
+    },
+    {
+      "id": "terralith:savanna_badlands",
+      "parameters": {
+        "weirdness": [-0.0187, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:savanna",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0597]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

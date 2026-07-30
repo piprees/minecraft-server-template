@@ -14,14 +14,48 @@
     "minecraft:jagged_peaks",
     "minecraft:old_growth_spruce_taiga",
     "minecraft:taiga",
-    "minecraft:river",
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "temperature": [-0.45, 0.55],
+        "weirdness": [-0.1299, -0.0783]
+      }
+    },
     "minecraft:stony_shore",
-    "terralith:alpine_grove",
+    {
+      "id": "terralith:alpine_grove",
+      "parameters": {
+        "temperature": [-1.0047, 0.2],
+        "humidity": [-0.585, 1.0],
+        "weirdness": [0.0763, 0.1251]
+      }
+    },
     "terralith:birch_taiga",
     "terralith:rocky_mountains",
-    "natures_spirit:tundra",
-    "natures_spirit:snowy_fir_forest",
-    "terralith:wintry_forest"
+    {
+      "id": "natures_spirit:tundra",
+      "parameters": {
+        "temperature": [-1.0, 0.2],
+        "humidity": [-1.0, 0.1],
+        "weirdness": [-0.0783, -0.0282]
+      }
+    },
+    {
+      "id": "natures_spirit:snowy_fir_forest",
+      "parameters": {
+        "temperature": [-1.0, -0.15],
+        "humidity": [-0.1, 1.0],
+        "weirdness": [-0.0282, 0.0269]
+      }
+    },
+    {
+      "id": "terralith:wintry_forest",
+      "parameters": {
+        "temperature": [-1.0047, -0.7273],
+        "humidity": [-0.1, 1.0],
+        "weirdness": [0.0269, 0.0763]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

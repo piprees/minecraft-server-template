@@ -4,12 +4,44 @@
   "seed": 8552618426369524335,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "terralith:white_cliffs",
-    "natures_spirit:white_cliffs",
-    "terralith:warm_river",
-    "minecraft:river",
-    "minecraft:plains",
-    "minecraft:meadow"
+    {
+      "id": "terralith:white_cliffs",
+      "parameters": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.1649, -0.0951]
+      }
+    },
+    {
+      "id": "natures_spirit:white_cliffs",
+      "parameters": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-2.0, -0.1649]
+      }
+    },
+    {
+      "id": "terralith:warm_river",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0398]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [-0.0398, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:plains",
+      "parameters": {
+        "weirdness": [0.017, 0.0777]
+      }
+    },
+    {
+      "id": "minecraft:meadow",
+      "parameters": {
+        "weirdness": [0.0777, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

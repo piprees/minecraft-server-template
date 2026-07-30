@@ -4,11 +4,11 @@
   "seed": 9136558242665021692,
   "spawn": [0, 64, 0],
   "biomes": [
-    "natures_spirit:wisteria_forest",
-    "minecraft:cherry_grove",
-    "terralith:sakura_grove",
-    "terralith:sakura_valley",
-    "minecraft:meadow"
+    { "id": "natures_spirit:wisteria_forest", "parameters": { "weirdness": [-2.0, -0.06] } },
+    { "id": "terralith:sakura_grove", "parameters": { "weirdness": [-0.06, 0.02] } },
+    { "id": "minecraft:cherry_grove", "parameters": { "weirdness": [0.02, 0.1] } },
+    { "id": "terralith:sakura_valley", "parameters": { "weirdness": [0.1, 0.18] } },
+    { "id": "minecraft:meadow", "parameters": { "weirdness": [0.18, 2.0] } }
   ],
   "borders": {
     "player": 512,

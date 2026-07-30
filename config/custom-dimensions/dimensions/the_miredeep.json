@@ -3,14 +3,55 @@
   "description": "The empty deep mire. Sunken ruins and a mausoleum in the murk — whoever built these, the swamp took them generations ago. Too wet for roads, too quiet for company. The marsh doesn't remember their names.",
   "seed": 8614947220682105760,
   "biomes": [
-    "terralith:orchid_swamp",
-    "minecraft:mangrove_swamp",
-    "natures_spirit:marsh",
-    "minecraft:swamp",
-    "minecraft:river",
-    "minecraft:dark_forest",
-    "minecraft:beach",
-    "terralith:moonlight_valley"
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [-0.0825, -0.0398]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [-0.0398, 0.0053]
+      }
+    },
+    {
+      "id": "natures_spirit:marsh",
+      "parameters": {
+        "weirdness": [-0.1308, -0.0825]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [0.0053, 0.0498]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [-0.1868, -0.1308]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [0.0948, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [0.0498, 0.0948]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [-2.0, -0.1868]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

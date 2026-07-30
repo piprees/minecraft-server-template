@@ -3,12 +3,42 @@
   "description": "The red monument — a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away.",
   "seed": 847731309170024191,
   "biomes": [
-    "minecraft:end_barrens",
-    "minecraft:end_highlands",
-    "minecraft:the_end",
-    "nullscape:shadowlands",
-    "nullscape:crystal_peaks",
-    "minecraft:small_end_islands"
+    {
+      "id": "minecraft:end_barrens",
+      "parameters": {
+        "continentalness": [-0.0546, 0.0636]
+      }
+    },
+    {
+      "id": "minecraft:end_highlands",
+      "parameters": {
+        "continentalness": [0.177, 0.3015]
+      }
+    },
+    {
+      "id": "minecraft:the_end",
+      "parameters": {
+        "continentalness": [0.0636, 0.177]
+      }
+    },
+    {
+      "id": "nullscape:shadowlands",
+      "parameters": {
+        "continentalness": [-2.0, -0.1771]
+      }
+    },
+    {
+      "id": "nullscape:crystal_peaks",
+      "parameters": {
+        "continentalness": [0.3015, 2.0]
+      }
+    },
+    {
+      "id": "minecraft:small_end_islands",
+      "parameters": {
+        "continentalness": [-0.1771, -0.0546]
+      }
+    }
   ],
   "borders": {
     "player": 8192,

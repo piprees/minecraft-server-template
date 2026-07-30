@@ -3,15 +3,61 @@
   "description": "Quiet wetland wilderness. Reed beds, drowned ruins, things half-sunk in the clay. Nobody settles here; the marsh keeps what it takes. Whatever civilisation these ruins belonged to, the swamp claimed it centuries ago.",
   "seed": -8973129246890378784,
   "biomes": [
-    "natures_spirit:marsh",
-    "minecraft:swamp",
-    "minecraft:mangrove_swamp",
-    "terralith:orchid_swamp",
-    "natures_spirit:bamboo_wetlands",
-    "minecraft:river",
-    "minecraft:beach",
-    "minecraft:dark_forest",
-    "terralith:moonlight_valley"
+    {
+      "id": "natures_spirit:marsh",
+      "parameters": {
+        "weirdness": [-0.0597, -0.0187]
+      }
+    },
+    {
+      "id": "minecraft:swamp",
+      "parameters": {
+        "weirdness": [-0.0187, 0.017]
+      }
+    },
+    {
+      "id": "minecraft:mangrove_swamp",
+      "parameters": {
+        "weirdness": [-0.0951, -0.0597]
+      }
+    },
+    {
+      "id": "terralith:orchid_swamp",
+      "parameters": {
+        "weirdness": [0.017, 0.0571]
+      }
+    },
+    {
+      "id": "natures_spirit:bamboo_wetlands",
+      "parameters": {
+        "weirdness": [-0.1404, -0.0951]
+      }
+    },
+    {
+      "id": "minecraft:river",
+      "parameters": {
+        "weirdness": [0.0571, 0.0996]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "continentalness": [-0.6, -0.05],
+        "weirdness": [-0.1933, -0.1404]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [-2.0, -0.1933]
+      }
+    },
+    {
+      "id": "terralith:moonlight_valley",
+      "parameters": {
+        "weirdness": [0.0996, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

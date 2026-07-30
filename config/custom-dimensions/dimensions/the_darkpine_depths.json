@@ -4,14 +4,54 @@
   "seed": 9155801355435215650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
-    "terralith:moonlight_grove",
-    "minecraft:old_growth_spruce_taiga",
-    "natures_spirit:snowy_fir_forest",
-    "minecraft:dark_forest",
-    "minecraft:taiga",
-    "natures_spirit:fir_forest",
-    "minecraft:old_growth_pine_taiga",
-    "terralith:birch_taiga"
+    {
+      "id": "terralith:moonlight_grove",
+      "parameters": {
+        "weirdness": [-0.0825, -0.0398]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_spruce_taiga",
+      "parameters": {
+        "weirdness": [-0.0398, 0.0053]
+      }
+    },
+    {
+      "id": "natures_spirit:snowy_fir_forest",
+      "parameters": {
+        "weirdness": [-0.1308, -0.0825]
+      }
+    },
+    {
+      "id": "minecraft:dark_forest",
+      "parameters": {
+        "weirdness": [0.0053, 0.0498]
+      }
+    },
+    {
+      "id": "minecraft:taiga",
+      "parameters": {
+        "weirdness": [-0.1868, -0.1308]
+      }
+    },
+    {
+      "id": "natures_spirit:fir_forest",
+      "parameters": {
+        "weirdness": [0.0498, 0.0948]
+      }
+    },
+    {
+      "id": "minecraft:old_growth_pine_taiga",
+      "parameters": {
+        "weirdness": [-2.0, -0.1868]
+      }
+    },
+    {
+      "id": "terralith:birch_taiga",
+      "parameters": {
+        "weirdness": [0.0948, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 1024,

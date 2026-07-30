@@ -4,12 +4,42 @@
   "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
   "biomes": [
-    "terralith:mirage_isles",
-    "minecraft:warm_ocean",
-    "minecraft:lukewarm_ocean",
-    "natures_spirit:tropical_shores",
-    "terralith:deep_warm_ocean",
-    "minecraft:beach"
+    {
+      "id": "terralith:mirage_isles",
+      "parameters": {
+        "weirdness": [-0.1028, -0.0628]
+      }
+    },
+    {
+      "id": "minecraft:warm_ocean",
+      "parameters": {
+        "weirdness": [-0.0628, -0.0245]
+      }
+    },
+    {
+      "id": "minecraft:lukewarm_ocean",
+      "parameters": {
+        "weirdness": [-0.1461, -0.1028]
+      }
+    },
+    {
+      "id": "natures_spirit:tropical_shores",
+      "parameters": {
+        "weirdness": [-2.0, -0.1461]
+      }
+    },
+    {
+      "id": "terralith:deep_warm_ocean",
+      "parameters": {
+        "weirdness": [-0.0245, 0.0147]
+      }
+    },
+    {
+      "id": "minecraft:beach",
+      "parameters": {
+        "weirdness": [0.0147, 2.0]
+      }
+    }
   ],
   "borders": {
     "player": 512,
