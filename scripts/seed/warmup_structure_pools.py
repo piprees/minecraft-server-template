@@ -21,6 +21,11 @@ a dump covers the dimensions loaded so far. Dimensions are REGISTERED at boot
 from config but their ServerWorlds are created lazily, so this walks the rollable
 list issuing `customdim load` and then dumps once.
 
+That first sentence is why this boots WITHOUT SEED_ROLL_MODE, unlike every
+measurement worker: under SEED_ROLL_MODE nothing is registered, and a
+`customdim load` for an unregistered dimension is accepted, queued, and then
+silently dropped by getOrCreateDimension.
+
 Loading a world is cheap for placement (a few ms) but it creates a level
 directory and generates spawn chunks, so this is a one-time warmup cost paid in
 the throwaway boot directory, never in a real world.
@@ -57,6 +62,10 @@ from seed_worker import boot, docker, prepare_boot_dir  # noqa: E402
 BATCH = 8
 POLL_SECONDS = 2
 BATCH_TIMEOUT = 60
+# Consecutive polls with no new pool before a batch is called done. A batch
+# cannot always reach its target — see wait_for_batch — and waiting for one
+# that never arrives is what turned this warmup into ten idle minutes.
+QUIET_POLLS = 3
 
 
 def rcon(container, cmd, timeout=60):
@@ -86,10 +95,17 @@ def recorded_count(container):
 
     RCON concatenates feedback lines with NO separator, which is why this is a
     regex rather than a whitespace split: the reply is one run-together string
-    and the digits sit immediately before the phrase.
+    and the digits sit immediately before the phrase. The live reply is
+    `dump-structure-pools: 5 dimension(s) -> ./config/.../structure_pools.json`
+    (verified against a warmup container 2026-07-30).
 
-    -> -1 when the reply cannot be parsed, which the caller treats as "not there
-    yet" rather than as zero.
+    Each call rewrites structure_pools.json inside the throwaway boot
+    directory. That is the command's only shape — a summary plus a path —
+    and the file is overwritten by the final dump anyway.
+
+    -> -1 when the reply carries no number: an RCON timeout returns "", and a
+    server with nothing recorded yet answers with an error sentence. Both mean
+    "no answer", so callers must count it as neither progress nor silence.
     """
     out = rcon(container, "customdim dump-structure-pools", timeout=60)
     match = re.search(r"(\d+) dimension", out)
@@ -150,31 +166,59 @@ def stage_dimension_configs(workdir, config_dir):
     return staged
 
 
+def wait_for_batch(container, target):
+    """Wait for a batch's worlds to record their pools. -> the count reached.
+
+    Two exits, and the second one is the point. A batch cannot always reach
+    its target: a dimension whose structure groups are all suppressed
+    (structureDensity "none", structures.mode "none", structures.noise false)
+    loads its world through the legacy density path in DimensionStructures,
+    which never calls StructurePoolRecord.record. Waiting for a target that
+    dimension can never contribute to burns the full BATCH_TIMEOUT — and,
+    because the target keeps climbing, so does every batch after it. So the
+    batch is also done when the count simply stops moving.
+
+    A -1 is neither: it means the reply carried no number, so it must not
+    count as progress and must not count towards the quiet run either.
+    """
+    best = recorded_count(container)
+    quiet = 0
+    waited = 0
+    while best < target and waited < BATCH_TIMEOUT:
+        time.sleep(POLL_SECONDS)
+        waited += POLL_SECONDS
+        recorded = recorded_count(container)
+        if recorded < 0:
+            continue
+        if recorded > best:
+            best, quiet = recorded, 0
+        else:
+            quiet += 1
+            if quiet >= QUIET_POLLS:
+                break
+    return best
+
+
 def load_all(container, slugs):
     """Ask for every dimension's world, in batches, and report coverage.
 
     Batched rather than fired all at once: the mod queues each load on
-    END_SERVER_TICK, and a batch small enough to settle inside the poll window
-    keeps the progress numbers honest and stops one slow world from swallowing
-    the whole run's time budget.
+    END_SERVER_TICK and drains one per tick, and a batch small enough to
+    settle inside the poll window keeps the progress numbers honest and stops
+    one slow world from swallowing the whole run's time budget.
     """
     baseline = max(0, recorded_count(container))   # the base worlds load themselves
+    recorded = baseline
     for start in range(0, len(slugs), BATCH):
         batch = slugs[start:start + BATCH]
         for slug in batch:
             out = rcon(container, "customdim load %s" % slug, timeout=30)
             if "Queued" not in out and "already" not in out.lower():
                 print("    %s did not queue: %s" % (slug, out[:80]), flush=True)
-        target = baseline + min(start + BATCH, len(slugs))
-        waited = 0
-        recorded = recorded_count(container)
-        while recorded < target and waited < BATCH_TIMEOUT:
-            time.sleep(POLL_SECONDS)
-            waited += POLL_SECONDS
-            recorded = recorded_count(container)
+        requested = min(start + BATCH, len(slugs))
+        recorded = wait_for_batch(container, baseline + requested)
         print("    %d/%d requested, %d recorded" % (
-            min(start + BATCH, len(slugs)), len(slugs), max(0, recorded - baseline)),
-            flush=True)
+            requested, len(slugs), max(0, recorded - baseline)), flush=True)
     return max(0, recorded_count(container) - baseline)
 
 
@@ -200,7 +244,11 @@ def main():
     stage_dimension_configs(args.workdir, args.config)
     print("  Booting MC server for structure pool dump (%d dimensions)..."
           % len(slugs), flush=True)
-    rcon_obj = boot("warmup", container, args.workdir, args.memory)
+    # seed_roll_mode=False is load-bearing: it is what registers the
+    # configured dimensions, and without a registry entry `customdim load`
+    # queues a load that getOrCreateDimension then drops on the floor.
+    rcon_obj = boot("warmup", container, args.workdir, args.memory,
+                    seed_roll_mode=False)
     if rcon_obj is None:
         print("  ERROR: server boot failed", flush=True)
         docker("rm", "-f", container, check=False)

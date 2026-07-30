@@ -3,6 +3,7 @@
 import socket
 import unittest
 
+import seed_worker
 from seed_worker import (Rcon, RconTimeout, create_candidate, spawn_filter_rejection,
                          spawn_gate_for, worker_backoff)
 
@@ -129,6 +130,48 @@ class RconRecoveryTests(unittest.TestCase):
         self.assertEqual(worker_backoff(1), 5)
         self.assertEqual(worker_backoff(2), 10)
         self.assertEqual(worker_backoff(10), 60)
+
+
+class SeedRollModeEnvTests(unittest.TestCase):
+    """Which of the two ways into a dimension the container supports.
+
+    SEED_ROLL_MODE=true makes the mod skip registerDimensions(), so no
+    CONFIGURED dimension has options in the registry. Workers want that —
+    they create their own candidates. warmup_structure_pools.py does not:
+    `customdim load <slug>` resolves through getOrCreateDimension, which
+    returns null without a log line when the options are missing, so the load
+    is queued and then dropped (measured 2026-07-30: 0 of 77 loaded, and only
+    the 5 self-loading worlds recorded a pool).
+    """
+
+    def run_args(self, **kwargs):
+        captured = {}
+
+        def fake_docker(*args, **_kwargs):
+            if args and args[0] == "run":
+                captured["run"] = list(args)
+            elif args and args[0] == "port":
+                return type("R", (), {"stdout": "127.0.0.1:55555"})()
+            return type("R", (), {"returncode": 1, "stdout": ""})()
+
+        original = seed_worker.docker
+        seed_worker.docker = fake_docker
+        try:
+            seed_worker.start_container("c", "/tmp/nowhere", "6G", **kwargs)
+        finally:
+            seed_worker.docker = original
+        return captured["run"]
+
+    def test_workers_get_seed_roll_mode(self):
+        self.assertIn("SEED_ROLL_MODE=true", self.run_args())
+
+    def test_opting_out_removes_the_variable_entirely(self):
+        args = self.run_args(seed_roll_mode=False)
+        self.assertFalse([a for a in args if str(a).startswith("SEED_ROLL_MODE")])
+        # The rest of the environment must be untouched — the pool warmup
+        # differs in exactly one variable.
+        self.assertIn("EULA=TRUE", args)
+        self.assertIn("ENABLE_RCON=TRUE", args)
 
 
 if __name__ == "__main__":

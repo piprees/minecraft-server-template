@@ -109,7 +109,12 @@ jobs:
         uses: orhun/git-cliff-action@v4.8.0
         with:
           version: v2.13.1
-          args: --latest --strip header -o dist/RELEASE_NOTES.md
+          # --unreleased --tag, not --latest: this runs BEFORE the release
+          # is created, so the version being cut has no tag yet and --latest
+          # resolves to the PREVIOUS release (v4.3.1 shipped v4.3.0's notes).
+          args: >-
+            --unreleased --tag ${{ inputs.version }}
+            --strip header -o dist/RELEASE_NOTES.md
 
       - name: Fetch tags for changelog
         run: git fetch --tags --force
@@ -121,7 +126,9 @@ jobs:
         uses: orhun/git-cliff-action@v4.8.0
         with:
           version: v2.13.1
-          args: -o CHANGELOG.md
+          # --tag for the same reason: without it the version being released
+          # lands under an "Unreleased" heading in CHANGELOG.md.
+          args: --tag ${{ inputs.version }} -o CHANGELOG.md
 
       - name: Create draft release with assets, then publish
         run: |

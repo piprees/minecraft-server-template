@@ -2,8 +2,10 @@
 """seed_worker.py — one seed-roll worker: container lifecycle + measurement.
 
 Launched N times in parallel by roll-all.sh. Each worker owns one Docker
-container (itzg/minecraft-server, SEED_ROLL_MODE=true so no dimensions are
-created at boot) and works through its manifest sequentially:
+container (itzg/minecraft-server, SEED_ROLL_MODE=true so no configured
+dimension is registered at boot — see start_container, and note that
+warmup_structure_pools.py deliberately boots without it) and works through
+its manifest sequentially:
 
     customdim create <cand> ... -> measure -> [render] -> customdim destroy
 
@@ -310,7 +312,25 @@ def fabric_pin_env(workdir):
             "-e", f"FABRIC_LAUNCHER_VERSION={m.group(2)}"]
 
 
-def start_container(name, workdir, memory, seed="1"):
+def start_container(name, workdir, memory, seed="1", seed_roll_mode=True):
+    """Start one throwaway server.
+
+    `seed_roll_mode` is the mod's SEED_ROLL_MODE env var, and it decides
+    which of the two ways into a dimension works:
+
+      - true (every measurement worker): WorldLoaderMixin skips
+        registerDimensions(), so no CONFIGURED dimension has DimensionOptions
+        in the registry. `customdim create` registers its own options as it
+        goes, which is exactly what a worker rolling arbitrary candidates
+        wants, and it saves registering ~80 dimensions the worker will never
+        touch.
+      - false (warmup_structure_pools.py): the configured dimensions get
+        their options, so `customdim load <slug>` can build their worlds.
+        Under true it cannot: getOrCreateDimension finds no options and
+        returns null with no log line, so the load looks queued and nothing
+        happens (measured 2026-07-30 — 0 of 77 dimensions loaded, and the
+        only pools recorded were the 5 worlds that load themselves).
+    """
     docker("rm", "-f", name, check=False)
     for _ in range(10):
         r = docker("inspect", name, check=False, capture=True)
@@ -342,7 +362,7 @@ def start_container(name, workdir, memory, seed="1"):
            "-e", "ONLINE_MODE=FALSE", "-e", "ENABLE_AUTOPAUSE=FALSE",
            "-e", "OVERRIDE_SERVER_PROPERTIES=true",
            "-e", "MAX_TICK_TIME=-1",
-           "-e", "SEED_ROLL_MODE=true",
+           *(["-e", "SEED_ROLL_MODE=true"] if seed_roll_mode else []),
            "-e", "VIEW_DISTANCE=6", "-e", "SIMULATION_DISTANCE=4",
            "-e", "GENERATE_STRUCTURES=false",
            "-e", "SPAWN_CHUNK_RADIUS=0",
@@ -1155,8 +1175,10 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
     cfg = workdir / "config"
     cfg.mkdir(exist_ok=True)
     # v4 config: minimal settings.json + empty dimensions dir. The mod
-    # reads config/custom-dimensions/ at boot; SEED_ROLL_MODE skips
-    # dimension creation, so only the namespace matters.
+    # reads config/custom-dimensions/ at boot; a measurement worker runs
+    # with SEED_ROLL_MODE=true and creates its candidates by command, so
+    # only the namespace matters to it. warmup_structure_pools.py needs the
+    # real configs and writes them in itself, straight after this call.
     cd = cfg / "custom-dimensions"
     shutil.rmtree(cd, ignore_errors=True)
     (cd / "dimensions").mkdir(parents=True)
@@ -1181,12 +1203,17 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
         shutil.copytree(dp_template, dst, dirs_exist_ok=True)
 
 
-def boot(wid, container, workdir, memory, seed="1"):
-    """Boot with retries; returns a live Rcon (frozen ticks) or None."""
+def boot(wid, container, workdir, memory, seed="1", seed_roll_mode=True):
+    """Boot with retries; returns a live Rcon (frozen ticks) or None.
+
+    `seed_roll_mode` is passed straight to start_container — see its docstring
+    for why the structure-pool warmup is the one caller that turns it off.
+    """
     rcon = None
     for attempt in range(1, 4):
         try:
-            port = start_container(container, workdir, memory, seed=seed)
+            port = start_container(container, workdir, memory, seed=seed,
+                                   seed_roll_mode=seed_roll_mode)
             rcon = wait_for_rcon(wid, container, port)
         except Exception as e:  # noqa: BLE001 — docker races must not kill the worker
             log(wid, f"boot attempt {attempt} error: {type(e).__name__}: {e}")

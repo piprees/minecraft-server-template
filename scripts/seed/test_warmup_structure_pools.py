@@ -78,6 +78,75 @@ class BatchingTests(unittest.TestCase):
         for the full window, turning a warmup into ten idle minutes."""
         self.assertGreaterEqual(wsp.BATCH, 1)
         self.assertGreaterEqual(wsp.BATCH_TIMEOUT, wsp.POLL_SECONDS * 2)
+        self.assertGreaterEqual(wsp.QUIET_POLLS, 1)
+        self.assertLess(wsp.QUIET_POLLS * wsp.POLL_SECONDS, wsp.BATCH_TIMEOUT)
+
+
+class WaitForBatchTests(unittest.TestCase):
+    """The progress gate. Its whole job is to not wait for what cannot arrive."""
+
+    def setUp(self):
+        self._real_count = wsp.recorded_count
+        self._real_sleep = wsp.time.sleep
+        self.slept = []
+        wsp.time.sleep = self.slept.append
+
+    def tearDown(self):
+        wsp.recorded_count = self._real_count
+        wsp.time.sleep = self._real_sleep
+
+    def feed(self, replies):
+        """recorded_count answers each item in turn, then repeats the last."""
+        self.calls = []
+
+        def fake(_container):
+            value = replies[min(len(self.calls), len(replies) - 1)]
+            self.calls.append(value)
+            return value
+
+        wsp.recorded_count = fake
+
+    def test_it_returns_as_soon_as_the_target_is_reached(self):
+        self.feed([13])
+        self.assertEqual(wsp.wait_for_batch("c", 13), 13)
+        self.assertEqual(self.slept, [])
+
+    def test_a_batch_that_can_never_reach_its_target_gives_up_when_quiet(self):
+        """One suppressed dimension records no pool, so 7 of 8 is the real
+        answer. Before the quiet exit this cost BATCH_TIMEOUT here and on
+        every batch after it, because the target keeps climbing."""
+        self.feed([12])
+        self.assertEqual(wsp.wait_for_batch("c", 13), 12)
+        self.assertEqual(len(self.slept), wsp.QUIET_POLLS)
+
+    def test_progress_resets_the_quiet_run(self):
+        """Slow worlds must not be abandoned: any increase buys a fresh
+        QUIET_POLLS, so a batch trickling in is waited out."""
+        self.feed([5, 5, 5, 6, 6, 6, 7])
+        self.assertEqual(wsp.wait_for_batch("c", 7), 7)
+
+    def test_an_unparseable_reply_is_neither_progress_nor_silence(self):
+        """-1 carries no information. Counting it as progress would restart
+        the wait forever; counting it as silence would end the batch on an
+        RCON hiccup."""
+        self.feed([5, -1, -1, -1, -1, -1, 6])
+        self.assertEqual(wsp.wait_for_batch("c", 6), 6)
+
+    def test_it_never_waits_past_the_batch_timeout(self):
+        """A server answering -1 forever must still bound the batch."""
+        self.feed([-1])
+        self.assertEqual(wsp.wait_for_batch("c", 8), -1)
+        self.assertEqual(sum(self.slept), wsp.BATCH_TIMEOUT)
+
+
+class BootModeTests(unittest.TestCase):
+    def test_the_pool_warmup_boots_without_seed_roll_mode(self):
+        """SEED_ROLL_MODE skips registerDimensions(), and an unregistered
+        dimension's `customdim load` is queued and then dropped silently by
+        getOrCreateDimension — 0 of 77 loaded, measured 2026-07-30."""
+        import inspect
+        source = inspect.getsource(wsp.main)
+        self.assertIn("seed_roll_mode=False", source)
 
 
 if __name__ == "__main__":

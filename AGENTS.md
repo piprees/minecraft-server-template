@@ -26,6 +26,8 @@ Do not ask "should I continue." Continue. Do not ask "what next." Check the list
 
 **Context budget:** every token costs. Work until context is exhausted. Produce deliverables, not infrastructure. Do not idle. Do not ask for permission to continue. Do not pad turns with summaries of what you're about to do. Do the work.
 
+**Commentary:** you must avoid narrativising and commentating; ensure messages and deliverables are concise and actionable, but also that comments left for other developers and agents are present-tensed, current, and accurate. Avoid repeating information that is already present in the code itself or where adding historical context is unnecessary. Avoid embelleshing, narrativising, or dramatising decisions, rationale, or project history, and trust others to read the code and documentation to understand context.
+
 ## Quick reference (read the full file for anything non-trivial)
 
 - Run `./scripts/test-scripts.sh --quick` before pushing.
@@ -114,7 +116,7 @@ Start any diagnosis with `./ops doctor`. The forbidden-actions list (never strea
 
 The ones worth knowing before you touch anything:
 
-| | |
+|  |  |
 | --- | --- |
 | [T4](TROUBLESHOOTING.md#t4) | Mods resolve in the seed, never via the API at boot. Don't reintroduce `MODRINTH_PROJECTS`. |
 | [T7](TROUBLESHOOTING.md#t7) | Kuma auth is human-gated. On `authIncorrectCreds`, **stop** — do not retry. |
