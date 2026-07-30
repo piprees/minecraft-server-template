@@ -164,6 +164,27 @@ re-derive it.
 - Verify the jar has classes, a refmap and intermediary (`class_NNNN`) names
   before restarting anything. `BUILD SUCCESSFUL` proves none of that.
 
+## Stack state in ~/Projects/elfydd
+
+Items 1, 4 and 5 were verified end to end through a rebuilt bundle, not just
+from the platform checkout:
+
+```
+.stack/current -> v9.9.10-test      (was v9.9.9-test, still present for rollback)
+```
+
+Built with `./scripts/build-stack-bundle.sh v9.9.10-test`. This is how the new
+`project.js` was proved to actually ship — `v9.9.9-test`'s
+`stack/scripts/seed/web/` has no `project.js`, which is exactly the MANIFEST
+trap. The viewer was then run from `.stack/current/stack/scripts/seed/` (the
+real consumer path) and re-measured: `/noise-census` returned the same 14979
+sites across 7 groups, 350 markers drew, and the projection measured
+0.0024px against the 2px tolerance — identical to the checkout run.
+
+`./dev update` will replace `current` with whatever the pinned `STACK_VERSION`
+resolves to, so this pin is deliberately a local test artefact and not a
+permanent state.
+
 ## Concurrent session
 
 A second `claude` process was writing this repo throughout (pid 7018 at the
