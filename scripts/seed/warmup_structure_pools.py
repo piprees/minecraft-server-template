@@ -39,6 +39,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -106,6 +107,49 @@ def rollable_slugs(config_dir):
                   if slug not in dp.BASE_WORLD_IDS and dp.rollable(cfg))
 
 
+def stage_dimension_configs(workdir, config_dir):
+    """Give the warmup server the dimension configs it is about to be asked
+    to load.
+
+    prepare_boot_dir is shared with the seed workers, which measure through
+    the Python sampler and genuinely need nothing but a namespace — so it
+    writes an EMPTY dimensions/ directory and says so. The pool dump is the
+    one warmup that drives the MOD instead of the sampler, and against an
+    empty directory every `customdim load <slug>` answers "No configured
+    dimension named" and the whole dump comes back 0/77 (2026-07-30).
+
+    The consumer overlay is STAGED, not pre-merged: the mod reads
+    custom-dimensions/overlay/dimensions/ and merges it itself, exactly as it
+    does on a real boot. Merging it here instead would be a second
+    implementation of the overlay contract, free to disagree with the one
+    that actually generates the world.
+    """
+    src = Path(config_dir)
+    dst = Path(workdir) / "config" / "custom-dimensions"
+    staged = 0
+    dims_dst = dst / "dimensions"
+    dims_dst.mkdir(parents=True, exist_ok=True)
+    for f in sorted((src / "dimensions").glob("*.json")):
+        shutil.copy2(f, dims_dst / f.name)
+        staged += 1
+    # settings.json carries the namespace and the per-dimension defaults the
+    # mod falls back to; prepare_boot_dir wrote a namespace-only stub.
+    if (src / "settings.json").is_file():
+        shutil.copy2(src / "settings.json", dst / "settings.json")
+
+    overlay_src = os.environ.get("SEED_OVERLAY_DIR")
+    overlaid = 0
+    if overlay_src and (Path(overlay_src) / "dimensions").is_dir():
+        overlay_dst = dst / "overlay" / "dimensions"
+        overlay_dst.mkdir(parents=True, exist_ok=True)
+        for f in sorted((Path(overlay_src) / "dimensions").glob("*.json")):
+            shutil.copy2(f, overlay_dst / f.name)
+            overlaid += 1
+    print("  Staged %d dimension config(s)%s" % (
+        staged, " + %d overlay" % overlaid if overlaid else ""), flush=True)
+    return staged
+
+
 def load_all(container, slugs):
     """Ask for every dimension's world, in batches, and report coverage.
 
@@ -152,6 +196,8 @@ def main():
 
     container = "seedrollall-warmup-pools"
     prepare_boot_dir(args.workdir, args.mvconfig, args.seedtest)
+    # MUST run after prepare_boot_dir — that rmtree's custom-dimensions/.
+    stage_dimension_configs(args.workdir, args.config)
     print("  Booting MC server for structure pool dump (%d dimensions)..."
           % len(slugs), flush=True)
     rcon_obj = boot("warmup", container, args.workdir, args.memory)
