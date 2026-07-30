@@ -18,6 +18,9 @@
 #   ./roll-all.sh --dims the_gauntlet        # single dimension
 #   ./roll-all.sh --no-write                 # don't write winners to configs
 #   ./roll-all.sh --reset                    # wipe all seed data
+#   ./roll-all.sh --clean                    # wipe worker dirs, keep the bank
+#   ./roll-all.sh --warmup-only              # rebuild warmup artefacts and stop
+#   ./roll-all.sh --help                     # this list, with what each does
 #
 # Environment:
 #   ROLL_MEMORY      memory per warmup container (default 10G)
@@ -74,6 +77,48 @@ DIMS=""
 WRITE_CONFIG=1
 WARMUP_ONLY=0
 
+usage() {
+  echo "Usage: ./dev seed-roll [options]"
+  echo ""
+  echo "Rolls candidate seeds for every dimension and the four base worlds,"
+  echo "scores them against each dimension's seedRoll block, and writes the"
+  echo "winners back into the configs."
+  echo ""
+  echo "Options:"
+  echo "  --pool N        Tier-1 screening seeds per dimension (default $ROLL_POOL)"
+  echo "  --count N       Candidates kept per dimension (default $ROLL_COUNT)"
+  echo "  --dims a,b      Only roll the named dimensions (comma-separated)"
+  echo "  --no-write      Measure and score only; never touch a config file"
+  echo "  --reset         Delete ALL seed data first, then roll from scratch"
+  echo "  --clean         Delete only the worker dirs; keep the candidate bank"
+  echo "  --warmup-only   Rebuild the warmup artefacts and stop without rolling"
+  echo "  -h, --help      Show this and exit"
+  echo ""
+  echo "Environment:"
+  echo "  ROLL_MEMORY     Memory per warmup container (default 10G)"
+  echo "  ROLL_POOL       Same as --pool"
+  echo "  ROLL_COUNT      Same as --count"
+  echo ""
+  echo "Ctrl+C finalises with whatever has been measured — it is not a discard,"
+  echo "and a re-run resumes from the bank rather than re-measuring."
+  echo ""
+  echo "Related: ./dev seed-rescore (score banked measurements against the"
+  echo "current configs), ./dev seed-status (counts, winners, freshness),"
+  echo "./dev seed-viewer (compare candidates and pick winners by eye)."
+}
+
+# Answer --help BEFORE the parse loop: --reset deletes .seedtest as it is
+# parsed, so `--reset --help` would wipe the bank on its way to printing a
+# help page. A help flag must never destroy anything.
+for arg in "$@"; do
+  case "$arg" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --pool)        ROLL_POOL="$2"; shift 2 ;;
@@ -92,7 +137,11 @@ while [[ $# -gt 0 ]]; do
     --clean)
       rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]* "$SEEDTEST"/wr
       shift ;;
-    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      echo "Run './dev seed-roll --help' for the full list." >&2
+      exit 1
+      ;;
   esac
 done
 
