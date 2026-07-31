@@ -6,8 +6,6 @@ name: Release Bundle
 # attached, then publishes it. This is the only order that works with
 # immutable releases (assets cannot be added after publish - and consumers
 # get the supply-chain guarantee that a published bundle never changes).
-# Publishing the draft fires the `release: published` event, which triggers
-# publish.yml to build and tag the container images.
 on:
   workflow_dispatch:
     inputs:
