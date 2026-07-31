@@ -32,6 +32,9 @@ set -euo pipefail
 ROLL_MEMORY="${ROLL_MEMORY:-10G}"
 ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
+# Empty means "let score-dimensions decide" (CPU count minus 2). Set it only
+# to leave room for something else on the machine.
+ROLL_CENSUS_WORKERS="${ROLL_CENSUS_WORKERS:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -88,6 +91,8 @@ usage() {
   echo "  --pool N        Tier-1 screening seeds per dimension (default $ROLL_POOL)"
   echo "  --count N       Candidates kept per dimension (default $ROLL_COUNT)"
   echo "  --dims a,b      Only roll the named dimensions (comma-separated)"
+  echo "  --census-workers N  Processes for the census/terrain backfill"
+  echo "                  (default: CPU count minus 2 — lower it to share the machine)"
   echo "  --no-write      Measure and score only; never touch a config file"
   echo "  --reset         Delete ALL seed data first, then roll from scratch"
   echo "  --clean         Delete only the worker dirs; keep the candidate bank"
@@ -98,6 +103,7 @@ usage() {
   echo "  ROLL_MEMORY     Memory per warmup container (default 10G)"
   echo "  ROLL_POOL       Same as --pool"
   echo "  ROLL_COUNT      Same as --count"
+  echo "  ROLL_CENSUS_WORKERS  Same as --census-workers"
   echo ""
   echo "Ctrl+C finalises with whatever has been measured — it is not a discard,"
   echo "and a re-run resumes from the bank rather than re-measuring."
@@ -124,6 +130,7 @@ while [[ $# -gt 0 ]]; do
     --pool)        ROLL_POOL="$2"; shift 2 ;;
     --count)       ROLL_COUNT="$2"; shift 2 ;;
     --dims)        DIMS="$2"; shift 2 ;;
+    --census-workers) ROLL_CENSUS_WORKERS="$2"; shift 2 ;;
     --no-write)    WRITE_CONFIG=0; shift ;;
     # Warmup is a prerequisite the viewer drives itself, not a step a user
     # should have to know about — this exposes it without rolling anything.
@@ -399,7 +406,9 @@ finalise() {
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
     --config "$CONFIG" --seedtest "$SEEDTEST" \
-    ${DIMS:+--dims "$DIMS"} $WRITE_FLAG $OVERLAY_FLAG --viewer || true
+    ${DIMS:+--dims "$DIMS"} \
+    ${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"} \
+    $WRITE_FLAG $OVERLAY_FLAG --viewer || true
 }
 
 # ===========================================================================

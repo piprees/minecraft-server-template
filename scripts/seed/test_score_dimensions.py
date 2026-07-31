@@ -951,5 +951,40 @@ class CensusWorkerPicklingTest(unittest.TestCase):
                 sys.modules["score_dimensions"] = saved
 
 
+class BackfillWorkerTests(unittest.TestCase):
+    """The census/terrain backfill takes every core but two.
+
+    It used to be `min(cpu_count(), 8)`, which on an 18-core machine left ten
+    cores idle for the six hours a cold 65k-candidate backfill runs, and
+    `roll-all.sh` never passed --census-workers, so there was no way to raise
+    it from `./dev seed-roll` at all.
+    """
+
+    def test_default_leaves_two_cores(self):
+        import multiprocessing
+        self.assertEqual(score_dimensions.default_workers(),
+                         max(2, multiprocessing.cpu_count() - 2))
+
+    def test_a_small_machine_still_overlaps_work(self):
+        import multiprocessing
+        real = multiprocessing.cpu_count
+        for cores in (1, 2, 3, 4):
+            multiprocessing.cpu_count = lambda c=cores: c
+            try:
+                self.assertGreaterEqual(score_dimensions.default_workers(), 2,
+                                        f"{cores} core(s)")
+            finally:
+                multiprocessing.cpu_count = real
+
+    def test_roll_all_passes_the_flag_through_to_finalise(self):
+        """The flag existed on score-dimensions and was unreachable from the
+        command anyone actually runs — `dev` execs roll-all.sh, and its
+        finalise call named no --census-workers."""
+        sh = (Path(__file__).with_name("roll-all.sh")).read_text()
+        self.assertIn("--census-workers) ROLL_CENSUS_WORKERS=", sh)
+        self.assertIn(
+            '${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"}', sh)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -67,6 +67,19 @@ from dimension_profiles import (  # noqa: E402
 LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 
 
+def default_workers():
+    """Processes for the census and terrain backfills when none is asked for.
+
+    Every core but two. Mirrors viewer-server.RenderWorker, which made the
+    same call for a more expensive job: leave the machine usable, take the
+    rest. This used to be `min(cpu_count(), 8)`, which left ten of eighteen
+    cores idle for the six hours a cold 65k-candidate backfill takes.
+
+    Two cores is the floor, so a small machine still overlaps work.
+    """
+    return max(2, multiprocessing.cpu_count() - 2)
+
+
 # ---------------------------------------------------------------------------
 # Manifests + per-worker roll configs
 # ---------------------------------------------------------------------------
@@ -751,11 +764,11 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
 
     if not tasks:
         return
-    # A cold bank is tens of minutes of CPU across every core. Without a
-    # progress line it looks hung, and without a cap it starves anything else
-    # on the machine — a local Minecraft server took three times as long to
-    # boot beside it (2026-07-27).
-    workers = getattr(args, "census_workers", 0) or min(multiprocessing.cpu_count(), 8)
+    # A cold bank is hours of CPU across every core. Without a progress line
+    # it looks hung; `--census-workers N` is how you leave room for something
+    # else on the machine — a local Minecraft server took three times as long
+    # to boot beside an unrestricted run (2026-07-27).
+    workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
     if not quiet:
         print(f"noise census: computing {len(tasks)} candidate layout(s) on "
@@ -875,7 +888,7 @@ def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
 
     if not tasks:
         return
-    workers = getattr(args, "census_workers", 0) or min(multiprocessing.cpu_count(), 8)
+    workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
     if not quiet:
         print(f"terrain survey: measuring {len(tasks)} candidate(s) over the full "
@@ -2524,10 +2537,10 @@ def main():
     ap.add_argument("--no-worlds", action="store_true",
                     help="manifest: no @worlds slots (skip world-seed rolling)")
     ap.add_argument("--census-workers", type=int, default=0,
-                    help="processes for the noise-census backfill "
-                         "(default: CPU count capped at 8). Lower it to leave "
-                         "room for a local server — a cold bank saturates "
-                         "every core for tens of minutes")
+                    help="processes for the noise-census and terrain backfills "
+                         "(default: CPU count minus 2, floor 2). Lower it to "
+                         "leave room for a local server — a cold bank runs for "
+                         "hours on every core it is given")
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--viewer", action="store_true")
     ap.add_argument("--open-viewer", action="store_true")
