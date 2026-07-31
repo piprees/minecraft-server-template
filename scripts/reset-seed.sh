@@ -8,7 +8,9 @@
 # Deletes: all world data (overworld, nether, end, dimensions/),
 # player data (playerdata, stats, advancements), uNmINeD map renders,
 # Chunky markers + task state + .skip-pause, Distant Horizons cache,
-# POI, ledger, dynamic-data-pack-cache.
+# POI, ledger, dynamic-data-pack-cache. Deletion runs under sudo (sidecars
+# write as root, so DEPLOY_USER cannot remove data/unmined-web) and is
+# verified afterwards rather than assumed.
 #
 # Optionally wipes restic backups in R2 (--wipe-backups flag).
 #
@@ -241,15 +243,31 @@ echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
 echo ""
 echo "==> Deleting world and player data on the droplet..."
 
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && \
-  rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/ && \
-  rm -rf data/playerdata/ data/stats/ data/advancements/ && \
-  rm -rf data/unmined-web/maps/ data/unmined-web/index.html && \
-  rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete && \
-  rm -f  data/.skip-pause && \
-  rm -rf data/config/chunky/tasks/ && \
-  rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite && \
-  rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
+# sudo: sidecars write as root inside their containers, so data/unmined-web is
+# root-owned and DEPLOY_USER cannot remove it. Statements are separated by ';'
+# not '&&' — chaining meant one Permission denied skipped every later deletion
+# and, under set -e, aborted the reset with the world already gone and the
+# stack still down.
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
+  sudo rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/; \
+  sudo rm -rf data/playerdata/ data/stats/ data/advancements/; \
+  sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html; \
+  sudo rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete; \
+  sudo rm -f  data/.skip-pause; \
+  sudo rm -rf data/config/chunky/tasks/; \
+  sudo rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite; \
+  sudo rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
+
+# Verify rather than trust: a partial delete leaves the old world in place and
+# the new seed would silently generate nothing.
+LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/world_the_nether data/world_the_end data/dimensions data/unmined-web/maps data/config/chunky/tasks data/dynamic-data-pack-cache 2>/dev/null" || true)"
+if [[ -n "$LEFTOVERS" ]]; then
+  echo "ERROR: these paths survived deletion:"
+  echo "$LEFTOVERS" | sed 's/^/         /'
+  echo "       Remove them by hand, then re-run deploy.sh to bring the stack up:"
+  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR}/.stack/current/stack && bash scripts/deploy.sh --pull --non-interactive'"
+  exit 1
+fi
 
 echo "  Deleted: world data (all dimensions)"
 echo "  Deleted: player data (playerdata, stats, advancements)"
@@ -268,12 +286,13 @@ else
   echo "==> Updating seed: ${CURRENT_SEED} -> ${NEW_SEED}"
 
   # --- .env (local) ---------------------------------------------------------------
+  # Single-quoted, per the .env writing convention (env_quote in lib.sh).
   cp -p .env ".env.bak.${STAMP}"
-  sed_i "s/^SEED=.*/SEED=${NEW_SEED}/" .env
+  sed_i "s/^SEED=.*/SEED='${NEW_SEED}'/" .env
   echo "  Updated .env (backed up to .env.bak.${STAMP})"
 
   # --- .env on the droplet --------------------------------------------------------
-  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i 's/^SEED=.*/SEED=${NEW_SEED}/' .env"
+  ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && cp -p .env .env.bak.${STAMP} && sed -i \"s/^SEED=.*/SEED='${NEW_SEED}'/\" .env"
   echo "  Updated .env on droplet (backed up to .env.bak.${STAMP})"
 fi
 
