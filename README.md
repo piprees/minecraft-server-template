@@ -92,6 +92,8 @@ affect a roll at all.
 
 Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/`; "Use this seed" pins your pick over the score ranking.
 
+The open dimension and candidate live in the URL — `/the-nether` for an expanded dimension, `/the-nether/4412011349903857317` for one with a candidate's detail panel open (underscores become hyphens). Refresh, Back/Forward and a pasted link all land back on the same view; filters and sort stay in the query string alongside it.
+
 The viewer does more than rank: pick any two candidates and **Compare** puts both renders side by side with a weighted per-component diff; **All criteria** (`D`) draws every structure band on the map at once with spawn at the centre; the **scatter** (⁘) plots the whole bank on two score axes to find outliers. Candidates whose render hasn't been produced yet still show a terrain chip built from the height grid measured at roll time. Its stylesheet and scripts live in `scripts/seed/web/` (Tailwind v4, built and committed — nothing is fetched at runtime).
 
 ## Upgrading

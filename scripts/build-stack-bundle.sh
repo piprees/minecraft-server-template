@@ -83,6 +83,7 @@ MANIFEST=(
   # copies it into <seedtest>/assets/ beside index.html at finalise time.
   scripts/seed/web/app.built.css
   scripts/seed/web/project.js
+  scripts/seed/web/route.js
   scripts/seed/web/app.js
   scripts/seed/web/compare.js
   scripts/seed/web/dartboard.js

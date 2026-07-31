@@ -2,6 +2,23 @@
 <html lang="en">
   <meta charset="utf-8" />
   <title>Seed Viewer — Multiverse</title>
+  <!-- The page is served at /, at /the-nether, and at /the-nether/<seed>
+       (see web/route.js). At the two-segment route every relative href
+       would otherwise resolve against /the-nether/, so the stylesheet and
+       every render would 404. One <base> pins them to the server root.
+       It must run BEFORE the stylesheet link below, which is why it is
+       inline here rather than in route.js.
+
+       Skipped on file://, where there is no routing and "/" would mean the
+       filesystem root — roll-all.sh prints .seedtest/index.html as a path
+       to open directly, and that has to keep working. -->
+  <script>
+    if (location.protocol !== 'file:') {
+      var b = document.createElement('base')
+      b.href = '/'
+      document.head.appendChild(b)
+    }
+  </script>
   <!-- Tailwind v4 build + the shadcn token contract. Copied beside this file
        into assets/ by score-dimensions.install_web_assets, so the same
        relative href works over http://127.0.0.1:8765/ and from a file://
@@ -289,6 +306,9 @@
   <!-- project.js first: it owns the one block-offset -> viewBox sum every
        overlay below depends on, and it must be defined before they run. -->
   <script src="assets/project.js" defer></script>
+  <!-- route.js before app.js for the same reason: app.js reads the URL on
+       load to restore the expanded dimension and the open candidate. -->
+  <script src="assets/route.js" defer></script>
   <script src="assets/app.js" defer></script>
   <script src="assets/compare.js" defer></script>
   <script src="assets/dartboard.js" defer></script>

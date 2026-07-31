@@ -28,6 +28,7 @@ standalone after a roll too (./dev seed-roll leaves the data behind).
 import argparse
 import errno
 import json
+import re
 import subprocess
 import sys
 import threading
@@ -1101,6 +1102,28 @@ def _deep_merge(base, over):
     return out
 
 
+#: A viewer deep link: `/the-nether`, or `/the-nether/-4831234567`. MIRRORS
+#: web/route.js's parsePath — the set of paths that serve the page has to be
+#: the set the page can restore itself from, or a refresh 404s on a URL the
+#: page put in the address bar itself.
+#:
+#: Strict on purpose: no dots (so `/index.html` and `/assets/app.js` are
+#: never routes) and a seed segment that is a signed integer and nothing
+#: else. Anything on disk still wins — see _is_page_route.
+_PAGE_ROUTE_RE = re.compile(r"^/[a-z][a-z0-9-]*(/-?[0-9]+)?/?$")
+
+#: Endpoint names, which are shaped exactly like a dimension slug. A
+#: dimension called `fork_schema` would otherwise slug straight onto
+#: /fork-schema. do_GET happens to test its endpoints first, so this is
+#: belt and braces — but the two orders must never be the difference
+#: between a working viewer and a broken one.
+_API_ROOTS = frozenset((
+    "fork-schema", "dim-config", "noise-census", "pipeline-status", "job",
+    "pick", "reroll", "edit-config", "pipeline", "preview",
+    "create-dimension", "shortlist", "hide-dimension", "remove-dimension",
+))
+
+
 class ViewerHandler(SimpleHTTPRequestHandler):
     # Set by main()
     seedtest = ""
@@ -1139,6 +1162,20 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             # an unchanged asset still costs one 304 rather than a re-download.
             self.send_header("Cache-Control", "no-cache")
         super().end_headers()
+
+    def _is_page_route(self, path):
+        """Should this GET serve index.html rather than a file?
+
+        A real file always wins: `/assets` and `/renders` both match the
+        pattern's first branch, and shadowing them with the page would break
+        the stylesheet and every render at once.
+        """
+        if not _PAGE_ROUTE_RE.match(path):
+            return False
+        rel = path.strip("/")
+        if rel.split("/")[0] in _API_ROOTS:
+            return False
+        return not (Path(self.seedtest) / rel).exists()
 
     def _read_json(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -1224,7 +1261,18 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 out["elapsed"] = int(time.monotonic() - job["started_mono"])
             self._respond_json(out)
             return
+        # Deep links serve the same page; the client restores the expanded
+        # dimension and the open candidate from the path (web/route.js).
+        parsed = urlparse(self.path)
+        if self._is_page_route(parsed.path):
+            self.path = "/index.html"
         super().do_GET()
+
+    def do_HEAD(self):
+        parsed = urlparse(self.path)
+        if self._is_page_route(parsed.path):
+            self.path = "/index.html"
+        super().do_HEAD()
 
     def do_POST(self):
         if self.path == "/pick":

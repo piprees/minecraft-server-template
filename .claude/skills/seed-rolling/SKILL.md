@@ -140,6 +140,24 @@ What it shows beyond a grid of scores:
 
 Every score component owns one colour (`--chart-1..4` via `.comp-<key>`) used identically in its swatch, bar, contribution segment and delta. A component's colour is its name.
 
+### The URL
+
+The expanded dimension and the open candidate live in the PATH; filters, sort and search stay in the query string:
+
+```
+/                                        nothing open
+/the-nether?family=nether                the_nether expanded, nether filter on
+/the-nether/4412011349903857317          ...with that candidate's lightbox open
+```
+
+Underscores become hyphens (`the_nether` → `the-nether`); dimension names are `^[a-z][a-z0-9_]*$`, so the slug round-trips exactly. The sums are in `web/route.js` and nowhere else, `viewer-server.ViewerHandler._is_page_route` mirrors the same shape server-side (a real file on disk always wins, and `_API_ROOTS` keeps `/fork-schema` an endpoint), and `test_web_routing.py` pins both against one list of hand-worked cases.
+
+Three things to know before touching it:
+
+- **`viewer_template.html` injects `<base href="/">`** in an inline head script, before the stylesheet link. Without it the two-segment route resolves `assets/app.css` against `/the-nether/` and the page loads unstyled with no renders. It is skipped on `file://`, where `/` would mean the filesystem root.
+- **Seeds are strings end to end.** They are signed 64-bit and routinely exceed 2^53; parsing one to a Number picks a different candidate.
+- **A route that cannot be honoured is cleaned out of the address bar** rather than left lying: an unknown dimension, or a seed whose tile has been demoted out of the top ten by a re-rank. `applyRoute` is also what re-expands the card after the roller swaps `#grid` on a re-rank.
+
 ## Where the roller's state lives
 
 Everything the roller derives is under `<consumer>/.seedtest/`, and nothing else. Not `data/` (the mc container's tree, deleted to reset a world) and not `.stack/<version>/` (an immutable release directory, replaced wholesale by `./dev update`).

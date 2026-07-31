@@ -29,6 +29,10 @@
     lb.classList.remove('open')
     if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus()
     lbReturnFocus = null
+    lbCurrentCand = null
+    // The candidate leaves the URL; the dimension behind it stays, because
+    // closing the lightbox reveals the expanded card rather than the root.
+    setRoute(expandedDimName(), '')
   }
   document.addEventListener('click', function (e) {
     var img = e.target.closest('.cand img, img.winner-img')
@@ -194,6 +198,9 @@
   function openCandInLightbox(cand) {
     if (!cand) return
     lbCurrentCand = cand
+    // Both facts, in one write: in flat view no card is expanded, so the
+    // candidate's own dimension is the only thing that identifies it.
+    setRoute(cand.dataset.dim || expandedDimName(), cand.dataset.seed)
     // No <img> means the render has not been produced yet — the onerror
     // handler REPLACES the element with the "render queued" placeholder. This
     // used to `return`, so clicking any un-rendered candidate silently did
@@ -266,7 +273,10 @@
         return
       }
       var expanded = document.querySelector('.dim-card.expanded')
-      if (expanded) setExpanded(expanded, false)
+      if (expanded) {
+        setExpanded(expanded, false)
+        setRoute('', '')
+      }
       return
     }
     if (!lb.classList.contains('open')) return
@@ -315,9 +325,27 @@
   })
   if (live) document.body.classList.add('live')
 
-  // --- Filter + sort state from URL hash ---
+  // --- Filter + sort state from the query string, view state from the path ---
+  //
+  // Filters, sort and search stay in the query string. The two facts that say
+  // what the page is currently ABOUT live in the path instead:
+  //
+  //     /the-nether              the_nether's card is expanded
+  //     /the-nether/-4831234567  ...and that candidate's lightbox is open
+  //
+  // so a refresh, the reload after "Use this seed", and a link pasted to
+  // someone else all land back on the same view. The sums live in route.js;
+  // viewer-server serves index.html for both shapes.
+  //
+  // Not on file://, where the path is a filesystem path and there is no
+  // server to route it.
+  var routed = live && !!window.lbRouteParse
+  function readRoute() {
+    return routed ? window.lbRouteParse(location.pathname) : { dim: '', seed: '' }
+  }
   function readHash() {
     var p = new URLSearchParams(location.search.slice(1))
+    var r = readRoute()
     return {
       family: p.get('family') || 'All',
       type: p.get('type') || '',
@@ -328,9 +356,11 @@
       ungrouped: p.get('ungrouped') === '1',
       showHidden: p.get('hidden') === '1',
       sort: p.get('sort') || 'name',
+      dim: r.dim,
+      seed: r.seed,
     }
   }
-  function writeHash(s) {
+  function writeHash(s, push) {
     var p = new URLSearchParams()
     if (s.family !== 'All') p.set('family', s.family)
     if (s.type) p.set('type', s.type)
@@ -342,7 +372,34 @@
     if (s.showHidden) p.set('hidden', '1')
     if (s.sort !== 'name') p.set('sort', s.sort)
     var qs = p.toString()
-    history.replaceState(null, '', qs ? '?' + qs : location.pathname)
+    if (!routed) {
+      history.replaceState(null, '', qs ? '?' + qs : location.pathname)
+      return
+    }
+    var url = window.lbRouteUrl(s.dim, s.seed, qs)
+    // An unchanged URL must not become a history entry, or Back walks
+    // through a dozen identical states before it leaves the page.
+    if (url === location.pathname + location.search) return
+    if (push) history.pushState(null, '', url)
+    else history.replaceState(null, '', url)
+  }
+
+  // True while applyRoute is reproducing a URL in the DOM. Expanding a card
+  // and opening its lightbox are two route writes, and neither is a
+  // navigation the user made — they must not push history entries of their
+  // own on top of the one being restored.
+  var routeApplying = false
+  function setRoute(dim, seed) {
+    dim = dim || ''
+    seed = seed || ''
+    if (state.dim === dim && state.seed === seed) return
+    state.dim = dim
+    state.seed = seed
+    writeHash(state, !routeApplying)
+  }
+  function expandedDimName() {
+    var c = document.querySelector('.dim-card.expanded')
+    return c ? c.dataset.name || '' : ''
   }
 
   var state = readHash()
@@ -637,6 +694,60 @@
 
   applyState()
 
+  // --- Restore the view the URL describes ---
+  //
+  // Runs on load, on Back/Forward, and after the roller swaps #grid on a
+  // re-rank (which throws away the expanded card with the old markup). The
+  // seed is looked up in the ORIGINAL grid tile even in flat view, because
+  // that is the one carrying .cand-detail — the flat clones are stripped of
+  // it, and candDetailFor resolves back to the original anyway.
+  function candTile(dim, seed) {
+    if (!dim || !seed) return null
+    var sel =
+      '.cand[data-dim="' + CSS.escape(dim) + '"][data-seed="' + CSS.escape(seed) + '"]'
+    return (
+      (state.ungrouped && ugGrid.querySelector(sel)) || document.querySelector('#grid ' + sel)
+    )
+  }
+
+  function applyRoute() {
+    var r = readRoute()
+    routeApplying = true
+    try {
+      var card = r.dim
+        ? document.querySelector('.dim-card[data-name="' + CSS.escape(r.dim) + '"]')
+        : null
+      if (card) {
+        expandCard(card)
+      } else {
+        document.querySelectorAll('.dim-card.expanded').forEach(function (c) {
+          setExpanded(c, false)
+        })
+      }
+      var cand = card ? candTile(r.dim, r.seed) : null
+      if (cand) {
+        openCandInLightbox(cand)
+      } else {
+        if (lb.classList.contains('open')) lbHide()
+        // A seed that no longer has a tile — demoted out of the top ten by a
+        // re-rank, or a hand-typed URL — must not stay in the address bar
+        // claiming a candidate is open.
+        setRoute(card ? r.dim : '', '')
+      }
+    } finally {
+      routeApplying = false
+    }
+  }
+  window.applyViewerRoute = applyRoute
+  if (routed) {
+    applyRoute()
+    window.addEventListener('popstate', function () {
+      state = readHash()
+      applyState()
+      applyRoute()
+    })
+  }
+
   // --- Image auto-refresh: retry missing images + upgrade to hires ---
   ;(function autoRefreshImages() {
     var pending = new Set()
@@ -700,6 +811,7 @@
     })
     setExpanded(card, true)
     sortCandsInGroups()
+    setRoute(card.dataset.name, '')
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }
   grid.addEventListener('click', function (e) {
@@ -716,6 +828,7 @@
     if (close) {
       var card = close.closest('.dim-card')
       setExpanded(card, false)
+      setRoute('', '')
       // The close button is inside the panel that just disappeared, so focus
       // would land on <body>. Hand it back to the control that opened it.
       var trigger = card.querySelector('.compact-trigger')
@@ -1310,6 +1423,9 @@
         var live = document.getElementById('grid')
         if (fresh && live) live.innerHTML = fresh.innerHTML
         if (window.applyFilters) window.applyFilters()
+        // The swap discarded the expanded card along with the old markup;
+        // the URL still says which one it was.
+        if (window.applyViewerRoute) window.applyViewerRoute()
       })
       .catch(function () {})
   }

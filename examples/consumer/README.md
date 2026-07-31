@@ -70,7 +70,9 @@ The `Updates` workflow (`.github/workflows/update.yml`) does the same thing week
 ./dev seed-status              # candidate counts, winners, score freshness
 ```
 
-Rolls indefinitely (Ctrl+C to finish). Winners are auto-written into the config; the live viewer at `http://127.0.0.1:8765/viewer.html` lets you pick manually. Measurements are banked — rescoring against updated configs never requires re-rolling.
+Rolls indefinitely (Ctrl+C to finish). Winners are auto-written into the config; the live viewer at `http://127.0.0.1:8765/` lets you pick manually. Measurements are banked — rescoring against updated configs never requires re-rolling.
+
+The viewer keeps the open dimension and candidate in the URL — `/the-nether`, or `/the-nether/4412011349903857317` with a candidate open (underscores become hyphens) — so a refresh or a pasted link reopens the same view.
 
 ### Cache assets for offline use
 
