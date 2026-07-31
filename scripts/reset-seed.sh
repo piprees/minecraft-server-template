@@ -15,6 +15,13 @@
 # After restart, re-runs deploy.sh's post-boot configuration:
 # world borders, game rules, permissions, spawn coordinates.
 #
+# Gotcha: the tar.gz backup runs COLD, after the containers stop. A hot tar of
+# a live data/ exits 1 ("file changed as we read it") the moment mc flushes a
+# region file, which under set -e aborts the whole reset. The restic snapshot
+# has to run hot (the sidecar needs mc for save-off), so it is waited on before
+# the stack goes down, and skipped entirely when --wipe-backups would purge it
+# minutes later anyway.
+#
 # Usage:
 #   ./scripts/reset-seed.sh                   # interactive (prompts for seed)
 #   ./scripts/reset-seed.sh <seed>            # pre-fill seed (still confirms)
@@ -91,8 +98,12 @@ echo " Droplet:       ${DROPLET_HOST}"
 echo " Current seed:  ${CURRENT_SEED}"
 echo ""
 echo " This script will:"
-echo "   1. Back up the world (restic + local tar.gz on the droplet)"
-echo "   2. Stop all containers on the droplet"
+if [[ "$WIPE_BACKUPS" == true ]]; then
+echo "   1. Stop all containers on the droplet (restic skipped: snapshots are purged below)"
+else
+echo "   1. Back up the world to restic, then stop all containers on the droplet"
+fi
+echo "   2. Back up data/ to a cold tar.gz on the droplet"
 echo "   3. Delete world data (Overworld, Nether, End, dimensions/)"
 echo "   4. Delete player data (playerdata, stats, advancements)"
 echo "   5. Delete uNmINeD map renders (data/unmined-web)"
@@ -149,22 +160,58 @@ echo ""
 echo "==> Starting world reset..."
 
 # =============================================================================
-# 2. Backup - restic snapshot via backup-now.sh
+# 2. Backup - restic snapshot via backup-now.sh (hot; needs mc up for save-off)
 # =============================================================================
-echo ""
-echo "==> Running restic backup on the droplet..."
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && bash ${STACK_SCRIPTS}/backup-now.sh" || {
-  echo "WARNING: Restic backup failed. Continuing with tar backup."
-}
+if [[ "$WIPE_BACKUPS" == true ]]; then
+  echo ""
+  echo "==> Skipping restic backup (--wipe-backups purges snapshots below)."
+else
+  echo ""
+  echo "==> Running restic backup on the droplet..."
+  if ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && bash ${STACK_SCRIPTS}/backup-now.sh"; then
+    # backup-now.sh only restarts the sidecar; the snapshot lands after
+    # INITIAL_DELAY. Wait for it before stopping the stack, or `down` kills the
+    # snapshot mid-flight. Bounded: 60 polls x 10s = 10 minutes, then continue.
+    echo "  Waiting for the snapshot to land (up to 10 minutes)..."
+    RESTIC_DONE=false
+    for _ in $(seq 1 60); do
+      if ssh -i "$SSH_KEY" "$REMOTE" "docker logs mc-backup --since 30m 2>&1 | grep -q 'snapshot .* saved'"; then
+        RESTIC_DONE=true
+        break
+      fi
+      sleep 10
+    done
+    if [[ "$RESTIC_DONE" == true ]]; then
+      echo "  Restic snapshot saved."
+    else
+      echo "WARNING: No 'snapshot saved' line within 10 minutes. Continuing with the tar backup."
+    fi
+  else
+    echo "WARNING: Restic backup failed. Continuing with the tar backup."
+  fi
+fi
 
 # =============================================================================
-# 3. Backup - tar.gz snapshot of data/ on the droplet
+# 3. Stop all containers on the droplet
+# =============================================================================
+echo ""
+echo "==> Stopping all containers on the droplet..."
+COMPOSE_FILE="${REMOTE_DIR}/.stack/current/stack/docker-compose.yml"
+ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud down"
+echo "  Containers stopped."
+
+# =============================================================================
+# 4. Backup - cold tar.gz snapshot of data/ on the droplet
 # =============================================================================
 BACKUP_NAME="pre-reset-${CURRENT_SEED}-${STAMP}.tar.gz"
 BACKUP_PATH="backups/${BACKUP_NAME}"
 
 echo ""
 echo "==> Creating tar.gz backup on the droplet: ${BACKUP_PATH}"
+# tar exit 1 is the "some files differ" warning class; only >=2 is fatal.
+# Nothing should be writing now that the stack is down, but a stray writer must
+# not abort the reset after the containers have already stopped.
+TAR_STATUS=0
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${BACKUP_PATH} \
   --exclude='data/unmined-web' \
   --exclude='data/mods' \
@@ -178,17 +225,15 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${B
   --exclude='data/ledger.sqlite' \
   --exclude='data/dynamic-data-pack-cache' \
   --exclude='data/kuma' \
-  data/"
+  data/" || TAR_STATUS=$?
+if [[ "$TAR_STATUS" -ge 2 ]]; then
+  echo "ERROR: tar failed (exit ${TAR_STATUS}). Refusing to delete the world without a backup."
+  echo "       The stack is stopped. Bring it back with:"
+  echo "       ssh -i $SSH_KEY ${REMOTE} 'cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud up -d'"
+  exit 1
+fi
+[[ "$TAR_STATUS" -eq 1 ]] && echo "  NOTE: tar reported changed files (exit 1); archive written."
 echo "  Backup saved to ${REMOTE_DIR}/${BACKUP_PATH}"
-
-# =============================================================================
-# 4. Stop all containers on the droplet
-# =============================================================================
-echo ""
-echo "==> Stopping all containers on the droplet..."
-COMPOSE_FILE="${REMOTE_DIR}/.stack/current/stack/docker-compose.yml"
-ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && docker compose --project-directory ${REMOTE_DIR} -f ${COMPOSE_FILE} --profile cloud down"
-echo "  Containers stopped."
 
 # =============================================================================
 # 5. Delete world + player + regenerable data
