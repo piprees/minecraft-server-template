@@ -1570,17 +1570,18 @@ img.winner-img {
 #lightbox .lb-inner {
   display: flex;
   gap: 1.5rem;
-  max-width: 1200px;
   max-height: 90vh;
+  height: 100%;
   background: var(--bg-card);
   border-radius: var(--r-lg);
   overflow: hidden;
   position: relative;
-  aspect-ratio: auto 2 / 1;
+  aspect-ratio: 2/1;
 }
 #lightbox .lb-image {
   flex: 0 0 auto;
   width: auto;
+  height: 100%;
   display: flex;
   align-items: center;
   background: var(--bg-page);
@@ -1590,6 +1591,7 @@ img.winner-img {
 #lightbox .lb-image img {
   width: auto;
   height: 100%;
+  aspect-ratio: 1/1;
   image-rendering: pixelated;
   display: block;
 }
@@ -1615,15 +1617,15 @@ img.winner-img {
   outline-offset: 2px;
 }
 #lightbox .lb-info {
-  flex: 1;
-  padding: 1rem;
-  padding-left: 0;
-  overflow: hidden;
-  min-width: 0;
-  font-size: 0.82rem;
+  overscroll-behavior: contain;
+  min-width: 0px;
   color: var(--text);
-  display: flex;
   flex-direction: column;
+  flex: 1 1 0%;
+  padding: 1rem 1rem 0px 0px;
+  font-size: 0.82rem;
+  display: flex;
+  overflow: hidden auto;
 }
 #lightbox .lb-header .lb-title {
   display: flex;
@@ -1665,19 +1667,18 @@ img.winner-img {
   margin-bottom: 0.1rem;
 }
 #lightbox .lb-actions {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin-top: auto;
-  padding: 0.6rem 0 0.2rem;
   border-top: 1px solid var(--rule);
-  /* The detail sections above run to ~2700px on a mid-complexity candidate.
-     Compare-then-act is the whole loop; the act half must not sit at the
-     bottom of a data dump you scroll past on every single candidate. */
-  position: sticky;
-  bottom: 0;
   background: var(--bg-card);
   z-index: 2;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding: 0.6rem 0px;
+  display: flex;
+  position: sticky;
+  bottom: 0px;
+  box-shadow: rgba(0, 0, 0, 0.55) 0px -10px 12px -8px;
 }
 #lightbox .lb-actions .pick,
 #lightbox .lb-actions .action-btn {
@@ -1763,9 +1764,7 @@ img.winner-img {
   opacity: 0.75;
   font-size: 0.9em;
 }
-/* A candidate whose render has not landed yet still carries its spawn
-   biome's surface colour, so the card reads snowy/sandy/verdant rather
-   than as a broken image. */
+
 .cand img[data-pending] {
   background-size: cover;
 }
@@ -1862,8 +1861,6 @@ img.winner-img {
   color: #6ec96e;
   opacity: 1;
 }
-/* Range bar: shaded target band, a marker for the measured value, and
-   optional reference lines (clear-spawn radius). */
 .bar {
   position: relative;
   display: block;
@@ -1955,9 +1952,6 @@ details.incidental .mrow {
   color: #e8a735;
 }
 
-/* Radial histogram: one cell per decile of the play radius, height =
-   placements. The shaded cells are the band the dimension asked for, so
-   "wrong ring" is visible at a glance rather than inferred from numbers. */
 .hist {
   display: flex;
   align-items: flex-end;
@@ -1982,9 +1976,6 @@ details.incidental .mrow {
   background: #b04242;
 }
 
-/* The filter row was two dense lines of always-on controls for a task
-   that is mostly "look at maps and pick one". Family, search and sort
-   stay out; the rest fold away until wanted. */
 .more-filters {
   display: inline-block;
 }
@@ -2051,15 +2042,7 @@ details.incidental .mrow {
 
 /* --- Structure markers (structicons.js) -------------------------------
    Real icons on the map, one per placement, replacing the pre-rendered
-   {seed}_structures.png of grey boxes. Two rules govern them:
-
-   1. They sit OVER a map render, which is the one saturated thing on
-      screen (app.css header). So they carry their own dark plate and a
-      light rim — legibility comes from the marker, never from an
-      assumption about the terrain under it.
-   2. The glyph colour is biome_renderer.STRUCT_MAT's material palette,
-      brightened by structicons.lift(). Same vocabulary as the PNG it
-      replaces, so nothing a reader had learned is invalidated. */
+   {seed}_structures.png of grey boxes. */
 #lb-markers {
   position: absolute;
   inset: 0;
@@ -2096,16 +2079,7 @@ details.incidental .mrow {
     transition: none;
   }
 }
-/* Two kinds of marker, and they are NOT the same claim.
-
-   A grid placement means "this structure is at this block". A noise site
-   means "this group's field placed a site here, and it hosts one structure
-   drawn from the group's weighted pool" — which structure is unknowable, so
-   the marker carries the GROUP's glyph (structicons.GROUP_ICON) and is drawn
-   smaller with a quieter plate. The weight difference is the legend for the
-   difference in certainty; without it the map would assert per-structure
-   positions it does not have, which is the exact fiction the panel already
-   refuses to print as a distance. */
+/* Two kinds of marker, and they are NOT the same claim. */
 .sm-noise .sm-plate {
   fill: rgba(8, 10, 14, 0.58);
   stroke: rgba(255, 255, 255, 0.24);
@@ -2213,8 +2187,7 @@ details.incidental .mrow {
   color: var(--score-red);
   border-color: #6b3030;
 }
-/* The checkbox stays in the DOM and keeps driving every filter handler;
-   the label is what becomes an icon. */
+
 .icon-toggle {
   position: relative;
   cursor: pointer;
@@ -2351,16 +2324,10 @@ details.incidental .mrow {
     minmax(4rem, 0.7fr) 1fr;
 }
 
-/* The whole card is the target. With borders on, the render shrinks
-   inside its box and only the image was clickable, so the obvious click
-   (anywhere on the card) did nothing. */
 .cand {
   cursor: pointer;
 }
 
-/* overflow-x:auto on the bar established a clipping context, so the
-   Filters popover was clipped to the bar's own height and rendered
-   behind the page. The bar keeps nowrap but must not clip. */
 .filter-bar {
   overflow: visible;
 }
