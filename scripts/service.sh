@@ -113,7 +113,10 @@ is_sidecar() {
 
 validate_targets() {
   local target
-  for target in "${targets[@]}"; do
+  # macOS bash 3.2: "${targets[@]}" on an EMPTY array is an unbound-variable
+  # error under set -u. `status` is the one action allowed zero targets, so a
+  # bare `./ops status` reached here with targets empty and died.
+  for target in ${targets[@]+"${targets[@]}"}; do
     if [[ "$target" == "mc" ]]; then
       if [[ "$ACTION" == "status" ]]; then
         continue

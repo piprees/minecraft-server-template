@@ -103,14 +103,25 @@ for m in cm.get('required', []) + cm.get('optional', []):
         print(m)
 " 2> /dev/null || true)
 
-  while IFS= read -r slug; do
-    [[ -z "$slug" ]] && continue
+  # Manifest entries are "slug:versionId" — split them the same way the server
+  # list above does. Pushing the raw entry made every client mod a 404 ("API
+  # error") because the API was asked for a project literally named
+  # "fabric-api:aUrTRV7H", left PINNED_IDS shorter than SLUGS, and made the
+  # dedupe below never match a bare server slug.
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    slug="${entry%%:*}"
+    pinned_id="${entry#*:}"
+    [[ "$pinned_id" == "$slug" ]] && pinned_id=""
     # Only add if not already in server list
     found=0
     for s in "${SLUGS[@]}"; do
       [[ "$s" == "$slug" ]] && found=1 && break
     done
-    [[ $found -eq 0 ]] && SLUGS+=("$slug")
+    if [[ $found -eq 0 ]]; then
+      SLUGS+=("$slug")
+      PINNED_IDS+=("$pinned_id")
+    fi
   done <<< "$CLIENT_SLUGS"
 fi
 
@@ -158,7 +169,10 @@ API_EXTRA_ARGS=()
 if [[ $FAST_MODE -eq 1 ]]; then
   API_EXTRA_ARGS+=("--fast")
 fi
-API_RESULTS=$(printf '%s' "$API_INPUT" | python3 "$SCRIPT_DIR/modrinth-api.py" check "$MC_VERSION" "${API_EXTRA_ARGS[@]}")
+# macOS bash 3.2: "${ARR[@]}" on an EMPTY array is an unbound-variable error
+# under set -u, so the non-fast path died before any mod was checked. The
+# ${ARR[@]+...} guard expands to nothing when the array is empty.
+API_RESULTS=$(printf '%s' "$API_INPUT" | python3 "$SCRIPT_DIR/modrinth-api.py" check "$MC_VERSION" ${API_EXTRA_ARGS[@]+"${API_EXTRA_ARGS[@]}"})
 
 # --- collect results and display ----------------------------------------------
 RESULTS=()
@@ -506,11 +520,13 @@ print(msg)
         if [[ -n "${BRAND_ICON_URL:-}" ]]; then
           JQ_ARGS+=(--arg a "$BRAND_ICON_URL"); JQ_EXPR="${JQ_EXPR%\}}, avatar_url: \$a}"
         fi
+        # Same bash 3.2 set -u guard as the API args above: JQ_ARGS is empty
+        # when neither BRAND_NAME nor BRAND_ICON_URL is set.
         if [[ -n "$ADMIN_ROLE_ID" ]]; then
-          PAYLOAD=$(echo "$MSG" | jq -Rs "${JQ_ARGS[@]}" --arg rid "$ADMIN_ROLE_ID" \
+          PAYLOAD=$(echo "$MSG" | jq -Rs ${JQ_ARGS[@]+"${JQ_ARGS[@]}"} --arg rid "$ADMIN_ROLE_ID" \
             "${JQ_EXPR%\}}, allowed_mentions: {roles: [\$rid]}}")
         else
-          PAYLOAD=$(echo "$MSG" | jq -Rs "${JQ_ARGS[@]}" "$JQ_EXPR")
+          PAYLOAD=$(echo "$MSG" | jq -Rs ${JQ_ARGS[@]+"${JQ_ARGS[@]}"} "$JQ_EXPR")
         fi
         curl -s -H "Content-Type: application/json" \
           -d "$PAYLOAD" "$WEBHOOK_URL" || true
