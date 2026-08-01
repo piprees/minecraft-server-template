@@ -92,10 +92,16 @@ public class MultiverseServer implements DedicatedServerModInitializer {
             com.customdimensions.config.DimensionConfig ow =
                     MultiverseConfig.getInstance().getWorld("overworld");
             int[] spawn = ow != null ? ow.getSpawn() : null;
-            if (spawn != null) {
+            // [0, 64, 0] means "no spawn chosen" — the same contract
+            // deploy.sh's spawn guard reads. Stamping it would overwrite
+            // vanilla's own spawn choice with the origin.
+            if (spawn != null && (spawn[0] != 0 || spawn[1] != 64 || spawn[2] != 0)) {
+                int groundY = com.customdimensions.portal.PortalHelper.findSurfaceY(
+                        server.getOverworld(), spawn[0], spawn[2]);
                 server.getOverworld().setSpawnPos(
-                        new net.minecraft.util.math.BlockPos(spawn[0], spawn[1], spawn[2]), 0.0f);
-                LOGGER.info("World spawn set from config: {} {} {}", spawn[0], spawn[1], spawn[2]);
+                        new net.minecraft.util.math.BlockPos(spawn[0], groundY, spawn[2]), 0.0f);
+                LOGGER.info("World spawn set from config: {} {} {} (Y grounded from {})",
+                        spawn[0], groundY, spawn[2], spawn[1]);
             }
             // Per-dimension world borders (borders.player) — after
             // createWorlds so vanilla's overworld border-load can't clobber

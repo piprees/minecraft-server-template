@@ -346,7 +346,27 @@ public class ServerWorldMixin {
         int[] anchor = def.getAnchorPos();
         int anchorX = anchor[0];
         int anchorZ = anchor[2];
+        // The same arrival dance as the per-source path: the raw heightmap
+        // reports the ROOF in a ceilinged dimension (the exact bug
+        // PortalSite exists to prevent), so resolve a real site — open
+        // pocket first, carve second, refuse third. The anchor's
+        // configured Y stays a hint only.
         int surfaceY = PortalHelper.findSurfaceY(targetWorld, anchorX, anchorZ);
+        int siteY = com.customdimensions.portal.PortalSite.findArrivalY(
+                targetWorld, anchorX, anchorZ, zone.axis, surfaceY);
+        if (siteY == com.customdimensions.portal.PortalSite.NO_SITE) {
+            siteY = com.customdimensions.portal.PortalSite.findCarveY(
+                    targetWorld, anchorX, anchorZ, zone.axis, surfaceY);
+        }
+        if (siteY == com.customdimensions.portal.PortalSite.NO_SITE) {
+            MultiverseServer.LOGGER.error(
+                    "No viable anchor arrival site in {} at column ({}, {}) — refusing traversal",
+                    targetWorld.getRegistryKey().getValue(), anchorX, anchorZ);
+            player.sendMessage(net.minecraft.text.Text.literal(
+                    "The portal cannot find anywhere safe to put you."), true);
+            return;
+        }
+        surfaceY = siteY;
 
         BlockPos existing = com.customdimensions.portal.PortalShape.END_GATEWAY.equals(def.getShape())
                 ? PortalHelper.findExistingGateway(targetWorld, anchorX, surfaceY, anchorZ, 5, 16)
