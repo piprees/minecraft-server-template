@@ -103,16 +103,7 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": [
-      "terralith:haze_mountain",
-      "terralith:highlands",
-      "terralith:rocky_mountains",
-      "minecraft:windswept_hills",
-      "terralith:temperate_highlands",
-      "terralith:forested_highlands",
-      "minecraft:meadow",
-      "minecraft:stony_peaks"
-    ],
+    "spawnFilter": ["minecraft:forest"],
     "wants": {
       "guide_post_cold": "near_spawn",
       "taiga_outpost": "near_spawn",

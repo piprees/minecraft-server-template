@@ -132,14 +132,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "minecraft:desert",
-      "minecraft:savanna",
-      "minecraft:badlands",
-      "terralith:arid_highlands",
-      "terralith:desert_canyon",
-      "terralith:hot_shrubland"
-    ],
+    "spawnFilter": ["minecraft:plains"],
     "water": "none",
     "wants": {
       "village": "near_spawn",

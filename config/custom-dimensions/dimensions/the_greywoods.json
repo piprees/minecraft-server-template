@@ -67,13 +67,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "natures_spirit:cedar_thicket",
-      "minecraft:dark_forest",
-      "terralith:birch_taiga",
-      "natures_spirit:fir_forest",
-      "terralith:moonlight_grove"
-    ],
+    "spawnFilter": ["terralith:birch_taiga"],
     "wants": {
       "graveyard": "near_spawn",
       "abandoned_chapel": "spread",

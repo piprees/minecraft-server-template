@@ -63,11 +63,7 @@
   },
   "seedRoll": {
     "mood": "hard",
-    "spawnFilter": [
-      "minecraft:end_highlands",
-      "nullscape:crystal_peaks",
-      "nullscape:shadowlands"
-    ],
+    "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "end_gate_fortress": "near_spawn",
       "enderkeep": "spread",

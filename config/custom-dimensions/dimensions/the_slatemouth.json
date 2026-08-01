@@ -69,13 +69,7 @@
   },
   "seedRoll": {
     "mood": "hard",
-    "spawnFilter": [
-      "minecraft:basalt_deltas",
-      "minecraft:soul_sand_valley",
-      "incendium:toxic_heap",
-      "incendium:quartz_flats",
-      "minecraft:nether_wastes"
-    ],
+    "spawnFilter": ["minecraft:nether_wastes"],
     "description": "A basalt-and-soul void — the nether's kind of ending. Whatever was here, the void consumed it completely. No structures, no ruins, no evidence. The piglins' word for this place translates roughly as 'the mouth that swallowed.'",
     "terrain": "void"
   },

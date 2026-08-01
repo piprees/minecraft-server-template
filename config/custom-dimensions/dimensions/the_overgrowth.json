@@ -81,16 +81,7 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": [
-      "terralith:rocky_jungle",
-      "terralith:jungle_mountains",
-      "natures_spirit:tropical_basin",
-      "terralith:cloud_forest",
-      "minecraft:jungle",
-      "minecraft:sparse_jungle",
-      "minecraft:bamboo_jungle",
-      "minecraft:dark_forest"
-    ],
+    "spawnFilter": ["minecraft:sparse_jungle"],
     "wants": {
       "jungle_ruin": "near_spawn",
       "infested_temple": "spread",

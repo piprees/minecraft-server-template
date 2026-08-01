@@ -81,16 +81,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "terralith:moonlight_grove",
-      "minecraft:old_growth_spruce_taiga",
-      "natures_spirit:snowy_fir_forest",
-      "minecraft:dark_forest",
-      "minecraft:taiga",
-      "natures_spirit:fir_forest",
-      "minecraft:old_growth_pine_taiga",
-      "terralith:birch_taiga"
-    ],
+    "spawnFilter": ["minecraft:taiga"],
     "wants": {
       "graveyard": "near_spawn",
       "old_manor": "spread",

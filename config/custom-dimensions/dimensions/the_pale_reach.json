@@ -81,13 +81,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "paradise_lost:calcite_craglands",
-      "terralith:frozen_cliffs",
-      "minecraft:snowy_slopes",
-      "minecraft:frozen_peaks",
-      "minecraft:ice_spikes"
-    ],
+    "spawnFilter": ["minecraft:snowy_slopes"],
     "wants": {
       "para_remains": "spread",
       "birdcage": "spread",

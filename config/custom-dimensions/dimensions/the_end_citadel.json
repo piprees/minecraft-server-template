@@ -75,13 +75,7 @@
   },
   "seedRoll": {
     "mood": "hard",
-    "spawnFilter": [
-      "minecraft:end_highlands",
-      "nullscape:crystal_peaks",
-      "minecraft:the_end",
-      "minecraft:end_barrens",
-      "minecraft:end_midlands"
-    ],
+    "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "end_city": "near_spawn",
       "phantom_citadel": "spread",

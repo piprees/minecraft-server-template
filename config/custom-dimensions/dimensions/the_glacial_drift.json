@@ -83,11 +83,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "paradise_lost:autumnal_tundra",
-      "paradise_lost:calcite_craglands",
-      "minecraft:ice_spikes"
-    ],
+    "spawnFilter": ["natures_spirit:tundra"],
     "wants": {
       "para_remains": "near_spawn",
       "aurel_tower": "spread",

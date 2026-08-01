@@ -64,12 +64,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "natures_spirit:aspen_forest",
-      "natures_spirit:maple_woodlands",
-      "minecraft:dark_forest",
-      "minecraft:forest"
-    ],
+    "spawnFilter": ["minecraft:forest"],
     "wants": {
       "ruins_standard": "near_spawn",
       "forest_ruin": "near_spawn",

@@ -64,12 +64,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "natures_spirit:oak_savanna",
-      "natures_spirit:golden_wilds",
-      "minecraft:savanna",
-      "terralith:fractured_savanna"
-    ],
+    "spawnFilter": ["minecraft:savanna"],
     "wants": {
       "pillager_outpost": "near_spawn",
       "pillager_lookout": "near_spawn",

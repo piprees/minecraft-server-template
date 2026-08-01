@@ -73,12 +73,7 @@
   },
   "seedRoll": {
     "mood": "serene",
-    "spawnFilter": [
-      "terralith:mirage_isles",
-      "minecraft:warm_ocean",
-      "minecraft:lukewarm_ocean",
-      "natures_spirit:tropical_shores"
-    ],
+    "spawnFilter": ["minecraft:beach"],
     "water": "sea",
     "wants": {
       "shipwreck": "near_spawn",

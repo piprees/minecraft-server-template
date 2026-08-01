@@ -77,13 +77,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "nullscape:void_barrens",
-      "minecraft:end_barrens",
-      "minecraft:the_end",
-      "minecraft:small_end_islands",
-      "minecraft:end_highlands"
-    ],
+    "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "ender_spire": "spread",
       "ruined_pillar": "near_spawn",

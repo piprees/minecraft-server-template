@@ -107,12 +107,7 @@
   },
   "seedRoll": {
     "mood": "serene",
-    "spawnFilter": [
-      "minecraft:cherry_grove",
-      "terralith:sakura_grove",
-      "terralith:sakura_valley",
-      "natures_spirit:wisteria_forest"
-    ],
+    "spawnFilter": ["natures_spirit:lavender_fields"],
     "wants": {
       "village": "near_spawn",
       "tavern": "spread",

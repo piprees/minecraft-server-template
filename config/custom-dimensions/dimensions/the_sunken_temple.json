@@ -85,10 +85,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "paradise_lost:tradewinds",
-      "paradise_lost:highlands"
-    ],
+    "spawnFilter": ["paradise_lost:highlands"],
     "water": "sea",
     "wants": {
       "para_vault": "spread",

@@ -89,17 +89,7 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": [
-      "terralith:painted_mountains",
-      "terralith:bryce_canyon",
-      "minecraft:eroded_badlands",
-      "natures_spirit:stratified_desert",
-      "terralith:desert_canyon",
-      "minecraft:badlands",
-      "minecraft:wooded_badlands",
-      "terralith:savanna_badlands",
-      "minecraft:savanna"
-    ],
+    "spawnFilter": ["minecraft:savanna"],
     "water": "none",
     "wants": {
       "badlands_ruins": "spread",

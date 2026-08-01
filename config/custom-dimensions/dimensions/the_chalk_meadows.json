@@ -84,16 +84,7 @@
   },
   "seedRoll": {
     "mood": "pastoral",
-    "spawnFilter": [
-      "natures_spirit:heather_fields",
-      "natures_spirit:carnation_fields",
-      "terralith:blooming_plateau",
-      "minecraft:meadow",
-      "minecraft:plains",
-      "minecraft:sunflower_plains",
-      "minecraft:flower_forest",
-      "natures_spirit:lavender_fields"
-    ],
+    "spawnFilter": ["minecraft:meadow"],
     "wants": {
       "village": "near_spawn",
       "farmstead": "near_spawn",

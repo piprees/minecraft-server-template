@@ -76,11 +76,7 @@
   },
   "seedRoll": {
     "mood": "hard",
-    "spawnFilter": [
-      "nullscape:crystal_peaks",
-      "nullscape:shadowlands",
-      "minecraft:end_highlands"
-    ],
+    "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "mega_ship_deepslate": "near_spawn",
       "mega_ship_crashed": "spread",

@@ -63,12 +63,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "natures_spirit:redwood_forest",
-      "minecraft:dark_forest",
-      "terralith:shield",
-      "minecraft:old_growth_spruce_taiga"
-    ],
+    "spawnFilter": ["minecraft:forest"],
     "wants": {
       "forest_ruin": "spread",
       "old_manor": "near_border",

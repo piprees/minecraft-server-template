@@ -74,10 +74,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": [
-      "paradise_lost:continental_plateau",
-      "paradise_lost:highlands_grand_glade"
-    ],
+    "spawnFilter": ["paradise_lost:continental_plateau"],
     "water": "sea",
     "wants": {
       "para_vault": "near_spawn",

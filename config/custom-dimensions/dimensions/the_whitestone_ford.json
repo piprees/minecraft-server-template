@@ -75,12 +75,7 @@
   },
   "seedRoll": {
     "mood": "pastoral",
-    "spawnFilter": [
-      "terralith:white_cliffs",
-      "natures_spirit:white_cliffs",
-      "terralith:warm_river",
-      "minecraft:river"
-    ],
+    "spawnFilter": ["minecraft:meadow"],
     "water": "high",
     "wants": {
       "village": "near_spawn",

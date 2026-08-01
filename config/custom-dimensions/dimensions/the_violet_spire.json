@@ -70,11 +70,7 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": [
-      "paradise_lost:wisteria_woods",
-      "terralith:amethyst_canyon",
-      "minecraft:cherry_grove"
-    ],
+    "spawnFilter": ["natures_spirit:lavender_fields"],
     "wants": {
       "aurel_tower": "near_spawn",
       "birdcage": "spread",

@@ -81,13 +81,7 @@
   },
   "seedRoll": {
     "mood": "scenic",
-    "spawnFilter": [
-      "paradise_lost:autumnal_tundra",
-      "natures_spirit:snowy_fir_forest",
-      "minecraft:snowy_taiga",
-      "minecraft:snowy_plains",
-      "minecraft:snowy_slopes"
-    ],
+    "spawnFilter": ["minecraft:snowy_plains"],
     "water": "high",
     "wants": {
       "para_remains": "near_spawn",

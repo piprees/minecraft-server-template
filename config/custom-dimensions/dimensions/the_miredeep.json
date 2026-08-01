@@ -83,16 +83,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "terralith:orchid_swamp",
-      "minecraft:mangrove_swamp",
-      "natures_spirit:marsh",
-      "minecraft:swamp",
-      "minecraft:river",
-      "minecraft:dark_forest",
-      "minecraft:beach",
-      "terralith:moonlight_valley"
-    ],
+    "spawnFilter": ["natures_spirit:marsh"],
     "water": "high",
     "wants": {
       "swamp_ruin": "spread",

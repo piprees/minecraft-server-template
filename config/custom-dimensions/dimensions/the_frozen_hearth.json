@@ -80,12 +80,7 @@
   },
   "seedRoll": {
     "mood": "pastoral",
-    "spawnFilter": [
-      "minecraft:snowy_plains",
-      "minecraft:snowy_taiga",
-      "terralith:alpine_grove",
-      "natures_spirit:tundra"
-    ],
+    "spawnFilter": ["terralith:alpine_grove"],
     "wants": {
       "village": "near_spawn",
       "igloo": "near_spawn",

@@ -95,17 +95,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "terralith:ancient_sands",
-      "natures_spirit:wooded_drylands",
-      "terralith:steppe",
-      "minecraft:desert",
-      "minecraft:badlands",
-      "terralith:arid_highlands",
-      "minecraft:savanna",
-      "terralith:hot_shrubland",
-      "natures_spirit:xeric_plains"
-    ],
+    "spawnFilter": ["terralith:steppe"],
     "water": "none",
     "wants": {
       "outcast_desert": "spread",

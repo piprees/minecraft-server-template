@@ -70,10 +70,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "nullscape:void_barrens",
-      "nullscape:crystal_peaks"
-    ],
+    "spawnFilter": ["minecraft:end_midlands"],
     "wants": {
       "monolith": "spread",
       "ruined_pillar": "near_spawn",

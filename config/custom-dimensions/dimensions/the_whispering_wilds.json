@@ -96,12 +96,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
-    "spawnFilter": [
-      "minecraft:dark_forest",
-      "minecraft:old_growth_spruce_taiga",
-      "terralith:moonlight_grove",
-      "natures_spirit:redwood_forest"
-    ],
+    "spawnFilter": ["natures_spirit:aspen_forest"],
     "wants": {
       "abandoned_camp": "near_spawn",
       "forest_ruin": "spread",
