@@ -56,6 +56,20 @@
   "mid": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35]
  },
 
+ "_terrainAdaptation": [
+  "Beardifier defaults by noise group, applied ONLY to structures whose own",
+  "registry terrain_adaptation is 'none' — an author's explicit beard is",
+  "never overruled. maritime/deco/loot are deliberately absent: their",
+  "registry value stands (ruins and wrecks READ as abandoned on rough",
+  "terrain). Per-dimension overrides: structures.terrainAdaptation.",
+  "Generation-affecting — fingerprinted in generation_payload()."
+ ],
+ "terrainAdaptation": {
+  "settlements": "beard_thin",
+  "dungeons": "bury",
+  "landmarks": "beard_box",
+  "endgame": "beard_box"
+ },
  "groupDefaults": {
   "_comment": [
    "profile   — noise shape (natural | dense | sparse | cluster | none)",

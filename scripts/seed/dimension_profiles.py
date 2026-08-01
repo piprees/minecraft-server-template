@@ -697,6 +697,23 @@ def generation_payload(dim):
     if well_formed_force:
         payload["forcedStructures"] = sorted(
             [f["structure"], f["x"], f["z"]] for f in well_formed_force)
+    # Terrain adaptation (the Beardifier override) changes generated terrain
+    # around every structure, so its INPUTS join the payload: the dimension's
+    # own structures.terrainAdaptation block plus the jar theme-default table
+    # (equivalent to the resolved per-structure map for grouping purposes —
+    # same inputs resolve identically — without dragging the structure
+    # registry into the fingerprint). Conditional so dimensions that place no
+    # structures at all (void/superflat/density-none/mode-none with no forced
+    # placements) keep byte-stable fingerprints.
+    ta_config = struct_block.get("terrainAdaptation") or {}
+    ta_themes = (_NOISE_DEFAULTS or {}).get("terrainAdaptation") or {}
+    structureless = (
+        dim.get("type") in ("void", "superflat")
+        or (dim.get("structureDensity") or "").lower() == "none"
+        or (struct_block.get("mode") or "").strip().lower() == "none")
+    if (ta_config or ta_themes) and (not structureless or well_formed_force):
+        payload["terrainAdaptation"] = [sorted(ta_config.items()),
+                                        sorted(ta_themes.items())]
     noise = _noise_payload(dim)
     if noise is not None:
         payload["noisePlacement"] = noise

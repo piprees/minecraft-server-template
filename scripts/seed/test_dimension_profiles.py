@@ -777,6 +777,57 @@ class JsoncCommentTests(unittest.TestCase):
         self.assertEqual(dp.generation_fingerprint(a), dp.generation_fingerprint(b),
                          "commented copy must roll in the same seed group")
 
+
+class TerrainAdaptationPayloadTests(unittest.TestCase):
+    """The Beardifier's inputs join the fingerprint conditionally — a
+    dimension that places no structures keeps a byte-stable payload."""
+
+    def setUp(self):
+        self._old_dir = dp._NOISE_DEFAULTS_DIR
+        self._old_defaults = dp._NOISE_DEFAULTS
+        dp.set_noise_defaults_dir(
+            Path(__file__).resolve().parents[2] / "config" / "custom-dimensions")
+
+    def tearDown(self):
+        dp._NOISE_DEFAULTS_DIR = self._old_dir
+        dp._NOISE_DEFAULTS = self._old_defaults
+
+    def _payload(self, extra=None):
+        dim = {"type": "multi_biome", "name": "x",
+               "biomes": ["minecraft:plains"]}
+        dim.update(extra or {})
+        return dp.generation_payload(dim)
+
+    def test_theme_table_lands_in_every_structureful_dim(self):
+        # The shipped type-defaults now carry a terrainAdaptation table, so
+        # a plain dimension's payload includes it (the Phase 2 re-roll wave).
+        p = self._payload()
+        self.assertIn("terrainAdaptation", p)
+        cfg, themes = p["terrainAdaptation"]
+        self.assertEqual([], cfg)
+        self.assertIn(("settlements", "beard_thin"), themes)
+
+    def test_structureless_dims_stay_byte_stable(self):
+        for extra in ({"type": "void"}, {"type": "superflat"},
+                      {"structureDensity": "none"},
+                      {"structures": {"mode": "none"}}):
+            p = self._payload(extra)
+            self.assertNotIn("terrainAdaptation", p, str(extra))
+
+    def test_forced_structures_bring_the_key_back(self):
+        p = self._payload({"structureDensity": "none",
+                           "structures": {"force": [
+                               {"structure": "minecraft:fortress",
+                                "x": 100, "z": 100}]}})
+        self.assertIn("terrainAdaptation", p)
+
+    def test_dimension_block_is_fingerprinted_sorted(self):
+        p = self._payload({"structures": {"terrainAdaptation": {
+            "settlements": "none", "minecraft:igloo": "bury"}}})
+        cfg, _themes = p["terrainAdaptation"]
+        self.assertEqual([("minecraft:igloo", "bury"),
+                          ("settlements", "none")], cfg)
+
 if __name__ == "__main__":
     unittest.main()
 

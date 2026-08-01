@@ -64,6 +64,11 @@ public final class DimensionStructures {
         if (def == null) {
             return null;
         }
+        // Terrain-adaptation overrides apply to EVERY managed world —
+        // including ones whose calculator this method leaves untouched
+        // (returning null below): the Beardifier runs in the noise phase and
+        // covers pass-throughs and vanilla-grid sets alike.
+        installTerrainAdaptation(world, def, original);
         String density = normalizedDensity(def);
         boolean peaceful = !def.isHostileSpawningEnabled();
         DimensionConfig.Structures structBlock = def.getStructures();
@@ -496,6 +501,66 @@ public final class DimensionStructures {
             case "reject" -> setId == null || !modeList.contains(setId);
             default -> false; // "none"
         };
+    }
+
+    /**
+     * Builds and installs the dimension's resolved Beardifier map: for every
+     * structure reachable through the world's structure sets, resolve
+     * per-structure config -> group config -> theme default (fills registry
+     * "none" only) -> registry value, and record only the entries that
+     * DIFFER. Keyed by registry-singleton identity so the armed per-chunk
+     * lookup is one IdentityHashMap get. See TerrainAdaptationOverride.
+     */
+    private static void installTerrainAdaptation(ServerWorld world, DimensionConfig def,
+                                                 StructurePlacementCalculator original) {
+        DimensionConfig.Structures block = def.getStructures();
+        java.util.Map<String, String> config =
+                block != null && block.terrainAdaptation != null
+                        ? block.terrainAdaptation : java.util.Map.of();
+        java.util.Map<String, String> themes = StructureGroupRegistry.terrainAdaptationDefaults();
+        Identifier worldId = world.getRegistryKey().getValue();
+        if (config.isEmpty() && themes.isEmpty()) {
+            TerrainAdaptationOverride.install(worldId, java.util.Map.of());
+            return;
+        }
+        java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                net.minecraft.world.gen.StructureTerrainAdaptation> map =
+                new java.util.IdentityHashMap<>();
+        for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
+            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            StructurePlacement placement = entry.value().placement();
+            int spacing = placement instanceof RandomSpreadStructurePlacement random
+                    ? random.getSpacing() : -1;
+            String group = StructureGroupRegistry.classify(setId, spacing).group();
+            for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+                net.minecraft.world.gen.structure.Structure structure = weighted.structure().value();
+                String structureId = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse(null);
+                net.minecraft.world.gen.StructureTerrainAdaptation vanilla;
+                try {
+                    vanilla = structure.getTerrainAdaptation();
+                } catch (RuntimeException e) {
+                    continue;   // a broken structure is not ours to fail on
+                }
+                String resolvedName = TerrainAdaptationOverride.resolveName(
+                        config, structureId, group, themes,
+                        vanilla.asString());
+                if (resolvedName == null) {
+                    continue;
+                }
+                var resolved = TerrainAdaptationOverride.parse(resolvedName,
+                        "dimension " + def.getName() + ", structure " + structureId);
+                if (resolved != null && resolved != vanilla) {
+                    map.put(structure, resolved);
+                }
+            }
+        }
+        TerrainAdaptationOverride.install(worldId, map);
+        if (!map.isEmpty()) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: terrain adaptation overridden for {} structure(s)",
+                    def.getName(), map.size());
+        }
     }
 
     /** Validated structures.mode: allow | reject | none, or null (off).

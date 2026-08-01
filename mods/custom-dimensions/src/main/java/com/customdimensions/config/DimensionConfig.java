@@ -865,6 +865,15 @@ public class DimensionConfig {
         @SerializedName("exclude")
         public List<String> exclude;
         /**
+         * Per-dimension Beardifier overrides: full STRUCTURE id or noise
+         * group name -> none | beard_thin | beard_box | bury | encapsulate.
+         * Resolution and semantics in TerrainAdaptationOverride.
+         * Generation-affecting (new chunks only) — mirrored in
+         * scripts/seed/dimension_profiles.generation_payload().
+         */
+        @SerializedName("terrainAdaptation")
+        public Map<String, String> terrainAdaptation;
+        /**
          * Structure SET ids forced INTO the noise pool, bypassing the biome
          * filter. The escape hatch for a filter that is too aggressive.
          */
