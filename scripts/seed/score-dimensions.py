@@ -829,6 +829,96 @@ def _spawn_chunks(rows):
     return sx >> 4, sz >> 4
 
 
+def _spawn_site_task(task):
+    """Pool worker: one candidate's site selection. Primitives in, primitives
+    out — the sampler is rebuilt in the worker process."""
+    name, seed, spec, site_profile, params_path = task
+    from fast_roller import select_spawn_site
+    from biome_sampler import build_from_spec
+    try:
+        sampler = build_from_spec(int(seed), spec, params_path)
+    except (ValueError, OSError, KeyError):
+        return name, seed, None, -1, 0, 0
+    biome, dist, x, z = select_spawn_site(sampler, site_profile)
+    return name, seed, biome, dist, x, z
+
+
+def ensure_spawn_sites(args, profiles, data, quiet=False):
+    """Upgrade banked spawns to site-selected ones (spawn-site-selection).
+
+    Roll-time selection lives in fast_roller.select_spawn_site; this is the
+    post-hoc pass over already-banked candidates, versioned by
+    SPAWN_SITE_VERSION so it runs once per candidate per selection change.
+    Deterministic (pure function of seed + config), so NOT a re-roll —
+    `spawn` is volatile and absent from generation_payload(). Run BEFORE
+    ensure_spawn_distances: a moved spawn re-anchors battery distances and
+    re-bins censuses through the existing binOrigin machinery.
+
+    Scoped to fully-measured candidates only (`"errors" in rows`, the same
+    scoreable test ensure_censuses uses) — the bank also holds tens of
+    thousands of tier-1 screens whose spawn nothing ever reads.
+    """
+    from fast_roller import SPAWN_SITE_VERSION
+    from biome_sampler import sampler_spec
+    params_path = str(Path(args.seedtest) / "biome_params.json")
+    if not Path(params_path).exists():
+        return
+    tasks = []
+    rows_by_key = {}
+    for name, profile in profiles.items():
+        if not profile.get("namesake"):
+            continue
+        spec = None
+        site_profile = None
+        for seed, rows in data.get(name, {}).items():
+            if rows.get("rejected") == "1" or "errors" not in rows:
+                continue
+            if str(rows.get("spawn_site_v") or "") == str(SPAWN_SITE_VERSION):
+                continue
+            if spec is None:
+                spec = sampler_spec(profile)
+                site_profile = {k: profile.get(k) for k in (
+                    "namesake", "player_border", "clear_spawn_radius",
+                    "forced_structures", "family", "anchor_spawn")}
+            tasks.append((name, seed, spec, site_profile, params_path))
+            rows_by_key[(name, seed)] = rows
+    if not tasks:
+        return
+    workers = max(1, getattr(args, "census_workers", 0) or default_workers())
+    if not quiet:
+        print(f"spawn sites: re-selecting {len(tasks)} candidate(s) on "
+              f"{workers} worker(s) (v{SPAWN_SITE_VERSION})", flush=True)
+    started = time.time()
+    step = max(1, len(tasks) // 20)
+    results = []
+    if workers > 1 and len(tasks) > 1:
+        with multiprocessing.Pool(workers) as pool:
+            for done, result in enumerate(
+                    pool.imap_unordered(_spawn_site_task, tasks, chunksize=4), 1):
+                results.append(result)
+                if not quiet and (done % step == 0 or done == len(tasks)):
+                    rate = done / max(1e-6, time.time() - started)
+                    eta = (len(tasks) - done) / max(rate, 1e-6)
+                    print(f"  spawn sites: {done}/{len(tasks)} "
+                          f"(~{eta / 60.0:.0f} min left)", flush=True)
+    else:
+        results = [_spawn_site_task(t) for t in tasks]
+    upgraded = 0
+    for name, seed, biome, dist, x, z in results:
+        rows = rows_by_key[(name, seed)]
+        if biome is not None and dist >= 0:
+            rows["spawn_x"] = x
+            rows["spawn_z"] = z
+            rows["spawn_filter_dist"] = dist
+            rows["spawn_biome"] = biome if dist <= 48 else rows.get(
+                "spawn_biome", biome)
+        rows["spawn_site_v"] = SPAWN_SITE_VERSION
+        upgraded += 1
+    if upgraded and not quiet:
+        print(f"spawn sites: {upgraded} candidate(s) re-selected "
+              f"(v{SPAWN_SITE_VERSION})", flush=True)
+
+
 def ensure_spawn_distances(args, profiles, data, quiet=False):
     """Re-anchor banked battery distances at each candidate's chosen spawn.
 
@@ -1033,6 +1123,12 @@ def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
             # fast_roller reads erosion for everything else, and the surveyed
             # height has to be on the same scale to stay comparable.
             "has_continentalness": fam == "overworld" and not profile.get("is_void"),
+            # Effective sea level: water is surveyed height below this OR a
+            # water biome — a dimension with no listed ocean can still be
+            # wet where its terrain dips (Phase 8). Voids have no terrain
+            # to dip; biome identity stays their only water signal.
+            "sea_level": None if profile.get("is_void") else int(
+                (profile.get("settings_overrides") or {}).get("seaLevel") or 63),
         }
         for seed, rows in data.get(name, {}).items():
             if rows.get("rejected") == "1" or "errors" not in rows:
@@ -1209,6 +1305,7 @@ def score_all(profiles, data):
 def cmd_score(args, config, profiles):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
@@ -1234,6 +1331,7 @@ def cmd_rescore(args, config, profiles):
         sys.exit("rescore needs the v4 config directory (config/custom-dimensions)")
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
@@ -1495,6 +1593,7 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
 def cmd_finalise(args, config, profiles, world_profiles=None, page_profiles=None):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
@@ -2240,7 +2339,28 @@ def _structure_section(c, profile):
             sev = 0 if chance >= 0.8 else (1 if mass > 0 else 2)
             verdict = ("{:.0f}% likely".format(chance * 100.0) if mass > 0
                        else "wrong ring")
-            if share >= 1.0:
+            if share <= 0.0:
+                # A known-empty share is a statement about the WORLD, not
+                # the seed: the pool filter left nothing of this structure
+                # here, so no seed can produce one. It must never share
+                # styling with an unlucky roll (structure-pool-shares §6);
+                # the bank-wide badge separates a classifier casualty from
+                # a per-dimension biome exclusion.
+                pools = profile.get("_structure_pools") or {}
+                nowhere = not any(sid in (grp or {})
+                                  for dims in pools.values()
+                                  for grp in (dims or {}).values())
+                why = ("{} does not exist in this world's structure pool — "
+                       "it cannot generate here on any seed{}. {:.0f} of the "
+                       "{} <b>{}</b> placements in that band belong to "
+                       "something else.".format(
+                           pretty,
+                           " (never placed by noise anywhere in this bank)"
+                           if nowhere else "",
+                           mass, count, group))
+                sev = 2
+                verdict = "impossible here"
+            elif share >= 1.0:
                 why = ("{:.0f} of the {} <b>{}</b> placements sit in that "
                        "band.".format(mass, count, group))
             else:

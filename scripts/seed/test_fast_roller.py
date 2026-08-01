@@ -176,5 +176,120 @@ class BankRootOrderingTests(unittest.TestCase):
             self.assertIn("bank root not set", err.getvalue())
 
 
+class FakeSiteSampler:
+    """A programmable biome map for select_spawn_site tests: biome_fn(x, z)
+    -> biome id; climate is constant so spline heights are flat unless a
+    test overrides height via the evaluator being irrelevant (flat model
+    => flatness ties, decided by dryness/openness/origin)."""
+
+    def __init__(self, biome_fn):
+        self._fn = biome_fn
+
+    def biome_and_climate(self, x, z):
+        return self._fn(x, z), {"temperature": 0.0, "humidity": 0.0,
+                                "continentalness": 0.2, "erosion": 0.0,
+                                "depth": 0.0, "weirdness": 0.0}
+
+
+class SelectSpawnSiteTests(unittest.TestCase):
+    """Phase 7 spawn-site selection: hard filters, quality scoring,
+    determinism, and the never-reject fallback."""
+
+    def _profile(self, **over):
+        p = {"namesake": ["minecraft:plains"], "player_border": 8192,
+             "clear_spawn_radius": 48, "forced_structures": [],
+             "family": "overworld"}
+        p.update(over)
+        return p
+
+    def test_water_namesake_point_loses_to_dry_site(self):
+        # Namesake at origin is a river (water) — a dry namesake site
+        # further out must win despite the origin tie-break.
+        def biome(x, z):
+            if (x, z) == (0, 0):
+                return "minecraft:river"
+            if (x, z) == (128, 128):
+                return "minecraft:plains"
+            return "minecraft:forest"
+        b, d, x, z = fast_roller.select_spawn_site(
+            FakeSiteSampler(biome), self._profile(
+                namesake=["minecraft:plains", "minecraft:river"]))
+        self.assertEqual(("minecraft:plains", 128, 128), (b, x, z))
+        self.assertEqual(int((128 * 128 * 2) ** 0.5), d)
+
+    def test_border_filter_excludes_out_of_bounds_sites(self):
+        def biome(x, z):
+            return ("minecraft:plains" if abs(x) >= 512 or abs(z) >= 512
+                    else "minecraft:forest")
+        b, d, x, z = fast_roller.select_spawn_site(
+            FakeSiteSampler(biome), self._profile(player_border=256))
+        # Every namesake point is outside border-margin: fallback fires
+        # with the nearest bare namesake point.
+        self.assertEqual("minecraft:plains", b)
+        self.assertEqual(512, max(abs(x), abs(z)))
+
+    def test_forced_placement_clearance(self):
+        def biome(x, z):
+            return ("minecraft:plains" if (x, z) in ((64, 0), (256, 0))
+                    else "minecraft:forest")
+        prof = self._profile(clear_spawn_radius=128,
+                             forced_structures=[{"structure": "f", "x": 64, "z": 0}])
+        b, d, x, z = fast_roller.select_spawn_site(FakeSiteSampler(biome), prof)
+        self.assertEqual((256, 0), (x, z), "site inside clearance skipped")
+
+    def test_open_site_beats_lonely_site_nearer_origin(self):
+        # (64,0) is a lone plains cell in forest; (320,320) sits in a
+        # plains block — openness must out-score the origin distance.
+        def biome(x, z):
+            if (x, z) == (64, 0):
+                return "minecraft:plains"
+            if 256 <= x <= 384 and 256 <= z <= 384:
+                return "minecraft:plains"
+            return "minecraft:forest"
+        b, d, x, z = fast_roller.select_spawn_site(
+            FakeSiteSampler(biome), self._profile())
+        self.assertEqual((320, 320), (x, z))
+
+    def test_deterministic(self):
+        def biome(x, z):
+            return ("minecraft:plains" if (x + z) % 128 == 0
+                    else "minecraft:forest")
+        prof = self._profile()
+        first = fast_roller.select_spawn_site(FakeSiteSampler(biome), prof)
+        for _ in range(3):
+            self.assertEqual(first, fast_roller.select_spawn_site(
+                FakeSiteSampler(biome), prof))
+
+    def test_anchor_spawn_weighting_prefers_portal_foundation(self):
+        # Two intended sites: S1 (64,0) — dry .75, open .5 — and S2
+        # (320,0) — dry 1.0, open 0. Normal weighting: S1 .75 beats S2
+        # .70; anchor weighting (dryness-dominant — the site is a portal
+        # foundation): S2 .80 beats S1 .775. The extra rivers keep S1's
+        # plains neighbours (sites themselves) capped below both.
+        plains = {(64, 0), (320, 0), (0, 0), (128, 0), (64, -64), (64, 64)}
+        rivers = {(0, -64), (0, 64), (192, -64), (192, 0),
+                  (64, -128), (64, 128)}
+
+        def biome(x, z):
+            if (x, z) in plains:
+                return "minecraft:plains"
+            if (x, z) in rivers:
+                return "minecraft:river"
+            return "minecraft:forest"
+        normal = fast_roller.select_spawn_site(
+            FakeSiteSampler(biome), self._profile())
+        anchor = fast_roller.select_spawn_site(
+            FakeSiteSampler(biome), self._profile(anchor_spawn=True))
+        self.assertNotEqual(normal[2:], anchor[2:],
+                            "anchor weighting must change the choice on this map")
+        self.assertEqual((320, 0), anchor[2:])
+
+    def test_no_namesake_anywhere_returns_none(self):
+        b, d, x, z = fast_roller.select_spawn_site(
+            FakeSiteSampler(lambda x, z: "minecraft:forest"), self._profile())
+        self.assertIsNone(b)
+        self.assertEqual(-1, d)
+
+
 if __name__ == "__main__":
     unittest.main()

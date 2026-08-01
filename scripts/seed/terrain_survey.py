@@ -148,7 +148,7 @@ def metrics_from_grid(heights, waters, grid=GRID):
 
 
 def _walk(sampler, span, grid, is_void, has_continentalness,
-          want_water=True, want_heights=True):
+          want_water=True, want_heights=True, sea_level=None):
     """One `grid` x `grid` lattice over [-span, span]. -> (heights, waters, seen).
 
     Corner-inclusive: the first and last columns sit exactly on the edge of the
@@ -164,28 +164,45 @@ def _walk(sampler, span, grid, is_void, has_continentalness,
     """
     step = (2 * span) // (grid - 1) if grid > 1 and span > 0 else 0
     heights, waters, seen = {}, [], {}
+
+    def height_of(climate):
+        if has_continentalness:
+            return cont_to_height(climate.get("continentalness", 0.0))
+        # Nether/end/paradise have no continentalness worth reading;
+        # fast_roller uses erosion on the same 64 + 30x scale.
+        return 64.0 + climate.get("erosion", 0.0) * 30.0
+
     for r in range(grid):
         for c in range(grid):
             x = -span + c * step
             z = -span + r * step
+            climate = None
             if want_water:
-                biome = sampler.biome_at(x, z)
+                # Water is what the terrain does, not what the biome is
+                # called: a column whose surveyed height sits below the
+                # dimension's effective sea level is water even when the
+                # biome list names no ocean (the metric used to describe
+                # the CONFIG, not the world). Biome identity stays as the
+                # floor — an ocean biome is water whatever the model says.
+                if is_void or sea_level is None:
+                    biome = sampler.biome_at(x, z)
+                else:
+                    biome, climate = sampler.biome_and_climate(x, z)
                 seen[biome] = seen.get(biome, 0) + 1
-                waters.append(1 if biome in WATER_BIOMES else 0)
+                wet = biome in WATER_BIOMES
+                if not wet and climate is not None:
+                    wet = height_of(climate) < sea_level
+                waters.append(1 if wet else 0)
             if is_void or not want_heights:
                 continue
-            climate = sampler.sample_climate(x, z)
-            if has_continentalness:
-                heights[(r, c)] = cont_to_height(climate.get("continentalness", 0.0))
-            else:
-                # Nether/end/paradise have no continentalness worth reading;
-                # fast_roller uses erosion on the same 64 + 30x scale.
-                heights[(r, c)] = 64.0 + climate.get("erosion", 0.0) * 30.0
+            if climate is None:
+                climate = sampler.sample_climate(x, z)
+            heights[(r, c)] = height_of(climate)
     return heights, waters, seen
 
 
 def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
-           relief_span=RELIEF_SPAN, configured_biomes=()):
+           relief_span=RELIEF_SPAN, configured_biomes=(), sea_level=None):
     """Terrain metrics for one seed, on TWO windows for one reason each.
 
     - WATER (and land_fraction) over the full playable radius, because the
@@ -207,7 +224,8 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
     # lookups, which is the expensive half of a survey.
     heights, waters, seen = _walk(sampler, int(radius), grid, is_void,
                                   has_continentalness, want_water=True,
-                                  want_heights=not capped)
+                                  want_heights=not capped,
+                                  sea_level=sea_level)
     if capped:
         # Relief and grain get their own, tighter window; water keeps the wide
         # one measured above. land_fraction comes from this walk, which is
@@ -265,12 +283,13 @@ def survey_task(task):
     return (name, seed, survey(
         sampler, spec["radius"], is_void=spec["is_void"],
         has_continentalness=spec["has_continentalness"],
-        configured_biomes=spec.get("configured_biomes") or ()))
+        configured_biomes=spec.get("configured_biomes") or (),
+        sea_level=spec.get("sea_level")))
 
 
 #: Bump whenever the survey record changes shape or meaning, so cached
 #: surveys are re-measured rather than read as current.
-SURVEY_VERSION = 2
+SURVEY_VERSION = 3
 
 
 def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):

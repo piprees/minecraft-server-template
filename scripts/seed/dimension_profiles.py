@@ -1345,6 +1345,13 @@ def build_profile(dim, config, difficulty=None):
         # Raw unscaled borders.player (or the 8192 default) — feeds the
         # derived shrine spacing mirror (DimensionStructures parity).
         "player_border": raw_player_border,
+        # portal.anchor.pos "spawn": the chosen spawn IS the anchor portal
+        # column (Anchor.resolvePos falls through to the spawn field), so
+        # site selection weights the site as a portal foundation.
+        "anchor_spawn": str((dim.get("portal") or {}).get("anchor", {})
+                            .get("pos", "")).strip().lower() == "spawn"
+                        if isinstance((dim.get("portal") or {}).get("anchor"), dict)
+                        else False,
         # Wants may deliberately sit beyond the border (pocket-dim scenery
         # visible via Distant Horizons) — the locate cap must reach them.
         "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery

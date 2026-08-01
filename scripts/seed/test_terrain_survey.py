@@ -263,5 +263,56 @@ class ScoringIntegrationTests(unittest.TestCase):
         self.assertGreater(grain, 0.0)
 
 
+class _ClimateSampler:
+    """Programmable (biome, continentalness) per point for water tests."""
+
+    def __init__(self, fn):
+        self._fn = fn
+
+    def _climate(self, x, z):
+        biome, cont = self._fn(x, z)
+        return biome, {"temperature": 0.0, "humidity": 0.0,
+                       "continentalness": cont, "erosion": 0.0,
+                       "depth": 0.0, "weirdness": 0.0}
+
+    def biome_at(self, x, z):
+        return self._climate(x, z)[0]
+
+    def biome_and_climate(self, x, z):
+        return self._climate(x, z)
+
+    def sample_climate(self, x, z):
+        return self._climate(x, z)[1]
+
+
+class WaterMeasuresWaterTests(unittest.TestCase):
+    """Phase 8: water is what the terrain does, not what the biome is
+    called — surveyed height below the effective sea level counts, with
+    biome identity kept as the floor."""
+
+    def test_sunken_terrain_is_wet_without_water_biomes(self):
+        # cont -0.5 -> height ~53, below sea level 63, biome is a MEADOW.
+        wisteria = _ClimateSampler(lambda x, z: ("minecraft:meadow", -0.5))
+        wet = ts.survey(wisteria, 256, sea_level=63)
+        dry = ts.survey(wisteria, 256, sea_level=None)
+        self.assertEqual(1.0, wet["water"], "every column sits below sea level")
+        self.assertEqual(0.0, dry["water"], "biome-identity only without a sea level")
+
+    def test_high_ground_stays_dry(self):
+        dustbowl = _ClimateSampler(lambda x, z: ("terralith:ancient_sands", 0.5))
+        self.assertEqual(0.0, ts.survey(dustbowl, 256, sea_level=63)["water"])
+
+    def test_water_biome_is_wet_regardless_of_height(self):
+        # An ocean biome on high-cont terrain is still water (the floor).
+        odd = _ClimateSampler(lambda x, z: ("minecraft:ocean", 0.5))
+        self.assertEqual(1.0, ts.survey(odd, 256, sea_level=63)["water"])
+
+    def test_custom_sea_level_moves_the_line(self):
+        # height ~53: dry below a 50 sea level, wet below a 60 one.
+        s = _ClimateSampler(lambda x, z: ("minecraft:meadow", -0.5))
+        self.assertEqual(0.0, ts.survey(s, 256, sea_level=50)["water"])
+        self.assertEqual(1.0, ts.survey(s, 256, sea_level=60)["water"])
+
+
 if __name__ == "__main__":
     unittest.main()

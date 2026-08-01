@@ -25,6 +25,7 @@ Usage:
 
 import argparse
 import importlib.util
+import math
 import multiprocessing
 import os
 import struct
@@ -127,6 +128,118 @@ WATER_BIOMES = {
     "minecraft:river", "minecraft:frozen_river",
     "terralith:deep_warm_ocean", "terralith:warm_river",
 }
+
+# Bump when select_spawn_site's filters or scoring change — banked spawns
+# carry the version so the post-hoc pass (score-dimensions
+# ensure_spawn_sites) knows which candidates still hold an older choice.
+SPAWN_SITE_VERSION = 1
+
+# How far inside borders.player a spawn must sit. The mod's
+# PortalSafetyValidator.ARRIVAL_MARGIN is 0, so this is the only thing
+# keeping a rolled spawn off the world-border line.
+SPAWN_BORDER_MARGIN = 16
+
+_TERRAIN_EV = None
+
+
+def _terrain_evaluator():
+    global _TERRAIN_EV
+    if _TERRAIN_EV is None:
+        from terrain_height import TerrainEvaluator
+        _TERRAIN_EV = TerrainEvaluator()
+    return _TERRAIN_EV
+
+
+def select_spawn_site(sampler, profile, radius=768, step=64):
+    """Pick a spawn SITE, not just the nearest namesake point (X/Z only —
+    Y stays with the mod, which recomputes it at arrival anyway).
+
+    One grid pass over the ±radius window collects biome + climate per
+    point. Hard filters on a site: namesake biome, inside borders.player
+    less SPAWN_BORDER_MARGIN, not a water biome, and clear of every forced
+    placement by clearSpawnRadius. Survivors score on dryness and openness
+    of the 8-neighbour ring plus macro-flatness from the spline height
+    model (macro shape only — the spline cannot see settlement-scale
+    relief; see the 2026-08-01 adjudication in the worklog), with origin
+    distance and then the grid key breaking ties — the choice is a pure
+    deterministic function of seed + config.
+
+    Returns (biome, dist, x, z) like BiomeSampler.spawn_filter. Falls back
+    to the nearest bare namesake point when every site fails a hard filter
+    (an all-water namesake list, a tiny border) — site quality must never
+    reject a seed the old gate accepted.
+    """
+    namesake = set(profile.get("namesake") or [])
+    if not namesake:
+        return None, -1, 0, 0
+    try:
+        border = int(profile.get("player_border") or 0)
+    except (TypeError, ValueError):
+        border = 0
+    clear = int(profile.get("clear_spawn_radius") or 0)
+    forced = [(int(f["x"]), int(f["z"]))
+              for f in (profile.get("forced_structures") or [])
+              if f.get("x") is not None and f.get("z") is not None]
+    family = profile.get("family") or "overworld"
+    ev = _terrain_evaluator()
+    use_heights = ev.has_family(family) or family == "paradise_lost"
+
+    grid = {}
+    for gx in range(-radius, radius + 1, step):
+        for gz in range(-radius, radius + 1, step):
+            biome, climate = sampler.biome_and_climate(gx, gz)
+            height = ev.surface_height(
+                climate["continentalness"], climate["erosion"],
+                climate["weirdness"], family=family) if use_heights else 0
+            grid[(gx, gz)] = (biome, height)
+
+    best_key, best = None, None
+    fallback = None            # nearest namesake point, old-gate semantics
+    clear_sq = clear * clear
+    for (gx, gz) in sorted(grid):
+        biome, height = grid[(gx, gz)]
+        if biome not in namesake:
+            continue
+        dist_sq = gx * gx + gz * gz
+        if fallback is None or dist_sq < fallback[0]:
+            fallback = (dist_sq, biome, gx, gz)
+        if border > 0 and max(abs(gx), abs(gz)) > border - SPAWN_BORDER_MARGIN:
+            continue
+        if biome in WATER_BIOMES:
+            continue
+        if any((gx - fx) ** 2 + (gz - fz) ** 2 <= clear_sq for fx, fz in forced):
+            continue
+        neighbours = [grid[(gx + dx * step, gz + dz * step)]
+                      for dx in (-1, 0, 1) for dz in (-1, 0, 1)
+                      if (dx, dz) != (0, 0)
+                      and (gx + dx * step, gz + dz * step) in grid]
+        if neighbours:
+            water = sum(1 for b, _ in neighbours if b in WATER_BIOMES)
+            open_ = sum(1 for b, _ in neighbours if b in namesake)
+            dry_frac = 1.0 - water / len(neighbours)
+            open_frac = open_ / len(neighbours)
+            drop = max(abs(h - height) for _, h in neighbours) if use_heights else 0
+        else:
+            dry_frac, open_frac, drop = 1.0, 1.0, 0
+        flat = max(0.0, 1.0 - drop / 32.0)
+        # Anchor-"spawn" dims: the site is a portal FOUNDATION (the frame
+        # lands on it), so dryness dominates — a frame in a lake is worse
+        # than one a little further from clean namesake ground.
+        if profile.get("anchor_spawn"):
+            score = 0.5 * dry_frac + 0.2 * open_frac + 0.3 * flat
+        else:
+            score = 0.4 * dry_frac + 0.3 * open_frac + 0.3 * flat
+        key = (-round(score, 9), dist_sq, gx, gz)
+        if best_key is None or key < best_key:
+            best_key, best = key, (biome, gx, gz)
+
+    if best is not None:
+        biome, x, z = best
+        return biome, int(math.sqrt(x * x + z * z)), x, z
+    if fallback is not None:
+        dist_sq, biome, x, z = fallback
+        return biome, int(math.sqrt(dist_sq)), x, z
+    return None, -1, 0, 0
 
 _CONT_TO_HEIGHT = [
     (-1.2, 40), (-0.455, 55), (-0.19, 62), (-0.11, 63),
@@ -281,13 +394,18 @@ def tier2_measure(seed, profile, sampler):
         # multi_biome dims mix families — namesake biomes may not exist in this noise config
         namesake_in_sampler = namesake_set & sampler_biomes
         if namesake_in_sampler:
-            result = sampler.spawn_filter(namesake_set, radius=768, step=256)
-            best_b, best_d, best_x, best_z = result
+            # Site selection, not nearest-point: hard filters + quality
+            # scoring at 64-block resolution (select_spawn_site). Rejection
+            # semantics are unchanged — a seed fails only when NO namesake
+            # biome exists anywhere in the window, exactly as before.
+            best_b, best_d, best_x, best_z = select_spawn_site(
+                sampler, profile)
             if best_b is not None and best_d >= 0:
                 if best_d <= 48:
                     spawn = best_b
                 spawn_x, spawn_z = best_x, best_z
                 rows.append(("spawn_filter_dist", best_d))
+                rows.append(("spawn_site_v", SPAWN_SITE_VERSION))
             else:
                 rows.append(("spawn_biome", "unknown"))
                 rows.append(("rejected", 1))
