@@ -186,15 +186,50 @@ def _enrich_dim(name, dim, config, difficulty, cdir, all_sets, top_n):
     return added
 
 
-def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
-    """Biome survey for one dimension. Returns how many were added."""
-    from dimension_profiles import build_profile
-    from biome_sampler import BiomeSampler, load_noise_configs
-    import candidates as cmod
+def biome_survey_fingerprint(generation_fp, radius):
+    """What a cached biome survey is valid FOR.
 
-    FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
-                    "end": "end", "paradise_lost": "paradise_lost"}
-    TYPE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
+    Same reasoning as terrain_survey.fingerprint: the generation fingerprint
+    covers every input to the sampler, and the radius sets where the samples
+    are taken. Conservative — an unrelated config edit costs one cheap
+    re-survey, while a stale survey read as current is the failure that
+    matters and a superset cannot produce it.
+    """
+    return "bs1:%s:%d" % (generation_fp or "-", int(radius))
+
+
+def survey_biomes(cand):
+    """{biome: [dist, x, z]} from a candidate's cached survey, either shape.
+
+    Records written before the fingerprint existed are a bare biome map. They
+    are also the ones most likely to be WRONG, so they are ignored rather than
+    read: a survey with no fingerprint cannot be shown to describe the current
+    config, and _survey_dim rewrites it on the next pass.
+    """
+    survey = cand.get("biome_survey")
+    if isinstance(survey, dict) and "biomes" in survey:
+        return survey.get("biomes") or {}
+    return {}
+
+
+def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
+    """Biome survey for one dimension. Returns how many were added.
+
+    The survey is what the detail panel reads, so it has to describe the same
+    world the score describes. It is built through the shared
+    biome_sampler.sampler_spec/build_from_spec pair for that reason: this
+    function used to assemble the sampler itself and dropped the dimension's
+    Tier-3 per-biome parameters, which made every affected dimension survey as
+    a single biome and report the rest as "not found" beside a score computed
+    from all of them (TROUBLESHOOTING.md#t20).
+
+    Cached under a fingerprint rather than mere presence. Without one, a fix to
+    the sampler leaves every wrong survey in the bank forever — 1987 of them
+    when this was found.
+    """
+    from dimension_profiles import build_profile, generation_fingerprint
+    from biome_sampler import build_from_spec, sampler_spec
+    import candidates as cmod
 
     store_path = cdir / f"{name}.json"
     if not store_path.exists():
@@ -202,30 +237,25 @@ def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
     profile = build_profile(dim, config, difficulty)
     store = cmod.load_store(store_path)
     radius = int(profile["radius"])
-    noise_configs = load_noise_configs()
-    noise_fam = TYPE_OVERRIDE.get(dim.get("type", ""),
-                                  FAMILY_NOISE.get(profile.get("family", "overworld"),
-                                                   "overworld"))
-    nc = noise_configs.get(noise_fam, noise_configs.get("overworld"))
-    config_biomes = list(dim.get("biomes") or []) \
-        or [b.strip() for b in (dim.get("biome") or "").split(",") if b.strip()]
+    spec = sampler_spec(profile)
+    fp = biome_survey_fingerprint(generation_fingerprint(dim), radius)
 
     added = 0
     step = max(64, radius // 32)
     for seed_str in _top_seeds(store, top_n):
         cand = store["candidates"][seed_str]
-        if "biome_survey" in cand:
+        cached = cand.get("biome_survey")
+        if isinstance(cached, dict) and cached.get("fp") == fp:
             continue
-        sampler = BiomeSampler(int(seed_str), biome_params, noise_config=nc,
-                               family=noise_fam,
-                               biome_filter=config_biomes or None)
+        sampler = build_from_spec(int(seed_str), spec, biome_params)
         biome_map = {}
         for bx in range(-radius, radius + 1, step):
             for bz in range(-radius, radius + 1, step):
                 biome = sampler.biome_at(bx, bz)
                 if biome not in biome_map:
                     biome_map[biome] = [int((bx * bx + bz * bz) ** 0.5), bx, bz]
-        cand["biome_survey"] = biome_map
+        cand["biome_survey"] = {"fp": fp, "step": step, "radius": radius,
+                                "biomes": biome_map}
         added += 1
     if added:
         cmod.save_store(store_path, store)
@@ -253,10 +283,12 @@ def _render_args_for(config_path, dim):
     Half the pixel budget at twice the blocks per pixel lands on exactly
     the batch coverage, so one file name now means one geometry.
     """
-    family, dim_type, biomes, noise_settings = "overworld", "", [], ""
+    family, dim_type, noise_settings = "overworld", "", ""
     dim_scale = 1.0
+    spec = None
     try:
         from dimension_profiles import load_config, load_difficulty, build_profile
+        from biome_sampler import sampler_spec
         config = load_config(config_path)
         difficulty = load_difficulty(config_path)
         all_dims = {d["name"]: d for d in config.get("dimensions", [])}
@@ -268,15 +300,20 @@ def _render_args_for(config_path, dim):
             dim_scale = float(profile.get("scale", 1.0) or 1.0) or 1.0
             dim_type = entry.get("type", "") or ""
             noise_settings = entry.get("noiseSettings", "") or ""
-            biomes = list(entry.get("biomes") or []) or [
-                b.strip() for b in (entry.get("biome") or "").split(",") if b.strip()]
+            # The whole layout, not a biome CSV. The CSV cannot carry Tier-3
+            # per-biome parameters, biome patches or a checkerboard grid, so a
+            # hi-res preview built from it was a different world from the
+            # thumbnail beside it for every dimension using any of them.
+            spec = sampler_spec(profile)
     except Exception:
         pass
     blocks_per_pixel = 2 * max(1, int(16 / dim_scale))
-    return ["--family", family, "--dim-type", dim_type,
-            "--biome-filter", ",".join(biomes),
+    argv = ["--family", family, "--dim-type", dim_type,
             "--noise-settings", noise_settings,
             "--size", "1024", "--scale", str(blocks_per_pixel)]
+    if spec is not None:
+        argv += ["--sampler-spec", json.dumps(spec)]
+    return argv
 
 
 def _find_dim_config(config_path, dim):
@@ -1725,8 +1762,16 @@ def main():
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--winner-overlay",
                     help="consumer mode passthrough to score-dimensions finalise")
-    ap.add_argument("--refresh", action="store_true",
-                    help="wipe existing renders and regenerate all in background")
+    ap.add_argument("--refresh", nargs="?", const="__all__", default=None,
+                    metavar="DIMS",
+                    help="delete existing renders so they regenerate. Takes a "
+                         "comma-separated dimension list; bare --refresh needs "
+                         "--refresh-all as well, because wiping every render "
+                         "is hours of CPU and the reason to reach for this is "
+                         "almost always one dimension")
+    ap.add_argument("--refresh-all", action="store_true",
+                    help="confirm that a bare --refresh should wipe EVERY "
+                         "dimension's renders")
     ap.add_argument("--render-workers", type=int, default=0,
                     help="processes for the background render worker "
                          "(default: CPU count minus 2). It runs continuously "
@@ -1746,11 +1791,34 @@ def main():
     if args.winner_overlay:
         finalise_args += ["--winner-overlay", args.winner_overlay]
 
-    # --refresh: wipe all renders so they regenerate
+    # --refresh: delete renders so the background worker regenerates them.
+    # Dimension-scoped by default. A bare --refresh used to rmtree the whole
+    # renders tree — 1620 images and hours of CPU on a real bank — for what is
+    # almost always a one-dimension problem.
     renders_dir = Path(args.seedtest) / "renders"
     if args.refresh and renders_dir.exists():
-        shutil.rmtree(renders_dir)
-        print("renders wiped (--refresh)", flush=True)
+        if args.refresh == "__all__":
+            if not args.refresh_all:
+                print("--refresh with no dimension list wipes EVERY render "
+                      f"({sum(1 for _ in renders_dir.rglob('*.png'))} images, "
+                      "hours of CPU).", file=sys.stderr)
+                print("  One dimension:  --refresh the_wuthering_wisteria",
+                      file=sys.stderr)
+                print("  Really all:     --refresh --refresh-all",
+                      file=sys.stderr)
+                return 2
+            shutil.rmtree(renders_dir)
+            print("renders wiped (--refresh --refresh-all)", flush=True)
+        else:
+            wanted = [d.strip() for d in args.refresh.split(",") if d.strip()]
+            for name in wanted:
+                target = renders_dir / name
+                if target.is_dir():
+                    n = sum(1 for _ in target.glob("*.png"))
+                    shutil.rmtree(target)
+                    print(f"renders wiped for {name} ({n} images)", flush=True)
+                else:
+                    print(f"no renders for {name}", file=sys.stderr)
 
     handler = partial(ViewerHandler, directory=args.seedtest)
     ViewerHandler.seedtest = args.seedtest

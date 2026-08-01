@@ -34,7 +34,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from biome_sampler import (  # noqa: E402
-    BiomeSampler, CheckerboardBiomeSampler, PatchedBiomeSampler, load_noise_configs,
+    FAMILY_NOISE as biome_sampler_family_noise,
+    TYPE_NOISE_OVERRIDE as biome_sampler_type_override,
+    BiomeSampler, build_for_dimension, load_noise_configs,
 )
 from dimension_profiles import (  # noqa: E402
     build_profile, generation_fingerprint, load_config, load_difficulty, rollable,
@@ -131,17 +133,12 @@ _CONT_TO_HEIGHT = [
     (0.03, 70), (0.3, 100), (0.55, 140), (0.8, 190), (1.0, 256),
 ]
 
-FAMILY_NOISE = {
-    "overworld": "overworld", "nether": "nether",
-    "end": "end", "paradise_lost": "paradise_lost",
-    None: "overworld",
-}
-
-# Clone-type families that need a specific noise config despite family_of()
-# returning "overworld" (paradise_lost is a mod dimension with its own noise).
-_TYPE_NOISE_OVERRIDE = {
-    "paradise_lost:paradise_lost": "paradise_lost",
-}
+# Aliases of the canonical tables in biome_sampler. Kept as names because
+# other modules and tests refer to them; they must never become second copies,
+# which is exactly how the renderer and the roller came to disagree about
+# paradise_lost dimensions.
+FAMILY_NOISE = biome_sampler_family_noise
+_TYPE_NOISE_OVERRIDE = biome_sampler_type_override
 
 
 def _cont_to_height(cont):
@@ -331,34 +328,13 @@ def tier2_measure(seed, profile, sampler):
 def _build_sampler(seed, profile, biome_params_path, noise_configs):
     """One seed's sampler from a profile's generation fields. Within a
     fingerprint group every member builds the IDENTICAL sampler (all inputs
-    are fingerprint fields), which is what makes group sharing exact."""
-    fam = profile["family"] or "overworld"
-    dim_type = profile.get("type", "")
-    noise_family = _TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(fam, "overworld"))
-    noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
-    config_biomes = profile.get("create_args", {}).get("biome")
-    # ORDERED list, not a set: foreign-biome round-robin follows config
-    # order in the mod (LinkedHashSet) — a set here scrambles the layout.
-    biome_filter = config_biomes.split(",") if config_biomes else None
+    are fingerprint fields), which is what makes group sharing exact.
 
-    if dim_type == "checkerboard" and config_biomes:
-        # Ordered biome list (config order = the mod's grid order);
-        # the set-shaped biome_filter would scramble the pattern.
-        sampler = CheckerboardBiomeSampler(
-            seed, biome_params_path,
-            biomes=config_biomes.split(","),
-            scale=profile.get("checkerboard_scale"),
-            noise_config=noise_config, family=noise_family)
-    else:
-        sampler = BiomeSampler(seed, biome_params_path,
-                               noise_config=noise_config,
-                               biome_filter=biome_filter,
-                               family=noise_family,
-                               param_overrides=profile.get("biome_parameters") or None)
-    patches = profile.get("biome_patches") or []
-    if patches:
-        sampler = PatchedBiomeSampler(sampler, patches)
-    return sampler
+    The construction itself lives in biome_sampler.build_for_dimension so the
+    renderer, the biome survey and the terrain survey build the SAME world —
+    they used to each assemble it themselves, and each one that missed an
+    input sampled a different dimension (TROUBLESHOOTING.md#t20)."""
+    return build_for_dimension(seed, profile, biome_params_path, noise_configs)
 
 
 def _process_group(task):

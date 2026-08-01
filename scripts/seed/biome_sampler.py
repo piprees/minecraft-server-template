@@ -708,6 +708,98 @@ class PatchedBiomeSampler:
 
 
 # ---------------------------------------------------------------------------
+# The ONE way to build a dimension's sampler
+#
+# Five things decide a dimension's biome layout: the noise family, the ordered
+# biome list, the Tier-3 per-biome hypercubes, the biome patches, and the
+# checkerboard grid scale. Every caller used to assemble those by hand, and
+# every caller that missed one silently sampled A DIFFERENT WORLD from the one
+# the roller scored.
+#
+# It has happened twice. resolve_noise_family exists because the renderer
+# resolved the noise FAMILY differently and drew paradise_lost dimensions as
+# overworlds (2026-07-28). Then per-biome parameters were added and three of
+# the callers were never taught about them, so every Tier-3 dimension rendered
+# as a monoculture while scoring as a mixture (2026-08-01, TROUBLESHOOTING.md#t20).
+#
+# So the inputs are derived ONCE, from the profile, into a picklable spec, and
+# the sampler is built ONLY from that spec. A field that is not in
+# sampler_spec() does not change the layout; a field that does belongs here and
+# nowhere else.
+# ---------------------------------------------------------------------------
+
+#: Family -> noise config key. Identity for the real families.
+FAMILY_NOISE = {"overworld": "overworld", "nether": "nether", "end": "end",
+                "paradise_lost": "paradise_lost", None: "overworld"}
+
+#: Dimension TYPE -> noise config key. The type WINS over the profile family:
+#: a custom dimension of type paradise_lost:paradise_lost resolves family
+#: "overworld" (correct for scoring, catastrophic for sampling).
+TYPE_NOISE_OVERRIDE = {
+    "paradise_lost:paradise_lost": "paradise_lost",
+    "sky_islands": "overworld",
+    "nether_islands": "nether",
+}
+
+
+def resolve_noise_family(dim_type, family):
+    """The noise family a dimension actually generates with."""
+    return TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
+
+
+def sampler_spec(profile):
+    """Every input that changes a dimension's biome layout, as plain data.
+
+    Derived from a dimension_profiles.build_profile() profile, which is itself
+    a pure function of the dimension's config entry. Plain primitives only:
+    terrain_survey hands this to a multiprocessing child, so it has to pickle.
+    """
+    dim_type = profile.get("type") or ""
+    biomes = profile.get("create_args", {}).get("biome") or ""
+    return {
+        "noise_family": resolve_noise_family(dim_type, profile.get("family")),
+        "dim_type": dim_type,
+        # ORDERED, not a set: foreign-biome round-robin follows config order in
+        # the mod (LinkedHashSet), and a set here scrambles the layout.
+        "biomes": [b.strip() for b in biomes.split(",") if b.strip()],
+        "parameters": dict(profile.get("biome_parameters") or {}),
+        "patches": list(profile.get("biome_patches") or []),
+        "checkerboard_scale": profile.get("checkerboard_scale"),
+    }
+
+
+def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
+    """One dimension's sampler, from sampler_spec() and nothing else."""
+    if noise_configs is None:
+        noise_configs = load_noise_configs()
+    noise_family = spec.get("noise_family") or "overworld"
+    noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
+    biomes = spec.get("biomes") or None
+
+    if spec.get("dim_type") == "checkerboard" and biomes:
+        sampler = CheckerboardBiomeSampler(
+            seed, biome_params_path, biomes=biomes,
+            scale=spec.get("checkerboard_scale"),
+            noise_config=noise_config, family=noise_family)
+    else:
+        sampler = BiomeSampler(
+            seed, biome_params_path, noise_config=noise_config,
+            biome_filter=biomes, family=noise_family,
+            param_overrides=spec.get("parameters") or None)
+    patches = spec.get("patches") or []
+    if patches:
+        sampler = PatchedBiomeSampler(sampler, patches)
+    return sampler
+
+
+def build_for_dimension(seed, profile, biome_params_path, noise_configs=None):
+    """Convenience: sampler_spec() + build_from_spec() for callers holding a
+    profile and no reason to keep the spec around."""
+    return build_from_spec(seed, sampler_spec(profile), biome_params_path,
+                           noise_configs)
+
+
+# ---------------------------------------------------------------------------
 # CLI mode
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":

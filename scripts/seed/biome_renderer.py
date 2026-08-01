@@ -23,7 +23,13 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from biome_sampler import BiomeSampler, load_noise_configs  # noqa: E402
+from biome_sampler import (  # noqa: E402
+    FAMILY_NOISE as _SAMPLER_FAMILY_NOISE,
+    TYPE_NOISE_OVERRIDE as _SAMPLER_TYPE_OVERRIDE,
+    BiomeSampler, build_from_spec, load_noise_configs,
+    resolve_noise_family as _resolve_noise_family,
+    sampler_spec as build_sampler_spec,
+)
 from surface_rules import surface_and_density, tree_canopy, TRUNK_COLOUR  # noqa: E402
 from terrain_height import TerrainEvaluator, SPLINES_PATH, ridges_folded  # noqa: E402
 
@@ -228,7 +234,8 @@ def render_biome_map(seed, biome_params_path, output_path,
                      noise_config=None, family=None, dim_type=None,
                      biome_filter=None,
                      size=1024, blocks_per_pixel=4,
-                     sample_resolution=256, noise_settings=None):
+                     sample_resolution=256, noise_settings=None,
+                     sampler_spec=None):
     """Render a terrain-aware biome map image.
 
     Samples biomes at sample_resolution×sample_resolution internally,
@@ -239,10 +246,21 @@ def render_biome_map(seed, biome_params_path, output_path,
     Dims on an adventure noise preset (noise_settings) get EXACT heights
     from the in-repo Terratonic graph (preset_terrain.py) instead of the
     Terralith-spline family approximation.
+
+    `sampler_spec` is biome_sampler.sampler_spec(profile) — the ONLY complete
+    description of a dimension's biome layout. Pass it for anything that has a
+    dimension behind it. Without it this falls back to family + biome_filter,
+    which is the shape the old one-off CLI used and which cannot express Tier-3
+    per-biome parameters, biome patches or a checkerboard grid: a dimension
+    using any of those renders as a DIFFERENT WORLD from the one that was
+    scored (TROUBLESHOOTING.md#t20).
     """
-    sampler = BiomeSampler(int(seed), biome_params_path,
-                           noise_config=noise_config, family=family,
-                           biome_filter=biome_filter)
+    if sampler_spec is not None:
+        sampler = build_from_spec(int(seed), sampler_spec, biome_params_path)
+    else:
+        sampler = BiomeSampler(int(seed), biome_params_path,
+                               noise_config=noise_config, family=family,
+                               biome_filter=biome_filter)
 
     evaluator = _evaluator_for_family(family)
     eval_family = family or "overworld"
@@ -504,48 +522,31 @@ def render_biome_map(seed, biome_params_path, output_path,
     return size
 
 
-FAMILY_NOISE = {
-    "overworld": "overworld", "nether": "nether", "end": "end",
-    "paradise_lost": "paradise_lost", None: "overworld",
-}
-TYPE_NOISE_OVERRIDE = {
-    "paradise_lost:paradise_lost": "paradise_lost",
-    "sky_islands": "overworld",
-    "nether_islands": "nether",
-}
-
-
-def resolve_noise_family(dim_type, family):
-    """The noise family a dimension actually generates with.
-
-    The dimension TYPE wins over the profile family, and must: a custom
-    dimension of type paradise_lost:paradise_lost resolves family
-    "overworld" (family_of() maps it that way for scoring), so keying the
-    renderer on family alone draws it as an overworld world — oceans,
-    badlands, cherry groves — instead of paradise skylands. Only the base
-    world paradise_lost carries family "paradise_lost" directly.
-
-    Every renderer and sampler entry point must go through this. It is the
-    same mapping as fast_roller._TYPE_NOISE_OVERRIDE.
-    """
-    return TYPE_NOISE_OVERRIDE.get(dim_type, FAMILY_NOISE.get(family, "overworld"))
+# Aliases of the canonical tables in biome_sampler, which is where the
+# resolution now lives so that the roller and every renderer cannot drift
+# apart again. Kept as names because tests and callers refer to them.
+FAMILY_NOISE = _SAMPLER_FAMILY_NOISE
+TYPE_NOISE_OVERRIDE = _SAMPLER_TYPE_OVERRIDE
+resolve_noise_family = _resolve_noise_family
 
 
 def _render_one(task):
-    """Multiprocessing worker: render one candidate."""
-    (seed, dim_name, family, dim_type, biome_csv, biome_params_path,
+    """Multiprocessing worker: render one candidate.
+
+    The task carries the dimension's full sampler spec, not a biome CSV: the
+    CSV cannot express Tier-3 parameters, patches or a checkerboard grid, and
+    a render that drops any of them draws a world nothing else in the pipeline
+    agrees with.
+    """
+    (seed, dim_name, spec, biome_params_path,
      output_path, size, scale, sample_res, noise_settings) = task
-    configs = load_noise_configs()
-    noise_family = resolve_noise_family(dim_type, family)
-    noise_config = configs.get(noise_family, configs.get("overworld"))
-    biome_filter = [b.strip() for b in biome_csv.split(",") if b.strip()] if biome_csv else None
     try:
         render_biome_map(seed, biome_params_path, output_path,
-                         noise_config=noise_config, family=noise_family,
-                         dim_type=dim_type, biome_filter=biome_filter,
+                         dim_type=spec.get("dim_type"),
                          size=size, blocks_per_pixel=scale,
                          sample_resolution=sample_res,
-                         noise_settings=noise_settings)
+                         noise_settings=noise_settings,
+                         sampler_spec=spec)
         return dim_name, seed, True
     except Exception as e:
         return dim_name, seed, str(e)
@@ -592,8 +593,9 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 scored.append((s, seed))
         scored.sort(reverse=True)
 
-        dim_type = dim.get("type", "")
-        fam = profile.get("family", "overworld")
+        # One spec per dimension, built from the same profile the roller
+        # scores through — so the picture and the score describe one world.
+        spec = build_sampler_spec(profile)
 
         dim_scale = profile.get("scale", 1.0)
         effective_scale = max(1, int(scale / dim_scale))
@@ -603,7 +605,7 @@ def batch_render(config_path, seedtest_path, biome_params_path,
             if out.exists():
                 continue
             out.parent.mkdir(parents=True, exist_ok=True)
-            tasks.append((int(seed), name, fam, dim_type, dim.get("biome") or None,
+            tasks.append((int(seed), name, spec,
                           biome_params_path, str(out), size, effective_scale, sample_resolution,
                           dim.get("noiseSettings")))
 
@@ -658,6 +660,12 @@ def main():
     single.add_argument("--dim-type", default="")
     single.add_argument("--biome-filter", default="",
                         help="comma-separated biome ids from the dim config")
+    single.add_argument("--sampler-spec", default="",
+                        help="JSON from biome_sampler.sampler_spec(profile) — "
+                             "the complete layout description. Supersedes "
+                             "--family/--dim-type/--biome-filter, which "
+                             "between them cannot express Tier-3 per-biome "
+                             "parameters, biome patches or a checkerboard grid")
     single.add_argument("--noise-settings", default="")
     single.add_argument("--size", type=int, default=1024)
     single.add_argument("--scale", type=int, default=8)
@@ -682,20 +690,23 @@ def main():
     args = ap.parse_args()
 
     if args.command == "render":
+        import json as _json
+        import time
         configs = load_noise_configs()
+        spec = _json.loads(args.sampler_spec) if args.sampler_spec else None
         noise_family = resolve_noise_family(args.dim_type, args.family)
         noise_config = configs.get(noise_family)
-        if not noise_config:
+        if spec is None and not noise_config:
             sys.exit(f"Unknown family '{noise_family}'. Available: {', '.join(configs.keys())}")
         biome_filter = [b.strip() for b in args.biome_filter.split(",") if b.strip()] or None
-        import time
         t0 = time.time()
         sz = render_biome_map(args.seed, args.biome_params, args.output,
                               noise_config=noise_config, family=noise_family,
                               dim_type=args.dim_type or None,
                               biome_filter=biome_filter,
                               noise_settings=args.noise_settings or None,
-                              size=args.size, blocks_per_pixel=args.scale)
+                              size=args.size, blocks_per_pixel=args.scale,
+                              sampler_spec=spec)
         elapsed = time.time() - t0
         print(f"Rendered {sz}x{sz} px ({sz*args.scale}x{sz*args.scale} blocks) "
               f"in {elapsed:.1f}s → {args.output}")

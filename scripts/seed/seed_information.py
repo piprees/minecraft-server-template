@@ -205,9 +205,13 @@ def dimension_report(name, entry, profile, store, type_defaults, group_of):
     joint_met = 0
     for _seed, cand in measured:
         rows = dict(cand.get("measurements") or {})
+        # Only a fingerprinted survey is read. A bare map predates the
+        # fingerprint, which is also the population built from a sampler that
+        # dropped the dimension's Tier-3 parameters — reading one would report
+        # every biome but the dominant one as absent (TROUBLESHOOTING.md#t20).
         survey = cand.get("biome_survey")
-        if survey:
-            rows["_biome_survey"] = survey
+        if isinstance(survey, dict) and survey.get("biomes"):
+            rows["_biome_survey"] = survey["biomes"]
         census = cand.get("noiseCensus")
         if census is not None and census.get("fp") != fp:
             census = None
