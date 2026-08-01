@@ -139,6 +139,14 @@ public class DimensionCommands {
                         .then(CommandManager.argument("radius", IntegerArgumentType.integer(64, 8192))
                             .then(CommandManager.argument("step", IntegerArgumentType.integer(16, 512))
                                 .executes(DimensionCommands::sampleBiomeGrid)))))
+                .then(CommandManager.literal("sample-height")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .then(CommandManager.argument("centerX", IntegerArgumentType.integer())
+                                .then(CommandManager.argument("centerZ", IntegerArgumentType.integer())
+                                    .then(CommandManager.argument("radius", IntegerArgumentType.integer(0, 8192))
+                                        .then(CommandManager.argument("step", IntegerArgumentType.integer(1, 512))
+                                            .executes(DimensionCommands::sampleHeight))))))))
                 .then(CommandManager.literal("structure-audit")
                     .executes(ctx -> structureAudit(ctx, null))
                     .then(CommandManager.argument("group", StringArgumentType.word())
@@ -924,6 +932,74 @@ public class DimensionCommands {
             return count;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to write biome grid", e);
+            source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /**
+     * Predicted structure-generation surface heights (WORLD_SURFACE_WG,
+     * pure density-function evaluation — no chunks touched or created) for
+     * an ARBITRARY seed: the NoiseConfig is built per invocation from the
+     * dimension's own generator settings and the given seed, which is what
+     * lets the seed roller ask about seeds no world exists for. Grid rows
+     * land in height_samples.csv; the feedback line carries the timing so
+     * the flatness-gate cost stays measurable.
+     *
+     * Ground truth for the roller's terrain questions (the two Python
+     * height models approximate; this does not) — but note the c2me caveat
+     * in the seed-rolling skill: this server's noise stack must match the
+     * one the answer is used against.
+     */
+    private static int sampleHeight(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal("Dimension not loaded"));
+            return 0;
+        }
+        long seed = LongArgumentType.getLong(ctx, "seed");
+        int centerX = IntegerArgumentType.getInteger(ctx, "centerX");
+        int centerZ = IntegerArgumentType.getInteger(ctx, "centerZ");
+        int radius = IntegerArgumentType.getInteger(ctx, "radius");
+        int step = IntegerArgumentType.getInteger(ctx, "step");
+
+        var chunkGen = world.getChunkManager().getChunkGenerator();
+        if (!(chunkGen instanceof net.minecraft.world.gen.chunk.NoiseChunkGenerator noiseGen)) {
+            source.sendError(Text.literal("Not a noise generator — no height model to sample"));
+            return 0;
+        }
+        var noiseParams = world.getRegistryManager()
+                .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+        NoiseConfig noiseConfig = NoiseConfig.create(
+                noiseGen.getSettings().value(), noiseParams, seed);
+
+        StringBuilder csv = new StringBuilder(Artefacts.textHeader("height-samples"));
+        csv.append("# dimension=").append(world.getRegistryKey().getValue())
+           .append(" seed=").append(seed).append('\n');
+        long started = System.nanoTime();
+        int count = 0;
+        for (int x = centerX - radius; x <= centerX + radius; x += step) {
+            for (int z = centerZ - radius; z <= centerZ + radius; z += step) {
+                int h = chunkGen.getHeight(x, z,
+                        net.minecraft.world.Heightmap.Type.WORLD_SURFACE_WG,
+                        world, noiseConfig);
+                csv.append(x).append(',').append(z).append(',').append(h).append('\n');
+                count++;
+            }
+        }
+        long elapsedMs = (System.nanoTime() - started) / 1_000_000L;
+
+        try {
+            Path outputPath = Artefacts.dir().resolve("height_samples.csv");
+            Artefacts.write(outputPath, csv.toString());
+            int finalCount = count;
+            source.sendFeedback(() -> Text.literal(
+                    "heights " + finalCount + " columns in " + elapsedMs + "ms -> "
+                    + outputPath), false);
+            return count > 0 ? 1 : 0;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write height samples", e);
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
