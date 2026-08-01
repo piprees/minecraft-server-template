@@ -377,7 +377,17 @@ roll() {
   echo "=============================================="
   echo ""
 
-  rm -f "$SEEDTEST/fast-roller.csv"
+  # ARCHIVE, never delete. The CSV is a spool: fast_roller writes it and then
+  # folds it into the candidate bank. A run that died between those two steps
+  # leaves measurements that only exist here, and deleting the file on the next
+  # run destroyed them silently. Keeping the last few costs kilobytes.
+  if [[ -f "$SEEDTEST/fast-roller.csv" ]]; then
+    mv "$SEEDTEST/fast-roller.csv" \
+      "$SEEDTEST/fast-roller.$(date +%Y%m%d-%H%M%S).csv"
+    # Keep the five most recent; older ones have long since been folded in.
+    ls -1t "$SEEDTEST"/fast-roller.*.csv 2> /dev/null | tail -n +6 \
+      | while read -r stale; do rm -f "$stale"; done
+  fi
   python3 "$SCRIPT_DIR/fast_roller.py" \
     --config "$CONFIG" \
     --seedtest "$SEEDTEST" \

@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T21](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
@@ -60,6 +60,8 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
 | One listed biome covers a whole dimension; the rest never appear | [T19](#t19) |
+| A dimension RENDERS as one biome but SCORES as a mixture | [T20](#t20) |
+| The top candidates all share one score, captioned "same as winner" | [T21](#t21) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -273,6 +275,64 @@ Each of these has caused a real incident.
   affects newly created worlds, and changing it re-keys the dimension's
   generation fingerprint — every affected dimension needs a re-roll, not a
   rescore.
+
+<a id="t20"></a>
+### T20 — Every sampler caller must be handed every layout input, or it measures a different world
+
+- **Symptom:** a Tier-3 dimension (one whose `biomes` entries carry
+  `parameters`) renders as a single flat colour edge to edge, and its detail
+  panel reports every biome but one as "not found" — beside a score computed
+  from all of them being present. Nothing errors and nothing warns. The
+  natural reading is that the worldgen is broken; it is not.
+- **Cause:** five inputs decide a dimension's biome layout — noise family,
+  ordered biome list, Tier-3 per-biome hypercubes, biome patches, checkerboard
+  scale. Four places need a sampler (`fast_roller`, `biome_renderer`,
+  `viewer-server._survey_dim`, `terrain_survey.survey_task`) and each used to
+  assemble those by hand. Only the roller passed the parameters. Without them
+  a listed biome with no climate parameters in the table is *foreign* ([T19](#t19))
+  and, when it is the only one, receives the entire round-robin pool: measured
+  on `the_wuthering_wisteria`, 5 sampler entries and a 49/21/13/11/6 mixture
+  became 1713 entries and 100% `natures_spirit:wisteria_forest` (2026-08-01).
+  The same omission put the terrain survey's water fraction — a SCORED input —
+  on the wrong biome source.
+- **Fix (in place):** `biome_sampler.sampler_spec(profile)` derives the inputs
+  once and `build_from_spec()` is the only constructor. A field that is not in
+  `sampler_spec` does not change the layout; a field that does belongs there
+  and nowhere else. `test_sampler_parity.py` holds the line.
+- **This is the second time.** `resolve_noise_family` exists because the
+  renderer resolved the noise FAMILY differently and drew `paradise_lost`
+  dimensions as overworlds (2026-07-28). The lesson was written down for one
+  input, and the next input added went the same way.
+- **Recovering a bank:** no measurement is wrong, so **nothing needs
+  re-rolling**. Renders and biome surveys are derived and must be regenerated:
+  delete the affected dimensions' renders (`./dev seed-viewer --refresh <dim>`)
+  and rescore. `biome_survey` records written before this carry no fingerprint
+  and are ignored rather than trusted, so they rebuild on the next viewer pass.
+
+<a id="t21"></a>
+### T21 — A flat-topped window stops ranking the moment most candidates pass
+
+- **Symptom:** a dimension's top candidates all carry the identical score and
+  the viewer captions every one of them "same as winner". On
+  `the_wuthering_wisteria`, 19 of 1099 candidates scored exactly 92.50.
+- **Cause:** two of the three live components saturated. `window_score`
+  returned exactly 1.0 anywhere inside the target band, so terrain stopped
+  discriminating once most candidates were acceptable — which for a peaceful
+  pocket dimension is nearly all of them. `namesake` is a membership test, and
+  `spawnFilter` defaulting to the first FOUR listed biomes made almost every
+  spawn a hit. Meanwhile `variety` measured only the distance to the nearest
+  instance of each biome, which a 96% monoculture answers exactly as well as an
+  even split does.
+- **Fix (in place):** `window_score` peaks at the band centre and eases to
+  `1.0 - WINDOW_COMFORT` at the edges (the falloff outside starts from the edge
+  value, so being just outside can never outscore being on the boundary).
+  `terrain_survey` records per-biome area `shares` on the walk it already
+  makes, and `variety` scores presence, the rarest biome's share, and a
+  dominance cap from those.
+- **Authoring note:** name ONE biome in `seedRoll.spawnFilter` — where the
+  player lands — and leave the rest to variety. A filter naming eight of a
+  dimension's biomes pins `namesake` at 1.0 and removes the component from the
+  ranking entirely.
 
 ---
 
