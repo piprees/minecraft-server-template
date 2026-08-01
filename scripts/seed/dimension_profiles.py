@@ -320,6 +320,21 @@ BASE_WORLD_TYPES = {
 }
 
 
+def strip_json_comments(text):
+    """JSONC, readers-first: a line whose first non-blank characters are //
+    is blanked (line numbers preserved for parse errors). Trailing comments
+    are deliberately unsupported — a // inside a string (URLs) must never
+    become a comment, and the whole-line rule needs no string-state
+    tracking. The SAME narrow rule lives in
+    DimensionConfigLoader.stripJsonComments (Java) and
+    scripts/check-dimension-drift.py — change all three together. No
+    lenient parsing: everything else stays strict JSON."""
+    if "//" not in text:
+        return text
+    import re
+    return re.sub(r"^[ \t]*//.*$", "", text, flags=re.M)
+
+
 def load_dimension_configs(config_dir, set_noise_defaults=True):
     """Scan {config_dir}/dimensions/*.json -> {slug: raw config dict}.
     The slug comes from the filename (never the JSON), matching the mod's
@@ -343,7 +358,7 @@ def load_dimension_configs(config_dir, set_noise_defaults=True):
         return configs
     for f in sorted(dims_dir.glob("*.json")):
         try:
-            data = json.loads(f.read_text())
+            data = json.loads(strip_json_comments(f.read_text()))
         except json.JSONDecodeError as e:
             print(f"warning: skipping unparseable {f}: {e}", file=sys.stderr)
             continue
@@ -417,7 +432,7 @@ def monolith_from_dir(config_dir, overlay_dir=None):
     settings = {}
     settings_file = p / "settings.json"
     if settings_file.exists():
-        settings = json.loads(settings_file.read_text())
+        settings = json.loads(strip_json_comments(settings_file.read_text()))
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
     overlay_files = load_dimension_configs(Path(overlay_dir), set_noise_defaults=False)

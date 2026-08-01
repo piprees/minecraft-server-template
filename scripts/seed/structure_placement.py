@@ -233,6 +233,12 @@ def load_structure_sets(extract_dir):
 
         placement = data.get("placement", {})
         ptype = placement.get("type", "")
+        # Substring on purpose: custom *_random_spread types (YUNG's
+        # enhanced, Moog's advanced) extend vanilla's grid maths, so their
+        # spacing/separation/salt still measure battery distances. Whether a
+        # set is NOISE-managed is a separate, exact question — see
+        # structure_group_lookup (score-dimensions.py), which mirrors
+        # NoisePoolBuilder's exact-class check via placement_type below.
         if "random_spread" not in ptype and "concentric_rings" not in ptype:
             continue
 
@@ -259,6 +265,7 @@ def load_structure_sets(extract_dir):
         sets[set_id] = {
             "id": set_id,
             "structures": structures,
+            "placement_type": ptype,
             "spacing": placement.get("spacing", 32),
             "separation": placement.get("separation", 8),
             "salt": placement.get("salt", 0),

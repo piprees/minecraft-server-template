@@ -319,7 +319,30 @@ public class DimensionCommands {
                 forcedTotal += i;
             }
         }
-        json.append(forcedGroups > 0 ? "\n }" : "}").append("\n}\n");
+        json.append(forcedGroups > 0 ? "\n }" : "}");
+
+        // Sets that keep their own placement (custom placement types, the
+        // exit-shrine set). Recorded so per-dimension set-id filtering
+        // (structures.mode/exclude) is visible in the artefact — a filtered
+        // pass-through must be ABSENT from this list.
+        json.append(",\n \"passThrough\": [");
+        int passThroughCount = 0;
+        for (var entry : calculator.getStructureSets()) {
+            var placement = entry.value().placement();
+            if (placement instanceof NoiseStructurePlacement
+                    || placement instanceof FixedStructurePlacement) {
+                continue;
+            }
+            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            if (setId == null) {
+                continue;
+            }
+            if (passThroughCount++ > 0) {
+                json.append(", ");
+            }
+            json.append('"').append(setId).append('"');
+        }
+        json.append("]\n}\n");
 
         try {
             Path outputPath = Artefacts.dir("census")

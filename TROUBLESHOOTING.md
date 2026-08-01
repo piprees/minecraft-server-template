@@ -6,10 +6,10 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T21](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T23](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K3](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -62,12 +62,15 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | One listed biome covers a whole dimension; the rest never appear | [T19](#t19) |
 | A dimension RENDERS as one biome but SCORES as a mixture | [T20](#t20) |
 | The top candidates all share one score, captioned "same as winner" | [T21](#t21) |
+| Structures generating in a void/superflat dimension | [T22](#t22) |
+| `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
 | Custom dimensions all generate identical terrain | [D6](#d6) |
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
+| A `structures.force` position never generates its structure | [K3](#k3) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -334,6 +337,44 @@ Each of these has caused a real incident.
   dimension's biomes pins `namesake` at 1.0 and removes the component from the
   ranking entirely.
 
+<a id="t22"></a>
+### T22 — "groups": [] suppressed noise only, so void/superflat dims generated every structure set
+
+- **Symptom:** structures — villages, towers, ships, all 367 sets — generating
+  in `void`/`superflat` dimensions, on vanilla grid placement. The shipped
+  void dims masked it by carrying an explicit `structureDensity: "none"`; any
+  dimension relying on the type's `"groups": []` alone leaked (2026-08-01).
+- **Cause:** `NoiseGroupPlan.resolve()` answered "suppressed" for a type that
+  enables no groups, and the legacy density path then returned `null` for a
+  default config — which keeps the world's ORIGINAL StructurePlacementCalculator
+  intact. The intent of `"groups": []` was "no structures"; the implementation
+  only suppressed the noise path.
+- **Fix (in place):** the plan distinguishes suppression flavours —
+  `suppressesAllSets()` is true only for "type enables no groups" (and "no
+  world type"), and `DimensionStructures.transformed()` then drops every
+  organic set. Exit shrines keep their opt-in handling and `structures.force`
+  still appends. The boot line states the reason:
+  `density=normal+suppressed(type void enables no groups)`. `structureDensity:
+  "none"`, `structures.mode: "none"` and `structures.noise: false` keep their
+  own meanings (the last deliberately keeps the vanilla grids).
+
+<a id="t23"></a>
+### T23 — structures.mode / structures.exclude never reached pass-through sets on the noise path
+
+- **Symptom:** `structures.mode: "reject"` listing a custom-placement set
+  (Moog's `mvs:`/`mns:`/`mes:`/`mss:`, YUNG's, Supplementaries galleons) did
+  nothing; `structures.exclude` never applied to those sets in any path
+  (2026-08-01).
+- **Cause:** the mode filter ran only on the legacy density path, and exclude
+  only inside `NoisePoolBuilder` — but the 227 custom-placement sets never
+  enter the pool builder; the noise path's pass-through loop re-added them
+  unfiltered.
+- **Fix (in place):** one shared filter, `DimensionStructures.keepSet(setId,
+  mode, modeList, exclude)`, applied in both the legacy mode check and the
+  pass-through loop (the planned global `suppress.structures` list plugs into
+  the same helper). The census artefact now records a `passThrough` array so
+  per-dimension filtering is visible: a filtered set must be ABSENT from it.
+
 ---
 
 ## macOS local dev
@@ -444,6 +485,38 @@ Open, unfixed, on the watch list.
 **Diagnosis caveat:** spark's `Timed out waiting for world statistics` alone is NOT proof — it also fires through legitimately heavy boots (mass dimension creation can run 10+ min). Confirm with `Error upgrading chunk`/`DungeonZombie` counts and whether the log has stopped advancing.
 
 **Recovery:** `docker stop -t 90 mc && docker start mc` (local only; production restarts go through deploy.sh), plus the [D3](#d3) scrub when the trigger is a regenerating deleted dim, or it wedges again every boot.
+
+<a id="k3"></a>
+### K3 — structures.force produces no structure START in freshly generated chunks (local stack)
+
+*(2026-08-01, elfydd local)*
+
+- **Symptom:** a `structures.force` position sits in the live calculator
+  (census `forced` block, boot line `+N forced`), the chunk generates fresh
+  under that calculator (player-driven), and yet no structure start exists:
+  no `forced ... generated at chunk` INFO line (ForcedBiomeBypass), no
+  structure blocks at the position.
+- **Evidence:** two virgin fixture dimensions (a void and a `multi_biome`
+  with `structureDensity: "none"`), each with `minecraft:fortress` forced at
+  chunk (10, 10). Reproduced on BOTH the v4.7.0 bundle jar and a current
+  local build — so it is not a regression from the 2026-08-01 legacy-path
+  changes ([T22](#t22)/[T23](#t23)), which only decide which sets reach the
+  calculator (the forced set demonstrably reaches it on both jars).
+  Noise-placed sets in the same calculators DO generate starts, so the
+  vanilla start machinery works with synthetic keyless sets in general.
+- **Suspects:** c2me's chunk-system scheduling of the STRUCTURE_STARTS
+  stage, or something specific to `FixedStructurePlacement`'s path through
+  it. The 2026-07-29 forced-placement verification predates these fixtures
+  and its rig is unrecorded — re-verify on the c2me-free itzg oracle
+  container to split the suspects.
+- **Impact:** any NEW world relying on a forced placement (e.g.
+  `the_crimson_nexus`'s narrative fortress at (287, -64)) may generate
+  without it. Existing worlds whose forced chunks generated earlier keep
+  whatever they have.
+- **Verify with:** a fresh throwaway dimension + `customdim load` + a
+  Carpet bot at the forced position (RCON `forceload` does not reliably
+  drive generation), then `grep 'generated at chunk' latest.log` and block
+  probes. Census/boot-line presence alone proves CONFIG, not generation.
 
 <a id="k2"></a>
 ### K2 — c2me `TheChunkSystem` ConcurrentModificationException

@@ -528,7 +528,7 @@ def score_candidate(profile, rows):
     #             placement owns; None for suppressed/void/base-world dims,
     #             which fall through to the grid battery exactly as before.
     #   battery — the author's wants and shuns. Still positional (and still
-    #             exact) for forced placements and for the ~155 sets that
+    #             exact) for forced placements and for the 227 custom-placement sets that
     #             kept grid placement; answered from the owning group's
     #             histogram for everything noise took over, because a grid
     #             distance for a noise-placed set is fiction.
@@ -710,7 +710,26 @@ def structure_group_lookup(seedtest, config_dir):
     struct_to_set = {}
     sets_dir = Path(seedtest) / ".structure_sets"
     if sets_dir.is_dir():
-        for set_id, cfg in load_structure_sets(str(sets_dir)).items():
+        extracted = load_structure_sets(str(sets_dir))
+        # Noise ownership is an EXACT placement-type question, mirroring
+        # NoisePoolBuilder's `getClass() != RandomSpreadStructurePlacement`
+        # check: yungsapi:enhanced_random_spread and
+        # moogs_structures:advanced_random_spread contain the literal
+        # "random_spread" and are extracted (their grid maths still measure
+        # battery distances), but Java never pools them, so claiming a group
+        # here scored 108 battery entries a permanent, unsatisfiable 0.0%.
+        # Their set ids are also scrubbed from set_to_group so a battery
+        # entry naming the set directly cannot re-claim a group. COUPLED to
+        # the Phase 3 instanceof conversion: when Java changes which classes
+        # it absorbs, this filter and structure-groups.json move with it.
+        custom_placement = {
+            set_id for set_id, cfg in extracted.items()
+            if cfg.get("placement_type") != "minecraft:random_spread"}
+        set_to_group = {sid: g for sid, g in set_to_group.items()
+                        if sid not in custom_placement}
+        for set_id, cfg in extracted.items():
+            if set_id in custom_placement:
+                continue
             known = set_id in set_to_group
             for s in cfg.get("structures") or []:
                 # A set extracted from a NESTED datapack path
@@ -800,6 +819,63 @@ def _with_group_settings(summary, group_settings):
 _census_task = noise_placement.census_task
 
 
+def _spawn_chunks(rows):
+    """The candidate's chosen spawn as CHUNK coordinates; (0, 0) when unset."""
+    try:
+        sx = int(float(rows.get("spawn_x") or 0))
+        sz = int(float(rows.get("spawn_z") or 0))
+    except (TypeError, ValueError):
+        return 0, 0
+    return sx >> 4, sz >> 4
+
+
+def ensure_spawn_distances(args, profiles, data, quiet=False):
+    """Re-anchor banked battery distances at each candidate's chosen spawn.
+
+    The screening tier measures from the world origin (the spawn is not
+    known yet) and banks used to keep those numbers — but the player stands
+    at the candidate's spawn, up to 768 blocks away (spawn-site-selection
+    §5), so clearSpawnRadius and every want/shun judged a point nobody
+    occupies. Placement is pure maths, so this is a recompute at scoring
+    time, not a re-roll: origin-spawn candidates are left byte-identical
+    and the recompute is deterministic, hence idempotent.
+    """
+    battery_dims = [n for n, p in profiles.items() if p.get("battery")]
+    if not battery_dims:
+        return
+    sets_dir = Path(args.seedtest) / ".structure_sets"
+    if not sets_dir.is_dir():
+        return
+    from fast_roller import tier1_score
+    from structure_placement import load_structure_sets
+    struct_sets = load_structure_sets(str(sets_dir))
+    struct_to_sets = {}
+    for set_id, cfg in struct_sets.items():
+        for s in cfg["structures"]:
+            struct_to_sets.setdefault(s["id"], []).append(set_id)
+    recomputed = 0
+    for name in battery_dims:
+        profile = profiles[name]
+        for seed, rows in data.get(name, {}).items():
+            if rows.get("rejected") == "1":
+                continue
+            try:
+                sx = int(float(rows.get("spawn_x") or 0))
+                sz = int(float(rows.get("spawn_z") or 0))
+                seed_val = int(seed)
+            except (TypeError, ValueError):
+                continue
+            if sx == 0 and sz == 0:
+                continue
+            _score, dists = tier1_score(seed_val, profile, struct_sets,
+                                        struct_to_sets, origin_x=sx, origin_z=sz)
+            for sname, _sid, _spec, _kind in profile["battery"]:
+                rows[f"structure_{sname}_dist"] = dists.get(sname, -1)
+            recomputed += 1
+    if recomputed and not quiet:
+        print(f"spawn-anchored distances: {recomputed} candidate(s) recomputed")
+
+
 def ensure_censuses(args, config, profiles, data, quiet=False):
     """Attach a noise census summary to every scoreable candidate.
 
@@ -843,11 +919,17 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         for seed, rows in data.get(name, {}).items():
             if rows.get("rejected") == "1" or "errors" not in rows:
                 continue
+            # The histogram is anchored at the candidate's chosen spawn — a
+            # cached summary binned around a different origin (including the
+            # legacy origin-anchored ones, which carry no binOrigin) is
+            # recomputed. Origin-spawn candidates keep their cache untouched.
+            bcx, bcz = _spawn_chunks(rows)
             cached = (store["candidates"].get(seed) or {}).get("noiseCensus")
-            if cached and cached.get("fp") == fp:
+            if cached and cached.get("fp") == fp \
+                    and (cached.get("binOrigin") or [0, 0]) == [bcx, bcz]:
                 rows["_census"] = _with_group_settings(cached, settings[name])
                 continue
-            tasks.append((name, seed, src, type_defaults, radius_chunks))
+            tasks.append((name, seed, src, type_defaults, radius_chunks, bcx, bcz))
 
     if not tasks:
         return
@@ -1127,6 +1209,7 @@ def score_all(profiles, data):
 def cmd_score(args, config, profiles):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
@@ -1151,6 +1234,7 @@ def cmd_rescore(args, config, profiles):
         sys.exit("rescore needs the v4 config directory (config/custom-dimensions)")
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)
@@ -1270,6 +1354,25 @@ def session_backup(seedtest, make_backup):
     return backup
 
 
+def apply_spawn(data, sx, sz):
+    """Write a measured spawn onto a config dict — unless the measurement is
+    the origin default (0, 0), which means "no site was chosen", not "spawn
+    at the origin": tier2's spawn_x/spawn_z start at 0 and only move when a
+    namesake match is found. Writing [0, 64, 0] made deploy.sh defer to it
+    (it skips SPAWN_X/Y/Z for any 3-element spawn list), silently disabling
+    hand-picked env spawns. A stale [0, 64, 0] placeholder from an earlier
+    roll is removed; any other existing spawn is a real choice and is never
+    touched by an origin measurement."""
+    if sx is None or sz is None:
+        return
+    x, z = int(float(sx)), int(float(sz))
+    if (x, z) == (0, 0):
+        if data.get("spawn") == [0, 64, 0]:
+            del data["spawn"]
+        return
+    data["spawn"] = [x, 64, z]
+
+
 def write_winner(data, winner):
     """Apply one winner's seed + spawn to a config dict. -> changed?"""
     changed = False
@@ -1277,10 +1380,8 @@ def write_winner(data, winner):
     if data.get("seed") != new_seed:
         data["seed"] = new_seed
         changed = True
-    sx = winner["metrics"].get("spawn_x")
-    sz = winner["metrics"].get("spawn_z")
-    if sx is not None and sz is not None:
-        data["spawn"] = [int(float(sx)), 64, int(float(sz))]
+    apply_spawn(data, winner["metrics"].get("spawn_x"),
+                winner["metrics"].get("spawn_z"))
     return changed
 
 
@@ -1382,13 +1483,11 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
     ow = winners.get("overworld")
     if ow is not None:
         fresh["worldSeed"] = int(ow["seed"])
-        sx = ow["metrics"].get("spawn_x")
-        sz = ow["metrics"].get("spawn_z")
-        if sx is not None and sz is not None:
-            ow_entry = next((w for w in fresh.get("worlds", [])
-                             if w["name"] == "overworld"), None)
-            if ow_entry is not None:
-                ow_entry["spawn"] = [int(float(sx)), 64, int(float(sz))]
+        ow_entry = next((w for w in fresh.get("worlds", [])
+                         if w["name"] == "overworld"), None)
+        if ow_entry is not None:
+            apply_spawn(ow_entry, ow["metrics"].get("spawn_x"),
+                        ow["metrics"].get("spawn_z"))
     cfg_path.write_text(json.dumps(fresh, indent=2) + "\n")
     return changed, backup, ow
 
@@ -1396,6 +1495,7 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
 def cmd_finalise(args, config, profiles, world_profiles=None, page_profiles=None):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
+    ensure_spawn_distances(args, profiles, data)
     ensure_censuses(args, config, profiles, data)
     ensure_terrain_surveys(args, config, profiles, data)
     results, rejected = score_all(profiles, data)

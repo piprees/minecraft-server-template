@@ -1141,5 +1141,159 @@ class BackfillWorkerTests(unittest.TestCase):
             '${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"}', sh)
 
 
+class SpawnWriteTests(unittest.TestCase):
+    """apply_spawn never records the origin default as a chosen spawn:
+    [0, 64, 0] in a config made deploy.sh skip SPAWN_X/Y/Z, so hand-picked
+    env spawns were silently dead."""
+
+    def test_measured_spawn_is_written(self):
+        data = {}
+        score_dimensions.apply_spawn(data, "-219", "155")
+        self.assertEqual([-219, 64, 155], data["spawn"])
+
+    def test_origin_measurement_writes_nothing(self):
+        data = {"seed": 1}
+        score_dimensions.apply_spawn(data, 0, 0)
+        self.assertNotIn("spawn", data)
+
+    def test_origin_measurement_removes_stale_placeholder(self):
+        data = {"spawn": [0, 64, 0]}
+        score_dimensions.apply_spawn(data, 0, 0)
+        self.assertNotIn("spawn", data)
+
+    def test_origin_measurement_never_touches_a_real_choice(self):
+        data = {"spawn": [-219, 64, 155]}
+        score_dimensions.apply_spawn(data, 0, 0)
+        self.assertEqual([-219, 64, 155], data["spawn"])
+
+    def test_missing_measurement_is_a_noop(self):
+        data = {"spawn": [0, 64, 0]}
+        score_dimensions.apply_spawn(data, None, None)
+        self.assertEqual([0, 64, 0], data["spawn"])
+
+
+class SpawnAnchoredMeasurementTests(unittest.TestCase):
+    """Distances and the census histogram anchor at the candidate's chosen
+    spawn, not the world origin — but placement itself stays origin-anchored
+    (parity with DimensionStructures, which passes (0, 0))."""
+
+    _SET = {"testns:plain": {
+        "id": "testns:plain",
+        "structures": [{"id": "testns:plain_house", "weight": 1}],
+        "placement_type": "minecraft:random_spread",
+        "spacing": 32, "separation": 8, "salt": 111,
+        "frequency": 1.0, "spread_type": "linear",
+        "frequency_reduction_method": "default"}}
+    _S2S = {"testns:plain_house": ["testns:plain"]}
+
+    def _profile(self):
+        return {"battery": [("plain", "testns:plain_house", (0, 2000), "want")],
+                "radius": 8192, "locate_cap": None}
+
+    def test_tier1_origin_moves_the_distance(self):
+        from fast_roller import tier1_score
+        from structure_placement import nearest_structure
+        profile = self._profile()
+        _s, at_origin = tier1_score(1234, profile, self._SET, self._S2S)
+        _s, at_spawn = tier1_score(1234, profile, self._SET, self._S2S,
+                                   origin_x=700, origin_z=-700)
+        expected = nearest_structure(1234, 32, 8, 111, origin_x=700,
+                                     origin_z=-700, search_radius=50)
+        self.assertEqual(expected[0], at_spawn["plain"])
+        self.assertNotEqual(at_origin["plain"], at_spawn["plain"])
+        # origin default is byte-identical to the old behaviour
+        _s, again = tier1_score(1234, profile, self._SET, self._S2S,
+                                origin_x=0, origin_z=0)
+        self.assertEqual(at_origin, again)
+
+    def test_census_bin_origin_moves_the_histogram_not_the_positions(self):
+        import noise_placement as npm
+        dim = {"type": "multi_biome", "borders": {"player": 1024}}
+        defaults = npm.load_type_defaults(
+            Path(__file__).resolve().parents[1] / ".." / "config"
+            / "custom-dimensions")
+        self.assertIsNotNone(defaults, "platform structure-type-defaults.json")
+        at_origin = npm.census_summary(42, "the_test", dim, defaults)
+        offset = npm.census_summary(42, "the_test", dim, defaults,
+                                    bin_origin_x=30, bin_origin_z=-30)
+        for group, entry in at_origin["groups"].items():
+            self.assertEqual(entry["count"], offset["groups"][group]["count"],
+                             f"{group}: bin origin must never move placements")
+        self.assertNotEqual(
+            [e["hist"] for e in at_origin["groups"].values()],
+            [e["hist"] for e in offset["groups"].values()],
+            "an offset bin origin must re-bin at least one histogram")
+
+    def test_census_task_stamps_bin_origin(self):
+        import noise_placement as npm
+        defaults = npm.load_type_defaults(
+            Path(__file__).resolve().parents[1] / ".." / "config"
+            / "custom-dimensions")
+        dim = {"type": "multi_biome", "borders": {"player": 1024}}
+        _n, _s, summary = npm.census_task(
+            ("the_test", "42", dim, defaults, None, 30, -30))
+        self.assertEqual([30, -30], summary["binOrigin"])
+        _n, _s, legacy = npm.census_task(("the_test", "42", dim, defaults, None))
+        self.assertEqual([0, 0], legacy["binOrigin"])
+
+
+class NoiseOwnershipTests(unittest.TestCase):
+    """structure_group_lookup mirrors NoisePoolBuilder's exact-class check:
+    a custom *_random_spread placement (YUNG's enhanced, Moog's advanced) is
+    extracted for grid measurement but must never claim a noise group —
+    claiming one scored 108 battery entries a permanent 0.0% share."""
+
+    def _seedtest_with_sets(self, tmp):
+        sets_dir = Path(tmp) / ".structure_sets" / "data"
+        vanilla = sets_dir / "testns" / "worldgen" / "structure_set"
+        vanilla.mkdir(parents=True)
+        (vanilla / "plain.json").write_text(json.dumps({
+            "structures": [{"structure": "testns:plain_house", "weight": 1}],
+            "placement": {"type": "minecraft:random_spread",
+                          "spacing": 32, "separation": 8, "salt": 111}}))
+        (vanilla / "moogish.json").write_text(json.dumps({
+            "structures": [{"structure": "testns:moogish", "weight": 1}],
+            "placement": {"type": "moogs_structures:advanced_random_spread",
+                          "spacing": 40, "separation": 10, "salt": 222}}))
+        return tmp
+
+    def _config_with_groups(self, tmp):
+        config = Path(tmp) / "config"
+        config.mkdir()
+        (config / "structure-groups.json").write_text(json.dumps({
+            "sets": {
+                "testns:plain": {"group": "settlements", "rarity": "common"},
+                "testns:moogish": {"group": "settlements", "rarity": "common"},
+            }}))
+        return config
+
+    def test_custom_placement_sets_own_no_group(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            seedtest = self._seedtest_with_sets(tmp)
+            config = self._config_with_groups(tmp)
+            score_dimensions._STRUCT_LOOKUP_CACHE.clear()
+            lookup = score_dimensions.structure_group_lookup(seedtest, config)
+            # Vanilla random_spread: structure and set both resolve.
+            self.assertEqual(
+                "settlements",
+                score_dimensions.battery_group_for("testns:plain_house", lookup))
+            # Custom placement: neither the structure id nor the set id
+            # (which structure-groups.json still classifies) may claim a
+            # group — grid fallback is the only honest scoring path.
+            self.assertIsNone(
+                score_dimensions.battery_group_for("testns:moogish", lookup))
+
+    def test_custom_placement_sets_still_measurable(self):
+        """The extraction keeps custom *_random_spread sets — their grid
+        maths still measure battery distances (tier1_score)."""
+        from structure_placement import load_structure_sets
+        with tempfile.TemporaryDirectory() as tmp:
+            seedtest = self._seedtest_with_sets(tmp)
+            sets = load_structure_sets(str(Path(seedtest) / ".structure_sets"))
+            self.assertIn("testns:moogish", sets)
+            self.assertEqual("moogs_structures:advanced_random_spread",
+                             sets["testns:moogish"]["placement_type"])
+
+
 if __name__ == "__main__":
     unittest.main()

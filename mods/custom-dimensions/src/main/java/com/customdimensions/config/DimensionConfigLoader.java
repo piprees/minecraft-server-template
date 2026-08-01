@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -237,12 +236,45 @@ public final class DimensionConfigLoader {
         return files;
     }
 
+    /**
+     * The JSONC contract, readers-first: a line whose first non-blank
+     * characters are {@code //} is blanked (line numbers preserved for
+     * parse errors). Trailing comments are deliberately NOT supported —
+     * a {@code //} inside a string (URLs) must never be a comment, and
+     * the whole-line rule needs no string-state tracking. The SAME narrow
+     * rule lives in scripts/seed/dimension_profiles.strip_json_comments
+     * and scripts/check-dimension-drift.py — change all three together.
+     * No Gson lenient mode: everything else stays strict JSON.
+     */
+    public static String stripJsonComments(String text) {
+        if (text == null || !text.contains("//")) {
+            return text;
+        }
+        StringBuilder out = new StringBuilder(text.length());
+        int start = 0;
+        int length = text.length();
+        while (start <= length) {
+            int end = text.indexOf('\n', start);
+            String line = end < 0 ? text.substring(start) : text.substring(start, end);
+            if (!line.strip().startsWith("//")) {
+                out.append(line);
+            }
+            if (end < 0) {
+                break;
+            }
+            out.append('\n');
+            start = end + 1;
+        }
+        return out.toString();
+    }
+
     private static JsonObject readJsonObject(Path file) {
         if (!Files.isRegularFile(file)) {
             return null;
         }
-        try (BufferedReader reader = Files.newBufferedReader(file)) {
-            JsonElement parsed = JsonParser.parseReader(reader);
+        try {
+            String text = stripJsonComments(Files.readString(file));
+            JsonElement parsed = JsonParser.parseString(text);
             return parsed != null && parsed.isJsonObject() ? parsed.getAsJsonObject() : null;
         } catch (IOException | JsonParseException e) {
             MultiverseServer.LOGGER.error("Failed to parse JSON file: {}", file, e);

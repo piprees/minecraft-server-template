@@ -297,7 +297,7 @@ Two things to hold in mind when tuning them:
 - **`borders.player` and `difficulty.mobMultiplier` are now generation-affecting.** They used to be scoring/runtime only. The border sets both the scanned radius and the noise frequency scale; the multiplier drives the shifts above. Changing either changes the world.
 - **An unknown profile name suppresses the group** rather than silently becoming `natural`, and warns at boot. An unknown group name in `noise` or `radial` is ignored with a warning.
 - **A radial curve must be exactly 10 values in 0.0-3.0** or it is rejected with a warning and the type default is used. A trailing `0.0` suppresses that band absolutely — it does not merely reduce it.
-- **Not every structure is noise-placed.** Sets with a custom placement type (YUNG's, explorify, towns_and_towers) keep grid placement and ignore all of the above.
+- **Not every structure is noise-placed.** Sets with a custom placement type — 227 of 367, dominated by Moog's `moogs_structures:advanced_random_spread`, plus YUNG's four per-mod types and Supplementaries' galleons — keep their own grid placement. (Explorify and Towns & Towers ship plain `minecraft:random_spread` and ARE noise-managed; Cristel Lib only patches their spacing numbers.) Pass-throughs ignore noise fields, radial curves and rarity, but `structures.mode` and `structures.exclude` DO apply to them ([TROUBLESHOOTING.md#t23](../../../TROUBLESHOOTING.md#t23)).
 
 ## Traps (read this before you write JSON)
 

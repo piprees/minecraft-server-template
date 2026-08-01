@@ -880,7 +880,9 @@ fi
 # Config-driven spawn wins: when the multiverse config's worlds[] overworld
 # entry carries "spawn": [x, y, z], the custom-dimensions mod applies it at
 # server start — the env enforcement below would fight it, so it only runs
-# when the config has no spawn.
+# when the config has no spawn. [0, 64, 0] is the seed roller's old
+# placeholder for "no site chosen", not a choice — it must not silence
+# SPAWN_X/Y/Z (the roller no longer writes it, but stamped configs remain).
 CONFIG_HAS_SPAWN="$(python3 -c "
 import json, os
 try:
@@ -888,7 +890,10 @@ try:
     v4 = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
     if os.path.exists(v4):
         ow = json.load(open(v4))
-    print('yes' if isinstance(ow.get('spawn'), list) and len(ow['spawn']) == 3 else 'no')
+    spawn = ow.get('spawn')
+    chosen = (isinstance(spawn, list) and len(spawn) == 3
+              and spawn != [0, 64, 0])
+    print('yes' if chosen else 'no')
 except Exception:
     print('no')
 " 2> /dev/null || echo no)"

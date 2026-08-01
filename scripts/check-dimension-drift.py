@@ -169,6 +169,19 @@ def config_value(config, field):
     return _plain(config.get(field))
 
 
+def strip_json_comments(text):
+    """JSONC, readers-first: a line whose first non-blank characters are //
+    is blanked. The SAME narrow rule (whole-line only, no trailing
+    comments, no lenient parsing) lives in
+    DimensionConfigLoader.stripJsonComments (Java) and
+    scripts/seed/dimension_profiles.strip_json_comments — change all three
+    together."""
+    if "//" not in text:
+        return text
+    import re
+    return re.sub(r"^[ \t]*//.*$", "", text, flags=re.M)
+
+
 def load_configs(config_dir):
     """{slug: config}, staged consumer overlay resolved like the mod does."""
     config_dir = Path(config_dir)
@@ -177,14 +190,14 @@ def load_configs(config_dir):
     if dims.is_dir():
         for f in sorted(dims.glob("*.json")):
             try:
-                out[f.stem.lower()] = json.loads(f.read_text())
+                out[f.stem.lower()] = json.loads(strip_json_comments(f.read_text()))
             except json.JSONDecodeError as e:
                 print(f"  WARN unparseable {f.name}: {e}", file=sys.stderr)
     overlay = config_dir / "overlay" / "dimensions"
     if overlay.is_dir():
         for f in sorted(overlay.glob("*.json")):
             try:
-                over = json.loads(f.read_text())
+                over = json.loads(strip_json_comments(f.read_text()))
             except json.JSONDecodeError:
                 continue
             slug = f.stem.lower()

@@ -453,10 +453,18 @@ no config at all.
   container and is wiped to reset a world. Regenerate both
   with `scripts/gen-structure-groups.py` after any structure-mod pin bump —
   `--check` gates staleness.
-- **Over half of all sets never enter a group.** 155 of ~280 have a custom
-  placement type (YUNG's, and everything Cristel Lib rewrites at runtime —
-  explorify, towns_and_towers) and pass through on grid placement, exactly as
-  the density path has always left them. A `groups=4/5` boot line is also
+- **Over half of all sets never enter a group.** 227 of 367 (jar-level
+  extraction over `elfydd/data/mods/`) have a custom placement type and pass
+  through on their own grid placement — subject only to the set-id filters
+  (`structures.mode`/`structures.exclude`, applied in the pass-through loop).
+  The population is dominated by Moog's `moogs_structures:advanced_random_spread`
+  (221 sets: Voyager 110, Nether 41, Soaring 31, End 25, Temples Reimagined 6);
+  the rest are YUNG's four per-mod types, Supplementaries' galleon set, and
+  `minecraft:concentric_rings` (DnT end_castle — correctly excluded, rings are
+  not grid-compatible). Explorify and Towns & Towers ship plain
+  `minecraft:random_spread` and ARE noise-managed — Cristel Lib patches their
+  spacing numbers via a built-in datapack before registry load and never
+  changes the placement type. A `groups=4/5` boot line is also
   normal: a group whose pool is empty after biome filtering is skipped.
 - **Never run a bare synchronous `/locate` into an ungenerated custom
   dimension.** It can block the main thread long enough to wedge RCON while

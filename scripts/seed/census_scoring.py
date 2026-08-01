@@ -36,7 +36,7 @@ Properties that are load-bearing, and why:
      already 1400 lines, and a module is importable by the tests and by
      fast_roller without the importlib dance score-dimensions.py needs.
   3. The census component does not fully REPLACE the want battery, it
-     outweighs it (0.6/0.4). Forced placements and the ~155 sets that keep
+     outweighs it (0.6/0.4). Forced placements and the 227 custom-placement sets that keep
      grid placement are still positionally real, and an author's
      `structures.force` is the strongest statement of intent in the schema.
 """

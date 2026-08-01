@@ -42,11 +42,14 @@ public final class NoiseGroupPlan {
 
     private final Map<String, Group> groups;
     private final boolean suppressed;
+    private final boolean noStructures;
     private final String reason;
 
-    private NoiseGroupPlan(Map<String, Group> groups, boolean suppressed, String reason) {
+    private NoiseGroupPlan(Map<String, Group> groups, boolean suppressed,
+                           boolean noStructures, String reason) {
         this.groups = groups;
         this.suppressed = suppressed;
+        this.noStructures = noStructures;
         this.reason = reason;
     }
 
@@ -57,6 +60,19 @@ public final class NoiseGroupPlan {
     /** True when no noise runs at all for this dimension. */
     public boolean isSuppressed() {
         return suppressed;
+    }
+
+    /**
+     * True when the suppression means "this dimension has no organic
+     * structures at all" — the type enables no groups (void, superflat, an
+     * unknown type). The legacy path must then DROP every set: returning the
+     * vanilla calculator intact would generate all 367 sets on vanilla grids
+     * in a dimension whose type says none belong. Density "none" and the
+     * grid escape hatch keep their own meanings (drop-all and keep-vanilla
+     * respectively), so they stay false here.
+     */
+    public boolean suppressesAllSets() {
+        return noStructures;
     }
 
     /** Human-readable why, for the boot log line. */
@@ -70,17 +86,17 @@ public final class NoiseGroupPlan {
         String density = normaliseDensity(def);
 
         if ("none".equals(density)) {
-            return new NoiseGroupPlan(Map.of(), true, "structureDensity=none");
+            return new NoiseGroupPlan(Map.of(), true, false, "structureDensity=none");
         }
         // Deprecated alias: structures.mode "none" meant the same thing before
         // noise existed. Honoured so the_dustbowl-style configs keep working.
         if (block != null && block.mode != null
                 && "none".equalsIgnoreCase(block.mode.trim())) {
-            return new NoiseGroupPlan(Map.of(), true, "structures.mode=none (deprecated)");
+            return new NoiseGroupPlan(Map.of(), true, false, "structures.mode=none (deprecated)");
         }
         // Escape hatch for one major version: force the old grid behaviour.
         if (block != null && block.noise != null && isBooleanFalse(block.noise)) {
-            return new NoiseGroupPlan(Map.of(), true, "structures.noise=false (grid mode)");
+            return new NoiseGroupPlan(Map.of(), true, false, "structures.noise=false (grid mode)");
         }
 
         var defaults = StructureGroupRegistry.defaults();
@@ -99,7 +115,7 @@ public final class NoiseGroupPlan {
             }
         }
         if (enabled.isEmpty()) {
-            return new NoiseGroupPlan(Map.of(), true,
+            return new NoiseGroupPlan(Map.of(), true, true,
                     worldType == null ? "no world type" : "type " + worldType + " enables no groups");
         }
 
@@ -168,9 +184,9 @@ public final class NoiseGroupPlan {
         }
 
         if (resolved.isEmpty()) {
-            return new NoiseGroupPlan(Map.of(), true, "every group resolved to none");
+            return new NoiseGroupPlan(Map.of(), true, false, "every group resolved to none");
         }
-        return new NoiseGroupPlan(Map.copyOf(resolved), false, "noise");
+        return new NoiseGroupPlan(Map.copyOf(resolved), false, false, "noise");
     }
 
     private static double[] resolveRadial(DimensionConfig def, DimensionConfig.Structures block,

@@ -740,6 +740,43 @@ class PlacesNothingTests(unittest.TestCase):
         self.assertGreater(p["weights"]["structures"], 0)
 
 
+
+class JsoncCommentTests(unittest.TestCase):
+    """The readers-first JSONC contract: whole-line // comments only, shared
+    verbatim with DimensionConfigLoader.stripJsonComments (Java) and
+    check-dimension-drift.py."""
+
+    def test_whole_line_only(self):
+        self.assertEqual('{"url": "https://x/y"}',
+                         dp.strip_json_comments('{"url": "https://x/y"}'))
+        kept = '{"a": 1 // NOT stripped: whole-line only\n}'
+        self.assertEqual(kept, dp.strip_json_comments(kept))
+        self.assertEqual('\n{"a": 1}', dp.strip_json_comments('// x\n{"a": 1}'))
+
+    def test_commented_dimension_rolls_identically(self):
+        plain = {"type": "multi_biome", "seed": 42,
+                 "biomes": ["minecraft:plains", "minecraft:forest"],
+                 "borders": {"player": 1024}}
+        commented = ('{\n'
+                     '  // worldgen block, creation-time-only\n'
+                     '  "type": "multi_biome",\n'
+                     '  "seed": 42,\n'
+                     '    // the biome list re-deals the whole layout\n'
+                     '  "biomes": ["minecraft:plains", "minecraft:forest"],\n'
+                     '  "borders": {"player": 1024}\n'
+                     '}\n')
+        with tempfile.TemporaryDirectory() as tmp:
+            dims = Path(tmp) / "dimensions"
+            dims.mkdir()
+            (dims / "plain.json").write_text(json.dumps(plain))
+            (dims / "commented.json").write_text(commented)
+            configs = dp.load_dimension_configs(tmp, set_noise_defaults=False)
+        self.assertEqual(configs["plain"], configs["commented"])
+        a = dict(configs["plain"], name="x")
+        b = dict(configs["commented"], name="x")
+        self.assertEqual(dp.generation_fingerprint(a), dp.generation_fingerprint(b),
+                         "commented copy must roll in the same seed group")
+
 if __name__ == "__main__":
     unittest.main()
 

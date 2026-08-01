@@ -115,12 +115,20 @@ class ProcessGroupTests(unittest.TestCase):
         self.assertEqual(rows_group_a, rows_solo_a)
         # Every member banks rows for EVERY group seed (richness).
         self.assertEqual(len(by_name["b"][1]), 4)
-        # b's structure rows use b's OWN battery window semantics — the
-        # village distance itself is seed-determined, identical for both.
+        # Structure distances anchor at each member's OWN chosen spawn
+        # (different spawnFilters -> different spawns), so b's banked
+        # distance must equal a fresh measurement from b's banked spawn —
+        # not a's number for the same seed.
+        from structure_placement import nearest_structure
         for seed, rows, _ok in by_name["b"][1]:
-            self.assertIn(("structure_village_dist",
-                           dict(rows_group_a[seed])["structure_village_dist"]),
-                          rows)
+            d = dict(rows)
+            expected = nearest_structure(
+                seed, 34, 8, 10387312,
+                origin_x=int(d.get("spawn_x", 0)),
+                origin_z=int(d.get("spawn_z", 0)),
+                search_radius=50)
+            self.assertEqual(expected[0] if expected else -1,
+                             d["structure_village_dist"])
 
     def test_singleton_group_draws_one_pool(self):
         seeds = [11, 22, 33, 44, 55]

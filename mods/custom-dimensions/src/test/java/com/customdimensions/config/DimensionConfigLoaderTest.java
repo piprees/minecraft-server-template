@@ -181,5 +181,53 @@ class DimensionConfigLoaderTest {
         assertEquals("minecraft:end_stone_bricks", s.frameEnd);
     }
 
-    // --- legacy conversion ----------------------------------------------------
+    // --- JSONC (whole-line // comments, readers-first) ------------------------
+
+    @Test
+    void commentedDimensionFileLoadsIdenticallyToTheUncommentedCopy(
+            @TempDir Path config, @TempDir Path overlay) throws IOException {
+        writeDim(config, "plain",
+                "{\"type\":\"overworld\",\"seed\":42,\"structureDensity\":\"sparse\"}");
+        writeDim(config, "commented", """
+                {
+                  // the whole worldgen block is creation-time-only
+                  "type": "overworld",
+                    // indented comments are fine too
+                  "seed": 42,
+                  "structureDensity": "sparse"
+                }
+                """);
+        Map<String, DimensionConfig> dims =
+                DimensionConfigLoader.loadDimensions(config, overlay, defaultSettings(), null);
+        assertEquals("overworld", dims.get("commented").getType());
+        assertEquals(42L, dims.get("commented").getSeed());
+        assertEquals(dims.get("plain").getSeed(), dims.get("commented").getSeed());
+        assertEquals(dims.get("plain").getStructureDensity(),
+                dims.get("commented").getStructureDensity());
+    }
+
+    @Test
+    void commentedSettingsFileParses(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {
+                  // consumer namespace
+                  "namespace": "elfydd"
+                }
+                """);
+        assertEquals("elfydd",
+                DimensionConfigLoader.loadSettings(config.resolve("settings.json")).namespace);
+    }
+
+    @Test
+    void stripJsonCommentsIsWholeLineOnly() {
+        // Trailing comments are NOT comments — a // inside a string (URLs)
+        // must survive. Only lines STARTING with // are blanked.
+        assertEquals("{\"url\": \"https://x/y\"}",
+                DimensionConfigLoader.stripJsonComments("{\"url\": \"https://x/y\"}"));
+        assertEquals("\n{\"a\": 1}",
+                DimensionConfigLoader.stripJsonComments("// gone\n{\"a\": 1}"));
+        String kept = "{\"a\": 1 // NOT stripped: whole-line only\n}";
+        assertEquals(kept, DimensionConfigLoader.stripJsonComments(kept));
+        assertEquals("abc", DimensionConfigLoader.stripJsonComments("abc"));
+    }
 }

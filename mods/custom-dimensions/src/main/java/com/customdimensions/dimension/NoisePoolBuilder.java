@@ -229,7 +229,8 @@ public final class NoisePoolBuilder {
         return out;
     }
 
-    private static Set<String> lowerSet(List<String> values) {
+    /** Lowercased, null-safe set. Shared with DimensionStructures' filters. */
+    static Set<String> lowerSet(List<String> values) {
         if (values == null || values.isEmpty()) {
             return Set.of();
         }

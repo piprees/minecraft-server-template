@@ -47,6 +47,44 @@ class DimensionStructuresTest {
     }
 
     /**
+     * keepSet is the one filter both the legacy mode path and the noise
+     * path's pass-through loop share — pass-throughs escape NoisePoolBuilder,
+     * so this is the only place structures.mode/exclude can reach them.
+     */
+    @Test
+    void keepSetModeFilter() {
+        var list = java.util.Set.of("moogs_structures:oasis_temple");
+        var none = java.util.Set.<String>of();
+        // no mode, no exclude: everything survives
+        assertTrue(DimensionStructures.keepSet("a:b", null, none, none));
+        assertTrue(DimensionStructures.keepSet(null, null, none, none));
+        // allow keeps listed only; a keyless set can never match
+        assertTrue(DimensionStructures.keepSet("moogs_structures:oasis_temple", "allow", list, none));
+        assertFalse(DimensionStructures.keepSet("a:b", "allow", list, none));
+        assertFalse(DimensionStructures.keepSet(null, "allow", list, none));
+        // reject drops listed only; keyless sets survive
+        assertFalse(DimensionStructures.keepSet("moogs_structures:oasis_temple", "reject", list, none));
+        assertTrue(DimensionStructures.keepSet("a:b", "reject", list, none));
+        assertTrue(DimensionStructures.keepSet(null, "reject", list, none));
+        // "none" drops everything organic
+        assertFalse(DimensionStructures.keepSet("a:b", "none", none, none));
+    }
+
+    @Test
+    void keepSetExcludeIsCaseInsensitiveAndBeatsMode() {
+        var exclude = java.util.Set.of("moogs_structures:oasis_temple"); // pre-lowercased
+        assertFalse(DimensionStructures.keepSet("moogs_structures:oasis_temple", null,
+                java.util.Set.of(), exclude));
+        assertFalse(DimensionStructures.keepSet("Moogs_Structures:Oasis_Temple", null,
+                java.util.Set.of(), exclude));
+        // excluded even when mode allow lists it
+        assertFalse(DimensionStructures.keepSet("moogs_structures:oasis_temple", "allow",
+                java.util.Set.of("moogs_structures:oasis_temple"), exclude));
+        assertTrue(DimensionStructures.keepSet("a:b", "reject",
+                java.util.Set.of("c:d"), exclude));
+    }
+
+    /**
      * FixedStructurePlacement.Index contract (mirrored in the roller:
      * scripts/seed/structure_placement.py treats forced structures as
      * constants): membership is exact, and startFor answers with the

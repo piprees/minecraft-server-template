@@ -812,7 +812,7 @@ CENSUS_BINS = 10
 
 def census_summary(world_seed, dim_name, dim_config, type_defaults,
                    radius_chunks=None, spawn_chunk_x=0, spawn_chunk_z=0,
-                   bins=CENSUS_BINS):
+                   bins=CENSUS_BINS, bin_origin_x=None, bin_origin_z=None):
     """A scoring-sized view of `noise_census` — counts and a radial histogram.
 
     Returns
@@ -825,6 +825,13 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
     [i/bins, (i+1)/bins] of the playable radius, which is what a 10-point
     radial curve is indexed by.
 
+    `bin_origin_x`/`bin_origin_z` (CHUNK coordinates) anchor the histogram
+    only — the point the player actually stands on, i.e. the candidate's
+    chosen spawn. They default to `spawn_chunk_x`/`spawn_chunk_z`, which
+    remain the PLACEMENT anchor handed to NoiseFieldIndex and must stay 0
+    for census parity: DimensionStructures passes (0, 0), so a non-zero
+    placement anchor here would describe a world the mod never generates.
+
     Deliberately carries NO per-dimension config (profile, exclusion, radial
     curve): those are identical for every candidate of a dimension and the
     summary is banked per candidate. Storing them cost 2.5 MB per large
@@ -836,6 +843,10 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
     out = {"radiusChunks": radius_chunks, "groups": {}}
     if not groups:
         return out
+    if bin_origin_x is None:
+        bin_origin_x = spawn_chunk_x
+    if bin_origin_z is None:
+        bin_origin_z = spawn_chunk_z
     dim_salt = salt_of(dim_name)
     scale = float(radius_chunks) if radius_chunks > 0 else 1.0
     for group, settings in groups.items():
@@ -845,8 +856,8 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
                                 spawn_chunk_x, spawn_chunk_z)
         hist = [0] * bins
         for cx, cz in index.positions():
-            dx = cx - spawn_chunk_x
-            dz = cz - spawn_chunk_z
+            dx = cx - bin_origin_x
+            dz = cz - bin_origin_z
             b = int(math.sqrt(float(dx) * dx + float(dz) * dz) / scale * bins)
             if b < 0:
                 b = 0
@@ -870,7 +881,16 @@ def census_task(task):
     failing in the worker with "No module named 'score_dimensions'".
     Any function handed to a Pool must therefore live in a module whose
     filename is a legal identifier.
+
+    Tasks are 5-tuples (legacy, histogram anchored at the origin) or
+    7-tuples carrying the candidate's spawn chunk as the bin origin.
     """
-    name, seed, dim_config, type_defaults, radius_chunks = task
-    return (name, seed, census_summary(
-        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks))
+    name, seed, dim_config, type_defaults, radius_chunks = task[:5]
+    bin_x, bin_z = (task[5], task[6]) if len(task) > 6 else (0, 0)
+    summary = census_summary(
+        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks,
+        bin_origin_x=bin_x, bin_origin_z=bin_z)
+    # Cache validity marker for ensure_censuses: a summary is only reusable
+    # for a candidate whose spawn chunk matches the origin it was binned at.
+    summary["binOrigin"] = [bin_x, bin_z]
+    return (name, seed, summary)

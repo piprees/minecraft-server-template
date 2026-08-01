@@ -60,6 +60,28 @@ class NoiseGroupPlanTest {
         assertTrue(plan("{\"type\": \"not_a_type\"}").isSuppressed());
     }
 
+    /**
+     * The void/superflat leak: "type enables no groups" means NO organic
+     * structures, so the legacy path must drop every set. The other
+     * suppression flavours keep their own meanings — density none drops in
+     * the legacy loop itself, mode none likewise, and noise=false
+     * deliberately keeps the vanilla grids.
+     */
+    @Test
+    void onlyTypeWithoutGroupsSuppressesAllSets() {
+        assertTrue(plan("{\"type\": \"void\"}").suppressesAllSets());
+        assertTrue(plan("{\"type\": \"superflat\"}").suppressesAllSets());
+        assertTrue(plan("{}").suppressesAllSets());
+        assertTrue(plan("{\"type\": \"not_a_type\"}").suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structureDensity\": \"none\"}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structures\": {\"mode\": \"none\"}}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\", \"structures\": {\"noise\": false}}")
+                .suppressesAllSets());
+        assertFalse(plan("{\"type\": \"multi_biome\"}").suppressesAllSets(), "not suppressed at all");
+    }
+
     @Test
     void netherEnablesItsOwnGroupsAtItsOwnProfiles() {
         NoiseGroupPlan p = plan("{\"type\": \"nether\"}");

@@ -84,12 +84,19 @@ public final class DimensionStructures {
         // no groups, or every group resolving to none).
         NoiseGroupPlan.warnUnknownGroups(def);
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
+        java.util.Set<String> exclude = NoisePoolBuilder.lowerSet(
+                structBlock != null ? structBlock.exclude : null);
         if (!plan.isSuppressed()) {
             return transformedNoise(world, biomeSource, noiseConfig, original, def, plan,
-                    spacingOverrides, forced);
+                    spacingOverrides, forced, mode, modeList, exclude);
         }
 
-        if ("normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
+        // "Type enables no groups" means NO organic structures — returning
+        // null here kept the vanilla calculator intact and generated all
+        // 367 sets on vanilla grids in void/superflat dimensions.
+        boolean dropAll = plan.suppressesAllSets();
+
+        if (!dropAll && "normal".equals(density) && !peaceful && spacingOverrides.isEmpty()
                 && !def.hasExitShrines() && mode == null && forced.isEmpty()) {
             return null;
         }
@@ -136,21 +143,22 @@ public final class DimensionStructures {
                 continue;
             }
 
+            // The type enables no groups (void/superflat): every organic set
+            // is dropped. Exit shrines were handled above; forced placements
+            // append after the loop.
+            if (dropAll) {
+                dropped++;
+                continue;
+            }
+
             // Organic-set filter (structures.mode): applied after the
             // exit-shrines opt-in (which is config-driven, not organic) and
             // before every density/theme path. Forced placements are
             // synthetic sets appended after the loop — mode never touches
             // them ("mode": "none" + force = ONLY the forced structures).
-            if (mode != null) {
-                boolean keep = switch (mode) {
-                    case "allow" -> setId != null && modeList.contains(setId);
-                    case "reject" -> setId == null || !modeList.contains(setId);
-                    default -> false; // "none"
-                };
-                if (!keep) {
-                    dropped++;
-                    continue;
-                }
+            if (!keepSet(setId, mode, modeList, java.util.Set.of())) {
+                dropped++;
+                continue;
             }
 
             if (peaceful && "dungeon".equals(theme)) {
@@ -212,9 +220,10 @@ public final class DimensionStructures {
         int forcedCount = appendForcedPlacements(transformed, world, def, forced);
 
         MultiverseServer.LOGGER.info(
-                "Dimension {} structure profile: density={}{}{}{} ({} sets kept, {} rescaled, {} dropped)",
+                "Dimension {} structure profile: density={}{}{}{}{} ({} sets kept, {} rescaled, {} dropped)",
                 def.getName(), density, peaceful ? "+peaceful" : "",
                 mode != null ? "+mode=" + mode : "",
+                dropAll ? "+suppressed(" + plan.reason() + ")" : "",
                 forcedCount > 0 ? "+" + forcedCount + " forced" : "",
                 transformed.size(), rescaled, dropped);
         return StructurePlacementCalculatorInvoker.invokeNew(
@@ -235,7 +244,8 @@ public final class DimensionStructures {
             ServerWorld world, BiomeSource biomeSource, NoiseConfig noiseConfig,
             StructurePlacementCalculator original, DimensionConfig def, NoiseGroupPlan plan,
             java.util.Map<String, DimensionConfig.SpacingOverride> spacingOverrides,
-            java.util.List<DimensionConfig.ForcedStructure> forced) {
+            java.util.List<DimensionConfig.ForcedStructure> forced,
+            String mode, java.util.Set<String> modeList, java.util.Set<String> exclude) {
 
         long started = System.nanoTime();
         List<RegistryEntry<StructureSet>> transformed = new ArrayList<>();
@@ -279,13 +289,21 @@ public final class DimensionStructures {
 
         // Custom placement types pass through untouched: their rules are not
         // ours to reinterpret, and dropping them would silently delete every
-        // YUNG's structure from every managed dimension.
+        // YUNG's structure from every managed dimension. They never reach
+        // NoisePoolBuilder, so the dimension's set-id filters (structures.mode
+        // and structures.exclude) must be applied HERE or they silently never
+        // touch pass-throughs.
+        int passthroughFiltered = 0;
         for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             if ("adventure:exit_shrines".equals(setId)) {
                 continue;
             }
             if (entry.value().placement().getClass() != RandomSpreadStructurePlacement.class) {
+                if (!keepSet(setId, mode, modeList, exclude)) {
+                    passthroughFiltered++;
+                    continue;
+                }
                 transformed.add(entry);
                 passthrough++;
             }
@@ -339,10 +357,10 @@ public final class DimensionStructures {
 
         MultiverseServer.LOGGER.info(
                 "Dimension {} structure profile: noise radius={}c groups={}/{} positions={}"
-                + "{}{} ({} sets passed through, {} custom-placement, {}ms)",
+                + "{}{} ({} sets passed through, {} pass-through filtered, {} custom-placement, {}ms)",
                 def.getName(), radiusChunks, groupsBuilt, plan.groups().size(), totalPositions,
                 detail, forcedCount > 0 ? " +" + forcedCount + " forced" : "",
-                passthrough, pools.setsSkippedCustomPlacement(), millis);
+                passthrough, passthroughFiltered, pools.setsSkippedCustomPlacement(), millis);
         if (millis > 200) {
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: noise placement took {}ms to precompute (radius {} chunks). "
@@ -454,6 +472,30 @@ public final class DimensionStructures {
                     def.getName(), e.getKey(), e.getValue());
         }
         return forcedCount;
+    }
+
+    /**
+     * Whether an organic set survives the dimension's set-id filters:
+     * structures.exclude, then structures.mode allow/reject over
+     * structures.list. Shared by the legacy path's mode filter (empty
+     * exclude — legacy semantics unchanged) and the noise path's
+     * pass-through loop. The global suppress list (settings.json, planned)
+     * plugs in here. Exclude entries are pre-lowercased
+     * (NoisePoolBuilder.lowerSet); mode list entries match exactly.
+     */
+    static boolean keepSet(String setId, String mode, java.util.Set<String> modeList,
+                           java.util.Set<String> exclude) {
+        if (setId != null && exclude.contains(setId.toLowerCase(java.util.Locale.ROOT))) {
+            return false;
+        }
+        if (mode == null) {
+            return true;
+        }
+        return switch (mode) {
+            case "allow" -> setId != null && modeList.contains(setId);
+            case "reject" -> setId == null || !modeList.contains(setId);
+            default -> false; // "none"
+        };
     }
 
     /** Validated structures.mode: allow | reject | none, or null (off).

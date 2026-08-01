@@ -170,9 +170,16 @@ def _resolve_struct_set(sid, struct_sets, struct_to_sets):
 # -----------------------------------------------------------------------
 # Tier 1: structure-only screening (instant)
 # -----------------------------------------------------------------------
-def tier1_score(seed, profile, struct_sets, struct_to_sets):
+def tier1_score(seed, profile, struct_sets, struct_to_sets,
+                origin_x=0, origin_z=0):
     """Structure battery score for a seed. Returns (score, distances dict).
-    No biomes, no noise — pure math. <0.1ms per seed."""
+    No biomes, no noise — pure math. <0.1ms per seed.
+
+    `origin_x`/`origin_z` anchor every distance: the screening pass runs
+    from the world origin (the spawn is not known yet), but the banked
+    measurement pass re-runs from the candidate's chosen spawn — a distance
+    from (0, 0) describes a point the player never stands on when the spawn
+    sits up to 768 blocks away (spawn-site-selection §5)."""
     cap = profile.get("locate_cap")
     dists = {}
     if not profile["battery"]:
@@ -185,7 +192,7 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
         # distance regardless of seed; mode-filtered sets are absent.
         # Mirrors DimensionStructures; helpers live in structure_placement.
         from structure_placement import forced_distance, mode_drops
-        forced = forced_distance(sid, profile)
+        forced = forced_distance(sid, profile, origin_x, origin_z)
         if forced is not None:
             dists[sname] = forced
             if kind == "shun":
@@ -228,7 +235,8 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets):
                     separation = spacing // 2
             result = nearest_structure(
                 seed, spacing, separation,
-                set_cfg["salt"], spread_type=set_cfg.get("spread_type", "linear"),
+                set_cfg["salt"], origin_x=origin_x, origin_z=origin_z,
+                spread_type=set_cfg.get("spread_type", "linear"),
                 frequency=frequency,
                 search_radius=50)
             dist = result[0] if result else -1
@@ -386,9 +394,15 @@ def _process_group(task):
         for name, profile in members:
             rows, ok = tier2_measure(seed, profile, sampler)
             # Structure distances: recomputed per member (pure math,
-            # <0.1ms) — each member's battery differs within a group.
+            # <0.1ms) — each member's battery differs within a group, and
+            # the banked distances are anchored at the candidate's CHOSEN
+            # spawn, not the origin the screening pass used.
+            spawn_x = next((v for k, v in rows if k == "spawn_x"), 0)
+            spawn_z = next((v for k, v in rows if k == "spawn_z"), 0)
             _score, struct_dists = tier1_score(seed, profile,
-                                               struct_sets, struct_to_sets)
+                                               struct_sets, struct_to_sets,
+                                               origin_x=int(spawn_x),
+                                               origin_z=int(spawn_z))
             for sname, _sid, _band, _kind in profile["battery"]:
                 rows.append((f"structure_{sname}_dist", struct_dists.get(sname, -1)))
             results[name].append((seed, rows, ok))
@@ -562,6 +576,7 @@ def main():
     # so this is the slow part of the FIRST roll of a large dimension and
     # free on every rescore afterwards.
     sd.attach_battery_groups(profiles, args.seedtest, args.config)
+    sd.ensure_spawn_distances(fargs, profiles, data)
     sd.ensure_censuses(fargs, config, profiles, data)
     sd.ensure_terrain_surveys(fargs, config, profiles, data)
     results_scored, rejected_counts = sd.score_all(profiles, data)
