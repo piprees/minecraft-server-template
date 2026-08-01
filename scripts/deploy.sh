@@ -886,11 +886,22 @@ fi
 CONFIG_HAS_SPAWN="$(python3 -c "
 import json, os
 try:
-    ow = {}
-    v4 = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
-    if os.path.exists(v4):
-        ow = json.load(open(v4))
-    spawn = ow.get('spawn')
+    # The answer must match what the MOD resolves at boot: the staged
+    # consumer overlay merges over the platform file (a file without
+    # 'overrides' replaces the entry wholesale; with 'overrides' only the
+    # named keys win). Reading the platform copy alone called an
+    # overlay-chosen spawn 'not chosen' and stamped SPAWN_X/Y/Z over it.
+    base = '$SERVER_DIR/data/config/custom-dimensions/dimensions/overworld.json'
+    over = '$SERVER_DIR/data/config/custom-dimensions/overlay/dimensions/overworld.json'
+    spawn = None
+    if os.path.exists(base):
+        spawn = json.load(open(base)).get('spawn')
+    if os.path.exists(over):
+        d = json.load(open(over))
+        if isinstance(d.get('overrides'), dict):
+            spawn = d['overrides'].get('spawn', spawn)
+        else:
+            spawn = d.get('spawn')
     chosen = (isinstance(spawn, list) and len(spawn) == 3
               and spawn != [0, 64, 0])
     print('yes' if chosen else 'no')
