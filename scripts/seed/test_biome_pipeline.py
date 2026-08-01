@@ -527,5 +527,85 @@ class TestNoiseFamilyResolution(unittest.TestCase):
                              fam, f"{dim_type} disagrees with fast_roller")
 
 
+@unittest.skipUnless(HAS_BIOME_PARAMS, SKIP_REASON)
+class TestBiomeSuppression(unittest.TestCase):
+    """settings.json suppress.biomes — the BiomeSuppression mirror.
+    Listed sources strip the list, full sources drop entries, an emptied
+    result keeps the source (the Java WARN-and-keep guard), and
+    checkerboard lists are exempt."""
+
+    @classmethod
+    def setUpClass(cls):
+        from biome_sampler import BiomeSampler, build_from_spec, sampler_spec, \
+            load_noise_configs
+        cls.BiomeSampler = BiomeSampler
+        cls.build_from_spec = staticmethod(build_from_spec)
+        cls.sampler_spec = staticmethod(sampler_spec)
+        cls.load_noise_configs = staticmethod(load_noise_configs)
+
+    def _biomes_of(self, sampler):
+        return {e[0] for e in sampler._entries}
+
+    def test_full_source_drops_suppressed_entries(self):
+        configs = self.load_noise_configs()
+        plain = self.BiomeSampler(TEST_SEED, str(BIOME_PARAMS),
+                                  noise_config=configs.get("overworld"),
+                                  family="overworld")
+        filtered = self.BiomeSampler(TEST_SEED, str(BIOME_PARAMS),
+                                     noise_config=configs.get("overworld"),
+                                     family="overworld",
+                                     suppress=["minecraft:desert"])
+        self.assertIn("minecraft:desert", self._biomes_of(plain))
+        self.assertNotIn("minecraft:desert", self._biomes_of(filtered))
+        self.assertLess(len(filtered._entries), len(plain._entries))
+
+    def test_suppressing_everything_keeps_the_source(self):
+        configs = self.load_noise_configs()
+        plain = self.BiomeSampler(TEST_SEED, str(BIOME_PARAMS),
+                                  noise_config=configs.get("nether"),
+                                  family="nether")
+        everything = sorted(self._biomes_of(plain))
+        guarded = self.BiomeSampler(TEST_SEED, str(BIOME_PARAMS),
+                                    noise_config=configs.get("nether"),
+                                    family="nether", suppress=everything)
+        self.assertEqual(len(plain._entries), len(guarded._entries))
+
+    def test_spec_strip_removes_listed_biome(self):
+        spec = {"noise_family": "overworld", "dim_type": "multi_biome",
+                "biomes": ["minecraft:plains", "minecraft:desert"],
+                "parameters": {}, "patches": [], "checkerboard_scale": None,
+                "suppressed_biomes": ["minecraft:desert"]}
+        sampler = self.build_from_spec(TEST_SEED, spec, str(BIOME_PARAMS))
+        biomes = self._biomes_of(sampler)
+        self.assertNotIn("minecraft:desert", biomes)
+        self.assertIn("minecraft:plains", biomes)
+
+    def test_emptied_list_falls_back_to_filtered_family_source(self):
+        spec = {"noise_family": "overworld", "dim_type": "multi_biome",
+                "biomes": ["minecraft:desert"], "parameters": {},
+                "patches": [], "checkerboard_scale": None,
+                "suppressed_biomes": ["minecraft:desert"]}
+        sampler = self.build_from_spec(TEST_SEED, spec, str(BIOME_PARAMS))
+        biomes = self._biomes_of(sampler)
+        self.assertNotIn("minecraft:desert", biomes)
+        self.assertGreater(len(biomes), 1, "full family source minus desert")
+
+    def test_checkerboard_lists_are_exempt(self):
+        spec = {"noise_family": "overworld", "dim_type": "checkerboard",
+                "biomes": ["minecraft:plains", "minecraft:desert"],
+                "parameters": {}, "patches": [], "checkerboard_scale": 2,
+                "suppressed_biomes": ["minecraft:desert"]}
+        sampler = self.build_from_spec(TEST_SEED, spec, str(BIOME_PARAMS))
+        self.assertIn("minecraft:desert",
+                      {b for b in getattr(sampler, "biomes", [])}
+                      or self._biomes_of(sampler))
+
+    def test_spec_carries_the_profile_stamp(self):
+        spec = self.sampler_spec({"type": "multi_biome", "family": "overworld",
+                                  "create_args": {"biome": "minecraft:plains"},
+                                  "suppressed_biomes": ("terralith:cave",)})
+        self.assertEqual(["terralith:cave"], spec["suppressed_biomes"])
+
+
 if __name__ == "__main__":
     unittest.main()

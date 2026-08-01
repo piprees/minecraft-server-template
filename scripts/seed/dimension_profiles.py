@@ -450,6 +450,8 @@ def monolith_from_dir(config_dir, overlay_dir=None):
                 settings[key] = value
     set_suppressed_structure_sets(
         (settings.get("suppress") or {}).get("structures") or [])
+    set_suppressed_biomes(
+        (settings.get("suppress") or {}).get("biomes") or [])
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
     overlay_files = load_dimension_configs(Path(overlay_dir), set_noise_defaults=False)
@@ -734,6 +736,11 @@ def generation_payload(dim):
     # Beardifier inputs below.
     if _SUPPRESSED_SETS:
         payload["suppressedStructures"] = list(_SUPPRESSED_SETS)
+    # Suppressed biomes change every world's biome layout (listed sources,
+    # full sources, and the base worlds via the CreateWorldsMixin seam) —
+    # same conditionality: absent list, byte-stable payload.
+    if _SUPPRESSED_BIOMES:
+        payload["suppressedBiomes"] = list(_SUPPRESSED_BIOMES)
     ta_config = struct_block.get("terrainAdaptation") or {}
     ta_themes = (_NOISE_DEFAULTS or {}).get("terrainAdaptation") or {}
     structureless = (
@@ -771,6 +778,24 @@ def set_suppressed_structure_sets(ids):
 
 def suppressed_structure_sets():
     return _SUPPRESSED_SETS
+
+
+# Globally suppressed biome ids (settings.json suppress.biomes, overlay
+# merged) — set by load_config, stamped into profiles by build_profile and
+# consumed by biome_sampler.build_from_spec. Mirrors BiomeSuppression
+# (Java); the two move together.
+_SUPPRESSED_BIOMES = ()
+
+
+def set_suppressed_biomes(ids):
+    """Stamp the global biome suppress list (load_config calls this)."""
+    global _SUPPRESSED_BIOMES
+    _SUPPRESSED_BIOMES = tuple(sorted(
+        str(i).strip().lower() for i in (ids or []) if str(i).strip()))
+
+
+def suppressed_biomes():
+    return _SUPPRESSED_BIOMES
 
 
 def set_noise_defaults_dir(config_dir):
@@ -1298,6 +1323,10 @@ def build_profile(dim, config, difficulty=None):
         "structures_exclude": tuple(sorted(
             {str(e).lower() for e in (struct_block.get("exclude") or [])}
             | set(_SUPPRESSED_SETS))),
+        # Global biome suppress list rides in the profile so sampler_spec
+        # (primitives-only, multiprocessing-safe) can carry it — mirrors
+        # BiomeSuppression.filter; change both together.
+        "suppressed_biomes": _SUPPRESSED_BIOMES,
         "structures_mode": (struct_block.get("mode")
                             if struct_block.get("mode") in ("allow", "reject", "none")
                             else None),

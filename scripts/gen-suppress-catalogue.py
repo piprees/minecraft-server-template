@@ -4,11 +4,13 @@
 # =============================================================================
 #
 # Purpose:
-#   Renders the extracted structure-set catalogue (extractors/structures.json)
-#   into a commented settings.json: every structure set the pack knows about
-#   appears as one commented-out line, grouped by mod and theme. Uncomment a
-#   line to suppress that set everywhere; the file is a valid settings.json
-#   with any subset of lines uncommented.
+#   Renders the extracted catalogues (extractors/structures.json +
+#   biomes.json) into a commented settings.json: every structure set and
+#   biome the pack knows about appears as one commented-out line, grouped
+#   by mod (structures also by theme). Uncomment a line to suppress it
+#   everywhere — biome suppression covers every world, base worlds
+#   included; the file is a valid settings.json with any subset of lines
+#   uncommented.
 #
 # Context:
 #   Reads files only — no Docker, no RCON, no running server. The output is
@@ -41,12 +43,14 @@ from pathlib import Path
 
 HEADER = """\
 {
-  // Global structure-set suppress catalogue.
+  // Global suppress catalogue: structure sets, then biomes.
   //
-  // Every structure set known to this stack appears below as a commented
-  // line, grouped by mod and theme. Uncommenting a line removes that set
-  // from EVERY dimension's pools and pass-throughs (existing chunks keep
-  // what they have — worldgen is creation-time-only).
+  // Every structure set and biome known to this stack appears below as a
+  // commented line, grouped by mod (structure sets also by theme).
+  // Uncommenting a structure-set line removes it from EVERY dimension's
+  // pools and pass-throughs; uncommenting a biome line removes it from
+  // EVERY world's biome source, base worlds included (existing chunks
+  // keep what they have — worldgen is creation-time-only per chunk).
   //
   // To use: uncomment the lines you want, then save this file as
   //   overlay/config/custom-dimensions/settings.json
@@ -55,6 +59,12 @@ HEADER = """\
   // whichever subset of lines you uncomment. Verify with ./dev verify.
   "suppress": {
     "structures": [
+      ""
+"""
+
+STRUCTURES_FOOTER = """\
+    ],
+    "biomes": [
       ""
 """
 
@@ -89,7 +99,7 @@ def mod_label(namespace, entries):
     return f"{namespace} — {len(entries)} set(s)  [{src}]"
 
 
-def render(sets):
+def render(sets, biomes):
     by_ns = {}
     for set_id, meta in sets.items():
         ns = set_id.split(":", 1)[0]
@@ -105,22 +115,35 @@ def render(sets):
             lines.append(f"      // {theme}:\n")
             for set_id in by_theme[theme]:
                 lines.append(f'      // , {json.dumps(set_id)}\n')
+    lines.append(STRUCTURES_FOOTER)
+    biomes_by_ns = {}
+    for biome_id, meta in (biomes or {}).items():
+        ns = biome_id.split(":", 1)[0]
+        biomes_by_ns.setdefault(ns, []).append((biome_id, meta))
+    for ns in sorted(biomes_by_ns):
+        entries = sorted(biomes_by_ns[ns])
+        lines.append(f"      // ═══ {mod_label(ns, entries)} ═══\n")
+        for biome_id, _meta in entries:
+            lines.append(f'      // , {json.dumps(biome_id)}\n')
     lines.append(FOOTER)
     return "".join(lines)
 
 
-def self_check(text, sets):
+def self_check(text, sets, biomes):
     """The emitted text must parse commented AND fully uncommented, and the
-    uncommented form must carry exactly the catalogue's ids after the
-    sentinel. Any failure here is a generator bug, never a data problem."""
+    uncommented form must carry exactly the catalogues' ids after the
+    sentinels. Any failure here is a generator bug, never a data problem."""
     as_is = json.loads(strip_json_comments(text))
-    if as_is["suppress"]["structures"] != [""]:
+    if as_is["suppress"]["structures"] != [""] or as_is["suppress"]["biomes"] != [""]:
         raise SystemExit("FAIL self-check: commented form must suppress nothing")
     uncommented = re.sub(r"^([ \t]*)// (, \".*\")$", r"\1\2", text, flags=re.M)
     full = json.loads(strip_json_comments(uncommented))
     ids = [i for i in full["suppress"]["structures"] if i]
     if sorted(ids) != sorted(sets):
         raise SystemExit("FAIL self-check: uncommented form must list every set")
+    biome_ids = [i for i in full["suppress"]["biomes"] if i]
+    if sorted(biome_ids) != sorted(biomes or {}):
+        raise SystemExit("FAIL self-check: uncommented form must list every biome")
 
 
 def main():
@@ -134,8 +157,12 @@ def main():
     if not extractors.exists():
         raise SystemExit(f"FAIL no structure-set catalogue at {extractors}")
     sets = load_sets(extractors)
-    text = render(sets)
-    self_check(text, sets)
+    biomes_file = Path(args.config) / "extractors" / "biomes.json"
+    biomes = {}
+    if biomes_file.exists():
+        biomes = json.loads(biomes_file.read_text()).get("biomes") or {}
+    text = render(sets, biomes)
+    self_check(text, sets, biomes)
 
     if args.output:
         out = Path(args.output)

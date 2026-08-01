@@ -62,6 +62,14 @@ public final class DimensionConfigLoader {
          * scripts/seed/dimension_profiles.generation_payload().
          */
         public java.util.List<String> suppressStructures = java.util.List.of();
+        /**
+         * Biome ids removed from every world's biome source ({@code
+         * "suppress": {"biomes": [...]}}) — applied by BiomeSuppression to
+         * listed sources, full-source dims, and the base worlds alike.
+         * Unknown ids WARN at boot. Generation-affecting — mirrored in
+         * scripts/seed/dimension_profiles.generation_payload().
+         */
+        public java.util.List<String> suppressBiomes = java.util.List.of();
     }
 
     /** Settings + resolved dimension map (base worlds included, keyed by slug). */
@@ -131,19 +139,26 @@ public final class DimensionConfigLoader {
             settings.defaults = json.getAsJsonObject("defaults");
         }
         if (json.has("suppress") && json.get("suppress").isJsonObject()) {
-            JsonElement list = json.getAsJsonObject("suppress").get("structures");
-            if (list != null && list.isJsonArray()) {
-                java.util.List<String> ids = new java.util.ArrayList<>();
-                for (JsonElement e : list.getAsJsonArray()) {
-                    if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
-                            && !e.getAsString().isBlank()) {
-                        ids.add(e.getAsString().trim());
-                    }
-                }
-                settings.suppressStructures = java.util.List.copyOf(ids);
-            }
+            JsonObject suppress = json.getAsJsonObject("suppress");
+            settings.suppressStructures = idList(suppress.get("structures"));
+            settings.suppressBiomes = idList(suppress.get("biomes"));
         }
         return settings;
+    }
+
+    /** Non-blank strings from a JSON array; empty list for anything else. */
+    private static java.util.List<String> idList(JsonElement list) {
+        if (list == null || !list.isJsonArray()) {
+            return java.util.List.of();
+        }
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (JsonElement e : list.getAsJsonArray()) {
+            if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
+                    && !e.getAsString().isBlank()) {
+                ids.add(e.getAsString().trim());
+            }
+        }
+        return java.util.List.copyOf(ids);
     }
 
     /**

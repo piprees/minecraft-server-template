@@ -119,10 +119,11 @@ class RecordingSampler:
     calls = []
 
     def __init__(self, seed, biome_params_path, noise_config=None,
-                 biome_filter=None, family=None, param_overrides=None):
+                 biome_filter=None, family=None, param_overrides=None,
+                 suppress=None):
         RecordingSampler.calls.append({
             "seed": seed, "biome_filter": biome_filter, "family": family,
-            "param_overrides": param_overrides,
+            "param_overrides": param_overrides, "suppress": suppress,
         })
         self.seed = seed
         self._entries = [(b, (), 0.0) for b in (biome_filter or [])]

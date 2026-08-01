@@ -244,6 +244,19 @@ class DimensionConfigLoaderTest {
         DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
                 config.resolve("settings.json"), config.resolve("no-such-overlay.json"));
         assertTrue(s.suppressStructures.isEmpty());
+        assertTrue(s.suppressBiomes.isEmpty());
+    }
+
+    @Test
+    void suppressBiomesParsesAndFiltersBlanks(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {"suppress":{"biomes":["terralith:cave", "  ", "minecraft:desert"],
+                             "structures":["mvs:barn"]}}
+                """);
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), null);
+        assertEquals(java.util.List.of("terralith:cave", "minecraft:desert"), s.suppressBiomes);
+        assertEquals(java.util.List.of("mvs:barn"), s.suppressStructures);
     }
 
     @Test

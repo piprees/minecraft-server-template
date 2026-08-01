@@ -238,6 +238,16 @@ public class DimensionManager {
         Set<Identifier> allowedIds = Arrays.stream(biomeList.split(","))
                 .map(String::trim).map(Identifier::tryParse).filter(id -> id != null)
                 .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+        // Global suppress list strips listed biomes up front, so foreign
+        // round-robin slots go to the surviving biomes instead of being
+        // filtered out of the finished source. Mirrored by
+        // biome_source_mixing.py — keep in sync.
+        Set<Identifier> suppressedBiomes = BiomeSuppression.suppressedIds();
+        if (!suppressedBiomes.isEmpty() && allowedIds.removeAll(suppressedBiomes)) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: suppress.biomes removed listed biome(s); {} of the requested list remain",
+                    dimName, allowedIds.size());
+        }
 
         // Explicit per-biome parameters (Tier 3): a listed biome with a
         // valid "parameters" object gets ONE explicit hypercube and is
@@ -713,7 +723,12 @@ public class DimensionManager {
                 yield new DimensionOptions(this.typeEntryFor(def, overworldOpts.dimensionTypeEntry()), withSeed(withSettings(overworldOpts.chunkGenerator(), settingsOverride), worldSeed));
             }
         };
-        return applyBiomePatches(def, applySettingsOverrides(def, built), biomeRegistry);
+        // Suppression runs BEFORE biomePatches: an author's explicit patch
+        // may still stamp a suppressed biome — specific beats general.
+        BiomeSuppression.warnUnknownSuppressedBiomes(biomeRegistry);
+        return applyBiomePatches(def,
+                BiomeSuppression.filterOptions(applySettingsOverrides(def, built), def.getName()),
+                biomeRegistry);
     }
 
     // "biomePatches" (precision placement): wrap the built generator's biome

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 # =============================================================================
-# check-suppress-list.py — does every suppressed structure set actually exist?
+# check-suppress-list.py — does every suppressed id actually exist?
 # =============================================================================
 #
 # Purpose:
-#   settings.json's `"suppress": {"structures": [...]}` removes structure SET
-#   ids from every dimension's noise pools and pass-throughs. An id that
-#   matches nothing (typo, mod removed, wrong namespace) suppresses nothing —
-#   the server WARNs once at boot and carries on. This checker catches the
-#   same mistake offline, before a boot, by cross-referencing every suppress
-#   list on disk against the extracted structure-set catalogue
-#   (extractors/structures.json).
+#   settings.json's `"suppress": {"structures": [...], "biomes": [...]}`
+#   removes structure SET ids from every dimension's noise pools and
+#   pass-throughs, and biome ids from every world's biome source (base
+#   worlds included). An id that matches nothing (typo, mod removed, wrong
+#   namespace) suppresses nothing — the server WARNs once at boot and
+#   carries on. This checker catches the same mistake offline, before a
+#   boot, by cross-referencing every suppress list on disk against the
+#   extracted catalogues (extractors/structures.json + biomes.json).
 #
 # Context:
 #   Reads files only — no Docker, no RCON, no running server. Run by
@@ -61,17 +62,20 @@ def strip_json_comments(text):
 
 
 def suppress_ids(settings_file):
-    """The suppress.structures list from one settings.json, or None if the
-    file is absent/unparseable/has no list. Ids are stripped, not lowercased —
-    the report shows what the author wrote."""
+    """{"structures": [...], "biomes": [...]} from one settings.json, or
+    None if the file is absent/unparseable/has no suppress lists. Ids are
+    stripped, not lowercased — the report shows what the author wrote."""
     try:
         data = json.loads(strip_json_comments(settings_file.read_text()))
     except (OSError, json.JSONDecodeError):
         return None
-    raw = (data.get("suppress") or {}).get("structures")
-    if not isinstance(raw, list):
-        return None
-    return [str(i).strip() for i in raw if str(i).strip()]
+    suppress = data.get("suppress") or {}
+    out = {}
+    for kind in ("structures", "biomes"):
+        raw = suppress.get(kind)
+        if isinstance(raw, list):
+            out[kind] = [str(i).strip() for i in raw if str(i).strip()]
+    return out or None
 
 
 def catalogue_sets(extractors_file):
@@ -81,6 +85,23 @@ def catalogue_sets(extractors_file):
     if not isinstance(sets, dict) or not sets:
         raise ValueError(f"{extractors_file} carries no structure_sets map")
     return {k.lower() for k in sets}
+
+
+def catalogue_biomes(extractors_dir):
+    """Lowercased biome ids from extractors/biomes.json, or None when the
+    biome catalogue isn't present (older extractions) — biome checks are
+    skipped rather than failed in that case."""
+    f = extractors_dir / "biomes.json"
+    if not f.exists():
+        return None
+    try:
+        data = json.loads(f.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    biomes = data.get("biomes")
+    if not isinstance(biomes, dict) or not biomes:
+        return None
+    return {k.lower() for k in biomes}
 
 
 def settings_sources(data_dir, config_dir, overlay_dir):
@@ -129,44 +150,55 @@ def main():
               f"{extractors or '<unset — give --config or --extractors>'}")
         return 2
     try:
-        known = catalogue_sets(extractors)
+        known = {"structures": catalogue_sets(extractors),
+                 "biomes": catalogue_biomes(extractors.parent)}
     except (json.JSONDecodeError, ValueError) as e:
         print(f"FAIL unreadable catalogue: {e}")
         return 2
+    kind_noun = {"structures": "structure set", "biomes": "biome"}
 
-    checked, unknown = [], []
+    checked, unknown, skipped_kinds = [], [], set()
     for label, path in settings_sources(args.data, args.config, args.overlay):
-        ids = suppress_ids(path)
-        if ids is None:
+        lists = suppress_ids(path)
+        if lists is None:
             continue
-        bad = [i for i in ids if i.lower() not in known]
-        checked.append({"source": label, "file": str(path),
-                        "suppressed": ids, "unknown": bad})
-        unknown.extend((label, path, i) for i in bad)
+        for kind, ids in lists.items():
+            if known[kind] is None:
+                skipped_kinds.add(kind)
+                continue
+            bad = [i for i in ids if i.lower() not in known[kind]]
+            checked.append({"source": label, "file": str(path), "kind": kind,
+                            "suppressed": ids, "unknown": bad})
+            unknown.extend((label, path, kind, i) for i in bad)
 
     if args.json:
-        print(json.dumps({"catalogue": str(extractors), "knownSets": len(known),
+        print(json.dumps({"catalogue": str(extractors),
+                          "known": {k: len(v) if v else None for k, v in known.items()},
                           "sources": checked}, indent=2))
         return 1 if unknown else 0
 
+    for kind in sorted(skipped_kinds):
+        print(f"  SKIP suppress.{kind} (no {kind}.json catalogue alongside "
+              f"{extractors.name})")
     if not checked:
-        print(f"no suppress.structures list in any settings.json "
-              f"({len(known)} sets in catalogue) — nothing to check")
+        print(f"no suppress lists in any settings.json "
+              f"({len(known['structures'])} sets in catalogue) — nothing to check")
         return 0
     for entry in checked:
         n = len(entry["suppressed"])
         state = "OK" if not entry["unknown"] else f"{len(entry['unknown'])} UNKNOWN"
-        print(f"  {entry['source']}: {n} suppressed, {state}  ({entry['file']})")
-    for label, path, bad_id in unknown:
-        print(f"UNKNOWN {bad_id!r} ({label}) matches no structure set in the "
+        print(f"  {entry['source']} {entry['kind']}: {n} suppressed, {state}"
+              f"  ({entry['file']})")
+    for label, path, kind, bad_id in unknown:
+        print(f"UNKNOWN {bad_id!r} ({label}) matches no {kind_noun[kind]} in the "
               f"catalogue — it suppresses nothing")
     if unknown:
-        print(f"\n{len(unknown)} unknown id(s) vs {len(known)} catalogued sets. "
+        print(f"\n{len(unknown)} unknown id(s). "
               f"Check for typos, or re-run the extractor if mods changed.")
         return 1
     total = sum(len(e["suppressed"]) for e in checked)
     print(f"\nall suppressed ids resolve ({total} across {len(checked)} "
-          f"file(s), {len(known)} sets in catalogue)")
+          f"list(s))")
     return 0
 
 

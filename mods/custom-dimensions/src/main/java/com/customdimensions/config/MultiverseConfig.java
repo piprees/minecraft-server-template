@@ -94,6 +94,11 @@ public class MultiverseConfig {
         return this.settings.suppressStructures;
     }
 
+    /** Globally suppressed biome ids (settings.json suppress.biomes). */
+    public java.util.List<String> getSuppressedBiomes() {
+        return this.settings.suppressBiomes;
+    }
+
     /** The platform namespace (settings.json / legacy "namespace" field). */
     public String getNamespace() {
         return this.settings.namespace;

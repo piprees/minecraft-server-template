@@ -902,6 +902,53 @@ class GlobalSuppressionTests(unittest.TestCase):
         _s, dists = tier1_score(1234, profile, sets, s2s)
         self.assertEqual(-1, dists["plain"], "suppressed set reads as absent")
 
+
+class GlobalBiomeSuppressionTests(unittest.TestCase):
+    """settings.json suppress.biomes — the BiomeSuppression mirror's
+    loader/payload half (sampler behaviour lives in test_biome_pipeline)."""
+
+    def setUp(self):
+        self._old = dp._SUPPRESSED_BIOMES
+        self._old_dir = dp._NOISE_DEFAULTS_DIR
+        self._old_defaults = dp._NOISE_DEFAULTS
+        dp.set_noise_defaults_dir(
+            Path(__file__).resolve().parents[2] / "config" / "custom-dimensions")
+
+    def tearDown(self):
+        dp._SUPPRESSED_BIOMES = self._old
+        dp._NOISE_DEFAULTS_DIR = self._old_dir
+        dp._NOISE_DEFAULTS = self._old_defaults
+
+    def _dim(self):
+        return {"type": "multi_biome", "name": "x",
+                "biomes": ["minecraft:plains"]}
+
+    def test_empty_list_leaves_every_payload_byte_stable(self):
+        dp.set_suppressed_biomes([])
+        p = dp.generation_payload(self._dim())
+        self.assertNotIn("suppressedBiomes", p)
+
+    def test_list_joins_payload_lowercased_and_sorted(self):
+        dp.set_suppressed_biomes(["Terralith:Cave", "  ", "minecraft:desert"])
+        p = dp.generation_payload(self._dim())
+        self.assertEqual(["minecraft:desert", "terralith:cave"],
+                         p["suppressedBiomes"])
+
+    def test_overlay_settings_merge_sets_module_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "config"
+            (cfg / "dimensions").mkdir(parents=True)
+            (cfg / "settings.json").write_text(json.dumps(
+                {"namespace": "adventure"}))
+            overlay = Path(tmp) / "overlay"
+            (overlay / "dimensions").mkdir(parents=True)
+            (overlay / "settings.json").write_text(json.dumps(
+                {"suppress": {"biomes": ["terralith:cave"]}}))
+            cfgout = dp.load_config(cfg, overlay_dir=overlay)
+            self.assertEqual({"biomes": ["terralith:cave"]}, cfgout["suppress"])
+            self.assertEqual(("terralith:cave",), dp.suppressed_biomes())
+
+
 if __name__ == "__main__":
     unittest.main()
 

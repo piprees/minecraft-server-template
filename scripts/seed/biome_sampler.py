@@ -324,7 +324,8 @@ def load_noise_configs():
 # ---------------------------------------------------------------------------
 class BiomeSampler:
     def __init__(self, seed, biome_params_path, noise_config=None,
-                 biome_filter=None, family=None, param_overrides=None):
+                 biome_filter=None, family=None, param_overrides=None,
+                 suppress=None):
         """Create a biome sampler for one seed.
 
         Args:
@@ -365,11 +366,24 @@ class BiomeSampler:
         else:
             source_entries = None
 
+        if source_entries is not None:
+            iter_entries = source_entries
+        else:
+            iter_entries = [e for e in self.biome_table
+                            if not (family and e.get("family")
+                                    and e["family"] != family)]
+        # Global suppress list (BiomeSuppression.filter mirror): drop
+        # suppressed biomes' entries; refuse to empty a source — the Java
+        # side WARNs and keeps the source unfiltered, so must we.
+        if suppress:
+            suppressed = {str(s).lower() for s in suppress}
+            kept = [e for e in iter_entries
+                    if e["biome"].lower() not in suppressed]
+            if kept and len(kept) != len(iter_entries):
+                iter_entries = kept
+
         self._entries = []
-        for entry in (source_entries if source_entries is not None else self.biome_table):
-            if source_entries is None:
-                if family and entry.get("family") and entry["family"] != family:
-                    continue
+        for entry in iter_entries:
             flat = []
             for param in ("temperature", "humidity", "continentalness",
                           "erosion", "depth", "weirdness"):
@@ -752,6 +766,9 @@ def sampler_spec(profile):
         "parameters": dict(profile.get("biome_parameters") or {}),
         "patches": list(profile.get("biome_patches") or []),
         "checkerboard_scale": profile.get("checkerboard_scale"),
+        # Global suppress list (settings.json suppress.biomes) — changes
+        # the layout of every noise-sourced world; see BiomeSuppression.
+        "suppressed_biomes": list(profile.get("suppressed_biomes") or []),
     }
 
 
@@ -762,6 +779,17 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
     noise_family = spec.get("noise_family") or "overworld"
     noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
     biomes = spec.get("biomes") or None
+    suppress = spec.get("suppressed_biomes") or None
+
+    # Mirror of the Java allowed-list strip in buildMixedSource: a listed
+    # dim loses suppressed entries from its list; a list emptied entirely
+    # falls back to the (entry-filtered) family source, exactly as the mod
+    # keeps the base source when no usable biomes remain. Checkerboard
+    # lists are explicit per-dim stamps and are NOT filtered — specific
+    # beats general, matching the Java no-op for non-noise sources.
+    if biomes and suppress and spec.get("dim_type") != "checkerboard":
+        suppressed_set = {str(s).lower() for s in suppress}
+        biomes = [b for b in biomes if b.lower() not in suppressed_set] or None
 
     if spec.get("dim_type") == "checkerboard" and biomes:
         sampler = CheckerboardBiomeSampler(
@@ -772,7 +800,8 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
         sampler = BiomeSampler(
             seed, biome_params_path, noise_config=noise_config,
             biome_filter=biomes, family=noise_family,
-            param_overrides=spec.get("parameters") or None)
+            param_overrides=spec.get("parameters") or None,
+            suppress=suppress)
     patches = spec.get("patches") or []
     if patches:
         sampler = PatchedBiomeSampler(sampler, patches)
