@@ -103,6 +103,7 @@ MANIFEST=(
   scripts/check-portal-integrity.py
   scripts/check-noise-regression.py
   scripts/check-suppress-list.py
+  scripts/gen-suppress-catalogue.py
   scripts/seed/surface_rules.py
   scripts/seed/terrain_height.py
   # biome_renderer imports this for exact heights on the adventure noise
