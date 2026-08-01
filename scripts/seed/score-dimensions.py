@@ -54,6 +54,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import biome_sampler  # noqa: E402
 import candidates  # noqa: E402
 import census_scoring  # noqa: E402
 from surface_rules import placeholder_colour  # noqa: E402
@@ -222,16 +223,60 @@ def cmd_render_manifest(args, config, profiles):
 # ---------------------------------------------------------------------------
 # Scoring maths
 # ---------------------------------------------------------------------------
+#: How much of a window's score is the comfort gradient inside the band.
+#:
+#: A flat-topped window returns exactly 1.0 everywhere inside the band, so the
+#: component stops ordering candidates the moment most of them are acceptable —
+#: which for a peaceful pocket dimension is nearly all of them. Terrain was
+#: pinned at 1.0 across the whole top of the_wuthering_wisteria's ranking for
+#: this reason. A centre-weighted band keeps "acceptable" meaning acceptable
+#: while letting "comfortably central" outrank "just inside the edge".
+#:
+#: Small on purpose. want_score has carried the same 0.1 comfort bonus since it
+#: was written; this is the same idea pointed the other way (the bonus is
+#: subtracted from the edges rather than added at the centre) so that being
+#: inside a window can never score above 1.0 and the weights keep their
+#: meaning.
+WINDOW_COMFORT = 0.1
+
+
 def window_score(value, lo, hi):
-    """1.0 inside [lo,hi], linear falloff over one window-width outside."""
+    """Peak inside [lo,hi], linear falloff over one window-width outside.
+
+    Inside the band the score runs from 1.0 at the centre to
+    1.0 - WINDOW_COMFORT at either edge. Outside it decays to 0 over one
+    window-width, exactly as before.
+    """
     if value is None:
         return 0.0
     width = max(hi - lo, 1e-9)
+    edge = 1.0 - WINDOW_COMFORT
     if lo <= value <= hi:
+        centre = (lo + hi) / 2.0
+        half = max((hi - lo) / 2.0, 1e-9)
+        return 1.0 - WINDOW_COMFORT * min(1.0, abs(value - centre) / half)
+    # The falloff starts from the EDGE value, not from 1.0. Decaying from 1.0
+    # would leave a value just outside the band scoring above one sitting on
+    # the boundary — an inversion that makes the band mean the opposite of
+    # what it says.
+    over = (lo - value) if value < lo else (value - hi)
+    return max(0.0, edge * (1.0 - over / width))
+
+
+def at_most(value, cap):
+    """1.0 up to `cap`, then linear falloff to 0 at 1.0.
+
+    A CAP, not a target: unlike window_score there is no comfort gradient
+    below it, because "well under the limit" is not better than "under the
+    limit". Used for the variety dominance term, where an author is entitled
+    to a headline biome and only a world that has effectively become
+    single-biome should lose anything.
+    """
+    if value is None:
+        return 0.0
+    if value <= cap:
         return 1.0
-    if value < lo:
-        return max(0.0, 1.0 - (lo - value) / width)
-    return max(0.0, 1.0 - (value - hi) / width)
+    return max(0.0, 1.0 - (value - cap) / max(1.0 - cap, 1e-9))
 
 
 def want_score(dist, lo, hi, radius):
@@ -354,6 +399,45 @@ def terrain_metrics(rows):
     return relief, grain, water, land_fraction
 
 
+#: A configured biome holding less than this share of the play area is a
+#: sliver, not a presence. 2% of a 512-radius pocket is ~33k blocks — a patch
+#: you can walk across, which is the smallest thing worth calling "present".
+VARIETY_PRESENCE_FLOOR = 0.02
+
+#: The rarest configured biome earns full credit at this fraction of an even
+#: share — 0.5 means "half of what it would hold in a perfectly even split".
+#: With five biomes listed that is 10% of the play area.
+VARIETY_BALANCE_TARGET = 0.5
+
+#: How much of the play area one biome may hold before the dimension stops
+#: being a mixture. Deliberately generous: an author is entitled to a headline
+#: biome, and several shipped dimensions band one deliberately wider than the
+#: rest. This exists to catch a world that has effectively become single-biome,
+#: not to force an even split.
+VARIETY_DOMINANCE_CAP = 0.75
+
+
+def variety_shares(profile, rows):
+    """{biome: share of the play area} for the dimension's CONFIGURED biomes.
+
+    Empty when the candidate has no terrain survey (nothing to read), when the
+    dimension lists no biomes (nothing to be a share OF), or when the survey
+    predates shares. Every one of those falls back to the proximity model,
+    which is what keeps a partially-surveyed bank rankable.
+    """
+    survey = rows.get("_terrain") or {}
+    shares = survey.get("shares")
+    if not isinstance(shares, dict):
+        return {}
+    configured = [b for b in (profile.get("variety_biomes") or []) if b]
+    if not configured:
+        return {}
+    picked = {b: float(shares.get(b, 0.0)) for b in configured if b in shares}
+    # A survey that knows about none of the configured biomes is a survey of a
+    # different config; ignore it rather than scoring every biome as absent.
+    return picked if picked else {}
+
+
 def score_candidate(profile, rows):
     """rows: {metric: value} for one (dim, seed). Returns (total, parts)."""
     parts = {}
@@ -377,12 +461,24 @@ def score_candidate(profile, rows):
         else:
             parts["namesake"] = base
 
-    # Variety: biome diversity within the playable area. Proximity-weighted
-    # so that fringe slivers (biomes found only near or beyond the world
-    # border) don't inflate the score — a monoculture with token far-away
-    # biomes no longer rates as "diverse". The balance component checks
-    # that non-namesake biomes genuinely exist close to spawn; namesake
-    # biomes already earn credit in the namesake component.
+    # Variety: biome diversity within the playable area.
+    #
+    # PROXIMITY (the original model): how far away the nearest instance of each
+    # listed biome is, quadratically decayed so fringe slivers near or beyond
+    # the border don't inflate the score, plus a balance term checking that
+    # non-namesake biomes exist close to spawn.
+    #
+    # It cannot see a monoculture. "Nearest instance" is answered identically by
+    # a world that is 96% one biome with token patches of the rest and by an
+    # even split — so the two scored the same, and 19 candidates tied at the top
+    # of the_wuthering_wisteria with nothing to choose between them.
+    #
+    # AREA SHARE fixes that, and comes free: terrain_survey already resolves a
+    # biome at all 81 points of its full-radius walk for the water fraction, so
+    # it tallies them too. When shares are present they carry most of the
+    # component; proximity stays as the tiebreaker for "present, but only at the
+    # border", and remains the WHOLE component for any candidate not yet
+    # surveyed so a partially-surveyed bank still ranks.
     found, total = 0.0, 0
     radius = profile["radius"]
     half_r = radius / 2
@@ -410,11 +506,36 @@ def score_candidate(profile, rows):
     base_variety = (found / total) if total else 0.5
     if non_namesake_total > 1:
         balance = non_namesake_close / non_namesake_total
-        parts["variety"] = 0.7 * base_variety + 0.3 * balance
+        proximity = 0.7 * base_variety + 0.3 * balance
     else:
-        parts["variety"] = base_variety
+        proximity = base_variety
     if total > 2 and found < 1.5:
-        parts["variety"] *= 0.7
+        proximity *= 0.7
+
+    shares = variety_shares(profile, rows)
+    if shares:
+        present = sum(1 for s in shares.values() if s >= VARIETY_PRESENCE_FLOOR)
+        presence = present / len(shares)
+        # How big the RAREST configured biome is. Presence is a threshold, so
+        # on a bank where most candidates clear it, it stops ranking — which is
+        # the flat-top problem all over again. This is the continuous version
+        # of the same question, and it is the one the request actually asks:
+        # every biome in the config genuinely there, not a token patch.
+        #
+        # Full credit at half an even share (10% of the world when five biomes
+        # are listed), so an author's headline biome can be several times the
+        # size of the smallest without costing anything.
+        ideal_floor = VARIETY_BALANCE_TARGET / max(len(shares), 1)
+        balance = min(1.0, min(shares.values()) / ideal_floor) if ideal_floor else 1.0
+        # Dominance is a CAP, not a demand for an even split. A dimension is
+        # entitled to a headline biome — the_wuthering_wisteria's wisteria band
+        # is deliberately the widest of its six — so this only bites when one
+        # biome has effectively eaten the world.
+        dominance = at_most(max(shares.values()), VARIETY_DOMINANCE_CAP)
+        parts["variety"] = (0.40 * presence + 0.25 * balance
+                            + 0.10 * dominance + 0.25 * proximity)
+    else:
+        parts["variety"] = proximity
 
     # Terrain.
     relief, grain, water, land = terrain_metrics(rows)
@@ -807,14 +928,6 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
 
 _terrain_task = terrain_survey.survey_task
 
-# Which noise router a dimension's biome sampler reads. MIRRORS
-# biome_renderer.resolve_noise_family and viewer-server._survey_dim — the TYPE
-# wins over the family, because a clone type resolves an overworld family while
-# needing its own router.
-_FAMILY_NOISE = {"overworld": "overworld", "nether": "nether",
-                 "end": "end", "paradise_lost": "paradise_lost"}
-_TYPE_NOISE_OVERRIDE = {"paradise_lost:paradise_lost": "paradise_lost"}
-
 
 def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
     """Attach a full-radius terrain survey to every scoreable candidate.
@@ -856,20 +969,20 @@ def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
         if radius <= 0:
             continue
         fam = profile.get("family") or "overworld"
-        # The TYPE decides the noise family, not the family: a custom
-        # paradise_lost:paradise_lost dimension resolves family "overworld" and
-        # would otherwise be surveyed against the wrong router entirely (the
-        # same trap _render_args_for documents).
-        noise_family = _TYPE_NOISE_OVERRIDE.get(src.get("type", "")) \
-            or _FAMILY_NOISE.get(fam, "overworld")
         fp = terrain_survey.fingerprint(generation_fingerprint(src), radius)
         store = candidates.load_store(cdir / f"{name}.json")
         stores[name] = (store, fp)
+        # The complete layout description, built exactly as the roller builds
+        # it. This used to be a noise family plus a biome list assembled here,
+        # which dropped the dimension's Tier-3 per-biome parameters and its
+        # biome patches — so the water fraction, which this function feeds
+        # straight into the terrain score, was measured against a biome source
+        # the dimension does not have (TROUBLESHOOTING.md#t20).
+        sampler = biome_sampler.sampler_spec(profile)
         spec = {
             "biome_params": biome_params,
-            "noise_family": noise_family,
-            "biome_filter": list(src.get("biomes") or []) or [
-                b.strip() for b in (src.get("biome") or "").split(",") if b.strip()],
+            "sampler": sampler,
+            "configured_biomes": list(sampler["biomes"]),
             "radius": radius,
             "is_void": bool(profile.get("is_void")),
             # Only the overworld router carries a meaningful continentalness;
@@ -2169,6 +2282,21 @@ def _structure_section(c, profile):
     return ("<div class='section-header'>Structures</div>" + "".join(out))
 
 
+def _survey_biomes(c):
+    """{biome: [dist, x, z]} from a candidate's cached biome survey.
+
+    Only fingerprinted records are read. A bare map is a survey written before
+    the fingerprint existed, which is also exactly the population most likely
+    to have been built from the wrong biome source — so it is ignored rather
+    than trusted, and the viewer rewrites it on its next pass.
+    MIRRORS viewer-server.survey_biomes.
+    """
+    survey = c.get("biome_survey")
+    if isinstance(survey, dict) and "biomes" in survey:
+        return survey.get("biomes") or {}
+    return {}
+
+
 def _biome_label(biome_id):
     ns, _, path = biome_id.partition(":")
     pretty = (path or ns).replace("_", " ").title()
@@ -2184,29 +2312,57 @@ def _biome_section(c, profile):
     three different facts. Only the first two are things the dimension asked
     for, and only those two move the score.
     """
-    survey = c.get("biome_survey") or {}
+    survey = _survey_biomes(c)
     spawn_targets = list(profile.get("namesake") or [])
     variety = [b for b in (profile.get("variety_biomes") or [])
                if b not in set(spawn_targets)]
     spawn_biome = c.get("spawn_biome")
     radius = float(profile.get("radius") or 0) or 1.0
     cov_attrs = _coverage_attrs(profile)
+    shares = ((c["metrics"].get("_terrain") or {}).get("shares") or {})
 
-    # Without a survey, fall back to the variety distance metrics.
-    dists = {}
-    if survey:
-        dists = {b: float(v[0]) for b, v in survey.items()}
-    else:
-        for metric, value in c["metrics"].items():
-            if metric.startswith("biome_") and metric.endswith("_dist"):
-                dists[metric[6:-5]] = float(value)
+    # The measured distances are what the SCORE is built from, so they are the
+    # floor: the survey is a denser look at the same world and may FIND a biome
+    # the 256-block locate grid missed, but it must never lose one. If it does,
+    # the two were built from different biome sources — which is precisely what
+    # happened for every Tier-3 dimension until 2026-08-01
+    # (TROUBLESHOOTING.md#t20), and the panel reported four biomes as "not
+    # found" beside a score computed from all four being present.
+    measured = {}
+    for metric, value in c["metrics"].items():
+        if metric.startswith("biome_") and metric.endswith("_dist"):
+            measured[metric[6:-5]] = float(value)
+    dists = dict(measured)
+    disagreed = []
+    for biome, entry in survey.items():
+        found = float(entry[0])
+        known = dists.get(biome)
+        if known is None or known < 0 or found < known:
+            dists[biome] = found
+    for biome, known in measured.items():
+        if known >= 0 and biome not in survey:
+            disagreed.append(biome)
 
     def row(bid, note=""):
         d = dists.get(bid)
         found = d is not None and d >= 0
-        sev = 0 if found else 2
-        near = ("{:.0f}<span class='ns'>blocks</span>".format(d)
-                if found else "not found")
+        share = shares.get(bid)
+        # A biome's SHARE of the play area is the thing a reader is judging
+        # when they look at the render, and until it was measured nothing in
+        # the pipeline knew it — a 96% monoculture and an even split produced
+        # identical rows here and identical scores.
+        if share is not None:
+            sev = 0 if share >= 0.02 else (1 if share > 0 else 2)
+        else:
+            sev = 0 if found else 2
+        if share is not None and share > 0:
+            near = "{:.0%}<span class='ns'>of area</span>".format(share)
+        elif found:
+            near = "{:.0f}<span class='ns'>blocks</span>".format(d)
+        else:
+            near = "not found"
+        if share is not None and share > 0 and found:
+            note = note or "nearest {:.0f} blocks".format(d)
         flag = ""
         if bid == spawn_biome:
             flag = "<span class='kind spawned'>you spawn here</span>"
@@ -2218,6 +2374,19 @@ def _biome_section(c, profile):
                 "</div>".format(sev, band, _biome_label(bid), flag, near, note))
 
     out = []
+    if disagreed:
+        # Never silently prefer one source over the other. The survey losing a
+        # biome the measurement found means the two are sampling different
+        # worlds, and saying so out loud is the difference between a five
+        # minute diagnosis and a morning's.
+        out.append(
+            "<div class='mrow sev2'><span class='mname'>survey disagrees"
+            "</span><span class='mval'>{}</span><span class='mdev'>the biome "
+            "survey is missing {} the measurements located — it was built from "
+            "a different biome source; re-run the viewer to rebuild it"
+            "</span></div>".format(
+                len(disagreed),
+                "a biome" if len(disagreed) == 1 else "biomes"))
     if spawn_targets:
         hit = spawn_biome in set(spawn_targets)
         out.append("<div class='sub-header'>Spawn targets <span class='meta'>"

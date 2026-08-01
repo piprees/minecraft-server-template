@@ -149,7 +149,7 @@ def metrics_from_grid(heights, waters, grid=GRID):
 
 def _walk(sampler, span, grid, is_void, has_continentalness,
           want_water=True, want_heights=True):
-    """One `grid` x `grid` lattice over [-span, span]. -> (heights, waters).
+    """One `grid` x `grid` lattice over [-span, span]. -> (heights, waters, seen).
 
     Corner-inclusive: the first and last columns sit exactly on the edge of the
     span, so the samples cover the whole box rather than one inside it.
@@ -158,15 +158,22 @@ def _walk(sampler, span, grid, is_void, has_continentalness,
     the answer: the wide walk is for water only and the capped one for
     relief/grain only. Asking for both on both windows doubles the climate
     lookups — the expensive half — to compute heights that are then discarded.
+
+    `seen` counts the biome at every sampled point. The walk already resolves
+    one per sample for the water test, so tallying them costs nothing and is
+    the only place in the pipeline that knows how much of a world each biome
+    actually covers — see `shares` in survey().
     """
     step = (2 * span) // (grid - 1) if grid > 1 and span > 0 else 0
-    heights, waters = {}, []
+    heights, waters, seen = {}, [], {}
     for r in range(grid):
         for c in range(grid):
             x = -span + c * step
             z = -span + r * step
             if want_water:
-                waters.append(1 if sampler.biome_at(x, z) in WATER_BIOMES else 0)
+                biome = sampler.biome_at(x, z)
+                seen[biome] = seen.get(biome, 0) + 1
+                waters.append(1 if biome in WATER_BIOMES else 0)
             if is_void or not want_heights:
                 continue
             climate = sampler.sample_climate(x, z)
@@ -176,11 +183,11 @@ def _walk(sampler, span, grid, is_void, has_continentalness,
                 # Nether/end/paradise have no continentalness worth reading;
                 # fast_roller uses erosion on the same 64 + 30x scale.
                 heights[(r, c)] = 64.0 + climate.get("erosion", 0.0) * 30.0
-    return heights, waters
+    return heights, waters, seen
 
 
 def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
-           relief_span=RELIEF_SPAN):
+           relief_span=RELIEF_SPAN, configured_biomes=()):
     """Terrain metrics for one seed, on TWO windows for one reason each.
 
     - WATER (and land_fraction) over the full playable radius, because the
@@ -200,19 +207,20 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
     # The wide walk answers water. When a capped walk follows it, the wide one
     # needs no heights at all — computing them would be 81 discarded climate
     # lookups, which is the expensive half of a survey.
-    heights, waters = _walk(sampler, int(radius), grid, is_void,
-                            has_continentalness, want_water=True,
-                            want_heights=not capped)
+    heights, waters, seen = _walk(sampler, int(radius), grid, is_void,
+                                  has_continentalness, want_water=True,
+                                  want_heights=not capped)
     if capped:
         # Relief and grain get their own, tighter window; water keeps the wide
         # one measured above. land_fraction comes from this walk, which is
         # equivalent: every non-void sample records a height, so land is 1.0 for
         # any solid dimension and 0.0 for a void, whichever window is used.
-        heights, _ = _walk(sampler, span, grid, is_void,
-                           has_continentalness, want_water=False,
-                           want_heights=True)
+        heights, _w, _s = _walk(sampler, span, grid, is_void,
+                                has_continentalness, want_water=False,
+                                want_heights=True)
     relief, grain, water, land = metrics_from_grid(heights, waters, grid)
-    return {
+    total = sum(seen.values()) or 1
+    result = {
         "relief": round(relief, 3),
         "grain": round(grain, 4),
         "water": round(water, 5),
@@ -223,7 +231,27 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
         # what makes them comparable across dimensions, and because a reader
         # of a cached survey needs to know which box the numbers describe.
         "reliefSpan": span,
+        # How much of the PLAY AREA each biome covers, over the wide walk.
+        #
+        # This is the only measurement in the bank that can tell a mixture from
+        # a monoculture. Everything else asks how FAR AWAY the nearest instance
+        # of a biome is, which a world that is 96% one biome answers exactly as
+        # well as an even split does — so `variety` scored the two identically
+        # and 19 candidates tied at the top of the_wuthering_wisteria.
+        #
+        # Restricted to the dimension's configured biomes so the figure means
+        # "of what this dimension asked for", and so the record stays small: an
+        # unrestricted overworld survey would carry dozens of incidental keys
+        # into a bank thousands of candidates deep.
+        "shares": {b: round(seen.get(b, 0) / total, 5)
+                   for b in (configured_biomes or ())},
     }
+    if not configured_biomes:
+        # No biome list (base worlds, single-biome dims): record what was
+        # actually seen rather than nothing, capped so the record stays small.
+        top = sorted(seen.items(), key=lambda kv: -kv[1])[:12]
+        result["shares"] = {b: round(n / total, 5) for b, n in top}
+    return result
 
 
 def survey_task(task):
@@ -232,21 +260,33 @@ def survey_task(task):
     `task` is (name, seed, spec) where `spec` carries only picklable primitives —
     the sampler is built HERE rather than passed in, because a BiomeSampler holds
     an open parameter table and would have to be re-read in the child anyway.
+
+    `spec["sampler"]` is biome_sampler.sampler_spec(profile), which is the whole
+    reason this builds the right world: the sampler used to be assembled here by
+    hand from a family and a biome list, which silently dropped Tier-3 per-biome
+    parameters and biome patches — so the water fraction, a SCORED input, was
+    measured on a biome source the dimension does not have
+    (TROUBLESHOOTING.md#t20).
     """
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    from biome_sampler import BiomeSampler, load_noise_configs
+    from biome_sampler import build_from_spec
 
     name, seed, spec = task
-    noise_configs = load_noise_configs()
-    nc = noise_configs.get(spec["noise_family"], noise_configs.get("overworld"))
-    sampler = BiomeSampler(int(seed), spec["biome_params"], noise_config=nc,
-                           family=spec["noise_family"],
-                           biome_filter=spec["biome_filter"] or None)
+    sampler = build_from_spec(int(seed), spec["sampler"], spec["biome_params"])
     return (name, seed, survey(
         sampler, spec["radius"], is_void=spec["is_void"],
-        has_continentalness=spec["has_continentalness"]))
+        has_continentalness=spec["has_continentalness"],
+        configured_biomes=spec.get("configured_biomes") or ()))
+
+
+#: Bumped whenever the survey RECORD changes shape or meaning, so a cached
+#: survey from before the change is re-measured rather than read as current.
+#: v2 added `shares` and fixed the sampler to carry the dimension's Tier-3
+#: parameters — before that the water figure was measured on the wrong biome
+#: source for every dimension using them (TROUBLESHOOTING.md#t20).
+SURVEY_VERSION = 2
 
 
 def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):
@@ -265,5 +305,5 @@ def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):
     than silently scoring new windows against cached old numbers — the whole
     point of the change is that the two are not the same figure.
     """
-    return "%s:%d:%d:%d" % (generation_fp or "-", int(radius), int(grid),
-                            int(relief_span))
+    return "v%d:%s:%d:%d:%d" % (SURVEY_VERSION, generation_fp or "-",
+                                int(radius), int(grid), int(relief_span))
