@@ -57,6 +57,13 @@ public final class TerrainAdaptationOverride {
             new ConcurrentHashMap<>();
     private static final ThreadLocal<Map<Structure, StructureTerrainAdaptation>> ARMED =
             new ThreadLocal<>();
+    // Custom kernels ride the same arm/disarm extent: a kernel-tagged
+    // structure reads NONE to vanilla (its enum entry in BY_WORLD) and its
+    // shape is computed by TerrainKernel from this parallel map.
+    private static final Map<Identifier, Map<Structure, TerrainKernel>> KERNELS_BY_WORLD =
+            new ConcurrentHashMap<>();
+    private static final ThreadLocal<Map<Structure, TerrainKernel>> ARMED_KERNELS =
+            new ThreadLocal<>();
 
     private TerrainAdaptationOverride() {
     }
@@ -64,6 +71,13 @@ public final class TerrainAdaptationOverride {
     /** Installs (or replaces) a world's override map. Empty map = uninstall. */
     public static void install(Identifier worldId,
                                Map<Structure, StructureTerrainAdaptation> map) {
+        install(worldId, map, null);
+    }
+
+    /** Installs override + kernel maps together. Empty/null = uninstall. */
+    public static void install(Identifier worldId,
+                               Map<Structure, StructureTerrainAdaptation> map,
+                               Map<Structure, TerrainKernel> kernels) {
         if (worldId == null) {
             return;
         }
@@ -72,15 +86,34 @@ public final class TerrainAdaptationOverride {
         } else {
             BY_WORLD.put(worldId, map);
         }
+        if (kernels == null || kernels.isEmpty()) {
+            KERNELS_BY_WORLD.remove(worldId);
+        } else {
+            KERNELS_BY_WORLD.put(worldId, kernels);
+        }
     }
 
     /** Arms the current thread with a world's map (null id/unknown world = no-op map). */
     public static void arm(Identifier worldId) {
         ARMED.set(worldId == null ? null : BY_WORLD.get(worldId));
+        ARMED_KERNELS.set(worldId == null ? null : KERNELS_BY_WORLD.get(worldId));
     }
 
     public static void disarm() {
         ARMED.remove();
+        ARMED_KERNELS.remove();
+    }
+
+    /** The armed kernel for a structure, or null. */
+    public static TerrainKernel armedKernel(Structure structure) {
+        Map<Structure, TerrainKernel> map = ARMED_KERNELS.get();
+        return map == null ? null : map.get(structure);
+    }
+
+    /** True when the armed world has any kernel-tagged structures at all. */
+    public static boolean hasArmedKernels() {
+        Map<Structure, TerrainKernel> map = ARMED_KERNELS.get();
+        return map != null && !map.isEmpty();
     }
 
     /**
@@ -96,6 +129,8 @@ public final class TerrainAdaptationOverride {
     static void resetForTests() {
         BY_WORLD.clear();
         ARMED.remove();
+        KERNELS_BY_WORLD.clear();
+        ARMED_KERNELS.remove();
     }
 
     /**
@@ -128,10 +163,18 @@ public final class TerrainAdaptationOverride {
         return null;
     }
 
-    /** Parses an adaptation name; warns and returns null on an unknown one. */
+    /**
+     * Parses an adaptation name; warns and returns null on an unknown one.
+     * Kernel names (pedestal/platform_skirt/moat) resolve to NONE here —
+     * vanilla must ignore those structures; their shape is a
+     * {@link TerrainKernel} the caller registers separately.
+     */
     static StructureTerrainAdaptation parse(String name, String context) {
         if (name == null || name.isBlank()) {
             return null;
+        }
+        if (TerrainKernel.parse(name) != null) {
+            return StructureTerrainAdaptation.NONE;
         }
         return switch (name.toLowerCase(java.util.Locale.ROOT)) {
             case "none" -> StructureTerrainAdaptation.NONE;
@@ -142,7 +185,8 @@ public final class TerrainAdaptationOverride {
             default -> {
                 MultiverseServer.LOGGER.warn(
                         "Unknown terrainAdaptation '{}' ({}) — expected none/beard_thin/"
-                        + "beard_box/bury/encapsulate; keeping the registry value",
+                        + "beard_box/bury/encapsulate or a kernel "
+                        + "(pedestal/platform_skirt/moat); keeping the registry value",
                         name, context);
                 yield null;
             }

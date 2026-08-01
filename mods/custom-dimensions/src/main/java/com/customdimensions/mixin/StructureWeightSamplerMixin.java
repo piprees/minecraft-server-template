@@ -25,7 +25,40 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * surprise view type degrades to "no override" rather than throwing.
  */
 @Mixin(StructureWeightSampler.class)
-public abstract class StructureWeightSamplerMixin {
+public abstract class StructureWeightSamplerMixin
+        implements com.customdimensions.dimension.TerrainKernel.Carrier {
+
+    // Kernel pieces ride the vanilla instance (duck field), never a wrapper
+    // — see TerrainKernel.Carrier for the Moog's-coexistence reason.
+    @org.spongepowered.asm.mixin.Unique
+    private volatile java.util.List<com.customdimensions.dimension.TerrainKernel.Piece>
+            customdimensions$kernelPieces;
+
+    @Override
+    public void customdimensions$setKernelPieces(
+            java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces) {
+        this.customdimensions$kernelPieces = pieces;
+    }
+
+    @Override
+    public java.util.List<com.customdimensions.dimension.TerrainKernel.Piece>
+            customdimensions$getKernelPieces() {
+        return this.customdimensions$kernelPieces;
+    }
+
+    @Inject(method = "sample", at = @At("RETURN"), cancellable = true)
+    private void customdimensions$addKernelDensity(
+            net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos pos,
+            org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Double> cir) {
+        java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
+                this.customdimensions$kernelPieces;
+        com.customdimensions.dimension.TerrainKernel.debugSample(
+                System.identityHashCode(this), pieces != null);
+        if (pieces != null && !pieces.isEmpty()) {
+            cir.setReturnValue(cir.getReturnValue()
+                    + com.customdimensions.dimension.TerrainKernel.sampleAll(pieces, pos));
+        }
+    }
 
     @Inject(method = "createStructureWeightSampler", at = @At("HEAD"))
     private static void customdimensions$armTerrainAdaptation(
@@ -48,10 +81,27 @@ public abstract class StructureWeightSamplerMixin {
         TerrainAdaptationOverride.arm(worldId);
     }
 
-    @Inject(method = "createStructureWeightSampler", at = @At("RETURN"))
+    @Inject(method = "createStructureWeightSampler", at = @At("RETURN"), cancellable = true)
     private static void customdimensions$disarmTerrainAdaptation(
             StructureAccessor world, ChunkPos pos,
             CallbackInfoReturnable<StructureWeightSampler> cir) {
-        TerrainAdaptationOverride.disarm();
+        try {
+            // Kernel-tagged structures read NONE to vanilla, so its sampler
+            // ignored them above; collect their pieces while still armed and
+            // attach them to the RETURNED instance (duck field — never a
+            // wrapper). Kernel-free worlds pay one boolean check.
+            if (com.customdimensions.dimension.TerrainAdaptationOverride.hasArmedKernels()) {
+                java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
+                        com.customdimensions.dimension.TerrainKernel.collect(world, pos);
+                com.customdimensions.dimension.TerrainKernel.debugAttach(pos, pieces.size(),
+                        System.identityHashCode(cir.getReturnValue()));
+                if (!pieces.isEmpty()) {
+                    ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object)
+                            cir.getReturnValue()).customdimensions$setKernelPieces(pieces);
+                }
+            }
+        } finally {
+            TerrainAdaptationOverride.disarm();
+        }
     }
 }

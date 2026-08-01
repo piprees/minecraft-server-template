@@ -563,6 +563,8 @@ public final class DimensionStructures {
         java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
                 net.minecraft.world.gen.StructureTerrainAdaptation> map =
                 new java.util.IdentityHashMap<>();
+        java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                TerrainKernel> kernels = new java.util.IdentityHashMap<>();
         for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             StructurePlacement placement = entry.value().placement();
@@ -590,13 +592,22 @@ public final class DimensionStructures {
                 if (resolved != null && resolved != vanilla) {
                     map.put(structure, resolved);
                 }
+                // A kernel name parses to NONE above (vanilla must ignore
+                // the structure); its real shape lives in the kernel map.
+                TerrainKernel kernel = TerrainKernel.parse(resolvedName);
+                if (kernel != null) {
+                    kernels.put(structure, kernel);
+                }
             }
         }
-        TerrainAdaptationOverride.install(worldId, map);
-        if (!map.isEmpty()) {
+        TerrainAdaptationOverride.install(worldId, map, kernels);
+        if (!map.isEmpty() || !kernels.isEmpty()) {
             MultiverseServer.LOGGER.info(
-                    "Dimension {}: terrain adaptation overridden for {} structure(s)",
-                    def.getName(), map.size());
+                    "Dimension {}: terrain adaptation overridden for {} structure(s)"
+                    + "{}",
+                    def.getName(), map.size(),
+                    kernels.isEmpty() ? ""
+                            : " (+" + kernels.size() + " custom kernel(s))");
         }
     }
 
