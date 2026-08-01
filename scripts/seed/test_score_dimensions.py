@@ -325,6 +325,91 @@ class GroupWinnerAssignmentTests(unittest.TestCase):
             self.assertIn("twin_a", output)
 
 
+class ScopedRollKeepsTheWholeViewerTests(unittest.TestCase):
+    """`--dims` scopes the ROLL, never the page.
+
+    roll-all.sh passes the same --dims to the finalise that generates
+    index.html, so `./dev seed-roll --dims one_dimension` published a page
+    containing one dimension and 80 appeared to vanish (2026-08-01). The bank
+    was intact throughout — every store had its candidates — but a page that
+    says otherwise is indistinguishable from data loss to whoever is looking
+    at it.
+    """
+
+    def _setup(self, tmp):
+        cfg = Path(tmp) / "custom-dimensions"
+        (cfg / "dimensions").mkdir(parents=True)
+        for name in ("rolled_dim", "other_dim"):
+            (cfg / "dimensions" / f"{name}.json").write_text(json.dumps(
+                {"type": "overworld",
+                 "seedRoll": {"spawnFilter": ["minecraft:plains"]}}))
+        seedtest = Path(tmp) / "seedtest"
+        seedtest.mkdir()
+        candidates.set_bank_root(str(seedtest))
+        self.addCleanup(candidates.set_bank_root, None)
+        # other_dim is banked and scored, but is NOT in this finalise's scope.
+        from dimension_profiles import load_config
+        config = load_config(str(cfg))
+        source = next(d for d in config["dimensions"] if d["name"] == "other_dim")
+        store = candidates.empty_store()
+        chash = candidates.config_hash(source)
+        store["configHash"] = chash
+        candidates.merge_rows(store, 999, {"spawn_biome": "minecraft:plains",
+                                           "errors": "0"})
+        candidates.record_score(store, 999, chash, 73.5,
+                                {"namesake": 1.0, "variety": 0.5,
+                                 "terrain": 0.5, "structures": 0.0}, "now")
+        store["winner"] = "999"
+        candidates.save_store(
+            candidates.candidates_dir(cfg) / "other_dim.json", store)
+        write_worker_csv(seedtest, [
+            ["rolled_dim", "111", "spawn_biome", "minecraft:plains"],
+            ["rolled_dim", "111", "errors", "0"],
+        ])
+        return cfg, seedtest, config
+
+    def test_the_page_carries_targets_outside_the_dims_scope(self):
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, seedtest, config = self._setup(tmp)
+            args = SimpleNamespace(
+                config=str(cfg), seedtest=str(seedtest),
+                csv=str(seedtest / "measurements.csv"), dims="rolled_dim",
+                write_config=False, viewer=True, open_viewer=False)
+            scoped = {"rolled_dim": build_profile(
+                next(d for d in config["dimensions"] if d["name"] == "rolled_dim"),
+                config)}
+            page = dict(scoped, other_dim=build_profile(
+                next(d for d in config["dimensions"] if d["name"] == "other_dim"),
+                config))
+            with contextlib.redirect_stdout(io.StringIO()):
+                score_dimensions.cmd_finalise(args, config, scoped,
+                                              page_profiles=page)
+            html = (seedtest / "index.html").read_text()
+            self.assertIn("rolled_dim", html)
+            self.assertIn("other_dim", html,
+                          "a dimension outside the --dims scope vanished from "
+                          "the viewer even though its store is intact")
+            self.assertEqual(html.count("class='dim-card'"), 2)
+
+    def test_the_out_of_scope_score_comes_from_the_store(self):
+        """Read back, never rescored: a scoped roll must not pay for the whole
+        bank's censuses and surveys just to publish a complete page."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, seedtest, config = self._setup(tmp)
+            source = next(d for d in config["dimensions"]
+                          if d["name"] == "other_dim")
+            store = candidates.load_store(
+                candidates.candidates_dir(cfg) / "other_dim.json")
+            got = score_dimensions.results_from_store(
+                store, candidates.config_hash(source))
+            self.assertEqual([c["seed"] for c in got], ["999"])
+            self.assertEqual(got[0]["score"], 73.5)
+            self.assertEqual(got[0]["spawn_biome"], "minecraft:plains")
+            self.assertNotIn("timestamp", got[0]["parts"])
+
+
 class WinnerOverlayWritebackTests(unittest.TestCase):
     def test_consumer_overlay_writeback_shapes(self):
         winners = {

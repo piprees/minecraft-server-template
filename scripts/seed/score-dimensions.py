@@ -1074,6 +1074,72 @@ def persist_candidates(args, config, profiles, results, data, winners=None):
         candidates.save_store(cdir / f"{name}.json", store)
 
 
+def results_from_store(store, chash):
+    """One dimension's ranked candidates, read back from its banked scores.
+
+    No rescoring, no census or survey work — purely what the store already
+    says. Used to fill the viewer in for dimensions outside a `--dims` scope,
+    which is why it has to be cheap: a scoped roll must not pay for the whole
+    bank just to publish a complete page.
+    """
+    out = []
+    for seed, cand in store["candidates"].items():
+        score = (cand.get("scores") or {}).get(chash)
+        if not score:
+            continue
+        rows = dict(cand.get("measurements") or {})
+        entry = {
+            "seed": seed,
+            "score": score.get("total", 0.0),
+            "parts": {k: v for k, v in score.items()
+                      if k not in ("total", "timestamp")},
+            "spawn_biome": rows.get("spawn_biome", "unknown"),
+            "metrics": rows,
+        }
+        for key in ("structure_all", "biome_survey"):
+            if key in cand:
+                entry[key] = cand[key]
+        out.append(entry)
+    out.sort(key=lambda c: c["score"], reverse=True)
+    return out
+
+
+def widen_for_viewer(args, sources, page_profiles, results, winners, rejected):
+    """Fill the viewer in for every target outside the `--dims` scope.
+
+    THE VIEWER IS A WHOLE-BANK ARTEFACT. `--dims` scopes what gets rolled and
+    what gets a winner written; it must not decide what the page contains.
+    It used to: `roll-all.sh` passes the same `--dims` to the finalise that
+    generates index.html, so `./dev seed-roll --dims the_wuthering_wisteria`
+    published a page holding one dimension and 80 apparently vanished
+    (2026-08-01). Nothing was lost — the bank is additive and every store was
+    intact — but the page said otherwise, which is indistinguishable from data
+    loss to anyone looking at it.
+
+    Out-of-scope targets are read straight from their stores, so this agrees
+    with the bank by construction and costs nothing.
+    """
+    if not Path(args.config).is_dir():
+        return results, winners, rejected  # monolith mode has no stores
+    cdir = candidates.candidates_dir(Path(args.config))
+    results = dict(results)
+    winners = dict(winners)
+    rejected = dict(rejected)
+    for name in page_profiles:
+        if name in results:
+            continue
+        store = candidates.load_store(cdir / f"{name}.json")
+        cands = results_from_store(store, candidates.config_hash(sources.get(name)))
+        results[name] = cands
+        rejected[name] = len(store["rejected"])
+        if not cands:
+            continue
+        pinned = next((c for c in cands if c["seed"] == store["winner"]), None)
+        pick = pinned or cands[0]
+        winners[name] = dict(pick, pinned=bool(store["winnerPinned"] and pinned))
+    return results, winners, rejected
+
+
 def score_all(profiles, data):
     """-> (results {dim: [accepted candidates ranked]}, rejected {dim: n}).
     Spawn-filter rejects are banked (their seeds never re-roll) but they
@@ -1373,7 +1439,7 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
     return changed, backup, ow
 
 
-def cmd_finalise(args, config, profiles, world_profiles=None):
+def cmd_finalise(args, config, profiles, world_profiles=None, page_profiles=None):
     data = gather_measurements(args)
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_censuses(args, config, profiles, data)
@@ -1511,10 +1577,15 @@ def cmd_finalise(args, config, profiles, world_profiles=None):
                     c["biome_survey"] = cand_entry["biome_survey"]
 
     if args.viewer:
+        # The page covers every target, not just the --dims scope it was
+        # finalised under — see widen_for_viewer.
+        page = page_profiles or profiles
+        page_results, page_winners, page_rejected = widen_for_viewer(
+            args, all_sources, page, results, winners, rejected)
         install_web_assets(Path(args.seedtest))
         viewer = Path(args.seedtest) / "index.html"
         viewer.write_text(render_viewer(
-            results, profiles, winners, rejected,
+            page_results, page, page_winners, page_rejected,
             seedtest=args.seedtest, dim_configs=all_sources))
         print(f"viewer: {viewer}")
         if args.open_viewer and sys.platform == "darwin":
@@ -2612,8 +2683,14 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
     meta_parts.append("<span class='badge'>{}</span>".format(profile["mood"]))
     if profile.get("noise"):
         meta_parts.append("<span class='badge'>{}</span>".format(profile["noise"]))
-    mob_d = profile.get("mob_difficulty", 1.0)
-    if mob_d != 1.0:
+    # `.get(key, default)` does NOT apply the default when the key is present
+    # and holds None, and build_profile sets mob_difficulty to None for any
+    # dimension with neither a v4 `difficulty` block nor a legacy multiplier —
+    # so this crashed the whole page render on `None >= 2.0`. Every shipped
+    # dimension happens to carry a difficulty block, which is the only reason
+    # it had not fired. 0.0 is a real value (peaceful), so `or 1.0` is wrong.
+    mob_d = profile.get("mob_difficulty")
+    if mob_d is not None and mob_d != 1.0:
         col = "#e05252" if mob_d >= 2.0 else ("#e8a735" if mob_d > 1.0 else "#6ec96e")
         meta_parts.append("<span class='badge' style='color:{}'>{:.1f}x mobs</span>".format(col, mob_d))
     if profile.get("peaceful"):
@@ -2722,6 +2799,10 @@ def main():
     difficulty = load_difficulty(args.config)
     dims = [d for d in config["dimensions"] if rollable(d)]
     worlds = config.get("worlds", [])
+    # Every rollable target, before --dims narrows anything. The viewer is a
+    # whole-bank artefact and is built from this; scoring and winner-writing
+    # use the narrowed set below.
+    all_targets = [(w["name"], w) for w in worlds] + [(d["name"], d) for d in dims]
     if args.dims:
         wanted = {d.strip() for d in args.dims.split(",")}
         known = {d["name"] for d in dims} | {w["name"] for w in worlds}
@@ -2749,7 +2830,11 @@ def main():
     elif args.command == "status":
         cmd_status(args, config, profiles)
     else:
-        sys.exit(cmd_finalise(args, config, profiles, world_profiles))
+        page_profiles = {name: profiles.get(name)
+                         or build_profile(entry, config, difficulty)
+                         for name, entry in all_targets}
+        sys.exit(cmd_finalise(args, config, profiles, world_profiles,
+                              page_profiles=page_profiles))
 
 
 if __name__ == "__main__":
