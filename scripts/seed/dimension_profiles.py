@@ -433,6 +433,23 @@ def monolith_from_dir(config_dir, overlay_dir=None):
     settings_file = p / "settings.json"
     if settings_file.exists():
         settings = json.loads(strip_json_comments(settings_file.read_text()))
+    # The consumer overlay's settings.json merges over the platform's —
+    # mirrors DimensionConfigLoader.loadSettings (overlay scalars win). The
+    # suppress list is the first key that made this merge load-bearing.
+    overlay_settings_file = Path(overlay_dir) / "settings.json"
+    if overlay_settings_file.exists():
+        try:
+            overlay_settings = json.loads(
+                strip_json_comments(overlay_settings_file.read_text()))
+        except json.JSONDecodeError:
+            overlay_settings = {}
+        for key, value in overlay_settings.items():
+            if isinstance(value, dict) and isinstance(settings.get(key), dict):
+                settings[key].update(value)
+            else:
+                settings[key] = value
+    set_suppressed_structure_sets(
+        (settings.get("suppress") or {}).get("structures") or [])
     ns = settings.get("namespace", "adventure")
     files = load_dimension_configs(p)
     overlay_files = load_dimension_configs(Path(overlay_dir), set_noise_defaults=False)
@@ -515,6 +532,12 @@ def monolith_from_dir(config_dir, overlay_dir=None):
             out[dst] = frames[src]
     if world_seed is not None:
         out["worldSeed"] = world_seed
+    # The suppress block travels with the config so warmup boot dirs
+    # (seed_worker.prepare_boot_dir) can stage it — the warmup server dumps
+    # structure_pools.json, and pools dumped WITHOUT the suppress list would
+    # contain sets the real server never places.
+    if settings.get("suppress"):
+        out["suppress"] = settings["suppress"]
     return out
 
 
@@ -705,6 +728,12 @@ def generation_payload(dim):
     # registry into the fingerprint). Conditional so dimensions that place no
     # structures at all (void/superflat/density-none/mode-none with no forced
     # placements) keep byte-stable fingerprints.
+    # The global suppress list removes sets from pools and pass-throughs in
+    # every dimension — generation-affecting wherever structures exist at
+    # all, so it joins the payload under the same conditionality as the
+    # Beardifier inputs below.
+    if _SUPPRESSED_SETS:
+        payload["suppressedStructures"] = list(_SUPPRESSED_SETS)
     ta_config = struct_block.get("terrainAdaptation") or {}
     ta_themes = (_NOISE_DEFAULTS or {}).get("terrainAdaptation") or {}
     structureless = (
@@ -725,6 +754,23 @@ def generation_payload(dim):
 # the directory on every call.
 _NOISE_DEFAULTS = None
 _NOISE_DEFAULTS_DIR = None
+
+# Globally suppressed structure SET ids (settings.json suppress.structures,
+# overlay merged) — set by load_config, consumed by generation_payload /
+# _noise_payload / build_profile. Mirrors MultiverseConfig
+# .getSuppressedStructureSets(); lowercased like the Java exclude union.
+_SUPPRESSED_SETS = ()
+
+
+def set_suppressed_structure_sets(ids):
+    """Stamp the global suppress list (load_config calls this)."""
+    global _SUPPRESSED_SETS
+    _SUPPRESSED_SETS = tuple(sorted(
+        str(i).strip().lower() for i in (ids or []) if str(i).strip()))
+
+
+def suppressed_structure_sets():
+    return _SUPPRESSED_SETS
 
 
 def set_noise_defaults_dir(config_dir):
@@ -793,11 +839,16 @@ def _noise_payload(dim):
         "placementTypes": sorted(NOISE_MANAGED_PLACEMENT_TYPES),
     }
     # Pool composition: these change WHICH structures land on the positions,
-    # so two dims agreeing on positions but not on these are not clones.
+    # so two dims agreeing on positions but not on these are not clones. The
+    # global suppress list unions into exclude exactly as DimensionStructures
+    # unions it before NoisePoolBuilder.build.
     if struct_block.get("rarity"):
         payload["rarity"] = sorted(struct_block["rarity"].items())
-    if struct_block.get("exclude"):
-        payload["exclude"] = sorted(struct_block["exclude"])
+    exclude_union = sorted(
+        {str(e).lower() for e in (struct_block.get("exclude") or [])}
+        | set(_SUPPRESSED_SETS))
+    if exclude_union:
+        payload["exclude"] = exclude_union
     if struct_block.get("include"):
         payload["include"] = sorted(struct_block["include"])
     exclusive = sorted(
@@ -1244,6 +1295,9 @@ def build_profile(dim, config, difficulty=None):
         # tier-1 structure maths treats filtered sets as absent and forced
         # structures as constants (structure_placement.forced_distance /
         # mode_drops — mirrors DimensionStructures; change both together).
+        "structures_exclude": tuple(sorted(
+            {str(e).lower() for e in (struct_block.get("exclude") or [])}
+            | set(_SUPPRESSED_SETS))),
         "structures_mode": (struct_block.get("mode")
                             if struct_block.get("mode") in ("allow", "reject", "none")
                             else None),

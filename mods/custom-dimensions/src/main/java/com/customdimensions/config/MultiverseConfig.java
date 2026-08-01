@@ -89,6 +89,11 @@ public class MultiverseConfig {
         }
     }
 
+    /** Globally suppressed structure SET ids (settings.json suppress.structures). */
+    public java.util.List<String> getSuppressedStructureSets() {
+        return this.settings.suppressStructures;
+    }
+
     /** The platform namespace (settings.json / legacy "namespace" field). */
     public String getNamespace() {
         return this.settings.namespace;

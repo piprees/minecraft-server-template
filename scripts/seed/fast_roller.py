@@ -204,6 +204,12 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets,
         set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets)
         if set_cfg and mode_drops(set_cfg.get("id"), profile):
             set_cfg = None
+        # The exclude union (dimension structures.exclude + the global
+        # settings suppress list) removes the set from pools AND
+        # pass-throughs server-side, so its battery reading is "absent".
+        if set_cfg and str(set_cfg.get("id") or "").lower() \
+                in (profile.get("structures_exclude") or ()):
+            set_cfg = None
         if set_cfg:
             # Per-set placement overrides (structures.spacing, Tier 3):
             # same values DimensionStructures applies server-side. Same

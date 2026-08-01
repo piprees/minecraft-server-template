@@ -828,6 +828,80 @@ class TerrainAdaptationPayloadTests(unittest.TestCase):
         self.assertEqual([("minecraft:igloo", "bury"),
                           ("settlements", "none")], cfg)
 
+
+class GlobalSuppressionTests(unittest.TestCase):
+    """settings.json suppress.structures — the global exclude. Mirrors
+    MultiverseConfig.getSuppressedStructureSets + the DimensionStructures
+    exclude union."""
+
+    def setUp(self):
+        self._old = dp._SUPPRESSED_SETS
+        self._old_dir = dp._NOISE_DEFAULTS_DIR
+        self._old_defaults = dp._NOISE_DEFAULTS
+        dp.set_noise_defaults_dir(
+            Path(__file__).resolve().parents[2] / "config" / "custom-dimensions")
+
+    def tearDown(self):
+        dp._SUPPRESSED_SETS = self._old
+        dp._NOISE_DEFAULTS_DIR = self._old_dir
+        dp._NOISE_DEFAULTS = self._old_defaults
+
+    def _dim(self, extra=None):
+        d = {"type": "multi_biome", "name": "x",
+             "biomes": ["minecraft:plains"]}
+        d.update(extra or {})
+        return d
+
+    def test_empty_list_leaves_every_payload_byte_stable(self):
+        dp.set_suppressed_structure_sets([])
+        p = dp.generation_payload(self._dim())
+        self.assertNotIn("suppressedStructures", p)
+        # no exclude key either when the dimension has no exclude of its own
+        self.assertNotIn("exclude", p.get("noisePlacement") or p.get("noise") or {})
+
+    def test_suppress_list_joins_payload_and_noise_exclude(self):
+        dp.set_suppressed_structure_sets(["MVS:Barn", "mns:bridge_1"])
+        p = dp.generation_payload(self._dim())
+        self.assertEqual(["mns:bridge_1", "mvs:barn"], p["suppressedStructures"])
+        noise = dp._noise_payload(self._dim())
+        self.assertEqual(["mns:bridge_1", "mvs:barn"], noise["exclude"])
+        # union with the dimension's own exclude
+        noise2 = dp._noise_payload(self._dim(
+            {"structures": {"exclude": ["a:b"]}}))
+        self.assertEqual(["a:b", "mns:bridge_1", "mvs:barn"], noise2["exclude"])
+
+    def test_overlay_settings_merge_and_stash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "config"
+            (cfg / "dimensions").mkdir(parents=True)
+            (cfg / "settings.json").write_text(json.dumps(
+                {"namespace": "adventure", "idleUnloadMinutes": 7}))
+            overlay = Path(tmp) / "overlay"
+            (overlay / "dimensions").mkdir(parents=True)
+            (overlay / "settings.json").write_text(json.dumps(
+                {"suppress": {"structures": ["mvs:barn"]},
+                 "idleUnloadMinutes": 3}))
+            cfgout = dp.load_config(cfg, overlay_dir=overlay)
+            self.assertEqual(3, cfgout["idleUnloadMinutes"])
+            self.assertEqual({"structures": ["mvs:barn"]}, cfgout["suppress"])
+            self.assertEqual(("mvs:barn",), dp.suppressed_structure_sets())
+
+    def test_profile_stamps_the_union_and_tier1_drops_it(self):
+        dp.set_suppressed_structure_sets(["testns:plain"])
+        profile = {"battery": [("plain", "testns:plain_house", (0, 2000), "want")],
+                   "radius": 8192, "locate_cap": None,
+                   "structures_exclude": ("testns:plain",)}
+        from fast_roller import tier1_score
+        sets = {"testns:plain": {
+            "id": "testns:plain",
+            "structures": [{"id": "testns:plain_house", "weight": 1}],
+            "placement_type": "minecraft:random_spread",
+            "spacing": 32, "separation": 8, "salt": 111,
+            "frequency": 1.0, "spread_type": "linear"}}
+        s2s = {"testns:plain_house": ["testns:plain"]}
+        _s, dists = tier1_score(1234, profile, sets, s2s)
+        self.assertEqual(-1, dists["plain"], "suppressed set reads as absent")
+
 if __name__ == "__main__":
     unittest.main()
 

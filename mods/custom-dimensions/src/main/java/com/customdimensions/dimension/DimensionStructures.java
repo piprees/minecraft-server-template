@@ -89,8 +89,16 @@ public final class DimensionStructures {
         // no groups, or every group resolving to none).
         NoiseGroupPlan.warnUnknownGroups(def);
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
-        java.util.Set<String> exclude = NoisePoolBuilder.lowerSet(
-                structBlock != null ? structBlock.exclude : null);
+        // The global suppress list (settings.json suppress.structures, the
+        // consumer overlay merged in) joins the dimension's own exclude —
+        // one union applied at every filter point: the pool builder, the
+        // pass-through loop, and the legacy path below.
+        java.util.List<String> suppressed =
+                MultiverseConfig.getInstance().getSuppressedStructureSets();
+        warnUnknownSuppressedSets(world, suppressed);
+        java.util.Set<String> exclude = new java.util.HashSet<>(NoisePoolBuilder.lowerSet(
+                structBlock != null ? structBlock.exclude : null));
+        exclude.addAll(NoisePoolBuilder.lowerSet(suppressed));
         if (!plan.isSuppressed()) {
             return transformedNoise(world, biomeSource, noiseConfig, original, def, plan,
                     spacingOverrides, forced, mode, modeList, exclude);
@@ -156,12 +164,13 @@ public final class DimensionStructures {
                 continue;
             }
 
-            // Organic-set filter (structures.mode): applied after the
+            // Organic-set filter (structures.mode + the exclude union, which
+            // carries the global suppress list): applied after the
             // exit-shrines opt-in (which is config-driven, not organic) and
             // before every density/theme path. Forced placements are
             // synthetic sets appended after the loop — mode never touches
             // them ("mode": "none" + force = ONLY the forced structures).
-            if (!keepSet(setId, mode, modeList, java.util.Set.of())) {
+            if (!keepSet(setId, mode, modeList, exclude)) {
                 dropped++;
                 continue;
             }
@@ -271,7 +280,7 @@ public final class DimensionStructures {
         }
 
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
-                def, original.getStructureSets(), biomeSource, plan);
+                def, original.getStructureSets(), biomeSource, plan, exclude);
         // Which structures a group can draw from is decided HERE, from the
         // dimension's biome source against each structure's own biome list, so
         // the seed roller cannot derive it. Recording it is what lets the roller
@@ -477,6 +486,34 @@ public final class DimensionStructures {
                     def.getName(), e.getKey(), e.getValue());
         }
         return forcedCount;
+    }
+
+    private static volatile boolean warnedSuppressList;
+
+    /**
+     * WARNs, once per boot, about suppress.structures ids that exist in no
+     * registered structure set — a typo would otherwise silently suppress
+     * nothing. Checked against the FULL structure-set registry, not the
+     * world's calculator list (that one is biome-prefiltered per dimension
+     * and would false-warn about sets the current dimension merely lacks).
+     */
+    private static void warnUnknownSuppressedSets(ServerWorld world,
+                                                  java.util.List<String> suppressed) {
+        if (warnedSuppressList || suppressed.isEmpty()) {
+            return;
+        }
+        warnedSuppressList = true;
+        var registry = world.getRegistryManager()
+                .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+        for (String id : suppressed) {
+            Identifier parsed = Identifier.tryParse(id);
+            if (parsed == null || registry.get(parsed) == null) {
+                MultiverseServer.LOGGER.warn(
+                        "settings.json suppress.structures id '{}' matches no registered "
+                        + "structure set — a typo suppresses nothing (see "
+                        + "extractors/structures.json for valid set ids)", id);
+            }
+        }
     }
 
     /**

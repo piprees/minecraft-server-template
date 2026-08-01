@@ -107,7 +107,22 @@ public final class NoisePoolBuilder {
                                BiomeSource biomeSource,
                                NoiseGroupPlan plan) {
         DimensionConfig.Structures block = def.getStructures();
-        Set<String> exclude = lowerSet(block == null ? null : block.exclude);
+        return build(def, sets, biomeSource, plan,
+                lowerSet(block == null ? null : block.exclude));
+    }
+
+    /**
+     * As above with an explicit exclude union — the dimension's own
+     * {@code structures.exclude} plus the global settings.json suppress
+     * list, pre-lowercased (DimensionStructures builds it once and applies
+     * the same set to the pass-through loop).
+     */
+    public static Result build(DimensionConfig def,
+                               Iterable<RegistryEntry<StructureSet>> sets,
+                               BiomeSource biomeSource,
+                               NoiseGroupPlan plan,
+                               Set<String> exclude) {
+        DimensionConfig.Structures block = def.getStructures();
         Set<String> include = lowerSet(block == null ? null : block.include);
         Map<String, String> rarityOverrides = block == null || block.rarity == null
                 ? Map.of() : block.rarity;

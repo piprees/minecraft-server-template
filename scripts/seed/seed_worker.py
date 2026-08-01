@@ -1183,8 +1183,13 @@ def prepare_boot_dir(workdir, mvconfig, seedtest):
     shutil.rmtree(cd, ignore_errors=True)
     (cd / "dimensions").mkdir(parents=True)
     settings = json.loads(Path(mvconfig).read_text()) if Path(mvconfig).exists() else {}
-    (cd / "settings.json").write_text(json.dumps(
-        {"namespace": settings.get("namespace", "adventure")}, indent=2) + "\n")
+    boot_settings = {"namespace": settings.get("namespace", "adventure")}
+    # The suppress list must reach warmup boots: the pools dump made there
+    # (structure_pools.json) would otherwise include sets the real server
+    # suppresses, and every share computed from it would be wrong.
+    if settings.get("suppress"):
+        boot_settings["suppress"] = settings["suppress"]
+    (cd / "settings.json").write_text(json.dumps(boot_settings, indent=2) + "\n")
     # Legacy monolith must not exist — the mod would warn.
     (cfg / "multiverse_config.json").unlink(missing_ok=True)
 

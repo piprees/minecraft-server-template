@@ -389,6 +389,17 @@ case "$CMD" in
       echo "  SKIP check-noise-regression (no census dumps — run"
       echo "       'customdim structure-census <ns>:<slug>' for the dims you care about)"
     fi
+    # Cross-reference settings.json suppress.structures (platform, overlay,
+    # and the server's staged copies) against the extracted structure-set
+    # catalogue — a typo'd id suppresses nothing and only WARNs at boot.
+    script="$CONSUMER_DIR/$STACK_SCRIPTS/check-suppress-list.py"
+    if [[ -f "$script" ]]; then
+      echo "== check-suppress-list"
+      python3 "$script" --data "$CONSUMER_DIR/data" --config "$VERIFY_CFG" \
+        --overlay "$CONSUMER_DIR/overlay/config/custom-dimensions" || VERIFY_FAILED=1
+    else
+      echo "  SKIP check-suppress-list (not in this stack version)"
+    fi
     exit $VERIFY_FAILED
     ;;
   seed-rescore | seed-status)

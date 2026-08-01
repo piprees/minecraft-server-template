@@ -218,6 +218,34 @@ class DimensionConfigLoaderTest {
                 DimensionConfigLoader.loadSettings(config.resolve("settings.json")).namespace);
     }
 
+    // --- overlay settings + global suppression --------------------------------
+
+    @Test
+    void overlaySettingsMergeOverPlatform(@TempDir Path config, @TempDir Path overlay) throws IOException {
+        Files.writeString(config.resolve("settings.json"), """
+                {"namespace":"adventure","idleUnloadMinutes":7,
+                 "frames":{"overworld":"minecraft:gold_block"}}
+                """);
+        Files.writeString(overlay.resolve("settings.json"), """
+                {"idleUnloadMinutes":3,
+                 "suppress":{"structures":["mvs:barn", "  ", "mns:bridge_1"]}}
+                """);
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), overlay.resolve("settings.json"));
+        assertEquals("adventure", s.namespace);
+        assertEquals(3, s.idleUnloadMinutes, "overlay scalar wins");
+        assertEquals("minecraft:gold_block", s.frameOverworld, "platform value survives");
+        assertEquals(java.util.List.of("mvs:barn", "mns:bridge_1"), s.suppressStructures);
+    }
+
+    @Test
+    void suppressDefaultsToEmptyAndMissingOverlayIsFine(@TempDir Path config) throws IOException {
+        Files.writeString(config.resolve("settings.json"), "{\"namespace\":\"adventure\"}");
+        DimensionConfigLoader.Settings s = DimensionConfigLoader.loadSettings(
+                config.resolve("settings.json"), config.resolve("no-such-overlay.json"));
+        assertTrue(s.suppressStructures.isEmpty());
+    }
+
     @Test
     void stripJsonCommentsIsWholeLineOnly() {
         // Trailing comments are NOT comments — a // inside a string (URLs)

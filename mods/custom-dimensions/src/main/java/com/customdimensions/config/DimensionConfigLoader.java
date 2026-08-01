@@ -43,7 +43,7 @@ public final class DimensionConfigLoader {
     private DimensionConfigLoader() {
     }
 
-    /** Global settings (settings.json). */
+    /** Global settings (settings.json, consumer overlay merged over it). */
     public static class Settings {
         public String namespace = "adventure";
         public int idleUnloadMinutes = 5;
@@ -52,6 +52,16 @@ public final class DimensionConfigLoader {
         public String frameEnd = "minecraft:end_stone_bricks";
         /** Raw "defaults" block, merged under every dimension. */
         public JsonObject defaults = new JsonObject();
+        /**
+         * Structure SET ids removed from every dimension's pools and
+         * pass-throughs ({@code "suppress": {"structures": [...]}}) — the
+         * global counterpart of a dimension's {@code structures.exclude}.
+         * Applied through the same filters (DimensionStructures.keepSet +
+         * NoisePoolBuilder). Unknown ids WARN at boot rather than failing.
+         * Generation-affecting — mirrored in
+         * scripts/seed/dimension_profiles.generation_payload().
+         */
+        public java.util.List<String> suppressStructures = java.util.List.of();
     }
 
     /** Settings + resolved dimension map (base worlds included, keyed by slug). */
@@ -64,7 +74,8 @@ public final class DimensionConfigLoader {
 
     /** Prompt-facing surface: env-driven BRAND_SLUG, no settings defaults. */
     public static Map<String, DimensionConfig> loadAll(Path configDir, Path overlayDir, String namespace) {
-        Settings settings = loadSettings(configDir.resolve("settings.json"));
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
         if (namespace != null && !namespace.isBlank()) {
             settings.namespace = namespace;
         }
@@ -72,15 +83,33 @@ public final class DimensionConfigLoader {
     }
 
     public static LoadResult loadAllWithSettings(Path configDir, Path overlayDir) {
-        Settings settings = loadSettings(configDir.resolve("settings.json"));
+        Settings settings = loadSettings(configDir.resolve("settings.json"),
+                overlayDir != null ? overlayDir.resolve("settings.json") : null);
         Map<String, DimensionConfig> dims =
                 loadDimensions(configDir, overlayDir, settings, System.getenv("BRAND_SLUG"));
         return new LoadResult(settings, dims);
     }
 
     static Settings loadSettings(Path settingsFile) {
+        return loadSettings(settingsFile, null);
+    }
+
+    /**
+     * Platform settings with the consumer overlay's settings.json merged
+     * over them (deepMerge: overlay scalars win, objects merge key-by-key).
+     * The overlay file was staged for a long time and read by nothing — the
+     * suppress list is the first consumer-facing key that needs it.
+     */
+    static Settings loadSettings(Path settingsFile, Path overlayFile) {
         Settings settings = new Settings();
         JsonObject json = readJsonObject(settingsFile);
+        JsonObject overlay = overlayFile != null ? readJsonObject(overlayFile) : null;
+        if (json == null) {
+            json = overlay;
+        } else if (overlay != null) {
+            json = deepMerge(json, overlay);
+            MultiverseServer.LOGGER.info("Consumer overlay settings.json merged over platform settings");
+        }
         if (json == null) {
             return settings;
         }
@@ -100,6 +129,19 @@ public final class DimensionConfigLoader {
         settings.frameEnd = stringOr(frames, "end", settings.frameEnd);
         if (json.has("defaults") && json.get("defaults").isJsonObject()) {
             settings.defaults = json.getAsJsonObject("defaults");
+        }
+        if (json.has("suppress") && json.get("suppress").isJsonObject()) {
+            JsonElement list = json.getAsJsonObject("suppress").get("structures");
+            if (list != null && list.isJsonArray()) {
+                java.util.List<String> ids = new java.util.ArrayList<>();
+                for (JsonElement e : list.getAsJsonArray()) {
+                    if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString()
+                            && !e.getAsString().isBlank()) {
+                        ids.add(e.getAsString().trim());
+                    }
+                }
+                settings.suppressStructures = java.util.List.copyOf(ids);
+            }
         }
         return settings;
     }
