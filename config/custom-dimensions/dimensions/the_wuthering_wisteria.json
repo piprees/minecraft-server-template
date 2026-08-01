@@ -3,6 +3,7 @@
   "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing.",
   "seed": 9136558242665021692,
   "spawn": [0, 64, 0],
+  "settingsOverrides": { "seaLevel": 66 },
   "biomes": [
     { "id": "natures_spirit:wisteria_forest", "parameters": { "weirdness": [-2.0, -0.2] } },
     { "id": "terralith:moonlight_valley", "parameters": { "weirdness": [-0.2, -0.08] } },
@@ -75,6 +76,7 @@
   },
   "seedRoll": {
     "mood": "serene",
+    "water": "high",
     "spawnFilter": ["minecraft:meadow"],
     "description": "A broken torii gate opens onto a pocket grove of wisteria. Someone sealed this place deliberately — sweet blossom on the breeze, a stream winding beneath the canopy. Whatever they were protecting, the gate is the only way in, and it's still standing."
   }
