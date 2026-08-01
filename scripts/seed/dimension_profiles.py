@@ -778,12 +778,19 @@ def _noise_payload(dim):
         radius = DEFAULT_BORDER_RADIUS
     radius_chunks = min(int(radius) // 16, noise_placement.MAX_RADIUS_CHUNKS)
 
+    from structure_placement import NOISE_MANAGED_PLACEMENT_TYPES
     struct_block = dim.get("structures") or {}
     payload = {
         "radiusChunks": radius_chunks,
         "groups": sorted(
             [name, cfg["profile"].id, cfg["exclusion"], cfg["radial"]]
             for name, cfg in groups.items()),
+        # Which placement types dissolve into the pools. Group POSITIONS
+        # don't depend on it, but pool membership does — absorbing Moog's
+        # 221 sets (Phase 3) changed which structure lands on every
+        # position, so every noise dimension re-rolls when this list
+        # changes. Mirrors NoisePoolBuilder.noiseManaged.
+        "placementTypes": sorted(NOISE_MANAGED_PLACEMENT_TYPES),
     }
     # Pool composition: these change WHICH structures land on the positions,
     # so two dims agreeing on positions but not on these are not clones.

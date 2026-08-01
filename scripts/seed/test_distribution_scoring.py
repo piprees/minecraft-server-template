@@ -218,13 +218,31 @@ class WeightShareTests(unittest.TestCase):
             0.5)
 
     def test_pools_load_from_the_warmup_artefact(self):
+        from structure_placement import NOISE_MANAGED_PLACEMENT_TYPES
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual(census_scoring.load_structure_pools(tmp), {})
             (Path(tmp) / "structure_pools.json").write_text(json.dumps(
-                {"schemaVersion": 1, "dimensions": self.POOLS}))
+                {"schemaVersion": 1,
+                 "placementTypes": sorted(NOISE_MANAGED_PLACEMENT_TYPES),
+                 "dimensions": self.POOLS}))
             loaded = census_scoring.load_structure_pools(tmp)
             self.assertEqual(loaded["the_test"]["settlements"]
                              ["minecraft:village_plains"], 8)
+
+    def test_a_dump_from_a_different_absorption_list_is_ignored(self):
+        """A dump is only meaningful under the noiseManaged rules it was
+        made with: a pre-conversion dump lacks newly absorbed sets and would
+        score them 0.0 forever. Mismatched or unstamped dumps load as {} —
+        every share then falls back to 1.0, the pre-pool behaviour."""
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "structure_pools.json").write_text(json.dumps(
+                {"schemaVersion": 1, "dimensions": self.POOLS}))
+            self.assertEqual(census_scoring.load_structure_pools(tmp), {})
+            (Path(tmp) / "structure_pools.json").write_text(json.dumps(
+                {"schemaVersion": 1,
+                 "placementTypes": ["minecraft:random_spread"],
+                 "dimensions": self.POOLS}))
+            self.assertEqual(census_scoring.load_structure_pools(tmp), {})
 
     def test_unreadable_pool_data_is_not_fatal(self):
         with tempfile.TemporaryDirectory() as tmp:

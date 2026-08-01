@@ -178,8 +178,22 @@ public class DimensionCommands {
         }
         try {
             Path outputPath = Artefacts.dir().resolve("structure_pools.json");
-            Artefacts.write(outputPath,
-                    StructurePoolRecord.toJson(Artefacts.jsonHeader("structure-pools")));
+            // The absorption list stamps the dump: pools are only meaningful
+            // under the noiseManaged() rules they were dumped with, and the
+            // roller ignores a dump made under a different list (share 1.0
+            // fallback) instead of scoring newly absorbed sets 0.0 forever.
+            StringBuilder types = new StringBuilder(" \"placementTypes\": [");
+            java.util.List<String> ids =
+                    com.customdimensions.dimension.NoisePoolBuilder.noiseManagedTypeIds();
+            for (int i = 0; i < ids.size(); i++) {
+                if (i > 0) {
+                    types.append(", ");
+                }
+                types.append('"').append(ids.get(i)).append('"');
+            }
+            types.append("],\n");
+            Artefacts.write(outputPath, StructurePoolRecord.toJson(
+                    Artefacts.jsonHeader("structure-pools") + types));
             final String message = "dump-structure-pools: " + dimensions
                     + " dimension(s) -> " + outputPath;
             source.sendFeedback(() -> Text.literal(message), false);

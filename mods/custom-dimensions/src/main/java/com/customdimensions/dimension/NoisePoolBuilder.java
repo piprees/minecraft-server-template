@@ -48,6 +48,60 @@ public final class NoisePoolBuilder {
     private NoisePoolBuilder() {
     }
 
+    /**
+     * The placement type ids noise placement absorbs, beyond the exact
+     * vanilla class. Moog's advanced_random_spread was decompiled before
+     * being listed (2026-08-01): its getStartChunk is byte-identical vanilla
+     * maths; "advanced" adds only an optional origin-clearance disc (68 of
+     * 221 shipped sets — superseded by our radial curves and
+     * clearSpawnRadius) and an optional cross-set exclusion no shipped set
+     * uses. YUNG's types and Supplementaries' galleons stay pass-throughs —
+     * their cross-set exclusion zones are real behaviour — and
+     * concentric_rings is not grid-compatible at all.
+     *
+     * MIRRORED as NOISE_MANAGED_PLACEMENT_TYPES in
+     * scripts/seed/structure_placement.py (consumed by
+     * score-dimensions.structure_group_lookup) — the two lists and
+     * structure-groups.json move together, in the same release, or the
+     * roller scores a different world than the mod generates (T20).
+     */
+    private static final Set<String> ABSORBED_PLACEMENT_TYPES = Set.of(
+            "moogs_structures:advanced_random_spread");
+
+    /**
+     * Every noise-managed placement-type id, sorted — stamped into the
+     * structure_pools.json dump so the roller can spot a dump made under a
+     * different absorption list (a stale pre-conversion dump would score a
+     * newly absorbed set 0.0% forever, the exact T23-adjacent bug class).
+     */
+    public static java.util.List<String> noiseManagedTypeIds() {
+        java.util.List<String> out = new ArrayList<>(ABSORBED_PLACEMENT_TYPES);
+        out.add("minecraft:random_spread");
+        java.util.Collections.sort(out);
+        return out;
+    }
+
+    /**
+     * Whether a set's placement is dissolved into a noise group. Exact
+     * vanilla random_spread always; listed subclasses by their REGISTERED
+     * placement-type id (never by class name — no compile dependency on the
+     * owning mod). Any other subclass (including our own
+     * FixedStructurePlacement) and every non-random_spread type passes
+     * through on its own placement.
+     */
+    static boolean noiseManaged(StructurePlacement placement) {
+        if (placement.getClass() == RandomSpreadStructurePlacement.class) {
+            return true;
+        }
+        if (!(placement instanceof RandomSpreadStructurePlacement)
+                || placement instanceof FixedStructurePlacement) {
+            return false;
+        }
+        Identifier type = net.minecraft.registry.Registries.STRUCTURE_PLACEMENT
+                .getId(placement.getType());
+        return type != null && ABSORBED_PLACEMENT_TYPES.contains(type.toString());
+    }
+
     public static Result build(DimensionConfig def,
                                Iterable<RegistryEntry<StructureSet>> sets,
                                BiomeSource biomeSource,
@@ -80,11 +134,7 @@ public final class NoisePoolBuilder {
 
             StructureSet set = setEntry.value();
             StructurePlacement placement = set.placement();
-            // Only exact random_spread sets can be dissolved into a group: a
-            // custom placement type (YUNG's, concentric rings) encodes rules
-            // we would be silently discarding. Same caveat the density path
-            // has always honoured.
-            if (placement.getClass() != RandomSpreadStructurePlacement.class) {
+            if (!noiseManaged(placement)) {
                 customPlacement++;
                 continue;
             }

@@ -1238,10 +1238,12 @@ class SpawnAnchoredMeasurementTests(unittest.TestCase):
 
 
 class NoiseOwnershipTests(unittest.TestCase):
-    """structure_group_lookup mirrors NoisePoolBuilder's exact-class check:
-    a custom *_random_spread placement (YUNG's enhanced, Moog's advanced) is
-    extracted for grid measurement but must never claim a noise group —
-    claiming one scored 108 battery entries a permanent 0.0% share."""
+    """structure_group_lookup mirrors NoisePoolBuilder.noiseManaged: the
+    exact vanilla type and the absorbed allowlist (Moog's advanced since the
+    Phase 3 conversion) own groups; every other custom type (YUNG's — real
+    cross-set exclusion zones) is extracted for grid measurement but must
+    never claim a group — claiming one scored 108 battery entries a
+    permanent 0.0% share."""
 
     def _seedtest_with_sets(self, tmp):
         sets_dir = Path(tmp) / ".structure_sets" / "data"
@@ -1255,6 +1257,10 @@ class NoiseOwnershipTests(unittest.TestCase):
             "structures": [{"structure": "testns:moogish", "weight": 1}],
             "placement": {"type": "moogs_structures:advanced_random_spread",
                           "spacing": 40, "separation": 10, "salt": 222}}))
+        (vanilla / "yungish.json").write_text(json.dumps({
+            "structures": [{"structure": "testns:yungish", "weight": 1}],
+            "placement": {"type": "yungsapi:enhanced_random_spread",
+                          "spacing": 36, "separation": 12, "salt": 333}}))
         return tmp
 
     def _config_with_groups(self, tmp):
@@ -1264,35 +1270,40 @@ class NoiseOwnershipTests(unittest.TestCase):
             "sets": {
                 "testns:plain": {"group": "settlements", "rarity": "common"},
                 "testns:moogish": {"group": "settlements", "rarity": "common"},
+                "testns:yungish": {"group": "settlements", "rarity": "common"},
             }}))
         return config
 
-    def test_custom_placement_sets_own_no_group(self):
+    def test_ownership_follows_the_absorption_allowlist(self):
         with tempfile.TemporaryDirectory() as tmp:
             seedtest = self._seedtest_with_sets(tmp)
             config = self._config_with_groups(tmp)
             score_dimensions._STRUCT_LOOKUP_CACHE.clear()
             lookup = score_dimensions.structure_group_lookup(seedtest, config)
-            # Vanilla random_spread: structure and set both resolve.
+            # Vanilla random_spread: owns its group, as always.
             self.assertEqual(
                 "settlements",
                 score_dimensions.battery_group_for("testns:plain_house", lookup))
-            # Custom placement: neither the structure id nor the set id
-            # (which structure-groups.json still classifies) may claim a
-            # group — grid fallback is the only honest scoring path.
-            self.assertIsNone(
+            # Moog's advanced: ABSORBED (Phase 3) — owns its group too.
+            self.assertEqual(
+                "settlements",
                 score_dimensions.battery_group_for("testns:moogish", lookup))
+            # YUNG's: never absorbed — neither the structure id nor the set
+            # id (still classified in structure-groups.json) may claim a
+            # group; grid fallback is the only honest scoring path.
+            self.assertIsNone(
+                score_dimensions.battery_group_for("testns:yungish", lookup))
 
     def test_custom_placement_sets_still_measurable(self):
-        """The extraction keeps custom *_random_spread sets — their grid
-        maths still measure battery distances (tier1_score)."""
+        """The extraction keeps every *_random_spread set — their grid maths
+        still measure battery distances (tier1_score)."""
         from structure_placement import load_structure_sets
         with tempfile.TemporaryDirectory() as tmp:
             seedtest = self._seedtest_with_sets(tmp)
             sets = load_structure_sets(str(Path(seedtest) / ".structure_sets"))
-            self.assertIn("testns:moogish", sets)
-            self.assertEqual("moogs_structures:advanced_random_spread",
-                             sets["testns:moogish"]["placement_type"])
+            self.assertIn("testns:yungish", sets)
+            self.assertEqual("yungsapi:enhanced_random_spread",
+                             sets["testns:yungish"]["placement_type"])
 
 
 if __name__ == "__main__":

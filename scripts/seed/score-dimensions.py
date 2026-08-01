@@ -712,19 +712,19 @@ def structure_group_lookup(seedtest, config_dir):
     if sets_dir.is_dir():
         extracted = load_structure_sets(str(sets_dir))
         # Noise ownership is an EXACT placement-type question, mirroring
-        # NoisePoolBuilder's `getClass() != RandomSpreadStructurePlacement`
-        # check: yungsapi:enhanced_random_spread and
-        # moogs_structures:advanced_random_spread contain the literal
-        # "random_spread" and are extracted (their grid maths still measure
-        # battery distances), but Java never pools them, so claiming a group
-        # here scored 108 battery entries a permanent, unsatisfiable 0.0%.
-        # Their set ids are also scrubbed from set_to_group so a battery
-        # entry naming the set directly cannot re-claim a group. COUPLED to
-        # the Phase 3 instanceof conversion: when Java changes which classes
-        # it absorbs, this filter and structure-groups.json move with it.
+        # NoisePoolBuilder.noiseManaged: the exact vanilla class plus the
+        # allowlisted absorbed types (Moog's advanced_random_spread since the
+        # Phase 3 conversion). Types outside the list (YUNG's, Supplementaries
+        # — real cross-set exclusion zones) are extracted for grid measurement
+        # but own no group; claiming one here scored 108 battery entries a
+        # permanent, unsatisfiable 0.0%. Their set ids are also scrubbed from
+        # set_to_group so a battery entry naming the set directly cannot
+        # re-claim a group. This list, the Java allowlist and
+        # structure-groups.json move together, in the same release (T20).
+        from structure_placement import NOISE_MANAGED_PLACEMENT_TYPES
         custom_placement = {
             set_id for set_id, cfg in extracted.items()
-            if cfg.get("placement_type") != "minecraft:random_spread"}
+            if cfg.get("placement_type") not in NOISE_MANAGED_PLACEMENT_TYPES}
         set_to_group = {sid: g for sid, g in set_to_group.items()
                         if sid not in custom_placement}
         for set_id, cfg in extracted.items():

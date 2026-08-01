@@ -16,6 +16,17 @@ import os
 from pathlib import Path
 
 
+# Placement type ids the mod's noise placement absorbs into groups.
+# MIRRORS NoisePoolBuilder.ABSORBED_PLACEMENT_TYPES + the exact vanilla
+# class check — the two lists and structure-groups.json move together, in
+# the same release (T20). Everything else keeps its own grid placement
+# and is scored positionally.
+NOISE_MANAGED_PLACEMENT_TYPES = frozenset({
+    "minecraft:random_spread",
+    "moogs_structures:advanced_random_spread",
+})
+
+
 def java_long(n):
     """Truncate to signed 64-bit (Java long semantics)."""
     n = n & 0xFFFFFFFFFFFFFFFF

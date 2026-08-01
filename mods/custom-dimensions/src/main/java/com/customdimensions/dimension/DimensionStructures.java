@@ -304,7 +304,7 @@ public final class DimensionStructures {
             if ("adventure:exit_shrines".equals(setId)) {
                 continue;
             }
-            if (entry.value().placement().getClass() != RandomSpreadStructurePlacement.class) {
+            if (!NoisePoolBuilder.noiseManaged(entry.value().placement())) {
                 if (!keepSet(setId, mode, modeList, exclude)) {
                     passthroughFiltered++;
                     continue;

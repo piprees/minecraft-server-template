@@ -98,6 +98,15 @@ def load_structure_pools(seedtest):
         doc = json.loads(p.read_text())
     except (OSError, ValueError):
         return {}
+    # A dump is only meaningful under the absorption rules it was made with:
+    # a stale pre-conversion dump lacks newly absorbed sets and would score
+    # them 0.0% forever. Mismatched (or unstamped legacy) dumps are ignored —
+    # every share then falls back to 1.0, the pre-pool behaviour — until the
+    # next warmup re-dumps under the current list.
+    from structure_placement import NOISE_MANAGED_PLACEMENT_TYPES
+    stamped = doc.get("placementTypes") if isinstance(doc, dict) else None
+    if sorted(stamped or []) != sorted(NOISE_MANAGED_PLACEMENT_TYPES):
+        return {}
     return doc.get("dimensions") or doc
 
 
