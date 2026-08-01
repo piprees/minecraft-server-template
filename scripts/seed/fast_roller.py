@@ -133,10 +133,7 @@ _CONT_TO_HEIGHT = [
     (0.03, 70), (0.3, 100), (0.55, 140), (0.8, 190), (1.0, 256),
 ]
 
-# Aliases of the canonical tables in biome_sampler. Kept as names because
-# other modules and tests refer to them; they must never become second copies,
-# which is exactly how the renderer and the roller came to disagree about
-# paradise_lost dimensions.
+# Aliases of the canonical tables in biome_sampler — never second copies.
 FAMILY_NOISE = biome_sampler_family_noise
 _TYPE_NOISE_OVERRIDE = biome_sampler_type_override
 
@@ -327,13 +324,9 @@ def tier2_measure(seed, profile, sampler):
 
 def _build_sampler(seed, profile, biome_params_path, noise_configs):
     """One seed's sampler from a profile's generation fields. Within a
-    fingerprint group every member builds the IDENTICAL sampler (all inputs
-    are fingerprint fields), which is what makes group sharing exact.
-
-    The construction itself lives in biome_sampler.build_for_dimension so the
-    renderer, the biome survey and the terrain survey build the SAME world —
-    they used to each assemble it themselves, and each one that missed an
-    input sampled a different dimension (TROUBLESHOOTING.md#t20)."""
+    fingerprint group every member builds the identical sampler, which is what
+    makes group sharing exact. Construction lives in biome_sampler so every
+    caller builds the same world (see T20)."""
     return build_for_dimension(seed, profile, biome_params_path, noise_configs)
 
 

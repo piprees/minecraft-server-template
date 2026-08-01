@@ -159,10 +159,8 @@ def _walk(sampler, span, grid, is_void, has_continentalness,
     relief/grain only. Asking for both on both windows doubles the climate
     lookups — the expensive half — to compute heights that are then discarded.
 
-    `seen` counts the biome at every sampled point. The walk already resolves
-    one per sample for the water test, so tallying them costs nothing and is
-    the only place in the pipeline that knows how much of a world each biome
-    actually covers — see `shares` in survey().
+    `seen` counts the biome at every sampled point — free, since the water
+    test already resolves one per sample. See `shares` in survey().
     """
     step = (2 * span) // (grid - 1) if grid > 1 and span > 0 else 0
     heights, waters, seen = {}, [], {}
@@ -231,18 +229,10 @@ def survey(sampler, radius, is_void=False, has_continentalness=True, grid=GRID,
         # what makes them comparable across dimensions, and because a reader
         # of a cached survey needs to know which box the numbers describe.
         "reliefSpan": span,
-        # How much of the PLAY AREA each biome covers, over the wide walk.
-        #
-        # This is the only measurement in the bank that can tell a mixture from
-        # a monoculture. Everything else asks how FAR AWAY the nearest instance
-        # of a biome is, which a world that is 96% one biome answers exactly as
-        # well as an even split does — so `variety` scored the two identically
-        # and 19 candidates tied at the top of the_wuthering_wisteria.
-        #
-        # Restricted to the dimension's configured biomes so the figure means
-        # "of what this dimension asked for", and so the record stays small: an
-        # unrestricted overworld survey would carry dozens of incidental keys
-        # into a bank thousands of candidates deep.
+        # How much of the play area each biome covers — the only measurement
+        # that distinguishes a mixture from a monoculture (see T21).
+        # Restricted to the configured biomes so the figure means "of what this
+        # dimension asked for" and the record stays small.
         "shares": {b: round(seen.get(b, 0) / total, 5)
                    for b in (configured_biomes or ())},
     }
@@ -261,12 +251,9 @@ def survey_task(task):
     the sampler is built HERE rather than passed in, because a BiomeSampler holds
     an open parameter table and would have to be re-read in the child anyway.
 
-    `spec["sampler"]` is biome_sampler.sampler_spec(profile), which is the whole
-    reason this builds the right world: the sampler used to be assembled here by
-    hand from a family and a biome list, which silently dropped Tier-3 per-biome
-    parameters and biome patches — so the water fraction, a SCORED input, was
-    measured on a biome source the dimension does not have
-    (TROUBLESHOOTING.md#t20).
+    `spec["sampler"]` is biome_sampler.sampler_spec(profile) — the water
+    fraction is a scored input, so it has to be measured on the dimension's
+    real biome source (see T20).
     """
     import sys
     from pathlib import Path
@@ -281,11 +268,8 @@ def survey_task(task):
         configured_biomes=spec.get("configured_biomes") or ()))
 
 
-#: Bumped whenever the survey RECORD changes shape or meaning, so a cached
-#: survey from before the change is re-measured rather than read as current.
-#: v2 added `shares` and fixed the sampler to carry the dimension's Tier-3
-#: parameters — before that the water figure was measured on the wrong biome
-#: source for every dimension using them (TROUBLESHOOTING.md#t20).
+#: Bump whenever the survey record changes shape or meaning, so cached
+#: surveys are re-measured rather than read as current.
 SURVEY_VERSION = 2
 
 

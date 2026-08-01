@@ -189,22 +189,17 @@ def _enrich_dim(name, dim, config, difficulty, cdir, all_sets, top_n):
 def biome_survey_fingerprint(generation_fp, radius):
     """What a cached biome survey is valid FOR.
 
-    Same reasoning as terrain_survey.fingerprint: the generation fingerprint
-    covers every input to the sampler, and the radius sets where the samples
-    are taken. Conservative — an unrelated config edit costs one cheap
-    re-survey, while a stale survey read as current is the failure that
-    matters and a superset cannot produce it.
+    Conservative, like terrain_survey.fingerprint: an unrelated config edit
+    costs one cheap re-survey; a stale survey read as current does not.
     """
     return "bs1:%s:%d" % (generation_fp or "-", int(radius))
 
 
 def survey_biomes(cand):
-    """{biome: [dist, x, z]} from a candidate's cached survey, either shape.
+    """{biome: [dist, x, z]} from a candidate's cached survey.
 
-    Records written before the fingerprint existed are a bare biome map. They
-    are also the ones most likely to be WRONG, so they are ignored rather than
-    read: a survey with no fingerprint cannot be shown to describe the current
-    config, and _survey_dim rewrites it on the next pass.
+    A bare map predates the fingerprint and cannot be shown to describe the
+    current config, so it is ignored; _survey_dim rewrites it next pass.
     """
     survey = cand.get("biome_survey")
     if isinstance(survey, dict) and "biomes" in survey:
@@ -215,17 +210,9 @@ def survey_biomes(cand):
 def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
     """Biome survey for one dimension. Returns how many were added.
 
-    The survey is what the detail panel reads, so it has to describe the same
-    world the score describes. It is built through the shared
-    biome_sampler.sampler_spec/build_from_spec pair for that reason: this
-    function used to assemble the sampler itself and dropped the dimension's
-    Tier-3 per-biome parameters, which made every affected dimension survey as
-    a single biome and report the rest as "not found" beside a score computed
-    from all of them (TROUBLESHOOTING.md#t20).
-
-    Cached under a fingerprint rather than mere presence. Without one, a fix to
-    the sampler leaves every wrong survey in the bank forever — 1987 of them
-    when this was found.
+    Built through biome_sampler.sampler_spec/build_from_spec so the panel and
+    the score describe one world (see T20). Cached under a fingerprint, not
+    mere presence, so a sampler change invalidates stale surveys.
     """
     from dimension_profiles import build_profile, generation_fingerprint
     from biome_sampler import build_from_spec, sampler_spec
@@ -300,10 +287,8 @@ def _render_args_for(config_path, dim):
             dim_scale = float(profile.get("scale", 1.0) or 1.0) or 1.0
             dim_type = entry.get("type", "") or ""
             noise_settings = entry.get("noiseSettings", "") or ""
-            # The whole layout, not a biome CSV. The CSV cannot carry Tier-3
-            # per-biome parameters, biome patches or a checkerboard grid, so a
-            # hi-res preview built from it was a different world from the
-            # thumbnail beside it for every dimension using any of them.
+            # The whole layout — a biome CSV cannot carry Tier-3 parameters,
+            # patches or a checkerboard grid.
             spec = sampler_spec(profile)
     except Exception:
         pass
@@ -1792,9 +1777,7 @@ def main():
         finalise_args += ["--winner-overlay", args.winner_overlay]
 
     # --refresh: delete renders so the background worker regenerates them.
-    # Dimension-scoped by default. A bare --refresh used to rmtree the whole
-    # renders tree — 1620 images and hours of CPU on a real bank — for what is
-    # almost always a one-dimension problem.
+    # Dimension-scoped by default; wiping the whole tree is hours of CPU.
     renders_dir = Path(args.seedtest) / "renders"
     if args.refresh and renders_dir.exists():
         if args.refresh == "__all__":

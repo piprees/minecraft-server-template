@@ -165,11 +165,15 @@ def merge_rows(store, seed, rows, fingerprint=None):
                 f"spawn filter: nearest biome at {dist} blocks" if dist >= 0
                 else "spawn filter: no matching biome found")
         return
-    is_new = seed not in store["candidates"]
     cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
+    # Stamp on the call that supplies the measurements: the record may already
+    # exist as an empty shell written by the census/survey passes. Never
+    # back-stamp a record that already has measurements — its config is
+    # unknown, and guessing defeats the drift check (see T22).
+    first_measurements = not cand.get("measurements")
     cand.setdefault("measurements", {}).update(rows)
     cand.setdefault("scores", {})
-    if fingerprint and is_new:
+    if fingerprint and first_measurements:
         cand["fingerprint"] = fingerprint
 
 

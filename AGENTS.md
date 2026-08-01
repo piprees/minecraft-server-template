@@ -26,7 +26,15 @@ Do not ask "should I continue." Continue. Do not ask "what next." Check the list
 
 **Context budget:** every token costs. Work until context is exhausted. Produce deliverables, not infrastructure. Do not idle. Do not ask for permission to continue. Do not pad turns with summaries of what you're about to do. Do the work.
 
-**Commentary:** you must avoid narrativising and commentating; ensure messages and deliverables are concise and actionable, but also that comments left for other developers and agents are present-tensed, current, and accurate. Avoid repeating information that is already present in the code itself or where adding historical context is unnecessary. Avoid embelleshing, narrativising, or dramatising decisions, rationale, or project history, and trust others to read the code and documentation to understand context.
+**Commentary:** the code is the documentation. Comments are present-tense statements of what is true now, not a record of how it got that way.
+
+Never write a comment that narrates a change, retells an incident, or dates a decision. Incidents live in `TROUBLESHOOTING.md` with an id — cite the id, never the story. If a comment would still read correctly with every "used to", "was", "this used to break" and date removed, remove them.
+
+> Bad: `# Stamped when this call supplies the measurements, not when the record is new. `seed not in candidates` looked equivalent and was not: ensure_censuses setdefaults an empty shell before persist runs, so the stamp was skipped and the whole bank ended up unstamped, which silently disabled the DRIFTED guard (2026-08-01, the_wuthering_wisteria).`
+>
+> Good: `# Stamp on the call that supplies the measurements — the record may already exist as an empty shell (see T22).`
+
+One line of "why" where the why is non-obvious. No paragraph. No date. No before-and-after.
 
 ## Quick reference (read the full file for anything non-trivial)
 

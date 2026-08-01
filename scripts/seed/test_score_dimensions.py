@@ -104,6 +104,29 @@ class CandidateStoreTests(unittest.TestCase):
         candidates.merge_rows(store, 2, {"errors": "0"})
         self.assertNotIn("fingerprint", store["candidates"]["2"])
 
+    def test_an_empty_shell_does_not_swallow_the_fingerprint_stamp(self):
+        """ensure_censuses and ensure_terrain_surveys both setdefault an empty
+        record and save the store BEFORE persist_candidates runs. Keying the
+        stamp on "the seed is absent from the store" therefore skipped it for
+        every freshly rolled candidate, leaving the whole bank unstamped and
+        the DRIFTED guard silently dead (2026-08-01)."""
+        store = candidates.empty_store()
+        store["candidates"]["7"] = {"measurements": {}, "scores": {},
+                                    "noiseCensus": {"fp": "x"}}
+        candidates.merge_rows(store, 7, {"errors": "0"}, fingerprint="ccc333")
+        self.assertEqual(store["candidates"]["7"]["fingerprint"], "ccc333")
+        self.assertEqual(store["candidates"]["7"]["noiseCensus"], {"fp": "x"},
+                         "the shell's own cached artefacts must survive")
+
+    def test_a_measured_candidate_is_never_back_stamped(self):
+        """We do not know what config an already-measured candidate was rolled
+        under; inventing the current fingerprint would assert the very thing
+        the guard exists to check."""
+        store = candidates.empty_store()
+        store["candidates"]["8"] = {"measurements": {"errors": "0"}, "scores": {}}
+        candidates.merge_rows(store, 8, {"extra": "1"}, fingerprint="ddd444")
+        self.assertNotIn("fingerprint", store["candidates"]["8"])
+
     def test_seen_seeds_covers_all_banks(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = candidates.empty_store()
@@ -408,6 +431,53 @@ class ScopedRollKeepsTheWholeViewerTests(unittest.TestCase):
             self.assertEqual(got[0]["score"], 73.5)
             self.assertEqual(got[0]["spawn_biome"], "minecraft:plains")
             self.assertNotIn("timestamp", got[0]["parts"])
+
+
+class PortalSectionTests(unittest.TestCase):
+    """The portal block is how a player reaches the dimension at all, and it
+    only ever lived in the raw config."""
+
+    def test_plain_frame_block(self):
+        html = score_dimensions._portal_section(
+            {"portal": {"frameBlock": "minecraft:stripped_mangrove_log",
+                        "igniterItem": "minecraft:pink_petals"}})
+        self.assertIn("Portal", html)
+        self.assertIn("minecraft:stripped_mangrove_log", html)
+        self.assertIn("minecraft:pink_petals", html)
+        self.assertIn("any", html)  # orientation defaults to "any"
+
+    def test_per_part_materials(self):
+        html = score_dimensions._portal_section(
+            {"portal": {"frameMaterials": {"top": "minecraft:oak_planks",
+                                           "sides": "#minecraft:logs",
+                                           "bottom": "minecraft:stone"},
+                        "igniterItem": "minecraft:ender_eye"}})
+        for label in ("Top", "Sides", "Bottom"):
+            self.assertIn(label, html)
+        self.assertIn("any #minecraft:logs", html)
+        self.assertIn("left and right", html,
+                      "'sides' means both, and a builder cannot guess that")
+
+    def test_tag_list_and_colour_group_forms(self):
+        """No shipped dimension uses these yet; the schema does."""
+        self.assertEqual(score_dimensions._accept_form("#minecraft:logs"),
+                         "any #minecraft:logs")
+        self.assertEqual(score_dimensions._accept_form({"colorGroup": "red"}),
+                         "any red block")
+        self.assertEqual(
+            score_dimensions._accept_form(["minecraft:stone", "#minecraft:logs"]),
+            "minecraft:stone, any #minecraft:logs")
+
+    def test_orientation_and_shape_are_shown_when_set(self):
+        html = score_dimensions._portal_section(
+            {"portal": {"frameBlock": "minecraft:stone", "orientation": "horizontal",
+                        "shape": "door", "igniterItem": "minecraft:flint_and_steel"}})
+        self.assertIn("horizontal", html)
+        self.assertIn("door", html)
+
+    def test_no_portal_renders_nothing(self):
+        self.assertEqual(score_dimensions._portal_section({}), "")
+        self.assertEqual(score_dimensions._portal_section(None), "")
 
 
 class WinnerOverlayWritebackTests(unittest.TestCase):

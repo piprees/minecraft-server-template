@@ -522,9 +522,7 @@ def render_biome_map(seed, biome_params_path, output_path,
     return size
 
 
-# Aliases of the canonical tables in biome_sampler, which is where the
-# resolution now lives so that the roller and every renderer cannot drift
-# apart again. Kept as names because tests and callers refer to them.
+# Aliases of the canonical tables in biome_sampler — never second copies.
 FAMILY_NOISE = _SAMPLER_FAMILY_NOISE
 TYPE_NOISE_OVERRIDE = _SAMPLER_TYPE_OVERRIDE
 resolve_noise_family = _resolve_noise_family
@@ -533,10 +531,8 @@ resolve_noise_family = _resolve_noise_family
 def _render_one(task):
     """Multiprocessing worker: render one candidate.
 
-    The task carries the dimension's full sampler spec, not a biome CSV: the
-    CSV cannot express Tier-3 parameters, patches or a checkerboard grid, and
-    a render that drops any of them draws a world nothing else in the pipeline
-    agrees with.
+    The task carries the full sampler spec, not a biome CSV — a CSV cannot
+    express Tier-3 parameters, patches or a checkerboard grid.
     """
     (seed, dim_name, spec, biome_params_path,
      output_path, size, scale, sample_res, noise_settings) = task
@@ -593,8 +589,7 @@ def batch_render(config_path, seedtest_path, biome_params_path,
                 scored.append((s, seed))
         scored.sort(reverse=True)
 
-        # One spec per dimension, built from the same profile the roller
-        # scores through — so the picture and the score describe one world.
+        # Built from the same profile the roller scores through.
         spec = build_sampler_spec(profile)
 
         dim_scale = profile.get("scale", 1.0)
