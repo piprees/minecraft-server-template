@@ -126,4 +126,30 @@ class DimensionStructuresTest {
         assertTrue(index.isForced(10, 10));
         assertTrue(index.isForced(20, 20));
     }
+
+    /**
+     * `exclusive` defaults to true — forcing a structure removes it from the
+     * noise pool everywhere else; `"exclusive": false` keeps organic copies.
+     * Malformed entries never poison the set.
+     */
+    @Test
+    void forcedExclusiveDefaultsTrueAndHonoursOptOut() {
+        DimensionConfig cfg = new com.google.gson.Gson().fromJson("""
+                {"structures": {"force": [
+                    {"structure": "minecraft:fortress", "x": 0, "z": 0},
+                    {"structure": "minecraft:igloo", "x": 0, "z": 0, "exclusive": false},
+                    {"structure": "minecraft:swamp_hut", "x": 0, "z": 0, "exclusive": true},
+                    {"x": 0, "z": 0}
+                ]}}""", DimensionConfig.class);
+
+        var exclusive = NoisePoolBuilder.forcedExclusiveStructureIds(cfg);
+        assertTrue(exclusive.contains("minecraft:fortress"), "default is exclusive");
+        assertTrue(exclusive.contains("minecraft:swamp_hut"));
+        assertFalse(exclusive.contains("minecraft:igloo"), "exclusive:false keeps organic copies");
+        assertEquals(2, exclusive.size());
+
+        // no structures block at all: nothing exclusive
+        assertTrue(NoisePoolBuilder.forcedExclusiveStructureIds(
+                new com.google.gson.Gson().fromJson("{}", DimensionConfig.class)).isEmpty());
+    }
 }
