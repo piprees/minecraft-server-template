@@ -100,6 +100,8 @@ public abstract class StructureWeightSamplerMixin
                 if (!pieces.isEmpty()) {
                     ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object)
                             cir.getReturnValue()).customdimensions$setKernelPieces(pieces);
+                    com.customdimensions.dimension.TerrainKernel.notePiecedId(
+                            System.identityHashCode(cir.getReturnValue()));
                 }
             }
         } finally {

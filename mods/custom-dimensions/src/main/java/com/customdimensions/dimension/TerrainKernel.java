@@ -182,7 +182,20 @@ public enum TerrainKernel {
     private static final java.util.Set<String> SEEN_CLASSES =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
 
+    private static final java.util.Set<Integer> PIECED_IDS =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final java.util.Set<Integer> PIECED_SAMPLED =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static void notePiecedId(int id) {
+        PIECED_IDS.add(id);
+    }
+
     public static void debugSample(int id, boolean withPieces, Object self) {
+        if (PIECED_IDS.contains(id) && PIECED_SAMPLED.add(id)) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG PIECED instance SAMPLED id={} withPieces={}", id, withPieces);
+        }
         if (self != null && SEEN_CLASSES.add(self.getClass().getName())) {
             com.customdimensions.MultiverseServer.LOGGER.info(
                     "KERNELDBG first sample from class {} (withPieces={})",
