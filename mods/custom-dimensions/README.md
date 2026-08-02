@@ -221,14 +221,24 @@ existing roller `wants`/`shuns` and runtime `spacing`:
   chunk. Unknown structures (removed mods) warn and skip — never a boot
   break. Forced placements are additive after `mode` — `"mode": "none"` +
   `force` = ONLY the forced structures.
-- **The biome predicate does NOT apply**: `force` is a literal override,
-  so an overworld structure forced into a nether dimension generates.
-  `ChunkGeneratorForcedBiomeMixin` replaces vanilla's
-  `Predicate<RegistryEntry<Biome>>` with one that always passes, for
-  forced start attempts only — every other set keeps vanilla behaviour
-  exactly. Each forced position that generates logs one INFO line:
-  `Dimension <slug>: forced <structure> generated at chunk [x, z]
-  (biome predicate bypassed)`.
+- **Forced start attempts are performed by the mod itself**
+  (`ChunkGeneratorForcedStartMixin` at the head of
+  `trySetStructureStart`, from the `ForcedStartOverride` registry of
+  (world, chunk, structure) triples): the biome predicate is replaced
+  with one that always passes AND other mods' cancellable start injects
+  never see the attempt — all seven YUNG's structure mods cancel every
+  vanilla start of the structure type they replace, which is why the
+  override must run first (see TROUBLESHOOTING.md#t25). `force` is a
+  literal override: an overworld structure forced into a nether
+  dimension generates, and so does a vanilla fortress on a stack where
+  YUNG's suppresses organic ones. Every other set keeps vanilla
+  behaviour exactly. Each forced position that generates logs one INFO
+  line: `Dimension <slug>: forced <structure> generated at chunk [x, z]
+  (start overridden; biome predicate bypassed)` — and a WARN when the
+  structure's own generation rejects the position.
+- **Forced structures get terrain adaptation like any other structure**:
+  beard/kernel resolution covers them even when their organic set is
+  biome-prefiltered out of the world's calculator.
 - **Out-of-biome forced structures generate but are NOT locatable.**
   `/locate` reads `StructurePlacementCalculator`'s structure→placement
   index, which vanilla builds only for structures whose valid biomes

@@ -524,21 +524,21 @@ no config at all.
   hit can be returned even when the forced one is closer. Oracle design:
   prove forced placements with `"mode": "none"` + `force` (organic sets
   gone → locate must return the exact forced spot or nothing).
-- **`force` DISABLES the biome check** (2026-07-29). Vanilla builds the
-  biome predicate inline in `ChunkGenerator.trySetStructureStart`
-  (`structure.getValidBiomes()::contains`) and hands it to
-  `Structure.createStructureStart` — the placement is out of scope by
-  then, so `FixedStructurePlacement` alone could never reach it and a
-  forced structure in a biome it did not accept silently did not
-  generate. Two mixins carry the fact across:
-  `StructurePlacementForcedBiomeMixin` records, at the RETURN of every
-  `StructurePlacement.shouldGenerate`, whether a `FixedStructurePlacement`
-  claimed this chunk (all placements write, so a `/locate` probe cannot
-  leave a stale arm behind); `ChunkGeneratorForcedBiomeMixin` swaps the
-  predicate for `entry -> true` on exactly those attempts and logs one
-  INFO line per forced position that generates. `ForcedBiomeBypass` holds
-  the thread-local hand-off and the reasoning in full. **Vanilla
-  behaviour is unchanged for every other set.**
+- **Forced start attempts are performed by the mod, not left to
+  vanilla.** `ChunkGeneratorForcedStartMixin` (priority 900 — HEAD
+  callbacks execute in application order, so it runs before
+  default-priority cancels) checks the `ForcedStartOverride` registry of
+  (world, chunk, structure) triples at the head of
+  `ChunkGenerator.trySetStructureStart` and, for a forced attempt,
+  creates and records the start itself with an always-true biome
+  predicate. This defeats both the structure's own biome gate and other
+  mods' cancellable HEAD injects — all seven YUNG's structure mods
+  cancel every vanilla start of the type they replace, which killed
+  forced `minecraft:fortress` regardless of placement class
+  (TROUBLESHOOTING.md#t25). **Vanilla behaviour is unchanged for every
+  other set.** Forced structures also get terrain-adaptation resolution
+  from the full registries, so beards and kernels apply even when the
+  structure's organic set is biome-prefiltered out of the calculator.
 - **StructurePlacementCalculator prefilters by biome availability**, and
   that is a SEPARATE gate from the predicate above. `create()` drops
   whole sets whose structures' valid biomes miss the biome source, and
@@ -629,10 +629,10 @@ MultiverseServer (entrypoint)
 │       │           └── StructureNoise → own Perlin (see below)
 │       ├── StructureGroupRegistry → group/rarity per set + type defaults,
 │       │   both jar-baked; unknown sets infer to deco + spacing rarity
-│       └── FixedStructurePlacement → structures.force; its chunks also
-│           skip the structure's biome predicate, via ForcedBiomeBypass
-│           (StructurePlacementForcedBiomeMixin arms,
-│           ChunkGeneratorForcedBiomeMixin swaps the predicate)
+│       └── FixedStructurePlacement → structures.force positions; their
+│           start attempts are performed by ChunkGeneratorForcedStartMixin
+│           from the ForcedStartOverride registry (biome predicate
+│           bypassed, other mods' start cancels outrun — see T25)
 ├── MinecraftServerAccessor → server internals access
 ├── StructurePlacementAccessor / StructurePlacementCalculatorInvoker
 │   └── placement field access + the private calculator ctor (the public

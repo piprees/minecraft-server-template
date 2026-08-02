@@ -69,6 +69,7 @@ public final class DimensionStructures {
         // (returning null below): the Beardifier runs in the noise phase and
         // covers pass-throughs and vanilla-grid sets alike.
         installTerrainAdaptation(world, def, original);
+        installForcedStarts(world, def);
         String density = normalizedDensity(def);
         boolean peaceful = !def.isHostileSpawningEnabled();
         DimensionConfig.Structures structBlock = def.getStructures();
@@ -435,10 +436,10 @@ public final class DimensionStructures {
      * structure ids (e.g. from a removed mod) warn and skip — never a boot
      * break (optional-mods promise). Returns how many positions were added.
      *
-     * The structure's biome predicate does NOT apply at a forced position —
-     * see FixedStructurePlacement and ForcedBiomeBypass. This line says what
-     * was configured; a second INFO line is logged when a forced position
-     * actually generates.
+     * Neither the structure's biome predicate nor other mods' start cancels
+     * apply at a forced position — see ForcedStartOverride. This line says
+     * what was configured; a second INFO line is logged when a forced
+     * position actually generates.
      */
     private static int appendForcedPlacements(List<RegistryEntry<StructureSet>> transformed,
                                               ServerWorld world, DimensionConfig def,
@@ -465,6 +466,13 @@ public final class DimensionStructures {
                         def.getName(), f.structure);
                 continue;
             }
+            int border = def.getPlayerBorderRadius();
+            if (border > 0 && (Math.abs(f.x) > border || Math.abs(f.z) > border)) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: structures.force {} at ({}, {}) lies outside the playable "
+                        + "border (radius {}) — it generates only if chunks ever generate there",
+                        def.getName(), f.structure, f.x, f.z, border);
+            }
             byStructure.computeIfAbsent(sid, k -> new java.util.ArrayList<>())
                     .add(new net.minecraft.util.math.ChunkPos(f.x >> 4, f.z >> 4));
         }
@@ -486,6 +494,34 @@ public final class DimensionStructures {
                     def.getName(), e.getKey(), e.getValue());
         }
         return forcedCount;
+    }
+
+    /**
+     * Installs the world's forced-start registry entries —
+     * {@code ChunkGeneratorForcedStartMixin} consults them at the head of
+     * every start attempt and performs forced ones itself, ahead of the
+     * structure's biome predicate and other mods' start cancels. Runs for
+     * every managed world, empty configs included, so a dimension that drops
+     * its forces also drops its registry entries.
+     */
+    private static void installForcedStarts(ServerWorld world, DimensionConfig def) {
+        DimensionConfig.Structures block = def.getStructures();
+        java.util.List<DimensionConfig.ForcedStructure> forced =
+                block != null && block.force != null ? block.force : java.util.List.of();
+        java.util.List<ForcedStartOverride.ForcedEntry> entries = new ArrayList<>();
+        for (DimensionConfig.ForcedStructure f : forced) {
+            if (f == null || f.structure == null || f.x == null || f.z == null) {
+                continue;   // appendForcedPlacements owns the malformed-entry warning
+            }
+            Identifier sid = Identifier.tryParse(f.structure);
+            if (sid == null) {
+                continue;
+            }
+            entries.add(new ForcedStartOverride.ForcedEntry(sid.toString(),
+                    net.minecraft.util.math.ChunkPos.toLong(f.x >> 4, f.z >> 4)));
+        }
+        ForcedStartOverride.install(world.getRegistryKey().getValue().toString(),
+                def.getName(), ForcedStartOverride.byChunk(entries));
     }
 
     private static volatile boolean warnedSuppressList;
@@ -565,6 +601,8 @@ public final class DimensionStructures {
                 new java.util.IdentityHashMap<>();
         java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
                 TerrainKernel> kernels = new java.util.IdentityHashMap<>();
+        java.util.Set<net.minecraft.world.gen.structure.Structure> seen =
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         for (RegistryEntry<StructureSet> entry : original.getStructureSets()) {
             String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
             StructurePlacement placement = entry.value().placement();
@@ -575,29 +613,37 @@ public final class DimensionStructures {
                 net.minecraft.world.gen.structure.Structure structure = weighted.structure().value();
                 String structureId = weighted.structure().getKey()
                         .map(k -> k.getValue().toString()).orElse(null);
-                net.minecraft.world.gen.StructureTerrainAdaptation vanilla;
-                try {
-                    vanilla = structure.getTerrainAdaptation();
-                } catch (RuntimeException e) {
-                    continue;   // a broken structure is not ours to fail on
-                }
-                String resolvedName = TerrainAdaptationOverride.resolveName(
-                        config, structureId, group, themes,
-                        vanilla.asString());
-                if (resolvedName == null) {
+                seen.add(structure);
+                resolveAdaptationInto(map, kernels, config, themes, structure,
+                        structureId, group, def.getName());
+            }
+        }
+
+        // Forced structures may have no set in this world's calculator — their
+        // organic set can be biome-prefiltered away, or belong to another
+        // family entirely. Resolve them from the FULL registries so beards and
+        // kernels apply to forced placements like any other structure.
+        java.util.List<DimensionConfig.ForcedStructure> forcedList =
+                block != null && block.force != null ? block.force : java.util.List.of();
+        if (!forcedList.isEmpty()) {
+            var structureRegistry = world.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.STRUCTURE);
+            var setRegistry = world.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+            for (DimensionConfig.ForcedStructure f : forcedList) {
+                Identifier sid = f != null && f.structure != null
+                        ? Identifier.tryParse(f.structure) : null;
+                if (sid == null) {
                     continue;
                 }
-                var resolved = TerrainAdaptationOverride.parse(resolvedName,
-                        "dimension " + def.getName() + ", structure " + structureId);
-                if (resolved != null && resolved != vanilla) {
-                    map.put(structure, resolved);
+                net.minecraft.world.gen.structure.Structure structure =
+                        structureRegistry.get(sid);
+                if (structure == null || !seen.add(structure)) {
+                    continue;
                 }
-                // A kernel name parses to NONE above (vanilla must ignore
-                // the structure); its real shape lives in the kernel map.
-                TerrainKernel kernel = TerrainKernel.parse(resolvedName);
-                if (kernel != null) {
-                    kernels.put(structure, kernel);
-                }
+                resolveAdaptationInto(map, kernels, config, themes, structure,
+                        sid.toString(), forcedGroupOf(setRegistry, structure),
+                        def.getName());
             }
         }
         TerrainAdaptationOverride.install(worldId, map, kernels);
@@ -609,6 +655,66 @@ public final class DimensionStructures {
                     kernels.isEmpty() ? ""
                             : " (+" + kernels.size() + " custom kernel(s))");
         }
+    }
+
+    /**
+     * One structure's adaptation resolution: per-structure config -> group
+     * config -> theme default (fills registry "none" only) -> registry value.
+     * Records only entries that DIFFER; a kernel name parses to NONE for
+     * vanilla and carries its real shape in the kernel map.
+     */
+    private static void resolveAdaptationInto(
+            java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                    net.minecraft.world.gen.StructureTerrainAdaptation> map,
+            java.util.IdentityHashMap<net.minecraft.world.gen.structure.Structure,
+                    TerrainKernel> kernels,
+            java.util.Map<String, String> config, java.util.Map<String, String> themes,
+            net.minecraft.world.gen.structure.Structure structure, String structureId,
+            String group, String dimName) {
+        net.minecraft.world.gen.StructureTerrainAdaptation vanilla;
+        try {
+            vanilla = structure.getTerrainAdaptation();
+        } catch (RuntimeException e) {
+            return;   // a broken structure is not ours to fail on
+        }
+        String resolvedName = TerrainAdaptationOverride.resolveName(
+                config, structureId, group, themes, vanilla.asString());
+        if (resolvedName == null) {
+            return;
+        }
+        var resolved = TerrainAdaptationOverride.parse(resolvedName,
+                "dimension " + dimName + ", structure " + structureId);
+        if (resolved != null && resolved != vanilla) {
+            map.put(structure, resolved);
+        }
+        TerrainKernel kernel = TerrainKernel.parse(resolvedName);
+        if (kernel != null) {
+            kernels.put(structure, kernel);
+        }
+    }
+
+    /**
+     * The group a forced structure's own set classifies to, resolved from the
+     * FULL structure-set registry — the world's calculator list is
+     * biome-prefiltered and can lack the set entirely. Null when the
+     * structure appears in no registered set (per-structure config and the
+     * registry adaptation still apply).
+     */
+    private static String forcedGroupOf(
+            net.minecraft.registry.Registry<StructureSet> setRegistry,
+            net.minecraft.world.gen.structure.Structure structure) {
+        for (var setEntry : setRegistry.getEntrySet()) {
+            for (StructureSet.WeightedEntry weighted : setEntry.getValue().structures()) {
+                if (weighted.structure().value() == structure) {
+                    String setId = setEntry.getKey().getValue().toString();
+                    StructurePlacement placement = setEntry.getValue().placement();
+                    int spacing = placement instanceof RandomSpreadStructurePlacement random
+                            ? random.getSpacing() : -1;
+                    return StructureGroupRegistry.classify(setId, spacing).group();
+                }
+            }
+        }
+        return null;
     }
 
     /** Validated structures.mode: allow | reject | none, or null (off).

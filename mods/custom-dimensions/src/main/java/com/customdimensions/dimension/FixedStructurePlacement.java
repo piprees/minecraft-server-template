@@ -38,11 +38,11 @@ import java.util.Set;
  * the same region still GENERATE (isStartChunk is a set-membership test)
  * but locate returns the region's registered one — warned at build time.
  *
- * A forced placement also DISABLES the structure's biome predicate for the
- * chunks it claims — "put THIS structure at THIS spot" is a literal
- * override, not a suggestion. StructurePlacementForcedBiomeMixin arms on
- * this class specifically and ChunkGeneratorForcedBiomeMixin consumes it;
- * see {@link ForcedBiomeBypass} for why the two are separated.
+ * A forced placement's start attempts are performed by
+ * ChunkGeneratorForcedStartMixin, which bypasses the structure's biome
+ * predicate AND other mods' start cancels — "put THIS structure at THIS
+ * spot" is a literal override, not a suggestion. See
+ * {@link ForcedStartOverride}.
  *
  * Instances live only in per-world rebuilt StructurePlacementCalculators
  * (never serialised into level.dat), but the type is registered anyway so

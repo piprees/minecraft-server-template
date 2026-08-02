@@ -6,10 +6,10 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T24](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T25](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K3](#known-issues) | Open issues — unfixed, on the watch list |
+| **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -65,13 +65,14 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Structures generating in a void/superflat dimension | [T22](#t22) |
 | `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
 | A RETURN/`@ModifyReturnValue` hook on StructureWeightSampler never fires | [T24](#t24) |
+| A `structures.force` position never generates its structure | [T25](#t25) |
+| Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
 | Custom dimensions all generate identical terrain | [D6](#d6) |
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
-| A `structures.force` position never generates its structure | [K3](#k3) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -376,6 +377,41 @@ Each of these has caused a real incident.
   the same helper). The census artefact now records a `passThrough` array so
   per-dimension filtering is visible: a filtered set must be ABSENT from it.
 
+<a id="t25"></a>
+### T25 — Third-party HEAD cancels ate forced structure starts; the mod now performs them itself
+
+- **Symptom:** a `structures.force` position sits in the live calculator
+  (census `forced` block, boot line `+N forced`), the chunk generates fresh
+  under that calculator, and yet no structure start exists — no
+  `forced ... generated at chunk` INFO line, no structure blocks.
+- **Cause:** all seven YUNG's structure mods `@Inject(HEAD, cancellable)`
+  into `ChunkGenerator.trySetStructureStart` and cancel every start whose
+  structure TYPE they replace — fortresses, mineshafts, strongholds,
+  desert and jungle temples, ocean monuments, witch huts (config-gated,
+  on by default). A forced `minecraft:fortress` died there regardless of
+  placement class; the failure was filed as K3 (2026-08-01) and
+  mis-scoped to `FixedStructurePlacement` because every reproduction
+  happened to force a YUNG's-replaced type while the noise sets that
+  "provably worked" carried none.
+- **Fix (in place):** `ChunkGeneratorForcedStartMixin` performs forced
+  start attempts itself from the `ForcedStartOverride` registry of
+  (world, chunk, structure) triples, with an always-true biome predicate.
+  It is priority 900 because HEAD callbacks execute in application order
+  (lower priority applies first) — at 1100 it sat below YUNG's cancel and
+  never ran for fortress attempts; measured live both ways. Forced
+  structures also get terrain-adaptation resolution from the full
+  registries, so beards and kernels apply even when their organic set is
+  biome-prefiltered out of the world's calculator.
+- **Corollary:** vanilla fortresses, mineshafts, strongholds, desert and
+  jungle temples, ocean monuments and witch huts never generate
+  ORGANICALLY on this stack — the YUNG's replacements own those niches by
+  design. Forcing one is the only way to place the vanilla structure.
+- **Verify with:** a fresh throwaway dimension + `customdim load` + a bot
+  at the forced position, then
+  `grep 'generated at chunk' latest.log` and block probes inside the
+  persisted piece boxes (region NBT). Census presence alone proves
+  CONFIG, not generation.
+
 <a id="t24"></a>
 ### T24 — RETURN-side callbacks on StructureWeightSampler never execute; a silent instrument there proves nothing
 
@@ -516,38 +552,6 @@ Open, unfixed, on the watch list.
 **Diagnosis caveat:** spark's `Timed out waiting for world statistics` alone is NOT proof — it also fires through legitimately heavy boots (mass dimension creation can run 10+ min). Confirm with `Error upgrading chunk`/`DungeonZombie` counts and whether the log has stopped advancing.
 
 **Recovery:** `docker stop -t 90 mc && docker start mc` (local only; production restarts go through deploy.sh), plus the [D3](#d3) scrub when the trigger is a regenerating deleted dim, or it wedges again every boot.
-
-<a id="k3"></a>
-### K3 — structures.force produces no structure START in freshly generated chunks (local stack)
-
-*(2026-08-01, elfydd local)*
-
-- **Symptom:** a `structures.force` position sits in the live calculator
-  (census `forced` block, boot line `+N forced`), the chunk generates fresh
-  under that calculator (player-driven), and yet no structure start exists:
-  no `forced ... generated at chunk` INFO line (ForcedBiomeBypass), no
-  structure blocks at the position.
-- **Evidence:** two virgin fixture dimensions (a void and a `multi_biome`
-  with `structureDensity: "none"`), each with `minecraft:fortress` forced at
-  chunk (10, 10). Reproduced on BOTH the v4.7.0 bundle jar and a current
-  local build — so it is not a regression from the 2026-08-01 legacy-path
-  changes ([T22](#t22)/[T23](#t23)), which only decide which sets reach the
-  calculator (the forced set demonstrably reaches it on both jars).
-  Noise-placed sets in the same calculators DO generate starts, so the
-  vanilla start machinery works with synthetic keyless sets in general.
-- **Suspects:** c2me's chunk-system scheduling of the STRUCTURE_STARTS
-  stage, or something specific to `FixedStructurePlacement`'s path through
-  it. The 2026-07-29 forced-placement verification predates these fixtures
-  and its rig is unrecorded — re-verify on the c2me-free itzg oracle
-  container to split the suspects.
-- **Impact:** any NEW world relying on a forced placement (e.g.
-  `the_crimson_nexus`'s narrative fortress at (287, -64)) may generate
-  without it. Existing worlds whose forced chunks generated earlier keep
-  whatever they have.
-- **Verify with:** a fresh throwaway dimension + `customdim load` + a
-  Carpet bot at the forced position (RCON `forceload` does not reliably
-  drive generation), then `grep 'generated at chunk' latest.log` and block
-  probes. Census/boot-line presence alone proves CONFIG, not generation.
 
 <a id="k2"></a>
 ### K2 — c2me `TheChunkSystem` ConcurrentModificationException

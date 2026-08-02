@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ChunkGeneratorAccessor",
-    "ChunkGeneratorForcedBiomeMixin",
+    "ChunkGeneratorForcedStartMixin",
     "ChunkNoiseSamplerMixin",
     "CreateWorldsMixin",
     "EntityTickPortalMixin",
@@ -25,7 +25,6 @@
     "StructureAccessorAccessor",
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
-    "StructurePlacementForcedBiomeMixin",
     "StructureTerrainAdaptationMixin",
     "StructureWeightSamplerMixin",
     "WorldLoaderMixin",
