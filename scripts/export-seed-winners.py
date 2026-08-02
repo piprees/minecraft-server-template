@@ -15,6 +15,7 @@ Usage:
   scripts/export-seed-winners.py [--consumer PATH] [--dry-run]
 
   --consumer PATH  consumer repo root (default: ~/Projects/elfydd)
+  --platform PATH  platform repo root (default: this script's checkout)
   --dry-run        print per-file unified diffs, change nothing
 
 Template-only (platform development); deliberately NOT in the bundle
@@ -116,10 +117,12 @@ def main():
         description="Export rolled winner seeds/spawns from a consumer overlay "
                     "into the platform dimension configs.")
     parser.add_argument("--consumer", default=str(Path.home() / "Projects" / "elfydd"))
+    parser.add_argument("--platform", default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    platform_dir = Path(__file__).resolve().parent.parent
+    platform_dir = (Path(args.platform).expanduser() if args.platform
+                    else Path(__file__).resolve().parent.parent)
     template_dir = platform_dir / "config" / "custom-dimensions" / "dimensions"
     overlay_dir = (Path(args.consumer).expanduser()
                    / "overlay" / "config" / "custom-dimensions" / "dimensions")
