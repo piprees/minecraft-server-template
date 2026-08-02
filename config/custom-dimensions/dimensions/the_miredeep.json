@@ -76,6 +76,7 @@
     }
   },
   "structures": {
+    "terrainAdaptation": {"dungeons": "drain", "loot": "drain"},
     "clearSpawnRadius": 80
   },
   "environment": {

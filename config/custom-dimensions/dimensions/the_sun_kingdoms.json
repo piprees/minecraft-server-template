@@ -130,6 +130,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "terrainAdaptation": {"dungeons_arise:keep_kayra": "pedestal"}
+  },
   "seedRoll": {
     "mood": "adventurous",
     "spawnFilter": ["minecraft:plains"],

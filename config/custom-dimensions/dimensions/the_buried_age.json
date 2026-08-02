@@ -37,6 +37,9 @@
     "fogColor": "#3B2B1B",
     "ambientLight": 0.1
   },
+  "structures": {
+    "terrainAdaptation": {"landmarks": "bury"}
+  },
   "seedRoll": {
     "mood": "hard",
     "spawnFilter": [

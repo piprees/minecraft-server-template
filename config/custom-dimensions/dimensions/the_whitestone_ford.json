@@ -73,6 +73,9 @@
     },
     "orientation": "horizontal"
   },
+  "structures": {
+    "terrainAdaptation": {"landmarks": "moat"}
+  },
   "seedRoll": {
     "mood": "pastoral",
     "spawnFilter": ["minecraft:meadow"],

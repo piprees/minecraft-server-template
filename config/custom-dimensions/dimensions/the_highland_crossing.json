@@ -101,6 +101,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "terrainAdaptation": {"landmarks": "platform_skirt"}
+  },
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": ["minecraft:forest"],

@@ -61,6 +61,40 @@ That's the _rendered_ nginx config (nginx's `docker-entrypoint.sh` envsubsts `/c
 
 The same principle applies everywhere in the table above: grep `docker logs` for the line that proves the code path ran, not the config file for the value you set.
 
+## Symlinking a consumer at the platform checkout (bundle-free local dev)
+
+To test unreleased bundle content (configs, scripts, compose) in a consumer repo
+without cutting a release, point the consumer's `.stack/current` at a symlink
+farm over the platform checkout. The bundle layout is
+`.stack/<version>/stack/{config,scripts,examples,docker-compose*.yml,.env.example,local-mods,VERSION}`;
+the platform repo has the same directories at its root, so a farm reproduces it:
+
+```bash
+R=~/Projects/minecraft-server-template          # platform checkout
+C=~/Projects/<consumer>                          # consumer repo
+mkdir -p "$C/.stack/dev/stack" && cd "$C/.stack/dev/stack"
+ln -sfn "$R"/config config && ln -sfn "$R"/scripts scripts
+ln -sfn "$R"/examples examples && ln -sfn "$R"/.env.example .env.example
+ln -sfn "$R"/docker-compose.yml docker-compose.yml
+ln -sfn "$R"/docker-compose.local.yml docker-compose.local.yml
+mkdir local-mods && cp "$R"/mods/*/build/libs/*.jar local-mods/   # locally built jars, NOT -dev jars
+echo dev > VERSION
+ln -sfn dev "$C/.stack/current"                  # switch; restore with: ln -sfn v<X.Y.Z> "$C/.stack/current"
+```
+
+- The seed roller and `./dev` then read the platform checkout's configs and
+  scripts directly — an edit in the repo is live on the next roll or `./dev up`.
+- Pointing `stack/local-mods/` at your locally built jars inverts trap #2
+  below: `./dev up` now installs the LOCAL build instead of silently reverting
+  it to the released one. Verify the jar gate first, as ever.
+- `readlink .stack/current` answering `dev` is the tell that a consumer is on a
+  checkout, not a release — restore the release symlink before trusting any
+  "works on the shipped bundle" claim, and never leave a shared consumer
+  (elfydd) pointed at `dev` when you finish.
+- Local only. CI/production tier detection compares `readlink .stack/current`
+  against resolved release tags; a `dev` link on a server would force
+  perpetual full deploys.
+
 ## The two local entry points
 
 | Entry point | Use in | Notes |

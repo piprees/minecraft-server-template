@@ -30,6 +30,9 @@
       "exit": "block.portal.travel"
     }
   },
+  "structures": {
+    "terrainAdaptation": {"landmarks": "pedestal", "endgame": "pedestal"}
+  },
   "seedRoll": {
     "mood": "dramatic",
     "spawnFilter": [
