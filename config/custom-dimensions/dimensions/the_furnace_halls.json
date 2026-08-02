@@ -31,6 +31,9 @@
     }
   },
   "structures": {
+    "terrainAdaptation": {
+      "mns:mega_fortress": "pedestal"
+    },
     "force": [
       {
         "structure": "betterfortresses:fortress",

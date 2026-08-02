@@ -54,6 +54,11 @@
     "mobMultiplier": 1.0,
     "playerLuck": 1.6
   },
+  "structures": {
+    "terrainAdaptation": {
+      "paradise_lost:aurel_tower": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:purpur_block",
     "igniterItem": "minecraft:diamond",

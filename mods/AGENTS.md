@@ -218,16 +218,14 @@ Install straight into the local consumer's `data/mods/` and restart only the mc 
 
 **Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle into `data/mods/` on every run, silently overwriting your locally-built JAR with the old released version. Your test then runs the OLD code and "passes" while the change you're testing never executes (2026-07-25: an entire lazy-init feature appeared to not work across four boot cycles because every test was running the bundle JAR). Use `docker stop mc && docker start mc` (or `docker restart mc`) — these restart the container without touching the mod files. Only use `./dev up` when you deliberately want to reset to the bundle's shipped JARs.
 
-**Re-patch c2me BEFORE every stop/start in this loop.** c2me strips
-`useDensityFunctionCompiler` from `data/config/c2me.toml` on every boot
-(after reading it), so patching once does NOT survive repeated restart
-cycles — each `docker stop mc && docker start mc` after the first boots
-unpatched (2026-07-23: three consecutive fixture cycles ran that way
-mid-session despite the trap being documented). Paste the idempotent
-snippet from `dev-up.sh` (search `useDensityFunctionCompiler`) before
-each restart, or make it part of your restart one-liner. Verify via log
-grep, never the config file (the key is stripped again by the boot that
-honours it).
+**c2me's DFC patch is automatic.** The mod's preLaunch entrypoint
+(`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into
+`data/config/c2me.toml` on every boot, so bare `docker stop mc && docker
+start mc` cycles stay patched with no manual step
+([TROUBLESHOOTING.md#d6](../TROUBLESHOOTING.md#d6) — the scripts still
+pre-patch as a second layer covering a fresh environment's first boot).
+Verify via log grep, never the config file (the key is stripped again by
+the boot that honours it).
 
 ```bash
 cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
@@ -338,7 +336,7 @@ docker exec mc cat /data/logs/latest.log | grep -iE 'Unloading idle|ConcurrentMo
 
 **Dynamic world lifecycle rule:** any code path that adds a `ServerWorld` to the server's worlds map MUST fire `ServerWorldEvents.LOAD`, and any path that removes/closes one MUST fire `ServerWorldEvents.UNLOAD` before `close()`. Distant Horizons and c2me build their per-level state exclusively from these Fabric events — skipping LOAD made DH NPE on the first portal teleport into a runtime dimension and locked the player out of production (2026-07-12). Also: never call `getOrCreateDimension` synchronously from command context — world creation there deadlocks the main thread; queue via `requestWorldLoad` (END_SERVER_TICK) instead.
 
-**c2me DFC trap (per-dimension seeds):** `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension — that value feeds `NoiseConfig` (terrain, biome layout, aquifers) and structure placement. c2me's density-function compiler (`c2me-opts-dfc`) caches compiled+instantiated density functions across `NoiseConfig` creations and IGNORES the seed, so with it enabled every custom dimension silently clones the main world. `deploy.sh` (step 8c) and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml`; the rest of c2me stays enabled. When testing seeds, use the locate oracle: two dims with different seeds must give different `execute in adventure:<dim> run locate biome/structure` results; same seed must match. Two sharp edges: (1) c2me STRIPS the unknown key when it rewrites its config at boot — the key is read first, so enforcement holds, but only because both boot paths re-patch it every time; (2) a bare `docker restart mc` therefore boots WITHOUT the patch — after a manual restart in the local loop, re-run `./dev up` (or re-add the key) before trusting seed results.
+**c2me DFC trap (per-dimension seeds):** `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension — that value feeds `NoiseConfig` (terrain, biome layout, aquifers) and structure placement. c2me's density-function compiler (`c2me-opts-dfc`) caches compiled+instantiated density functions across `NoiseConfig` creations and IGNORES the seed, so with it enabled every custom dimension silently clones the main world. `C2meConfigPatch` (this mod's preLaunch entrypoint) forces `useDensityFunctionCompiler = false` into `c2me.toml` every boot; the rest of c2me stays enabled. c2me reads the key at mixin-bootstrap time and strips it afterwards, so each boot's write feeds the next boot's read — bare restarts stay patched, and `deploy.sh` (step 8c) / `dev-up.sh` pre-patch as a second layer covering a fresh environment's first boot ([TROUBLESHOOTING.md#d6](../TROUBLESHOOTING.md#d6)). Verify by the D6 log grep, never the config file.
 
 ### 5. Ship and verify at each layer
 

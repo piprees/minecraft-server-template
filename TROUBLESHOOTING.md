@@ -513,15 +513,15 @@ Config files are seeded with `if [[ ! -f "$dest" ]]`, so a consumer upgrading ac
 The platform copy under `config/` is the source of truth; the consumer copy under `data/config/` must be an exact copy. After any config edit, **always copy, never diff-and-decide**.
 
 <a id="d6"></a>
-### D6 — c2me DFC: verify via log grep, not config inspection
+### D6 — c2me DFC: self-patching; verify via log grep, not config inspection
 
-`useDensityFunctionCompiler` must stay `false` or every custom dimension silently clones the main world. The key IS read by c2me before c2me strips it from the config file on boot, so its absence from `c2me.toml` afterwards is expected and proves nothing. The log line confirms it was applied:
+`useDensityFunctionCompiler` must stay `false` or every custom dimension silently clones the main world. The patching is AUTOMATIC: the customdimensions jar's preLaunch entrypoint (`C2meConfigPatch`) forces the key into `config/c2me.toml` on every boot. c2me reads its config at MIXIN-BOOTSTRAP time — before any entrypoint — and strips the unknown key when it rewrites the file, so each boot's write is consumed by the NEXT boot's read: every boot after the first is self-patched, and a bare `docker restart mc` is safe. The key's absence from `c2me.toml` after a boot is expected and proves nothing; the log line confirms it was applied:
 
 ```
 Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used
 ```
 
-`deploy.sh` (step 8c) and `dev-up.sh` re-patch it every time. A bare `docker restart mc` therefore boots **unpatched** — re-patch before every restart cycle in a local loop.
+The one gap is the very first boot in a fresh environment (new jar + no key on disk); `deploy.sh` (step 8c) and `dev-up.sh` still pre-patch as a second layer, which covers that boot on every scripted path. Only a hand-deleted `c2me.toml` followed by a bare restart boots unpatched once — and self-heals on the following boot.
 
 <a id="d7"></a>
 ### D7 — Seed-roll worker dirs need cleaning

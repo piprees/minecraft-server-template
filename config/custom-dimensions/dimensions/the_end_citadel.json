@@ -55,6 +55,11 @@
     "playerLuck": 1.8
   },
   "structureDensity": "dense",
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:end_stone_bricks",
     "igniterItem": "minecraft:ender_eye",

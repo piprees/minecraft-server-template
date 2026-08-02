@@ -62,25 +62,7 @@ docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
 
 If the persisted state format changed (config schema, namespace, ids), delete the mod's state file(s) under `data/config/` before restarting — stale state from a previous build masks bugs and creates ghosts.
 
-**c2me re-patch rule, every single stop/start in this loop.** c2me strips `useDensityFunctionCompiler` from `data/config/c2me.toml` on every boot (after reading it), so patching once does not survive repeated restart cycles — a bare `docker restart mc` after the first boots WITHOUT the patch (2026-07-23: three consecutive fixture cycles ran unpatched mid-session despite the trap being documented). Without it, c2me's density-function-compiler caches compiled density functions across `NoiseConfig` creations and ignores the seed, so every custom dimension silently clones the main world. Re-apply before each restart with the same idempotent patch `dev-up.sh` uses:
-
-```bash
-python3 - "<consumer>/data/config/c2me.toml" << 'PYEOF'
-import os, re, sys
-p = sys.argv[1]
-section, key = "[vanillaWorldGenOptimizations]", "useDensityFunctionCompiler"
-s = open(p).read() if os.path.exists(p) else ""
-if key in s:
-    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-elif section in s:
-    updated = s.replace(section, section + "\n\t%s = false" % key)
-else:
-    updated = s + "\n%s\n\t%s = false\n" % (section, key)
-if updated != s:
-    open(p, "w").write(updated)
-PYEOF
-docker restart mc
-```
+**c2me DFC is self-patching.** The mod's preLaunch entrypoint (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into `data/config/c2me.toml` on every boot, so a bare `docker restart mc` stays patched — no manual re-patch in the loop ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6) has the mixin-bootstrap timing and the one first-boot gap the scripts still cover).
 
 **Verify via log grep, never by inspecting the config file afterwards** — the key's absence from `c2me.toml` post-boot is expected (c2me strips it after reading it): `docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log`.
 

@@ -18,6 +18,11 @@
     "mobMultiplier": 1.5,
     "playerLuck": 1.3
   },
+  "structures": {
+    "terrainAdaptation": {
+      "structory_towers:warped_greatsword": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:basalt",
     "igniterItem": "minecraft:flint_and_steel",

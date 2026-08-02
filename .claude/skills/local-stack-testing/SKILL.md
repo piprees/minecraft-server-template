@@ -31,7 +31,7 @@ Read this before touching the stack. Find the row that matches what you changed,
 | An in-house mod jar (`mods/custom-dimensions/`) | `./dev up` copies `stack/local-mods/*.jar` from the bundle into `data/mods/` on **every** run, silently overwriting your fresh build with the last released version | `cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar`, then `docker stop mc && docker start mc` (or `docker restart mc`) — never `./dev up` |
 | Content baked into the `defaults-seed` image (`config/modrinth-mods.txt`, `config/nginx/*.template`, anything under `docker/defaults-seed/`) | The image is rebuilt only by CI on push. The `stack-config`/`stack-mods` **named volumes** are seeded once by the `seed` container; any `compose up` that reruns `seed` (i.e. without `--no-deps`) silently restores image defaults over your hand-patch | Patch the volume directly, then recreate **only the consuming service** — `./dev restart nav-proxy` / `./dev restart pack-web` (runs `--force-recreate --no-deps`, does not touch `seed`) — and verify the **rendered** file, never the patch |
 | A config under `config/<modname>/` that `dev-up.sh` seeds into `data/config/` (a **bind mount**, not the volume above) | Seeding is `if [[ ! -f "$dest" ]]` — skip-if-exists. An existing `data/config/` file (e.g. from a previous version) keeps its old content forever; your new fields never land | `./dev refresh-config` (backs up `data/config` to `data/config.bak.<timestamp>`, then copies **every** platform default unconditionally and reapplies the overlay) — or delete the one target file yourself before `./dev up` |
-| Anything touching per-dimension seeds or worldgen | c2me strips `useDensityFunctionCompiler` from `data/config/c2me.toml` after reading it on **every** boot; a bare restart after the first one boots unpatched and every custom dimension silently clones the main world | Re-run the c2me snippet (below) before every `stop`/`start` cycle, or use `./dev up` (which re-applies it); verify via **log grep**, never the config file |
+| Anything touching per-dimension seeds or worldgen | c2me strips `useDensityFunctionCompiler` from `data/config/c2me.toml` after reading it on **every** boot | Nothing — the mod's preLaunch entrypoint re-supplies the key every boot, so bare restarts stay patched ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)); verify via **log grep**, never the config file |
 | An nginx config (`config/nginx/*.conf.template`) | Bind-mounted into the `seed` volume, but nginx renders the template once at container start and caches it — editing the source doesn't touch the running container | `./dev restart nav-proxy` or `./dev restart pack-web` |
 | Map render config or world data | `unmined-render` only renders on its `UNMINED_INTERVAL` schedule, and skips dimensions whose region files haven't changed — so nothing appears to happen immediately | `docker restart unmined-render` (a restart renders straight away) |
 
@@ -114,34 +114,20 @@ points `.stack/current` at it.
 
 A green local boot proves the mod/config/worldgen path works. It proves nothing about auth, the whitelist dance, autopause, or anything behind the tunnel.
 
-## The c2me recipe
+## The c2me patch — automatic
 
-Needed before nearly every `stop`/`start` cycle once you're touching dimensions, seeds, or worldgen. This is the idempotent snippet from `dev-up.sh` (search `useDensityFunctionCompiler`) — reproduce it exactly, don't approximate:
+The customdimensions jar's preLaunch entrypoint (`C2meConfigPatch`) forces
+`useDensityFunctionCompiler = false` into `data/config/c2me.toml` on every
+boot, so a bare `docker restart mc` stays patched — no manual snippet, no
+`./dev up` requirement. c2me reads its config at mixin-bootstrap time
+(before any entrypoint) and strips the key after honouring it, so each
+boot's write is consumed by the NEXT boot's read; `deploy.sh`/`dev-up.sh`
+still pre-patch as a second layer, which covers the one gap (the first
+boot in a fresh environment). Full mechanics:
+[TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6).
 
-```python
-import sys, os, re
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
-if os.path.exists(p):
-    s = open(p).read()
-    if key in s:
-        s2 = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-    elif section in s:
-        s2 = s.replace(section, section + "\n\t%s = false" % key)
-    else:
-        s2 = s + "\n%s\n\t%s = false\n" % (section, key)
-    if s2 != s:
-        open(p, "w").write(s2)
-        print("  c2me: useDensityFunctionCompiler forced off (per-dimension seeds)")
-else:
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    open(p, "w").write("%s\n\t%s = false\n" % (section, key))
-```
-
-Run against `<consumer>/data/config/c2me.toml`. `./dev up` applies this automatically every time; a bare `docker restart mc` does not — re-run the snippet (or use `./dev up`) before trusting seed/worldgen results after a manual restart.
-
-**Verify via log grep, never the config file**: c2me reads the key first, then strips it when it rewrites its own config on boot — so its _absence_ from `c2me.toml` after boot is expected and proves nothing either way.
+**Verify via log grep, never the config file**: the key's _absence_ from
+`c2me.toml` after boot is expected and proves nothing either way.
 
 ```bash
 docker exec mc sh -c 'grep -F "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used" /data/logs/latest.log'
@@ -162,7 +148,7 @@ The five/six traps in the decision table above are the core of this skill, resta
 1. **Hand-patched shared volumes are reverted by every seed run.** Symptom: a local test of unreleased `defaults-seed` content passes, but the change was never live — the pass came through the old config. Cause: `stack-config`/`stack-mods` are named volumes seeded once by the `seed` container from the image; any `compose up` that reruns `seed` silently restores image defaults over a hand-patch. Fix: patch the volume, then `./dev restart <consuming-service> --no-deps`-equivalent (i.e. `./dev restart nav-proxy`), never a plain `compose up` (2026-07-13).
 2. **`./dev up` destroys a local mod build.** Symptom: a whole feature appears broken across several boot cycles. Cause: `dev-up.sh` copies `stack/local-mods/*.jar` into `data/mods/` on every run, overwriting your fresh jar with the last release. Fix: `cp` your jar in, then `docker restart mc` — never `./dev up` (2026-07-25).
 3. **`dev-up.sh` skip-if-exists blocks config upgrades.** Symptom: a consumer upgrading keeps an old config file missing new fields, with no warning. Cause: `if [[ ! -f "$dest" ]]` only seeds a file that doesn't already exist. Fix: `./dev refresh-config`, or delete the specific file before `./dev up`.
-4. **The c2me re-patch does not survive repeated restarts.** Symptom: three consecutive fixture cycles ran unpatched mid-session despite the trap being documented. Cause: c2me strips the key on every boot after reading it, so patching once only covers the first restart. Fix: re-run the snippet (or `./dev up`) before every `stop`/`start`, verify by log grep (2026-07-23).
+4. **The c2me DFC patch is automatic, but only the log grep proves it.** The mod's preLaunch entrypoint re-supplies the key every boot ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)); the key's absence from `c2me.toml` afterwards is expected. A boot whose log lacks the `Removing config entry` line ran unpatched — the only case is a fresh environment's very first boot, which the scripts' pre-patch covers on every scripted path.
 5. **`docker restart mc` is fine locally, forbidden on production.** Local dev has no countdown, kick, save, or whitelist dance to protect — that's fine, nobody's playing. Don't let the habit leak to production: server restarts there go through `deploy.sh` or Discord `/mc restart` only.
 6. **On macOS Docker, bind-mount file-change events are unreliable.** Any container watching a bind-mounted path may never see a change locally. Validate pickup with an explicit `docker restart <service>` rather than waiting on a watcher.
 7. **The local consumer server (`~/Projects/elfydd`) is shared.** Check nobody is mid-test before restarting its containers — a `docker restart` there affects a real, currently-in-use dev world, not a disposable one.

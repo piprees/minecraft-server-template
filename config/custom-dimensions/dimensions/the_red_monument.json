@@ -48,6 +48,11 @@
     "mobMultiplier": 2.0,
     "playerLuck": 1.8
   },
+  "structures": {
+    "terrainAdaptation": {
+      "mes:monolith": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:red_sandstone",
     "igniterItem": "minecraft:ender_eye",

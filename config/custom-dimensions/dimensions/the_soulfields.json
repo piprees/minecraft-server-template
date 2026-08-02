@@ -33,6 +33,9 @@
     }
   },
   "structures": {
+    "terrainAdaptation": {
+      "mns:giant_skull": "pedestal"
+    },
     "clearSpawnRadius": 80
   },
   "environment": {

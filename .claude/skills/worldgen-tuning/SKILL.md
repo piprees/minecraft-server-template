@@ -80,6 +80,41 @@ Each dimension file in `config/custom-dimensions/dimensions/<slug>.json` accepts
 - `noiseSettings`: `adventure:wide` (broad realistic relief) or `adventure:compressed` (tight dramatic relief). Unset keeps the type's default generator. Ignored for void/superflat.
 - `structureDensity`: `dense` | `normal` | `sparse` | `none`. Theme-aware: dense boosts dungeons+loot ~2×, sparse halves them. Peaceful dims (`hostileSpawning: false`) auto-drop dungeon-theme sets.
 
+### Terrain-adaptation kernels — family verification
+
+`structures.terrainAdaptation` accepts, per structure id or group name, the
+vanilla adaptations (`none`/`beard_thin`/`beard_box`/`bury` — live on this
+stack, see [TROUBLESHOOTING.md#t24](../../../TROUBLESHOOTING.md#t24)) and
+four custom kernels delivered by `KernelDensity` over the chunk's final
+block-state density function. Verified per terrain family by forced-structure
+A/B fixtures (same seed, kernel vs none, probes chosen where the baseline is
+informative):
+
+| Kernel | overworld | paradise_lost | cave | nether | end | sky_islands |
+| --- | --- | --- | --- | --- | --- | --- |
+| `pedestal` (fill, 2.5) | ✓ live | ✓ 7/7 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 |
+| `platform_skirt` (fill, 2.0) | ✓ live | ✓ 13 pts | fill path shared with pedestal | fill path shared | fill path shared | fill path shared |
+| `moat` (carve, −1.2) | ✓ live | ✓ 23/60 | ✓ 5/60 | self-limits | self-limits | self-limits |
+| `drain` (fluid excl.) | ✓ live pocket | family-independent (wraps the chunk's FluidLevelSampler) | — | — | — | — |
+
+- **Fills are guarantee-strength everywhere**: every under-piece air target
+  packed solid on every family. Sky-anchored pieces self-exempt (density too
+  negative at altitude) — correct emergent behaviour, no absurd pillars.
+- **The moat carves overworld-class density** (overworld, paradise_lost,
+  cave surfaces) and **self-limits inside nether/end/sky island cores**,
+  whose base density exceeds −1.2 — it will not crater dense interior
+  terrain. For "keep it out / seal it in" themes on those families, use
+  `pedestal` (raised and separate reads as sealed) rather than raising the
+  moat magnitude, which would re-tune every shipped overworld moat.
+- **Probe design**: fill kernels are invisible on flat solid ground and
+  carve kernels are invisible in open air — pick probe targets from a
+  baseline world's actual composition (solid ring cells for carve, air
+  under-piece cells for fill), never fixed offsets.
+- **Fill kernels feed the structure's own grounding**: a heightmap-grounded
+  piece can land a couple of blocks differently with its fill kernel on
+  (it grounds on the terrain the kernel makes). Placement of fixed-Y and
+  jigsaw-anchored structures is unaffected.
+
 ### Generator types
 
 - `"type": "checkerboard"` — fixed biome grid over overworld terrain noise. `checkerboardScale` sets cell size.

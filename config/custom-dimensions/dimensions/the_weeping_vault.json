@@ -18,6 +18,12 @@
     "playerLuck": 1.5
   },
   "structureDensity": "dense",
+  "structures": {
+    "terrainAdaptation": {
+      "incendium:forbidden_castle": "pedestal",
+      "incendium:abandoned_tower": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:crying_obsidian",
     "igniterItem": "minecraft:flint_and_steel",

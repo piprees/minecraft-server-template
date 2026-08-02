@@ -107,6 +107,9 @@
     0
   ],
   "structures": {
+    "terrainAdaptation": {
+      "paradise_lost:aurel_tower": "pedestal"
+    },
     "noise": {
       "dungeons": "sparse"
     }

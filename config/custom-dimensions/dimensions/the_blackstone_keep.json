@@ -43,6 +43,9 @@
     "ambientLight": 0.08
   },
   "structures": {
+    "terrainAdaptation": {
+      "minecraft:bastion_remnant": "pedestal"
+    },
     "force": [
       {
         "structure": "minecraft:bastion_remnant",

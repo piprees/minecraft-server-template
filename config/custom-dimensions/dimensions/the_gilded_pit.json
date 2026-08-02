@@ -47,6 +47,11 @@
     }
   },
   "structures": {
+    "terrainAdaptation": {
+      "dungeons_arise:shiraz_palace": "pedestal",
+      "incendium:forbidden_castle": "pedestal",
+      "dungeons_arise:keep_kayra": "platform_skirt"
+    },
     "force": [
       {
         "structure": "minecraft:bastion_remnant",

@@ -55,6 +55,9 @@
     "effects": "minecraft:the_end"
   },
   "structures": {
+    "terrainAdaptation": {
+      "mes:mystical_archway": "pedestal"
+    },
     "wants": {
       "monolith": {
         "min": 0,

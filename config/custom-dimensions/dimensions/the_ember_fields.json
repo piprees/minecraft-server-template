@@ -18,6 +18,11 @@
     "mobMultiplier": 1.0,
     "playerLuck": 1.4
   },
+  "structures": {
+    "terrainAdaptation": {
+      "betterfortresses:fortress": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:magma_block",
     "igniterItem": "minecraft:flint_and_steel",

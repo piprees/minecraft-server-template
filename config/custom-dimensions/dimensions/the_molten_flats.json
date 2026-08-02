@@ -17,6 +17,12 @@
     "mobMultiplier": 1.5,
     "playerLuck": 1.4
   },
+  "structures": {
+    "terrainAdaptation": {
+      "incendium:nether_reactor": "platform_skirt",
+      "incendium:pipeline": "platform_skirt"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:smooth_basalt",
     "igniterItem": "minecraft:flint_and_steel",
