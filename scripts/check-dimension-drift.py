@@ -15,12 +15,11 @@
 #   the configs on disk and tells you which dimensions are lying.
 #
 # Why this exists:
-#   2026-07-27 — a structure-placement regression suite "failed" because a
-#   jungle dimension had igloos in its structure pool. The biome filter was
-#   correct; the WORLD was three configs old, so the filter was filtering a
-#   biome source nobody had asked for in weeks. 63 of 78 dimensions were
-#   reusing stale generators and nothing anywhere said so. Hours went into
-#   the wrong suspect. This check answers it in a second, offline.
+#   A drifted world silently invalidates any structure-placement assertion
+#   run against it: the biome filter can be correct while the WORLD is
+#   several configs old, so a check ends up filtering a biome source nobody
+#   asked for any more (see D2). This answers "is the world still fresh" in
+#   a second, offline, rather than that being the last thing anyone suspects.
 #
 # Context:
 #   Reads files only — no Docker, no RCON, no running server. Safe to run in

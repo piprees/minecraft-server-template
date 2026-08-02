@@ -150,10 +150,9 @@ public class MultiverseConfig {
     /**
      * Every portal using this igniter, ordered so definitions whose frame
      * matches the clicked block come first. Igniter items are SHARED across
-     * dimensions (eight dims use ender_eye) — a first-match-wins lookup made
-     * every shared-igniter portal except the alphabetically first
-     * unignitable, because ignition then hunted for the wrong frame block
-     * (found 2026-07-23 via the Carpet-bot loop).
+     * dimensions (eight dims use ender_eye) — a first-match-wins lookup would
+     * leave every shared-igniter portal except the alphabetically first
+     * unignitable, because ignition would hunt for the wrong frame block.
      */
     public List<PortalDefinition> getPortalsByIgniter(String itemId, String clickedBlockId) {
         List<PortalDefinition> matches = new ArrayList<>();

@@ -9,8 +9,8 @@
 # Configured Defaults mod: options.txt is merged (missing keys only),
 # everything else copies only when the target file doesn't exist. NOTHING
 # user-tunable may ship in modpack/overrides/ root - Prism re-applies raw
-# overrides on every pack update, which is how keybinds and voice chat
-# settings kept getting wiped (fixed 2026-07-02).
+# overrides on every pack update, which wipes keybinds and voice chat
+# settings (see T10).
 #
 # --sync only refreshes files ALREADY shipped; adding a new config to the
 # defaults is a deliberate, curated act (some files must never ship, e.g.

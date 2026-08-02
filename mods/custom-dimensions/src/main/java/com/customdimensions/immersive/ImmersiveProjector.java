@@ -79,24 +79,23 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <h2>Rule 2: hold a chunk ticket, do not hope someone else did</h2>
  * <b>Regression guard — do not remove the ticket as "redundant with Phase
- * 0's pre-loader".</b> Without it the preview works exactly once and then
- * dies forever, which is what shipped in the first cut of this phase:
+ * 0's pre-loader".</b> Phase 0's {@code ImmersivePreloader} generates a 5x5
+ * arrival grid but takes no ticket, so with no player in the target world
+ * those chunks unload within seconds. Without a ticket of its own here:
  * <ul>
- *   <li>Phase 0's {@code ImmersivePreloader} generates a 5x5 arrival grid,
- *       but takes no ticket. With no player in the target world those
- *       chunks unload within seconds.</li>
  *   <li>{@link ArrivalResolver#arrivalY} then returns {@link #NO_ARRIVAL}
  *       forever and the zone is skipped silently — no log, no error.</li>
  *   <li>The pre-loader never re-runs, because its dedupe is only
  *       invalidated by {@code ServerWorldEvents.UNLOAD} and the WORLD never
- *       unloaded — only its chunks did.</li>
+ *       unloads — only its chunks do.</li>
  * </ul>
- * The two mechanisms guarded each other into a permanent dead state. So the
- * projector now owns its own chunk lifetime: while any player is in range of
- * an immersive zone it holds a {@link #PREVIEW_TICKET} on exactly the chunk
- * columns {@link ProjectionVolume#targetChunks} says it can sample, and
- * releases it on every teardown path. Tickets load asynchronously, so this
- * does not reintroduce the sync-load risk Rule 1 exists to prevent — the
+ * The two mechanisms would guard each other into a permanent dead state: the
+ * preview works exactly once and then dies for good. So the projector owns
+ * its own chunk lifetime: while any player is in range of an immersive zone
+ * it holds a {@link #PREVIEW_TICKET} on exactly the chunk columns
+ * {@link ProjectionVolume#targetChunks} says it can sample, and releases it
+ * on every teardown path. Tickets load asynchronously, so this does not
+ * reintroduce the sync-load risk Rule 1 exists to prevent — the
  * {@code NO_ARRIVAL} guard simply covers the tick or two while the chunks
  * are still on their way.
  *
@@ -114,11 +113,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * client so. If the process stops while projections are live, nobody tells
  * it — and after a restart the server has no record that those positions were
  * ever faked, so it will never correct them. The client goes on rendering
- * destination terrain that, server-side, is plain air. This cost most of a
- * debugging session in July 2026: a tester's screenshots of foliage floating
- * outside a portal frame looked exactly like a sightline-mask failure, but the
- * server's last projection activity was an hour old and a restart sat between
- * the two. Every jar install during local iteration was minting fresh ghosts.
+ * destination terrain that, server-side, is plain air — indistinguishable
+ * from a live sightline-mask failure even though the server's last
+ * projection activity may be long over. Every jar install during local
+ * iteration mints fresh ghosts this way unless the restart runs through an
+ * orderly shutdown.
  *
  * <p>The hook is sound for this: {@code WorldLoaderMixin.onShutdown} injects
  * at {@code MinecraftServer.shutdown} HEAD, which runs before {@code
@@ -250,11 +249,10 @@ public final class ImmersiveProjector {
      * How often the Phase 4 particle passes emit, in ticks.
      *
      * <h2>Why these are not 1</h2>
-     * Both passes originally ran EVERY tick, on top of {@code
-     * PortalHelper.spawnParticles}' pre-existing 2-per-interior-block-per-tick
-     * — reported in-game as "the particle effects are very strong". A dust
-     * particle lives roughly 20-30 ticks, so an every-tick spawn keeps ~20+
-     * particles alive per position at all times: a cloud, not a border.
+     * An every-tick spawn, on top of {@code PortalHelper.spawnParticles}'s
+     * pre-existing 2-per-interior-block-per-tick, is too strong: a dust
+     * particle lives roughly 20-30 ticks, so it keeps ~20+ particles alive
+     * per position at all times — a cloud, not a border.
      *
      * At a 10-tick cadence the frame carries about two live particles per
      * block, which reads as a steady coloured outline of the opening rather
@@ -1140,10 +1138,10 @@ public final class ImmersiveProjector {
      * Server is stopping: give every connected player their real blocks back,
      * then drop all session state.
      *
-     * <b>The restore is the point.</b> This used to release chunk tickets and
-     * clear {@link #ACTIVE} without sending anything, which orphaned every
-     * projected position on every still-connected client — see "Rule 3" in
-     * the class comment for why that was invisible for a whole session.
+     * <b>The restore is the point.</b> Releasing chunk tickets and clearing
+     * {@link #ACTIVE} without sending anything would orphan every projected
+     * position on every still-connected client — see "Rule 3" in the class
+     * comment for why that is not visible until a client relogs.
      *
      * Called from {@code WorldLoaderMixin.onShutdown}, which injects at
      * {@code MinecraftServer.shutdown} HEAD — before {@code

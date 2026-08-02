@@ -15,17 +15,11 @@ import java.util.function.Predicate;
  * Where an arrival portal goes, and what shape it is.
  *
  * <h2>Why this exists</h2>
- * Arrivals used to be built at {@code findSurfaceY} — the
- * {@code MOTION_BLOCKING_NO_LEAVES} heightmap, plus one — in the shape of
- * whatever the player happened to build on the source side. Both halves were
- * wrong, and the first one traps people.
- *
  * <p><b>The heightmap is not the ground in a world with a ceiling.</b> In a
- * nether- or cave-type dimension it reports the top of the roof, so the
- * portal is built inside solid rock and the player arrives encased. Reported
- * in game 2026-07-25 arriving in the_ember_fields at y=248, walled in by
- * calcite, having to mine out. Vanilla does not do this: {@code PortalForcer}
- * scans for an actual open pocket and carves one when it cannot find any.
+ * nether- or cave-type dimension it reports the top of the roof, so building
+ * a portal at it would bury the player inside solid rock. Vanilla does not
+ * do this: {@code PortalForcer} scans for an actual open pocket and carves
+ * one when it cannot find any.
  *
  * <p><b>Mirroring the source shape propagates it forever.</b> An arrival the
  * same size as whatever frame someone happened to build is unpredictable —
@@ -124,10 +118,9 @@ public final class PortalSite {
         if (world.getDimension().hasCeiling()) {
             // The heightmap reads the ROOF here, so it is worse than useless.
             // The declared logicalHeight is no better: it is a vanilla-nether
-            // number (128) that these dimensions' generators ignore — the
-            // boneyard's playable space runs to y~172, so a band anchored to
-            // logicalHeight could not see it at all and every arrival fell
-            // through to the NO_SITE path (found live 2026-07-25).
+            // number (128) that these dimensions' generators ignore, so a
+            // band anchored to it can miss the playable space entirely — the
+            // boneyard's runs to y~172.
             //
             // Ask the column instead. The first opaque block walking DOWN from
             // the build limit is the underside of whatever roofs this column,
@@ -184,14 +177,13 @@ public final class PortalSite {
      * The first open Y beneath the roof slab — walk down from {@code ceilingY}
      * through the CONTIGUOUS opaque blocks and stop at the first that is not.
      *
-     * <p>The roof in these dimensions is not a one-block bedrock lid. Measured
-     * live in {@code the_boneyard} 2026-07-26, the solid mass runs from about
-     * y=145 to y=190 — forty-five blocks thick, and highly variable. Starting
-     * the search at {@code ceilingY - a few} therefore starts it INSIDE the
-     * roof, and on an entombed column the carve happily opens a pocket five
-     * blocks below the top of it: technically under cover, and a genuinely
-     * horrible place to arrive. Skipping the slab puts the search where the
-     * dimension actually is.
+     * <p>The roof in these dimensions is not a one-block bedrock lid — it can
+     * run dozens of blocks thick and vary column to column. Starting the
+     * search at {@code ceilingY - a few} therefore starts it INSIDE the roof,
+     * and on an entombed column the carve happily opens a pocket five blocks
+     * below the top of it: technically under cover, and a genuinely horrible
+     * place to arrive. Skipping the slab puts the search where the dimension
+     * actually is.
      *
      * @return the first non-opaque Y below the slab, or {@link #NO_SITE} when
      *         the column is opaque all the way to {@code toY}
@@ -269,14 +261,11 @@ public final class PortalSite {
      * Where to CARVE when {@link #findArrivalY} found no open pocket at all.
      *
      * <h2>Why this is not "just use the heightmap"</h2>
-     * It used to be. {@code ServerWorldMixin} did
-     * {@code if (siteY == NO_SITE) siteY = surfaceY;} — and {@code surfaceY}
-     * is {@code MOTION_BLOCKING_NO_LEAVES}, which reads the ROOF in a
-     * ceilinged dimension. So the one path that exists to rescue a bad column
-     * put the player on the nether roof, which is the exact failure
-     * {@code PortalSite} was written to prevent. Seen live 2026-07-25 in
-     * {@code the_boneyard}: an arrival at y=192, on the roof. Falling back to
-     * a number known to be wrong is not a fallback.
+     * Falling back to {@code surfaceY} ({@code MOTION_BLOCKING_NO_LEAVES}) is
+     * not safe: it reads the ROOF in a ceilinged dimension, so the one path
+     * that exists to rescue a bad column would put the player on the nether
+     * roof instead — the exact failure {@code PortalSite} exists to prevent.
+     * Falling back to a number known to be wrong is not a fallback.
      *
      * <p>So: search the same band again with the requirement relaxed from
      * "already open" to "openable". Rock is openable; bedrock and block
@@ -435,12 +424,11 @@ public final class PortalSite {
      * passable — a player needs a body-height gap, not a single hole, and a
      * gap at head height over a solid floor cell is not a way out.
      *
-     * <p>This is the invariant behind the worst failure this code has. It was
-     * guaranteed only at creation time ({@code createTargetPortal}), so a
-     * portal reused by a later traversal — which is every traversal after the
-     * first — was never re-checked. A pre-fix arrival, or one later buried by
-     * terrain edits or an aura, strands the player permanently. Reported in
-     * game 2026-07-25 in {@code adventure:the_ember_fields}.
+     * <p>This is the invariant behind the worst failure this code can cause:
+     * an arrival's egress must be re-checked on every reuse, not just
+     * guaranteed once at creation time ({@code createTargetPortal}) — a
+     * portal buried later by terrain edits or an aura would otherwise strand
+     * the player permanently on every subsequent traversal.
      */
     public static boolean hasEgress(Set<BlockPos> interior, Direction.Axis axis,
             Predicate<BlockPos> isPassable) {
@@ -491,10 +479,6 @@ public final class PortalSite {
      *   <li>an arrival later buried — terrain edits, another mod, an aura
      *       converting the cells against its face — is never repaired.</li>
      * </ul>
-     *
-     * <p>Reported in game 2026-07-25: {@code adventure:the_ember_fields} at
-     * y=248, a pre-fix 4x3 arrival with solid calcite on both faces. The
-     * player could not move and had to be teleported out.
      *
      * <p>Checks before it writes, so a healthy portal costs a handful of
      * block reads and no world mutation at all — this is on the teleport

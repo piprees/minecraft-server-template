@@ -22,7 +22,7 @@ import java.util.Map;
  * generator on every save. Deleting a dimension's region files (or even
  * `customdim destroy`) does not touch that entry, so a config type/noise/
  * biome change silently produces a world that no longer matches its config
- * (discovered 2026-07-22 converting dims to the cave type).
+ * (see D2).
  *
  * Policy: NEVER delete or regenerate someone's world because the config
  * changed. Warn and keep the world as generated; regeneration is an

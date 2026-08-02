@@ -15,28 +15,17 @@ import net.minecraft.world.chunk.WorldChunk;
  * ImmersiveProjector}) and entity pass-through ({@link EntityPassthrough}).
  *
  * <h2>Why this is not just the heightmap</h2>
- * It used to be, in a private copy in each of those two classes, and both
- * were wrong the moment a portal had been used once.
- *
  * The player path in {@code ServerWorldMixin} resolves the arrival in two
  * steps: {@code findSurfaceY} for a column that has no portal yet, then
  * {@code findExistingPortal} — and <b>when an arrival portal already exists
  * it lands the player AT that portal</b> ({@code landY = existing.getY()}),
- * never at the recomputed surface. That distinction turns out to matter,
- * because building the arrival portal changes the very heightmap the surface
- * was derived from: {@code createTargetPortal} places SOLID frame blocks on
- * the up-neighbour of the top interior row, so
- * {@code MOTION_BLOCKING_NO_LEAVES} at the arrival column afterwards reports
- * the top of our own frame, not the ground.
- *
- * Measured on the live server (2026-07-25, overworld -&gt;
- * adventure:the_blossom_gardens at scale 1): ground at y=62, arrival portal
- * interior y=63..65 with frame rows at 62 and 66. A traversing player lands
- * at y=63; the heightmap answers 67. The preview was therefore built four
- * blocks above the destination and showed the empty sky over it — which
- * Phase 4e then correctly diagnosed as "this side is all air" and shrank to
- * a 2-block preview. Every portal in the game would have degraded that way
- * after its first use, silently.
+ * never at the recomputed surface. That distinction matters, because
+ * building the arrival portal changes the very heightmap the surface was
+ * derived from: {@code createTargetPortal} places SOLID frame blocks on the
+ * up-neighbour of the top interior row, so {@code MOTION_BLOCKING_NO_LEAVES}
+ * at the arrival column afterwards reports the top of our own frame, not the
+ * ground. A heightmap read alone therefore drifts upward by the frame's
+ * height for every portal once it has been used, silently.
  *
  * So: <b>registered arrival portal first, heightmap only as the fallback for
  * a column that has none</b> — which is exactly the order the player path

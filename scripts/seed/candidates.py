@@ -66,20 +66,19 @@ def candidates_dir(config_dir):
     <root>/data/config/custom-dimensions/candidates — inside `data/`, the
     disposable runtime tree you wipe to reset a world. A bank is hours of
     measurement and is not game data; losing it to a routine `rm -rf data/`
-    is a trap, and it cost a full bank on 2026-07-28.
+    is a trap.
 
     Everything else in .seedtest is derived research state of exactly this
     kind, so the bank belongs beside it. Callers that never set a root (the
     unit tests, which build a bare config directory) keep the old location,
     so this stays a relocation rather than a second storage format.
 
-    That fallback is LOUD, because silently it is worse than useless. A
-    consumer whose bundle carried a new candidates.py beside a stale
-    fast_roller.py banked 6911 candidates and 1189 rejects into
-    .stack/<version>/stack/config/custom-dimensions/candidates — inside the
-    stack bundle, invisible to the viewer, and thrown away by the next
-    `./dev update`. Nothing reported anything: the roll said "accepted",
-    the viewer said "no candidates" (2026-07-28).
+    That fallback is LOUD, because silently it is worse than useless: a
+    consumer whose bundle carries a new candidates.py beside a stale
+    fast_roller.py can bank candidates into the stack bundle path — inside
+    .stack/<version>/, invisible to the viewer, and thrown away by the next
+    `./dev update` — while the roll reports "accepted" and the viewer
+    reports "no candidates".
     """
     global _WARNED_NO_ROOT
     legacy = Path(config_dir) / "candidates"

@@ -179,8 +179,9 @@ def _eval_compiled(node, params):
     n = len(locations)
 
     # Vanilla CubicSpline extrapolates linearly beyond the endpoints using
-    # the endpoint derivative (fixed 2026-07-24; the old clamp was masked by
-    # Terralith/Incendium/Nullscape splines having zero edge derivatives).
+    # the endpoint derivative; clamping instead would go unnoticed here
+    # because Terralith/Incendium/Nullscape splines have zero edge
+    # derivatives.
     if x <= locations[0]:
         return (_eval_compiled(values[0], params)
                 + derivatives[0] * (x - locations[0]))

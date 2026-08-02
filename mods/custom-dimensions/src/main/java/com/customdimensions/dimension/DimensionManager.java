@@ -153,8 +153,7 @@ public class DimensionManager {
         }
         try {
             // Per-dim isolation: one broken config must not abort registration
-            // of every dimension after it (2026-07-22: a seed-less config NPE'd
-            // here and silently took an unrelated new dimension down with it).
+            // of every dimension after it.
             DimensionFingerprints.init(this.server);
             for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
@@ -230,8 +229,9 @@ public class DimensionManager {
     // biome (nether biomes in an overworld dim, cherry groves in the end —
     // cross-family mixing is the point) is dealt the remaining parameter
     // regions round-robin, so it genuinely appears in the layout instead of
-    // being silently dropped. Before this, a list with no native matches
-    // (the_crimson_nexus, the_souldrift) fell back to plains.
+    // being silently dropped — a list with no native matches at all (e.g.
+    // the_crimson_nexus, the_souldrift) still produces its requested biomes
+    // rather than falling back to plains.
     private BiomeSource buildMixedSource(MultiNoiseBiomeSource base, Registry<Biome> biomeRegistry,
                                          String biomeList, String dimName,
                                          Map<String, com.google.gson.JsonObject> paramOverrides) {
@@ -482,9 +482,9 @@ public class DimensionManager {
                 // ambience still read the biome. This must be a NOISE
                 // generator: a flat generator samples the multi-noise
                 // source with zero climate noise, collapsing the layout to
-                // one biome everywhere and ignoring the seed (verified
-                // empirically 2026-07-17). adventure:void ships in the jar
-                // datapack — overworld climate router, final_density -1.
+                // one biome everywhere and ignoring the seed. adventure:void
+                // ships in the jar datapack — overworld climate router,
+                // final_density -1.
                 BiomeSource voidSource = this.resolveListedSource(def, biomeRegistry,
                         null, overworldOpts.chunkGenerator());
                 Registry<ChunkGeneratorSettings> nsRegistry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
@@ -594,9 +594,8 @@ public class DimensionManager {
             case "cave" -> {
                 // Fully underground world: vanilla still ships the
                 // minecraft:caves generator settings (bedrock roof at the top,
-                // no sky access, sea/lava level 32 — verified live 2026-07-22
-                // via a fixture using the noiseSettings override). Biome list
-                // mixes as usual; an explicit noiseSettings still wins.
+                // no sky access, sea/lava level 32). Biome list mixes as
+                // usual; an explicit noiseSettings still wins.
                 BiomeSource caveSource = this.resolveListedSource(def, biomeRegistry,
                         overworldOpts.chunkGenerator(), overworldOpts.chunkGenerator());
                 if (caveSource == null) {
@@ -932,9 +931,8 @@ public class DimensionManager {
         lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
         // Fabric contract for dynamic world registration: mods that add a
         // ServerWorld outside createWorlds MUST fire LOAD, or every mod that
-        // builds a per-level map from this event (Distant Horizons,
-        // c2me) never learns the world exists. Skipping it NPE'd Distant
-        // Horizons on the first portal teleport in production (2026-07-12).
+        // builds a per-level map from this event (Distant Horizons, c2me)
+        // never learns the world exists.
         ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
         MultiverseServer.LOGGER.info("Created runtime world: {}", worldKey.getValue());
         return newWorld;
@@ -1062,7 +1060,7 @@ public class DimensionManager {
                 continue;
             }
             // Evacuate before teardown — a player inside a closed world is a
-            // guaranteed desync/disconnect (that's how the DH incident felt).
+            // guaranteed desync/disconnect.
             ServerWorld overworld = this.server.getOverworld();
             net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
             for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
@@ -1076,9 +1074,9 @@ public class DimensionManager {
 
     public void requestWorldLoad(String name) {
         // Base worlds queue here too — CreateWorldsMixin defers them exactly
-        // like a custom dimension, and this guard used to drop them SILENTLY:
-        // `customdim load the_nether` answered "Queued load for
-        // minecraft:the_nether" and nothing was ever queued.
+        // like a custom dimension, so the guard must check getWorld() as
+        // well as getDimension(), or a base-world load request is silently
+        // dropped despite reporting success.
         if (MultiverseConfig.getInstance().getDimension(name) != null
                 || MultiverseConfig.getInstance().getWorld(name) != null) {
             this.pendingWorldLoads.add(name);
@@ -1145,13 +1143,10 @@ public class DimensionManager {
      * and c2me build their per-level state. Several hundred
      * milliseconds each, and none of it is movable.
      *
-     * <p>What IS movable is how many of them land on the same tick. This used
-     * to create every queued world in one drain, so a player walking towards
-     * a cluster of portals — a hub, or the test beach — paid for ALL of them
-     * at once and rubber-banded. Reported in game: "quite a bit of server lag
-     * when dimensions get loaded... if dims take a sec to load that's not the
-     * end of the world and better than the rubber banding (which also
-     * inadvertently gives away that there's a portal nearby)".
+     * <p>What IS movable is how many of them land on the same tick. Draining
+     * every queued world in one go means a player walking towards a cluster
+     * of portals — a hub, or the test beach — pays for ALL of them at once
+     * and rubber-bands.
      *
      * <p>One per tick spreads the same total work over N ticks instead of
      * stacking it into one. Nothing is dropped — the rest stay queued and are

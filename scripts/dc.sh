@@ -3,7 +3,7 @@
 #
 # Blocks bare `docker compose up -d` when mc is running — that recreates
 # mc without the countdown/kick/save dance from deploy.sh, dropping
-# players mid-session (happened 2026-07-01; TROUBLESHOOTING.md#t9).
+# players mid-session (see TROUBLESHOOTING.md#t9).
 #
 # Install on the server: copy to ~/server/dc, add ~/server to PATH.
 # Then `dc up -d` is safe; deploy.sh and infra-deploy.sh bypass this

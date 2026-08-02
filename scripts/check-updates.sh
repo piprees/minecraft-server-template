@@ -541,8 +541,8 @@ print(msg)
     # few hundred bytes; no pruning needed.
     # `|| true` on cat is load-bearing: on the first ever run the ledger
     # doesn't exist, and under set -e/pipefail a bare failing cat aborts
-    # the group mid-pipeline — the script died here, the container
-    # restart-looped, and every restart re-pinged Discord (2026-07-11).
+    # the group mid-pipeline — the script would die here, the container
+    # would restart-loop, and every restart would re-ping Discord.
     { cat "$LEDGER_FILE" 2> /dev/null || true; printf '%s' "$CURRENT_PAIRS"; } | sort -u > "$LEDGER_FILE.tmp"
     mv "$LEDGER_FILE.tmp" "$LEDGER_FILE"
   else

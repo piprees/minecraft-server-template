@@ -160,8 +160,6 @@ STRUCTS = {
     "jungle_tree_house": "dungeons_arise:jungle_tree_house",
     # `dungeons_arise:giant_mushroom` does not exist and never did — the
     # shipped ids are mushroom_house / mushroom_mines / mushroom_village.
-    # Three dimensions wanted it, so the roller banked -1 for it on every
-    # seed of every one of them (2026-07-29).
     "giant_mushroom": "dungeons_arise:mushroom_house",
     "mushroom_mines": "dungeons_arise:mushroom_mines",
     "mushroom_village": "dungeons_arise:mushroom_village",
@@ -709,7 +707,7 @@ def generation_payload(dim):
     derived = _derived_shrine_spacing(dim)
     if derived is not None:
         payload["shrineSpacing"] = derived
-    # Fixed structure placements + the organic-set filter (2026-07-24) are
+    # Fixed structure placements + the organic-set filter are
     # generation-affecting; conditional for the same byte-stability reason.
     struct_block = dim.get("structures") or {}
     if struct_block.get("mode"):
@@ -815,8 +813,8 @@ def set_noise_defaults_dir(config_dir):
 def _noise_payload(dim):
     """Noise-placement contribution to the fingerprint, or None.
 
-    Noise placement is generation-affecting, and it makes two fields that
-    used to be scoring-only into worldgen inputs for the first time:
+    Noise placement is generation-affecting, so two otherwise scoring-only
+    fields become worldgen inputs through it:
 
     - `borders.player` sets the scanned radius AND the frequency scale, so it
       changes every position in every group.

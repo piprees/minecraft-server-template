@@ -71,10 +71,10 @@ LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 def default_workers():
     """Processes for the census and terrain backfills when none is asked for.
 
-    Every core but two. Mirrors viewer-server.RenderWorker, which made the
+    Every core but two. Mirrors viewer-server.RenderWorker, which makes the
     same call for a more expensive job: leave the machine usable, take the
-    rest. This used to be `min(cpu_count(), 8)`, which left ten of eighteen
-    cores idle for the six hours a cold 65k-candidate backfill takes.
+    rest — a small fixed cap instead would leave most cores idle for the six
+    hours a cold 65k-candidate backfill takes.
 
     Two cores is the floor, so a small machine still overlaps work.
     """
@@ -329,8 +329,7 @@ def terrain_metrics(rows):
     relief scaled with the dimension rather than with the terrain: median 15
     blocks at radius 256 against 96 at radius 8192, a ~6x spread produced by the
     measurement. No single window in TERRAIN_TARGETS can describe both ends of
-    that, which is exactly why this function used to keep the 3x3 numbers even
-    though they described a 1024-block box at spawn rather than a world.
+    that.
 
     Capped, every dimension of radius >= 2048 is measured over the same
     4096-block box. Measured residual size effect within a noise preset after
@@ -923,9 +922,9 @@ def ensure_spawn_distances(args, profiles, data, quiet=False):
     """Re-anchor banked battery distances at each candidate's chosen spawn.
 
     The screening tier measures from the world origin (the spawn is not
-    known yet) and banks used to keep those numbers — but the player stands
-    at the candidate's spawn, up to 768 blocks away (spawn-site-selection
-    §5), so clearSpawnRadius and every want/shun judged a point nobody
+    known yet), but the player stands at the candidate's spawn, up to 768
+    blocks away (spawn-site-selection §5) — so an un-anchored distance
+    leaves clearSpawnRadius and every want/shun judging a point nobody
     occupies. Placement is pure maths, so this is a recompute at scoring
     time, not a re-roll: origin-spawn candidates are left byte-identical
     and the recompute is deterministic, hence idempotent.
@@ -1025,8 +1024,7 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         return
     # A cold bank is hours of CPU across every core. Without a progress line
     # it looks hung; `--census-workers N` is how you leave room for something
-    # else on the machine — a local Minecraft server took three times as long
-    # to boot beside an unrestricted run (2026-07-27).
+    # else on the machine.
     workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
     if not quiet:
@@ -1528,8 +1526,7 @@ def write_winners_to_overlay(overlay_root, winners, seedtest,
             # New overlay files are "overrides" (seed/spawn only), never full
             # copies: a full replace freezes the platform config at write
             # time, silently masking every later platform-side change (type
-            # conversions, spawnFilter tweaks) — an overlay copy of
-            # the_starwell ate a spawnFilter fix exactly this way 2026-07-22.
+            # conversions, spawnFilter tweaks).
             has_platform = (platform_dir is not None
                             and (Path(platform_dir) / "dimensions" / f"{name}.json").exists()) \
                 or name in (platform_sources or {})
@@ -2086,11 +2083,11 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
 # Candidate detail rendering
 #
 # The guiding rule: never show a verdict without the criterion that produced
-# it. Every tick used to stand alone, so "too close" never said what it was
-# close to and "relief 16" never said the target was 18-90. Scoring got good
-# enough that almost everything passes, which made a column of ticks pure
-# noise — signal has to come from how far a value sits from its target, not
-# from whether it cleared it.
+# it. A tick standing alone says nothing: "too close" needs to say what it
+# was close to, and "relief 16" needs to say the target was 18-90. Scoring is
+# good enough that almost everything passes, which makes a column of ticks
+# pure noise — signal has to come from how far a value sits from its target,
+# not from whether it cleared it.
 # ---------------------------------------------------------------------------
 
 def _band_bar(value, lo, hi, cap=None, marks=None):
@@ -2451,10 +2448,10 @@ def _structure_section(c, profile):
             cov_attrs, "".join(r[1] for r in noise_rows)))
     if grid_rows:
         # The grid list is also where a row lands when battery_group_for()
-        # returns nothing — no census, no groups, no group for this set. The
-        # caption used to assert "an exact position is real" unconditionally,
-        # which is a claim about placement that is simply false for a
-        # fallback row. Say which case this is.
+        # returns nothing — no census, no groups, no group for this set. An
+        # unconditional "an exact position is real" caption would be a claim
+        # about placement that is simply false for a fallback row. Say which
+        # case this is.
         gridded = bool(groups)
         out.append("<div class='sub-header'>Grid-placed <span class='meta'>{}"
                    "</span></div>".format(
@@ -2473,11 +2470,10 @@ def _structure_section(c, profile):
         # structures.force x/z are BLOCK coordinates: the mod does
         # `new ChunkPos(f.x >> 4, f.z >> 4)` in
         # DimensionStructures.appendForcedPlacements, and its field doc says
-        # so. This row used to multiply by 16 and label the pair "chunk",
-        # reporting every fixed placement at sixteen times its real distance
-        # — the_wuthering_wisteria's campsite read as 7680 blocks out in a
-        # 256-block world. structure_placement.forced_distance (the scorer's
-        # side) had it right all along.
+        # so. Multiplying by 16 and labelling the pair "chunk" would report
+        # every fixed placement at sixteen times its real distance.
+        # structure_placement.forced_distance (the scorer's side) has it
+        # right.
         frows = []
         for f in forced:
             fid = str(f.get("structure", ""))

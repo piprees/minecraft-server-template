@@ -40,20 +40,11 @@ import java.util.UUID;
  * Yarn-mapped 1.21.1 jar; do not "optimise" back to it.
  *
  <h2>The pass is budgeted — {@link ProjectionBudget}</h2>
- * This class used to claim batching was unnecessary: "336 CANDIDATE positions
- * … the sightline mask sends well under half of those". Both numbers were
- * falsified in game on 2026-07-25. {@code previewRadius} went 2 -&gt; 4 in a
- * later session, taking the slab to 1056, and a single pass sent 984 packets:
- *
- * <pre>
- *   immersive: sightline mask ... 0 of 1056 maskable visible, 984 restored
- * </pre>
- *
  * Walking past a portal inverts the WHOLE mask at once, so everything the
- * player could see needs a correction packet in the same pass — ~1000
- * {@code BlockUpdateS2CPacket}s in one tick, per viewer, per portal, at the
- * default 4-tick interval. Reported as a multi-second stall with fake blocks
- * lingering afterwards.
+ * player could see needs a correction packet in the same pass — on the order
+ * of a thousand {@code BlockUpdateS2CPacket}s in one tick, per viewer, per
+ * portal, at the default 4-tick interval: a multi-second stall with fake
+ * blocks left lingering until the backlog drains.
  *
  * {@link #send} therefore CLASSIFIES the whole volume first and only then
  * spends a per-pass ceiling, restores before sends. Steady state — the few
@@ -134,16 +125,16 @@ import java.util.UUID;
  *       way.</li>
  * </ul>
  * Unknown is the NORMAL state for the first tick or two after a zone takes
- * its chunk ticket — measured on the live server, the initial full send
- * routinely covers 294 of 336 positions because the far chunk is still on
- * its way in. Any future heuristic over projected content must keep the three
+ * its chunk ticket, and the initial full send can cover most of the slab
+ * before the far chunk has fully arrived. Any future heuristic over
+ * projected content must keep the three
  * apart; treating unknown as air is how you conclude "empty dimension" from a
  * chunk that simply had not arrived.
  *
  * <h2>Withdrawn: 4e's depth auto-scaling — do not re-add it</h2>
  * Phase 4e shrank the preview to 2 blocks when more than 80% of the first
- * depth layer sampled as air, the stated aim being that "a portal to a void
- * dimension shows void" looks like a bug. It was built carefully — three-state
+ * depth layer sampled as air, aiming to stop "a portal to a void dimension
+ * shows void" from looking like a bug. It was built carefully — three-state
  * counting, a 75%-known quorum before deciding, the air ratio measured over
  * known samples only — and it was still wrong, because the QUESTION was wrong:
  *
@@ -154,10 +145,8 @@ import java.util.UUID;
  * catch solid ground. "First layer is mostly air" is the healthy case for a
  * portal onto open terrain, not a void-dimension signal — so whether a portal
  * ran at full depth or half depth came down to how much padding happened to
- * land in a hillside. One fixture measured 30 air / 12 solid (71%, full
- * depth); a tester's portal a few hundred blocks away landed the other side of
- * the threshold and ran at {@code 6 x 7 x 2 = 84} blocks, which he correctly
- * reported as "no window effect at all".
+ * land in a hillside: an arbitrary coin flip on the air ratio, not a real
+ * signal.
  *
  * <p>Raising the threshold would only move the coin flip. The depth is now
  * always {@code settings.previewDepth()}, and a portal to a void dimension
@@ -170,8 +159,6 @@ public final class PlayerProjectionState {
     /**
      * Shallowest slab that can carry a 4a light layer: with only one block of
      * depth, replacing it with invisible LIGHT would leave nothing to look at.
-     * (Previously {@code SHALLOW_DEPTH}, the target of the withdrawn 4e
-     * shrink — this threshold is all that survives of it.)
      */
     static final int LIGHT_LAYER_MIN_DEPTH = 2;
 
@@ -190,10 +177,10 @@ public final class PlayerProjectionState {
      * the delta pass still short-circuits.
      *
      * <h2>Why still level 15</h2>
-     * The tester's bright-forest destination read hot, and the obvious lever
-     * is {@code Blocks.LIGHT}'s level property. It is the wrong one to pull,
-     * because the same change that fixed the flicker already cut the light
-     * hard in two better ways:
+     * Lowering {@code Blocks.LIGHT}'s level property is the obvious fix for a
+     * preview that reads too bright. It is the wrong one to pull: the same
+     * change that fixed the earlier flicker already cut the light hard in
+     * two better ways:
      * <ul>
      *   <li><b>7x fewer sources.</b> The layer was the padded first slab layer
      *       (42 positions for the default doorway); it is now the aperture
@@ -251,10 +238,10 @@ public final class PlayerProjectionState {
      * plane, so the old slab's positions are no longer reachable by iterating
      * the volume.
      *
-     * <p>They used to be restored in one unbudgeted burst inside {@link #send}
-     * (restore-everything, then clear), which is the same ~1000-packets-in-one-
-     * tick spike {@link ProjectionBudget} exists to prevent — just triggered by
-     * walking ROUND a portal rather than past it.
+     * <p>Restoring them all in one unbudgeted burst inside {@link #send}
+     * (restore-everything, then clear) would reproduce the same
+     * ~1000-packets-in-one-tick spike {@link ProjectionBudget} exists to
+     * prevent — just triggered by walking ROUND a portal rather than past it.
      *
      * <p>Carried here instead and drained under the budget, ahead of the
      * volume's own restores: nothing else will ever revisit these, so they
@@ -431,10 +418,10 @@ public final class PlayerProjectionState {
         //
         // Walking past a portal inverts the whole sightline mask, so every
         // position the player could see needs a correction packet in the SAME
-        // pass. Measured live 2026-07-25: "0 of 1056 maskable visible, 984
-        // restored" — ~1000 BlockUpdateS2CPackets in one tick, per viewer, per
-        // portal, at the default 4-tick interval. That is the multi-second
-        // stall, and the backlog is why fake blocks appeared to linger.
+        // pass — on the order of a thousand BlockUpdateS2CPackets in one
+        // tick, per viewer, per portal, at the default 4-tick interval. That
+        // is the multi-second stall, and the backlog is why fake blocks
+        // appear to linger.
         //
         // Acting inside the classification loop would let ITERATION ORDER
         // decide what fits the budget. The rule is that restores outrank
@@ -545,12 +532,11 @@ public final class PlayerProjectionState {
         // THE APERTURE, in both directions — the light layer and the
         // swirl-killer, which turn out to be the same pass.
         //
-        // 4a used to light the preview from the first slab layer BEHIND the
-        // opening. That layer sits on whichever side the slab is on, and
-        // viewerFarSide flips the slab when a player walks round the frame —
-        // so the light flipped with it. Reported in game: "the light seems
-        // to flip sides when I move around the portal". Deriving it from the
-        // zone (rather than from the mask) fixed an earlier flicker but not
+        // Lighting the preview from the first slab layer BEHIND the opening
+        // would not work: that layer sits on whichever side the slab is on,
+        // and viewerFarSide flips the slab when a player walks round the
+        // frame, so the light would flip with it. Deriving the layer from
+        // the zone rather than the mask fixes an earlier flicker but not
         // this, because the SIDE is still a property of the viewer.
         //
         // The aperture is the one part of the geometry that has no side. It

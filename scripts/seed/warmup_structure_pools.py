@@ -96,8 +96,7 @@ def recorded_count(container):
     RCON concatenates feedback lines with NO separator, which is why this is a
     regex rather than a whitespace split: the reply is one run-together string
     and the digits sit immediately before the phrase. The live reply is
-    `dump-structure-pools: 5 dimension(s) -> ./config/.../structure_pools.json`
-    (verified against a warmup container 2026-07-30).
+    `dump-structure-pools: 5 dimension(s) -> ./config/.../structure_pools.json`.
 
     Each call rewrites structure_pools.json inside the throwaway boot
     directory. That is the command's only shape — a summary plus a path —
@@ -132,7 +131,7 @@ def stage_dimension_configs(workdir, config_dir):
     writes an EMPTY dimensions/ directory and says so. The pool dump is the
     one warmup that drives the MOD instead of the sampler, and against an
     empty directory every `customdim load <slug>` answers "No configured
-    dimension named" and the whole dump comes back 0/77 (2026-07-30).
+    dimension named" and the whole dump comes back 0/77.
 
     The consumer overlay is STAGED, not pre-merged: the mod reads
     custom-dimensions/overlay/dimensions/ and merges it itself, exactly as it
@@ -288,10 +287,9 @@ def main():
         # structures.mode "none", structures.noise false). Its world loads
         # normally but takes the legacy density path in DimensionStructures,
         # which never calls StructurePoolRecord.record, so it has no pool to
-        # record and group-level scoring is the correct answer for it. All 5
-        # on 2026-07-30 were structureDensity "none". A world that genuinely
-        # failed to load lands here too, and is worth chasing — the
-        # difference shows in the container log.
+        # record and group-level scoring is the correct answer for it. A
+        # world that genuinely failed to load lands here too, and is worth
+        # chasing — the difference shows in the container log.
         print("  %d dimension(s) recorded no pool and keep group-level "
               "scoring (expected for suppressed structures): %s"
               % (len(missing), ", ".join(missing[:8])

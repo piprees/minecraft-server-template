@@ -20,9 +20,8 @@
 # Pause detection: the JVM's process state (T = SIGSTOPped) is checked via
 # `docker exec mc ps` BEFORE any RCON call — the autopause daemon resumes
 # the JVM whenever an rcon-cli process exists in the mc container, so an
-# RCON poll against a paused server wakes it (4-minute wake/pause churn in
-# production, 2026-07-10). RCON timing out while the JVM runs means BUSY,
-# not paused — state is kept and the poll retried.
+# RCON poll against a paused server wakes it. RCON timing out while the JVM
+# runs means BUSY, not paused — state is kept and the poll retried.
 set -euo pipefail
 
 RCON_HOST="${RCON_HOST:-mc}"

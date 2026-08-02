@@ -75,10 +75,10 @@ public abstract class EntityTickPortalMixin {
         // teleport. See PortalHelper.enteredArrivalPortal for why this replaced
         // the old `getPortalCooldown() > 0` early return: vanilla re-pins that
         // value every tick an entity stands in a portal block, so it never
-        // cleared for a player who arrived INSIDE the arrival portal and the
-        // return could not fire at all (measured live 2026-07-25). The cooldown
-        // is still consulted — as the seed that tells a teleport arrival apart
-        // from a walk-in — just not as the gate.
+        // clears for a player who arrived INSIDE the arrival portal, and the
+        // return could not fire at all. The cooldown is still consulted — as
+        // the seed that tells a teleport arrival apart from a walk-in — just
+        // not as the gate.
         RegistryKey<World> worldKey = serverLevel.getRegistryKey();
         int now = serverLevel.getServer().getTicks();
         boolean entered = PortalHelper.enteredArrivalPortal(

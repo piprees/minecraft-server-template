@@ -12,8 +12,7 @@ that pitch is 512, so the three sample columns sit at -512, 0 and +512: a
 The visible symptom was an overworld winner reporting `water 0% — almost no
 water` beside a render that is a third ocean. It was not a broken water set —
 every one of the 13 WATER_BIOMES entries is present in the overworld sampler and
-nothing name-suggestive is missing (checked 2026-07-29). The grid simply never
-looked at the ocean.
+nothing name-suggestive is missing. The grid simply never looked at the ocean.
 
 And it is not only water. Relief measured as max-minus-min over nine points
 inside 6% of the radius describes the hill next to spawn, not the world.
@@ -181,9 +180,10 @@ def _walk(sampler, span, grid, is_void, has_continentalness,
                 # Water is what the terrain does, not what the biome is
                 # called: a column whose surveyed height sits below the
                 # dimension's effective sea level is water even when the
-                # biome list names no ocean (the metric used to describe
-                # the CONFIG, not the world). Biome identity stays as the
-                # floor — an ocean biome is water whatever the model says.
+                # biome list names no ocean — relying on the list alone
+                # would describe the CONFIG, not the world. Biome identity
+                # stays as the floor — an ocean biome is water whatever the
+                # model says.
                 if is_void or sea_level is None:
                     biome = sampler.biome_at(x, z)
                 else:

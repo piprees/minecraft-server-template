@@ -50,10 +50,9 @@ public final class NoisePoolBuilder {
 
     /**
      * The placement type ids noise placement absorbs, beyond the exact
-     * vanilla class. Moog's advanced_random_spread was decompiled before
-     * being listed (2026-08-01): its getStartChunk is byte-identical vanilla
-     * maths; "advanced" adds only an optional origin-clearance disc (68 of
-     * 221 shipped sets — superseded by our radial curves and
+     * vanilla class. Moog's advanced_random_spread's getStartChunk is
+     * byte-identical vanilla maths; "advanced" adds only an optional
+     * origin-clearance disc (superseded by our radial curves and
      * clearSpawnRadius) and an optional cross-set exclusion no shipped set
      * uses. YUNG's types and Supplementaries' galleons stay pass-throughs —
      * their cross-set exclusion zones are real behaviour — and

@@ -586,9 +586,9 @@ public class DimensionConfig {
         // build fallback). Never a "#tag" form: definitions persist into
         // portal_links.json zone records, and older jars Identifier.of() the
         // frameBlock in an UNCAUGHT world-tick path — a '#' there crash-loops
-        // any server that downgrades (hit live 2026-07-23 testing v3.6.0
-        // against new-format records). With a parseable-but-wrong id, old
-        // jars just drop the zone as invalid, which is the graceful floor.
+        // any server that downgrades to a jar reading new-format records.
+        // With a parseable-but-wrong id, old jars just drop the zone as
+        // invalid, which is the graceful floor.
         List<String> accepts = this.portal.getFrameAcceptForms();
         String plainId = this.portal.getFrameBlockId();
         String place = this.portal.resolvePlacementBlockId();
@@ -612,8 +612,7 @@ public class DimensionConfig {
         }
         // Plumb the explicit framePlaceBlock through: without this, a plain
         // frameBlock (e.g. "minecraft:stone") silently overrides a differing
-        // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain
-        // (found live 2026-07-24 while verifying per-part placement).
+        // explicit framePlaceBlock in getFramePlaceBlock()'s fallback chain.
         if (this.portal.framePlaceBlock != null && !this.portal.framePlaceBlock.isBlank()) {
             def.setFramePlaceBlock(this.portal.framePlaceBlock.trim());
         }

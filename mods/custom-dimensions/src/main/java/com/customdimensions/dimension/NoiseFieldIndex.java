@@ -39,30 +39,26 @@ import java.util.Set;
  *
  * <h3>Why the radial curve is not part of the eligibility test</h3>
  *
- * It was until 2026-07-29, and that was wrong. Multiplying the curve into the
- * noise before the threshold makes it a binary gate: a chunk whose weight is
- * below the threshold can never place however the noise falls, so every
- * authored taper became a hard wall wherever it crossed the profile's
- * threshold. Measured across the banked candidates: {@code inner} left 33
- * dimensions with no village past a third of the radius, {@code outer} left 54
- * with no dungeon inside half of it, and raising {@code inner}'s peak from 1.6
- * to 3.0 changed density per unit area not at all — because the exclusion
- * radius was fixed and the packing had already saturated against it. The curve
- * could only decide where a group existed, never how much of it there was.
+ * Multiplying the curve into the noise before the threshold would make it a
+ * binary gate: a chunk whose weight is below the threshold could never place
+ * however the noise falls, so every authored taper would become a hard wall
+ * wherever it crosses the profile's threshold. The exclusion radius — not the
+ * curve — is what controls packing density, so a curve folded into
+ * eligibility can only decide where a group exists, never how much of it
+ * there is.
  *
- * Weight 0.0 still suppresses outright, so a hard edge is still expressible.
- * It is now opt-in rather than the accidental consequence of a taper.
+ * Weight 0.0 still suppresses outright, so a hard edge is still expressible;
+ * it is opt-in rather than an accidental consequence of a taper.
  *
  * <h3>Why not the local maximum of the noise itself</h3>
  *
- * That was the first implementation and it is wrong. Local maxima of a
- * <em>smooth</em> field occur about once per noise feature, so their density
- * is set by the frequency and nothing else: the threshold barely matters (a
- * peak is usually well clear of it) and the exclusion radius is inert. A
- * 1024-block pocket dimension (64 chunks) came out with <b>one</b> structure
- * in the entire world, and raising the exclusion radius changed nothing.
- * Ranking by white noise instead keeps every above-threshold chunk in the
- * running, so both dials work.
+ * Local maxima of a <em>smooth</em> field occur about once per noise
+ * feature, so their density is set by the frequency and nothing else: the
+ * threshold barely matters (a peak is usually well clear of it) and the
+ * exclusion radius is inert — a small pocket dimension can end up with a
+ * single structure in the entire world, with the exclusion radius powerless
+ * to raise that count. Ranking by white noise instead keeps every
+ * above-threshold chunk in the running, so both dials work.
  *
  * <h3>Why not the spike's greedy spiral</h3>
  *
@@ -137,7 +133,7 @@ public final class NoiseFieldIndex {
         // curve can ask for, not the base: a cell built for the base would hold
         // two placements wherever the weight peaks, and byRegion keeps only the
         // first, so locate would silently stop finding the rest. A uniform
-        // curve peaks at 1.0, which reproduces the old `excl * 2` exactly.
+        // curve peaks at 1.0, which reproduces `excl * 2` exactly.
         this.spacing = Math.max(2, Math.max(1, exclusionFor(excl, maxWeight(radial))) * 2);
         this.profileId = profile.id();
         this.noiseSeed = noiseSeed;
@@ -148,9 +144,10 @@ public final class NoiseFieldIndex {
         this.radial = radial == null ? null : radial.clone();
 
         // Samplers are bound ONCE here rather than looked up per call.
-        // NoiseProfile.evaluate resolves its sampler through a map, and that
-        // lookup in this loop — one per chunk per group, ~1M for a large
-        // dimension — was most of a measured 3.4-second world load.
+        // NoiseProfile.evaluate resolves its sampler through a map; that
+        // lookup runs once per chunk per group, ~1M times for a large
+        // dimension, so binding it up front instead of on every call keeps
+        // world load fast.
         double scale = NoiseProfile.frequencyScale(r);
         double frequency = profile.frequency() * scale;
         double coarseFrequency = profile.coarseFrequency() * scale;
@@ -167,9 +164,9 @@ public final class NoiseFieldIndex {
         boolean[] eligible = new boolean[side * side];
         // Ranks are cached alongside eligibility. Every eligible chunk is read
         // once as a candidate and up to `disc size` times as a neighbour, so
-        // recomputing the hash each time meant tens of millions of mix64 calls
-        // on a large dense dimension — the actual cost behind a measured
-        // 3.4-second world load. Only eligible entries are ever read.
+        // recomputing the hash on each read would cost tens of millions of
+        // mix64 calls on a large dense dimension. Only eligible entries are
+        // ever read.
         long[] ranks = new long[side * side];
         double rSquared = (double) r * r;
         double threshold = profile.threshold();
@@ -207,13 +204,11 @@ public final class NoiseFieldIndex {
             }
         }
 
-        // Single O(r^2) pass. An earlier version walked outward ring by ring
-        // to get spawn-first ordering, but scanning each ring's whole square
-        // and skipping its interior makes that O(r^3): at radius 512 it is
-        // 1.8e8 iterations, and it was the entire reason a large dimension
-        // took 3.4 seconds to load. Order is restored by sorting afterwards,
-        // which is both cheaper and a stronger guarantee — nearest-first
-        // rather than ring-first.
+        // Single O(r^2) pass. Walking outward ring by ring for spawn-first
+        // ordering would scan each ring's whole square and skip its interior,
+        // making it O(r^3) — 1.8e8 iterations at radius 512. Order is
+        // restored by sorting afterwards instead, which is both cheaper and
+        // a stronger guarantee — nearest-first rather than ring-first.
         List<ChunkPos> orderedPositions = new ArrayList<>();
         for (int dz = -r; dz <= r; dz++) {
             int row = (dz + r) * side;

@@ -44,13 +44,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * player-only turnstile.
  *
  * <h2>Living entities</h2>
- * They were excluded when this phase first shipped, on the grounds that
- * pathfinding targets, AI memories, leashes and spawn tracking are all
- * world-scoped and break on a cross-dimension recreate. That exclusion has
- * been lifted deliberately: vanilla nether portals carry mobs, so a portal
- * that refuses them does not read as a portal, and players want to bring
- * villagers and livestock to their dimensions. Vanilla's own behaviour is the
- * reference for what "correct" means here, and where this diverges from it —
+ * Vanilla nether portals carry mobs, so a portal that refuses them does not
+ * read as a portal, and players want to bring villagers and livestock to
+ * their dimensions. Vanilla's own behaviour is the reference for what
+ * "correct" means here, and where this diverges from it —
  * leashes (detached near-side rather than dropped far-side) and per-dimension
  * difficulty (re-applied on arrival) — the divergence is documented at the
  * method that causes it.
@@ -99,12 +96,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * to a different starting point rather than a second, divergent transform.
  *
  * <h2>Rule 3: land where the player lands, not where the ground is</h2>
- * This used to hold its own copy of the heightmap surface calculation, as did
- * the projector, and both diverged from the player path for the same reason:
- * once an arrival portal exists the player is teleported INTO it, while the
- * heightmap answers with the top of the solid frame we built around it — four
- * or more blocks higher. {@link ArrivalResolver} is now the single answer for
- * all three of them; do not reintroduce a local copy.
+ * Once an arrival portal exists, the player is teleported INTO it, while a
+ * plain heightmap read answers with the top of the solid frame built around
+ * it — four or more blocks higher. {@link ArrivalResolver} is the single
+ * answer for the player path, the projector and this class; do not
+ * reintroduce a local copy of the heightmap calculation.
  *
  * <h2>Edge triggering</h2>
  * The player loop teleports on the ENTRY EDGE only (it tracks "was inside" per
@@ -115,14 +111,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * scan every tick, so it is self-pruning — it only ever holds entities
  * currently standing in an immersive zone interior.
  *
- * <p>The ARRIVAL side needs the same discipline and, since 2026-07-25, gets it
- * from {@code PortalHelper.enteredArrivalPortal} — one mechanism shared with
- * the player return path. It used to gate on {@code getPortalCooldown() != 0},
- * which cannot work: vanilla's {@code Entity.tryUsePortal} re-pins the cooldown
- * to {@code getDefaultPortalCooldown()} every tick an entity stands in a portal
- * block (300 for a non-player, 10 for a player), so an entity that ARRIVED in
- * an arrival portal never saw it reach zero and could never leave the way it
- * came. Every teleport on both sides now calls
+ * <p>The ARRIVAL side needs the same discipline, and gets it from
+ * {@code PortalHelper.enteredArrivalPortal} — one mechanism shared with the
+ * player return path. A cooldown gate ({@code getPortalCooldown() != 0})
+ * cannot work here: vanilla's {@code Entity.tryUsePortal} re-pins the
+ * cooldown to {@code getDefaultPortalCooldown()} every tick an entity stands
+ * in a portal block (300 for a non-player, 10 for a player), so an entity
+ * that ARRIVED in an arrival portal would never see it reach zero and could
+ * never leave the way it came. Every teleport on both sides calls
  * {@code PortalHelper.markArrivedInPortal} so the destination reads as
  * already-occupied rather than as a fresh entry.
  */
@@ -538,10 +534,7 @@ public final class EntityPassthrough {
      * entities clear the class gate, so the added per-tick cost of this phase
      * is one cached state read per mob in a loaded world; the config read, the
      * target lookup and the presence sample all stay behind the portal-block
-     * test, which almost nothing passes. (The cooldown check used to sit ahead
-     * of the block read and no longer does — it was never a cost measure, it
-     * was the broken gate, and it is now read once per entity that is actually
-     * standing in one of our portals.)
+     * test, which almost nothing passes.
      *
      * <p>Unlike the player path this checks only the entity's own block, not
      * also the blocks above and below it. That is exact for the sub-block
@@ -591,14 +584,10 @@ public final class EntityPassthrough {
             return false;
         }
 
-        // The entry edge, shared with the player path. This used to be a
-        // `getPortalCooldown() != 0` gate two checks earlier, and it had the
-        // same defect the player path did — worse, in fact: vanilla's re-pin
-        // for a NON-player is getDefaultPortalCooldown() = 300, so a mob or
-        // item that arrived in an arrival portal sat there with a cooldown
-        // pinned at 300 and could never leave the way it came. Sampled only
-        // once the entity is known to be standing in one of OUR portals, so
-        // the thousands of entities that are not never touch the map; "it
+        // The entry edge, shared with the player path (see "Edge triggering"
+        // above for why a cooldown gate cannot substitute for this). Sampled
+        // only once the entity is known to be standing in one of OUR portals,
+        // so the thousands of entities that are not never touch the map; "it
         // stepped out" is inferred from the resulting gap in sightings, which
         // needs the entity to be away for a full tick.
         int now = world.getServer().getTicks();

@@ -197,8 +197,7 @@ prepare_base_dir() {
   # the stack bundle instead. Without them the warmup server has no
   # `customdim` command at all, so `customdim load` / `dump-biome-params` /
   # `dump-structure-pools` fail for every dimension and warmup silently
-  # degrades to the shipped biome table and no structure pools (2026-07-30:
-  # 77/77 dimensions failed to queue, structure_pools.json never written).
+  # degrades to the shipped biome table and no structure pools.
   # The bundle copy is authoritative; data/mods is the platform-checkout
   # fallback, where dev-up.sh has already installed the same jars.
   local local_mods
@@ -407,8 +406,7 @@ finalise() {
   # for finalise to write winners into the consumer's overlay — so gating
   # only --write-config left --no-write completely ineffective in a consumer
   # repo while appearing to work in a platform checkout, where the overlay
-  # flag is empty anyway (2026-07-30: a --no-write roll rewrote 33 of
-  # elfydd's overlay dimension files).
+  # flag is empty anyway.
   if [[ "$WRITE_CONFIG" == 1 ]]; then
     WRITE_FLAG="--write-config"
     OVERLAY_FLAG="$WINNER_FLAG"

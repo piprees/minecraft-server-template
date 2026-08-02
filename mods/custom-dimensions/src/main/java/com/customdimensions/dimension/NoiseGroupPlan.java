@@ -104,10 +104,8 @@ public final class NoiseGroupPlan {
         // A group named explicitly under `structures.noise` is ADDED, not just
         // re-profiled. The world type's list is a DEFAULT, and an author who
         // writes {"endgame": "sparse"} on a cave dimension has said what they
-        // want plainly; iterating the type list alone silently ignored them.
-        // Found 2026-07-27: nine shipped dimensions carried wants for
-        // structures whose group their type omits, so the wants could never be
-        // satisfied and the fix did nothing until this landed.
+        // want plainly — iterating the type list alone would silently ignore
+        // them whenever the type's own list omits that group.
         List<String> enabled = new ArrayList<>(StructureGroupRegistry.groupsForType(worldType));
         for (String named : explicitGroups(block)) {
             if (!enabled.contains(named) && StructureGroupRegistry.groupDefault(named) != null) {
@@ -153,11 +151,11 @@ public final class NoiseGroupPlan {
             // the spike's precedence list has it. A coarse density dial must
             // not resurrect a group the dimension's own difficulty says does
             // not exist there: the_luminous_caverns has mobMultiplier 0.0 and
-            // structureDensity "sparse", and on the first live boot the
-            // density put its dungeons straight back. The rule that reads
-            // correctly is "a peaceful world has no dungeons unless the author
-            // names a profile for dungeons specifically" — so only the
-            // per-group override below can undo it.
+            // structureDensity "sparse", and structureDensity alone would put
+            // its dungeons straight back. The rule that reads correctly is "a
+            // peaceful world has no dungeons unless the author names a
+            // profile for dungeons specifically" — so only the per-group
+            // override below can undo it.
             if (mobMultiplier <= defaults.peacefulMaxMobMultiplier()
                     && defaults.peacefulProfiles().containsKey(group)) {
                 profileName = defaults.peacefulProfiles().get(group);

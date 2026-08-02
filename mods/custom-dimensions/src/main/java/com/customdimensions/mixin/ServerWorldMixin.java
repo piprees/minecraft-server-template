@@ -45,8 +45,8 @@ public class ServerWorldMixin {
             List<PortalHelper.PortalZone> zones = new ArrayList<>();
             for (PortalHelper.PortalZone zone : snapshot) {
                 if (!PortalHelper.isZoneValid(world, zone)) {
-                    // A portal is one thing with two ends. Breaking the frame
-                    // here used to leave the arrival standing in the
+                    // A portal is one thing with two ends. Breaking only this
+                    // frame would leave the arrival standing in the
                     // destination — still a real portal block, still
                     // registered, still returning anyone who stepped into it
                     // to a doorway that no longer exists. Take both.
@@ -57,11 +57,11 @@ public class ServerWorldMixin {
                     PortalHelper.breakLinkedArrival(world, zone);
                     PortalHelper.clearInteriorPortals(world, zone);
                     PortalHelper.removeZone(zone);
-                    // Persist the removal now rather than at shutdown. This
-                    // path had no save at all, so a broken portal lived on in
-                    // portal_links.json until a clean stop and came back on a
-                    // crash. Rare enough to cost nothing — a zone goes invalid
-                    // once, then it is gone.
+                    // Persist the removal now rather than at shutdown: without
+                    // this, a broken portal would live on in portal_links.json
+                    // until a clean stop and reappear after a crash. Rare
+                    // enough to cost nothing — a zone goes invalid once, then
+                    // it is gone.
                     PortalHelper.savePortalLinks();
                     continue;
                 }
@@ -185,9 +185,6 @@ public class ServerWorldMixin {
                         // adding the offset to it applies the shift twice
                         // (2*target - source) and builds the portal hundreds of
                         // blocks from where the player is teleported.
-                        // Found live 2026-07-25: source (63, -619) at scale 8
-                        // teleported the player to (8, -77) while the portal
-                        // was built at (-47, 465).
 
                         // Arrival height comes from the target column's own
                         // surface — the SCALED centre, since source-portal
@@ -206,14 +203,12 @@ public class ServerWorldMixin {
                         if (carved) {
                             // No open pocket anywhere in the band, so carve one.
                             //
-                            // This used to be `siteY = surfaceY` — the
-                            // MOTION_BLOCKING_NO_LEAVES heightmap, which reads
-                            // the ROOF in a ceilinged dimension. The one path
-                            // that exists to rescue a bad column was putting
-                            // players on the nether roof (y=192 in
-                            // the_boneyard, 2026-07-25), silently undoing
-                            // everything PortalSite is for. A fallback to a
-                            // number known to be wrong is not a fallback.
+                            // Never fall back to `siteY = surfaceY` here — the
+                            // MOTION_BLOCKING_NO_LEAVES heightmap reads the ROOF
+                            // in a ceilinged dimension, which would put players
+                            // on that roof and silently undo everything
+                            // PortalSite is for. A fallback to a number known
+                            // to be wrong is not a fallback.
                             siteY = com.customdimensions.portal.PortalSite.findCarveY(
                                     targetWorld, targetCenterX, targetCenterZ, zone.axis, surfaceY);
                         }
@@ -263,11 +258,9 @@ public class ServerWorldMixin {
                         PortalHelper.setSourceColumn(targetKey, adjustedInterior, portalCenterX, portalCenterZ);
                         com.customdimensions.portal.PortalAuraManager.onLink(
                                 world, zone, targetWorld, adjustedInterior);
-                        // Says HOW the site was chosen, not just that one was.
+                        // Says HOW the site was chosen, not just that one was:
                         // "carved" appearing on every arrival in a dimension
-                        // means its search band is wrong again — which is
-                        // exactly the state that shipped, invisibly, until
-                        // somebody stood on a roof.
+                        // means its search band is wrong again.
                         MultiverseServer.LOGGER.info("Created portal in {} at ({}, {}, {}) [{} site]",
                                 targetKey.getValue(), targetCenterX, surfaceY, targetCenterZ,
                                 carved ? "carved" : "open");

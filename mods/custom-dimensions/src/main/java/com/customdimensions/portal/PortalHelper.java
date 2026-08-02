@@ -383,12 +383,9 @@ public class PortalHelper {
      * {@code getDefaultPortalCooldown()} (10 for a player, 300 for everything
      * else). {@code tickPortalCooldown} then takes one off, and the re-pin
      * puts it back. The cooldown therefore NEVER reaches zero while an entity
-     * stands in a portal. Both return paths used to gate on
-     * {@code getPortalCooldown() == 0}, so a player who arrived by portal —
-     * and so landed INSIDE the arrival portal — could not go home without
-     * first walking fully out, waiting out the drain, and walking back in.
-     * Measured live 2026-07-25: {@code PortalCooldown=10} at t=2s, t=6s and
-     * t=12s on a player standing still in the arrival portal.
+     * stands in a portal, so gating on {@code getPortalCooldown() == 0} would
+     * strand anyone who lands inside their own arrival portal: they could
+     * only leave by walking fully out and back in again.
      *
      * <p>So the gate is presence, not cooldown: an entity must have been
      * somewhere OTHER than this portal since it last stood in it. That is the
@@ -402,8 +399,8 @@ public class PortalHelper {
      * here" (our own return teleports and {@code ServerWorldMixin}'s outbound
      * one all set one) from "I materialised here" (an item dropped into the
      * portal, a mob spawned in it — neither has a cooldown, and both should
-     * cross, as they did before this change). Without it, arriving through a
-     * portal would fire the return on the very next tick, forever.
+     * cross). Without it, arriving through a portal would fire the return on
+     * the very next tick, forever.
      *
      * <p>Callers sample at different rates and both are correct:
      * <ul>
@@ -569,15 +566,11 @@ public class PortalHelper {
      * Adds a zone unless an equivalent one is already registered; returns
      * whether it was actually added.
      *
-     * <p>Re-igniting an already-lit frame used to append a SECOND zone over
-     * the same interior. Nothing deduplicated, and both copies persisted, so
-     * the duplicate survived restarts and bred further copies on each
-     * re-light. Every per-zone pass then ran twice: two portal-particle
-     * emissions (the visible symptom — a player reported the effect as far
-     * too strong), two immersive projections of the same 336 blocks to the
-     * same client, two chunk-ticket holders, and two aura sites. Found live
-     * 2026-07-25 with two byte-identical source-zone-v1 records in
-     * portal_links.json.
+     * <p>Re-igniting an already-lit frame reuses the existing zone rather
+     * than appending a second one over the same interior — without dedup,
+     * each re-light would double the portal-particle emissions, the
+     * immersive projection, the chunk-ticket holders, and the aura sites for
+     * that interior, and the duplicate would survive restarts.
      *
      * <p>Identity is (target world, axis, interior positions) — the same
      * triple that makes two zones behave identically. The source world is
@@ -807,11 +800,11 @@ public class PortalHelper {
         if (immersive) {
             // An immersive portal thins its interior fill rather than losing
             // it. The full 2-per-cell-per-tick fill is exactly what you
-            // cannot see through, and suppressing it entirely was the first
-            // fix — but that left "a perfectly hollow box", with nothing to
-            // say the doorway is anything but a hole until the client-side
-            // work lands. A twelfth of the density reads as dust drifting
-            // out of the opening while leaving the view clear.
+            // cannot see through, but suppressing it entirely leaves "a
+            // perfectly hollow box" with nothing to say the doorway is
+            // anything but a hole until the client-side work lands. A
+            // twelfth of the density reads as dust drifting out of the
+            // opening while leaving the view clear.
             if ((world.getTime() + particlePhase(zone)) % IMMERSIVE_PARTICLE_INTERVAL != 0) {
                 return;
             }
@@ -860,24 +853,14 @@ public class PortalHelper {
                 PortalReturnTarget rt = entry.getValue();
                 if (!isPortalBlock(level.getBlockState(p))) {
                     // No portal block here any more, and it is deliberately
-                    // NOT restored.
-                    //
-                    // This used to heal the gap (healPortalHole), on the
-                    // reasoning that a holed arrival strands whoever is
-                    // standing in it. Together with NetherPortalProtectionMixin
-                    // that made a portal genuinely indestructible: a player in
-                    // creative could swing at a pane all day and watch it come
-                    // straight back, because the heal ran on the next particle
-                    // pass. Reported in game 2026-07-25 — "not being able to
-                    // escape a portal, in creative, or even damage it or delete
-                    // it, is a massive problem".
-                    //
-                    // Being able to destroy a portal you built outranks the
-                    // stranding case, which exit portals, exit shrines and the
-                    // configured exit modes already cover (owner decision,
-                    // 2026-07-25). Neighbour-update protection stays — that
-                    // compensates for a non-obsidian frame and never resists a
-                    // player.
+                    // NOT restored: healing the gap back would make a portal
+                    // genuinely indestructible once combined with
+                    // NetherPortalProtectionMixin's neighbour-update
+                    // protection. Being able to destroy a portal you built
+                    // outranks the stranding case, which exit portals, exit
+                    // shrines and the configured exit modes already cover.
+                    // Neighbour-update protection stays — that compensates
+                    // for a non-obsidian frame and never resists a player.
                     continue;
                 }
                 // An immersive arrival is a window too — the projector fakes
@@ -927,17 +910,16 @@ public class PortalHelper {
      * That protection is deliberately blind to intent, so this is the only
      * place that can tell a player's pick from a stray block update.
      *
-     * <p>There was also a {@code healPortalHole} pass that refilled a missing
-     * pane from a surviving neighbour. Between the two, a portal was
-     * indestructible — in creative you could swing at a pane and watch it
-     * reappear on the next particle tick. It was removed on 2026-07-25; being
-     * able to destroy a portal outranks the stranding case, which exit
-     * portals, exit shrines and the configured exit modes already cover.
+     * <p>A missing pane is never healed back from a surviving neighbour:
+     * combined with neighbour-update protection, that would make a portal
+     * genuinely indestructible — swinging at a pane in creative would just
+     * watch it reappear. Being able to destroy a portal you built outranks
+     * the stranding case, which exit portals, exit shrines and the
+     * configured exit modes already cover.
      *
-     * <p>Deregistering comes FIRST. The heal is keyed on a position still
-     * being in the return-target map, so clearing blocks while they were
-     * still registered would race the particle pass into rebuilding what this
-     * is trying to remove.
+     * <p>Deregistering comes FIRST, so no later pass — particles, projection,
+     * validity — ever iterates a registered position whose block is already
+     * gone.
      *
      * <p>Only touches REGISTERED positions, so a player-built vanilla portal
      * keeps vanilla's own rules, and a source zone — which has no portal
@@ -1087,11 +1069,9 @@ public class PortalHelper {
         }
         // Persist immediately. Destroying a portal is a deliberate,
         // player-visible act, and the zone-validity path this runs from has no
-        // save of its own — so without this the deregistration lived only in
-        // memory until shutdown, and a crash in between would bring back a
-        // portal the player had already broken. Verified stale on 2026-07-26:
-        // the log reported the break while portal_links.json still listed
-        // every cell of it.
+        // save of its own — without this the deregistration would live only
+        // in memory until shutdown, and a crash in between would bring back a
+        // portal the player had already broken.
         savePortalLinks();
         com.customdimensions.MultiverseServer.LOGGER.info(
                 "Source portal broken in {} — closed its arrival in {} ({} cells, {} cleared now, {} deferred)",
@@ -1281,12 +1261,8 @@ public class PortalHelper {
         PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
         // No config for the source world means a BASE world — the overworld,
         // in practice, which is where almost every portal comes from. It has
-        // no portal block of its own, so there is nothing to describe it with.
-        //
-        // Falling back to `definition` here was the bug: `definition` is the
-        // DESTINATION's portal, so the way home out of an ember dimension
-        // glowed ember and read as another door deeper in. Reported in game
-        // 2026-07-25 as "still seeing nether styles on the return portal".
+        // no portal block of its own, so falling back to `definition` (the
+        // DESTINATION's portal) would repeat the mistake described above.
         //
         // A neutral vanilla presentation is the honest answer: the way back to
         // the overworld should look like an ordinary portal, not like the
@@ -1304,9 +1280,7 @@ public class PortalHelper {
         // in the return-target map, so registering afterwards leaves the
         // whole placement loop unprotected: vanilla
         // NetherPortalBlock.getStateForNeighborUpdate re-validates against an
-        // OBSIDIAN frame and pops anything else. Found live 2026-07-25 — an
-        // arrival portal came up 5 blocks out of 6, and the hole made the
-        // return trip look broken to the player standing in it.
+        // OBSIDIAN frame and pops anything else.
         // Registration is a pure in-memory map write with no world side
         // effects, so doing it first is safe and strictly better.
         for (BlockPos p : interior) {
@@ -1644,12 +1618,11 @@ public class PortalHelper {
         // records written before this existed.
         //
         // Without it an arrival knows the Y it should return to but not the
-        // X/Z, which is why the immersive preview had a SECOND mapping that
-        // translated by zero — it sampled the return world at the arrival's
-        // own column instead of at the portal you actually came from. At
-        // scale 1 those are the same place and it looked fine; at scale 8 it
-        // sampled ~8x away, hit unvisited chunks, and painted nothing but the
-        // aperture (the "(12 blocks)" arrivals, 2026-07-25).
+        // X/Z, so the immersive preview would have to sample the return
+        // world at the arrival's own column instead of at the portal you
+        // actually came from. Those coincide at scale 1, but diverge further
+        // apart as scale increases, sampling unvisited chunks and painting
+        // nothing but the aperture.
         //
         // A preview is never scaled — N blocks is N blocks. Both directions
         // are a rigid translation; this is the missing half of the one going

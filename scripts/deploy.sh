@@ -420,10 +420,8 @@ local_data_cfg="$SERVER_DIR/data/config"
 #
 # Clearing it only when a source directory exists means REMOVING a consumer
 # overlay never takes effect: the staged copy survives and keeps replacing
-# every platform dimension file, silently, for good. Hit on the local consumer
-# 2026-07-26 — an overlay deleted days earlier was still overriding all 82
-# dimensions, so a released config change deployed and did nothing. The
-# symptom is a boot warning about config you have already fixed.
+# every platform dimension file, silently, for good. The symptom is a boot
+# warning about config you have already fixed.
 rm -rf "$local_data_cfg/custom-dimensions/overlay"
 
 if [[ -d "$SERVER_DIR/overlay/config" ]]; then

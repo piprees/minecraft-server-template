@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * the listener. During dimension activation that raycast can step into a
  * not-yet-generated chunk, forcing a synchronous getChunkBlocking on the
  * main thread — which loads that chunk's persisted entities, whose remount
- * (ENTITY_MOUNT) emits another game event, and the cascade wedges the
- * server for minutes to hours (observed in production, 2026-07-11: main
- * thread parked under GameEventDispatchManager -> raycast -> getChunk).
+ * (ENTITY_MOUNT) emits another game event, and the cascade can wedge the
+ * server for minutes to hours (main thread parked under
+ * GameEventDispatchManager -> raycast -> getChunk).
  *
  * In a world with zero players there is nothing gameplay-relevant a
  * listener can do, so dispatch is pure cost: skip it entirely. The moment

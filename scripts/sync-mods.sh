@@ -69,11 +69,8 @@ FAILED=0
 # Default: mods-cache/server/ beside the repo root this script was run from
 # (platform checkouts and CI have it; a consumer/production server does not,
 # and simply falls through to the CDN). Override or disable with MOD_CACHE_DIR.
-# The shared cache (scripts/lib.sh). It used to default to a repo-local
-# mods-cache/server and DISABLE ITSELF when that directory was absent — which
-# it is in every consumer — so the cache was off everywhere and every machine
-# re-downloaded the full mod set from Modrinth. It is now always on and always
-# created.
+# The shared cache (scripts/lib.sh) is always on and always created, so
+# every consumer gets the same warm cache as platform checkouts and CI.
 MOD_CACHE_DIR="$(mod_cache_dir)"
 
 fetch_missing() {

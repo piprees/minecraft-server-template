@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """census_scoring.py — score a seed's noise-placed structure layout.
 
-Spike task F2. Noise placement (2026-07-26) replaced the vanilla grid for
-whole structure GROUPS, so "how far is the nearest village" stopped being a
-statement about the world: the villages set no longer has its own grid, it
-has a share of the `settlements` group's noise field. `want_score(nearest)`
-in score-dimensions.py answers a question the world no longer asks.
+Spike task F2. Noise placement controls whole structure GROUPS rather than a
+vanilla per-structure grid, so "how far is the nearest village" is not a
+statement about the world: the villages set has no grid of its own, only a
+share of the `settlements` group's noise field. `want_score(nearest)` in
+score-dimensions.py answers a question the world does not ask.
 
 What replaces it, per the spike:
 
@@ -282,20 +282,19 @@ def presence_probability(entry, lo_blocks, hi_blocks, radius_chunks, share):
 
     THIS IS THE FIX FOR THE GROUP/STRUCTURE CONFLATION. The census knows how
     many positions a GROUP put in a ring; it does not know which structure
-    landed on each. Scoring used to answer both questions with the group
-    count, which is wrong in both directions:
+    landed on each. Scoring the group count directly is wrong in both
+    directions:
 
-      - a shun failed whenever its group was present, and an enabled group is
-        populated by definition, so all 167 satisfiable-looking shuns across
-        64 dimensions scored zero on every seed forever;
-      - a want was credited whenever ANY group member reached the band, so
-        asking for a Village was really asking for any one of forty
+      - a shun fails whenever its group is present, and an enabled group is
+        populated by definition, so every satisfiable-looking shun scores
+        zero on every seed;
+      - a want is credited whenever ANY group member reaches the band, so
+        asking for a Village is really asking for any one of forty
         settlement types.
 
-    A share turns both into the same question asked from opposite ends, and
-    at `share = 1.0` (the structure is its group's only member) it reduces
-    exactly to the old behaviour: present means certain, absent means
-    impossible.
+    A share turns both into the same question asked from opposite ends: at
+    `share = 1.0` (the structure is its group's only member) present means
+    certain and absent means impossible — the group-level reading.
     """
     if entry is None or entry.get("count", 0) <= 0:
         return 0.0

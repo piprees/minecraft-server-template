@@ -41,13 +41,10 @@ WHAT IT CHECKS, per want in the resolved battery
   CURVE-SUPPRESSED-BAND
                        the group IS enabled, but its radial curve is exactly
                        0.0 across the whole of the want's band, which suppresses
-                       placement outright. Since 2026-07-29 this is the only way
-                       a curve can make a band unsatisfiable, and it is always
-                       deliberate: the curve scales the exclusion radius, so any
-                       positive weight generates. Before that change the bar was
-                       `weight > profile.threshold` and 19 wants across 12
-                       dimensions were impossible by accident, the shipped
-                       tapers having crossed the threshold on their way down.
+                       placement outright. This is the only way a curve can make
+                       a band unsatisfiable, and it is always deliberate: the
+                       curve scales the exclusion radius, so any positive
+                       weight generates.
   THIN-BAND            the curve averages less than 0.5x the group's own density
                        across the band. Satisfiable, but the author is asking
                        for something the config has deliberately made rare
@@ -175,13 +172,7 @@ def max_curve_weight(radial, lo, hi, radius):
     so the ONLY way a curve can rule a band out is a weight of exactly 0.0
     across the whole of it. Anything positive generates; the weight then scales
     the exclusion radius, which makes the band sparser or denser but never
-    empty.
-
-    Before 2026-07-29 the curve multiplied into the noise before the threshold
-    test, so the bar was `weight > profile.threshold` and 19 wants were
-    structurally impossible from config alone (22 confirmed against the bank).
-    That whole class of finding is gone by construction — see
-    NoiseFieldIndex.exclusionFor.
+    empty — see NoiseFieldIndex.exclusionFor.
 
     The curve is piecewise-linear through `len(radial)` control points spanning
     [0, radius] (radial_weight puts point i at fraction i/(n-1)), so the
@@ -211,10 +202,10 @@ THIN_BAND_WEIGHT = 0.5
 def mean_curve_weight(radial, lo, hi, radius, steps=200):
     """The band's mean radial weight, i.e. its relative density.
 
-    Since 2026-07-29 the curve value IS the density multiplier, so this is
-    directly "how much of this group's usual density does the author's band
-    get". Sampled rather than integrated because the answer is a headline
-    number for a human, not an input to anything.
+    The curve value IS the density multiplier, so this is directly "how much
+    of this group's usual density does the author's band get". Sampled
+    rather than integrated because the answer is a headline number for a
+    human, not an input to anything.
     """
     if not radial:
         return 1.0
@@ -350,9 +341,7 @@ def unresolvable_structs(struct_sets):
     A wrong id here is invisible: resolve_struct happily returns it, the
     battery accepts it, and the roller banks -1 for it on every seed of every
     dimension that wants it — indistinguishable from "this seed didn't have
-    one". `dungeons_arise:giant_mushroom` and `nova_structures:illager_manor`
-    were both wrong (2026-07-29); the first cost three dimensions a permanent
-    zero on a want they could never satisfy.
+    one".
     """
     from dimension_profiles import STRUCTS
     known = {s["id"] for cfg in struct_sets.values() for s in cfg["structures"]}
@@ -376,10 +365,6 @@ def reachable_ring(radial, radius, steps=2000):
     piecewise-linear with up to ten segments and the answer only needs to be
     good to a fraction of a chunk. -> (None, None) when the group is suppressed
     everywhere.
-
-    Took a `threshold` argument until 2026-07-29, when the curve stopped gating
-    eligibility. For every shipped curve this is now the whole radius, and the
-    argument would have been a lie dressed as precision.
     """
     if not radial:
         return (0.0, radius)

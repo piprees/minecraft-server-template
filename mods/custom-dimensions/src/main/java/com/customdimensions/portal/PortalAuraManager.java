@@ -433,12 +433,6 @@ public final class PortalAuraManager {
     }
 
     /**
-     * Sample the real loaded terrain around a portal: histogram of solid
-     * blocks (top 5 = terrain palette), small plants, logs mapped to tree
-     * features, still surface fluids. Registry surface rules aren't
-     * queryable, so sampling what is genuinely there is the mod-proof way.
-     */
-    /**
      * Block ids the histogram must never pick up, however much of them is
      * standing around: the portal's own building materials.
      *
@@ -446,10 +440,9 @@ public final class PortalAuraManager {
      * builds their portal into a wall, a tower or a plinth — which is most
      * portals anyone bothers to decorate — leaves plenty of the frame
      * material inside the 9x7x9 sample box, so it wins a slot in the terrain
-     * histogram and the far side starts sprouting it. Reported in-game
-     * 2026-07-25: a cherry_planks portal seeded cherry_planks across the
-     * destination, which reads less like an ecological leak and more like a
-     * joke. Obsidian or stone would have hidden the same bug.
+     * histogram and the far side starts sprouting it — a portal framed in
+     * something distinctive (cherry planks, say) would seed that same
+     * material across the destination.
      *
      * <p>Covers the accept forms AND the placement block, so a tag- or
      * colour-group-framed portal excludes what it is actually built from.
@@ -483,6 +476,12 @@ public final class PortalAuraManager {
         return ids;
     }
 
+    /**
+     * Sample the real loaded terrain around a portal: histogram of solid
+     * blocks (top 5 = terrain palette), small plants, logs mapped to tree
+     * features, still surface fluids. Registry surface rules aren't
+     * queryable, so sampling what is genuinely there is the mod-proof way.
+     */
     static Sampled sample(ServerWorld world, BlockPos centre, Set<BlockPos> exclusion) {
         return sample(world, centre, exclusion, Set.of());
     }
@@ -496,9 +495,8 @@ public final class PortalAuraManager {
         Set<String> fluids = new java.util.LinkedHashSet<>();
         // Ground-biased vertical window: a vertical portal's centre sits
         // 1-2 blocks above the terrain that actually characterises the
-        // place — a symmetric band missed the ground entirely (found live
-        // 2026-07-24: the histogram came back empty while eye-level logs
-        // were caught).
+        // place, so a symmetric band would miss the ground and only catch
+        // whatever happens to be at eye level.
         for (int dx = -SAMPLE_RADIUS_H; dx <= SAMPLE_RADIUS_H; dx++) {
             for (int dy = -(SAMPLE_RADIUS_V + 2); dy <= SAMPLE_RADIUS_V; dy++) {
                 for (int dz = -SAMPLE_RADIUS_H; dz <= SAMPLE_RADIUS_H; dz++) {
@@ -548,12 +546,10 @@ public final class PortalAuraManager {
         // A sampled tree palette turns any portal near a forest into a
         // thicket: a dark oak is a 2x2 trunk with an enormous canopy, and at
         // TREE_CHANCE per pass against a 300 budget an 8-radius aura plants
-        // roughly a dozen of them. Reported in game 2026-07-25 — "the beach is
-        // now completely rammed with dark oak trees and I can barely move
-        // around". The aura is meant to make somewhere feel touched by the
-        // other side, not to wall it in, and trees are the one palette entry
-        // whose footprint is orders of magnitude bigger than the block that
-        // seeded it.
+        // roughly a dozen of them. The aura is meant to make somewhere feel
+        // touched by the other side, not to wall it in, and trees are the
+        // one palette entry whose footprint is orders of magnitude bigger
+        // than the block that seeded it.
         //
         // Trees remain available as a deliberate, per-dimension choice via
         // an explicit `aura.trees` config (Sampled.explicit), which is the

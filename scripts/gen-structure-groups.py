@@ -32,9 +32,9 @@ Usage:    scripts/gen-structure-groups.py [--check]
           rather than rewriting them.
 
 Gotchas:  - This script OWNS structure_themes.json. gen-structure-presets.py
-            used to write it as a side effect; that was removed so the two
-            can't fight (the presets run needs network and would revert
-            group/rarity on every invocation).
+            must never write it as a side effect, or the two would fight —
+            the presets run needs network and would revert group/rarity on
+            every invocation.
           - Re-run after extract-structure-sets.py, i.e. after any structure
             mod pin bump. It needs no network of its own.
           - The rarity thresholds and the group rules are MIRRORED in

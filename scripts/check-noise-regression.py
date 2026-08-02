@@ -198,13 +198,10 @@ BASE_WORLD_CHECKS = [
 def _load_curves():
     """The radial curve presets, read from the file that actually ships them.
 
-    These used to be hardcoded here, and drifted the moment the presets
-    changed: "make the radial curve a density dial, not an on/off gate"
-    (2026-07-29) retuned every curve so none of them reach 0.0 any more, and
-    updated the mod resource, the roller mirror, the unit tests and the census
-    fixture — but not this file, which then failed three dimensions for
-    matching the new presets exactly (2026-07-30). Reading the shipped values
-    makes that class of drift impossible.
+    Reading the shipped values rather than hardcoding a copy here makes
+    drift between this checker and the presets impossible: a hardcoded copy
+    goes stale the moment the presets change and starts failing dimensions
+    for matching the new presets correctly.
     """
     here = Path(__file__).resolve().parent.parent
     for candidate in (here / "config/custom-dimensions/structure-type-defaults.json",
@@ -401,12 +398,8 @@ def run_dimension(spec, census_dir, report):
         inner = sum(1 for cx, cz in positions
                     if math.hypot(cx, cz) <= radius * 0.5)
         # Assert against what the group's OWN curve predicts, not a fixed
-        # share. The old ">60% inside half-radius" encoded the pre-2026-07-29
-        # behaviour, where the curve multiplied into the noise before the
-        # threshold test and `inner` therefore put every settlement inside a
-        # third of the radius. That was the bug "make the radial curve a
-        # density dial, not an on/off gate" fixed, so the assertion had
-        # started demanding the defect back.
+        # share: a fixed threshold encodes one curve shape and silently
+        # starts asserting a stale behaviour the moment the presets change.
         curve_name = (spec.get("radial") or {}).get(group)
         expected = curve_inner_share(CURVES[curve_name]) if curve_name in CURVES else 0.25
         n = len(positions)

@@ -17,9 +17,9 @@
 #   A persisted `definition.frameBlock` must ALWAYS be a plain parseable id and
 #   never a `#tag` form. Older jars call Identifier.of() on it in an uncaught
 #   world-tick path, so a `#` in a persisted record crash-loops any server
-#   running a pre-FrameMatcher build — hit live 2026-07-23 while A/B-testing a
-#   rollback. Accept forms belong in `frameAccepts`. Deploys roll back, so
-#   persisted state is a compatibility contract, not just today's schema.
+#   running a pre-FrameMatcher build. Accept forms belong in `frameAccepts`.
+#   Deploys roll back, so persisted state is a compatibility contract, not
+#   just today's schema.
 #
 # Context:
 #   Reads files only — no Docker, no RCON, no running server.

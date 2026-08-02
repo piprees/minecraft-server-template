@@ -111,19 +111,18 @@ public final class PortalSafetyValidator {
      * R / scale and needs {@code destBorder >= R / scale + margin}. Outside
      * the destination's PLAYER border vanilla forbids breaking AND placing
      * every block, so the player arrives unable to touch the portal, the
-     * frame, or the ground — and every diagnosis of that symptom points at
-     * protection code rather than at a number in a config file. That cost two
-     * sessions on 2026-07-25; this is the check that would have made it a boot
-     * warning instead.
+     * frame, or the ground — a symptom whose diagnosis naturally points at
+     * protection code rather than at a number in a config file. This check
+     * turns that into a boot warning instead.
      *
      * <p>Anchor dimensions are exempt: their arrival is a fixed configured
      * position, not a scaled one, so the source radius is irrelevant.
      *
-     * <p>Note for anyone re-deriving this: PHASE-9 originally specified the
-     * test as {@code destinationBorder < sourceBorder * scale}. That is the
-     * MULTIPLY-on-entry formula and it is wrong in the same direction the
-     * code was; {@link com.customdimensions.portal.ArrivalReachability} has
-     * the corrected arithmetic and is the authority.
+     * <p>Note for anyone re-deriving this: the tempting formula is
+     * {@code destinationBorder < sourceBorder * scale} — that MULTIPLIES on
+     * entry, which is the wrong direction; entering DIVIDES.
+     * {@link com.customdimensions.portal.ArrivalReachability} has the
+     * correct arithmetic and is the authority.
      */
     private static void validateArrivalReachability(DimensionConfig config, int sourceRadius,
                                                     List<String> warnings) {

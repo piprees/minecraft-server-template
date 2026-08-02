@@ -160,9 +160,8 @@ def select_spawn_site(sampler, profile, radius=768, step=64):
     placement by clearSpawnRadius. Survivors score on dryness and openness
     of the 8-neighbour ring plus macro-flatness from the spline height
     model (macro shape only — the spline cannot see settlement-scale
-    relief; see the 2026-08-01 adjudication in the worklog), with origin
-    distance and then the grid key breaking ties — the choice is a pure
-    deterministic function of seed + config.
+    relief), with origin distance and then the grid key breaking ties —
+    the choice is a pure deterministic function of seed + config.
 
     Returns (biome, dist, x, z) like BiomeSampler.spawn_filter. Falls back
     to the nearest bare namesake point when every site fails a hard filter

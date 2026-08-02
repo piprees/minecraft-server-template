@@ -36,11 +36,11 @@ import java.util.function.Predicate;
  * TROUBLESHOOTING.md#t25).
  *
  * <p>Priority 900: HEAD callbacks execute in application order (lower
- * priority applies first), so this one runs BEFORE default-priority (1000)
- * cancels — measured live: at 1100 the fortress attempts died in YUNG's
- * callback before ours ran, at 900 they generate. The body mirrors vanilla's
- * own {@code trySetStructureStart} with the biome predicate replaced — "put
- * THIS structure at THIS spot" is a literal override, not a suggestion.
+ * priority applies first), so this one must run BEFORE default-priority
+ * (1000) cancels — see TROUBLESHOOTING.md#t25 for why 900 is load-bearing.
+ * The body mirrors vanilla's own {@code trySetStructureStart} with the
+ * biome predicate replaced — "put THIS structure at THIS spot" is a
+ * literal override, not a suggestion.
  *
  * <p>Not affected, deliberately: {@code /locate}, which reads
  * {@code StructurePlacementCalculator.getPlacements} — that map indexes a

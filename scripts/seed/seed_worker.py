@@ -328,8 +328,7 @@ def start_container(name, workdir, memory, seed="1", seed_roll_mode=True):
         their options, so `customdim load <slug>` can build their worlds.
         Under true it cannot: getOrCreateDimension finds no options and
         returns null with no log line, so the load looks queued and nothing
-        happens (measured 2026-07-30 — 0 of 77 dimensions loaded, and the
-        only pools recorded were the 5 worlds that load themselves).
+        happens.
     """
     docker("rm", "-f", name, check=False)
     for _ in range(10):

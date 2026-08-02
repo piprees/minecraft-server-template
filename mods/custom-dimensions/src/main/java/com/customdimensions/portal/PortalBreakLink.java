@@ -24,10 +24,9 @@ import java.util.Set;
  * be got rid of from the end you were standing at.
  *
  * <h2>How the two ends find each other</h2>
- * Not by geometry. The arrival's column is {@code source / scale} and
+ * Not by geometry. The arrival's column is {@code source / scale}, and
  * recovering the source from it would mean multiplying a rounded number back
- * up and searching a box — the arithmetic that has already been wrong twice
- * in this file's history. Every arrival cell instead carries the column it was
+ * up and searching a box. Every arrival cell instead carries the column it was
  * built FOR, stamped by {@link PortalHelper#setSourceColumn} at creation:
  * {@code sourceWorld}, {@code sourceX}, {@code sourceZ}. Matching is then an
  * exact equality on values somebody else already computed, in both directions.

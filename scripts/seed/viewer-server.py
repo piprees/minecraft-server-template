@@ -47,9 +47,9 @@ _jobs_lock = threading.Lock()
 # Nine call sites spawn one: the Pipeline's roll thread, six HTTP handlers, the
 # re-roll job, and startup. Two of those overlapping means two processes reading
 # and rewriting the same candidate stores and index.html, and the loser's writes
-# are silently lost. Startup used to be safe only because it ran before the
-# server was listening — which is exactly the thing that made a cold start look
-# dead for half an hour, so that accident is not worth keeping.
+# are silently lost. Startup is not exempt from the lock even though it runs
+# before the server starts listening — relying on load order there made a cold
+# start look dead for half an hour.
 _FINALISE_LOCK = threading.Lock()
 _finalise_state = {"running": False, "reason": "", "since": 0.0, "line": "",
                    "queued": 0}
@@ -72,12 +72,12 @@ def run_finalise(finalise_args, reason, timeout=None, echo=True):
 
     Returns the child's exit code.
 
-    The output handling is the point. Every call site used to pass
-    `capture_output=True` and then throw the result away, so a finalise that
-    took forty minutes — which a placement-config change makes it do, since it
-    recomputes every invalidated census — printed absolutely nothing, and the
-    viewer looked hung rather than busy. Lines are echoed as they arrive and the
-    latest is exposed through /pipeline-status so the page can say so too.
+    The output handling is the point. A finalise can take forty minutes — a
+    placement-config change forces it to, since every invalidated census
+    recomputes — so passing `capture_output=True` and discarding the result
+    would leave the viewer looking hung rather than busy. Lines are echoed as
+    they arrive and the latest is exposed through /pipeline-status so the page
+    can say so too.
 
     `timeout` kills the child rather than abandoning it: a subprocess.run
     timeout raises while leaving the process alive, and an orphaned finalise
@@ -252,23 +252,23 @@ def _survey_dim(name, dim, config, difficulty, cdir, biome_params, top_n):
 def _render_args_for(config_path, dim):
     """Every CLI arg a one-off HI-RES render of `dim` needs.
 
-    _handle_preview and _handle_shortlist each used to resolve this
-    themselves, from profile["family"] alone. That draws every custom
+    _handle_preview and _handle_shortlist must not resolve this
+    independently from profile["family"] alone: that draws every custom
     paradise_lost:paradise_lost dimension as an overworld world — the TYPE
     decides the noise family, not the family (see
-    biome_renderer.resolve_noise_family). They also dropped the biome
-    filter and the noise preset, so the hi-res render was a different
-    world from the batch thumbnail sitting next to it.
+    biome_renderer.resolve_noise_family). Resolving it separately also
+    risks dropping the biome filter and the noise preset, making the
+    hi-res render a different world from the batch thumbnail sitting next
+    to it.
 
     Geometry is part of "the same world" and lives here for the same
-    reason. Both callers used to hard-code `--size 1024 --scale 16`, which
-    covers 16384 blocks whatever the dimension's portal scale is, while
-    batch_render's hi-res pass covers 2048 * max(1, 16 // dim_scale). For a
-    16x pocket dimension that is 16384 against 2048 — an eightfold
-    disagreement between two files both called {seed}_hires.png, and every
-    overlay drawn over one of them reads its coverage from the other.
+    reason. Both callers share `--size 1024 --scale {blocks_per_pixel}`,
+    matching batch_render's hi-res pass of 2048 * max(1, 16 // dim_scale)
+    blocks. For a 16x pocket dimension that is 16384 blocks against 2048 —
+    an eightfold mismatch would misalign every overlay drawn over a
+    {seed}_hires.png against the file the other geometry produced.
     Half the pixel budget at twice the blocks per pixel lands on exactly
-    the batch coverage, so one file name now means one geometry.
+    the batch coverage, so one file name means one geometry.
     """
     family, dim_type, noise_settings = "overworld", "", ""
     dim_scale = 1.0
@@ -353,14 +353,13 @@ def _run_reroll(job_id, dim, config, seedtest, finalise_args, pool, count):
 class RenderWorker:
     """Renders the current top-RENDER_TOP of every target. Forever.
 
-    Rendering used to be step 4 of the roll cycle, which had two
-    consequences nobody wanted:
+    Coupling rendering to the roll cycle has two consequences nobody wants:
 
-      - Nothing rendered unless a roll was running. Open the viewer on a
+      - Nothing renders unless a roll is running. Open the viewer on a
         bank that already has thousands of candidates and press nothing,
         and no image is ever produced — the grid stays "render queued" for
         as long as you leave it alone.
-      - The queue was chosen per dimension, mid-cycle, and a re-rank a
+      - The queue would be chosen per dimension, mid-cycle, and a re-rank a
         moment later could demote a candidate that was still about to be
         rendered. Rendering is minutes of CPU; spending it on a seed that
         has already dropped out of the top ten is the expensive mistake.
@@ -656,11 +655,10 @@ class Pipeline:
     def enrich_all_async(self):
         """Backfill structures and biomes for every banked dimension.
 
-        Enrichment used to happen only as part of rolling a dimension, so the
-        detail panel's structure and biome lists were empty for anything the
-        current session had not rolled — 79 of 81 dimensions on a real bank.
-        Clicking almost any candidate showed the thin fallback, which reads as
-        the lists having been lost rather than never populated.
+        Enrichment tied to rolling a dimension leaves the detail panel's
+        structure and biome lists empty for anything the current session has
+        not rolled: clicking almost any candidate shows the thin fallback,
+        which reads as the lists having been lost rather than never populated.
 
         It is pure arithmetic over banked seeds, so it runs at startup in the
         background and needs neither Docker nor a roll.
@@ -886,7 +884,7 @@ def _validate_fork_config(raw, config_path, seedtest=None):
             # Band-name wants live in seedRoll.wants (free-form, roller
             # scoring); {min,max} ranges live in structures.wants — the
             # mod's Gson maps that to StructureWant objects and CRASHES on
-            # band strings there (caught live by the boot gate 2026-07-24).
+            # band strings there.
             band_wants, range_wants = {}, {}
             for sname, spec in wants.items():
                 if resolve_struct(sname) is None:
@@ -1862,13 +1860,10 @@ def main():
     # Regenerate index.html from the current scores — AFTER the port is open,
     # on its own thread.
     #
-    # This used to run synchronously before the bind, which was fine only while
-    # it was fast. It stops being fast the moment a placement-config change
-    # invalidates the banked censuses: 2026-07-29's radial change made it
-    # recompute 4447 of them, and because the call also passed
-    # capture_output=True the viewer sat there for 30 minutes printing nothing
-    # and answering nothing. Indistinguishable from a hang, and I lost a while
-    # to exactly that.
+    # Running this synchronously before the bind is unsafe: a placement-config
+    # change invalidates the banked censuses, and recomputing thousands of
+    # them with capture_output=True would leave the viewer answering nothing
+    # for tens of minutes — indistinguishable from a hang.
     #
     # Serving first means the page is up immediately, showing the PREVIOUS
     # index.html until the new one lands — stale for a few minutes, which is

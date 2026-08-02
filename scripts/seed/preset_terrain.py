@@ -4,9 +4,8 @@
 Purpose:  The seed viewer's TerrainEvaluator (terrain_height.py) approximates
           ALL overworld-family dims with Terralith's offset spline — wrong for
           the 23 dims on `adventure:wide`/`adventure:compressed`, whose
-          terrain comes from the Terratonic density-function graph. Since the
-          optional-mods hardening (2026-07-24) that graph lives IN-REPO, fully
-          inlined (no config nodes), under
+          terrain comes from the Terratonic density-function graph. That
+          graph lives IN-REPO, fully inlined (no config nodes), under
           mods/custom-dimensions/src/main/resources/data/, alongside same-id
           copies of every noise it references. This module interprets the
           actual `noise_router.depth` density function at y=0 per world seed:

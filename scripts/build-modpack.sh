@@ -65,8 +65,8 @@ fi
 # for any invocation that bypasses the container (calling this script
 # directly against a manifest that was never passed through the stripper).
 # A slug removed server-side but still in _clientMods.required is a JOIN
-# FAILURE for every player (Fabric registry handshake kick; 52 such
-# both-required mods audited 2026-07-24). Warn loudly; never fail the build.
+# FAILURE for every player (Fabric registry handshake kick). Warn loudly;
+# never fail the build.
 MODS_REMOVE="${MODS_REMOVE:-$PROJECT_DIR/overlay/mods-remove.txt}"
 if [[ -f "$MODS_REMOVE" ]]; then
   python3 - "$MANIFEST" "$MODS_REMOVE" << 'PARITY'
@@ -282,9 +282,8 @@ echo "==> Mirroring mod JARs and building modrinth.index.json..."
 
 mkdir -p "$WORK_DIR"
 MIRROR_DIR="$DIST_DIR/mods"
-# The SAME cache sync-mods.sh fills. This script used to fetch every jar from
-# Modrinth independently, so one mod list was downloaded twice per machine and
-# twice per CI run.
+# The SAME cache sync-mods.sh fills, so one mod list is downloaded once per
+# machine and once per CI run rather than twice.
 JAR_CACHE="$(mod_cache_dir)"
 mkdir -p "$MIRROR_DIR"
 
@@ -456,9 +455,9 @@ rm -f "$FILES_TMPFILE"
 
 # --- dependency coherence gate --------------------------------------------------
 # Refuse to publish a pack Fabric would refuse to launch: every mod's
-# depends/breaks predicates are checked against the mods actually present
-# (the sodium/supplementaries incident, 2026-07-02). On conflict the build
-# aborts here and the previously-published artefacts keep serving.
+# depends/breaks predicates are checked against the mods actually present.
+# On conflict the build aborts here and the previously-published artefacts
+# keep serving.
 echo ""
 echo "==> Checking mod dependency coherence..."
 python3 "$SCRIPT_DIR/check-pack-coherence.py" "$MIRROR_DIR"

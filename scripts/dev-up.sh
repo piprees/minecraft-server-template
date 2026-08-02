@@ -116,13 +116,10 @@ case "$ACTION" in
     # The staged dimension overlay is DERIVED from overlay/config/custom-dimensions,
     # never authored in data/, so clear it unconditionally before rebuilding.
     #
-    # Clearing it only when a source directory exists (which is what this used
-    # to do) means REMOVING a consumer overlay never takes effect: the staged
-    # copy survives and keeps replacing every platform dimension file, silently,
-    # for good. Hit on elfydd 2026-07-26 — an overlay deleted from the consumer
-    # repo days earlier was still overriding all 82 dimensions, so a released
-    # config change reached the server and did nothing at all. The symptom is a
-    # boot warning about config you have already fixed.
+    # Clearing it only when a source directory exists means REMOVING a
+    # consumer overlay never takes effect: the staged copy survives and
+    # keeps replacing every platform dimension file, silently, for good.
+    # The symptom is a boot warning about config you have already fixed.
     rm -rf "$local_data_cfg/custom-dimensions/overlay"
 
     if [[ -d "$CONSUMER_DIR/overlay/config" ]]; then
@@ -497,10 +494,10 @@ fi
 # skip-existing download and the manifest prune both leave it alone).
 # MUST run after sync-mods.sh (the jars have to exist) and before mc starts.
 #
-# This was production-only until 2026-07-25, so local dev ran unpatched: Epic
-# Dungeons' CamelCase loot ids aborted feature placement and spawned lootless
-# chests, and carpet's piston mixin would crash the tick loop next to
-# Supplementaries. Local and production must repair the same jars.
+# Local and production must repair the same jars: without this, Epic
+# Dungeons' CamelCase loot ids abort feature placement and spawn lootless
+# chests, and carpet's piston mixin crashes the tick loop next to
+# Supplementaries.
 if [[ -f "$SCRIPT_DIR/patch-mod-data.py" ]]; then
   python3 "$SCRIPT_DIR/patch-mod-data.py" "$CONSUMER_DIR/data/mods" || true
 fi
