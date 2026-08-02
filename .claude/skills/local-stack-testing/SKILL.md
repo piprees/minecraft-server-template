@@ -61,39 +61,35 @@ That's the _rendered_ nginx config (nginx's `docker-entrypoint.sh` envsubsts `/c
 
 The same principle applies everywhere in the table above: grep `docker logs` for the line that proves the code path ran, not the config file for the value you set.
 
-## Symlinking a consumer at the platform checkout (bundle-free local dev)
+## `./dev link` — a consumer on the platform checkout (bundle-free local dev)
 
-To test unreleased bundle content (configs, scripts, compose) in a consumer repo
-without cutting a release, point the consumer's `.stack/current` at a symlink
-farm over the platform checkout. The bundle layout is
-`.stack/<version>/stack/{config,scripts,examples,docker-compose*.yml,.env.example,local-mods,VERSION}`;
-the platform repo has the same directories at its root, so a farm reproduces it:
+To test unreleased bundle content (configs, scripts, compose, in-house mod
+jars) in a consumer repo without cutting a release:
 
 ```bash
-R=~/Projects/minecraft-server-template          # platform checkout
-C=~/Projects/<consumer>                          # consumer repo
-mkdir -p "$C/.stack/dev/stack" && cd "$C/.stack/dev/stack"
-ln -sfn "$R"/config config && ln -sfn "$R"/scripts scripts
-ln -sfn "$R"/examples examples && ln -sfn "$R"/.env.example .env.example
-ln -sfn "$R"/docker-compose.yml docker-compose.yml
-ln -sfn "$R"/docker-compose.local.yml docker-compose.local.yml
-mkdir local-mods && cp "$R"/mods/*/build/libs/*.jar local-mods/   # locally built jars, NOT -dev jars
-echo dev > VERSION
-ln -sfn dev "$C/.stack/current"                  # switch; restore with: ln -sfn v<X.Y.Z> "$C/.stack/current"
+./dev link                       # default checkout: ../minecraft-server-template
+./dev link ~/somewhere/else      # explicit checkout path
+./dev unlink                     # restore the newest pulled release bundle
 ```
+
+`link` builds a symlink farm at `.stack/dev/stack` reproducing the bundle
+layout (config/scripts/examples/compose/.env.example → the checkout;
+`local-mods/` gets the checkout's BUILT jars — `-dev`/`-sources` jars and
+jars without a refmap are skipped with a warning), writes `VERSION=dev`, and
+points `.stack/current` at it.
 
 - The seed roller and `./dev` then read the platform checkout's configs and
   scripts directly — an edit in the repo is live on the next roll or `./dev up`.
-- Pointing `stack/local-mods/` at your locally built jars inverts trap #2
-  below: `./dev up` now installs the LOCAL build instead of silently reverting
-  it to the released one. Verify the jar gate first, as ever.
-- `readlink .stack/current` answering `dev` is the tell that a consumer is on a
-  checkout, not a release — restore the release symlink before trusting any
-  "works on the shipped bundle" claim, and never leave a shared consumer
-  (elfydd) pointed at `dev` when you finish.
-- Local only. CI/production tier detection compares `readlink .stack/current`
-  against resolved release tags; a `dev` link on a server would force
-  perpetual full deploys.
+- `local-mods/` carrying your locally built jars inverts trap #2 below:
+  `./dev up` now installs the LOCAL build instead of silently reverting it to
+  the released one.
+- `readlink .stack/current` answering `dev` is the tell that a consumer is on
+  a checkout, not a release — `./dev up` prints a loud LINKED banner while
+  active. Run `./dev unlink` before trusting any "works on the shipped
+  bundle" claim, and never leave a shared consumer (elfydd) pointed at `dev`
+  when you finish.
+- Local only, and guarded: `deploy.sh` refuses to run when `.stack/current`
+  resolves to `dev`.
 
 ## The two local entry points
 

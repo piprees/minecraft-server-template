@@ -66,6 +66,7 @@ Full merge semantics, worked examples, and the client-pack patch schema are in [
 | Command | Scope | What it actually does |
 | --- | --- | --- |
 | `./dev pull` | Local, bundle only | Fetches/refreshes `.stack/current` — no scaffold sync, no image pull |
+| `./dev link [path]` | Local, testing | Points `.stack/current` at a platform checkout's symlink farm (`.stack/dev/stack`) — checkout configs/scripts/compose and its BUILT mod jars are live on the next `./dev up` or seed roll, no release needed. `./dev up` shows a loud LINKED banner while active; deploy paths refuse a `dev` link. `./dev unlink` restores the newest pulled release |
 | `./dev update` | Local | `dev pull` + re-syncs the scaffold files above (write-to-temp + `mv`, never `cp` — see Trap 4) + `docker compose ... pull` for local-profile images |
 | `./ops update` | Production only | Ships and runs `remote-update.sh` on the server: pulls bundle + images, full redeploy |
 | `./ops sync` | Everything | `dev-up.sh down` → `dev update` → `github-env-sync.sh --allow-missing` → `ops update --quick` → `dev-up.sh up` — the one command that touches local, GitHub, and the server in sequence |

@@ -28,6 +28,8 @@ usage() {
   echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
   echo "  seed-status Candidate-bank status: counts, winners, score freshness"
   echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
+  echo "  link     Point .stack/current at a platform checkout (default ../minecraft-server-template)"
+  echo "  unlink   Restore the newest pulled release bundle"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
@@ -211,8 +213,81 @@ case "$CMD" in
     ensure_env
     ensure_stack
     ensure_docker
+    if [[ "$(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null)" == "dev" ]]; then
+      echo "=================================================================="
+      echo "  LINKED TO PLATFORM CHECKOUT — .stack/current -> dev symlink farm"
+      echo "  Configs, scripts and local-mods come from the checkout, not a"
+      echo "  release. Restore the release bundle with: ./dev unlink"
+      echo "=================================================================="
+      echo ""
+    fi
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" up
+    ;;
+  link)
+    # Point .stack/current at a symlink farm over a platform checkout, so a
+    # config/script/compose edit there is live here on the next roll or
+    # ./dev up — no release needed. local-mods/ carries the checkout's BUILT
+    # jars, so ./dev up installs local builds instead of reverting them.
+    PLATFORM_ARG="${1:-$CONSUMER_DIR/../minecraft-server-template}"
+    PLATFORM="$(cd "$PLATFORM_ARG" 2> /dev/null && pwd)" || {
+      echo "ERROR: platform checkout not found: $PLATFORM_ARG"
+      exit 1
+    }
+    if [[ ! -f "$PLATFORM/docker-compose.yml" || ! -d "$PLATFORM/scripts" ]]; then
+      echo "ERROR: $PLATFORM does not look like a platform checkout"
+      echo "       (needs docker-compose.yml and scripts/)"
+      exit 1
+    fi
+    FARM="$CONSUMER_DIR/.stack/dev/stack"
+    mkdir -p "$FARM"
+    ln -sfn "$PLATFORM/config" "$FARM/config"
+    ln -sfn "$PLATFORM/scripts" "$FARM/scripts"
+    ln -sfn "$PLATFORM/examples" "$FARM/examples"
+    ln -sfn "$PLATFORM/.env.example" "$FARM/.env.example"
+    ln -sfn "$PLATFORM/docker-compose.yml" "$FARM/docker-compose.yml"
+    ln -sfn "$PLATFORM/docker-compose.local.yml" "$FARM/docker-compose.local.yml"
+    rm -rf "$FARM/local-mods"
+    mkdir -p "$FARM/local-mods"
+    JAR_COUNT=0
+    for j in "$PLATFORM"/mods/*/build/libs/*.jar; do
+      [[ -f "$j" ]] || continue
+      case "$j" in *-dev.jar | *-sources.jar) continue ;; esac
+      # grep without -q: -q exits at first match and the resulting SIGPIPE
+      # into unzip reads as a pipeline failure under pipefail.
+      if ! unzip -l "$j" 2> /dev/null | grep "refmap" > /dev/null; then
+        echo "  WARNING: $(basename "$j") has no refmap — dev/unremapped jar skipped"
+        continue
+      fi
+      cp "$j" "$FARM/local-mods/"
+      JAR_COUNT=$((JAR_COUNT + 1))
+    done
+    echo "dev" > "$FARM/VERSION"
+    ln -sfn dev "$CONSUMER_DIR/.stack/current"
+    echo "=================================================================="
+    echo "  LINKED TO PLATFORM CHECKOUT"
+    echo "  .stack/current -> .stack/dev/stack -> $PLATFORM"
+    echo "  local-mods: $JAR_COUNT built jar(s) from the checkout"
+    echo "  Local only — deploy paths refuse a 'dev' link. Restore with:"
+    echo "  ./dev unlink"
+    echo "=================================================================="
+    ;;
+  unlink)
+    if [[ "$(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null)" != "dev" ]]; then
+      echo "Not linked ($(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null || echo 'no stack')) — nothing to do."
+      exit 0
+    fi
+    NEWEST=$(ls -d "$CONSUMER_DIR"/.stack/v*/ 2> /dev/null \
+      | sed 's|.*/\(v[0-9.]*\)/|\1|' \
+      | sed 's/^v//' \
+      | sort -t. -k1,1nr -k2,2nr -k3,3nr \
+      | head -1)
+    if [[ -z "$NEWEST" ]]; then
+      echo "ERROR: no pulled release bundles in .stack/ — run ./dev pull first."
+      exit 1
+    fi
+    ln -sfn "v$NEWEST" "$CONSUMER_DIR/.stack/current"
+    echo "Restored .stack/current -> v$NEWEST. Run ./dev up to return to the release bundle's jars and configs."
     ;;
   down)
     ensure_stack

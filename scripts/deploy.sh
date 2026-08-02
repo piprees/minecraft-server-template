@@ -43,6 +43,12 @@ else
 fi
 cd "$SERVER_DIR"
 
+# A 'dev' symlink farm is a workstation-only testing device (./dev link) —
+# deploying through one would run unreleased code on production.
+if [[ "$(readlink "$SERVER_DIR/.stack/current" 2> /dev/null)" == "dev" ]]; then
+  die "Refusing to deploy: .stack/current points at a 'dev' symlink farm (./dev link). Restore a release bundle first (stack-pull.sh / ./ops update)."
+fi
+
 COMPOSE_FILE="$STACK_DIR/docker-compose.yml"
 
 # --- deploy banner ----------------------------------------------------------

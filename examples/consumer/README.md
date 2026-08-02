@@ -245,6 +245,8 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev pack`              | Build the client modpack into `./modpack-dist/`                                    |
 | `./dev pin`               | Re-pin `overlay/mods-extra.txt` to latest mod builds                               |
 | `./dev update`            | Pull the latest stack bundle + Docker images                                       |
+| `./dev link [path]`       | Point `.stack/current` at a platform checkout (default `../minecraft-server-template`) — configs, scripts and locally-built mod jars go live without a release. Local only; deploys refuse it |
+| `./dev unlink`            | Restore the newest pulled release bundle after `./dev link`                        |
 | `./ops sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
 | `./dev seed-roll`         | Parallel-roll seeds for every dimension, auto-pick winners                         |
 | `./dev seed-rescore`      | Recompute candidate scores vs current configs (no re-rolling)                      |
