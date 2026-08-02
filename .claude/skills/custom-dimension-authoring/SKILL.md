@@ -211,7 +211,7 @@ Full schema in `references/schema-reference.md`.
 
 ### Forced structure placement
 
-- **`structures.force`**: `[{"structure": "minecraft:ancient_city", "x": 1200, "z": -800}]` — exact placement at specific coordinates. Uses full structure ids (not short names, not set ids). Runtime.
+- **`structures.force`**: `[{"structure": "minecraft:ancient_city", "x": 1200, "z": -800}]` — exact placement at specific coordinates. Uses full structure ids (not short names, not set ids). Runtime. The start attempt is performed by the mod itself, so it survives the structure's biome predicate AND other mods' start cancels (all seven YUNG's mods suppress the vanilla types they replace — forcing one is the only way to place the vanilla structure; [TROUBLESHOOTING.md#t25](../../../TROUBLESHOOTING.md#t25)). Forced structures resolve terrain adaptation (beards/kernels) like any other structure, appear in the census `forced` block, and log `forced <id> generated at chunk [x, z]` on first generation — or a WARN when the structure's own generation rejects the position (e.g. over void). An out-of-border force warns at boot.
 
 ### Structure filtering
 

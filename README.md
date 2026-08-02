@@ -251,7 +251,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `doctor.sh` | Mac (CI) | One-shot production triage: drift, stashes, disk, containers, backups, Discord registry, errors |
 | `live-logs.sh` / `live-stats.sh` | Mac | Log tailing / container stats |
 | `game-log.sh` | Mac | Log snapshot with grep/tail filters (never streams) |
-| `reset-seed.sh` | Mac | World reset with a new seed (backs up first, triple-confirmed) |
+| `reset-seed.sh` | Mac | World reset with a new seed (backs up first, triple-confirmed; wipes the old world's bot/webhook messages from the Discord channels) |
 | `discord-notify.sh` | any | Send templated messages to the Discord webhook |
 | `discord-cleanup.sh` | Mac | Delete all bot/webhook messages from a Discord channel |
 | `discord-pin-sync.sh` | Mac | Sync the #general welcome pin from messages.json |
@@ -285,6 +285,7 @@ Scripts fall into three categories depending on where they live and who runs the
 | `test-scripts.sh`            | shellcheck + py_compile + compose validation                        |
 | `build-stack-bundle.sh`      | Assemble the release tarball                                        |
 | `sync-mod-cache.sh`          | Reconcile `mods-cache/` against the pinned mod lists (`--apply`)   |
+| `export-seed-winners.py`     | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
 
 Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
 
