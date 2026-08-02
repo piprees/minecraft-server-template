@@ -10,7 +10,10 @@
 # Chunky markers + task state + .skip-pause, Distant Horizons cache,
 # POI, ledger, dynamic-data-pack-cache. Deletion runs under sudo (sidecars
 # write as root, so DEPLOY_USER cannot remove data/unmined-web) and is
-# verified afterwards rather than assumed.
+# verified afterwards rather than assumed. Also wipes the old world's bot
+# and webhook messages from the Discord channels (DISCORD_CHANNEL_ID +
+# DISCORD_CHAT_CHANNEL_ID when distinct) via discord-cleanup.sh — fire and
+# forget, a Discord outage never blocks a reset.
 #
 # Optionally wipes restic backups in R2 (--wipe-backups flag).
 #
@@ -112,11 +115,12 @@ echo "   5. Delete uNmINeD map renders (data/unmined-web)"
 echo "   6. Delete all Chunky markers, task state, and .skip-pause"
 echo "   7. Delete Distant Horizons LOD cache"
 echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
+echo "   9. Wipe old-world bot/webhook messages from the Discord channels"
 if [[ "$WIPE_BACKUPS" == true ]]; then
-echo "   9. WIPE all restic snapshots in R2"
+echo "  10. WIPE all restic snapshots in R2"
 fi
-echo "  10. Update the seed in .env (local + droplet)"
-echo "  11. Restart and re-apply game rules, permissions, world borders"
+echo "  11. Update the seed in .env (local + droplet)"
+echo "  12. Restart and re-apply game rules, permissions, world borders"
 echo ""
 echo " This is IRREVERSIBLE without restoring from the backup."
 echo "=================================================================="
@@ -274,6 +278,25 @@ echo "  Deleted: player data (playerdata, stats, advancements)"
 echo "  Deleted: uNmINeD map renders (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
 echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
+
+# =============================================================================
+# 5b. Wipe Discord channels — the old world's chat and notifications
+# =============================================================================
+echo ""
+echo "==> Wiping old-world bot/webhook messages from Discord..."
+WIPE_CHANNELS="${DISCORD_CHANNEL_ID:-}"
+if [[ -n "${DISCORD_CHAT_CHANNEL_ID:-}" && "${DISCORD_CHAT_CHANNEL_ID}" != "${DISCORD_CHANNEL_ID:-}" ]]; then
+  WIPE_CHANNELS="${WIPE_CHANNELS} ${DISCORD_CHAT_CHANNEL_ID}"
+fi
+if [[ -z "${WIPE_CHANNELS// /}" || -z "${DISCORD_BOT_TOKEN:-}" ]]; then
+  echo "  Skipped: DISCORD_CHANNEL_ID / DISCORD_BOT_TOKEN not configured."
+else
+  # Fire and forget — a Discord outage or rate limit never blocks a reset.
+  for channel in $WIPE_CHANNELS; do
+    bash "$SCRIPT_DIR/discord-cleanup.sh" "$channel" || \
+      echo "  WARNING: cleanup of channel ${channel} failed — continuing."
+  done
+fi
 
 # =============================================================================
 # 6. Update seed everywhere
