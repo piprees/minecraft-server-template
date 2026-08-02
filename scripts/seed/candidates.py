@@ -13,6 +13,12 @@ One JSON file per roll target at {config_dir}/candidates/{slug}.json:
                                         # vs the current config means the measurements describe
                                         # a world this config no longer generates (warned at
                                         # status/finalise, never deleted)
+        "fingerprintAssumed": "…",      # for candidates measured before stamping existed:
+                                        # the fingerprint current when the bank was first
+                                        # folded under stamping-aware code. An assumption,
+                                        # recorded as its own key — never forged into
+                                        # `fingerprint` — so drift fires on the NEXT
+                                        # generation-affecting change (ensure_fingerprints)
         "scores": {                     # keyed by config hash — a config change makes old
           "a1b2c3d4": {"total": 77.6, "namesake": 1.0, ..., "timestamp": "..."}
           }                             # scores stale WITHOUT invalidating measurements
@@ -175,6 +181,38 @@ def merge_rows(store, seed, rows, fingerprint=None):
     cand.setdefault("scores", {})
     if fingerprint and first_measurements:
         cand["fingerprint"] = fingerprint
+
+
+def effective_fingerprint(cand):
+    """The generation fingerprint a candidate's measurements answer for:
+    the measured stamp when there is one, else the assumed one."""
+    return cand.get("fingerprint") or cand.get("fingerprintAssumed")
+
+
+def ensure_fingerprints(store, current_fp):
+    """Give every measured-but-unstamped candidate an ASSUMED stamp — the
+    fingerprint current when this fold ran.
+
+    A pre-existing candidate's true measurement config is unknowable, so
+    the assumption is recorded under its own key rather than forged into
+    `fingerprint` (measured stamps are only ever written by merge_rows,
+    with the measurements). The assumed stamp makes the drift check LIVE
+    for the whole bank: it can never claim historical drift it cannot
+    know about, but any generation-affecting change AFTER this fold
+    drifts every candidate, stamped or legacy. Empty shells (no
+    measurements) are skipped — they take a measured stamp when their
+    measurements arrive. Returns how many candidates were stamped."""
+    if not current_fp:
+        return 0
+    stamped = 0
+    for cand in store["candidates"].values():
+        if not cand.get("measurements"):
+            continue
+        if cand.get("fingerprint") or cand.get("fingerprintAssumed"):
+            continue
+        cand["fingerprintAssumed"] = current_fp
+        stamped += 1
+    return stamped
 
 
 def record_score(store, seed, chash, total, parts, timestamp):

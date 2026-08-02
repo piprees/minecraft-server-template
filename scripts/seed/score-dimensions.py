@@ -1203,6 +1203,14 @@ def persist_candidates(args, config, profiles, results, data, winners=None):
                 store, seed,
                 {k: v for k, v in rows.items() if not k.startswith("_")},
                 fingerprint=fp)
+        # Legacy candidates (measured before stamping existed) get an ASSUMED
+        # stamp at the current fingerprint, so the drift check is live for
+        # the whole bank from this fold on — see candidates.ensure_fingerprints.
+        assumed = candidates.ensure_fingerprints(store, fp)
+        if assumed:
+            print(f"  {name}: {assumed} pre-existing candidate(s) assumed measured "
+                  f"under the current generation fingerprint — any later "
+                  f"generation-affecting change now reads as DRIFTED")
         for seed, reason in abandoned.get(name, {}).items():
             store["abandoned"].setdefault(str(seed), reason)
         for c in results.get(name, []):
@@ -1377,7 +1385,7 @@ def cmd_status(args, config, profiles):
             # the winner's MEASUREMENTS describe a world the current config
             # no longer generates — rescoring can't fix that, only re-rolling.
             cur_fp = generation_fingerprint(sources.get(name) or {})
-            cand_fp = store["candidates"][winner].get("fingerprint")
+            cand_fp = candidates.effective_fingerprint(store["candidates"][winner])
             if cur_fp and cand_fp and cand_fp != cur_fp:
                 state = "DRIFTED (generation config changed since measurement — re-roll)"
                 drifted_count += 1
@@ -1685,12 +1693,13 @@ def cmd_finalise(args, config, profiles, world_profiles=None, page_profiles=None
             if cur_fp is None:
                 continue
             store = candidates.load_store(cdir_fp / f"{name}.json")
-            cand_fp = store["candidates"].get(str(w["seed"]), {}).get("fingerprint")
+            cand_fp = candidates.effective_fingerprint(
+                store["candidates"].get(str(w["seed"]), {}))
             if not cand_fp:
                 # An unstamped winner cannot be shown to describe this config,
                 # and silence reads as "checked and fine".
                 stamped = sum(1 for c in store["candidates"].values()
-                              if c.get("fingerprint") == cur_fp)
+                              if candidates.effective_fingerprint(c) == cur_fp)
                 print(f"WARNING: {name} winner {w['seed']} carries no generation "
                       f"fingerprint, so it cannot be shown to describe the "
                       f"current config — it may have been measured against an "

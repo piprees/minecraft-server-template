@@ -12,6 +12,15 @@ Many dimensions are "same world, different curated taste" — identical generati
 
 `dimension_profiles.generation_fingerprint(dim)` returns `sha256(json.dumps(generation_payload(dim), sort_keys=True))[:12]`, or `None` for base-world entries (`overworld`, `the_nether`, `the_end`, `paradise_lost` — these never group with anything). Two dimensions with the SAME fingerprint have byte-identical generation-affecting config and therefore generate the literal same world for any given seed.
 
+### Candidate stamps and the drift check
+
+Each banked candidate carries the fingerprint its measurements answer for, in one of two keys:
+
+- `fingerprint` — the MEASURED stamp, written by `candidates.merge_rows` on the fold that supplies the candidate's measurements, and never rewritten afterwards. Empty shells (records setdefault'd by census/survey passes before measurements land) take theirs when the measurements arrive.
+- `fingerprintAssumed` — for candidates measured before stamping existed: `candidates.ensure_fingerprints`, called by `persist_candidates` on every roll/rescore fold, stamps each measured-but-unstamped candidate ONCE with the fingerprint current at that fold. It is an assumption recorded as its own key, never forged into `fingerprint`: it cannot claim historical drift, but any generation-affecting change AFTER the fold reads as DRIFTED — which makes the drift check live for the whole bank instead of silently inert over legacy candidates.
+
+Every drift read (`seed-status`, the finalise warnings) goes through `candidates.effective_fingerprint(cand)` — measured wins over assumed. Unit coverage: `test_candidates.py`.
+
 ## `generation_payload()` — field by field
 
 The payload is the canonical "does this change what a seed generates, or what a measurement of it means" list. As of the current `dimension_profiles.py`, it includes:
