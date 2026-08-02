@@ -156,12 +156,18 @@ public enum TerrainKernel {
             new java.util.concurrent.atomic.AtomicInteger();
 
     public static void debugAttach(net.minecraft.util.math.ChunkPos pos, int n, int id) {
+        debugAttach(pos, n, id, null);
+    }
+
+    public static void debugAttach(net.minecraft.util.math.ChunkPos pos, int n, int id,
+                                   List<Piece> pieces) {
         int c = ATTACHES.incrementAndGet();
-        boolean window = pos.x >= 0 && pos.x <= 4 && pos.z >= -12 && pos.z <= -7;
-        if (window) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG win chunk {} pieces={} id={} thread={} (call #{})",
-                    pos, n, id, Thread.currentThread().getName(), c);
+        if (pieces != null && !pieces.isEmpty()) {
+            for (Piece piece : pieces) {
+                com.customdimensions.MultiverseServer.LOGGER.info(
+                        "KERNELDBG box chunk {} kernel={} box={} delta={}",
+                        pos, piece.kernel(), piece.box(), piece.groundLevelDelta());
+            }
         }
         if (n > 0) {
             com.customdimensions.MultiverseServer.LOGGER.debug(
@@ -173,7 +179,15 @@ public enum TerrainKernel {
         debugSample(id, withPieces, null);
     }
 
+    private static final java.util.Set<String> SEEN_CLASSES =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public static void debugSample(int id, boolean withPieces, Object self) {
+        if (self != null && SEEN_CLASSES.add(self.getClass().getName())) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG first sample from class {} (withPieces={})",
+                    self.getClass().getName(), withPieces);
+        }
         int c = SAMPLES.incrementAndGet();
         if (withPieces && c < 1_000_000) {
             com.customdimensions.MultiverseServer.LOGGER.debug(
@@ -183,6 +197,22 @@ public enum TerrainKernel {
             com.customdimensions.MultiverseServer.LOGGER.info(
                     "KERNELDBG sample no-pieces id={} class={} (count {})",
                     id, self == null ? "?" : self.getClass().getName(), c);
+        }
+    }
+
+    private static final java.util.concurrent.atomic.AtomicBoolean SAW_PIECES =
+            new java.util.concurrent.atomic.AtomicBoolean();
+    private static final java.util.concurrent.atomic.AtomicBoolean SAW_NONZERO =
+            new java.util.concurrent.atomic.AtomicBoolean();
+
+    public static void debugWithPieces(double add) {
+        if (SAW_PIECES.compareAndSet(false, true)) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG sample WITH pieces fired (first add={})", add);
+        }
+        if (add != 0.0 && SAW_NONZERO.compareAndSet(false, true)) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG first NONZERO kernel contribution: {}", add);
         }
     }
 

@@ -51,12 +51,14 @@ public abstract class StructureWeightSamplerMixin
             net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos pos,
             org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Double> cir) {
         java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
-                this.customdimensions$kernelPieces;
+                ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object) this)
+                        .customdimensions$getKernelPieces();
         com.customdimensions.dimension.TerrainKernel.debugSample(
                 System.identityHashCode(this), pieces != null, this);
         if (pieces != null && !pieces.isEmpty()) {
-            cir.setReturnValue(cir.getReturnValue()
-                    + com.customdimensions.dimension.TerrainKernel.sampleAll(pieces, pos));
+            double add = com.customdimensions.dimension.TerrainKernel.sampleAll(pieces, pos);
+            com.customdimensions.dimension.TerrainKernel.debugWithPieces(add);
+            cir.setReturnValue(cir.getReturnValue() + add);
         }
     }
 
@@ -94,7 +96,7 @@ public abstract class StructureWeightSamplerMixin
                 java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
                         com.customdimensions.dimension.TerrainKernel.collect(world, pos);
                 com.customdimensions.dimension.TerrainKernel.debugAttach(pos, pieces.size(),
-                        System.identityHashCode(cir.getReturnValue()));
+                        System.identityHashCode(cir.getReturnValue()), pieces);
                 if (!pieces.isEmpty()) {
                     ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object)
                             cir.getReturnValue()).customdimensions$setKernelPieces(pieces);
