@@ -39,6 +39,12 @@
     }
   },
   "structureDensity": "dense",
+  "structures": {
+    "terrainAdaptation": {
+      "dungeons_arise:keep_kayra": "pedestal",
+      "nova_structures:lone_citadel": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:oxidized_copper",
     "igniterItem": "minecraft:diamond",

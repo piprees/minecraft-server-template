@@ -56,6 +56,11 @@
       "maxMultiplier": 1.6
     }
   },
+  "structures": {
+    "terrainAdaptation": {
+      "structory:firetower": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:podzol",
     "igniterItem": "minecraft:amethyst_shard",

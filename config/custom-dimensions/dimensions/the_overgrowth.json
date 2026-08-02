@@ -62,6 +62,11 @@
     "playerLuck": 1.5
   },
   "structureDensity": "sparse",
+  "structures": {
+    "terrainAdaptation": {
+      "landmarks": "bury"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:mossy_cobblestone",
     "igniterItem": "minecraft:amethyst_shard",

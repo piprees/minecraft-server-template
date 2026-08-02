@@ -37,6 +37,9 @@
     "orientation": "horizontal"
   },
   "structures": {
+    "terrainAdaptation": {
+      "structory_towers:ocean_pillar": "bury"
+    },
     "wants": {
       "shipwreck": {
         "min": 0,

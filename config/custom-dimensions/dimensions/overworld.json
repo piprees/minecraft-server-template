@@ -49,6 +49,8 @@
     "wants": {
       "village": "near_spawn",
       "tavern": "near_spawn",
+      "campsite": "near_spawn",
+      "farmstead": "near_spawn",
       "ruined_portal": "near_spawn",
       "watchtower": "spread",
       "mineshaft": "spread",
@@ -59,7 +61,7 @@
       "mansion": "near_border",
       "coliseum": "near_border"
     },
-    "shuns": []
+    "shuns": ["wizard_tower", "nether_tower"]
   },
   "spawn": [
     0,

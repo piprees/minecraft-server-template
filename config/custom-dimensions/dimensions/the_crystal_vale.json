@@ -20,6 +20,11 @@
     "playerLuck": 2.5,
     "hostileSpawning": false
   },
+  "structures": {
+    "terrainAdaptation": {
+      "structory_towers:wizard_tower": "pedestal"
+    }
+  },
   "portal": {
     "frameBlock": "minecraft:amethyst_block",
     "igniterItem": "minecraft:amethyst_shard",

@@ -76,7 +76,12 @@
   },
   "structureDensity": "sparse",
   "structures": {
-    "clearSpawnRadius": 96
+    "clearSpawnRadius": 96,
+    "terrainAdaptation": {
+      "structory:dense_forest_ruin": "bury",
+      "structory:northern_ruin": "bury",
+      "structory:taiga_ruin_surface": "bury"
+    }
   },
   "portal": {
     "frameBlock": "minecraft:dark_oak_planks",
