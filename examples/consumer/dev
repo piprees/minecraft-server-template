@@ -30,6 +30,7 @@ usage() {
   echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
   echo "  link     Point .stack/current at a platform checkout (default ../minecraft-server-template)"
   echo "  unlink   Restore the newest pulled release bundle"
+  echo "  reset-world Delete the LOCAL world + player data (same set ./ops reset-seed deletes on production)"
   echo "  cache    Snapshot Docker images, mod JARs, offline client bundles"
   echo "  start    Start a stopped service (e.g. ./dev start uptime-kuma)"
   echo "  stop     Stop a running service (e.g. ./dev stop uptime-kuma)"
@@ -271,6 +272,46 @@ case "$CMD" in
     echo "  Local only — deploy paths refuse a 'dev' link. Restore with:"
     echo "  ./dev unlink"
     echo "=================================================================="
+    ;;
+  reset-world)
+    # Local sibling of ./ops reset-seed: stops the stack and deletes the
+    # SAME set production deletes — world, player data, map renders, Chunky
+    # state, DH cache, POI, ledger, dynamic-data-pack-cache. Keeps .env,
+    # mods, data/config, overlay/ and the seed bank. Change SEED in .env
+    # before ./dev up if a new seed is wanted.
+    ensure_env
+    ensure_stack
+    echo "This deletes the LOCAL world and player data under $CONSUMER_DIR/data."
+    echo "Kept: .env, data/mods, data/config, overlay/, .seedtest."
+    if [[ "${1:-}" != "--force" ]]; then
+      read -rp "Type RESET to confirm: " CONFIRM
+      if [[ "$CONFIRM" != "RESET" ]]; then
+        echo "Confirmation not received. Aborting."
+        exit 1
+      fi
+    fi
+    ensure_docker
+    export CONSUMER_DIR
+    bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down || true
+    rm -rf "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/world_the_nether" \
+      "$CONSUMER_DIR/data/world_the_end" "$CONSUMER_DIR/data/dimensions" \
+      "$CONSUMER_DIR/data/playerdata" "$CONSUMER_DIR/data/stats" \
+      "$CONSUMER_DIR/data/advancements" "$CONSUMER_DIR/data/unmined-web/maps" \
+      "$CONSUMER_DIR/data/unmined-web/index.html" \
+      "$CONSUMER_DIR/data/DistantHorizons" "$CONSUMER_DIR/data/DistantHorizons.sqlite" \
+      "$CONSUMER_DIR/data/poi" "$CONSUMER_DIR/data/ledger.sqlite" \
+      "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
+      "$CONSUMER_DIR/data/config/chunky/tasks"
+    rm -f "$CONSUMER_DIR/data/.chunky-complete" "$CONSUMER_DIR/data/.chunky-nether-complete" \
+      "$CONSUMER_DIR/data/.chunky-end-complete" "$CONSUMER_DIR/data/.chunky-paradise-lost-complete" \
+      "$CONSUMER_DIR/data/.skip-pause"
+    LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/dimensions" 2> /dev/null || true)
+    if [[ -n "$LEFT" ]]; then
+      echo "ERROR: paths survived deletion:"
+      echo "$LEFT"
+      exit 1
+    fi
+    echo "Local world reset. Run ./dev up to generate fresh (set SEED in .env first if changing it)."
     ;;
   unlink)
     if [[ "$(readlink "$CONSUMER_DIR/.stack/current" 2> /dev/null)" != "dev" ]]; then
