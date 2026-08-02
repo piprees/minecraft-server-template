@@ -157,6 +157,12 @@ public enum TerrainKernel {
 
     public static void debugAttach(net.minecraft.util.math.ChunkPos pos, int n, int id) {
         int c = ATTACHES.incrementAndGet();
+        boolean window = pos.x >= 0 && pos.x <= 4 && pos.z >= -12 && pos.z <= -7;
+        if (window) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG win chunk {} pieces={} id={} thread={} (call #{})",
+                    pos, n, id, Thread.currentThread().getName(), c);
+        }
         if (n > 0) {
             com.customdimensions.MultiverseServer.LOGGER.debug(
                     "KERNELDBG attach chunk {} pieces={} id={} (call #{})", pos, n, id, c);
@@ -164,14 +170,19 @@ public enum TerrainKernel {
     }
 
     public static void debugSample(int id, boolean withPieces) {
+        debugSample(id, withPieces, null);
+    }
+
+    public static void debugSample(int id, boolean withPieces, Object self) {
         int c = SAMPLES.incrementAndGet();
         if (withPieces && c < 1_000_000) {
             com.customdimensions.MultiverseServer.LOGGER.debug(
                     "KERNELDBG sample WITH pieces id={} (count {})", id, c);
             SAMPLES.set(1_000_000);
         } else if (c == 1 || c == 500) {
-            com.customdimensions.MultiverseServer.LOGGER.debug(
-                    "KERNELDBG sample no-pieces id={} (count {})", id, c);
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "KERNELDBG sample no-pieces id={} class={} (count {})",
+                    id, self == null ? "?" : self.getClass().getName(), c);
         }
     }
 

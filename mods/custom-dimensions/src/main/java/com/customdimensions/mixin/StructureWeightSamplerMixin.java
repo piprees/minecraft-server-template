@@ -53,7 +53,7 @@ public abstract class StructureWeightSamplerMixin
         java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
                 this.customdimensions$kernelPieces;
         com.customdimensions.dimension.TerrainKernel.debugSample(
-                System.identityHashCode(this), pieces != null);
+                System.identityHashCode(this), pieces != null, this);
         if (pieces != null && !pieces.isEmpty()) {
             cir.setReturnValue(cir.getReturnValue()
                     + com.customdimensions.dimension.TerrainKernel.sampleAll(pieces, pos));
