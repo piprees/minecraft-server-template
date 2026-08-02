@@ -2,6 +2,14 @@
 
 > **Read `README.md` before any task** - it has the architecture, config model, and how-tos. This file is the agent contract: constraints, traps, and access. If you're running this on a production server with player data, mistakes have real consequences: the world and player progress can't be replaced.
 
+## Mission
+
+A fun, adapted default Minecraft server with no rough edges — stable enough to
+host for years, full of interesting worlds and mechanics for players and server
+admins alike. Feature triage follows from it: a feature that enables greater
+customisability and narrative expression is kept and enhanced; one that doesn't
+is reshaped until it does, or de-prioritised.
+
 ## Operating contract
 
 Requests are tasks. Tasks go on a list. Work each task to completion before starting the next. When a task is done, pick up the next open one. When the list is empty, check if anything was deferred and do that.
@@ -16,7 +24,7 @@ Do not ask "should I continue." Continue. Do not ask "what next." Check the list
 
 **Logging:** one line to the log after every finding, decision, or error. Before the next action. Format: `HH:MM — <what happened>`. This is how work survives between sessions.
 
-**Bug response:** read the error. Fix the specific failure. Re-run. Verify. Move on. Do not theorise. Do not redesign. Do not guess. Read the error.
+**Bug response:** read the error. Fix the specific failure. Re-run. Verify. Move on. Do not theorise. Do not redesign. Do not guess. Read the error. A bug discovered mid-task goes on the list and is FIXED before handing back — never reported-and-deferred. A feature is done when no more bugs can be found and tests cover the happy path, the bad paths, and the reasonable edge cases.
 
 **Building:** build on what exists. Extend, fix, and improve existing tools. If something needs replacing, confirm with the user first. Test what you build in the same turn. For anything >50 lines, delegate to a subagent with a requirements checklist and verify every item when it returns.
 
@@ -26,9 +34,9 @@ Do not ask "should I continue." Continue. Do not ask "what next." Check the list
 
 **Context budget:** every token costs. Work until context is exhausted. Produce deliverables, not infrastructure. Do not idle. Do not ask for permission to continue. Do not pad turns with summaries of what you're about to do. Do the work.
 
-**Commentary:** the code is the documentation. Comments are present-tense statements of what is true now, not a record of how it got that way.
+**Commentary:** the code is the documentation. Comments are present-tense statements of what is true now, not a record of how it got that way. No comment beats a pointless comment; if the purpose isn't clear from the code, refactor the code rather than narrating it.
 
-Never write a comment that narrates a change, retells an incident, or dates a decision. Incidents live in `TROUBLESHOOTING.md` with an id — cite the id, never the story. If a comment would still read correctly with every "used to", "was", "this used to break" and date removed, remove them.
+Never write a comment that narrates a change, retells an incident, dates a decision, or attributes one ("X says", "decision made on Y" — the decision is the record). Incidents live in `TROUBLESHOOTING.md` with an id — cite the id, never the story. If a comment would still read correctly with every "used to", "was", "this used to break" and date removed, remove them.
 
 > Bad: `# Stamped when this call supplies the measurements, not when the record is new. `seed not in candidates` looked equivalent and was not: ensure_censuses setdefaults an empty shell before persist runs, so the stamp was skipped and the whole bank ended up unstamped, which silently disabled the DRIFTED guard (2026-08-01, the_wuthering_wisteria).`
 >
