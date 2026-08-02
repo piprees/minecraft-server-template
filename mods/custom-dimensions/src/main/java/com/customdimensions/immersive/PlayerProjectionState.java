@@ -98,12 +98,11 @@ import java.util.UUID;
  * <p>It has to bypass the mask, and it has to be the APERTURE rather than the
  * slab layer behind it. A view-DEPENDENT set of light sources is a
  * view-dependent amount of light — the client relights the area every time the
- * set changes. Phase 4a fixed the first half of that by deriving the layer
- * from the zone instead of the mask, but the layer was still the first slab
- * layer, and the slab has a SIDE: {@code viewerFarSide} flips it when a player
- * walks round the frame, so the light flipped too ("the light seems to flip
- * sides when I move around the portal"). The aperture is the one piece of the
- * geometry that is the same set of cells from everywhere.
+ * set changes. Deriving the layer from the zone instead of the mask removes
+ * that dependency but not every side effect: the zone's first slab layer
+ * still has a SIDE, and {@code viewerFarSide} flips it when a player walks
+ * round the frame, flipping the light with it. The aperture is the one piece
+ * of the geometry that is the same set of cells from everywhere.
  *
  * <p>{@code LIGHT} is invisible, so an aperture cell that sits behind the
  * frame wall from this player's angle leaks no geometry — the mask exists to
@@ -178,9 +177,9 @@ public final class PlayerProjectionState {
      *
      * <h2>Why still level 15</h2>
      * Lowering {@code Blocks.LIGHT}'s level property is the obvious fix for a
-     * preview that reads too bright. It is the wrong one to pull: the same
-     * change that fixed the earlier flicker already cut the light hard in
-     * two better ways:
+     * preview that reads too bright. It is the wrong one to pull: switching
+     * the light source from the slab layer to the aperture already cuts the
+     * light hard in two better ways:
      * <ul>
      *   <li><b>7x fewer sources.</b> The layer was the padded first slab layer
      *       (42 positions for the default doorway); it is now the aperture
@@ -536,8 +535,9 @@ public final class PlayerProjectionState {
         // would not work: that layer sits on whichever side the slab is on,
         // and viewerFarSide flips the slab when a player walks round the
         // frame, so the light would flip with it. Deriving the layer from
-        // the zone rather than the mask fixes an earlier flicker but not
-        // this, because the SIDE is still a property of the viewer.
+        // the zone rather than the mask removes the relighting dependency,
+        // but the SIDE is still a property of the viewer, so it does not
+        // solve this.
         //
         // The aperture is the one part of the geometry that has no side. It
         // is the same set of cells from everywhere, so light emitted there

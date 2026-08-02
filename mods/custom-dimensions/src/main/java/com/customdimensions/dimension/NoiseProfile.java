@@ -36,8 +36,9 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
      * and a 1024-block dimension (64 chunks radius, 128 across) spans about
      * two periods: the noise over the whole world is one blob, and whether a
      * group gets anything at all is a coin flip on where its peak lands.
-     * Measured on the first live boot — `the_overgrowth` came out with ZERO
-     * settlements. 512 chunks = 8192 blocks, the largest shipped border.
+     * 512 chunks = 8192 blocks, the largest shipped border — the reference
+     * radius must cover it, or the biggest dimension hits the same one-blob
+     * failure this scaling exists to prevent.
      */
     int REFERENCE_RADIUS_CHUNKS = 512;
 
