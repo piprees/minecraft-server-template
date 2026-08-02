@@ -9,9 +9,9 @@ import java.util.List;
  * Adds kernel density ON TOP of a chunk's final block-state density
  * function — the value the aquifer decides blocks from. Deliberately NOT
  * part of the beardifier: five mods transform StructureWeightSampler on
- * this platform (c2me, YungsApi, Moog's Structures, lithostitched, us) and
- * callbacks on its {@code sample} and its factory's RETURN are starved by
- * the interaction (live-verified 2026-08-02 — merged but never executed).
+ * this platform, and RETURN-side callbacks on its {@code sample} and its
+ * factory merge but never execute (see T24 — the methods themselves DO run;
+ * only RETURN-side hooks are starved).
  * A top-level wrapper of an unknown type must be evaluated by any correct
  * optimiser; the delegate keeps every other mod's behaviour intact.
  *

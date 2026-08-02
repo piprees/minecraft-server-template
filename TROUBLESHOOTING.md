@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T23](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T24](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K3](#known-issues) | Open issues — unfixed, on the watch list |
@@ -64,6 +64,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | The top candidates all share one score, captioned "same as winner" | [T21](#t21) |
 | Structures generating in a void/superflat dimension | [T22](#t22) |
 | `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
+| A RETURN/`@ModifyReturnValue` hook on StructureWeightSampler never fires | [T24](#t24) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
@@ -374,6 +375,36 @@ Each of these has caused a real incident.
   pass-through loop (the planned global `suppress.structures` list plugs into
   the same helper). The census artefact now records a `passThrough` array so
   per-dimension filtering is visible: a filtered set must be ABSENT from it.
+
+<a id="t24"></a>
+### T24 — RETURN-side callbacks on StructureWeightSampler never execute; a silent instrument there proves nothing
+
+- **Symptom:** an `@Inject` at RETURN (or a MixinExtras `@ModifyReturnValue`)
+  on `StructureWeightSampler.createStructureWeightSampler` or `sample` merges
+  cleanly into the class but never runs, at any priority. A counter placed
+  there reads zero — which was misread as "vanilla structure terrain
+  adaptation is inert on this modstack" and cost a day chasing a defect that
+  did not exist (2026-08-02).
+- **Cause:** five mods transform the class (c2me accessors, YungsApi enhanced
+  beardifier + aquifer masks, Moog's Structures enhanced beardifier,
+  lithostitched adaptation override, and custom-dimensions). Moog's replaces
+  the factory's return value from a cancellable RETURN callback — a Mixin
+  cancel emits an immediate return that skips callbacks inserted after it,
+  and the instance the noise fill actually samples is Moog's rebuild, not the
+  one a RETURN-side hook decorated. The combined transforms starve every
+  RETURN-side injection point on both methods.
+- **Proof the method runs anyway:** a HEAD `@Inject` counter on `sample` logs
+  ~37M invocations per boot, and a controlled two-world A/B (same seed,
+  `beard_box`/`beard_thin` vs `none`; 46/46 piece-sets placement-identical;
+  312 identical probe columns; a third same-config world byte-identical as
+  the determinism control) shows terrain filled below structure bases exactly
+  where vanilla adaptation puts it. **Vanilla `BEARD_THIN`/`BEARD_BOX` work
+  on this stack** — the `structures.terrainAdaptation` surface and the
+  shipped theme defaults are live behaviour, not dead config.
+- **Fix:** hook this class at HEAD or a constructor only — `KernelDensity`
+  delivers kernel density via `ChunkNoiseSampler.<init>` for exactly this
+  reason. Treat a silent RETURN-side instrument as *unmeasured*, never as
+  evidence the code path is dead.
 
 ---
 

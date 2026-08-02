@@ -20,10 +20,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * collects kernel pieces into the pending stash while armed.
  *
  * HEAD only, deliberately: this method's RETURN callbacks are starved on
- * the platform modstack (three other mods hook it, two with cancellable
- * replacement callbacks — live-verified 2026-08-02: our RETURN handlers
- * merged but never executed at priority 900 or 2000). The extent therefore
- * ENDS in ChunkNoiseSamplerMixin's TAIL, which vanilla's noise-fill path
+ * the platform modstack (see T24). The extent therefore ENDS in
+ * ChunkNoiseSamplerMixin's TAIL, which vanilla's noise-fill path
  * constructs immediately after this factory on the same thread.
  *
  * The world comes from the StructureAccessor (a ChunkRegion during noise
