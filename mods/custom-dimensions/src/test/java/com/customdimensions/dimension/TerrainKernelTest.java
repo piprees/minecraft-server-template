@@ -27,9 +27,26 @@ class TerrainKernelTest {
         assertEquals(TerrainKernel.PEDESTAL, TerrainKernel.parse("pedestal"));
         assertEquals(TerrainKernel.PLATFORM_SKIRT, TerrainKernel.parse("Platform_Skirt"));
         assertEquals(TerrainKernel.MOAT, TerrainKernel.parse("moat"));
+        assertEquals(TerrainKernel.DRAIN, TerrainKernel.parse("drain"));
         assertNull(TerrainKernel.parse("beard_thin"));
-        assertNull(TerrainKernel.parse("drain"));
         assertNull(TerrainKernel.parse(null));
+    }
+
+    @Test
+    void drainShapesNoTerrainOnlyItsDryBox() {
+        assertEquals(0.0, at(TerrainKernel.DRAIN, 8, 60, 8), "density-neutral");
+        var pieces = java.util.List.of(
+                new TerrainKernel.Piece(BOX, TerrainKernel.DRAIN, 0),
+                new TerrainKernel.Piece(BOX, TerrainKernel.MOAT, 0));
+        var boxes = TerrainKernel.drainBoxes(pieces);
+        assertEquals(1, boxes.size(), "only DRAIN pieces yield dry boxes");
+        BlockBox dry = boxes.get(0);
+        assertEquals(BOX.getMinX() - 12, dry.getMinX());
+        assertEquals(BOX.getMaxX() + 12, dry.getMaxX());
+        assertEquals(BOX.getMinY() - 2, dry.getMinY());
+        assertEquals(BOX.getMaxY() + 6, dry.getMaxY());
+        assertTrue(TerrainKernel.drainBoxes(java.util.List.of()).isEmpty());
+        assertTrue(TerrainKernel.drainBoxes(null).isEmpty());
     }
 
     @Test

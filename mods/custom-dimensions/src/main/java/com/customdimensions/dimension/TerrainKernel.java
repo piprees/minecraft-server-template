@@ -17,13 +17,14 @@ import java.util.List;
  * {@code StructureTerrainAdaptation} enum cannot express ("castle on a
  * hill", "dungeon under a lake"). Never an enum extension: structures
  * carrying a kernel read as {@code NONE} to vanilla (so its Beardifier
- * ignores them) and their density contribution is computed here, added on
- * top of the vanilla sampler by {@link Sampler}.
+ * ignores them) and their density contribution is computed here, applied
+ * on top of the chunk's final density by {@link KernelDensity}.
  *
  * Density conventions follow vanilla's: positive fills terrain, negative
- * carves it, and per-piece magnitudes sit in the ±0.8 band the vanilla
- * beards use. All maths is pure (box + query position) so the shapes are
- * unit-testable without Bootstrap.
+ * carves it. Magnitudes start from the ±0.8 band the vanilla beards use but
+ * may exceed it where the shape needs authority over terrain (the moat's
+ * channel carve). All maths is pure (box + query position) so the shapes
+ * are unit-testable without Bootstrap.
  *
  * Generation-affecting: kernel names flow through the same
  * {@code structures.terrainAdaptation} strings the fingerprint already
@@ -50,7 +51,17 @@ public enum TerrainKernel {
      * moat fills (with the dimension's fluid where it dips below sea
      * level). Leaves the footprint itself untouched.
      */
-    MOAT;
+    MOAT,
+
+    /**
+     * A dry pocket: the structure's box (plus a margin) is excluded from the
+     * aquifer's fluid placement, so a dungeon below the water table
+     * generates drained — "dungeon at the bottom of a lake". Contributes no
+     * density itself; the aquifer's own barrier noise seals the pocket's
+     * boundary with stone wherever it meets water. See
+     * {@link #wrapFluidSampler}.
+     */
+    DRAIN;
 
     /** Depth below the base a pedestal keeps building support for. */
     static final int PEDESTAL_DEPTH = 64;
@@ -69,6 +80,7 @@ public enum TerrainKernel {
             case "pedestal" -> PEDESTAL;
             case "platform_skirt" -> PLATFORM_SKIRT;
             case "moat" -> MOAT;
+            case "drain" -> DRAIN;
             default -> null;
         };
     }
@@ -87,18 +99,23 @@ public enum TerrainKernel {
                     yield 0.0;
                 }
                 // The cone's radius grows three blocks out per four down —
-                // a walkable motte, not a sheer plinth.
+                // a walkable motte, not a sheer plinth. 2.5 at the core:
+                // the pedestal is a GUARANTEE (the hill is made, not
+                // searched for), so it must dominate the density deficit of
+                // a real water column, not just a dry dip.
                 double radius = 2.0 + depth * 0.75;
-                yield MathHelper.clampedMap(dxz - radius, 0.0, 6.0, 0.85, 0.0);
+                yield MathHelper.clampedMap(dxz - radius, 0.0, 8.0, 2.5, 0.0);
             }
             case PLATFORM_SKIRT -> {
                 if (depth <= 0 || depth > SKIRT_DEPTH) {
                     yield 0.0;
                 }
                 // Flat within the apron; beyond it the edge slopes out half
-                // a block per block of depth.
+                // a block per block of depth. 2.0 core for the same reason
+                // as the pedestal's 2.5: the terrace is guaranteed, and a
+                // sub-1.0 fill loses to any real water column.
                 double edge = SKIRT_APRON + depth * 0.5;
-                yield MathHelper.clampedMap(dxz - edge, 0.0, 4.0, 0.8, 0.0);
+                yield MathHelper.clampedMap(dxz - edge, 0.0, 5.0, 2.0, 0.0);
             }
             case MOAT -> {
                 if (dxz < MOAT_INNER || dxz > MOAT_OUTER + 6) {
@@ -116,8 +133,72 @@ public enum TerrainKernel {
                 double vert = below > 0
                         ? MathHelper.clampedMap(below, 0.0, MOAT_FLOOR, 1.0, 0.15)
                         : MathHelper.clampedMap(above, 0.0, MOAT_RIM, 1.0, 0.0);
-                yield -0.8 * ring * vert;
+                // -1.2 exceeds the vanilla ±0.8 beard band deliberately:
+                // at full strength the carve must beat near-surface density
+                // a few blocks under a rise, or the ring fades into any
+                // modest hillside.
+                yield -1.2 * ring * vert;
             }
+            // Density-neutral: the drain works through the aquifer's fluid
+            // levels, not the terrain shape.
+            case DRAIN -> 0.0;
+        };
+    }
+
+    /** Horizontal reach of a drain pocket beyond the piece box. Sized so the
+     *  aquifer's 16-block-cell sample points inside the pocket all read dry;
+     *  the barrier noise then seals the boundary against neighbouring water. */
+    static final int DRAIN_MARGIN_XZ = 12;
+    static final int DRAIN_MARGIN_UP = 6;
+    static final int DRAIN_MARGIN_DOWN = 2;
+
+    /** Expanded dry boxes for the DRAIN pieces in a list (empty when none). */
+    public static List<BlockBox> drainBoxes(List<Piece> pieces) {
+        if (pieces == null || pieces.isEmpty()) {
+            return List.of();
+        }
+        List<BlockBox> out = new ObjectArrayList<>();
+        for (Piece piece : pieces) {
+            if (piece.kernel() != DRAIN) {
+                continue;
+            }
+            BlockBox b = piece.box();
+            out.add(new BlockBox(
+                    b.getMinX() - DRAIN_MARGIN_XZ, b.getMinY() - DRAIN_MARGIN_DOWN,
+                    b.getMinZ() - DRAIN_MARGIN_XZ, b.getMaxX() + DRAIN_MARGIN_XZ,
+                    b.getMaxY() + DRAIN_MARGIN_UP, b.getMaxZ() + DRAIN_MARGIN_XZ));
+        }
+        return out;
+    }
+
+    /**
+     * Wraps a chunk's fluid-level sampler so every query inside a DRAIN
+     * piece's expanded box answers "dry". Sample points feeding the aquifer
+     * read air there, the pocket generates unflooded, and the aquifer's own
+     * barrier noise builds the stone shell where dry cells meet wet ones —
+     * the vanilla machinery doing exactly what it does between any two
+     * mismatched aquifer cells. Returns the original sampler untouched when
+     * the piece list has no drains, so drain-free chunks pay nothing.
+     */
+    public static net.minecraft.world.gen.chunk.AquiferSampler.FluidLevelSampler
+            wrapFluidSampler(
+                    List<Piece> pieces,
+                    net.minecraft.world.gen.chunk.AquiferSampler.FluidLevelSampler original) {
+        List<BlockBox> boxes = drainBoxes(pieces);
+        if (boxes.isEmpty()) {
+            return original;
+        }
+        net.minecraft.world.gen.chunk.AquiferSampler.FluidLevel dry =
+                new net.minecraft.world.gen.chunk.AquiferSampler.FluidLevel(
+                        Integer.MIN_VALUE,
+                        net.minecraft.block.Blocks.AIR.getDefaultState());
+        return (x, y, z) -> {
+            for (BlockBox box : boxes) {
+                if (box.contains(x, y, z)) {
+                    return dry;
+                }
+            }
+            return original.getFluidLevel(x, y, z);
         };
     }
 
@@ -134,99 +215,28 @@ public enum TerrainKernel {
     }
 
     /**
-     * Duck interface the StructureWeightSampler mixin implements so kernel
-     * pieces ride ON the vanilla instance instead of a wrapper. A wrapper
-     * subclass NPE'd live: Moog's Structures ducks the same class for its
-     * own EnhancedBeardifier, and replacing the factory's return value left
-     * Moog's per-instance state split across two objects (its handler read
-     * a null iterator on the bare delegate). Augment in place — the pattern
-     * that mod itself proves compatible.
+     * Pieces collected at the factory's HEAD, waiting for the constructor
+     * hook to attach them. Moog's Structures REPLACES the factory's return
+     * value from a cancellable RETURN callback (it builds a fresh sampler
+     * via the public constructor and setReturnValue's it), and a cancel
+     * skips every callback inserted after it — so no RETURN-side attach can
+     * ever reach the instance the noise fill actually samples. The
+     * constructor is the one point every instance passes through, vanilla's
+     * original and Moog's rebuild alike; the stash bridges the two hooks on
+     * the generation thread. Cleared at the next factory HEAD.
      */
-    public interface Carrier {
-        void customdimensions$setKernelPieces(List<Piece> pieces);
+    private static final ThreadLocal<List<Piece>> PENDING = new ThreadLocal<>();
 
-        List<Piece> customdimensions$getKernelPieces();
-    }
-
-    // WIP diagnostics for the open sample-time bug (worklog 2026-08-01
-    // 21:2x) — debug level, removed when the kernel path is proven.
-    private static final java.util.concurrent.atomic.AtomicInteger ATTACHES =
-            new java.util.concurrent.atomic.AtomicInteger();
-    private static final java.util.concurrent.atomic.AtomicInteger SAMPLES =
-            new java.util.concurrent.atomic.AtomicInteger();
-
-    public static void debugAttach(net.minecraft.util.math.ChunkPos pos, int n, int id) {
-        debugAttach(pos, n, id, null);
-    }
-
-    public static void debugAttach(net.minecraft.util.math.ChunkPos pos, int n, int id,
-                                   List<Piece> pieces) {
-        int c = ATTACHES.incrementAndGet();
-        if (pieces != null && !pieces.isEmpty()) {
-            for (Piece piece : pieces) {
-                com.customdimensions.MultiverseServer.LOGGER.info(
-                        "KERNELDBG box chunk {} kernel={} box={} delta={}",
-                        pos, piece.kernel(), piece.box(), piece.groundLevelDelta());
-            }
-        }
-        if (n > 0) {
-            com.customdimensions.MultiverseServer.LOGGER.debug(
-                    "KERNELDBG attach chunk {} pieces={} id={} (call #{})", pos, n, id, c);
+    public static void setPending(List<Piece> pieces) {
+        if (pieces == null || pieces.isEmpty()) {
+            PENDING.remove();
+        } else {
+            PENDING.set(pieces);
         }
     }
 
-    public static void debugSample(int id, boolean withPieces) {
-        debugSample(id, withPieces, null);
-    }
-
-    private static final java.util.Set<String> SEEN_CLASSES =
-            java.util.concurrent.ConcurrentHashMap.newKeySet();
-
-    private static final java.util.Set<Integer> PIECED_IDS =
-            java.util.concurrent.ConcurrentHashMap.newKeySet();
-    private static final java.util.Set<Integer> PIECED_SAMPLED =
-            java.util.concurrent.ConcurrentHashMap.newKeySet();
-
-    public static void notePiecedId(int id) {
-        PIECED_IDS.add(id);
-    }
-
-    public static void debugSample(int id, boolean withPieces, Object self) {
-        if (PIECED_IDS.contains(id) && PIECED_SAMPLED.add(id)) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG PIECED instance SAMPLED id={} withPieces={}", id, withPieces);
-        }
-        if (self != null && SEEN_CLASSES.add(self.getClass().getName())) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG first sample from class {} (withPieces={})",
-                    self.getClass().getName(), withPieces);
-        }
-        int c = SAMPLES.incrementAndGet();
-        if (withPieces && c < 1_000_000) {
-            com.customdimensions.MultiverseServer.LOGGER.debug(
-                    "KERNELDBG sample WITH pieces id={} (count {})", id, c);
-            SAMPLES.set(1_000_000);
-        } else if (c == 1 || c == 500) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG sample no-pieces id={} class={} (count {})",
-                    id, self == null ? "?" : self.getClass().getName(), c);
-        }
-    }
-
-    private static final java.util.concurrent.atomic.AtomicBoolean SAW_PIECES =
-            new java.util.concurrent.atomic.AtomicBoolean();
-    private static final java.util.concurrent.atomic.AtomicBoolean SAW_NONZERO =
-            new java.util.concurrent.atomic.AtomicBoolean();
-
-    public static void debugWithPieces(double add) {
-        if (SAW_PIECES.compareAndSet(false, true)) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG sample WITH pieces fired (first add={})", add);
-        }
-        if (add != 0.0 && SAW_NONZERO.compareAndSet(false, true)) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "KERNELDBG first NONZERO kernel contribution: {}", add);
-        }
+    public static List<Piece> pending() {
+        return PENDING.get();
     }
 
     /** Kernel density sum at (i, j, k) for a piece list (null/empty = 0). */

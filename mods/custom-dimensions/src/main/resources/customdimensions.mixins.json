@@ -6,6 +6,7 @@
   "mixins": [
     "ChunkGeneratorAccessor",
     "ChunkGeneratorForcedBiomeMixin",
+    "ChunkNoiseSamplerMixin",
     "CreateWorldsMixin",
     "EntityTickPortalMixin",
     "GameEventSuppressionMixin",

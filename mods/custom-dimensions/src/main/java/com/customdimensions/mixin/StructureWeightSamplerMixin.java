@@ -1,6 +1,7 @@
 package com.customdimensions.mixin;
 
 import com.customdimensions.dimension.TerrainAdaptationOverride;
+import com.customdimensions.dimension.TerrainKernel;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
@@ -13,54 +14,24 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Arms the per-dimension terrain-adaptation override for exactly the dynamic
- * extent of {@code createStructureWeightSampler} — the only place vanilla
- * reads {@code Structure.getTerrainAdaptation()} for the Beardifier, both as
- * the {@code != NONE} filter predicate and per collected start. The forEach
- * runs synchronously inside the method on the same thread, so a HEAD/RETURN
- * ThreadLocal pair covers both call sites without touching any lambda.
+ * Arms the per-dimension terrain-adaptation override for the beard
+ * factory's extent — the only place vanilla reads
+ * {@code Structure.getTerrainAdaptation()} for the Beardifier — and
+ * collects kernel pieces into the pending stash while armed.
+ *
+ * HEAD only, deliberately: this method's RETURN callbacks are starved on
+ * the platform modstack (three other mods hook it, two with cancellable
+ * replacement callbacks — live-verified 2026-08-02: our RETURN handlers
+ * merged but never executed at priority 900 or 2000). The extent therefore
+ * ENDS in ChunkNoiseSamplerMixin's TAIL, which vanilla's noise-fill path
+ * constructs immediately after this factory on the same thread.
  *
  * The world comes from the StructureAccessor (a ChunkRegion during noise
  * fill); resolving it can never be allowed to fail generation, so any
  * surprise view type degrades to "no override" rather than throwing.
  */
 @Mixin(StructureWeightSampler.class)
-public abstract class StructureWeightSamplerMixin
-        implements com.customdimensions.dimension.TerrainKernel.Carrier {
-
-    // Kernel pieces ride the vanilla instance (duck field), never a wrapper
-    // — see TerrainKernel.Carrier for the Moog's-coexistence reason.
-    @org.spongepowered.asm.mixin.Unique
-    private volatile java.util.List<com.customdimensions.dimension.TerrainKernel.Piece>
-            customdimensions$kernelPieces;
-
-    @Override
-    public void customdimensions$setKernelPieces(
-            java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces) {
-        this.customdimensions$kernelPieces = pieces;
-    }
-
-    @Override
-    public java.util.List<com.customdimensions.dimension.TerrainKernel.Piece>
-            customdimensions$getKernelPieces() {
-        return this.customdimensions$kernelPieces;
-    }
-
-    @Inject(method = "sample", at = @At("RETURN"), cancellable = true)
-    private void customdimensions$addKernelDensity(
-            net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos pos,
-            org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Double> cir) {
-        java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
-                ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object) this)
-                        .customdimensions$getKernelPieces();
-        com.customdimensions.dimension.TerrainKernel.debugSample(
-                System.identityHashCode(this), pieces != null, this);
-        if (pieces != null && !pieces.isEmpty()) {
-            double add = com.customdimensions.dimension.TerrainKernel.sampleAll(pieces, pos);
-            com.customdimensions.dimension.TerrainKernel.debugWithPieces(add);
-            cir.setReturnValue(cir.getReturnValue() + add);
-        }
-    }
+public abstract class StructureWeightSamplerMixin {
 
     @Inject(method = "createStructureWeightSampler", at = @At("HEAD"))
     private static void customdimensions$armTerrainAdaptation(
@@ -81,31 +52,13 @@ public abstract class StructureWeightSamplerMixin
             // per-dimension config applies — vanilla behaviour, not an error.
         }
         TerrainAdaptationOverride.arm(worldId);
-    }
-
-    @Inject(method = "createStructureWeightSampler", at = @At("RETURN"), cancellable = true)
-    private static void customdimensions$disarmTerrainAdaptation(
-            StructureAccessor world, ChunkPos pos,
-            CallbackInfoReturnable<StructureWeightSampler> cir) {
-        try {
-            // Kernel-tagged structures read NONE to vanilla, so its sampler
-            // ignored them above; collect their pieces while still armed and
-            // attach them to the RETURNED instance (duck field — never a
-            // wrapper). Kernel-free worlds pay one boolean check.
-            if (com.customdimensions.dimension.TerrainAdaptationOverride.hasArmedKernels()) {
-                java.util.List<com.customdimensions.dimension.TerrainKernel.Piece> pieces =
-                        com.customdimensions.dimension.TerrainKernel.collect(world, pos);
-                com.customdimensions.dimension.TerrainKernel.debugAttach(pos, pieces.size(),
-                        System.identityHashCode(cir.getReturnValue()), pieces);
-                if (!pieces.isEmpty()) {
-                    ((com.customdimensions.dimension.TerrainKernel.Carrier) (Object)
-                            cir.getReturnValue()).customdimensions$setKernelPieces(pieces);
-                    com.customdimensions.dimension.TerrainKernel.notePiecedId(
-                            System.identityHashCode(cir.getReturnValue()));
-                }
-            }
-        } finally {
-            TerrainAdaptationOverride.disarm();
+        // Kernel-tagged structures read NONE to vanilla, so no beardifier
+        // collects them; their pieces ride the stash to KernelDensity via
+        // ChunkNoiseSamplerMixin. Kernel-free worlds pay one boolean check.
+        java.util.List<TerrainKernel.Piece> pieces = null;
+        if (TerrainAdaptationOverride.hasArmedKernels()) {
+            pieces = TerrainKernel.collect(world, pos);
         }
+        TerrainKernel.setPending(pieces);
     }
 }
