@@ -67,7 +67,7 @@ find . -type f -not -path './nginx/*' ... \
 
 Two other things `dev-up.sh` does to `data/config` on every run, both idempotent and both worth knowing about when a "nothing changed" result looks suspicious:
 
-- Forces `useDensityFunctionCompiler = false` in `c2me.toml` (see the c2me recipe in `SKILL.md`).
+- Forces `useDensityFunctionCompiler = false` in `c2me.toml` (the mod's preLaunch entrypoint also re-supplies it every boot — see § The c2me patch in `SKILL.md`).
 - Silences Distant Horizons' GC-warning wall in `DistantHorizons.toml` via `sed`.
 
 **Read/written by:** the `mc` process itself, directly, as its own mod config directory. Nothing else mounts `data/config` read-only the way the volume above is mounted by sidecars — it's the live, mutable config directory for the running server.

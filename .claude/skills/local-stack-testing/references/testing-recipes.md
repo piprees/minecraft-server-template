@@ -27,7 +27,7 @@ docker logs mc 2>&1 | grep -iE 'mixin apply|customdimensions|error' | tail -20
 
 If the persisted state format changed (config schema, namespace, IDs), delete the mod's state file(s) under `data/config/` before restarting — otherwise stale state from the previous build masks the bug you're testing.
 
-Re-patch c2me before this restart if the change touches worldgen/seeds (see recipe 4).
+The c2me DFC patch is automatic on every boot (the mod's preLaunch entrypoint — recipe 4 has the verification grep).
 
 ## 2. Content baked into the `defaults-seed` image
 
@@ -69,26 +69,14 @@ python3 -c "import json; print(json.load(open('data/config/multiverse_config.jso
 
 ## 4. Per-dimension seeds / worldgen / anything c2me-adjacent
 
-The c2me snippet is inline in `SKILL.md` — reproduce it exactly, or use `./dev up` which applies it automatically.
+The c2me DFC patch is AUTOMATIC: the mod's preLaunch entrypoint
+(`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into
+`data/config/c2me.toml` on every boot, so a bare `docker restart mc` stays
+patched — no manual snippet ([TROUBLESHOOTING.md#d6](../../../../TROUBLESHOOTING.md#d6)
+has the mixin-bootstrap timing; `deploy.sh`/`dev-up.sh` still pre-patch as
+the layer covering a fresh environment's first boot).
 
 ```bash
-# Manual re-patch before a bare restart:
-python3 - "<consumer>/data/config/c2me.toml" << 'PYEOF'
-import sys, os, re
-p = sys.argv[1]
-section = "[vanillaWorldGenOptimizations]"
-key = "useDensityFunctionCompiler"
-s = open(p).read() if os.path.exists(p) else ""
-if key in s:
-    updated = re.sub(r'%s\s*=\s*\S+' % key, '%s = false' % key, s)
-elif section in s:
-    updated = s.replace(section, section + "\n\t%s = false" % key)
-else:
-    updated = s + "\n%s\n\t%s = false\n" % (section, key)
-if updated != s:
-    open(p, "w").write(updated)
-PYEOF
-
 docker restart mc
 sleep 30
 

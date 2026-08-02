@@ -55,7 +55,7 @@ Full detail (all 17 numbered sections) is in `references/deploy-sequence.md`. Th
 
 - **Step 8** — seeds default + overlay configs into `data/config/`, **before mc starts**. Mods that auto-generate config on first boot would otherwise create defaults that block the bundle's version.
 - **Step 8b** — copies `local-mods/*.jar` (in-house mods) into `data/mods/` while mc is **stopped**. Doing this after the health wait meant a jar that broke the boot could never be replaced by the deploy that shipped it.
-- **Step 8c** — re-patches `c2me.toml`'s `useDensityFunctionCompiler = false` and silences DistantHorizons GC warnings, while mc is stopped. c2me strips this key from its own config on every boot, so it must be re-applied every deploy or every custom dimension generates as a clone of the main world.
+- **Step 8c** — re-patches `c2me.toml`'s `useDensityFunctionCompiler = false` and silences DistantHorizons GC warnings, while mc is stopped. c2me strips this key from its own config on every boot; the mod's preLaunch entrypoint re-supplies it every boot too ([TROUBLESHOOTING.md#d6](../../../TROUBLESHOOTING.md#d6)) — 8c remains the layer that covers a fresh environment's very first boot.
 - **Step 10b** — `sync-mods.sh` fetches any managed jar/datapack missing from `data/`. `MODS_FILE` is empty by default so itzg makes zero network requests at boot; this is the only place mod downloads happen, and only when the mod list actually changed.
 
 **Changes to `deploy.sh` itself take effect on the _next_ deploy**, not the one that merges them — an in-flight deploy already executed the pre-pull copy of the script.

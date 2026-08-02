@@ -44,10 +44,10 @@ This is the "Epic Dungeons + c2me wedge" documented in this repo's known issues:
 
 `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension — that value feeds `NoiseConfig` (terrain, biome layout, aquifers) and structure placement. c2me's density-function compiler (`c2me-opts-dfc`) caches compiled+instantiated density functions across `NoiseConfig` creations and **ignores the seed**, so with it enabled every custom dimension silently clones the main world's terrain.
 
-`deploy.sh` (step 8c) and `dev-up.sh` force `useDensityFunctionCompiler = false` in `c2me.toml` on every boot; the rest of c2me stays enabled. Two sharp edges:
+The mod's preLaunch entrypoint (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into `c2me.toml` on every boot; the rest of c2me stays enabled. Two facts to hold:
 
-1. **c2me strips the unknown key when it rewrites its own config at boot**, after reading it. The key is read first, so enforcement holds — but only because both boot paths re-apply the patch every single time. The key's absence from `c2me.toml` after boot is _expected_, not a sign the patch failed.
-2. **A bare `docker restart mc` in the local loop boots WITHOUT the patch.** After any manual restart, re-apply the patch (or re-run `./dev up`) before trusting seed-dependent results. See the main SKILL.md § Fast local loop for the exact idempotent snippet.
+1. **c2me reads its config at mixin-bootstrap time — before any entrypoint — and strips the unknown key afterwards.** Each boot's write is therefore consumed by the NEXT boot's read: every boot after the first is self-patched, bare `docker restart mc` included, and the key's absence from `c2me.toml` after boot is _expected_, not a sign the patch failed ([TROUBLESHOOTING.md#d6](../../../../TROUBLESHOOTING.md#d6)).
+2. **The one gap is a fresh environment's very first boot** (new jar, no key on disk) — `deploy.sh` (step 8c) and `dev-up.sh` pre-patch as the second layer, which covers that boot on every scripted path.
 
 **Verify via log grep, never by inspecting the config file**:
 
