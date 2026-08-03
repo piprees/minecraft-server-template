@@ -275,12 +275,13 @@ def priority_np(noise_seed, chunk_xs, chunk_z):
     unsigned dtype is the unsigned shift `>>>` requires — so the SplitMix64
     finaliser needs no masking here, unlike the Python-int form.
     """
-    px, pz, _m1, _m2, _s30, _s27, _s31 = _u64()
+    px, _pz, _m1, _m2, _s30, _s27, _s31 = _u64()
     cx = chunk_xs.astype(_np.uint64)
-    z = (_np.uint64(noise_seed & M64)
-         ^ _mix64_np(cx * px)
-         ^ _mix64_np(_np.uint64(chunk_z & M64) * pz))
-    return _mix64_np(z)
+    # chunk_z is one value for the whole row, so fold it and the seed into a
+    # single exact Python int. Doing it in numpy costs a scalar multiply whose
+    # wrap — the point of the operation — numpy reports as an overflow warning.
+    row = (noise_seed ^ mix64((chunk_z * PRIORITY_Z) & M64)) & M64
+    return _mix64_np(_np.uint64(row) ^ _mix64_np(cx * px))
 
 
 class StructureNoise:
