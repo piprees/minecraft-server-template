@@ -51,6 +51,9 @@ import math
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import stack_version  # noqa: E402
+
 # Expectations per dimension. Each is a property the CONFIG implies, chosen so
 # a failure means the placement pipeline changed behaviour — not that a mod
 # updated. `present`/`absent` match structure ids by substring against the
@@ -258,33 +261,35 @@ class Report:
         print(f"  SKIP {slug} — {reason}")
 
 
-# The artefact shape this checker understands (Artefacts.SCHEMA_VERSION on the
-# Java side). A census written by a newer mod is NOT read on a best-effort
-# basis: a silently mis-read artefact produces a green run over a world nobody
-# has actually checked, which is worse than no checker at all.
-SUPPORTED_SCHEMA_VERSION = 1
-
-
 class SchemaMismatch(Exception):
     pass
 
 
 def load_census(census_dir, slug):
+    """Read a census, refusing one written by a different stack.
+
+    The mod and this checker ship in the same bundle, so an artefact stamped
+    with another stack's version was left by an earlier one and describes a
+    world this stack no longer generates. Checking it is worse than not
+    checking it: a green run over stale data reads as proof.
+    """
     matches = sorted(Path(census_dir).glob(f"*__{slug}.json"))
     if not matches:
         return None
     census = json.loads(matches[0].read_text())
-    version = census.get("schemaVersion")
-    if version is None:
-        # Pre-contract dumps carry no version. They are still readable, but
-        # say so — an old artefact is a stale artefact more often than not.
-        print(f"  NOTE {matches[0].name} predates schemaVersion — "
+    stamped = census.get("stackVersion")
+    running = stack_version.stack_version()
+    if stamped is None:
+        print(f"  NOTE {matches[0].name} predates the stack stamp — "
               f"re-dump it if anything below looks wrong")
-    elif version != SUPPORTED_SCHEMA_VERSION:
+    elif stack_version.is_dev(stamped) or stack_version.is_dev(running):
+        # A dev build carries no release identity — nothing to compare.
+        pass
+    elif stamped != running:
         raise SchemaMismatch(
-            f"{matches[0].name} is schemaVersion {version}, this checker "
-            f"understands {SUPPORTED_SCHEMA_VERSION} — update "
-            f"scripts/check-noise-regression.py alongside the mod")
+            f"{matches[0].name} was written by stack {stamped}, this one is "
+            f"{running} — re-dump it "
+            f"(/customdim structure-census <dimension>)")
     return census
 
 

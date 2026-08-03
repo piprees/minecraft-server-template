@@ -286,6 +286,8 @@ Scripts fall into three categories depending on where they live and who runs the
 | `build-stack-bundle.sh`      | Assemble the release tarball                                        |
 | `sync-mod-cache.sh`          | Reconcile `mods-cache/` against the pinned mod lists (`--apply`)   |
 | `export-seed-winners.py`     | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
+| `seed/refresh-census-fixtures.sh` | Re-dump `seed/testdata/census/` from a running server's live placement calculator |
+| `seed/bench-census-workers.py`    | Time the noise census across pool sizes — the evidence for `default_workers()` |
 
 Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
 

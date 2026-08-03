@@ -102,6 +102,10 @@ MANIFEST=(
   scripts/check-dimension-drift.py
   scripts/check-portal-integrity.py
   scripts/check-noise-regression.py
+  # Resolves stack/VERSION for every artefact stamp and cache key. Imported by
+  # the checkers and by scripts/seed/, so it ships or both lose their staleness
+  # detection.
+  scripts/stack_version.py
   scripts/check-suppress-list.py
   scripts/gen-suppress-catalogue.py
   scripts/seed/surface_rules.py

@@ -80,14 +80,21 @@ CENSUS_FLUSH_EVERY = 2000
 def default_workers():
     """Processes for the census and terrain backfills when none is asked for.
 
-    Every core but two. Mirrors viewer-server.RenderWorker, which makes the
-    same call for a more expensive job: leave the machine usable, take the
-    rest — a small fixed cap instead would leave most cores idle for the six
-    hours a cold 65k-candidate backfill takes.
+    Two thirds of the cores. Measured on the overworld census (18 logical
+    cores, 6 performance + 12 efficiency), per candidate:
 
-    Two cores is the floor, so a small machine still overlaps work.
+        1 worker   0.5213s   100% efficiency
+        8 workers  0.1212s    54%
+        12         0.1080s    40%
+
+    Throughput flattens well before every-core-but-two: past twelve the curve
+    buys a few percent for a third more CPU, so the extra workers cost the
+    machine's usability and return nothing. Below about eight it is giving up
+    real wall-clock on a job that runs for hours.
+
+    Two is the floor, so a small machine still overlaps work.
     """
-    return max(2, multiprocessing.cpu_count() - 2)
+    return max(2, multiprocessing.cpu_count() * 2 // 3)
 
 
 # ---------------------------------------------------------------------------
@@ -662,37 +669,128 @@ def score_candidate(profile, rows, structures_override=None):
     return round(max(0.0, min(100.0, total_score)), 2), {k: round(v, 3) for k, v in parts.items()}
 
 
-def load_measurements(csv_path):
-    """-> {dim: {seed: {metric: value}}} from one long-format CSV."""
-    data = defaultdict(lambda: defaultdict(dict))
+#: Byte offset each spool has been folded into the bank up to, keyed by path.
+#: `.seedtest/.absorbed.json`.
+ABSORBED_FILE = ".absorbed.json"
+
+
+def load_absorbed(seedtest):
+    try:
+        with open(Path(seedtest) / ABSORBED_FILE) as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_absorbed(seedtest, offsets):
+    if not offsets:
+        return
+    path = Path(seedtest) / ABSORBED_FILE
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w") as fh:
+        json.dump(offsets, fh, indent=1, sort_keys=True)
+    tmp.replace(path)
+
+
+def _file_identity(path):
+    """(inode, size) — what a recorded offset is only valid for.
+
+    `--reset-csv` archives the spool with `mv` and the roller opens a new one
+    at the same path. Keying on the path alone, a fresh spool that grew past
+    the old offset would be seeked into and its measurements skipped, so the
+    inode has to be part of the key.
+    """
+    st = Path(path).stat()
+    return [st.st_ino, st.st_size]
+
+
+def _absorbed_offset(absorbed, path):
+    """How far `path` has been folded in, or 0 if the record cannot apply."""
+    entry = absorbed.get(str(path))
+    if not isinstance(entry, dict):
+        return 0
+    try:
+        inode, size = _file_identity(path)
+    except OSError:
+        return 0
+    offset = entry.get("offset") or 0
+    if entry.get("inode") != inode or offset > size:
+        return 0
+    return offset
+
+
+def iter_measurements(csv_path, wanted=None, start=0, reached=None):
+    """Stream (target, seed, metric, value) from one long-format CSV.
+
+    A generator rather than a dict because the spool is 27.5M rows / 1.5 GB
+    and every fold re-reads it: materialising a second copy to merge from
+    doubles the peak for no reason. `wanted` drops other targets before their
+    rows cost anything — a --dims-scoped run has no use for the other eighty
+    dimensions' measurements and should not pay to build them.
+
+    `start` skips bytes already folded into the bank. The spool is append-only
+    and the bank is the primary store, so everything below a recorded offset is
+    already there and re-parsing it buys nothing. `reached` collects the offset
+    this pass ended at, which is what persist_candidates records once the
+    stores are safely written.
+    """
     if not csv_path or not Path(csv_path).exists():
-        return data
+        return
     with open(csv_path, newline="") as fh:
-        reader = csv.reader(fh)
-        for row in reader:
+        if start:
+            try:
+                fh.seek(start)
+            except OSError:
+                fh.seek(0)
+        for row in csv.reader(fh):
             if len(row) != 4 or row[0] == "target":
                 continue
-            target, seed, metric, value = row
-            data[target][seed][metric] = value
+            if wanted is not None and row[0] not in wanted:
+                continue
+            yield row
+        # Only on a clean run to EOF. csv.reader buffers ahead, so tell() part
+        # way through is past what the caller has actually seen; recording it
+        # after an early exit would mark unread rows absorbed.
+        if reached is not None:
+            end = fh.tell()
+            reached[str(csv_path)] = {"offset": end,
+                                      "inode": Path(csv_path).stat().st_ino}
+
+
+def load_measurements(csv_path, wanted=None):
+    """-> {dim: {seed: {metric: value}}} from one long-format CSV."""
+    data = defaultdict(lambda: defaultdict(dict))
+    for target, seed, metric, value in iter_measurements(csv_path, wanted):
+        data[target][seed][metric] = value
     return data
 
 
-def gather_measurements(args):
+def gather_measurements(args, wanted=None):
     """Canonical measurement view -> {dim: {seed: rows}}.
 
     Directory mode reads the candidate store first, then folds in any
     un-merged worker spools (worker-*.csv) and the legacy
     .seedtest/measurements.csv (one-time import path: persist_candidates
     writes everything back to the store, after which the CSVs are inert).
-    Legacy monolith mode uses just the CSVs."""
+    Legacy monolith mode uses just the CSVs.
+
+    `wanted` restricts the whole gather to a set of target names. Passed
+    explicitly by the scoring commands rather than read from args.dims,
+    because `world-manifest` reads "overworld" out of the result regardless
+    of the scope it was invoked with — an implicit filter would silently
+    empty it.
+    """
     data = defaultdict(lambda: defaultdict(dict))
     cfg = Path(args.config) if getattr(args, "config", None) else None
     if cfg is not None and cfg.is_dir():
         cdir = candidates.candidates_dir(cfg)
         if cdir.is_dir():
             for f in sorted(cdir.glob("*.json")):
-                store = candidates.load_store(f)
                 slug = f.stem
+                if wanted is not None and slug not in wanted:
+                    continue
+                store = candidates.load_store(f)
                 for seed, cand in store["candidates"].items():
                     data[slug][seed].update(cand.get("measurements", {}))
                     sa = cand.get("structure_all")
@@ -709,11 +807,28 @@ def gather_measurements(args):
                     data[slug][seed].setdefault("rejected", "1")
     sources = [Path(args.csv)] if getattr(args, "csv", None) else []
     sources += sorted(Path(args.seedtest).glob("worker-*.csv"))
+    absorbed = load_absorbed(args.seedtest)
+    reached = {}
     for src in sources:
-        for dim, seeds in load_measurements(src).items():
-            for seed, rows in seeds.items():
-                data[dim][seed].update(rows)
+        start = _absorbed_offset(absorbed, src)
+        for target, seed, metric, value in iter_measurements(
+                src, wanted, start=start, reached=reached):
+            data[target][seed][metric] = value
+    # Only an unscoped gather may advance the marker. A --dims run skipped
+    # every other target's rows without banking them, so recording how far it
+    # read would strand them. `wanted` is not the test: the scoring commands
+    # always pass it, set to every rollable target.
+    if not getattr(args, "dims", None):
+        _pending_absorbed(args).update(reached)
     return data
+
+
+_ABSORBED_PENDING = {}
+
+
+def _pending_absorbed(args):
+    """Offsets this process has read but not yet committed to the marker."""
+    return _ABSORBED_PENDING.setdefault(str(getattr(args, "seedtest", "")), {})
 
 
 # ---------------------------------------------------------------------------
@@ -882,7 +997,7 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
 
     Roll-time selection lives in fast_roller.select_spawn_site; this is the
     post-hoc pass over already-banked candidates, versioned by
-    SPAWN_SITE_VERSION so it runs once per candidate per selection change.
+    the stack stamp so it runs once per candidate per stack.
     Deterministic (pure function of seed + config), so NOT a re-roll —
     `spawn` is volatile and absent from generation_payload(). Run BEFORE
     ensure_spawn_distances: a moved spawn re-anchors battery distances and
@@ -892,7 +1007,8 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
     scoreable test ensure_censuses uses) — the bank also holds tens of
     thousands of tier-1 screens whose spawn nothing ever reads.
     """
-    from fast_roller import SPAWN_SITE_VERSION
+    from fast_roller import spawn_site_stamp
+    stamp = spawn_site_stamp()
     from biome_sampler import sampler_spec
     params_path = str(Path(args.seedtest) / "biome_params.json")
     if not Path(params_path).exists():
@@ -907,7 +1023,7 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
         for seed, rows in data.get(name, {}).items():
             if rows.get("rejected") == "1" or "errors" not in rows:
                 continue
-            if str(rows.get("spawn_site_v") or "") == str(SPAWN_SITE_VERSION):
+            if str(rows.get("spawn_site_v") or "") == str(stamp):
                 continue
             if spec is None:
                 spec = sampler_spec(profile)
@@ -921,7 +1037,7 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
     workers = max(1, getattr(args, "census_workers", 0) or default_workers())
     if not quiet:
         print(f"spawn sites: re-selecting {len(tasks)} candidate(s) on "
-              f"{workers} worker(s) (v{SPAWN_SITE_VERSION})", flush=True)
+              f"{workers} worker(s) ({stamp})", flush=True)
     started = time.time()
     step = max(1, len(tasks) // 20)
     results = []
@@ -946,11 +1062,11 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
             rows["spawn_filter_dist"] = dist
             rows["spawn_biome"] = biome if dist <= 48 else rows.get(
                 "spawn_biome", biome)
-        rows["spawn_site_v"] = SPAWN_SITE_VERSION
+        rows["spawn_site_v"] = stamp
         upgraded += 1
     if upgraded and not quiet:
         print(f"spawn sites: {upgraded} candidate(s) re-selected "
-              f"(v{SPAWN_SITE_VERSION})", flush=True)
+              f"({stamp})", flush=True)
 
 
 def ensure_spawn_distances(args, profiles, data, quiet=False):
@@ -1063,28 +1179,6 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
     workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
 
-    top_n = getattr(args, "census_top", 0) or 0
-    if top_n > 0:
-        tasks = _prune_census_tasks(profiles, data, tasks, top_n, quiet)
-        if not tasks:
-            return
-
-    # Sorted by dimension so a worker walks a contiguous run of one
-    # dimension's candidates and its geometry memo (noise_placement.geometry)
-    # stays warm. With chunksize=1 the pool round-robins instead, and the memo
-    # is rebuilt for nearly every candidate — the change that makes it pay.
-    tasks.sort(key=lambda t: t[0])
-
-    if not quiet:
-        print(f"noise census: computing {len(tasks)} candidate layout(s) on "
-              f"{workers} worker(s) — cached thereafter, so this is a one-off "
-              f"per candidate", flush=True)
-
-    t0 = time.time()
-    total = len(tasks)
-    step = max(1, total // 20)
-    dirty = set()
-
     def absorb(result):
         name, seed, summary = result
         store, fp = stores[name]
@@ -1094,31 +1188,63 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         cand["noiseCensus"] = summary
         data[name][seed]["_census"] = _with_group_settings(
             summary, settings[name])
-        dirty.add(name)
 
-    def flush():
-        for name in sorted(dirty):
+    def save(names):
+        for name in sorted(names):
             candidates.save_store(cdir / f"{name}.json", stores[name][0])
-        dirty.clear()
 
-    # Every census is a pure function of the seed and the placement config and
-    # is skipped on the next run once banked, so the job is resumable — but
-    # only as far as the last write. Flushing on an interval is what makes an
-    # interrupted run resume instead of restarting: this used to save nothing
-    # until all 648,971 tasks had finished, so a Ctrl+C at 24% discarded
-    # fourteen hours and left `candidates/` not merely stale but absent.
+    top_n = getattr(args, "census_top", 0) or 0
+    if top_n > 0:
+        _census_rounds(profiles, data, tasks, top_n, workers,
+                       absorb, save, quiet)
+        return
+    _run_census(tasks, workers, absorb, save, quiet)
+
+
+def _run_census(tasks, workers, absorb, save, quiet=False, label="noise census"):
+    """One pool pass over `tasks`, checkpointing as it goes.
+
+    Every census is a pure function of the seed and the placement config and
+    is skipped on the next run once banked, so the job is resumable — but only
+    as far as the last write. Flushing on an interval is what makes an
+    interrupted run resume instead of restarting: this used to save nothing
+    until all 648,971 tasks had finished, so a Ctrl+C at 24% discarded
+    fourteen hours and left `candidates/` not merely stale but absent.
+    """
+    # Sorted by dimension so a worker walks a contiguous run of one
+    # dimension's candidates and its geometry memo (noise_placement.geometry)
+    # stays warm. With chunksize=1 the pool round-robins instead, and the memo
+    # is rebuilt for nearly every candidate — the change that makes it pay.
+    tasks = sorted(tasks, key=lambda t: t[0])
+    total = len(tasks)
+    if not total:
+        return 0
+    if not quiet:
+        print(f"{label}: computing {total} candidate layout(s) on "
+              f"{workers} worker(s) — cached thereafter, so this is a one-off "
+              f"per candidate", flush=True)
+
+    t0 = time.time()
+    step = max(1, total // 20)
+    dirty = set()
     done = 0
     last_flush = t0
+
+    def checkpoint():
+        save(dirty)
+        dirty.clear()
+
     try:
         if workers > 1 and total > 1:
             with multiprocessing.Pool(workers) as pool:
                 for result in pool.imap_unordered(_census_task, tasks,
                                                   chunksize=CENSUS_CHUNKSIZE):
                     absorb(result)
+                    dirty.add(result[0])
                     done += 1
                     now = time.time()
                     if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
-                        flush()
+                        checkpoint()
                         last_flush = now
                     if not quiet and (done % step == 0 or done == total):
                         elapsed = now - t0
@@ -1129,78 +1255,126 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
                               f"~{remaining / 60:.1f} min left", flush=True)
         else:
             for task in tasks:
-                absorb(_census_task(task))
+                result = _census_task(task)
+                absorb(result)
+                dirty.add(result[0])
                 done += 1
                 now = time.time()
                 if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
-                    flush()
+                    checkpoint()
                     last_flush = now
     finally:
         # Reached on KeyboardInterrupt too — Ctrl+C is documented as
         # "finalises with whatever has been measured so far", and for the
         # census that promise was false.
-        flush()
+        checkpoint()
     if not quiet:
-        print(f"noise census: {done} computed in {time.time() - t0:.1f}s")
+        print(f"{label}: {done} computed in {time.time() - t0:.1f}s")
+    return done
 
 
-def _prune_census_tasks(profiles, data, tasks, top_n, quiet=False):
-    """Drop censuses that cannot change which candidates reach the top N.
+#: Candidates censused in the seeding round of the adaptive pass, per
+#: dimension. Generous on purpose: the round's only job is to establish real
+#: totals high enough to exclude the tail, and a seed round too small leaves
+#: the floor at the Nth best LOWER bound, which is the weak static bound.
+CENSUS_SEED_MULTIPLE = 4
+CENSUS_SEED_FLOOR = 200
 
-    The census feeds only the `structures` component, so a candidate's total
-    is bounded without one: L with structures at STRUCTURES_MIN, U at
-    STRUCTURES_MAX. If U(c) is below the Nth best total ACTUALLY achieved by
-    a censused candidate, c cannot enter the top N and its census is wasted
-    work — the winner and the viewer's top ten are identical either way.
 
-    Exact for top-N membership, and deliberately conservative: it prunes only
-    what it can prove. Candidates it skips keep no census and score with
-    structures 0, which ranks them below a cut they could not have reached.
+def score_bounds(profile, rows):
+    """(lower, upper) on a candidate's total, without computing its census.
 
-    HOW MUCH IT PRUNES DEPENDS ENTIRELY ON THE BANK. The band is
-    STRUCTURES_MAX - STRUCTURES_MIN = 1.6 wide against the structures weight,
-    so on a mood weighting structures at 20 of 100 it spans 32 points. A
-    dimension whose candidates all score within 32 points of each other on
-    the other three components prunes NOTHING — which is the common case for
-    a well-tuned dimension, and why this is off by default. It pays on a bank
-    with a long tail of poor candidates.
+    The census feeds only the `structures` component, so pinning that
+    component to each end of its range brackets the total. Everything else in
+    the score is already measured.
+    """
+    lo, _ = score_candidate(profile, rows, STRUCTURES_MIN)
+    hi, _ = score_candidate(profile, rows, STRUCTURES_MAX)
+    return lo, hi
 
-    A tighter adaptive form is possible (census a slice, let the exact totals
-    that come back raise the bar, repeat) and is recorded as R8 in
-    reports/performance-report.md — it needs the census to run in rounds,
-    which this single pass does not do.
+
+def _census_rounds(profiles, data, tasks, top_n, workers, absorb, save,
+                   quiet=False):
+    """Census only what can still reach a dimension's top N, adaptively.
+
+    The static bound — drop anything whose ceiling is under the Nth best
+    FLOOR — is exact but weak: STRUCTURES spans 1.6, so against a structures
+    weight of 20 of 100 the band is 32 points wide and a well-tuned dimension
+    prunes nothing. This raises the bar with real numbers instead.
+
+      Round 1  censuses a generous slice by lower bound, which yields EXACT
+               totals for those candidates.
+      Round 2  drops every remaining candidate whose upper bound is under the
+               Nth best exact total, and censuses the rest.
+
+    Exact for top-N membership: the floor is a score N censused candidates
+    actually achieve, so a candidate whose ceiling is below it cannot displace
+    any of them. Skipped candidates keep no census and score with structures
+    0 — below a cut they could not have reached.
+
+    Converges in two effective rounds. Round 2 censuses everything above
+    floor_1; the floor can then only rise, and every remaining candidate was
+    already below floor_1, so nothing new qualifies and the loop ends.
     """
     by_dim = defaultdict(list)
     for task in tasks:
         by_dim[task[0]].append(task)
-    kept = []
-    dropped = 0
+
+    batch, pending = [], {}
     for name, dim_tasks in by_dim.items():
         profile = profiles.get(name)
         rows_for = data.get(name, {})
         if profile is None or len(dim_tasks) <= top_n:
-            kept.extend(dim_tasks)
+            batch.extend(dim_tasks)
             continue
-        bounds = []
+        ranked = []
         for task in dim_tasks:
             rows = rows_for.get(task[1])
             if rows is None:
-                bounds.append((0.0, 100.0, task))
+                ranked.append((0.0, 100.0, task))   # unknown: never pruned
                 continue
-            lo, _ = score_candidate(profile, rows, STRUCTURES_MIN)
-            hi, _ = score_candidate(profile, rows, STRUCTURES_MAX)
-            bounds.append((lo, hi, task))
-        bounds.sort(key=lambda b: -b[0])
-        # The Nth best LOWER bound is a floor on the Nth best real total, so
-        # anything whose ceiling sits under it is already excluded.
-        floor = bounds[top_n - 1][0]
-        survivors = [b[2] for b in bounds if b[1] >= floor]
-        dropped += len(dim_tasks) - len(survivors)
-        kept.extend(survivors)
+            lo, hi = score_bounds(profile, rows)
+            ranked.append((lo, hi, task))
+        ranked.sort(key=lambda b: -b[0])
+        seed_n = max(top_n * CENSUS_SEED_MULTIPLE, CENSUS_SEED_FLOOR)
+        batch.extend(b[2] for b in ranked[:seed_n])
+        rest = ranked[seed_n:]
+        if rest:
+            pending[name] = rest
+
+    total_computed = 0
+    dropped = 0
+    round_no = 0
+    while batch:
+        round_no += 1
+        label = ("noise census" if round_no == 1
+                 else f"noise census (round {round_no})")
+        total_computed += _run_census(batch, workers, absorb, save,
+                                      quiet, label=label)
+        batch = []
+        for name, rest in list(pending.items()):
+            profile = profiles[name]
+            # The floor is the Nth best total among candidates that now carry
+            # a real census — a score genuinely achieved, not a bound.
+            totals = sorted(
+                (score_candidate(profile, rows)[0]
+                 for rows in data.get(name, {}).values()
+                 if rows.get("_census") is not None),
+                reverse=True)
+            floor = totals[top_n - 1] if len(totals) >= top_n else None
+            if floor is None:
+                keep = rest            # not enough censused to bound anything
+            else:
+                keep = [b for b in rest if b[1] >= floor]
+            dropped += len(rest) - len(keep)
+            del pending[name]
+            batch.extend(b[2] for b in keep)
+
     if dropped and not quiet:
-        print(f"noise census: {dropped} candidate(s) cannot reach the top "
-              f"{top_n} on any structures score — skipped", flush=True)
-    return kept
+        print(f"noise census: {dropped} candidate(s) skipped — their best "
+              f"possible total is below the {top_n}th best already measured",
+              flush=True)
+    return total_computed
 
 
 _terrain_task = terrain_survey.survey_task
@@ -1394,6 +1568,16 @@ def persist_candidates(args, config, profiles, results, data, winners=None):
             store["winnerPinned"] = bool(winners[name].get("pinned"))
         candidates.save_store(cdir / f"{name}.json", store)
 
+    # After every store is on disk, never before: the marker's promise is
+    # "these bytes are in the bank", and a crash between the two would make it
+    # a lie that silently drops measurements from every later fold.
+    pending = _pending_absorbed(args)
+    if pending:
+        absorbed = load_absorbed(args.seedtest)
+        absorbed.update(pending)
+        save_absorbed(args.seedtest, absorbed)
+        pending.clear()
+
 
 def results_from_store(store, chash):
     """One dimension's ranked candidates, read back from its banked scores.
@@ -1484,7 +1668,7 @@ def score_all(profiles, data):
 
 
 def cmd_score(args, config, profiles):
-    data = gather_measurements(args)
+    data = gather_measurements(args, wanted=set(profiles))
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)
@@ -1510,7 +1694,7 @@ def cmd_rescore(args, config, profiles):
     cfg = Path(args.config)
     if not cfg.is_dir():
         sys.exit("rescore needs the v4 config directory (config/custom-dimensions)")
-    data = gather_measurements(args)
+    data = gather_measurements(args, wanted=set(profiles))
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)
@@ -1771,7 +1955,9 @@ def write_winners_to_monolith(cfg_path, winners, seedtest):
 
 
 def cmd_finalise(args, config, profiles, world_profiles=None, page_profiles=None):
-    data = gather_measurements(args)
+    # Scoped to the --dims set. The viewer still covers every target, but it
+    # is filled from the stores by widen_for_viewer rather than from `data`.
+    data = gather_measurements(args, wanted=set(profiles))
     attach_battery_groups(profiles, args.seedtest, args.config)
     ensure_spawn_sites(args, profiles, data)
     ensure_spawn_distances(args, profiles, data)

@@ -129,10 +129,15 @@ WATER_BIOMES = {
     "terralith:deep_warm_ocean", "terralith:warm_river",
 }
 
-# Bump when select_spawn_site's filters or scoring change — banked spawns
-# carry the version so the post-hoc pass (score-dimensions
-# ensure_spawn_sites) knows which candidates still hold an older choice.
-SPAWN_SITE_VERSION = 1
+def spawn_site_stamp():
+    """The stack that chose a banked spawn, so a new one re-selects.
+
+    Read by score-dimensions' ensure_spawn_sites to tell a current choice from
+    one an older select_spawn_site made.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    import stack_version
+    return stack_version.cache_key()
 
 # How far inside borders.player a spawn must sit. The mod's
 # PortalSafetyValidator.ARRIVAL_MARGIN is 0, so this is the only thing
@@ -404,7 +409,7 @@ def tier2_measure(seed, profile, sampler):
                     spawn = best_b
                 spawn_x, spawn_z = best_x, best_z
                 rows.append(("spawn_filter_dist", best_d))
-                rows.append(("spawn_site_v", SPAWN_SITE_VERSION))
+                rows.append(("spawn_site_v", spawn_site_stamp()))
             else:
                 rows.append(("spawn_biome", "unknown"))
                 rows.append(("rejected", 1))

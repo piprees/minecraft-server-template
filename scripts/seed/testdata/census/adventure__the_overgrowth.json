@@ -1,82 +1,83 @@
 {
- "schemaVersion": 1,
+ "stackVersion": "0.0.0-local",
  "kind": "structure-census",
- "generatedAt": "2026-07-29T21:57:59.251374052Z",
+ "generatedAt": "2026-08-03T22:31:39.303102169Z",
  "dimension": "adventure:the_overgrowth",
- "seed": -3782848505207092291,
+ "seed": 6089729551955669202,
  "groups": {
-  "landmarks": {
-   "profile": "sparse",
-   "noiseSeed": -3484276753476941727,
-   "exclusion": 18,
-   "radiusChunks": 64,
-   "spawnChunkX": 0,
-   "spawnChunkZ": 0,
-   "radial": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35],
-   "spacing": 26,
-   "structures": {"ati_structures:dark_tower": 1, "ati_structures:dojo": 1, "ati_structures:monastery_tower": 1, "ati_structures:small_keep": 1, "ati_structures:illager_tower": 1, "ati_structures:overgrown_outpost": 1, "ati_structures:wither_keep": 1, "ati_structures:dark_keep": 1, "philipsruins:ancient_towers": 1, "minecraft:jungle_pyramid": 2, "explorify:mausoleum": 1, "ati_structures:gnome_hut": 1, "structory_towers:sacred_relic_temple": 1, "structory_towers:quarter_outpost": 1, "structory_towers:pillager_lookout": 1, "nova_structures:shrine_tower": 1, "structory_towers:foraging_outpost": 2, "structory_towers:great_toadstool": 2, "structory_towers:quarter_outpost": 2, "structory_towers:warped_greatsword": 1},
-   "positions": [[-12,8], [10,13], [13,-18], [-22,-3], [-5,24], [-8,-27], [17,27], [-25,-22], [30,-17], [30,17], [-17,32], [-33,22], [23,-35], [-34,-34], [52,-20], [3,56], [60,10], [-61,-9], [-15,-61]]
-  },
   "endgame": {
    "profile": "sparse",
-   "noiseSeed": 5842804555747775340,
+   "noiseSeed": -3596616499132438525,
    "exclusion": 30,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
    "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
    "spacing": 48,
-   "structures": {"ati_structures:ancient_temple": 1, "ati_structures:fortified_temple": 1, "ati_structures:granite_fort": 1, "ati_structures:herobrine_stronghold": 1, "ati_structures:jungle_settlement": 1, "ati_structures:manor": 1, "ati_structures:marble_chateau": 1, "ati_structures:villager_inn": 1, "ati_structures:woodland_keep": 1, "ati_structures:arachnid_dwelling": 1, "ati_structures:steam_house": 1, "ati_structures:jungle_grotto": 1, "ati_structures:castillo": 1, "ati_structures:ati_stoneworks": 1, "ati_structures:old_residence": 1, "ati_structures:catalonian_castle": 1, "dungeons_arise:heavenly_rider": 1, "dungeons_arise:heavenly_conqueror": 1, "dungeons_arise:mushroom_house": 1, "dungeons_arise:mushroom_mines": 1, "dungeons_arise:mushroom_village": 1, "dungeons_arise:small_blimp": 2, "dungeons_arise:greenwood_pub": 1, "dungeons_arise:foundry": 1, "dungeons_arise:heavenly_challenger": 1, "dungeons_arise:thornborn_towers": 1, "dungeons_arise:infested_temple": 1, "dungeons_arise:mining_complex": 1, "dungeons_arise:plague_asylum": 1, "dungeons_arise:keep_kayra": 1, "dungeons_arise:mechanical_nest": 1, "dungeons_arise:kisegi_sanctuary": 1, "minecraft:mansion": 1, "nova_structures:illager_manor": 1},
-   "positions": [[-14,-48], [-14,48], [44,33], [24,-50], [54,-27], [-47,-42], [-61,16]]
+   "structures": {"ati_structures:ancient_temple": 1, "ati_structures:fortified_temple": 1, "ati_structures:granite_fort": 1, "ati_structures:herobrine_stronghold": 1, "ati_structures:jungle_settlement": 1, "ati_structures:manor": 1, "ati_structures:marble_chateau": 1, "ati_structures:villager_inn": 1, "ati_structures:woodland_keep": 1, "ati_structures:arachnid_dwelling": 1, "ati_structures:steam_house": 1, "ati_structures:jungle_grotto": 1, "ati_structures:castillo": 1, "ati_structures:ati_stoneworks": 1, "ati_structures:old_residence": 1, "ati_structures:catalonian_castle": 1, "mss:arena": 1, "dungeons_arise:heavenly_rider": 1, "dungeons_arise:heavenly_conqueror": 1, "dungeons_arise:mushroom_house": 1, "dungeons_arise:mushroom_mines": 1, "dungeons_arise:mushroom_village": 1, "dungeons_arise:small_blimp": 2, "dungeons_arise:greenwood_pub": 1, "dungeons_arise:foundry": 1, "dungeons_arise:heavenly_challenger": 1, "dungeons_arise:thornborn_towers": 1, "dungeons_arise:infested_temple": 1, "dungeons_arise:mining_complex": 1, "dungeons_arise:plague_asylum": 1, "dungeons_arise:keep_kayra": 1, "dungeons_arise:mechanical_nest": 1, "dungeons_arise:kisegi_sanctuary": 1, "mtr:stronghold": 1, "minecraft:mansion": 1, "nova_structures:illager_manor": 1},
+   "positions": [[-7,8], [-42,2], [45,-3], [-8,-50], [19,60]]
   },
   "dungeons": {
    "profile": "sparse",
-   "noiseSeed": 8257811487744121472,
+   "noiseSeed": -1325698370154044945,
    "exclusion": 12,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
    "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
    "spacing": 20,
-   "structures": {"philipsruins:ancient_dungeon": 4, "nova_structures:bunker": 1, "nova_structures:creeping_crypt": 1, "ddd:minor_dungeon_plains": 1, "ddd:minor_dungeon_plains": 4, "ddd:spider_lair": 1, "dungeons_plus:cold_dungeon": 86, "dungeons_plus:webbed_dungeon": 86, "dungeons_plus:lush_dungeon": 116, "nova_structures:illager_camp": 1, "nova_structures:illager_hideout": 1, "friendsandfoes:illusioner_shack": 2, "friendsandfoes:illusioner_training_grounds": 2, "philipsruins:lost_soul_city": 1, "minecraft:mineshaft": 4, "minecraft:pillager_outpost": 2, "dungeons_plus:dungeon_ruins": 4, "betterdungeons:skeleton_dungeon": 1, "betterdungeons:small_dungeon": 4, "betterdungeons:spider_dungeon": 2, "towns_and_towers:pillager_outpost_flower_forest": 3, "towns_and_towers:pillager_outpost_jungle": 4, "towns_and_towers:pillager_outpost_sparse_jungle": 4, "towns_and_towers:exclusives/pillager_outpost_nilotic": 5, "minecraft:trial_chambers": 2, "nova_structures:undead_crypt": 1, "adventuredungeons:underground_camp": 2, "ati_structures:underground_monument": 2, "ati_structures:spider_nest": 2, "ati_structures:wither_cavern": 2, "ati_structures:underwater_dungeon": 4, "ati_structures:silverfish_nest": 4, "ati_structures:rotting_temple_underground": 6, "ati_structures:pufferfish_cave": 4, "philipsruins:bone_dungeon": 1, "betterdungeons:zombie_dungeon": 1},
-   "positions": [[-9,14], [11,-19], [-24,5], [27,14], [-22,-25], [8,-36], [39,-10], [-16,37], [8,41], [-16,-41], [34,-33], [35,36], [50,-18], [-32,-43], [-38,40], [53,17], [-6,-59], [8,-59], [-48,-37], [-58,-20], [26,-56], [-33,-53], [50,39]]
+   "structures": {"philipsruins:ancient_dungeon": 4, "nova_structures:bunker": 1, "nova_structures:creeping_crypt": 1, "ddd:minor_dungeon_plains": 1, "ddd:minor_dungeon_plains": 4, "ddd:spider_lair": 1, "dungeons_plus:cold_dungeon": 86, "dungeons_plus:webbed_dungeon": 86, "dungeons_plus:lush_dungeon": 116, "mvs:gallows": 2, "nova_structures:illager_camp": 1, "nova_structures:illager_hideout": 1, "friendsandfoes:illusioner_shack": 2, "friendsandfoes:illusioner_training_grounds": 2, "philipsruins:lost_soul_city": 1, "minecraft:mineshaft": 4, "minecraft:pillager_outpost": 2, "dungeons_plus:dungeon_ruins": 4, "betterdungeons:skeleton_dungeon": 1, "betterdungeons:small_dungeon": 4, "betterdungeons:spider_dungeon": 2, "towns_and_towers:pillager_outpost_flower_forest": 3, "towns_and_towers:pillager_outpost_jungle": 4, "towns_and_towers:pillager_outpost_sparse_jungle": 4, "towns_and_towers:exclusives/pillager_outpost_nilotic": 5, "minecraft:trial_chambers": 2, "nova_structures:undead_crypt": 1, "adventuredungeons:underground_camp": 2, "ati_structures:underground_monument": 2, "ati_structures:spider_nest": 2, "ati_structures:wither_cavern": 2, "ati_structures:underwater_dungeon": 4, "ati_structures:silverfish_nest": 4, "ati_structures:rotting_temple_underground": 6, "ati_structures:pufferfish_cave": 4, "philipsruins:bone_dungeon": 1, "mvs:villager_statue": 1, "betterdungeons:zombie_dungeon": 1},
+   "positions": [[-6,14], [17,-2], [-22,4], [-15,-20], [-24,19], [30,16], [34,-13], [11,-35], [-12,-35], [-38,-18], [3,45], [32,32], [-46,-8], [43,-23], [1,-54], [-26,50], [44,-36], [11,56], [-5,57], [-58,8], [-48,34], [-54,25], [59,-11], [-9,-60], [-24,-57], [-52,-34], [-60,-17], [19,-60], [34,53], [50,39], [63,8]]
   },
   "settlements": {
    "profile": "sparse",
-   "noiseSeed": -3120370051158402277,
+   "noiseSeed": 5454343382659244148,
    "exclusion": 9,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
    "radial": [2.8, 2.3, 1.9, 1.6, 1.35, 1.15, 0.95, 0.8, 0.65, 0.55],
    "spacing": 10,
-   "structures": {"ati_structures:deepslate_keep": 2, "ati_structures:nomadic_camp": 2, "ati_structures:rotten_log": 2, "ati_structures:rotting_temple": 2, "ati_structures:old_home": 2, "ati_structures:illager_homestead": 2, "ati_structures:mud_tower": 2, "ati_structures:storage_house": 2, "ati_structures:storage_shack": 2, "explorify:dark_forest_settlement": 3, "nova_structures:deepslate_camp": 4, "nova_structures:firewatch_tower_dark_oak": 1, "nova_structures:firewatch_tower_jungle": 1, "nova_structures:firewatch_tower_taiga": 1, "dungeons_arise:jungle_tree_house": 2, "dungeons_arise:bathhouse": 2, "nova_structures:ruin_town": 1, "nova_structures:tavern_dark_oak": 2, "nova_structures:tavern_jungle": 2, "nova_structures:tavern_spruce": 2, "towns_and_towers:village_flower_forest": 3, "towns_and_towers:village_jungle": 4, "towns_and_towers:village_sparse_jungle": 4, "towns_and_towers:exclusives/village_nilotic": 5, "towns_and_towers:exclusives/village_piglin": 5, "nova_structures:underground_house": 4, "minecraft:village_taiga": 2, "nova_structures:village_jungle": 3},
-   "positions": [[-7,-5], [3,-11], [9,-22], [25,-10], [27,-1], [-12,-25], [-16,23], [-23,-19], [1,30], [-29,17], [-1,-34], [19,33], [38,-8], [26,-29], [-39,-2], [-23,34], [10,45], [18,-43], [-19,-43], [35,32], [1,-50], [-49,10], [51,11], [52,-7], [-48,-25], [51,23], [-40,40], [44,-37], [-58,0], [6,58], [17,-56], [21,58], [58,-23], [-58,26], [34,54]]
+   "structures": {"ati_structures:deepslate_keep": 2, "ati_structures:nomadic_camp": 2, "ati_structures:rotten_log": 2, "ati_structures:rotting_temple": 2, "ati_structures:old_home": 2, "ati_structures:illager_homestead": 2, "ati_structures:mud_tower": 2, "ati_structures:storage_house": 2, "ati_structures:storage_shack": 2, "mvs:azelea_house": 2, "mvs:barn": 2, "mss:calcite_house": 1, "mvs:campsite": 2, "explorify:dark_forest_settlement": 3, "nova_structures:deepslate_camp": 4, "mvs:deepslate_house": 2, "mvs:diorite_and_deepslate_house": 2, "mss:diorite_house": 1, "mvs:fire_camp": 2, "nova_structures:firewatch_tower_dark_oak": 1, "nova_structures:firewatch_tower_jungle": 1, "nova_structures:firewatch_tower_taiga": 1, "mvs:horse_campsite": 4, "mvs:horse_pen": 2, "mvs:house": 2, "mvs:mine_with_campsite": 1, "dungeons_arise:jungle_tree_house": 2, "dungeons_arise:bathhouse": 2, "mvs:mud_brick_house_1": 1, "mvs:out_house": 1, "nova_structures:ruin_town": 1, "mvs:shed": 2, "mss:small_deepslate_house": 1, "mss:small_oak_house": 1, "mvs:small_swamp_house": 1, "mvs:red_stall": 2, "mvs:orange_stall": 2, "mvs:pink_stall": 2, "mvs:blue_stall": 2, "mvs:tall_house": 2, "nova_structures:tavern_dark_oak": 2, "nova_structures:tavern_jungle": 2, "nova_structures:tavern_spruce": 2, "towns_and_towers:village_flower_forest": 3, "towns_and_towers:village_jungle": 4, "towns_and_towers:village_sparse_jungle": 4, "towns_and_towers:exclusives/village_nilotic": 5, "towns_and_towers:exclusives/village_piglin": 5, "nova_structures:underground_house": 4, "minecraft:village_taiga": 2, "nova_structures:village_jungle": 3, "mvs:warped_house": 1, "mss:white_house": 1, "mvs:windmill": 2, "mvs:wooden_wheat_farm": 2},
+   "positions": [[-3,8], [2,-11], [-14,-1], [-16,15], [10,20], [-6,-23], [10,-22], [-24,-14], [2,-29], [29,8], [25,18], [-33,-2], [-23,-27], [-25,26], [-13,-35], [16,-34], [9,37], [-38,-17], [43,-13], [45,2], [-7,45], [34,31], [-50,-9], [10,-52], [-53,7], [52,20], [25,52], [26,-52], [-53,-25], [56,-18], [45,40], [-41,46], [-60,16], [37,50], [-22,-60]]
   },
   "loot": {
    "profile": "sparse",
-   "noiseSeed": 6601973610971816504,
+   "noiseSeed": -4279154575958746793,
    "exclusion": 6,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
    "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
    "spacing": 12,
-   "structures": {"nova_structures:shrine_combat_tier_1": 11, "nova_structures:shrine_combat_tier_2": 11, "nova_structures:shrine_combat_tier_3": 27, "nova_structures:shrine_combat_tier_4": 21, "nova_structures:shrine_combat_tier_5": 16, "explorify:supply_cache/dark": 3, "explorify:supply_cache/jungle": 3},
-   "positions": [[-5,-1], [11,12], [18,-3], [-17,7], [5,-18], [-16,15], [-23,-2], [18,18], [-13,24], [-7,-28], [29,8], [-25,-17], [5,32], [20,-26], [-25,-26], [35,-17], [-35,-18], [-40,0], [-39,9], [-25,33], [42,9], [34,27], [8,-43], [-13,42], [31,-34], [-46,-1], [26,39], [21,-43], [-6,-48], [7,50], [-45,-26], [15,51], [34,41], [1,-55], [-53,15], [-6,55], [43,-35], [-48,29], [53,-20], [-57,-11], [-57,-18], [-33,51], [-45,41], [-32,-52], [61,-8], [-14,-61], [48,41], [40,-49], [-15,62], [-58,-27], [58,27]]
+   "structures": {"mvs:lamp_chest": 2, "mvs:ruined_beacon": 1, "nova_structures:shrine_combat_tier_1": 11, "nova_structures:shrine_combat_tier_2": 11, "nova_structures:shrine_combat_tier_3": 27, "nova_structures:shrine_combat_tier_4": 21, "nova_structures:shrine_combat_tier_5": 16, "explorify:supply_cache/dark": 3, "explorify:supply_cache/jungle": 3},
+   "positions": [[1,1], [14,-8], [15,7], [-19,-1], [23,7], [-6,-24], [-20,-16], [14,23], [-14,23], [-6,-32], [-22,24], [26,-21], [11,-33], [3,41], [-26,33], [42,-4], [5,-42], [-40,-16], [-32,-31], [-17,-42], [42,21], [-2,50], [-48,15], [-39,32], [-44,-25], [-3,-51], [26,-44], [11,50], [48,-18], [53,6], [-41,-38], [17,-54], [42,-38], [-57,4], [-49,-30], [6,-59], [-6,-59], [-43,41], [53,-27], [-19,58], [-61,-9], [-22,-58], [2,62], [-39,49], [43,-46], [61,18], [34,54]]
   },
   "deco": {
    "profile": "sparse",
-   "noiseSeed": 5153698093684960206,
+   "noiseSeed": -2844565719260819295,
    "exclusion": 5,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
    "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
    "spacing": 10,
-   "structures": {"philipsruins:ancient_ruins": 1, "philipsruins:field_stone_ruins": 1, "philipsruins:field_stone_ruins_rocks": 2, "nova_structures:jungle_ruins": 1, "philipsruins:level_one_ruins": 1, "philipsruins:level_three_ruins": 1, "philipsruins:level_two_ruins": 1, "philipsruins:level_two_ruins_pool": 1, "bettermineshafts:mineshaft_jungle": 6, "bettermineshafts:mineshaft_spruce": 4, "bettermineshafts:mineshaft_overgrown": 4, "philipsruins:start_nether_ruin": 1, "structory:old_manor": 5, "structory:dense_forest_ruin": 2, "structory:abandoned_chapel": 8, "structory:graveyard": 3, "structory:abandoned_camp": 5, "structory:outcast_villager_grassy": 13, "structory:ruin_grassy": 13, "philipsruins:pumpkin_ruins": 1, "philipsruins:rare_ruin": 1, "nova_structures:remnant_big_remnant": 1, "nova_structures:remnant_big_remnant_2": 1, "nova_structures:remnant_big_remnant_3": 1, "nova_structures:remnant_bridge_remnant": 1, "nova_structures:remnant_forest_smith": 1, "nova_structures:remnant_graveyard": 1, "nova_structures:remnant_medium_remnant": 1, "nova_structures:remnant_medium_remnant_2": 1, "nova_structures:remnant_miner_hut": 1, "nova_structures:remnant_ominous_shop": 1, "nova_structures:remnant_sawmill": 1, "nova_structures:remnant_school_remnant": 1, "nova_structures:remnant_taiga_castle": 1, "nova_structures:remnant_woodland_hud": 1, "nova_structures:remnant_zombie_horse_ranch": 1, "supplementaries:road_sign": 4, "terralith:rubble_forest": 2, "terralith:rubble_jungle": 2, "terralith:rubble_mountain": 2, "structory:jungle_ruin": 2, "minecraft:ruined_portal": 2, "minecraft:ruined_portal_jungle": 2, "minecraft:ruined_portal_swamp": 2, "explorify:ruins": 1, "minecraft:trail_ruins": 2, "nova_structures:well_spruce": 2, "nova_structures:well_dark_oak": 2, "nova_structures:well_jungle": 2, "nova_structures:wild_ruin": 2},
-   "positions": [[-6,-2], [0,15], [15,-1], [-15,1], [-9,15], [19,-11], [-14,-18], [23,-1], [-22,-12], [11,24], [27,4], [18,-21], [25,17], [-33,8], [-12,32], [34,-4], [27,24], [-23,-29], [-15,-34], [-32,19], [-23,33], [37,-16], [34,-23], [26,32], [25,-33], [42,9], [-40,-17], [12,-43], [45,2], [-40,-26], [-1,-49], [-40,29], [50,-2], [-3,50], [43,-30], [52,-12], [48,24], [-14,52], [34,-43], [-33,45], [-15,-55], [-26,-51], [-57,-10], [41,42], [3,-59], [4,59], [-60,8], [37,-50], [-29,56], [20,-60], [-57,28], [-8,63], [-49,41]]
+   "structures": {"philipsruins:ancient_ruins": 1, "mvs:bench": 4, "mvs:cart": 2, "mvs:dark_oak_log_pile": 3, "mvs:dark_oak_tree": 8, "mvs:dead_tree_dark_oak": 3, "mvs:dead_tree_jungle": 2, "mvs:dead_tree_oak": 2, "philipsruins:field_stone_ruins": 1, "philipsruins:field_stone_ruins_rocks": 2, "mvs:floating_islands": 1, "mvs:flower_hole": 1, "mvs:haystack": 4, "mss:jungle": 1, "mvs:jungle_log_pile": 2, "mvs:jungle_palm_tree": 6, "nova_structures:jungle_ruins": 1, "mvs:jungle_tree": 6, "mvs:large_cart_1": 1, "mvs:large_cart_2": 1, "mvs:large_floating_island": 1, "mss:leaf_hollow": 1, "philipsruins:level_one_ruins": 1, "philipsruins:level_three_ruins": 1, "philipsruins:level_two_ruins": 1, "philipsruins:level_two_ruins_pool": 1, "mvs:log_ruin": 1, "mvs:medium_bamboo_cart": 6, "bettermineshafts:mineshaft_jungle": 6, "bettermineshafts:mineshaft_spruce": 4, "bettermineshafts:mineshaft_overgrown": 4, "mss:muddy_water_hole": 1, "mvs:mushroom_pond": 1, "philipsruins:start_nether_ruin": 1, "mvs:oak_log_pile": 2, "structory:old_manor": 5, "structory:dense_forest_ruin": 2, "mvs:small_well": 4, "mvs:small_copper_well": 4, "mvs:small_tower_well": 4, "mvs:well": 4, "mvs:rare_well": 4, "mvs:oak_well": 4, "mvs:dark_oak_well": 8, "mvs:jungle_well": 6, "structory:abandoned_chapel": 8, "structory:graveyard": 3, "structory:abandoned_camp": 5, "structory:outcast_villager_grassy": 13, "structory:ruin_grassy": 13, "mvs:paths": 2, "mvs:pile": 4, "philipsruins:pumpkin_ruins": 1, "mvs:railway": 1, "philipsruins:rare_ruin": 1, "mvs:rare_well": 1, "nova_structures:remnant_big_remnant": 1, "nova_structures:remnant_big_remnant_2": 1, "nova_structures:remnant_big_remnant_3": 1, "nova_structures:remnant_bridge_remnant": 1, "nova_structures:remnant_forest_smith": 1, "nova_structures:remnant_graveyard": 1, "nova_structures:remnant_medium_remnant": 1, "nova_structures:remnant_medium_remnant_2": 1, "nova_structures:remnant_miner_hut": 1, "nova_structures:remnant_ominous_shop": 1, "nova_structures:remnant_sawmill": 1, "nova_structures:remnant_school_remnant": 1, "nova_structures:remnant_taiga_castle": 1, "nova_structures:remnant_woodland_hud": 1, "nova_structures:remnant_zombie_horse_ranch": 1, "supplementaries:road_sign": 4, "terralith:rubble_forest": 2, "terralith:rubble_jungle": 2, "terralith:rubble_mountain": 2, "structory:jungle_ruin": 2, "minecraft:ruined_portal": 2, "minecraft:ruined_portal_jungle": 2, "minecraft:ruined_portal_swamp": 2, "explorify:ruins": 1, "mvs:small_bamboo_lantern": 6, "mvs:small_dark_oak_lantern": 8, "mvs:small_jungle_lantern": 6, "mvs:small_oak_lantern": 4, "mvs:small_oak_pond": 2, "mss:small_pond": 1, "mvs:small_ruin": 2, "mvs:stone_pillars": 2, "minecraft:trail_ruins": 2, "mss:tree_1": 1, "mss:tree_2": 1, "mss:tree_3": 1, "mss:tree_4": 1, "mss:tree_5": 1, "mss:tree_6": 1, "mss:tree_7": 1, "mss:tree_8": 1, "nova_structures:well_spruce": 2, "nova_structures:well_dark_oak": 2, "nova_structures:well_jungle": 2, "mvs:wheat_grain_bin": 2, "nova_structures:wild_ruin": 2},
+   "positions": [[-8,-2], [10,4], [7,-10], [-17,8], [-13,16], [12,-25], [-10,-26], [28,-3], [18,25], [-31,8], [-1,-33], [-33,1], [-23,-26], [12,-34], [35,14], [-20,32], [0,39], [29,-27], [22,-34], [-40,-13], [-23,37], [23,41], [-46,15], [49,-10], [36,-36], [7,-52], [-48,-22], [53,2], [44,30], [-21,-49], [35,-41], [-35,41], [-6,-55], [4,58], [13,57], [-32,52], [-52,33], [-51,-35], [-47,-42], [29,56], [-57,27], [61,-18]]
+  },
+  "landmarks": {
+   "profile": "sparse",
+   "noiseSeed": 5811564710312325902,
+   "exclusion": 18,
+   "radiusChunks": 64,
+   "spawnChunkX": 0,
+   "spawnChunkZ": 0,
+   "radial": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35],
+   "spacing": 26,
+   "structures": {"ati_structures:dark_tower": 1, "ati_structures:dojo": 1, "ati_structures:monastery_tower": 1, "ati_structures:small_keep": 1, "ati_structures:illager_tower": 1, "ati_structures:overgrown_outpost": 1, "ati_structures:wither_keep": 1, "ati_structures:dark_keep": 1, "philipsruins:ancient_towers": 1, "mvs:cartographer_tower": 1, "mss:castle_ruin": 1, "mvs:castle_ruins": 2, "mss:castle_tower": 1, "mvs:cathedral": 1, "mvs:crystal": 1, "mvs:diorite_tower": 1, "mvs:duck": 1, "mtr:jungle_temple": 1, "minecraft:jungle_pyramid": 2, "mvs:jungle_tower": 1, "mss:large_tower": 1, "mvs:large_warped_tower": 1, "explorify:mausoleum": 1, "mss:nether_portal": 1, "ati_structures:gnome_hut": 1, "structory_towers:sacred_relic_temple": 1, "structory_towers:quarter_outpost": 1, "structory_towers:pillager_lookout": 1, "nova_structures:shrine_tower": 1, "mss:small_tower": 1, "mvs:small_tower_well": 4, "mvs:statue_ruins": 2, "mvs:stone_fountain": 2, "mvs:sunzi_gate": 1, "structory_towers:foraging_outpost": 2, "structory_towers:great_toadstool": 2, "structory_towers:quarter_outpost": 2, "mvs:tree_monument": 1, "structory_towers:warped_greatsword": 1, "mss:volcano": 1},
+   "positions": [[-5,0], [0,23], [-6,-29], [30,0], [20,-24], [-32,-3], [29,17], [-31,19], [5,40], [16,-52], [10,55], [-51,34], [53,31], [-28,57], [61,-19]]
   }
  },
- "forced": {}
+ "forced": {},
+ "passThrough": ["adventure:exit_shrines", "betterjungletemples:jungle_temples", "betterstrongholds:stronghold", "minecraft:strongholds"]
 }

@@ -1107,18 +1107,29 @@ class CensusWorkerPicklingTest(unittest.TestCase):
 
 
 class BackfillWorkerTests(unittest.TestCase):
-    """The census/terrain backfill takes every core but two.
+    """The census/terrain backfill takes two thirds of the cores.
 
-    It used to be `min(cpu_count(), 8)`, which on an 18-core machine left ten
-    cores idle for the six hours a cold 65k-candidate backfill runs, and
-    `roll-all.sh` never passed --census-workers, so there was no way to raise
-    it from `./dev seed-roll` at all.
+    Measured: throughput flattens well before every-core-but-two, so the last
+    third buys a few percent for a third more CPU.
     """
 
-    def test_default_leaves_two_cores(self):
+    def test_default_is_two_thirds_of_the_cores(self):
         import multiprocessing
         self.assertEqual(score_dimensions.default_workers(),
-                         max(2, multiprocessing.cpu_count() - 2))
+                         max(2, multiprocessing.cpu_count() * 2 // 3))
+
+    def test_the_default_leaves_headroom_on_a_big_machine(self):
+        """The point of not taking every core: the machine stays usable."""
+        import multiprocessing
+        real = multiprocessing.cpu_count
+        for cores in (12, 18, 24):
+            multiprocessing.cpu_count = lambda c=cores: c
+            try:
+                workers = score_dimensions.default_workers()
+            finally:
+                multiprocessing.cpu_count = real
+            self.assertLess(workers, cores - 2, f"{cores} cores")
+            self.assertGreater(workers, cores // 2, f"{cores} cores")
 
     def test_a_small_machine_still_overlaps_work(self):
         import multiprocessing

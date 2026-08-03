@@ -287,9 +287,13 @@ def survey_task(task):
         sea_level=spec.get("sea_level")))
 
 
-#: Bump whenever the survey record changes shape or meaning, so cached
-#: surveys are re-measured rather than read as current.
-SURVEY_VERSION = 3
+def _stack_key():
+    """The stack that measured a survey, so a new one re-measures."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    import stack_version
+    return stack_version.cache_key()
 
 
 def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):
@@ -308,5 +312,5 @@ def fingerprint(generation_fp, radius, grid=GRID, relief_span=RELIEF_SPAN):
     than silently scoring new windows against cached old numbers — the whole
     point of the change is that the two are not the same figure.
     """
-    return "v%d:%s:%d:%d:%d" % (SURVEY_VERSION, generation_fp or "-",
-                                int(radius), int(grid), int(relief_span))
+    return "%s:%s:%d:%d:%d" % (_stack_key(), generation_fp or "-",
+                               int(radius), int(grid), int(relief_span))

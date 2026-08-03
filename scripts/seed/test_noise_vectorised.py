@@ -151,57 +151,82 @@ class TestFieldParity(unittest.TestCase):
 
 @unittest.skipUnless(HAVE_NUMPY, "numpy not installed; only the scalar path exists")
 class TestRankTies(unittest.TestCase):
-    """Ties are COMMON and ANTIPODAL, and the fast path must break them the
-    same way the scalar path does.
+    """`priority` must not collide antipodally, and the tie-break must still
+    resolve a tie identically on both paths if one ever occurs.
 
-    `priority` mixes `seed ^ (cx*PX) ^ (cz*PZ)` through a bijection. Negating
-    a value leaves every bit at and below its lowest set bit alone and flips
-    the rest, so when cx and cz share a trailing-zero count, (cx, cz) and
-    (-cx, -cz) yield the identical XOR and the identical rank. Measured
-    25,699 duplicates among 836,056 eligible chunks in one overworld census.
-
-    The vectorised select originally refused any tie and fell back to scalar,
-    which silently disabled it for every real dimension.
+    The original hash XOR-ed two raw coordinate multiples. Negating a
+    two's-complement value leaves every bit at and below its lowest set bit
+    alone and flips the rest, so `(x, z)` and `(-x, -z)` XOR to the same value
+    whenever the coordinates share a trailing-zero count — about a third of
+    pairs. Measured 43,692 duplicate ranks over a full radius-256 grid and
+    25,699 among 836,056 eligible chunks in one overworld census. The
+    tie-break made it harmless rather than wrong, but only because the pair
+    rarely landed inside one exclusion disc, which is a property of today's
+    exclusion radii and not of the maths. Each coordinate is now mixed before
+    the two are combined.
     """
 
-    def test_ties_are_antipodal_pairs(self):
-        """Pins both the rate and the mechanism.
+    def test_ranks_no_longer_collide_antipodally(self):
+        """The regression guard on the fix.
 
-        A sub-sampled grid hides this — the collision needs BOTH (cx, cz) and
-        (-cx, -cz) present, so stepping over rows makes the ranks look
-        perfectly unique and the tie-break path untested.
+        A sub-sampled grid hides the old collision — it needs BOTH `(x, z)`
+        and `(-x, -z)` present — so this walks a full grid, which is exactly
+        where the 16.6% duplicate rate used to show up.
         """
-        r = 32
-        xs = np.arange(-r, r + 1, dtype=np.int64)
-        rows = [npl.priority_np(0xC0FFEE, xs, dz) for dz in range(-r, r + 1)]
-        allr = np.concatenate(rows)
-        uniq, counts = np.unique(allr, return_counts=True)
-        self.assertLess(uniq.size, allr.size,
-                        "expected structural rank collisions; if this passes "
-                        "cleanly the tie-break path is untested")
-        side = 2 * r + 1
-        for value in uniq[counts > 1][:20]:
-            idx = np.nonzero(allr == value)[0]
-            cells = [(int(i % side) - r, int(i // side) - r) for i in idx]
-            (ax, az), (bx, bz) = cells[0], cells[1]
-            self.assertEqual((ax, az), (-bx, -bz),
-                             f"tie {cells[:2]} is not an antipodal pair")
-            self.assertEqual(
-                (ax & -ax).bit_length(), (az & -az).bit_length(),
-                "antipodal ranks should only collide when the two "
-                "coordinates share a trailing-zero count")
+        for r in (32, 64, 128):
+            with self.subTest(radius=r):
+                xs = np.arange(-r, r + 1, dtype=np.int64)
+                rows = [npl.priority_np(0xC0FFEE, xs, dz)
+                        for dz in range(-r, r + 1)]
+                allr = np.concatenate(rows)
+                self.assertEqual(
+                    np.unique(allr).size, allr.size,
+                    "priority collided over a full grid — the antipodal "
+                    "symmetry is back")
 
-    def test_antipodal_tie_resolves_identically_end_to_end(self):
-        """A whole field whose origin region carries real ties.
+    def test_antipodal_pairs_rank_differently(self):
+        """Directly the case the old hash could not distinguish."""
+        for x, z in ((3, 31), (4, 4), (8, 24), (1, 1), (12, 20)):
+            with self.subTest(cell=(x, z)):
+                self.assertNotEqual(npl.priority(0xC0FFEE, x, z),
+                                    npl.priority(0xC0FFEE, -x, -z))
 
-        Antipodal cells sit 2*sqrt(cx^2 + cz^2) apart, so a small radius with
-        a large exclusion is what forces a tied pair to compete.
-        """
-        for seed in (0xC0FFEE, 7, -3):
-            with self.subTest(seed=seed):
-                a = scalar_index(seed, npl.DENSE, 12, EVEN, 24)
-                b = vector_index(seed, npl.DENSE, 12, EVEN, 24)
-                self.assertEqual(a.positions(), b.positions())
+    def test_scalar_and_vectorised_ranks_agree(self):
+        for seed in SEEDS:
+            for cz in (-4096, -1, 0, 7, 1024):
+                with self.subTest(seed=seed, chunk_z=cz):
+                    xs = list(range(-200, 201))
+                    ref = np.array([npl.priority(seed, x, cz) for x in xs],
+                                   dtype=np.uint64)
+                    got = npl.priority_np(seed, np.array(xs, dtype=np.int64), cz)
+                    self.assertEqual(np.count_nonzero(ref != got), 0)
+
+    def test_the_tie_break_still_works_if_a_tie_occurs(self):
+        """The rule stays load-bearing even though the hash no longer
+        manufactures ties — a 2^-64 collision is still possible, and both
+        paths must resolve it the same way."""
+        geom = npl.geometry(EVEN, 8, 3)
+        side = geom["side"]
+        r = geom["radius"]
+        ranks = np.zeros((side, side), dtype=np.uint64)
+        cells = [(0, 0), (1, 0), (-4, 3), (5, -5)]
+        for dx, dz in cells:
+            ranks[dz + r, dx + r] = np.uint64(12345)      # all tied by hand
+        dxs = np.array([c[0] for c in cells], dtype=np.int64)
+        dzs = np.array([c[1] for c in cells], dtype=np.int64)
+
+        got = npl._select_np(geom, ranks, dxs, dzs, 0, 0)
+        self.assertIsNotNone(got, "tie must be resolved, not refused")
+        kept_np = sorted(zip(got[0].tolist(), got[1].tolist()))
+
+        eligible = bytearray(side * side)
+        rank_list = ranks.reshape(-1).tolist()
+        for dx, dz in cells:
+            eligible[(dz + r) * side + (dx + r)] = 1
+        kept_scalar = sorted(
+            npl.NoiseFieldIndex._select_scalar(
+                geom, eligible, rank_list, cells, 0, 0))
+        self.assertEqual(kept_np, kept_scalar)
 
     def test_forced_tie_inside_an_exclusion_disc(self):
         """Two eligible chunks with the SAME rank, close enough to compete.

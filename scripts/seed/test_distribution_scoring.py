@@ -222,7 +222,7 @@ class WeightShareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual(census_scoring.load_structure_pools(tmp), {})
             (Path(tmp) / "structure_pools.json").write_text(json.dumps(
-                {"schemaVersion": 1,
+                {"stackVersion": "dev",
                  "placementTypes": sorted(NOISE_MANAGED_PLACEMENT_TYPES),
                  "dimensions": self.POOLS}))
             loaded = census_scoring.load_structure_pools(tmp)
@@ -236,10 +236,10 @@ class WeightShareTests(unittest.TestCase):
         every share then falls back to 1.0, the pre-pool behaviour."""
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "structure_pools.json").write_text(json.dumps(
-                {"schemaVersion": 1, "dimensions": self.POOLS}))
+                {"stackVersion": "dev", "dimensions": self.POOLS}))
             self.assertEqual(census_scoring.load_structure_pools(tmp), {})
             (Path(tmp) / "structure_pools.json").write_text(json.dumps(
-                {"schemaVersion": 1,
+                {"stackVersion": "dev",
                  "placementTypes": ["minecraft:random_spread"],
                  "dimensions": self.POOLS}))
             self.assertEqual(census_scoring.load_structure_pools(tmp), {})

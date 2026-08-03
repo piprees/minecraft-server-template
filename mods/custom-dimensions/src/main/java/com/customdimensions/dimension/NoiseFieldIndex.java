@@ -274,11 +274,30 @@ public final class NoiseFieldIndex {
      *
      * Compared as UNSIGNED — a signed comparison would systematically favour
      * whichever half of the range came out negative.
+     *
+     * <h3>Why each coordinate is mixed before they are combined</h3>
+     *
+     * XOR-ing the two raw multiples collided ANTIPODALLY. Negating a
+     * two's-complement value leaves every bit at and below its lowest set bit
+     * unchanged and flips the rest, so when {@code chunkX} and {@code chunkZ}
+     * share a trailing-zero count, {@code (x, z)} and {@code (-x, -z)} XOR to
+     * the same value and rank identically. About a third of coordinate pairs
+     * qualify: measured 25,699 duplicate ranks among 836,056 eligible chunks
+     * (3.1%) in one overworld census, and 43,692 of 263,169 over a full
+     * radius-256 grid.
+     *
+     * The tie-break below made that harmless rather than wrong, but "harmless"
+     * depended on the pair rarely landing inside one exclusion disc — which is
+     * a property of today's exclusion radii, not of the maths. Passing each
+     * coordinate through the finaliser first destroys the low-bit structure
+     * the symmetry relies on: measured zero collisions over the same grids.
+     *
+     * MIRRORED in scripts/seed/noise_placement.priority (and priority_np).
      */
     static long priority(long noiseSeed, int chunkX, int chunkZ) {
         long h = noiseSeed
-                ^ (chunkX * 0x9E3779B97F4A7C15L)
-                ^ (chunkZ * 0xC2B2AE3D27D4EB4FL);
+                ^ StructureNoise.mix64(chunkX * 0x9E3779B97F4A7C15L)
+                ^ StructureNoise.mix64(chunkZ * 0xC2B2AE3D27D4EB4FL);
         return StructureNoise.mix64(h);
     }
 

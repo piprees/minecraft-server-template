@@ -9,6 +9,20 @@ cd "$CONSUMER_DIR"
 
 STACK_SCRIPTS=".stack/current/stack/scripts"
 
+# Scaffold files are copies of the bundle's, refreshed by `./dev update`, and
+# nothing prompts that — a consumer can sit for releases without `link`,
+# `unlink` or `reset-world`, the only symptom being the command printing
+# usage. The file itself is the version: differing from the bundled copy IS
+# being out of date, so there is no number to bump and no way for two entry
+# points to disagree about what a number means.
+check_scaffold_version() {
+  local bundled="$CONSUMER_DIR/.stack/current/stack/examples/consumer/dev"
+  [[ -f "$bundled" ]] || return 0
+  cmp -s "$bundled" "$CONSUMER_DIR/dev" && return 0
+  echo "NOTE: ./dev differs from the copy this stack ships — run" \
+    "'./dev update' to refresh the entry points." >&2
+}
+
 usage() {
   echo "Usage: ./dev <command>"
   echo ""
@@ -191,6 +205,7 @@ if [[ "$CMD" != "help" && "$CMD" != "--help" && "$CMD" != "-h" ]]; then
   echo "  ${_brand:+$_brand — }dev $CMD"
   echo ""
   export BANNER_SHOWN=1
+  check_scaffold_version
   unset _banner _brand
 fi
 

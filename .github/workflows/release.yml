@@ -60,13 +60,18 @@ jobs:
         # build/devlibs/. Dev jars use Yarn named mappings and carry no refmap,
         # so every mixin fails on a production server (intermediary names) and
         # the server crash-loops at boot.
+        # -Pmod_version is what gives an artefact's stackVersion stamp meaning:
+        # the jar reports the release that built it, so a checker can tell a
+        # census from this stack from one an earlier stack left on disk.
         run: |
           mkdir -p dist/local-mods
+          MOD_VERSION="${{ inputs.version }}"
+          MOD_VERSION="${MOD_VERSION#v}"
           while IFS='|' read -r JAR_NAME PROJECT REF_MAP; do
             [[ -z "$JAR_NAME" || "$JAR_NAME" == \#* ]] && continue
             (
               cd "mods/$PROJECT"
-              gradle build
+              gradle build -Pmod_version="$MOD_VERSION"
               JAR=$(find build/libs -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar')
               cp "$JAR" "../../dist/local-mods/$JAR_NAME"
             )

@@ -126,7 +126,7 @@ See the `platform-release-management` skill for the full procedure, compatibilit
 
 ## Problems, traps, and known issues
 
-**All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)** — architecture traps (T1–T18, with no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), and the open-issue watch list (K1–K2). Every entry has a permanent anchor, so cite them precisely: `TROUBLESHOOTING.md#t14`.
+**All of it lives in [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)** — architecture traps (T1–T25, with no T15), macOS local-dev quirks (P1–P4), dimension lifecycle (D1–D8), and the open-issue watch list (K1–K2). Every entry has a permanent anchor, so cite them precisely: `TROUBLESHOOTING.md#t14`.
 
 Start any diagnosis with `./ops doctor`. The forbidden-actions list (never stream logs, never retry a Kuma login, never `docker restart mc` on production) is at the top of that file.
 

@@ -237,10 +237,10 @@ class PortalIntegrityTests(unittest.TestCase):
         self.assertTrue(self.check([dict(aura, interior=[])]).failures)
 
 
-class CensusSchemaTests(unittest.TestCase):
-    """A changed artefact shape must fail loudly, never read best-effort."""
+class CensusStackStampTests(unittest.TestCase):
+    """An artefact from another stack must fail loudly, never read best-effort."""
 
-    CENSUS = {"schemaVersion": 1, "kind": "structure-census",
+    CENSUS = {"stackVersion": "4.2.0", "kind": "structure-census",
               "dimension": "adventure:the_test", "groups": {}, "forced": {}}
 
     def dump(self, tmp, body):
@@ -248,24 +248,45 @@ class CensusSchemaTests(unittest.TestCase):
         write(path, body)
         return Path(tmp)
 
-    def test_supported_version_loads(self):
+    def running(self, version):
+        """Pin the stack this checker believes it is."""
+        original = noise.stack_version.stack_version
+        noise.stack_version.stack_version = lambda: version
+        self.addCleanup(setattr, noise.stack_version, "stack_version", original)
+
+    def test_same_stack_loads(self):
+        self.running("4.2.0")
         with tempfile.TemporaryDirectory() as tmp:
             census_dir = self.dump(tmp, self.CENSUS)
             self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
 
-    def test_future_version_raises(self):
+    def test_other_stack_raises(self):
+        self.running("4.2.0")
         with tempfile.TemporaryDirectory() as tmp:
-            census_dir = self.dump(tmp, dict(self.CENSUS, schemaVersion=99))
+            census_dir = self.dump(tmp, dict(self.CENSUS, stackVersion="4.1.0"))
             with self.assertRaises(noise.SchemaMismatch) as ctx:
                 noise.load_census(census_dir, "the_test")
-            self.assertIn("99", str(ctx.exception))
-            self.assertIn("understands 1", str(ctx.exception))
+            self.assertIn("4.1.0", str(ctx.exception))
+            self.assertIn("4.2.0", str(ctx.exception))
 
-    def test_versionless_artefact_still_loads(self):
-        """Pre-contract dumps stay readable — they just get a note."""
+    def test_dev_stack_does_not_compare(self):
+        """A linked checkout has no release identity on either side."""
+        self.running("dev")
+        with tempfile.TemporaryDirectory() as tmp:
+            census_dir = self.dump(tmp, dict(self.CENSUS, stackVersion="dev"))
+            self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
+
+    def test_dev_artefact_against_a_release_does_not_compare(self):
+        self.running("4.2.0")
+        with tempfile.TemporaryDirectory() as tmp:
+            census_dir = self.dump(tmp, dict(self.CENSUS, stackVersion="dev"))
+            self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
+
+    def test_unstamped_artefact_still_loads(self):
+        self.running("4.2.0")
         with tempfile.TemporaryDirectory() as tmp:
             body = dict(self.CENSUS)
-            del body["schemaVersion"]
+            del body["stackVersion"]
             census_dir = self.dump(tmp, body)
             self.assertIsNotNone(noise.load_census(census_dir, "the_test"))
 

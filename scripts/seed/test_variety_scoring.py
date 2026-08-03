@@ -273,10 +273,14 @@ class TestTerrainSurveyRecordsShares(unittest.TestCase):
         self.assertAlmostEqual(shares["minecraft:plains"]
                                + shares["minecraft:forest"], 1.0, places=5)
 
-    def test_the_fingerprint_invalidates_surveys_taken_before_shares(self):
+    def test_the_fingerprint_is_keyed_on_the_stack(self):
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+        import stack_version
         import terrain_survey
         self.assertTrue(terrain_survey.fingerprint("abc", 512).startswith(
-            "v%d:" % terrain_survey.SURVEY_VERSION))
+            stack_version.cache_key() + ":"))
         self.assertNotEqual(terrain_survey.fingerprint("abc", 512),
                             "abc:512:9:2048")
 

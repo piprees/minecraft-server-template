@@ -27,16 +27,27 @@ import java.time.Instant;
  *       being written would see truncated JSON and report a fault that does
  *       not exist. Writes go to a sibling {@code .tmp} and are renamed into
  *       place, so a reader sees either the old file or the new one.</li>
- *   <li><b>Versioned.</b> Every artefact carries {@code schemaVersion} and
- *       {@code generatedAt}. A checker meeting an unexpected version fails
- *       loudly instead of silently mis-reading a changed shape — this
- *       codebase's worst failure mode is a green run over stale data.</li>
+ *   <li><b>Stamped.</b> Every artefact carries the {@code stackVersion} that
+ *       produced it and {@code generatedAt}. A checker meeting a stamp other
+ *       than its own says so instead of silently reading stale data — this
+ *       codebase's worst failure mode is a green run over an artefact nobody
+ *       has re-dumped. The stamp is derived, never hand-set.</li>
  * </ul>
  */
 public final class Artefacts {
 
-    /** Bump when an artefact's SHAPE changes, and update the checkers. */
-    public static final int SCHEMA_VERSION = 1;
+    /**
+     * The release that built this jar. release.yml passes the release tag as
+     * {@code -Pmod_version}, so a shipped artefact is stamped with the stack
+     * version that wrote it; a local build reports the dev default from
+     * gradle.properties, which the checkers treat as "unknown, don't compare".
+     */
+    public static String stackVersion() {
+        return FabricLoader.getInstance()
+                .getModContainer("customdimensions")
+                .map(m -> m.getMetadata().getVersion().getFriendlyString())
+                .orElse("unknown");
+    }
 
     private Artefacts() {
     }
@@ -55,14 +66,14 @@ public final class Artefacts {
      * comma — callers append their own fields straight after it.
      */
     public static String jsonHeader(String kind) {
-        return "{\n \"schemaVersion\": " + SCHEMA_VERSION
+        return "{\n \"stackVersion\": \"" + stackVersion() + "\""
                 + ",\n \"kind\": \"" + kind + "\""
                 + ",\n \"generatedAt\": \"" + Instant.now() + "\",\n";
     }
 
     /** The same header as a comment block, for the text/CSV artefacts. */
     public static String textHeader(String kind) {
-        return "# schemaVersion=" + SCHEMA_VERSION
+        return "# stackVersion=" + stackVersion()
                 + " kind=" + kind
                 + " generatedAt=" + Instant.now() + "\n";
     }

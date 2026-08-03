@@ -260,6 +260,14 @@ def _u64():
     return _U64
 
 
+def _mix64_np(z):
+    """SplitMix64 finaliser over an array. uint64 wraps like a Java long."""
+    _px, _pz, m1, m2, s30, s27, s31 = _u64()
+    z = (z ^ (z >> s30)) * m1
+    z = (z ^ (z >> s27)) * m2
+    return z ^ (z >> s31)
+
+
 def priority_np(noise_seed, chunk_xs, chunk_z):
     """`priority` over an array of chunk x coordinates. BIT-IDENTICAL.
 
@@ -267,13 +275,12 @@ def priority_np(noise_seed, chunk_xs, chunk_z):
     unsigned dtype is the unsigned shift `>>>` requires — so the SplitMix64
     finaliser needs no masking here, unlike the Python-int form.
     """
-    px, pz, m1, m2, s30, s27, s31 = _u64()
+    px, pz, _m1, _m2, _s30, _s27, _s31 = _u64()
     cx = chunk_xs.astype(_np.uint64)
-    z = (_np.uint64(noise_seed & M64) ^ (cx * px)
-         ^ (_np.uint64(chunk_z & M64) * pz))
-    z = (z ^ (z >> s30)) * m1
-    z = (z ^ (z >> s27)) * m2
-    return z ^ (z >> s31)
+    z = (_np.uint64(noise_seed & M64)
+         ^ _mix64_np(cx * px)
+         ^ _mix64_np(_np.uint64(chunk_z & M64) * pz))
+    return _mix64_np(z)
 
 
 class StructureNoise:
@@ -408,12 +415,20 @@ def chunk_pos_to_long(x, z):
 def priority(noise_seed, chunk_x, chunk_z):
     """NoiseFieldIndex.priority — unsigned 64-bit rank.
 
-    mix64 is inlined: this runs once per eligible chunk, which is millions of
-    times for a 512-radius group.
+    Each coordinate is passed through the SplitMix64 finaliser before the two
+    are combined. XOR-ing the raw multiples collided antipodally: negating a
+    two's-complement value leaves every bit at and below its lowest set bit
+    alone and flips the rest, so `(x, z)` and `(-x, -z)` XOR to the same value
+    whenever the two coordinates share a trailing-zero count — about a third
+    of pairs, measured 43,692 duplicates over a full radius-256 grid. Mixing
+    first destroys that structure (measured zero).
+
+    The outer mix64 is inlined: this runs once per eligible chunk, which is
+    millions of times for a 512-radius group.
     """
     z = (noise_seed
-         ^ ((chunk_x * PRIORITY_X) & M64)
-         ^ ((chunk_z * PRIORITY_Z) & M64)) & M64
+         ^ mix64((chunk_x * PRIORITY_X) & M64)
+         ^ mix64((chunk_z * PRIORITY_Z) & M64)) & M64
     z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & M64
     z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & M64
     return (z ^ (z >> 31)) & M64

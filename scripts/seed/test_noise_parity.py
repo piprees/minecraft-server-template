@@ -33,6 +33,12 @@ CENSUS_DIR = Path(__file__).resolve().parent / "testdata" / "census"
 CONFIG_DIR = REPO / "config/custom-dimensions"
 
 
+sys.path.insert(0, str(REPO / "scripts"))
+import stack_version  # noqa: E402
+
+STACK_VERSION = stack_version.stack_version()
+
+
 def census_files():
     if not CENSUS_DIR.is_dir():
         return []
@@ -65,6 +71,24 @@ class TestJavaPythonParity(unittest.TestCase):
             with self.subTest(census=path.name):
                 doc = json.loads(path.read_text())
                 dimension = doc["dimension"]
+                # A missing stamp is as stale as a wrong one — it means a jar
+                # that predates stamping produced the fixture. A dev stack has
+                # no release identity, so there is nothing to compare.
+                stamped = doc.get("stackVersion")
+                if not stack_version.is_dev(STACK_VERSION):
+                    self.assertEqual(
+                        stamped, STACK_VERSION,
+                        "%s was dumped by stack %s but this one is %s — the "
+                        "fixture is stale, not divergent. Re-dump it:\n"
+                        "  ./scripts/seed/refresh-census-fixtures.sh"
+                        % (path.name, stamped, STACK_VERSION))
+                else:
+                    self.assertIsNotNone(
+                        stamped,
+                        "%s carries no stackVersion — it predates stamping. "
+                        "Re-dump it:\n"
+                        "  ./scripts/seed/refresh-census-fixtures.sh"
+                        % path.name)
                 for group, block in sorted((doc.get("groups") or {}).items()):
                     profile = npl.profile_from_string(block["profile"])
                     self.assertIsNotNone(
