@@ -67,6 +67,15 @@ from dimension_profiles import (  # noqa: E402
 
 LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 
+#: Candidates handed to a census worker in one go. Paired with sorting the
+#: task list by dimension, this keeps a worker on one dimension long enough
+#: for noise_placement.geometry's memo to pay for itself.
+CENSUS_CHUNKSIZE = 64
+
+#: Results banked between store writes. Also bounded by a 60s timer, so a
+#: dimension whose candidates are slow still checkpoints.
+CENSUS_FLUSH_EVERY = 2000
+
 
 def default_workers():
     """Processes for the census and terrain backfills when none is asked for.
@@ -419,8 +428,24 @@ def variety_shares(profile, rows):
     return picked if picked else {}
 
 
-def score_candidate(profile, rows):
-    """rows: {metric: value} for one (dim, seed). Returns (total, parts)."""
+#: The range `parts["structures"]` can occupy, used to bound a candidate's
+#: total before its census exists (see ensure_censuses' top-N pruning).
+#: The floor is negative because want_score punishes a structure found right
+#: on top of spawn (-0.5 at distance 0) and the `dense` density bias has no
+#: lower clamp; the ceiling is the 0.1 comfort bonus want_score adds inside a
+#: wanted band, which blend() and the dense bias both carry through.
+STRUCTURES_MIN = -0.5
+STRUCTURES_MAX = 1.1
+
+
+def score_candidate(profile, rows, structures_override=None):
+    """rows: {metric: value} for one (dim, seed). Returns (total, parts).
+
+    `structures_override` substitutes a fixed value for the structures
+    component and skips computing it. Passing STRUCTURES_MIN/STRUCTURES_MAX
+    yields a lower/upper bound on the total for a candidate whose census has
+    not been computed — the rest of the score does not depend on it.
+    """
     parts = {}
 
     # Spawn-filter rejects carry only their spawn_biome row.
@@ -531,6 +556,16 @@ def score_candidate(profile, rows):
     #             kept grid placement; answered from the owning group's
     #             histogram for everything noise took over, because a grid
     #             distance for a noise-placed set is fiction.
+    if structures_override is not None:
+        parts["structures"] = structures_override
+        w = profile["weights"]
+        wsum = sum(w.values()) or 1
+        total_score = sum(parts[k] * w[k] for k in parts) / wsum * 100.0
+        errs = float(rows.get("errors", 0) or 0)
+        total_score -= min(10.0, errs * 0.5)
+        return (round(max(0.0, min(100.0, total_score)), 2),
+                {k: round(v, 3) for k, v in parts.items()})
+
     census = rows.get("_census")
     census_part = census_scoring.distribution_component(census)
     census_groups = (census or {}).get("groups") or {}
@@ -1027,39 +1062,145 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
     # else on the machine.
     workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
+
+    top_n = getattr(args, "census_top", 0) or 0
+    if top_n > 0:
+        tasks = _prune_census_tasks(profiles, data, tasks, top_n, quiet)
+        if not tasks:
+            return
+
+    # Sorted by dimension so a worker walks a contiguous run of one
+    # dimension's candidates and its geometry memo (noise_placement.geometry)
+    # stays warm. With chunksize=1 the pool round-robins instead, and the memo
+    # is rebuilt for nearly every candidate — the change that makes it pay.
+    tasks.sort(key=lambda t: t[0])
+
     if not quiet:
         print(f"noise census: computing {len(tasks)} candidate layout(s) on "
               f"{workers} worker(s) — cached thereafter, so this is a one-off "
               f"per candidate", flush=True)
 
     t0 = time.time()
-    computed = []
-    step = max(1, len(tasks) // 20)
-    if workers > 1 and len(tasks) > 1:
-        with multiprocessing.Pool(workers) as pool:
-            for done, result in enumerate(
-                    pool.imap_unordered(_census_task, tasks, chunksize=1), 1):
-                computed.append(result)
-                if not quiet and (done % step == 0 or done == len(tasks)):
-                    elapsed = time.time() - t0
-                    rate = done / elapsed if elapsed > 0 else 0
-                    remaining = (len(tasks) - done) / rate if rate > 0 else 0
-                    print(f"  {done}/{len(tasks)} ({done * 100 // len(tasks)}%) "
-                          f"— {elapsed / 60:.1f} min elapsed, "
-                          f"~{remaining / 60:.1f} min left", flush=True)
-    else:
-        computed = [_census_task(t) for t in tasks]
+    total = len(tasks)
+    step = max(1, total // 20)
+    dirty = set()
 
-    for name, seed, summary in computed:
+    def absorb(result):
+        name, seed, summary = result
         store, fp = stores[name]
         summary["fp"] = fp
-        cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
+        cand = store["candidates"].setdefault(
+            seed, {"measurements": {}, "scores": {}})
         cand["noiseCensus"] = summary
-        data[name][seed]["_census"] = _with_group_settings(summary, settings[name])
-    for name, (store, _fp) in stores.items():
-        candidates.save_store(cdir / f"{name}.json", store)
+        data[name][seed]["_census"] = _with_group_settings(
+            summary, settings[name])
+        dirty.add(name)
+
+    def flush():
+        for name in sorted(dirty):
+            candidates.save_store(cdir / f"{name}.json", stores[name][0])
+        dirty.clear()
+
+    # Every census is a pure function of the seed and the placement config and
+    # is skipped on the next run once banked, so the job is resumable — but
+    # only as far as the last write. Flushing on an interval is what makes an
+    # interrupted run resume instead of restarting: this used to save nothing
+    # until all 648,971 tasks had finished, so a Ctrl+C at 24% discarded
+    # fourteen hours and left `candidates/` not merely stale but absent.
+    done = 0
+    last_flush = t0
+    try:
+        if workers > 1 and total > 1:
+            with multiprocessing.Pool(workers) as pool:
+                for result in pool.imap_unordered(_census_task, tasks,
+                                                  chunksize=CENSUS_CHUNKSIZE):
+                    absorb(result)
+                    done += 1
+                    now = time.time()
+                    if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
+                        flush()
+                        last_flush = now
+                    if not quiet and (done % step == 0 or done == total):
+                        elapsed = now - t0
+                        rate = done / elapsed if elapsed > 0 else 0
+                        remaining = (total - done) / rate if rate > 0 else 0
+                        print(f"  {done}/{total} ({done * 100 // total}%) "
+                              f"— {elapsed / 60:.1f} min elapsed, "
+                              f"~{remaining / 60:.1f} min left", flush=True)
+        else:
+            for task in tasks:
+                absorb(_census_task(task))
+                done += 1
+                now = time.time()
+                if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
+                    flush()
+                    last_flush = now
+    finally:
+        # Reached on KeyboardInterrupt too — Ctrl+C is documented as
+        # "finalises with whatever has been measured so far", and for the
+        # census that promise was false.
+        flush()
     if not quiet:
-        print(f"noise census: {len(tasks)} computed in {time.time() - t0:.1f}s")
+        print(f"noise census: {done} computed in {time.time() - t0:.1f}s")
+
+
+def _prune_census_tasks(profiles, data, tasks, top_n, quiet=False):
+    """Drop censuses that cannot change which candidates reach the top N.
+
+    The census feeds only the `structures` component, so a candidate's total
+    is bounded without one: L with structures at STRUCTURES_MIN, U at
+    STRUCTURES_MAX. If U(c) is below the Nth best total ACTUALLY achieved by
+    a censused candidate, c cannot enter the top N and its census is wasted
+    work — the winner and the viewer's top ten are identical either way.
+
+    Exact for top-N membership, and deliberately conservative: it prunes only
+    what it can prove. Candidates it skips keep no census and score with
+    structures 0, which ranks them below a cut they could not have reached.
+
+    HOW MUCH IT PRUNES DEPENDS ENTIRELY ON THE BANK. The band is
+    STRUCTURES_MAX - STRUCTURES_MIN = 1.6 wide against the structures weight,
+    so on a mood weighting structures at 20 of 100 it spans 32 points. A
+    dimension whose candidates all score within 32 points of each other on
+    the other three components prunes NOTHING — which is the common case for
+    a well-tuned dimension, and why this is off by default. It pays on a bank
+    with a long tail of poor candidates.
+
+    A tighter adaptive form is possible (census a slice, let the exact totals
+    that come back raise the bar, repeat) and is recorded as R8 in
+    reports/performance-report.md — it needs the census to run in rounds,
+    which this single pass does not do.
+    """
+    by_dim = defaultdict(list)
+    for task in tasks:
+        by_dim[task[0]].append(task)
+    kept = []
+    dropped = 0
+    for name, dim_tasks in by_dim.items():
+        profile = profiles.get(name)
+        rows_for = data.get(name, {})
+        if profile is None or len(dim_tasks) <= top_n:
+            kept.extend(dim_tasks)
+            continue
+        bounds = []
+        for task in dim_tasks:
+            rows = rows_for.get(task[1])
+            if rows is None:
+                bounds.append((0.0, 100.0, task))
+                continue
+            lo, _ = score_candidate(profile, rows, STRUCTURES_MIN)
+            hi, _ = score_candidate(profile, rows, STRUCTURES_MAX)
+            bounds.append((lo, hi, task))
+        bounds.sort(key=lambda b: -b[0])
+        # The Nth best LOWER bound is a floor on the Nth best real total, so
+        # anything whose ceiling sits under it is already excluded.
+        floor = bounds[top_n - 1][0]
+        survivors = [b[2] for b in bounds if b[1] >= floor]
+        dropped += len(dim_tasks) - len(survivors)
+        kept.extend(survivors)
+    if dropped and not quiet:
+        print(f"noise census: {dropped} candidate(s) cannot reach the top "
+              f"{top_n} on any structures score — skipped", flush=True)
+    return kept
 
 
 _terrain_task = terrain_survey.survey_task
@@ -1141,28 +1282,62 @@ def ensure_terrain_surveys(args, config, profiles, data, quiet=False):
         return
     workers = getattr(args, "census_workers", 0) or default_workers()
     workers = max(1, workers)
+    tasks.sort(key=lambda t: t[0])
     if not quiet:
         print(f"terrain survey: measuring {len(tasks)} candidate(s) over the full "
               f"radius on {workers} worker(s) — 37ms each, cached thereafter",
               flush=True)
 
     t0 = time.time()
-    if workers > 1 and len(tasks) > 1:
-        with multiprocessing.Pool(workers) as pool:
-            computed = list(pool.imap_unordered(_terrain_task, tasks, chunksize=8))
-    else:
-        computed = [_terrain_task(t) for t in tasks]
+    total = len(tasks)
+    step = max(1, total // 10)
+    dirty = set()
 
-    for name, seed, result in computed:
+    def absorb(result):
+        name, seed, survey = result
         store, fp = stores[name]
-        result["fp"] = fp
-        cand = store["candidates"].setdefault(seed, {"measurements": {}, "scores": {}})
-        cand["terrainSurvey"] = result
-        data[name][seed]["_terrain"] = result
-    for name, (store, _fp) in stores.items():
-        candidates.save_store(cdir / f"{name}.json", store)
+        survey["fp"] = fp
+        cand = store["candidates"].setdefault(
+            seed, {"measurements": {}, "scores": {}})
+        cand["terrainSurvey"] = survey
+        data[name][seed]["_terrain"] = survey
+        dirty.add(name)
+
+    def flush():
+        for name in sorted(dirty):
+            candidates.save_store(cdir / f"{name}.json", stores[name][0])
+        dirty.clear()
+
+    # Same resumability contract as the census above: cached per candidate
+    # and keyed by fingerprint, so what is written is never recomputed.
+    done = 0
+    last_flush = t0
+    try:
+        if workers > 1 and total > 1:
+            with multiprocessing.Pool(workers) as pool:
+                for result in pool.imap_unordered(_terrain_task, tasks,
+                                                  chunksize=CENSUS_CHUNKSIZE):
+                    absorb(result)
+                    done += 1
+                    now = time.time()
+                    if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
+                        flush()
+                        last_flush = now
+                    if not quiet and (done % step == 0 or done == total):
+                        print(f"  terrain: {done}/{total} "
+                              f"({done * 100 // total}%)", flush=True)
+        else:
+            for task in tasks:
+                absorb(_terrain_task(task))
+                done += 1
+                now = time.time()
+                if done % CENSUS_FLUSH_EVERY == 0 or now - last_flush >= 60:
+                    flush()
+                    last_flush = now
+    finally:
+        flush()
     if not quiet:
-        print(f"terrain survey: {len(tasks)} measured in {time.time() - t0:.1f}s")
+        print(f"terrain survey: {done} measured in {time.time() - t0:.1f}s")
 
 
 def load_abandoned(seedtest):
@@ -3033,6 +3208,11 @@ def main():
                          "(default: CPU count minus 2, floor 2). Lower it to "
                          "leave room for a local server — a cold bank runs for "
                          "hours on every core it is given")
+    ap.add_argument("--census-top", type=int, default=0,
+                    help="only census candidates that could still reach a "
+                         "dimension's top N (exact bound, so the winner and "
+                         "the viewer's top ten are unchanged). 0 = census "
+                         "every candidate")
     ap.add_argument("--write-config", action="store_true")
     ap.add_argument("--viewer", action="store_true")
     ap.add_argument("--open-viewer", action="store_true")

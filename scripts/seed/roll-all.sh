@@ -18,14 +18,24 @@
 #   ./roll-all.sh --dims the_gauntlet        # single dimension
 #   ./roll-all.sh --no-write                 # don't write winners to configs
 #   ./roll-all.sh --reset                    # wipe all seed data
+#   ./roll-all.sh --reset-csv                # archive the CSV spool only
 #   ./roll-all.sh --clean                    # wipe worker dirs, keep the bank
 #   ./roll-all.sh --warmup-only              # rebuild warmup artefacts and stop
+#   ./roll-all.sh --fold-only                # resume the census; roll nothing
 #   ./roll-all.sh --help                     # this list, with what each does
 #
 # Environment:
 #   ROLL_MEMORY      memory per warmup container (default 10G)
 #   ROLL_POOL        tier-1 pool per dimension (default 5000)
 #   ROLL_COUNT       candidates to keep per dimension (default 100)
+#   ROLL_CENSUS_WORKERS  processes for the census/terrain backfill
+#   ROLL_CENSUS_TOP      census only the candidates that can reach a top N
+#
+# Gotchas: fast-roller.csv is an APPEND-ONLY spool — a normal run adds to it
+# and never rotates it, so re-running the fold replays every measurement ever
+# taken. Only --reset (everything) or --reset-csv (the spool alone) clears it.
+# The census and terrain backfills run inside fast_roller's fold step, not the
+# finalise that follows, so --census-workers/--census-top are passed to BOTH.
 # =============================================================================
 set -euo pipefail
 
@@ -35,6 +45,8 @@ ROLL_COUNT="${ROLL_COUNT:-100}"
 # Empty means "let score-dimensions decide" (CPU count minus 2). Set it only
 # to leave room for something else on the machine.
 ROLL_CENSUS_WORKERS="${ROLL_CENSUS_WORKERS:-}"
+# Empty means "census every candidate" (the exhaustive default).
+ROLL_CENSUS_TOP="${ROLL_CENSUS_TOP:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
@@ -79,6 +91,7 @@ SEEDTEST="$PROJECT_ROOT/.seedtest"
 DIMS=""
 WRITE_CONFIG=1
 WARMUP_ONLY=0
+FOLD_ONLY=0
 
 usage() {
   echo "Usage: ./dev seed-roll [options]"
@@ -93,10 +106,16 @@ usage() {
   echo "  --dims a,b      Only roll the named dimensions (comma-separated)"
   echo "  --census-workers N  Processes for the census/terrain backfill"
   echo "                  (default: CPU count minus 2 — lower it to share the machine)"
+  echo "  --census-top N  Only census candidates that can still reach a"
+  echo "                  dimension's top N (exact; winners are unchanged)"
   echo "  --no-write      Measure and score only; never touch a config file"
   echo "  --reset         Delete ALL seed data first, then roll from scratch"
+  echo "  --reset-all     Same as --reset"
+  echo "  --reset-csv     Archive the fast-roller CSV spool only; keep the bank"
   echo "  --clean         Delete only the worker dirs; keep the candidate bank"
   echo "  --warmup-only   Rebuild the warmup artefacts and stop without rolling"
+  echo "  --fold-only     Score and bank what is already measured; roll nothing"
+  echo "                  (this is how you resume an interrupted census)"
   echo "  -h, --help      Show this and exit"
   echo ""
   echo "Environment:"
@@ -131,15 +150,34 @@ while [[ $# -gt 0 ]]; do
     --count)       ROLL_COUNT="$2"; shift 2 ;;
     --dims)        DIMS="$2"; shift 2 ;;
     --census-workers) ROLL_CENSUS_WORKERS="$2"; shift 2 ;;
+    --census-top)  ROLL_CENSUS_TOP="$2"; shift 2 ;;
     --no-write)    WRITE_CONFIG=0; shift ;;
     # Warmup is a prerequisite the viewer drives itself, not a step a user
     # should have to know about — this exposes it without rolling anything.
     --warmup-only) WARMUP_ONLY=1; shift ;;
-    --reset)
+    # Score and bank what is ALREADY measured, without rolling anything new.
+    # The census/terrain backfills are the long pole and they resume from the
+    # bank, so this is how an interrupted fold is finished — re-rolling first
+    # would only add more candidates to census.
+    --fold-only)   FOLD_ONLY=1; shift ;;
+    --reset | --reset-all)
       echo "Resetting ALL seed data..."
-      # Everything the roller owns is in here, so this is the whole reset.
+      # Everything the roller owns is in here, so this is the whole reset —
+      # candidate bank, warmup artefacts, and the fast-roller CSV spool.
       rm -rf "$SEEDTEST"
       echo "  Done."
+      shift ;;
+    --reset-csv)
+      # The spool only. Keeps the candidate bank, which is the canonical
+      # store — everything already folded survives.
+      if [[ -f "$SEEDTEST/fast-roller.csv" ]]; then
+        mv "$SEEDTEST/fast-roller.csv" \
+          "$SEEDTEST/fast-roller.$(date +%Y%m%d-%H%M%S).csv"
+        echo "Archived fast-roller.csv; the candidate bank is untouched."
+        # Keep the five most recent; older ones have long since been folded in.
+        ls -1t "$SEEDTEST"/fast-roller.*.csv 2> /dev/null | tail -n +6 \
+          | while read -r stale; do rm -f "$stale"; done
+      fi
       shift ;;
     --clean)
       rm -rf "$SEEDTEST/base" "$SEEDTEST"/w[0-9]* "$SEEDTEST"/wr
@@ -376,23 +414,22 @@ roll() {
   echo "=============================================="
   echo ""
 
-  # ARCHIVE, never delete. The CSV is a spool: fast_roller writes it and then
-  # folds it into the candidate bank. A run that died between those two steps
-  # leaves measurements that only exist here, and deleting the file on the next
-  # run destroyed them silently. Keeping the last few costs kilobytes.
-  if [[ -f "$SEEDTEST/fast-roller.csv" ]]; then
-    mv "$SEEDTEST/fast-roller.csv" \
-      "$SEEDTEST/fast-roller.$(date +%Y%m%d-%H%M%S).csv"
-    # Keep the five most recent; older ones have long since been folded in.
-    ls -1t "$SEEDTEST"/fast-roller.*.csv 2> /dev/null | tail -n +6 \
-      | while read -r stale; do rm -f "$stale"; done
-  fi
+  # The CSV is APPEND-ONLY across normal runs. fast_roller opens it with "a"
+  # and the fold reads whatever is in it, so leaving it alone is what makes an
+  # interrupted fold recoverable: re-running the fold replays every
+  # measurement ever taken, not just this run's. Rotating it here used to move
+  # the previous run's measurements out of the fold's reach the moment a new
+  # roll started — recoverable only by hand, and only if you knew to look.
+  # --reset-csv (or --reset) is the explicit way to start the spool over.
+  # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/fast_roller.py" \
     --config "$CONFIG" \
     --seedtest "$SEEDTEST" \
     --count "$ROLL_COUNT" \
     --tier1-pool "$ROLL_POOL" \
-    ${DIMS:+--dims "$DIMS"}
+    ${DIMS:+--dims "$DIMS"} \
+    ${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"} \
+    ${ROLL_CENSUS_TOP:+--census-top "$ROLL_CENSUS_TOP"}
 }
 
 # ---------------------------------------------------------------------------
@@ -411,11 +448,20 @@ finalise() {
     WRITE_FLAG="--write-config"
     OVERLAY_FLAG="$WINNER_FLAG"
   fi
+  # --fold-only has to name the spool explicitly. A normal run does not:
+  # fast_roller has already folded the CSV into the candidate bank by this
+  # point, and re-reading 1.5 GB to learn nothing new is minutes of parsing
+  # per finalise. With no roll ahead of it, the spool is the only source.
+  CSV_FLAG=""
+  if [[ "$FOLD_ONLY" == 1 && -f "$SEEDTEST/fast-roller.csv" ]]; then
+    CSV_FLAG="--csv $SEEDTEST/fast-roller.csv"
+  fi
   # shellcheck disable=SC2086
   python3 "$SCRIPT_DIR/score-dimensions.py" finalise \
-    --config "$CONFIG" --seedtest "$SEEDTEST" \
+    --config "$CONFIG" --seedtest "$SEEDTEST" $CSV_FLAG \
     ${DIMS:+--dims "$DIMS"} \
     ${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"} \
+    ${ROLL_CENSUS_TOP:+--census-top "$ROLL_CENSUS_TOP"} \
     $WRITE_FLAG $OVERLAY_FLAG --viewer || true
 }
 
@@ -429,7 +475,11 @@ if [[ "$WARMUP_ONLY" == 1 ]]; then
   exit 0
 fi
 
-roll
+if [[ "$FOLD_ONLY" != 1 ]]; then
+  roll
+else
+  echo "Fold only: scoring and banking what is already measured."
+fi
 finalise
 
 echo ""

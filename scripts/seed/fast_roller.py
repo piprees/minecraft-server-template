@@ -559,6 +559,15 @@ def main():
                     help="parallel workers (0 = CPU count)")
     ap.add_argument("--output-csv",
                     help="output CSV path (default: <seedtest>/fast-roller.csv)")
+    # The census and terrain backfills run in THIS process's fold step, not in
+    # the separate score-dimensions finalise that follows it — so these have to
+    # be accepted here or they never reach the pass they are meant to control.
+    ap.add_argument("--census-workers", type=int, default=0,
+                    help="processes for the census/terrain backfill "
+                         "(default: CPU count minus 2, floor 2)")
+    ap.add_argument("--census-top", type=int, default=0,
+                    help="only census candidates that can still reach a "
+                         "dimension's top N (0 = every candidate)")
     args = ap.parse_args()
 
     # FIRST, before anything reads or writes the bank. load_seen_seeds()
@@ -690,7 +699,8 @@ def main():
     # score-dimensions.main() is never called here, so the bank root it
     # normally sets is the one set at the top of this function.
     fargs = argparse.Namespace(
-        config=args.config, seedtest=args.seedtest, csv=csv_path)
+        config=args.config, seedtest=args.seedtest, csv=csv_path,
+        census_workers=args.census_workers, census_top=args.census_top)
 
     profiles = {name: prof for name, prof in all_targets}
     data = sd.gather_measurements(fargs)

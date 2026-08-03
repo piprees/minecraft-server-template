@@ -32,6 +32,14 @@ import json
 import math
 from pathlib import Path
 
+try:
+    import numpy as _np
+    _np.seterr(over="ignore")  # uint64 SplitMix64 wraparound is the point
+    HAVE_NUMPY = True
+except ImportError:  # consumers without numpy keep the scalar paths
+    _np = None
+    HAVE_NUMPY = False
+
 M64 = (1 << 64) - 1
 M32 = (1 << 32) - 1
 
@@ -177,10 +185,101 @@ def sample_row(permutation, chunk_xs, chunk_z, frequency):
     return out
 
 
+#: The eight gradient vectors as two float64 coefficient arrays, for the
+#: vectorised row scan. Built lazily so importing without numpy is free.
+_GRAD_NP = None
+
+
+def _grad_np():
+    global _GRAD_NP
+    if _GRAD_NP is None:
+        _GRAD_NP = (_np.array([g[0] for g in _GRAD_VECTORS], dtype=_np.float64),
+                    _np.array([g[1] for g in _GRAD_VECTORS], dtype=_np.float64))
+    return _GRAD_NP
+
+
+def sample_row_np(permutation, chunk_xs, chunk_z, frequency):
+    """`sample_row` over a whole row at once. BIT-IDENTICAL, ~8x faster.
+
+    Same expressions in the same order as the scalar form, evaluated in
+    float64. numpy elementwise ufuncs neither reassociate nor fuse into FMA,
+    so `a * b + c` written as two ufuncs is exactly `fl(fl(a * b) + c)` —
+    which is what the scalar loop computes and what the Java side computes.
+    That is the whole reason this is allowed to exist: parity with
+    StructureNoise.java is the module's contract (test_noise_parity.py diffs
+    it against the live calculator with zero tolerance), so a faster sweep
+    that is merely close is worthless.
+
+    `permutation` is the int64 array form (see StructureNoise.permutation_np);
+    `chunk_xs` is a float64 array of chunk x coordinates. Returns a float64
+    array, one sample per entry.
+    """
+    gx, gz_vec = _grad_np()
+    p = permutation
+    z = chunk_z * frequency + ORIGIN_Z
+    zi = math.floor(z)
+    zf = z - zi
+    zf1 = zf - 1.0
+    gz = zi & 255
+    v = zf * zf * zf * (zf * (zf * 6.0 - 15.0) + 10.0)
+
+    x = chunk_xs * frequency + ORIGIN_X
+    xi = _np.floor(x)
+    xf = x - xi
+    xf1 = xf - 1.0
+    u = xf * xf * xf * (xf * (xf * 6.0 - 15.0) + 10.0)
+    xi255 = xi.astype(_np.int64) & 255
+    a = p[xi255] + gz
+    b = p[xi255 + 1] + gz
+    h00 = p[a] & 7
+    h10 = p[b] & 7
+    h01 = p[a + 1] & 7
+    h11 = p[b + 1] & 7
+    n00 = gx[h00] * xf + gz_vec[h00] * zf
+    n10 = gx[h10] * xf1 + gz_vec[h10] * zf
+    n01 = gx[h01] * xf + gz_vec[h01] * zf1
+    n11 = gx[h11] * xf1 + gz_vec[h11] * zf1
+    l0 = n00 + u * (n10 - n00)
+    l1 = n01 + u * (n11 - n01)
+    n = l0 + v * (l1 - l0)
+    out = (n * NORMALISE + 1.0) * 0.5
+    _np.clip(out, 0.0, 1.0, out=out)
+    return out
+
+
+_U64 = None
+
+
+def _u64():
+    """SplitMix64 constants as uint64 scalars, built once."""
+    global _U64
+    if _U64 is None:
+        u = _np.uint64
+        _U64 = (u(PRIORITY_X), u(PRIORITY_Z), u(0xBF58476D1CE4E5B9),
+                u(0x94D049BB133111EB), u(30), u(27), u(31))
+    return _U64
+
+
+def priority_np(noise_seed, chunk_xs, chunk_z):
+    """`priority` over an array of chunk x coordinates. BIT-IDENTICAL.
+
+    numpy uint64 wraps mod 2^64 exactly as a Java long does, and `>>` on an
+    unsigned dtype is the unsigned shift `>>>` requires — so the SplitMix64
+    finaliser needs no masking here, unlike the Python-int form.
+    """
+    px, pz, m1, m2, s30, s27, s31 = _u64()
+    cx = chunk_xs.astype(_np.uint64)
+    z = (_np.uint64(noise_seed & M64) ^ (cx * px)
+         ^ (_np.uint64(chunk_z & M64) * pz))
+    z = (z ^ (z >> s30)) * m1
+    z = (z ^ (z >> s27)) * m2
+    return z ^ (z >> s31)
+
+
 class StructureNoise:
     """Mirror of StructureNoise.java."""
 
-    __slots__ = ("permutation",)
+    __slots__ = ("permutation", "_permutation_np")
 
     def __init__(self, seed):
         p = list(range(256))
@@ -193,6 +292,14 @@ class StructureNoise:
             j = r % (i + 1)
             p[i], p[j] = p[j], p[i]
         self.permutation = [p[i & 255] for i in range(512)]
+        self._permutation_np = None
+
+    @property
+    def permutation_np(self):
+        """The permutation as an int64 array, for sample_row_np."""
+        if self._permutation_np is None:
+            self._permutation_np = _np.array(self.permutation, dtype=_np.int64)
+        return self._permutation_np
 
     def sample(self, x, z):
         """Improved 2D Perlin, normalised to [0, 1]."""
@@ -363,6 +470,304 @@ def region_key(region_x, region_z):
     return _signed64(((region_x << 32) & M64) ^ (region_z & M32))
 
 
+#: Geometry memo. Every entry is derived from (radial curve, radius, base
+#: exclusion) alone — the seed touches none of it — so one entry serves every
+#: candidate of a dimension. Bounded because a worker walks many dimensions
+#: over a full run; at radius 512 an entry is ~7 MB, so the cap is a memory
+#: ceiling, not a correctness one.
+#: Sized so one dimension's whole group set fits alongside the previous
+#: dimension's — a full overworld resolves seven distinct triples, and a cap
+#: below that evicts every entry before it is reused even once.
+#:
+#: A radius-512 entry is ~24 MB (two lookup tables, the row lists, and their
+#: array views), so this is also a per-worker memory ceiling of a few hundred
+#: MB. With census tasks sorted by dimension a worker holds the current
+#: dimension's triples and little else, so the ceiling is not normally
+#: approached.
+_GEOMETRY = {}
+_GEOMETRY_ORDER = []
+_GEOMETRY_MAX = 16
+
+
+def geometry(radial, radius_chunks, exclusion):
+    """Everything about a group's layout that does not depend on the seed.
+
+    Returns a dict carrying, for one (radial, radius, exclusion) triple:
+
+      rows      [(dz, live_dx)] — the chunk offsets in each row that are
+                inside the disc AND not suppressed by a zero radial weight.
+      excl_of   dist_sq -> the exclusion radius a candidate at that distance
+                is judged against (0 for suppressed).
+      offsets   exclusion radius -> its disc offsets.
+
+    Rebuilding this per candidate was ~2.5s of a 20.2s overworld census —
+    5.8M loop iterations and 7.4M dict lookups to re-derive constants. It is
+    stored as flat lookup tables rather than dicts because at radius 512 the
+    dict forms cost ~20 MB each against ~2 MB for the table.
+    """
+    key = (tuple(radial) if radial else None, radius_chunks, exclusion)
+    hit = _GEOMETRY.get(key)
+    if hit is not None:
+        return hit
+
+    r = radius_chunks
+    side = r * 2 + 1
+    r_squared = float(r) * r
+    max_dist_sq = r * r
+    from array import array
+    weight_of = array("d", bytes(8 * (max_dist_sq + 1)))
+    excl_of = array("i", bytes(4 * (max_dist_sq + 1)))
+    known = bytearray(max_dist_sq + 1)
+    sqrt = math.sqrt
+    rows = []
+    distinct = set()
+    for dz in range(-r, r + 1):
+        dz_sq = float(dz) * dz
+        span = int(sqrt(max(r_squared - dz_sq, 0.0)))
+        live_dx = []
+        for dx in range(-span, span + 1):
+            dist_sq = float(dx) * dx + dz_sq
+            if dist_sq > r_squared:
+                continue
+            k = int(dist_sq)
+            if not known[k]:
+                known[k] = 1
+                w = radial_weight(radial, sqrt(dist_sq), r)
+                weight_of[k] = w
+                excl_of[k] = exclusion_for(exclusion, w) if w > 0.0 else 0
+            if weight_of[k] <= 0.0:
+                continue
+            live_dx.append(dx)
+            distinct.add(excl_of[k])
+        if live_dx:
+            rows.append((dz, live_dx))
+
+    offsets = {}
+    for e in distinct:
+        offsets[e] = _disc_offsets(e)
+
+    entry = {
+        "side": side,
+        "radius": r,
+        "rows": rows,
+        "weight_of": weight_of,
+        "excl_of": excl_of,
+        "offsets": offsets,
+        "distinct_excls": sorted(distinct),
+        "rows_np": None,
+        "flat_offsets": {},
+    }
+    _GEOMETRY[key] = entry
+    _GEOMETRY_ORDER.append(key)
+    while len(_GEOMETRY_ORDER) > _GEOMETRY_MAX:
+        _GEOMETRY.pop(_GEOMETRY_ORDER.pop(0), None)
+    return entry
+
+
+def _geometry_np(geom):
+    """Add the array views the vectorised path needs, once per memo entry.
+
+    Built on demand rather than inside `geometry`, so an entry created while
+    the scalar path was selected is still usable by the vectorised one. Doing
+    it eagerly keyed the cache on a global flag without saying so: a scalar
+    build poisoned the entry for every later vectorised caller, which is
+    invisible in production (the flag never changes) and wrong the moment
+    anything toggles it — a test, or a future per-dimension fallback.
+    """
+    if geom["rows_np"] is None:
+        geom["rows_np"] = [(dz, _np.array(live, dtype=_np.float64),
+                            _np.array(live, dtype=_np.int64))
+                           for dz, live in geom["rows"]]
+        geom["excl_np"] = _np.frombuffer(geom["excl_of"], dtype=_np.int32)
+    return geom
+
+
+def _disc_max(ranks, e):
+    """Max rank inside a radius-`e` disc centred on every cell.
+
+    Grey dilation by a disc, decomposed into horizontal runs: for each row
+    offset dz the disc spans a window of half-width isqrt(e^2 - dz^2), so one
+    horizontal sliding max per distinct width and a max-reduce over the
+    2e+1 shifted rows. The sliding maxima come from a sparse table (doubling),
+    so a width costs one pairwise max rather than a scan.
+
+    Padding is zero, which is exactly right: an ineligible cell already carries
+    rank 0 and a real rank is positive, so padding can never win a max. (A
+    genuine rank of 0 is guarded by the caller — see `_select_np`.)
+    """
+    h, w = ranks.shape
+    pad = _np.zeros((h, w + 2 * e), dtype=_np.uint64)
+    pad[:, e:e + w] = ranks
+
+    levels = [pad]
+    k = 1
+    while (1 << k) <= 2 * e + 1:
+        prev = levels[k - 1]
+        step = 1 << (k - 1)
+        levels.append(_np.maximum(prev[:, :prev.shape[1] - step],
+                                  prev[:, step:]))
+        k += 1
+
+    def window(length, start):
+        """Max over [start, start+length-1] for every output column."""
+        kk = length.bit_length() - 1
+        tab = levels[kk]
+        second = start + length - (1 << kk)
+        return _np.maximum(tab[:, start:start + w], tab[:, second:second + w])
+
+    out = _np.zeros((h, w), dtype=_np.uint64)
+    for dz in range(-e, e + 1):
+        hw = math.isqrt(e * e - dz * dz)
+        row = window(2 * hw + 1, e - hw)
+        if dz < 0:
+            _np.maximum(out[-dz:], row[:h + dz], out=out[-dz:])
+        elif dz > 0:
+            _np.maximum(out[:h - dz], row[dz:], out=out[:h - dz])
+        else:
+            _np.maximum(out, row, out=out)
+    return out
+
+
+#: Survivors are checked in blocks so one gather never allocates more than
+#: roughly this many rank reads (block x disc cells).
+_GATHER_BUDGET = 4_000_000
+
+
+def _flat_offsets(geom, e, width):
+    """Disc offsets as flat index deltas into a padded rank array."""
+    cached = geom["flat_offsets"].get((e, width))
+    if cached is None:
+        offs = geom["offsets"][e]
+        cached = _np.array([oz * width + ox for ox, oz in offs],
+                           dtype=_np.int64)
+        geom["flat_offsets"][(e, width)] = cached
+    return cached
+
+
+def _chunk_keys_np(chunk_xs, chunk_zs):
+    """`chunk_pos_to_long` over arrays — the SIGNED long ChunkPos.toLong makes."""
+    m32 = _np.uint64(M32)
+    v = (((chunk_zs.astype(_np.uint64) & m32) << _np.uint64(32))
+         | (chunk_xs.astype(_np.uint64) & m32))
+    return _np.ascontiguousarray(v).view(_np.int64)
+
+
+def _select_np(geom, ranks, cells_dx, cells_dz, spawn_chunk_x, spawn_chunk_z):
+    """The outranks pass, vectorised. Returns kept (dx, dz) arrays, or None
+    when an exact answer cannot be guaranteed and the caller must fall back.
+
+    Two stages, both exact:
+
+      A. One disc-max at the SMALLEST exclusion in the group. A survivor at
+         exclusion e is the maximum inside its own disc, which contains the
+         smallest disc, so `rank >= discmax(e_min)` is a valid superset — it
+         throws away ~99% of eligible chunks for the cost of one dilation.
+      B. The exact per-cell test on that superset, batched by exclusion value
+         so each batch is a single gather rather than a Python loop.
+
+    RANK TIES ARE COMMON — measured 25,699 among 836,056 eligible chunks
+    across one overworld census, ~3%, not the 2^-64 a hash collision would
+    suggest. They are ANTIPODAL: `priority` mixes `seed ^ (cx*PX) ^ (cz*PZ)`
+    through a bijection, and negating a value leaves every bit at and below
+    its lowest set bit alone while flipping the rest — so when cx and cz have
+    the same number of trailing zeros, (cx, cz) and (-cx, -cz) produce the
+    identical XOR and therefore the identical rank. About a third of
+    coordinate pairs qualify.
+
+    That puts every tied pair 2*sqrt(cx^2 + cz^2) apart, so a tie only lands
+    inside one exclusion disc near the origin — rare, but real, and the
+    chunk-key rule is what decides it. Resolved here exactly as `_outranks`
+    resolves it (lower chunk key loses), and only for chunks nothing
+    outranked outright, which keeps the hot path to a single gather.
+
+    Still returns None for a zero rank: `_disc_max` pads with zero, and a
+    real rank of 0 would make padding indistinguishable from a tied
+    neighbour. That one IS a 2^-64 event, so the scalar fallback never runs
+    in practice and the answer stays exact if it ever does.
+    """
+    geom = _geometry_np(geom)
+    r = geom["radius"]
+    side = geom["side"]
+    excl_np = geom["excl_np"]
+    distinct = geom["distinct_excls"]
+    if not distinct:
+        return []
+
+    flat = (cells_dz + r) * side + (cells_dx + r)
+    ranks_flat = ranks.reshape(-1)
+    cell_ranks = ranks_flat[flat]
+    if cell_ranks.size == 0:
+        return []
+    if not cell_ranks.all():
+        return None                      # a genuine zero rank
+
+    e_min = distinct[0]
+    dm = _disc_max(ranks, e_min).reshape(-1)
+    keep = cell_ranks >= dm[flat]
+    cand_dx = cells_dx[keep]
+    cand_dz = cells_dz[keep]
+    if cand_dx.size == 0:
+        return []
+
+    e_max = distinct[-1]
+    width = side + 2 * e_max
+    padded = _np.zeros((side + 2 * e_max, width), dtype=_np.uint64)
+    padded[e_max:e_max + side, e_max:e_max + side] = ranks
+    padded_flat = padded.reshape(-1)
+
+    cand_sq = cand_dx.astype(_np.int64) ** 2 + cand_dz.astype(_np.int64) ** 2
+    cand_excl = excl_np[cand_sq]
+    base = ((cand_dz + r + e_max).astype(_np.int64) * width
+            + (cand_dx + r + e_max).astype(_np.int64))
+    cand_ranks = padded_flat[base]
+
+    keys = None                          # built only if a tie survives stage A
+
+    kept_dx, kept_dz = [], []
+    for e in distinct:
+        sel = _np.nonzero(cand_excl == e)[0]
+        if sel.size == 0:
+            continue
+        offs = _flat_offsets(geom, e, width)
+        if offs.size == 0:
+            kept_dx.append(cand_dx[sel])
+            kept_dz.append(cand_dz[sel])
+            continue
+        block = max(1, _GATHER_BUDGET // offs.size)
+        for start in range(0, sel.size, block):
+            part = sel[start:start + block]
+            part_base = base[part]
+            part_rank = cand_ranks[part][:, None]
+            nb = padded_flat[part_base[:, None] + offs[None, :]]
+            alive = ~(nb > part_rank).any(axis=1)
+            if not alive.any():
+                continue
+            # Ties only matter for chunks nothing outranked outright.
+            live = _np.nonzero(alive)[0]
+            tied = (nb[live] == part_rank[live]).any(axis=1)
+            if tied.any():
+                fix = live[tied]
+                if keys is None:
+                    padded_keys = _np.zeros((side + 2 * e_max, width),
+                                            dtype=_np.int64)
+                    dzs = _np.arange(side, dtype=_np.int64) - r + spawn_chunk_z
+                    dxs = _np.arange(side, dtype=_np.int64) - r + spawn_chunk_x
+                    padded_keys[e_max:e_max + side, e_max:e_max + side] = \
+                        _chunk_keys_np(_np.broadcast_to(dxs, (side, side)),
+                                       dzs[:, None] * _np.ones(side, _np.int64))
+                    keys = padded_keys.reshape(-1)
+                nk = keys[part_base[fix][:, None] + offs[None, :]]
+                loses = ((nb[fix] == part_rank[fix])
+                         & (nk < keys[part_base[fix]][:, None])).any(axis=1)
+                alive[fix] = ~loses
+            if alive.any():
+                kept_dx.append(cand_dx[part][alive])
+                kept_dz.append(cand_dz[part][alive])
+    if not kept_dx:
+        return []
+    return (_np.concatenate(kept_dx), _np.concatenate(kept_dz))
+
+
 class NoiseFieldIndex:
     """Mirror of NoiseFieldIndex.java.
 
@@ -408,52 +813,58 @@ class NoiseFieldIndex:
         primary = StructureNoise(noise_seed)
         fine = StructureNoise(_signed64(noise_seed ^ FINE_SALT) & M64) if is_cluster else None
 
-        side = r * 2 + 1
+        geom = geometry(radial, r, excl)
+        args = (geom, noise_seed, primary, fine, is_cluster, frequency,
+                coarse_frequency, coarse_threshold, profile.threshold,
+                spawn_chunk_x, spawn_chunk_z)
+        ordered = self._build_np(*args) if HAVE_NUMPY else self._build(*args)
+
+        # Nearest-first, ties on the chunk key — a total order, so the Java
+        # and Python lists agree element for element.
+        ordered.sort(key=lambda p: (
+            (p[0] - spawn_chunk_x) ** 2 + (p[1] - spawn_chunk_z) ** 2,
+            chunk_pos_to_long(p[0], p[1])))
+
+        placements = set(ordered)
+        by_region = {}
+        for cx, cz in ordered:
+            key = region_key(_floor_div(cx, self.spacing),
+                             _floor_div(cz, self.spacing))
+            by_region.setdefault(key, (cx, cz))
+
+        self.placements = placements
+        self.ordered = ordered
+        self.by_region = by_region
+
+    @staticmethod
+    def _build(geom, noise_seed, primary, fine, is_cluster, frequency,
+               coarse_frequency, coarse_threshold, threshold,
+               spawn_chunk_x, spawn_chunk_z):
+        """Scalar eligibility + selection. The reference behaviour.
+
+        Row-at-a-time over the geometry's pre-filtered rows: the two
+        exactness-preserving filters (outside the disc; radial weight 0.0, an
+        author's explicit hard suppression) are what `geometry` bakes into
+        `rows`, so they cost nothing after the first candidate of a dimension.
+
+        Eligible cells are collected as they are found rather than
+        rediscovered by a second full (2r+1)^2 sweep, which visited 1,050,625
+        cells per group to find ~120,000 of them.
+        """
+        r = geom["radius"]
+        side = geom["side"]
         eligible = bytearray(side * side)
         # Ranks cached alongside eligibility, mirroring Java: every eligible
         # chunk is read once as a candidate and many times as a neighbour.
         ranks = [0] * (side * side)
-        r_squared = float(r) * r
-        threshold = profile.threshold
-
-        # Row-at-a-time eligibility. Same arithmetic as the per-chunk form
-        # this replaced, in the same order, and pinned bit-for-bit by the
-        # parity fixtures — but a 512-radius group costs four million fewer
-        # Python calls. Two exactness-preserving filters run before any
-        # Perlin work:
-        #   1. outside the disc;
-        #   2. radial weight 0.0 — an author's explicit hard suppression.
-        # The old second filter (weight <= threshold) is gone with the gate it
-        # belonged to; the curve now scales the exclusion radius instead, so a
-        # low weight means sparse rather than absent and every chunk inside the
-        # border has to be sampled. Both caches are keyed on the integer
-        # dx^2+dz^2, which is exact for every chunk offset in range.
-        weight_cache = {}
-        excl_cache = {}
         primary_perm = primary.permutation
         fine_perm = fine.permutation if is_cluster else None
-        sqrt = math.sqrt
-        for dz in range(-r, r + 1):
+        live_cells = []
+        for dz, live_dx in geom["rows"]:
             row = (dz + r) * side
             cz = spawn_chunk_z + dz
-            dz_sq = float(dz) * dz
-            span = int(sqrt(max(r_squared - dz_sq, 0.0)))
-            live_dx = []
-            for dx in range(-span, span + 1):
-                dist_sq = float(dx) * dx + dz_sq
-                if dist_sq > r_squared:
-                    continue
-                key = int(dist_sq)
-                weight = weight_cache.get(key)
-                if weight is None:
-                    weight = radial_weight(radial, sqrt(dist_sq), r)
-                    weight_cache[key] = weight
-                if weight <= 0.0:
-                    continue
-                live_dx.append(dx)
-            if not live_dx:
-                continue
-            live_cx = [spawn_chunk_x + dx for dx in live_dx]
+            live_cx = live_dx if spawn_chunk_x == 0 else \
+                [spawn_chunk_x + dx for dx in live_dx]
             if is_cluster:
                 coarse_row = sample_row(primary_perm, live_cx, cz, coarse_frequency)
                 keep = [i for i, c in enumerate(coarse_row) if c > coarse_threshold]
@@ -472,55 +883,96 @@ class NoiseFieldIndex:
                     idx = row + (dx + r)
                     eligible[idx] = 1
                     ranks[idx] = priority(noise_seed, spawn_chunk_x + dx, cz)
+                    live_cells.append((dx, dz))
+        return NoiseFieldIndex._select_scalar(geom, eligible, ranks, live_cells,
+                                              spawn_chunk_x, spawn_chunk_z)
 
-        # Exclusion disc offsets, one set per distinct radius the curve asks
-        # for. A 10-point curve over an integer exclusion yields a handful of
-        # distinct values, so this is a small memo rather than a per-candidate
-        # rebuild.
-        offsets_by_excl = {}
+    @staticmethod
+    def _select_scalar(geom, eligible, ranks, live_cells,
+                       spawn_chunk_x, spawn_chunk_z):
+        """Keep the chunks that outrank every eligible neighbour in their disc.
 
-        # Single O(r^2) pass, mirroring the Java constructor. Walking outward
-        # ring by ring and skipping each ring's interior is O(r^3) — 1.8e8
-        # iterations at radius 512, and the whole reason a large dimension
-        # took 3.4 seconds to load. Order is restored by the sort below.
+        Order-free — every decision reads only the eligibility and rank
+        arrays, never another decision — so the caller's sort fixes the ORDER
+        of `positions`, never its contents.
+        """
+        r = geom["radius"]
+        side = geom["side"]
+        excl_of = geom["excl_of"]
+        offsets_by_excl = geom["offsets"]
         ordered = []
-        for dz in range(-r, r + 1):
-            row = (dz + r) * side
-            for dx in range(-r, r + 1):
-                if not eligible[row + (dx + r)]:
-                    continue
-                cx = spawn_chunk_x + dx
-                cz = spawn_chunk_z + dz
-                key = dx * dx + dz * dz
-                candidate_excl = excl_cache.get(key)
-                if candidate_excl is None:
-                    candidate_excl = exclusion_for(excl, weight_cache[key])
-                    excl_cache[key] = candidate_excl
-                offsets = offsets_by_excl.get(candidate_excl)
-                if offsets is None:
-                    offsets = _disc_offsets(candidate_excl)
-                    offsets_by_excl[candidate_excl] = offsets
-                if not self._outranks(eligible, ranks, side, r, dx, dz, offsets,
-                                      cx, cz, spawn_chunk_x, spawn_chunk_z):
-                    continue
+        for dx, dz in live_cells:
+            offsets = offsets_by_excl[excl_of[dx * dx + dz * dz]]
+            cx = spawn_chunk_x + dx
+            cz = spawn_chunk_z + dz
+            if NoiseFieldIndex._outranks(eligible, ranks, side, r, dx, dz,
+                                         offsets, cx, cz,
+                                         spawn_chunk_x, spawn_chunk_z):
                 ordered.append((cx, cz))
+        return ordered
 
-        # Nearest-first, ties on the chunk key — a total order, so the Java
-        # and Python lists agree element for element.
-        ordered.sort(key=lambda p: (
-            (p[0] - spawn_chunk_x) ** 2 + (p[1] - spawn_chunk_z) ** 2,
-            chunk_pos_to_long(p[0], p[1])))
+    @staticmethod
+    def _build_np(geom, noise_seed, primary, fine, is_cluster, frequency,
+                  coarse_frequency, coarse_threshold, threshold,
+                  spawn_chunk_x, spawn_chunk_z):
+        """Vectorised eligibility + selection. Bit-identical to `_build`.
 
-        placements = set(ordered)
-        by_region = {}
-        for cx, cz in ordered:
-            key = region_key(_floor_div(cx, self.spacing),
-                             _floor_div(cz, self.spacing))
-            by_region.setdefault(key, (cx, cz))
+        The rank field is assembled straight into a uint64 array by one
+        scatter — never via a million-element Python list, which cost more to
+        convert than the Perlin sweep cost to compute.
+        """
+        geom = _geometry_np(geom)
+        r = geom["radius"]
+        side = geom["side"]
+        dx_parts, rank_parts, dz_vals, counts = [], [], [], []
+        perm = primary.permutation_np
+        fine_perm = fine.permutation_np if is_cluster else None
+        for dz, live_f, live_i in geom["rows_np"]:
+            cz = spawn_chunk_z + dz
+            cx_f = live_f if spawn_chunk_x == 0 else live_f + spawn_chunk_x
+            if is_cluster:
+                coarse_row = sample_row_np(perm, cx_f, cz, coarse_frequency)
+                keep = coarse_row > coarse_threshold
+                if not keep.any():
+                    continue
+                fine_row = sample_row_np(fine_perm, cx_f[keep], cz, frequency)
+                hits = _np.nonzero(keep)[0][fine_row > threshold]
+            else:
+                noises = sample_row_np(perm, cx_f, cz, frequency)
+                hits = _np.nonzero(noises > threshold)[0]
+            if hits.size == 0:
+                continue
+            hit_dx = live_i[hits]
+            dx_parts.append(hit_dx)
+            rank_parts.append(priority_np(noise_seed, hit_dx + spawn_chunk_x, cz))
+            dz_vals.append(dz)
+            counts.append(hit_dx.size)
+        if not dx_parts:
+            return []
 
-        self.placements = placements
-        self.ordered = ordered
-        self.by_region = by_region
+        dxs = _np.concatenate(dx_parts)
+        dzs = _np.repeat(_np.array(dz_vals, dtype=_np.int64), counts)
+        ranks = _np.zeros(side * side, dtype=_np.uint64)
+        ranks[(dzs + r) * side + (dxs + r)] = _np.concatenate(rank_parts)
+        got = _select_np(geom, ranks.reshape(side, side), dxs, dzs,
+                         spawn_chunk_x, spawn_chunk_z)
+        if got is not None:
+            if not len(got):
+                return []
+            kdx, kdz = got
+            return [(int(dx) + spawn_chunk_x, int(dz) + spawn_chunk_z)
+                    for dx, dz in zip(kdx.tolist(), kdz.tolist())]
+
+        # Degenerate rank field (a zero rank, or a tie needing the chunk-key
+        # rule). Rebuild the scalar views and answer exactly.
+        eligible = bytearray(side * side)
+        flat = ((dzs + r) * side + (dxs + r)).tolist()
+        for idx in flat:
+            eligible[idx] = 1
+        rank_list = ranks.tolist()
+        return NoiseFieldIndex._select_scalar(
+            geom, eligible, rank_list, list(zip(dxs.tolist(), dzs.tolist())),
+            spawn_chunk_x, spawn_chunk_z)
 
     @staticmethod
     def _outranks(eligible, ranks, side, r, dx, dz, offsets,
