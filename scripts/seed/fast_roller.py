@@ -269,16 +269,25 @@ def random_seed():
     return struct.unpack("<q", os.urandom(8))[0]
 
 
-def _resolve_struct_set(sid, struct_sets, struct_to_sets):
+def _resolve_struct_set(sid, struct_sets, struct_to_sets, seedtest_path=None):
+    """Resolve a battery entry's structure id to its structure set config.
+
+    Tags (#ns:tag) are resolved to their exact member list via
+    structure_tags.resolve_tag. Returns None when the tag data is
+    unavailable (the caller records -1, never falls back to substring).
+    """
     clean = sid.lstrip("#")
     if clean in struct_to_sets:
         return struct_sets[struct_to_sets[clean][0]]
     if sid.startswith("#"):
-        tag_path = clean.split(":")[-1] if ":" in clean else clean
-        for set_id, cfg in struct_sets.items():
-            for s in cfg["structures"]:
-                if tag_path in s["id"]:
-                    return cfg
+        from structure_tags import resolve_tag
+        members = resolve_tag(seedtest_path or ".seedtest", sid)
+        if members is None:
+            return None
+        for member in members:
+            if member in struct_to_sets:
+                return struct_sets[struct_to_sets[member][0]]
+        return None
     if clean in struct_sets:
         return struct_sets[clean]
     return None
@@ -288,7 +297,7 @@ def _resolve_struct_set(sid, struct_sets, struct_to_sets):
 # Tier 1: structure-only screening (instant)
 # -----------------------------------------------------------------------
 def tier1_score(seed, profile, struct_sets, struct_to_sets,
-                origin_x=0, origin_z=0):
+                origin_x=0, origin_z=0, seedtest_path=None):
     """Structure battery score for a seed. Returns (score, distances dict).
     No biomes, no noise — pure math. <0.1ms per seed.
 
@@ -318,7 +327,7 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets,
                 ss += want_score(forced, spec[0], spec[1], profile["radius"])
             n += 1
             continue
-        set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets)
+        set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets, seedtest_path)
         if set_cfg and mode_drops(set_cfg.get("id"), profile):
             set_cfg = None
         # The exclude union (dimension structures.exclude + the global
@@ -476,6 +485,8 @@ def _process_group(task):
      struct_sets_path, biome_params_path, noise_configs, seen_set) = task
 
     t0 = time.time()
+    # The seedtest root is the parent of the .structure_sets extraction dir.
+    seedtest_path = str(Path(struct_sets_path).parent)
 
     # Load structure sets
     struct_sets = load_structure_sets(struct_sets_path)
@@ -492,7 +503,8 @@ def _process_group(task):
             seed = random_seed()
         seen_set.add(str(seed))
         for name, profile in members:
-            score, _dists = tier1_score(seed, profile, struct_sets, struct_to_sets)
+            score, _dists = tier1_score(seed, profile, struct_sets, struct_to_sets,
+                                        seedtest_path=seedtest_path)
             ranks[name].append((score, seed))
 
     # Survivors: union of each member's top keep_count — every member gets
@@ -530,7 +542,8 @@ def _process_group(task):
             _score, struct_dists = tier1_score(seed, profile,
                                                struct_sets, struct_to_sets,
                                                origin_x=int(spawn_x),
-                                               origin_z=int(spawn_z))
+                                               origin_z=int(spawn_z),
+                                               seedtest_path=seedtest_path)
             for sname, _sid, _band, _kind in profile["battery"]:
                 rows.append((f"structure_{sname}_dist", struct_dists.get(sname, -1)))
             results[name].append((seed, rows, ok))
@@ -662,26 +675,67 @@ def main():
     print(f"  Workers: {num_workers}, output: {csv_path}")
     t0 = time.time()
 
-    if num_workers > 1 and len(tasks) > 1:
-        with multiprocessing.Pool(num_workers) as pool:
-            grouped_results = pool.map(_process_group, tasks)
-    else:
-        grouped_results = [_process_group(t) for t in tasks]
-    all_results = [r for group in grouped_results for r in group]
+    def _format_eta(done, total, elapsed):
+        if done == 0:
+            return "—"
+        remaining = elapsed * (total - done) / done
+        m, s = divmod(int(remaining), 60)
+        h, m = divmod(m, 60)
+        return f"{h}h{m:02d}m" if h else f"{m}m{s:02d}s"
 
-    # Write CSV
-    total_accepted = 0
-    total_rejected = 0
+    def _log_group(done, total, elapsed, group_results):
+        pct = 100 * done / total
+        em, es = divmod(int(elapsed), 60)
+        eh, em = divmod(em, 60)
+        e_str = f"{eh}h{em:02d}m" if eh else f"{em}m{es:02d}s"
+        eta = _format_eta(done, total, elapsed)
+        names = [r[0] for r in group_results]
+        acc = sum(r[2] for r in group_results)
+        label = names[0] if len(names) == 1 else f"{len(names)} members"
+        print(f"  [{done}/{total}] {pct:4.1f}% | {e_str} elapsed, "
+              f"~{eta} remaining | {label}, {acc} accepted",
+              flush=True)
+
     csv_new = not Path(csv_path).exists()
-    with open(csv_path, "a") as fh:
-        if csv_new:
-            fh.write("target,seed,metric,value\n")
-        for dim_name, results, acc, rej, *_ in all_results:
-            total_accepted += acc
-            total_rejected += rej
+    csv_fh = open(csv_path, "a")
+    if csv_new:
+        csv_fh.write("target,seed,metric,value\n")
+
+    def _flush_group_csv(group_results):
+        acc = rej = 0
+        for dim_name, results, a, r, *_ in group_results:
+            acc += a
+            rej += r
             for seed, rows, _ok in results:
                 for metric, value in rows:
-                    fh.write(f"{dim_name},{seed},{metric},{value}\n")
+                    csv_fh.write(f"{dim_name},{seed},{metric},{value}\n")
+        csv_fh.flush()
+        return acc, rej
+
+    grouped_results = []
+    total_accepted = 0
+    total_rejected = 0
+    n_tasks = len(tasks)
+    if num_workers > 1 and n_tasks > 1:
+        with multiprocessing.Pool(num_workers) as pool:
+            for group in pool.imap_unordered(_process_group, tasks):
+                grouped_results.append(group)
+                a, r = _flush_group_csv(group)
+                total_accepted += a
+                total_rejected += r
+                _log_group(len(grouped_results), n_tasks,
+                           time.time() - t0, group)
+    else:
+        for t in tasks:
+            group = _process_group(t)
+            grouped_results.append(group)
+            a, r = _flush_group_csv(group)
+            total_accepted += a
+            total_rejected += r
+            _log_group(len(grouped_results), n_tasks,
+                       time.time() - t0, group)
+    csv_fh.close()
+    all_results = [r for group in grouped_results for r in group]
 
     elapsed = time.time() - t0
 

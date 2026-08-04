@@ -781,15 +781,96 @@ def _grid_locate_biome(grid, biome_id):
 # ---------------------------------------------------------------------------
 _STRUCTURE_SETS = None
 _STRUCT_TO_SETS = None
+_SEEDTEST_PATH = None
+
+
+def _extract_structure_tags(seedtest):
+    """Extract worldgen structure tag JSONs from mod/server jars.
+
+    Mirrors the .structure_sets extraction: walks every jar in
+    base/mods/ and base/versions/ plus the world-datapacks-template,
+    pulling data/*/tags/worldgen/structure/*.json into
+    <seedtest>/.structure_tags/<ns>/<tagname>.json. Multiple jars
+    contributing to the same ns:tagname are merged at read time by
+    structure_tags.py (Minecraft tag merge semantics).
+    """
+    import zipfile
+    tags_dir = seedtest / ".structure_tags"
+    if tags_dir.exists():
+        return
+    tags_dir.mkdir(parents=True, exist_ok=True)
+    base = seedtest / "base"
+    for jar_path in list((base / "mods").glob("*.jar")) + list((base / "versions").rglob("*.jar")):
+        try:
+            with zipfile.ZipFile(jar_path) as zf:
+                for name in zf.namelist():
+                    if "tags/worldgen/structure/" in name and name.endswith(".json"):
+                        # name is like data/<ns>/tags/worldgen/structure/<tag>.json
+                        # Extract to .structure_tags/<ns>/<tag>.json, merging
+                        # contributions from different jars by appending a
+                        # jar-specific suffix when the file already exists.
+                        parts = name.split("/")
+                        try:
+                            data_idx = parts.index("data")
+                            ns = parts[data_idx + 1]
+                            # tag path is everything after .../structure/
+                            struct_idx = parts.index("structure")
+                            tag_path = "/".join(parts[struct_idx + 1:])
+                        except (ValueError, IndexError):
+                            continue
+                        dest = tags_dir / ns / tag_path
+                        if dest.exists():
+                            # Merge: append a jar-keyed suffix so both
+                            # contributions are loaded and merged at read time.
+                            stem = dest.stem
+                            suffix = dest.suffix
+                            jar_key = jar_path.stem.replace(".", "_")[:40]
+                            dest = dest.with_name("{}__{}{}".format(stem, jar_key, suffix))
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_bytes(zf.read(name))
+        except (zipfile.BadZipFile, OSError):
+            pass
+    # Datapacks
+    dp = base / "world-datapacks-template"
+    if dp.is_dir():
+        for f in dp.rglob("*/tags/worldgen/structure/*.json"):
+            rel = f.relative_to(dp)
+            parts = rel.parts
+            try:
+                # Mirror the jar extraction: find the data/ marker and
+                # take the next element as the namespace. Fall back to
+                # parts[0] for flat datapack layouts without data/.
+                parts_list = list(parts)
+                if "data" in parts_list:
+                    data_idx = parts_list.index("data")
+                    ns = parts_list[data_idx + 1]
+                else:
+                    ns = parts_list[0]
+                struct_idx = parts_list.index("structure")
+                tag_path = "/".join(parts_list[struct_idx + 1:])
+            except (ValueError, IndexError):
+                continue
+            dest = tags_dir / ns / tag_path
+            if dest.exists():
+                stem = dest.stem
+                suffix = dest.suffix
+                dest = dest.with_name("{}__{}_dp{}".format(stem, ns, suffix))
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, dest)
 
 
 def _load_structure_sets_once(seedtest_path=None):
-    """Load structure set configs from mod JARs + vanilla server jar (once)."""
-    global _STRUCTURE_SETS, _STRUCT_TO_SETS
+    """Load structure set configs from mod JARs + vanilla server jar (once).
+
+    Also extracts worldgen structure tag JSONs into
+    <seedtest>/.structure_tags/ for exact tag resolution (structure_tags.py).
+    """
+    global _STRUCTURE_SETS, _STRUCT_TO_SETS, _SEEDTEST_PATH
     if _STRUCTURE_SETS is not None:
         return
     from structure_placement import load_structure_sets
     seedtest = Path(seedtest_path) if seedtest_path else Path(".seedtest")
+    _SEEDTEST_PATH = str(seedtest)
     extract_dir = seedtest / ".structure_sets"
     if not extract_dir.exists():
         import zipfile
@@ -811,6 +892,8 @@ def _load_structure_sets_once(seedtest_path=None):
                 dest = extract_dir / "data" / rel
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(f, dest)
+    # Extract structure tags alongside structure sets
+    _extract_structure_tags(seedtest)
     _STRUCTURE_SETS = load_structure_sets(str(extract_dir))
     _STRUCT_TO_SETS = {}
     for set_id, cfg in _STRUCTURE_SETS.items():
@@ -820,21 +903,29 @@ def _load_structure_sets_once(seedtest_path=None):
 
 def _find_structure_set(structure_id):
     """Find the structure set config for a given structure locate ID.
-    Handles tags (#minecraft:village -> find any set with a village_* structure)
-    and direct IDs."""
+
+    Tags (#minecraft:village) are resolved to their exact member list via
+    structure_tags.resolve_tag. Returns the set containing the first
+    resolved member, or None when the tag data is unavailable (the caller
+    records -1, never falls back to substring).
+    """
     _load_structure_sets_once()
     clean_id = structure_id.lstrip("#")
     # Direct match: structure ID in a set
     if clean_id in _STRUCT_TO_SETS:
         set_id = _STRUCT_TO_SETS[clean_id][0]
         return _STRUCTURE_SETS[set_id]
-    # Tag match: #minecraft:village -> look for sets containing village_*
+    # Tag: resolve via exact tag data
     if structure_id.startswith("#"):
-        tag_path = clean_id.split(":")[-1] if ":" in clean_id else clean_id
-        for sid, cfg in _STRUCTURE_SETS.items():
-            for s in cfg["structures"]:
-                if tag_path in s["id"]:
-                    return cfg
+        from structure_tags import resolve_tag
+        members = resolve_tag(_SEEDTEST_PATH or ".seedtest", structure_id)
+        if members is None:
+            return None  # tag data unavailable -- caller records -1
+        for member in members:
+            if member in _STRUCT_TO_SETS:
+                set_id = _STRUCT_TO_SETS[member][0]
+                return _STRUCTURE_SETS[set_id]
+        return None
     # Set ID match: the battery might already use set IDs
     if clean_id in _STRUCTURE_SETS:
         return _STRUCTURE_SETS[clean_id]

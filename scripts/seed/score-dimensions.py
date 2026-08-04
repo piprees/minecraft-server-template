@@ -586,7 +586,7 @@ def score_candidate(profile, rows, structures_override=None):
         for name, sid, spec, kind in profile["battery"]:
             v = rows.get(f"structure_{name}_dist")
             d = float(v) if v is not None else None
-            group = battery_group_for(sid, lookup) if (lookup and census_part is not None) else None
+            group = battery_group_for(sid, lookup, profile.get("_seedtest_path")) if (lookup and census_part is not None) else None
             forced = any(f.get("structure") == sid.lstrip("#")
                          for f in profile.get("forced_structures") or [])
             if group is not None and not forced:
@@ -897,21 +897,26 @@ def structure_group_lookup(seedtest, config_dir):
     return result
 
 
-def battery_group_for(sid, lookup):
+def battery_group_for(sid, lookup, seedtest_path=None):
     """Which noise group owns a battery entry's structure, or None for
-    "noise never touched it" (grid placement, or an unclassified set)."""
+    "noise never touched it" (grid placement, or an unclassified set).
+
+    Tags (#ns:tag) are resolved to their exact member list via
+    structure_tags.resolve_tag. Returns None when the tag data is
+    unavailable (the caller skips the entry, never falls back to
+    substring).
+    """
     struct_to_set, set_to_group = lookup
     clean = sid.lstrip("#")
     set_id = struct_to_set.get(clean)
     if set_id is None and sid.startswith("#"):
-        # Tag wants (e.g. #minecraft:village) name no single structure; match
-        # the tag's path against structure ids the same way the roller's
-        # tier-1 set resolution does.
-        tag_path = clean.split(":")[-1] if ":" in clean else clean
-        for struct_id, candidate_set in struct_to_set.items():
-            if tag_path in struct_id:
-                set_id = candidate_set
-                break
+        from structure_tags import resolve_tag
+        members = resolve_tag(seedtest_path, sid)
+        if members is not None:
+            for member in members:
+                if member in struct_to_set:
+                    set_id = struct_to_set[member]
+                    break
     if set_id is None and clean in set_to_group:
         set_id = clean
     if set_id is None:
@@ -938,6 +943,7 @@ def attach_battery_groups(profiles, seedtest, config_dir):
     for profile in profiles.values():
         profile["_battery_groups"] = lookup
         profile["_structure_pools"] = pools
+        profile["_seedtest_path"] = str(seedtest)
 
 
 def _with_group_settings(summary, group_settings):
@@ -2652,7 +2658,7 @@ def _structure_section(c, profile):
     for sname, sid, spec, kind in battery:
         pretty = html.escape(sname.replace("_", " ").title())
         sattr = " data-struct='{}'".format(html.escape(sname, quote=True))
-        group = (battery_group_for(sid, lookup)
+        group = (battery_group_for(sid, lookup, profile.get("_seedtest_path"))
                  if (lookup and groups) else None)
         if group is not None and sid.lstrip("#") not in forced_ids:
             entry = groups.get(group)
@@ -3399,7 +3405,7 @@ def main():
                     help="manifest: no @worlds slots (skip world-seed rolling)")
     ap.add_argument("--census-workers", type=int, default=0,
                     help="processes for the noise-census and terrain backfills "
-                         "(default: CPU count minus 2, floor 2). Lower it to "
+                         "(default: two thirds of cores, floor 2). Lower it to "
                          "leave room for a local server — a cold bank runs for "
                          "hours on every core it is given")
     ap.add_argument("--census-top", type=int, default=0,

@@ -72,7 +72,7 @@ Find a great world seed by testing against the real modded server. Rolls bank ra
 ./dev seed-roll --reset                      # wipe all seed data and start fresh
 ./dev seed-roll --clean                      # wipe worker dirs, keep the candidate bank
 ./dev seed-roll --warmup-only                # rebuild the warmup artefacts and stop
-./dev seed-roll --census-workers 8           # share the machine (default: cores - 2)
+./dev seed-roll --census-workers 8           # share the machine (default: two thirds of cores)
 ```
 
 Winners are auto-written into the individual dimension config files. Ctrl+C finalises with whatever has been measured so far; re-runs resume.

@@ -123,36 +123,44 @@ SEVERITY = {
 }
 
 
-def resolve_set(sid, struct_sets, struct_to_sets):
+def resolve_set(sid, struct_sets, struct_to_sets, seedtest_path=None):
     """The structure set a battery entry resolves to, or None.
 
     MIRRORS fast_roller._resolve_struct_set — this must agree with what the
     roller actually measured, or the sweep describes a different world.
+    Tags are resolved via structure_tags.resolve_tag (exact member lists).
     """
     clean = sid.lstrip("#")
     if clean in struct_to_sets:
         return struct_sets[struct_to_sets[clean][0]]
     if sid.startswith("#"):
-        tag_path = clean.split(":")[-1] if ":" in clean else clean
-        for cfg in struct_sets.values():
-            for s in cfg["structures"]:
-                if tag_path in s["id"]:
-                    return cfg
+        from structure_tags import resolve_tag
+        members = resolve_tag(seedtest_path, sid)
+        if members is not None:
+            for member in members:
+                if member in struct_to_sets:
+                    return struct_sets[struct_to_sets[member][0]]
+        return None
     if clean in struct_sets:
         return struct_sets[clean]
     return None
 
 
-def group_for(sid, struct_to_set, set_to_group):
-    """MIRRORS score-dimensions.battery_group_for."""
+def group_for(sid, struct_to_set, set_to_group, seedtest_path=None):
+    """MIRRORS score-dimensions.battery_group_for.
+
+    Tags are resolved via structure_tags.resolve_tag (exact member lists).
+    """
     clean = sid.lstrip("#")
     set_id = struct_to_set.get(clean)
     if set_id is None and sid.startswith("#"):
-        tag_path = clean.split(":")[-1] if ":" in clean else clean
-        for struct_id, candidate_set in struct_to_set.items():
-            if tag_path in struct_id:
-                set_id = candidate_set
-                break
+        from structure_tags import resolve_tag
+        members = resolve_tag(seedtest_path, sid)
+        if members is not None:
+            for member in members:
+                if member in struct_to_set:
+                    set_id = struct_to_set[member]
+                    break
     if set_id is None and clean in set_to_group:
         set_id = clean
     if set_id is None:
@@ -252,7 +260,8 @@ def expected_in_radius(spacing, frequency, radius_blocks):
 
 
 def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
-                    struct_to_set, set_to_group, type_defaults):
+                    struct_to_set, set_to_group, type_defaults,
+                    seedtest_path=None):
     """-> list of findings for one dimension."""
     findings = []
     radius = float(profile["radius"])
@@ -279,7 +288,7 @@ def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
         if sid.lstrip("#") in forced_ids:
             continue
 
-        group = group_for(sid, struct_to_set, set_to_group)
+        group = group_for(sid, struct_to_set, set_to_group, seedtest_path)
         if group is not None:
             if group not in resolved_groups:
                 findings.append(dict(base, code="GROUP-SUPPRESSED", detail=(
@@ -308,7 +317,7 @@ def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
                         .format(group, mean, lo, hi_eff, peak))))
             continue
 
-        set_cfg = resolve_set(sid, struct_sets, struct_to_sets)
+        set_cfg = resolve_set(sid, struct_sets, struct_to_sets, seedtest_path)
         if set_cfg is not None and mode_drops(set_cfg.get("id"), profile):
             findings.append(dict(base, code="SET-FILTERED-OUT", detail=(
                 "structures.mode '{}' drops {}".format(
@@ -335,21 +344,22 @@ def sweep_dimension(name, entry, profile, struct_sets, struct_to_sets,
     return findings
 
 
-def unresolvable_structs(struct_sets):
+def unresolvable_structs(struct_sets, seedtest_path=None):
     """STRUCTS short names whose locate id exists in no extracted set.
 
     A wrong id here is invisible: resolve_struct happily returns it, the
     battery accepts it, and the roller banks -1 for it on every seed of every
     dimension that wants it — indistinguishable from "this seed didn't have
-    one".
+    one". Tags are resolved via structure_tags.resolve_tag.
     """
     from dimension_profiles import STRUCTS
+    from structure_tags import resolve_tag
     known = {s["id"] for cfg in struct_sets.values() for s in cfg["structures"]}
     bad = {}
     for short, sid in sorted(STRUCTS.items()):
         if sid.startswith("#"):
-            tag = sid.lstrip("#").split(":")[-1]
-            if not any(tag in k for k in known):
+            members = resolve_tag(seedtest_path, sid)
+            if members is None or not any(m in known for m in members):
                 bad[short] = sid
         elif sid not in known:
             bad[short] = sid
@@ -424,7 +434,7 @@ def suggest_band(spec, radial, radius, censuses, group, settings):
 
 
 def bank_pass(name, entry, profile, struct_to_set, set_to_group,
-              type_defaults, cdir):
+              type_defaults, cdir, seedtest_path=None):
     """Replay every want against every banked census. -> list of findings.
 
     Exact scoring from sidecar positions: the replay computes block
@@ -454,7 +464,7 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
             continue
         if sid.startswith("#"):
             continue
-        group = group_for(sid, struct_to_set, set_to_group)
+        group = group_for(sid, struct_to_set, set_to_group, seedtest_path)
         if group is None:
             continue
         lo, hi = spec
@@ -557,17 +567,18 @@ def main():
         wanted = {d.strip() for d in args.dims.split(",")}
         targets = {k: v for k, v in targets.items() if k in wanted}
 
-    bad_ids = unresolvable_structs(struct_sets)
+    bad_ids = unresolvable_structs(struct_sets, seedtest_path=args.seedtest)
     rows = []
     clean = []
     for name, entry in targets.items():
         profile = build_profile(entry, config, difficulty)
         found = sweep_dimension(name, entry, profile, struct_sets,
                                 struct_to_sets, struct_to_set, set_to_group,
-                                type_defaults)
+                                type_defaults, seedtest_path=args.seedtest)
         if args.bank and type_defaults:
             found += bank_pass(name, entry, profile, struct_to_set,
-                               set_to_group, type_defaults, cdir)
+                               set_to_group, type_defaults, cdir,
+                               seedtest_path=args.seedtest)
         if found:
             rows.extend(found)
         else:

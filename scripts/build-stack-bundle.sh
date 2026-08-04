@@ -94,6 +94,7 @@ MANIFEST=(
   scripts/seed/biome_source_mixing.py
   scripts/seed/fast_roller.py
   scripts/seed/structure_placement.py
+  scripts/seed/structure_tags.py
   scripts/seed/noise_placement.py
   scripts/seed/census_scoring.py
   scripts/seed/terrain_survey.py

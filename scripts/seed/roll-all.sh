@@ -42,8 +42,8 @@ set -euo pipefail
 ROLL_MEMORY="${ROLL_MEMORY:-10G}"
 ROLL_POOL="${ROLL_POOL:-5000}"
 ROLL_COUNT="${ROLL_COUNT:-100}"
-# Empty means "let score-dimensions decide" (CPU count minus 2). Set it only
-# to leave room for something else on the machine.
+# Empty means "let score-dimensions decide" (two thirds of cores, floor 2).
+# Set it only to leave room for something else on the machine.
 ROLL_CENSUS_WORKERS="${ROLL_CENSUS_WORKERS:-}"
 # Empty means "census every candidate" (the exhaustive default).
 ROLL_CENSUS_TOP="${ROLL_CENSUS_TOP:-}"
@@ -105,7 +105,7 @@ usage() {
   echo "  --count N       Candidates kept per dimension (default $ROLL_COUNT)"
   echo "  --dims a,b      Only roll the named dimensions (comma-separated)"
   echo "  --census-workers N  Processes for the census/terrain backfill"
-  echo "                  (default: CPU count minus 2 — lower it to share the machine)"
+  echo "                  (default: two thirds of cores, floor 2 — lower it to share the machine)"
   echo "  --census-top N  Only census candidates that can still reach a"
   echo "                  dimension's top N (exact; winners are unchanged)"
   echo "  --no-write      Measure and score only; never touch a config file"

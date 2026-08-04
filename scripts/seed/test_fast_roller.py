@@ -87,6 +87,14 @@ class ProcessGroupTests(unittest.TestCase):
             "structures": [{"structure": "minecraft:village_plains",
                             "weight": 1}],
         }))
+        # Tag data for exact #minecraft:village resolution
+        tags_dir = Path(tmp) / ".structure_tags" / "minecraft"
+        tags_dir.mkdir(parents=True, exist_ok=True)
+        (tags_dir / "village.json").write_text(json.dumps({
+            "values": ["minecraft:village_plains"]
+        }))
+        import structure_tags
+        structure_tags.clear_cache()
         it = iter(seeds)
         with mock.patch.object(fast_roller, "random_seed", lambda: next(it)):
             task = (members, pool, count, str(Path(tmp) / "sets"),

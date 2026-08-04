@@ -1109,6 +1109,22 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
     def setUpClass(cls):
         import sweep_structure_wants
         cls.sweep = sweep_structure_wants
+        # Shared tag fixture for tests that resolve #minecraft:village
+        cls._tag_tmp = tempfile.mkdtemp()
+        tags_dir = Path(cls._tag_tmp) / ".structure_tags" / "minecraft"
+        tags_dir.mkdir(parents=True)
+        (tags_dir / "village.json").write_text(json.dumps({
+            "values": ["minecraft:village_plains", "minecraft:village_desert",
+                        "minecraft:village_savanna", "minecraft:village_snowy",
+                        "minecraft:village_taiga"]
+        }))
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+        shutil.rmtree(cls._tag_tmp, ignore_errors=True)
+        import structure_tags
+        structure_tags.clear_cache()
 
     def _dim(self, radius, wants, **over):
         dim = {"name": "t", "type": "multi_biome", "dimensionId": "adventure:t",
@@ -1119,13 +1135,14 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
         dim.update(over)
         return dim
 
-    def _run(self, dim, struct_to_set, set_to_group, struct_sets=None):
+    def _run(self, dim, struct_to_set, set_to_group, struct_sets=None,
+             seedtest_path=None):
         cfg = {"namespace": "adventure", "dimensions": [dim],
                "portals": [], "worlds": []}
         profile = build_profile(dim, cfg)
         return self.sweep.sweep_dimension(
             "t", dim, profile, struct_sets or {}, {}, struct_to_set,
-            set_to_group, self.TYPE_DEFAULTS)
+            set_to_group, self.TYPE_DEFAULTS, seedtest_path=seedtest_path)
 
     # --- the exact reachability maths -----------------------------------
     def test_max_curve_weight_is_the_peak_not_the_mean(self):
@@ -1178,7 +1195,8 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
         found = self._run(
             self._dim(1024, {"village": "near_border"}),
             {"minecraft:village_plains": "minecraft:villages"},
-            {"minecraft:villages": "settlements"})
+            {"minecraft:villages": "settlements"},
+            seedtest_path=self._tag_tmp)
         self.assertEqual(found, [])
 
     def test_a_zero_band_is_still_reported(self):
@@ -1188,14 +1206,16 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
         dim["structures"]["radial"] = {"settlements": self.OUTER_HALF_ONLY}
         found = self._run(dim,
                           {"minecraft:village_plains": "minecraft:villages"},
-                          {"minecraft:villages": "settlements"})
+                          {"minecraft:villages": "settlements"},
+                          seedtest_path=self._tag_tmp)
         self.assertEqual([f["code"] for f in found], ["CURVE-SUPPRESSED-BAND"])
 
     def test_band_starting_beyond_the_border_is_flagged(self):
         found = self._run(
             self._dim(256, {"village": {"min": 256, "max": 2048}}),
             {"minecraft:village_plains": "minecraft:villages"},
-            {"minecraft:villages": "settlements"})
+            {"minecraft:villages": "settlements"},
+            seedtest_path=self._tag_tmp)
         self.assertEqual([f["code"] for f in found], ["BAND-OUTSIDE-BORDER"])
 
     def test_a_suppressed_group_is_flagged(self):
@@ -1220,7 +1240,8 @@ class UnsatisfiableWantSweepTests(unittest.TestCase):
                         "force": [{"structure": "#minecraft:village",
                                    "x": 100, "z": 100}]})
         found = self._run(dim, {"minecraft:village_plains": "minecraft:villages"},
-                          {"minecraft:villages": "settlements"})
+                          {"minecraft:villages": "settlements"},
+                          seedtest_path=self._tag_tmp)
         # The band check runs first and is about the CONFIG, not the seed, so
         # it still fires; nothing group-related does.
         self.assertNotIn("CURVE-SUPPRESSED-BAND", [f["code"] for f in found])
