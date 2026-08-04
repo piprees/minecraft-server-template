@@ -369,27 +369,31 @@ public class DimensionCommands {
         json.append(forcedGroups > 0 ? "\n }" : "}");
 
         // Sets that keep their own placement (custom placement types, the
-        // exit-shrine set). Recorded so per-dimension set-id filtering
-        // (structures.mode/exclude) is visible in the artefact — a filtered
-        // pass-through must be ABSENT from this list.
-        json.append(",\n \"passThrough\": [");
-        int passThroughCount = 0;
-        for (var entry : calculator.getStructureSets()) {
-            var placement = entry.value().placement();
-            if (placement instanceof NoiseStructurePlacement
-                    || placement instanceof FixedStructurePlacement) {
-                continue;
+        // exit-shrine set). Each entry carries the placement inputs and
+        // live getStartChunk positions within the measurement horizon, so
+        // the Python parity test can verify its vanilla grid maths per
+        // placement type (precision-plan.md §6.3).
+        int horizonChunks = 0;
+        {
+            var dimConfig = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
+            if (dimConfig == null) {
+                dimConfig = MultiverseConfig.getInstance().getWorld(dimensionId.getPath());
             }
-            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
-            if (setId == null) {
-                continue;
+            int playerBorder = 8192;
+            if (dimConfig != null) {
+                var borders = dimConfig.getBorders();
+                if (borders != null && borders.player > 0) {
+                    playerBorder = (int) borders.player;
+                }
             }
-            if (passThroughCount++ > 0) {
-                json.append(", ");
-            }
-            json.append('"').append(setId).append('"');
+            horizonChunks = (playerBorder + 2048) / 16;
         }
-        json.append("]\n}\n");
+        var ptCensus = PassThroughCensus.census(
+                calculator.getStructureSets(), calculator, world.getSeed(), horizonChunks);
+        json.append(",\n \"passThrough\": ");
+        json.append(PassThroughCensus.toJson(ptCensus));
+        int passThroughCount = ptCensus.size();
+        json.append("\n}\n");
 
         try {
             Path outputPath = Artefacts.dir("census")

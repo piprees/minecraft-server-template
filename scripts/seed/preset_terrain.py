@@ -283,11 +283,28 @@ class PresetTerrainEvaluator:
 
     # -- public API ---------------------------------------------------------
 
+    # The oracle (sample-biome-grid, DimensionCommands.java line 946) calls
+    # biomeSource.getBiome(qx, 16, qz, sampler) — quart y=16. Vanilla's
+    # MultiNoiseSampler.sample() converts to block coords via
+    # QuartPos.toBlock(16) = 64 before evaluating density functions. The
+    # evaluator operates in block space (verified by test_gradient_formula),
+    # so the constant is the block Y the density function sees.
+    BIOME_SAMPLE_BLOCK_Y = 64
+
     def depth(self, x, z, y=0):
         """Router depth at (x, y, z) — matches `customdim sample-noise`'s
         depth field when sampled at quarter-aligned coordinates and y=0."""
         self._column_memo = {}
         return self._eval(self._root_ref, float(x), float(y), float(z))
+
+    def depth_for_biome(self, x, z):
+        """Router depth at the oracle's biome-sampling y (block y=64).
+
+        sample-biome-grid passes quart y=16 to getBiome; vanilla converts
+        to block y=64 via QuartPos.toBlock before evaluating the density
+        function. The evaluator operates in block space.
+        """
+        return self.depth(x, z, y=self.BIOME_SAMPLE_BLOCK_Y)
 
     def surface_height(self, x, z):
         """Approximate surface Y: 128 * depth(y=0) = 128 * (1 + offset)."""

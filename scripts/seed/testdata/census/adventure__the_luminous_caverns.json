@@ -1,7 +1,7 @@
 {
  "stackVersion": "0.0.0-local",
  "kind": "structure-census",
- "generatedAt": "2026-08-04T20:56:59.688699133Z",
+ "generatedAt": "2026-08-04T22:14:11.554690222Z",
  "schemaVersion": 2,
  "dimension": "adventure:the_luminous_caverns",
  "seed": -2092939776176210055,
@@ -56,5 +56,22 @@
   }
  },
  "forced": {},
- "passThrough": ["adventure:exit_shrines", "betterstrongholds:stronghold", "minecraft:strongholds"]
+ "passThrough": {
+  "adventure:exit_shrines": {
+   "placementType": "minecraft:random_spread",
+   "spacing": 24,
+   "separation": 12,
+   "salt": 918273645,
+   "frequency": 0.001,
+   "positions": []
+  },
+  "betterstrongholds:stronghold": {
+   "placementType": "betterstrongholds:stronghold",
+   "spacing": 85,
+   "separation": 50,
+   "salt": 596441294,
+   "frequency": 1.0,
+   "positions": [[-67, -54], [-67, -54], [-67, -54], [-67, -54], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-67, -54], [-67, -54], [-67, -54], [-67, -54], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-67, -54], [-67, -54], [-67, -54], [-67, -54], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-67, -54], [-67, -54], [-67, -54], [-67, -54], [-82, 11], [-82, 11], [-82, 11], [-82, 11], [-82, 11]]
+  }
+ }
 }

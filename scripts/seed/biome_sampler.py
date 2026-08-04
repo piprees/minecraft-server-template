@@ -325,7 +325,7 @@ def load_noise_configs():
 class BiomeSampler:
     def __init__(self, seed, biome_params_path, noise_config=None,
                  biome_filter=None, family=None, param_overrides=None,
-                 suppress=None):
+                 suppress=None, depth_evaluator=None):
         """Create a biome sampler for one seed.
 
         Args:
@@ -342,6 +342,11 @@ class BiomeSampler:
             param_overrides: optional {biome_id: raw "parameters" dict}
                     (Tier 3 object-form biomes entries) — forwarded to
                     build_mixed_entries for explicit placement intervals
+            depth_evaluator: optional callable (x, z) -> float that returns
+                    the exact depth climate value for biome selection.
+                    When set, depth_exact is True. When None, depth defaults
+                    to 0.0 and depth_exact reflects whether that is provably
+                    correct (set by the caller via depth_exact).
         """
         self.seed = seed
         self.biome_table = json.loads(Path(biome_params_path).read_text())
@@ -415,6 +420,14 @@ class BiomeSampler:
                 xz_scale = cfg.get("xz_scale", 0.25)
                 self._climate_params[param_name] = (sampler, xz_scale)
 
+        # Depth axis: when a depth_evaluator is provided, depth is computed
+        # exactly from the noise router's density-function graph at the
+        # oracle's biome-sampling y (block y=64 = QuartPos.toBlock(16)).
+        # Without one, depth=0.0. depth_exact records whether depth was
+        # evaluated from the router (True) or defaulted (False).
+        self._depth_evaluator = depth_evaluator
+        self.depth_exact = depth_evaluator is not None
+
     def _shifts(self, qx, qz):
         """Compute coordinate shifts from the offset noise.
         MC's ShiftA = offset(qx*0.25, 0, qz*0.25)
@@ -424,11 +437,19 @@ class BiomeSampler:
         return sx, sz
 
     def sample_climate(self, x, z):
-        """Sample all 6 climate parameters at (x, z). Returns dict."""
+        """Sample all 6 climate parameters at (x, z). Returns dict.
+
+        Depth is evaluated from the noise router's density-function graph
+        when a depth_evaluator is present (exact), or defaults to 0.0
+        (check self.depth_exact to know which).
+        """
         qx = x / 4.0
         qz = z / 4.0
         shift_x, shift_z = self._shifts(qx, qz)
-        climate = {"depth": 0.0}
+        if self._depth_evaluator is not None:
+            climate = {"depth": self._depth_evaluator(x, z)}
+        else:
+            climate = {"depth": 0.0}
         for param_name in ("temperature", "humidity", "continentalness",
                            "erosion", "weirdness"):
             if param_name in self._climate_params:
@@ -758,6 +779,8 @@ def sampler_spec(profile):
     """
     dim_type = profile.get("type") or ""
     biomes = profile.get("create_args", {}).get("biome") or ""
+    noise_settings = (profile.get("create_args", {}).get("noiseSettings")
+                      or profile.get("noiseSettings"))
     return {
         "noise_family": resolve_noise_family(dim_type, profile.get("family")),
         "dim_type": dim_type,
@@ -769,7 +792,35 @@ def sampler_spec(profile):
         # Global suppress list (settings.json suppress.biomes) — changes
         # the layout of every noise-sourced world; see BiomeSuppression.
         "suppressed_biomes": list(profile.get("suppressed_biomes") or []),
+        # The noise_settings id decides the noise router graph. When it
+        # names an adventure preset whose graph is in-repo, depth can be
+        # evaluated exactly; otherwise depth is unavailable.
+        "noise_settings": noise_settings,
     }
+
+
+def _make_depth_evaluator(noise_settings, seed, noise_family):
+    """Build a depth evaluator for the given noise_settings, or None.
+
+    Returns (evaluator_fn, depth_exact) where evaluator_fn is a callable
+    (x, z) -> float or None, and depth_exact is True when depth is provably
+    correct without the router graph.
+    """
+    from preset_terrain import PresetTerrainEvaluator, supported_presets
+
+    # Adventure presets have their router graph in-repo — evaluate exactly.
+    if noise_settings in supported_presets():
+        ev = PresetTerrainEvaluator(noise_settings, int(seed))
+        return ev.depth_for_biome, True
+
+    # Paradise Lost: every biome entry has depth=(0,0), so depth=0.0 is
+    # provably correct — the biome source ignores depth entirely.
+    if noise_family == "paradise_lost":
+        return None, True
+
+    # Standard overworld/nether/end: the noise router graph lives in the
+    # vanilla/mod jar, not in-repo. Depth is not exactly measurable.
+    return None, False
 
 
 def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
@@ -791,17 +842,27 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
         suppressed_set = {str(s).lower() for s in suppress}
         biomes = [b for b in biomes if b.lower() not in suppressed_set] or None
 
+    # Resolve depth evaluator from the noise_settings id.
+    noise_settings = spec.get("noise_settings")
+    depth_eval, depth_exact = _make_depth_evaluator(
+        noise_settings, seed, noise_family)
+
     if spec.get("dim_type") == "checkerboard" and biomes:
         sampler = CheckerboardBiomeSampler(
             seed, biome_params_path, biomes=biomes,
             scale=spec.get("checkerboard_scale"),
             noise_config=noise_config, family=noise_family)
+        # Checkerboard ignores climate for biome selection — depth is moot.
+        sampler.depth_exact = True
     else:
         sampler = BiomeSampler(
             seed, biome_params_path, noise_config=noise_config,
             biome_filter=biomes, family=noise_family,
             param_overrides=spec.get("parameters") or None,
-            suppress=suppress)
+            suppress=suppress, depth_evaluator=depth_eval)
+        if not depth_eval and depth_exact:
+            # depth=0.0 is provably correct (e.g. paradise_lost).
+            sampler.depth_exact = True
     patches = spec.get("patches") or []
     if patches:
         sampler = PatchedBiomeSampler(sampler, patches)

@@ -26,6 +26,23 @@ NOISE_MANAGED_PLACEMENT_TYPES = frozenset({
     "moogs_structures:advanced_random_spread",
 })
 
+# Placement types whose getStartChunk is verified to match the Python
+# get_start_chunk maths at zero tolerance (test_passthrough_parity.py).
+# Battery measurement uses the vanilla grid maths ONLY for types on this
+# list; unverified types are excluded from battery measurement and banked
+# "not exactly measurable" (-1 distance, the §3.4 skip convention).
+#
+# To add a type: dump a census fixture with that type present, run
+# test_passthrough_parity.py, and confirm zero-tolerance parity. Then
+# add the type id here. The parity test is the only way onto this list.
+# moogs_structures:advanced_random_spread is deliberately absent: it is
+# noise-managed (absorbed into a noise group at runtime), so it can never
+# appear as a pass-through set in a census fixture — an allowlist entry for
+# it would be a claim no parity test can check.
+VERIFIED_PASSTHROUGH_TYPES = frozenset({
+    "minecraft:random_spread",
+})
+
 
 def java_long(n):
     """Truncate to signed 64-bit (Java long semantics)."""
@@ -340,6 +357,46 @@ def locate_all(world_seed, structure_sets, search_radius=50, origin_x=0, origin_
         )
         results[set_id] = result
     return results
+
+
+def recompute_passthrough_positions(world_seed, spacing, separation, salt,
+                                    frequency, horizon_chunks,
+                                    spread_type="linear"):
+    """Recompute pass-through set positions with the Python grid maths.
+
+    Returns a set of (cx, cz) tuples — the same positions the mod's live
+    getStartChunk produces for a vanilla random_spread placement. Used by
+    test_passthrough_parity.py to diff against the census fixture at zero
+    tolerance.
+    """
+    if spacing <= 0 or horizon_chunks <= 0:
+        return set()
+    region_range = horizon_chunks // spacing + 2
+    horizon_sq = horizon_chunks * horizon_chunks
+    positions = set()
+    for rx in range(-region_range, region_range + 1):
+        for rz in range(-region_range, region_range + 1):
+            cx, cz = get_start_chunk(world_seed, rx, rz,
+                                      spacing, separation, salt, spread_type)
+            if frequency < 1.0:
+                fseed = region_seed(world_seed, cx, cz, salt)
+                fseed = (fseed ^ 0x5DEECE66D) & ((1 << 48) - 1)
+                fseed, bits = next_random(fseed)
+                fval = (bits >> 7) / (1 << 24)
+                if fval >= frequency:
+                    continue
+            dist_sq = cx * cx + cz * cz
+            if dist_sq <= horizon_sq:
+                positions.add((cx, cz))
+    return positions
+
+
+def passthrough_placement_type(set_id, structure_sets):
+    """The registered placement type id for a pass-through set, or None."""
+    cfg = structure_sets.get(set_id)
+    if cfg is None:
+        return None
+    return cfg.get("placement_type")
 
 
 if __name__ == "__main__":

@@ -120,7 +120,7 @@ class RecordingSampler:
 
     def __init__(self, seed, biome_params_path, noise_config=None,
                  biome_filter=None, family=None, param_overrides=None,
-                 suppress=None):
+                 suppress=None, depth_evaluator=None):
         RecordingSampler.calls.append({
             "seed": seed, "biome_filter": biome_filter, "family": family,
             "param_overrides": param_overrides, "suppress": suppress,

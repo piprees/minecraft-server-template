@@ -612,6 +612,15 @@ def score_candidate(profile, rows, structures_override=None):
                 if entry and entry.get("count"):
                     found_count += 1
                 continue
+            # Grid-placed battery entry. Exclude sets whose placement type
+            # is not on the VERIFIED_PASSTHROUGH_TYPES allowlist — the Python
+            # grid maths is only proven correct for verified types, so an
+            # unverified type's distance is "not exactly measurable" (§6.3).
+            unverified = profile.get("_unverified_passthrough_sets") or set()
+            struct_to_set_map = (lookup or ({}, {}))[0]
+            entry_set = struct_to_set_map.get(sid.lstrip("#"))
+            if entry_set and entry_set in unverified:
+                continue
             if kind == "shun":
                 s = shun_score(d, profile["radius"], spec)
             else:
@@ -935,15 +944,44 @@ def attach_battery_groups(profiles, seedtest, config_dir):
     The pools carry each structure's weight in its group — the pick algorithm
     (resolve_structure) uses these weights to assign exactly one structure per
     noise site, so byStructure counts and distances are exact facts.
+
+    Also stamps the set of unverified pass-through set ids: sets whose
+    placement type is not in VERIFIED_PASSTHROUGH_TYPES. Battery measurement
+    uses vanilla grid maths for these, which is only correct for verified
+    types; unverified types are excluded and banked -1 (not exactly
+    measurable). The allowlist lives in structure_placement.py and the
+    parity test (test_passthrough_parity.py) is the only way onto it.
     """
     if not Path(config_dir).is_dir():
         return
     lookup = structure_group_lookup(seedtest, config_dir)
     pools = census_scoring.load_structure_pools(seedtest)
+    # Identify pass-through sets with unverified placement types
+    from structure_placement import (load_structure_sets,
+                                     VERIFIED_PASSTHROUGH_TYPES,
+                                     NOISE_MANAGED_PLACEMENT_TYPES)
+    unverified_sets = set()
+    sets_dir = Path(seedtest) / ".structure_sets"
+    if sets_dir.is_dir():
+        extracted = load_structure_sets(str(sets_dir))
+        for set_id, cfg in extracted.items():
+            ptype = cfg.get("placement_type", "")
+            if ptype not in NOISE_MANAGED_PLACEMENT_TYPES \
+                    and ptype not in VERIFIED_PASSTHROUGH_TYPES:
+                unverified_sets.add(set_id)
+            # A set with frequency < 1.0 gates every position through the
+            # frequency reducer, which the Python maths does not mirror —
+            # the live census (shouldGenerate) proved the hand-rolled draw
+            # wrong for adventure:exit_shrines. Such a set's distances are
+            # not exactly measurable until the reducer is mirrored and
+            # parity-proven, whatever its placement type.
+            elif cfg.get("frequency", 1.0) < 1.0:
+                unverified_sets.add(set_id)
     for profile in profiles.values():
         profile["_battery_groups"] = lookup
         profile["_structure_pools"] = pools
         profile["_seedtest_path"] = str(seedtest)
+        profile["_unverified_passthrough_sets"] = unverified_sets
 
 
 def _with_group_settings(summary, group_settings):
