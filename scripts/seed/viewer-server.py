@@ -1055,15 +1055,26 @@ def _dim_source(config_path, dim):
     return sources.get(dim)
 
 
-def noise_positions(config_path, dim, seed, per_group=POSITIONS_PER_GROUP):
-    """{group: {count, shown, pos: [[blockX, blockZ], ...]}} for one candidate.
+def _load_structure_pools(seedtest):
+    """Load structure_pools.json from the seedtest directory."""
+    path = Path(seedtest) / "structure_pools.json" if seedtest else None
+    if path and path.exists():
+        try:
+            return json.loads(path.read_text()).get("dimensions", {})
+        except (OSError, json.JSONDecodeError):
+            pass
+    return {}
 
-    Positions are BLOCK coordinates — noise_census speaks chunks, and the
-    x16 happens here so the client's coordinate model stays the one it
-    already uses for `data-pos` (blocks, offset from spawn at the render's
-    centre). The chunk's origin block is used, not its centre: that is the
-    corner `/customdim structure-census` reports and the quantisation is
-    16 blocks against a render spanning at least 1024.
+
+def noise_positions(config_path, dim, seed, per_group=POSITIONS_PER_GROUP,
+                    seedtest=None):
+    """{group: {count, shown, pos: [[blockX, blockZ, "ns:id"], ...]}} for one
+    candidate.
+
+    Positions are BLOCK coordinates (x16 of the chunk origin the census
+    produces) carrying the assigned structure id resolved via the pick
+    algorithm (pick_seed + priority + resolve_structure). The client draws
+    each marker with the structure's own glyph.
 
     Cached under (dim, seed, noise fingerprint), so editing a dimension's
     placement config invalidates it exactly when it should.
@@ -1089,20 +1100,42 @@ def noise_positions(config_path, dim, seed, per_group=POSITIONS_PER_GROUP):
     payload = {"dim": dim, "seed": str(seed), "radiusChunks": radius_chunks,
                "coverage": radius_chunks * 32, "groups": {}}
     if fp is None:
-        # Noise is suppressed for this dimension (structureDensity none,
-        # structures.mode none, structures.noise false, or a type with no
-        # groups). Not an error, and not an empty answer either — say so, so
-        # the client can explain the absence rather than look broken.
         payload["suppressed"] = True
     else:
         type_defaults = noise_placement.load_type_defaults(cfg)
         census = noise_placement.noise_census(int(seed), dim, src, type_defaults)
+
+        # Load structure pools for this dimension so each position can carry
+        # its assigned structure id.
+        all_pools = _load_structure_pools(seedtest)
+        dim_pools = all_pools.get(dim, {})
+        dim_salt = noise_placement.salt_of(dim)
+
         for group, positions in census.items():
-            sample = _sample_evenly(positions, per_group)
+            # Build the sorted pool for this group: [(structure_id, weight)]
+            # sorted by id (plain string sort) per the cross-side contract.
+            pool_map = dim_pools.get(group, {})
+            sorted_pool = sorted(pool_map.items(), key=lambda x: x[0])
+
+            # Compute the pick seed for this group's noise seed.
+            group_noise_seed = noise_placement._signed64(
+                int(seed) ^ dim_salt ^ noise_placement.salt_of(group))
+            ps = noise_placement.pick_seed(group_noise_seed)
+
+            # Resolve each position's assigned structure.
+            resolved = []
+            for cx, cz in positions:
+                pick_value = noise_placement.priority(ps, cx, cz)
+                assigned = noise_placement.resolve_structure(
+                    sorted_pool, pick_value)
+                resolved.append((cx, cz, assigned))
+
+            sample = _sample_evenly(resolved, per_group)
             payload["groups"][group] = {
-                "count": len(positions),
+                "count": len(resolved),
                 "shown": len(sample),
-                "pos": [[cx * 16, cz * 16] for cx, cz in sample],
+                "pos": [[cx * 16, cz * 16, sid]
+                        for cx, cz, sid in sample],
             }
     with _CENSUS_POS_LOCK:
         _CENSUS_POS_CACHE[key] = payload
@@ -1244,7 +1277,8 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             per_group = max(1, min(per_group, 2000))
             try:
                 self._respond_json(
-                    dict(noise_positions(self.config_path, dim, seed, per_group),
+                    dict(noise_positions(self.config_path, dim, seed, per_group,
+                                         seedtest=self.seedtest),
                          ok=True))
             except KeyError as exc:
                 self._respond_json({"error": str(exc).strip("'")}, 404)

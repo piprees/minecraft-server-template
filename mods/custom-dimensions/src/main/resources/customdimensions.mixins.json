@@ -29,6 +29,7 @@
     "StructureWeightSamplerMixin",
     "WorldLoaderMixin",
     "NetherPortalProtectionMixin",
+    "NoiseStructureSelectionMixin",
     "EndGatewaySuppressionMixin"
   ],
   "injectors": {

@@ -303,7 +303,11 @@ class NoisePositionsTests(unittest.TestCase):
         for group, entry in out["groups"].items():
             self.assertGreater(entry["count"], 0, group)
             self.assertEqual(entry["shown"], len(entry["pos"]))
-            for x, z in entry["pos"]:
+            for pos in entry["pos"]:
+                # schemaVersion 2: [blockX, blockZ, "ns:id"] or [blockX, blockZ, None]
+                # when no structure_pools.json is available.
+                self.assertEqual(len(pos), 3, f"position must be [bx, bz, id]: {pos}")
+                x, z = pos[0], pos[1]
                 # BLOCKS, not chunks — the client's coordinate model is the one
                 # data-pos already uses. x16 happens server-side so there is
                 # only one place to get it wrong.
@@ -313,7 +317,12 @@ class NoisePositionsTests(unittest.TestCase):
                 self.assertLessEqual(abs(z), 64 * 16)
 
     def test_positions_match_noise_census_exactly(self):
-        """The endpoint must not become a second placement implementation."""
+        """The endpoint must not become a second placement implementation.
+
+        Positions are [blockX, blockZ, assigned_id]. Without a
+        structure_pools.json in the test dir the id is None for every
+        position; count and block coordinates still match the census.
+        """
         import noise_placement
         src = viewer_server._dim_source(str(self.cfg), "d1")
         defaults = noise_placement.load_type_defaults(self.cfg)
@@ -322,8 +331,11 @@ class NoisePositionsTests(unittest.TestCase):
         self.assertEqual(sorted(out["groups"]), sorted(census))
         for group, positions in census.items():
             self.assertEqual(out["groups"][group]["count"], len(positions))
+            # Block coordinates match; the third element is the assigned
+            # structure id (None here because no pools file is available).
+            got_coords = [[p[0], p[1]] for p in out["groups"][group]["pos"]]
             self.assertEqual(
-                out["groups"][group]["pos"],
+                got_coords,
                 [[cx * 16, cz * 16] for cx, cz in positions])
 
     def test_per_group_caps_the_sample_not_the_count(self):

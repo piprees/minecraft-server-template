@@ -42,6 +42,7 @@ The payload is the canonical "does this change what a seed generates, or what a 
 | `forcedStructures` (sorted `[structure, x, z]` triples) — **conditional**, only present when well-formed entries exist | `structures.force` places structures at fixed coordinates regardless of seed |
 | `spacingOverrides` (`structures.spacing`) | Rescales placement frequency for named sets |
 | `shrineSpacing` — **conditional**, only present when `exitShrines.enabled` is true AND `structures.spacing` has no explicit override for `adventure:exit_shrines` | See "the fingerprint corollary" below |
+| `structureSelection` — **conditional**, only present when noisePlacement is present | The pick algorithm version governing which structure lands on each noise site. Currently `"pick-v1"`. Changing the algorithm re-deals every site, so every noise dimension goes DRIFTED and re-rolls. |
 
 Everything NOT in this list — `seedRoll` itself, `portal`, difficulty multipliers, `description`, colours — is scoring or runtime metadata and shares freely across dimensions with otherwise-identical generation.
 

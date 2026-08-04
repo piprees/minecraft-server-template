@@ -254,6 +254,27 @@ existing roller `wants`/`shuns` and runtime `spacing`:
   fingerprints stay byte-stable. The fork-config GUI does not expose these
   fields yet.
 
+### Noise structure assignment
+
+Every noise-managed site has exactly one **assigned** structure:
+`StructurePick.assignedStructure(noiseSeed, chunkX, chunkZ, sortedPool)`
+resolves a deterministic weighted selection from the group's pool. The
+assignment governs generation via `NoiseStructureSelectionMixin`: only
+the assigned structure can start at a noise site, its biome predicate
+bypassed; a structural rejection leaves the site empty and is recorded in
+the `census/rejections__<ns>__<slug>.json` artefact.
+
+The `schemaVersion: 2` census (`/customdim structure-census`) emits
+every position as `[chunkX, chunkZ, "ns:structure_id"]`, and the seed
+roller mirrors the algorithm exactly.
+
+**Locate vs assignment discrepancy.** Vanilla `/locate` on a
+multi-structure set walks placements without knowing which structure
+occupies each site. The mod now does know — the census is the
+sanctioned instrument for asking "where is structure X". Teaching
+`/locate` to honour assignment is a candidate follow-up; the locate
+semantics are unchanged today.
+
 ### Difficulty, exits, and the remaining fields
 
 Complete reference for everything not covered by its own section above —

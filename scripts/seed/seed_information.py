@@ -158,25 +158,36 @@ def candidate_criteria(profile, rows, census, group_of, group_settings):
 
     # Structures, scored the way score_candidate scores them: through the
     # group's census where noise owns the set, positionally otherwise.
+    # Tag wants (#ns:tag) are skipped — not exactly measurable.
     groups = (census or {}).get("groups") or {}
-    radius_chunks = (census or {}).get("radiusChunks") or 0
+    census_positions = rows.get("_census_positions") or {}
     forced = {f.get("structure") for f in (profile.get("forced_structures") or [])}
+    try:
+        scx = int(float(rows.get("spawn_x") or 0)) >> 4
+        scz = int(float(rows.get("spawn_z") or 0)) >> 4
+    except (TypeError, ValueError):
+        scx, scz = 0, 0
     for sname, sid, spec, kind in profile.get("battery") or []:
         group = group_of(sid) if groups else None
         label = ("shun:" if kind == "shun" else "want:") + sname
         if group is not None and sid.lstrip("#") not in forced:
+            if sid.startswith("#"):
+                continue
             entry = groups.get(group)
-            if entry is not None:
-                entry = dict(entry)
-                entry["radial"] = (group_settings.get(group) or {}).get("radial")
+            by_struct = (entry or {}).get("byStructure") or {}
+            clean_sid = sid.lstrip("#")
+            pool_ids = set(by_struct.keys())
+            in_pool = clean_sid in pool_ids or not pool_ids
+            positions = census_positions.get(group) or []
             if kind == "shun":
                 threshold = float(spec) if isinstance(spec, (int, float)) else radius
                 out[label] = census_scoring.census_shun_score(
-                    entry, threshold, radius_chunks) >= 1.0
+                    clean_sid, threshold, positions,
+                    spawn_cx=scx, spawn_cz=scz, in_pool=in_pool) >= 1.0
             else:
-                lo, hi = spec
                 out[label] = census_scoring.census_want_score(
-                    entry, (lo, min(hi, radius)), radius_chunks) >= FULL_CREDIT
+                    clean_sid, spec, positions,
+                    spawn_cx=scx, spawn_cz=scz, in_pool=in_pool) >= FULL_CREDIT
             continue
         v = rows.get("structure_{}_dist".format(sname))
         d = float(v) if v is not None else -1.0
@@ -203,18 +214,19 @@ def dimension_report(name, entry, profile, store, type_defaults, group_of):
 
     per_criterion = {}
     joint_met = 0
+    import candidates as cmod
+    seedtest = cmod.bank_root()
     for _seed, cand in measured:
         rows = dict(cand.get("measurements") or {})
-        # Only a fingerprinted survey is read. A bare map predates the
-        # fingerprint, which is also the population built from a sampler that
-        # dropped the dimension's Tier-3 parameters — reading one would report
-        # every biome but the dominant one as absent (TROUBLESHOOTING.md#t20).
         survey = cand.get("biome_survey")
         if isinstance(survey, dict) and survey.get("biomes"):
             rows["_biome_survey"] = survey["biomes"]
         census = cand.get("noiseCensus")
         if census is not None and census.get("fp") != fp:
             census = None
+        if seedtest and census:
+            rows["_census_positions"] = noise_placement.load_census_positions(
+                seedtest, name, _seed)
         met = candidate_criteria(profile, rows, census, group_of, settings)
         if met and all(met.values()):
             joint_met += 1

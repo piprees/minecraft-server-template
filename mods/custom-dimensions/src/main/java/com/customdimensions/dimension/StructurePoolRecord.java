@@ -89,7 +89,16 @@ public final class StructurePoolRecord {
         Map<String, Map<String, Integer>> pools = new ConcurrentHashMap<>();
         for (Map.Entry<String, List<Entry>> group : byGroup.entrySet()) {
             Map<String, Integer> weights = new LinkedHashMap<>();
-            for (Entry entry : group.getValue()) {
+            // Sort entries by structure id for canonical ordering. Both sides
+            // sort before the cumulative-weight walk; determinism of the
+            // artefact is the bonus.
+            List<Entry> sorted = new java.util.ArrayList<>(group.getValue());
+            sorted.sort((a, b) -> {
+                String sa = a == null || a.structureId() == null ? "" : a.structureId();
+                String sb = b == null || b.structureId() == null ? "" : b.structureId();
+                return sa.compareTo(sb);
+            });
+            for (Entry entry : sorted) {
                 if (entry == null || entry.structureId() == null) {
                     continue;
                 }

@@ -650,8 +650,8 @@ class BuildProfileV4Tests(unittest.TestCase):
         self.assertEqual(profile["radius"], 256.0)
         # bands are relative to the real playable radius, not 8192/scale
         self.assertEqual(profile["grid_pitch"], 64)
-        # wants beyond the border stretch the locate cap to reach them
-        self.assertEqual(profile["locate_cap"], 3048)
+        # Measurement horizon: borders.player + 2048
+        self.assertEqual(profile["locate_cap"], 256 + 2048)
         # fallback: no borders block -> 8192/scale heuristic unchanged
         plain = {"name": "d", "type": "overworld", "dimensionId": "adventure:d"}
         self.assertEqual(build_profile(plain, cfg)["radius"], 8192.0)

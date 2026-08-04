@@ -266,17 +266,28 @@ class SchemaMismatch(Exception):
 
 
 def load_census(census_dir, slug):
-    """Read a census, refusing one written by a different stack.
+    """Read a census, refusing one written by a different stack or schema.
 
     The mod and this checker ship in the same bundle, so an artefact stamped
     with another stack's version was left by an earlier one and describes a
     world this stack no longer generates. Checking it is worse than not
     checking it: a green run over stale data reads as proof.
+
+    schemaVersion 2 is required: every position in a group with a non-empty
+    pool carries [chunkX, chunkZ, "ns:structure_id"], and the checker's
+    reachability floors use exact assigned counts instead of weight-share
+    arithmetic.
     """
     matches = sorted(Path(census_dir).glob(f"*__{slug}.json"))
     if not matches:
         return None
     census = json.loads(matches[0].read_text())
+    schema_version = census.get("schemaVersion")
+    if schema_version != 2:
+        raise SchemaMismatch(
+            f"{matches[0].name} has schemaVersion {schema_version!r}, "
+            f"expected 2 — re-dump it with the current jar "
+            f"(/customdim structure-census <dimension>)")
     stamped = census.get("stackVersion")
     running = stack_version.stack_version()
     if stamped is None:
@@ -301,55 +312,71 @@ def pool_union(census):
 
 
 def positions_of(census, group=None):
+    """Chunk positions from a census, as (cx, cz) pairs.
+
+    schemaVersion 2 positions are [cx, cz, "ns:id"] triples; the id is
+    stripped here so callers that only need coordinates work unchanged.
+    """
     groups = census.get("groups") or {}
     if group is not None:
         groups = {group: groups[group]} if group in groups else {}
     out = []
     for entry in groups.values():
-        out.extend(entry.get("positions") or [])
+        for pos in entry.get("positions") or []:
+            out.append((pos[0], pos[1]))
     return out
 
 
+def validate_position_format(census, report, slug):
+    """Every position in a group with pool total > 0 must be a 3-element
+    array [chunkX, chunkZ, "ns:structure_id"].
+    """
+    for group, entry in (census.get("groups") or {}).items():
+        pool = entry.get("structures") or {}
+        total_weight = sum(pool.values())
+        positions = entry.get("positions") or []
+        if total_weight <= 0:
+            continue
+        bad = [i for i, pos in enumerate(positions) if len(pos) != 3]
+        if bad:
+            report.check(slug, f"{group}: every position is [cx, cz, id]",
+                         False, f"{len(bad)} position(s) have wrong length "
+                                f"(first at index {bad[0]})")
+        else:
+            report.check(slug, f"{group}: every position is [cx, cz, id]",
+                         True)
+
+
 def check_reachable(slug, census, groups, forced, req, report):
-    """The progression floor: EXPECTED instances of one structure within a
-    radius, not "the pool contains it".
+    """The progression floor: exact assigned instances of one structure
+    within a radius.
 
-    A noise group is one StructureSet holding the whole pool behind one
-    placement, and vanilla picks which member lands on a start chunk by
-    WEIGHT. So a group with 400 positions and a 0.3-weight fortress in a pool
-    weighing 900 does not put a fortress anywhere near spawn — presence in the
-    pool says nothing about reach. The expectation
-    `positions_within * weight / pool_weight` is the honest quantity, and
-    every input is in the census: per-group positions, and the per-group pool
-    with its resolved weights.
-
-    Forced placements count in full — they are certainties, not draws.
+    schemaVersion 2 positions carry [cx, cz, "ns:id"], so the count of a
+    specific structure within a radius is exact — no weight-share arithmetic.
+    Forced placements count in full.
     """
     needle = req["structure"]
     within = req["within"]
     floor = req.get("min_expected", 1.0)
-    expected = 0.0
+    exact_count = 0
     detail = []
     for group, entry in groups.items():
-        pool = entry.get("structures") or {}
-        weight = sum(w for sid, w in pool.items() if needle in sid)
-        if not weight:
-            continue
-        total_weight = sum(pool.values()) or 1
-        near = sum(1 for cx, cz in (entry.get("positions") or [])
-                   if math.hypot(cx, cz) * 16 <= within)
-        share = near * weight / total_weight
-        expected += share
-        detail.append(f"{group}: {near} pos x {weight}/{total_weight} = {share:.2f}")
+        positions = entry.get("positions") or []
+        assigned = sum(1 for pos in positions
+                       if len(pos) >= 3 and needle in pos[2]
+                       and math.hypot(pos[0], pos[1]) * 16 <= within)
+        if assigned:
+            exact_count += assigned
+            detail.append(f"{group}: {assigned} assigned")
     certain = sum(1 for k, v in forced.items() if needle in k
                   for cx, cz in v if math.hypot(cx, cz) * 16 <= within)
-    expected += certain
+    exact_count += certain
     if certain:
         detail.append(f"forced: {certain}")
     report.check(slug,
-                 f"reachable: >= {floor} expected {needle} within {within} blocks",
-                 expected >= floor,
-                 f"expected {expected:.2f} ({'; '.join(detail) or 'not in any pool'})")
+                 f"reachable: >= {floor} {needle} within {within} blocks",
+                 exact_count >= floor,
+                 f"found {exact_count} ({'; '.join(detail) or 'not assigned anywhere'})")
 
 
 def run_dimension(spec, census_dir, report):
@@ -366,6 +393,8 @@ def run_dimension(spec, census_dir, report):
     groups = census.get("groups") or {}
     pool = pool_union(census)
     forced = census.get("forced") or {}
+
+    validate_position_format(census, report, slug)
 
     if "groups_exactly" in spec:
         report.check(slug, f"groups == {spec['groups_exactly']}",

@@ -1052,6 +1052,80 @@ def _disc_offsets(exclusion):
 # StructureGroupRegistry.rarityForSpacing.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Structure pick — mirrors StructurePick.java (§2.1 / §3.1).
+# MIRRORED FILES — change together, re-run test_noise_parity.py:
+#   mods/custom-dimensions/.../dimension/StructurePick.java
+#   scripts/seed/noise_placement.py (this section)
+# ---------------------------------------------------------------------------
+
+#: Schema version stamped on every census artefact and sidecar. A cache entry
+#: with a lower version is a miss, never a fallback.
+NOISE_CENSUS_SCHEMA_VERSION = 2
+
+#: FNV-1a + SplitMix64 of "structure_pick", matching DimensionStructures.saltOf.
+PICK_SALT = None  # set lazily below to avoid circular init
+
+
+def _ensure_pick_salt():
+    global PICK_SALT
+    if PICK_SALT is None:
+        PICK_SALT = salt_of("structure_pick")
+    return PICK_SALT
+
+
+def pick_seed(noise_seed):
+    """pickSeed = noiseSeed XOR saltOf("structure_pick"), masked to 64 bits.
+
+    MIRRORS StructurePick.pickSeed — change together, re-run test_noise_parity.py.
+    """
+    return (noise_seed ^ _ensure_pick_salt()) & M64
+
+
+def resolve_structure(sorted_pool, pick_value):
+    """Assign a structure to a noise site via weighted cumulative walk.
+
+    MIRRORS StructurePick.resolveWeighted — change together, re-run
+    test_noise_parity.py.
+
+    sorted_pool: [(structure_id, int_weight), ...] sorted by structure_id
+                 (plain string sort, stable). Both sides sort before walking.
+    pick_value:  unsigned 64-bit value from priority(). Python ints are
+                 unsigned after the mix64 output, so `%` is equivalent to
+                 Java's Long.remainderUnsigned.
+    Returns the assigned structure_id, or None iff totalWeight <= 0
+    (confirmed-empty pool — no structure can generate here on any seed).
+    """
+    total = sum(w for _, w in sorted_pool)
+    if total <= 0:
+        return None
+    target = pick_value % total
+    cumulative = 0
+    for sid, weight in sorted_pool:
+        cumulative += weight
+        if cumulative > target:
+            return sid
+    # Reachable only on a rounding impossibility; the last entry wins.
+    return sorted_pool[-1][0] if sorted_pool else None
+
+
+def pool_hash(pools_for_dim):
+    """md5 over sorted (group, structure_id, weight) tuples.
+
+    Stamps every sidecar and summary so a mod update that changes pool
+    composition (biome-filter outcomes, weight rebalance) invalidates the
+    cache. An empty-pool dimension hashes too — {} is a valid state.
+    """
+    import hashlib
+    tuples = []
+    for group in sorted((pools_for_dim or {}).keys()):
+        pool = pools_for_dim[group]
+        for sid in sorted(pool.keys()):
+            tuples.append((group, sid, pool[sid]))
+    return hashlib.md5(
+        json.dumps(tuples, sort_keys=True).encode()).hexdigest()[:12]
+
+
 def rarity_for_spacing(spacing):
     """Spacing -> rarity tier. -1 means "not a random_spread placement"."""
     if spacing is None or spacing < 0:
@@ -1336,8 +1410,78 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
     return out
 
 
+def _write_census_sidecar(seedtest, dim_name, seed, noise_fp, ph, group_data):
+    """Atomic write of the exact-position sidecar.
+
+    group_data: {group: {"ids": [sid, ...], "positions": [(cx, cz, id_index), ...]}}
+    """
+    import gzip
+    import os
+    import tempfile
+
+    out_dir = Path(seedtest) / "census-positions" / dim_name
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dest = out_dir / "{}.json.gz".format(seed)
+    doc = {
+        "schemaVersion": NOISE_CENSUS_SCHEMA_VERSION,
+        "fp": noise_fp,
+        "poolHash": ph,
+        "groups": group_data,
+    }
+    raw = json.dumps(doc, separators=(",", ":")).encode()
+    fd, tmp = tempfile.mkstemp(dir=str(out_dir), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            with gzip.GzipFile(fileobj=fh, mode="wb") as gz:
+                gz.write(raw)
+        os.replace(tmp, str(dest))
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def load_census_positions(seedtest, dim_name, seed):
+    """Load exact positions from the sidecar cache.
+
+    Returns {group: [(cx, cz, "ns:id"), ...]} or {} on miss.
+    """
+    import gzip
+    p = Path(seedtest) / "census-positions" / dim_name / "{}.json.gz".format(seed)
+    if not p.exists():
+        return {}
+    try:
+        with gzip.open(str(p), "rb") as gz:
+            doc = json.loads(gz.read())
+    except (OSError, ValueError):
+        return {}
+    if doc.get("schemaVersion") != NOISE_CENSUS_SCHEMA_VERSION:
+        return {}
+    result = {}
+    for group, gdata in (doc.get("groups") or {}).items():
+        ids = gdata.get("ids") or []
+        positions = []
+        for pos in gdata.get("positions") or []:
+            if len(pos) >= 3:
+                cx, cz, id_idx = int(pos[0]), int(pos[1]), int(pos[2])
+                sid = ids[id_idx] if 0 <= id_idx < len(ids) else None
+                if sid is not None:
+                    positions.append((cx, cz, sid))
+        result[group] = positions
+    return result
+
+
+def census_sidecar_exists(seedtest, dim_name, seed):
+    """True iff the sidecar file for this candidate exists."""
+    return (Path(seedtest) / "census-positions" / dim_name
+            / "{}.json.gz".format(seed)).exists()
+
+
 def census_task(task):
-    """Pool worker: one candidate's census summary.
+    """Pool worker: one candidate's census summary with exact structure
+    identity per position, plus a sidecar file of every position.
 
     Lives here, not beside its caller in score-dimensions.py, because
     pickling a function pickles a (module, qualname) pair and the child
@@ -1350,15 +1494,93 @@ def census_task(task):
     Any function handed to a Pool must therefore live in a module whose
     filename is a legal identifier.
 
-    Tasks are 5-tuples (legacy, histogram anchored at the origin) or
-    7-tuples carrying the candidate's spawn chunk as the bin origin.
+    Tasks are 11-tuples:
+      (name, seed, dim_config, type_defaults, radius_chunks,
+       pools_for_dim, spawn_cx, spawn_cz, seedtest, noise_fp, pool_hash_val)
+    where pools_for_dim is {group: {structure_id: weight}} from
+    structure_pools.json for this dimension.
     """
     name, seed, dim_config, type_defaults, radius_chunks = task[:5]
-    bin_x, bin_z = (task[5], task[6]) if len(task) > 6 else (0, 0)
-    summary = census_summary(
-        int(seed), name, dim_config, type_defaults, radius_chunks=radius_chunks,
-        bin_origin_x=bin_x, bin_origin_z=bin_z)
-    # Cache validity marker for ensure_censuses: a summary is only reusable
-    # for a candidate whose spawn chunk matches the origin it was binned at.
-    summary["binOrigin"] = [bin_x, bin_z]
-    return (name, seed, summary)
+    dim_pools = task[5] if len(task) > 5 else {}
+    spawn_cx = task[6] if len(task) > 6 else 0
+    spawn_cz = task[7] if len(task) > 7 else 0
+    seedtest = task[8] if len(task) > 8 else None
+    noise_fp = task[9] if len(task) > 9 else ""
+    pool_hash_val = task[10] if len(task) > 10 else ""
+
+    groups = resolve_groups(dim_config, type_defaults)
+    radius_chunks = census_radius_chunks(dim_config, radius_chunks)
+    dim_salt = salt_of(name)
+    bins = CENSUS_BINS
+    scale = float(radius_chunks) if radius_chunks > 0 else 1.0
+    out = {"radiusChunks": radius_chunks, "groups": {}}
+
+    sidecar_groups = {}
+
+    for group, settings in groups.items():
+        noise_seed = _signed64(int(seed) ^ dim_salt ^ salt_of(group))
+        index = NoiseFieldIndex(noise_seed, settings["profile"],
+                                settings["exclusion"], settings["radial"],
+                                radius_chunks, 0, 0)
+        positions = index.positions()
+
+        gpool = (dim_pools or {}).get(group) or {}
+        sorted_pool = sorted(gpool.items())
+        ps = pick_seed(noise_seed)
+
+        by_struct = {}
+        hist = [0] * bins
+        # Build the id table and position list for the sidecar.
+        id_to_index = {}
+        id_list = []
+        sidecar_positions = []
+        for cx, cz in positions:
+            dx = cx - spawn_cx
+            dz = cz - spawn_cz
+            b = int(math.sqrt(float(dx) * dx + float(dz) * dz) / scale * bins)
+            if b < 0:
+                b = 0
+            elif b >= bins:
+                b = bins - 1
+            hist[b] += 1
+
+            if sorted_pool:
+                pv = priority(ps, cx, cz)
+                sid = resolve_structure(sorted_pool, pv)
+                if sid is not None:
+                    dist_blocks = math.sqrt(
+                        float((cx - spawn_cx) * 16) ** 2
+                        + float((cz - spawn_cz) * 16) ** 2)
+                    entry = by_struct.get(sid)
+                    if entry is None:
+                        entry = {"count": 0, "nearest": float("inf")}
+                        by_struct[sid] = entry
+                    entry["count"] += 1
+                    if dist_blocks < entry["nearest"]:
+                        entry["nearest"] = dist_blocks
+                    if sid not in id_to_index:
+                        id_to_index[sid] = len(id_list)
+                        id_list.append(sid)
+                    sidecar_positions.append([cx, cz, id_to_index[sid]])
+
+        for entry in by_struct.values():
+            if entry["nearest"] == float("inf"):
+                entry["nearest"] = -1
+            else:
+                entry["nearest"] = round(entry["nearest"], 1)
+
+        out["groups"][group] = {
+            "count": len(index),
+            "hist": hist,
+            "byStructure": by_struct,
+        }
+        sidecar_groups[group] = {"ids": id_list, "positions": sidecar_positions}
+
+    if seedtest:
+        try:
+            _write_census_sidecar(seedtest, name, seed, noise_fp,
+                                  pool_hash_val, sidecar_groups)
+        except OSError:
+            pass
+
+    return (name, seed, out)

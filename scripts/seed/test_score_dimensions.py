@@ -1235,17 +1235,23 @@ class SpawnAnchoredMeasurementTests(unittest.TestCase):
             [e["hist"] for e in offset["groups"].values()],
             "an offset bin origin must re-bin at least one histogram")
 
-    def test_census_task_stamps_bin_origin(self):
+    def test_census_task_produces_by_structure(self):
+        """The v2 census task computes exact per-structure assignment via the
+        pick algorithm. byStructure is present (possibly empty when no pool
+        data is given), and binOrigin is gone."""
         import noise_placement as npm
         defaults = npm.load_type_defaults(
             Path(__file__).resolve().parents[1] / ".." / "config"
             / "custom-dimensions")
         dim = {"type": "multi_biome", "borders": {"player": 1024}}
+        # 8-tuple: (name, seed, dim_config, type_defaults, radius_chunks,
+        #           pools_for_dim, spawn_cx, spawn_cz)
         _n, _s, summary = npm.census_task(
-            ("the_test", "42", dim, defaults, None, 30, -30))
-        self.assertEqual([30, -30], summary["binOrigin"])
-        _n, _s, legacy = npm.census_task(("the_test", "42", dim, defaults, None))
-        self.assertEqual([0, 0], legacy["binOrigin"])
+            ("the_test", "42", dim, defaults, None, {}, 30, -30))
+        self.assertNotIn("binOrigin", summary)
+        for group, entry in summary["groups"].items():
+            self.assertIn("byStructure", entry)
+            self.assertIsInstance(entry["byStructure"], dict)
 
 
 class NoiseOwnershipTests(unittest.TestCase):

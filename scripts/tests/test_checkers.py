@@ -240,7 +240,8 @@ class PortalIntegrityTests(unittest.TestCase):
 class CensusStackStampTests(unittest.TestCase):
     """An artefact from another stack must fail loudly, never read best-effort."""
 
-    CENSUS = {"stackVersion": "4.2.0", "kind": "structure-census",
+    CENSUS = {"stackVersion": "4.2.0", "schemaVersion": 2,
+              "kind": "structure-census",
               "dimension": "adventure:the_test", "groups": {}, "forced": {}}
 
     def dump(self, tmp, body):
@@ -293,6 +294,18 @@ class CensusStackStampTests(unittest.TestCase):
     def test_missing_census_is_none_not_an_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertIsNone(noise.load_census(Path(tmp), "never_dumped"))
+
+    def test_old_schema_version_raises(self):
+        """A pre-identity census carries no assigned structure ids — reading
+        it best-effort would score exactness claims from stale data."""
+        self.running("4.2.0")
+        with tempfile.TemporaryDirectory() as tmp:
+            body = dict(self.CENSUS)
+            del body["schemaVersion"]
+            census_dir = self.dump(tmp, body)
+            with self.assertRaises(noise.SchemaMismatch) as ctx:
+                noise.load_census(census_dir, "the_test")
+            self.assertIn("schemaVersion", str(ctx.exception))
 
 
 if __name__ == "__main__":

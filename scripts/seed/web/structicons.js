@@ -15,11 +15,11 @@
  *      block coordinates, emitted by score-dimensions.py, and true per
  *      STRUCTURE: a marker means "this structure is here".
  *
- *   2. `data-group` on a row plus GET /noise-census — noise-placed sets. One
- *      seeded noise field per GROUP decides where the sites are; vanilla's
- *      weighted entry list decides which structure each site hosts. So a
- *      marker means "the dungeons field placed a site here", NOT "there is a
- *      dungeon here", and it is drawn with the GROUP's glyph for that reason.
+ *   2. `data-group` on a row plus GET /noise-census — noise-placed sets.
+ *      Each position carries a resolved structure id (the pick algorithm
+ *      assigns exactly one structure per site, mirrored in both Java and
+ *      Python), so a marker is drawn with the STRUCTURE's own glyph via
+ *      familyFor(id). Positions without an id fall back to the group glyph.
  *
  * The second source is why this file exists in its current form. On a modern
  * overworld, noise owns every set: the winner's panel carried zero `data-pos`
@@ -313,15 +313,10 @@
 
   // The seven noise GROUPS (structure-type-defaults.json groupDefaults) get
   // their own glyphs, borrowed from the family list above so nothing new has
-  // to be drawn. Substring matching alone would only resolve two of them —
-  // `dungeons` and `settlements` — leaving deco, endgame, landmarks, loot and
-  // maritime all on the generic diamond, which is the whole map for a cave or
-  // an end dimension.
-  //
-  // A group marker must NOT borrow the icon of a structure named in the
-  // panel: a site hosts one structure drawn from the group's weighted pool,
-  // so "which one" is unknowable from here, and drawing a village glyph for a
-  // settlements site would assert something no data supports.
+  // to be drawn. These are the FALLBACK for positions that carry no resolved
+  // structure id. When the /noise-census response includes a structure id per
+  // position (schemaVersion 2), each marker uses the structure's own glyph
+  // via familyFor(id) instead.
   var GROUP_ICON = {
     deco: 'well',
     dungeons: 'dungeon',
@@ -523,10 +518,13 @@
       groups.forEach(function (group) {
         var entry = census.groups[group]
         if (!entry || !entry.pos) return
-        var fam = familyForGroup(group)
+        var groupFam = familyForGroup(group)
         siteTotal += entry.count
         entry.pos.forEach(function (p) {
           sites++
+          // schemaVersion 2: [blockX, blockZ, "ns:id"] — use the structure's
+          // own glyph. Legacy [blockX, blockZ] falls back to the group glyph.
+          var fam = (p.length >= 3 && p[2]) ? familyFor(p[2]) : groupFam
           plot(fam, p[0], p[1], 'g:' + group, GROUP_MARKER, 'noise')
         })
       })
@@ -541,8 +539,8 @@
     if (drawn - sites > 0) bits.push((drawn - sites) + ' exact placement(s)')
     if (sites) {
       bits.push(sites + ' of ' + siteTotal + ' noise site(s), sampled evenly ' +
-        'across the radius so the shape is honest — a site hosts ONE structure ' +
-        'drawn from its group\'s pool, so the glyph names the GROUP')
+        'across the radius so the shape is honest — each site\'s assigned ' +
+        'structure is resolved exactly and drawn with its own glyph')
     }
     if (dropped) bits.push(dropped + ' further exact placement(s) not drawn ' +
       '(nearest ' + PER_ROW + ' per criterion, ' + TOTAL + ' in total)')
@@ -570,16 +568,16 @@
       if (!name || name.querySelector('.sm-chip')) return
       name.insertAdjacentHTML('afterbegin', chip(familyFor(row.dataset.struct)))
     })
-    // The full-census rows name a GROUP and no structure, and they are the
-    // legend for the smaller markers on the map — the ones whose glyph is the
-    // group's, because which structure a site hosts is unknowable from here.
+    // The full-census rows name a GROUP and no structure. Each site's
+    // assigned structure is drawn with its own glyph on the map; the group
+    // chip is a fallback label for positions without a resolved id.
     Array.prototype.forEach.call(
       info.querySelectorAll('.mrow[data-group]:not([data-struct])'), function (row) {
         var name = row.querySelector('.mname')
         if (!name || name.querySelector('.sm-chip')) return
         name.insertAdjacentHTML('afterbegin',
           chip(familyForGroup(row.dataset.group),
-               'One noise field, ' + row.dataset.group + ' group'))
+               row.dataset.group + ' group — sites drawn with their assigned structure'))
       })
   }
 

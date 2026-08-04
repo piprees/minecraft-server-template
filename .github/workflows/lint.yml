@@ -239,11 +239,27 @@ jobs:
       - name: Check for conflicts
         run: pip check
 
+  seed-tests:
+    name: Seed roller tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Install test dependencies
+        run: pip install numpy pytest
+
+      - name: Run seed roller tests
+        run: python3 -m pytest scripts/seed -q
+
   ci-help:
     name: CI guidance
     runs-on: ubuntu-latest
     if: failure()
-    needs: [shellcheck, yamllint, compose-validate, bundle-manifest, pip-check]
+    needs: [shellcheck, yamllint, compose-validate, bundle-manifest, pip-check, seed-tests]
     steps:
       - name: Post failure guidance
         run: |

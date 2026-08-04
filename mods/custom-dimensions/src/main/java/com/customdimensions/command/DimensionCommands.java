@@ -239,6 +239,7 @@ public class DimensionCommands {
 
         var calculator = world.getChunkManager().getStructurePlacementCalculator();
         StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-census"));
+        json.append(" \"schemaVersion\": 2,\n");
         json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
         json.append(" \"seed\": ").append(world.getSeed()).append(",\n");
         json.append(" \"groups\": {");
@@ -283,9 +284,8 @@ public class DimensionCommands {
             }
             json.append(",\n");
             json.append("   \"spacing\": ").append(noise.getSpacing()).append(",\n");
-            // An OBJECT of id -> weight. Written as an array once, which is
-            // invalid JSON the moment a weight appears ( ["a":1] ), and the
-            // file parsed nowhere.
+            // Per-group structures map: id -> weight. The parity oracle for
+            // the roller's pool data.
             json.append("   \"structures\": {");
             int n = 0;
             for (var weighted : entry.value().structures()) {
@@ -297,13 +297,32 @@ public class DimensionCommands {
                                 .map(k -> k.getValue().toString()).orElse("?"))
                         .append("\": ").append(weighted.weight());
             }
-            json.append("},\n   \"positions\": [");
+            json.append("},\n");
+
+            // Build the sorted pool and emit each position with its assigned
+            // structure id: [chunkX, chunkZ, "ns:structure_id"]. Uses the
+            // same StructurePick code path that generation runs.
+            java.util.List<com.customdimensions.dimension.StructurePick.PoolEntry> pickPool =
+                    new java.util.ArrayList<>();
+            for (var weighted : entry.value().structures()) {
+                weighted.structure().getKey().ifPresent(key -> pickPool.add(
+                        new com.customdimensions.dimension.StructurePick.PoolEntry(
+                                key.getValue().toString(), weighted.weight())));
+            }
+            java.util.List<com.customdimensions.dimension.StructurePick.PoolEntry> sorted =
+                    com.customdimensions.dimension.StructurePick.sortedPool(pickPool);
+            long noiseSeed = index.noiseSeed();
+
+            json.append("   \"positions\": [");
             int i = 0;
             for (var pos : noise.index().positions()) {
                 if (i++ > 0) {
                     json.append(", ");
                 }
-                json.append('[').append(pos.x).append(',').append(pos.z).append(']');
+                String assigned = com.customdimensions.dimension.StructurePick.assignedStructure(
+                        noiseSeed, pos.x, pos.z, sorted);
+                json.append('[').append(pos.x).append(", ").append(pos.z)
+                        .append(", \"").append(assigned != null ? assigned : "").append("\"]");
             }
             json.append("]\n  }");
             groupCount++;

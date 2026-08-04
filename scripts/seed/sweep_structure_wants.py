@@ -404,22 +404,21 @@ def suggest_band(spec, radial, radius, censuses, group, settings):
     for cand_lo, cand_hi in tries:
         if cand_hi - cand_lo <= 0:
             continue
-        scores = []
+        # suggest_band is a config-advisory tool, not a scorer. It uses
+        # the group-level count as a heuristic proxy since exact
+        # per-structure band counts require the full position list.
+        hit_count = 0
+        total_count = 0
         for summary in censuses:
             raw = (summary.get("groups") or {}).get(group)
             if raw is None:
                 continue
-            merged = dict(raw)
-            merged["radial"] = (settings.get(group) or {}).get("radial")
-            scores.append(census_scoring.census_want_score(
-                merged, (cand_lo, cand_hi), summary.get("radiusChunks") or 0))
-        if not scores:
-            continue
-        scores.sort()
-        median = scores[len(scores) // 2]
-        if median >= FULL_CREDIT:
-            return (int(cand_lo), int(cand_hi)), "median {:.2f} across {} banked".format(
-                median, len(scores))
+            total_count += 1
+            if (raw.get("count") or 0) > 0:
+                hit_count += 1
+        if total_count > 0 and hit_count >= total_count // 2:
+            return (int(cand_lo), int(cand_hi)), "group populated in {}/{} banked".format(
+                hit_count, total_count)
     return None, "no band inside the reachable ring {:.0f}-{:.0f} scores a median 1.00".format(
         reach_lo, reach_hi)
 
@@ -428,10 +427,8 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
               type_defaults, cdir):
     """Replay every want against every banked census. -> list of findings.
 
-    MIRRORS score-dimensions.ensure_censuses' cache contract: the summary is
-    stored per candidate under `noiseCensus` keyed on the dimension's noise
-    fingerprint, and the per-dimension radial curve is re-attached from the
-    config rather than repeated on disk.
+    Exact scoring from sidecar positions: the replay computes block
+    distances from each candidate's spawn at score time.
     """
     import candidates as cmod
     from dimension_profiles import noise_fingerprint
@@ -440,7 +437,8 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
     if fp is None:
         return []
     store = cmod.load_store(Path(cdir) / "{}.json".format(name))
-    censuses = [c["noiseCensus"] for c in store["candidates"].values()
+    censuses = [(seed, c["noiseCensus"])
+                for seed, c in store["candidates"].items()
                 if (c.get("noiseCensus") or {}).get("fp") == fp]
     if not censuses:
         return []
@@ -448,25 +446,40 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
     radius = float(profile["radius"])
     forced_ids = {f.get("structure")
                   for f in (profile.get("forced_structures") or [])}
+    seedtest = cmod.bank_root()
 
     findings = []
     for sname, sid, spec, kind in profile["battery"]:
         if kind != "want" or sid.lstrip("#") in forced_ids:
+            continue
+        if sid.startswith("#"):
             continue
         group = group_for(sid, struct_to_set, set_to_group)
         if group is None:
             continue
         lo, hi = spec
         hi_eff = min(hi, radius)
+        clean_sid = sid.lstrip("#")
         best = 0.0
-        for summary in censuses:
+        for seed, summary in censuses:
             raw = (summary.get("groups") or {}).get(group)
             if raw is None:
                 continue
-            merged = dict(raw)
-            merged["radial"] = (settings.get(group) or {}).get("radial")
-            best = max(best, census_scoring.census_want_score(
-                merged, (lo, hi_eff), summary.get("radiusChunks") or 0))
+            by_struct = raw.get("byStructure") or {}
+            pool_ids = set(by_struct.keys())
+            in_pool = clean_sid in pool_ids or not pool_ids
+            positions = (noise_placement.load_census_positions(
+                seedtest, name, seed) or {}).get(group) or []
+            meas = (store["candidates"].get(seed) or {}).get("measurements") or {}
+            try:
+                scx = int(float(meas.get("spawn_x") or 0)) >> 4
+                scz = int(float(meas.get("spawn_z") or 0)) >> 4
+            except (TypeError, ValueError):
+                scx, scz = 0, 0
+            score = census_scoring.census_want_score(
+                clean_sid, (lo, hi_eff), positions,
+                spawn_cx=scx, spawn_cz=scz, in_pool=in_pool)
+            best = max(best, score)
             if best >= FULL_CREDIT:
                 break
         if best >= FULL_CREDIT:
@@ -475,20 +488,17 @@ def bank_pass(name, entry, profile, struct_to_set, set_to_group,
                 "ALWAYS-WRONG-RING" if best <= census_scoring.WANT_WRONG_RING_SCORE
                 else "NEVER-FULL")
         detail = ("best score {:.2f} of 1.00 across {} banked candidate(s) "
-                  "— the '{}' group never puts {} placement(s) in "
+                  "— the '{}' group never assigns {} to "
                   "{:.0f}-{:.0f}".format(
                       best, len(censuses), group,
-                      census_scoring.WANT_BAND_TARGET, lo, hi_eff))
+                      sname, lo, hi_eff))
         row = {"dimension": name, "want": sname, "structure": sid,
                "radius": int(radius), "band": "{:.0f}-{:.0f}".format(lo, hi_eff),
                "code": code, "expected": "{:.2f}".format(best), "detail": detail}
-        # A group the dimension never enables has no profile to suggest
-        # against — GROUP-SUPPRESSED is a different fix (enable it, or drop
-        # the want), not a band move.
         gs = settings.get(group)
         if gs:
             band, why = suggest_band(spec, gs.get("radial"), radius,
-                                     censuses, group, settings)
+                                     [s for _, s in censuses], group, settings)
             row["suggest"] = ("{}-{}".format(*band) if band else "")
             row["suggest_why"] = why
         findings.append(row)

@@ -117,6 +117,27 @@ class TestJavaPythonParity(unittest.TestCase):
 
                     self.assertEqual(index.spacing, block["spacing"],
                                      "%s/%s: spacing differs" % (dimension, group))
+
+                    # Structure identity parity (schemaVersion >= 2 fixtures
+                    # carry per-position ids via 3-element arrays).
+                    schema = doc.get("schemaVersion", 1)
+                    if schema >= 2 and actual and len(actual[0]) >= 3:
+                        pool = block.get("structures") or {}
+                        sorted_pool = sorted(pool.items())
+                        ps = npl.pick_seed(block["noiseSeed"])
+                        for pos in actual:
+                            cx, cz, java_id = pos[0], pos[1], pos[2]
+                            py_id = npl.resolve_structure(
+                                sorted_pool, npl.priority(ps, cx, cz))
+                            self.assertEqual(
+                                py_id, java_id,
+                                "%s/%s: id mismatch at (%d, %d): Java=%s Python=%s"
+                                % (dimension, group, cx, cz, java_id, py_id))
+                    elif schema < 2:
+                        # Fixtures pre-date schemaVersion 2 — regenerate via
+                        # refresh-census-fixtures.sh to enable id comparison.
+                        pass
+
                     groups_checked += 1
                     positions_checked += len(actual)
                 checked += 1

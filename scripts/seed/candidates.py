@@ -59,6 +59,11 @@ def set_bank_root(seedtest_dir):
     _BANK_ROOT = Path(seedtest_dir).resolve() if seedtest_dir else None
 
 
+def bank_root():
+    """The seedtest directory the bank lives under, or None if unset."""
+    return str(_BANK_ROOT) if _BANK_ROOT is not None else None
+
+
 def candidates_dir(config_dir):
     """Where the candidate bank lives: <seedtest>/candidates.
 

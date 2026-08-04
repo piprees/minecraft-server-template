@@ -30,10 +30,10 @@ Loading a world is cheap for placement (a few ms) but it creates a level
 directory and generates spawn chunks, so this is a one-time warmup cost paid in
 the throwaway boot directory, never in a real world.
 
-GRACEFUL DEGRADATION IS THE POINT. A dimension missing from the dump makes
-census_scoring.weight_share return 1.0 for it, which is exactly the group-level
-reading used before pools existed. So a partial dump improves scoring for what it
-covers and changes nothing else — this script failing outright leaves the roller
+GRACEFUL DEGRADATION IS THE POINT. A dimension missing from the dump has no
+pool data: its per-structure identity is not exactly measurable and is banked
+as such, never estimated. A partial dump improves precision for what it covers
+and changes nothing else — this script failing outright leaves the roller
 working, just less precise.
 
 Uses docker exec rcon-cli for ALL RCON commands, like warmup_biomes.py: the

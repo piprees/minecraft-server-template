@@ -751,6 +751,11 @@ def generation_payload(dim):
     noise = _noise_payload(dim)
     if noise is not None:
         payload["noisePlacement"] = noise
+        # The pick algorithm governs which structure lands on each noise
+        # site. Changing the algorithm re-deals every site, so every
+        # noise dimension goes DRIFTED and re-rolls. Same shape as the
+        # noise-placement rollout.
+        payload["structureSelection"] = "pick-v1"
     return payload
 
 
@@ -1350,10 +1355,10 @@ def build_profile(dim, config, difficulty=None):
                             .get("pos", "")).strip().lower() == "spawn"
                         if isinstance((dim.get("portal") or {}).get("anchor"), dict)
                         else False,
-        # Wants may deliberately sit beyond the border (pocket-dim scenery
-        # visible via Distant Horizons) — the locate cap must reach them.
-        "locate_cap": int(max([radius] + [spec[1] for _n, _sid, spec, kind in battery
-                                          if kind == "want"]) + 1000),
+        # Measurement horizon: borders.player + 2048 blocks, centred on the
+        # dimension's spawn. Exactness is owed within this; beyond it a fact
+        # is capped as "beyond-horizon" (itself an exact statement).
+        "locate_cap": int(radius + 2048),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
             "type": dim_type,

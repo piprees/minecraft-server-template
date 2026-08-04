@@ -376,5 +376,103 @@ class TestGroupResolution(unittest.TestCase):
                              self.defaults), {})
 
 
+class TestStructurePick(unittest.TestCase):
+    """Mirrors StructurePickTest's worked cases (precision plan §3.6)."""
+
+    def test_resolve_weighted_three_entries(self):
+        """[a:1, b:1, c:2] total=4 -> 0=a, 1=b, 2=c, 3=c."""
+        pool = [("a", 1), ("b", 1), ("c", 2)]
+        self.assertEqual(npl.resolve_structure(pool, 0), "a")
+        self.assertEqual(npl.resolve_structure(pool, 1), "b")
+        self.assertEqual(npl.resolve_structure(pool, 2), "c")
+        self.assertEqual(npl.resolve_structure(pool, 3), "c")
+        # Wraps: pick_value=4 -> 4%4=0 -> a
+        self.assertEqual(npl.resolve_structure(pool, 4), "a")
+
+    def test_single_entry(self):
+        pool = [("only", 5)]
+        for pv in range(10):
+            self.assertEqual(npl.resolve_structure(pool, pv), "only")
+
+    def test_empty_pool_returns_none(self):
+        self.assertIsNone(npl.resolve_structure([], 42))
+
+    def test_zero_total_weight_returns_none(self):
+        self.assertIsNone(npl.resolve_structure([("x", 0), ("y", 0)], 42))
+
+    def test_input_order_independence(self):
+        """The caller sorts by id; shuffling the input must not change the
+        output, because both sides sort before walking."""
+        import random
+        pool_a = [("alpha", 3), ("beta", 2), ("gamma", 5)]
+        pool_b = [("gamma", 5), ("alpha", 3), ("beta", 2)]
+        pool_c = [("beta", 2), ("gamma", 5), ("alpha", 3)]
+        sorted_a = sorted(pool_a)
+        sorted_b = sorted(pool_b)
+        sorted_c = sorted(pool_c)
+        for pv in range(20):
+            result_a = npl.resolve_structure(sorted_a, pv)
+            result_b = npl.resolve_structure(sorted_b, pv)
+            result_c = npl.resolve_structure(sorted_c, pv)
+            self.assertEqual(result_a, result_b, "pv=%d" % pv)
+            self.assertEqual(result_a, result_c, "pv=%d" % pv)
+
+    def test_duplicate_id_adjacency(self):
+        """[(x,2),(x,3),(y,5)] sorted is [(x,2),(x,3),(y,5)]; the cumulative
+        walk over that equals walking merged {x:5, y:5} for all targets."""
+        split = sorted([("x", 2), ("x", 3), ("y", 5)])
+        merged = sorted([("x", 5), ("y", 5)])
+        for pv in range(20):
+            self.assertEqual(
+                npl.resolve_structure(split, pv),
+                npl.resolve_structure(merged, pv),
+                "pv=%d: split and merged disagree" % pv)
+
+    def test_pick_rank_decorrelation(self):
+        """pick_seed XORs a different salt, so priority(pickSeed, cx, cz) !=
+        priority(noiseSeed, cx, cz) over a grid."""
+        noise_seed = 123456789
+        ps = npl.pick_seed(noise_seed)
+        self.assertNotEqual(ps, noise_seed)
+        different = 0
+        for cx in range(-10, 11):
+            for cz in range(-10, 11):
+                if npl.priority(ps, cx, cz) != npl.priority(noise_seed, cx, cz):
+                    different += 1
+        # Virtually all must differ; a few coincidences are possible.
+        self.assertGreater(different, 400)
+
+    def test_pick_salt_is_stable(self):
+        npl._ensure_pick_salt()
+        self.assertEqual(npl.PICK_SALT, npl.salt_of("structure_pick") & npl.M64)
+
+    def test_pick_seed_deterministic(self):
+        a = npl.pick_seed(0xDEADBEEF)
+        b = npl.pick_seed(0xDEADBEEF)
+        self.assertEqual(a, b)
+        self.assertNotEqual(a, npl.pick_seed(0xDEADBEEF + 1))
+
+
+class TestPoolHash(unittest.TestCase):
+    def test_empty_pool_hashes(self):
+        h = npl.pool_hash({})
+        self.assertIsInstance(h, str)
+        self.assertEqual(len(h), 12)
+
+    def test_deterministic(self):
+        pools = {"settlements": {"minecraft:village_plains": 1, "minecraft:village_desert": 1}}
+        self.assertEqual(npl.pool_hash(pools), npl.pool_hash(pools))
+
+    def test_different_weights_differ(self):
+        p1 = {"g": {"a": 1, "b": 2}}
+        p2 = {"g": {"a": 2, "b": 1}}
+        self.assertNotEqual(npl.pool_hash(p1), npl.pool_hash(p2))
+
+    def test_different_groups_differ(self):
+        p1 = {"g1": {"a": 1}}
+        p2 = {"g2": {"a": 1}}
+        self.assertNotEqual(npl.pool_hash(p1), npl.pool_hash(p2))
+
+
 if __name__ == "__main__":
     unittest.main()

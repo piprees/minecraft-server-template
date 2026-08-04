@@ -590,23 +590,23 @@ def score_candidate(profile, rows, structures_override=None):
             forced = any(f.get("structure") == sid.lstrip("#")
                          for f in profile.get("forced_structures") or [])
             if group is not None and not forced:
-                # Noise owns this set. If the dimension resolved the group,
-                # score against its layout; if it didn't, the structure
-                # genuinely does not generate here.
+                if sid.startswith("#"):
+                    continue
                 entry = census_groups.get(group)
-                # This structure's expected share of the group's placements. A
-                # noise position is one weighted draw from the group's pool, so
-                # without the share both a want and a shun could only ask about
-                # the GROUP — which credited a Village want for any settlement,
-                # and failed every shun whose group was merely present.
-                share = census_scoring.weight_share(
-                    profile.get("_structure_pools"), profile["name"], group, sid)
+                by_struct = (entry or {}).get("byStructure") or {}
+                clean_sid = sid.lstrip("#")
+                pool_ids = set(by_struct.keys())
+                in_pool = clean_sid in pool_ids or not pool_ids
+                census_positions = (rows.get("_census_positions") or {}).get(group) or []
+                scx, scz = _spawn_chunks(rows)
                 if kind == "shun":
                     s = census_scoring.census_shun_score(
-                        entry, spec, census_radius_chunks, share)
+                        clean_sid, spec, census_positions,
+                        spawn_cx=scx, spawn_cz=scz, in_pool=in_pool)
                 else:
                     s = census_scoring.census_want_score(
-                        entry, spec, census_radius_chunks, share)
+                        clean_sid, spec, census_positions,
+                        spawn_cx=scx, spawn_cz=scz, in_pool=in_pool)
                 ss += s
                 n += 1
                 if entry and entry.get("count"):
@@ -927,10 +927,9 @@ def attach_battery_groups(profiles, seedtest, config_dir):
     score_candidate saves a file read per candidate — and there are tens of
     thousands of candidates.
 
-    The pools are what let a want for a Village mean a Village rather than any
-    settlement (census_scoring.weight_share). Absent, every share is 1.0 and
-    scoring behaves exactly as it did before they existed, so a bank rolled
-    without them is not invalidated by adding them.
+    The pools carry each structure's weight in its group — the pick algorithm
+    (resolve_structure) uses these weights to assign exactly one structure per
+    noise site, so byStructure counts and distances are exact facts.
     """
     if not Path(config_dir).is_dir():
         return
@@ -944,10 +943,11 @@ def attach_battery_groups(profiles, seedtest, config_dir):
 def _with_group_settings(summary, group_settings):
     """Re-attach the per-DIMENSION placement config to a banked summary.
 
-    The stored summary is per candidate and carries only counts and the
-    radial histogram; the radial curve a group was given is the same for
-    every candidate, so it is resolved from the config here rather than
-    repeated a few hundred times on disk.
+    The stored summary is per candidate and carries counts, the radial
+    histogram (display-only), and byStructure (exact per-structure counts
+    and nearest distances); the radial curve a group was given is the same
+    for every candidate, so it is resolved from the config here rather
+    than repeated a few hundred times on disk.
     """
     groups = {}
     for group, entry in (summary.get("groups") or {}).items():
@@ -1000,8 +1000,7 @@ def ensure_spawn_sites(args, profiles, data, quiet=False):
     the stack stamp so it runs once per candidate per stack.
     Deterministic (pure function of seed + config), so NOT a re-roll —
     `spawn` is volatile and absent from generation_payload(). Run BEFORE
-    ensure_spawn_distances: a moved spawn re-anchors battery distances and
-    re-bins censuses through the existing binOrigin machinery.
+    ensure_spawn_distances: a moved spawn re-anchors battery distances.
 
     Scoped to fully-measured candidates only (`"errors" in rows`, the same
     scoreable test ensure_censuses uses) — the bank also holds tens of
@@ -1142,8 +1141,10 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
     sources.update({w["name"]: w for w in config.get("worlds", [])})
     cdir = candidates.candidates_dir(cfg)
 
+    pools = census_scoring.load_structure_pools(args.seedtest)
     stores = {}
     settings = {}
+    pool_hashes = {}
     tasks = []
     for name in profiles:
         src = sources.get(name)
@@ -1156,20 +1157,26 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         store = candidates.load_store(cdir / f"{name}.json")
         stores[name] = (store, fp)
         settings[name] = noise_placement.resolve_groups(src, type_defaults)
+        dim_pools = (pools or {}).get(name) or {}
+        ph = noise_placement.pool_hash(dim_pools)
+        pool_hashes[name] = ph
         for seed, rows in data.get(name, {}).items():
             if rows.get("rejected") == "1" or "errors" not in rows:
                 continue
-            # The histogram is anchored at the candidate's chosen spawn — a
-            # cached summary binned around a different origin (including the
-            # legacy origin-anchored ones, which carry no binOrigin) is
-            # recomputed. Origin-spawn candidates keep their cache untouched.
             bcx, bcz = _spawn_chunks(rows)
             cached = (store["candidates"].get(seed) or {}).get("noiseCensus")
-            if cached and cached.get("fp") == fp \
-                    and (cached.get("binOrigin") or [0, 0]) == [bcx, bcz]:
+            if cached \
+                    and cached.get("schemaVersion") == noise_placement.NOISE_CENSUS_SCHEMA_VERSION \
+                    and cached.get("fp") == fp \
+                    and cached.get("poolHash") == ph \
+                    and noise_placement.census_sidecar_exists(
+                        args.seedtest, name, seed):
                 rows["_census"] = _with_group_settings(cached, settings[name])
+                rows["_census_positions"] = noise_placement.load_census_positions(
+                    args.seedtest, name, seed)
                 continue
-            tasks.append((name, seed, src, type_defaults, radius_chunks, bcx, bcz))
+            tasks.append((name, seed, src, type_defaults, radius_chunks,
+                          dim_pools, bcx, bcz, str(args.seedtest), fp, ph))
 
     if not tasks:
         return
@@ -1183,11 +1190,15 @@ def ensure_censuses(args, config, profiles, data, quiet=False):
         name, seed, summary = result
         store, fp = stores[name]
         summary["fp"] = fp
+        summary["schemaVersion"] = noise_placement.NOISE_CENSUS_SCHEMA_VERSION
+        summary["poolHash"] = pool_hashes.get(name, "")
         cand = store["candidates"].setdefault(
             seed, {"measurements": {}, "scores": {}})
         cand["noiseCensus"] = summary
         data[name][seed]["_census"] = _with_group_settings(
             summary, settings[name])
+        data[name][seed]["_census_positions"] = noise_placement.load_census_positions(
+            args.seedtest, name, seed)
 
     def save(names):
         for name in sorted(names):
@@ -2640,20 +2651,12 @@ def _structure_section(c, profile):
     noise_rows, grid_rows, seen_groups = [], [], {}
     for sname, sid, spec, kind in battery:
         pretty = html.escape(sname.replace("_", " ").title())
-        # The marker layer (web/structicons.js) maps this to one of the ~30
-        # keyword families for its icon and colour. The row is the legend.
         sattr = " data-struct='{}'".format(html.escape(sname, quote=True))
         group = (battery_group_for(sid, lookup)
                  if (lookup and groups) else None)
         if group is not None and sid.lstrip("#") not in forced_ids:
             entry = groups.get(group)
             seen_groups.setdefault(group, []).append(pretty)
-            # The marker layer needs to know WHICH noise field a row is about:
-            # it fetches real positions per group from /noise-census, and the
-            # group name is the only handle on them. Without it the row's only
-            # spatial hint is data-band, which for 53 of the overworld winner's
-            # 77 rows starts at 0 — a disc from spawn to the border, drawn
-            # near-identically for every hover, pointing at nothing.
             sattr += " data-group='{}'".format(html.escape(group, quote=True))
             if not entry or not entry.get("count"):
                 noise_rows.append((2, "<div class='mrow sev2'{}>"
@@ -2665,86 +2668,91 @@ def _structure_section(c, profile):
                         "avoid" if kind == "shun" else "want")))
                 continue
             count = entry["count"]
-            # The same share score_candidate uses, so the panel explains the
-            # number the ranking is actually built from. A share below 1.0 means
-            # the group holds other structures too, and the band's placements are
-            # draws from all of them.
-            share = census_scoring.weight_share(
-                profile.get("_structure_pools"), profile["name"], group, sid)
+            by_struct = entry.get("byStructure") or {}
+            clean_sid = sid.lstrip("#")
+
             if kind == "shun":
                 threshold = float(spec) if isinstance(spec, (int, float)) else radius
-                inside = census_scoring.band_mass(entry, 0.0, threshold, radius_chunks)
-                risk = census_scoring.presence_probability(
-                    entry, 0.0, threshold, radius_chunks, share)
-                sev = 2 if risk >= 0.5 else (1 if risk > 0.05 else 0)
-                if share >= 1.0:
-                    why = ("This group holds <b>{}</b> and nothing else here, so "
-                           "any placement inside the ring is one.".format(pretty))
-                else:
-                    why = ("{:.0f} <b>{}</b> placements sit inside the ring, and "
-                           "{} is {:.1f}% of that group's pool here — about a "
-                           "{:.0f}% chance one of them is it.".format(
-                               inside, group, pretty, share * 100.0, risk * 100.0))
+                struct_entry = by_struct.get(clean_sid) or {}
+                assigned_count = struct_entry.get("count", 0)
+                nearest = struct_entry.get("nearest", -1)
+                inside = assigned_count if (nearest >= 0 and nearest < threshold) else 0
+                sev = 2 if inside > 0 else 0
                 noise_rows.append((sev, "<div class='mrow sev{}' data-band='0,{}'{}>"
                     "<span class='mname'>{} <span class='kind'>avoid</span></span>"
-                    "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
+                    "<span class='mval'>{}<span class='ns'>of {} sites</span></span>{}"
                     "<span class='mtarget'>wants none within {:.0f}</span>"
                     "<span class='mdev'>{}</span>"
-                    "<span class='mspread'>{}</span></div>".format(
-                        sev, int(threshold), sattr, pretty, inside, count,
+                    "<span class='mspread'><b>{}</b> {} sites &middot; "
+                    "nearest <b>{}</b> blocks</span></div>".format(
+                        sev, int(threshold), sattr, pretty,
+                        assigned_count, count,
                         _hist_bar(entry.get("hist"), radius_blocks, 0, threshold),
                         threshold,
-                        "{:.0f}% risk".format(risk * 100.0) if risk > 0.005
+                        "{} inside threshold".format(inside) if inside > 0
                         else "none present",
-                        why)))
+                        assigned_count, pretty,
+                        "{:.0f}".format(nearest) if nearest >= 0 else "—")))
                 continue
+
+            # Tag wants: not exactly measurable yet
+            if sid.startswith("#"):
+                noise_rows.append((1, "<div class='mrow sev1'{}>"
+                    "<span class='mname'>{} <span class='kind'>{}</span></span>"
+                    "<span class='mval'>—</span><span></span>"
+                    "<span class='mtarget'>tag want</span>"
+                    "<span class='mdev'>not exactly measurable</span></div>".format(
+                        sattr, pretty, group)))
+                continue
+
             lo, hi = spec
             hi_eff = min(hi, radius)
-            mass = census_scoring.band_mass(entry, lo, hi_eff, radius_chunks)
-            chance = census_scoring.presence_probability(
-                entry, lo, hi_eff, radius_chunks, share)
-            sev = 0 if chance >= 0.8 else (1 if mass > 0 else 2)
-            verdict = ("{:.0f}% likely".format(chance * 100.0) if mass > 0
-                       else "wrong ring")
-            if share <= 0.0:
-                # A known-empty share is a statement about the WORLD, not
-                # the seed: the pool filter left nothing of this structure
-                # here, so no seed can produce one. It must never share
-                # styling with an unlucky roll (structure-pool-shares §6);
-                # the bank-wide badge separates a classifier casualty from
-                # a per-dimension biome exclusion.
-                pools = profile.get("_structure_pools") or {}
-                nowhere = not any(sid in (grp or {})
-                                  for dims in pools.values()
-                                  for grp in (dims or {}).values())
-                why = ("{} does not exist in this world's structure pool — "
-                       "it cannot generate here on any seed{}. {:.0f} of the "
-                       "{} <b>{}</b> placements in that band belong to "
-                       "something else.".format(
-                           pretty,
-                           " (never placed by noise anywhere in this bank)"
-                           if nowhere else "",
-                           mass, count, group))
+            struct_entry = by_struct.get(clean_sid) or {}
+            assigned_count = struct_entry.get("count", 0)
+            nearest = struct_entry.get("nearest", -1)
+
+            # Compute exact in-band count from sidecar positions.
+            census_positions = (c["metrics"].get("_census_positions") or {}).get(group) or []
+            scx = int(float(c["metrics"].get("spawn_x") or 0)) >> 4
+            scz = int(float(c["metrics"].get("spawn_z") or 0)) >> 4
+            in_band = 0
+            for pcx, pcz, psid in census_positions:
+                if psid != clean_sid:
+                    continue
+                dx = (pcx - scx) * 16
+                dz = (pcz - scz) * 16
+                dist = (float(dx) * dx + float(dz) * dz) ** 0.5
+                if lo <= dist <= hi_eff:
+                    in_band += 1
+
+            if assigned_count <= 0 and not by_struct:
                 sev = 2
-                verdict = "impossible here"
-            elif share >= 1.0:
-                why = ("{:.0f} of the {} <b>{}</b> placements sit in that "
-                       "band.".format(mass, count, group))
+                verdict = "cannot generate here on any seed"
+            elif assigned_count <= 0:
+                sev = 2
+                verdict = "not in this pool"
+            elif in_band <= 0:
+                sev = 1
+                verdict = "wrong ring"
             else:
-                why = ("{:.0f} of the {} <b>{}</b> placements sit in that band, "
-                       "and {} is {:.1f}% of that group's pool here — about a "
-                       "{:.0f}% chance of getting one.".format(
-                           mass, count, group, pretty, share * 100.0,
-                           chance * 100.0))
+                sev = 0
+                verdict = "{} in the wanted band".format(in_band)
+
             noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
                 "<span class='mname'>{}</span>"
-                "<span class='mval'>{:.0f}<span class='ns'>of {}</span></span>{}"
+                "<span class='mval'>{}<span class='ns'>sites</span></span>{}"
                 "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
-                "<span class='mspread'>{}</span></div>".format(
-                    sev, int(lo), int(hi_eff), sattr, pretty, mass, count,
+                "<span class='mspread'><b>{}</b> {} sites &middot; "
+                "nearest <b>{}</b> blocks &middot; "
+                "<b>{}</b> in the wanted band</span></div>".format(
+                    sev, int(lo), int(hi_eff), sattr, pretty,
+                    assigned_count, count,
                     _hist_bar(entry.get("hist"), radius_blocks, lo, hi_eff),
-                    lo, hi_eff, verdict, why)))
+                    lo, hi_eff, verdict,
+                    assigned_count, pretty,
+                    "{:.0f}".format(nearest) if nearest >= 0 else "—",
+                    in_band)))
             continue
 
         # Grid or forced: the positional model still holds.

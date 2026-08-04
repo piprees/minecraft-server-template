@@ -371,8 +371,8 @@ print('  Done.')
   # left 167 shuns permanently unsatisfiable.
   #
   # A failure here is NOT fatal and a partial dump is fine: a dimension the dump
-  # missed falls back to the group-level reading, which is exactly the behaviour
-  # from before pools existed (census_scoring.weight_share).
+  # missed has no pool data, so its per-structure facts are banked as not
+  # exactly measurable rather than estimated.
   if [[ ! -f "$pools" ]]; then
     if [[ ! -f "$SEEDTEST/mvconfig-roll.json" ]]; then
       python3 "$SCRIPT_DIR/score-dimensions.py" manifest \

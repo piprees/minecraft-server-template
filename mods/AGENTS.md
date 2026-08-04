@@ -506,6 +506,47 @@ no config at all.
   with no separator and truncates at a few KB, so hundreds of rows come back
   as one unreadable, half-missing string.
 
+### Structure occupancy contract
+
+A site's assigned structure is exact and mirrored; the site is occupied by
+that structure iff the structure's own generation accepts the position, and
+by nothing else, ever. A structural rejection leaves the site empty and is
+itself recorded exactly: `NoiseStructureSelectionMixin` logs every rejection
+with dimension, group, structure id and chunk coordinates, and appends it to
+`census/rejections__<ns>__<slug>.json` via `Artefacts.write`.
+
+Assignment: `StructurePick.assignedStructure(noiseSeed, cx, cz, sortedPool)`
+with `pickSeed = noiseSeed ^ saltOf("structure_pick")`. The sorted pool is a
+plain string sort on structure id (stable; duplicate-id entries stay
+adjacent). `resolveWeighted` uses `Long.remainderUnsigned(pickValue, totalWeight)`,
+cumulative walk in sorted order; null iff `totalWeight <= 0`.
+
+The per-world selection registry (`StructurePick.install/lookup/clear`) is
+keyed by `WeightedEntry` OBJECT IDENTITY (`IdentityHashMap`), installed by
+`DimensionStructures.transformedNoise`, replaced wholesale on every
+calculator rebuild, cleared on `ServerWorldEvents.UNLOAD` in
+`MultiverseServer`.
+
+MIRRORED in `scripts/seed/noise_placement.py` (`resolve_structure`,
+`pick_seed`) -- change both together, re-run `test_noise_parity.py`.
+
+### Mixin ordering on `ChunkGenerator.trySetStructureStart`
+
+Two mixins target `trySetStructureStart` at HEAD, both priority 900:
+
+1. **`ChunkGeneratorForcedStartMixin`** -- performs `structures.force`
+   start attempts from the `ForcedStartOverride` registry. Runs FIRST
+   (alphabetical class-name order within the same priority).
+2. **`NoiseStructureSelectionMixin`** -- enforces the noise-managed
+   structure pick from the `StructurePick` registry.
+
+A `structures.force` placement at a chunk that is also a noise site wins:
+the forced-start mixin returns first, and the selection mixin never sees it.
+Both use the same technique (create the start with an always-true biome
+predicate, set the return value). Neither affects pass-throughs, exit
+shrines, or other mods' sets -- those miss both registries and fall through
+to vanilla behaviour.
+
 ### Structure placement lessons (fixed placements, 2026-07-24)
 
 - **Vanilla CubicSpline EXTRAPOLATES LINEARLY beyond its endpoints** using

@@ -122,6 +122,10 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 // Phase 1: release (or drop) any preview chunk tickets tied
                 // to this world before its chunk manager closes.
                 com.customdimensions.immersive.ImmersiveProjector.onWorldUnload(world);
+                // Structure pick: clear the selection registry for this world
+                // so stale entries from a previous calculator never match.
+                com.customdimensions.dimension.StructurePick.clear(
+                        world.getRegistryKey().getValue().toString());
             });
         // Immersive portals (Phase 1): a disconnecting player's fake-block
         // projections are dropped without restore packets — there is no

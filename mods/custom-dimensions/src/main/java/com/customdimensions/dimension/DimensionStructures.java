@@ -330,6 +330,13 @@ public final class DimensionStructures {
         int groupsBuilt = 0;
         int totalPositions = 0;
         StringBuilder detail = new StringBuilder();
+        String worldId = world.getRegistryKey().getValue().toString();
+
+        // Selection registry: maps each WeightedEntry instance to its group's
+        // pick parameters so NoiseStructureSelectionMixin can assign the exact
+        // structure at generation time. Keyed by OBJECT IDENTITY.
+        java.util.IdentityHashMap<StructureSet.WeightedEntry, StructurePick.GroupSelection>
+                selectionRegistry = new java.util.IdentityHashMap<>();
 
         for (var groupEntry : plan.groups().entrySet()) {
             String group = groupEntry.getKey();
@@ -344,6 +351,24 @@ public final class DimensionStructures {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0);
+
+            // Build the sorted pool for this group's pick algorithm.
+            java.util.List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
+            for (var weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(key -> pickPool.add(
+                        new StructurePick.PoolEntry(
+                                key.getValue().toString(), weighted.weight())));
+            }
+            java.util.List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+            StructurePick.GroupSelection sel = new StructurePick.GroupSelection(
+                    group, noiseSeed, sorted, placement.index());
+
+            // Register every WeightedEntry in this group's set so the mixin
+            // can look them up by object identity.
+            for (var weighted : pool.entries()) {
+                selectionRegistry.put(weighted, sel);
+            }
+
             transformed.add(RegistryEntry.of(
                     new StructureSet(pool.entries(), placement)));
             groupsBuilt++;
@@ -366,6 +391,10 @@ public final class DimensionStructures {
                 detail.append("(-").append(pool.biomeFiltered()).append("biome)");
             }
         }
+
+        // Install the selection registry — replaced wholesale on every
+        // calculator rebuild, cleared on ServerWorldEvents.UNLOAD.
+        StructurePick.install(worldId, selectionRegistry);
 
         int forcedCount = appendForcedPlacements(transformed, world, def, forced);
         long millis = (System.nanoTime() - started) / 1_000_000;
