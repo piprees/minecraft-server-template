@@ -191,8 +191,11 @@ BASE_WORLD_CHECKS = [
         # so the pool comes out empty and the group is skipped. That is the
         # documented normal case, and asserting the type's list here instead
         # of the world's actual pools would be asserting the wish.
-        "groups_include": ["deco", "landmarks"],
-        "groups_absent": ["endgame", "dungeons", "maritime", "loot"],
+        # `dungeons` IS active: paradise_lost:vault classifies as a dungeon
+        # and its biomes intersect the paradise source (validated against a
+        # live census — pool {paradise_lost:vault}).
+        "groups_include": ["deco", "landmarks", "dungeons"],
+        "groups_absent": ["endgame", "maritime", "loot"],
         "present": ["paradise_lost:"],
         "absent": ["minecraft:end_city", "minecraft:fortress"],
     },
