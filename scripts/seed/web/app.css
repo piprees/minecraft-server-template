@@ -1616,6 +1616,35 @@ img.winner-img {
   outline: 2px solid var(--action);
   outline-offset: 2px;
 }
+#lightbox .lb-res-toggle {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 6;
+  font-size: 0.75rem;
+  font-family: inherit;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid var(--edge);
+  cursor: pointer;
+  background: rgba(16, 18, 22, 0.8);
+  color: var(--text);
+}
+#lightbox .lb-res-toggle[hidden] {
+  display: none;
+}
+#lightbox .lb-res-toggle[aria-pressed='true'] {
+  border-color: var(--action);
+  color: var(--action-hover);
+}
+#lightbox .lb-res-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+#lightbox .lb-res-toggle:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
 #lightbox .lb-info {
   overscroll-behavior: contain;
   min-width: 0px;

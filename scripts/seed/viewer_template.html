@@ -298,6 +298,14 @@
         <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
           Structures
         </button>
+        <!-- Swaps the SAME candidate between its low-res render (smaller
+             area, arrives immediately) and its hi-res one (wider area, once
+             a probe confirms it exists) — see lbMapCoverage in app.js for
+             why the two are not interchangeable. Hidden until a hi-res src
+             is known, disabled until the probe confirms it actually loads. -->
+        <button type="button" class="lb-res-toggle" aria-pressed="false" hidden>
+          High-def
+        </button>
       </div>
       <div class="lb-info"></div>
     </div>

@@ -67,6 +67,42 @@
   })
   // Track current candidate for arrow nav
   var lbCurrentCand = null
+  // Two renders per candidate, covering different areas (see lbMapCoverage
+  // below): lbLowSrc arrives immediately and covers less ground; lbHiresSrc
+  // is wider, and only confirmed to exist once its probe's onload fires. The
+  // toggle lets the user pick either by hand rather than only ever seeing
+  // whichever one a probe happened to land on.
+  var lbLowSrc = null
+  var lbHiresSrc = null
+  var lbHiresReady = false
+  var lbShowingHires = false
+  function updateResToggle() {
+    var btn = lb.querySelector('.lb-res-toggle')
+    if (!btn) return
+    if (!lbHiresSrc) {
+      btn.hidden = true
+      return
+    }
+    btn.hidden = false
+    btn.disabled = !lbHiresReady
+    btn.setAttribute('aria-pressed', lbShowingHires ? 'true' : 'false')
+    btn.textContent = lbShowingHires ? 'High-def' : 'Zoomed in'
+    btn.title = !lbHiresReady
+      ? 'High-def render not confirmed yet'
+      : lbShowingHires
+        ? 'Showing the high-def render (wider area) — click for the zoomed-in one'
+        : 'Showing the zoomed-in render — click for the high-def (wider) one'
+  }
+  function lbSetRes(showHires) {
+    if (showHires === lbShowingHires || (showHires && !lbHiresReady)) return
+    lbShowingHires = showHires
+    lbImg.src = showHires ? lbHiresSrc : lbLowSrc
+    updateResToggle()
+  }
+  lb.querySelector('.lb-res-toggle').addEventListener('click', function (e) {
+    e.stopPropagation()
+    lbSetRes(!lbShowingHires)
+  })
   function getVisibleCands() {
     var src
     var expanded = document.querySelector('.dim-card.expanded')
@@ -209,6 +245,11 @@
     // is context. Open it either way.
     var img = cand.querySelector('img')
     setNoRender(!img, cand)
+    lbLowSrc = img ? img.src : null
+    lbHiresSrc = (img && img.dataset.hires) || null
+    lbHiresReady = false
+    lbShowingHires = false
+    updateResToggle()
     if (!img) {
       lbImg.removeAttribute('src')
       var d0 = candDetailFor(cand)
@@ -217,14 +258,19 @@
       alignOverlay()
       return
     }
-    lbImg.src = img.src
-    var hires = img.dataset.hires
-    if (hires) {
+    lbImg.src = lbLowSrc
+    if (lbHiresSrc) {
       var p = new Image()
       p.onload = function () {
-        lbImg.src = hires
+        // Arrow-key nav can move on before an earlier candidate's probe
+        // lands — a stale probe must not overwrite what is on screen now.
+        if (lbCurrentCand !== cand) return
+        lbHiresReady = true
+        lbShowingHires = true
+        lbImg.src = lbHiresSrc
+        updateResToggle()
       }
-      p.src = hires
+      p.src = lbHiresSrc
     }
     var detail = candDetailFor(cand)
     lbInfo.innerHTML = detail ? detail.innerHTML : ''
