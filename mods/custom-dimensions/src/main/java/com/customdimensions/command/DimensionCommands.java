@@ -7,6 +7,7 @@ import com.customdimensions.dimension.DimensionManager;
 import com.customdimensions.dimension.FixedStructurePlacement;
 import com.customdimensions.dimension.NoiseStructurePlacement;
 import com.customdimensions.dimension.StructureGroupRegistry;
+import com.customdimensions.dimension.StructurePickHelper;
 import com.customdimensions.dimension.StructurePoolRecord;
 import com.customdimensions.mixin.MultiNoiseBiomeSourceAccessor;
 import com.mojang.brigadier.CommandDispatcher;
@@ -20,6 +21,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureStart;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -48,6 +50,8 @@ import java.util.UUID;
  *   /customdim dump-biome-params <dimension>
  *   /customdim structure-audit [group]
  *   /customdim structure-census <dimension>
+ *   /customdim occupant <dimension> <chunkX> <chunkZ>
+ *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
@@ -154,6 +158,16 @@ public class DimensionCommands {
                 .then(CommandManager.literal("structure-census")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(DimensionCommands::structureCensus)))
+                .then(CommandManager.literal("occupant")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("chunkX", IntegerArgumentType.integer())
+                            .then(CommandManager.argument("chunkZ", IntegerArgumentType.integer())
+                                .executes(DimensionCommands::occupant)))))
+                .then(CommandManager.literal("carver-draw")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("chunkX", IntegerArgumentType.integer())
+                            .then(CommandManager.argument("chunkZ", IntegerArgumentType.integer())
+                                .executes(DimensionCommands::carverDraw)))))
                 .then(CommandManager.literal("dump-structure-pools")
                     .executes(DimensionCommands::dumpStructurePools))
         );
@@ -410,6 +424,213 @@ public class DimensionCommands {
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    /**
+     * Reads the LIVE chunk's structure starts map to report which structures
+     * occupy a chunk. The chunk must already be loaded/generated; this command
+     * does NOT generate it.
+     *
+     * For every structure with a start whose start chunk is this chunk and
+     * whose start hasChildren, answers one line "occupant ns:id"; if none,
+     * answers "empty". Also writes the answer to a census/occupancy artefact.
+     */
+    private static int occupant(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal(
+                    "Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        int chunkX = IntegerArgumentType.getInteger(ctx, "chunkX");
+        int chunkZ = IntegerArgumentType.getInteger(ctx, "chunkZ");
+        Identifier dimensionId = world.getRegistryKey().getValue();
+
+        // The chunk must be loaded — do NOT generate it.
+        net.minecraft.world.chunk.WorldChunk chunk =
+                world.getChunkManager().getWorldChunk(chunkX, chunkZ, false);
+        if (chunk == null) {
+            source.sendError(Text.literal(
+                    "Chunk [" + chunkX + ", " + chunkZ + "] is not loaded in "
+                    + dimensionId + " — visit it first or use /forceload. "
+                    + "This command does not generate chunks."));
+            return 0;
+        }
+
+        // Read the chunk's structure starts map.
+        java.util.Map<net.minecraft.world.gen.structure.Structure, StructureStart> starts =
+                chunk.getStructureStarts();
+        var structureRegistry = world.getRegistryManager().get(RegistryKeys.STRUCTURE);
+
+        java.util.List<String> occupants = new java.util.ArrayList<>();
+        for (var entry : starts.entrySet()) {
+            StructureStart start = entry.getValue();
+            if (start == null || !start.hasChildren()) {
+                continue;
+            }
+            // Only report starts whose start chunk IS this chunk
+            if (start.getPos().x != chunkX || start.getPos().z != chunkZ) {
+                continue;
+            }
+            String structureId = structureRegistry.getId(entry.getKey()) != null
+                    ? structureRegistry.getId(entry.getKey()).toString()
+                    : "unknown";
+            occupants.add(structureId);
+        }
+
+        // Build feedback and artefact
+        StringBuilder feedback = new StringBuilder("occupant " + dimensionId
+                + " [" + chunkX + ", " + chunkZ + "]: ");
+        if (occupants.isEmpty()) {
+            feedback.append("empty");
+        } else {
+            java.util.Collections.sort(occupants);
+            for (int i = 0; i < occupants.size(); i++) {
+                if (i > 0) {
+                    feedback.append(", ");
+                }
+                feedback.append(occupants.get(i));
+            }
+        }
+
+        // Write to census/occupancy artefact (append pattern matching rejections)
+        try {
+            String dimPart = dimensionId.toString().replace(":", "__");
+            Path artefactPath = Artefacts.dir("census")
+                    .resolve("occupancy__" + dimPart + ".json");
+
+            StringBuilder record = new StringBuilder();
+            record.append("{\"chunkX\": ").append(chunkX)
+                    .append(", \"chunkZ\": ").append(chunkZ)
+                    .append(", \"occupants\": [");
+            for (int i = 0; i < occupants.size(); i++) {
+                if (i > 0) {
+                    record.append(", ");
+                }
+                record.append('"').append(occupants.get(i)).append('"');
+            }
+            record.append("]}");
+
+            StringBuilder json;
+            if (Files.exists(artefactPath)) {
+                String existing = Files.readString(artefactPath);
+                int lastBracket = existing.lastIndexOf(']');
+                if (lastBracket > 0) {
+                    json = new StringBuilder(existing.substring(0, lastBracket));
+                    json.append(",\n  ");
+                } else {
+                    json = newOccupancyFile(dimensionId.toString());
+                }
+            } else {
+                json = newOccupancyFile(dimensionId.toString());
+            }
+            json.append(record);
+            json.append("\n ]\n}\n");
+            Artefacts.write(artefactPath, json.toString());
+            feedback.append(" -> ").append(artefactPath);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.debug("Failed to write occupancy artefact: {}", e.getMessage());
+        }
+
+        final String msg = feedback.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return occupants.isEmpty() ? 0 : occupants.size();
+    }
+
+    private static StringBuilder newOccupancyFile(String dimensionId) {
+        StringBuilder json = new StringBuilder(Artefacts.jsonHeader("structure-occupancy"));
+        json.append(" \"dimension\": \"").append(dimensionId).append("\",\n");
+        json.append(" \"occupants\": [\n  ");
+        return json;
+    }
+
+    /**
+     * Replays vanilla's carver-draw selection for each noise-managed group
+     * whose site list contains this chunk. Answers "vanilla-draw ns:id |
+     * assigned ns:id" -- first draw only, no rejection fall-through.
+     *
+     * This is a pure read: no generation, no state change. The draw uses
+     * the same LCG chain vanilla's ChunkGenerator.setStructureStarts would
+     * use, but the entries are in LIST ORDER (as vanilla sees them) which
+     * depends on registry entry order observable only server-side.
+     */
+    private static int carverDraw(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal(
+                    "Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        int chunkX = IntegerArgumentType.getInteger(ctx, "chunkX");
+        int chunkZ = IntegerArgumentType.getInteger(ctx, "chunkZ");
+        Identifier dimensionId = world.getRegistryKey().getValue();
+
+        var calculator = world.getChunkManager().getStructurePlacementCalculator();
+        long structureSeed = calculator.getStructureSeed();
+
+        int results = 0;
+        StringBuilder summary = new StringBuilder("carver-draw " + dimensionId
+                + " [" + chunkX + ", " + chunkZ
+                + "] (first draw only, no rejection fall-through):");
+        for (var entry : calculator.getStructureSets()) {
+            if (!(entry.value().placement() instanceof NoiseStructurePlacement noise)) {
+                continue;
+            }
+            // Is this chunk a placement site for this group?
+            if (!noise.index().isPlacement(chunkX, chunkZ)) {
+                continue;
+            }
+
+            String group = noise.group();
+            var structures = entry.value().structures();
+            if (structures.size() <= 1) {
+                // Single-entry set: vanilla skips the carver draw entirely
+                String singleId = structures.isEmpty() ? "?"
+                        : structures.get(0).structure().getKey()
+                                .map(k -> k.getValue().toString()).orElse("?");
+                summary.append("\n  ").append(group).append(": single-entry ")
+                        .append(singleId);
+                results++;
+                continue;
+            }
+
+            // Build the entry list in vanilla's LIST ORDER (not sorted)
+            java.util.List<CarverDraw.Entry> vanillaEntries = new java.util.ArrayList<>();
+            for (var weighted : structures) {
+                String id = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse("?");
+                vanillaEntries.add(new CarverDraw.Entry(id, weighted.weight()));
+            }
+
+            CarverDraw.DrawResult draw = CarverDraw.draw(
+                    vanillaEntries, structureSeed, chunkX, chunkZ);
+
+            // Compute the assigned structure (our pick algorithm)
+            String assigned = StructurePickHelper.assignedAt(
+                    noise.index().noiseSeed(), chunkX, chunkZ,
+                    entry.value().structures());
+
+            if (draw != null) {
+                summary.append("\n  ").append(group)
+                        .append(": vanilla-draw ").append(draw.vanillaDraw())
+                        .append(" | assigned ").append(assigned != null ? assigned : "?")
+                        .append(" (j=").append(draw.j())
+                        .append("/").append(draw.totalWeight()).append(')');
+            }
+            results++;
+        }
+
+        if (results == 0) {
+            summary.append(" no noise-managed group has a site at this chunk");
+        }
+
+        final String msg = summary.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return results;
     }
 
     /**
