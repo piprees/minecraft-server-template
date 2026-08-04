@@ -100,7 +100,10 @@ class TestJavaPythonParity(unittest.TestCase):
                         block["spawnChunkX"], block["spawnChunkZ"])
 
                     expected = index.positions()
-                    actual = [tuple(p) for p in block["positions"]]
+                    # schemaVersion 2 positions are [cx, cz, "ns:id"]; the
+                    # membership diff is over coordinates, ids are compared
+                    # separately below.
+                    actual = [(p[0], p[1]) for p in block["positions"]]
 
                     if actual != expected:
                         got_set, exp_set = set(actual), set(expected)
@@ -121,11 +124,12 @@ class TestJavaPythonParity(unittest.TestCase):
                     # Structure identity parity (schemaVersion >= 2 fixtures
                     # carry per-position ids via 3-element arrays).
                     schema = doc.get("schemaVersion", 1)
-                    if schema >= 2 and actual and len(actual[0]) >= 3:
+                    triples = [p for p in block["positions"] if len(p) >= 3]
+                    if schema >= 2 and triples:
                         pool = block.get("structures") or {}
                         sorted_pool = sorted(pool.items())
                         ps = npl.pick_seed(block["noiseSeed"])
-                        for pos in actual:
+                        for pos in triples:
                             cx, cz, java_id = pos[0], pos[1], pos[2]
                             py_id = npl.resolve_structure(
                                 sorted_pool, npl.priority(ps, cx, cz))

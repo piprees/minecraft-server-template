@@ -1,37 +1,26 @@
 {
  "stackVersion": "0.0.0-local",
  "kind": "structure-census",
- "generatedAt": "2026-08-03T22:31:38.982751253Z",
+ "generatedAt": "2026-08-04T20:56:59.688699133Z",
+ "schemaVersion": 2,
  "dimension": "adventure:the_luminous_caverns",
- "seed": -1218450020909764296,
+ "seed": -2092939776176210055,
  "groups": {
-  "landmarks": {
+  "dungeons": {
    "profile": "sparse",
-   "noiseSeed": -1394806514744295040,
-   "exclusion": 18,
+   "noiseSeed": 6663930673555823904,
+   "exclusion": 12,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
-   "radial": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35],
-   "spacing": 26,
-   "structures": {"mvs:cartographer_tower": 1, "mss:castle_ruin": 1, "mvs:castle_ruins": 2, "mss:castle_tower": 1, "mvs:cathedral": 1, "mvs:crystal": 1, "mvs:diorite_tower": 1, "mvs:duck": 1, "mss:large_tower": 1, "mvs:large_warped_tower": 1, "mss:nether_portal": 1, "nova_structures:shrine_tower": 1, "mss:small_tower": 1, "mvs:small_tower_well": 4, "mvs:statue_ruins": 2, "mvs:stone_fountain": 2, "mvs:sunzi_gate": 1, "mvs:tree_monument": 1, "mss:volcano": 1},
-   "positions": [[10,-11], [-15,5], [-7,-16], [12,17], [-12,23], [-30,8], [-23,-27], [-25,31], [42,-6], [-21,-41], [36,30], [29,-41], [6,-59], [-58,-20], [-40,-49]]
-  },
-  "deco": {
-   "profile": "sparse",
-   "noiseSeed": 7243027358707098159,
-   "exclusion": 5,
-   "radiusChunks": 64,
-   "spawnChunkX": 0,
-   "spawnChunkZ": 0,
-   "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-   "spacing": 10,
-   "structures": {"mvs:bench": 4, "mvs:cart": 2, "mvs:dead_tree_oak": 2, "mvs:floating_islands": 1, "mvs:haystack": 4, "mvs:large_cart_1": 1, "mvs:large_cart_2": 1, "mvs:large_floating_island": 1, "mss:leaf_hollow": 1, "mvs:log_ruin": 1, "bettermineshafts:mineshaft_lush": 8, "bettermineshafts:mineshaft_dripstone": 8, "mvs:mushroom_pond": 1, "mvs:small_well": 4, "mvs:small_copper_well": 4, "mvs:small_tower_well": 4, "mvs:well": 4, "mvs:rare_well": 4, "mvs:paths": 2, "mvs:pile": 4, "mvs:railway": 1, "mvs:rare_well": 1, "nova_structures:remnant_big_remnant": 1, "nova_structures:remnant_big_remnant_2": 1, "nova_structures:remnant_big_remnant_3": 1, "nova_structures:remnant_bridge_remnant": 1, "nova_structures:remnant_medium_remnant": 1, "nova_structures:remnant_medium_remnant_2": 1, "nova_structures:remnant_miner_hut": 1, "nova_structures:remnant_school_remnant": 1, "supplementaries:road_sign": 4, "minecraft:ruined_portal": 2, "mvs:small_oak_lantern": 4, "mvs:small_oak_pond": 2, "mss:small_pond": 1, "mvs:small_ruin": 2, "mvs:stone_pillars": 2, "mss:tree_1": 1, "mss:tree_2": 1, "mss:tree_3": 1, "mss:tree_4": 1, "mss:tree_5": 1, "mss:tree_6": 1, "mss:tree_7": 1, "mss:tree_8": 1, "mvs:wheat_grain_bin": 2, "nova_structures:wild_ruin": 2},
-   "positions": [[1,-3], [10,8], [-11,-9], [-8,13], [2,-21], [-5,23], [25,-1], [-23,10], [-24,-12], [26,-7], [-22,-18], [25,15], [17,-24], [-15,-31], [32,-17], [16,-33], [18,32], [-32,20], [-20,32], [10,-37], [-15,36], [-25,30], [-32,-23], [-3,40], [7,41], [-43,-2], [-27,-34], [-13,-42], [-8,44], [41,-24], [3,-49], [-47,17], [50,-2], [34,37], [19,-47], [45,24], [51,-11], [30,-43], [17,51], [-54,8], [26,48], [-15,53], [55,7], [-55,-16], [-28,50], [-41,41], [11,-59], [-23,-56], [-56,27], [-47,-43]]
+   "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
+   "spacing": 20,
+   "structures": {"adventuredungeons:ruins_standard": 2, "betterdungeons:skeleton_dungeon": 1, "betterdungeons:small_dungeon": 4, "betterdungeons:spider_dungeon": 2, "betterdungeons:zombie_dungeon": 1, "dungeons_plus:deepwater_dungeon": 89, "dungeons_plus:dungeon_ruins": 4, "dungeons_plus:lush_dungeon": 87, "minecraft:mineshaft": 4, "minecraft:trial_chambers": 2, "mvs:gallows": 2, "mvs:villager_statue": 1, "nova_structures:bunker": 1, "nova_structures:illager_camp": 1, "nova_structures:illager_hideout": 1, "nova_structures:undead_crypt": 1, "philipsruins:ancient_dungeon": 4, "philipsruins:bone_dungeon": 1, "philipsruins:lost_soul_city": 1},
+   "positions": [[-8, -4, "dungeons_plus:deepwater_dungeon"], [21, 7, "dungeons_plus:dungeon_ruins"], [-14, 21, "philipsruins:ancient_dungeon"], [-30, -3, "dungeons_plus:lush_dungeon"], [-1, 31, "dungeons_plus:lush_dungeon"], [-14, -32, "dungeons_plus:deepwater_dungeon"], [16, 33, "dungeons_plus:deepwater_dungeon"], [29, -25, "dungeons_plus:dungeon_ruins"], [-42, 8, "dungeons_plus:deepwater_dungeon"], [18, -40, "dungeons_plus:lush_dungeon"], [-28, -34, "mvs:villager_statue"], [34, 29, "dungeons_plus:lush_dungeon"], [-8, 47, "dungeons_plus:lush_dungeon"], [-49, -5, "dungeons_plus:dungeon_ruins"], [-40, 30, "dungeons_plus:deepwater_dungeon"], [50, -7, "dungeons_plus:lush_dungeon"], [-23, -47, "dungeons_plus:deepwater_dungeon"], [-34, 40, "dungeons_plus:deepwater_dungeon"], [-49, -19, "dungeons_plus:dungeon_ruins"], [9, -54, "dungeons_plus:deepwater_dungeon"], [34, 43, "adventuredungeons:ruins_standard"], [-7, -55, "dungeons_plus:deepwater_dungeon"], [12, 56, "dungeons_plus:lush_dungeon"], [-57, 15, "dungeons_plus:deepwater_dungeon"], [51, -30, "dungeons_plus:lush_dungeon"], [-40, -46, "dungeons_plus:lush_dungeon"], [35, -52, "dungeons_plus:lush_dungeon"], [-23, 59, "dungeons_plus:lush_dungeon"]]
   },
   "loot": {
    "profile": "sparse",
-   "noiseSeed": 8691690100563995609,
+   "noiseSeed": 8465718833955825048,
    "exclusion": 6,
    "radiusChunks": 64,
    "spawnChunkX": 0,
@@ -39,19 +28,31 @@
    "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
    "spacing": 12,
    "structures": {"mvs:lamp_chest": 2, "mvs:ruined_beacon": 1, "nova_structures:shrine_combat_tier_1": 11, "nova_structures:shrine_combat_tier_2": 11, "nova_structures:shrine_combat_tier_3": 26, "nova_structures:shrine_combat_tier_4": 21, "nova_structures:shrine_combat_tier_5": 16},
-   "positions": [[5,0], [-1,-8], [1,14], [-12,-9], [2,-15], [-16,9], [19,3], [19,-9], [11,21], [-22,-16], [24,15], [-31,6], [26,-22], [12,-33], [-11,-35], [9,36], [38,0], [-33,19], [-33,-20], [-3,41], [-41,-6], [36,26], [43,12], [47,-9], [-48,4], [26,-41], [7,-51], [-39,34], [-16,-51], [-51,-17], [-17,51], [53,-11], [52,17], [44,-35], [35,44], [-49,-29], [-26,-51], [-58,-3], [-47,-35], [12,58], [55,-26], [9,-61], [1,62], [27,-56], [-38,-51], [-63,9], [-48,42], [-15,62]]
+   "positions": [[-6, 6, "nova_structures:shrine_combat_tier_4"], [9, -8, "nova_structures:shrine_combat_tier_5"], [22, -1, "nova_structures:shrine_combat_tier_1"], [17, -15, "nova_structures:shrine_combat_tier_3"], [-23, -5, "nova_structures:shrine_combat_tier_1"], [-23, 16, "nova_structures:shrine_combat_tier_1"], [-6, 30, "mvs:lamp_chest"], [19, 24, "nova_structures:shrine_combat_tier_4"], [-7, -31, "mvs:ruined_beacon"], [-32, 2, "nova_structures:shrine_combat_tier_4"], [-29, 17, "nova_structures:shrine_combat_tier_4"], [35, 6, "nova_structures:shrine_combat_tier_3"], [32, 16, "nova_structures:shrine_combat_tier_5"], [-27, -26, "nova_structures:shrine_combat_tier_5"], [-19, 33, "nova_structures:shrine_combat_tier_1"], [21, -33, "nova_structures:shrine_combat_tier_1"], [-16, -37, "nova_structures:shrine_combat_tier_3"], [-9, 41, "nova_structures:shrine_combat_tier_4"], [36, -22, "mvs:lamp_chest"], [-31, 30, "nova_structures:shrine_combat_tier_3"], [42, -11, "mvs:lamp_chest"], [-42, -12, "nova_structures:shrine_combat_tier_5"], [16, -43, "nova_structures:shrine_combat_tier_2"], [45, 17, "nova_structures:shrine_combat_tier_4"], [-48, 10, "nova_structures:shrine_combat_tier_5"], [42, 27, "nova_structures:shrine_combat_tier_2"], [50, 2, "nova_structures:shrine_combat_tier_3"], [29, 41, "nova_structures:shrine_combat_tier_4"], [7, 50, "nova_structures:shrine_combat_tier_3"], [-17, -48, "nova_structures:shrine_combat_tier_4"], [-46, -24, "nova_structures:shrine_combat_tier_4"], [43, -37, "nova_structures:shrine_combat_tier_4"], [-28, 50, "nova_structures:shrine_combat_tier_4"], [-52, -25, "nova_structures:shrine_combat_tier_4"], [26, 52, "nova_structures:shrine_combat_tier_4"], [19, -55, "nova_structures:shrine_combat_tier_2"], [0, -59, "nova_structures:shrine_combat_tier_1"], [11, 58, "nova_structures:shrine_combat_tier_5"], [60, 17, "nova_structures:shrine_combat_tier_4"], [43, -46, "nova_structures:shrine_combat_tier_2"], [-63, 7, "nova_structures:shrine_combat_tier_3"], [-57, 28, "nova_structures:shrine_combat_tier_2"], [-49, 41, "nova_structures:shrine_combat_tier_5"]]
   },
-  "dungeons": {
+  "deco": {
    "profile": "sparse",
-   "noiseSeed": 5879548090981012321,
-   "exclusion": 12,
+   "noiseSeed": 7595100269978594414,
+   "exclusion": 5,
    "radiusChunks": 64,
    "spawnChunkX": 0,
    "spawnChunkZ": 0,
-   "radial": [0.3, 0.35, 0.45, 0.55, 0.65, 0.8, 0.95, 1.1, 1.3, 1.55],
-   "spacing": 20,
-   "structures": {"philipsruins:ancient_dungeon": 4, "nova_structures:bunker": 1, "dungeons_plus:deepwater_dungeon": 89, "dungeons_plus:lush_dungeon": 87, "mvs:gallows": 2, "nova_structures:illager_camp": 1, "nova_structures:illager_hideout": 1, "philipsruins:lost_soul_city": 1, "minecraft:mineshaft": 4, "dungeons_plus:dungeon_ruins": 4, "adventuredungeons:ruins_standard": 2, "betterdungeons:skeleton_dungeon": 1, "betterdungeons:small_dungeon": 4, "betterdungeons:spider_dungeon": 2, "minecraft:trial_chambers": 2, "nova_structures:undead_crypt": 1, "philipsruins:bone_dungeon": 1, "mvs:villager_statue": 1, "betterdungeons:zombie_dungeon": 1},
-   "positions": [[7,7], [-32,-5], [18,27], [-18,32], [8,-36], [36,-18], [36,19], [-7,45], [45,-9], [-31,-34], [-49,-4], [29,40], [-8,-52], [47,25], [34,-41], [-21,49], [-36,41], [-25,-49], [3,55], [-55,-19], [50,-31], [25,55], [-61,0], [60,-12], [-48,38], [61,16]]
+   "radial": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+   "spacing": 10,
+   "structures": {"bettermineshafts:mineshaft_dripstone": 8, "bettermineshafts:mineshaft_lush": 8, "minecraft:ruined_portal": 2, "mss:leaf_hollow": 1, "mss:small_pond": 1, "mss:tree_1": 1, "mss:tree_2": 1, "mss:tree_3": 1, "mss:tree_4": 1, "mss:tree_5": 1, "mss:tree_6": 1, "mss:tree_7": 1, "mss:tree_8": 1, "mvs:bench": 4, "mvs:cart": 2, "mvs:dead_tree_oak": 2, "mvs:floating_islands": 1, "mvs:haystack": 4, "mvs:large_cart_1": 1, "mvs:large_cart_2": 1, "mvs:large_floating_island": 1, "mvs:log_ruin": 1, "mvs:mushroom_pond": 1, "mvs:paths": 2, "mvs:pile": 4, "mvs:railway": 1, "mvs:rare_well": 5, "mvs:small_copper_well": 4, "mvs:small_oak_lantern": 4, "mvs:small_oak_pond": 2, "mvs:small_ruin": 2, "mvs:small_tower_well": 4, "mvs:small_well": 4, "mvs:stone_pillars": 2, "mvs:well": 4, "mvs:wheat_grain_bin": 2, "nova_structures:remnant_big_remnant": 1, "nova_structures:remnant_big_remnant_2": 1, "nova_structures:remnant_big_remnant_3": 1, "nova_structures:remnant_bridge_remnant": 1, "nova_structures:remnant_medium_remnant": 1, "nova_structures:remnant_medium_remnant_2": 1, "nova_structures:remnant_miner_hut": 1, "nova_structures:remnant_school_remnant": 1, "nova_structures:wild_ruin": 2, "supplementaries:road_sign": 4},
+   "positions": [[1, 2, "mvs:wheat_grain_bin"], [-3, -9, "minecraft:ruined_portal"], [10, 13, "mvs:paths"], [-6, 16, "mvs:floating_islands"], [-23, -4, "bettermineshafts:mineshaft_dripstone"], [-24, 5, "mss:tree_4"], [24, 6, "mvs:small_oak_pond"], [-22, 15, "mvs:small_well"], [24, -16, "mvs:bench"], [14, -26, "supplementaries:road_sign"], [-20, -26, "mvs:well"], [10, 32, "mvs:pile"], [27, 24, "bettermineshafts:mineshaft_lush"], [36, -4, "bettermineshafts:mineshaft_dripstone"], [-12, -35, "bettermineshafts:mineshaft_lush"], [-37, 8, "nova_structures:wild_ruin"], [-17, 34, "mvs:wheat_grain_bin"], [27, -27, "supplementaries:road_sign"], [-34, -18, "mvs:small_well"], [9, 43, "mvs:wheat_grain_bin"], [26, 36, "nova_structures:remnant_medium_remnant_2"], [-15, -43, "mss:tree_2"], [23, -41, "bettermineshafts:mineshaft_dripstone"], [42, 22, "mvs:paths"], [-47, 9, "nova_structures:remnant_medium_remnant_2"], [46, 16, "mss:tree_4"], [49, 0, "mvs:wheat_grain_bin"], [44, -23, "mvs:haystack"], [-31, 39, "bettermineshafts:mineshaft_dripstone"], [-44, 25, "bettermineshafts:mineshaft_dripstone"], [39, -33, "mvs:small_tower_well"], [-45, -25, "bettermineshafts:mineshaft_lush"], [-19, 48, "bettermineshafts:mineshaft_dripstone"], [5, -52, "mvs:haystack"], [13, -51, "mvs:small_oak_lantern"], [-34, -41, "nova_structures:remnant_miner_hut"], [54, -1, "mss:tree_5"], [42, 39, "mvs:small_well"], [-57, -8, "mvs:paths"], [-1, 58, "mvs:small_oak_lantern"], [-58, -3, "nova_structures:remnant_big_remnant_2"], [27, 52, "mss:tree_5"], [52, 28, "bettermineshafts:mineshaft_dripstone"], [-54, 25, "nova_structures:remnant_bridge_remnant"], [52, -30, "mss:leaf_hollow"], [-23, -57, "mvs:small_oak_lantern"], [61, -12, "bettermineshafts:mineshaft_dripstone"], [17, 60, "mvs:rare_well"], [-49, 39, "mvs:well"], [-53, -34, "mss:tree_4"], [-61, 16, "nova_structures:remnant_school_remnant"], [38, -51, "mss:small_pond"], [24, -59, "mvs:small_well"]]
+  },
+  "landmarks": {
+   "profile": "sparse",
+   "noiseSeed": -2213529486356115519,
+   "exclusion": 18,
+   "radiusChunks": 64,
+   "spawnChunkX": 0,
+   "spawnChunkZ": 0,
+   "radial": [0.35, 0.6, 1.1, 1.6, 1.8, 1.65, 1.3, 0.9, 0.55, 0.35],
+   "spacing": 26,
+   "structures": {"mss:castle_ruin": 1, "mss:castle_tower": 1, "mss:large_tower": 1, "mss:nether_portal": 1, "mss:small_tower": 1, "mss:volcano": 1, "mvs:cartographer_tower": 1, "mvs:castle_ruins": 2, "mvs:cathedral": 1, "mvs:crystal": 1, "mvs:diorite_tower": 1, "mvs:duck": 1, "mvs:large_warped_tower": 1, "mvs:small_tower_well": 4, "mvs:statue_ruins": 2, "mvs:stone_fountain": 2, "mvs:sunzi_gate": 1, "mvs:tree_monument": 1, "nova_structures:shrine_tower": 1},
+   "positions": [[14, 16, "mss:castle_tower"], [9, -21, "mvs:cathedral"], [-20, 15, "mvs:small_tower_well"], [-12, -27, "mvs:small_tower_well"], [31, 7, "mvs:stone_fountain"], [-33, 0, "mvs:castle_ruins"], [2, 39, "mvs:small_tower_well"], [2, -42, "mvs:castle_ruins"], [-38, 18, "mss:volcano"], [-17, 40, "mvs:small_tower_well"], [18, 42, "mvs:statue_ruins"], [-51, -18, "mvs:statue_ruins"], [34, -44, "mvs:tree_monument"], [58, -16, "mvs:castle_ruins"], [-34, 51, "mss:nether_portal"], [-48, -40, "mvs:diorite_tower"]]
   }
  },
  "forced": {},

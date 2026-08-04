@@ -284,18 +284,25 @@ public class DimensionCommands {
             }
             json.append(",\n");
             json.append("   \"spacing\": ").append(noise.getSpacing()).append(",\n");
-            // Per-group structures map: id -> weight. The parity oracle for
-            // the roller's pool data.
+            // Per-group structures map: id -> summed weight, sorted. The
+            // parity oracle for the roller's pool data. Duplicate pool
+            // entries for one id MUST merge here: a JSON object cannot carry
+            // duplicate keys (a parser keeps only the last), and the merged
+            // map is walk-equivalent to the raw entry list because sortedPool
+            // keeps duplicates adjacent (pinned by StructurePickTest).
+            java.util.TreeMap<String, Long> poolMap = new java.util.TreeMap<>();
+            for (var weighted : entry.value().structures()) {
+                weighted.structure().getKey().ifPresent(key -> poolMap.merge(
+                        key.getValue().toString(), (long) weighted.weight(), Long::sum));
+            }
             json.append("   \"structures\": {");
             int n = 0;
-            for (var weighted : entry.value().structures()) {
+            for (var poolEntry : poolMap.entrySet()) {
                 if (n++ > 0) {
                     json.append(", ");
                 }
-                json.append('"')
-                        .append(weighted.structure().getKey()
-                                .map(k -> k.getValue().toString()).orElse("?"))
-                        .append("\": ").append(weighted.weight());
+                json.append('"').append(poolEntry.getKey())
+                        .append("\": ").append(poolEntry.getValue());
             }
             json.append("},\n");
 
