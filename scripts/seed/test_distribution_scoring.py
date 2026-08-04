@@ -43,6 +43,21 @@ def hist_matching(curve, scale=20.0):
     return [int(round(profile[i] * areas[i] * scale)) for i in range(len(curve))]
 
 
+def positions_for_hist(hist, radius_chunks, origin=(0, 0)):
+    """Chunk positions whose radial_hist around origin equals `hist` exactly.
+
+    Places each bin's count at the bin's midpoint radius along +x; the
+    midpoint stays inside its bin after rounding because the bin width
+    (radius/bins chunks) exceeds one chunk for every radius the tests use.
+    """
+    bins = len(hist)
+    positions = []
+    for b, n in enumerate(hist):
+        dist = int(round((b + 0.5) * radius_chunks / bins))
+        positions.extend([(origin[0] + dist, origin[1])] * n)
+    return positions
+
+
 class DistributionMatchTests(unittest.TestCase):
     def test_layout_following_the_curve_scores_one(self):
         for curve in (INNER, OUTER, EVEN):
@@ -102,11 +117,22 @@ class CountSatisfactionTests(unittest.TestCase):
     def test_count_term_is_capped_at_its_weight(self):
         # The spike's "count bonus capped at 0.3": an over-full group cannot
         # buy more than COUNT_WEIGHT of the group score.
+        positions = positions_for_hist(hist_matching(EVEN), 64)
         rich = {"count": 5000, "hist": hist_matching(EVEN), "radial": EVEN}
         exact = {"count": census_scoring.count_floor(64),
                  "hist": hist_matching(EVEN), "radial": EVEN}
-        self.assertAlmostEqual(census_scoring.group_score(rich, 64),
-                               census_scoring.group_score(exact, 64), places=6)
+        self.assertAlmostEqual(
+            census_scoring.group_score(rich, 64, positions=positions,
+                                       origin=(0, 0)),
+            census_scoring.group_score(exact, 64, positions=positions,
+                                       origin=(0, 0)), places=6)
+
+    def test_populated_group_without_positions_is_a_loud_error(self):
+        # The stored hist is display-only; scoring a populated group without
+        # the exact sidecar positions must fail rather than fall back.
+        entry = {"count": 5, "hist": hist_matching(EVEN), "radial": EVEN}
+        with self.assertRaises(ValueError):
+            census_scoring.group_score(entry, 64)
 
     def test_empty_group_is_a_mild_penalty_not_zero(self):
         entry = {"count": 0, "hist": [0] * 10, "radial": INNER}
@@ -260,6 +286,18 @@ class ScoreCandidateIntegrationTests(unittest.TestCase):
                                   "profile": "sparse", "exclusion": 9}
         return {"radiusChunks": 64, "groups": groups}
 
+    def _attach_positions(self, rows):
+        """Exact sidecar positions matching each group's summary hist —
+        scoring bins positions at score time, never the stored hist."""
+        census = rows.get("_census")
+        if not census:
+            return rows
+        radius = census.get("radiusChunks") or 0
+        rows["_census_positions"] = {
+            g: positions_for_hist(e.get("hist") or [], radius)
+            for g, e in (census.get("groups") or {}).items()}
+        return rows
+
     def test_scores_stay_inside_zero_to_one_hundred(self):
         profile = self.profile()
         for census in (None, self.census(hist_matching(INNER, 2.0)),
@@ -267,6 +305,7 @@ class ScoreCandidateIntegrationTests(unittest.TestCase):
             rows = dict(self.base_rows())
             if census:
                 rows["_census"] = census
+                self._attach_positions(rows)
             total, parts = score_dimensions.score_candidate(profile, rows)
             self.assertGreaterEqual(total, 0.0)
             self.assertLessEqual(total, 100.0)
@@ -277,8 +316,10 @@ class ScoreCandidateIntegrationTests(unittest.TestCase):
         profile = self.profile()
         good = dict(self.base_rows())
         good["_census"] = self.census(hist_matching(INNER, 2.0))
+        self._attach_positions(good)
         bad = dict(self.base_rows())
         bad["_census"] = self.census([0] * 7 + [20, 30, 40])
+        self._attach_positions(bad)
         good_total, _ = score_dimensions.score_candidate(profile, good)
         bad_total, _ = score_dimensions.score_candidate(profile, bad)
         self.assertGreater(good_total, bad_total)
@@ -333,7 +374,14 @@ class ShippedConfigTests(unittest.TestCase):
         settlements = enriched["groups"].get("settlements")
         self.assertIsNotNone(settlements)
         self.assertIsInstance(settlements["radial"], list)
-        part = census_scoring.distribution_component(enriched)
+        # Scoring bins exact positions at score time; reconstruct positions
+        # with each group's own summary shape (the summary hist here is
+        # freshly computed from the same NoiseFieldIndex positions).
+        radius = enriched.get("radiusChunks") or 0
+        positions = {g: positions_for_hist(e.get("hist") or [], radius)
+                     for g, e in enriched["groups"].items()}
+        part = census_scoring.distribution_component(
+            enriched, positions_by_group=positions, origin=(0, 0))
         self.assertIsNotNone(part)
         self.assertGreater(part, 0.0)
         self.assertLessEqual(part, 1.0)

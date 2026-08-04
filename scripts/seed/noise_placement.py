@@ -1396,16 +1396,9 @@ def census_summary(world_seed, dim_name, dim_config, type_defaults,
         index = NoiseFieldIndex(noise_seed, settings["profile"], settings["exclusion"],
                                 settings["radial"], radius_chunks,
                                 spawn_chunk_x, spawn_chunk_z)
-        hist = [0] * bins
-        for cx, cz in index.positions():
-            dx = cx - bin_origin_x
-            dz = cz - bin_origin_z
-            b = int(math.sqrt(float(dx) * dx + float(dz) * dz) / scale * bins)
-            if b < 0:
-                b = 0
-            elif b >= bins:
-                b = bins - 1
-            hist[b] += 1
+        from census_scoring import radial_hist
+        hist = radial_hist(index.positions(), bin_origin_x, bin_origin_z,
+                           radius_chunks, bins)
         out["groups"][group] = {"count": len(index), "hist": hist}
     return out
 
@@ -1529,21 +1522,13 @@ def census_task(task):
         ps = pick_seed(noise_seed)
 
         by_struct = {}
-        hist = [0] * bins
+        from census_scoring import radial_hist
+        hist = radial_hist(positions, spawn_cx, spawn_cz, radius_chunks, bins)
         # Build the id table and position list for the sidecar.
         id_to_index = {}
         id_list = []
         sidecar_positions = []
         for cx, cz in positions:
-            dx = cx - spawn_cx
-            dz = cz - spawn_cz
-            b = int(math.sqrt(float(dx) * dx + float(dz) * dz) / scale * bins)
-            if b < 0:
-                b = 0
-            elif b >= bins:
-                b = bins - 1
-            hist[b] += 1
-
             if sorted_pool:
                 pv = priority(ps, cx, cz)
                 sid = resolve_structure(sorted_pool, pv)

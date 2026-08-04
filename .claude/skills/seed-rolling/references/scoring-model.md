@@ -48,7 +48,7 @@ If `seedRoll.mood` is omitted, `build_profile()` derives one: mob difficulty mul
 
 Noise structure placement changed what a structure distance MEANS. Sets are no longer placed on their own vanilla grid — they are sorted into seven groups, biome-filtered, and each group is placed by its own noise field. "How far is the nearest village" stopped being a statement about the world, because the villages set does not have a grid any more; it has a share of the `settlements` group.
 
-So the structures component is now two views, combined in `census_scoring.py`:
+So the structures component is two views, combined in `census_scoring.py`:
 
 ```
 structures = 0.6 * census + 0.4 * battery          (whichever exist)
@@ -65,7 +65,7 @@ census     = mean over resolved groups of
 | Battery entry | Scored by |
 | --- | --- |
 | Forced placement (`structures.force`) | The old positional `want_score`/`shun_score` — a forced position is exact |
-| Set in an ACTIVE noise group | Band occupancy from that group's histogram (`census_want_score`) |
+| Set in an ACTIVE noise group | Exact block distance from spawn via the group's census positions (`census_want_score`) |
 | Set in a group the dimension SUPPRESSED | The structure does not generate here: want 0.0, shun 1.0 |
 | Set noise never owned (custom placement type, unclassified) | The old positional scoring, unchanged |
 
@@ -86,7 +86,7 @@ Still the model for everything above that noise does not own.
 - Inside `[lo, hi]`: 1.0, plus up to +0.1 "comfort bonus" for sitting near the range's centre.
 - Too close (`dist < lo`): scales from -0.5 at spawn up to 1.0 at `lo` — being found WAY too close actively costs points, not just zeroes them.
 - Too far (`dist > hi`): linear falloff over one range-width past `hi`.
-- Not found, and `hi` is within the ~1600-block locate horizon: 0.0 (it should have been findable and wasn't).
+- Not found, and `hi` is within the ~1600-block locate horizon (`LOCATE_HORIZON` in `score-dimensions.py`): 0.0 (it should have been findable and wasn't).
 - Not found, but `lo >= 1600` (a genuinely far-out want): 0.8 — absence at that range is compatible with a fine world; the locate radius realistically can't confirm either way.
 
 ### Shun scoring (`shun_score`)
@@ -103,9 +103,9 @@ Binary: 0.0 if the structure exists closer than its threshold (the shun's `minDi
 
 | Preset          | Relief (height spread) | Grain (adjacent Δheight) | Water fraction |
 | --------------- | ---------------------- | ------------------------ | -------------- |
-| `compressed`    | 40–160                 | 6–26                     | 0.0–0.30       |
-| `wide`          | 10–60                  | 0–6                      | 0.05–0.45      |
-| unset (default) | 18–90                  | 2–14                     | 0.0–0.45       |
+| `compressed`    | 45–130                 | 5–16                     | 0.0–0.30       |
+| `wide`          | 25–75                  | 1–7                      | 0.05–0.45      |
+| unset (default) | 30–110                 | 2–11                     | 0.0–0.45       |
 
 Mood modulates the targets further: `hard`/`dramatic` widen relief to `(lo*1.25, hi*1.4)` and grain to `(max(lo,3), hi*1.3)` — these moods want MORE violence than the noise preset alone implies. `serene`/`pastoral` narrow relief to `(lo*0.7, hi*0.8)` — gentler than the preset's own range. `seedRoll.water` (`"none"|"high"|"sea"`) overrides the water target outright regardless of preset (`none` → 0.0–0.10, `high` → 0.25–0.8, `sea` → 0.5–1.0).
 

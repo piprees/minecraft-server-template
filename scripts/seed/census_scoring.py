@@ -26,6 +26,11 @@ import math
 CENSUS_WEIGHT = 0.6
 BATTERY_WEIGHT = 0.4
 
+# Radial annulus count when a summary carries no display hist to size from.
+# MIRRORS noise_placement.CENSUS_BINS — the two must agree or a re-binned
+# shape compares against a curve resampled at a different resolution.
+DEFAULT_HIST_BINS = 10
+
 # Within the census term: shape first, presence second.
 SHAPE_WEIGHT = 0.7
 COUNT_WEIGHT = 0.3
@@ -143,19 +148,56 @@ def count_satisfaction(count, radius_chunks):
     return max(0.0, min(1.0, count / float(floor)))
 
 
-def group_score(entry, radius_chunks):
-    """One group's contribution: shape, then presence."""
+def radial_hist(positions, origin_cx, origin_cz, radius_chunks, bins):
+    """Radial annulus counts for chunk positions around an origin.
+
+    The single binning definition: the census writers (noise_placement) and
+    the scorer both call this, so the shape a score sees is by construction
+    the shape the exact positions have. Positions may be (cx, cz) pairs or
+    (cx, cz, id) triples; extra elements are ignored.
+    """
+    hist = [0] * bins
+    scale = float(radius_chunks) if radius_chunks > 0 else 1.0
+    for pos in positions:
+        dx = pos[0] - origin_cx
+        dz = pos[1] - origin_cz
+        b = int(math.sqrt(float(dx) * dx + float(dz) * dz) / scale * bins)
+        if b < 0:
+            b = 0
+        elif b >= bins:
+            b = bins - 1
+        hist[b] += 1
+    return hist
+
+
+def group_score(entry, radius_chunks, positions=None, origin=None):
+    """One group's contribution: shape, then presence.
+
+    Shape is computed from the EXACT sidecar positions binned at score time
+    (radial_hist) — the summary's stored hist is display-only and is never
+    scored. A caller without positions for a populated group gets a loud
+    error rather than a silent fallback to the display summary.
+    """
     if entry.get("count", 0) <= 0:
         return EMPTY_GROUP_SCORE
-    shape = distribution_match(entry.get("hist") or [], entry.get("radial"))
+    if positions is None:
+        raise ValueError(
+            "group_score requires exact sidecar positions for a populated "
+            "group — the stored hist is display-only (run ensure_censuses)")
+    ox, oz = origin or (0, 0)
+    bins = len(entry.get("hist") or []) or DEFAULT_HIST_BINS
+    hist = radial_hist(positions, ox, oz, radius_chunks, bins)
+    shape = distribution_match(hist, entry.get("radial"))
     presence = count_satisfaction(entry["count"], radius_chunks)
     return SHAPE_WEIGHT * shape + COUNT_WEIGHT * presence
 
 
-def distribution_component(census):
+def distribution_component(census, positions_by_group=None, origin=None):
     """Mean group score across every group the dimension actually resolved.
 
-    -> None when the dimension has no noise groups (suppressed, void,
+    positions_by_group carries the exact sidecar positions per group
+    (noise_placement.load_census_positions); origin is the candidate's spawn
+    chunk. -> None when the dimension has no noise groups (suppressed, void,
     superflat, base world) so the caller can fall back to grid scoring.
     """
     if not census:
@@ -164,7 +206,13 @@ def distribution_component(census):
     if not groups:
         return None
     radius_chunks = census.get("radiusChunks") or 0
-    scores = [group_score(e, radius_chunks) for e in groups.values()]
+    scores = [
+        group_score(e, radius_chunks,
+                    positions=(positions_by_group or {}).get(g)
+                    if e.get("count", 0) > 0 else [],
+                    origin=origin)
+        for g, e in groups.items()
+    ]
     return sum(scores) / len(scores)
 
 

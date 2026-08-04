@@ -69,6 +69,8 @@ All commands live under one root, `/customdim`, and require permission level 4.
 | `/customdim dump-biome-params <dimension>` | Dump TerraBlender + mod biome parameters (feeds the seed roller's `biome_params.json`). |
 | `/customdim sample-noise <dimension> <x> <z>` | Generation ground-truth oracle: the router climate point at `(x & ~3, 0, z & ~3)`. |
 | `/customdim sample-biome-grid <dimension> <radius> <step>` | Sample the biome layout on a grid. |
+| `/customdim occupant <dimension> <chunkX> <chunkZ>` | Read a LOADED chunk's live `StructureStart`s (never generates); appends `census/occupancy__<ns>__<slug>.json`. |
+| `/customdim carver-draw <dimension> <chunkX> <chunkZ>` | Replay vanilla's would-be first draw beside the noise assignment for a chunk. |
 | `/customdim debug-prng <seed>` | PRNG diagnostics. |
 
 ## Examples

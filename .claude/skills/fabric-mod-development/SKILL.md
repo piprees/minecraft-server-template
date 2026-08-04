@@ -83,7 +83,7 @@ Run `check-dimension-drift.py` FIRST if you are about to assert anything about w
 | Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
 | How was each set classified? | `structure-audit.txt` | human-read |
 
-`/locate` is the wrong instrument for placement: it proves one instance exists and takes minutes doing it. Measured 2026-07-27 — locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
+`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `census/occupancy__*.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Measured 2026-07-27 — locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 

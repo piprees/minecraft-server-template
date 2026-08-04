@@ -559,10 +559,11 @@ def score_candidate(profile, rows, structures_override=None):
     #             placement owns; None for suppressed/void/base-world dims,
     #             which fall through to the grid battery exactly as before.
     #   battery — the author's wants and shuns. Still positional (and still
-    #             exact) for forced placements and for the 227 custom-placement sets that
-    #             kept grid placement; answered from the owning group's
-    #             histogram for everything noise took over, because a grid
-    #             distance for a noise-placed set is fiction.
+    #             exact) for forced placements and for the custom-placement
+    #             sets that kept grid placement; answered from the owning
+    #             group's exact sidecar positions for everything noise took
+    #             over, because a grid distance for a noise-placed set is
+    #             fiction.
     if structures_override is not None:
         parts["structures"] = structures_override
         w = profile["weights"]
@@ -574,7 +575,13 @@ def score_candidate(profile, rows, structures_override=None):
                 {k: round(v, 3) for k, v in parts.items()})
 
     census = rows.get("_census")
-    census_part = census_scoring.distribution_component(census)
+    # Shape is binned from the exact sidecar positions at score time — the
+    # summary's stored hist is display-only and never scored.
+    _spawn_origin = (int(float(rows.get("spawn_x") or 0)) >> 4,
+                     int(float(rows.get("spawn_z") or 0)) >> 4)
+    census_part = census_scoring.distribution_component(
+        census, positions_by_group=rows.get("_census_positions") or {},
+        origin=_spawn_origin)
     census_groups = (census or {}).get("groups") or {}
     census_radius_chunks = (census or {}).get("radiusChunks") or 0
     lookup = profile.get("_battery_groups")

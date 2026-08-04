@@ -38,7 +38,7 @@ Every candidate gets 0–100 from four weighted components (weights come from `M
 | **namesake** | Spawn biome matches `seedRoll.spawnFilter` (or first 4 config biomes if unset) | Full credit (1.0) only within 48 blocks of origin; partial credit scales down to 1024 blocks away; total absence within the 768-block sampling window rejects the candidate outright (see Zero candidates below) |
 | **variety** | Listed biomes actually locatable near spawn (`locate`-equivalent), proximity-weighted so fringe/border-only biomes don't inflate a monoculture | Sampled down to 8 evenly-spaced biomes for lists longer than 8 |
 | **terrain** | Relief / grain / water fraction from a 3×3 climate grid vs targets keyed by `noiseSettings` (`compressed` wants violence, `wide` wants gentle rolling, voids want zero land, islands want real gaps) | Mood shifts the targets: `hard`/`dramatic` want more relief, `serene`/`pastoral` want less |
-| **structures** | For a noise dimension: how well each group's radial spread matches its curve, plus whether the group is populated at all, plus wants/shuns answered from their group's histogram. For a suppressed one: the old want/shun distance battery | A mob difficulty ≥ 2.0 shifts weight FROM namesake/variety INTO structures — dangerous worlds must be worth it |
+| **structures** | For a noise dimension: how well each group's radial spread matches its curve, plus whether the group is populated at all, plus wants/shuns scored from exact block distances from the candidate's spawn. For a suppressed one: the old want/shun distance battery | A mob difficulty ≥ 2.0 shifts weight FROM namesake/variety INTO structures — dangerous worlds must be worth it |
 
 A void dimension overrides the weights entirely (`namesake 30 / variety 55 / terrain 15 / structures 0` — there's no terrain to score). `clearSpawnRadius` (from `structures.clearSpawnRadius` or the mood default in `MOOD_CLEAR_SPAWN`) penalises any battery structure found too close to spawn regardless of its want range.
 
@@ -101,15 +101,25 @@ structures = 0.6 * census + 0.4 * battery
 census     = mean over groups of 0.7*distribution_match + 0.3*count_satisfaction
 ```
 
-`distribution_match` bins each group's positions by radial decile, converts to a per-annulus DENSITY (equal-width bins cover unequal areas) and cosine- compares that with the group's radial curve. Wants and shuns still count, answered from their owning group's histogram — except for forced placements and the sets that keep grid placement, which stay positional because for them the old model is still true. A dimension with no noise groups scores exactly as it did before.
+`distribution_match` bins each group's positions by radial decile, converts to a per-annulus DENSITY (equal-width bins cover unequal areas) and cosine-compares that with the group's radial curve. Wants and shuns score from exact block distances from the candidate's spawn — except for forced placements and the sets that keep grid placement, which stay positional because for them the old model is still true. A dimension with no noise groups scores exactly as it did before.
 
 Censuses are **banked per candidate** (`noiseCensus`, keyed by `noise_fingerprint()`), so the first `seed-rescore` after this change prints `noise census: computing N candidate layout(s)` and takes about an hour over a full bank; every rescore after it is free. It reports an ETA every 5% — if you see no progress line at all, you are on an older build, not a hung job.
 
-**It runs on `cpu_count() - 2` processes (floor 2), and `--census-workers N` lowers that.** The flag is accepted by `score-dimensions.py`, by `roll-all.sh` (also as `ROLL_CENSUS_WORKERS`), and therefore by `./dev seed-roll`. Lower it when you need the machine for something else — a local Minecraft server booting beside an unrestricted run took three times as long (2026-07-27). The default used to be `min(cpu_count(), 8)` **and roll-all.sh never passed the flag through**, so a cold backfill on an 18-core machine ran 8-wide for six hours with no way to raise it from the command anyone actually runs. Full detail: `references/scoring-model.md`.
+**It runs on `max(2, cpu_count * 2 // 3)` processes, and `--census-workers N` overrides that.** The flag is accepted by `score-dimensions.py`, by `roll-all.sh` (also as `ROLL_CENSUS_WORKERS`), and therefore by `./dev seed-roll`. Lower it when you need the machine for something else — a local Minecraft server booting beside an unrestricted run took three times as long (2026-07-27). The default used to be `min(cpu_count(), 8)` **and roll-all.sh never passed the flag through**, so a cold backfill on an 18-core machine ran 8-wide for six hours with no way to raise it from the command anyone actually runs. Full detail: `references/scoring-model.md`.
+
+### Exact identity and the "not exactly measurable" convention
+
+Structure identity is exact throughout. `StructurePick` (Java) is mirrored by `noise_placement.pick_seed`/`resolve_structure` (Python); tag resolution uses `structure_tags.resolve_tag` over warmup-extracted tag JSONs (nested refs, `required:false`, cycle-safe). All substring tag matching is deleted; unavailable tag data returns -1/skip ("not exactly measurable"), never an estimate.
+
+Three measurement domains carry this convention:
+
+- **Pass-through battery.** Measurement runs ONLY for `VERIFIED_PASSTHROUGH_TYPES` (currently `minecraft:random_spread`) at frequency 1.0. Any other placement type is banked as not exactly measurable. `test_passthrough_parity.py` is the only way onto the allowlist.
+- **Depth axis.** Evaluated exactly for adventure presets at block y=64 (= `QuartPos.toBlock(16)`, the oracle's convention). `paradise_lost` is provably depth-free. Other families carry `depth_exact=False` (not exactly measurable) until their router graphs are extracted.
+- **Census summary.** `byStructure` reports `{count, nearest}` per structure in the summary; `hist` is display-only and NOTHING is scored from it.
 
 ### Fingerprint impact — expect a wave of DRIFTED
 
-`generation_payload()` gained a **conditional** `noisePlacement` key. Of the shipped set: 73 dimensions carry it and will report **DRIFTED** (correct — noise genuinely changed their worlds, so their banked measurements describe a world the config no longer generates, and only a re-roll fixes it); 5 suppressed dimensions keep byte-identical fingerprints.
+`generation_payload()` gained a **conditional** `noisePlacement` key and a conditional `structureSelection` key (`"pick-v1"` — the pick algorithm version; changing it re-deals every site). Of the shipped set: 73 dimensions carry it and will report **DRIFTED** (correct — noise genuinely changed their worlds, so their banked measurements describe a world the config no longer generates, and only a re-roll fixes it); 5 suppressed dimensions keep byte-identical fingerprints.
 
 ### Base worlds
 
@@ -167,6 +177,7 @@ Everything the roller derives is under `<consumer>/.seedtest/`, and nothing else
 | State | Path |
 | --- | --- |
 | Candidate bank | `.seedtest/candidates/{slug}.json` |
+| Census positions (per candidate) | `.seedtest/census-positions/<dim>/<seed>.json.gz` (schemaVersion 2, noise fingerprint + poolHash stamps) |
 | Live biome parameter table | `.seedtest/biome_params.json` (seeded from the bundle's read-only copy) |
 | Structure sets | `.seedtest/.structure_sets/` |
 | Warmup boot dir | `.seedtest/base/` |
@@ -197,7 +208,9 @@ Everything the roller derives is under `<consumer>/.seedtest/`, and nothing else
 python3 -m pytest scripts/seed/            # the existing test suite (10 test modules)
 ```
 
-The test suite exists — `test_biome_pipeline.py`, `test_dimension_profiles.py`, `test_fast_roller.py`, `test_map_renderer.py`, `test_preset_terrain.py`, `test_render_integration.py`, `test_score_dimensions.py`, `test_seed_worker.py`, `test_viewer_server.py`, `test_world_type_fidelity.py` — and changing any scoring logic in `dimension_profiles.py`, `fast_roller.py`, or `score-dimensions.py` means running it before trusting the change.
+The test suite exists — `test_biome_pipeline.py`, `test_biome_parity.py`, `test_dimension_profiles.py`, `test_fast_roller.py`, `test_map_renderer.py`, `test_passthrough_parity.py`, `test_preset_terrain.py`, `test_render_integration.py`, `test_score_dimensions.py`, `test_seed_worker.py`, `test_viewer_server.py`, `test_world_type_fidelity.py` — and changing any scoring logic in `dimension_profiles.py`, `fast_roller.py`, or `score-dimensions.py` means running it before trusting the change.
+
+Shell-level verification scripts: `scripts/seed/verify-occupancy.sh` (bot harness for occupancy checks), `scripts/seed/migrate-structure-identity.sh` + `scripts/seed/verify-structure-identity.py` (one-time migration + gate), `scripts/seed/refresh-biome-fixtures.sh` + `test_biome_parity.py` (biome gate — fixtures deliberately uncommitted while live-vs-vanilla divergence is open).
 
 ## References
 

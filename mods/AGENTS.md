@@ -174,6 +174,8 @@ answer is read from the file.
 | Artefact | Written by | Checked by |
 | --- | --- | --- |
 | `census/<ns>__<slug>.json` | `customdim structure-census <ns>:<slug>` | `scripts/check-noise-regression.py` |
+| `census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin` (appended on each structural rejection) | `scripts/check-noise-regression.py` |
+| `census/occupancy__<ns>__<slug>.json` | `customdim occupant <ns>:<slug> <cx> <cz>` (reads a LOADED chunk, never generates) | `scripts/seed/verify-occupancy.sh` |
 | `structure-audit.txt` | `customdim structure-audit [group]` | — (human-read) |
 | `biome_params.json` | `customdim dump-biome-params <dim>` | the seed roller consumes it |
 | `biome_grid.csv` | `customdim sample-biome-grid <dim> <r> <step>` | — (ad-hoc) |
@@ -184,8 +186,10 @@ answer is read from the file.
 while the server is up, paused, or down.
 
 **Start any "is the mod behaving?" question here, not with RCON.** The census
-answers which structures reached a pool and where they were placed; a
-`/locate` proves one instance exists and takes minutes doing it (see the
+answers which structures reached a pool and where they were placed;
+`/customdim occupant` reads a loaded chunk's live `StructureStart`s to
+confirm what actually occupies a site. `/locate` is NOT an occupancy
+instrument — a miss walks placements for minutes and wedges RCON (see the
 locate note below).
 
 **A checker is only meaningful against a world created under the config it
