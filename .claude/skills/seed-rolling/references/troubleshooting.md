@@ -66,3 +66,27 @@ Expanded diagnostics for the seed roller. Check causes in the order given — th
 - **Docker Desktop isn't running.** `roll-all.sh`'s warmup phase hard-requires `command -v docker` and exits with an explicit error if it's absent — this isn't a silent failure, but it's easy to miss in a long roll log.
 - **No mod jars anywhere.** Warmup's `prepare_base_dir()` builds its boot directory from the shared mod cache (`${MOD_CACHE_DIR:-~/.cache/adventure-mods}`), falling back to `data/mods/` only when the cache is empty. If neither has jars — a fresh checkout, or a consumer whose `data/` was deleted to reset a world — warmup exits with `Error: no mod jars in <cache> or <data>/mods`. Run `./dev up` once to fill the cache.
 - **The MC server needs ~90 seconds to boot ~129 mods for the biome-param dump.** If `ROLL_MEMORY` is too low for the host, or the boot is otherwise slow, `warmup_biomes.py`'s timeout can expire before the dump completes — this fails **silently** in the sense that the roll continues rather than erroring loudly, but leaves `biome_params.json` stale or incomplete, which then surfaces downstream as zero candidates or all-green renders per the sections above. If a fresh warmup produces suspiciously low family counts, suspect a truncated boot before suspecting the config.
+
+## The clean rig — proving a dimension outside the full stack
+
+`scripts/seed/clean-rig.sh <dimension-json>` boots a minimal itzg server
+(fabric-api + customdimensions only, watchdog disabled) with the dimension
+config pre-seeded, loads it, and asserts it becomes queryable. Use it when
+a dimension misbehaves and the question is "is this the config, or another
+mod's mixins?" — `--keep` leaves the container up for `docker exec
+cleanrig rcon-cli` probing.
+
+Two ordering rules decide whether ANY rig works, and both have burned real
+sessions:
+
+- **The config file must exist before boot.** `MultiverseConfig` loads once,
+  at `createWorlds`; a dimension JSON written after boot is never read, and
+  `customdim load <slug>` then looks queued while nothing happens.
+- **`SEED_ROLL_MODE` decides which door is open.** With it set (every
+  measurement worker), `registerDimensions()` is skipped at boot: configured
+  dimensions have no `DimensionOptions` and only `/customdim create` works.
+  Without it (warmup pool dumps, this rig), configured dimensions register
+  and `customdim load` works. The failure signature for either mistake is
+  the same silent nothing — the mod WARNs
+  `No DimensionOptions registered for configured dimension ...` when the
+  load hits it, so grep the boot log for that line first.

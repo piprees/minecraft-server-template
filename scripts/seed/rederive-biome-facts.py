@@ -24,8 +24,8 @@ Template-only: NOT in the bundle MANIFEST.
 """
 
 import argparse
-import json
 import multiprocessing
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -125,6 +125,15 @@ def main():
     args = ap.parse_args()
 
     cnd.set_bank_root(args.seedtest)
+    if args.write:
+        # One backup per invocation, before the first store is touched —
+        # the write pass moves candidates and rewrites measurements.
+        src = cnd.candidates_dir(Path(args.config))
+        if src.is_dir():
+            stamp = time.strftime("%Y%m%d-%H%M%S")
+            dst = src.parent / f"candidates.bak.{stamp}"
+            shutil.copytree(src, dst)
+            print(f"bank backed up to {dst}", flush=True)
     config = load_config(args.config)
     sources = {d["name"]: d for d in config.get("dimensions", [])}
     sources.update({w["name"]: w for w in config.get("worlds", [])})
