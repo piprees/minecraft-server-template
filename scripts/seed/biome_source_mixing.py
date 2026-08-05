@@ -103,12 +103,15 @@ def build_mixed_entries(biome_table, biome_list, family_filter=None,
     native_ids = set()
 
     for entry in biome_table:
+        # The exact table carries non-biome rows (the _noiseAliases metadata
+        # sentinel, unresolved markers) — every table consumer skips them.
+        biome_id = entry.get("biome")
+        if not biome_id or entry.get("unresolved"):
+            continue
         if family_filter is not None:
             entry_family = entry.get("family")
             if entry_family and entry_family != family_filter:
                 continue
-
-        biome_id = entry["biome"]
         if biome_id in allowed and biome_id not in explicit:
             native_entries.append(entry)
             native_ids.add(biome_id)
