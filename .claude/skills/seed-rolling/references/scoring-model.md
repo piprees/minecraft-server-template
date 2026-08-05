@@ -44,9 +44,9 @@ If `seedRoll.mood` is omitted, `build_profile()` derives one: mob difficulty mul
 
 **`structures.wants` and `seedRoll.wants` are scored identically once resolved to a `(lo, hi)` block-distance window** (`want_range()` in `dimension_profiles.py` normalises both to the same shape) — the difference is purely in how the author writes them, not how the roller judges them. See the format-mismatch trap in the main SKILL.md; it's a config-authoring crash, not a scoring difference.
 
-## Structures: the census model (2026-07-26)
+## Structures: the census model
 
-Noise structure placement changed what a structure distance MEANS. Sets are no longer placed on their own vanilla grid — they are sorted into seven groups, biome-filtered, and each group is placed by its own noise field. "How far is the nearest village" stopped being a statement about the world, because the villages set does not have a grid any more; it has a share of the `settlements` group.
+Noise structure placement changes what a structure distance MEANS. Sets are not placed on their own vanilla grid — they are sorted into seven groups, biome-filtered, and each group is placed by its own noise field. "How far is the nearest village" is not a statement about the world, because the villages set has no grid; it has a share of the `settlements` group.
 
 So the structures component is two views, combined in `census_scoring.py`:
 
@@ -86,8 +86,7 @@ Still the model for everything above that noise does not own.
 - Inside `[lo, hi]`: 1.0, plus up to +0.1 "comfort bonus" for sitting near the range's centre.
 - Too close (`dist < lo`): scales from -0.5 at spawn up to 1.0 at `lo` — being found WAY too close actively costs points, not just zeroes them.
 - Too far (`dist > hi`): linear falloff over one range-width past `hi`.
-- Not found, and `hi` is within the ~1600-block locate horizon (`LOCATE_HORIZON` in `score-dimensions.py`): 0.0 (it should have been findable and wasn't).
-- Not found, but `lo >= 1600` (a genuinely far-out want): 0.8 — absence at that range is compatible with a fine world; the locate radius realistically can't confirm either way.
+- Not found: scored against the dimension's measured horizon (`measure_horizon()` in `dimension_profiles.py` — the profile's `locate_cap`, or `player border radius + 2048` when the profile carries no explicit cap), never a fixed constant. A band entirely inside the horizon (`hi <= horizon`): 0.0 — it should have been findable and wasn't. A band entirely beyond the horizon (`lo >= horizon`): 0.8 — absence out there is compatible with a fine world; the search radius realistically can't confirm either way. A band straddling the horizon: 0.6 — only partially informative.
 
 ### Shun scoring (`shun_score`)
 

@@ -412,7 +412,7 @@ tag ids, unknown colour names, and unknown orientations WARN at boot and
 never crash; a tag frame without `framePlaceBlock` WARNs that mod-built
 frames fall back to obsidian.
 
-Two hard-won rules from live verification (2026-07-23):
+Two rules:
 
 - **Persisted zone records always store a plain block id in `frameBlock`**
   (the placement block; accept forms ride in `frameAccepts`). Older mod

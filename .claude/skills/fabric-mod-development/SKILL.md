@@ -51,7 +51,7 @@ CI runs the identical check twice, so a local pass should never surprise it: `mo
 
 Install straight into the local consumer's `data/mods/` and restart only the `mc` container — no release, no bundle, no full stack cycle. A release → deploy cycle costs 10–15 minutes and restarts production; this costs about a minute.
 
-> **Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle over `data/mods/` on every run — it will silently overwrite your locally-built jar with the old released version, and your test then runs the OLD code and "passes". 2026-07-25: an entire lazy-init feature appeared not to work across four boot cycles because every test was actually running the bundle jar. Use `docker stop mc && docker start mc` (or `docker restart mc`). Only run `./dev up` when you deliberately want to reset to the bundle's shipped jars.
+> **Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle over `data/mods/` on every run — it silently overwrites your locally-built jar with the old released version, so a test can run the OLD code and still "pass". Use `docker stop mc && docker start mc` (or `docker restart mc`). Only run `./dev up` when you deliberately want to reset to the bundle's shipped jars.
 
 ```bash
 cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
@@ -74,7 +74,7 @@ If the persisted state format changed (config schema, namespace, ids), delete th
 ./dev verify                 # every checker, no Docker needed, safe while paused
 ```
 
-Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. On 2026-07-27 a jungle dimension "failed" a structure-filter check with igloos in its pool; the filter was correct and the world was three configs old.
+Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
 
 | Question | Artefact | Checker |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ Run `check-dimension-drift.py` FIRST if you are about to assert anything about w
 | Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
 | How was each set classified? | `structure-audit.txt` | human-read |
 
-`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `census/occupancy__*.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Measured 2026-07-27 — locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
+`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `census/occupancy__*.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 
@@ -144,10 +144,10 @@ The pipeline itself: `release.yml` builds each mod listed in `mods/local-mods.ma
 1. **Gradle reports `BUILD SUCCESSFUL` while producing an empty or unremapped jar.** Shipped a production crash loop once — this is why step 2 is a mandatory gate, not a suggestion.
 2. **Unlisted mixins silently don't apply**, causing a `ClassCastException` at the point an accessor interface is used. `@Accessor`/`@Invoker` interfaces go in the same `mixins` array as `@Mixin` classes in `<modid>.mixins.json`. Set `"defaultRequire": 1` so a missing target crashes at startup instead of silently skipping.
 3. **Never mutate the server's worlds map (or any collection vanilla iterates per tick) from a `ServerWorld.tick`/world-tick mixin.** `ConcurrentModificationException` crash the moment the timer fires. Defer to `ServerTickEvents.END_SERVER_TICK`.
-4. **Any path adding a `ServerWorld` must fire `ServerWorldEvents.LOAD`; removing one must fire `UNLOAD` before `close()`.** Distant Horizons and c2me build per-level state exclusively from these events — skipping `LOAD` NPE'd DH and locked a player out of production (2026-07-12).
+4. **Any path adding a `ServerWorld` must fire `ServerWorldEvents.LOAD`; removing one must fire `UNLOAD` before `close()`.** Distant Horizons and c2me build per-level state exclusively from these events — skipping `LOAD` NPEs DH and can lock a player out of production.
 5. **Never call `getOrCreateDimension` synchronously from command context** — it deadlocks the main thread. Queue via `requestWorldLoad` (`END_SERVER_TICK`).
 6. **Never sync-load a chunk from a world tick.** That is the Epic Dungeons + c2me wedge — RCON goes i/o-timeout while `docker ps` stays healthy.
-7. **Fields serialised into `portal_links.json` must stay parseable by every jar that might read them back** — deploys roll back. A `#tag` in a persisted `frameBlock` crash-loops older jars (2026-07-23). General rule: persisted-state fields are a compatibility contract, not just today's schema.
+7. **Fields serialised into `portal_links.json` must stay parseable by every jar that might read them back** — deploys roll back. A `#tag` in a persisted `frameBlock` crash-loops older jars. General rule: persisted-state fields are a compatibility contract, not just today's schema.
 8. **If the persisted state format changed, delete the mod's state files under `data/config/` before restarting** — stale state masks bugs and creates ghosts.
 9. **Never hand-copy jars into consumer repos and never publish to Modrinth.** The pipeline is release → bundle `stack/local-mods/` → `deploy.sh` step 8b / `dev-up.sh`.
 
