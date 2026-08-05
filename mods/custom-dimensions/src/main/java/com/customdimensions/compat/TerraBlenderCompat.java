@@ -88,9 +88,19 @@ public final class TerraBlenderCompat {
             List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> result =
                     new ArrayList<>();
             for (Object region : regions) {
+                // TB's consumer yields Pair<NoiseHypercube, RegistryKey<Biome>>
+                // (verified by javap against the installed jar) — resolve each
+                // key through the registry; a key the registry cannot resolve
+                // contributes nothing (the dump's unresolved check covers it).
+                List<Pair<MultiNoiseUtil.NoiseHypercube,
+                        net.minecraft.registry.RegistryKey<Biome>>> raw = new ArrayList<>();
                 addBiomes.invoke(region, biomeRegistry,
-                        (Consumer<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>>)
-                                result::add);
+                        (Consumer<Pair<MultiNoiseUtil.NoiseHypercube,
+                                net.minecraft.registry.RegistryKey<Biome>>>) raw::add);
+                for (var pair : raw) {
+                    biomeRegistry.getEntry(pair.getSecond()).ifPresent(
+                            entry -> result.add(Pair.of(pair.getFirst(), entry)));
+                }
             }
             return result;
         } catch (ReflectiveOperationException | RuntimeException e) {
