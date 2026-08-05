@@ -859,11 +859,68 @@ def _extract_structure_tags(seedtest):
             shutil.copy2(f, dest)
 
 
+def _extract_noise_data(seedtest):
+    """Extract worldgen noise_settings, density_function, and noise JSONs.
+
+    Walks every jar in base/mods/ and base/versions/, pulling:
+      data/*/worldgen/noise_settings/*.json  -> .noise_settings/<ns>/<name>.json
+      data/*/worldgen/density_function/**    -> .noise_settings/<ns>/worldgen/density_function/<path>
+      data/*/worldgen/noise/*.json           -> .noise_settings/<ns>/worldgen/noise/<name>.json
+
+    Server jar is processed FIRST so mod-provided overrides (Terralith,
+    Incendium, Nullscape) win — matching Minecraft's datapack priority.
+    """
+    import zipfile
+    ns_dir = seedtest / ".noise_settings"
+    if ns_dir.exists():
+        return
+    ns_dir.mkdir(parents=True, exist_ok=True)
+    base = seedtest / "base"
+    # Server jar first, mods second — last writer wins, mods override vanilla.
+    jars = list((base / "versions").rglob("*.jar")) + list((base / "mods").glob("*.jar"))
+    for jar_path in jars:
+        try:
+            with zipfile.ZipFile(jar_path) as zf:
+                for name in zf.namelist():
+                    if not name.startswith("data/") or not name.endswith(".json"):
+                        continue
+                    parts = name.split("/")
+                    if len(parts) < 4 or parts[0] != "data":
+                        continue
+                    ns = parts[1]
+                    if "worldgen/noise_settings/" in name:
+                        dest = ns_dir / ns / parts[-1]
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_bytes(zf.read(name))
+                    elif "worldgen/density_function/" in name:
+                        try:
+                            df_idx = parts.index("density_function")
+                            rel = "/".join(parts[df_idx:])
+                        except ValueError:
+                            continue
+                        dest = ns_dir / ns / "worldgen" / rel
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_bytes(zf.read(name))
+                    elif "worldgen/noise/" in name and parts[parts.index("noise") - 1] == "worldgen":
+                        try:
+                            n_idx = parts.index("noise")
+                            rel = "/".join(parts[n_idx:])
+                        except ValueError:
+                            continue
+                        dest = ns_dir / ns / "worldgen" / rel
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_bytes(zf.read(name))
+        except (zipfile.BadZipFile, OSError):
+            pass
+
+
 def _load_structure_sets_once(seedtest_path=None):
     """Load structure set configs from mod JARs + vanilla server jar (once).
 
     Also extracts worldgen structure tag JSONs into
-    <seedtest>/.structure_tags/ for exact tag resolution (structure_tags.py).
+    <seedtest>/.structure_tags/ for exact tag resolution (structure_tags.py),
+    and noise_settings/density_function/noise JSONs into
+    <seedtest>/.noise_settings/ for the depth evaluator (preset_terrain.py).
     """
     global _STRUCTURE_SETS, _STRUCT_TO_SETS, _SEEDTEST_PATH
     if _STRUCTURE_SETS is not None:
@@ -894,6 +951,8 @@ def _load_structure_sets_once(seedtest_path=None):
                 shutil.copy2(f, dest)
     # Extract structure tags alongside structure sets
     _extract_structure_tags(seedtest)
+    # Extract noise_settings + density_function + noise for depth evaluation
+    _extract_noise_data(seedtest)
     _STRUCTURE_SETS = load_structure_sets(str(extract_dir))
     _STRUCT_TO_SETS = {}
     for set_id, cfg in _STRUCTURE_SETS.items():

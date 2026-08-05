@@ -189,12 +189,14 @@ class TestBuildFromSpecDepth(unittest.TestCase):
         sampler = self.build_from_spec(SEED, spec, self.params, self.noise_configs)
         self.assertFalse(sampler.depth_exact)
 
-    def test_nether_depth_not_exact(self):
+    def test_nether_depth_not_exact_without_extraction(self):
+        """Without extracted data, nether remains inexact."""
         spec = self._spec(noise_family="nether", noise_settings=None)
         sampler = self.build_from_spec(SEED, spec, self.params, self.noise_configs)
         self.assertFalse(sampler.depth_exact)
 
-    def test_end_depth_not_exact(self):
+    def test_end_depth_not_exact_without_extraction(self):
+        """Without extracted data, end remains inexact."""
         spec = self._spec(noise_family="end", noise_settings=None)
         sampler = self.build_from_spec(SEED, spec, self.params, self.noise_configs)
         self.assertFalse(sampler.depth_exact)
@@ -266,6 +268,294 @@ class TestDepthAxisRegressions(unittest.TestCase):
             d64 = ev.depth_for_biome(x, z)
             self.assertGreater(d0, d64,
                                f"depth should decrease with y at ({x},{z})")
+
+
+class TestNoiseSettingsExtraction(unittest.TestCase):
+    """Extraction roundtrip: synthetic jar -> .noise_settings/ layout."""
+
+    def test_extraction_creates_expected_layout(self):
+        """A synthetic jar with noise_settings, density_function, and noise
+        files produces the expected .noise_settings/ directory structure."""
+        import zipfile, io
+        with tempfile.TemporaryDirectory() as td:
+            seedtest = Path(td)
+            base = seedtest / "base"
+            (base / "mods").mkdir(parents=True)
+            (base / "versions" / "1.21.1").mkdir(parents=True)
+            # Build a synthetic jar with the three worldgen data types
+            jar_path = base / "versions" / "1.21.1" / "server.jar"
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w") as zf:
+                zf.writestr("data/minecraft/worldgen/noise_settings/overworld.json",
+                            '{"noise_router":{"depth":0.5}}')
+                zf.writestr("data/minecraft/worldgen/noise_settings/nether.json",
+                            '{"noise_router":{"depth":0.0}}')
+                zf.writestr("data/minecraft/worldgen/density_function/overworld/depth.json",
+                            '{"type":"minecraft:constant","argument":0.5}')
+                zf.writestr("data/minecraft/worldgen/noise/offset.json",
+                            '{"firstOctave":-3,"amplitudes":[1.0]}')
+            jar_path.write_bytes(buf.getvalue())
+            # Run extraction
+            from seed_worker import _extract_noise_data
+            _extract_noise_data(seedtest)
+            ns_dir = seedtest / ".noise_settings"
+            self.assertTrue(ns_dir.is_dir())
+            # Noise settings at <ns>/<name>.json
+            self.assertTrue((ns_dir / "minecraft" / "overworld.json").is_file())
+            self.assertTrue((ns_dir / "minecraft" / "nether.json").is_file())
+            # Density functions at <ns>/worldgen/density_function/<path>.json
+            self.assertTrue(
+                (ns_dir / "minecraft" / "worldgen" / "density_function"
+                 / "overworld" / "depth.json").is_file())
+            # Noises at <ns>/worldgen/noise/<name>.json
+            self.assertTrue(
+                (ns_dir / "minecraft" / "worldgen" / "noise"
+                 / "offset.json").is_file())
+
+    def test_mod_jar_overrides_server_jar(self):
+        """A mod jar providing the same noise_settings path overwrites the
+        server jar's version (mods are processed after the server jar)."""
+        import zipfile, io
+        with tempfile.TemporaryDirectory() as td:
+            seedtest = Path(td)
+            base = seedtest / "base"
+            (base / "mods").mkdir(parents=True)
+            (base / "versions" / "1.21.1").mkdir(parents=True)
+            # Server jar: nether depth=0.0
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w") as zf:
+                zf.writestr("data/minecraft/worldgen/noise_settings/nether.json",
+                            '{"noise_router":{"depth":0.0},"_source":"vanilla"}')
+            (base / "versions" / "1.21.1" / "server.jar").write_bytes(buf.getvalue())
+            # Mod jar: nether depth overridden
+            buf2 = io.BytesIO()
+            with zipfile.ZipFile(buf2, "w") as zf:
+                zf.writestr("data/minecraft/worldgen/noise_settings/nether.json",
+                            '{"noise_router":{"depth":"incendium:climate/purity"},'
+                            '"_source":"incendium"}')
+            (base / "mods" / "Incendium.jar").write_bytes(buf2.getvalue())
+            from seed_worker import _extract_noise_data
+            _extract_noise_data(seedtest)
+            ns = json.loads(
+                (seedtest / ".noise_settings" / "minecraft" / "nether.json").read_text())
+            self.assertEqual(ns["_source"], "incendium",
+                             "mod jar should override the server jar")
+
+    def test_idempotent_when_dir_exists(self):
+        """Extraction is skipped when .noise_settings/ already exists."""
+        with tempfile.TemporaryDirectory() as td:
+            seedtest = Path(td)
+            ns_dir = seedtest / ".noise_settings"
+            ns_dir.mkdir()
+            (ns_dir / "marker").write_text("pre-existing")
+            from seed_worker import _extract_noise_data
+            _extract_noise_data(seedtest)
+            # marker untouched — no extraction ran
+            self.assertTrue((ns_dir / "marker").is_file())
+
+
+class TestConstantDepthFromExtracted(unittest.TestCase):
+    """Depth evaluator from extracted noise_settings with constant depth."""
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_constant_zero_depth_exact(self):
+        """noise_settings with depth=0.0 -> depth_exact=True, depth=0.0."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "minecraft").mkdir()
+            (root / "minecraft" / "nether.json").write_text(
+                '{"noise_router":{"depth":0.0}}')
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "nether",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "minecraft:nether",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=str(root))
+            self.assertTrue(sampler.depth_exact)
+            self.assertEqual(sampler.sample_climate(0, 0)["depth"], 0.0)
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_constant_nonzero_depth_exact(self):
+        """noise_settings with a non-zero constant depth -> exact evaluator."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "test_ns").mkdir()
+            (root / "test_ns" / "test.json").write_text(
+                '{"noise_router":{"depth":0.75}}')
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "overworld",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "test_ns:test",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=str(root))
+            self.assertTrue(sampler.depth_exact)
+            self.assertAlmostEqual(
+                sampler.sample_climate(256, 512)["depth"], 0.75)
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_missing_noise_settings_stays_inexact(self):
+        """When the noise_settings file is missing, depth stays inexact."""
+        with tempfile.TemporaryDirectory() as td:
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "overworld",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "minecraft:overworld",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=td)
+            self.assertFalse(sampler.depth_exact)
+
+
+class TestExtractedDFEvaluator(unittest.TestCase):
+    """Depth evaluator from an extracted noise_settings with inlined DF."""
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_inlined_constant_node(self):
+        """An inlined minecraft:constant node evaluates correctly."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "test").mkdir()
+            settings = {
+                "noise_router": {
+                    "depth": {
+                        "type": "minecraft:constant",
+                        "argument": 0.42
+                    }
+                }
+            }
+            (root / "test" / "dims.json").write_text(json.dumps(settings))
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "overworld",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "test:dims",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=str(root))
+            self.assertTrue(sampler.depth_exact)
+            self.assertAlmostEqual(
+                sampler.sample_climate(0, 0)["depth"], 0.42, places=6)
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_inlined_add_node(self):
+        """An inlined add node evaluates correctly."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "test").mkdir()
+            settings = {
+                "noise_router": {
+                    "depth": {
+                        "type": "minecraft:add",
+                        "argument1": 0.3,
+                        "argument2": {
+                            "type": "minecraft:constant",
+                            "argument": 0.2
+                        }
+                    }
+                }
+            }
+            (root / "test" / "simple.json").write_text(json.dumps(settings))
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "overworld",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "test:simple",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=str(root))
+            self.assertTrue(sampler.depth_exact)
+            self.assertAlmostEqual(
+                sampler.sample_climate(0, 0)["depth"], 0.5, places=6)
+
+    @unittest.skipUnless(HAS_PARAMS, SKIP_NO_PARAMS)
+    def test_unresolvable_ref_falls_back_to_inexact(self):
+        """A DF reference that can't be resolved -> depth_exact=False."""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "test").mkdir()
+            settings = {
+                "noise_router": {
+                    "depth": "test:nonexistent_df"
+                }
+            }
+            (root / "test" / "broken.json").write_text(json.dumps(settings))
+            from biome_sampler import build_from_spec
+            spec = {
+                "noise_family": "overworld",
+                "dim_type": "multi_biome",
+                "biomes": [],
+                "parameters": {},
+                "patches": [],
+                "checkerboard_scale": None,
+                "suppressed_biomes": [],
+                "noise_settings": "test:broken",
+            }
+            sampler = build_from_spec(
+                SEED, spec, str(BIOME_PARAMS), extracted_data_root=str(root))
+            self.assertFalse(sampler.depth_exact)
+
+
+class TestRealJarDepthEvaluation(unittest.TestCase):
+    """Depth evaluation from real extracted jar data (if available)."""
+
+    _ELFYDD_SEEDTEST = Path.home() / "Projects" / "elfydd" / ".seedtest"
+    _HAS_SEEDTEST = _ELFYDD_SEEDTEST.is_dir()
+
+    @unittest.skipUnless(_HAS_SEEDTEST and HAS_PARAMS,
+                         "elfydd .seedtest or biome_params.json not available")
+    def test_vanilla_nether_constant_zero(self):
+        """The vanilla nether noise_settings has depth=0.0. Even when
+        Incendium overrides it with a DF reference, extracting from the
+        server jar alone would show 0.0. This test extracts fresh and
+        checks the server jar's constant."""
+        import zipfile, io
+        with tempfile.TemporaryDirectory() as td:
+            seedtest = Path(td)
+            base = seedtest / "base"
+            (base / "mods").mkdir(parents=True)
+            versions = base / "versions" / "1.21.1"
+            versions.mkdir(parents=True)
+            # Copy just the server jar (vanilla nether has depth=0.0)
+            src = self._ELFYDD_SEEDTEST / "base" / "versions" / "1.21.1"
+            for jar in src.glob("*.jar"):
+                import shutil
+                shutil.copy2(jar, versions / jar.name)
+                break
+            from seed_worker import _extract_noise_data
+            _extract_noise_data(seedtest)
+            ns = json.loads(
+                (seedtest / ".noise_settings" / "minecraft" / "nether.json").read_text())
+            self.assertEqual(ns["noise_router"]["depth"], 0.0)
 
 
 if __name__ == "__main__":

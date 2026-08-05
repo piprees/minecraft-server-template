@@ -81,14 +81,25 @@ def supported_presets():
 
 
 class PresetTerrainEvaluator:
-    """Evaluate a preset's noise_router.depth DF at y=0 for one world seed."""
+    """Evaluate a noise_router.depth DF at y=0 for one world seed.
 
-    def __init__(self, preset_id, seed):
-        settings_path = PRESET_SETTINGS.get(preset_id)
-        if settings_path is None or not settings_path.is_file():
-            raise ValueError(f"unknown preset {preset_id!r}")
-        settings = json.loads(settings_path.read_text())
+    Accepts either a preset id string (resolved from PRESET_SETTINGS) or a
+    pre-loaded settings dict. When data_roots is provided, density functions
+    and noises are resolved from those directories (in order) alongside the
+    in-repo RES_DATA. This supports depth evaluation from jar-extracted
+    noise_settings graphs.
+    """
+
+    def __init__(self, preset_id_or_settings, seed, data_roots=None):
+        if isinstance(preset_id_or_settings, dict):
+            settings = preset_id_or_settings
+        else:
+            settings_path = PRESET_SETTINGS.get(preset_id_or_settings)
+            if settings_path is None or not settings_path.is_file():
+                raise ValueError(f"unknown preset {preset_id_or_settings!r}")
+            settings = json.loads(settings_path.read_text())
         self._root_ref = settings["noise_router"]["depth"]
+        self._data_roots = list(data_roots or []) + [RES_DATA]
 
         deriver = Xoroshiro128PlusPlus(int(seed)).fork()
         self._deriver = deriver
@@ -102,15 +113,19 @@ class PresetTerrainEvaluator:
         sampler = self._noises.get(noise_id)
         if sampler is None:
             ns, _, path = noise_id.partition(":")
-            f = RES_DATA / ns / "worldgen/noise" / (path + ".json")
-            if f.is_file():
-                params = json.loads(f.read_text())
-            elif noise_id in _VANILLA_NOISE_PARAMS:
-                params = _VANILLA_NOISE_PARAMS[noise_id]
-            else:
-                raise ValueError(
-                    f"noise {noise_id} not in-repo and not in _VANILLA_NOISE_PARAMS "
-                    f"— extract its params from the vanilla jar and add them")
+            params = None
+            for root in self._data_roots:
+                f = root / ns / "worldgen/noise" / (path + ".json")
+                if f.is_file():
+                    params = json.loads(f.read_text())
+                    break
+            if params is None:
+                if noise_id in _VANILLA_NOISE_PARAMS:
+                    params = _VANILLA_NOISE_PARAMS[noise_id]
+                else:
+                    raise ValueError(
+                        f"noise {noise_id} not found in any data root "
+                        f"and not in _VANILLA_NOISE_PARAMS")
             rng = self._deriver.from_hash_of(noise_id)
             sampler = DoublePerlinNoiseSampler(
                 rng, params["firstOctave"], params["amplitudes"])
@@ -121,10 +136,14 @@ class PresetTerrainEvaluator:
         body = self._df_cache.get(df_id)
         if body is None:
             ns, _, path = df_id.partition(":")
-            f = RES_DATA / ns / "worldgen/density_function" / (path + ".json")
-            if not f.is_file():
-                raise ValueError(f"density function {df_id} not found in-repo")
-            body = json.loads(f.read_text())
+            for root in self._data_roots:
+                f = root / ns / "worldgen/density_function" / (path + ".json")
+                if f.is_file():
+                    body = json.loads(f.read_text())
+                    break
+            if body is None:
+                raise ValueError(
+                    f"density function {df_id} not found in any data root")
             self._df_cache[df_id] = body
         return body
 

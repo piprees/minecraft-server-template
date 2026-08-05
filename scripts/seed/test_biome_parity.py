@@ -115,7 +115,7 @@ class TestBiomeParity(unittest.TestCase):
         config = load_config(str(CONFIG_DIR))
         noise_configs = load_noise_configs()
 
-        checked = 0
+        compared = 0
         points_checked = 0
 
         for path in self.files:
@@ -177,6 +177,10 @@ class TestBiomeParity(unittest.TestCase):
                     depth_exact = getattr(sampler.delegate, "depth_exact",
                                           depth_exact)
 
+                # Count every fixture that reaches comparison, not just
+                # those that match cleanly.
+                compared += 1
+
                 mismatches = []
                 for x, z, java_biome in points:
                     py_biome = sampler.biome_at(x, z)
@@ -184,8 +188,7 @@ class TestBiomeParity(unittest.TestCase):
                         mismatches.append((x, z, java_biome, py_biome))
 
                 if mismatches:
-                    # Report up to 10 mismatches with coordinates.
-                    sample = mismatches[:10]
+                    sample = mismatches[:5]
                     lines = ["  (%d, %d): Java=%s Python=%s"
                              % (x, z, jb, pb)
                              for x, z, jb, pb in sample]
@@ -201,16 +204,17 @@ class TestBiomeParity(unittest.TestCase):
                                   "be extended to this family before biome "
                                   "claims are exact.")
                     self.fail(
-                        "%s: %d of %d points diverged.\n%s%s"
+                        "%s: %d of %d points diverged.\n"
+                        "First %d mismatching points:\n%s%s"
                         % (path.name, len(mismatches), len(points),
-                           detail, suffix))
+                           len(sample), detail, suffix))
 
                 points_checked += len(points)
-                checked += 1
 
-        self.assertGreater(checked, 0, "no biome grid fixture could be compared")
+        self.assertGreater(compared, 0,
+                           "no biome grid fixture could be compared")
         print("\n  biome parity: %d dimensions, %d points — exact match"
-              % (checked, points_checked))
+              % (compared, points_checked))
 
 
 def _find_dim_entry(config, slug):

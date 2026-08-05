@@ -799,12 +799,17 @@ def sampler_spec(profile):
     }
 
 
-def _make_depth_evaluator(noise_settings, seed, noise_family):
+def _make_depth_evaluator(noise_settings, seed, noise_family,
+                          extracted_root=None):
     """Build a depth evaluator for the given noise_settings, or None.
 
     Returns (evaluator_fn, depth_exact) where evaluator_fn is a callable
     (x, z) -> float or None, and depth_exact is True when depth is provably
     correct without the router graph.
+
+    When extracted_root is provided (the .noise_settings/ directory from
+    the jar walk), the noise_settings graph and its referenced density
+    functions and noises are resolved from there.
     """
     from preset_terrain import PresetTerrainEvaluator, supported_presets
 
@@ -818,13 +823,48 @@ def _make_depth_evaluator(noise_settings, seed, noise_family):
     if noise_family == "paradise_lost":
         return None, True
 
-    # Standard overworld/nether/end: the noise router graph lives in the
-    # vanilla/mod jar, not in-repo. Depth is not exactly measurable.
+    # Extracted noise_settings: load the graph from the jar walk output
+    # and check whether depth is a constant or an evaluable DF tree.
+    if extracted_root and noise_settings:
+        ns, _, name = noise_settings.partition(":")
+        ns_path = Path(extracted_root) / ns / (name + ".json")
+        if ns_path.is_file():
+            import json as _json
+            settings = _json.loads(ns_path.read_text())
+            depth_node = settings.get("noise_router", {}).get("depth")
+            # Constant depth (nether=0.0, end=0.0 in vanilla): the router
+            # always outputs this value regardless of coordinates.
+            if isinstance(depth_node, (int, float)):
+                val = float(depth_node)
+                if val == 0.0:
+                    return None, True  # default 0.0 is exact
+                return (lambda x, z, _v=val: _v), True
+            # DF tree (inlined or referencing other DFs): build a full
+            # evaluator with the extracted data as a resolution root.
+            # Probe at (0, 0) to verify the whole DF chain resolves —
+            # construction is lazy and won't catch missing DFs.
+            if depth_node is not None:
+                try:
+                    ev = PresetTerrainEvaluator(
+                        settings, int(seed),
+                        data_roots=[Path(extracted_root)])
+                    ev.depth_for_biome(0, 0)
+                    return ev.depth_for_biome, True
+                except (ValueError, KeyError):
+                    pass  # DF chain incomplete — fall through
+
     return None, False
 
 
-def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
-    """One dimension's sampler, from sampler_spec() and nothing else."""
+def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
+                    extracted_data_root=None):
+    """One dimension's sampler, from sampler_spec() and nothing else.
+
+    extracted_data_root: path to the .noise_settings/ directory from the
+    jar walk. When provided, noise_settings graphs and their referenced
+    density functions and noises are resolved from there, enabling exact
+    depth evaluation for families whose graphs are not in-repo.
+    """
     if noise_configs is None:
         noise_configs = load_noise_configs()
     noise_family = spec.get("noise_family") or "overworld"
@@ -845,7 +885,8 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None):
     # Resolve depth evaluator from the noise_settings id.
     noise_settings = spec.get("noise_settings")
     depth_eval, depth_exact = _make_depth_evaluator(
-        noise_settings, seed, noise_family)
+        noise_settings, seed, noise_family,
+        extracted_root=extracted_data_root)
 
     if spec.get("dim_type") == "checkerboard" and biomes:
         sampler = CheckerboardBiomeSampler(
