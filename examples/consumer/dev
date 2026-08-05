@@ -73,7 +73,27 @@ ensure_env() {
 # because each release unpacks into an immutable .stack/<version>/ dir and
 # only the .stack/current symlink moves. bootstrap_stack below is the
 # minimal first-ever pull for when no bundle exists yet.
+
+# The pin the puller resolves comes from .env when the file carries one —
+# a STACK_VERSION already exported into this shell (an earlier `set -a;
+# source .env`, a wrapper, direnv) must never beat a fresh .env edit. The
+# ambient variable only decides when .env has no pin. For a one-off pull of
+# a different version, run the bundle's scripts/stack-pull.sh directly.
+resolve_stack_pin() {
+  local env_pin=""
+  if [[ -f "$CONSUMER_DIR/.env" ]]; then
+    env_pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
+  fi
+  if [[ -n "$env_pin" ]]; then
+    if [[ -n "${STACK_VERSION:-}" && "$STACK_VERSION" != "$env_pin" ]]; then
+      echo "NOTE: using STACK_VERSION=$env_pin from .env (ignoring exported STACK_VERSION=$STACK_VERSION)" >&2
+    fi
+    export STACK_VERSION="$env_pin"
+  fi
+}
+
 stack_pull() {
+  resolve_stack_pin
   if [[ -f "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh" ]]; then
     (cd "$CONSUMER_DIR" && bash "$CONSUMER_DIR/$STACK_SCRIPTS/stack-pull.sh")
   else
@@ -83,10 +103,11 @@ stack_pull() {
 
 bootstrap_stack() {
   local repo="piprees/minecraft-server-template"
-  local pin="${STACK_VERSION:-}"
-  if [[ -z "$pin" && -f "$CONSUMER_DIR/.env" ]]; then
+  local pin=""
+  if [[ -f "$CONSUMER_DIR/.env" ]]; then
     pin=$(grep -E '^STACK_VERSION=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
   fi
+  pin="${pin:-${STACK_VERSION:-}}"
   pin="${pin:-latest}"
   pin="${pin#v}"
   [[ "$pin" == "latest" ]] && pin=""
