@@ -411,9 +411,12 @@ class BiomeSampler:
         if source_entries is not None:
             iter_entries = source_entries
         else:
+            # The exact table carries non-biome rows (the _noiseAliases
+            # metadata sentinel) — skip them like every other consumer.
             iter_entries = [e for e in self.biome_table
-                            if not (family and e.get("family")
-                                    and e["family"] != family)]
+                            if e.get("biome")
+                            and not (family and e.get("family")
+                                     and e["family"] != family)]
         # Global suppress list (BiomeSuppression.filter mirror): drop
         # suppressed biomes' entries; refuse to empty a source — the Java
         # side WARNs and keeps the source unfiltered, so must we.
@@ -427,7 +430,7 @@ class BiomeSampler:
         self._entries = []
         tree_entries = []
         for entry in iter_entries:
-            if entry.get("unresolved"):
+            if entry.get("unresolved") or not entry.get("biome"):
                 continue
             flat = []
             for param in ("temperature", "humidity", "continentalness",
