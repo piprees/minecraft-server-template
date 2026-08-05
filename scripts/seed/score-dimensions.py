@@ -709,16 +709,19 @@ def save_absorbed(seedtest, offsets):
     tmp.replace(path)
 
 
-def _file_identity(path):
-    """(inode, size) — what a recorded offset is only valid for.
+def _spool_head(path, limit):
+    """First min(64, limit) bytes, hex — the content half of a spool's
+    identity.
 
-    `--reset-csv` archives the spool with `mv` and the roller opens a new one
-    at the same path. Keying on the path alone, a fresh spool that grew past
-    the old offset would be seeked into and its measurements skipped, so the
-    inode has to be part of the key.
+    An inode number alone cannot identify a spool: a deleted-and-recreated
+    file can REUSE the inode (ext4 does; CI runners proved it), and a fresh
+    spool that grew past the old offset would be seeked into and its
+    measurements skipped. The signature covers only the absorbed prefix —
+    the spool is append-only, so bytes below the recorded offset never
+    change on the same file and any difference means a replacement.
     """
-    st = Path(path).stat()
-    return [st.st_ino, st.st_size]
+    with open(path, "rb") as fh:
+        return fh.read(min(64, max(0, limit))).hex()
 
 
 def _absorbed_offset(absorbed, path):
@@ -726,12 +729,15 @@ def _absorbed_offset(absorbed, path):
     entry = absorbed.get(str(path))
     if not isinstance(entry, dict):
         return 0
+    offset = entry.get("offset") or 0
     try:
-        inode, size = _file_identity(path)
+        st = Path(path).stat()
+        head = _spool_head(path, offset)
     except OSError:
         return 0
-    offset = entry.get("offset") or 0
-    if entry.get("inode") != inode or offset > size:
+    if entry.get("inode") != st.st_ino or offset > st.st_size:
+        return 0
+    if entry.get("head") is not None and entry.get("head") != head:
         return 0
     return offset
 
@@ -771,7 +777,8 @@ def iter_measurements(csv_path, wanted=None, start=0, reached=None):
         if reached is not None:
             end = fh.tell()
             reached[str(csv_path)] = {"offset": end,
-                                      "inode": Path(csv_path).stat().st_ino}
+                                      "inode": Path(csv_path).stat().st_ino,
+                                      "head": _spool_head(csv_path, end)}
 
 
 def load_measurements(csv_path, wanted=None):
