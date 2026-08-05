@@ -46,6 +46,8 @@ public final class TerraBlenderCompat {
     private static boolean available;
     private static Method regionsGet;
     private static Method addBiomes;
+    private static Method regionGetName;
+    private static Method regionGetWeight;
     private static Object overworldType;
     private static Object netherType;
 
@@ -71,6 +73,62 @@ public final class TerraBlenderCompat {
 
     public static boolean isAvailable() {
         return ensureResolved();
+    }
+
+    /**
+     * One TB region as dumped for the region-selection mirror: the name and
+     * weight identify it, {@code index} is its position in TB's registered
+     * order (the uniqueness assignment follows registration order), and the
+     * entries are its exact climate cells.
+     */
+    public record RegionDump(
+            String name, int weight, int index,
+            List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> entries) {
+    }
+
+    /**
+     * Per-region table for the selection mirror. Region membership decides
+     * which parameter list answers once TB's uniqueness layer picks the
+     * region, so the flat union (overworldEntries/netherEntries) cannot
+     * drive selection — this can. Empty when TB is absent or the Region
+     * accessors are unavailable.
+     */
+    @SuppressWarnings("unchecked")
+    public static List<RegionDump> regionTable(
+            Registry<Biome> biomeRegistry, boolean overworld) {
+        if (!ensureResolved() || regionGetName == null || regionGetWeight == null) {
+            return Collections.emptyList();
+        }
+        Object type = overworld ? overworldType : netherType;
+        try {
+            List<?> regions = (List<?>) regionsGet.invoke(null, type);
+            if (regions == null || regions.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<RegionDump> result = new ArrayList<>();
+            int index = 0;
+            for (Object region : regions) {
+                String name = String.valueOf(regionGetName.invoke(region));
+                int weight = (Integer) regionGetWeight.invoke(region);
+                List<Pair<MultiNoiseUtil.NoiseHypercube,
+                        net.minecraft.registry.RegistryKey<Biome>>> raw = new ArrayList<>();
+                addBiomes.invoke(region, biomeRegistry,
+                        (Consumer<Pair<MultiNoiseUtil.NoiseHypercube,
+                                net.minecraft.registry.RegistryKey<Biome>>>) raw::add);
+                List<Pair<MultiNoiseUtil.NoiseHypercube, RegistryEntry<Biome>>> cells =
+                        new ArrayList<>();
+                for (var pair : raw) {
+                    biomeRegistry.getEntry(pair.getSecond()).ifPresent(
+                            entry -> cells.add(Pair.of(pair.getFirst(), entry)));
+                }
+                result.add(new RegionDump(name, weight, index, cells));
+                index++;
+            }
+            return result;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            disable("region table extraction failed (" + e + ")");
+            return Collections.emptyList();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -126,6 +184,16 @@ public final class TerraBlenderCompat {
             addBiomes = regionClass.getMethod("addBiomes", Registry.class, Consumer.class);
             overworldType = regionTypeClass.getField("OVERWORLD").get(null);
             netherType = regionTypeClass.getField("NETHER").get(null);
+            // Region-table accessors are optional: their absence degrades to
+            // "no region table" while the flat entry paths keep working.
+            try {
+                regionGetName = regionClass.getMethod("getName");
+                regionGetWeight = regionClass.getMethod("getWeight");
+            } catch (ReflectiveOperationException e) {
+                MultiverseServer.LOGGER.warn(
+                        "TerraBlender: Region name/weight accessors unavailable ({}) "
+                        + "— region table dump disabled", e.toString());
+            }
 
             available = true;
             MultiverseServer.LOGGER.info(
@@ -152,6 +220,8 @@ public final class TerraBlenderCompat {
         available = false;
         regionsGet = null;
         addBiomes = null;
+        regionGetName = null;
+        regionGetWeight = null;
         overworldType = null;
         netherType = null;
     }

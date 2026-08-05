@@ -966,7 +966,27 @@ public class DimensionCommands {
         var biomeRegistry = world.getRegistryManager()
                 .get(net.minecraft.registry.RegistryKeys.BIOME);
         boolean isNether = world.getDimension().ultrawarm();
-        var tbEntries = isNether
+        // Phase 2 runs only when the RAW source actually carries biomes the
+        // static entries don't provide — the same introspection as the
+        // biome-grid tbInjected stamp. TB regions only initialise
+        // vanilla-tagged dimension types; dumping TB overworld entries into
+        // a world TB never touched files foreign biomes into that family's
+        // table (the whole overworld palette reached family "end" this way,
+        // and a base-world sampler then answers plains in the End).
+        boolean tbInjectedHere = false;
+        for (var entry : rawBiomeSource.getBiomes()) {
+            String id = entry.getKey()
+                    .map(k -> k.getValue().toString()).orElse("");
+            if (!id.isEmpty() && !staticBiomes.contains(id)) {
+                tbInjectedHere = true;
+                break;
+            }
+        }
+        var tbEntries = !tbInjectedHere
+                ? java.util.List.<com.mojang.datafixers.util.Pair<
+                        net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube,
+                        net.minecraft.registry.entry.RegistryEntry<net.minecraft.world.biome.Biome>>>of()
+                : isNether
                 ? com.customdimensions.compat.TerraBlenderCompat.netherEntries(biomeRegistry)
                 : com.customdimensions.compat.TerraBlenderCompat.overworldEntries(biomeRegistry);
         int tbCount = 0;
@@ -996,6 +1016,49 @@ public class DimensionCommands {
             tbCount++;
         }
 
+        // Phase 2b: the per-region table, emitted only for genuinely
+        // TB-injected worlds. Region membership decides which parameter
+        // list answers once TB's uniqueness layer picks a region, so the
+        // flat union above cannot drive a selection mirror — this can.
+        if (tbInjectedHere) {
+            var regionTable = com.customdimensions.compat.TerraBlenderCompat
+                    .regionTable(biomeRegistry, !isNether);
+            if (!regionTable.isEmpty()) {
+                json.append(",\n  {\"_tbRegions\": {\"type\": \"")
+                        .append(isNether ? "nether" : "overworld")
+                        .append("\", \"regions\": [");
+                for (int ri = 0; ri < regionTable.size(); ri++) {
+                    var region = regionTable.get(ri);
+                    if (ri > 0) json.append(", ");
+                    json.append("{\"name\": \"").append(region.name())
+                            .append("\", \"weight\": ").append(region.weight())
+                            .append(", \"index\": ").append(region.index())
+                            .append(", \"biomes\": [");
+                    var cells = region.entries();
+                    for (int ci = 0; ci < cells.size(); ci++) {
+                        var pair = cells.get(ci);
+                        if (ci > 0) json.append(", ");
+                        json.append("{\"biome\": \"")
+                                .append(pair.getSecond().getKey()
+                                        .map(k -> k.getValue().toString())
+                                        .orElse("unknown"))
+                                .append("\"");
+                        var cube = pair.getFirst();
+                        appendRange(json, "temperature", cube.temperature());
+                        appendRange(json, "humidity", cube.humidity());
+                        appendRange(json, "continentalness", cube.continentalness());
+                        appendRange(json, "erosion", cube.erosion());
+                        appendRange(json, "depth", cube.depth());
+                        appendRange(json, "weirdness", cube.weirdness());
+                        json.append(", \"offset\": ").append(cube.offset() / 10000.0);
+                        json.append("}");
+                    }
+                    json.append("]}");
+                }
+                json.append("]}}");
+            }
+        }
+
         // Phase 3: biomes the source claims to produce but neither Phase 1
         // nor Phase 2 provided parameters for. Emitted as an exact
         // statement ("we have no parameters") rather than an approximate
@@ -1016,36 +1079,97 @@ public class DimensionCommands {
                     .append("\", \"unresolved\": true}");
             unresolvedCount++;
         }
-        // Phase 4: noise-parameter registry aliases. For each key K,
-        // getOrThrow(K).getKey() may return a different canonical key —
-        // NoiseConfig.createNoiseSampler seeds the Perlin octaves by the
-        // CANONICAL key, not the lookup key. The Python evaluator needs
-        // this table to hash the same string the server does.
+        // Phase 4: effective noise-seeding aliases, recovered from the
+        // WORLD'S OWN BINDING. createNoiseSampler seeds each Perlin chain by
+        // lookup.getOrThrow(K).getKey() — the Reference's key, which
+        // canonicalises when a datapack overlay makes two entries
+        // value-identical. The plain registry view reports identity even
+        // then, so each key's cached sampler is value-probed against
+        // reference samplers built from every candidate seeding id; a key
+        // whose binding matches no candidate is recorded as unknown, never
+        // guessed.
         var noiseReg = world.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
         java.util.TreeMap<String, String> aliases = new java.util.TreeMap<>();
+        java.util.ArrayList<String> aliasUnknown = new java.util.ArrayList<>();
         int identityCount = 0;
+        net.minecraft.util.math.random.RandomSplitter aliasDeriver = null;
+        if (world.getChunkManager().getChunkGenerator()
+                instanceof net.minecraft.world.gen.chunk.NoiseChunkGenerator ncg) {
+            aliasDeriver = ncg.getSettings().value().getRandomProvider()
+                    .create(world.getSeed()).nextSplitter();
+        }
+        var aliasNoiseConfig = world.getChunkManager().getNoiseConfig();
+        var aliasLookup = world.getRegistryManager().createRegistryLookup()
+                .getOrThrow(RegistryKeys.NOISE_PARAMETERS);
+        // Value-identical params share a field only if seeded alike, so the
+        // candidate set per key is: the key itself, the lookup Reference's
+        // key, and every key whose params equal this key's.
+        var paramsByKey = new java.util.LinkedHashMap<
+                net.minecraft.registry.RegistryKey<
+                        net.minecraft.util.math.noise.DoublePerlinNoiseSampler.NoiseParameters>,
+                net.minecraft.util.math.noise.DoublePerlinNoiseSampler.NoiseParameters>();
         for (var nEntry : noiseReg.getEntrySet()) {
-            String lookupId = nEntry.getKey().getValue().toString();
-            var resolved = noiseReg.getEntry(nEntry.getKey());
-            String canonicalId = resolved
-                    .flatMap(e -> e.getKey().map(k -> k.getValue().toString()))
-                    .orElse(lookupId);
-            if (!lookupId.equals(canonicalId)) {
-                aliases.put(lookupId, canonicalId);
+            paramsByKey.put(nEntry.getKey(), nEntry.getValue());
+        }
+        final double[][] aliasProbes = {
+            {0.1, 0.2, 0.3}, {100.5, -7.25, 42.0}, {-1234.0, 8.0, 977.5}};
+        for (var pk : paramsByKey.entrySet()) {
+            var key = pk.getKey();
+            String lookupId = key.getValue().toString();
+            if (aliasDeriver == null) {
+                aliasUnknown.add(lookupId);
+                continue;
+            }
+            var bound = aliasNoiseConfig.getOrCreateSampler(key);
+            var candidates = new java.util.LinkedHashSet<String>();
+            candidates.add(lookupId);
+            aliasLookup.getOptional(key)
+                    .flatMap(e -> e.getKey())
+                    .ifPresent(k -> candidates.add(k.getValue().toString()));
+            for (var other : paramsByKey.entrySet()) {
+                if (other.getValue().equals(pk.getValue())) {
+                    candidates.add(other.getKey().getValue().toString());
+                }
+            }
+            String effective = null;
+            for (String cand : candidates) {
+                var ref = net.minecraft.util.math.noise.DoublePerlinNoiseSampler.create(
+                        aliasDeriver.split(net.minecraft.util.Identifier.of(cand)),
+                        pk.getValue());
+                boolean match = true;
+                for (double[] p : aliasProbes) {
+                    if (bound.sample(p[0], p[1], p[2]) != ref.sample(p[0], p[1], p[2])) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    effective = cand;
+                    break;
+                }
+            }
+            if (effective == null) {
+                aliasUnknown.add(lookupId);
+            } else if (!effective.equals(lookupId)) {
+                aliases.put(lookupId, effective);
             } else {
                 identityCount++;
             }
         }
-        if (!aliases.isEmpty() || identityCount > 0) {
-            json.append(",\n  {\"_noiseAliases\": {");
-            int ai = 0;
-            for (var ae : aliases.entrySet()) {
-                if (ai++ > 0) json.append(", ");
-                json.append("\"").append(ae.getKey()).append("\": \"")
-                        .append(ae.getValue()).append("\"");
-            }
-            json.append("}, \"_noiseAliasIdentityCount\": ").append(identityCount).append("}");
+        json.append(",\n  {\"_noiseAliases\": {");
+        int ai = 0;
+        for (var ae : aliases.entrySet()) {
+            if (ai++ > 0) json.append(", ");
+            json.append("\"").append(ae.getKey()).append("\": \"")
+                    .append(ae.getValue()).append("\"");
         }
+        json.append("}, \"_noiseAliasIdentityCount\": ").append(identityCount);
+        json.append(", \"_noiseAliasUnknown\": [");
+        for (int ui = 0; ui < aliasUnknown.size(); ui++) {
+            if (ui > 0) json.append(", ");
+            json.append("\"").append(aliasUnknown.get(ui)).append("\"");
+        }
+        json.append("]}");
         json.append("\n]\n");
 
         final int aliasCount = aliases.size();

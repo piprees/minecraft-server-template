@@ -904,6 +904,15 @@ public class DimensionManager {
         RegistryKey<DimensionOptions> dimOptionsKey = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
         DimensionOptions options = dimRegistry.get(dimOptionsKey);
         if (options == null) {
+            // A silent null here makes a failed `customdim load` look queued
+            // forever: configured dims only get options from
+            // registerDimensions(), which SEED_ROLL_MODE skips at boot, and a
+            // config file added after boot was never read at all.
+            MultiverseServer.LOGGER.warn(
+                    "No DimensionOptions registered for configured dimension {} — "
+                    + "SEED_ROLL_MODE skips boot registration (use /customdim create "
+                    + "there), and config files added after boot are not read",
+                    def.getDimensionIdentifier());
             return null;
         }
 
