@@ -1122,6 +1122,32 @@ public class DimensionCommands {
         // Leading '#' comment line, so a reader must skip comments — the rows
         // themselves stay plain `x,z,biome`.
         StringBuilder csv = new StringBuilder(Artefacts.textHeader("biome-grid"));
+        // Exact provenance for the parity gate: a TerraBlender-wrapped source
+        // selects biomes through TB's per-region trees, which the roller does
+        // not mirror — such a grid's biome facts are not exactly measurable
+        // until it does, and the gate needs that stated in the artefact, not
+        // inferred. TB regions only initialise vanilla-tagged dimension
+        // types, so most managed dimensions stamp tbInjected=false.
+        var gridRaw = biomeSource;
+        var gridUnwrapped = com.customdimensions.compat.LithostitchedCompat.unwrap(gridRaw);
+        boolean tbInjected = false;
+        if (gridUnwrapped instanceof MultiNoiseBiomeSource gridMnbs) {
+            var staticIds = new java.util.HashSet<String>();
+            for (var entry : ((MultiNoiseBiomeSourceAccessor) gridMnbs)
+                    .invokeGetBiomeEntries().getEntries()) {
+                entry.getSecond().getKey().ifPresent(
+                        k -> staticIds.add(k.getValue().toString()));
+            }
+            for (var entry : gridRaw.getBiomes()) {
+                String id = entry.getKey()
+                        .map(k -> k.getValue().toString()).orElse("");
+                if (!id.isEmpty() && !staticIds.contains(id)) {
+                    tbInjected = true;
+                    break;
+                }
+            }
+        }
+        csv.append("# tbInjected=").append(tbInjected).append('\n');
         int count = 0;
         for (int x = -radius; x <= radius; x += step) {
             for (int z = -radius; z <= radius; z += step) {
