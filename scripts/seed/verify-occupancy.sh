@@ -7,13 +7,21 @@
 # is exact and mirrored; the site is occupied by that structure iff the
 # structure's own generation accepts the position, and by nothing else, ever.
 # This drives a Carpet fake player to censused sites so their chunks really
-# generate, then asserts each site's occupant IS the censused id:
+# generate, then reads each site's LIVE StructureStarts with
+# `customdim occupant` (never /locate — a locate miss walks placements for
+# minutes and wedges the main thread; see TROUBLESHOOTING.md#t17):
 #
-#   PASS       /locate of the assigned id, positioned inside the site chunk,
-#              answers within 16 blocks of the site's chunk origin
-#   REJECTED   locate misses but the rejections artefact records this exact
-#              (group, structure, chunk) — the contract's recorded-empty case
-#   FAIL       neither: an unexplained occupant, the acceptance failure
+#   PASS        occupant reports the assigned id at the site chunk
+#   REJECTED    occupant reports empty AND the rejections artefact records
+#               this exact (group, structure, chunk) — the contract's
+#               recorded-empty case
+#   UNVERIFIED  occupant reports empty and no record exists. On a chunk
+#               generated before this run that is NOT a violation: the
+#               rejections artefact is append-on-generation-event, so a
+#               census-directory clear erases history. Re-prove by
+#               regenerating the chunk (move the region file aside while mc
+#               is stopped, tp the bot back) — the rejection is re-recorded.
+#   FAIL        occupant reports a DIFFERENT structure — a real violation.
 #
 # Usage:
 #   ./scripts/seed/verify-occupancy.sh <slug> [--sites N] [--container mc]
@@ -22,12 +30,10 @@
 # the current jar and Carpet (a platform default).
 #
 # Gotchas:
-#   - /locate on a MISS walks placements for minutes and wedges RCON, so every
-#     locate runs under the container's coreutils `timeout`. A timeout is
-#     treated as a miss and reconciled against the rejections artefact.
-#   - Each tp needs settle time for worldgen; ~15s per site is deliberate.
+#   - Each tp needs settle time for worldgen; ~12s per site is deliberate.
 #   - Sites are picked round-robin per group, >=8 chunks apart, so two sites
 #     never share generated terrain.
+#   - occupant reads a LOADED chunk; the bot standing there keeps it loaded.
 # =============================================================================
 set -euo pipefail
 
@@ -50,7 +56,7 @@ done
 BOT="Precis"
 # No -i: an interactive exec inside the while-read site loop would consume
 # the loop's stdin and silently truncate the run to one site.
-rcon() { docker exec "$MC_CONTAINER" timeout 15 rcon-cli "$@" 2>&1; }
+rcon() { docker exec "$MC_CONTAINER" timeout 30 rcon-cli "$@" 2>&1; }
 
 NS="$(docker exec "$MC_CONTAINER" sh -c \
   'cat /data/config/custom-dimensions/settings.json 2>/dev/null' \
@@ -125,11 +131,11 @@ fi
 
 PASS=0
 REJECTED=0
+UNVERIFIED=0
 FAIL=0
 FAILED_SITES=""
-# A locate that MISSES keeps the server walking placements long after the
-# client timeout, poisoning every later RCON call — so the rejections
-# artefact is consulted FIRST and a recorded-rejected site never locates.
+UNVERIFIED_SITES=""
+
 rejected_at() {
   docker exec "$MC_CONTAINER" sh -c \
     "cat /data/config/custom-dimensions/census/rejections__${NS}__${SLUG}.json 2>/dev/null" \
@@ -147,17 +153,12 @@ hit = any(r.get('chunkX') == $1 and r.get('chunkZ') == $2
 print('yes' if hit else 'no')" 2> /dev/null || echo no
 }
 
-drain_rcon() {
-  n=0
-  while [[ $n -lt 24 ]]; do
-    if rcon "list" > /dev/null 2>&1; then
-      return 0
-    fi
-    n=$((n + 1))
-    sleep 5
-  done
-  echo "ERROR: RCON never recovered — aborting remaining sites" >&2
-  return 1
+# The occupant summary line is "occupant <dim> [cx, cz]: <ids|empty> -> <path>".
+# Anchor on the "]: " that closes the chunk coordinates — the dimension id
+# itself contains a colon, so a "first colon" match reads every answer empty.
+occupant_at() {
+  rcon "customdim occupant $DIM $1 $2" \
+    | sed -n 's/.*\]: \(.*\) -> .*/\1/p' | head -1
 }
 
 while read -r group cx cz sid; do
@@ -165,28 +166,29 @@ while read -r group cx cz sid; do
   bx=$((cx * 16 + 8))
   bz=$((cz * 16 + 8))
   rcon "execute in $DIM run tp $BOT $bx 200 $bz" > /dev/null
-  sleep 15
-  if [[ "$(rejected_at "$cx" "$cz" "$sid")" == "yes" ]]; then
-    REJECTED=$((REJECTED + 1))
-    echo "  REJECTED $group ($cx,$cz) $sid — recorded in rejections artefact"
-    continue
-  fi
-  ANSWER="$(rcon "execute in $DIM positioned $bx 64 $bz run locate structure $sid" || true)"
-  X="$(echo "$ANSWER" | sed -n 's/.*is at \[\(-\{0,1\}[0-9]*\), .*/\1/p')"
-  Z="$(echo "$ANSWER" | sed -n 's/.*, \(-\{0,1\}[0-9]*\)\] (.*/\1/p')"
-  ORIGIN_X=$((cx * 16))
-  ORIGIN_Z=$((cz * 16))
-  if [[ -n "$X" && -n "$Z" ]] \
-     && [[ $((X - ORIGIN_X)) -le 16 && $((ORIGIN_X - X)) -le 16 ]] \
-     && [[ $((Z - ORIGIN_Z)) -le 16 && $((ORIGIN_Z - Z)) -le 16 ]]; then
-    PASS=$((PASS + 1))
-    echo "  PASS     $group ($cx,$cz) $sid at [$X,$Z]"
-  else
-    FAIL=$((FAIL + 1))
-    FAILED_SITES="$FAILED_SITES $group:($cx,$cz):$sid"
-    echo "  FAIL     $group ($cx,$cz) $sid — locate said: ${ANSWER:-<empty>}"
-    drain_rcon || break
-  fi
+  sleep 12
+  OCC="$(occupant_at "$cx" "$cz")"
+  case " $OCC " in
+    *" $sid "* | *"$sid,"* | *", $sid"*)
+      PASS=$((PASS + 1))
+      echo "  PASS       $group ($cx,$cz) $sid occupies the site"
+      ;;
+    " empty " | "  ")
+      if [[ "$(rejected_at "$cx" "$cz" "$sid")" == "yes" ]]; then
+        REJECTED=$((REJECTED + 1))
+        echo "  REJECTED   $group ($cx,$cz) $sid — recorded in rejections artefact"
+      else
+        UNVERIFIED=$((UNVERIFIED + 1))
+        UNVERIFIED_SITES="$UNVERIFIED_SITES $group:($cx,$cz):$sid"
+        echo "  UNVERIFIED $group ($cx,$cz) $sid — empty, no record (pre-existing chunk? regenerate to re-prove)"
+      fi
+      ;;
+    *)
+      FAIL=$((FAIL + 1))
+      FAILED_SITES="$FAILED_SITES $group:($cx,$cz):$sid"
+      echo "  FAIL       $group ($cx,$cz) expected $sid, occupant said: ${OCC:-<no answer>}"
+      ;;
+  esac
 done <<EOF
 $PICKS
 EOF
@@ -194,6 +196,7 @@ EOF
 rcon "player $BOT kill" > /dev/null || true
 
 echo ""
-echo "== $PASS occupied-as-assigned, $REJECTED recorded rejections, $FAIL unexplained =="
-[[ -n "$FAILED_SITES" ]] && echo "failed:$FAILED_SITES"
-[[ "$FAIL" -eq 0 && "$TOTAL" -ge 1 ]]
+echo "== $PASS occupied-as-assigned, $REJECTED recorded rejections, $UNVERIFIED unverified, $FAIL violations =="
+[[ -n "$UNVERIFIED_SITES" ]] && echo "unverified:$UNVERIFIED_SITES"
+[[ -n "$FAILED_SITES" ]] && echo "violations:$FAILED_SITES"
+[[ "$FAIL" -eq 0 && "$UNVERIFIED" -eq 0 && "$TOTAL" -ge 1 ]]

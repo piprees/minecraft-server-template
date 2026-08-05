@@ -72,9 +72,15 @@ fi
 
 echo "Dumping structure censuses from container '$MC_CONTAINER' (ns: $NS)"
 # The copy below takes the whole census directory, so anything left there by
-# an earlier session would arrive as a fixture nobody asked for.
+# an earlier session would arrive as a fixture nobody asked for. Census dumps
+# are regenerable; occupancy__/rejections__ files are append-on-generation-
+# event records that CANNOT be regenerated without regenerating the chunk —
+# deleting one erases the only proof a structural rejection happened, so the
+# clear must exempt them.
 docker exec "$MC_CONTAINER" sh -c \
-  'rm -f /data/config/custom-dimensions/census/*.json' 2> /dev/null || true
+  'cd /data/config/custom-dimensions/census 2>/dev/null && for f in *.json; do
+     case "$f" in occupancy__*|rejections__*) ;; *) rm -f "$f" ;; esac
+   done' 2> /dev/null || true
 # Queue every world first, so the loads drain in parallel with each other
 # rather than one round-trip at a time.
 for dim in $DIMS; do
@@ -109,6 +115,9 @@ done
 
 mkdir -p "$FIXTURES"
 docker cp "$MC_CONTAINER:/data/config/custom-dimensions/census/." "$FIXTURES/"
+# Event records survive the pre-dump clear (see above) but are not parity
+# fixtures — drop them from the copy, never from the server.
+rm -f "$FIXTURES"/occupancy__*.json "$FIXTURES"/rejections__*.json
 
 # The dump is the whole point, so prove every fixture landed stamped rather
 # than trusting the copy.

@@ -182,6 +182,13 @@ answer is read from the file.
 | `custom-dimensions-fingerprints.json` | the mod, at world creation | `scripts/check-dimension-drift.py` |
 | `portal_links.json` | the mod, on every portal mutation | `scripts/check-portal-integrity.py` |
 
+**`occupancy__`/`rejections__` files are append-on-generation-event records,
+not regenerable dumps** — a rejection is written once, when the chunk
+generates. Any census-directory clear must exempt them (the refresh scripts
+do); deleting one erases the only proof a structural rejection happened, and
+re-proving it means regenerating the chunk (move the region file aside while
+mc is stopped, revisit).
+
 `./dev verify` runs every checker in one pass. It needs no server: run it
 while the server is up, paused, or down.
 
