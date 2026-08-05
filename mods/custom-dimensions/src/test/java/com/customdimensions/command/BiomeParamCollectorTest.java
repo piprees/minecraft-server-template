@@ -153,4 +153,41 @@ class BiomeParamCollectorTest {
         assertEquals(1, result.unresolved().size());
         assertEquals("orphan:biome", result.unresolved().get(0).biomeId());
     }
+
+    @Test
+    void emptyTbWithStaticOnlyMatchesEndDimensionScenario() {
+        // End-family dimensions: TB has no END region type, so TB
+        // extraction returns empty. Biomes from a Nullscape-modded end
+        // MNBS appear in static entries (datapack JSON). Any biome the
+        // source claims but static doesn't cover is unresolved.
+        var result = BiomeParamCollector.merge(
+                List.of(entry("nullscape:void_barrens"),
+                        entry("nullscape:null_end"),
+                        entry("minecraft:the_end")),
+                List.of(),
+                Set.of("nullscape:void_barrens", "nullscape:null_end",
+                        "minecraft:the_end", "nullscape:unconfigured_biome"));
+        assertEquals(3, result.staticEntries().size());
+        assertTrue(result.tbEntries().isEmpty());
+        assertEquals(1, result.unresolved().size());
+        assertEquals("nullscape:unconfigured_biome",
+                result.unresolved().get(0).biomeId());
+    }
+
+    @Test
+    void netherStaticWithEmptyTbMatchesIncendiumScenario() {
+        // Nether-family dimensions: Incendium ships inline MNBS entries
+        // in its dimension override (Phase 1 static). No nether TB
+        // regions are registered in this mod set, so TB returns empty.
+        var result = BiomeParamCollector.merge(
+                List.of(entry("incendium:volcanic_deltas"),
+                        entry("incendium:quartz_flats"),
+                        entry("minecraft:soul_sand_valley")),
+                List.of(),
+                Set.of("incendium:volcanic_deltas", "incendium:quartz_flats",
+                        "minecraft:soul_sand_valley"));
+        assertEquals(3, result.staticEntries().size());
+        assertTrue(result.tbEntries().isEmpty());
+        assertTrue(result.unresolved().isEmpty());
+    }
 }

@@ -949,6 +949,12 @@ public class DimensionCommands {
         // cells — the same format as Phase 1. Only biomes NOT in the
         // static set are emitted (vanilla biomes in TB's
         // DefaultOverworldRegion duplicate Phase 1 cells).
+        //
+        // TB's RegionType has OVERWORLD and NETHER; there is no END type.
+        // End biomes use EndBiomeRegistry (weighted lists, not hypercubes)
+        // and the vanilla end uses TheEndBiomeSource (not MNBS), so end
+        // dimensions are excluded from this path. A Nullscape-modded end
+        // that swaps in MNBS gets its entries from Phase 1 (datapack JSON).
         var biomeRegistry = world.getRegistryManager()
                 .get(net.minecraft.registry.RegistryKeys.BIOME);
         boolean isNether = world.getDimension().ultrawarm();

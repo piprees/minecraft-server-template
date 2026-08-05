@@ -26,6 +26,15 @@ import java.util.function.Consumer;
  * representation as vanilla's static multinoise entries, and the data
  * the seed roller needs for exact biome placement.
  *
+ * <p>TB's {@code RegionType} enum has exactly two values: {@code OVERWORLD}
+ * and {@code NETHER}. There is no {@code END} region type — end biomes
+ * are registered via {@code EndBiomeRegistry} with weighted biome lists
+ * per zone (highlands/midlands/edge/island), not {@code NoiseHypercube}
+ * cells. The vanilla end uses {@code TheEndBiomeSource}, which is not a
+ * {@code MultiNoiseBiomeSource} and is excluded from the dump path
+ * entirely. A Nullscape-modded end that uses MNBS gets its entries via
+ * the datapack JSON (Phase 1 static).
+ *
  * <p>Fails open: every failure path returns an empty list, and a
  * throwing call disables itself permanently after one WARN.
  */
