@@ -325,7 +325,8 @@ def load_noise_configs():
 class BiomeSampler:
     def __init__(self, seed, biome_params_path, noise_config=None,
                  biome_filter=None, family=None, param_overrides=None,
-                 suppress=None, depth_evaluator=None):
+                 suppress=None, depth_evaluator=None,
+                 climate_evaluators=None):
         """Create a biome sampler for one seed.
 
         Args:
@@ -347,6 +348,13 @@ class BiomeSampler:
                     When set, depth_exact is True. When None, depth defaults
                     to 0.0 and depth_exact reflects whether that is provably
                     correct (set by the caller via depth_exact).
+            climate_evaluators: optional dict of
+                    {axis_name: callable(x, z) -> float} for any of the
+                    five non-depth axes (temperature, humidity,
+                    continentalness, erosion, weirdness). When an evaluator
+                    is present for an axis, the DF-graph value replaces the
+                    hardcoded noise sampler for that axis. Per-axis
+                    exactness is recorded in climate_exact.
         """
         self.seed = seed
         self.biome_table = json.loads(Path(biome_params_path).read_text())
@@ -389,6 +397,8 @@ class BiomeSampler:
 
         self._entries = []
         for entry in iter_entries:
+            if entry.get("unresolved"):
+                continue
             flat = []
             for param in ("temperature", "humidity", "continentalness",
                           "erosion", "depth", "weirdness"):
@@ -428,31 +438,67 @@ class BiomeSampler:
         self._depth_evaluator = depth_evaluator
         self.depth_exact = depth_evaluator is not None
 
+        # Per-axis climate evaluators from the noise router's DF graph.
+        # When present, the evaluator replaces the hardcoded noise sampler
+        # for that axis. climate_exact tracks exactness per axis.
+        #
+        # _climate_batch_evaluator: optional callable (x, z) -> dict of
+        # {axis_name: float} that evaluates ALL router axes in one pass
+        # (sharing the column memo). Takes precedence over per-axis
+        # evaluators. Set by build_from_spec when a PresetTerrainEvaluator
+        # covers all axes.
+        self._climate_evaluators = dict(climate_evaluators or {})
+        self._climate_batch_evaluator = None
+        self.climate_exact = {
+            "temperature": False,
+            "humidity": False,
+            "continentalness": False,
+            "erosion": False,
+            "weirdness": False,
+            "depth": self.depth_exact,
+        }
+        for axis in self._climate_evaluators:
+            self.climate_exact[axis] = True
+        if self.depth_exact:
+            self.climate_exact["depth"] = True
+
     def _shifts(self, qx, qz):
-        """Compute coordinate shifts from the offset noise.
-        MC's ShiftA = offset(qx*0.25, 0, qz*0.25)
-        MC's ShiftB = offset(qz*0.25, 0, qx*0.25)"""
-        sx = self._offset_noise.sample(qx * 0.25, 0, qz * 0.25)
-        sz = self._offset_noise.sample(qz * 0.25, 0, qx * 0.25)
+        """Coordinate shifts matching the vanilla router's shift_a/shift_b.
+        shift_a(offset) = offset.sample(x*0.25, 0, z*0.25) * 4
+        shift_b(offset) = offset.sample(z*0.25, x*0.25, 0) * 4"""
+        sx = self._offset_noise.sample(qx * 0.25, 0, qz * 0.25) * 4.0
+        sz = self._offset_noise.sample(qz * 0.25, qx * 0.25, 0) * 4.0
         return sx, sz
 
     def sample_climate(self, x, z):
         """Sample all 6 climate parameters at (x, z). Returns dict.
 
-        Depth is evaluated from the noise router's density-function graph
-        when a depth_evaluator is present (exact), or defaults to 0.0
-        (check self.depth_exact to know which).
+        When a batch evaluator is available (PresetTerrainEvaluator covering
+        all axes), it evaluates all router fields in one pass with a shared
+        column memo — ~6x faster than calling per-axis evaluators.
+        Individual evaluators and noise-config samplers fill remaining axes.
         """
+        # Batch evaluation: the PresetTerrainEvaluator computes all router
+        # fields in one pass, sharing the column memo across subgraphs.
+        if self._climate_batch_evaluator is not None:
+            return self._climate_batch_evaluator(x, z)
+
         qx = x / 4.0
         qz = z / 4.0
-        shift_x, shift_z = self._shifts(qx, qz)
         if self._depth_evaluator is not None:
             climate = {"depth": self._depth_evaluator(x, z)}
         else:
             climate = {"depth": 0.0}
+        _shifts_computed = False
+        shift_x = shift_z = 0.0
         for param_name in ("temperature", "humidity", "continentalness",
                            "erosion", "weirdness"):
-            if param_name in self._climate_params:
+            if param_name in self._climate_evaluators:
+                climate[param_name] = self._climate_evaluators[param_name](x, z)
+            elif param_name in self._climate_params:
+                if not _shifts_computed:
+                    shift_x, shift_z = self._shifts(qx, qz)
+                    _shifts_computed = True
                 sampler, xz_scale = self._climate_params[param_name]
                 sx = qx * xz_scale + shift_x
                 sz = qz * xz_scale + shift_z
@@ -799,29 +845,49 @@ def sampler_spec(profile):
     }
 
 
-def _make_depth_evaluator(noise_settings, seed, noise_family,
-                          extracted_root=None):
-    """Build a depth evaluator for the given noise_settings, or None.
+def _make_climate_evaluators(noise_settings, seed, noise_family,
+                             extracted_root=None):
+    """Build climate evaluators for as many router axes as possible.
 
-    Returns (evaluator_fn, depth_exact) where evaluator_fn is a callable
-    (x, z) -> float or None, and depth_exact is True when depth is provably
-    correct without the router graph.
+    Returns (depth_eval, depth_exact, climate_evals) where:
+      depth_eval: callable (x, z) -> float or None (backward compat)
+      depth_exact: bool
+      climate_evals: dict {axis_name: callable (x, z) -> float} for the
+                     five non-depth axes where an exact evaluator exists
 
     When extracted_root is provided (the .noise_settings/ directory from
     the jar walk), the noise_settings graph and its referenced density
     functions and noises are resolved from there.
     """
-    from preset_terrain import PresetTerrainEvaluator, supported_presets
+    from preset_terrain import (PresetTerrainEvaluator, supported_presets,
+                                ROUTER_TO_BIOME_AXIS)
 
-    # Adventure presets have their router graph in-repo — evaluate exactly.
+    climate_evals = {}
+
+    # Adventure presets have their full router graph in-repo — build
+    # evaluators for ALL six climate axes, not just depth. The evaluator
+    # object is returned so build_from_spec can wire the batch path.
+    # The extracted data root provides Terralith's noise parameter
+    # overrides (e.g. minecraft:erosion, minecraft:vegetation) — without
+    # it the evaluator falls back to vanilla params and diverges.
     if noise_settings in supported_presets():
-        ev = PresetTerrainEvaluator(noise_settings, int(seed))
-        return ev.depth_for_biome, True
+        data_roots = [Path(extracted_root)] if extracted_root else None
+        ev = PresetTerrainEvaluator(noise_settings, int(seed),
+                                    data_roots=data_roots)
+        available = ev.router_fields()
+        for field in available:
+            axis = ROUTER_TO_BIOME_AXIS.get(field)
+            if axis and axis != "depth":
+                def _make_fn(f):
+                    return lambda x, z: ev.evaluate_router(f, x, z)
+                climate_evals[axis] = _make_fn(field)
+        climate_evals["_evaluator"] = ev
+        return ev.depth_for_biome, True, climate_evals
 
     # Paradise Lost: every biome entry has depth=(0,0), so depth=0.0 is
     # provably correct — the biome source ignores depth entirely.
     if noise_family == "paradise_lost":
-        return None, True
+        return None, True, {}
 
     # Extracted noise_settings: load the graph from the jar walk output
     # and check whether depth is a constant or an evaluable DF tree.
@@ -837,8 +903,8 @@ def _make_depth_evaluator(noise_settings, seed, noise_family,
             if isinstance(depth_node, (int, float)):
                 val = float(depth_node)
                 if val == 0.0:
-                    return None, True  # default 0.0 is exact
-                return (lambda x, z, _v=val: _v), True
+                    return None, True, {}
+                return (lambda x, z, _v=val: _v), True, {}
             # DF tree (inlined or referencing other DFs): build a full
             # evaluator with the extracted data as a resolution root.
             # Probe at (0, 0) to verify the whole DF chain resolves —
@@ -849,11 +915,30 @@ def _make_depth_evaluator(noise_settings, seed, noise_family,
                         settings, int(seed),
                         data_roots=[Path(extracted_root)])
                     ev.depth_for_biome(0, 0)
-                    return ev.depth_for_biome, True
+                    # Build evaluators for any other available fields.
+                    for field in ev.router_fields():
+                        axis = ROUTER_TO_BIOME_AXIS.get(field)
+                        if axis and axis != "depth":
+                            try:
+                                ev.evaluate_router(field, 0, 0)
+                                def _make_fn(f):
+                                    return lambda x, z: ev.evaluate_router(f, x, z)
+                                climate_evals[axis] = _make_fn(field)
+                            except (ValueError, KeyError):
+                                pass
+                    return ev.depth_for_biome, True, climate_evals
                 except (ValueError, KeyError):
                     pass  # DF chain incomplete — fall through
 
-    return None, False
+    return None, False, {}
+
+
+def _make_depth_evaluator(noise_settings, seed, noise_family,
+                          extracted_root=None):
+    """Backward-compatible wrapper: returns (depth_eval, depth_exact)."""
+    depth_eval, depth_exact, _climate = _make_climate_evaluators(
+        noise_settings, seed, noise_family, extracted_root)
+    return depth_eval, depth_exact
 
 
 def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
@@ -882,11 +967,18 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
         suppressed_set = {str(s).lower() for s in suppress}
         biomes = [b for b in biomes if b.lower() not in suppressed_set] or None
 
-    # Resolve depth evaluator from the noise_settings id.
+    # Resolve climate evaluators from the noise_settings id.
     noise_settings = spec.get("noise_settings")
-    depth_eval, depth_exact = _make_depth_evaluator(
+    depth_eval, depth_exact, climate_evals = _make_climate_evaluators(
         noise_settings, seed, noise_family,
         extracted_root=extracted_data_root)
+
+    # Separate the evaluator object from the per-axis callables.
+    terrain_ev = climate_evals.pop("_evaluator", None)
+    # Strip any non-axis keys from climate_evals.
+    axis_evals = {k: v for k, v in climate_evals.items()
+                  if k in ("temperature", "humidity", "continentalness",
+                           "erosion", "weirdness")}
 
     if spec.get("dim_type") == "checkerboard" and biomes:
         sampler = CheckerboardBiomeSampler(
@@ -895,15 +987,26 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
             noise_config=noise_config, family=noise_family)
         # Checkerboard ignores climate for biome selection — depth is moot.
         sampler.depth_exact = True
+        sampler.climate_exact = {k: True for k in sampler.climate_exact}
     else:
         sampler = BiomeSampler(
             seed, biome_params_path, noise_config=noise_config,
             biome_filter=biomes, family=noise_family,
             param_overrides=spec.get("parameters") or None,
-            suppress=suppress, depth_evaluator=depth_eval)
+            suppress=suppress, depth_evaluator=depth_eval,
+            climate_evaluators=axis_evals)
         if not depth_eval and depth_exact:
             # depth=0.0 is provably correct (e.g. paradise_lost).
             sampler.depth_exact = True
+            sampler.climate_exact["depth"] = True
+
+        # Wire the batch evaluator when a PresetTerrainEvaluator covers all
+        # axes — evaluate_climate returns all router fields in one pass,
+        # sharing the column memo across subgraph evaluations.
+        if terrain_ev is not None:
+            sampler._climate_batch_evaluator = terrain_ev.evaluate_climate
+            for axis in axis_evals:
+                sampler.climate_exact[axis] = True
     patches = spec.get("patches") or []
     if patches:
         sampler = PatchedBiomeSampler(sampler, patches)

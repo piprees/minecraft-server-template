@@ -1,27 +1,23 @@
 #!/usr/bin/env python3
-"""preset_terrain.py -- Exact terrain height for the adventure noise presets.
+"""preset_terrain.py -- Exact climate evaluation for adventure noise presets.
 
-Purpose:  The seed viewer's TerrainEvaluator (terrain_height.py) approximates
-          ALL overworld-family dims with Terralith's offset spline — wrong for
-          the 23 dims on `adventure:wide`/`adventure:compressed`, whose
-          terrain comes from the Terratonic density-function graph. That
-          graph lives IN-REPO, fully inlined (no config nodes), under
-          mods/custom-dimensions/src/main/resources/data/, alongside same-id
-          copies of every noise it references. This module interprets the
-          actual `noise_router.depth` density function at y=0 per world seed:
+Purpose:  Interprets the noise_router density-function graphs for all six
+          climate axes (temperature, vegetation, continents, erosion, ridges,
+          depth) from the adventure noise presets and any family whose router
+          graph is extractable from the jar walk.
 
-              depth(x, 0, z) = 1 + offset(x, z)   (Terratonic y-gradient)
-              surface_Y      = 128 * depth(x, 0, z)
+          The adventure presets route ALL climate axes through Tectonic DF
+          graphs (temperature/vegetation use xz_scale=0.15 shifted_noise,
+          continents/erosion/ridges are full Tectonic spline graphs, depth
+          is the existing y-gradient). Evaluating these graphs exactly —
+          instead of approximating with vanilla noise IDs — is the only way
+          to achieve zero-divergence biome parity.
 
           Noise evaluation reuses biome_sampler's vanilla-faithful stack
           (Xoroshiro128++, RandomDeriver.from_hash_of id-MD5 seeding,
-          DoublePerlinNoiseSampler), so heights are exact, not approximate —
-          verified against the live server's `customdim sample-noise` climate
-          point (depth field) on elfydd.
-
-Context:  seed-viewer terrain-height
-          fidelity for preset dims". Viewer-only: measurements bank real
-          server output and never touch this module.
+          DoublePerlinNoiseSampler), so values are exact, not approximate —
+          verified against the live server's `customdim sample-noise` and
+          `sample-biome-grid` on elfydd.
 
 Gotchas:  - Blending nodes: fresh chunks have blend_alpha=1, blend_offset=0;
             the interpreter hard-codes that (matches generation-time output).
@@ -30,10 +26,11 @@ Gotchas:  - Blending nodes: fresh chunks have blend_alpha=1, blend_offset=0;
             the graph needs are frozen in _VANILLA_NOISE_PARAMS; extend from
             the vanilla jar if an error asks for one.
           - Unknown node types fail LOUD. The supported set covers the
-            Terratonic depth graph; a Tectonic pin bump that introduces new
+            Terratonic graphs; a Tectonic pin bump that introduces new
             node types should fail here rather than render nonsense.
-          - Pure Python: ~8 noises per column. Comparable cost to the climate
-            sampling the renderer already does per pixel.
+          - Pure Python: ~8 noises per column per axis. Six axes cost ~6x
+            the single-depth path but the column memo amortises shared
+            subgraphs (shift_x/shift_z, island/continent selectors).
 """
 
 import json
@@ -80,14 +77,33 @@ def supported_presets():
     return sorted(k for k, p in PRESET_SETTINGS.items() if p.is_file())
 
 
-class PresetTerrainEvaluator:
-    """Evaluate a noise_router.depth DF at y=0 for one world seed.
+ROUTER_CLIMATE_FIELDS = {
+    "temperature": "temperature",
+    "vegetation": "vegetation",
+    "continents": "continents",
+    "erosion": "erosion",
+    "ridges": "ridges",
+    "depth": "depth",
+}
 
-    Accepts either a preset id string (resolved from PRESET_SETTINGS) or a
-    pre-loaded settings dict. When data_roots is provided, density functions
-    and noises are resolved from those directories (in order) alongside the
-    in-repo RES_DATA. This supports depth evaluation from jar-extracted
-    noise_settings graphs.
+ROUTER_TO_BIOME_AXIS = {
+    "temperature": "temperature",
+    "vegetation": "humidity",
+    "continents": "continentalness",
+    "erosion": "erosion",
+    "ridges": "weirdness",
+    "depth": "depth",
+}
+
+
+class PresetTerrainEvaluator:
+    """Evaluate noise_router density functions for one world seed.
+
+    Supports all six climate router fields (temperature, vegetation,
+    continents, erosion, ridges, depth). Accepts either a preset id
+    string (resolved from PRESET_SETTINGS) or a pre-loaded settings dict.
+    When data_roots is provided, density functions and noises are resolved
+    from those directories (in order) alongside the in-repo RES_DATA.
     """
 
     def __init__(self, preset_id_or_settings, seed, data_roots=None):
@@ -98,7 +114,12 @@ class PresetTerrainEvaluator:
             if settings_path is None or not settings_path.is_file():
                 raise ValueError(f"unknown preset {preset_id_or_settings!r}")
             settings = json.loads(settings_path.read_text())
-        self._root_ref = settings["noise_router"]["depth"]
+        router = settings["noise_router"]
+        self._root_ref = router["depth"]
+        self._router_refs = {}
+        for field in ROUTER_CLIMATE_FIELDS:
+            if field in router:
+                self._router_refs[field] = router[field]
         self._data_roots = list(data_roots or []) + [RES_DATA]
 
         deriver = Xoroshiro128PlusPlus(int(seed)).fork()
@@ -303,12 +324,54 @@ class PresetTerrainEvaluator:
     # -- public API ---------------------------------------------------------
 
     # The oracle (sample-biome-grid, DimensionCommands.java line 946) calls
-    # biomeSource.getBiome(qx, 16, qz, sampler) — quart y=16. Vanilla's
-    # MultiNoiseSampler.sample() converts to block coords via
-    # QuartPos.toBlock(16) = 64 before evaluating density functions. The
-    # evaluator operates in block space (verified by test_gradient_formula),
-    # so the constant is the block Y the density function sees.
+    # biomeSource.getBiome(qx, 16, qz, sampler) — quart y=16. The
+    # MultiNoiseSampler passes quart coords through UnblendedNoisePos
+    # WITHOUT converting to block, so the DF nodes see quart y=16.
+    # The block-space constant (64) is kept for backward compatibility
+    # with depth() and depth_for_biome() which operate in block space.
     BIOME_SAMPLE_BLOCK_Y = 64
+    BIOME_SAMPLE_QUART_Y = 16
+
+    def router_fields(self):
+        """The router fields this evaluator can compute."""
+        return set(self._router_refs.keys())
+
+    def evaluate_router(self, field, x, z, y=None):
+        """Evaluate one router field at (x, y, z).
+
+        When y is None, uses BIOME_SAMPLE_BLOCK_Y (the biome oracle's y).
+        Resets the column memo so shared subgraphs are recomputed per call;
+        callers evaluating multiple fields at the same (x, z) should use
+        evaluate_climate instead.
+        """
+        ref = self._router_refs.get(field)
+        if ref is None:
+            raise ValueError(f"router field {field!r} not available")
+        if y is None:
+            y = self.BIOME_SAMPLE_BLOCK_Y
+        self._column_memo = {}
+        return self._eval(ref, float(x), float(y), float(z))
+
+    def evaluate_climate(self, x, z, y=None):
+        """Evaluate all available router climate fields at (x, z) in one pass.
+
+        Called with QUART coordinates (the BiomeSampler batch path converts
+        block to quart before calling). The default y is quart 16, matching
+        getBiome(qx, 16, qz, sampler) in the Java oracle.
+
+        Returns {biome_axis_name: value} using ROUTER_TO_BIOME_AXIS naming
+        (temperature, humidity, continentalness, erosion, weirdness, depth).
+        The column memo is shared across all fields so overlapping DF
+        subgraphs (shift noises, selectors) are evaluated once.
+        """
+        if y is None:
+            y = self.BIOME_SAMPLE_BLOCK_Y
+        self._column_memo = {}
+        result = {}
+        for field, ref in self._router_refs.items():
+            axis = ROUTER_TO_BIOME_AXIS[field]
+            result[axis] = self._eval(ref, float(x), float(y), float(z))
+        return result
 
     def depth(self, x, z, y=0):
         """Router depth at (x, y, z) — matches `customdim sample-noise`'s
