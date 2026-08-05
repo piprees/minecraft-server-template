@@ -320,15 +320,23 @@ def load_noise_configs():
 # ---------------------------------------------------------------------------
 # Vanilla quantisation: MultiNoiseUtil.toLong / ParameterRange.getDistance
 # ---------------------------------------------------------------------------
-def _to_long(value):
-    """Mirror of MultiNoiseUtil.toLong: (long)(value * 10000.0F).
+_F32 = struct.Struct('f')
 
-    Java casts float→long by truncation toward zero. Python's int() on a
-    float also truncates toward zero. The 10000.0F is a Java float literal;
-    the multiplication promotes to double first (Java widens the float
-    operand), so the effective operation is (long)((double)value * 10000.0).
+
+def _f32(value):
+    """Round a Python float (double) to IEEE 754 float32 (binary32)."""
+    return _F32.unpack(_F32.pack(value))[0]
+
+
+def _to_long(value):
+    """Mirror of MultiNoiseUtil.toLong: fload → ldc 10000.0f → fmul → f2l.
+
+    Java bytecode uses float32 multiplication (fmul), not double.  The
+    input float parameter is multiplied by the float constant 10000.0f,
+    producing a float result truncated to long (f2l).  Python's float is
+    double (64-bit); we round to float32 at each step to match fmul.
     """
-    return int(float(value) * 10000.0)
+    return int(_f32(_f32(float(value)) * 10000.0))
 
 
 def _param_distance(noise_long, range_min, range_max):
@@ -417,6 +425,7 @@ class BiomeSampler:
                 iter_entries = kept
 
         self._entries = []
+        tree_entries = []
         for entry in iter_entries:
             if entry.get("unresolved"):
                 continue
@@ -428,6 +437,11 @@ class BiomeSampler:
                 flat.append(_to_long(hi))
             offset_long = _to_long(entry.get("offset", 0.0))
             self._entries.append((entry["biome"], tuple(flat), offset_long * offset_long))
+            tree_params = tuple(flat) + (offset_long, offset_long)
+            tree_entries.append((tree_params, entry["biome"]))
+
+        from search_tree import SearchTree
+        self._search_tree = SearchTree(tree_entries) if tree_entries else None
 
         # Create noise samplers from the world seed
         rng = Xoroshiro128PlusPlus(seed)
@@ -531,11 +545,31 @@ class BiomeSampler:
     def biome_and_climate(self, x, z):
         """Return (biome_id, climate_dict) in one pass — no double computation.
 
-        Vanilla's biome search runs in quantised long space: each climate
-        value is cast to float then multiplied by 10000 and truncated to
-        long (MultiNoiseUtil.toLong). Entry boundaries are stored as longs.
-        Distance is squared-sum of ParameterRange.getDistance (long→long).
-        First entry wins ties (strict < for improvement).
+        Uses the SearchTree (mirrors MultiNoiseUtil$SearchTree) for the
+        nearest-neighbour lookup.  The tree's build-order sort determines
+        tie-breaking identically to vanilla: the traversal comparison is
+        strict '<' (equal distance does NOT replace), so the first-visited
+        entry wins, and visit order is fixed by the tree construction.
+        """
+        climate = self.sample_climate(x, z)
+        tl = _to_long(climate["temperature"])
+        hl = _to_long(climate["humidity"])
+        cl = _to_long(climate["continentalness"])
+        el = _to_long(climate["erosion"])
+        dl = _to_long(climate["depth"])
+        wl = _to_long(climate["weirdness"])
+        if self._search_tree is not None:
+            best_biome = self._search_tree.get((tl, hl, cl, el, dl, wl, 0))
+        else:
+            best_biome = "unknown"
+        return best_biome, climate
+
+    def _linear_biome_search(self, x, z):
+        """Linear-scan biome lookup (the pre-SearchTree path).
+
+        Kept for cross-checking: returns the same result as vanilla's
+        Entries.getValueSimple, which scans the list in order and replaces
+        on strict '<'.  Differs from the tree at tie points.
         """
         climate = self.sample_climate(x, z)
         tl = _to_long(climate["temperature"])
@@ -545,7 +579,7 @@ class BiomeSampler:
         dl = _to_long(climate["depth"])
         wl = _to_long(climate["weirdness"])
         best_biome = "unknown"
-        best_dist = 0x7FFFFFFFFFFFFFFF  # Long.MAX_VALUE
+        best_dist = 0x7FFFFFFFFFFFFFFF
         for biome_id, flat, off_sq in self._entries:
             d = off_sq
             v = _param_distance(tl, flat[0], flat[1])
@@ -840,6 +874,28 @@ def sampler_spec(profile):
     }
 
 
+def _apply_legacy_climate(settings, seed, climate_evals):
+    """legacy_random_source: vanilla REPLACES the router's temperature and
+    vegetation noises (NoiseConfig$LegacyNoiseDensityFunctionVisitor) —
+    CheckedRandom(seed)/(seed+1), hardcoded (-7, [1,1]) params, zero shift.
+    Registry params are ignored, so the DF-graph and noise-config paths are
+    both wrong for these two axes on a legacy settings. Evaluated at quart
+    coordinates per this module's convention."""
+    if not settings.get("legacy_random_source"):
+        return
+    from legacy_noise import legacy_climate_samplers
+    temperature, vegetation = legacy_climate_samplers(int(seed))
+
+    def _legacy(sampler):
+        def _eval(x, z, _s=sampler):
+            return _s.sample(int(math.floor(x)) >> 2, 0.0,
+                             int(math.floor(z)) >> 2)
+        return _eval
+
+    climate_evals["temperature"] = _legacy(temperature)
+    climate_evals["humidity"] = _legacy(vegetation)
+
+
 def _make_climate_evaluators(noise_settings, seed, noise_family,
                              extracted_root=None, noise_aliases=None,
                              dim_type=None):
@@ -881,7 +937,8 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
         ns_path = Path(extracted_root) / "minecraft" / "caves.json"
         if ns_path.is_file():
             import json as _json
-            router = _json.loads(ns_path.read_text()).get("noise_router", {})
+            _settings = _json.loads(ns_path.read_text())
+            router = _settings.get("noise_router", {})
             for field_name, axis_name in ROUTER_TO_BIOME_AXIS.items():
                 node = router.get(field_name)
                 if isinstance(node, (int, float)):
@@ -890,6 +947,7 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
                         return _v
                     if axis_name != "depth":
                         climate_evals[axis_name] = _const
+            _apply_legacy_climate(_settings, seed, climate_evals)
             if climate_evals:
                 return None, True, climate_evals
 
@@ -955,7 +1013,13 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
                             climate_evals[axis] = _make_fn(field)
                         except (ValueError, KeyError):
                             pass
-                climate_evals["_evaluator"] = ev
+                if settings.get("legacy_random_source"):
+                    # The legacy override replaces two axes, so the batch
+                    # evaluator (which would bypass per-axis evaluators)
+                    # must not be installed for legacy settings.
+                    _apply_legacy_climate(settings, seed, climate_evals)
+                else:
+                    climate_evals["_evaluator"] = ev
                 return ev.depth_for_biome, True, climate_evals
             except (ValueError, KeyError):
                 pass  # DF chain incomplete — fall through

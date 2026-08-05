@@ -91,6 +91,8 @@ MANIFEST=(
   scripts/seed/web/scatter.js
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
+  scripts/seed/legacy_noise.py
+  scripts/seed/search_tree.py
   scripts/seed/biome_source_mixing.py
   scripts/seed/fast_roller.py
   scripts/seed/structure_placement.py

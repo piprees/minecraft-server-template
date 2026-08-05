@@ -1,7 +1,7 @@
 {
- "stackVersion": "0.0.0-local",
+ "stackVersion": "5.1.0",
  "kind": "structure-census",
- "generatedAt": "2026-08-04T22:14:10.721620846Z",
+ "generatedAt": "2026-08-05T07:16:58.698918671Z",
  "schemaVersion": 2,
  "dimension": "adventure:the_dustbowl",
  "seed": 9193281158218823422,
