@@ -39,22 +39,41 @@ def write_worker_csv(seedtest, rows):
 class RangeScoringTests(unittest.TestCase):
     """v4 Phase 6: explicit block-range want/shun scoring."""
 
+    # The horizon is the dim's measured search reach (profile locate_cap =
+    # player border radius + 2048); an 8192-radius dim measures to 10240.
+    HORIZON = 10240
+
     def test_want_score_inside_range_is_full(self):
         # Inside the range: base 1.0 + comfort bonus (up to 1.1x at centre)
-        self.assertGreaterEqual(score_dimensions.want_score(500, 0, 2000, 8192), 1.0)
-        self.assertLessEqual(score_dimensions.want_score(500, 0, 2000, 8192), 1.1)
+        self.assertGreaterEqual(
+            score_dimensions.want_score(500, 0, 2000, 8192, self.HORIZON), 1.0)
+        self.assertLessEqual(
+            score_dimensions.want_score(500, 0, 2000, 8192, self.HORIZON), 1.1)
         # Dead centre gets the maximum 1.1x bonus
-        self.assertAlmostEqual(score_dimensions.want_score(1000, 0, 2000, 8192), 1.1)
+        self.assertAlmostEqual(
+            score_dimensions.want_score(1000, 0, 2000, 8192, self.HORIZON), 1.1)
         # At the edge of the range: no bonus (1.0)
-        self.assertAlmostEqual(score_dimensions.want_score(0, 0, 2000, 8192), 1.0)
-        self.assertAlmostEqual(score_dimensions.want_score(2000, 0, 2000, 8192), 1.0)
-        self.assertLess(score_dimensions.want_score(4000, 0, 2000, 8192), 1.0)
+        self.assertAlmostEqual(
+            score_dimensions.want_score(0, 0, 2000, 8192, self.HORIZON), 1.0)
+        self.assertAlmostEqual(
+            score_dimensions.want_score(2000, 0, 2000, 8192, self.HORIZON), 1.0)
+        self.assertLess(
+            score_dimensions.want_score(4000, 0, 2000, 8192, self.HORIZON), 1.0)
 
-    def test_want_score_absence_beyond_horizon_is_soft(self):
-        # hi beyond locate's horizon: absence can't be disproven
-        self.assertEqual(score_dimensions.want_score(None, 0, 8000, 8192), 0.6)
-        # fully-confirmable range: absence is a hard zero
-        self.assertEqual(score_dimensions.want_score(None, 0, 800, 8192), 0.0)
+    def test_want_score_absence_semantics_follow_the_measured_horizon(self):
+        # Every band inside the measured horizon was fully searched, so
+        # absence is a hard zero — including bands the old fixed-1600
+        # constant called "soft".
+        self.assertEqual(
+            score_dimensions.want_score(None, 0, 8000, 8192, self.HORIZON), 0.0)
+        self.assertEqual(
+            score_dimensions.want_score(None, 0, 800, 8192, self.HORIZON), 0.0)
+        # A band that starts beyond the instrument's reach is uninformative.
+        self.assertEqual(
+            score_dimensions.want_score(None, 12000, 15000, 16384, self.HORIZON), 0.8)
+        # A band that straddles the horizon: partially searched, soft.
+        self.assertEqual(
+            score_dimensions.want_score(None, 800, 12000, 16384, self.HORIZON), 0.6)
 
     def test_shun_score_min_distance_semantics(self):
         # minDistance 4000: closer fails, farther passes

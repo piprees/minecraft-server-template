@@ -40,7 +40,8 @@ from biome_sampler import (  # noqa: E402
     BiomeSampler, build_for_dimension, load_noise_configs,
 )
 from dimension_profiles import (  # noqa: E402
-    build_profile, generation_fingerprint, load_config, load_difficulty, rollable,
+    build_profile, generation_fingerprint, load_config, load_difficulty,
+    measure_horizon, rollable,
 )
 from structure_placement import load_structure_sets, nearest_structure  # noqa: E402
 
@@ -88,9 +89,6 @@ class MemoSampler:
     spawn_filter = BiomeSampler.spawn_filter
 
 
-LOCATE_HORIZON = 1600
-
-
 def _window_score(value, lo, hi):
     if value is None:
         return 0.0
@@ -102,14 +100,17 @@ def _window_score(value, lo, hi):
     return max(0.0, 1.0 - (value - hi) / width)
 
 
-def want_score(dist, lo, hi, radius):
+def want_score(dist, lo, hi, radius, horizon):
+    """Tier-1 screening variant. `horizon` = profile locate_cap, the
+    radius the battery search actually covers — same absence semantics
+    as score-dimensions.want_score."""
     hi = min(hi, radius)
-    if lo >= LOCATE_HORIZON:
+    if lo >= horizon:
         if dist is None or dist < 0:
             return 0.8
         return 0.2 if dist < radius * 0.3 else 1.0
     if dist is None or dist < 0:
-        return 0.0 if hi <= LOCATE_HORIZON else 0.6
+        return 0.0 if hi <= horizon else 0.6
     return _window_score(dist, lo, hi)
 
 
@@ -324,7 +325,8 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets,
             if kind == "shun":
                 ss += shun_score(forced, profile["radius"], spec)
             else:
-                ss += want_score(forced, spec[0], spec[1], profile["radius"])
+                ss += want_score(forced, spec[0], spec[1], profile["radius"],
+                                 measure_horizon(profile))
             n += 1
             continue
         set_cfg = _resolve_struct_set(sid, struct_sets, struct_to_sets, seedtest_path)
@@ -380,7 +382,8 @@ def tier1_score(seed, profile, struct_sets, struct_to_sets,
         if kind == "shun":
             ss += shun_score(dist, profile["radius"], spec)
         else:
-            ss += want_score(dist, spec[0], spec[1], profile["radius"])
+            ss += want_score(dist, spec[0], spec[1], profile["radius"],
+                             measure_horizon(profile))
         n += 1
     return (ss / n if n else 0.0), dists
 

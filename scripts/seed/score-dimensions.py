@@ -62,10 +62,9 @@ import noise_placement  # noqa: E402
 import terrain_survey  # noqa: E402
 from dimension_profiles import (  # noqa: E402
     build_profile, generation_fingerprint, load_config, load_difficulty,
-    noise_fingerprint, rollable,
+    measure_horizon, noise_fingerprint, rollable,
 )
 
-LOCATE_HORIZON = 1600  # locate's practical search radius (~100 chunks)
 
 #: Candidates handed to a census worker in one go. Paired with sorting the
 #: task list by dimension, this keeps a worker on one dimension long enough
@@ -280,21 +279,27 @@ def at_most(value, cap):
     return max(0.0, 1.0 - (value - cap) / max(1.0 - cap, 1e-9))
 
 
-def want_score(dist, lo, hi, radius):
+def want_score(dist, lo, hi, radius, horizon):
     """A structure that BELONGS, judged by its placement range in blocks.
+
+    `horizon` is the dim's measured search reach — profile locate_cap
+    (player border radius + 2048), the radius the battery instruments
+    actually searched. Absence semantics compare the band against THAT,
+    never a fixed constant: nothing found inside a fully-searched band is
+    a real 0.0; a band beyond the instrument's reach is uninformative.
 
     Scoring:
       - Inside [lo, hi]: 1.0 + up to 0.1 comfort bonus at centre
       - Too close (dist < lo): proportional to dist/lo (0 at spawn, 1.0 at lo)
       - Too far (dist > hi): linear falloff over one range-width past hi
-      - Not found, range within horizon: 0.0
-      - Not found, range beyond horizon: 0.8 (absence is compatible)
+      - Not found, band within the measured horizon: 0.0
+      - Not found, band beyond the measured horizon: 0.8 (uninformative)
     """
     hi = min(hi, radius)
     if dist is None or dist < 0:
-        if lo >= LOCATE_HORIZON:
+        if lo >= horizon:
             return 0.8
-        return 0.0 if hi <= LOCATE_HORIZON else 0.6
+        return 0.0 if hi <= horizon else 0.6
     # Too close: scales from -0.5 at spawn to 1.0 at the range minimum.
     # Being found WAY too close actively penalises the total, not just zeros out.
     if dist < lo:
@@ -631,7 +636,8 @@ def score_candidate(profile, rows, structures_override=None):
             if kind == "shun":
                 s = shun_score(d, profile["radius"], spec)
             else:
-                s = want_score(d, spec[0], spec[1], profile["radius"])
+                s = want_score(d, spec[0], spec[1], profile["radius"],
+                               measure_horizon(profile))
             if clear_r > 0 and d is not None and d >= 0 and d < clear_r:
                 s *= max(0.0, d / clear_r)
             ss += s

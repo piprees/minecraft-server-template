@@ -330,7 +330,8 @@ class ScoreCandidateIntegrationTests(unittest.TestCase):
         rows = self.base_rows()
         total, parts = score_dimensions.score_candidate(profile, dict(rows))
         # Reproduce the old structures maths by hand.
-        expected = (score_dimensions.want_score(150.0, 0.0, 0.30 * 1024, 1024)
+        expected = (score_dimensions.want_score(150.0, 0.0, 0.30 * 1024, 1024,
+                                                profile["locate_cap"])
                     + score_dimensions.shun_score(-1.0, 1024, 1024)) / 2
         expected = max(0.0, expected - 1 * 0.003)  # one found structure
         self.assertAlmostEqual(parts["structures"], round(expected, 3), places=2)

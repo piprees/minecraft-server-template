@@ -949,6 +949,16 @@ def grid_pitch(radius):
     return max(64, min(512, int(radius / 4)))
 
 
+def measure_horizon(profile):
+    """The dim's measured search reach: profile locate_cap, or its defining
+    formula (player border radius + 2048) for a profile built without the
+    key. Absence semantics in want_score compare bands against THIS."""
+    cap = profile.get("locate_cap")
+    if cap:
+        return int(cap)
+    return int(profile["radius"] + 2048)
+
+
 def nether_difficulty(scale):
     """Nether rule: smaller playable world (bigger scale) = harder."""
     if scale >= 12:
@@ -1358,6 +1368,8 @@ def build_profile(dim, config, difficulty=None):
         # Measurement horizon: borders.player + 2048 blocks, centred on the
         # dimension's spawn. Exactness is owed within this; beyond it a fact
         # is capped as "beyond-horizon" (itself an exact statement).
+        # measure_horizon() is the accessor — same formula for profiles
+        # built elsewhere without this key.
         "locate_cap": int(radius + 2048),
         "grid_pitch": grid_pitch(radius),
         "create_args": {
