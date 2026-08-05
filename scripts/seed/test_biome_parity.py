@@ -129,9 +129,16 @@ class TestBiomeParity(unittest.TestCase):
         build_from_spec and compare biome-at-coordinate against every
         point in the fixture, zero tolerance.
 
-        Fixtures stamped tbInjected=true are skipped: TerraBlender's
-        per-region search trees are not mirrored in the Python sampler,
-        so biome facts for those dimensions are not exactly measurable.
+        Fixtures stamped tbInjected=true are skipped. TerraBlender's
+        region selection IS mirrored (tb_regions.py: uniqueness layers,
+        per-region trees, deferred-placeholder fallback — unit-verified),
+        but the climate values feeding the trees still diverge for
+        vanilla-typed dims at biome-sampling y: continentalness, erosion
+        and weirdness match the live router exactly; the residual is
+        temperature/humidity/depth at y=64, and sample-noise (quart y=0)
+        is not a valid oracle for those axes on these graphs. Until a
+        y=64 per-axis instrument closes that, TB dims' biome facts stay
+        not exactly measurable.
         """
         from biome_sampler import build_from_spec, sampler_spec, load_noise_configs
         from dimension_profiles import load_config
@@ -171,7 +178,7 @@ class TestBiomeParity(unittest.TestCase):
                     skipped_tb += 1
                     self.skipTest(
                         "%s: tbInjected=true — TerraBlender region "
-                        "selection not mirrored; biome facts not exactly "
+                        "climate at y=64 not yet exact; biome facts not exactly "
                         "measurable" % path.name)
 
                 if tb_injected is None:
