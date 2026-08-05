@@ -846,7 +846,7 @@ def sampler_spec(profile):
 
 
 def _make_climate_evaluators(noise_settings, seed, noise_family,
-                             extracted_root=None):
+                             extracted_root=None, noise_aliases=None):
     """Build climate evaluators for as many router axes as possible.
 
     Returns (depth_eval, depth_exact, climate_evals) where:
@@ -858,6 +858,10 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
     When extracted_root is provided (the .noise_settings/ directory from
     the jar walk), the noise_settings graph and its referenced density
     functions and noises are resolved from there.
+
+    noise_aliases: optional {lookup_id: canonical_id} from the live
+    registry's _noiseAliases dump. The server seeds each noise by the
+    canonical key, which may differ from the lookup key the DF JSON names.
     """
     from preset_terrain import (PresetTerrainEvaluator, supported_presets,
                                 ROUTER_TO_BIOME_AXIS)
@@ -873,7 +877,8 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
     if noise_settings in supported_presets():
         data_roots = [Path(extracted_root)] if extracted_root else None
         ev = PresetTerrainEvaluator(noise_settings, int(seed),
-                                    data_roots=data_roots)
+                                    data_roots=data_roots,
+                                    noise_aliases=noise_aliases)
         available = ev.router_fields()
         for field in available:
             axis = ROUTER_TO_BIOME_AXIS.get(field)
@@ -913,7 +918,8 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
                 try:
                     ev = PresetTerrainEvaluator(
                         settings, int(seed),
-                        data_roots=[Path(extracted_root)])
+                        data_roots=[Path(extracted_root)],
+                        noise_aliases=noise_aliases)
                     ev.depth_for_biome(0, 0)
                     # Build evaluators for any other available fields.
                     for field in ev.router_fields():
@@ -968,10 +974,13 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
         biomes = [b for b in biomes if b.lower() not in suppressed_set] or None
 
     # Resolve climate evaluators from the noise_settings id.
+    # Load the noise alias table from biome_params.json when present.
+    from preset_terrain import load_noise_aliases
+    noise_aliases = load_noise_aliases(biome_params_path)
     noise_settings = spec.get("noise_settings")
     depth_eval, depth_exact, climate_evals = _make_climate_evaluators(
         noise_settings, seed, noise_family,
-        extracted_root=extracted_data_root)
+        extracted_root=extracted_data_root, noise_aliases=noise_aliases)
 
     # Separate the evaluator object from the per-axis callables.
     terrain_ev = climate_evals.pop("_evaluator", None)

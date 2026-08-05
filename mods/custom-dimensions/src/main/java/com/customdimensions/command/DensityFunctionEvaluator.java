@@ -18,6 +18,12 @@ import java.util.Map;
  * freshly built NoiseConfig, then samples it. The binding visitor mirrors
  * vanilla's LegacyNoiseDensityFunctionVisitor: it instantiates noise
  * samplers and copies InterpolatedNoiseSampler with the seeded random.
+ *
+ * Caveat: c2me's DFC module (MixinNoiseConfig) replaces the noise router
+ * after construction with JIT-compiled DFs. The compiled router's noise
+ * samplers may differ from manually instantiated ones despite identical
+ * deriver seeds and params. Values from this command match what the live
+ * server's NoiseConfig produces, which is the correct oracle for parity.
  */
 public final class DensityFunctionEvaluator {
 
@@ -53,13 +59,8 @@ public final class DensityFunctionEvaluator {
 
         var pos = new DensityFunction.UnblendedNoisePos(x, y, z);
         double value = bound.sample(pos);
-
-        String bindingDesc = "fresh NoiseConfig from " + settingsEntry.getKey()
-                .map(k -> k.getValue().toString()).orElse("?") + " + seed " + seed;
-        if (!visitor.noiseLog.isEmpty()) {
-            bindingDesc += " noises=" + String.join(",", visitor.noiseLog);
-        }
-        return EvalResult.success(value, bindingDesc);
+        return EvalResult.success(value, "fresh NoiseConfig from " + settingsEntry.getKey()
+                .map(k -> k.getValue().toString()).orElse("?") + " + seed " + seed);
     }
 
     public record EvalResult(boolean ok, double value, String binding, String errorMsg) {
@@ -83,7 +84,6 @@ public final class DensityFunctionEvaluator {
         private final long seed;
         private final boolean legacy;
         private final Map<DensityFunction, DensityFunction> cache = new HashMap<>();
-        final java.util.List<String> noiseLog = new java.util.ArrayList<>();
 
         BindingVisitor(NoiseConfig config, long seed, boolean legacy) {
             this.config = config;
@@ -137,7 +137,6 @@ public final class DensityFunctionEvaluator {
             }
 
             DoublePerlinNoiseSampler sampler = config.getOrCreateSampler(key);
-            noiseLog.add(key.getValue().toString());
             return new DensityFunction.Noise(noiseData, sampler);
         }
 

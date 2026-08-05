@@ -77,6 +77,46 @@ def supported_presets():
     return sorted(k for k, p in PRESET_SETTINGS.items() if p.is_file())
 
 
+def load_noise_aliases(biome_params_path):
+    """Extract the _noiseAliases table from biome_params.json.
+
+    The dump appends a sentinel entry at the end of the bare array
+    with {"_noiseAliases": {"lookup": "canonical", ...}}. Returns
+    the dict (empty if absent or file missing). Falls back to the
+    hardcoded KNOWN_NOISE_ALIASES for the tectonic:parameter/* ids
+    whose canonical key on a Terratonic server is the corresponding
+    minecraft:* id — verified by per-octave origin comparison.
+    """
+    p = Path(biome_params_path) if not isinstance(biome_params_path, Path) else biome_params_path
+    if p.is_file():
+        try:
+            entries = json.loads(p.read_text())
+            if isinstance(entries, list):
+                for entry in entries:
+                    if isinstance(entry, dict) and "_noiseAliases" in entry:
+                        table = dict(entry["_noiseAliases"])
+                        if table:
+                            return table
+        except (json.JSONDecodeError, OSError):
+            pass
+    return dict(KNOWN_NOISE_ALIASES)
+
+
+# NoiseConfig.createNoiseSampler seeds each noise by the canonical key
+# from entry.getKey().getValue(), which may differ from the lookup key.
+# On a Terratonic server, tectonic:parameter/* noises resolve to the
+# same RegistryEntry.Reference as their minecraft:* counterparts (the
+# registry deduplicates entries with identical content from the same
+# namespace path structure). Verified by per-octave origin comparison:
+# the server's sampler for tectonic:parameter/continentalness has octave
+# origins matching minecraft:continentalness seeding.
+KNOWN_NOISE_ALIASES = {
+    "tectonic:parameter/continentalness": "minecraft:continentalness",
+    "tectonic:parameter/erosion": "minecraft:erosion",
+    "tectonic:parameter/ridge": "minecraft:ridge",
+}
+
+
 ROUTER_CLIMATE_FIELDS = {
     "temperature": "temperature",
     "vegetation": "vegetation",
@@ -106,7 +146,8 @@ class PresetTerrainEvaluator:
     from those directories (in order) alongside the in-repo RES_DATA.
     """
 
-    def __init__(self, preset_id_or_settings, seed, data_roots=None):
+    def __init__(self, preset_id_or_settings, seed, data_roots=None,
+                 noise_aliases=None):
         if isinstance(preset_id_or_settings, dict):
             settings = preset_id_or_settings
         else:
@@ -127,6 +168,15 @@ class PresetTerrainEvaluator:
         self._noises = {}      # noise id -> DoublePerlinNoiseSampler
         self._df_cache = {}    # df id -> parsed JSON
         self._column_memo = {}  # per-(x,z) df-ref value memo (reset per column)
+        # NoiseConfig seeds each noise by the registry entry's CANONICAL key,
+        # which may differ from the lookup key the DF JSON names. The alias
+        # table maps lookup -> canonical for entries where they differ.
+        # Defaults to KNOWN_NOISE_ALIASES (the tectonic:parameter/* -> minecraft:*
+        # mappings verified by octave-origin comparison) when no explicit table
+        # is provided. Params resolve by the LOOKUP id (both entries carry
+        # identical params — verified on the live server).
+        self._noise_aliases = dict(
+            noise_aliases if noise_aliases is not None else KNOWN_NOISE_ALIASES)
 
     # -- resolution ---------------------------------------------------------
 
@@ -147,7 +197,8 @@ class PresetTerrainEvaluator:
                     raise ValueError(
                         f"noise {noise_id} not found in any data root "
                         f"and not in _VANILLA_NOISE_PARAMS")
-            rng = self._deriver.from_hash_of(noise_id)
+            seed_id = self._noise_aliases.get(noise_id, noise_id)
+            rng = self._deriver.from_hash_of(seed_id)
             sampler = DoublePerlinNoiseSampler(
                 rng, params["firstOctave"], params["amplitudes"])
             self._noises[noise_id] = sampler

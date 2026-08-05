@@ -1016,8 +1016,40 @@ public class DimensionCommands {
                     .append("\", \"unresolved\": true}");
             unresolvedCount++;
         }
+        // Phase 4: noise-parameter registry aliases. For each key K,
+        // getOrThrow(K).getKey() may return a different canonical key —
+        // NoiseConfig.createNoiseSampler seeds the Perlin octaves by the
+        // CANONICAL key, not the lookup key. The Python evaluator needs
+        // this table to hash the same string the server does.
+        var noiseReg = world.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
+        java.util.TreeMap<String, String> aliases = new java.util.TreeMap<>();
+        int identityCount = 0;
+        for (var nEntry : noiseReg.getEntrySet()) {
+            String lookupId = nEntry.getKey().getValue().toString();
+            var resolved = noiseReg.getEntry(nEntry.getKey());
+            String canonicalId = resolved
+                    .flatMap(e -> e.getKey().map(k -> k.getValue().toString()))
+                    .orElse(lookupId);
+            if (!lookupId.equals(canonicalId)) {
+                aliases.put(lookupId, canonicalId);
+            } else {
+                identityCount++;
+            }
+        }
+        if (!aliases.isEmpty() || identityCount > 0) {
+            json.append(",\n  {\"_noiseAliases\": {");
+            int ai = 0;
+            for (var ae : aliases.entrySet()) {
+                if (ai++ > 0) json.append(", ");
+                json.append("\"").append(ae.getKey()).append("\": \"")
+                        .append(ae.getValue()).append("\"");
+            }
+            json.append("}, \"_noiseAliasIdentityCount\": ").append(identityCount).append("}");
+        }
         json.append("\n]\n");
 
+        final int aliasCount = aliases.size();
+        final int finalIdentityCount = identityCount;
         try {
             Path outputPath = Artefacts.dir().resolve("biome_params.json");
             Artefacts.write(outputPath, json.toString());
@@ -1031,6 +1063,7 @@ public class DimensionCommands {
                 + " static biomes, " + tbBiomeCount + " TB biomes ("
                 + finalTbCount + " cells)"
                 + (finalUnresolved > 0 ? ", " + finalUnresolved + " unresolved" : "")
+                + ", " + aliasCount + " noise aliases, " + finalIdentityCount + " identity"
                 + ") to biome_params.json"), false);
             return totalEntries;
         } catch (IOException e) {
@@ -1071,6 +1104,56 @@ public class DimensionCommands {
             double v = dpNoise.sample(0, 0, 0);
             source.sendFeedback(() -> Text.literal(String.format(
                 "noise %s s(0)=%.10f", noiseId, v)), false);
+        }
+
+        // Tectonic continentalness: manual path + octave origin dump
+        {
+            var tecRng = splitter.split("tectonic:parameter/continentalness");
+            double[] tecAmps = {1.75, 1, 2, 3, 2, 2, 1, 1, 1};
+            var tecParams = new net.minecraft.util.math.noise.DoublePerlinNoiseSampler.NoiseParameters(
+                -10, new it.unimi.dsi.fastutil.doubles.DoubleArrayList(tecAmps));
+            var tecNoise = net.minecraft.util.math.noise.DoublePerlinNoiseSampler.create(tecRng, tecParams);
+            double v0 = tecNoise.sample(0, 0, 0);
+            double vShift = tecNoise.sample(0.527180713, 0, 0.527180713);
+            source.sendFeedback(() -> Text.literal(String.format(
+                "noise tectonic:parameter/continentalness s(0)=%.10f s(0.527)=%.10f", v0, vShift)), false);
+            String manualOrigins = dumpOctaveOrigins(tecNoise, "manual");
+            source.sendFeedback(() -> Text.literal(manualOrigins), false);
+        }
+
+        // Same noise via NoiseConfig.getOrCreateSampler (the live server path)
+        {
+            var server = ctx.getSource().getServer();
+            var noiseParamsLookup = server.getRegistryManager()
+                    .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+            var settingsLookup = server.getRegistryManager()
+                    .get(net.minecraft.registry.RegistryKeys.CHUNK_GENERATOR_SETTINGS)
+                    .getReadOnlyWrapper();
+            // Build a NoiseConfig from adventure:compressed settings
+            var settingsKey = RegistryKey.of(
+                    net.minecraft.registry.RegistryKeys.CHUNK_GENERATOR_SETTINGS,
+                    Identifier.tryParse("adventure:compressed"));
+            try {
+                var settings = settingsLookup.getOrThrow(settingsKey).value();
+                var configNoise = NoiseConfig.create(settings, noiseParamsLookup, seed);
+                var tecKey = RegistryKey.of(RegistryKeys.NOISE_PARAMETERS,
+                        Identifier.tryParse("tectonic:parameter/continentalness"));
+                // Probe: what key does the registry entry report?
+                var noiseReg = server.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
+                var regEntry = noiseReg.getEntry(tecKey);
+                String regKeyStr = regEntry.map(e -> e.getKey()
+                        .map(k -> k.getValue().toString()).orElse("NO_KEY"))
+                        .orElse("NOT_FOUND");
+                source.sendFeedback(() -> Text.literal("registry_key=" + regKeyStr), false);
+                var configSampler = configNoise.getOrCreateSampler(tecKey);
+                double cv = configSampler.sample(0.527180713, 0, 0.527180713);
+                source.sendFeedback(() -> Text.literal(String.format(
+                    "config tectonic:parameter/continentalness s(0.527)=%.10f", cv)), false);
+                String configOrigins = dumpOctaveOrigins(configSampler, "config");
+                source.sendFeedback(() -> Text.literal(configOrigins), false);
+            } catch (Exception e) {
+                source.sendFeedback(() -> Text.literal("config path error: " + e.getMessage()), false);
+            }
         }
         return 1;
     }
@@ -1281,6 +1364,52 @@ public class DimensionCommands {
                 dfId, x, y, z, result.value(), result.binding());
         source.sendFeedback(() -> Text.literal(msg), false);
         return 1;
+    }
+
+    /**
+     * Extracts per-octave Perlin origins from a DoublePerlinNoiseSampler via
+     * reflection. Returns a compact string for RCON comparison against the
+     * Python side's octave origins.
+     */
+    private static String dumpOctaveOrigins(
+            net.minecraft.util.math.noise.DoublePerlinNoiseSampler sampler,
+            String label) {
+        try {
+            // DoublePerlinNoiseSampler has private firstSampler/secondSampler
+            java.lang.reflect.Field firstF = null, secondF = null;
+            for (var f : net.minecraft.util.math.noise.DoublePerlinNoiseSampler.class.getDeclaredFields()) {
+                if (net.minecraft.util.math.noise.OctavePerlinNoiseSampler.class.isAssignableFrom(f.getType())) {
+                    if (firstF == null) firstF = f;
+                    else { secondF = f; break; }
+                }
+            }
+            if (firstF == null) return label + ":noFields";
+            firstF.setAccessible(true);
+            var first = (net.minecraft.util.math.noise.OctavePerlinNoiseSampler) firstF.get(sampler);
+            // OctavePerlinNoiseSampler has private octaveSamplers (PerlinNoiseSampler[])
+            java.lang.reflect.Field octF = null;
+            for (var f : net.minecraft.util.math.noise.OctavePerlinNoiseSampler.class.getDeclaredFields()) {
+                if (f.getType().isArray() && !f.getType().getComponentType().isPrimitive()
+                        && !java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                    octF = f; break;
+                }
+            }
+            if (octF == null) return label + ":noOctaveField";
+            octF.setAccessible(true);
+            var octaves = (net.minecraft.util.math.noise.PerlinNoiseSampler[]) octF.get(first);
+            StringBuilder sb = new StringBuilder(label + "_first:");
+            for (int i = 0; i < octaves.length; i++) {
+                if (octaves[i] != null) {
+                    sb.append(String.format(" [%.6f,%.6f,%.6f]",
+                            octaves[i].originX, octaves[i].originY, octaves[i].originZ));
+                } else {
+                    sb.append(" [null]");
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return label + ":error=" + e.getClass().getSimpleName() + ":" + e.getMessage();
+        }
     }
 
     private static void appendRange(StringBuilder json, String name,

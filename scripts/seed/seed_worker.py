@@ -881,18 +881,42 @@ def _extract_noise_data(seedtest):
     for jar_path in jars:
         try:
             with zipfile.ZipFile(jar_path) as zf:
+                # Collect data/ entries from three sources in override order:
+                # 1. data/ (mod's own datapack — lowest priority)
+                # 2. resourcepacks/*/data/ (built-in pack base)
+                # 3. resourcepacks/*/overlay.*/data/ (built-in pack overlays)
+                # Last writer wins within each jar; later jars also win.
+                data_entries = []
+                rp_base_entries = []
+                rp_overlay_entries = []
                 for name in zf.namelist():
-                    if not name.startswith("data/") or not name.endswith(".json"):
+                    if not name.endswith(".json"):
                         continue
-                    parts = name.split("/")
+                    if name.startswith("data/"):
+                        data_entries.append(name)
+                    elif name.startswith("resourcepacks/"):
+                        segs = name.split("/", 3)
+                        if len(segs) >= 4 and segs[2] == "data":
+                            rp_base_entries.append(name)
+                        elif len(segs) >= 4 and segs[2].startswith("overlay.") and "/data/" in name:
+                            rp_overlay_entries.append(name)
+                for name in data_entries + rp_base_entries + rp_overlay_entries:
+                    # Normalise to data/<ns>/... regardless of source path
+                    data_pos = name.find("/data/")
+                    if data_pos < 0 and name.startswith("data/"):
+                        data_pos = -1  # data/ is at position 0, offset -1+5=4
+                        data_rel = name
+                    else:
+                        data_rel = name[data_pos + 1:]  # strip prefix up to and including /data/ -> data/...
+                    parts = data_rel.split("/")
                     if len(parts) < 4 or parts[0] != "data":
                         continue
                     ns = parts[1]
-                    if "worldgen/noise_settings/" in name:
+                    if "worldgen/noise_settings/" in data_rel:
                         dest = ns_dir / ns / parts[-1]
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         dest.write_bytes(zf.read(name))
-                    elif "worldgen/density_function/" in name:
+                    elif "worldgen/density_function/" in data_rel:
                         try:
                             df_idx = parts.index("density_function")
                             rel = "/".join(parts[df_idx:])
@@ -901,7 +925,7 @@ def _extract_noise_data(seedtest):
                         dest = ns_dir / ns / "worldgen" / rel
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         dest.write_bytes(zf.read(name))
-                    elif "worldgen/noise/" in name and parts[parts.index("noise") - 1] == "worldgen":
+                    elif "worldgen/noise/" in data_rel and parts[parts.index("noise") - 1] == "worldgen":
                         try:
                             n_idx = parts.index("noise")
                             rel = "/".join(parts[n_idx:])

@@ -90,7 +90,8 @@ def main():
 
         entries = dump_family(container, dump_dim, args.workdir)
         for e in entries:
-            e["family"] = family_tag
+            if "biome" in e:
+                e["family"] = family_tag
         all_entries.extend(entries)
 
         if create_type is not None:
@@ -107,7 +108,8 @@ def main():
 
     families = {}
     for e in all_entries:
-        families.setdefault(e.get("family", "?"), set()).add(e["biome"])
+        if "biome" in e:
+            families.setdefault(e.get("family", "?"), set()).add(e["biome"])
 
     print(f"  Merged: {len(all_entries)} entries "
           f"({', '.join(f'{k}: {len(v)}' for k, v in sorted(families.items()))})",
