@@ -599,14 +599,17 @@ to vanilla behaviour.
   under qemu — the watchdog kills slow emulated ticks) is the clean rig:
   preset_terrain.py matched it 36/36 probes to the RCON quantisation
   floor (1e-4), both presets, positive and negative seeds.
-- **elfydd/production sample-noise DIVERGES from pure-vanilla evaluation**
-  of the same seed + same settings (all channels, large deltas). The
-  hardened-jar bit-identity oracle (26/26 before/after) proves it is
-  stable and pre-existing, not caused by the datapack work; prime suspect
-  is c2me's chunk-system/noise modules. The seed-roll pipeline's climate
-  model is vanilla-semantics too, so any bias is shared and scoring-
-  relative. Investigate before trusting ABSOLUTE coordinates from
-  headless prediction on production.
+- **elfydd/production sample-noise vs headless evaluation is a solved
+  mechanism**: Tectonic's `overlay.datapack` makes
+  `minecraft:continentalness`/`erosion`/`ridge` value-identical to its
+  `tectonic:parameter/*` copies, the DF tree's holders canonicalise, and
+  `createNoiseSampler` seeds by the canonical `minecraft:` id. The
+  roller mirrors both halves (`KNOWN_NOISE_ALIASES`, octave-origin
+  verified, plus overlay-aware jar extraction) and matches the live
+  c2me-modded server at zero tolerance on the closed chains
+  (`BIOME_PARITY_STRICT=1` in `test_biome_parity.py`) — c2me introduces
+  no climate delta there. `/customdim eval-df` walks any residual chain
+  divergence node by node.
 
 ### Seed rolling pipeline
 
