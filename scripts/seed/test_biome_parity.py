@@ -227,18 +227,20 @@ class TestBiomeParity(unittest.TestCase):
                                "First %d mismatching points:\n%s"
                                % (path.name, len(mismatches), len(points),
                                   len(sample), detail))
-                    # The known open divergence is the Tectonic spline/selector
-                    # DF-chain evaluation (§6.2 residue): the passthrough axes
-                    # match at the quantisation floor, the chain axes do not.
-                    # Until it closes, these dimensions' biome facts are not
-                    # exactly measurable — stated here as a skip, never scored
-                    # or claimed. BIOME_PARITY_STRICT=1 turns the residue back
+                    # Two named residues remain (§6.2): quantisation ties the
+                    # linear scan breaks differently from vanilla's SearchTree
+                    # traversal order (mirroring the RTree closes it), and the
+                    # cave family's shifted_noise path. Until they close, the
+                    # affected dimensions' biome facts are not exactly
+                    # measurable — stated here as a skip, never scored or
+                    # claimed. BIOME_PARITY_STRICT=1 turns the residue back
                     # into a hard failure for whoever is working on it.
                     if os.environ.get("BIOME_PARITY_STRICT") == "1":
                         self.fail(message)
                     self.skipTest(
-                        "not exactly measurable — Tectonic DF-chain parity "
-                        "open (§6.2 residue). " + message)
+                        "not exactly measurable — biome parity residue open "
+                        "(SearchTree tie-break / cave shifted_noise, §6.2). "
+                        + message)
 
                 points_checked += len(points)
 

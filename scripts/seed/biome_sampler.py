@@ -318,6 +318,27 @@ def load_noise_configs():
 
 
 # ---------------------------------------------------------------------------
+# Vanilla quantisation: MultiNoiseUtil.toLong / ParameterRange.getDistance
+# ---------------------------------------------------------------------------
+def _to_long(value):
+    """Mirror of MultiNoiseUtil.toLong: (long)(value * 10000.0F).
+
+    Java casts float→long by truncation toward zero. Python's int() on a
+    float also truncates toward zero. The 10000.0F is a Java float literal;
+    the multiplication promotes to double first (Java widens the float
+    operand), so the effective operation is (long)((double)value * 10000.0).
+    """
+    return int(float(value) * 10000.0)
+
+
+def _param_distance(noise_long, range_min, range_max):
+    """Mirror of ParameterRange.getDistance(long noise)."""
+    above = noise_long - range_max
+    below = range_min - noise_long
+    return above if above > 0 else max(below, 0)
+
+
+# ---------------------------------------------------------------------------
 # Biome Sampler — ties noise sampling + parameter table lookup together.
 # Family-aware: accepts a noise_config dict per dimension family so
 # nether/end/paradise_lost dimensions use their own noise parameters.
@@ -403,10 +424,10 @@ class BiomeSampler:
             for param in ("temperature", "humidity", "continentalness",
                           "erosion", "depth", "weirdness"):
                 lo, hi = entry[param]
-                flat.append(lo)
-                flat.append(hi)
-            offset = entry.get("offset", 0.0)
-            self._entries.append((entry["biome"], tuple(flat), offset * offset))
+                flat.append(_to_long(lo))
+                flat.append(_to_long(hi))
+            offset_long = _to_long(entry.get("offset", 0.0))
+            self._entries.append((entry["biome"], tuple(flat), offset_long * offset_long))
 
         # Create noise samplers from the world seed
         rng = Xoroshiro128PlusPlus(seed)
@@ -508,67 +529,41 @@ class BiomeSampler:
         return climate
 
     def biome_and_climate(self, x, z):
-        """Return (biome_id, climate_dict) in one pass — no double computation."""
+        """Return (biome_id, climate_dict) in one pass — no double computation.
+
+        Vanilla's biome search runs in quantised long space: each climate
+        value is cast to float then multiplied by 10000 and truncated to
+        long (MultiNoiseUtil.toLong). Entry boundaries are stored as longs.
+        Distance is squared-sum of ParameterRange.getDistance (long→long).
+        First entry wins ties (strict < for improvement).
+        """
         climate = self.sample_climate(x, z)
-        t = climate["temperature"]
-        h = climate["humidity"]
-        c = climate["continentalness"]
-        e = climate["erosion"]
-        dp = climate["depth"]
-        w = climate["weirdness"]
+        tl = _to_long(climate["temperature"])
+        hl = _to_long(climate["humidity"])
+        cl = _to_long(climate["continentalness"])
+        el = _to_long(climate["erosion"])
+        dl = _to_long(climate["depth"])
+        wl = _to_long(climate["weirdness"])
         best_biome = "unknown"
-        best_dist = float('inf')
+        best_dist = 0x7FFFFFFFFFFFFFFF  # Long.MAX_VALUE
         for biome_id, flat, off_sq in self._entries:
-            # Unrolled 6D distance with early exit — skip entries that
-            # can't beat the current best after checking 2 parameters.
             d = off_sq
-            v = t
-            if v < flat[0]:
-                v = flat[0] - v
-                d += v * v
-            elif v > flat[1]:
-                v = v - flat[1]
-                d += v * v
-            v = h
-            if v < flat[2]:
-                v = flat[2] - v
-                d += v * v
-            elif v > flat[3]:
-                v = v - flat[3]
-                d += v * v
-            # Prune: 2 params already exceed best → skip remaining 4
+            v = _param_distance(tl, flat[0], flat[1])
+            d += v * v
+            v = _param_distance(hl, flat[2], flat[3])
+            d += v * v
             if d >= best_dist:
                 continue
-            v = c
-            if v < flat[4]:
-                v = flat[4] - v
-                d += v * v
-            elif v > flat[5]:
-                v = v - flat[5]
-                d += v * v
-            v = e
-            if v < flat[6]:
-                v = flat[6] - v
-                d += v * v
-            elif v > flat[7]:
-                v = v - flat[7]
-                d += v * v
+            v = _param_distance(cl, flat[4], flat[5])
+            d += v * v
+            v = _param_distance(el, flat[6], flat[7])
+            d += v * v
             if d >= best_dist:
                 continue
-            v = dp
-            if v < flat[8]:
-                v = flat[8] - v
-                d += v * v
-            elif v > flat[9]:
-                v = v - flat[9]
-                d += v * v
-            v = w
-            if v < flat[10]:
-                v = flat[10] - v
-                d += v * v
-            elif v > flat[11]:
-                v = v - flat[11]
-                d += v * v
+            v = _param_distance(dl, flat[8], flat[9])
+            d += v * v
+            v = _param_distance(wl, flat[10], flat[11])
+            d += v * v
             if d < best_dist:
                 best_dist = d
                 best_biome = biome_id
@@ -846,7 +841,8 @@ def sampler_spec(profile):
 
 
 def _make_climate_evaluators(noise_settings, seed, noise_family,
-                             extracted_root=None, noise_aliases=None):
+                             extracted_root=None, noise_aliases=None,
+                             dim_type=None):
     """Build climate evaluators for as many router axes as possible.
 
     Returns (depth_eval, depth_exact, climate_evals) where:
@@ -862,11 +858,48 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
     noise_aliases: optional {lookup_id: canonical_id} from the live
     registry's _noiseAliases dump. The server seeds each noise by the
     canonical key, which may differ from the lookup key the DF JSON names.
+
+    dim_type: the dimension's type string (e.g. "cave", "nether",
+    "multi_biome"). Used to infer the default noise_settings when none is
+    configured — mirrors DimensionManager.createDimensionOptions.
     """
     from preset_terrain import (PresetTerrainEvaluator, supported_presets,
                                 ROUTER_TO_BIOME_AXIS)
 
     climate_evals = {}
+
+    # DimensionManager defaults: dims with no explicit noiseSettings inherit
+    # the generator from their type's base dimension. Mirrors
+    # createDimensionOptions' type switch.
+    #
+    # "cave" uses minecraft:caves whose router has constants for
+    # continents/erosion/ridges/depth (all 0.0) and vanilla shifted_noise
+    # for temperature/vegetation. The constants are injected directly;
+    # temperature/humidity use the noise_config path (build_from_spec
+    # patches the params from the extracted data).
+    if noise_settings is None and dim_type == "cave" and extracted_root:
+        ns_path = Path(extracted_root) / "minecraft" / "caves.json"
+        if ns_path.is_file():
+            import json as _json
+            router = _json.loads(ns_path.read_text()).get("noise_router", {})
+            for field_name, axis_name in ROUTER_TO_BIOME_AXIS.items():
+                node = router.get(field_name)
+                if isinstance(node, (int, float)):
+                    val = float(node)
+                    def _const(x, z, _v=val):
+                        return _v
+                    if axis_name != "depth":
+                        climate_evals[axis_name] = _const
+            if climate_evals:
+                return None, True, climate_evals
+
+    if noise_settings is None and extracted_root:
+        _FAMILY_DEFAULT_SETTINGS = {
+            "overworld": "adventure:wide",
+            "nether": "minecraft:nether",
+            "end": "minecraft:end",
+        }
+        noise_settings = _FAMILY_DEFAULT_SETTINGS.get(noise_family)
 
     # Adventure presets have their full router graph in-repo — build
     # evaluators for ALL six climate axes, not just depth. The evaluator
@@ -895,55 +928,55 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
         return None, True, {}
 
     # Extracted noise_settings: load the graph from the jar walk output
-    # and check whether depth is a constant or an evaluable DF tree.
+    # and build evaluators for every router field that is resolvable.
+    # Same block-coord evaluator as the adventure presets: eval-df confirms
+    # the DFs match at block coords (the NoiseConfig creates the sampler
+    # from the same DF graph the evaluator walks).
     if extracted_root and noise_settings:
         ns, _, name = noise_settings.partition(":")
         ns_path = Path(extracted_root) / ns / (name + ".json")
         if ns_path.is_file():
             import json as _json
             settings = _json.loads(ns_path.read_text())
-            depth_node = settings.get("noise_router", {}).get("depth")
-            # Constant depth (nether=0.0, end=0.0 in vanilla): the router
-            # always outputs this value regardless of coordinates.
+            router = settings.get("noise_router", {})
+            try:
+                ev = PresetTerrainEvaluator(
+                    settings, int(seed),
+                    data_roots=[Path(extracted_root)],
+                    noise_aliases=noise_aliases)
+                ev.depth_for_biome(0, 0)
+                for field in ev.router_fields():
+                    axis = ROUTER_TO_BIOME_AXIS.get(field)
+                    if axis and axis != "depth":
+                        try:
+                            ev.evaluate_router(field, 0, 0)
+                            def _make_fn(f):
+                                return lambda x, z: ev.evaluate_router(f, x, z)
+                            climate_evals[axis] = _make_fn(field)
+                        except (ValueError, KeyError):
+                            pass
+                climate_evals["_evaluator"] = ev
+                return ev.depth_for_biome, True, climate_evals
+            except (ValueError, KeyError):
+                pass  # DF chain incomplete — fall through
+            # Fallback: depth-only extraction for settings whose full
+            # graph is not resolvable but depth is a constant.
+            depth_node = router.get("depth")
             if isinstance(depth_node, (int, float)):
                 val = float(depth_node)
                 if val == 0.0:
                     return None, True, {}
                 return (lambda x, z, _v=val: _v), True, {}
-            # DF tree (inlined or referencing other DFs): build a full
-            # evaluator with the extracted data as a resolution root.
-            # Probe at (0, 0) to verify the whole DF chain resolves —
-            # construction is lazy and won't catch missing DFs.
-            if depth_node is not None:
-                try:
-                    ev = PresetTerrainEvaluator(
-                        settings, int(seed),
-                        data_roots=[Path(extracted_root)],
-                        noise_aliases=noise_aliases)
-                    ev.depth_for_biome(0, 0)
-                    # Build evaluators for any other available fields.
-                    for field in ev.router_fields():
-                        axis = ROUTER_TO_BIOME_AXIS.get(field)
-                        if axis and axis != "depth":
-                            try:
-                                ev.evaluate_router(field, 0, 0)
-                                def _make_fn(f):
-                                    return lambda x, z: ev.evaluate_router(f, x, z)
-                                climate_evals[axis] = _make_fn(field)
-                            except (ValueError, KeyError):
-                                pass
-                    return ev.depth_for_biome, True, climate_evals
-                except (ValueError, KeyError):
-                    pass  # DF chain incomplete — fall through
 
     return None, False, {}
 
 
 def _make_depth_evaluator(noise_settings, seed, noise_family,
-                          extracted_root=None):
+                          extracted_root=None, dim_type=None):
     """Backward-compatible wrapper: returns (depth_eval, depth_exact)."""
     depth_eval, depth_exact, _climate = _make_climate_evaluators(
-        noise_settings, seed, noise_family, extracted_root)
+        noise_settings, seed, noise_family, extracted_root,
+        dim_type=dim_type)
     return depth_eval, depth_exact
 
 
@@ -960,6 +993,42 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
         noise_configs = load_noise_configs()
     noise_family = spec.get("noise_family") or "overworld"
     noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
+
+    # Terralith overrides vanilla noise params (minecraft:temperature,
+    # minecraft:vegetation) in the worldgen registry. The overrides live
+    # in the extracted .noise_settings/ directory. When available, patch
+    # the noise_config so the BiomeSampler's default shifted_noise path
+    # uses the correct amplitudes and octaves.
+    if extracted_data_root and noise_config:
+        _NOISE_TO_CONFIG = {
+            "minecraft:temperature": "temperature",
+            "minecraft:vegetation": "humidity",
+            "minecraft:continentalness": "continentalness",
+            "minecraft:erosion": "erosion",
+            "minecraft:ridge": "weirdness",
+        }
+        patched = False
+        for noise_id, config_key in _NOISE_TO_CONFIG.items():
+            if config_key not in noise_config:
+                continue
+            ns, _, path = noise_id.partition(":")
+            params_path = Path(extracted_data_root) / ns / "worldgen/noise" / (path + ".json")
+            if params_path.is_file():
+                import json as _json
+                extracted_params = _json.loads(params_path.read_text())
+                current = noise_config[config_key]
+                if (extracted_params.get("firstOctave") != current.get("first_octave")
+                        or extracted_params.get("amplitudes") != current.get("amplitudes")):
+                    if not patched:
+                        noise_config = dict(noise_config)
+                        patched = True
+                    noise_config[config_key] = {
+                        "noise_id": current["noise_id"],
+                        "first_octave": extracted_params["firstOctave"],
+                        "amplitudes": extracted_params["amplitudes"],
+                        "xz_scale": current.get("xz_scale", 0.25),
+                    }
+
     biomes = spec.get("biomes") or None
     suppress = spec.get("suppressed_biomes") or None
 
@@ -978,9 +1047,11 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
     from preset_terrain import load_noise_aliases
     noise_aliases = load_noise_aliases(biome_params_path)
     noise_settings = spec.get("noise_settings")
+    dim_type = spec.get("dim_type")
     depth_eval, depth_exact, climate_evals = _make_climate_evaluators(
         noise_settings, seed, noise_family,
-        extracted_root=extracted_data_root, noise_aliases=noise_aliases)
+        extracted_root=extracted_data_root, noise_aliases=noise_aliases,
+        dim_type=dim_type)
 
     # Separate the evaluator object from the per-axis callables.
     terrain_ev = climate_evals.pop("_evaluator", None)
