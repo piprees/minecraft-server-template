@@ -51,6 +51,7 @@ import java.util.UUID;
  *   /customdim structure-audit [group]
  *   /customdim structure-census <dimension>
  *   /customdim occupant <dimension> <chunkX> <chunkZ>
+ *   /customdim eval-df <dimension> <df_id> <x> <y> <z>
  *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
@@ -170,6 +171,13 @@ public class DimensionCommands {
                                 .executes(DimensionCommands::carverDraw)))))
                 .then(CommandManager.literal("dump-structure-pools")
                     .executes(DimensionCommands::dumpStructurePools))
+                .then(CommandManager.literal("eval-df")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("df_id", IdentifierArgumentType.identifier())
+                            .then(CommandManager.argument("x", IntegerArgumentType.integer())
+                                .then(CommandManager.argument("y", IntegerArgumentType.integer())
+                                    .then(CommandManager.argument("z", IntegerArgumentType.integer())
+                                        .executes(DimensionCommands::evalDf)))))))
         );
     }
 
@@ -1242,6 +1250,37 @@ public class DimensionCommands {
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
+    }
+
+    /**
+     * Evaluates an arbitrary density function from the DENSITY_FUNCTION
+     * registry at block coordinates (x, y, z). Binds the DF through a
+     * fresh NoiseConfig built from the dimension's generator settings and
+     * world seed — the same binding the noise pipeline uses.
+     */
+    private static int evalDf(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal("Dimension not loaded: "
+                    + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        Identifier dfId = IdentifierArgumentType.getIdentifier(ctx, "df_id");
+        int x = IntegerArgumentType.getInteger(ctx, "x");
+        int y = IntegerArgumentType.getInteger(ctx, "y");
+        int z = IntegerArgumentType.getInteger(ctx, "z");
+
+        var result = DensityFunctionEvaluator.evaluate(world, dfId, x, y, z);
+        if (!result.ok()) {
+            source.sendError(Text.literal("eval-df: " + result.errorMsg()));
+            return 0;
+        }
+
+        String msg = String.format("df %s at (%d,%d,%d) = %.9f [%s]",
+                dfId, x, y, z, result.value(), result.binding());
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return 1;
     }
 
     private static void appendRange(StringBuilder json, String name,
