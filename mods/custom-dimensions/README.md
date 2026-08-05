@@ -554,8 +554,10 @@ What it does, all server-side:
   villager or a cow through, and build farms across a portal. Leads are
   detached before crossing (a cross-world leash is unrecoverable in
   vanilla). Vehicles with passengers are not handled yet.
-- **Interior particles are suppressed** while immersive is on — the preview
-  is the visual — leaving the coloured edge particles to trace the frame.
+- **Interior particles are thinned, not removed** while immersive is on —
+  one particle per cell per `IMMERSIVE_PARTICLE_INTERVAL` ticks (about a
+  twelfth of the normal density), so dust still drifts out of the frame
+  without fogging the preview.
 
 Known limits, and none of them are bugs:
 

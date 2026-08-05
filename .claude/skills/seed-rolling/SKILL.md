@@ -210,7 +210,7 @@ python3 -m pytest scripts/seed/            # the existing test suite (10 test mo
 
 The test suite exists — `test_biome_pipeline.py`, `test_biome_parity.py`, `test_dimension_profiles.py`, `test_fast_roller.py`, `test_map_renderer.py`, `test_passthrough_parity.py`, `test_preset_terrain.py`, `test_render_integration.py`, `test_score_dimensions.py`, `test_seed_worker.py`, `test_viewer_server.py`, `test_world_type_fidelity.py` — and changing any scoring logic in `dimension_profiles.py`, `fast_roller.py`, or `score-dimensions.py` means running it before trusting the change.
 
-Shell-level verification scripts: `scripts/seed/verify-occupancy.sh` (bot harness for occupancy checks), `scripts/seed/migrate-structure-identity.sh` + `scripts/seed/verify-structure-identity.py` (one-time migration + gate), `scripts/seed/refresh-biome-fixtures.sh` + `test_biome_parity.py` (biome gate — fixtures deliberately uncommitted while live-vs-vanilla divergence is open).
+Shell-level verification scripts: `scripts/seed/verify-occupancy.sh` (bot harness for occupancy checks), `scripts/seed/migrate-structure-identity.sh` + `scripts/seed/verify-structure-identity.py` (one-time migration + gate), `scripts/seed/refresh-biome-fixtures.sh` + `test_biome_parity.py` (biome gate — fixtures committed under `testdata/biome_grid/`; the open residues fail only under `BIOME_PARITY_STRICT=1` and skip honestly otherwise).
 
 ## References
 

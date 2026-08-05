@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """bench-census-workers.py - Measure noise-census throughput against pool size.
 
-Context: score-dimensions.default_workers() returns cpu_count() - 2 and treats
-every logical core as equal. On an asymmetric CPU (Apple silicon: a few
-performance cores plus many efficiency ones) that is an assumption, not a
+Context: score-dimensions.default_workers() returns max(2, cpu_count * 2 // 3)
+and treats every logical core as equal. On an asymmetric CPU (Apple silicon: a
+few performance cores plus many efficiency ones) that is an assumption, not a
 measurement — the efficiency cores finish the same chunk several times slower,
 and past some pool size the extra workers cost more in contention than they
 return. This is how that gets numbers instead of opinions.
