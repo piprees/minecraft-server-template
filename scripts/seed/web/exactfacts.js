@@ -62,6 +62,12 @@
 
   var MARKER = 2.0
   var DISPLAY_CAP = 5000
+  // Per-position markers at world scale are sub-pixel entities: 13k of
+  // them render as an opaque blob that hides the map (seen live). The
+  // layer stays off until the modal redesign decides the density-vs-
+  // identity split; the facts PANEL below still carries the exact data.
+  // Debug escape hatch: window.__efMarkersEnabled = true, then reopen.
+  function markersEnabled() { return window.__efMarkersEnabled === true }
   var familyFor = window.structIconFamily || function () {
     return { fill: 'rgb(128,128,128)', d: 'M0 -8.5 L6.5 0 L0 8.5 L-6.5 0 Z M-2 -2 h4 v4 h-4 Z' }
   }
@@ -69,13 +75,13 @@
   function clearLayer() { while (layer.firstChild) layer.removeChild(layer.firstChild) }
 
   function markerNote() {
-    return imageBox.parentNode.querySelector('.ef-marker-note')
+    return imageBox.querySelector('.ef-marker-note')
   }
 
   function drawMarkers(data) {
     clearLayer()
-    if (!data || !data.ok || !data.groups) {
-      var stale_note = markerNote()
+    var stale_note = markerNote()
+    if (!markersEnabled() || !data || !data.ok || !data.groups) {
       if (stale_note) stale_note.textContent = ''
       return
     }
@@ -134,11 +140,17 @@
     // drawn < total is normal (off-map positions are not drawn; huge groups
     // are display-capped) — the counts in the table always come from the
     // full server-side set.
+    // Inside .lb-image as an absolute overlay — a block element in the
+    // .lb-inner flex row reflows the info column into a sliver (seen
+    // live: the whole sidebar crushed to ~140px).
     var note = markerNote() ||
       (function () {
         var p = document.createElement('p')
         p.className = 'ef-marker-note ef-provenance'
-        imageBox.parentNode.appendChild(p)
+        p.style.cssText = 'position:absolute;left:8px;bottom:8px;margin:0;' +
+          'padding:2px 8px;font-size:11px;pointer-events:none;' +
+          'background:rgba(0,0,0,0.55);color:#cbd5e1;border-radius:4px'
+        imageBox.appendChild(p)
         return p
       })()
     note.textContent = drawn + ' of ' + total + ' positions drawn' +
