@@ -486,3 +486,200 @@ class FinaliseSerialisationTests(unittest.TestCase):
         # The lock must be free, or every later finalise deadlocks.
         self.assertTrue(viewer_server._FINALISE_LOCK.acquire(timeout=1))
         viewer_server._FINALISE_LOCK.release()
+
+
+class CensusEndpointTests(unittest.TestCase):
+    """GET /census/<dim>/<seed>: exact positions from the census sidecar.
+
+    The sidecar is written by census_task during scoring; the endpoint loads
+    it, derives per-structure summaries from the banked spawn, and reports
+    staleness when the fingerprint drifts.
+    """
+
+    def setUp(self):
+        import gzip
+        import json
+        import shutil
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+        self.cfg = self.tmp / "config"
+        (self.cfg / "dimensions").mkdir(parents=True)
+        (self.cfg / "dimensions" / "d1.json").write_text(json.dumps({
+            "name": "d1", "type": "overworld",
+            "biomes": ["minecraft:plains"],
+            "borders": {"player": 1024, "generation": 1024},
+        }))
+
+        self.seedtest = self.tmp / "seedtest"
+        (self.seedtest / "candidates").mkdir(parents=True)
+        import candidates as cmod
+        cmod.set_bank_root(str(self.seedtest))
+
+        self.seed_str = "9007199254740993"
+        self.spawn_x, self.spawn_z = 64, -128
+
+        store = {"configHash": "h", "candidates": {
+            self.seed_str: {
+                "measurements": {"spawn_x": self.spawn_x, "spawn_z": self.spawn_z},
+                "scores": {"h": {"total": 95}},
+            },
+        }, "rejected": {}, "abandoned": {}, "winner": None, "winnerPinned": False}
+        (self.seedtest / "candidates" / "d1.json").write_text(json.dumps(store))
+
+        self.fp = "abc123def456"
+        self.sidecar_doc = {
+            "schemaVersion": 2,
+            "fp": self.fp,
+            "poolHash": "pool999",
+            "groups": {
+                "settlements": {
+                    "ids": ["minecraft:village", "minecraft:pillager_outpost"],
+                    "positions": [
+                        [4, 8, 0],
+                        [10, -5, 1],
+                        [20, 20, 0],
+                    ],
+                },
+                "loot": {
+                    "ids": ["minecraft:buried_treasure"],
+                    "positions": [
+                        [0, 0, 0],
+                    ],
+                },
+            },
+        }
+        census_dir = self.seedtest / "census-positions" / "d1"
+        census_dir.mkdir(parents=True)
+        raw = json.dumps(self.sidecar_doc).encode()
+        dest = census_dir / ("%s.json.gz" % self.seed_str)
+        with gzip.open(str(dest), "wb") as gz:
+            gz.write(raw)
+
+    def _endpoint(self, dim="d1", seed=None):
+        if seed is None:
+            seed = self.seed_str
+        return viewer_server.census_endpoint(
+            str(self.seedtest), str(self.cfg), dim, seed)
+
+    def test_happy_path(self):
+        payload, status = self._endpoint()
+        self.assertEqual(status, 200)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["dim"], "d1")
+        self.assertEqual(payload["seed"], self.seed_str)
+        self.assertEqual(payload["spawnX"], self.spawn_x)
+        self.assertEqual(payload["spawnZ"], self.spawn_z)
+        self.assertIn("settlements", payload["groups"])
+        self.assertIn("loot", payload["groups"])
+        self.assertEqual(payload["groups"]["settlements"]["count"], 3)
+        self.assertEqual(payload["groups"]["loot"]["count"], 1)
+        self.assertEqual(payload["totalPositions"], 4)
+        self.assertNotIn("stale", payload)
+
+    def test_positions_are_block_coordinates(self):
+        payload, _ = self._endpoint()
+        positions = payload["groups"]["settlements"]["positions"]
+        for bx, bz, sid in positions:
+            self.assertEqual(bx % 16, 0, "positions must be chunk-origin blocks")
+            self.assertEqual(bz % 16, 0)
+            self.assertIn(sid, ["minecraft:village", "minecraft:pillager_outpost"])
+
+    def test_seed_as_string_integrity(self):
+        """A seed > 2^53 must round-trip exactly as a string."""
+        payload, status = self._endpoint()
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["seed"], self.seed_str)
+        self.assertIsInstance(payload["seed"], str)
+
+    def test_by_structure_summary(self):
+        """Per-structure counts and nearest distances must match an
+        independent derivation from the same fixture positions."""
+        import math
+        payload, _ = self._endpoint()
+        bs = payload["byStructure"]
+        self.assertIn("minecraft:village", bs)
+        self.assertEqual(bs["minecraft:village"]["count"], 2)
+        self.assertEqual(bs["minecraft:pillager_outpost"]["count"], 1)
+        self.assertEqual(bs["minecraft:buried_treasure"]["count"], 1)
+
+        for sid, entry in bs.items():
+            expected_count = 0
+            expected_nearest = float("inf")
+            for group_name, gdata in self.sidecar_doc["groups"].items():
+                ids = gdata["ids"]
+                for pos in gdata["positions"]:
+                    resolved_sid = ids[pos[2]]
+                    if resolved_sid == sid:
+                        expected_count += 1
+                        bx, bz = pos[0] * 16, pos[1] * 16
+                        dx = bx - self.spawn_x
+                        dz = bz - self.spawn_z
+                        dist = math.sqrt(float(dx) * dx + float(dz) * dz)
+                        if dist < expected_nearest:
+                            expected_nearest = dist
+            self.assertEqual(entry["count"], expected_count,
+                             "count mismatch for %s" % sid)
+            self.assertAlmostEqual(entry["nearestBlocks"],
+                                   round(expected_nearest, 1), places=1,
+                                   msg="nearest mismatch for %s" % sid)
+
+    def test_missing_sidecar_returns_404(self):
+        payload, status = self._endpoint(dim="d1", seed="999")
+        self.assertEqual(status, 404)
+        self.assertIn("error", payload)
+
+    def test_stale_fingerprint_flagged(self):
+        """When the sidecar's fp differs from the dimension's current noise
+        fingerprint, the response must include stale: true."""
+        import json
+        src = (Path(__file__).resolve().parents[2]
+               / "config" / "custom-dimensions" / "structure-type-defaults.json")
+        if not src.exists():
+            self.skipTest("structure-type-defaults.json not found")
+        import shutil
+        shutil.copy2(src, self.cfg / "structure-type-defaults.json")
+        import dimension_profiles
+        dimension_profiles.set_noise_defaults_dir(str(self.cfg))
+        payload, status = self._endpoint()
+        self.assertEqual(status, 200)
+        self.assertTrue(payload.get("stale"),
+                        "sidecar fp 'abc123def456' should not match the "
+                        "dimension's current noise fingerprint")
+
+    def test_path_traversal_rejected(self):
+        payload, status = self._endpoint(dim="d1", seed="../../../etc/passwd")
+        self.assertEqual(status, 400)
+        self.assertIn("error", payload)
+
+    def test_invalid_dim_slug_rejected(self):
+        payload, status = self._endpoint(dim="UPPER")
+        self.assertEqual(status, 400)
+        payload2, status2 = self._endpoint(dim="has spaces")
+        self.assertEqual(status2, 400)
+
+    def test_hyphenated_slug_maps_to_underscore(self):
+        """Dimension slugs in URLs use hyphens; names use underscores."""
+        import gzip
+        import json
+        (self.cfg / "dimensions" / "the_nether.json").write_text(json.dumps({
+            "name": "the_nether", "type": "nether",
+            "biomes": ["minecraft:nether_wastes"],
+            "borders": {"player": 1024, "generation": 1024},
+        }))
+        store = {"configHash": "h", "candidates": {
+            "12345": {"measurements": {"spawn_x": 0, "spawn_z": 0},
+                      "scores": {"h": {"total": 50}}},
+        }, "rejected": {}, "abandoned": {}, "winner": None, "winnerPinned": False}
+        (self.seedtest / "candidates" / "the_nether.json").write_text(json.dumps(store))
+        census_dir = self.seedtest / "census-positions" / "the_nether"
+        census_dir.mkdir(parents=True)
+        doc = {"schemaVersion": 2, "fp": "xx", "poolHash": "yy",
+               "groups": {"dungeons": {"ids": ["a:b"], "positions": [[1, 2, 0]]}}}
+        with gzip.open(str(census_dir / "12345.json.gz"), "wb") as gz:
+            gz.write(json.dumps(doc).encode())
+        payload, status = viewer_server.census_endpoint(
+            str(self.seedtest), str(self.cfg), "the-nether", "12345")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["dim"], "the_nether")

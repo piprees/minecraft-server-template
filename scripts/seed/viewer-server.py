@@ -1145,6 +1145,166 @@ def noise_positions(config_path, dim, seed, per_group=POSITIONS_PER_GROUP,
     return payload
 
 
+# ---------------------------------------------------------------------------
+# Exact structure positions from the census sidecar (GET /census/<dim>/<seed>)
+# ---------------------------------------------------------------------------
+#
+# The noise-census endpoint computes positions on demand from the placement
+# algorithm. This endpoint serves the PRE-COMPUTED sidecar written by
+# census_task during scoring — every position with its assigned structure id,
+# plus a per-structure summary (count, nearest distance in blocks from the
+# candidate's banked spawn).
+#
+# The sidecar is the single source of exact facts for a candidate's layout.
+# Its fingerprint stamp (noise_fp) is compared against the dimension's
+# current fingerprint; a mismatch sets "stale": true so the viewer never
+# silently presents outdated data as current.
+
+_DIM_SLUG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _census_sidecar(seedtest, dim, seed_str):
+    """Load the census sidecar for one candidate.
+
+    Returns (doc, path) where doc is the parsed JSON or None on miss.
+    seed_str is used verbatim as the filename stem — never parsed to int.
+    """
+    import gzip
+    p = Path(seedtest) / "census-positions" / dim / "{}.json.gz".format(seed_str)
+    if not p.exists():
+        return None, p
+    try:
+        with gzip.open(str(p), "rb") as gz:
+            return json.loads(gz.read()), p
+    except (OSError, ValueError):
+        return None, p
+
+
+def _census_summary_from_sidecar(doc, spawn_x, spawn_z):
+    """Derive per-structure {count, nearestBlocks} from a sidecar's positions.
+
+    spawn_x/spawn_z are BLOCK coordinates (the candidate's banked spawn).
+    Positions in the sidecar are chunk coordinates; the third element is an
+    index into the group's ids array — resolved here to the structure id.
+
+    Returns {structure_id: {count, nearestBlocks}} computed from the FULL
+    position set (no sampling).
+    """
+    import math
+    by_struct = {}
+    for group, gdata in (doc.get("groups") or {}).items():
+        ids = gdata.get("ids") or []
+        for pos in gdata.get("positions") or []:
+            if len(pos) < 3:
+                continue
+            cx, cz, id_idx = int(pos[0]), int(pos[1]), int(pos[2])
+            if id_idx < 0 or id_idx >= len(ids):
+                continue
+            sid = ids[id_idx]
+            bx = cx * 16
+            bz = cz * 16
+            dx = bx - spawn_x
+            dz = bz - spawn_z
+            dist = math.sqrt(float(dx) * dx + float(dz) * dz)
+            entry = by_struct.get(sid)
+            if entry is None:
+                entry = {"count": 0, "nearestBlocks": float("inf")}
+                by_struct[sid] = entry
+            entry["count"] += 1
+            if dist < entry["nearestBlocks"]:
+                entry["nearestBlocks"] = dist
+    for entry in by_struct.values():
+        if entry["nearestBlocks"] == float("inf"):
+            entry["nearestBlocks"] = -1
+        else:
+            entry["nearestBlocks"] = round(entry["nearestBlocks"], 1)
+    return by_struct
+
+
+def census_endpoint(seedtest, config_path, dim_slug, seed_str):
+    """Build the /census/<dim>/<seed> response payload.
+
+    dim_slug: the dimension name after hyphen-to-underscore mapping.
+    seed_str: the seed as a string (never parsed to int).
+
+    Returns (payload_dict, http_status_code).
+    """
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from dimension_profiles import noise_fingerprint
+
+    dim = dim_slug.replace("-", "_")
+    if not _DIM_SLUG_RE.match(dim):
+        return {"error": "invalid dimension slug"}, 400
+
+    if "/" in seed_str or "\\" in seed_str or ".." in seed_str:
+        return {"error": "invalid seed"}, 400
+
+    doc, sidecar_path = _census_sidecar(seedtest, dim, seed_str)
+    if doc is None:
+        return {"error": "no census sidecar for %s/%s" % (dim, seed_str),
+                "dim": dim, "seed": seed_str}, 404
+
+    # Load the candidate's banked spawn from the candidate store.
+    import candidates as cmod
+    cdir = cmod.candidates_dir(Path(config_path))
+    store_path = cdir / ("%s.json" % dim)
+    spawn_x, spawn_z = 0, 0
+    if store_path.exists():
+        store = cmod.load_store(store_path)
+        cand = store.get("candidates", {}).get(seed_str)
+        if cand:
+            m = cand.get("measurements") or {}
+            spawn_x = int(m.get("spawn_x", 0))
+            spawn_z = int(m.get("spawn_z", 0))
+
+    by_structure = _census_summary_from_sidecar(doc, spawn_x, spawn_z)
+
+    # Check staleness: compare the sidecar's fingerprint against the
+    # dimension's current noise fingerprint.
+    stale = False
+    sidecar_fp = doc.get("fp") or ""
+    src = _dim_source(config_path, dim)
+    if src is not None:
+        current_fp = noise_fingerprint(src)
+        if current_fp is not None and sidecar_fp and sidecar_fp != current_fp:
+            stale = True
+
+    # Flatten positions to block coordinates with structure ids.
+    groups = {}
+    total_positions = 0
+    for group_name, gdata in (doc.get("groups") or {}).items():
+        ids = gdata.get("ids") or []
+        positions = []
+        for pos in gdata.get("positions") or []:
+            if len(pos) < 3:
+                continue
+            cx, cz, id_idx = int(pos[0]), int(pos[1]), int(pos[2])
+            sid = ids[id_idx] if 0 <= id_idx < len(ids) else None
+            positions.append([cx * 16, cz * 16, sid])
+        groups[group_name] = {
+            "count": len(positions),
+            "positions": positions,
+        }
+        total_positions += len(positions)
+
+    payload = {
+        "ok": True,
+        "dim": dim,
+        "seed": seed_str,
+        "schemaVersion": doc.get("schemaVersion"),
+        "fingerprint": sidecar_fp,
+        "poolHash": doc.get("poolHash") or "",
+        "spawnX": spawn_x,
+        "spawnZ": spawn_z,
+        "groups": groups,
+        "byStructure": by_structure,
+        "totalPositions": total_positions,
+    }
+    if stale:
+        payload["stale"] = True
+    return payload, 200
+
+
 def _deep_merge(base, over):
     out = dict(base)
     for k, v in over.items():
@@ -1171,7 +1331,8 @@ _PAGE_ROUTE_RE = re.compile(r"^/[a-z][a-z0-9-]*(/-?[0-9]+)?/?$")
 #: belt and braces — but the two orders must never be the difference
 #: between a working viewer and a broken one.
 _API_ROOTS = frozenset((
-    "fork-schema", "dim-config", "noise-census", "pipeline-status", "job",
+    "fork-schema", "dim-config", "noise-census", "census",
+    "pipeline-status", "job",
     "pick", "reroll", "edit-config", "pipeline", "preview",
     "create-dimension", "shortlist", "hide-dimension", "remove-dimension",
 ))
@@ -1285,6 +1446,20 @@ class ViewerHandler(SimpleHTTPRequestHandler):
             except (ValueError, TypeError) as exc:
                 self._respond_json({"error": str(exc)[:300]}, 400)
             except Exception as exc:  # noqa: BLE001 — a broken census must not 500 silently
+                self._respond_json({"error": str(exc)[:300]}, 500)
+            return
+        if self.path.startswith("/census/"):
+            parts = self.path[len("/census/"):].split("/")
+            if len(parts) != 2 or not parts[0] or not parts[1]:
+                self._respond_json({"error": "expected /census/<dim>/<seed>"}, 400)
+                return
+            dim_slug = parts[0].replace("-", "_")
+            seed_str = parts[1].split("?")[0]
+            try:
+                payload, status = census_endpoint(
+                    self.seedtest, self.config_path, dim_slug, seed_str)
+                self._respond_json(payload, status)
+            except Exception as exc:
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
         if self.path == "/pipeline-status":

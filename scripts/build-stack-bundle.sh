@@ -88,6 +88,7 @@ MANIFEST=(
   scripts/seed/web/compare.js
   scripts/seed/web/dartboard.js
   scripts/seed/web/structicons.js
+  scripts/seed/web/exactfacts.js
   scripts/seed/web/scatter.js
   scripts/seed/biome_renderer.py
   scripts/seed/biome_sampler.py
