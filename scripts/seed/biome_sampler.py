@@ -1047,6 +1047,16 @@ def _make_depth_evaluator(noise_settings, seed, noise_family,
     return depth_eval, depth_exact
 
 
+def default_extraction_root(biome_params_path):
+    """The .noise_settings/ jar-walk extraction beside a biome table, or None.
+
+    Warmup writes both into the same seedtest directory, so the table's
+    location IS the discovery rule (see build_from_spec).
+    """
+    root = Path(biome_params_path).resolve().parent / ".noise_settings"
+    return str(root) if root.is_dir() else None
+
+
 def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
                     extracted_data_root=None):
     """One dimension's sampler, from sampler_spec() and nothing else.
@@ -1055,9 +1065,18 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
     jar walk. When provided, noise_settings graphs and their referenced
     density functions and noises are resolved from there, enabling exact
     depth evaluation for families whose graphs are not in-repo.
+
+    When the caller passes None, the root is resolved from the biome
+    table's own directory (<seedtest>/.noise_settings — warmup writes
+    both). Load-bearing: the extraction carries Terralith's
+    temperature/vegetation parameter overrides and the legacy_random_source
+    climate replacement, so a rootless sampler describes a different world
+    from the one the parity gate certifies.
     """
     if noise_configs is None:
         noise_configs = load_noise_configs()
+    if extracted_data_root is None:
+        extracted_data_root = default_extraction_root(biome_params_path)
     noise_family = spec.get("noise_family") or "overworld"
     noise_config = noise_configs.get(noise_family, noise_configs.get("overworld"))
 
