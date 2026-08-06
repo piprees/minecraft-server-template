@@ -2213,6 +2213,7 @@ WEB_ASSETS = (("app.built.css", "app.css"),
               ("compare.js", "compare.js"),
               ("dartboard.js", "dartboard.js"),
               ("structicons.js", "structicons.js"),
+              ("exactfacts.js", "exactfacts.js"),
               ("scatter.js", "scatter.js"))
 
 
@@ -2236,7 +2237,7 @@ def install_web_assets(seedtest):
 
 
 def range_label(profile, spec):
-    lo, hi = spec
+    lo, hi = float(spec[0]), float(spec[1])
     return f"{int(lo)}–{int(min(hi, profile['radius']))} blocks"
 
 
@@ -2769,7 +2770,10 @@ def _structure_section(c, profile):
                         sattr, pretty, group)))
                 continue
 
-            lo, hi = spec
+            # Band bounds can arrive as JSON strings; every use below is
+            # numeric (band-distance compare, {:.0f} render), so coerce
+            # here — a non-numeric bound should fail loudly at this line.
+            lo, hi = float(spec[0]), float(spec[1])
             hi_eff = min(hi, radius)
             struct_entry = by_struct.get(clean_sid) or {}
             assigned_count = struct_entry.get("count", 0)
@@ -2804,7 +2808,7 @@ def _structure_section(c, profile):
 
             noise_rows.append((sev, "<div class='mrow sev{}' data-band='{},{}'{}>"
                 "<span class='mname'>{}</span>"
-                "<span class='mval'>{}<span class='ns'>sites</span></span>{}"
+                "<span class='mval'>{}<span class='ns'>of {} sites</span></span>{}"
                 "<span class='mtarget'>wants {:.0f}–{:.0f} blocks</span>"
                 "<span class='mdev'>{}</span>"
                 "<span class='mspread'><b>{}</b> {} sites &middot; "
@@ -2840,7 +2844,7 @@ def _structure_section(c, profile):
                 "<span class='mdev'>{}</span></div>".format(
                     sev, sattr, pretty, value, threshold, verdict)))
             continue
-        lo, hi = spec
+        lo, hi = float(spec[0]), float(spec[1])
         hi_eff = min(hi, radius)
         sev, phrase = _deviation(nearest, lo, hi_eff)
         if nearest is not None and 0 <= nearest < clear_r:
