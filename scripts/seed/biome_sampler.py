@@ -954,6 +954,7 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
             if climate_evals:
                 return None, True, climate_evals
 
+    inferred_overworld_default = False
     if noise_settings is None and extracted_root:
         _FAMILY_DEFAULT_SETTINGS = {
             "overworld": "adventure:wide",
@@ -961,6 +962,20 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
             "end": "minecraft:end",
         }
         noise_settings = _FAMILY_DEFAULT_SETTINGS.get(noise_family)
+        # A dim with no explicit noiseSettings inherits its TYPE's base
+        # generator (DimensionManager.createDimensionOptions): multi_biome
+        # and the base overworld template off overworldOpts, so the live
+        # climate is the OVERWORLD router. adventure:wide is byte-derived
+        # from it and agrees on continentalness/erosion/weirdness/depth,
+        # but carries its own temperature/vegetation by design
+        # (eval-df-verified at the 1e-4 floor on the_greywoods:
+        # minecraft:overworld/noise_router/temperature matches the live
+        # MultiNoiseSampler; adventure:wide's does not). The full raw
+        # overworld graph is not evaluable here (un-inlined
+        # tectonic:config_noise nodes), so the wide evaluator stands in
+        # and the two climate axes are overridden below from the resolved
+        # registry-DF chains — or honestly marked not exact.
+        inferred_overworld_default = noise_settings == "adventure:wide"
 
     # Adventure presets have their full router graph in-repo — build
     # evaluators for ALL six climate axes, not just depth. The evaluator
@@ -980,6 +995,67 @@ def _make_climate_evaluators(noise_settings, seed, noise_family,
                 def _make_fn(f):
                     return lambda x, z: ev.evaluate_router(f, x, z)
                 climate_evals[axis] = _make_fn(field)
+        if inferred_overworld_default:
+            # Replace wide's temperature/vegetation with the live overworld
+            # chains. Terratonic routes both through tectonic:config_noise,
+            # whose verified semantics are
+            #   flat_cache(shifted_noise(noise, xz_scale=cfg_scale, y=0))
+            #   * cfg_multiplier + cfg_offset
+            # (gen-terrain-presets.py, bytecode-verified) with the constants
+            # from the LIVE config/tectonic.json (biomes.temperature_* /
+            # vegetation_*) — wide bakes 0.15 where the live config runs
+            # 0.25, which is the whole divergence. On success the batch
+            # evaluator must not install (it would bypass the overrides —
+            # same rule as the legacy climate path); on any failure the two
+            # axes are removed so they read as not exactly measurable
+            # rather than exact-but-wrong.
+            try:
+                cfg_path = (Path(extracted_root).parent
+                            / "base/config/tectonic.json")
+                import re as _re
+                cfg_text = _re.sub(r"^\s*//.*$", "", cfg_path.read_text(),
+                                   flags=_re.MULTILINE)
+                biomes_cfg = json.loads(cfg_text)["biomes"]
+
+                def _axis_node(noise_id, prefix):
+                    node = {"type": "minecraft:shifted_noise",
+                            "noise": noise_id,
+                            "xz_scale": biomes_cfg[prefix + "_scale"],
+                            "y_scale": 0.0,
+                            "shift_x": "minecraft:shift_x",
+                            "shift_y": 0.0,
+                            "shift_z": "minecraft:shift_z"}
+                    mult = biomes_cfg[prefix + "_multiplier"]
+                    off = biomes_cfg[prefix + "_offset"]
+                    node = {"type": "minecraft:flat_cache", "argument": node}
+                    if mult != 1.0:
+                        node = {"type": "minecraft:mul",
+                                "argument1": node, "argument2": mult}
+                    if off != 0.0:
+                        node = {"type": "minecraft:add",
+                                "argument1": node, "argument2": off}
+                    return node
+
+                ow = PresetTerrainEvaluator(
+                    {"noise_router": {
+                        "depth": 0,
+                        "temperature": _axis_node("minecraft:temperature",
+                                                  "temperature"),
+                        "vegetation": _axis_node("minecraft:vegetation",
+                                                 "vegetation"),
+                    }},
+                    int(seed), data_roots=data_roots,
+                    noise_aliases=noise_aliases)
+                ow.evaluate_router("temperature", 0, 0)
+                ow.evaluate_router("vegetation", 0, 0)
+                climate_evals["temperature"] = (
+                    lambda x, z: ow.evaluate_router("temperature", x, z))
+                climate_evals["humidity"] = (
+                    lambda x, z: ow.evaluate_router("vegetation", x, z))
+            except (OSError, ValueError, KeyError):
+                climate_evals.pop("temperature", None)
+                climate_evals.pop("humidity", None)
+            return ev.depth_for_biome, True, climate_evals
         climate_evals["_evaluator"] = ev
         return ev.depth_for_biome, True, climate_evals
 

@@ -83,5 +83,45 @@ class TestDefaultExtractionRoot(unittest.TestCase):
             self.assertEqual(family_octave, octave_sampler.first.first_octave)
 
 
+class TestInferredOverworldClimate(unittest.TestCase):
+    """A dim with no explicit noiseSettings generates with the OVERWORLD's
+    router: temperature/vegetation run through tectonic:config_noise with
+    the live config/tectonic.json constants, which adventure:wide does not
+    carry (it bakes its own tighter climate). The inferred-default sampler
+    must either evaluate those chains from the live config or mark the two
+    axes not exact — never claim wide's values as exact."""
+
+    _OVERWORLD_SPEC = {"noise_family": "overworld", "dim_type": "multi_biome",
+                       "biomes": [], "parameters": {}, "patches": [],
+                       "checkerboard_scale": None, "suppressed_biomes": [],
+                       "noise_settings": None}
+
+    def test_no_tectonic_config_marks_axes_not_exact(self):
+        """Extraction present but no base/config/tectonic.json beside it:
+        the override cannot be built, so temperature/humidity must read
+        not exact rather than exact-but-wide."""
+        from biome_sampler import build_from_spec
+        with tempfile.TemporaryDirectory() as tmp:
+            params = _write_table(tmp)
+            (Path(tmp) / ".noise_settings").mkdir()
+            sampler = build_from_spec(1234, dict(self._OVERWORLD_SPEC), params)
+            self.assertFalse(sampler.climate_exact["temperature"])
+            self.assertFalse(sampler.climate_exact["humidity"])
+
+    def test_live_seedtest_override_is_exact(self):
+        """Against a real warmup seedtest (extraction + tectonic.json) the
+        override builds and both axes claim exact."""
+        seedtest = Path.home() / "Projects/elfydd/.seedtest"
+        if not (seedtest / ".noise_settings").is_dir() or \
+                not (seedtest / "base/config/tectonic.json").is_file():
+            self.skipTest("no warmup seedtest with tectonic.json on this machine")
+        from biome_sampler import build_from_spec
+        sampler = build_from_spec(
+            1234, dict(self._OVERWORLD_SPEC),
+            str(seedtest / "biome_params.json"))
+        self.assertTrue(sampler.climate_exact["temperature"])
+        self.assertTrue(sampler.climate_exact["humidity"])
+
+
 if __name__ == "__main__":
     unittest.main()
