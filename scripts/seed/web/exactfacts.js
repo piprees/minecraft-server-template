@@ -261,6 +261,10 @@
   }
 
   new MutationObserver(refresh).observe(info, { childList: true })
+  // A route-opened lightbox populates .lb-info during app.js's own
+  // evaluation, before this observer exists — without an initial pass
+  // the panel never renders on a direct URL.
+  refresh()
   window.addEventListener('resize', function () {
     var cand = window.lbCandidate ? window.lbCandidate() : null
     drawMarkers(cand ? cache[cacheKey(cand)] : null)

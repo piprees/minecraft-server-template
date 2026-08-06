@@ -2079,6 +2079,58 @@ def main():
     # strictly better than refusing to answer at all. run_finalise streams its
     # progress to the terminal and to /pipeline-status, so both the operator and
     # the page can see what it is doing.
+    # Install the web assets NOW, not at the end of the startup finalise —
+    # the finalise can run for hours (census/spawn re-selection), and until
+    # it lands the served assets are whatever the last finalise left:
+    # a template/asset version skew that has broken every click handler
+    # before. The copy is cheap and idempotent; the index.html itself may
+    # stay stale until the finalise finishes, which the assets tolerate.
+    try:
+        import importlib.util as _ilu
+        _spec = _ilu.spec_from_file_location(
+            "score_dimensions_assets", SCRIPT_DIR / "score-dimensions.py")
+        _sd = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_sd)
+        _sd.install_web_assets(Path(args.seedtest))
+        print("Web assets installed from the current checkout.", flush=True)
+    except Exception as exc:  # noqa: BLE001 — a failed copy must not stop the server
+        print("WARNING: web asset install failed: %s" % exc, flush=True)
+
+    # Heal a stale index.html's script list. The index embeds the LAST
+    # finalise's content in the template shell of that era; a script the
+    # current template loads but that shell predates simply never runs
+    # (exactfacts.js served 200 while no tag referenced it). Insert the
+    # missing tags before </body> — content stays as finalised, and the
+    # assets are written to tolerate missing DOM. The finalise rewrites
+    # the whole file when it lands.
+    try:
+        import re as _re
+        _idx = Path(args.seedtest) / "index.html"
+        _tpl = SCRIPT_DIR / "viewer_template.html"
+        if _idx.exists() and _tpl.exists():
+            _tpl_srcs = _re.findall(r'<script[^>]+src="(assets/[^"]+\.js)"',
+                                    _tpl.read_text())
+            _html = _idx.read_text()
+            _missing = [s for s in _tpl_srcs if s not in _html]
+            if _missing:
+                shutil.copy2(_idx, _idx.with_suffix(
+                    ".html.bak.%d" % int(time.time())))
+                _tags = "\n".join('<script src="%s" defer></script>' % s
+                                  for s in _missing)
+                # The generated index may close with </body>, </html>, or
+                # neither — end-of-document scripts run in every case.
+                for _anchor in ("</body>", "</html>"):
+                    if _anchor in _html:
+                        _html = _html.replace(_anchor, _tags + "\n" + _anchor, 1)
+                        break
+                else:
+                    _html = _html + "\n" + _tags + "\n"
+                _idx.write_text(_html)
+                print("Patched %d missing script tag(s) into index.html: %s"
+                      % (len(_missing), ", ".join(_missing)), flush=True)
+    except Exception as exc:  # noqa: BLE001 — a failed patch must not stop the server
+        print("WARNING: index script-tag patch failed: %s" % exc, flush=True)
+
     threading.Thread(
         target=run_finalise, args=(finalise_args, "startup"),
         daemon=True).start()

@@ -99,7 +99,12 @@
     lbImg.src = showHires ? lbHiresSrc : lbLowSrc
     updateResToggle()
   }
-  lb.querySelector('.lb-res-toggle').addEventListener('click', function (e) {
+  // A stale index.html (finalised before this button existed) has no
+  // .lb-res-toggle; an unguarded dereference here killed the whole IIFE
+  // and every click handler with it. The button is hidden by default, so
+  // its absence is tolerable — the rest of the viewer must keep working.
+  var lbResToggle = lb.querySelector('.lb-res-toggle')
+  if (lbResToggle) lbResToggle.addEventListener('click', function (e) {
     e.stopPropagation()
     lbSetRes(!lbShowingHires)
   })
