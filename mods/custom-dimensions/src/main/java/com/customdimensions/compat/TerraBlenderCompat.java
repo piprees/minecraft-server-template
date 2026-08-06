@@ -225,4 +225,42 @@ public final class TerraBlenderCompat {
         overworldType = null;
         netherType = null;
     }
+    /**
+     * Per-position probe of a live TB-extended parameter list: the
+     * uniqueness index and the biome the list answers for the given
+     * NoiseValuePoint. Returns "uniqueness,biomeId", or null when TB is
+     * absent or the list is not TB-extended (vanilla lists never are).
+     * The registry-level region table cannot say which list a custom
+     * dimension's wrapper actually consults — this asks the wrapper.
+     */
+    public static String probePositional(Object parameterList,
+                                         MultiNoiseUtil.NoiseValuePoint point,
+                                         int qx, int qy, int qz) {
+        try {
+            Class<?> iface = Class.forName(
+                    "terrablender.worldgen.IExtendedParameterList");
+            if (!iface.isInstance(parameterList)) {
+                return null;
+            }
+            Method getUniqueness = iface.getMethod(
+                    "getUniqueness", int.class, int.class, int.class);
+            Method findValuePositional = iface.getMethod(
+                    "findValuePositional",
+                    MultiNoiseUtil.NoiseValuePoint.class,
+                    int.class, int.class, int.class);
+            int uniqueness = (int) getUniqueness.invoke(
+                    parameterList, qx, qy, qz);
+            Object result = findValuePositional.invoke(
+                    parameterList, point, qx, qy, qz);
+            String biomeId = "unknown";
+            if (result instanceof RegistryEntry<?> entry) {
+                biomeId = entry.getKey()
+                        .map(k -> k.getValue().toString()).orElse("unknown");
+            }
+            return uniqueness + "," + biomeId;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return null;
+        }
+    }
+
 }

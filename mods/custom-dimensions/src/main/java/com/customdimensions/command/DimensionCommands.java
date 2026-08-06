@@ -152,6 +152,11 @@ public class DimensionCommands {
                                 .then(CommandManager.argument("y", IntegerArgumentType.integer(-2048, 2048))
                                     .executes(ctx -> sampleClimateGrid(ctx,
                                         IntegerArgumentType.getInteger(ctx, "y"))))))))
+                .then(CommandManager.literal("tb-probe")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 8192))
+                            .then(CommandManager.argument("step", IntegerArgumentType.integer(4, 512))
+                                .executes(DimensionCommands::tbProbe)))))
                 .then(CommandManager.literal("sample-height")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
@@ -1165,6 +1170,18 @@ public class DimensionCommands {
                         .append(bound.getClass().getName()).append("\"");
                 probeDetail.append(", \"configClass\": \"")
                         .append(aliasNoiseConfig.getClass().getName()).append("\"");
+                // The bound sampler's values at fixed points — the data a
+                // headless (id x seed) sweep needs to identify what seeded
+                // this instance. Coordinates chosen off-lattice.
+                probeDetail.append(", \"boundSamples\": [");
+                double[][] probePts = {{0.1, 0.0, 0.1}, {12.3, 0.0, -7.7},
+                        {-256.5, 0.0, 91.25}, {1024.0, 0.0, -2048.0}};
+                for (int pi = 0; pi < probePts.length; pi++) {
+                    if (pi > 0) probeDetail.append(", ");
+                    probeDetail.append(String.format("%.12f", bound.sample(
+                            probePts[pi][0], probePts[pi][1], probePts[pi][2])));
+                }
+                probeDetail.append("]");
                 String resolvedViaDedup = null;
                 for (var other : paramsByKey.entrySet()) {
                     if (other.getValue().equals(pk.getValue())
@@ -1437,6 +1454,101 @@ public class DimensionCommands {
             return count;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to write biome grid", e);
+            source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /**
+     * Dumps, per grid cell, the live TB region selection for a dimension:
+     * the uniqueness index and the biome its OWN parameter list answers for
+     * the live sampler's NoiseValuePoint at quart y=16. This is the
+     * per-dimension ground truth for the TB region mirror — the registry
+     * region table cannot say which list a custom dimension's wrapper
+     * actually consults.
+     */
+    private static int tbProbe(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal(
+                "Dimension not loaded: "
+                + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        int radius = IntegerArgumentType.getInteger(ctx, "radius");
+        int step = IntegerArgumentType.getInteger(ctx, "step");
+        Identifier dimensionId = world.getRegistryKey().getValue();
+
+        var biomeSource = world.getChunkManager().getChunkGenerator().getBiomeSource();
+        if (!(biomeSource instanceof net.minecraft.world.biome.source.MultiNoiseBiomeSource mnbs)) {
+            source.sendError(Text.literal(
+                "tb-probe " + dimensionId + ": biome source is "
+                + biomeSource.getClass().getSimpleName()
+                + ", not MultiNoiseBiomeSource"));
+            return 0;
+        }
+        Object parameterList = null;
+        for (var m : net.minecraft.world.biome.source.MultiNoiseBiomeSource.class
+                .getDeclaredMethods()) {
+            if (m.getParameterCount() == 0
+                    && MultiNoiseUtil.Entries.class.isAssignableFrom(m.getReturnType())) {
+                m.setAccessible(true);
+                try {
+                    parameterList = m.invoke(mnbs);
+                } catch (ReflectiveOperationException ignored) {
+                }
+                break;
+            }
+        }
+        if (parameterList == null) {
+            source.sendError(Text.literal(
+                "tb-probe " + dimensionId + ": no Entries accessor on MultiNoiseBiomeSource"));
+            return 0;
+        }
+
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        var sampler = noiseConfig.getMultiNoiseSampler();
+
+        StringBuilder csv = new StringBuilder(Artefacts.textHeader("tb-probe"));
+        csv.append("# dimension=").append(dimensionId)
+           .append(" seed=").append(world.getSeed())
+           .append(" quartY=16 radius=").append(radius)
+           .append(" step=").append(step).append('\n');
+        csv.append("x,z,uniqueness,biome\n");
+
+        int count = 0;
+        for (int x = -radius; x <= radius; x += step) {
+            for (int z = -radius; z <= radius; z += step) {
+                int qx = x >> 2;
+                int qz = z >> 2;
+                MultiNoiseUtil.NoiseValuePoint point = sampler.sample(qx, 16, qz);
+                String probe = com.customdimensions.compat.TerraBlenderCompat
+                        .probePositional(parameterList, point, qx, 16, qz);
+                if (probe == null) {
+                    source.sendError(Text.literal(
+                        "tb-probe " + dimensionId + ": parameter list is not "
+                        + "TB-extended (TB absent, or a vanilla list)"));
+                    return 0;
+                }
+                csv.append(x).append(',').append(z).append(',')
+                   .append(probe).append('\n');
+                count++;
+            }
+        }
+
+        try {
+            String dimPart = dimensionId.getNamespace() + "__" + dimensionId.getPath();
+            Path outputPath = Artefacts.dir()
+                .resolve("tb_probe__" + dimPart + ".csv");
+            Artefacts.write(outputPath, csv.toString());
+            int finalCount = count;
+            source.sendFeedback(() -> Text.literal(
+                "tb-probe " + dimensionId + ": " + finalCount
+                + " points -> " + outputPath), false);
+            return count;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write tb probe", e);
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
