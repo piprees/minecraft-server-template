@@ -53,6 +53,7 @@ import java.util.UUID;
  *   /customdim occupant <dimension> <chunkX> <chunkZ>
  *   /customdim eval-df <dimension> <df_id> <x> <y> <z>
  *   /customdim carver-draw <dimension> <chunkX> <chunkZ>
+ *   /customdim sample-climate-grid <dimension> <radius> <step> [y]
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
@@ -143,6 +144,14 @@ public class DimensionCommands {
                         .then(CommandManager.argument("radius", IntegerArgumentType.integer(64, 8192))
                             .then(CommandManager.argument("step", IntegerArgumentType.integer(16, 512))
                                 .executes(DimensionCommands::sampleBiomeGrid)))))
+                .then(CommandManager.literal("sample-climate-grid")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("radius", IntegerArgumentType.integer(16, 8192))
+                            .then(CommandManager.argument("step", IntegerArgumentType.integer(4, 512))
+                                .executes(ctx -> sampleClimateGrid(ctx, 64))
+                                .then(CommandManager.argument("y", IntegerArgumentType.integer(-2048, 2048))
+                                    .executes(ctx -> sampleClimateGrid(ctx,
+                                        IntegerArgumentType.getInteger(ctx, "y"))))))))
                 .then(CommandManager.literal("sample-height")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
@@ -1091,6 +1100,7 @@ public class DimensionCommands {
         var noiseReg = world.getRegistryManager().get(RegistryKeys.NOISE_PARAMETERS);
         java.util.TreeMap<String, String> aliases = new java.util.TreeMap<>();
         java.util.ArrayList<String> aliasUnknown = new java.util.ArrayList<>();
+        var aliasProbeDetail = new java.util.ArrayList<String>();
         int identityCount = 0;
         net.minecraft.util.math.random.RandomSplitter aliasDeriver = null;
         if (world.getChunkManager().getChunkGenerator()
@@ -1149,7 +1159,39 @@ public class DimensionCommands {
                 }
             }
             if (effective == null) {
-                aliasUnknown.add(lookupId);
+                StringBuilder probeDetail = new StringBuilder();
+                probeDetail.append("{\"key\": \"").append(lookupId).append("\"");
+                probeDetail.append(", \"boundClass\": \"")
+                        .append(bound.getClass().getName()).append("\"");
+                probeDetail.append(", \"configClass\": \"")
+                        .append(aliasNoiseConfig.getClass().getName()).append("\"");
+                String resolvedViaDedup = null;
+                for (var other : paramsByKey.entrySet()) {
+                    if (other.getValue().equals(pk.getValue())
+                            && !other.getKey().equals(key)) {
+                        var otherBound = aliasNoiseConfig.getOrCreateSampler(
+                                other.getKey());
+                        String otherId = other.getKey().getValue().toString();
+                        probeDetail.append(", \"counterpart\": \"")
+                                .append(otherId).append("\"");
+                        probeDetail.append(", \"sameObject\": ")
+                                .append(bound == otherBound);
+                        if (bound == otherBound) {
+                            resolvedViaDedup = aliases.containsKey(otherId)
+                                    ? aliases.get(otherId) : otherId;
+                            probeDetail.append(", \"resolvedTo\": \"")
+                                    .append(resolvedViaDedup).append("\"");
+                        }
+                        break;
+                    }
+                }
+                probeDetail.append("}");
+                aliasProbeDetail.add(probeDetail.toString());
+                if (resolvedViaDedup != null) {
+                    aliases.put(lookupId, resolvedViaDedup);
+                } else {
+                    aliasUnknown.add(lookupId);
+                }
             } else if (!effective.equals(lookupId)) {
                 aliases.put(lookupId, effective);
             } else {
@@ -1169,7 +1211,16 @@ public class DimensionCommands {
             if (ui > 0) json.append(", ");
             json.append("\"").append(aliasUnknown.get(ui)).append("\"");
         }
-        json.append("]}");
+        json.append("]");
+        if (!aliasProbeDetail.isEmpty()) {
+            json.append(", \"_noiseAliasProbeDetail\": [");
+            for (int di = 0; di < aliasProbeDetail.size(); di++) {
+                if (di > 0) json.append(", ");
+                json.append(aliasProbeDetail.get(di));
+            }
+            json.append("]");
+        }
+        json.append("}");
         json.append("\n]\n");
 
         final int aliasCount = aliases.size();
@@ -1386,6 +1437,78 @@ public class DimensionCommands {
             return count;
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Failed to write biome grid", e);
+            source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /**
+     * Samples the router climate point at every grid cell in a dimension and
+     * writes per-axis values (temperature, humidity, continentalness, erosion,
+     * depth, weirdness) to a CSV artefact. The default y=64 matches the biome
+     * sampling height (QuartPos.toBlock(16)); sample-noise's y=0 is NOT a
+     * temperature/humidity oracle for vanilla-typed dims because biome
+     * selection happens at quart y=16.
+     *
+     * Grid semantics match sample-biome-grid: centre origin, radius/step in
+     * blocks, positions quantised to quart resolution.
+     */
+    private static int sampleClimateGrid(CommandContext<ServerCommandSource> ctx, int y) {
+        ServerCommandSource source = ctx.getSource();
+        ServerWorld world = resolveWorld(ctx);
+        if (world == null) {
+            source.sendError(Text.literal(
+                "Dimension not loaded: "
+                + IdentifierArgumentType.getIdentifier(ctx, "dimension")));
+            return 0;
+        }
+        int radius = IntegerArgumentType.getInteger(ctx, "radius");
+        int step = IntegerArgumentType.getInteger(ctx, "step");
+        Identifier dimensionId = world.getRegistryKey().getValue();
+
+        NoiseConfig noiseConfig = world.getChunkManager().getNoiseConfig();
+        var sampler = noiseConfig.getMultiNoiseSampler();
+        int qy = y >> 2;
+
+        StringBuilder csv = new StringBuilder(Artefacts.textHeader("climate-grid"));
+        csv.append("# dimension=").append(dimensionId)
+           .append(" seed=").append(world.getSeed())
+           .append(" y=").append(y)
+           .append(" quartY=").append(qy)
+           .append(" radius=").append(radius)
+           .append(" step=").append(step).append('\n');
+        csv.append("x,z,temperature,humidity,continentalness,erosion,depth,weirdness\n");
+
+        int count = 0;
+        for (int x = -radius; x <= radius; x += step) {
+            for (int z = -radius; z <= radius; z += step) {
+                int qx = x >> 2;
+                int qz = z >> 2;
+                MultiNoiseUtil.NoiseValuePoint point = sampler.sample(qx, qy, qz);
+                csv.append(x).append(',').append(z)
+                   .append(',').append(String.format("%.6f", point.temperatureNoise() / 10000.0))
+                   .append(',').append(String.format("%.6f", point.humidityNoise() / 10000.0))
+                   .append(',').append(String.format("%.6f", point.continentalnessNoise() / 10000.0))
+                   .append(',').append(String.format("%.6f", point.erosionNoise() / 10000.0))
+                   .append(',').append(String.format("%.6f", point.depth() / 10000.0))
+                   .append(',').append(String.format("%.6f", point.weirdnessNoise() / 10000.0))
+                   .append('\n');
+                count++;
+            }
+        }
+
+        try {
+            String dimPart = dimensionId.getNamespace() + "__" + dimensionId.getPath();
+            Path outputPath = Artefacts.dir()
+                .resolve("climate_grid__" + dimPart + "__y" + y + ".csv");
+            Artefacts.write(outputPath, csv.toString());
+            int finalCount = count;
+            source.sendFeedback(() -> Text.literal(
+                "sample-climate-grid " + dimensionId + ": "
+                + finalCount + " points, y=" + y + " -> " + outputPath), false);
+            return count;
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write climate grid", e);
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
             return 0;
         }
