@@ -269,16 +269,20 @@ _DEFERRED_PLACEHOLDER = "terrablender:deferred_placeholder"
 
 
 def load_tb_regions(biome_params_path):
-    """Load the _tbRegions sentinel from a biome_params.json file.
+    """Load all _tbRegions sentinels from a biome_params.json file.
 
-    Returns None if the sentinel is absent. Otherwise returns a dict:
-      {"type": str, "regions": [{"name", "weight", "index", "biomes": [...]}]}
+    Returns a dict {type_str: sentinel_data} for every sentinel found,
+    e.g. {"overworld": {...}, "nether": {...}}. Empty dict when no
+    sentinels are present.
     """
     data = json.loads(Path(biome_params_path).read_text())
+    result = {}
     for entry in data:
         if "_tbRegions" in entry:
-            return entry["_tbRegions"]
-    return None
+            sentinel = entry["_tbRegions"]
+            region_type = sentinel.get("type", "overworld")
+            result[region_type] = sentinel
+    return result
 
 
 def _build_region_trees(tb_regions):

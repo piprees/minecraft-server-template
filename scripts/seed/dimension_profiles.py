@@ -1378,4 +1378,5 @@ def build_profile(dim, config, difficulty=None):
             "structureDensity": density,
             "biome": ",".join(config_biomes) if config_biomes else None,
         },
+        "has_custom_dim_type": bool(dim.get("environment")),
     }

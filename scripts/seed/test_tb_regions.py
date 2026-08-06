@@ -296,7 +296,7 @@ class TestRegionTableLoader(unittest.TestCase):
             f.flush()
             result = load_tb_regions(f.name)
         os.unlink(f.name)
-        self.assertIsNone(result)
+        self.assertEqual(result, {})
 
     def test_load_present_sentinel(self):
         from tb_regions import load_tb_regions
@@ -318,9 +318,9 @@ class TestRegionTableLoader(unittest.TestCase):
             f.flush()
             result = load_tb_regions(f.name)
         os.unlink(f.name)
-        self.assertIsNotNone(result)
-        self.assertEqual(result["type"], "overworld")
-        self.assertEqual(len(result["regions"]), 2)
+        self.assertIn("overworld", result)
+        self.assertEqual(result["overworld"]["type"], "overworld")
+        self.assertEqual(len(result["overworld"]["regions"]), 2)
 
     def test_build_region_trees(self):
         from tb_regions import _build_region_trees

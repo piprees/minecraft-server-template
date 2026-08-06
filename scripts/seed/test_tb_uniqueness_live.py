@@ -82,14 +82,13 @@ class TestTBUniquenessLive(unittest.TestCase):
 
     def test_uniqueness_matches_live_server(self):
         from tb_regions import _build_uniqueness, load_tb_regions
+        from dimension_profiles import load_config
 
-        tb_regions = load_tb_regions(str(BIOME_PARAMS))
-        self.assertIsNotNone(tb_regions,
-                             "biome_params.json has no _tbRegions sentinel")
+        all_tables = load_tb_regions(str(BIOME_PARAMS))
+        self.assertTrue(all_tables,
+                        "biome_params.json has no _tbRegions sentinel")
 
-        weights = [r["weight"] for r in tb_regions["regions"]]
-        indices = [r["index"] for r in tb_regions["regions"]]
-
+        config = load_config(str(REPO / "config/custom-dimensions"))
         checked = 0
 
         for path in self.files:
@@ -98,8 +97,31 @@ class TestTBUniquenessLive(unittest.TestCase):
                 self.assertGreater(len(points), 0,
                                    "%s contains no data points" % path.name)
 
+                # Determine region type from the fixture's dimension config
+                slug = ((dimension or "").split(":", 1)[-1]
+                        if dimension
+                        else path.stem.split("__", 1)[-1])
+                region_type = "overworld"
+                for d in config.get("dimensions", []) + config.get("worlds", []):
+                    if d.get("name") == slug:
+                        dt = d.get("type", "")
+                        if dt in ("nether", "nether_islands"):
+                            region_type = "nether"
+                        break
+
+                tb_regions = all_tables.get(region_type)
+                if tb_regions is None:
+                    self.skipTest(
+                        "%s: no _tbRegions sentinel for type %s"
+                        % (path.name, region_type))
+
+                weights = [r["weight"] for r in tb_regions["regions"]]
+                indices = [r["index"] for r in tb_regions["regions"]]
+                region_size = 2 if region_type == "nether" else 3
+
                 area = _build_uniqueness(
-                    LEVEL_DAT_SEED, weights, indices, region_size=3)
+                    LEVEL_DAT_SEED, weights, indices,
+                    region_size=region_size)
 
                 mismatches = []
                 for x, z, expected in points:

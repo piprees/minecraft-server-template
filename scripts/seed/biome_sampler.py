@@ -844,6 +844,26 @@ TYPE_NOISE_OVERRIDE = {
     "nether_islands": "nether",
 }
 
+# DimensionManager.createDimensionOptions: these types inherit the vanilla
+# overworld/nether preset MNBS. DimensionTypeBuilder.typeEntryFor returns the
+# base type when the config has no environment block; TB only wraps
+# vanilla-tagged types.
+_TB_OVERWORLD_TYPES = frozenset({
+    "multi_biome", "amplified", "large_biomes", "cave", "sky_islands",
+    "overworld",
+})
+_TB_NETHER_TYPES = frozenset({"nether", "nether_islands"})
+
+
+def _tb_region_type(dim_type, has_custom_dim_type):
+    if has_custom_dim_type:
+        return None
+    if dim_type in _TB_OVERWORLD_TYPES:
+        return "overworld"
+    if dim_type in _TB_NETHER_TYPES:
+        return "nether"
+    return None
+
 
 def resolve_noise_family(dim_type, family):
     """The noise family a dimension actually generates with."""
@@ -874,6 +894,8 @@ def sampler_spec(profile):
         # names an adventure preset whose graph is in-repo, depth can be
         # evaluated exactly; otherwise depth is unavailable.
         "noise_settings": noise_settings,
+        "tb_region_type": _tb_region_type(dim_type,
+                                          profile.get("has_custom_dim_type", False)),
     }
 
 
@@ -1133,8 +1155,22 @@ def default_extraction_root(biome_params_path):
     return str(root) if root.is_dir() else None
 
 
+def _region0_entries_from(sampler):
+    """Extract (params_14, biome_id) pairs for TBBiomeSource region 0.
+
+    Region 0's tree is replaced by the dim's own parameter list.
+    The mapping mirrors _build_region_trees: flat_12 climate ranges +
+    (offset_long, offset_long) from the BiomeSampler's _entries.
+    """
+    result = []
+    for biome_id, flat, off_sq in sampler._entries:
+        off = int(math.isqrt(off_sq)) if off_sq > 0 else 0
+        result.append((flat + (off, off), biome_id))
+    return result
+
+
 def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
-                    extracted_data_root=None):
+                    extracted_data_root=None, world_seed=None):
     """One dimension's sampler, from sampler_spec() and nothing else.
 
     extracted_data_root: path to the .noise_settings/ directory from the
@@ -1148,6 +1184,9 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
     temperature/vegetation parameter overrides and the legacy_random_source
     climate replacement, so a rootless sampler describes a different world
     from the one the parity gate certifies.
+
+    world_seed: the level.dat seed TB reads for its uniqueness area.
+    Runtime input, not generation — generation_payload() must NOT include it.
     """
     if noise_configs is None:
         noise_configs = load_noise_configs()
@@ -1249,9 +1288,28 @@ def build_from_spec(seed, spec, biome_params_path, noise_configs=None,
             sampler._climate_batch_evaluator = terrain_ev.evaluate_climate
             for axis in axis_evals:
                 sampler.climate_exact[axis] = True
+    # TB wrapping: vanilla-tagged dimension types route biome lookups through
+    # TerraBlender's per-region trees seeded from the level.dat world seed.
+    tb_type = spec.get("tb_region_type")
+    tb_exact = True  # non-TB dims are exact w.r.t. TB
+    if tb_type is not None:
+        tb_exact = False
+        if world_seed is not None:
+            from tb_regions import load_tb_regions, TBBiomeSource
+            all_tables = load_tb_regions(biome_params_path)
+            table = all_tables.get(tb_type) if all_tables else None
+            if table is not None:
+                region0_entries = _region0_entries_from(sampler)
+                region_size = 3 if tb_type == "overworld" else 2
+                sampler = TBBiomeSource(world_seed, table, sampler,
+                                        region_size=region_size,
+                                        region0_entries=region0_entries)
+                tb_exact = True
+
     patches = spec.get("patches") or []
     if patches:
         sampler = PatchedBiomeSampler(sampler, patches)
+    sampler.tb_biomes_exact = tb_exact
     return sampler
 
 

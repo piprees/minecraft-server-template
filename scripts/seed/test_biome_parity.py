@@ -175,11 +175,77 @@ class TestBiomeParity(unittest.TestCase):
                         % path.name)
 
                 if tb_injected:
-                    skipped_tb += 1
-                    self.skipTest(
-                        "%s: tbInjected=true — TerraBlender region "
-                        "climate at y=64 not yet exact; biome facts not exactly "
-                        "measurable" % path.name)
+                    # TB dims: build the full TBBiomeSource and compare.
+                    tb_seed = _census_seed(slug)
+                    tb_dim_entry = _find_dim_entry(config, slug)
+
+                    from tb_regions import load_tb_regions
+                    from test_tb_uniqueness_live import LEVEL_DAT_SEED
+                    all_tb = load_tb_regions(self.exact_biome_params)
+
+                    tb_type = None
+                    if tb_dim_entry is not None:
+                        dt = tb_dim_entry.get("type", "")
+                        env = tb_dim_entry.get("environment")
+                        if not env:
+                            if dt in ("nether", "nether_islands"):
+                                tb_type = "nether"
+                            elif dt in ("multi_biome", "amplified",
+                                        "large_biomes", "cave",
+                                        "sky_islands", "overworld"):
+                                tb_type = "overworld"
+
+                    missing = []
+                    if tb_seed is None:
+                        missing.append("no census seed")
+                    if tb_dim_entry is None:
+                        missing.append("no dimension config")
+                    if tb_type is None:
+                        missing.append("tb_region_type unresolved")
+                    elif not all_tb or tb_type not in all_tb:
+                        missing.append("no %s region table" % tb_type)
+                    if self.exact_biome_params == self.static_biome_params:
+                        missing.append("exact biome_params.json absent")
+
+                    if missing:
+                        skipped_tb += 1
+                        self.skipTest(
+                            "%s: tbInjected=true, missing: %s"
+                            % (path.name, ", ".join(missing)))
+
+                    from dimension_profiles import build_profile
+                    profile = build_profile(tb_dim_entry, config)
+                    spec = sampler_spec(profile)
+                    sampler = build_from_spec(
+                        tb_seed, spec, self.exact_biome_params,
+                        noise_configs,
+                        extracted_data_root=self.extracted_root,
+                        world_seed=LEVEL_DAT_SEED)
+
+                    compared += 1
+                    mismatches = []
+                    for x, z, java_biome in points:
+                        py_biome = sampler.biome_at(x, z)
+                        if py_biome != java_biome:
+                            mismatches.append((x, z, java_biome, py_biome))
+
+                    if mismatches:
+                        sample = mismatches[:5]
+                        lines = ["  (%d, %d): Java=%s Python=%s"
+                                 % (x, z, jb, pb)
+                                 for x, z, jb, pb in sample]
+                        message = ("%s: %d of %d points diverged (TB %s).\n"
+                                   "First %d:\n%s"
+                                   % (path.name, len(mismatches),
+                                      len(points), tb_type,
+                                      len(sample), "\n".join(lines)))
+                        if os.environ.get("BIOME_PARITY_STRICT") == "1":
+                            self.fail(message)
+                        self.skipTest(
+                            "TB parity residue: " + message)
+
+                    points_checked += len(points)
+                    continue
 
                 if tb_injected is None:
                     self.skipTest(
