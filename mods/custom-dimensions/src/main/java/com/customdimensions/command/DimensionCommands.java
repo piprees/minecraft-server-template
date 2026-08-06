@@ -1142,7 +1142,12 @@ public class DimensionCommands {
                     .flatMap(e -> e.getKey())
                     .ifPresent(k -> candidates.add(k.getValue().toString()));
             for (var other : paramsByKey.entrySet()) {
-                if (other.getValue().equals(pk.getValue())) {
+                // NoiseParameters carries no value equals — byte-identical
+                // params compare by identity and the canonical candidates
+                // were never probed. Compare the fields.
+                if (other.getValue().firstOctave() == pk.getValue().firstOctave()
+                        && other.getValue().amplitudes()
+                                .equals(pk.getValue().amplitudes())) {
                     candidates.add(other.getKey().getValue().toString());
                 }
             }
@@ -1161,6 +1166,32 @@ public class DimensionCommands {
                 if (match) {
                     effective = cand;
                     break;
+                }
+            }
+            if (effective == null) {
+                // Cheap candidates exhausted: sweep EVERY registry id as a
+                // seeding candidate with this key's own params. A binding
+                // can be seeded by an id whose registry params differ from
+                // this key's (the tectonic:parameter/* keys are seeded by
+                // their minecraft: canonical ids while the live canonical
+                // params differ), so value-identity enumeration cannot
+                // find these — only the sweep can.
+                for (var other : paramsByKey.keySet()) {
+                    String cand = other.getValue().toString();
+                    var ref = net.minecraft.util.math.noise.DoublePerlinNoiseSampler.create(
+                            aliasDeriver.split(net.minecraft.util.Identifier.of(cand)),
+                            pk.getValue());
+                    boolean match = true;
+                    for (double[] p : aliasProbes) {
+                        if (bound.sample(p[0], p[1], p[2]) != ref.sample(p[0], p[1], p[2])) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match) {
+                        effective = cand;
+                        break;
+                    }
                 }
             }
             if (effective == null) {
