@@ -610,6 +610,13 @@ def _disc_max(ranks, e):
     Padding is zero, which is exactly right: an ineligible cell already carries
     rank 0 and a real rank is positive, so padding can never win a max. (A
     genuine rank of 0 is guarded by the caller — see `_select_np`.)
+
+    The disc may be LARGER than the grid (a small dimension with a big
+    exclusion: endgame's base 20 at sparse x2.6 is 52, and a 256-block border
+    is a 33-cell side). Rows shifted clear off the grid contribute nothing and
+    must be skipped explicitly — `row[:h + dz]` with `h + dz` negative is a
+    from-the-end slice in Python, so it silently yields a non-empty array of
+    the wrong height instead of an empty one (T28).
     """
     h, w = ranks.shape
     pad = _np.zeros((h, w + 2 * e), dtype=_np.uint64)
@@ -633,6 +640,8 @@ def _disc_max(ranks, e):
 
     out = _np.zeros((h, w), dtype=_np.uint64)
     for dz in range(-e, e + 1):
+        if dz <= -h or dz >= h:
+            continue                     # shifted clear off the grid
         hw = math.isqrt(e * e - dz * dz)
         row = window(2 * hw + 1, e - hw)
         if dz < 0:

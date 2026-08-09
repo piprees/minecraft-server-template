@@ -79,14 +79,25 @@ class TestTBUniquenessLive(unittest.TestCase):
                 "biome_params.json not present at %s — "
                 "run dump-biome-params on the live server first"
                 % BIOME_PARAMS)
+        # A table with no _tbRegions sentinel is the PLAIN platform copy, not
+        # a broken dump: `./dev seed-roll --reset` re-seeds .seedtest from
+        # scripts/seed/biome_params.json, which ships as a bare list. That is
+        # "no live dump available" — the same condition as the file being
+        # absent, and the same condition the per-type skip below handles. A
+        # hard failure here made the platform repo uncommittable after every
+        # --reset, since the pre-commit gate runs this suite.
+        from tb_regions import load_tb_regions
+        if not load_tb_regions(str(BIOME_PARAMS)):
+            raise unittest.SkipTest(
+                "%s carries no _tbRegions sentinel (plain platform copy) — "
+                "run dump-biome-params on the live server to compare"
+                % BIOME_PARAMS)
 
     def test_uniqueness_matches_live_server(self):
         from tb_regions import _build_uniqueness, load_tb_regions
         from dimension_profiles import load_config
 
-        all_tables = load_tb_regions(str(BIOME_PARAMS))
-        self.assertTrue(all_tables,
-                        "biome_params.json has no _tbRegions sentinel")
+        all_tables = load_tb_regions(str(BIOME_PARAMS))   # non-empty: setUpClass skipped otherwise
 
         config = load_config(str(REPO / "config/custom-dimensions"))
         checked = 0

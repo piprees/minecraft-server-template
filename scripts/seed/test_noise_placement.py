@@ -114,6 +114,41 @@ class TestFieldIndex(unittest.TestCase):
                                        "(%d,%d) and (%d,%d) too close at exclusion %d"
                                        % (px, pz, qx, qz, exclusion))
 
+    def test_exclusion_larger_than_the_grid(self):
+        """A small dimension with a big exclusion — the disc exceeds the grid.
+
+        endgame's base 20 at sparse x2.6 is 52, and a 256-block border is a
+        33-cell side, so this is a shipped combination, not a contrived one.
+        `_disc_max` shifted rows clear off the grid and sliced `row[:h + dz]`
+        with a NEGATIVE bound, which Python reads as from-the-end and numpy
+        then refused to broadcast:
+          ValueError: operands could not be broadcast together with
+          shapes (0,33) (24,33) (0,33)
+        """
+        for radius, exclusion in ((16, 42), (16, 52), (8, 60), (4, 100)):
+            index = build(npl.NATURAL, exclusion, EVEN, radius)
+            positions = index.positions()
+            # A disc that covers the whole grid admits at most one placement.
+            self.assertLessEqual(len(positions), 1,
+                                 "radius %d exclusion %d kept %d"
+                                 % (radius, exclusion, len(positions)))
+
+    def test_vectorised_matches_scalar_when_disc_exceeds_grid(self):
+        """The real bar: numpy and scalar paths must agree, oversize disc
+        included. The scalar path bounds-checks like the Java side does."""
+        if not npl.HAVE_NUMPY:
+            self.skipTest("numpy not installed — only one path to compare")
+        for radius, exclusion in ((16, 42), (12, 30), (20, 8), (16, 52)):
+            vector = build(npl.NATURAL, exclusion, EVEN, radius).positions()
+            npl.HAVE_NUMPY = False
+            try:
+                scalar = build(npl.NATURAL, exclusion, EVEN, radius).positions()
+            finally:
+                npl.HAVE_NUMPY = True
+            self.assertEqual(vector, scalar,
+                             "radius %d exclusion %d: vectorised %r != scalar %r"
+                             % (radius, exclusion, vector, scalar))
+
     def test_exclusion_holds_for_every_profile(self):
         for profile in (npl.NATURAL, npl.DENSE, npl.SPARSE, npl.CLUSTER):
             index = build(profile, 5, EVEN, 96)

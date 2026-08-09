@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T27](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T28](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
@@ -69,6 +69,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Flat slabs of terrain hanging under floating-island structures | [T26](#t26) |
 | Buildings on cliff shelves, or sunk into the floor | [T26](#t26) |
 | A fill kernel makes solid terrain in open sky | [T27](#t27) |
+| `seed-roll` dies with a numpy broadcast error in `_disc_max` | [T28](#t28) |
 | A `structures.force` position never generates its structure | [T25](#t25) |
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -515,6 +516,43 @@ Each of these has caused a real incident.
   "sky-anchored pieces self-exempt (density too negative at altitude)". That
   is false, and its own family table contradicted it (`pedestal` in
   `sky_islands`: 60/60 air probes packed solid). Corrected 2026-08-09.
+
+<a id="t28"></a>
+### T28 — A negative Python slice bound turned "off the grid" into a wrong-shaped array
+
+- **Symptom:** `./dev seed-roll` dies partway through the census with
+
+  ```
+  ValueError: operands could not be broadcast together with
+  shapes (0,33) (24,33) (0,33)
+  ```
+
+  from `noise_placement._disc_max`, inside a multiprocessing worker.
+- **Cause:** `_disc_max` dilates the rank grid by an exclusion disc, shifting
+  the grid by `dz` for each row of the disc. When the disc is LARGER than the
+  grid, `dz` can exceed the grid height, and `row[:h + dz]` is then sliced
+  with a NEGATIVE bound — which Python reads as "all but the last `|h+dz|`
+  rows" rather than "empty", so a non-empty array of the wrong height meets an
+  empty destination. Latent since the vectorised path was written; only
+  reachable once an exclusion radius exceeded the grid side.
+- **Trigger:** raising the profile exclusion multipliers (2026-08-09,
+  sparse 1.5 → 2.6). `endgame` base 20 × sparse 2.6 = 52, `/sqrt(1.55)` from
+  the `outer` curve → 42; a `borders.player: 256` dimension is `r=16`,
+  `side=33`. Under the old ×1.5 the same group resolved to 24, comfortably
+  inside the grid, so nothing ever tripped it.
+- **Fix (in place):** skip rows shifted clear off the grid
+  (`if dz <= -h or dz >= h: continue`). Exact — such a row contributes
+  nothing. `test_noise_placement.py` pins both the crash and, more
+  importantly, that the vectorised and scalar paths agree at oversize discs.
+- **Java is unaffected:** `NoiseFieldIndex.outranksNeighbours` bounds-checks
+  every neighbour (`nx < -r || nx > r`), so it handles any exclusion size.
+  This was a mirror-only defect — but the mirror is the thing that decides
+  which seeds you keep, so it silently stops a roll rather than mis-scoring.
+- **Design note, not a defect:** an exclusion wider than the dimension means
+  at most ONE placement of that group in the whole world. Exclusion does not
+  scale with radius the way frequency does
+  (`REFERENCE_RADIUS_CHUNKS / radiusChunks`), so small dimensions with
+  rare-group bases are the regime to watch when retuning multipliers.
 
 ---
 
