@@ -815,29 +815,36 @@ def main():
         """Tick while groups are still running, reporting the INNER position.
 
         Group completion is far too coarse to estimate from: a run over 4
-        groups can only ever report 0/25/50/75%, so an hour of tier 1 shows
-        as `0/4` with no remaining time. The shared counters carry each
-        worker's position within its own loop, which is what actually moves.
+        groups can only ever report 0/25/50/75%, so an hour of work shows as
+        `0/4` with no remaining time. The shared counters carry each worker's
+        position within its own loop, which is what actually moves.
+
+        BOTH phases are reported because both are live. The phases are per
+        GROUP, not global: a worker runs tier 1 then tier 2 for its group and
+        moves on, so while one worker screens seeds another is measuring
+        candidates. Showing only the phase that "should" be current parks the
+        line on a frozen number — 18 workers x a 10k pool completes tier 1 in
+        seconds and then sits at 180,000/720,000 for the rest of the run,
+        with a rate that decays as elapsed time grows under a static count.
         """
         t1 = progress["tier1"].value
         t2 = progress["tier2"].value
         t2_total = progress["tier2_total"].value
         in_flight = min(num_workers, total - done)
-        head = (f"  [{done}/{total} groups] {_elapsed_str(elapsed)} elapsed | "
-                f"{in_flight} in flight")
-        if t1 < t1_total:
-            # ETA from the tier-1 fraction only: tier 2 has a different
-            # per-item cost, so folding them into one number would be a
-            # confident wrong answer rather than an honest partial one.
-            pct = 100 * t1 / t1_total if t1_total else 0.0
-            rate = t1 / elapsed if elapsed > 0 else 0
-            print(f"{head} | tier 1 {t1:,}/{t1_total:,} ({pct:4.1f}%) "
-                  f"~{_format_eta(t1, t1_total, elapsed)} left at {rate:,.0f} seeds/s",
-                  flush=True)
-        else:
-            known = f"/{t2_total:,}" if t2_total else ""
-            print(f"{head} | tier 2 {t2:,}{known} candidates measured",
-                  flush=True)
+        parts = [f"  [{done}/{total} groups] {_elapsed_str(elapsed)} elapsed",
+                 f"{in_flight} in flight"]
+        pct1 = 100 * t1 / t1_total if t1_total else 0.0
+        parts.append(f"tier 1 {t1:,}/{t1_total:,} ({pct1:.0f}%)")
+        if t2_total:
+            parts.append(f"tier 2 {t2:,}/{t2_total:,}")
+        # Groups are the only unit that captures BOTH phases, so the estimate
+        # comes from them as soon as one has landed. Before that, tier-1
+        # progress is the only signal there is.
+        if done:
+            parts.append(f"~{_format_eta(done, total, elapsed)} left")
+        elif t1 < t1_total:
+            parts.append(f"~{_format_eta(t1, t1_total, elapsed)} left (tier 1)")
+        print(" | ".join(parts), flush=True)
 
     csv_new = not Path(csv_path).exists()
     csv_fh = open(csv_path, "a")
