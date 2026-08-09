@@ -89,6 +89,10 @@ fi
 
 SEEDTEST="$PROJECT_ROOT/.seedtest"
 DIMS=""
+# Roll-stage filter only. Finalise stays global: its scoring is arithmetic and
+# its censuses are cached per candidate, so untouched dimensions cost nothing
+# there and their winners still refresh.
+THRESHOLD=""
 WRITE_CONFIG=1
 WARMUP_ONLY=0
 FOLD_ONLY=0
@@ -104,6 +108,8 @@ usage() {
   echo "  --pool N        Tier-1 screening seeds per dimension (default $ROLL_POOL)"
   echo "  --count N       Candidates kept per dimension (default $ROLL_COUNT)"
   echo "  --dims a,b      Only roll the named dimensions (comma-separated)"
+  echo "  --threshold N   Only roll dimensions whose best banked candidate"
+  echo "                  scores BELOW N (an empty/unscored bank counts as 0)"
   echo "  --census-workers N  Processes for the census/terrain backfill"
   echo "                  (default: two thirds of cores, floor 2 — lower it to share the machine)"
   echo "  --census-top N  Only census candidates that can still reach a"
@@ -149,6 +155,7 @@ while [[ $# -gt 0 ]]; do
     --pool)        ROLL_POOL="$2"; shift 2 ;;
     --count)       ROLL_COUNT="$2"; shift 2 ;;
     --dims)        DIMS="$2"; shift 2 ;;
+    --threshold)   THRESHOLD="$2"; shift 2 ;;
     --census-workers) ROLL_CENSUS_WORKERS="$2"; shift 2 ;;
     --census-top)  ROLL_CENSUS_TOP="$2"; shift 2 ;;
     --no-write)    WRITE_CONFIG=0; shift ;;
@@ -443,6 +450,7 @@ roll() {
     --count "$ROLL_COUNT" \
     --tier1-pool "$ROLL_POOL" \
     ${DIMS:+--dims "$DIMS"} \
+    ${THRESHOLD:+--threshold "$THRESHOLD"} \
     ${ROLL_CENSUS_WORKERS:+--census-workers "$ROLL_CENSUS_WORKERS"} \
     ${ROLL_CENSUS_TOP:+--census-top "$ROLL_CENSUS_TOP"}
 }

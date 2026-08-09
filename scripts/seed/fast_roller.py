@@ -67,6 +67,51 @@ def _init_progress(counters):
     _PROGRESS = counters
 
 
+def _best_banked_score(store):
+    """The store's best score, by the same rule the viewer ranks with.
+
+    Prefer the score recorded under the store's CURRENT configHash: a score
+    computed under different scoring config answers a question nobody asked.
+    Fall back to the best of whatever is there, so a bank that predates the
+    stamp still reports something rather than reading as unscored.
+    """
+    current = store.get("configHash", "")
+    best = 0.0
+    for cand in store.get("candidates", {}).values():
+        scores = cand.get("scores") or {}
+        if not scores:
+            continue
+        if current and current in scores:
+            total = scores[current].get("total", 0)
+        else:
+            total = max((s.get("total", 0) for s in scores.values()), default=0)
+        if total > best:
+            best = total
+    return best
+
+
+def _below_threshold(names, config_dir, threshold):
+    """Split target names by whether the bank already clears `threshold`.
+
+    Returns (names_to_roll, {satisfied_name: best_score}). A target with no
+    store, no candidates or no scores counts as 0 and is always rolled —
+    "nothing banked" is the strongest reason to roll something, and treating
+    an unscored bank as satisfied would silently skip the dimensions that
+    need the work most.
+    """
+    import candidates as cmod
+    cdir = cmod.candidates_dir(Path(config_dir))
+    keep, satisfied = [], {}
+    for name in names:
+        path = cdir / f"{name}.json"
+        best = _best_banked_score(cmod.load_store(path)) if path.exists() else 0.0
+        if best >= threshold:
+            satisfied[name] = best
+        else:
+            keep.append(name)
+    return set(keep), satisfied
+
+
 def _bump(key, n=1):
     if _PROGRESS is None:
         return
@@ -611,6 +656,10 @@ def main():
                     help=".seedtest/ directory for output")
     ap.add_argument("--dims",
                     help="comma-separated subset of dimension names")
+    ap.add_argument("--threshold", type=float, default=None,
+                    help="only roll targets whose best banked candidate scores "
+                         "BELOW this; an unscored or empty bank counts as 0 and "
+                         "is always rolled. Combines with --dims (both filter).")
     ap.add_argument("--count", type=int, default=100,
                     help="accepted candidates to keep per dimension")
     ap.add_argument("--tier1-pool", type=int, default=5000,
@@ -650,6 +699,20 @@ def main():
         wanted = {d.strip() for d in args.dims.split(",")}
         dims = [d for d in dims if d["name"] in wanted]
         worlds = [w for w in worlds if w["name"] in wanted]
+
+    if args.threshold is not None:
+        keep, satisfied = _below_threshold(
+            [w["name"] for w in worlds] + [d["name"] for d in dims],
+            args.config, args.threshold)
+        dims = [d for d in dims if d["name"] in keep]
+        worlds = [w for w in worlds if w["name"] in keep]
+        print(f"Threshold {args.threshold:g}: {len(satisfied)} target(s) already "
+              f"have a candidate at or above it, {len(keep)} to roll")
+        if satisfied:
+            best_first = sorted(satisfied.items(), key=lambda kv: -kv[1])
+            preview = ", ".join(f"{n} {s:.1f}" for n, s in best_first[:6])
+            more = f", +{len(best_first) - 6} more" if len(best_first) > 6 else ""
+            print(f"  skipping: {preview}{more}")
 
     all_targets = []
     for w in worlds:

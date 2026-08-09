@@ -486,51 +486,67 @@ class RenderWorker:
             was_idle = False
             pending = sum(n for _n, n in plan)
             self._set(render_pending=pending)
-            self._log(f"{len(plan)} target(s), {pending} image(s) to render "
-                      f"on {self.workers} worker(s)")
-            for name, _missing in plan:
-                if self.stop_flag.is_set():
+            total_passes = len(plan) * len(self.PASSES)
+            self._log(f"{len(plan)} target(s), {pending} image(s) in "
+                      f"{total_passes} passes on {self.workers} worker(s)")
+            # Pass OUTER, dimension inner: every dimension gets its thumbnails
+            # before any dimension gets hi-res. The low pass is what makes the
+            # grid browsable, and finishing low+high per dimension leaves the
+            # dimensions at the end of the plan with no image at all for hours.
+            pass_no = 0
+            abort = False
+            for label, size, scale, res, suffix in self.PASSES:
+                for name, _missing in plan:
+                    if self.stop_flag.is_set():
+                        abort = True
+                        break
+                    # A bump means the ranking moved under us. Abandon the rest
+                    # of the plan and rebuild it rather than finishing a list
+                    # that may no longer describe the top ten.
+                    if self.wake.is_set():
+                        abort = True
+                        break
+                    pass_no += 1
+                    self._render_pass(name, label, size, scale, res, suffix,
+                                      pass_no, total_passes)
+                if abort:
                     break
-                # A bump means the ranking moved under us. Abandon the rest
-                # of the plan and rebuild it rather than finishing a list
-                # that may no longer describe the top ten.
-                if self.wake.is_set():
-                    break
-                self._render_target(name)
             self._set(rendering_low=[], rendering_high=[])
 
-    def _render_target(self, name):
-        for label, size, scale, res, suffix in self.PASSES:
-            if self.stop_flag.is_set() or self.wake.is_set():
-                return
-            self._set(render_stage=label, **{label: [name]})
-            argv = [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"), "batch",
-                    "--config", self.config, "--seedtest", self.seedtest,
-                    "--dims", name, "--top", str(RENDER_TOP), "--size", str(size),
-                    "--scale", str(scale), "--sample-res", str(res),
-                    "--workers", str(self.workers)]
-            if suffix:
-                argv += ["--suffix", suffix]
-            t0 = time.time()
-            try:
-                proc = subprocess.run(argv, capture_output=True, text=True,
-                                      timeout=3600)
-                if proc.returncode != 0:
-                    # capture_output hides the renderer's own diagnostics, so
-                    # a non-zero exit is otherwise a silently missing image.
-                    tail = (proc.stderr or proc.stdout or "").strip().splitlines()
-                    self._set(render_stage=f"{name}: exit {proc.returncode}")
-                    self._log(f"{name} {label}: exit {proc.returncode}"
-                              + (f" — {tail[-1][:200]}" if tail else ""))
-            except Exception as exc:
-                self._set(render_stage=f"{name}: render failed — {str(exc)[:120]}")
-                self._log(f"{name} {label}: FAILED — {str(exc)[:200]}")
-            self._set(**{label: []})
-            with self.lock:
-                self.state["render_done"] += 1
-                done, pending = self.state["render_done"], self.state["render_pending"]
-            self._log(f"{name} {label.replace('rendering_', '')} "
-                      f"[{done}/{pending}] in {time.time() - t0:.0f}s")
+    def _render_pass(self, name, label, size, scale, res, suffix,
+                     pass_no, total_passes):
+        """One dimension's top-N at one resolution: a single batch subprocess
+        that renders those images `--workers`-wide."""
+        self._set(render_stage=label, **{label: [name]})
+        argv = [sys.executable, str(SCRIPT_DIR / "biome_renderer.py"), "batch",
+                "--config", self.config, "--seedtest", self.seedtest,
+                "--dims", name, "--top", str(RENDER_TOP), "--size", str(size),
+                "--scale", str(scale), "--sample-res", str(res),
+                "--workers", str(self.workers)]
+        if suffix:
+            argv += ["--suffix", suffix]
+        t0 = time.time()
+        try:
+            proc = subprocess.run(argv, capture_output=True, text=True,
+                                  timeout=3600)
+            if proc.returncode != 0:
+                # capture_output hides the renderer's own diagnostics, so a
+                # non-zero exit is otherwise a silently missing image.
+                tail = (proc.stderr or proc.stdout or "").strip().splitlines()
+                self._set(render_stage=f"{name}: exit {proc.returncode}")
+                self._log(f"{name} {label}: exit {proc.returncode}"
+                          + (f" — {tail[-1][:200]}" if tail else ""))
+        except Exception as exc:
+            self._set(render_stage=f"{name}: render failed — {str(exc)[:120]}")
+            self._log(f"{name} {label}: FAILED — {str(exc)[:200]}")
+        self._set(**{label: []})
+        # render_done counts PASSES; render_pending counts IMAGES. Reporting
+        # one against the other reads as 10% complete when the work is done,
+        # so the progress figure is in passes and images are context only.
+        with self.lock:
+            self.state["render_done"] += 1
+        self._log(f"{name} {label.replace('rendering_', '')} "
+                  f"[{pass_no}/{total_passes} passes] in {time.time() - t0:.0f}s")
 
 
 class Pipeline:

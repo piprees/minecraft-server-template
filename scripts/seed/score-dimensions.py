@@ -2389,7 +2389,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     if best:
         img = "renders/{}/{}.png".format(name, best["seed"])
         hires = "renders/{}/{}_hires.png".format(name, best["seed"])
-        img_html = ("<img src='{}' data-hires='{}' loading='lazy' "
+        img_html = ("<img src='{}' data-hires='{}' loading='lazy' decoding='async' width='512' height='512' "
                     "alt='Map render — {} best seed' "
                     "onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">").format(img, hires, esc_name)
         spawn_html = "<div class='dim-spawn'>spawn: <b>{}</b></div>".format(
@@ -2448,7 +2448,7 @@ def _render_dim_section(name, profile, cands, winners, rej_count,
     # Detail header: winner image + info side by side
     out.append("<div class='detail-header'>")
     if best:
-        out.append("<img class='winner-img' src='renders/{}/{}.png' loading='lazy' "
+        out.append("<img class='winner-img' src='renders/{}/{}.png' loading='lazy' decoding='async' width='512' height='512' "
                    "alt='Map render — {} seed {}' "
                    "onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">".format(
                        name, best["seed"], esc_name, best["seed"]))
@@ -3392,7 +3392,7 @@ def _render_candidate(idx, c, dim_name, profile, winners, default_show,
         "<div class='cand{} cand-item' data-idx='{}' data-score='{:.1f}' "
         "data-dim='{}'{}{} data-seed='{}' data-parts='{}' data-spawn='{}' "
         "data-render='{}' title='{}'>"
-        "<img src='{}' data-hires='{}' loading='lazy' style='background:{}' "
+        "<img src='{}' data-hires='{}' loading='lazy' decoding='async' width='512' height='512' style='background:{}' "
         "alt='Map render — {} seed {}' onerror=\"this.onerror=null;var d=document.createElement('div');d.className='no-render '+this.className;d.textContent='render queued';this.replaceWith(d)\">"
         "<div class='hires-badge'>HD</div>"
         "<div class='cand-dim-label'>{}</div>"

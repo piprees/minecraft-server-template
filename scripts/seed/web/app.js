@@ -250,8 +250,15 @@
     // is context. Open it either way.
     var img = cand.querySelector('img')
     setNoRender(!img, cand)
-    lbLowSrc = img ? img.src : null
     lbHiresSrc = (img && img.dataset.hires) || null
+    // NEVER trust the tile's current src for the zoomed-in URL: autoRefresh
+    // upgrades tiles to hi-res in place. Prefer the stashed original, then
+    // the name derived from the hi-res one, and only then the live src.
+    lbLowSrc = img
+      ? (img.dataset.low
+         || (lbHiresSrc ? lbHiresSrc.replace('_hires', '') : null)
+         || img.src)
+      : null
     lbHiresReady = false
     lbShowingHires = false
     updateResToggle()
@@ -829,6 +836,12 @@
       }
       var hi = new Image()
       hi.onload = function () {
+        // Remember the zoomed-in URL before overwriting it. The lightbox
+        // reads its low-res source off this element, so an in-place upgrade
+        // with nothing kept leaves the two resolutions pointing at the same
+        // file: the toggle then swaps hi-res for hi-res and appears dead,
+        // and lbMapCoverage keeps scaling the overlay for the wide render.
+        if (!img.dataset.low) img.dataset.low = img.src
         img.src = hi.src
         var wrap = img.parentElement
         if (wrap) {

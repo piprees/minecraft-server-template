@@ -288,7 +288,7 @@
     <div class="lb-inner">
       <button type="button" class="lb-close" aria-label="Close">&times;</button>
       <div class="lb-image">
-        <img width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
+        <img alt="" width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
         <!-- Two overlay layers over one map, each owned by one feature:
              #lb-markers (structicons.js) draws the structures themselves,
              #lb-overlay (the hover handler in app.js, and dartboard.js)
@@ -303,9 +303,7 @@
              a probe confirms it exists) — see lbMapCoverage in app.js for
              why the two are not interchangeable. Hidden until a hi-res src
              is known, disabled until the probe confirms it actually loads. -->
-        <button type="button" class="lb-res-toggle" aria-pressed="false" hidden>
-          High-def
-        </button>
+        <button type="button" class="lb-res-toggle" aria-pressed="false" hidden>High-def</button>
       </div>
       <div class="lb-info"></div>
     </div>
