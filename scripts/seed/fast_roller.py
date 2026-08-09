@@ -50,6 +50,30 @@ from structure_placement import load_structure_sets, nearest_structure  # noqa: 
 #: so without a tick the roller looks identical to a hang.
 PROGRESS_TICK_SECONDS = 30
 
+#: Seeds a worker screens between counter updates. The counter is shared
+#: across processes, so incrementing per seed would serialise the tier-1 loop
+#: on its lock; per batch the cost is unmeasurable.
+PROGRESS_BATCH = 2000
+
+#: Shared counters, installed in each worker by the pool initialiser.
+#: Group completion is far too coarse to estimate from — a run over 4 groups
+#: can only ever report 0/25/50/75% — so workers publish their inner-loop
+#: position and the parent reports THAT.
+_PROGRESS = None
+
+
+def _init_progress(counters):
+    global _PROGRESS
+    _PROGRESS = counters
+
+
+def _bump(key, n=1):
+    if _PROGRESS is None:
+        return
+    counter = _PROGRESS[key]
+    with counter.get_lock():
+        counter.value += n
+
 
 class MemoSampler:
     """Point-caching wrapper for seed-group rolling: within a fingerprint
@@ -505,6 +529,7 @@ def _process_group(task):
 
     # Tier 1: one shared pool; every member scores every seed.
     ranks = {name: [] for name, _profile in members}
+    since_report = 0
     for _ in range(pool_size):
         seed = random_seed()
         while str(seed) in seen_set:
@@ -514,6 +539,11 @@ def _process_group(task):
             score, _dists = tier1_score(seed, profile, struct_sets, struct_to_sets,
                                         seedtest_path=seedtest_path)
             ranks[name].append((score, seed))
+        since_report += 1
+        if since_report >= PROGRESS_BATCH:
+            _bump("tier1", since_report)
+            since_report = 0
+    _bump("tier1", since_report)
 
     # Survivors: union of each member's top keep_count — every member gets
     # seeds that screened well FOR THEM; overlap between members is the
@@ -535,7 +565,11 @@ def _process_group(task):
     accepted = {name: 0 for name, _profile in members}
     rejected = {name: 0 for name, _profile in members}
     rep_profile = members[0][1]
+    # Survivor count is only known now — the parent's tier-2 total grows as
+    # each group finishes tier 1 rather than being predictable up front.
+    _bump("tier2_total", len(survivors))
     for seed in survivors:
+        _bump("tier2")
         sampler = _build_sampler(seed, rep_profile, biome_params_path, noise_configs)
         if len(members) > 1:
             sampler = MemoSampler(sampler)
@@ -683,6 +717,14 @@ def main():
     print(f"  Workers: {num_workers}, output: {csv_path}")
     t0 = time.time()
 
+    t1_total = total_seeds
+    progress = {
+        "tier1": multiprocessing.Value("q", 0),
+        "tier2": multiprocessing.Value("q", 0),
+        "tier2_total": multiprocessing.Value("q", 0),
+    }
+    _init_progress(progress)      # the single-process path shares the parent's
+
     def _format_eta(done, total, elapsed):
         if done == 0:
             return "—"
@@ -707,18 +749,32 @@ def main():
               flush=True)
 
     def _log_wait(done, total, elapsed):
-        """Tick while groups are still running.
+        """Tick while groups are still running, reporting the INNER position.
 
-        Completion is the only other progress signal, and a tier-1 group on a
-        large pool runs for many minutes — so without this the roller prints
-        its header and then nothing at all, with no way to tell work in
-        progress from a hang.
+        Group completion is far too coarse to estimate from: a run over 4
+        groups can only ever report 0/25/50/75%, so an hour of tier 1 shows
+        as `0/4` with no remaining time. The shared counters carry each
+        worker's position within its own loop, which is what actually moves.
         """
+        t1 = progress["tier1"].value
+        t2 = progress["tier2"].value
+        t2_total = progress["tier2_total"].value
         in_flight = min(num_workers, total - done)
-        print(f"  [{done}/{total}] {100 * done / total:4.1f}% | "
-              f"{_elapsed_str(elapsed)} elapsed, ~{_format_eta(done, total, elapsed)} "
-              f"remaining | {in_flight} group(s) in flight",
-              flush=True)
+        head = (f"  [{done}/{total} groups] {_elapsed_str(elapsed)} elapsed | "
+                f"{in_flight} in flight")
+        if t1 < t1_total:
+            # ETA from the tier-1 fraction only: tier 2 has a different
+            # per-item cost, so folding them into one number would be a
+            # confident wrong answer rather than an honest partial one.
+            pct = 100 * t1 / t1_total if t1_total else 0.0
+            rate = t1 / elapsed if elapsed > 0 else 0
+            print(f"{head} | tier 1 {t1:,}/{t1_total:,} ({pct:4.1f}%) "
+                  f"~{_format_eta(t1, t1_total, elapsed)} left at {rate:,.0f} seeds/s",
+                  flush=True)
+        else:
+            known = f"/{t2_total:,}" if t2_total else ""
+            print(f"{head} | tier 2 {t2:,}{known} candidates measured",
+                  flush=True)
 
     csv_new = not Path(csv_path).exists()
     csv_fh = open(csv_path, "a")
@@ -741,7 +797,8 @@ def main():
     total_rejected = 0
     n_tasks = len(tasks)
     if num_workers > 1 and n_tasks > 1:
-        with multiprocessing.Pool(num_workers) as pool:
+        with multiprocessing.Pool(num_workers, initializer=_init_progress,
+                                  initargs=(progress,)) as pool:
             pending = pool.imap_unordered(_process_group, tasks)
             while True:
                 try:
