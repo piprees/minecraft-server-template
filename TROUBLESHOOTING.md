@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T29](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T31](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
@@ -71,6 +71,9 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | A fill kernel makes solid terrain in open sky | [T27](#t27) |
 | `seed-roll` dies with a numpy broadcast error in `_disc_max` | [T28](#t28) |
 | Warmup never re-dumps `biome_params.json`; no `_tbRegions` | [T29](#t29) |
+| A fix verified in `.stack/` is missing later; `current` moved | [T30](#t30) |
+| New seed set but the world regenerates the old terrain | [T31](#t31) |
+| An overlay `seed`/`spawn` override looks ignored | [T31](#t31) |
 | A `structures.force` position never generates its structure | [T25](#t25) |
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -518,6 +521,47 @@ Each of these has caused a real incident.
   fill working everywhere, not evidence of a height cutoff. Any claim that a
   fill kernel spares open sky is wrong whatever its magnitude; only a
   magnitude under the squeeze band spares it.
+
+<a id="t30"></a>
+### T30 — A hand-patched `.stack/<version>/` is discarded the moment a newer release resolves
+
+- **Symptom:** a fix verified in the consumer's bundle stops being present.
+  A later run behaves as though the patch was never made, and
+  `readlink .stack/current` names a version you did not pull.
+- **Cause:** a symbolic `STACK_VERSION` (`v5`, `latest`) resolves to the
+  newest matching release on every `./dev`/`./ops` invocation, so publishing
+  a release repoints `.stack/current` at a directory that never had the
+  patch. `.stack/<version>/` is immutable release content by contract.
+- **Fix:** never hand-patch the bundle as anything but a throwaway probe, and
+  never while a release is in flight. Land the change in the platform repo,
+  release it, `./dev update`, and confirm with `readlink .stack/current` plus
+  a grep for the change in the file that will actually execute.
+- **Verifying a bundle fix means verifying the RESOLVED version**, not the
+  one you patched. Re-check `readlink .stack/current` after every release,
+  because the pin moves without being asked to.
+
+<a id="t31"></a>
+### T31 — `.env SEED` does not drive terrain; the dimension config does
+
+- **Symptom:** a world regenerates with the old terrain after a reset that
+  set a new seed, or the seed reported in game does not match `.env`.
+- **Cause:** `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per
+  dimension from each base world's config file (`overworld.json`,
+  `the_nether.json`, `the_end.json`, `paradise_lost.json`). `.env SEED` seeds
+  `level.dat` only, and the literal string `"env"` in a config `seed` field
+  is the opt-in to read it. `reset-seed.sh` writes `SEED` into `.env` and the
+  server's `.env`, which reads as though it were the lever and is not.
+- **Same for spawn:** the overworld entry's `"spawn": [x, y, z]` replaces the
+  `SPAWN_X/Y/Z` enforcement, with `[0, 64, 0]` as the "not chosen" sentinel
+  that hands back to deploy.sh's env guard.
+- **Fix:** change the seed and spawn in the dimension config — which is where
+  the seed roller writes winners — and get that config onto the server BEFORE
+  the world is deleted. A reset that runs first regenerates from the deployed
+  config, not the one still sitting in the working tree.
+- **Read an overlay file's `overrides` block, not its top level.** A consumer
+  overlay is `{"overrides": {...}}` (deep-merge), full replace, or `{}`.
+  Checking top-level keys reports `seed`/`spawn` as absent while the merged
+  config carries them, which reads exactly like the override being ignored.
 
 <a id="t29"></a>
 ### T29 — A staleness check only knows the schema generation it was written in

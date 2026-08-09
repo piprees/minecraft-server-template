@@ -77,7 +77,12 @@ Prefer this over guessing a biome id or structure short name from memory — it'
 Warmup (`roll-all.sh` phase 1) extracts structure sets from mod JARs into `.seedtest/.structure_sets/` and dumps `biome_params.json` from a short-lived, stripped-down MC server boot (`/customdim dump-biome-params`, ~90s). It needs **Docker** and mod jars in the shared cache (`${MOD_CACHE_DIR:-~/.cache/adventure-mods}`, filled by `./dev up`), falling back to `data/mods/` only if the cache is empty — the roller never requires `data/` to exist. It re-runs automatically when:
 
 - `.seedtest/.structure_sets/` doesn't exist yet.
-- `.seedtest/biome_params.json` doesn't exist, or a family's tagged biome count is implausibly low (< 5) — this is the automatic re-trigger `roll-all.sh` checks before every roll.
+- `.seedtest/biome_params.json` doesn't exist, a family's tagged biome count is implausibly low (< 5), or the table carries no `_tbRegions` sentinel — `roll-all.sh` checks all of these before every roll.
+- `.seedtest/structure_pools.json` doesn't exist.
+
+**Every generation of the table's schema needs its own freshness check.** The shipped copy carries `family` tags but no `_tbRegions`, so a check that asks only about the older field passes on a table missing the newer half and the warmup never re-runs — scoring every TerraBlender-placed biome against a flat union ([T29](../../../TROUBLESHOOTING.md#t29)). Adding a field to the table means adding the question that detects its absence.
+
+**Confirm the warmup produced what you expect**, rather than that it ran: the summary prints `TB region tables: <type>: N regions`, and warns when there are none. An entry count alone cannot tell a full table from a stub.
 - You've changed worldgen mods and need `biome_catalog.json`/`biome_params.json` refreshed by hand: `scripts/seed/extract-biome-catalog.py <data-dir>`.
 
 **The live biome parameter table is `<consumer>/.seedtest/biome_params.json`**, seeded once from the read-only copy the bundle ships at `scripts/seed/biome_params.json` and never written back to it — and never written into `.stack/<version>/`, which `./dev update` replaces wholesale.
@@ -132,6 +137,8 @@ The four base worlds take noise placement like any other dimension. Their genera
 The progression floors that gate the Nether and the End are in `scripts/check-noise-regression.py`.
 
 **Two fields are generation-affecting:** `borders.player` (sets the scanned radius AND the noise frequency scale) and `difficulty.mobMultiplier` (drives the peaceful/hostile group shifts). Editing either re-rolls the dimension.
+
+**A base world's winner only takes effect through its config file.** `.env SEED` seeds `level.dat`, not terrain ([T31](../../../TROUBLESHOOTING.md#t31)), so a winner must reach the server's dimension config BEFORE the world is deleted — push the overlay, let the deploy land, then reset. Resetting first regenerates from the deployed config and wastes the wipe. Custom dimensions are exempt: they are created on first entry, so their winners apply without a wipe as long as nobody has entered them.
 
 ## The viewer
 

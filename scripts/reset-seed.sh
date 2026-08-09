@@ -15,6 +15,12 @@
 # DISCORD_CHAT_CHANNEL_ID when distinct) via discord-cleanup.sh — fire and
 # forget, a Discord outage never blocks a reset.
 #
+# The seed argument updates SEED in .env locally and on the server, which
+# seeds level.dat ONLY. Terrain comes from each base world's dimension config
+# (TROUBLESHOOTING.md#t31), so a new seed here changes nothing on its own:
+# put the seed in the config, deploy it, and reset AFTER it is on the server.
+# Same for spawn — the overworld entry's "spawn" replaces SPAWN_X/Y/Z.
+#
 # Optionally wipes restic backups in R2 (--wipe-backups flag).
 #
 # After restart, re-runs deploy.sh's post-boot configuration:
