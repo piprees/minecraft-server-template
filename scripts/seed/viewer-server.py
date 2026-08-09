@@ -1181,14 +1181,20 @@ def _census_sidecar(seedtest, dim, seed_str):
 
 
 def _census_summary_from_sidecar(doc, spawn_x, spawn_z):
-    """Derive per-structure {count, nearestBlocks} from a sidecar's positions.
+    """Derive per-structure {count, nearestBlocks, nearestPos, group} from a
+    sidecar's positions.
 
     spawn_x/spawn_z are BLOCK coordinates (the candidate's banked spawn).
     Positions in the sidecar are chunk coordinates; the third element is an
     index into the group's ids array — resolved here to the structure id.
 
-    Returns {structure_id: {count, nearestBlocks}} computed from the FULL
-    position set (no sampling).
+    nearestPos is the nearest instance's [blockX, blockZ] — it is what lets
+    the client state a bearing ("288b NE") without fetching the full position
+    payload, and it is exact because the whole set is walked. `group` is the
+    noise group that owns the nearest instance.
+
+    Returns {structure_id: {...}} computed from the FULL position set (no
+    sampling).
     """
     import math
     by_struct = {}
@@ -1208,11 +1214,14 @@ def _census_summary_from_sidecar(doc, spawn_x, spawn_z):
             dist = math.sqrt(float(dx) * dx + float(dz) * dz)
             entry = by_struct.get(sid)
             if entry is None:
-                entry = {"count": 0, "nearestBlocks": float("inf")}
+                entry = {"count": 0, "nearestBlocks": float("inf"),
+                         "nearestPos": None, "group": group}
                 by_struct[sid] = entry
             entry["count"] += 1
             if dist < entry["nearestBlocks"]:
                 entry["nearestBlocks"] = dist
+                entry["nearestPos"] = [bx, bz]
+                entry["group"] = group
     for entry in by_struct.values():
         if entry["nearestBlocks"] == float("inf"):
             entry["nearestBlocks"] = -1
@@ -1221,11 +1230,15 @@ def _census_summary_from_sidecar(doc, spawn_x, spawn_z):
     return by_struct
 
 
-def census_endpoint(seedtest, config_path, dim_slug, seed_str):
+def census_endpoint(seedtest, config_path, dim_slug, seed_str, summary=False):
     """Build the /census/<dim>/<seed> response payload.
 
     dim_slug: the dimension name after hyphen-to-underscore mapping.
     seed_str: the seed as a string (never parsed to int).
+    summary: omit groups[].positions — the ~KB variant the modal sidebar
+    renders from (byStructure carries nearestPos, so distance AND bearing
+    are stateable without the ~MB position payload). Counts are identical
+    in both variants: they always come from the full set.
 
     Returns (payload_dict, http_status_code).
     """
@@ -1269,7 +1282,9 @@ def census_endpoint(seedtest, config_path, dim_slug, seed_str):
         if current_fp is not None and sidecar_fp and sidecar_fp != current_fp:
             stale = True
 
-    # Flatten positions to block coordinates with structure ids.
+    # Flatten positions to block coordinates with structure ids. The summary
+    # variant still walks the full set — the count must be identical in both
+    # variants or the one-count contract breaks — and only omits the list.
     groups = {}
     total_positions = 0
     for group_name, gdata in (doc.get("groups") or {}).items():
@@ -1281,10 +1296,9 @@ def census_endpoint(seedtest, config_path, dim_slug, seed_str):
             cx, cz, id_idx = int(pos[0]), int(pos[1]), int(pos[2])
             sid = ids[id_idx] if 0 <= id_idx < len(ids) else None
             positions.append([cx * 16, cz * 16, sid])
-        groups[group_name] = {
-            "count": len(positions),
-            "positions": positions,
-        }
+        groups[group_name] = {"count": len(positions)}
+        if not summary:
+            groups[group_name]["positions"] = positions
         total_positions += len(positions)
 
     payload = {
@@ -1449,15 +1463,19 @@ class ViewerHandler(SimpleHTTPRequestHandler):
                 self._respond_json({"error": str(exc)[:300]}, 500)
             return
         if self.path.startswith("/census/"):
-            parts = self.path[len("/census/"):].split("/")
+            parsed_census = urlparse(self.path)
+            parts = parsed_census.path[len("/census/"):].split("/")
             if len(parts) != 2 or not parts[0] or not parts[1]:
                 self._respond_json({"error": "expected /census/<dim>/<seed>"}, 400)
                 return
             dim_slug = parts[0].replace("-", "_")
-            seed_str = parts[1].split("?")[0]
+            seed_str = parts[1]
+            summary = (parse_qs(parsed_census.query).get("summary")
+                       or ["0"])[0] not in ("", "0", "false")
             try:
                 payload, status = census_endpoint(
-                    self.seedtest, self.config_path, dim_slug, seed_str)
+                    self.seedtest, self.config_path, dim_slug, seed_str,
+                    summary=summary)
                 self._respond_json(payload, status)
             except Exception as exc:
                 self._respond_json({"error": str(exc)[:300]}, 500)

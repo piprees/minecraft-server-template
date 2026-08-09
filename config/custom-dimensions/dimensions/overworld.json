@@ -17,7 +17,7 @@
     "playerLuck": 1.0
   },
   "portal": {
-    "frameBlock": "minecraft:stone",
+    "frameBlock": "minecraft:mossy_stone_bricks",
     "igniterItem": "minecraft:torch",
     "color": "87CEEB",
     "lightLevel": 15,
@@ -63,9 +63,5 @@
     },
     "shuns": ["wizard_tower", "nether_tower"]
   },
-  "spawn": [
-    0,
-    64,
-    0
-  ]
+  "spawn": [0, 64, 0]
 }

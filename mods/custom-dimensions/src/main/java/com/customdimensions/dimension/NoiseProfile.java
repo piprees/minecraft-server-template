@@ -145,10 +145,10 @@ public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.C
         }
     }
 
-    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.68, 1.0);
-    NoiseProfile DENSE = new Simple("dense", 0.040, 0.45, 0.6);
-    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.85, 1.5);
-    NoiseProfile CLUSTER = new Cluster(0.008, 0.05, 0.90, 0.40, 0.4);
+    NoiseProfile SPARSE = new Simple("sparse", 0.015, 0.85, 2.6);
+    NoiseProfile NATURAL = new Simple("natural", 0.025, 0.68, 2.0);
+    NoiseProfile DENSE = new Simple("dense", 0.040, 0.45, 1.6);
+    NoiseProfile CLUSTER = new Cluster(0.008, 0.05, 0.90, 0.8, 0.8);
 
     /**
      * Config string to profile. Returns null for `none`, for null/empty, and

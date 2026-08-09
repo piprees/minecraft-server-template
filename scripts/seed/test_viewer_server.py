@@ -625,6 +625,47 @@ class CensusEndpointTests(unittest.TestCase):
                                    round(expected_nearest, 1), places=1,
                                    msg="nearest mismatch for %s" % sid)
 
+    def test_by_structure_carries_nearest_position_and_group(self):
+        """nearestPos is the nearest instance's block coordinates — the fact
+        that makes a bearing stateable without the positions payload."""
+        import math
+        payload, _ = self._endpoint()
+        bs = payload["byStructure"]
+        for sid, entry in bs.items():
+            best = None
+            best_dist = float("inf")
+            best_group = None
+            for group_name, gdata in self.sidecar_doc["groups"].items():
+                ids = gdata["ids"]
+                for pos in gdata["positions"]:
+                    if ids[pos[2]] != sid:
+                        continue
+                    bx, bz = pos[0] * 16, pos[1] * 16
+                    dx, dz = bx - self.spawn_x, bz - self.spawn_z
+                    dist = math.sqrt(float(dx) * dx + float(dz) * dz)
+                    if dist < best_dist:
+                        best_dist, best, best_group = dist, [bx, bz], group_name
+            self.assertEqual(entry["nearestPos"], best,
+                             "nearestPos mismatch for %s" % sid)
+            self.assertEqual(entry["group"], best_group,
+                             "group mismatch for %s" % sid)
+
+    def test_summary_variant_drops_positions_but_not_counts(self):
+        """?summary=1 must be the same payload minus groups[].positions —
+        identical counts, byStructure, totalPositions. Different counts
+        between the two variants would be the two-truths bug reborn."""
+        full, status_full = self._endpoint()
+        payload, status = viewer_server.census_endpoint(
+            str(self.seedtest), str(self.cfg), "d1", self.seed_str,
+            summary=True)
+        self.assertEqual((status_full, status), (200, 200))
+        for group, entry in payload["groups"].items():
+            self.assertNotIn("positions", entry, group)
+            self.assertEqual(entry["count"],
+                             full["groups"][group]["count"], group)
+        self.assertEqual(payload["byStructure"], full["byStructure"])
+        self.assertEqual(payload["totalPositions"], full["totalPositions"])
+
     def test_missing_sidecar_returns_404(self):
         payload, status = self._endpoint(dim="d1", seed="999")
         self.assertEqual(status, 404)
