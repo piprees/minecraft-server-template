@@ -287,7 +287,17 @@ warmup() {
   if [[ ! -f "$biome_params" && -f "$SCRIPT_DIR/biome_params.json" ]]; then
     cp "$SCRIPT_DIR/biome_params.json" "$biome_params"
   fi
+  # Freshness has to test EVERY generation of the table's schema, not just the
+  # one that existed when the check was written. `family` tags and the
+  # `_tbRegions` sentinel arrived separately, and the shipped copy carries the
+  # first but not the second — so a nether-count-only gate passes on a table
+  # with no TB regions at all and the warmup never re-dumps. That silently
+  # scores every TerraBlender-placed biome (all 47 Nature's Spirit ones, which
+  # have no vanilla climate parameters — see TROUBLESHOOTING.md#t19) against a
+  # degraded layout. Deleting the file does not force it either: the copy
+  # above restores the shipped table before this runs.
   local nether_count=0
+  local tb_regions=0
   if [[ -f "$biome_params" ]]; then
     nether_count=$(python3 -c "
 import json
@@ -296,7 +306,13 @@ tagged = sum(1 for e in params if 'family' in e)
 nether = sum(1 for e in params if e.get('family') == 'nether')
 print(nether if tagged > 0 else 0)
 " 2>/dev/null || echo 0)
+    tb_regions=$(python3 -c "
+import sys; sys.path.insert(0, '$SCRIPT_DIR')
+from tb_regions import load_tb_regions
+print(len(load_tb_regions('$biome_params') or {}))
+" 2>/dev/null || echo 0)
     [[ "$nether_count" -lt 5 ]] && need_warmup=1
+    [[ "$tb_regions" -lt 1 ]] && need_warmup=1
   else
     need_warmup=1
   fi
@@ -341,7 +357,7 @@ print('  Done.')
 "
   fi
 
-  if [[ "$nether_count" -lt 5 ]]; then
+  if [[ "$nether_count" -lt 5 || "$tb_regions" -lt 1 ]]; then
     # Ensure the roll boot config exists (normally created by manifest step,
     # but warmup runs before that).
     if [[ ! -f "$SEEDTEST/mvconfig-roll.json" ]]; then

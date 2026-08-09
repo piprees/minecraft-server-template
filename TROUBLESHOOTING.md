@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T28](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T29](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
@@ -70,6 +70,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Buildings on cliff shelves, or sunk into the floor | [T26](#t26) |
 | A fill kernel makes solid terrain in open sky | [T27](#t27) |
 | `seed-roll` dies with a numpy broadcast error in `_disc_max` | [T28](#t28) |
+| Warmup never re-dumps `biome_params.json`; no `_tbRegions` | [T29](#t29) |
 | A `structures.force` position never generates its structure | [T25](#t25) |
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -516,6 +517,34 @@ Each of these has caused a real incident.
   "sky-anchored pieces self-exempt (density too negative at altitude)". That
   is false, and its own family table contradicted it (`pedestal` in
   `sky_islands`: 60/60 air probes packed solid). Corrected 2026-08-09.
+
+<a id="t29"></a>
+### T29 — A staleness check only knows the schema generation it was written in
+
+- **Symptom:** `.seedtest/biome_params.json` carries no `_tbRegions`
+  sentinel, so every TerraBlender-placed biome is scored against a degraded
+  layout — and the warmup that would fix it never runs, however many times
+  you `--warmup-only`. Deleting the file does not help either.
+- **Cause:** `roll-all.sh`'s warmup gate asked one question,
+  `nether_count < 5`, written when `family` tags were the newest field in the
+  table. `_tbRegions` arrived later; the shipped
+  `scripts/seed/biome_params.json` carries 13 nether-tagged entries and zero
+  TB regions, so the gate passes on a table that is missing the newer half
+  entirely. The file-absent path is no escape hatch: the shipped copy is
+  copied in *before* the check.
+- **Fix (in place):** the gate tests both generations, and the inner dump
+  guard tests both too — an early return that skips the work is worse than no
+  check. Every artefact this warms has its own freshness question, and each
+  new field is a new question, not a variant of the old one.
+- **Same failure, three places, one evening (2026-08-09):** this gate;
+  `test_tb_uniqueness_live` hard-failing instead of skipping on the same
+  missing sentinel (which made the platform repo uncommittable after any
+  `./dev seed-roll --reset`, since the pre-commit hook runs the suite); and
+  [T28](#t28), where a vectorised path assumed a bound that only held for the
+  input sizes that existed when it was written. **When you add a field to a
+  cached artefact, grep for every check that decides whether that artefact is
+  fresh** — the fingerprint corollary in `generation_payload()` is the same
+  rule, already learned once for seed groups.
 
 <a id="t28"></a>
 ### T28 — A negative Python slice bound turned "off the grid" into a wrong-shaped array
