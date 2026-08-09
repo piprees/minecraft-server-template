@@ -805,7 +805,7 @@ class TerrainAdaptationPayloadTests(unittest.TestCase):
         self.assertIn("terrainAdaptation", p)
         cfg, themes = p["terrainAdaptation"]
         self.assertEqual([], cfg)
-        self.assertIn(("settlements", "beard_thin"), themes)
+        self.assertIn(("settlements", "ground_blend"), themes)
 
     def test_structureless_dims_stay_byte_stable(self):
         for extra in ({"type": "void"}, {"type": "superflat"},

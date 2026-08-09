@@ -277,13 +277,13 @@ class NoiseGroupPlanTest {
 
     @Test
     void exclusionScalesWithTheProfileMultiplier() {
-        // deco base exclusion is 3: dense x0.6 -> 2, sparse x1.5 -> 5.
+        // deco base exclusion is 3: dense x1.6 -> 5, sparse x2.6 -> 8.
         NoiseGroupPlan dense = plan(
                 "{\"type\": \"multi_biome\", \"structures\": {\"noise\": \"dense\"}}");
         NoiseGroupPlan sparse = plan(
                 "{\"type\": \"multi_biome\", \"structures\": {\"noise\": \"sparse\"}}");
-        assertEquals(2, dense.groups().get("deco").exclusion());
-        assertEquals(5, sparse.groups().get("deco").exclusion());
+        assertEquals(5, dense.groups().get("deco").exclusion());
+        assertEquals(8, sparse.groups().get("deco").exclusion());
         assertTrue(sparse.groups().get("endgame").exclusion()
                 > dense.groups().get("endgame").exclusion());
     }

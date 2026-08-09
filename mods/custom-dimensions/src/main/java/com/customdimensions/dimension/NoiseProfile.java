@@ -12,17 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * key space is groups x dimensions, so a handful of entries).
  *
  * <pre>
- * natural   freq 0.025  thresh 0.68  excl 1.0x   even, slightly sparser than vanilla
- * dense     freq 0.040  thresh 0.45  excl 0.6x   packed
- * sparse    freq 0.015  thresh 0.85  excl 1.5x   an occasional structure is an event
- * cluster   dual layer               excl 0.4x   empty wastes, then a dense pocket
+ * natural   freq 0.025  thresh 0.68  excl 2.0x   even, slightly sparser than vanilla
+ * dense     freq 0.040  thresh 0.45  excl 1.6x   packed
+ * sparse    freq 0.015  thresh 0.85  excl 2.6x   an occasional structure is an event
+ * cluster   dual layer               excl 0.8x   empty wastes, then a dense pocket
  * </pre>
  *
  * `none` is not a profile — it is the absence of one, represented by a null
  * profile for that group. Making it a record would mean every caller had to
  * remember to test for it before building a placement.
  *
- * MIRRORED in scripts/seed/structure_placement.py (PROFILES). The constants
+ * MIRRORED in scripts/seed/noise_placement.py (PROFILES). The constants
  * here are the contract; change both together.
  */
 public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.Cluster {

@@ -6,7 +6,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T25](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T27](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
@@ -31,6 +31,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Unbounded wait loops over SSH | A crashing container never becomes healthy. One `sleep N` outside a loop is fine |
 | `docker restart mc` on production | Skips the countdown, kick, save-flush and whitelist dance. Use `deploy.sh` or Discord `/mc restart` |
 | Retry a failing Kuma login | See [T7](#t7) — the password is never the problem, and retrying risks fail2ban |
+| `/locate` (any form) on a server with players | Blocks the main thread until every client times out and drops. See [T17](#t17) |
 | Poll a CI run repeatedly | Check once, hand over the Actions URL, stop |
 | Anything that touches the game port on an interval | Defeats autopause |
 
@@ -65,6 +66,9 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Structures generating in a void/superflat dimension | [T22](#t22) |
 | `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
 | A RETURN/`@ModifyReturnValue` hook on StructureWeightSampler never fires | [T24](#t24) |
+| Flat slabs of terrain hanging under floating-island structures | [T26](#t26) |
+| Buildings on cliff shelves, or sunk into the floor | [T26](#t26) |
+| A fill kernel makes solid terrain in open sky | [T27](#t27) |
 | A `structures.force` position never generates its structure | [T25](#t25) |
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -211,6 +215,13 @@ Each of these has caused a real incident.
   the COMMAND, not the channel: locating a vanilla village in the stock
   overworld times out at 120 s, and Chunky pre-generation does not change it
   (measured 2026-07-27).
+- **On a server with players, `/locate` is not merely slow — it kicks them.**
+  The search blocks the main thread long enough that every connected client
+  times out and drops (observed on production and locally, 2026-08-09). Treat
+  `/locate` as a player-affecting command, never a read-only probe, and never
+  run one on production while anyone is on. Use `structure-census` +
+  `scripts/check-noise-regression.py` for placement questions, and
+  `/customdim occupant` for "what is actually in this chunk".
 - **Fix:** do not parse RCON output. Diagnostic commands write versioned JSON
   under `data/config/custom-dimensions/` and answer with a summary plus a
   path; checkers in `scripts/` assert over those files with no server
@@ -441,6 +452,69 @@ Each of these has caused a real incident.
   delivers kernel density via `ChunkNoiseSampler.<init>` for exactly this
   reason. Treat a silent RETURN-side instrument as *unmeasured*, never as
   evidence the code path is dead.
+
+<a id="t26"></a>
+### T26 — A theme default read `none` as "unset" and bearded 130 structure authors who meant it
+
+- **Symptom:** flat rectangular slabs of terrain hanging in mid-air beneath
+  structures on Terralith Skylands islands (overworld, y≈250–320); village
+  buildings raised on shelves cut into cliffsides; other buildings sunk into
+  the floor. Reported in play 2026-08-09.
+- **Cause:** `structure_type_defaults.json`'s `terrainAdaptation` table
+  mapped `settlements → beard_thin`, `dungeons → bury`, `landmarks →
+  beard_box`, `endgame → beard_box`, applied by
+  `TerrainAdaptationOverride.resolveName` wherever the structure's registry
+  value was `none`. The premise — that `none` means the author left it unset
+  — is false: vanilla's codec defaults the field to `none`, so "chose none"
+  and "wrote nothing" are indistinguishable, and **23 of vanilla 1.21.1's 34
+  structures declare nothing** (mansion, desert_pyramid, jungle_pyramid,
+  igloo, swamp_hut, monument, shipwreck, all six ruined_portals, mineshaft,
+  end_city, fortress, bastion_remnant), while every structure that wants a
+  beard declares one (`village_* → beard_thin`, `ancient_city → beard_box`,
+  `stronghold → bury`). The table was overruling authors, not filling gaps:
+  `Dimension overworld: terrain adaptation overridden for 130 structure(s)`.
+  `beard_box` fills a structure's whole bounding box, so on a floating island
+  the box hangs below the island and the fill becomes a free-standing slab.
+- **Fix (in place):** the theme defaults are now blend-strength only —
+  `settlements` and `landmarks` map to the `ground_blend` kernel, `dungeons`
+  and `endgame` to nothing. See [T27](#t27) for why magnitude is the whole
+  mechanism.
+- **Note the granularity trap:** this is the OVERWORLD. Terralith puts
+  Skylands biomes inside it, so a fix keyed on dimension type cannot work —
+  one dimension holds both normal ground and floating islands.
+
+<a id="t27"></a>
+### T27 — Fill kernels do not self-exempt at altitude; 0.4583 is the entire mechanism
+
+- **Symptom:** a fill kernel used as a general "integrate with the ground"
+  default manufactures solid terrain in open sky — a `pedestal` on a floating
+  island is a 64-block-deep cone, 100 blocks across, hanging in the air.
+- **Cause:** `KernelDensity` adds the kernel term to the FINAL block-state
+  density (`ChunkNoiseSamplerMixin`, `STORE ordinal 0`), whose terrain term
+  ends in `squeeze`:
+  `min(squeeze(0.64 × interpolated(blend_density(…))), noodle) + …`.
+  `squeeze` clamps its input to [-1, 1], so the term is bounded to ±0.4583
+  and **pinned at −0.4583 in open sky however high you go**. `pedestal`
+  (+2.5) and `platform_skirt` (+2.0) are deliberately guarantee-strength and
+  therefore unconditional: they beat that floor everywhere. There is no
+  altitude awareness anywhere in the kernels.
+
+  | raw terrain | final (squeezed) | +0.30 | +2.5 |
+  | --- | --- | --- | --- |
+  | ≤ −1.56 (open sky) | −0.458 (clamped) | air | solid |
+  | −1.0 | −0.303 | air | solid |
+  | −0.5 | −0.159 | solid | solid |
+
+- **Fix:** pick magnitude by intent. Above ~0.46 a fill is a **guarantee**
+  (`pedestal`, `platform_skirt` — the author wants terrain manufactured);
+  below it the fill is a **blend** that can only finish terrain already near
+  the surface (`ground_blend`, 0.30, 10 deep — the theme default). Never
+  raise `ground_blend` to force a stubborn case; that converts it into a
+  guarantee and puts terrain back in the sky.
+- **Documentation hazard:** the worldgen-tuning skill previously claimed
+  "sky-anchored pieces self-exempt (density too negative at altitude)". That
+  is false, and its own family table contradicted it (`pedestal` in
+  `sky_islands`: 60/60 air probes packed solid). Corrected 2026-08-09.
 
 ---
 

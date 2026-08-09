@@ -179,8 +179,8 @@ class NoiseProfileTest {
     @Test
     void clusterPlacesLessOftenThanSparse() {
         // The whole point: mostly empty, then a dense pocket. Overall density
-        // must come out below `sparse` even though the fine layer's threshold
-        // (0.40) is the lowest of any profile.
+        // must come out below `sparse` even though the fine layer's frequency
+        // (0.05) is the highest of any profile.
         int placed = 0;
         int total = 0;
         for (int cx = -WINDOW; cx < WINDOW; cx += STEP) {
@@ -228,10 +228,10 @@ class NoiseProfileTest {
 
     @Test
     void exclusionMultipliersMatchTheSpec() {
-        assertEquals(1.0, NoiseProfile.NATURAL.exclusionMultiplier(), 0.0);
-        assertEquals(0.6, NoiseProfile.DENSE.exclusionMultiplier(), 1e-9);
-        assertEquals(1.5, NoiseProfile.SPARSE.exclusionMultiplier(), 1e-9);
-        assertEquals(0.4, NoiseProfile.CLUSTER.exclusionMultiplier(), 1e-9);
+        assertEquals(2.0, NoiseProfile.NATURAL.exclusionMultiplier(), 0.0);
+        assertEquals(1.6, NoiseProfile.DENSE.exclusionMultiplier(), 1e-9);
+        assertEquals(2.6, NoiseProfile.SPARSE.exclusionMultiplier(), 1e-9);
+        assertEquals(0.8, NoiseProfile.CLUSTER.exclusionMultiplier(), 1e-9);
     }
 
     @Test
@@ -239,7 +239,7 @@ class NoiseProfileTest {
         assertEquals(0.68, NoiseProfile.NATURAL.threshold(), 1e-9);
         assertEquals(0.45, NoiseProfile.DENSE.threshold(), 1e-9);
         assertEquals(0.85, NoiseProfile.SPARSE.threshold(), 1e-9);
-        assertEquals(0.40, NoiseProfile.CLUSTER.threshold(), 1e-9);
+        assertEquals(0.80, NoiseProfile.CLUSTER.threshold(), 1e-9);
     }
 
     // --- fromString ------------------------------------------------------

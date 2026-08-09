@@ -41,6 +41,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * <li>the structure's own registry value</li>
  * </ol>
  *
+ * The theme defaults must stay BLEND-strength (see
+ * {@link TerrainKernel#GROUND_BLEND}), because {@code none} in the registry
+ * is usually a deliberate choice rather than an omission — 23 of vanilla
+ * 1.21.1's 34 structures declare no adaptation, mansion and desert_pyramid
+ * among them, while every structure that wants a beard declares one. A
+ * guarantee-strength default therefore overrules ~130 authors per overworld
+ * and manufactures terrain where they meant none (T26).
+ *
  * Maps are installed per world at calculator-rebuild time
  * ({@link DimensionStructures}) and only carry entries that DIFFER from the
  * registry value, keyed by registry-singleton identity so the armed lookup is
@@ -165,8 +173,8 @@ public final class TerrainAdaptationOverride {
 
     /**
      * Parses an adaptation name; warns and returns null on an unknown one.
-     * Kernel names (pedestal/platform_skirt/moat) resolve to NONE here —
-     * vanilla must ignore those structures; their shape is a
+     * Kernel names (pedestal/platform_skirt/moat/drain/ground_blend) resolve
+     * to NONE here — vanilla must ignore those structures; their shape is a
      * {@link TerrainKernel} the caller registers separately.
      */
     static StructureTerrainAdaptation parse(String name, String context) {
@@ -186,7 +194,8 @@ public final class TerrainAdaptationOverride {
                 MultiverseServer.LOGGER.warn(
                         "Unknown terrainAdaptation '{}' ({}) — expected none/beard_thin/"
                         + "beard_box/bury/encapsulate or a kernel "
-                        + "(pedestal/platform_skirt/moat); keeping the registry value",
+                        + "(pedestal/platform_skirt/moat/drain/ground_blend); "
+                        + "keeping the registry value",
                         name, context);
                 yield null;
             }

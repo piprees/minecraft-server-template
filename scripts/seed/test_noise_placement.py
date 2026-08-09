@@ -68,15 +68,15 @@ class TestNoise(unittest.TestCase):
 class TestProfiles(unittest.TestCase):
     def test_constants_match_the_mod(self):
         self.assertEqual((npl.NATURAL.frequency, npl.NATURAL.threshold,
-                          npl.NATURAL.exclusion_multiplier), (0.025, 0.68, 1.0))
+                          npl.NATURAL.exclusion_multiplier), (0.025, 0.68, 2.0))
         self.assertEqual((npl.DENSE.frequency, npl.DENSE.threshold,
-                          npl.DENSE.exclusion_multiplier), (0.040, 0.45, 0.6))
+                          npl.DENSE.exclusion_multiplier), (0.040, 0.45, 1.6))
         self.assertEqual((npl.SPARSE.frequency, npl.SPARSE.threshold,
-                          npl.SPARSE.exclusion_multiplier), (0.015, 0.85, 1.5))
+                          npl.SPARSE.exclusion_multiplier), (0.015, 0.85, 2.6))
         self.assertEqual((npl.CLUSTER.coarse_frequency, npl.CLUSTER.frequency,
                           npl.CLUSTER.coarse_threshold, npl.CLUSTER.threshold,
                           npl.CLUSTER.exclusion_multiplier),
-                         (0.008, 0.05, 0.90, 0.40, 0.4))
+                         (0.008, 0.05, 0.90, 0.8, 0.8))
 
     def test_from_string(self):
         self.assertIs(npl.profile_from_string("natural"), npl.NATURAL)
@@ -358,8 +358,8 @@ class TestGroupResolution(unittest.TestCase):
             {"type": "multi_biome", "structures": {"noise": "dense"}}, self.defaults)
         sparse = npl.resolve_groups(
             {"type": "multi_biome", "structures": {"noise": "sparse"}}, self.defaults)
-        self.assertEqual(dense["deco"]["exclusion"], 2)
-        self.assertEqual(sparse["deco"]["exclusion"], 5)
+        self.assertEqual(dense["deco"]["exclusion"], 5)
+        self.assertEqual(sparse["deco"]["exclusion"], 8)
 
     def test_census_produces_positions_per_group(self):
         census = npl.noise_census(

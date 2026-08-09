@@ -61,7 +61,33 @@ public enum TerrainKernel {
      * boundary with stone wherever it meets water. See
      * {@link #wrapFluidSampler}.
      */
-    DRAIN;
+    DRAIN,
+
+    /**
+     * A short skirt of fill that closes the gap between a structure's base
+     * and ground that is already nearly there — the theme default, and the
+     * only kernel that is a BLEND rather than a guarantee.
+     *
+     * Its magnitude is the whole point. The final block-state density this
+     * is added to ends in {@code squeeze}, which bounds the terrain term to
+     * ±0.4583 and PINS open sky at −0.4583 however high you go. A
+     * guarantee-strength fill (pedestal 2.5, skirt 2.0) therefore packs air
+     * solid at any altitude — on a Terralith skyland that is a 64-block cone
+     * hanging in the sky. {@link #GROUND_BLEND_FILL} sits inside the squeeze
+     * band instead, so it can only finish terrain that is already close:
+     *
+     * <pre>
+     * raw ≤ −1.56 (open sky)   final −0.458 (clamped)  +0.30 → −0.158 air
+     * raw = −1.0               final −0.303            +0.30 → −0.003 air
+     * raw = −0.5               final −0.159            +0.30 → +0.141 solid
+     * </pre>
+     *
+     * Nothing about that is altitude-aware; it falls out of the squeeze, and
+     * it is why this kernel must never be "strengthened" to make a stubborn
+     * case work. Reach for PEDESTAL when the terrain genuinely has to be
+     * manufactured.
+     */
+    GROUND_BLEND;
 
     /** Depth below the base a pedestal keeps building support for. */
     static final int PEDESTAL_DEPTH = 64;
@@ -72,6 +98,17 @@ public enum TerrainKernel {
     static final int MOAT_FLOOR = 7;
     static final int MOAT_RIM = 8;
 
+    /** Shallow on purpose: a blend closes a gap, it does not build a plinth. */
+    static final int GROUND_BLEND_DEPTH = 10;
+    static final int GROUND_BLEND_APRON = 2;
+
+    /**
+     * Inside the ±0.4583 squeeze band, so open sky (pinned at −0.4583) stays
+     * air while near-surface air fills. Raising this past ~0.46 makes the
+     * kernel unconditional and reintroduces sky terrain.
+     */
+    static final double GROUND_BLEND_FILL = 0.30;
+
     public static TerrainKernel parse(String name) {
         if (name == null) {
             return null;
@@ -81,6 +118,7 @@ public enum TerrainKernel {
             case "platform_skirt" -> PLATFORM_SKIRT;
             case "moat" -> MOAT;
             case "drain" -> DRAIN;
+            case "ground_blend" -> GROUND_BLEND;
             default -> null;
         };
     }
@@ -138,6 +176,20 @@ public enum TerrainKernel {
                 // a few blocks under a rise, or the ring fades into any
                 // modest hillside.
                 yield -1.2 * ring * vert;
+            }
+            case GROUND_BLEND -> {
+                if (depth <= 0 || depth > GROUND_BLEND_DEPTH) {
+                    yield 0.0;
+                }
+                // Barely flares with depth — a fillet at the foot of the
+                // structure, not a cone. Fades over the last few blocks of
+                // depth as well as outwards, so the skirt's underside is a
+                // taper rather than a cut edge.
+                double edge = GROUND_BLEND_APRON + depth * 0.25;
+                double lateral = MathHelper.clampedMap(dxz - edge, 0.0, 3.0, 1.0, 0.0);
+                double vertical = MathHelper.clampedMap(
+                        depth, GROUND_BLEND_DEPTH - 3.0, GROUND_BLEND_DEPTH, 1.0, 0.0);
+                yield GROUND_BLEND_FILL * lateral * vertical;
             }
             // Density-neutral: the drain works through the aquifer's fluid
             // levels, not the terrain shape.

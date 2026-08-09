@@ -1,10 +1,10 @@
 {
- "stackVersion": "5.1.0",
+ "stackVersion": "0.0.0-local",
  "kind": "structure-census",
- "generatedAt": "2026-08-05T07:16:58.698918671Z",
+ "generatedAt": "2026-08-09T17:49:09.751413711Z",
  "schemaVersion": 2,
  "dimension": "adventure:the_dustbowl",
- "seed": 9193281158218823422,
+ "seed": 8787252635433085316,
  "groups": {},
  "forced": {
   "explorify:farmstead": [[-6,-20]]

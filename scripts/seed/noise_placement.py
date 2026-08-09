@@ -387,10 +387,10 @@ class NoiseProfile:
         return sampler(seed ^ FINE_SALT).sample_chunk(chunk_x, chunk_z, freq)
 
 
-NATURAL = NoiseProfile("natural", 0.025, 0.68, 1.0)
-DENSE = NoiseProfile("dense", 0.040, 0.45, 0.6)
-SPARSE = NoiseProfile("sparse", 0.015, 0.85, 1.5)
-CLUSTER = NoiseProfile("cluster", 0.05, 0.40, 0.4,
+NATURAL = NoiseProfile("natural", 0.025, 0.68, 2.0)
+DENSE = NoiseProfile("dense", 0.040, 0.45, 1.6)
+SPARSE = NoiseProfile("sparse", 0.015, 0.85, 2.6)
+CLUSTER = NoiseProfile("cluster", 0.05, 0.8, 0.8,
                        coarse_frequency=0.008, coarse_threshold=0.90, cluster=True)
 
 PROFILES = {

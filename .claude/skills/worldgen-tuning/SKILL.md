@@ -85,21 +85,49 @@ Each dimension file in `config/custom-dimensions/dimensions/<slug>.json` accepts
 `structures.terrainAdaptation` accepts, per structure id or group name, the
 vanilla adaptations (`none`/`beard_thin`/`beard_box`/`bury` — live on this
 stack, see [TROUBLESHOOTING.md#t24](../../../TROUBLESHOOTING.md#t24)) and
-four custom kernels delivered by `KernelDensity` over the chunk's final
+five custom kernels delivered by `KernelDensity` over the chunk's final
 block-state density function. Verified per terrain family by forced-structure
 A/B fixtures (same seed, kernel vs none, probes chosen where the baseline is
-informative):
+informative).
+
+**The jar theme defaults** (`structure_type_defaults.json` →
+`terrainAdaptation`) fill only a `none` registry value, and must stay
+blend-strength — `settlements` and `landmarks` map to `ground_blend`,
+`dungeons` and `endgame` to nothing. A guarantee-strength default overrules
+~130 structure authors per overworld and manufactures terrain they meant to
+leave alone ([TROUBLESHOOTING.md#t26](../../../TROUBLESHOOTING.md#t26)).
 
 | Kernel | overworld | paradise_lost | cave | nether | end | sky_islands |
 | --- | --- | --- | --- | --- | --- | --- |
 | `pedestal` (fill, 2.5) | ✓ live | ✓ 7/7 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 | ✓ 60/60 |
 | `platform_skirt` (fill, 2.0) | ✓ live | ✓ 13 pts | fill path shared with pedestal | fill path shared | fill path shared | fill path shared |
+| `ground_blend` (fill, 0.30) | ✓ live | fill path shared | fill path shared | fill path shared | fill path shared | ✓ stays air |
 | `moat` (carve, −1.2) | ✓ live | ✓ 23/60 | ✓ 5/60 | self-limits | self-limits | self-limits |
 | `drain` (fluid excl.) | ✓ live pocket | family-independent (wraps the chunk's FluidLevelSampler) | — | — | — | — |
 
-- **Fills are guarantee-strength everywhere**: every under-piece air target
-  packed solid on every family. Sky-anchored pieces self-exempt (density too
-  negative at altitude) — correct emergent behaviour, no absurd pillars.
+- **Magnitude decides whether a fill is a guarantee or a blend, and the
+  threshold is 0.4583.** `KernelDensity` adds the kernel on top of the FINAL
+  block-state density, whose terrain term ends in `squeeze` — bounded to
+  ±0.4583 and **pinned at −0.4583 in open sky, however high you are**. So a
+  fill above ~0.46 packs air solid at ANY altitude, and a fill below it can
+  only finish terrain that is already close to the surface. There is no
+  altitude awareness in the kernels themselves; this is the only mechanism.
+
+  | raw terrain | final (squeezed) | +0.30 | +2.5 |
+  | --- | --- | --- | --- |
+  | ≤ −1.56 (open sky) | −0.458 (clamped) | air | solid |
+  | −1.0 | −0.303 | air | solid |
+  | −0.5 | −0.159 | solid | solid |
+
+- **`pedestal` and `platform_skirt` are guarantees** (2.5 / 2.0, 64 / 48
+  blocks deep): they manufacture terrain unconditionally, which is what an
+  author asking for a motte wants. Do NOT reach for one as a general
+  "integrate with the ground" default — on a Terralith skyland a `pedestal`
+  is a solid 64-block cone, 100 blocks across, hanging in the sky.
+- **`ground_blend` is the blend** (0.30, 10 blocks deep, apron 2): the theme
+  default for `settlements` and `landmarks`. Never raise it past the squeeze
+  band to force a stubborn case — that converts it into a guarantee and
+  reintroduces sky terrain everywhere.
 - **The moat carves overworld-class density** (overworld, paradise_lost,
   cave surfaces) and **self-limits inside nether/end/sky island cores**,
   whose base density exceeds −1.2 — it will not crater dense interior

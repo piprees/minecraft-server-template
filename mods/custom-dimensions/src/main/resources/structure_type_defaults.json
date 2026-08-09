@@ -50,10 +50,8 @@
   ]
  },
  "terrainAdaptation": {
-  "settlements": "beard_thin",
-  "dungeons": "bury",
-  "landmarks": "beard_box",
-  "endgame": "beard_box"
+  "settlements": "ground_blend",
+  "landmarks": "ground_blend"
  },
  "groupDefaults": {
   "deco": {
