@@ -513,10 +513,11 @@ Each of these has caused a real incident.
   the surface (`ground_blend`, 0.30, 10 deep — the theme default). Never
   raise `ground_blend` to force a stubborn case; that converts it into a
   guarantee and puts terrain back in the sky.
-- **Documentation hazard:** the worldgen-tuning skill previously claimed
-  "sky-anchored pieces self-exempt (density too negative at altitude)". That
-  is false, and its own family table contradicted it (`pedestal` in
-  `sky_islands`: 60/60 air probes packed solid). Corrected 2026-08-09.
+- **Fills do not self-exempt at altitude.** The family table's `pedestal`
+  row for `sky_islands` reads 60/60 air probes packed solid — that is the
+  fill working everywhere, not evidence of a height cutoff. Any claim that a
+  fill kernel spares open sky is wrong whatever its magnitude; only a
+  magnitude under the squeeze band spares it.
 
 <a id="t29"></a>
 ### T29 — A staleness check only knows the schema generation it was written in
@@ -532,19 +533,25 @@ Each of these has caused a real incident.
   TB regions, so the gate passes on a table that is missing the newer half
   entirely. The file-absent path is no escape hatch: the shipped copy is
   copied in *before* the check.
-- **Fix (in place):** the gate tests both generations, and the inner dump
-  guard tests both too — an early return that skips the work is worse than no
-  check. Every artefact this warms has its own freshness question, and each
-  new field is a new question, not a variant of the old one.
-- **Same failure, three places, one evening (2026-08-09):** this gate;
-  `test_tb_uniqueness_live` hard-failing instead of skipping on the same
-  missing sentinel (which made the platform repo uncommittable after any
-  `./dev seed-roll --reset`, since the pre-commit hook runs the suite); and
-  [T28](#t28), where a vectorised path assumed a bound that only held for the
-  input sizes that existed when it was written. **When you add a field to a
-  cached artefact, grep for every check that decides whether that artefact is
-  fresh** — the fingerprint corollary in `generation_payload()` is the same
-  rule, already learned once for seed groups.
+- **Fix (in place):** the outer gate and the inner dump guard both test every
+  generation of the table's schema. `test_tb_uniqueness_live` skips rather
+  than fails on the same missing sentinel — a hard failure there makes the
+  platform repo uncommittable after any `--reset`, because the pre-commit
+  hook runs the suite.
+- **Rule:** a new field in a cached artefact is a new freshness question, not
+  a variant of the old one. Adding one means finding every check that decides
+  whether that artefact is stale. Same rule as the fingerprint corollary in
+  `generation_payload()`.
+- **An overworld-only region table is correct here.** The dump yields
+  `overworld: 6 regions` and no nether table, and the nether fixture skips
+  with `no _tbRegions sentinel for type nether`. The nether's 13 biomes are 5
+  vanilla plus 8 Incendium, and Incendium places through the nether's own
+  multi-noise parameter list rather than TerraBlender region injection, so
+  `tbInjectedHere` is false and there is no table to emit. `Initialized
+  TerraBlender biomes for level stem minecraft:the_nether` in the boot log is
+  TB initialising the stem; it does not imply any mod registered regions for
+  it. Dumping the real `minecraft:the_nether` gives the same 14 entries as a
+  warmup clone — the dimension is not the variable.
 
 <a id="t28"></a>
 ### T28 — A negative Python slice bound turned "off the grid" into a wrong-shaped array
@@ -564,11 +571,10 @@ Each of these has caused a real incident.
   rows" rather than "empty", so a non-empty array of the wrong height meets an
   empty destination. Latent since the vectorised path was written; only
   reachable once an exclusion radius exceeded the grid side.
-- **Trigger:** raising the profile exclusion multipliers (2026-08-09,
-  sparse 1.5 → 2.6). `endgame` base 20 × sparse 2.6 = 52, `/sqrt(1.55)` from
-  the `outer` curve → 42; a `borders.player: 256` dimension is `r=16`,
-  `side=33`. Under the old ×1.5 the same group resolved to 24, comfortably
-  inside the grid, so nothing ever tripped it.
+- **Reachable when an exclusion radius exceeds the grid side** (2026-08-09).
+  `endgame` base 20 × sparse 2.6 = 52, `/sqrt(1.55)` from the `outer` curve
+  → 42; a `borders.player: 256` dimension is `r=16`, `side=33`. Retuning the
+  profile exclusion multipliers upward is what puts a group in that regime.
 - **Fix (in place):** skip rows shifted clear off the grid
   (`if dz <= -h or dz >= h: continue`). Exact — such a row contributes
   nothing. `test_noise_placement.py` pins both the crash and, more

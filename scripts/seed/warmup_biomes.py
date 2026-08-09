@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """warmup_biomes.py — Dump biome params for ALL dimension families.
 
-Boots a short-lived MC server, creates one dimension per family (nether,
-end, paradise_lost), dumps biome params via RCON, and merges them into
-biome_params.json. Runs once during warmup; cached for all future rolls.
+Boots a short-lived MC server, dumps biome params for each family's BASE
+WORLD via RCON, and merges them into biome_params.json. Runs once during
+warmup; cached for all future rolls.
+
+Each family dumps its base world directly. Base worlds exist from the first
+tick (TROUBLESHOOTING.md#t18), so no dimension is created or destroyed.
+
+A family whose biomes reach the world through TerraBlender also yields a
+`_tbRegions` table; one whose biomes come from the dimension's own
+multi-noise parameter list does not, and its absence is not a fault. The
+summary reports which tables were produced — a table missing its region half
+otherwise stays invisible until a roll has scored against it (T29).
 
 Uses docker exec rcon-cli for ALL RCON commands — the Python RCON socket
-enters a bad state after the boot warmup's create/destroy cycle.
+enters a bad state after the boot warmup's RCON cycle.
 """
 import argparse
 import json
@@ -19,11 +28,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from seed_worker import boot, docker, prepare_boot_dir  # noqa: E402
 
+#: (dimension id to dump, create type or None, family tag). A create type is
+#: retained only as a fallback for a family with no base world on this stack.
 FAMILIES = [
     ("minecraft:overworld", None, "overworld"),
-    ("_warmup_nether", "nether", "nether"),
-    ("_warmup_end", "end", "end"),
-    ("_warmup_paradise", '"paradise_lost:paradise_lost"', "paradise_lost"),
+    ("minecraft:the_nether", None, "nether"),
+    ("minecraft:the_end", None, "end"),
+    ("paradise_lost:paradise_lost", None, "paradise_lost"),
 ]
 
 
@@ -114,6 +125,21 @@ def main():
     print(f"  Merged: {len(all_entries)} entries "
           f"({', '.join(f'{k}: {len(v)}' for k, v in sorted(families.items()))})",
           flush=True)
+
+    # A table's region half is invisible in the entry count, so report it.
+    regions = {}
+    for e in all_entries:
+        if "_tbRegions" in e:
+            s = e["_tbRegions"]
+            regions[s.get("type", "overworld")] = len(s.get("regions") or [])
+    if regions:
+        print("  TB region tables: "
+              + ", ".join(f"{k}: {v} regions" for k, v in sorted(regions.items())),
+              flush=True)
+    else:
+        print("  WARNING: no _tbRegions tables dumped — TerraBlender-placed "
+              "biomes will be scored against the flat union only (T29)",
+              flush=True)
     return 0
 
 

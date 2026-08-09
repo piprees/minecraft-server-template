@@ -117,11 +117,10 @@ class TestFieldIndex(unittest.TestCase):
     def test_exclusion_larger_than_the_grid(self):
         """A small dimension with a big exclusion — the disc exceeds the grid.
 
-        endgame's base 20 at sparse x2.6 is 52, and a 256-block border is a
-        33-cell side, so this is a shipped combination, not a contrived one.
-        `_disc_max` shifted rows clear off the grid and sliced `row[:h + dz]`
-        with a NEGATIVE bound, which Python reads as from-the-end and numpy
-        then refused to broadcast:
+        A shipped combination: endgame's base 20 at sparse x2.6 is 52, and a
+        256-block border is a 33-cell side. `_disc_max` slices `row[:h + dz]`,
+        which with a negative bound reads as from-the-end and yields a
+        wrong-height array instead of an empty one (T28):
           ValueError: operands could not be broadcast together with
           shapes (0,33) (24,33) (0,33)
         """

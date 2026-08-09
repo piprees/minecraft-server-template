@@ -79,13 +79,11 @@ class TestTBUniquenessLive(unittest.TestCase):
                 "biome_params.json not present at %s — "
                 "run dump-biome-params on the live server first"
                 % BIOME_PARAMS)
-        # A table with no _tbRegions sentinel is the PLAIN platform copy, not
-        # a broken dump: `./dev seed-roll --reset` re-seeds .seedtest from
-        # scripts/seed/biome_params.json, which ships as a bare list. That is
-        # "no live dump available" — the same condition as the file being
-        # absent, and the same condition the per-type skip below handles. A
-        # hard failure here made the platform repo uncommittable after every
-        # --reset, since the pre-commit gate runs this suite.
+        # No sentinel means the plain platform copy, which `--reset` restores
+        # from scripts/seed/biome_params.json — "no live dump to compare
+        # against", the same condition as the file being absent. Failing here
+        # instead of skipping makes the repo uncommittable after any --reset,
+        # because the pre-commit gate runs this suite (T29).
         from tb_regions import load_tb_regions
         if not load_tb_regions(str(BIOME_PARAMS)):
             raise unittest.SkipTest(
