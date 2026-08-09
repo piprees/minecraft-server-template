@@ -405,6 +405,13 @@ class RenderWorker:
                       "render_pending": 0, "render_done": 0,
                       "render_stage": "idle"}
 
+    @staticmethod
+    def _log(msg):
+        """Rendering is minutes of CPU per target with its subprocess output
+        captured, so the terminal is otherwise silent for hours and a stall
+        is indistinguishable from work."""
+        print(f"[render] {msg}", flush=True)
+
     def snapshot(self):
         with self.lock:
             return dict(self.state)
@@ -458,20 +465,29 @@ class RenderWorker:
         return plan
 
     def _run(self):
+        was_idle = False
         while not self.stop_flag.is_set():
             self.wake.clear()
             try:
                 plan = self._plan()
             except Exception as exc:
                 self._set(render_stage=f"plan failed: {str(exc)[:120]}")
+                self._log(f"plan failed: {str(exc)[:200]}")
                 self.wake.wait(self.IDLE_SECONDS)
                 continue
             if not plan:
                 self._set(render_stage="idle", render_pending=0,
                           rendering_low=[], rendering_high=[])
+                if not was_idle:
+                    self._log("all renders up to date — waiting for new candidates")
+                    was_idle = True
                 self.wake.wait(self.IDLE_SECONDS)
                 continue
-            self._set(render_pending=sum(n for _n, n in plan))
+            was_idle = False
+            pending = sum(n for _n, n in plan)
+            self._set(render_pending=pending)
+            self._log(f"{len(plan)} target(s), {pending} image(s) to render "
+                      f"on {self.workers} worker(s)")
             for name, _missing in plan:
                 if self.stop_flag.is_set():
                     break
@@ -495,13 +511,26 @@ class RenderWorker:
                     "--workers", str(self.workers)]
             if suffix:
                 argv += ["--suffix", suffix]
+            t0 = time.time()
             try:
-                subprocess.run(argv, capture_output=True, text=True, timeout=3600)
+                proc = subprocess.run(argv, capture_output=True, text=True,
+                                      timeout=3600)
+                if proc.returncode != 0:
+                    # capture_output hides the renderer's own diagnostics, so
+                    # a non-zero exit is otherwise a silently missing image.
+                    tail = (proc.stderr or proc.stdout or "").strip().splitlines()
+                    self._set(render_stage=f"{name}: exit {proc.returncode}")
+                    self._log(f"{name} {label}: exit {proc.returncode}"
+                              + (f" — {tail[-1][:200]}" if tail else ""))
             except Exception as exc:
                 self._set(render_stage=f"{name}: render failed — {str(exc)[:120]}")
+                self._log(f"{name} {label}: FAILED — {str(exc)[:200]}")
             self._set(**{label: []})
             with self.lock:
                 self.state["render_done"] += 1
+                done, pending = self.state["render_done"], self.state["render_pending"]
+            self._log(f"{name} {label.replace('rendering_', '')} "
+                      f"[{done}/{pending}] in {time.time() - t0:.0f}s")
 
 
 class Pipeline:

@@ -45,6 +45,11 @@ from dimension_profiles import (  # noqa: E402
 )
 from structure_placement import load_structure_sets, nearest_structure  # noqa: E402
 
+#: Seconds between progress ticks while groups are still running. Completion
+#: is the only other signal and a tier-1 group on a large pool takes minutes,
+#: so without a tick the roller looks identical to a hang.
+PROGRESS_TICK_SECONDS = 30
+
 
 class MemoSampler:
     """Point-caching wrapper for seed-group rolling: within a fingerprint
@@ -686,17 +691,33 @@ def main():
         h, m = divmod(m, 60)
         return f"{h}h{m:02d}m" if h else f"{m}m{s:02d}s"
 
-    def _log_group(done, total, elapsed, group_results):
-        pct = 100 * done / total
+    def _elapsed_str(elapsed):
         em, es = divmod(int(elapsed), 60)
         eh, em = divmod(em, 60)
-        e_str = f"{eh}h{em:02d}m" if eh else f"{em}m{es:02d}s"
+        return f"{eh}h{em:02d}m" if eh else f"{em}m{es:02d}s"
+
+    def _log_group(done, total, elapsed, group_results):
+        pct = 100 * done / total
         eta = _format_eta(done, total, elapsed)
         names = [r[0] for r in group_results]
         acc = sum(r[2] for r in group_results)
         label = names[0] if len(names) == 1 else f"{len(names)} members"
-        print(f"  [{done}/{total}] {pct:4.1f}% | {e_str} elapsed, "
+        print(f"  [{done}/{total}] {pct:4.1f}% | {_elapsed_str(elapsed)} elapsed, "
               f"~{eta} remaining | {label}, {acc} accepted",
+              flush=True)
+
+    def _log_wait(done, total, elapsed):
+        """Tick while groups are still running.
+
+        Completion is the only other progress signal, and a tier-1 group on a
+        large pool runs for many minutes — so without this the roller prints
+        its header and then nothing at all, with no way to tell work in
+        progress from a hang.
+        """
+        in_flight = min(num_workers, total - done)
+        print(f"  [{done}/{total}] {100 * done / total:4.1f}% | "
+              f"{_elapsed_str(elapsed)} elapsed, ~{_format_eta(done, total, elapsed)} "
+              f"remaining | {in_flight} group(s) in flight",
               flush=True)
 
     csv_new = not Path(csv_path).exists()
@@ -721,7 +742,15 @@ def main():
     n_tasks = len(tasks)
     if num_workers > 1 and n_tasks > 1:
         with multiprocessing.Pool(num_workers) as pool:
-            for group in pool.imap_unordered(_process_group, tasks):
+            pending = pool.imap_unordered(_process_group, tasks)
+            while True:
+                try:
+                    group = pending.next(timeout=PROGRESS_TICK_SECONDS)
+                except multiprocessing.TimeoutError:
+                    _log_wait(len(grouped_results), n_tasks, time.time() - t0)
+                    continue
+                except StopIteration:
+                    break
                 grouped_results.append(group)
                 a, r = _flush_group_csv(group)
                 total_accepted += a
