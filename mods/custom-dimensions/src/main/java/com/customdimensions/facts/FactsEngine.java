@@ -40,6 +40,13 @@ import java.util.TreeMap;
  */
 public final class FactsEngine {
 
+    /**
+     * Block spacing for the nine columns probed around spawn. One chunk, so
+     * "local relief" is relief a standing player could see, not a hillside
+     * measured across a fifth of the world.
+     */
+    private static final int SPAWN_PROBE_STEP = 16;
+
     /** Grid samples across the diameter. Odd, so spawn is a sample. */
     public static final int GRID = 41;
 
@@ -72,7 +79,7 @@ public final class FactsEngine {
 
         return new SeedFacts(
                 dimensionId.toString(), seed, Instant.now().toString(), fingerprint, radius,
-                spawnFacts(rig, grid),
+                spawnFacts(rig),
                 biomeFacts(grid),
                 terrainFacts(grid, rig),
                 structureFacts(server, def, base, seed, radius));
@@ -117,27 +124,30 @@ public final class FactsEngine {
 
     // ----------------------------------------------------------------- spawn
 
-    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig, Grid grid) {
+    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig) {
         SpikeSampler.Sample at = SpikeSampler.sample(rig, 0, 0);
         Measured<Integer> h = at.surfaceHeight() == null
                 ? Measured.absent(at.heightAbsent() != null ? at.heightAbsent()
                         : "the generator answered no surface height at spawn")
                 : Measured.of(at.surfaceHeight());
 
-        // Local relief: the spread of the eight grid neighbours around spawn.
-        // A number for "is spawn on a cliff", which a single height cannot be.
-        int half = grid.side() / 2;
+        // Local relief: the spread over the chunk the player actually lands in.
+        // Sampled at SPAWN_PROBE_STEP rather than reused from the coarse grid,
+        // whose neighbours are (radius * 2) / (GRID - 1) apart — 204 blocks at
+        // a 4096 radius. A 34-block rise across 400 blocks is a gentle slope,
+        // and reading it as a cliff rejected nine of the bank's own winners.
         List<Integer> around = new ArrayList<>();
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                Integer v = grid.height()[(half + dz) * grid.side() + (half + dx)];
+                Integer v = SpikeSampler.sample(rig, dx * SPAWN_PROBE_STEP,
+                        dz * SPAWN_PROBE_STEP).surfaceHeight();
                 if (v != null) {
                     around.add(v);
                 }
             }
         }
         Measured<Double> relief = around.size() < 2
-                ? Measured.absent("fewer than two neighbouring columns answered a height")
+                ? Measured.absent("fewer than two columns near spawn answered a height")
                 : Measured.of((double) (java.util.Collections.max(around)
                         - java.util.Collections.min(around)));
 
