@@ -293,8 +293,12 @@ public final class NoisePoolBuilder {
         return out;
     }
 
-    /** Lowercased, null-safe set. Shared with DimensionStructures' filters. */
-    static Set<String> lowerSet(List<String> values) {
+    /**
+     * Lowercased, null-safe set. Shared with DimensionStructures' filters and
+     * with lint, which must assemble the same exclude union the live build
+     * uses or it reports a pool the world will not have.
+     */
+    public static Set<String> lowerSet(List<String> values) {
         if (values == null || values.isEmpty()) {
             return Set.of();
         }

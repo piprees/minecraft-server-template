@@ -880,6 +880,19 @@ public class DimensionManager {
         }
     }
 
+    /**
+     * The generator and dimension type a config would produce, built without
+     * creating (or touching) a ServerWorld.
+     *
+     * <p>Exists so the seed roller can sample a dimension it has no world for.
+     * It deliberately calls the same {@code createDimensionOptions} world
+     * creation uses rather than a parallel builder — a second builder is a
+     * mirror, and a mirror drifts.
+     */
+    public DimensionOptions buildOptionsHeadless(DimensionConfig def) {
+        return this.createDimensionOptions(def);
+    }
+
     public ServerWorld getOrCreateDimension(String dimName) {
         if (this.server == null) {
             return null;
