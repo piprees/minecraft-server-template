@@ -3,7 +3,7 @@
 
 Purpose:  Build three variants of the `structures` override datapack
           (default / dense / sparse) from the curated dial list in
-          scripts/data/structure-dials.csv. Each override is a
+          scripts/data/structure-dials.json. Each override is a
           WHOLE-FILE copy of the structure_set JSON from the exact pinned
           mod jar (world datapacks shadow mod data at the same path), with
           only placement fields changed.
@@ -43,17 +43,15 @@ Gotchas:  - Re-run when any structure mod pin bumps (weekly mod-updates PR);
 """
 
 import argparse
-import csv
 import io
 import json
 import re
-import sys
 import urllib.request
 import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-CSV_PATH = REPO / "scripts/data/structure-dials.csv"
+DIALS_PATH = REPO / "scripts/data/structure-dials.json"
 MODS_TXT = REPO / "config/modrinth-mods.txt"
 ACTIVE_OUT = REPO / "config/datapacks/structures"
 PRESETS_OUT = REPO / "config/datapack-presets"
@@ -176,11 +174,7 @@ MVS_DECO_SPARSE_FACTOR = 0.6
 
 
 def load_rows():
-    rows = []
-    with open(CSV_PATH, newline="") as fh:
-        for row in csv.DictReader(fh):
-            rows.append(row)
-    return rows
+    return json.loads(DIALS_PATH.read_text())
 
 
 def pins():
@@ -309,7 +303,7 @@ def main():
             # Baseline drift alarm: jar vs CSV `current`.
             cur = parse_current(row["current"] or "")
             if cur:
-                sp, se, fr = cur
+                sp, se, _ = cur
                 p = body["placement"]
                 if int(p.get("spacing", -1)) != sp or int(p.get("separation", -1)) != se:
                     print(f"  WARNING: {set_id} baseline drifted: jar "
@@ -359,7 +353,7 @@ def main():
     # structure_themes.json and structure-groups.json now; two writers to one
     # file silently fought, with whichever ran last winning.
     print("theme map: owned by scripts/gen-structure-groups.py — run it "
-          "after refreshing structure-sets-extracted.csv")
+          "after refreshing structure-sets-extracted.json")
 
 
 if __name__ == "__main__":

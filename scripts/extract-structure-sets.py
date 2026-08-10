@@ -6,11 +6,10 @@ Sources:
   2. Datapacks:     config/datapacks/*/data/*/worldgen/structure_set/*.json
   3. Vanilla JAR:   elfydd/data/versions/1.21.1/server-1.21.1.jar
 
-Output: scripts/data/structure-sets-extracted.csv
+Output: scripts/data/structure-sets-extracted.json
         config/custom-dimensions/extractors/structures.json  (v4 Phase 0)
 """
 
-import csv
 import json
 import os
 import re
@@ -24,7 +23,7 @@ ELFYDD_DIR = Path.home() / "Projects" / "elfydd"
 MODS_DIR = ELFYDD_DIR / "data" / "mods"
 VANILLA_JAR = ELFYDD_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"
-OUTPUT_CSV = PLATFORM_DIR / "scripts" / "data" / "structure-sets-extracted.csv"
+OUTPUT_EXTRACTED = PLATFORM_DIR / "scripts" / "data" / "structure-sets-extracted.json"
 OUTPUT_JSON = PLATFORM_DIR / "config" / "custom-dimensions" / "extractors" / "structures.json"
 
 # ── Dimension inference ──────────────────────────────────────────────
@@ -286,18 +285,18 @@ def main():
 
     final = sorted(seen.values(), key=lambda r: (r["mod_source"], r["structure_set_id"]))
 
-    # Write CSV
-    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
+    # Write the audit as one JSON object per structure set, field values
+    # stringified (rather than kept as native int/float) so a downstream
+    # reader written against the old CSV needs no type changes.
+    OUTPUT_EXTRACTED.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "mod_source", "structure_set_id", "theme", "structures",
         "spacing", "separation", "frequency", "dimensions", "rarity_class",
     ]
-    with open(OUTPUT_CSV, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(final)
+    rows_out = [{field: str(r[field]) for field in fields} for r in final]
+    OUTPUT_EXTRACTED.write_text(json.dumps(rows_out, indent=1) + "\n")
 
-    print(f"\nWrote {len(final)} structure sets to {OUTPUT_CSV}")
+    print(f"\nWrote {len(final)} structure sets to {OUTPUT_EXTRACTED}")
 
     # Machine-readable mirror for the v4 config tree (Phase 0 extractors).
     OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
