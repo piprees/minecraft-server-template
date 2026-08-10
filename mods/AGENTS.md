@@ -171,11 +171,17 @@ inline instead, by design — see the table below for which.
    (`structure-census`, `spike-compare`) that compare two measurements and
    report a capped pass/fail summary inline because the assertion IS the
    comparison, not a dump to inspect later.
-5. **`rejections.json` and `occupancy.json` are append-on-event records, not
-   regenerable dumps** — an entry is written once, when the event happens.
-   Deleting one erases the only proof the event happened; re-proving a
-   structural rejection means regenerating the chunk (move the region file
-   aside while mc is stopped, revisit).
+5. **`rejections__<ns>__<slug>.json` and `occupancy__<ns>__<slug>.json` are
+   append-on-event records of facts about THIS world's generated chunks, not
+   seed-rolling hypotheses** — they live under `Artefacts.censusDir(server)`
+   (`<world save root>/customdimensions/census/`, a sibling of `region/` and
+   `playerdata/` — inside `data/world/`, not `.seed-rolling/`), keyed by
+   dimension alone with no `inputHash`, so a `.seed-rolling` reset or a
+   config change never wipes them: a world wipe is the only thing that
+   should. An entry is written once, when the event happens; deleting one
+   erases the only proof it happened, and re-proving a structural rejection
+   means regenerating the chunk (move the region file aside while mc is
+   stopped, revisit).
 
 ### What exists today
 
@@ -185,8 +191,8 @@ inline instead, by design — see the table below for which.
 | `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | `/customdim render` | human-read |
 | `.seed-rolling/candidates/<inputHash>/<dim>/rejected.json` | the roller, on a pre-scoring gate failure | the roller, so a seed is never re-measured |
 | `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | `/customdim bank`, `/customdim winner` | human-read — the non-dominated set, not a single ranked winner |
-| `.seed-rolling/events/<inputHash>/<dim>/rejections.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
-| `.seed-rolling/events/<inputHash>/<dim>/occupancy.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
+| `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
+| `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
 | `.seed-rolling/lint/<hash>.json` | `/customdim lint [dimension]` | the command's own ERROR-count return value |
 | `.seed-rolling/lint/<hash>.structure-audit.json` | `/customdim structure-audit [group]` | human-read |
 | `data/config/custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
@@ -541,7 +547,8 @@ that structure iff the structure's own generation accepts the position, and
 by nothing else, ever. A structural rejection leaves the site empty and is
 itself recorded exactly: `NoiseStructureSelectionMixin` logs every rejection
 with dimension, group, structure id and chunk coordinates, and appends it to
-`census/rejections__<ns>__<slug>.json` via `Artefacts.write`.
+`<world save root>/customdimensions/census/rejections__<ns>__<slug>.json`
+(`Artefacts.censusDir(server)`) via `Artefacts.write`.
 
 Assignment: `StructurePick.assignedStructure(noiseSeed, cx, cz, sortedPool)`
 with `pickSeed = noiseSeed ^ saltOf("structure_pick")`. The sorted pool is a

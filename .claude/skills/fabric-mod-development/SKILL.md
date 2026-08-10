@@ -83,7 +83,7 @@ Check the mc boot log for a drift WARN FIRST if you are about to assert anything
 | Is persisted portal state sane? | `data/config/portal_links.json` | the mod, on load (`PortalStateValidator`) |
 | How was each set classified? | `/customdim structure-audit [group]` | writes `.seed-rolling/lint/<hash>.structure-audit.json`, human-read |
 
-`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `.seed-rolling/events/<inputHash>/<dim>/occupancy.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
+`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` — this world's own save, not `.seed-rolling`, since it's a fact about chunks that actually generated) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 

@@ -68,7 +68,7 @@ All commands live under one root, `/customdim`, and require permission level 4.
 | `/customdim locate-result <uuid>` | Collect the result of an async locate. |
 | `/customdim sample-noise <dimension> <x> <z>` | Generation ground-truth oracle: the router climate point at `(x & ~3, 0, z & ~3)`. |
 | `/customdim eval-df <dimension> <df_id> <x> <y> <z>` | Evaluate any registry density function at a block position through the dimension's own noise binding — the node-level oracle for DF-graph parity work. |
-| `/customdim occupant <dimension> <chunkX> <chunkZ>` | Read a LOADED chunk's live `StructureStart`s (never generates); appends `.seed-rolling/events/<inputHash>/<dim>/occupancy.json`. |
+| `/customdim occupant <dimension> <chunkX> <chunkZ>` | Read a LOADED chunk's live `StructureStart`s (never generates); appends `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` — this world's own save, not `.seed-rolling`. |
 | `/customdim structure-audit [group]` | Classify every structure set (group/rarity/theme); writes `.seed-rolling/lint/<hash>.structure-audit.json`. |
 | `/customdim structure-census <dimension>` | Needs a LOADED dimension. Compares the live `StructurePlacementCalculator` against a headless `FactsEngine` measurement of the same seed and reports mismatches inline — writes no file. |
 | `/customdim carver-draw <dimension> <chunkX> <chunkZ>` | Replay vanilla's would-be first draw beside the noise assignment for a chunk. |
@@ -286,8 +286,10 @@ resolves a deterministic weighted selection from the group's pool. The
 assignment governs generation via `NoiseStructureSelectionMixin`: only
 the assigned structure can start at a noise site, its biome predicate
 bypassed; a structural rejection leaves the site empty and is recorded in
-`.seed-rolling/events/<inputHash>/<dim>/rejections.json`, appended once per
-rejection as it happens.
+`<world save root>/customdimensions/census/rejections__<ns>__<slug>.json`
+(`Artefacts.censusDir(server)` — this world's own save, not `.seed-rolling`,
+because a rejection is a fact about chunks that actually generated), appended
+once per rejection as it happens.
 
 `/customdim structure-census` no longer dumps positions to a file — it
 measures the live world's own assignment and compares it against a headless
