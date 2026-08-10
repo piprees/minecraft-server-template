@@ -68,14 +68,8 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // inside the load event.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
                 com.customdimensions.portal.ExitShrineManager::onChunkLoad);
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            DimensionCommands.register(dispatcher);
-            var customdim = dispatcher.getRoot().getChild("customdim");
-            LOGGER.warn("DIAGNOSTIC: customdim node={} children={} names={}",
-                    customdim, customdim == null ? -1 : customdim.getChildren().size(),
-                    customdim == null ? "n/a" : customdim.getChildren().stream()
-                            .map(c -> c.getName()).sorted().toList());
-        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+            DimensionCommands.register(dispatcher));
         // Mining one pane of an arrival portal takes the whole portal, the way
         // vanilla's does. NetherPortalProtectionMixin defends registered
         // portal blocks from NEIGHBOUR updates (netherportalspread and friends
