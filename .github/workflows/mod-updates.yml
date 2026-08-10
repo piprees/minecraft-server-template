@@ -71,6 +71,7 @@ jobs:
         # the reviewer.
         if: steps.diff.outputs.changed == 'true'
         run: |
+          set -euo pipefail
           python3 scripts/gen-structure-presets.py 2>&1 | tee /tmp/gen-structures.log
           python3 scripts/gen-terrain-presets.py 2>&1 | tee /tmp/gen-terrain.log
           {
@@ -142,6 +143,7 @@ jobs:
         # census actually moved, independent of the pin diff.
         id: census
         run: |
+          set -euo pipefail
           python3 scripts/extract-structure-sets.py 2>&1 | tee /tmp/gen-census.log
           python3 scripts/extract-structure-sets.py --check
           python3 scripts/gen-structure-groups.py 2>&1 | tee -a /tmp/gen-census.log
@@ -210,6 +212,7 @@ jobs:
         # own stdout rather than steps.body.outputs.count, which isn't set
         # until this step finishes.
         run: |
+          set -euo pipefail
           python3 scripts/build-mod-update-report.py \
             --old /tmp/modrinth-mods.before.txt \
             --new config/modrinth-mods.txt \
