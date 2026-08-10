@@ -21,8 +21,12 @@ import net.minecraft.util.Identifier;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * {@code /customdim roll}, {@code roll-all}, {@code bank} and {@code winner}
@@ -122,6 +126,192 @@ public final class RollCommands {
                 + (frontier.size() == 1 ? " member" : " members") + " -> " + path;
         source.sendFeedback(() -> Text.literal(msg), false);
         return frontier.size();
+    }
+
+    /** One dimension's row in a {@code bank-all} scan. */
+    private record DimensionStatus(String dimension, boolean rollable, int candidates, int rejected,
+                                   int frontierSize, Long overlayWinnerSeed, int staleHashDirs) {
+    }
+
+    /**
+     * The bank's state across every configured dimension — the only way to
+     * answer "how much of this pack has been rolled" without one RCON round
+     * trip per dimension. A dimension with zero candidates is reported, not
+     * omitted: it is the work not yet done, and the most useful row here.
+     *
+     * <p>Only the CURRENT {@link InputHash} is counted as this dimension's
+     * candidates — an older hash directory is a config or a mod build that no
+     * longer exists, so its candidates cannot be compared against today's
+     * criteria. Every other hash directory sharing this dimension's slug is
+     * counted as stale rather than ignored or silently included, since {@code
+     * the_obsidian_sanctum} alone has accumulated five of them in one day; a
+     * stale count is a real, reclaimable fact, not a number to hide.
+     *
+     * <p>The directory walk that finds stale hash directories touches only
+     * directory names, never file contents, so it stays cheap regardless of
+     * how many hash directories exist. Reading candidates for a per-criterion
+     * frontier is the real cost — measured and reported in the answer line,
+     * not assumed, so a future dimension count that makes this slow is
+     * visible rather than silently tolerated.
+     */
+    static int bankAll(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        MinecraftServer server = source.getServer();
+        long scanStart = System.nanoTime();
+        List<DimensionConfig> defs = MultiverseConfig.getInstance().getDimensions();
+
+        Map<String, List<String>> hashesByDimSlug = hashDirectoriesPerDimension();
+        Path overlayDir = Artefacts.overlayDimensionsDir();
+        boolean overlayMounted = Files.isDirectory(overlayDir);
+
+        List<DimensionStatus> statuses = new ArrayList<>();
+        int rollableCount = 0;
+        int withCandidates = 0;
+        int singleWinnerFrontier = 0;
+        int ambiguousFrontier = 0;
+        int withOverlayWinner = 0;
+        int staleTotal = 0;
+        for (DimensionConfig def : defs) {
+            Identifier id = def.getDimensionIdentifier();
+            String dimension = id.toString();
+            boolean rollable = Roller.rollable(def);
+            String inputHash = InputHash.of(def, server);
+            String slug = dimension.replace(":", "__");
+            List<String> hashesHere = hashesByDimSlug.getOrDefault(slug, List.of());
+            int staleHashDirs = 0;
+            for (String hash : hashesHere) {
+                if (!hash.equals(inputHash)) {
+                    staleHashDirs++;
+                }
+            }
+
+            int candidates = 0;
+            int rejected = 0;
+            int frontierSize = 0;
+            if (hashesHere.contains(inputHash)) {
+                candidates = SeedBank.leaderboard(inputHash, dimension).size();
+                rejected = SeedBank.rejectedSeeds(inputHash, dimension).size();
+                frontierSize = Frontier.of(SeedBank.scorecards(inputHash, dimension)).size();
+            }
+            Long overlayWinnerSeed = overlayMounted
+                    ? overlayWinnerSeed(overlayDir, id.getPath()) : null;
+
+            if (rollable) {
+                rollableCount++;
+            }
+            if (candidates > 0) {
+                withCandidates++;
+                if (frontierSize == 1) {
+                    singleWinnerFrontier++;
+                } else if (frontierSize > 1) {
+                    ambiguousFrontier++;
+                }
+            }
+            if (overlayWinnerSeed != null) {
+                withOverlayWinner++;
+            }
+            staleTotal += staleHashDirs;
+            statuses.add(new DimensionStatus(dimension, rollable, candidates, rejected,
+                    frontierSize, overlayWinnerSeed, staleHashDirs));
+        }
+
+        long scanNanos = System.nanoTime() - scanStart;
+        Path path = Artefacts.rollingDir().resolve("bank-status.json");
+        try {
+            Artefacts.write(path, bankAllJson(statuses, scanNanos));
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to write bank status", e);
+        }
+
+        final String msg = "bank-all: " + defs.size() + " dimension(s) (" + rollableCount
+                + " rollable), " + withCandidates + " have candidates (" + singleWinnerFrontier
+                + " single-winner frontier, " + ambiguousFrontier + " ambiguous), "
+                + withOverlayWinner + " have an overlay winner, " + staleTotal
+                + " stale hash dir(s) across the pack, "
+                + String.format(Locale.ROOT, "%.2fs scan", scanNanos / 1_000_000_000.0)
+                + " -> " + path;
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return withCandidates;
+    }
+
+    /**
+     * Dimension slug ({@code ns__name}) -> every hash directory under {@code
+     * candidates/} that has one. One directory walk for the whole pack,
+     * touching only names, so this stays cheap at any candidate count.
+     */
+    private static Map<String, List<String>> hashDirectoriesPerDimension() {
+        Map<String, List<String>> out = new HashMap<>();
+        Path candidatesRoot = Artefacts.rollingDir().resolve("candidates");
+        if (!Files.isDirectory(candidatesRoot)) {
+            return out;
+        }
+        try (Stream<Path> hashDirs = Files.list(candidatesRoot)) {
+            for (Path hashDir : hashDirs.toList()) {
+                if (!Files.isDirectory(hashDir)) {
+                    continue;
+                }
+                String hash = hashDir.getFileName().toString();
+                try (Stream<Path> dimDirs = Files.list(hashDir)) {
+                    for (Path dimDir : dimDirs.toList()) {
+                        if (Files.isDirectory(dimDir)) {
+                            out.computeIfAbsent(dimDir.getFileName().toString(), k -> new ArrayList<>())
+                                    .add(hash);
+                        }
+                    }
+                } catch (IOException ignored) {
+                    // This hash directory vanished mid-scan — reads as having none.
+                }
+            }
+        } catch (IOException ignored) {
+            // candidates/ vanished mid-scan — reads the same as no history at all.
+        }
+        return out;
+    }
+
+    /** The seed an overlay file names, or null when unmounted, absent, or carrying none. */
+    private static Long overlayWinnerSeed(Path overlayDir, String slug) {
+        Path target = overlayDir.resolve(slug + ".json");
+        if (!Files.isRegularFile(target)) {
+            return null;
+        }
+        try {
+            JsonObject root = JsonParser.parseString(Files.readString(target)).getAsJsonObject();
+            if (root.has("overrides") && root.get("overrides").isJsonObject()) {
+                JsonObject overrides = root.getAsJsonObject("overrides");
+                if (overrides.has("seed")) {
+                    return overrides.get("seed").getAsLong();
+                }
+            }
+        } catch (IOException | RuntimeException ignored) {
+            // An unreadable or malformed overlay file names no seed, same as a missing one.
+        }
+        return null;
+    }
+
+    /**
+     * The bank-status artefact's body — every dimension's row, plus the scan's
+     * own measured cost. Pure — no Fabric API — so the shape is pinned
+     * against hand-built rows with no server.
+     */
+    static String bankAllJson(List<DimensionStatus> statuses, long scanNanos) {
+        StringBuilder b = new StringBuilder(Artefacts.jsonHeader("seed-bank-status"));
+        b.append(" \"scanMillis\": ").append(scanNanos / 1_000_000L).append(",\n");
+        b.append(" \"dimensions\": [");
+        for (int i = 0; i < statuses.size(); i++) {
+            DimensionStatus s = statuses.get(i);
+            b.append(i > 0 ? ",\n  " : "\n  ");
+            b.append("{\"dimension\": ").append(Json.quote(s.dimension()));
+            b.append(", \"rollable\": ").append(s.rollable());
+            b.append(", \"candidates\": ").append(s.candidates());
+            b.append(", \"rejected\": ").append(s.rejected());
+            b.append(", \"frontierSize\": ").append(s.frontierSize());
+            b.append(", \"overlayWinnerSeed\": ")
+                    .append(s.overlayWinnerSeed() == null ? "null" : s.overlayWinnerSeed());
+            b.append(", \"staleHashDirs\": ").append(s.staleHashDirs());
+            b.append("}");
+        }
+        b.append(statuses.isEmpty() ? "]\n}\n" : "\n ]\n}\n");
+        return b.toString();
     }
 
     /**

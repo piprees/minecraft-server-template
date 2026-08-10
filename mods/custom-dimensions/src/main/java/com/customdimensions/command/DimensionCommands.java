@@ -51,6 +51,7 @@ import java.util.UUID;
  *   /customdim roll <dimension> <count>
  *   /customdim roll-all <count>
  *   /customdim bank <dimension>
+ *   /customdim bank-all
  *   /customdim winner <dimension> [seed]
  *   /customdim render <dimension> <seed> [lowres|highres]
  *
@@ -178,6 +179,8 @@ public class DimensionCommands {
                 .then(CommandManager.literal("bank")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(RollCommands::bank)))
+                .then(CommandManager.literal("bank-all")
+                    .executes(RollCommands::bankAll))
                 .then(CommandManager.literal("winner")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(ctx -> RollCommands.winner(ctx, null))
