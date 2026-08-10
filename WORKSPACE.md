@@ -11,9 +11,14 @@ open, every phase ends with an adversarial pass.
 
 ## Current phase
 
-**Phase 3 — make `wants` real.** In progress. Phases 1 and 2 are done and their
-results are written into the plan's own phase sections; both gates and the
-misses are recorded there with the artefact paths.
+**Phase 3 — make `wants` real.** Change 1 of 3 landed (`b3474bd`). Phases 1 and
+2 are done; their gates, and the conditions that were missed, are recorded in
+the plan's own phase sections with the artefact paths.
+
+Change 1 (`wants` implies pool membership) took `want_not_in_pool` from 135 to
+10 and put positions in the census for wants that had none on any seed. Still
+to do: change 2 (`clearSpawnRadius` as a placement exclusion) and change 3 (a
+want's band biases the radial curve).
 
 Two adversarial critics are running against phases 1 and 2. Their findings go
 into the plan as amendments before phase 3 is called done.
