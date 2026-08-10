@@ -490,7 +490,7 @@ public final class FactsEngine {
      * off the tick loop. It is capped anyway, and the cap is reported rather
      * than silently applied.
      */
-    private static Measured<Double> clustering(List<long[]> positions, int radiusChunks) {
+    static Measured<Double> clustering(List<long[]> positions, int radiusChunks) {
         int n = positions.size();
         if (n < 2) {
             return Measured.absent(
