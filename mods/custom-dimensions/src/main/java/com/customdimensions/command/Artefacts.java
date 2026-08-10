@@ -1,6 +1,8 @@
 package com.customdimensions.command;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -84,6 +86,19 @@ public final class Artefacts {
     /** Whether the mount exists, i.e. whether durable output can be written. */
     public static boolean canWriteDurably() {
         return Files.isDirectory(rollingDir().getParent());
+    }
+
+    /**
+     * {@code customdimensions/census/} inside this server's own world save —
+     * a sibling of {@code region/} and {@code playerdata/}, not the consumer's
+     * config directory and not {@link #rollingDir()}. A census record
+     * describes chunks that actually generated in this save: it is world
+     * state, not a seed-rolling hypothesis, so it belongs where a world wipe
+     * takes it with the chunks it describes, and a config refresh or a
+     * {@code .seed-rolling} reset leaves it alone.
+     */
+    public static Path censusDir(MinecraftServer server) {
+        return server.getSavePath(WorldSavePath.ROOT).resolve("customdimensions").resolve("census");
     }
 
     /**

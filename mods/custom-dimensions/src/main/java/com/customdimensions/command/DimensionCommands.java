@@ -278,18 +278,14 @@ public class DimensionCommands {
             }
         }
 
-        // Append to .seed-rolling/events/{inputHash}/{dimension}/occupancy.json
+        // Append to <world>/customdimensions/census/occupancy__{dimension}.json
         // (append pattern matching rejections — occupancy is a recorded fact
-        // about a generated chunk, not a regenerable dump).
+        // about a generated chunk, world state rather than a seed-rolling
+        // hypothesis, so it is keyed by dimension alone, not by config hash).
         try {
-            DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
-            if (def == null) {
-                def = MultiverseConfig.getInstance().getWorld(dimensionId.getPath());
-            }
-            String hash = InputHash.of(def, source.getServer());
             String dimPart = dimensionId.toString().replace(":", "__");
-            Path artefactPath = Artefacts.rollingDir().resolve("events")
-                    .resolve(hash).resolve(dimPart).resolve("occupancy.json");
+            Path artefactPath = Artefacts.censusDir(source.getServer())
+                    .resolve("occupancy__" + dimPart + ".json");
 
             StringBuilder record = new StringBuilder();
             record.append("{\"chunkX\": ").append(chunkX)
