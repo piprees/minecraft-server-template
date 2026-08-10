@@ -22,11 +22,17 @@ occupies chunk (-63, -32) of `the_gauntlet`. Change 2 (`clearSpawnRadius` as a
 placement exclusion) puts zero dungeons or endgame inside the disc across four
 dimensions, with `the_gilded_pit`'s settlements at 2.2 chunks as the control.
 
-Still to do: change 3 — a want's `{min,max}` band biases the radial curve so
-most seeds satisfy most wants.
+Change 3 is **deferred, with reasons written into the plan**: a radial curve is
+per-GROUP, so bending it to satisfy one want moves every structure in that
+group. The mechanism with the right granularity is `StructurePick`, not the
+field — and that is a mirror change, so it is cheaper after Phase 4 deletes the
+mirror. Read the plan's Phase 3 section before picking it up.
 
-Two adversarial critics are running against phases 1 and 2. Their findings go
-into the plan as amendments before phase 3 is called done.
+Both adversarial passes are done and their findings are fixed and re-verified
+(pass-through wants, flat generators, probe coverage). One item needs a HUMAN
+decision, not code: `the_frozen_strait` and `the_dustbowl` have config seeds
+that do not match their live worlds — wipe or revert, see the plan's Phase 1
+adversarial section.
 
 ### Phase 1 and 2 artefacts
 
