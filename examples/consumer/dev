@@ -552,6 +552,16 @@ case "$CMD" in
     else
       echo "  SKIP check-suppress-list (not in this stack version)"
     fi
+    # Scorecards are a claim about a distribution, not about one seed: a scorer
+    # that puts every dimension at the same percentage has stopped ranking and
+    # looks identical to a working one from any single card.
+    script="$CONSUMER_DIR/$STACK_SCRIPTS/check-scorecards.py"
+    if [[ -f "$script" ]]; then
+      echo "== check-scorecards"
+      python3 "$script" --data "$CONSUMER_DIR/data" || VERIFY_FAILED=1
+    else
+      echo "  SKIP check-scorecards (not in this stack version)"
+    fi
     exit $VERIFY_FAILED
     ;;
   seed-rescore | seed-status)

@@ -9,6 +9,7 @@ Context:  Scorecards are written to
           <consumer>/data/config/custom-dimensions/scores/<ns>__<slug>__<seed>.json
           by the mod. This never contacts a server and never parses RCON output.
 Usage:    ./scripts/check-scorecards.py [scores_dir] [--json]
+          ./scripts/check-scorecards.py --data <consumer>/data
 Gotchas:  A REJECTED or INVALID_CONFIG card has NO percentage — that is the
           point of keeping the three verdicts apart, so those cards are counted
           and excluded from the distribution rather than read as zeroes.
@@ -75,16 +76,27 @@ def dead_criteria(cards):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    scores_dir = args[0] if args else "data/config/custom-dimensions/scores"
+    argv = sys.argv[1:]
+    scores_dir = None
+    if "--data" in argv:
+        data = argv[argv.index("--data") + 1]
+        scores_dir = os.path.join(data, "config", "custom-dimensions", "scores")
+    else:
+        positional = [a for a in argv if not a.startswith("--")]
+        scores_dir = positional[0] if positional \
+            else "data/config/custom-dimensions/scores"
+
+    # No scorecards is not a failure. A consumer that has never rolled has
+    # nothing to check, and failing `./dev verify` over it would train people
+    # to ignore the whole command.
     if not os.path.isdir(scores_dir):
-        print("no scores directory at %s" % scores_dir, file=sys.stderr)
-        return 2
+        print("  SKIP (no scores yet — run 'customdim score <dim> <seed>')")
+        return 0
 
     cards = load(scores_dir)
     if not cards:
-        print("no scorecards in %s" % scores_dir, file=sys.stderr)
-        return 2
+        print("  SKIP (no scorecards yet in %s)" % scores_dir)
+        return 0
 
     scored, rejected, invalid = [], [], []
     for card in cards:
@@ -117,7 +129,11 @@ def main():
             "every scored dimension is at 95%% or above (min %.1f) — the "
             "ceiling is too generous and the score has stopped ranking" % min(pcts))
 
-    dead = dead_criteria(cards)
+    # "This criterion never varies" needs a bank to be true of. Over two or
+    # three cards it is arithmetic, not evidence, and failing a consumer's
+    # verify on it would train people to ignore the command.
+    DEAD_MIN = 10
+    dead = dead_criteria(cards) if len(scored) >= DEAD_MIN else []
     if dead:
         failures.append("criteria that never vary (dead weight): %s" % dead)
 
@@ -131,6 +147,9 @@ def main():
         print("histogram (deciles):")
         for line in histogram(pcts):
             print(line)
+    if len(scored) < DEAD_MIN:
+        print("  (%d scored — need %d before 'this criterion never varies' "
+              "means anything)" % (len(scored), DEAD_MIN))
 
     if "--json" in sys.argv:
         print(json.dumps({

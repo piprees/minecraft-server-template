@@ -112,6 +112,13 @@ MANIFEST=(
   # detection.
   scripts/stack_version.py
   scripts/check-suppress-list.py
+  # The new roller's offline checkers. They assert over artefacts the mod
+  # writes (facts/, scores/, lint), so they must ship or `./dev verify`
+  # silently skips them in every consumer.
+  scripts/check-scorecards.py
+  scripts/check-facts-parity.py
+  scripts/check-dimension-lint.py
+  scripts/check-spike-parity.py
   scripts/gen-suppress-catalogue.py
   scripts/seed/surface_rules.py
   scripts/seed/terrain_height.py
