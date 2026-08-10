@@ -360,7 +360,7 @@ public final class DimensionStructures {
             long noiseSeed = worldSeed ^ dimensionSalt ^ saltOf(group);
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0);
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
 
             // Build the sorted pool for this group's pick algorithm.
             java.util.List<StructurePick.PoolEntry> pickPool = new ArrayList<>();

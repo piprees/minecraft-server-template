@@ -127,6 +127,21 @@ public final class NoiseFieldIndex {
      */
     public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ) {
+        this(noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, 0);
+    }
+
+    /**
+     * @param clearSpawnChunks radius around spawn this group may not place in,
+     *                         in chunks; 0 for no clearance. Applied BEFORE the
+     *                         radial curve and the noise, so a cleared disc
+     *                         costs no Perlin work — and, more to the point, so
+     *                         a structure inside it is never a candidate rather
+     *                         than a candidate somebody disapproves of later.
+     */
+    public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
+                           double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
+                           int clearSpawnChunks) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
         // The locate cell has to be sized from the SMALLEST separation the
@@ -170,11 +185,20 @@ public final class NoiseFieldIndex {
         long[] ranks = new long[side * side];
         double rSquared = (double) r * r;
         double threshold = profile.threshold();
+        // structures.clearSpawnRadius. Everything strictly inside the disc is
+        // not a candidate at all, which is the difference between this and the
+        // scoring penalty it replaces: a penalty can only regret a dungeon on
+        // spawn after the fact, and every seed still has one.
+        int clear = Math.max(0, clearSpawnChunks);
+        double clearSquared = (double) clear * clear;
         for (int dz = -r; dz <= r; dz++) {
             for (int dx = -r; dx <= r; dx++) {
                 double distSq = (double) dx * dx + (double) dz * dz;
                 if (distSq > rSquared) {
                     continue;   // outside the world, stays false
+                }
+                if (clear > 0 && distSq < clearSquared) {
+                    continue;   // inside the spawn-clearance disc
                 }
                 // Weight 0.0 is the author's explicit hard suppression, and the
                 // only reason the curve can rule a chunk out. Everything else

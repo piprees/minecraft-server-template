@@ -903,8 +903,12 @@ def _noise_payload(dim):
     struct_block = dim.get("structures") or {}
     payload = {
         "radiusChunks": radius_chunks,
+        # clearSpawnChunks joins the group tuple only when some group has
+        # one, so a dimension without clearSpawnRadius keeps a byte-identical
+        # payload and does not drift for a feature it does not use.
         "groups": sorted(
-            [name, cfg["profile"].id, cfg["exclusion"], cfg["radial"]]
+            ([name, cfg["profile"].id, cfg["exclusion"], cfg["radial"]]
+             + ([cfg["clearSpawnChunks"]] if cfg.get("clearSpawnChunks") else []))
             for name, cfg in groups.items()),
         # Which placement types dissolve into the pools. Group POSITIONS
         # don't depend on it, but pool membership does — absorbing Moog's

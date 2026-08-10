@@ -36,9 +36,28 @@ import java.util.Map;
  */
 public final class NoiseGroupPlan {
 
-    /** One active group's resolved placement settings. */
-    public record Group(String name, NoiseProfile profile, double[] radial, int exclusion) {
+    /**
+     * One active group's resolved placement settings.
+     *
+     * <p>{@code clearSpawnChunks} is the radius around spawn this group may
+     * not place in, in chunks; 0 for every group that is not cleared.
+     */
+    public record Group(String name, NoiseProfile profile, double[] radial, int exclusion,
+                        int clearSpawnChunks) {
     }
+
+    /**
+     * The groups {@code structures.clearSpawnRadius} keeps away from spawn.
+     *
+     * <p>Only the hostile ones. Clearing settlements or deco would empty the
+     * area a player actually starts in, which is the opposite of what the
+     * setting is for: the complaint it answers is landing on top of a dungeon
+     * entrance, not landing near a village.
+     *
+     * <p>MIRRORED as CLEAR_SPAWN_GROUPS in scripts/seed/noise_placement.py.
+     */
+    public static final java.util.Set<String> CLEAR_SPAWN_GROUPS =
+            java.util.Set.of("dungeons", "endgame");
 
     private final Map<String, Group> groups;
     private final boolean suppressed;
@@ -178,13 +197,31 @@ public final class NoiseGroupPlan {
                     defaults, mobMultiplier);
             int exclusion = Math.max(1, (int) Math.round(
                     groupDefault.exclusion() * profile.exclusionMultiplier()));
-            resolved.put(group, new Group(group, profile, radial, exclusion));
+            resolved.put(group, new Group(group, profile, radial, exclusion,
+                    clearSpawnChunks(block, group)));
         }
 
         if (resolved.isEmpty()) {
             return new NoiseGroupPlan(Map.of(), true, false, "every group resolved to none");
         }
         return new NoiseGroupPlan(Map.copyOf(resolved), false, false, "noise");
+    }
+
+    /**
+     * The spawn-clearance radius in CHUNKS for one group, rounded up so a
+     * radius of 8 blocks still clears the chunk spawn sits in rather than
+     * rounding to nothing.
+     *
+     * <p>MIRRORED in scripts/seed/noise_placement.clear_spawn_chunks — the
+     * rounding is the whole of the mirror's contract, so keep the ceiling.
+     */
+    static int clearSpawnChunks(DimensionConfig.Structures block, String group) {
+        if (block == null || block.clearSpawnRadius == null
+                || block.clearSpawnRadius <= 0
+                || !CLEAR_SPAWN_GROUPS.contains(group)) {
+            return 0;
+        }
+        return (block.clearSpawnRadius + 15) / 16;
     }
 
     private static double[] resolveRadial(DimensionConfig def, DimensionConfig.Structures block,

@@ -505,7 +505,30 @@ _GEOMETRY_ORDER = []
 _GEOMETRY_MAX = 16
 
 
-def geometry(radial, radius_chunks, exclusion):
+#: Groups that structures.clearSpawnRadius keeps away from spawn. Only the
+#: hostile ones — clearing settlements or deco would empty the area the player
+#: actually starts in, which is the opposite of what the setting is for.
+#: MIRRORS NoiseGroupPlan.CLEAR_SPAWN_GROUPS (Java).
+CLEAR_SPAWN_GROUPS = ("dungeons", "endgame")
+
+
+def clear_spawn_chunks(structures, group):
+    """clearSpawnRadius in CHUNKS for one group, 0 when it does not apply.
+
+    Rounded UP, so a radius of 8 blocks still clears the chunk spawn sits in
+    rather than rounding to nothing. MIRRORS NoiseGroupPlan.clearSpawnChunks.
+    """
+    if group not in CLEAR_SPAWN_GROUPS:
+        return 0
+    raw = (structures or {}).get("clearSpawnRadius")
+    try:
+        blocks = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return (blocks + 15) // 16 if blocks > 0 else 0
+
+
+def geometry(radial, radius_chunks, exclusion, clear_spawn_chunks_=0):
     """Everything about a group's layout that does not depend on the seed.
 
     Returns a dict carrying, for one (radial, radius, exclusion) triple:
@@ -521,7 +544,8 @@ def geometry(radial, radius_chunks, exclusion):
     stored as flat lookup tables rather than dicts because at radius 512 the
     dict forms cost ~20 MB each against ~2 MB for the table.
     """
-    key = (tuple(radial) if radial else None, radius_chunks, exclusion)
+    key = (tuple(radial) if radial else None, radius_chunks, exclusion,
+           clear_spawn_chunks_)
     hit = _GEOMETRY.get(key)
     if hit is not None:
         return hit
@@ -529,6 +553,12 @@ def geometry(radial, radius_chunks, exclusion):
     r = radius_chunks
     side = r * 2 + 1
     r_squared = float(r) * r
+    # structures.clearSpawnRadius: everything strictly inside the disc is not a
+    # candidate at all. Baked into `rows` here so both the scalar and the
+    # vectorised path get it for free, and applied BEFORE the radial weight so
+    # the order matches NoiseFieldIndex exactly.
+    clear = max(0, clear_spawn_chunks_)
+    clear_squared = float(clear) * clear
     max_dist_sq = r * r
     from array import array
     weight_of = array("d", bytes(8 * (max_dist_sq + 1)))
@@ -544,6 +574,8 @@ def geometry(radial, radius_chunks, exclusion):
         for dx in range(-span, span + 1):
             dist_sq = float(dx) * dx + dz_sq
             if dist_sq > r_squared:
+                continue
+            if clear and dist_sq < clear_squared:
                 continue
             k = int(dist_sq)
             if not known[k]:
@@ -816,7 +848,7 @@ class NoiseFieldIndex:
     """
 
     def __init__(self, noise_seed, profile, exclusion, radial, radius_chunks,
-                 spawn_chunk_x=0, spawn_chunk_z=0):
+                 spawn_chunk_x=0, spawn_chunk_z=0, clear_spawn_chunks_=0):
         noise_seed &= M64
         r = max(0, min(radius_chunks, MAX_RADIUS_CHUNKS))
         excl = max(1, exclusion)
@@ -838,7 +870,7 @@ class NoiseFieldIndex:
         primary = StructureNoise(noise_seed)
         fine = StructureNoise(_signed64(noise_seed ^ FINE_SALT) & M64) if is_cluster else None
 
-        geom = geometry(radial, r, excl)
+        geom = geometry(radial, r, excl, clear_spawn_chunks_)
         args = (geom, noise_seed, primary, fine, is_cluster, frequency,
                 coarse_frequency, coarse_threshold, profile.threshold,
                 spawn_chunk_x, spawn_chunk_z)
@@ -1292,6 +1324,9 @@ def resolve_groups(dim_config, type_defaults):
             "profile": profile,
             "radial": radial,
             "exclusion": exclusion,
+            # structures.clearSpawnRadius, in chunks, for the hostile groups.
+            # MIRRORS NoiseGroupPlan.Group.clearSpawnChunks.
+            "clearSpawnChunks": clear_spawn_chunks(structures, group),
         }
     return resolved
 

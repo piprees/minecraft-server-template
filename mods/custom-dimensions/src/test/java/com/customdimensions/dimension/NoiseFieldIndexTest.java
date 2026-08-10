@@ -403,6 +403,48 @@ class NoiseFieldIndexTest {
                 new double[]{0, 1}, -5, 100), 1e-9);
     }
 
+    // --- spawn clearance --------------------------------------------------
+
+    @Test
+    void clearSpawnRadiusRemovesEveryPlacementInsideTheDisc() {
+        NoiseFieldIndex open = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 0, 0, 0);
+        NoiseFieldIndex cleared = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 0, 0, 16);
+
+        long insideOpen = open.positions().stream()
+                .filter(p -> p.x * p.x + p.z * p.z < 16 * 16).count();
+        assertTrue(insideOpen > 0,
+                "the control must have placements inside the disc, or this proves nothing");
+        assertEquals(0, cleared.positions().stream()
+                        .filter(p -> p.x * p.x + p.z * p.z < 16 * 16).count(),
+                "no placement may land inside clearSpawnChunks of spawn");
+        assertTrue(cleared.size() < open.size(),
+                "clearing a disc must remove placements, not merely move them");
+    }
+
+    @Test
+    void clearSpawnRadiusIsCentredOnSpawnNotTheOrigin() {
+        NoiseFieldIndex cleared = new NoiseFieldIndex(
+                SEED, NoiseProfile.DENSE, 3, EVEN, 128, 40, -25, 12);
+        for (ChunkPos p : cleared.positions()) {
+            long dx = p.x - 40L;
+            long dz = p.z + 25L;
+            assertTrue(dx * dx + dz * dz >= 12L * 12L,
+                    "placement " + p + " is inside the disc around (40, -25)");
+        }
+    }
+
+    @Test
+    void zeroClearanceIsByteIdenticalToNoClearance() {
+        // The conditional-fingerprint promise: a dimension that does not use
+        // the feature must generate exactly the world it generated before.
+        NoiseFieldIndex before = build(NoiseProfile.NATURAL, 3, EVEN, 64);
+        NoiseFieldIndex after = new NoiseFieldIndex(
+                SEED, NoiseProfile.NATURAL, 3, EVEN, 64, 0, 0, 0);
+        assertEquals(before.positions(), after.positions());
+    }
+
     // --- performance -----------------------------------------------------
 
     @Test

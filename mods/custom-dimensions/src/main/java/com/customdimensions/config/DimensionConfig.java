@@ -870,6 +870,16 @@ public class DimensionConfig {
          * Generation-affecting (new chunks only) — mirrored in
          * scripts/seed/dimension_profiles.generation_payload().
          */
+        /**
+         * Blocks around this dimension's spawn where the hostile groups
+         * ({@code dungeons}, {@code endgame}) may not place. A real placement
+         * exclusion, not a scoring penalty: {@link
+         * com.customdimensions.dimension.NoiseFieldIndex} never produces a
+         * candidate inside the disc, so nothing has to disapprove of one
+         * afterwards. Generation-affecting; 0 or absent means no disc.
+         */
+        @SerializedName("clearSpawnRadius")
+        public Integer clearSpawnRadius;
         @SerializedName("terrainAdaptation")
         public Map<String, String> terrainAdaptation;
         /**
