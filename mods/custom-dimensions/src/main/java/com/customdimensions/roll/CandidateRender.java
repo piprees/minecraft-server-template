@@ -1,5 +1,6 @@
 package com.customdimensions.roll;
 
+import com.customdimensions.command.InputHash;
 import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
@@ -7,6 +8,10 @@ import com.customdimensions.dimension.DimensionStructures;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.NoiseStructurePlacement;
+import com.customdimensions.facts.SeedFacts;
+import com.customdimensions.facts.SeedFactsCodec;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
@@ -26,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,24 +57,32 @@ import java.util.Set;
  * to the minimum and maximum this render measured — never a value borrowed
  * from a different pass or a different resolution.
  *
- * <p>The sampling grid's side is chosen at render time from a real timing of
- * this dimension's own per-column cost, not a fixed number: a cheap flat
- * dimension and {@code the_gauntlet} do not deserve the same pixel count for
- * the same time budget. The two public resolutions differ only in that
- * budget.
+ * <p>Lowres and highres get their pixels two different ways. {@code
+ * FactsEngine} already samples a biome+height grid to measure a candidate
+ * and persists it in the candidate's own {@code SeedFacts.grid} — lowres
+ * reads that back, so it costs nothing beyond a file read and works for a
+ * candidate measured before this render feature existed. That grid is
+ * {@code FactsEngine.GRID} on a side (41, as of this writing) — coarser than
+ * the budget-chosen size a sampled lowres used to produce (typically 51-53),
+ * and worth it: a free render at the resolution a measurement already paid
+ * for beats a slower one at a resolution nobody actually chose. Highres wants
+ * finer detail than that measurement grid carries, so it samples its own, at
+ * a side chosen from a real timing of this dimension's own per-column cost —
+ * a cheap flat dimension and {@code the_gauntlet} do not deserve the same
+ * pixel count for the same time budget.
  *
- * <p>{@link #render} runs on the calling thread for its whole duration, the
- * same as {@link Roller#rollDimension} — a highres render occupies the
- * server's main thread for close to its 60s budget when called from RCON.
- * Only lowres (a ~5s budget) is wired into {@link Roller}'s own scoring
- * loop; nothing triggers a highres render automatically. This platform's own
- * {@code docker-compose.yml} sets {@code MAX_TICK_TIME: -1} for the {@code
- * mc} service in every profile, local and cloud, so a stock deployment has
- * no tick watchdog for a long main-thread block to trip. A highres call
- * still refuses outright on any server where the watchdog IS armed — a
- * consumer that overrides the compose file, or a build running outside it
- * entirely — because no per-column timing bound here can promise staying
- * under an arbitrary configured limit.
+ * <p>Highres runs on the calling thread for its whole duration, the same as
+ * {@link Roller#rollDimension} — it occupies the server's main thread for
+ * close to its 60s budget when called from RCON. Lowres has no such cost and
+ * is wired into {@link Roller}'s own scoring loop; nothing triggers a
+ * highres render automatically. This platform's own {@code docker-compose.yml}
+ * sets {@code MAX_TICK_TIME: -1} for the {@code mc} service in every
+ * profile, local and cloud, so a stock deployment has no tick watchdog for a
+ * long main-thread block to trip. A highres call still refuses outright on
+ * any server where the watchdog IS armed — a consumer that overrides the
+ * compose file, or a build running outside it entirely — because no
+ * per-column timing bound here can promise staying under an arbitrary
+ * configured limit.
  */
 public final class CandidateRender {
 
@@ -145,16 +159,139 @@ public final class CandidateRender {
     }
 
     /**
-     * Renders one (dimension, seed) to {@code outputPath}. Builds its own
-     * headless rig via {@link SpikeSampler} — the same one {@code FactsEngine}
-     * builds — rather than reading a candidate file back, because a candidate
-     * carries only aggregated shares and counts, never the per-column grid or
-     * raw structure positions a picture needs.
+     * Renders one (dimension, seed) to {@code outputPath}. Lowres reads the
+     * candidate's own persisted grid ({@link #renderFromGrid}); highres
+     * samples its own, finer one ({@link #renderBySampling}).
      */
     public static RenderResult render(MinecraftServer server, Identifier dimensionId,
                                       DimensionConfig def, long seed, Resolution resolution,
                                       Path outputPath) throws IOException {
         Objects.requireNonNull(def, "render needs a resolved dimension config");
+        return resolution == Resolution.LOWRES
+                ? renderFromGrid(server, dimensionId, def, seed, outputPath)
+                : renderBySampling(server, dimensionId, def, seed, outputPath);
+    }
+
+    /**
+     * Reads the biome+height grid {@code FactsEngine} already persisted for
+     * this candidate and paints it — no sampling, no calibration, no time
+     * budget, and it renders a seed measured before this feature existed
+     * exactly as well as one measured a second ago.
+     *
+     * <p>A grid cell is {@code null} in {@link SeedFacts.Grid#biome} or
+     * {@link SeedFacts.Grid#height} both for a column outside the playable
+     * disc and for one inside it that answered nothing — the writer does not
+     * distinguish them. This method still draws them differently, because it
+     * can recompute which is which from {@code side}/{@code step}/{@code
+     * radius} alone — the same geometry {@code FactsEngine.sampleGrid} used
+     * to decide which cells to attempt in the first place — not by guessing.
+     */
+    private static RenderResult renderFromGrid(MinecraftServer server, Identifier dimensionId,
+                                               DimensionConfig def, long seed,
+                                               Path outputPath) throws IOException {
+        long renderStart = System.nanoTime();
+        String dimension = dimensionId.toString();
+        String inputHash = InputHash.of(def, server);
+        Path candidatePath = SeedBank.candidatePath(inputHash, dimension, seed);
+        if (!Files.isRegularFile(candidatePath)) {
+            throw new IOException("no banked candidate for " + dimensionId + " seed=" + seed
+                    + " at " + candidatePath + " — run /customdim roll first, or render highres "
+                    + "to sample fresh without banking");
+        }
+        JsonObject root = JsonParser.parseString(Files.readString(candidatePath)).getAsJsonObject();
+        SeedFacts facts;
+        try {
+            facts = SeedFactsCodec.read(root.getAsJsonObject("facts").toString());
+        } catch (RuntimeException e) {
+            // Whichever field the codec reaches first, a record this codec
+            // cannot parse in full is from an older schema, not a partially
+            // readable one — this platform keeps no backwards compatibility.
+            throw new IOException("candidate " + candidatePath + " is from an older schema and "
+                    + "should be re-rolled (" + e.getMessage() + ")");
+        }
+        if (!facts.grid().isPresent()) {
+            throw new IOException("candidate " + candidatePath + " has no grid: " + facts.grid().reason());
+        }
+        SeedFacts.Grid grid = facts.grid().orThrow();
+
+        int radius = Math.max(1, def.getPlayerBorderRadius());
+        int side = grid.side();
+        int step = Math.max(1, (radius * 2) / (side - 1));
+        int half = side / 2;
+
+        SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
+        if (!base.ok()) {
+            throw new IOException("cannot render " + dimensionId + ": " + base.error());
+        }
+        Integer seaLevel = base.generator() instanceof NoiseChunkGenerator noiseGen
+                ? noiseGen.getSettings().value().seaLevel() : null;
+        Registry<Biome> biomeRegistry = server.getRegistryManager().get(RegistryKeys.BIOME);
+        // The palette is a handful of ids for the whole grid — resolved once
+        // each, not once per cell.
+        List<BiomeColors> palette = new ArrayList<>();
+        for (String id : grid.biomeIds()) {
+            palette.add(biomeColors(biomeRegistry, id));
+        }
+
+        int cells = side * side;
+        int[] terrainColor = new int[cells];
+        int[] waterColor = new int[cells];
+        int[] height = new int[cells];
+        int[] biomeId = new int[cells];
+        boolean[] known = new boolean[cells];
+        boolean[] inDisc = new boolean[cells];
+        Arrays.fill(biomeId, -1);
+
+        int minHeight = Integer.MAX_VALUE;
+        int maxHeight = Integer.MIN_VALUE;
+        for (int gz = 0; gz < side; gz++) {
+            for (int gx = 0; gx < side; gx++) {
+                int dx = gridToWorldOffset(gx, step, half);
+                int dz = gridToWorldOffset(gz, step, half);
+                if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
+                    continue;   // recomputed geometry, not the grid's own null — see the javadoc above
+                }
+                int idx = gz * side + gx;
+                inDisc[idx] = true;
+                Integer paletteIndex = grid.biome().get(idx);
+                Integer h = grid.height().get(idx);
+                if (paletteIndex == null || h == null) {
+                    continue;
+                }
+                BiomeColors colors = palette.get(paletteIndex);
+                if (colors == null) {
+                    continue;   // an id the live registry no longer knows — unmeasurable, not invented
+                }
+                known[idx] = true;
+                terrainColor[idx] = colors.terrain();
+                waterColor[idx] = colors.water();
+                height[idx] = h;
+                biomeId[idx] = paletteIndex;
+                minHeight = Math.min(minHeight, h);
+                maxHeight = Math.max(maxHeight, h);
+            }
+        }
+
+        BufferedImage image = paintTerrain(side, step, half, radius, terrainColor, waterColor,
+                height, biomeId, known, inDisc, seaLevel, minHeight, maxHeight);
+        int markers = paintStructuresAndSpawn(image, server, def, seed, radius, side, step, half,
+                base, LOWRES_STRUCTURE_GROUPS);
+
+        writeImageAtomically(image, outputPath);
+        long renderNanos = System.nanoTime() - renderStart;
+        return new RenderResult(outputPath, side, step, 0L, renderNanos, grid.sampled(), markers);
+    }
+
+    /**
+     * Samples its own grid via {@link SpikeSampler} at a side chosen from a
+     * real timing of this dimension's own per-column cost. Never reads a
+     * candidate file — highres wants finer detail than {@code
+     * FactsEngine}'s measurement grid carries, so a fresh, denser sample is
+     * the only way to get it, whether or not this seed has ever been banked.
+     */
+    private static RenderResult renderBySampling(MinecraftServer server, Identifier dimensionId,
+                                                  DimensionConfig def, long seed,
+                                                  Path outputPath) throws IOException {
         long renderStart = System.nanoTime();
         int radius = Math.max(1, def.getPlayerBorderRadius());
 
@@ -165,7 +302,7 @@ public final class CandidateRender {
         SpikeSampler.Rig rig = SpikeSampler.forSeed(server, base, seed);
 
         long perColumnNanos = timePerColumn(rig, radius, seed);
-        int side = chooseSide(perColumnNanos, resolution.budgetNanos, MIN_SIDE, MAX_SIDE);
+        int side = chooseSide(perColumnNanos, Resolution.HIGHRES.budgetNanos, MIN_SIDE, MAX_SIDE);
         int step = Math.max(1, (radius * 2) / (side - 1));
         int half = side / 2;
 
@@ -175,15 +312,17 @@ public final class CandidateRender {
         Map<String, BiomeColors> colorCache = new HashMap<>();
         Map<String, Integer> biomeIndex = new HashMap<>();
 
-        int[] terrainColor = new int[side * side];
-        int[] waterColor = new int[side * side];
-        int[] height = new int[side * side];
+        int cells = side * side;
+        int[] terrainColor = new int[cells];
+        int[] waterColor = new int[cells];
+        int[] height = new int[cells];
         // The biome IDENTITY, not its colour — two biomes can resolve to a
         // near-identical hue (the fog/sky fallback clusters hard in a
         // nether/end family), and a boundary line must still separate them.
-        int[] biomeId = new int[side * side];
-        boolean[] known = new boolean[side * side];
-        boolean[] inDisc = new boolean[side * side];
+        int[] biomeId = new int[cells];
+        boolean[] known = new boolean[cells];
+        boolean[] inDisc = new boolean[cells];
+        Arrays.fill(biomeId, -1);
 
         int minHeight = Integer.MAX_VALUE;
         int maxHeight = Integer.MIN_VALUE;
@@ -217,6 +356,27 @@ public final class CandidateRender {
             }
         }
 
+        BufferedImage image = paintTerrain(side, step, half, radius, terrainColor, waterColor,
+                height, biomeId, known, inDisc, seaLevel, minHeight, maxHeight);
+        int markers = paintStructuresAndSpawn(image, server, def, seed, radius, side, step, half,
+                base, null);   // highres has room for every group
+
+        writeImageAtomically(image, outputPath);
+        long renderNanos = System.nanoTime() - renderStart;
+        return new RenderResult(outputPath, side, step, perColumnNanos, renderNanos, sampled, markers);
+    }
+
+    /**
+     * The terrain fill, biome-boundary tint and border ring — everything
+     * that depends only on a biome/height grid, not on how that grid was
+     * obtained. Shared by {@link #renderFromGrid} and {@link
+     * #renderBySampling} so the two pixel sources produce the same picture
+     * language.
+     */
+    private static BufferedImage paintTerrain(int side, int step, int half, int radius,
+                                              int[] terrainColor, int[] waterColor, int[] height,
+                                              int[] biomeId, boolean[] known, boolean[] inDisc,
+                                              Integer seaLevel, int minHeight, int maxHeight) {
         BufferedImage image = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB);
         for (int gz = 0; gz < side; gz++) {
             for (int gx = 0; gx < side; gx++) {
@@ -239,7 +399,7 @@ public final class CandidateRender {
         }
 
         // The border ring is an annotation over the terrain, drawn as its own
-        // pass so it reads as a clean circle rather than fighting the shading
+        // pass so it reads as a clean circle rather than fighting the fill
         // loop's early-continue for out-of-disc cells.
         for (int gz = 0; gz < side; gz++) {
             for (int gx = 0; gx < side; gx++) {
@@ -251,13 +411,23 @@ public final class CandidateRender {
                 }
             }
         }
+        return image;
+    }
 
+    /**
+     * Structure markers and the spawn marker — the two overlays that need a
+     * live server (structure placement, the dimension's declared spawn)
+     * rather than anything in the grid.
+     */
+    private static int paintStructuresAndSpawn(BufferedImage image, MinecraftServer server,
+                                               DimensionConfig def, long seed, int radius,
+                                               int side, int step, int half, SpikeSampler.Base base,
+                                               Set<String> allowedGroups) {
         // A structure marker is at most one grid cell wide until the image is
         // large enough to spare more: hundreds of sites on a small grid would
         // otherwise paint over most of the terrain a low-res render exists to
         // show, and a single pixel per site is still a real, findable mark.
         int structureMarkerRadius = Math.max(0, side / 400);
-        Set<String> allowedGroups = resolution == Resolution.LOWRES ? LOWRES_STRUCTURE_GROUPS : null;
         List<long[]> hostilePositions = new ArrayList<>();
         List<long[]> structures = structurePositions(
                 server, def, base, seed, radius, allowedGroups, hostilePositions);
@@ -285,10 +455,7 @@ public final class CandidateRender {
             int gz = worldToGrid(spawn[2], step, half);
             paintMarker(image, side, gx, gz, spawnMarkerRadius, SPAWN_COLOR);
         }
-
-        writeImageAtomically(image, outputPath);
-        long renderNanos = System.nanoTime() - renderStart;
-        return new RenderResult(outputPath, side, step, perColumnNanos, renderNanos, sampled, markers);
+        return markers;
     }
 
     /**

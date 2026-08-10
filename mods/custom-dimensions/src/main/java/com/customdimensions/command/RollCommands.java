@@ -216,9 +216,10 @@ public final class RollCommands {
 
     /**
      * Draws one candidate to a PNG beside its JSON — {@code lowres} (the
-     * default) or {@code highres}. The grid, step and measured per-column
-     * cost go in the answer line: nothing about the resolution chosen is
-     * silent.
+     * default) or {@code highres}. Lowres reads the candidate's own
+     * persisted grid and needs no timing of its own; highres samples a fresh
+     * one and reports the measured per-column cost that decided its size.
+     * Either way, nothing about how the grid was obtained is silent.
      */
     static int render(CommandContext<ServerCommandSource> ctx, long seed, String resolutionArg) {
         ServerCommandSource source = ctx.getSource();
@@ -256,12 +257,18 @@ public final class RollCommands {
         try {
             CandidateRender.RenderResult result =
                     CandidateRender.render(server, dimensionId, def, seed, resolution, path);
+            // Lowres has no per-column cost to report — it read a candidate's
+            // own persisted grid rather than sampling one, and saying
+            // "0.000ms/column" would read as a measurement that never happened.
+            String costPart = resolution == CandidateRender.Resolution.LOWRES
+                    ? "from the candidate's persisted grid"
+                    : String.format(Locale.ROOT, "%.3fms/column, %d sampled",
+                            result.perColumnNanos() / 1_000_000.0, result.sampled());
             final String msg = "render " + dimensionId + " seed=" + seed + " "
                     + resolutionArg.toLowerCase(Locale.ROOT) + ": " + result.side() + "x" + result.side()
-                    + " grid, step=" + result.step() + " blocks, "
-                    + String.format(Locale.ROOT, "%.3fms/column", result.perColumnNanos() / 1_000_000.0)
-                    + ", " + result.sampled() + " sampled, " + result.structureMarkers() + " structure marker(s), "
-                    + String.format(Locale.ROOT, "%.1fs total", result.renderNanos() / 1_000_000_000.0)
+                    + " grid, step=" + result.step() + " blocks, " + costPart + ", "
+                    + result.structureMarkers() + " structure marker(s), "
+                    + String.format(Locale.ROOT, "%.3fs total", result.renderNanos() / 1_000_000_000.0)
                     + " -> " + result.path();
             source.sendFeedback(() -> Text.literal(msg), false);
             return 1;
