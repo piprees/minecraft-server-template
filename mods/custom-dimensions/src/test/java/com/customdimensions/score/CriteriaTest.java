@@ -200,6 +200,28 @@ class CriteriaTest {
         assertFalse(c.applicable(noStructures()));
     }
 
+    @Test
+    void theLongWalkBranchStillRanksInsteadOfCollapsingToZero() {
+        // The far branch had the ramp pointed the wrong way, so every seed
+        // whose nearest hostile sat past 30% of the border scored an identical
+        // 0.0 — 70 percentage points of the axis ranking nothing, with a cliff
+        // at the band edge. Both properties are asserted here.
+        var c = new Criteria.FirstEncounterDistance();
+        DimensionConfig def = config(null, null, null);
+        double atEdge = score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 0.6, 3000.0, 10000), def));
+        double midway = score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 0.6, 6500.0, 10000), def));
+        double atBorder = score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 0.6, 9900.0, 10000), def));
+
+        assertEquals(1.0, atEdge, 1e-9, "the band edge must not be a cliff");
+        assertTrue(midway > atBorder,
+                "halfway out scored " + midway + ", at the border " + atBorder);
+        assertTrue(midway < 1.0 && atBorder < midway,
+                "the far tail must decay monotonically, got " + midway + " then " + atBorder);
+    }
+
     // ---------------------------------------------------------- terrain word
 
     @Test

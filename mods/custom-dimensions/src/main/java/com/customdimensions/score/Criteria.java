@@ -283,7 +283,13 @@ public final class Criteria {
             if (frac < 0.05) {
                 return new Result.Score(ramp(frac, 0.0, 0.05), ev + " — on top of spawn");
             }
-            return new Result.Score(ramp(1.0 - frac, 0.70, 1.0), ev + " — a long walk");
+            // Mirrors the near branch: 1.0 at the band edge, decaying to 0 at
+            // the border. The pair (0.70, 1.0) reads plausibly and is the wrong
+            // direction — 1.0 - frac can only fall BELOW 0.70 once frac passes
+            // 0.30, so it clamped to zero for the whole upper tail and ranked
+            // "just outside the band" the same as "at the world's edge".
+            return new Result.Score(ramp(1.0 - frac, 0.0, 1.0 - 0.30),
+                    ev + " — a long walk");
         }
     }
 
