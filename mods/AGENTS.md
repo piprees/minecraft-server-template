@@ -149,6 +149,13 @@ half-written file). RCON's job is to trigger the write and run short
 commands; the answer is read from the file. Several diagnostics answer
 inline instead, by design — see the table below for which.
 
+**Seed rolling does not use RCON or chat commands at all.** The mod runs inside
+the server process that owns the registries and the live `MinecraftServer`, so
+the seed tool reaches it over an HTTP port the mod hosts, and the browser talks
+to it directly. The contract below governs diagnostics that genuinely inspect a
+running world — never the roll, view, try-out and pick loop
+(`~/Projects/elfydd/reports/PLAN.md`).
+
 ### The contract
 
 1. **One line back, everything else on disk** —
