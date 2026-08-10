@@ -32,8 +32,9 @@ usage() {
   echo "  logs     Tail the Minecraft server logs"
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
   echo "  roll     Roll candidate seeds (./dev roll <dim> <count>, or ./dev roll <count> for every dimension)"
-  echo "  bank     Show a dimension's seed bank (e.g. ./dev bank adventure:the_boneyard)"
-  echo "  winner   Write a dimension's bank winner into its config (e.g. ./dev winner adventure:the_boneyard)"
+  echo "  bank     Show a dimension's seed bank, or every dimension's with no argument"
+  echo "  winner   Write a bank winner into a dimension's config (./dev winner <dim> [<seed>])"
+  echo "  render   Draw a candidate seed (./dev render <dim> <seed> [lowres|highres])"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
@@ -396,19 +397,36 @@ case "$CMD" in
     ;;
   bank)
     ensure_stack
-    if [[ $# -ne 1 ]]; then
-      echo "Usage: ./dev bank <dimension>"
+    # No dimension = rolling state across every dimension at once.
+    if [[ $# -eq 0 ]]; then
+      exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim bank-all"
+    elif [[ $# -eq 1 ]]; then
+      exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim bank $1"
+    else
+      echo "Usage: ./dev bank [<dimension>]   (no dimension = every dimension)"
       exit 1
     fi
-    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim bank $1"
     ;;
   winner)
     ensure_stack
-    if [[ $# -ne 1 ]]; then
-      echo "Usage: ./dev winner <dimension>"
+    # A seed names your pick from the frontier; without one the command
+    # writes the winner only when the frontier has a single member.
+    if [[ $# -eq 1 ]]; then
+      exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim winner $1"
+    elif [[ $# -eq 2 ]]; then
+      exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim winner $1 $2"
+    else
+      echo "Usage: ./dev winner <dimension> [<seed>]"
       exit 1
     fi
-    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim winner $1"
+    ;;
+  render)
+    ensure_stack
+    if [[ $# -lt 2 || $# -gt 3 ]]; then
+      echo "Usage: ./dev render <dimension> <seed> [lowres|highres]"
+      exit 1
+    fi
+    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "customdim render $1 $2 ${3:-lowres}"
     ;;
   pack)
     ensure_env
