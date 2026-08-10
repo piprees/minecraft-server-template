@@ -130,6 +130,16 @@ public class DimensionConfig {
     @SerializedName("seedRoll")
     private SeedRoll seedRoll;
 
+    /** Test seam: build a config in memory without going through Gson. */
+    public void setSeedRoll(SeedRoll seedRoll) {
+        this.seedRoll = seedRoll;
+    }
+
+    /** Test seam: the raw biome entries {@link #getBiomes()} reads. */
+    public void setBiomes(List<JsonElement> biomes) {
+        this.biomes = biomes;
+    }
+
     /** Legacy explicit id; when absent the id is {namespace}:{slug} (vanilla ids for base worlds). */
     @SerializedName("dimensionId")
     private String dimensionId;
@@ -511,6 +521,11 @@ public class DimensionConfig {
 
     public void setStructureDensity(String structureDensity) {
         this.structureDensity = structureDensity;
+    }
+
+    /** Test seam: the scoring layer's applicability rules read this. */
+    public void setStructures(Structures structures) {
+        this.structures = structures;
     }
 
     public Structures getStructures() {
