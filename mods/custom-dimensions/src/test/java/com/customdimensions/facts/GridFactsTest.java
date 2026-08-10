@@ -26,7 +26,7 @@ class GridFactsTest {
                 sampled++;
             }
         }
-        return new FactsEngine.Grid(biomes, heights, 3, 100, sampled, null);
+        return new FactsEngine.Grid(biomes, heights, 3, 100, sampled);
     }
 
     private static final String P = "minecraft:plains";

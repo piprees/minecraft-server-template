@@ -1,10 +1,13 @@
 package com.customdimensions.facts;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -73,7 +76,8 @@ public final class SeedFactsCodec {
                         measured(structures, "clusteringByGroup", SeedFactsCodec::doubleMap),
                         measured(structures, "clustering", JsonElement::getAsDouble),
                         measured(structures, "nearestHostile", JsonElement::getAsDouble),
-                        measured(structures, "totalPositions", JsonElement::getAsInt)));
+                        measured(structures, "totalPositions", JsonElement::getAsInt)),
+                measured(root, "grid", SeedFactsCodec::grid));
     }
 
     private static JsonObject obj(JsonObject parent, String name) {
@@ -125,5 +129,30 @@ public final class SeedFactsCodec {
             out.put(e.getKey(), e.getValue().getAsInt());
         }
         return out;
+    }
+
+    private static List<String> stringList(JsonArray array) {
+        List<String> out = new ArrayList<>(array.size());
+        for (JsonElement e : array) {
+            out.add(e.getAsString());
+        }
+        return out;
+    }
+
+    private static List<Integer> intList(JsonArray array) {
+        List<Integer> out = new ArrayList<>(array.size());
+        for (JsonElement e : array) {
+            out.add(e.isJsonNull() ? null : e.getAsInt());
+        }
+        return out;
+    }
+
+    private static SeedFacts.Grid grid(JsonElement element) {
+        JsonObject o = element.getAsJsonObject();
+        return new SeedFacts.Grid(
+                o.get("side").getAsInt(),
+                stringList(o.getAsJsonArray("biomeIds")),
+                intList(o.getAsJsonArray("biome")),
+                intList(o.getAsJsonArray("height")));
     }
 }

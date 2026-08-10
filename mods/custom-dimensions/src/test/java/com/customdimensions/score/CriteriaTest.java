@@ -30,7 +30,7 @@ class CriteriaTest {
                                    SeedFacts.TerrainFacts terrain,
                                    SeedFacts.StructureFacts structures, int radius) {
         return new SeedFacts("test", "adventure:test", 1L, "now", "fp", radius,
-                spawn, biomes, terrain, structures);
+                spawn, biomes, terrain, structures, gone());
     }
 
     private static SeedFacts.SpawnFacts spawn(String biome, Double localRelief) {

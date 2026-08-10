@@ -14,6 +14,9 @@ import java.util.Map;
  *
  * <p>Every field is a {@link Measured}, so an unmeasurable fact is a stated
  * absence with a reason rather than a zero that reads like a measurement.
+ *
+ * @param grid absent means this run could not sample a grid at all (the
+ *             generator failed to build) — every dimension has one.
  */
 public record SeedFacts(
         String stackVersion,
@@ -25,7 +28,8 @@ public record SeedFacts(
         SpawnFacts spawn,
         BiomeFacts biomes,
         TerrainFacts terrain,
-        StructureFacts structures) {
+        StructureFacts structures,
+        Measured<Grid> grid) {
 
     /**
      * Where the player starts, and what is there.
@@ -126,6 +130,36 @@ public record SeedFacts(
             Measured<Integer> totalPositions) {
     }
 
+    /**
+     * The sampled biome+height grid over the playable disc — persisted so a
+     * consumer (a render, a re-derived aggregate) can see the world again
+     * without re-measuring it.
+     *
+     * <p>{@code biome} and {@code height} are row-major, {@code side * side}
+     * long, indexed {@code z * side + x} — the same layout and cell count
+     * {@code FactsEngine.sampleGrid} already samples in, at
+     * {@code step = playableRadius * 2 / (side - 1)} blocks between adjacent
+     * cells, centred on the world origin. {@code null} in either array means
+     * unmeasured — outside the playable disc, or sampled without an answer —
+     * and a real height of exactly zero survives as {@code 0}, never as
+     * {@code null}. {@code side} is stored explicitly rather than assumed
+     * from the live {@code FactsEngine.GRID} constant, which can change
+     * under a file written under an earlier one.
+     *
+     * @param side      cells per row and column (odd, so the centre cell is
+     *                  the grid's own centre)
+     * @param biomeIds  distinct biome ids appearing anywhere in the grid,
+     *                  indexed by {@code biome}
+     * @param biome     index into {@code biomeIds} per cell, or null
+     * @param height    surface height per cell, or null
+     */
+    public record Grid(
+            int side,
+            List<String> biomeIds,
+            List<Integer> biome,
+            List<Integer> height) {
+    }
+
     // ------------------------------------------------------------------ json
 
     public String toJson() {
@@ -174,7 +208,9 @@ public record SeedFacts(
         field(b, "nearestHostile", structures.nearestHostile().toJson(Json::number), true);
         field(b, "totalPositions",
                 structures.totalPositions().toJson(v -> Json.number((long) v)), false);
-        b.append(" }\n}\n");
+        b.append(" },\n");
+
+        b.append(" \"grid\": ").append(grid.toJson(SeedFacts::grid)).append("\n}\n");
         return b.toString();
     }
 
@@ -212,6 +248,37 @@ public record SeedFacts(
         return b.append('}').toString();
     }
 
+    private static String stringList(List<String> values) {
+        StringBuilder b = new StringBuilder("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) {
+                b.append(", ");
+            }
+            b.append(Json.quote(values.get(i)));
+        }
+        return b.append(']').toString();
+    }
+
+    private static String intList(List<Integer> values) {
+        StringBuilder b = new StringBuilder("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) {
+                b.append(", ");
+            }
+            Integer v = values.get(i);
+            b.append(v == null ? "null" : v.toString());
+        }
+        return b.append(']').toString();
+    }
+
+    private static String grid(Grid g) {
+        return "{\"side\": " + g.side()
+                + ", \"biomeIds\": " + stringList(g.biomeIds())
+                + ", \"biome\": " + intList(g.biome())
+                + ", \"height\": " + intList(g.height())
+                + "}";
+    }
+
     /** Every absent fact in this record, as "path: reason". For the summary. */
     public List<String> absences() {
         List<String> out = new java.util.ArrayList<>();
@@ -236,6 +303,7 @@ public record SeedFacts(
         absent(out, "structures.clustering", structures.clustering());
         absent(out, "structures.nearestHostile", structures.nearestHostile());
         absent(out, "structures.totalPositions", structures.totalPositions());
+        absent(out, "grid", grid);
         return out;
     }
 

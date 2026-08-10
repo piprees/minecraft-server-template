@@ -94,21 +94,56 @@ public final class FactsEngine {
                 Artefacts.stackVersion(),
                 dimensionId.toString(), seed, Instant.now().toString(), fingerprint, radius,
                 spawn, biomeFacts(grid), terrain,
-                structureFacts(server, def, base, seed, radius));
+                structureFacts(server, def, base, seed, radius),
+                Measured.of(persistedGrid(grid)));
+    }
+
+    /**
+     * The internal per-run {@link Grid} as the record a candidate file
+     * carries: biome ids collapsed to indices into {@code biomeIds}. A null
+     * cell in {@code biome}/{@code height} is unmeasured — outside the
+     * playable disc, or sampled without an answer — the same distinction
+     * {@link #sampleGrid} already carries in its own null cells.
+     */
+    private static SeedFacts.Grid persistedGrid(Grid grid) {
+        List<String> biomeIds = new ArrayList<>();
+        Map<String, Integer> biomeIndex = new LinkedHashMap<>();
+        List<Integer> biome = new ArrayList<>(grid.biome().length);
+        List<Integer> height = new ArrayList<>(grid.height().length);
+
+        for (int i = 0; i < grid.biome().length; i++) {
+            String b = grid.biome()[i];
+            if (b == null) {
+                biome.add(null);
+            } else {
+                Integer idx = biomeIndex.get(b);
+                if (idx == null) {
+                    idx = biomeIds.size();
+                    biomeIds.add(b);
+                    biomeIndex.put(b, idx);
+                }
+                biome.add(idx);
+            }
+            height.add(grid.height()[i]);
+        }
+
+        return new SeedFacts.Grid(grid.side(), biomeIds, biome, height);
     }
 
     // ------------------------------------------------------------------ grid
 
     /**
-     * One pass over the playable disc. Nulls mark cells that answered nothing.
-     * Package-private so the pure grid computations below can be pinned
-     * against hand-built layouts — the alternative is verifying relief,
-     * grain, shares and edge density only through a live parity run, which
-     * tells you the whole pipeline agrees with itself and nothing about
-     * whether the arithmetic is what was intended.
+     * One pass over the playable disc. Nulls mark cells that answered
+     * nothing — outside the disc (never attempted) and sampled-but-absent
+     * are not distinguished here; a consumer of the persisted record cares
+     * only that the cell has no value. Package-private so the pure grid
+     * computations below can be pinned against hand-built layouts — the
+     * alternative is verifying relief, grain, shares and edge density only
+     * through a live parity run, which tells you the whole pipeline agrees
+     * with itself and nothing about whether the arithmetic is what was
+     * intended.
      */
-    record Grid(String[] biome, Integer[] height, int side, int step,
-                int sampled, String absentReason) {
+    record Grid(String[] biome, Integer[] height, int side, int step, int sampled) {
     }
 
     private static Grid sampleGrid(SpikeSampler.Rig rig, int radius) {
@@ -123,15 +158,16 @@ public final class FactsEngine {
                 int dx = (gx - half) * step;
                 int dz = (gz - half) * step;
                 if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
-                    continue;   // outside the playable disc
+                    continue;   // outside the playable disc — never attempted
                 }
+                int i = gz * side + gx;
                 SpikeSampler.Sample s = SpikeSampler.sample(rig, dx, dz);
-                biome[gz * side + gx] = s.biome();
-                height[gz * side + gx] = s.surfaceHeight();
+                biome[i] = s.biome();
+                height[i] = s.surfaceHeight();
                 sampled++;
             }
         }
-        return new Grid(biome, height, side, step, sampled, null);
+        return new Grid(biome, height, side, step, sampled);
     }
 
     // ----------------------------------------------------------------- spawn
@@ -770,6 +806,7 @@ public final class FactsEngine {
                         Measured.absent(why), Measured.absent(why)),
                 new SeedFacts.TerrainFacts(Measured.absent(why), Measured.absent(why),
                         Measured.absent(why), Measured.absent(why), Measured.absent(why)),
-                absentStructures(why));
+                absentStructures(why),
+                Measured.absent(why));
     }
 }

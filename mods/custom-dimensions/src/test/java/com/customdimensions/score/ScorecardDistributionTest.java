@@ -64,7 +64,8 @@ class ScorecardDistributionTest {
                                    double clustering, double nearestHostile, long seed) {
         return new SeedFacts("test", "adventure:test", seed, "now", "fp", RADIUS,
                 spawn(spawnBiome, localRelief), biomes(distinct, headline, edges),
-                terrain(relief), structures(clustering, nearestHostile));
+                terrain(relief), structures(clustering, nearestHostile),
+                Measured.absent("not measured in this fixture"));
     }
 
     /** One config every scored scenario shares: every criterion applies to it. */

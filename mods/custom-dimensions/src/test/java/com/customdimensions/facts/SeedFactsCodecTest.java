@@ -2,10 +2,13 @@ package com.customdimensions.facts;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,7 +51,23 @@ class SeedFactsCodecTest {
                         Measured.of(Map.of("dungeons", 0.7412, "endgame", 1.0891)),
                         Measured.of(0.8123456789),
                         Measured.of(129.0),
-                        Measured.of(8)));
+                        Measured.of(8)),
+                Measured.of(gridFixture()));
+    }
+
+    /**
+     * A 3x3 grid exercising every per-cell state at once: cell 2 was never
+     * sampled (outside the disc) — null in both arrays. Cell 3's biome
+     * could not be determined while its height came back fine. Cell 4's
+     * floor could not be resolved while its biome came back fine — biome
+     * and height are absent independently. Cell 5 is a real height of
+     * exactly zero, to prove it survives distinct from an unsampled cell.
+     */
+    private static SeedFacts.Grid gridFixture() {
+        return new SeedFacts.Grid(3,
+                List.of("minecraft:plains", "minecraft:desert"),
+                Arrays.asList(0, 1, null, null, 0, 1, 1, 0, 1),
+                Arrays.asList(72, 65, null, 140, null, 0, 67, 68, 69));
     }
 
     /** A flat generator: real values where they exist, stated absences elsewhere. */
@@ -74,7 +93,8 @@ class SeedFactsCodecTest {
                         Measured.absent("fewer than two positions, so nearest-neighbour "
                                 + "distance is undefined"),
                         Measured.absent("no hostile placement in this dimension"),
-                        f.structures().totalPositions()));
+                        f.structures().totalPositions()),
+                f.grid());
     }
 
     @Test
@@ -117,7 +137,8 @@ class SeedFactsCodecTest {
                         a.structures().byStructure(), a.structures().nearestByStructure(),
                         a.structures().clusteringByGroup(),
                         Measured.of(0.8123456789 + 1e-12),
-                        a.structures().nearestHostile(), a.structures().totalPositions()));
+                        a.structures().nearestHostile(), a.structures().totalPositions()),
+                a.grid());
 
         assertTrue(a.structures().clustering().orThrow()
                 != b.structures().clustering().orThrow());
@@ -144,7 +165,7 @@ class SeedFactsCodecTest {
                         Measured.of(new SeedFacts.Column(0, 0, false)),
                         declared.spawn().biome(), declared.spawn().surfaceHeight(),
                         declared.spawn().localRelief(), declared.spawn().aboveSeaLevel()),
-                declared.biomes(), declared.terrain(), declared.structures());
+                declared.biomes(), declared.terrain(), declared.structures(), declared.grid());
 
         SeedFacts backDeclared = SeedFactsCodec.read(declared.toJson());
         SeedFacts backFellBack = SeedFactsCodec.read(fellBack.toJson());
@@ -211,5 +232,64 @@ class SeedFactsCodecTest {
             String reason = entry.substring(entry.indexOf(": ") + 2);
             assertFalse(reason.isBlank(), entry + " carries no reason a human can act on");
         }
+    }
+
+    // ------------------------------------------------------------------- grid
+
+    @Test
+    void theGridSurvivesTheRoundTripWithIndicesIntact() {
+        SeedFacts original = fullyMeasured();
+        SeedFacts back = SeedFactsCodec.read(original.toJson());
+
+        assertEquals(original.toJson(), back.toJson());
+        assertEquals(original, back);
+        SeedFacts.Grid grid = back.grid().orThrow();
+        assertEquals(3, grid.side());
+        assertEquals(List.of("minecraft:plains", "minecraft:desert"), grid.biomeIds());
+        assertEquals(Arrays.asList(0, 1, null, null, 0, 1, 1, 0, 1), grid.biome());
+        assertEquals(Arrays.asList(72, 65, null, 140, null, 0, 67, 68, 69), grid.height());
+    }
+
+    @Test
+    void anUnsampledCellIsDistinctFromARealHeightOfZero() {
+        // Cell 2 is outside the playable disc — never attempted. Cell 5 is a
+        // real column whose floor is exactly y=0. Both start null-ish; only
+        // one is an actual measurement of zero.
+        SeedFacts.Grid grid = SeedFactsCodec.read(fullyMeasured().toJson()).grid().orThrow();
+
+        assertNull(grid.height().get(2), "outside the disc: no height");
+        assertNull(grid.biome().get(2), "outside the disc: no biome either");
+        assertEquals(0, grid.height().get(5), "a real height of zero must survive as 0, not null");
+    }
+
+    @Test
+    void biomeAndHeightAreAbsentIndependently() {
+        // Cell 3: biome absent, height present. Cell 4: the reverse. Neither
+        // axis's absence forces the other's — a column can answer one
+        // question and not the other.
+        SeedFacts.Grid grid = SeedFactsCodec.read(fullyMeasured().toJson()).grid().orThrow();
+
+        assertNull(grid.biome().get(3));
+        assertEquals(140, grid.height().get(3));
+
+        assertEquals(0, grid.biome().get(4));
+        assertNull(grid.height().get(4));
+    }
+
+    @Test
+    void anAbsentGridSurvivesTheRoundTripWithItsReason() {
+        // The whole-run failure path: no grid at all, not a grid with every
+        // cell absent. anAbsenceComesBackAnAbsenceWithItsReasonIntact already
+        // covers scalar fields; this is the same guarantee for grid.
+        SeedFacts f = fullyMeasured();
+        SeedFacts noGrid = new SeedFacts(f.stackVersion(), f.dimension(), f.seed(),
+                f.measuredAt(), f.configFingerprint(), f.playableRadius(),
+                f.spawn(), f.biomes(), f.terrain(), f.structures(),
+                Measured.absent("the dimension's generator could not be built"));
+
+        assertFalse(noGrid.grid().isPresent());
+        SeedFacts back = SeedFactsCodec.read(noGrid.toJson());
+        assertFalse(back.grid().isPresent());
+        assertEquals(noGrid.grid().reason(), back.grid().reason());
     }
 }
