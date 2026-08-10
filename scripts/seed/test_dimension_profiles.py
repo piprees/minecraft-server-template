@@ -337,12 +337,47 @@ class GenerationFingerprintTests(unittest.TestCase):
         dim = {**self.BASE, **changes}
         return generation_fingerprint(dim)
 
+    def test_wants_move_it_because_they_move_the_pool(self):
+        """A want is an instruction, so it is generation-affecting.
+
+        A wanted structure bypasses the biome-affinity filter, keeps full
+        weight in its group's pool, and has its structure set re-admitted when
+        vanilla's prefilter dropped it — all three re-deal the pool, so two
+        dimensions with different wants cannot share a seed's measurements.
+        This assertion used to be its exact opposite; the change to
+        NoisePoolBuilder is what made the old one false.
+        """
+        base = self.fp()
+        # Different wants, different world.
+        self.assertNotEqual(
+            self.fp(seedRoll={"wants": {"mansion": "spread"}}),
+            self.fp(seedRoll={"wants": {"monument": "spread"}}))
+        # Same structure named two ways is the same world.
+        self.assertEqual(
+            self.fp(seedRoll={"wants": {"mansion": "spread"}}),
+            self.fp(seedRoll={"wants": {"minecraft:mansion": "near_spawn"}}))
+        # The band is scoring, not generation — it does not move the pool.
+        self.assertEqual(
+            self.fp(seedRoll={"wants": {"mansion": "spread"}}),
+            self.fp(seedRoll={"wants": {"mansion": "near_border"}}))
+        # An inherited family default is still a want list the pool obeys, so
+        # naming nothing is NOT the same world as naming something.
+        self.assertNotEqual(base, self.fp(seedRoll={"wants": {"mansion": "spread"}}))
+
+    def test_dimension_with_no_wants_keeps_a_stable_payload(self):
+        """The conditional key: nothing to want, nothing added.
+
+        Without this, every void and superflat dimension in the pack would
+        have gone DRIFTED for a change that cannot touch its world.
+        """
+        dim = {**self.BASE, "type": "void", "seedRoll": {"mood": "serene"}}
+        self.assertNotIn("wantedStructures", generation_payload(dim))
+
     def test_scoring_and_runtime_fields_do_not_change_it(self):
         base = self.fp()
         self.assertEqual(base, self.fp(name="b", dimensionId="adventure:b", seed=42))
         self.assertEqual(base, self.fp(seedRoll={"mood": "hard",
-                                                 "spawnFilter": ["minecraft:forest"],
-                                                 "wants": {"village": "spread"}}))
+                                                 "spawnFilter": ["minecraft:forest"]}))
         self.assertEqual(base, self.fp(portal={"frameBlock": "minecraft:clay",
                                                "scale": 8.0}))
         # Tier 2 portal customisations are runtime-only too: shapes,
@@ -363,10 +398,9 @@ class GenerationFingerprintTests(unittest.TestCase):
         self.assertEqual(base, self.fp(borders={"player": 512}))
         self.assertEqual(base, self.fp(description="x", color="FF0000",
                                        exits={"void": {"target": "bed"}}))
-        # structures wants/shuns/clearSpawnRadius are scoring-only...
-        self.assertEqual(base, self.fp(structures={"wants": {"village": "spread"},
-                                                   "shuns": ["monument"],
-                                                   "clearSpawnRadius": 64}))
+        # shuns are still scoring-only — nothing reads them at placement time.
+        # wants are NOT: see test_wants_move_it_because_they_move_the_pool.
+        self.assertEqual(base, self.fp(structures={"shuns": {"monument": {}}}))
 
     def test_generation_fields_change_it(self):
         base = self.fp()

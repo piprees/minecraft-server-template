@@ -159,36 +159,27 @@ public final class DimensionLint {
             sets.add(entry);
         }
 
+        // Three builds, so a want that fits is distinguishable from one that
+        // only survives because a filter was bypassed for it. The bypasses are
+        // deliberate features; being unable to see which one is carrying a want
+        // is what let 142 of them look like bad luck.
+        //
+        //   full     what generation actually builds (include + wants)
+        //   noWant   without the wants bypass
+        //   bare     without either bypass
         boolean noiseSuppressed = plan.isSuppressed();
-        Map<String, String> poolGroupOf = new LinkedHashMap<>();
-        if (!noiseSuppressed) {
-            NoisePoolBuilder.Result pools =
-                    NoisePoolBuilder.build(def, sets, biomeSource, plan, exclude);
-            pools.pools().forEach((group, pool) -> {
-                for (StructureSet.WeightedEntry weighted : pool.entries()) {
-                    weighted.structure().getKey().ifPresent(
-                            k -> poolGroupOf.putIfAbsent(k.getValue().toString(), group));
-                }
-            });
-        }
-
-        // The same build with `include` emptied, so a want that only survives
-        // because of include is distinguishable from one that genuinely fits.
-        Map<String, String> poolWithoutInclude = new LinkedHashMap<>();
-        if (!noiseSuppressed && block != null
-                && block.include != null && !block.include.isEmpty()) {
-            NoisePoolBuilder.Result bare = NoisePoolBuilder.build(
-                    def, sets, biomeSource, plan, exclude, List.of());
-            bare.pools().forEach((group, pool) -> {
-                for (StructureSet.WeightedEntry weighted : pool.entries()) {
-                    weighted.structure().getKey().ifPresent(
-                            k -> poolWithoutInclude.putIfAbsent(
-                                    k.getValue().toString(), group));
-                }
-            });
-        } else {
-            poolWithoutInclude.putAll(poolGroupOf);
-        }
+        Set<String> wantedIds = NoisePoolBuilder.wantedStructureIds(def);
+        Map<String, String> poolGroupOf = noiseSuppressed ? Map.of()
+                : poolIndex(NoisePoolBuilder.build(
+                        def, sets, biomeSource, plan, exclude, null, wantedIds));
+        Map<String, String> poolNoWant = noiseSuppressed ? Map.of()
+                : poolIndex(NoisePoolBuilder.build(
+                        def, sets, biomeSource, plan, exclude, null, Set.of()));
+        Map<String, String> poolWithoutInclude = noiseSuppressed ? Map.of()
+                : (block != null && block.include != null && !block.include.isEmpty()
+                        ? poolIndex(NoisePoolBuilder.build(
+                                def, sets, biomeSource, plan, exclude, List.of(), Set.of()))
+                        : poolNoWant);
 
         Set<String> forcedIds = forcedStructureIds(def);
 
@@ -255,26 +246,54 @@ public final class DimensionLint {
             }
             String group = poolGroupOf.get(id);
             if (group == null) {
+                String setId = setIdFor(setRegistry, id);
+                boolean excluded = exclude.contains(setId.toLowerCase(Locale.ROOT));
                 out.add(new Finding(name, ERROR, "want_not_in_pool", wantName,
-                        id + " is not in any of this dimension's eligible structure "
-                        + "pools — its own valid-biome list does not intersect this "
-                        + "dimension's biomes, so no seed can ever place it and the "
-                        + "want scores 0.0 forever",
-                        "swap the want for a structure this dimension's biomes "
-                        + "support, or add \"" + setIdFor(setRegistry, id)
-                        + "\" to structures.include"));
+                        id + " reaches no eligible pool in this dimension"
+                        + (excluded
+                                ? ", because its set " + setId + " is excluded by "
+                                  + "structures.exclude or the global suppress list"
+                                : ", because its set " + setId + " belongs to no noise "
+                                  + "group this dimension enables")
+                        + " — no seed can place it and the want scores 0.0 forever",
+                        excluded
+                                ? "remove " + setId + " from structures.exclude (or the "
+                                  + "settings.json suppress list), or drop the want"
+                                : "drop the want, or enable the group its set belongs "
+                                  + "to in structures.noise"));
                 continue;
             }
-            if (!poolWithoutInclude.containsKey(id)) {
-                out.add(new Finding(name, WARN, "want_in_pool_only_via_include", wantName,
+            if (!poolNoWant.containsKey(id)) {
+                out.add(new Finding(name, INFO, "want_biome_disjoint", wantName,
+                        id + " is in the '" + group + "' pool only because it is "
+                        + "wanted: none of this dimension's biomes is on its own "
+                        + "valid-biome list, so it is being placed against its "
+                        + "author's biome rules. It will generate where the noise "
+                        + "assigns it unless its own generation declines the terrain "
+                        + "— check census/rejections__* if it never appears",
+                        "no action needed if that is what you meant; add a biome it "
+                        + "actually belongs in if you would rather it fitted"));
+            } else if (!poolWithoutInclude.containsKey(id)) {
+                out.add(new Finding(name, INFO, "want_in_pool_only_via_include", wantName,
                         id + " is in the '" + group + "' pool only because "
-                        + "structures.include bypasses the biome filter. That gets it "
-                        + "into the pick pool; vanilla still runs the structure's own "
-                        + "biome predicate at the chosen position and can veto it",
-                        "verify with a structure census that it actually generates; "
-                        + "if it does not, the biome list is the thing to change"));
+                        + "structures.include bypasses the biome affinity filter for "
+                        + "its set",
+                        "no action needed; the want bypass would have covered it "
+                        + "anyway, so the include entry may be redundant"));
             }
         }
+        return out;
+    }
+
+    /** structure id -> the group whose pool holds it. */
+    private static Map<String, String> poolIndex(NoisePoolBuilder.Result pools) {
+        Map<String, String> out = new LinkedHashMap<>();
+        pools.pools().forEach((group, pool) -> {
+            for (StructureSet.WeightedEntry weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(
+                        k -> out.putIfAbsent(k.getValue().toString(), group));
+            }
+        });
         return out;
     }
 

@@ -138,9 +138,54 @@ public final class NoisePoolBuilder {
                                NoiseGroupPlan plan,
                                Set<String> exclude,
                                List<String> includeOverride) {
+        return build(def, sets, biomeSource, plan, exclude, includeOverride,
+                wantedStructureIds(def));
+    }
+
+    /**
+     * The structure ids this dimension's config asks for, resolved through the
+     * alias table. These bypass the biome-affinity filter: a want is an
+     * instruction, not a wish.
+     */
+    public static Set<String> wantedStructureIds(DimensionConfig def) {
+        Set<String> out = new HashSet<>();
+        for (String name : StructureWants.resolve(def).names()) {
+            String id = StructureAliases.resolve(name);
+            if (id != null && !id.startsWith("#")) {
+                out.add(id);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * As above with the wanted set supplied.
+     *
+     * <p>{@code wanted} bypasses the biome-affinity filter exactly as
+     * {@code structures.include} does, but per STRUCTURE rather than per set —
+     * which is the granularity a want is written at. The structure then reaches
+     * {@link StructurePick} and, at its assigned site,
+     * {@code NoiseStructureSelectionMixin} creates its start with the biome
+     * predicate bypassed. That last step already existed; this is the wire that
+     * was missing in front of it.
+     *
+     * <p>What it does NOT do is guarantee the structure generates: its own
+     * {@code createStructureStart} can still decline the position, and that
+     * rejection is recorded in {@code census/rejections__*.json}. "Wanted" buys
+     * a place in the pool and a chance at every site the noise assigns it, not
+     * a promise the terrain will accept it.
+     */
+    public static Result build(DimensionConfig def,
+                               Iterable<RegistryEntry<StructureSet>> sets,
+                               BiomeSource biomeSource,
+                               NoiseGroupPlan plan,
+                               Set<String> exclude,
+                               List<String> includeOverride,
+                               Set<String> wanted) {
         DimensionConfig.Structures block = def.getStructures();
         Set<String> include = lowerSet(includeOverride != null ? includeOverride
                 : (block == null ? null : block.include));
+        Set<String> wantedIds = wanted == null ? Set.of() : wanted;
         Map<String, String> rarityOverrides = block == null || block.rarity == null
                 ? Map.of() : block.rarity;
         Set<String> forcedExclusive = forcedExclusiveStructureIds(def);
@@ -198,14 +243,18 @@ public final class NoisePoolBuilder {
                     counter[1]++;
                     continue;   // placed by hand, and nowhere else
                 }
+                boolean wantedHere = structureId != null && wantedIds.contains(structureId);
                 double affinity = biomeAffinity(structure, dimensionBiomes);
-                if (affinity <= 0.0 && !bypassBiomeFilter) {
+                if (affinity <= 0.0 && !bypassBiomeFilter && !wantedHere) {
                     counter[0]++;
                     continue;   // cannot generate in any of this dim's biomes
                 }
                 // Structures that belong to MORE of this dimension's biomes
-                // weigh more, so generation leans towards what fits.
-                double affinityFactor = bypassBiomeFilter ? 1.0 : 0.5 + 0.5 * affinity;
+                // weigh more, so generation leans towards what fits. A wanted
+                // structure keeps full weight: the author asked for it, so it
+                // must not be quietly out-competed by whatever happens to fit.
+                double affinityFactor = bypassBiomeFilter || wantedHere
+                        ? 1.0 : 0.5 + 0.5 * affinity;
                 int weight = (int) Math.max(1, Math.round(
                         weighted.weight() * share * affinityFactor));
                 byGroup.computeIfAbsent(group, k -> new ArrayList<>())

@@ -647,6 +647,35 @@ def rollable(dim):
 _FP_ENVIRONMENT_KEYS = ("minY", "height", "logicalHeight", "coordinateScale")
 
 
+def _wanted_structure_ids(dim):
+    """Resolved structure ids for a dimension's wants, sorted; [] when none.
+
+    MIRRORS NoisePoolBuilder.wantedStructureIds (Java), which resolves through
+    StructureWants + StructureAliases. The want SOURCE order is the same as
+    build_profile's, because the two must agree on which structures a config
+    asks for — a lint or a fingerprint that reads a different field from the
+    scorer is describing a different dimension. Tag wants are excluded: a tag
+    is a set of structures, and the pool bypass is per structure.
+    """
+    struct_block = dim.get("structures") or {}
+    sr = dim.get("seedRoll") or {}
+    if struct_block.get("wants") is not None:
+        wants = struct_block["wants"]
+    elif "wants" in sr or "shuns" in sr:
+        wants = sr.get("wants")
+    else:
+        fam = sr.get("family")
+        if fam not in ("overworld", "nether", "end", "paradise_lost"):
+            fam = family_of(dim.get("type"))
+        wants = DEFAULT_WANTS.get(fam or "", {})
+    out = set()
+    for name in (wants or {}):
+        sid = resolve_struct(name)
+        if sid and not sid.startswith("#"):
+            out.add(sid)
+    return sorted(out)
+
+
 def generation_payload(dim):
     """Canonical dict of every generation-affecting config field — the
     invariant behind seed-group rolling: two dimensions can share a seed's
@@ -748,6 +777,24 @@ def generation_payload(dim):
     if (ta_config or ta_themes) and (not structureless or well_formed_force):
         payload["terrainAdaptation"] = [sorted(ta_config.items()),
                                         sorted(ta_themes.items())]
+    # Wants became generation-affecting in the "wants are an instruction"
+    # change: a wanted structure bypasses the biome-affinity filter, keeps full
+    # weight in its group's pool, and has its SET re-admitted if vanilla's own
+    # prefilter dropped it. All three re-deal the pool, so two dimensions with
+    # different wants no longer share a seed's measurements.
+    #
+    # Conditional only on HAVING wants: whether a want was already in the pool
+    # by biome affinity is a registry question this side cannot answer, so the
+    # payload cannot be narrowed further without lying. A dimension with wants
+    # therefore goes DRIFTED once, which is correct — its pool really did
+    # change — and a dimension with none stays byte-identical.
+    #
+    # Keyed on the RESOLVED structure ids, not the want names: two configs
+    # naming the same structure through different aliases produce the same
+    # world and should share a seed group.
+    wanted = _wanted_structure_ids(dim)
+    if wanted:
+        payload["wantedStructures"] = wanted
     noise = _noise_payload(dim)
     if noise is not None:
         payload["noisePlacement"] = noise

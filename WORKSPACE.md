@@ -11,9 +11,26 @@ open, every phase ends with an adversarial pass.
 
 ## Current phase
 
-**Phase 1 — spike: headless seeded sampling.** In progress.
+**Phase 3 — make `wants` real.** In progress. Phases 1 and 2 are done and their
+results are written into the plan's own phase sections; both gates and the
+misses are recorded there with the artefact paths.
 
-### What exists
+Two adversarial critics are running against phases 1 and 2. Their findings go
+into the plan as amendments before phase 3 is called done.
+
+### Phase 1 and 2 artefacts
+
+| Thing | Where |
+| --- | --- |
+| `/customdim lint` | `.../command/DimensionLint.java`, `dimension/StructureWants.java`, `dimension/StructureAliases.java` |
+| Lint checker | `scripts/check-dimension-lint.py` |
+| Dead-want oracle (142) + its script | `~/Projects/elfydd/reports/dead-wants-oracle.json`, `dead-wants-audit.py` |
+| Lint report at the gate | `~/Projects/elfydd/reports/lint-report-phase2.json` |
+
+### Phase 1 artefacts
+
+| Thing | Where |
+| --- | --- |
 
 | Thing | Where |
 | --- | --- |
