@@ -137,6 +137,21 @@ def main():
     if dead:
         failures.append("criteria that never vary (dead weight): %s" % dead)
 
+    as_json = "--json" in sys.argv
+    if as_json:
+        # Only JSON on stdout, so redirecting it produces a file that parses.
+        print(json.dumps({
+            "n": len(cards), "scored": len(scored), "rejected": len(rejected),
+            "invalid": len(invalid),
+            "min": min(pcts) if pcts else None, "max": max(pcts) if pcts else None,
+            "mean": mean, "sd": sd, "spread": spread,
+            "dead_criteria": dead,
+            "percentages": {c["dimension"]: p for c, p in zip(scored, pcts)},
+        }, indent=2, sort_keys=True))
+        for failure in failures:
+            print("FAIL: %s" % failure, file=sys.stderr)
+        return 1 if failures else 0
+
     print("scorecards      %d in %s" % (len(cards), scores_dir))
     print("  SCORED        %d" % len(scored))
     print("  REJECTED      %d" % len(rejected))
@@ -150,16 +165,6 @@ def main():
     if len(scored) < DEAD_MIN:
         print("  (%d scored — need %d before 'this criterion never varies' "
               "means anything)" % (len(scored), DEAD_MIN))
-
-    if "--json" in sys.argv:
-        print(json.dumps({
-            "n": len(cards), "scored": len(scored), "rejected": len(rejected),
-            "invalid": len(invalid),
-            "min": min(pcts) if pcts else None, "max": max(pcts) if pcts else None,
-            "mean": mean, "sd": sd, "spread": spread,
-            "dead_criteria": dead,
-            "percentages": {c["dimension"]: p for c, p in zip(scored, pcts)},
-        }, indent=2, sort_keys=True))
 
     for failure in failures:
         print("FAIL: %s" % failure, file=sys.stderr)
