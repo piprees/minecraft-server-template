@@ -220,14 +220,18 @@ Each of these has caused a real incident.
   The search blocks the main thread long enough that every connected client
   times out and drops (observed on production and locally, 2026-08-09). Treat
   `/locate` as a player-affecting command, never a read-only probe, and never
-  run one on production while anyone is on. Use `structure-census` +
-  `scripts/check-noise-regression.py` for placement questions, and
-  `/customdim occupant` for "what is actually in this chunk".
-- **Fix:** do not parse RCON output. Diagnostic commands write versioned JSON
-  under `data/config/custom-dimensions/` and answer with a summary plus a
-  path; checkers in `scripts/` assert over those files with no server
-  running. `./dev verify` runs all of them. Contract and the full table:
-  `mods/AGENTS.md` § Diagnostic artefacts.
+  run one on production while anyone is on. Use `/customdim structure-census`
+  for placement questions, and `/customdim occupant` for "what is actually in
+  this chunk".
+- **Fix:** do not parse RCON output. Diagnostic commands write JSON under
+  `.seed-rolling/` (a directory sibling to `data/`, outside the reach of
+  `deploy.sh`'s config sync and `./dev refresh-config`) and answer with a
+  summary plus a path; a few compare two measurements and report a capped
+  pass/fail summary inline instead of writing a file. There is no offline
+  checker script left to run — `./dev verify` says where verification for
+  each artefact lives now (mostly the mod's own boot/load-time checks, plus
+  JUnit tests under `mods/custom-dimensions/src/test/java/`). Contract and
+  the full table: `mods/AGENTS.md` § Diagnostic artefacts.
 - **Corollary:** check the mc boot log for a `worldgen config changed` WARN
   before trusting any worldgen assertion — see [D2](#d2). A world created
   under an older config makes every other check measure history.

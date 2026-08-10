@@ -142,70 +142,88 @@ carries no error type: a parse failure, a timeout and an empty result are
 indistinguishable, and under load an empty response reads exactly like
 success.
 
-So verification does not parse command output. **A diagnostic command answers
-with a one-line summary plus a path, writes the real answer to a versioned
-file, and a checker in `scripts/` asserts over that file with no server
-running.** RCON's job is to trigger the dump and to run short commands; the
-answer is read from the file.
+So verification does not parse command output. **A diagnostic command
+answers with a one-line summary plus a path, and writes the real answer to a
+file** (`Artefacts.write`, `.tmp` + `ATOMIC_MOVE`, so a reader never sees a
+half-written file). RCON's job is to trigger the write and run short
+commands; the answer is read from the file. Several diagnostics answer
+inline instead, by design — see the table below for which.
 
 ### The contract
 
 1. **One line back, everything else on disk** —
    `<command> <subject>: <summary> -> <path>`. The summary must be
    independently useful (counts, not "OK").
-2. **Artefacts live under `config/custom-dimensions/`** in the server data
-   directory (`data/config/custom-dimensions/…` on the host).
-3. **JSON by default.** `structure-audit.txt` and `biome_grid.csv` are
-   grandfathered because their consumer is a human or a spreadsheet.
-4. **Every artefact carries `schemaVersion` and `generatedAt`**
-   (`Artefacts.jsonHeader` / `Artefacts.textHeader`). A checker meeting an
-   unexpected version must fail loudly, never mis-read silently.
-   `biome_params.json` is the one exception — it is a bare JSON array the
-   seed roller loads as a list, and wrapping it would break every roller.
-5. **Writes are atomic** — `Artefacts.write` does `.tmp` + `ATOMIC_MOVE`. A
-   62k-position census takes real time to serialise and a checker reading
-   mid-write would report a fault that does not exist.
-6. **Every artefact has a checker** in `scripts/` that runs with no Docker
-   and exits non-zero on failure.
-7. **A command that iterates a registry or a world MUST NOT answer inline.**
+2. **Artefacts live under `.seed-rolling/`**, a directory in the consumer
+   repo, sibling to `data/` (mounted into the mc container at
+   `/.seed-rolling`, path overridable via `SEED_ROLLING_DIR`;
+   `Artefacts.rollingDir()`). This is what keeps them out of `deploy.sh`
+   step 8's and `./dev refresh-config`'s reach — both only ever touch
+   `data/config/`. `./dev clean` (`git clean -xdf`) still removes
+   `.seed-rolling/` along with everything else derived, since it's
+   gitignored like `data/` — that's expected, not a bug: every artefact
+   here regenerates by re-running the command that made it.
+3. **JSON.** `Artefacts.jsonHeader(kind)` opens every artefact with
+   `stackVersion`, `kind` and `generatedAt`; callers append their own
+   fields after it.
+4. **A command that iterates a registry or a world writes a file rather than
+   answering inline** — with two documented exceptions
+   (`structure-census`, `spike-compare`) that compare two measurements and
+   report a capped pass/fail summary inline because the assertion IS the
+   comparison, not a dump to inspect later.
+5. **`rejections.json` and `occupancy.json` are append-on-event records, not
+   regenerable dumps** — an entry is written once, when the event happens.
+   Deleting one erases the only proof the event happened; re-proving a
+   structural rejection means regenerating the chunk (move the region file
+   aside while mc is stopped, revisit).
 
 ### What exists today
 
-| Artefact | Written by | Checked by |
+| Artefact | Written by | Read by |
 | --- | --- | --- |
-| `census/<ns>__<slug>.json` | `customdim structure-census <ns>:<slug>` | `scripts/check-noise-regression.py` |
-| `census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin` (appended on each structural rejection) | `scripts/check-noise-regression.py` |
-| `census/occupancy__<ns>__<slug>.json` | `customdim occupant <ns>:<slug> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
-| `structure-audit.txt` | `customdim structure-audit [group]` | — (human-read) |
-| `biome_params.json` | `customdim dump-biome-params <dim>` | the seed roller consumes it |
-| `biome_grid.csv` | `customdim sample-biome-grid <dim> <r> <step>` | — (ad-hoc) |
-| `custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
-| `portal_links.json` | the mod, on every portal mutation | the mod, on load (`PortalStateValidator`) |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` | `/customdim roll`, `roll-all` (full facts + scorecard per seed) | `/customdim bank`/`winner` build the frontier from these; no standalone checker |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | `/customdim render` | human-read |
+| `.seed-rolling/candidates/<inputHash>/<dim>/rejected.json` | the roller, on a pre-scoring gate failure | the roller, so a seed is never re-measured |
+| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | `/customdim bank`, `/customdim winner` | human-read — the non-dominated set, not a single ranked winner |
+| `.seed-rolling/events/<inputHash>/<dim>/rejections.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
+| `.seed-rolling/events/<inputHash>/<dim>/occupancy.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
+| `.seed-rolling/lint/<hash>.json` | `/customdim lint [dimension]` | the command's own ERROR-count return value |
+| `.seed-rolling/lint/<hash>.structure-audit.json` | `/customdim structure-audit [group]` | human-read |
+| `data/config/custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
+| `data/config/portal_links.json` | the mod, on every portal mutation | the mod, on load (`PortalStateValidator`) |
+| `overlay/config/custom-dimensions/dimensions/<slug>.json` | `/customdim winner`, writing the chosen seed into the consumer's committed overlay — the mount that makes this possible ships only in `docker-compose.local.yml`, so this is a local-dev write, not a production one | a human, before committing |
 
-**`occupancy__`/`rejections__` files are append-on-generation-event records,
-not regenerable dumps** — a rejection is written once, when the chunk
-generates. Any census-directory clear must exempt them (the refresh scripts
-do); deleting one erases the only proof a structural rejection happened, and
-re-proving it means regenerating the chunk (move the region file aside while
-mc is stopped, revisit).
+`/customdim structure-census` and `/customdim spike-compare` write no file:
+census compares the live world's `StructurePlacementCalculator` against a
+headless `FactsEngine` measurement of the same dimension and reports
+mismatches inline; spike-compare does the same for the headless sampler
+against the live world. Both cap the mismatch list so a bad run can't
+overflow RCON. `/customdim facts` and `/customdim score` also answer inline
+and persist nothing — the durable record of a (dimension, seed) measurement
+is the candidate file `/customdim roll` writes, not a second copy from these
+ad-hoc commands.
 
-`./dev verify` now prints where verification for the fingerprint and portal
-artefacts moved: the mod's own boot-time WARN and load-time validation, plus
-`/customdim lint` for the suppress list — there is no offline checker left
-to run for those three.
+There is no offline checker to run outside the game. `./dev verify` states
+this directly: worldgen drift is a boot-time WARN (`DimensionFingerprints`),
+portal state is validated on load (`PortalStateValidator`), and the suppress
+list is checked with `/customdim lint`. The equivalents of the old Python
+checkers now live as JUnit tests under
+`mods/custom-dimensions/src/test/java/` — e.g. `ScorecardDistributionTest`
+(catches a scoring model that stopped discriminating between dimensions) and
+`DimensionLintTest`.
 
-**Start any "is the mod behaving?" question here, not with RCON.** The census
-answers which structures reached a pool and where they were placed;
-`/customdim occupant` reads a loaded chunk's live `StructureStart`s to
-confirm what actually occupies a site. `/locate` is NOT an occupancy
-instrument — a miss walks placements for minutes and wedges RCON (see the
-locate note below).
+**Start any "is the mod behaving?" question here, not with RCON.**
+`structure-census` proves the live world agrees with the facts engine for a
+loaded dimension; `/customdim occupant` reads a loaded chunk's live
+`StructureStart`s to confirm what actually occupies a site. `/locate` is NOT
+an occupancy instrument — a miss walks placements for minutes and wedges
+RCON (see the locate note below).
 
-**A checker is only meaningful against a world created under the config it
-is checking** — worldgen is creation-time-only
-([D2](../TROUBLESHOOTING.md#d2)). The mod's own boot-time drift WARN
-(`DimensionFingerprints`) is the guard: check the mc boot log FIRST, and if
-it reports drift, every other result is measuring an older config.
+**A result is only meaningful against a world created under the config it is
+checking** — worldgen is creation-time-only ([D2](../TROUBLESHOOTING.md#d2)).
+The mod's own boot-time drift WARN (`DimensionFingerprints`) is the guard:
+check the mc boot log FIRST, and if it reports drift, every other result is
+measuring an older config.
 
 ## Verification loop
 
@@ -485,8 +503,9 @@ no config at all.
   **Chunky pre-generation does NOT fix it** — a complete 1024-radius pass
   over `the_overgrowth` (16,384 chunks) leaves the same locate timing out at
   240 s, up from 180 s before the pass. Verify placement with
-  `structure-census` and `scripts/check-noise-regression.py` instead; locate
-  proves one instance, the census proves the whole layout.
+  `/customdim structure-census` instead; locate proves one instance,
+  structure-census proves the live world agrees with the facts engine for
+  the whole layout.
 - **Accepted: a large dense dimension takes seconds to build its
   placements.** `the_end_citadel` (8192 border, `dense`,
   5 groups) is ~2.5 s for 62,556 positions; it logs a warning, runs once per
@@ -505,10 +524,11 @@ no config at all.
   lookup behind the managed-namespace gate is by PATH, so widening that set
   would let a third party's `minecraft:whatever` resolve against one of our
   configs. The Nether gates blaze rods on fortresses and the End gates elytra
-  on end cities, so `scripts/check-noise-regression.py` holds a
-  **reachability floor** for both: expected instances within a radius,
-  `positions_within x weight / pool_weight` — presence in a pool says nothing
-  about reach when vanilla picks the member by weight.
+  on end cities, so `/customdim structure-census` reports the nearest live
+  instance of each against a **reachability floor** (512 blocks for a
+  fortress, 2048 for an end city — `CensusCommands.REACHABILITY_FLOOR_BLOCKS`,
+  matching `score/Criteria.java`) — presence in a pool says nothing about
+  reach when vanilla picks the member by weight.
 - `/customdim structure-audit` and `/customdim structure-census <dim>` both
   **write files** and return a summary — RCON concatenates feedback lines
   with no separator and truncates at a few KB, so hundreds of rows come back

@@ -8,7 +8,7 @@ description: |
 
 # Web surface branding
 
-You are changing the look, copy, or metadata of one of this platform's public web pages. **Out of scope:** `scripts/seed/viewer_template.html` (the seed-rolling viewer — internal tooling, not a public surface) and the Cloudflare maintenance Worker (`config/cloudflare/maintenance-worker.js` — covered by the server-provisioning skill, not this one).
+You are changing the look, copy, or metadata of one of this platform's public web pages. **Out of scope:** the Cloudflare maintenance Worker (`config/cloudflare/maintenance-worker.js` — covered by the server-provisioning skill, not this one). There is no seed-rolling viewer web page any more — seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands, with no HTML surface.
 
 ## MANDATORY: read before editing
 
