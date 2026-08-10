@@ -46,13 +46,13 @@ import argparse
 import io
 import json
 import re
-import urllib.request
 import zipfile
 from pathlib import Path
 
+import modrinth_pins
+
 REPO = Path(__file__).resolve().parent.parent
 DIALS_PATH = REPO / "scripts/data/structure-dials.json"
-MODS_TXT = REPO / "config/modrinth-mods.txt"
 ACTIVE_OUT = REPO / "config/datapacks/structures"
 PRESETS_OUT = REPO / "config/datapack-presets"
 MCMETA_RAW = "https://raw.githubusercontent.com/misode/mcmeta/1.21.1-data/data/minecraft/worldgen/structure_set"
@@ -177,42 +177,6 @@ def load_rows():
     return json.loads(DIALS_PATH.read_text())
 
 
-def pins():
-    out = {}
-    for line in MODS_TXT.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        entry = line.split("#")[0].strip()
-        if entry.startswith("datapack:"):
-            entry = entry[len("datapack:"):]
-        if ":" not in entry:
-            continue
-        slug, version_id = entry.rsplit(":", 1)
-        out[slug] = version_id
-    return out
-
-
-def fetch(url, cache_dir, name):
-    dest = cache_dir / name
-    if dest.exists():
-        return dest.read_bytes()
-    print(f"  fetching {name} ...")
-    with urllib.request.urlopen(url) as r:
-        data = r.read()
-    dest.write_bytes(data)
-    return data
-
-
-def jar_for(slug, version_id, cache_dir):
-    api = f"https://api.modrinth.com/v2/version/{version_id}"
-    meta = json.loads(fetch(api, cache_dir, f"{slug}-{version_id}.meta.json"))
-    for f in meta["files"]:
-        if f.get("primary"):
-            return fetch(f["url"], cache_dir, f"{slug}-{version_id}.zip")
-    raise SystemExit(f"no primary file for {slug}:{version_id}")
-
-
 def structure_set_from_zip(data, set_id):
     ns, path = set_id.split(":", 1)
     inner = f"data/{ns}/worldgen/structure_set/{path}.json"
@@ -268,7 +232,7 @@ def main():
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     rows = load_rows()
-    pin_map = pins()
+    pin_map = modrinth_pins.pins()
     jars = {}
 
     counts = {}
@@ -284,14 +248,14 @@ def main():
             mod = row["mod"]
             if mod == "minecraft":
                 path = set_id.split(":", 1)[1]
-                body = json.loads(fetch(f"{MCMETA_RAW}/{path}.json", cache_dir,
-                                        f"vanilla-{path}.json"))
+                body = json.loads(modrinth_pins.fetch(f"{MCMETA_RAW}/{path}.json", cache_dir,
+                                                       f"vanilla-{path}.json"))
             else:
                 slug = SLUG_ALIASES.get(mod, mod)
                 if slug not in pin_map:
                     raise SystemExit(f"{mod}: no pin found in modrinth-mods.txt")
                 if slug not in jars:
-                    jars[slug] = jar_for(slug, pin_map[slug], cache_dir)
+                    jars[slug] = modrinth_pins.jar_for(slug, pin_map[slug], cache_dir)
                 body = structure_set_from_zip(jars[slug], set_id)
                 if body is None:
                     raise SystemExit(f"{set_id} not found in {slug} jar")

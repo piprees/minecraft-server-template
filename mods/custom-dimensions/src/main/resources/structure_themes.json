@@ -1,4 +1,9 @@
 {
+ "adventure:exit_shrines": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
  "adventuredungeons:bygonedungeon": {
   "theme": "dungeon",
   "group": "dungeons",

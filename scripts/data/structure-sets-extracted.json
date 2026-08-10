@@ -1,5 +1,27 @@
 [
  {
+  "mod_source": "ATi Structures V1.4.4 (1.21+).zip",
+  "structure_set_id": "ati_structures:aboveground_small",
+  "theme": "settlement",
+  "structures": "ati_structures:deepslate_keep(w=1); ati_structures:haunted_ruin(w=1); ati_structures:ice_tribe(w=1); ati_structures:nomadic_camp(w=1); ati_structures:rotten_log(w=1); ati_structures:stray_ruins(w=1); ati_structures:rotting_temple(w=1); ati_structures:old_home(w=1); ati_structures:illager_homestead(w=1); ati_structures:mud_tower(w=1); ati_structures:storage_house(w=1); ati_structures:storage_shack(w=1)",
+  "spacing": "33",
+  "separation": "1",
+  "frequency": "1.0",
+  "dimensions": "overworld",
+  "rarity_class": "uncommon"
+ },
+ {
+  "mod_source": "ATi Structures V1.4.4 (1.21+).zip",
+  "structure_set_id": "ati_structures:underground_medium",
+  "theme": "dungeon",
+  "structures": "ati_structures:underground_monument(w=1); ati_structures:spider_nest(w=1); ati_structures:wither_cavern(w=1)",
+  "spacing": "35",
+  "separation": "20",
+  "frequency": "1.0",
+  "dimensions": "overworld",
+  "rarity_class": "uncommon"
+ },
+ {
   "mod_source": "DungeonsArise-1.21.1-2.1.68-fabric-release.jar",
   "structure_set_id": "dungeons_arise:minor_structures",
   "theme": "maritime",
@@ -11,7 +33,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "Epic Dungeons 1.2.2.jar",
+  "mod_source": "Epic Dungeons 1.2.3.jar",
   "structure_set_id": "epic:large_dungeons",
   "theme": "dungeon",
   "structures": "epic:large_dungeon(w=1); epic:large_ice_dungeon(w=1); epic:large_sand_dungeon(w=1)",
@@ -22,7 +44,7 @@
   "rarity_class": "endgame"
  },
  {
-  "mod_source": "Epic Dungeons 1.2.2.jar",
+  "mod_source": "Epic Dungeons 1.2.3.jar",
   "structure_set_id": "epic:medium_dungeons",
   "theme": "dungeon",
   "structures": "epic:medium_sand_dungeon(w=1); epic:medium_ice_dungeon(w=1); epic:medium_plains_dungeon(w=1)",
@@ -33,7 +55,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "Epic Dungeons 1.2.2.jar",
+  "mod_source": "Epic Dungeons 1.2.3.jar",
   "structure_set_id": "epic:small_dungeons",
   "theme": "dungeon",
   "structures": "epic:small_ice_dungeon(w=1); epic:small_plains_dungeon(w=1); epic:small_sand_dungeon(w=1)",
@@ -2893,7 +2915,7 @@
   "rarity_class": "rare"
  },
  {
-  "mod_source": "Structory_26.1_v1.3.16.jar",
+  "mod_source": "Structory_26.2_v1.3.7.jar",
   "structure_set_id": "structory:mid_rare_ruin",
   "theme": "dungeon",
   "structures": "structory:taiga_ruin_surface(w=1); structory:taiga_ruin_underground(w=1); structory:northern_ruin(w=1)",
@@ -2904,7 +2926,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "Structory_26.1_v1.3.16.jar",
+  "mod_source": "Structory_26.2_v1.3.7.jar",
   "structure_set_id": "structory:old_manor",
   "theme": "ruins",
   "structures": "structory:old_manor(w=3); structory:dense_forest_ruin(w=1)",
@@ -2915,7 +2937,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "Structory_26.1_v1.3.16.jar",
+  "mod_source": "Structory_26.2_v1.3.7.jar",
   "structure_set_id": "structory:outcast_villager",
   "theme": "settlement",
   "structures": "structory:abandoned_chapel(w=5); structory:graveyard(w=2); structory:abandoned_camp(w=3); structory:outcast_villager_grassy(w=8); structory:ruin_grassy(w=8); structory:firetower(w=4); structory:outcast_villager_desert(w=4); structory:boat(w=4)",
@@ -2926,7 +2948,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "Structory_26.1_v1.3.16.jar",
+  "mod_source": "Structory_26.2_v1.3.7.jar",
   "structure_set_id": "structory:ruin",
   "theme": "ruins",
   "structures": "structory:jungle_ruin(w=1)",
@@ -2937,7 +2959,7 @@
   "rarity_class": "common"
  },
  {
-  "mod_source": "Structory_26.1_v1.3.16.jar",
+  "mod_source": "Structory_26.2_v1.3.7.jar",
   "structure_set_id": "structory:ruin_quiet",
   "theme": "ruins",
   "structures": "structory:swamp_ruin(w=1)",
@@ -2948,7 +2970,7 @@
   "rarity_class": "common"
  },
  {
-  "mod_source": "Structory_Towers_26.1_v1.0.16.jar",
+  "mod_source": "Structory_Towers_26.2_v1.0.17.jar",
   "structure_set_id": "structory_towers:end_towers",
   "theme": "landmark",
   "structures": "structory_towers:end/end_tower(w=1)",
@@ -2959,7 +2981,7 @@
   "rarity_class": "very_rare"
  },
  {
-  "mod_source": "Structory_Towers_26.1_v1.0.16.jar",
+  "mod_source": "Structory_Towers_26.2_v1.0.17.jar",
   "structure_set_id": "structory_towers:nether_towers",
   "theme": "settlement",
   "structures": "structory_towers:nether/strange_outpost(w=5); structory_towers:nether/warped_outpost(w=6); structory_towers:nether/fortress_tower(w=3)",
@@ -3232,6 +3254,17 @@
   "frequency": "1.0",
   "dimensions": "overworld",
   "rarity_class": "uncommon"
+ },
+ {
+  "mod_source": "customdimensions.jar",
+  "structure_set_id": "adventure:exit_shrines",
+  "theme": "landmark",
+  "structures": "adventure:exit_shrine(w=1)",
+  "spacing": "24",
+  "separation": "12",
+  "frequency": "0.001",
+  "dimensions": "overworld",
+  "rarity_class": "legendary"
  },
  {
   "mod_source": "datapack:structures",
@@ -3916,7 +3949,7 @@
   "rarity_class": "uncommon"
  },
  {
-  "mod_source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+  "mod_source": "supplementaries-fabric-1.21.1-3.8.2.jar",
   "structure_set_id": "supplementaries:galleons",
   "theme": "landmark",
   "structures": "supplementaries:galleon(w=1)",
@@ -3927,7 +3960,7 @@
   "rarity_class": "common"
  },
  {
-  "mod_source": "supplementaries-fabric-1.21.1-3.7.7.jar",
+  "mod_source": "supplementaries-fabric-1.21.1-3.8.2.jar",
   "structure_set_id": "supplementaries:road_signs",
   "theme": "deco",
   "structures": "supplementaries:road_sign(w=1)",
