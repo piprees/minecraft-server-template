@@ -148,15 +148,24 @@ public final class Criteria {
         }
 
         /**
-         * A dimension that lists two biomes cannot produce four, and must not
-         * be marked down for obeying its own config. The target scales to what
-         * the config permits, and a one-biome dimension is not asked at all.
+         * The biomes the config asked for — all of them, not a floor of four.
+         *
+         * <p>A cap of four made this a constant: over the elfydd bank
+         * `distinctCount` ran 2 to 122 and every dimension still scored 1.0,
+         * because four is trivially cleared by anything with a biome list. The
+         * question worth asking is not "are there several biomes" but "did the
+         * dimension deliver the palette its author chose", and that target is
+         * different for every config, which is what makes it rank.
          */
         static int want(DimensionConfig def) {
-            int listed = def.getBiomes() == null ? 0 : def.getBiomes().size();
-            return listed > 0 ? Math.min(4, listed) : 4;
+            return def.getBiomes() == null ? 0 : def.getBiomes().size();
         }
 
+        /**
+         * A dimension whose biomes come from its noise settings rather than a
+         * list has stated no palette, so there is no intent to measure against.
+         * Inventing a target for it would be marking it down unasked.
+         */
         public boolean applicable(DimensionConfig def) {
             return want(def) > 1;
         }
@@ -204,9 +213,29 @@ public final class Criteria {
 
     /**
      * Three structures in a pocket is a PLACE; three evenly spread is scenery.
-     * Clark-Evans below 1 is clustered — that is the direction worth having.
+     *
+     * <p>Scored against what exclusion-based placement can actually reach, not
+     * against the ideal. Every noise-managed group carries a minimum spacing,
+     * which mechanically produces a layout MORE even than random — measured
+     * over the whole elfydd bank, Clark-Evans ran 1.017 to 1.307 and never once
+     * fell below 1. Scoring "below 1 is good" therefore awarded a permanent 0.0
+     * to all 81 dimensions: a criterion ranking nothing, which is the exact
+     * defect this phase exists to remove.
+     *
+     * <p>So the scale runs from 1.0 (as close to natural clumping as spacing
+     * permits — the best reachable) to {@link #LATTICE} (a perfect triangular
+     * lattice, the theoretical maximum dispersion). Both anchors come from the
+     * statistic's own definition rather than from the observed spread, so this
+     * is a re-target, not a curve fitted to the bank.
+     *
+     * <p>That the ideal is unreachable is a finding about the placement engine,
+     * not about any seed: the mission asks for places and exclusion radii give
+     * scenery. Fixing that is a change to placement, not to scoring.
      */
     static final class StructuresFormPlacesNotNoise implements Criterion {
+        /** Clark-Evans for a perfect triangular lattice — maximum dispersion. */
+        static final double LATTICE = 2.1491;
+
         public String id() {
             return "structures_form_places_not_noise";
         }
@@ -229,13 +258,12 @@ public final class Criteria {
                 return new Result.Unmeasured(c.reason());
             }
             double v = c.orThrow();
-            // 1.0 is a uniform scatter; 0.5 is strongly pocketed. Anything
-            // above uniform is scenery and scores zero rather than negative —
-            // a criterion returns 0..1 and says so in its evidence.
-            double score = v >= 1.0 ? 0.0 : Math.min(1.0, (1.0 - v) / 0.5);
+            double score = v <= 1.0 ? 1.0 : ramp(LATTICE - v, 0.0, LATTICE - 1.0);
             return new Result.Score(score,
                     String.format(Locale.ROOT, "Clark-Evans %.3f (%s)", v,
-                            v < 1.0 ? "pocketed" : "evenly spread"));
+                            v < 1.0 ? "pocketed"
+                                    : v < 1.15 ? "loosely spaced"
+                                            : "rigidly spaced"));
         }
     }
 

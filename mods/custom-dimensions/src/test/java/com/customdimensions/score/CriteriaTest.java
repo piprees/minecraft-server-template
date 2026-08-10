@@ -139,9 +139,14 @@ class CriteriaTest {
         assertEquals(1.0, score(c.evaluate(
                 full("b", 4.0, 2, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), two)), 1e-9);
 
-        DimensionConfig many = config(null, null, List.of("a", "b", "c", "d", "e", "f"));
-        assertEquals(0.5, score(c.evaluate(
+        // Eight listed, two delivered: a quarter of the palette the author
+        // chose. A target capped at four would have called this perfect.
+        DimensionConfig many = config(null, null,
+                List.of("a", "b", "c", "d", "e", "f", "g", "h"));
+        assertEquals(0.25, score(c.evaluate(
                 full("b", 4.0, 2, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), many)), 1e-9);
+        assertEquals(1.0, score(c.evaluate(
+                full("b", 4.0, 8, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), many)), 1e-9);
 
         // A single-biome dimension is not asked the question at all, decided
         // from config with no facts in sight.
@@ -173,11 +178,26 @@ class CriteriaTest {
     void evenlySpreadStructuresScoreZeroAndPocketsScoreHigh() {
         var c = new Criteria.StructuresFormPlacesNotNoise();
         DimensionConfig def = config(null, null, null);
-        assertEquals(0.0, score(c.evaluate(
-                full("b", 4.0, 5, 0.4, 0.3, 30.0, 1.2, 900.0, 4096), def)), 1e-9,
-                "an evenly spread layout is scenery, not a place");
+        // Exclusion-based placement never falls below 1.0 in practice, so the
+        // scale has to rank the range it can actually reach: 1.0 is the best
+        // reachable, a perfect lattice is the worst. A pass/fail at 1.0 gave
+        // all 81 dimensions a permanent zero and ranked nothing.
+        double loose = score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 1.02, 900.0, 4096), def));
+        double rigid = score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 1.31, 900.0, 4096), def));
+        assertTrue(loose > rigid,
+                "loose " + loose + " must beat rigid " + rigid);
+        assertTrue(loose > 0.9 && rigid > 0.0 && rigid < 0.8,
+                "the reachable range must span usable scores, got "
+                + loose + " and " + rigid);
         assertEquals(1.0, score(c.evaluate(
-                full("b", 4.0, 5, 0.4, 0.3, 30.0, 0.5, 900.0, 4096), def)), 1e-9);
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, 0.5, 900.0, 4096), def)), 1e-9,
+                "genuine pockets are still the best possible answer");
+        assertEquals(0.0, score(c.evaluate(
+                full("b", 4.0, 5, 0.4, 0.3, 30.0, Criteria.StructuresFormPlacesNotNoise.LATTICE,
+                        900.0, 4096), def)), 1e-9,
+                "a perfect lattice is maximum dispersion and scores zero");
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
                 full("b", 4.0, 5, 0.4, 0.3, 30.0, null, 900.0, 4096), def));
         assertFalse(c.applicable(noStructures()),
