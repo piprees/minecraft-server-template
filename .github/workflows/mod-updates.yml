@@ -89,17 +89,18 @@ jobs:
           } >> /tmp/gen-notes.md
 
       - name: Set up Java for in-house mods
-        # The structure census reads mods/*/build/libs/*.jar — build with the
-        # pinned toolchain (mods/mise.toml uses Java 21), same setup as
-        # mod-build.yml, or the runner's default JDK produces a broken jar.
-        if: steps.diff.outputs.changed == 'true'
+        # Unconditional, unlike the presets step above: the census depends on
+        # our own mod's structure sets (adventure:exit_shrines), not on a
+        # Modrinth pin, so gating it on the pin diff would miss the exact
+        # case it exists to catch. Build with the pinned toolchain
+        # (mods/mise.toml uses Java 21), same setup as mod-build.yml, or the
+        # runner's default JDK produces a broken jar.
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Setup Gradle
-        if: steps.diff.outputs.changed == 'true'
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '8.13'
@@ -109,7 +110,6 @@ jobs:
         # build/libs/, never the -dev jar from build/devlibs/ — an
         # unremapped jar has no mixin refmap, and the census would silently
         # see a jar with no structure_set entries rather than fail.
-        if: steps.diff.outputs.changed == 'true'
         run: |
           while IFS='|' read -r jar_name project refmap; do
             [[ "$jar_name" == \#* || -z "$jar_name" ]] && continue
@@ -130,29 +130,40 @@ jobs:
             echo "::endgroup::"
           done < mods/local-mods.manifest
 
-      - name: Regenerate the structure census from the new pins
-        # extract-structure-sets.py downloads every pinned mod plus vanilla —
-        # only worth the cost when a pin actually moved. --check right after
-        # the write proves the regeneration is self-consistent (the cache it
-        # just warmed makes the second pass free of network calls) instead of
-        # trusting the write blindly; a --check failure here means the
-        # generator is non-deterministic, not that the census is merely
-        # stale, so it fails the job rather than folding into the PR.
-        if: steps.diff.outputs.changed == 'true'
+      - name: Regenerate the structure census
+        # Unconditional, same reasoning as the Java/Gradle setup above: our
+        # own mod's structure sets can drift with no Modrinth pin moving at
+        # all. --check right after the write proves the regeneration is
+        # self-consistent (the cache it just warmed makes the second pass
+        # free of network calls) instead of trusting the write blindly; a
+        # --check failure here means the generator is non-deterministic, not
+        # that the census is merely stale, so it fails the job rather than
+        # folding into the PR. `changed` records whether the committed
+        # census actually moved, independent of the pin diff.
+        id: census
         run: |
           python3 scripts/extract-structure-sets.py 2>&1 | tee /tmp/gen-census.log
           python3 scripts/extract-structure-sets.py --check
           python3 scripts/gen-structure-groups.py 2>&1 | tee -a /tmp/gen-census.log
           python3 scripts/gen-structure-groups.py --check
+          CENSUS_PATHS=(
+            scripts/data/structure-sets-extracted.json
+            config/custom-dimensions/extractors/structures.json
+            config/custom-dimensions/structure-groups.json
+            mods/custom-dimensions/src/main/resources/structure_themes.json
+          )
+          if git diff --quiet -- "${CENSUS_PATHS[@]}"; then
+            CENSUS_CHANGED=false
+          else
+            CENSUS_CHANGED=true
+          fi
+          echo "changed=$CENSUS_CHANGED" >> "$GITHUB_OUTPUT"
           {
             echo ""
             echo "## Structure census regenerated"
             echo ""
-            if git diff --quiet -- scripts/data/structure-sets-extracted.json \
-                config/custom-dimensions/extractors/structures.json \
-                config/custom-dimensions/structure-groups.json \
-                mods/custom-dimensions/src/main/resources/structure_themes.json; then
-              echo "No structure sets changed under the new pins."
+            if [[ "$CENSUS_CHANGED" == "false" ]]; then
+              echo "No structure sets changed this week."
             else
               echo "Structure census changed — review the diff. Extractor warnings:"
               echo ""
@@ -162,33 +173,58 @@ jobs:
             fi
           } >> /tmp/gen-notes.md
 
+      - name: Determine if the weekly PR needs updating
+        # The pin diff alone used to gate everything below, so a week where
+        # only the census moved (no pin changed) wrote fresh census files
+        # and then discarded them — the job went green while the drift it
+        # exists to catch persisted uncommitted. Anything below this step
+        # runs on the union of the two.
+        id: overall
+        run: |
+          if [[ "${{ steps.diff.outputs.changed }}" == "true" || "${{ steps.census.outputs.changed }}" == "true" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Close stale PR (no updates)
-        if: steps.diff.outputs.changed == 'false'
+        if: steps.overall.outputs.changed == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
           if [[ -n "$PR_NUM" ]]; then
-            gh pr comment "$PR_NUM" --body "All mods now match \`main\` - closing, nothing left to update."
+            gh pr comment "$PR_NUM" --body "Mods and the structure census both match \`main\` - closing, nothing left to update."
             gh pr close "$PR_NUM" --delete-branch
             echo "Closed stale PR #$PR_NUM"
           else
-            echo "No mod updates available."
+            echo "No mod or structure census updates available."
           fi
 
       - name: Build PR body with changelogs
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.overall.outputs.changed == 'true'
         id: body
+        # count=0 on a census-only week (old and new pin snapshots are
+        # identical) — build-mod-update-report.py handles that already, it
+        # just writes "No mod version changes." Read count from the script's
+        # own stdout rather than steps.body.outputs.count, which isn't set
+        # until this step finishes.
         run: |
           python3 scripts/build-mod-update-report.py \
             --old /tmp/modrinth-mods.before.txt \
             --new config/modrinth-mods.txt \
             --server-env .env.example \
-            --output /tmp/pr-body.md >> "$GITHUB_OUTPUT"
+            --output /tmp/pr-body.md | tee /tmp/body-outputs.txt >> "$GITHUB_OUTPUT"
           cat /tmp/gen-notes.md >> /tmp/pr-body.md
+          COUNT=$(grep '^count=' /tmp/body-outputs.txt | cut -d= -f2)
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "title=chore: update $COUNT mod version(s)" >> "$GITHUB_OUTPUT"
+          else
+            echo "title=chore: regenerate structure census" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Commit and push
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.overall.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -199,24 +235,24 @@ jobs:
             scripts/data/structure-sets-extracted.json \
             config/custom-dimensions/extractors/structures.json \
             config/custom-dimensions/structure-groups.json
-          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s) + regenerate worldgen presets + structure census"
+          git commit -m "${{ steps.body.outputs.title }}"
           git push --force origin "$BRANCH"
 
       - name: Open or update PR
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.overall.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUM=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
           if [[ -n "$PR_NUM" ]]; then
             gh pr edit "$PR_NUM" \
-              --title "chore: update ${{ steps.body.outputs.count }} mod version(s)" \
+              --title "${{ steps.body.outputs.title }}" \
               --body-file /tmp/pr-body.md
-            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions ($(date -u +%Y-%m-%d))."
+            gh pr comment "$PR_NUM" --body "Refreshed with the latest available mod versions and structure census ($(date -u +%Y-%m-%d))."
             echo "Updated PR #$PR_NUM"
           else
             gh pr create \
-              --title "chore: update ${{ steps.body.outputs.count }} mod version(s)" \
+              --title "${{ steps.body.outputs.title }}" \
               --body-file /tmp/pr-body.md \
               --base main \
               --head "$BRANCH" \
