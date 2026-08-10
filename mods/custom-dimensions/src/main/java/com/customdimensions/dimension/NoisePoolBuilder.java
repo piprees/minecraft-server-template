@@ -298,7 +298,7 @@ public final class NoisePoolBuilder {
      * Fraction of a structure's valid biomes that this dimension actually
      * has. 0.0 means the structure can never generate here.
      */
-    static double biomeAffinity(RegistryEntry<Structure> structure, Set<Identifier> dimensionBiomes) {
+    public static double biomeAffinity(RegistryEntry<Structure> structure, Set<Identifier> dimensionBiomes) {
         if (dimensionBiomes.isEmpty()) {
             return 1.0;   // unknown biome source: filter nothing
         }
@@ -324,7 +324,7 @@ public final class NoisePoolBuilder {
     }
 
     /** Biome ids the dimension's source can produce. Empty if undeterminable. */
-    static Set<Identifier> biomeIds(BiomeSource biomeSource) {
+    public static Set<Identifier> biomeIds(BiomeSource biomeSource) {
         Set<Identifier> out = new HashSet<>();
         if (biomeSource == null) {
             return out;

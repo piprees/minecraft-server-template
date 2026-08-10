@@ -190,6 +190,10 @@ public class DimensionCommands {
                     .then(CommandManager.argument("dimension", StringArgumentType.word())
                         .executes(ctx -> SpikeCommands.lint(ctx,
                             StringArgumentType.getString(ctx, "dimension")))))
+                .then(CommandManager.literal("facts")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(FactsCommands::facts))))
                 .then(CommandManager.literal("spike-sample")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())

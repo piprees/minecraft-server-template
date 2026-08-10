@@ -508,7 +508,7 @@ public final class DimensionStructures {
      * give neighbouring names neighbouring salts (and it is only 32 bits), so
      * the noise fields of two similarly-named dimensions would correlate.
      */
-    static long saltOf(String name) {
+    public static long saltOf(String name) {
         if (name == null) {
             return 0L;
         }
