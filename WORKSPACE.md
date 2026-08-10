@@ -11,14 +11,19 @@ open, every phase ends with an adversarial pass.
 
 ## Current phase
 
-**Phase 3 — make `wants` real.** Change 1 of 3 landed (`b3474bd`). Phases 1 and
+**Phase 3 — make `wants` real.** Changes 1 and 2 of 3 landed. Phases 1 and
 2 are done; their gates, and the conditions that were missed, are recorded in
 the plan's own phase sections with the artefact paths.
 
 Change 1 (`wants` implies pool membership) took `want_not_in_pool` from 135 to
-10 and put positions in the census for wants that had none on any seed. Still
-to do: change 2 (`clearSpawnRadius` as a placement exclusion) and change 3 (a
-want's band biases the radial curve).
+10, put positions in the census for wants that had none on any seed, and
+`/customdim occupant` confirms `structory_towers:wizard_tower` physically
+occupies chunk (-63, -32) of `the_gauntlet`. Change 2 (`clearSpawnRadius` as a
+placement exclusion) puts zero dungeons or endgame inside the disc across four
+dimensions, with `the_gilded_pit`'s settlements at 2.2 chunks as the control.
+
+Still to do: change 3 — a want's `{min,max}` band biases the radial curve so
+most seeds satisfy most wants.
 
 Two adversarial critics are running against phases 1 and 2. Their findings go
 into the plan as amendments before phase 3 is called done.
