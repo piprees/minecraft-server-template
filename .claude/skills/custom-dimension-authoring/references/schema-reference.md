@@ -50,7 +50,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `exits` | object (map) | boot-re-read | Exit condition rules — void/death/enderPearl/fallFrom triggers. See [Exits](#exits-object) below. |
 | `exitShrines` | object | worldgen creation-time; beacon detection boot-re-read | `{"enabled": true, "target": "bed"}` — scattered jigsaw exit ruins. |
 | `environment` | object | mostly boot-re-read (a few creation-time) | Custom `DimensionType` registration (`{ns}:{slug}_type`). See [Environment](#environment-object) below. |
-| `seedRoll` | object | ignored by the mod at runtime | Scoring config for the Python roller only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
+| `seedRoll` | object | ignored by the mod at runtime | Scoring config for seed rolling only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
 | ~~`dimensionId`~~ | string | — | **Legacy — omit.** The id is always derived from `{namespace}:{filename}`. |
 | ~~`hostileSpawning`~~ (top-level) | bool | — | **Legacy — use `difficulty.hostileSpawning` instead**, which wins when both are present. |
 
@@ -219,7 +219,7 @@ All fields optional; anything unset inherits from the base dimension type. Regis
 
 ## `seedRoll` object
 
-The mod ignores this block entirely at runtime — it exists purely for the Python roller (`scripts/seed/dimension_profiles.py`). This is the block that actually defines "what does a good seed for this dimension look like":
+The mod ignores this block entirely at runtime — it exists purely for seed rolling. This is the block that actually defines "what does a good seed for this dimension look like":
 
 ```json
 {

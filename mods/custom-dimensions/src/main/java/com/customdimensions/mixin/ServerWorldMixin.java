@@ -83,12 +83,11 @@ public class ServerWorldMixin {
                 PortalHelper.spawnParticles(world, zone);
             }
 
-            // Immersive portals (Phase 0 — Instant Transition): once a
-            // player gets within activationRange of an immersive zone,
-            // pre-load its target world and pre-generate the arrival
-            // chunks, so stepping through feels instant instead of
-            // pausing on first visit. Zones without "immersive" configured
-            // skip this entirely — zero behavioural change for them.
+            // Immersive portals: once a player gets within activationRange
+            // of an immersive zone, pre-load its target world and
+            // pre-generate the arrival chunks, so stepping through feels
+            // instant instead of pausing on first visit. Zones without
+            // "immersive" configured skip this entirely.
             for (ServerPlayerEntity player : world.getPlayers()) {
                 BlockPos playerPos = player.getBlockPos();
                 for (PortalHelper.PortalZone zone : zones) {
@@ -279,9 +278,9 @@ public class ServerWorldMixin {
             }
         }
 
-        // Symmetric breaking (Phase 9c): clear counterpart portal cells whose
-        // chunks were cold when their other end was broken. Loaded chunks
-        // only — never sync-loads, so a destination nobody has visited simply
+        // Symmetric breaking: clear counterpart portal cells whose chunks
+        // were cold when their other end was broken. Loaded chunks only —
+        // never sync-loads, so a destination nobody has visited simply
         // waits until somebody does.
         PortalHelper.processPendingBreaks(world);
 
@@ -297,20 +296,19 @@ public class ServerWorldMixin {
         // the exit-portal tick).
         com.customdimensions.portal.PortalAuraManager.tick(world);
 
-        // Immersive portals (Phase 1 — Portal Preview): per-player fake
-        // block projection of the far dimension through the frame. Must
-        // run AFTER the player teleport loop above (a player who stepped
-        // through this tick is already in the target world) and after the
-        // aura pass (so the projection samples post-aura blocks). Fetches
-        // its own zones and returns immediately when none are immersive.
+        // Immersive portals: per-player fake block projection of the far
+        // dimension through the frame. Must run AFTER the player teleport
+        // loop above (a player who stepped through this tick is already in
+        // the target world) and after the aura pass (so the projection
+        // samples post-aura blocks). Fetches its own zones and returns
+        // immediately when none are immersive.
         com.customdimensions.immersive.ImmersiveProjector.tick(world);
 
-        // Immersive portals (Phase 3 — Entity Pass-Through): items,
-        // projectiles, XP orbs and falling blocks crossing an immersive
-        // source zone with their velocity intact. After the projector so a
-        // crossing entity sees the same zone state the projection was built
-        // from, and before ExitConditions (PLAN.md Gotcha #12). Fetches its
-        // own zones and does nothing at all for non-immersive ones.
+        // Immersive portals: items, projectiles, XP orbs and falling blocks
+        // crossing an immersive source zone with their velocity intact.
+        // After the projector so a crossing entity sees the same zone state
+        // the projection was built from, and before ExitConditions. Fetches
+        // its own zones and does nothing at all for non-immersive ones.
         com.customdimensions.immersive.EntityPassthrough.tick(world);
 
         // Exit conditions ("exits" block): void + fallFrom triggers. Runs

@@ -1,5 +1,6 @@
 package com.customdimensions.portal;
 
+import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.config.PortalDefinition;
 import com.google.gson.Gson;
@@ -162,6 +163,7 @@ public class PortalHelper {
         if (portalLinksPath == null || !Files.exists(portalLinksPath)) {
             return;
         }
+        Set<String> knownDimensionIds = knownDimensionIds();
         try (BufferedReader reader = Files.newBufferedReader(portalLinksPath)) {
             List<JsonElement> links = GSON.fromJson(reader, new TypeToken<List<JsonElement>>() {}.getType());
             if (links == null) {
@@ -172,43 +174,66 @@ public class PortalHelper {
                     JsonObject link = element.getAsJsonObject();
                     if (link.has("recordType") && "source-zone-v1".equals(link.get("recordType").getAsString())) {
                         StoredPortalZone stored = GSON.fromJson(link, StoredPortalZone.class);
+                        List<String> failures = PortalStateValidator.validateZone(stored);
+                        if (!failures.isEmpty()) {
+                            System.err.println("[customdimensions] Dropping persisted portal zone ("
+                                    + stored.sourceWorld + " -> " + stored.targetWorld + "): "
+                                    + String.join("; ", failures));
+                            continue;
+                        }
+                        if (PortalStateValidator.isOrphanZone(stored, knownDimensionIds)) {
+                            System.err.println("[customdimensions] Portal zone " + stored.sourceWorld
+                                    + " -> " + stored.targetWorld + " names a dimension not in the "
+                                    + "current config — the mod reconciles it as an orphan");
+                        }
                         PortalZone zone = stored.toPortalZone();
                         PENDING_ZONES.computeIfAbsent(zone.sourceWorld, k -> new ArrayList<>()).add(zone);
                         continue;
                     }
                     if (link.has("recordType") && "aura-site-v1".equals(link.get("recordType").getAsString())) {
                         AuraSite site = GSON.fromJson(link, AuraSite.class);
-                        if (site.world != null && site.interior != null && !site.interior.isEmpty()) {
-                            RegistryKey<World> worldKey =
-                                    RegistryKey.of(RegistryKeys.WORLD, Identifier.of(site.world));
-                            BlockPos key = site.interior.get(0).toBlockPos();
-                            for (StoredPosition p : site.interior) {
-                                BlockPos pos = p.toBlockPos();
-                                if (pos.compareTo(key) < 0) {
-                                    key = pos;
-                                }
-                            }
-                            AURA_SITES.computeIfAbsent(worldKey, k -> new HashMap<>()).put(key, site);
+                        List<String> failures = PortalStateValidator.validateAuraSite(site);
+                        if (!failures.isEmpty()) {
+                            System.err.println("[customdimensions] Dropping persisted aura site in "
+                                    + site.world + ": " + String.join("; ", failures));
+                            continue;
                         }
+                        RegistryKey<World> worldKey =
+                                RegistryKey.of(RegistryKeys.WORLD, Identifier.of(site.world));
+                        BlockPos key = site.interior.get(0).toBlockPos();
+                        for (StoredPosition p : site.interior) {
+                            BlockPos pos = p.toBlockPos();
+                            if (pos.compareTo(key) < 0) {
+                                key = pos;
+                            }
+                        }
+                        AURA_SITES.computeIfAbsent(worldKey, k -> new HashMap<>()).put(key, site);
                         continue;
                     }
                     int x = link.get("x").getAsInt();
                     int y = link.get("y").getAsInt();
                     int z = link.get("z").getAsInt();
-                    RegistryKey<World> sourceWorld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(link.get("targetWorld").getAsString()));
+                    String targetWorldId = link.get("targetWorld").getAsString();
+                    String portalWorldId = link.has("portalWorld") ? link.get("portalWorld").getAsString() : null;
+                    String exitMode = link.has("exitMode") ? link.get("exitMode").getAsString() : null;
+                    List<String> failures = PortalStateValidator.validateLegacyTarget(targetWorldId, portalWorldId, exitMode);
+                    if (!failures.isEmpty()) {
+                        System.err.println("[customdimensions] Dropping persisted portal target at ("
+                                + x + "," + y + "," + z + "): " + String.join("; ", failures));
+                        continue;
+                    }
+                    RegistryKey<World> sourceWorld = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(targetWorldId));
                     int sourceY = link.has("sourceY") ? link.get("sourceY").getAsInt() : y;
                     int color = link.has("color") ? link.get("color").getAsInt() : 0x8844FF;
                     int cooldown = link.has("cooldown") ? link.get("cooldown").getAsInt() : 40;
                     String particleType = link.has("particleType") ? link.get("particleType").getAsString() : null;
-                    String exitMode = link.has("exitMode") ? link.get("exitMode").getAsString() : null;
                     PortalReturnTarget target = new PortalReturnTarget(sourceWorld, sourceY, color, cooldown, particleType, exitMode);
                     if (link.has("sourceX") && link.has("sourceZ")) {
                         target.sourceX = link.get("sourceX").getAsInt();
                         target.sourceZ = link.get("sourceZ").getAsInt();
                     }
-                    String portalWorld = link.has("portalWorld") ? link.get("portalWorld").getAsString() : null;
-                    if (portalWorld != null) {
-                        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorld));
+                    if (portalWorldId != null) {
+                        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(portalWorldId));
                         PORTAL_TARGETS.computeIfAbsent(worldKey, k -> new HashMap<>()).put(new BlockPos(x, y, z), target);
                     } else {
                         LEGACY_PORTAL_TARGETS.put(new BlockPos(x, y, z), target);
@@ -220,6 +245,15 @@ public class PortalHelper {
         } catch (IOException | JsonParseException e) {
             System.err.println("[customdimensions] Failed to load portal links; preserving file for repair: " + e.getMessage());
         }
+    }
+
+    /** Every dimension id the current config can produce, plus the base worlds — for orphan checks. */
+    private static Set<String> knownDimensionIds() {
+        Set<String> ids = new HashSet<>(DimensionConfig.BASE_WORLD_IDS);
+        for (DimensionConfig config : MultiverseConfig.getInstance().getDimensions()) {
+            ids.add(config.getDimensionId());
+        }
+        return ids;
     }
 
     public static void registerPortal(RegistryKey<World> portalWorld, BlockPos keyPos, RegistryKey<World> sourceWorld, int sourceY, int color, int cooldown, String particleType) {
@@ -375,46 +409,27 @@ public class PortalHelper {
      * player path ({@code EntityTickPortalMixin}) and the entity path
      * ({@code EntityPassthrough.tryReturnFromArrivalPortal}).
      *
-     * <p><b>Why an edge and not a cooldown.</b> Arrival portals are real
-     * {@code NETHER_PORTAL}/{@code END_PORTAL} blocks, so vanilla's
-     * {@code Entity.tryUsePortal} runs against them every tick an entity
-     * stands inside one — and its first act, when the entity already has a
-     * cooldown, is {@code resetPortalCooldown()}, which re-pins the value to
-     * {@code getDefaultPortalCooldown()} (10 for a player, 300 for everything
-     * else). {@code tickPortalCooldown} then takes one off, and the re-pin
-     * puts it back. The cooldown therefore NEVER reaches zero while an entity
-     * stands in a portal, so gating on {@code getPortalCooldown() == 0} would
-     * strand anyone who lands inside their own arrival portal: they could
-     * only leave by walking fully out and back in again.
+     * <p>Gated on presence, not cooldown, because vanilla's {@code
+     * Entity.tryUsePortal} calls {@code resetPortalCooldown()} every tick an
+     * entity stands in a portal, re-pinning the cooldown to its default (10
+     * for a player, 300 otherwise) before {@code tickPortalCooldown} can take
+     * it back down — so it never reaches zero while standing inside, and
+     * gating on {@code getPortalCooldown() == 0} would strand anyone who
+     * lands in their own arrival portal. The gate is instead: has this entity
+     * been somewhere else since it last stood in this portal? Same shape as
+     * the source-zone trigger ({@link #wasPlayerInZone}/
+     * {@link #setPlayerInZone}).
      *
-     * <p>So the gate is presence, not cooldown: an entity must have been
-     * somewhere OTHER than this portal since it last stood in it. That is the
-     * same shape as the source-zone trigger above
-     * ({@link #wasPlayerInZone}/{@link #setPlayerInZone}), which is why it
-     * lives here beside it rather than in a parallel mechanism of its own.
+     * <p>The cooldown is still load-bearing as a seed for a FIRST sighting: a
+     * warm cooldown distinguishes "a teleport put me here" from "I
+     * materialised here" (an item or mob spawned in the portal, which has no
+     * cooldown) — without it, arriving through a portal would fire the return
+     * on the very next tick.
      *
-     * <p><b>The cooldown is still load-bearing</b>, just demoted from gate to
-     * seed. On a FIRST sighting in a world we have no history to reason from,
-     * and a warm cooldown is exactly what distinguishes "a teleport put me
-     * here" (our own return teleports and {@code ServerWorldMixin}'s outbound
-     * one all set one) from "I materialised here" (an item dropped into the
-     * portal, a mob spawned in it — neither has a cooldown, and both should
-     * cross). Without it, arriving through a portal would fire the return on
-     * the very next tick, forever.
-     *
-     * <p>Callers sample at different rates and both are correct:
-     * <ul>
-     *   <li>The player path samples EVERY tick, {@code insidePortal} true or
-     *       false. That keeps {@code world} following the player, so arriving
-     *       in a dimension always reads as a first sighting there — which is
-     *       what makes the outbound teleport in {@code ServerWorldMixin} safe
-     *       without a hook in it.</li>
-     *   <li>The entity path samples only while the entity is in one of our
-     *       portals, so the map is untouched for the thousands of entities
-     *       that are not. "It left" is inferred from the gap in sightings
-     *       instead, which needs the entity to be away for at least one full
-     *       tick.</li>
-     * </ul>
+     * <p>The player path samples every tick (so {@code world} always follows
+     * the player and arrival reads as a first sighting). The entity path
+     * samples only while inside one of our portals, inferring "it left" from
+     * a gap in sightings.
      *
      * @param world             the world the entity is in right now
      * @param id                entity UUID
@@ -476,19 +491,14 @@ public class PortalHelper {
      * Hands the entry edge back, so the next tick the entity is standing in
      * the portal reads as a fresh entry again.
      *
-     * <p>The edge is a one-shot by design: it fires on the tick something
-     * steps in and then stays quiet however long it stands there. Any path
-     * that fires it and then declines to teleport — a target world that has
-     * not finished loading, a chain link that cannot resolve yet — has to give
-     * it back, or the entity stands in the portal forever waiting for a retry
-     * that was already spent. That was the level-check behaviour the old
-     * cooldown gate got for free, and it has to be explicit now.
-     *
-     * <p>The rule is the same one that governs {@code ci.cancel()} in
-     * {@code EntityTickPortalMixin}: consume it only when you actually
-     * teleported. Paths that can never succeed (an entity meeting a
-     * player-only exit mode) keep the edge consumed rather than re-testing
-     * every tick — the entity IS inside, and nothing will change that.
+     * <p>The edge is one-shot: it fires once on entry, then stays quiet. Any
+     * path that fires it and then declines to teleport (target world still
+     * loading, a chain link that can't resolve yet) must give it back, or the
+     * entity waits forever for a retry that was already spent. Consume it
+     * only when a teleport actually happens — same rule as {@code
+     * ci.cancel()} in {@code EntityTickPortalMixin}. Paths that can never
+     * succeed (e.g. a player-only exit mode) keep the edge consumed rather
+     * than re-testing every tick.
      */
     public static void rearmArrivalPortalEntry(RegistryKey<World> world, UUID id, int tick) {
         ArrivalPresence presence = ARRIVAL_PRESENCE.get(id);
@@ -613,24 +623,17 @@ public class PortalHelper {
             return;
         }
         for (PortalZone zone : pending) {
-            // ImmersiveSettings is transient on PortalDefinition (never
-            // serialised into portal_links.json — Gotcha #9), so the
-            // Gson-restored definition's immersive field is always null
-            // here. Re-stamp from the live config so "immersive" stays
-            // boot-re-read for zones ignited before the setting existed
-            // (or before it last changed) — without this, every
-            // already-ignited immersive portal silently stops being
-            // immersive on the next restart. Stamping null is correct
-            // too: it's how turning "immersive" off in config takes
-            // effect for existing zones.
+            // ImmersiveSettings is transient on PortalDefinition, never
+            // serialised into portal_links.json, so the Gson-restored
+            // definition's immersive field is always null here. Re-stamp
+            // from the live config so a zone ignited before "immersive" was
+            // set (or changed) still gets it applied — and so turning it
+            // off in config takes effect for existing zones too.
             zone.definition.setImmersive(MultiverseConfig.getInstance().getImmersiveFor(zone.targetWorld));
             if (isZoneValid(world, zone)) {
-                // Same dedupe as registerZone: a portal_links.json written
-                // before that guard existed can still hold duplicate records,
-                // and restoring both would resurrect the double-particle,
-                // double-projection behaviour on every boot. This collapses
-                // them on first load; the save at the end of this method
-                // rewrites the file without the duplicate.
+                // Same dedupe as registerZone — an older portal_links.json
+                // may still hold duplicate records; collapsing them here and
+                // resaving below removes the duplicate for good.
                 addZoneIfAbsent(zone);
             } else {
                 System.err.println("[customdimensions] Dropped invalid persisted portal route in " + worldKey.getValue());
@@ -790,8 +793,8 @@ public class PortalHelper {
 
     public static void spawnParticles(ServerWorld world, PortalZone zone) {
         // Immersive gateway zones get a denser cloud from the projector
-        // instead of this one (Phase 4d) — spawning both would just muddle
-        // the effect. True for no other zone, immersive or not.
+        // instead of this one — spawning both would just muddle the effect.
+        // True for no other zone, immersive or not.
         if (com.customdimensions.immersive.ImmersiveProjector.suppliesParticlesFor(zone)) {
             return;
         }
@@ -852,15 +855,12 @@ public class PortalHelper {
                 }
                 PortalReturnTarget rt = entry.getValue();
                 if (!isPortalBlock(level.getBlockState(p))) {
-                    // No portal block here any more, and it is deliberately
-                    // NOT restored: healing the gap back would make a portal
-                    // genuinely indestructible once combined with
-                    // NetherPortalProtectionMixin's neighbour-update
-                    // protection. Being able to destroy a portal you built
-                    // outranks the stranding case, which exit portals, exit
-                    // shrines and the configured exit modes already cover.
-                    // Neighbour-update protection stays — that compensates
-                    // for a non-obsidian frame and never resists a player.
+                    // Deliberately not restored — healing the gap back,
+                    // combined with NetherPortalProtectionMixin's
+                    // neighbour-update protection, would make a portal
+                    // indestructible. Destroying your own portal outranks
+                    // the stranding case, already covered by exit portals,
+                    // shrines, and exit modes.
                     continue;
                 }
                 // An immersive arrival is a window too — the projector fakes
@@ -899,32 +899,19 @@ public class PortalHelper {
 
     /**
      * A player mined a block; if it was part of one of our arrival portals,
-     * take the whole portal down with it.
+     * take the whole portal down with it — restoring vanilla's "break one
+     * pane, the whole portal pops" behaviour, which {@code
+     * NetherPortalProtectionMixin} otherwise suppresses (it protects
+     * non-obsidian frames from vanilla's neighbour-update re-validation, so
+     * this is the only place that can tell a deliberate break from a stray
+     * update).
      *
-     * <p>Vanilla behaviour, restored deliberately. Breaking one pane of a
-     * nether portal pops every pane connected to it, and a player who swings
-     * at a portal expects it gone — but our portals are protected from the
-     * neighbour updates that would normally cascade
-     * ({@code NetherPortalProtectionMixin}, which compensates for a frame that
-     * is not obsidian and so would otherwise fail vanilla's re-validation).
-     * That protection is deliberately blind to intent, so this is the only
-     * place that can tell a player's pick from a stray block update.
-     *
-     * <p>A missing pane is never healed back from a surviving neighbour:
-     * combined with neighbour-update protection, that would make a portal
-     * genuinely indestructible — swinging at a pane in creative would just
-     * watch it reappear. Being able to destroy a portal you built outranks
-     * the stranding case, which exit portals, exit shrines and the
-     * configured exit modes already cover.
-     *
-     * <p>Deregistering comes FIRST, so no later pass — particles, projection,
-     * validity — ever iterates a registered position whose block is already
-     * gone.
-     *
-     * <p>Only touches REGISTERED positions, so a player-built vanilla portal
-     * keeps vanilla's own rules, and a source zone — which has no portal
-     * blocks at all — is unaffected. Source frames are still policed by
-     * {@code isZoneValid} on the world tick.
+     * <p>A missing pane is never healed back — combined with neighbour-update
+     * protection, that would make a portal indestructible. Deregistering
+     * happens first, so no later pass (particles, projection, validity) ever
+     * iterates a position whose block is already gone. Only REGISTERED
+     * positions are touched, so a player-built vanilla portal and a
+     * (blockless) source zone are unaffected.
      */
     public static void onPlayerBrokePortalBlock(ServerWorld world, BlockPos pos) {
         RegistryKey<World> worldKey = world.getRegistryKey();
@@ -976,7 +963,7 @@ public class PortalHelper {
     }
 
     // ------------------------------------------------------------------
-    // Symmetric breaking (Phase 9c) — see PortalBreakLink for the rules
+    // Symmetric breaking — see PortalBreakLink for the rules
     // ------------------------------------------------------------------
 
     /**
@@ -1614,19 +1601,11 @@ public class PortalHelper {
         // "origin" | "bed" | "worldSpawn"; null keeps the legacy behaviour
         // (origin tracking with sourceWorld/sourceY as the fallback).
         public final String exitMode;
-        // The COLUMN of the source portal this arrival came from. Null on
-        // records written before this existed.
-        //
-        // Without it an arrival knows the Y it should return to but not the
-        // X/Z, so the immersive preview would have to sample the return
-        // world at the arrival's own column instead of at the portal you
-        // actually came from. Those coincide at scale 1, but diverge further
-        // apart as scale increases, sampling unvisited chunks and painting
-        // nothing but the aperture.
-        //
-        // A preview is never scaled — N blocks is N blocks. Both directions
-        // are a rigid translation; this is the missing half of the one going
-        // back.
+        // The COLUMN of the source portal this arrival came from; null on
+        // records written before this existed. Without it, the immersive
+        // preview would sample the return world at the arrival's own column
+        // instead of the actual source portal — those coincide at scale 1
+        // but diverge as scale increases, since a preview is never scaled.
         public Integer sourceX;
         public Integer sourceZ;
 

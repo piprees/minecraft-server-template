@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike task B1. Pure logic — no Minecraft Bootstrap, no server.
+ * Pure logic — no Minecraft Bootstrap, no server.
  */
 class NoiseProfileTest {
 
@@ -142,9 +142,8 @@ class NoiseProfileTest {
 
     @Test
     void hitRatesLandInTheirDesignBands() {
-        // Measured over a 1200x1200-chunk window: natural 21.6%, dense 59.2%,
-        // sparse 5.4%. Bands are wide enough not to be brittle and tight
-        // enough that retuning a threshold or frequency by accident fails.
+        // Bands are wide enough not to be brittle, tight enough that
+        // retuning a threshold or frequency by accident fails.
         assertRate("natural", hitRate(NoiseProfile.NATURAL), 0.12, 0.32);
         assertRate("dense", hitRate(NoiseProfile.DENSE), 0.45, 0.75);
         assertRate("sparse", hitRate(NoiseProfile.SPARSE), 0.01, 0.12);

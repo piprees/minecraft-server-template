@@ -392,8 +392,8 @@ public final class Criteria {
 
     /**
      * Terrain should match what the dimension asked for. The target comes from
-     * {@code seedRoll.terrain}'s plain-English word, which is the one part of
-     * the old model that was honestly fitted and is worth keeping.
+     * {@code seedRoll.terrain}'s plain-English word — already well-calibrated
+     * by hand, so it is reused rather than rebuilt.
      */
     static final class TerrainMatchesPreset implements Criterion {
         /** word -> (relief low, relief high). Blocks of vertical spread. */

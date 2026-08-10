@@ -15,8 +15,8 @@ import java.util.List;
  * <ol>
  *   <li><b>A failed gate rejects the seed outright.</b> It is not a deduction
  *       to be bought back elsewhere. A weighted mean says every deficiency is
- *       purchasable with a surplus, which is how a dimension with a dead
- *       structure list scored 66 rather than being flagged.</li>
+ *       purchasable with a surplus, so a dead structure list can still score
+ *       highly on the strength of everything else rather than being flagged.</li>
  *   <li><b>A criterion that does not apply is excluded from BOTH the score and
  *       the ceiling.</b> Not scored zero. A void dimension is not marked down
  *       for having no landmarks — it is not asked.</li>
@@ -26,9 +26,9 @@ import java.util.List;
  * </ol>
  *
  * <p>Every criterion is weighted 1. That is a deliberate starting point, not
- * an oversight: the old mood weight tables were hand-fitted constants nobody
- * could test, and Phase 9's labelled pairs are what should set weights, if
- * anything does. Until then, equal weight is the honest default.
+ * an oversight: a hand-fitted weight is an unverifiable guess, and nothing
+ * here has labelled data yet to justify one criterion outweighing another.
+ * Equal weight is the honest default until that changes.
  */
 public final class Scorer {
 
@@ -136,10 +136,8 @@ public final class Scorer {
 
     /**
      * The ceiling for a dimension, from config alone — no seed, no facts.
-     *
-     * <p>Gate 2 of this phase is that the ceiling is computable without seed
-     * data and stable across runs. This method is that claim in code: the
-     * scorer's own ceiling must equal it for every seed, and a test asserts so.
+     * Computable without seed data and stable across runs: the scorer's own
+     * ceiling must equal it for every seed, and a test asserts so.
      */
     public static double ceiling(DimensionConfig def, List<Criterion> criteria) {
         double ceiling = 0.0;

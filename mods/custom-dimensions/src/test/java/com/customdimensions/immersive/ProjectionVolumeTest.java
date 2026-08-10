@@ -232,14 +232,10 @@ class ProjectionVolumeTest {
 
     // ---- sightline mask ------------------------------------------------
     //
-    // The reported defect: "the new immersive blocks appear to be happening
-    // outside of the portal frame rather than only inside it, so the server
-    // is rendering stuff when I just look in the general direction of the
-    // portal". computeSourcePositions pads the slab by previewRadius on both
-    // in-plane axes, and every one of those padded columns sits behind the
-    // frame WALL. These tests pin the rule that fixes it: a position is only
-    // sent if the segment from the player's eye to its centre goes through
-    // the opening.
+    // computeSourcePositions pads the slab by previewRadius on both in-plane
+    // axes, and every padded column sits behind the frame WALL. These tests
+    // pin the rule that fixes it: a position is only sent if the segment
+    // from the player's eye to its centre goes through the opening.
 
     /**
      * Allocating form — the scratch probe is exercised separately. The ring
@@ -283,8 +279,7 @@ class ProjectionVolumeTest {
         assertTrue(sees(eye, new BlockPos(12, 65, 21), Direction.Axis.Z, 20, interior));
 
         // Two columns out, and the rows above and below: no part of these is
-        // on a sightline through the opening at this depth. These are the
-        // positions the tester saw destination blocks in.
+        // on a sightline through the opening at this depth.
         assertFalse(sees(eye, new BlockPos(8, 65, 21), Direction.Axis.Z, 20, interior),
                 "two columns out is behind the wall, not the opening");
         assertFalse(sees(eye, new BlockPos(10, 68, 21), Direction.Axis.Z, 20, interior),
@@ -338,8 +333,7 @@ class ProjectionVolumeTest {
 
         // Against the plane, the visible set is the opening plus exactly one
         // ring of surround — the blocks a sliver of which really does come
-        // through the edge of the doorway. Nothing beyond the ring, which is
-        // where the bleed into the real world used to start.
+        // through the edge of the doorway.
         Set<BlockPos> expectedFirstLayer = new HashSet<>();
         for (BlockPos p : interior) {
             expectedFirstLayer.add(new BlockPos(p.getX(), p.getY(), 21));
@@ -355,15 +349,11 @@ class ProjectionVolumeTest {
                     "the cone must not narrow with depth at layer " + layer);
         }
         // 16, 16, 16, 20, 24, 34, 38, 38 by depth layer, 202 of 336 in total.
-        //
-        // Three rules have been tried here and the number is the clearest
-        // record of the difference: centre-only gave 149 and leaked geometry
-        // past the frame edge at grazing angles; whole-shadow-inside-the-
-        // aperture gave 84 and was reported as barely a window at all
-        // ("almost the opposite of our recent change... it's too
-        // conservative"). Touch-the-aperture-stay-inside-the-ring gives 202,
-        // and is the only one of the three that is a statement about what is
-        // physically visible rather than a threshold.
+        // A centre-only rule leaks geometry at grazing angles; a
+        // whole-shadow-inside-aperture rule is too conservative and hides
+        // genuinely visible blocks. Touch-the-aperture-stay-inside-the-ring
+        // is the only one that is a statement about what is physically
+        // visible rather than a threshold.
         assertEquals(202, visible, "cone size from a centred eye 6 blocks out");
     }
 
@@ -392,9 +382,6 @@ class ProjectionVolumeTest {
         // Far round the side, only a thin sliver of the slab is still on a
         // true sightline through the doorway (a steep angle across the
         // opening), and nothing near the viewer's side of the frame is.
-        // Before the mask all 336 positions went out from ANY angle, which
-        // is what put destination terrain over the real world for a player
-        // merely looking in the portal's general direction.
         Vec3d beside = new Vec3d(2.0, 65.5, 14.5);
         assertFalse(sees(beside, new BlockPos(9, 65, 21), Direction.Axis.Z, 20, interior));
         assertFalse(sees(beside, new BlockPos(8, 65, 24), Direction.Axis.Z, 20, interior));
@@ -419,11 +406,6 @@ class ProjectionVolumeTest {
      * The rule itself, from a single eye: a block only fractionally behind
      * the opening IS shown, and the same column one block nearer — where
      * perspective has spread its shadow a cell further out — is not.
-     *
-     * Both halves are reported artefacts. Showing only fully-contained blocks
-     * was *"almost the opposite of our recent change... it's too
-     * conservative"*; showing anything whose centre clears was *"i'm side-on
-     * to the portal, it shouldn't have those leaves there"*.
      */
     @Test
     void aBlockIsShownUntilItsShadowRunsPastTheFrame() {
@@ -548,18 +530,12 @@ class ProjectionVolumeTest {
     }
 
     /**
-     * The reported inversion, pinned: *"I cannot see the portal from my
-     * direction at all because the planks are in the way, but it suddenly
-     * pops; when I take one more step forward it goes away"* — symmetric on
-     * both sides of the frame.
-     *
-     * viewerFarSide only flips the slab on a BLOCK boundary, so there is a
-     * one-block band on the normal axis in which the eye is already past the
+     * {@code viewerFarSide} only flips the slab on a BLOCK boundary, so there
+     * is a one-block band on the normal axis where the eye can be past the
      * plane's midpoint while the slab is still on the far side. That band is
-     * infinite in the in-plane axes, and the whole slab — padding included —
-     * used to be declared visible anywhere inside it. Walking sideways past
-     * a portal crosses it. So do the fake blocks a player could then walk
-     * into and mine, which are those same padded columns.
+     * infinite in the in-plane axes; without this guard the whole padded
+     * slab would be visible anywhere inside it, symmetric on both sides of
+     * the frame, to a player merely walking past.
      */
     @Test
     void beingLevelWithThePlaneIsNotTheSameAsBeingInTheDoorway() {
@@ -760,8 +736,7 @@ class ProjectionVolumeTest {
     //
     // A preview is never scaled — N blocks out is N blocks on the other side,
     // both ways. Both mappings are rigid translations; the only question is
-    // where they translate TO. These pin that, after the arrival side spent
-    // months translating by zero because it did not know its source column.
+    // where they translate TO.
 
     @Test
     void returnMappingTranslatesToTheSourceColumn() {
@@ -814,10 +789,9 @@ class ProjectionVolumeTest {
 
     @Test
     void aScaledArrivalDoesNotSampleItsOwnColumn() {
-        // The live defect: at scale 8 the arrival sampled its OWN column,
-        // ~8x from the source portal, hitting chunks nobody had visited. The
-        // preview then had nothing to paint but the aperture -- 12 blocks,
-        // against 718 for an unscaled dimension.
+        // At scale 8, sampling the arrival's own column lands ~8x from the
+        // source portal, hitting chunks nobody has visited — nothing to
+        // paint but the aperture (12 blocks, against 718 unscaled).
         Set<BlockPos> aperture = doorwayX(-47, 192, 465);
 
         ProjectionVolume.TargetMapping fixed = ProjectionVolume.returnMapping(aperture, 63, -619);

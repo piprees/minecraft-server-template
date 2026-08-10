@@ -1,5 +1,5 @@
 {
- "_comment": "Which want list a dimension inherits when its config names none. Read from scripts/seed/dimension_profiles.py once; this file is now the mod's own copy and the two must move together until the roller is deleted (plan Phase 8).",
+ "_comment": "Which want list a dimension inherits when its config names none.",
  "families": {
   "overworld": [
    "amplified",

@@ -69,69 +69,9 @@ MANIFEST=(
   # dies with a missing file on every consumer.
   scripts/pin-mod-versions.sh
   scripts/modrinth-api.py
-  scripts/seed/candidates.py
-  scripts/seed/seed_paths.py
-  scripts/seed/roll-all.sh
-  scripts/seed/seed_worker.py
-  scripts/seed/dimension_profiles.py
-  scripts/seed/score-dimensions.py
-  scripts/seed/viewer-server.py
-  scripts/seed/viewer_template.html
-  # The viewer's stylesheet, BUILT (Tailwind standalone CLI, see
-  # scripts/seed/web/build.sh) and committed. Ships built so release.yml
-  # needs no JS toolchain and a consumer needs no network: score-dimensions
-  # copies it into <seedtest>/assets/ beside index.html at finalise time.
-  scripts/seed/web/app.built.css
-  scripts/seed/web/project.js
-  scripts/seed/web/route.js
-  scripts/seed/web/app.js
-  scripts/seed/web/compare.js
-  scripts/seed/web/dartboard.js
-  scripts/seed/web/structicons.js
-  scripts/seed/web/exactfacts.js
-  scripts/seed/web/scatter.js
-  scripts/seed/biome_renderer.py
-  scripts/seed/biome_sampler.py
-  scripts/seed/legacy_noise.py
-  scripts/seed/search_tree.py
-  scripts/seed/tb_regions.py
-  scripts/seed/biome_source_mixing.py
-  scripts/seed/fast_roller.py
-  scripts/seed/structure_placement.py
-  scripts/seed/structure_tags.py
-  scripts/seed/noise_placement.py
-  scripts/seed/census_scoring.py
-  scripts/seed/terrain_survey.py
-  scripts/seed/sweep_structure_wants.py
-  scripts/seed/seed_information.py
-  scripts/check-dimension-drift.py
-  scripts/check-portal-integrity.py
-  scripts/check-noise-regression.py
-  # Resolves stack/VERSION for every artefact stamp and cache key. Imported by
-  # the checkers and by scripts/seed/, so it ships or both lose their staleness
-  # detection.
+  # Resolves stack/VERSION for every artefact stamp and cache key.
   scripts/stack_version.py
-  scripts/check-suppress-list.py
-  # The new roller's offline checkers. They assert over artefacts the mod
-  # writes (facts/, scores/, lint), so they must ship or `./dev verify`
-  # silently skips them in every consumer.
-  scripts/check-scorecards.py
-  scripts/check-facts-parity.py
-  scripts/check-dimension-lint.py
-  scripts/check-spike-parity.py
   scripts/gen-suppress-catalogue.py
-  scripts/seed/surface_rules.py
-  scripts/seed/terrain_height.py
-  # biome_renderer imports this for exact heights on the adventure noise
-  # presets and falls back to the Terralith spline approximation on
-  # ImportError — so leaving it out of the bundle silently downgrades every
-  # render a consumer sees instead of failing.
-  scripts/seed/preset_terrain.py
-  scripts/seed/warmup_biomes.py
-  scripts/seed/warmup_structure_pools.py
-  scripts/seed/terrain_splines.json
-  scripts/seed/biome_params.json
-  scripts/seed/noise_configs.json
   scripts/server-power.sh
   scripts/discord-notify.sh
   scripts/discord-cleanup.sh
@@ -173,7 +113,7 @@ if [[ $errors -gt 0 ]]; then
 fi
 
 rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR/stack/scripts/seed" "$STAGING_DIR/stack/examples/consumer"
+mkdir -p "$STAGING_DIR/stack"
 
 echo "$VERSION" > "$STAGING_DIR/stack/VERSION"
 

@@ -3,8 +3,9 @@ package com.customdimensions.facts;
 /**
  * A fact, or the reason there isn't one. Never both, never neither.
  *
- * <p>This type exists to make D4 unbreakable by construction: <em>measurements
- * are exact or absent, never estimated</em>. A {@code double} field can hold a
+ * <p>This type makes it impossible by construction to blend a measurement
+ * with a guess: <em>measurements are exact or absent, never estimated</em>.
+ * A {@code double} field can hold a
  * default, an average, or a value inferred from a sibling dimension, and
  * nothing downstream can tell which. A {@code Measured<Double>} cannot: it is
  * either a number somebody computed exactly, or a sentence saying why nobody

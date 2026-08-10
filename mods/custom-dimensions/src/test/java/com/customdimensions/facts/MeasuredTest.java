@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * D4 is the whole point of this type: measurements are exact or absent, never
- * estimated. These tests pin the ways that could quietly stop being true.
+ * Measurements are exact or absent, never estimated — the whole point of
+ * this type. These tests pin the ways that could quietly stop being true.
  */
 class MeasuredTest {
 

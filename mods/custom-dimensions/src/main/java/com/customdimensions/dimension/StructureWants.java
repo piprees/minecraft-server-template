@@ -17,23 +17,18 @@ import java.util.Map;
 /**
  * Which structures a dimension config actually asks for.
  *
- * <p>Three places can carry the answer and only one of them is obvious:
+ * <p>Three places can carry the answer, most specific first:
  *
  * <ol>
  *   <li>{@code structures.wants} — the current shape, explicit block bands.</li>
- *   <li>{@code seedRoll.wants} — the legacy shape, band-name shorthand. This
- *       is where <b>75 of the 82</b> shipped dimensions still keep theirs.</li>
- *   <li>Neither, in which case the dimension silently inherits its family's
- *       default list and is scored against structures its author never
- *       named.</li>
+ *   <li>{@code seedRoll.wants} — the legacy shape, band-name shorthand.</li>
+ *   <li>Neither, in which case the dimension inherits its family's default
+ *       list and is scored against structures its author never named.</li>
  * </ol>
  *
- * <p>Reading only the first source is why lint's first run reported 4 dead
- * wants where the candidate bank proves 142: it was checking three
- * dimensions' worth of config and calling the pack clean. The order here
- * mirrors the roller's {@code build_profile} exactly, because a lint that
- * resolves wants differently from the thing that scores them is not checking
- * the same wants.
+ * <p>The order here must mirror the roller's {@code build_profile} exactly —
+ * a lint that resolves wants differently from the thing that scores them is
+ * not checking the same wants.
  *
  * <p>The family table and the default lists are jar-baked
  * ({@code structure_default_wants.json}), for the same self-containment

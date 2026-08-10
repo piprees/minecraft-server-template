@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike tasks C2 + D1: the config -> type-defaults precedence chain, and the
- * backwards-compatibility rules. Pure, no Bootstrap.
+ * The config -> type-defaults precedence chain, and the backwards-
+ * compatibility rules. Pure, no Bootstrap.
  */
 class NoiseGroupPlanTest {
 
@@ -44,8 +44,8 @@ class NoiseGroupPlanTest {
         assertSame(NoiseProfile.SPARSE, p.groups().get("dungeons").profile());
         // settlements -> inner, dungeons -> outer per the type table. Compared
         // against the named curves rather than against literal values: what
-        // this test owns is the MAPPING, and retuning a curve's numbers (as
-        // 2026-07-29 did) should not read as a broken precedence chain.
+        // this test owns is the MAPPING, so retuning a curve's numbers should
+        // not read as a broken precedence chain.
         assertArrayEquals(StructureGroupRegistry.curve("inner"),
                 p.groups().get("settlements").radial(), 1e-9);
         assertArrayEquals(StructureGroupRegistry.curve("outer"),

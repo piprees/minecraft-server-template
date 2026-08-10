@@ -14,18 +14,14 @@ import java.lang.reflect.Method;
  *
  * <p>OPAC ships a real server-side API ({@code xaero.pac.common.server.api
  * .OpenPACServerAPI}), which is what this calls — no reaching into
- * internals. It is reached by reflection rather than a compile dependency
- * because the mod is optional: consumers assemble their own mod list, and
- * an absent claims mod must degrade to "nothing is claimed", never to a
- * missing class at load time.
+ * internals. Reached by reflection rather than a compile dependency because
+ * the mod is optional: an absent claims mod must degrade to "nothing is
+ * claimed", never to a missing class at load time.
  *
- * <p><b>Fails open, and that is deliberate.</b> Every failure path here —
- * mod absent, API moved, lookup threw — answers "not claimed", which
- * leaves the aura behaving exactly as it did before claims existed. The
- * alternative (fail closed, treat everything as claimed) would silently
- * switch the whole feature off on any upstream rename, and a cosmetic
- * feature quietly not happening is this codebase's most expensive failure
- * mode. A throwing lookup disables itself permanently after one WARN
+ * <p>Fails open, deliberately: every failure path — mod absent, API moved,
+ * lookup threw — answers "not claimed". Failing closed (treat everything as
+ * claimed) would silently switch the whole feature off on any upstream
+ * rename. A throwing lookup disables itself permanently after one WARN
  * rather than logging once per aura pass forever.
  *
  * <p>Call volume is tiny by construction: an aura pass makes at most

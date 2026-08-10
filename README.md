@@ -60,42 +60,7 @@ The `ops` script delegates to the bundle's operational scripts:
 
 Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow. The full step-by-step walkthrough and credential guide live in the `server-provisioning` skill.
 
-### Roll seeds locally (Mac)
-
-Find a great world seed by testing against the real modded server. Rolls bank raw measurements; scoring happens separately against each dimension's own `seedRoll` block, so re-weighting never requires re-rolling:
-
-```bash
-./dev seed-roll                              # roll all dimensions (default)
-./dev seed-roll --dims the_gauntlet          # single dimension
-./dev seed-roll --pool 10000 --count 200     # bigger screening pool
-./dev seed-roll --no-write                   # measure + score only
-./dev seed-roll --reset                      # wipe all seed data and start fresh
-./dev seed-roll --clean                      # wipe worker dirs, keep the candidate bank
-./dev seed-roll --warmup-only                # rebuild the warmup artefacts and stop
-./dev seed-roll --census-workers 8           # share the machine (default: two thirds of cores)
-```
-
-Winners are auto-written into the individual dimension config files. Ctrl+C finalises with whatever has been measured so far; re-runs resume.
-
-```bash
-./dev seed-rescore                           # recompute scores vs current configs
-./dev seed-status                            # candidate-bank status
-./dev seed-viewer                            # interactive picker + background rendering
-./dev verify                                 # every offline checker; safe while the server runs
-./dev refresh-config                         # re-seed data/config from the bundle (backs up first)
-```
-
-The roller reads the **stack bundle's** `config/custom-dimensions` plus your
-`overlay/config/custom-dimensions` — never `data/`, which belongs to the mc
-container. A dimension edited in `overlay/` is visible to the next roll
-immediately; editing `data/config/` changes the server's copy and does not
-affect a roll at all.
-
-Everything lands in `.seedtest/`. The viewer serves at `http://127.0.0.1:8765/`; "Use this seed" pins your pick over the score ranking.
-
-The open dimension and candidate live in the URL — `/the-nether` for an expanded dimension, `/the-nether/4412011349903857317` for one with a candidate's detail panel open (underscores become hyphens). Refresh, Back/Forward and a pasted link all land back on the same view; filters and sort stay in the query string alongside it.
-
-The viewer does more than rank: pick any two candidates and **Compare** puts both renders side by side with a weighted per-component diff; **All criteria** (`D`) draws every structure band on the map at once with spawn at the centre; the **scatter** (⁘) plots the whole bank on two score axes to find outliers. Candidates whose render hasn't been produced yet still show a terrain chip built from the height grid measured at roll time. Its stylesheet and scripts live in `scripts/seed/web/` (Tailwind v4, built and committed — nothing is fetched at runtime).
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands in-game.
 
 ## Upgrading
 
@@ -257,7 +222,6 @@ Scripts fall into three categories depending on where they live and who runs the
 | `discord-pin-sync.sh` | Mac | Sync the #general welcome pin from messages.json |
 | `ddns-update.sh` | local host | Cloudflare dynamic DNS for home hosting (cron-installable) |
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
-| `seed/*` | Mac | Batch seed testing, scoring, interactive viewer |
 | `service.sh` | Mac | Start, stop, restart, or check status of sidecars (local or production; never MC) |
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
@@ -286,8 +250,6 @@ Scripts fall into three categories depending on where they live and who runs the
 | `build-stack-bundle.sh`      | Assemble the release tarball                                        |
 | `sync-mod-cache.sh`          | Reconcile `mods-cache/` against the pinned mod lists (`--apply`)   |
 | `export-seed-winners.py`     | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
-| `seed/refresh-census-fixtures.sh` | Re-dump `seed/testdata/census/` from a running server's live placement calculator |
-| `seed/bench-census-workers.py`    | Time the noise census across pool sizes — the evidence for `default_workers()` |
 
 Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
 

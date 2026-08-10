@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:cyan_wool",
+    "minecraft:cyan_concrete",
+    "minecraft:cyan_concrete_powder",
+    "minecraft:cyan_terracotta",
+    "minecraft:cyan_glazed_terracotta",
+    "minecraft:cyan_stained_glass"
+  ]
+}

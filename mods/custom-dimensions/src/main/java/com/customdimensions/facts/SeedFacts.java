@@ -8,9 +8,9 @@ import java.util.Map;
  *
  * <p>No score, no weight, no verdict. A criterion in the scoring layer consumes
  * these and says what it thinks; this layer only says what is there. The split
- * exists because the old design could not tell "this seed is poor" from "this
- * config is broken" from "we could not measure it" — all three arrived as one
- * number.
+ * keeps "this seed is poor", "this config is broken" and "we could not
+ * measure it" as three distinguishable facts rather than one number that
+ * conflates them.
  *
  * <p>Every field is a {@link Measured}, so an unmeasurable fact is a stated
  * absence with a reason rather than a zero that reads like a measurement.

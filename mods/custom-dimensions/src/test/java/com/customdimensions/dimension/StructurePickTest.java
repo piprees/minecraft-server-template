@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Precision plan section 2.6. Tests for the structure-pick algorithm:
- * deterministic per-site assignment from a noise group's weighted pool.
+ * Tests for the structure-pick algorithm: deterministic per-site assignment
+ * from a noise group's weighted pool.
  *
  * Bootstrap-free: only pure primitives, no Minecraft types except ChunkPos
  * (which is a plain data class used only in the identity-semantics test

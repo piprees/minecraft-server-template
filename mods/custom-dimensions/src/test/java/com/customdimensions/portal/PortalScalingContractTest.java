@@ -23,12 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * </pre>
  *
  * <p>That is the design promise: a compact dimension is a tunnel network for
- * crossing the overworld fast. Before this
- * class, {@code scale} was tested only as a parsed value
- * ({@code defaultScaleIs1}, {@code portalScaleFeedsScaleGetterForCustomDims})
- * and as a chunk-ticket offset. Nothing asserted the transform itself, and
- * nothing pinned the truncation rule that decides which column a portal maps
- * to — see {@code TEST-COVERAGE-AUDIT.md}.
+ * crossing the overworld fast.
  *
  * <p>{@code ProjectionVolume.scaledMapping} is the shared implementation:
  * its javadoc states it mirrors {@code ServerWorldMixin}'s
@@ -110,22 +105,11 @@ class PortalScalingContractTest {
 
     @Test
     void emberFieldsArrivalLandsInsideItsOwnWorldBorder() {
-        // The live defect, as a test. The overworld source portal is a
-        // 4-wide doorway at x=235..238, z=-453 into adventure:the_ember_fields
-        // (scale 8.0, player border radius 1024).
-        //
-        // Multiplying produced (1888, -3624) — 3624 blocks out, far OUTSIDE
-        // that border, where vanilla forbids breaking or placing ANY block.
-        // The player could not mine the calcite around them, the frame, or
-        // the portal itself. Dividing lands them at (30, -57).
-        // The live 2026-07-25 defect, pinned. Overworld portal at
-        // x=235..238, z=-453 into adventure:the_ember_fields (scale 8.0,
-        // player border radius 1024).
-        //
-        // Multiplying produced (1888, -3624) — 3624 blocks out, far OUTSIDE
-        // that border, where vanilla forbids breaking or placing ANY block.
-        // The reporter could not mine the calcite around them, the frame, or
-        // the portal itself. Dividing lands them at (30, -57).
+        // Overworld source portal: a 4-wide doorway at x=235..238, z=-453
+        // into adventure:the_ember_fields (scale 8.0, player border radius
+        // 1024). Multiplying would produce (1888, -3624) — 3624 blocks
+        // outside that border, where vanilla forbids breaking or placing any
+        // block, stranding the player. Dividing lands them at (30, -57).
         int borderRadius = 1024;
         var mapping = ProjectionVolume.scaledMapping(doorwayX(235, 64, -453, 4), 8.0);
 
@@ -146,9 +130,8 @@ class PortalScalingContractTest {
         assertEquals(100, positive.arrivalX());
 
         // ...and the negative case lands on x+1, NOT x. This asymmetry is
-        // real behaviour that preview and arrival must share; PLAN.md calls
-        // negative-coordinate rounding out as a trap that has already
-        // produced one false regression report.
+        // real behaviour that preview and arrival must share — a trap in
+        // negative-coordinate rounding.
         var negative = ProjectionVolume.scaledMapping(doorwayX(-100, 64, 0), 1.0);
         assertEquals(-99, negative.arrivalX(),
                 "truncation towards zero: -99.5 -> -99, not -100");
@@ -163,9 +146,6 @@ class PortalScalingContractTest {
         // truncation of the interior centre lands it on 12 or 13 depending on
         // sign. Assert the PROPERTY (linear, correct magnitude, correct sign)
         // rather than a magic number that would drift with the rounding rule.
-        // 100 source blocks at scale 8 is 12.5; integer truncation of the
-        // interior centre lands it on 12 or 13 depending on sign. Assert the
-        // PROPERTY, not a number that drifts with the rounding rule.
         int step = far.arrivalX() - near.arrivalX();
         assertTrue(step < 0, "moving -X at the source must move -X at the arrival");
         assertTrue(Math.abs(Math.abs(step) - 100.0 / 8.0) <= 1.0,
@@ -213,17 +193,15 @@ class PortalScalingContractTest {
 
     @Test
     void theArrivalInteriorIsBuiltAtTheCOLUMNTHEPLAYERLANDSIN() {
-        // The bug this pins, live 2026-07-25: ServerWorldMixin built the
-        // arrival at `targetCentre + dx` while teleporting the player to
-        // `targetCentre`. dx is the PROJECTION offset (what you add to a
-        // SOURCE position to reach its target counterpart), so adding it to an
+        // The arrival must be built at `targetCentre`, not at `targetCentre
+        // + dx` — dx is the PROJECTION offset (what you add to a SOURCE
+        // position to reach its target counterpart), so adding it to an
         // already-scaled centre applies the shift twice.
         //
-        // Real numbers: a source portal at (63, -619) into a scale-8
-        // dimension teleported the player to (8, -77) and built the portal at
-        // (-47, 465) — ~600 blocks away. The player arrived in raw terrain
-        // with no portal anywhere, which reads as "the return portal was
-        // never created".
+        // A source portal at (63, -619) into a scale-8 dimension teleports
+        // the player to (8, -77); applying dx twice would instead build the
+        // portal at (-47, 465), ~600 blocks away, stranding the player in
+        // raw terrain with no portal anywhere.
         Set<BlockPos> sourceInterior = doorwayX(63, 116, -619, 1);
         var mapping = ProjectionVolume.scaledMapping(sourceInterior, 8.0);
 

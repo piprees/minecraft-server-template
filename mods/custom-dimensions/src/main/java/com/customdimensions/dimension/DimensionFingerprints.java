@@ -11,7 +11,10 @@ import net.minecraft.server.MinecraftServer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,10 +36,43 @@ import java.util.Map;
 public final class DimensionFingerprints {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    // The fields the mod stamps at creation time. "seed" is creation-time too,
+    // but a re-roll is a deliberate act (see checkExisting) and is reported
+    // separately from worldgen drift.
+    private static final String[] WORLDGEN_FIELDS = {
+            "type", "noiseSettings", "biomes", "checkerboardScale",
+            "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"
+    };
     private static Map<String, Map<String, String>> cache;
     private static Path storePath;
 
     private DimensionFingerprints() {
+    }
+
+    /**
+     * The worldgen fields that differ between a stored fingerprint and a
+     * dimension's current config fields. Pure and boot-independent — the
+     * comparison a checker would run offline, kept in the mod instead.
+     */
+    public static List<String> driftedFields(Map<String, String> stored, Map<String, String> current) {
+        List<String> drifted = new ArrayList<>();
+        for (String field : WORLDGEN_FIELDS) {
+            if (!String.valueOf(stored.get(field)).equals(current.get(field))) {
+                drifted.add(field);
+            }
+        }
+        return drifted;
+    }
+
+    /** Fingerprinted dimension names with no matching entry in {@code configuredNames}. */
+    public static List<String> orphans(Collection<String> fingerprintedNames, Collection<String> configuredNames) {
+        List<String> found = new ArrayList<>();
+        for (String name : fingerprintedNames) {
+            if (!configuredNames.contains(name)) {
+                found.add(name);
+            }
+        }
+        return found;
     }
 
     private static Map<String, String> fields(DimensionConfig def) {
@@ -92,27 +128,42 @@ public final class DimensionFingerprints {
             save();
             return;
         }
-        StringBuilder worldgenDrift = new StringBuilder();
-        for (String k : new String[]{"type", "noiseSettings", "biomes", "checkerboardScale", "layers", "flatBiome", "settingsOverrides", "biomeParameters", "biomePatches"}) {
-            if (!String.valueOf(stored.get(k)).equals(current.get(k))) {
-                if (worldgenDrift.length() > 0) {
-                    worldgenDrift.append(", ");
-                }
-                worldgenDrift.append(k).append(": '").append(stored.get(k))
-                        .append("' -> '").append(current.get(k)).append("'");
-            }
-        }
+        List<String> drifted = driftedFields(stored, current);
         boolean seedDrift = !String.valueOf(stored.get("seed")).equals(current.get("seed"));
-        if (worldgenDrift.length() > 0) {
+        if (!drifted.isEmpty()) {
+            StringBuilder detail = new StringBuilder();
+            for (String field : drifted) {
+                if (detail.length() > 0) {
+                    detail.append(", ");
+                }
+                detail.append(field).append(": '").append(stored.get(field))
+                        .append("' -> '").append(current.get(field)).append("'");
+            }
             MultiverseServer.LOGGER.warn(
                     "Dimension {}: worldgen config changed since this world was created ({}) — "
                     + "KEEPING the world as generated; worldgen changes never apply to existing "
                     + "dimensions. Regenerating requires a full world wipe (the generator is "
-                    + "baked into level.dat).", def.getName(), worldgenDrift);
+                    + "baked into level.dat).", def.getName(), detail);
         } else if (seedDrift) {
             MultiverseServer.LOGGER.info(
                     "Dimension {}: configured seed changed ({} -> {}) — existing world keeps its "
                     + "creation-time seed.", def.getName(), stored.get("seed"), current.get("seed"));
+        }
+    }
+
+    /**
+     * A fingerprinted world with no matching config entry: the config was
+     * deleted (or renamed) but the world — and its level.dat entry — still
+     * exists. Fingerprint-tone: WARN, never delete or unload (the mod's own
+     * orphan reconciliation, driven by config presence, already handles
+     * unloading; this only reports the fingerprint-level mismatch).
+     */
+    public static synchronized void warnOrphans(Collection<String> configuredNames) {
+        load();
+        for (String name : orphans(cache.keySet(), configuredNames)) {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: fingerprint recorded but no config entry exists for it — the "
+                    + "world still exists on disk with no config describing it.", name);
         }
     }
 

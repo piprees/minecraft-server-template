@@ -12,8 +12,7 @@ import java.util.Set;
 
 /**
  * One dimension, fully described by a single JSON file at
- * config/custom-dimensions/dimensions/{slug}.json — the v4 unified schema
- * replacing DimensionDefinition + PortalDefinition + WorldSeedDefinition.
+ * config/custom-dimensions/dimensions/{slug}.json.
  *
  * The slug (name) comes from the FILENAME, never from the JSON; the loader
  * stamps it (and the resolved namespace) after deserialisation. Every field
@@ -21,8 +20,7 @@ import java.util.Set;
  * file ({"seed": ..., "spawn": [...]}) is a complete config.
  *
  * Legacy multiverse_config.json fields ("biome" comma string, top-level
- * "hostileSpawning", explicit "dimensionId") are declared too so the legacy
- * converter and old-format entries deserialise into the same class.
+ * "hostileSpawning", explicit "dimensionId") deserialise into the same class.
  */
 public class DimensionConfig {
 
@@ -262,7 +260,7 @@ public class DimensionConfig {
         return this.seed;
     }
 
-    /** Optional [x, y, z] spawn point (seed-roller-written or manual). */
+    /** Optional [x, y, z] spawn point. */
     public int[] getSpawn() {
         return this.spawn != null && this.spawn.length == 3 ? this.spawn : null;
     }
@@ -596,14 +594,11 @@ public class DimensionConfig {
         if (this.portal == null) {
             return null;
         }
-        // Primary frame form: ALWAYS a plain, parseable block id — the plain
-        // config id, else the placement block, else obsidian (the documented
-        // build fallback). Never a "#tag" form: definitions persist into
-        // portal_links.json zone records, and older jars Identifier.of() the
-        // frameBlock in an UNCAUGHT world-tick path — a '#' there crash-loops
-        // any server that downgrades to a jar reading new-format records.
-        // With a parseable-but-wrong id, old jars just drop the zone as
-        // invalid, which is the graceful floor.
+        // Primary frame form is ALWAYS a plain, parseable block id — the plain
+        // config id, else the placement block, else obsidian. Never a "#tag"
+        // form: zone records persist this, and an older jar calls
+        // Identifier.of() on it in an uncaught world-tick path — a '#' there
+        // crash-loops on downgrade.
         List<String> accepts = this.portal.getFrameAcceptForms();
         String plainId = this.portal.getFrameBlockId();
         String place = this.portal.resolvePlacementBlockId();
@@ -745,7 +740,7 @@ public class DimensionConfig {
      * One fixed circular biome patch: the biome claims every column within
      * `radius` blocks of (x, z), the delegate source answers everywhere
      * else. Creation-time worldgen (the wrapped source is baked into
-     * level.dat). A patch at spawn deletes the seed-roll spawn lottery.
+     * level.dat). A patch at spawn deletes the spawn lottery.
      */
     public static class BiomePatch {
         @SerializedName("biome")
@@ -836,13 +831,12 @@ public class DimensionConfig {
          * Exact structure at an exact spot: synthetic single-structure sets
          * with a customdimensions:fixed placement. STRUCTURE ids (not set
          * ids); x/z are BLOCK coordinates (the structure start lands in that
-         * block's chunk). Generation-affecting — mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
+         * block's chunk). Generation-affecting.
          */
         @SerializedName("force")
         public List<ForcedStructure> force;
 
-        // --- noise placement (spike: structure noise) ---------------------
+        // --- noise placement ------------------------------------------------
         /**
          * Per-group noise profile. Two shapes:
          * <pre>
@@ -853,9 +847,6 @@ public class DimensionConfig {
          * world type's default. JsonElement because Gson cannot express
          * string-or-map — the same reason `seed`, `frameBlock` and
          * `immersive` are JsonElement.
-         *
-         * Creation-time-affecting: mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
          */
         @SerializedName("noise")
         public JsonElement noise;
@@ -882,8 +873,6 @@ public class DimensionConfig {
          * Per-dimension Beardifier overrides: full STRUCTURE id or noise
          * group name -> none | beard_thin | beard_box | bury | encapsulate.
          * Resolution and semantics in TerrainAdaptationOverride.
-         * Generation-affecting (new chunks only) — mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
          */
         /**
          * Blocks around this dimension's spawn where the hostile groups
@@ -1531,7 +1520,7 @@ public class DimensionConfig {
         @SerializedName("logicalHeight")
         public Integer logicalHeight;
         // Vanilla dimension-type fields (Tier 1 of the Custom-world-settings
-        // support matrix — see mods/.ideas/vanilla-custom-world-settings.md).
+        // support matrix).
         @SerializedName("coordinateScale")
         public Double coordinateScale;
         @SerializedName("effects")
@@ -1548,8 +1537,6 @@ public class DimensionConfig {
     /**
      * Seed-roll scoring config. The mod ignores this at runtime — it exists
      * so per-dimension files are self-contained for the Python roller.
-     * wants/shuns stay raw JSON: Phase 1 preserves the legacy band-name
-     * shape verbatim (ranges land in Phase 6 under "structures").
      */
     public static class SeedRoll {
         /** True = the roller ignores this dimension entirely (no measurement, no scoring). */

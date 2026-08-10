@@ -14,6 +14,11 @@ services:
       - /bin/bash
       - -c
       - unset WHITELIST; exec /image/scripts/start
+    # A rolled winner is written into the consumer's committed overlay, so the
+    # mod needs it mounted. Local only: production must never write to the
+    # overlay, and its absence there is what makes `winner` refuse.
+    volumes:
+      - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
     environment:
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"

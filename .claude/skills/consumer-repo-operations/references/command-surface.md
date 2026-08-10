@@ -24,16 +24,13 @@ Every `dev` command operates only on the local Docker stack. None of these touch
 | `update`       | Pull the latest stack bundle + Docker images                  |
 | `rollback`     | Revert to a previous stack bundle version                     |
 | `doctor`       | Local health check (containers, RCON, seed exit)              |
-| `seed-roll`    | Parallel-roll seeds for every dimension, auto-pick winners    |
-| `seed-rescore` | Recompute candidate scores vs current configs (no re-rolling) |
-| `seed-status`  | Candidate-bank status: counts, winners, score freshness       |
 | `cache`        | Snapshot Docker images, mod JARs, offline client bundles      |
 | `start`        | Start a stopped local service                                 |
 | `stop`         | Stop a running local service                                  |
 | `restart`      | Force-recreate a local service                                |
 | `status`       | Show local container status                                   |
 
-Two `dev` commands exist in the actual script but not in `commands.json`: `refresh-config` (force-refresh platform config defaults, backing up `data/config`; overlay still wins) and `seed-viewer` (launches the interactive seed viewer). Both are documented in `./dev help` output, just missing from the JSON index.
+`verify` (runs every offline checker over the server's artefacts, no RCON) exists in the actual script but not in `commands.json` — documented in `./dev help` output, just missing from the JSON index.
 
 `./ops sync` is the full alignment flow — see the main SKILL.md's update-commands table. It isn't in `commands.json` either.
 

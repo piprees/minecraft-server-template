@@ -35,111 +35,74 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Immersive portal preview (Phase 1), cross-portal audio (Phase 2) and the
- * Phase 4 particle passes: the per-tick driver that activates, refreshes and
- * tears down each player's fake-block projection of the dimension on the
- * other side of an immersive portal, leaks the target dimension's biome
- * ambience back through the portal plane, and dresses the result — a
- * coloured border on the frame of an active preview (4b), and a denser cloud
- * for gateway zones that have no frame to project through at all (4d).
+ * Immersive portal preview, cross-portal audio, and particle passes: the
+ * per-tick driver that activates, refreshes and tears down each player's
+ * fake-block projection of the dimension on the other side of an immersive
+ * portal, leaks the target dimension's biome ambience back through the
+ * portal plane, and dresses the result with a coloured border on an active
+ * preview's frame and a denser particle cloud for gateway zones that have no
+ * frame to project through.
  *
- * Presentation only. It never touches traversal, ignition, zone validation
- * or portal links — the blocks it sends are client-side illusions that are
+ * <p>Presentation only. It never touches traversal, ignition, zone
+ * validation or portal links — the blocks it sends are client-side illusions
  * never placed in the world, and the sounds it plays are ordinary
  * {@link World#playSound} packets aimed at the source-side portal position.
  *
  * <h2>Both directions</h2>
- * The tick runs two passes over two different kinds of thing:
+ * The tick runs two passes:
  * <ul>
- *   <li>{@link #tickSourceZones} — source portal ZONES in this world (the
- *       flood-filled openings players ignite), previewing where they lead;</li>
+ *   <li>{@link #tickSourceZones} — source portal ZONES in this world,
+ *       previewing where they lead;</li>
  *   <li>{@link #tickArrivalPortals} — arrival PORTALS standing in this world
- *       (real portal blocks with a registered return target, and no zone at
- *       all), previewing the world you would go back to.</li>
+ *       (real portal blocks with a registered return target and no zone),
+ *       previewing the world you would go back to.</li>
  * </ul>
- * They differ only in how the aperture, the settings and the destination
- * mapping are found. Everything downstream of that — the sightline mask, the
- * chunk ticket, the delta refresh, the stationary throttle and every teardown
- * path — is {@link #projectToPlayers} and {@link PlayerProjectionState},
- * shared verbatim, so the two cannot drift apart in behaviour.
+ * They differ only in how the aperture, settings and destination mapping are
+ * found. Everything downstream — the sightline mask, the chunk ticket, the
+ * delta refresh, the stationary throttle and every teardown path — is
+ * {@link #projectToPlayers} and {@link PlayerProjectionState}, shared
+ * verbatim, so the two cannot drift apart in behaviour.
  *
  * <h2>Rule 1: never sync-load a chunk from here</h2>
- * Every read of the target world goes through a non-loading accessor
- * ({@code getChunkManager().getWorldChunk(cx, cz, false)}), and a null
- * result means "skip" — the position keeps its real source block and the
- * zone waits for a later tick. Sync-loading an ungenerated chunk from the
- * world tick is a known server-wedge trigger on this server
- * (mods/AGENTS.md "Known issues" — Epic Dungeons loot ids + c2me), and a
- * cosmetic preview must never be able to hang the tick loop. That is also
- * why {@link PortalHelper#findSurfaceY} is NOT used: it calls
- * {@code world.getChunk(...)}, which force-generates. {@link
- * ArrivalResolver} answers the same question without loading anything —
- * and answers it BETTER, by preferring the registered arrival portal the
- * player actually lands in over a heightmap our own frame has raised.
+ * Every read of the target world goes through a non-loading accessor, and a
+ * null result means "skip" — the position keeps its real source block and
+ * the zone waits for a later tick. {@link PortalHelper#findSurfaceY} is NOT
+ * used because it force-generates; {@link ArrivalResolver} answers the same
+ * question without loading anything, preferring the registered arrival
+ * portal the player actually lands in over a heightmap our own frame has
+ * raised.
  *
  * <h2>Rule 2: hold a chunk ticket, do not hope someone else did</h2>
- * <b>Regression guard — do not remove the ticket as "redundant with Phase
- * 0's pre-loader".</b> Phase 0's {@code ImmersivePreloader} generates a 5x5
- * arrival grid but takes no ticket, so with no player in the target world
- * those chunks unload within seconds. Without a ticket of its own here:
- * <ul>
- *   <li>{@link ArrivalResolver#arrivalY} then returns {@link #NO_ARRIVAL}
- *       forever and the zone is skipped silently — no log, no error.</li>
- *   <li>The pre-loader never re-runs, because its dedupe is only
- *       invalidated by {@code ServerWorldEvents.UNLOAD} and the WORLD never
- *       unloads — only its chunks do.</li>
- * </ul>
- * The two mechanisms would guard each other into a permanent dead state: the
- * preview works exactly once and then dies for good. So the projector owns
- * its own chunk lifetime: while any player is in range of an immersive zone
- * it holds a {@link #PREVIEW_TICKET} on exactly the chunk columns
- * {@link ProjectionVolume#targetChunks} says it can sample, and releases it
- * on every teardown path. Tickets load asynchronously, so this does not
- * reintroduce the sync-load risk Rule 1 exists to prevent — the
- * {@code NO_ARRIVAL} guard simply covers the tick or two while the chunks
- * are still on their way.
+ * <b>Regression guard — do not remove the ticket as "redundant with {@code
+ * ImmersivePreloader}".</b> The pre-loader takes no ticket, so its
+ * pre-generated chunks unload within seconds with no player in the target
+ * world. Without a ticket of its own here, {@link ArrivalResolver#arrivalY}
+ * would return {@link #NO_ARRIVAL} forever and the zone would be skipped
+ * silently, and the pre-loader would never re-run because its dedupe is only
+ * invalidated by a world unload — which never happens, only the chunks do.
+ * The two mechanisms would guard each other into a permanent dead state. So
+ * the projector holds its own {@link #PREVIEW_TICKET} on exactly the chunk
+ * columns {@link ProjectionVolume#targetChunks} names, for as long as any
+ * player is in range, and releases it on every teardown path. The ticket
+ * also carries an expiry ({@link #TICKET_EXPIRY_TICKS}), refreshed on a
+ * cadence while wanted, so a missed release path self-heals instead of
+ * pinning chunks forever.
  *
- * The ticket type also carries an expiry ({@link #TICKET_EXPIRY_TICKS}) and
- * is refreshed on a cadence while wanted: a leaked ticket pins chunks loaded
- * forever, which would be a worse bug than the one it fixes, so it
- * self-heals even if a release path is ever missed.
- *
- * <h2>Rule 3: an ORDERLY shutdown is a teardown; a crash is not</h2>
+ * <h2>Rule 3: an orderly shutdown is a teardown; a crash is not</h2>
  * {@link #clear()} restores every live projection before dropping its state.
- * It has to, and the reason is worth reading before anyone "simplifies" it
- * back into a set of {@code clear()} calls:
+ * A fake block only becomes real again because the server tells the client
+ * so — if the process stops without that, the client keeps rendering
+ * destination terrain the server has no record of, indistinguishable from a
+ * live sightline-mask bug. {@code WorldLoaderMixin.onShutdown} injects at
+ * {@code MinecraftServer.shutdown} HEAD, before the network stops and before
+ * players are disconnected, so the corrections reach the client before the
+ * connection closes.
  *
- * <p>A fake block only ever becomes real again because the server tells the
- * client so. If the process stops while projections are live, nobody tells
- * it — and after a restart the server has no record that those positions were
- * ever faked, so it will never correct them. The client goes on rendering
- * destination terrain that, server-side, is plain air — indistinguishable
- * from a live sightline-mask failure even though the server's last
- * projection activity may be long over. Every jar install during local
- * iteration mints fresh ghosts this way unless the restart runs through an
- * orderly shutdown.
- *
- * <p>The hook is sound for this: {@code WorldLoaderMixin.onShutdown} injects
- * at {@code MinecraftServer.shutdown} HEAD, which runs before {@code
- * getNetworkIo().stop()} and before {@code
- * PlayerManager.disconnectAllPlayers()}, so the player list is live and every
- * channel is open. {@code ClientConnection.send} writes with {@code
- * flush = true}, and the later {@code disconnect()} does {@code
- * channel.close().awaitUninterruptibly()} — a close queued behind writes that
- * have already been flushed. The corrections make it onto the wire.
- *
- * <p><b>What this cannot fix, honestly:</b> a hard crash, an OOM kill, {@code
- * kill -9}, or the container being torn out from under the process. None of
- * them run {@code shutdown()}, so none of them restore anything, and there is
- * no server-side mechanism that could — the knowledge of what was faked dies
- * with the process. That residue is only correctable by the CLIENT reloading
- * the affected chunks. If a player reports blocks from another dimension
- * hanging around a portal after a crash, the remedy is to make their client
- * re-request chunks: relog, press F3+A (reload chunks), or walk out past
- * render distance and back. Check the server log for a recent
- * "restored ... before shutdown" line before treating any such report as a
- * projection bug — its absence, plus a restart in the window, is the
- * signature of stale ghosts rather than a live defect.
+ * <p>A hard crash, OOM kill, or {@code kill -9} runs no shutdown hook and
+ * restores nothing — the client is the only side that can then self-correct
+ * (relog, F3+A, or walk out of render distance and back). Check the log for
+ * a "restored ... before shutdown" line before treating a stray-block report
+ * as a live projection bug.
  */
 public final class ImmersiveProjector {
 
@@ -230,51 +193,31 @@ public final class ImmersiveProjector {
     private static final int NO_ARRIVAL = ArrivalResolver.NO_ARRIVAL;
 
     /**
-     * Gateway cloud audience gate (4d). {@code ServerWorld.spawnParticles}
-     * only forwards to players within 32 blocks unless forced (verified by
-     * disassembling {@code sendToPlayerIfNearby} in the Yarn-mapped 1.21.1
-     * jar: {@code isWithinDistance(..., force ? 512 : 32)}), so this is the
-     * exact radius at which the packets stop being visible — not a tuning
-     * knob, and deliberately NOT activationRange: a gateway has no
-     * projection to activate, and its particles should not appear or vanish
-     * on a config value that means something else.
+     * Gateway cloud audience gate. {@code ServerWorld.spawnParticles} only
+     * forwards to players within 32 blocks unless forced, so this is the
+     * exact radius at which the packets stop being visible — deliberately
+     * NOT activationRange, since a gateway has no projection to activate.
      */
     private static final double GATEWAY_PARTICLE_RANGE_SQ = 32.0 * 32.0;
 
-    /** 4d: cloud size, and the slow scale pulse that stops it reading as static. */
+    /** Gateway cloud size, and the slow scale pulse that stops it reading as static. */
     private static final int GATEWAY_PARTICLE_COUNT = 2;
     private static final int GATEWAY_PULSE_PERIOD = 40;
 
     /**
-     * How often the Phase 4 particle passes emit, in ticks.
-     *
-     * <h2>Why these are not 1</h2>
-     * An every-tick spawn, on top of {@code PortalHelper.spawnParticles}'s
-     * pre-existing 2-per-interior-block-per-tick, is too strong: a dust
-     * particle lives roughly 20-30 ticks, so it keeps ~20+ particles alive
-     * per position at all times — a cloud, not a border.
-     *
-     * At a 10-tick cadence the frame carries about two live particles per
-     * block, which reads as a steady coloured outline of the opening rather
-     * than smoke pouring out of it — a tenth of the particles and a tenth of
-     * the {@code ParticleS2CPacket}s (one per ring block per emission). The
-     * gateway cloud emits twice as often but at half the count, because for a
-     * gateway zone the cloud is the ENTIRE immersive treatment (no frame, no
-     * projection, nothing else to look at) — net, also about a tenth of what
-     * it was.
-     *
-     * Both divide {@link #PARTICLE_LOG_INTERVAL} exactly, which is what keeps
-     * the heartbeat below landing on an emitting tick. Deliberately constants
-     * and not config: this is taste, and a knob for it would be one more
-     * thing to get wrong.
+     * How often the particle passes emit, in ticks. An every-tick spawn would
+     * be too strong on top of {@code PortalHelper.spawnParticles}'s existing
+     * rate — a dust particle lives ~20-30 ticks, so it would read as a cloud
+     * rather than a border. Both divide {@link #PARTICLE_LOG_INTERVAL}
+     * exactly, so the heartbeat never lands on an emitting tick.
      */
     private static final int EDGE_PARTICLE_INTERVAL = 10;
     private static final int GATEWAY_PARTICLE_INTERVAL = 5;
 
     /**
-     * Heartbeat cadence (10s) for the 4b/4d particle DEBUG lines. Particles
-     * are pure client-side output, so a periodic line is the only way to
-     * confirm either pass is running without a human in the game.
+     * Heartbeat cadence (10s) for the edge- and gateway-particle DEBUG lines.
+     * Particles are pure client-side output, so a periodic line is the only
+     * way to confirm either pass is running without a human in the game.
      */
     private static final int PARTICLE_LOG_INTERVAL = 200;
 
@@ -358,11 +301,10 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * Per-world tick. Called from {@code ServerWorldMixin.onTick} after
-     * {@code PortalAuraManager.tick} and before {@code ExitConditions.tick}
-     * (PLAN.md Gotcha #12): after the teleport loop so a player who stepped
-     * through this tick is already gone from this world, and after the aura
-     * pass so the projection sees post-aura blocks.
+     * Per-world tick. Called from {@code ServerWorldMixin.onTick} after the
+     * teleport loop (so a player who stepped through this tick is already
+     * gone) and after {@code PortalAuraManager.tick} (so the projection sees
+     * post-aura blocks).
      */
     public static void tick(ServerWorld world) {
         MinecraftServer running = world.getServer();
@@ -396,9 +338,9 @@ public final class ImmersiveProjector {
             if (PortalShape.END_GATEWAY.equals(def.getShape())) {
                 // Frameless single-block teleporter — there is no portal
                 // plane to project blocks through, and none is ever built
-                // for it. Phase 4d gives it the one immersive treatment it
-                // can carry instead: a denser particle cloud, in place of
-                // (not on top of) the standard zone particles that
+                // for it. It gets the one immersive treatment it can carry
+                // instead: a denser particle cloud, in place of (not on top
+                // of) the standard zone particles that
                 // PortalHelper.spawnParticles skips for exactly these zones.
                 tickGatewayCloud(world, zone, def, players, tick);
                 continue;
@@ -428,7 +370,7 @@ public final class ImmersiveProjector {
                 releaseChunks(zone, running);
             }
 
-            // 4b: whether at least one player is actually being shown this
+            // Whether at least one player is actually being shown this
             // zone's preview right now. Edge particles frame a projection;
             // with nobody projecting there is nothing to frame, and the
             // packets would be spent on an ordinary-looking portal.
@@ -439,7 +381,7 @@ public final class ImmersiveProjector {
                 spawnEdgeParticles(world, zone, def, centre, tick);
             }
 
-            // Audio pass (Phase 2): same audience gate as the chunk ticket
+            // Audio pass: same audience gate as the chunk ticket
             // (anyoneNear) and the same arrival column as the block
             // projection (mapping/arrivalY), so it never resolves a second,
             // divergent notion of "where the other side is". Skipped
@@ -458,39 +400,31 @@ public final class ImmersiveProjector {
      * The RETURN direction: arrival portals standing in this world, previewing
      * the world you would go back to.
      *
-     * <h2>Why this is not just another zone loop</h2>
-     * An arrival portal is not a {@code PortalZone} and has no
-     * {@code PortalDefinition}. What it has is an entry per portal BLOCK in
-     * {@code PortalHelper}'s registered return targets. So the three things a
-     * projection needs are each sourced differently:
-     * <ul>
-     *   <li><b>Settings</b> come from the dimension the portal is IN
-     *       ({@code getImmersiveFor}), not from a zone — checked first, so a
-     *       non-immersive dimension takes no further code path at all.</li>
-     *   <li><b>The aperture</b> is found by growing over REGISTERED positions
-     *       rather than block states ({@link ProjectionVolume#collectAperture})
-     *       — no block reads, so Rule 1 cannot be violated even by an aperture
-     *       that straddles an unloaded chunk border.</li>
-     *   <li><b>The mapping</b> is {@link ProjectionVolume#returnMapping}, which
-     *       mirrors {@code EntityTickPortalMixin}'s registered fallback.</li>
-     * </ul>
-     * Everything after that — mask, ticket, delta, throttle, teardown — is
-     * {@link #projectToPlayers}, the same code the source direction runs.
+     * <p>An arrival portal is not a {@code PortalZone} and has no
+     * {@code PortalDefinition} — it is an entry per portal BLOCK in {@code
+     * PortalHelper}'s registered return targets, so the three things a
+     * projection needs are each sourced differently: settings come from the
+     * dimension the portal is IN ({@code getImmersiveFor}), the aperture is
+     * found by growing over REGISTERED positions rather than block states
+     * ({@link ProjectionVolume#collectAperture}, so Rule 1 cannot be violated
+     * even by an aperture straddling an unloaded chunk border), and the
+     * mapping is {@link ProjectionVolume#returnMapping}, mirroring {@code
+     * EntityTickPortalMixin}'s registered fallback. Everything after that —
+     * mask, ticket, delta, throttle, teardown — is {@link #projectToPlayers},
+     * the same code the source direction runs.
      *
-     * <h2>The portal blocks themselves are never faked</h2>
-     * Unlike a source zone (invisible, no blocks), an arrival aperture is
-     * full of real {@code NETHER_PORTAL}/{@code END_PORTAL}, and those blocks
-     * are load-bearing for vanilla's in-portal detection and for the return
-     * trip itself. Nothing here touches them: the synthetic zone's interior IS
-     * the aperture, and {@link ProjectionVolume#computeSourcePositions} starts
-     * its slab one block PAST the plane, so the projection sits behind the
-     * portal exactly as it does on the source side.
+     * <p>The portal blocks themselves are never faked: unlike a source zone
+     * (invisible, no blocks), an arrival aperture is full of real portal
+     * blocks that are load-bearing for vanilla's in-portal detection and the
+     * return trip itself. The synthetic zone's interior IS the aperture, and
+     * {@link ProjectionVolume#computeSourcePositions} starts its slab one
+     * block past the plane, so the projection sits behind the portal exactly
+     * as on the source side.
      *
-     * <h2>Deliberately not done here</h2>
-     * No edge particles (the aperture already carries its own from
-     * {@code spawnTargetPortalParticles}) and no audio relay (it would double
-     * the sound budget for a destination the player just came from). The
-     * arrival direction is block projection only.
+     * <p>Deliberately not done here: edge particles (the aperture already
+     * carries its own from {@code spawnTargetPortalParticles}) or an audio
+     * relay (it would double the sound budget for a destination the player
+     * just came from).
      */
     private static void tickArrivalPortals(ServerWorld world, MinecraftServer running, long tick) {
         RegistryKey<World> worldKey = world.getRegistryKey();
@@ -577,19 +511,13 @@ public final class ImmersiveProjector {
      *
      * <p>Arrival portals are discovered through the SOURCE ZONES that built
      * them: a zone whose {@code targetWorld} is this world has its arrival at
-     * the column its own outbound mapping names, which is the same lookup
-     * {@link ArrivalResolver} uses to preview it from the other side. That
-     * keeps discovery to in-memory reads plus one heightmap sample off an
-     * already-loaded chunk.
-     *
-     * <p>Consequence worth knowing: arrivals with no source zone pointing at
-     * them — {@code exitPortal} frames and exit shrines — are not found this
-     * way and get no preview. Covering them needs a read accessor over
-     * {@code PortalHelper}'s registered targets, which is not this session's
-     * file to change.
+     * the column its own outbound mapping names, the same lookup {@link
+     * ArrivalResolver} uses from the other side. Arrivals with no source zone
+     * pointing at them ({@code exitPortal} frames, exit shrines) are not
+     * found this way and get no preview.
      *
      * <p>Existing {@link ArrivalPortal} instances are REUSED whenever the
-     * aperture is unchanged. That is load-bearing rather than an optimisation:
+     * aperture is unchanged — load-bearing rather than an optimisation, since
      * {@code ACTIVE} and {@code HELD} are keyed on the synthetic zone
      * instance, so handing out a fresh one each rebuild would orphan every
      * projection and every chunk ticket once a second.
@@ -779,7 +707,7 @@ public final class ImmersiveProjector {
 
             // Destination world unloaded mid-projection (the idle unloader
             // closes pre-loaded-but-unvisited worlds) is treated exactly
-            // like walking away: restore the real blocks (Gotcha #11).
+            // like walking away: restore the real blocks.
             if (!inRange || destination == null) {
                 if (state != null) {
                     state.cleanup(player, world);
@@ -811,11 +739,11 @@ public final class ImmersiveProjector {
                         direction, player.getName().getString(), world.getRegistryKey().getValue(),
                         centre.toShortString(), zone.targetWorld.getValue(), state.projectedCount());
             } else if (state.needsRefresh(player, tick, settings)) {
-                // 4c: the cadence is the projection's own, not the
-                // world's — a stationary viewer is refreshed a quarter
-                // as often. Nothing is dropped by waiting: the delta
-                // baseline is untouched and the next pass still sends
-                // everything that changed in the meantime.
+                // The cadence is the projection's own, not the world's — a
+                // stationary viewer is refreshed a quarter as often. Nothing
+                // is dropped by waiting: the delta baseline is untouched and
+                // the next pass still sends everything that changed in the
+                // meantime.
                 state.sendDelta(player, world, destination, settings, mapping, destinationY, tick);
             }
             projecting = true;
@@ -841,25 +769,21 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * Does the projector own this zone's particles (4d)? True only for an
+     * Does the projector own this zone's particles? True only for an
      * immersive gateway zone, which gets its denser cloud from {@link
      * #tickGatewayCloud} instead of the standard interior spawn.
      *
-     * Asked by {@code PortalHelper.spawnParticles} so the two never double
-     * up. The decision lives here rather than there because it is entirely
-     * an immersive concern (PLAN.md Gotcha #12) — and it is false for every
-     * non-immersive portal, which keeps its particles exactly as they were.
+     * <p>Asked by {@code PortalHelper.spawnParticles} so the two never
+     * double up, and false for every non-immersive portal.
      */
     /**
-     * Is this registered portal position part of an immersive ARRIVAL — one
-     * whose blocks the projector fakes away so the aperture reads as a
-     * window rather than a nether portal?
+     * Is this registered portal position part of an immersive ARRIVAL, whose
+     * blocks the projector fakes away so the aperture reads as a window
+     * rather than a nether portal?
      *
      * <p>Asked by {@code PortalHelper.spawnTargetPortalParticles} so the
-     * mod's own dust is thinned to match, instead of replacing the haze the
-     * fake blocks just removed. Reads the arrival index only — no world
-     * access, no allocation — and is false for every non-immersive portal,
-     * which keeps their particles exactly as they were.
+     * mod's own dust thins to match. Reads the arrival index only — no world
+     * access — and is false for every non-immersive portal.
      */
     public static boolean isImmersiveArrival(RegistryKey<World> world, BlockPos pos) {
         Map<BlockPos, ArrivalPortal> index = ARRIVALS.get(world);
@@ -881,18 +805,14 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * 4b: a coloured border on the frame blocks around an active preview,
+     * A coloured border on the frame blocks around an active preview,
      * marking where the real world stops and the projection starts. Spawned
      * on the FRAME ring (positions adjacent to the interior, in-plane),
-     * which is exactly where the existing interior particles are not — the
-     * two are complementary.
+     * which is exactly where the existing interior particles are not.
      *
-     * Called only when a projection is live for someone, from the projector
-     * tick rather than a second injection point.
-     *
-     * Emits on {@link #EDGE_PARTICLE_INTERVAL}, not every tick — see that
-     * constant for why. The gate is the first thing here so the nine ticks in
-     * ten that emit nothing also build no ring set.
+     * <p>Emits on {@link #EDGE_PARTICLE_INTERVAL}, not every tick; the gate
+     * is the first thing here so the nine ticks in ten that emit nothing
+     * also build no ring set.
      */
     private static void spawnEdgeParticles(ServerWorld world, PortalHelper.PortalZone zone,
             PortalDefinition def, BlockPos centre, long tick) {
@@ -922,11 +842,9 @@ public final class ImmersiveProjector {
         }
         if (phased % PARTICLE_LOG_INTERVAL == 0) {
             // Particles leave no server-side trace, so this heartbeat is the
-            // only headless evidence that 4b is running. Phased with the
-            // emission for the same reason it is a multiple of the interval:
-            // an unphased check would never coincide with an emitting tick
-            // for any zone whose stagger offset is non-zero, and 4b would
-            // look dead in the log while working perfectly.
+            // only headless evidence this pass is running. Phased with the
+            // emission, or an unphased check would never coincide with an
+            // emitting tick for a zone with a non-zero stagger offset.
             MultiverseServer.LOGGER.debug("immersive: edge particles on {} frame blocks at zone {} {}",
                     ring.size(), world.getRegistryKey().getValue(), centre.toShortString());
         }
@@ -943,22 +861,15 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * 4d: the immersive treatment for gateway zones, which have no frame,
-     * no plane and therefore no block projection — a denser, gently pulsing
+     * The immersive treatment for gateway zones, which have no frame, no
+     * plane and therefore no block projection — a denser, gently pulsing
      * cloud of the portal's own colour around the gateway block.
      *
-     * No target-world sampling at all: a gateway zone never resolves a
-     * mapping and never takes an arrival chunk ticket, so there is nothing
-     * loaded to read a biome (or anything else) from, and reading one would
-     * mean force-loading a chunk from the world tick — the one thing this
-     * whole feature is built not to do. The pulse is therefore local: a
-     * slow scale cycle rather than the biome-fog blend the phase doc
-     * sketched.
-     *
-     * "Denser" is relative to the standard interior particles it replaces,
-     * not to the every-tick firehose this originally was: it emits on {@link
-     * #GATEWAY_PARTICLE_INTERVAL}, which still samples both halves of the
-     * pulse four times each per cycle, so the breathing survives the cut.
+     * <p>No target-world sampling at all: a gateway zone never resolves a
+     * mapping and never takes an arrival chunk ticket, so reading a biome
+     * would mean force-loading a chunk from the world tick. The pulse is
+     * therefore local: a slow scale cycle rather than anything sampled from
+     * the destination.
      */
     private static void tickGatewayCloud(ServerWorld world, PortalHelper.PortalZone zone,
             PortalDefinition def, List<ServerPlayerEntity> players, long tick) {
@@ -1045,25 +956,22 @@ public final class ImmersiveProjector {
     /**
      * Drop a player's tracking without sending anything. Wired to BOTH
      * connection edges:
-     *
      * <ul>
-     *   <li><b>DISCONNECT</b> — the packets would go nowhere, and vanilla's
-     *       chunk resend on the next login is the defence-in-depth layer
-     *       that corrects any leftover fake blocks.</li>
-     *   <li><b>JOIN</b> — a fresh client has just been sent REAL chunk data
-     *       for everything, so any surviving {@code lastSent} baseline is a
-     *       lie. Without this, a player who relogs while still inside
-     *       activationRange keeps a non-null state, the tick loop takes the
-     *       {@code sendDelta} branch, every position compares equal to the
-     *       stale baseline, and NOTHING is sent — no projection at all until
-     *       they walk out of range and back. Belt-and-braces too: it covers
-     *       any future path where DISCONNECT is missed.</li>
+     *   <li><b>DISCONNECT</b> — the packets would go nowhere; vanilla's
+     *       chunk resend on the next login corrects any leftover fake
+     *       blocks.</li>
+     *   <li><b>JOIN</b> — a fresh client has just been sent REAL chunk data,
+     *       so any surviving {@code lastSent} baseline is a lie. Without
+     *       this, a player who relogs while still in range keeps a non-null
+     *       state, every position compares equal to the stale baseline on
+     *       the next {@code sendDelta}, and NOTHING is sent until they walk
+     *       out of range and back.</li>
      * </ul>
      *
-     * {@code forget()} rather than {@code cleanup()} in both cases: there is
-     * nothing to restore, because the client's block data is already the
+     * <p>{@code forget()} rather than {@code cleanup()} in both cases: there
+     * is nothing to restore, since the client's block data is already the
      * real thing. Chunk tickets are untouched — they follow zone proximity,
-     * not players, so the tick loop already has them right.
+     * not players.
      */
     public static void forgetPlayer(UUID playerId, String playerName, String reason) {
         Map<PortalHelper.PortalZone, PlayerProjectionState> states = ACTIVE.remove(playerId);
@@ -1138,16 +1046,12 @@ public final class ImmersiveProjector {
      * Server is stopping: give every connected player their real blocks back,
      * then drop all session state.
      *
-     * <b>The restore is the point.</b> Releasing chunk tickets and clearing
-     * {@link #ACTIVE} without sending anything would orphan every projected
-     * position on every still-connected client — see "Rule 3" in the class
-     * comment for why that is not visible until a client relogs.
-     *
-     * Called from {@code WorldLoaderMixin.onShutdown}, which injects at
-     * {@code MinecraftServer.shutdown} HEAD — before {@code
-     * getNetworkIo().stop()} and well before {@code
-     * PlayerManager.disconnectAllPlayers()}, so the player list is live and
-     * the channels are open.
+     * <p><b>The restore is the point.</b> Releasing chunk tickets and
+     * clearing {@link #ACTIVE} without sending anything would orphan every
+     * projected position on every still-connected client (see "Rule 3" in
+     * the class comment). Called from {@code WorldLoaderMixin.onShutdown},
+     * which injects at {@code MinecraftServer.shutdown} HEAD, before the
+     * network stops and before players are disconnected.
      */
     public static void clear() {
         MinecraftServer running = server;
@@ -1165,18 +1069,16 @@ public final class ImmersiveProjector {
 
     /**
      * Restore every live projection, in both directions, through the ordinary
-     * {@link PlayerProjectionState#cleanup} path — not a parallel one, so
-     * shutdown gets the same real-block-not-AIR restore (Gotcha #8) and the
-     * same loaded-chunk guard as walking out of range does.
+     * {@link PlayerProjectionState#cleanup} path, so shutdown gets the same
+     * real-block-not-AIR restore and the same loaded-chunk guard as walking
+     * out of range does.
      *
-     * <h2>Nothing here may prevent the server stopping</h2>
-     * {@code shutdown()} goes on to save every world AFTER this returns, so an
-     * exception escaping this method would cost world data — a far worse
-     * outcome than the cosmetic residue it is trying to clean up. Each
-     * projection is therefore isolated, and the whole pass is wrapped:
-     * {@code Throwable}, deliberately, because at this point continuing to
-     * shut down is the correct response to ANY failure, including one we have
-     * not thought of.
+     * <p><b>Nothing here may prevent the server stopping.</b> {@code
+     * shutdown()} saves every world after this returns, so an exception
+     * escaping this method would cost world data — far worse than the
+     * cosmetic residue it is cleaning up. Each projection is isolated, and
+     * the whole pass catches {@code Throwable} deliberately: at this point
+     * continuing to shut down is the correct response to any failure.
      */
     private static void restoreEverything(MinecraftServer running) {
         if (running == null || ACTIVE.isEmpty()) {
@@ -1314,49 +1216,32 @@ public final class ImmersiveProjector {
     }
 
     /**
-     * Cross-portal audio (Phase 2): biome ambience and mood sound bleeding
-     * through from the target dimension, played at the SOURCE-side portal
-     * centre — never in the target world, and never as a game event.
-     * {@code GameEventSuppressionMixin} drops every game event in a managed
-     * world with no players, which the target world usually is here (the
-     * approaching player is still on this side); {@link World#playSound}
-     * sends packets straight to nearby players and bypasses that entirely
-     * (PLAN.md Gotcha #7).
+     * Cross-portal audio: biome ambience and mood sound bleeding through
+     * from the target dimension, played at the SOURCE-side portal centre —
+     * never in the target world, and never as a game event. {@link
+     * World#playSound} sends packets straight to nearby players, bypassing
+     * {@code GameEventSuppressionMixin}'s game-event drop for a managed
+     * world with no players.
      *
-     * {@code arrivalPos} is the same column {@link ArrivalResolver} already
-     * resolved for the block projection — its chunk is guaranteed loaded (the
-     * caller only reaches here once {@code arrivalY != NO_ARRIVAL}), so
-     * sampling its biome never touches the chunk system and can never
-     * force-load anything (Rule 1).
+     * <p>{@code arrivalPos} is the same column {@link ArrivalResolver}
+     * already resolved for the block projection, so its chunk is guaranteed
+     * loaded and sampling its biome never force-loads anything (Rule 1).
      *
-     * No weather relay: originally planned (PHASE-2 §2c) but per-dimension
-     * weather does not exist in vanilla 1.21.1. Every {@code ServerWorld}
-     * except the overworld is built over an {@link
-     * net.minecraft.world.level.UnmodifiableLevelProperties} wrapping
-     * {@code saveProperties.getMainWorldProperties()} — the SAME instance
-     * the overworld itself was constructed with — so {@code isRaining()}/
-     * {@code isThundering()} always read one shared, save-wide flag no
-     * matter which dimension asks. Confirmed both in vanilla
-     * ({@code MinecraftServer.createWorlds}) and in this mod's own
-     * {@code DimensionManager.getOrCreateDimension}/{@code
-     * getOrCreateDimensionDirect}, which construct every runtime dimension
-     * the identical way. {@code targetWorld.isRaining() != world.isRaining()}
-     * can therefore never be true — do not re-add a rain/thunder relay
-     * without first giving dimensions independent weather state, which
-     * nothing in this codebase (or vanilla) currently does.
+     * <p>No weather relay: every {@code ServerWorld} except the overworld
+     * shares one weather flag across the whole save, so
+     * {@code isRaining()}/{@code isThundering()} can never disagree between
+     * dimensions — do not add a rain/thunder relay without first giving
+     * dimensions independent weather state.
      *
-     * Each leak has its own cadence, checked independently so biome loop and
-     * mood can each land on their own tick within one call rather than
-     * sharing a single gate. Volumes stay low and vanilla's distance falloff
-     * (~16 blocks) does the rest — this must read as atmospheric background,
-     * not a noise machine.
+     * <p>Each leak has its own cadence, checked independently. Volumes stay
+     * low and vanilla's distance falloff does the rest.
      */
     private static void tickAudio(ServerWorld world, ServerWorld targetWorld, BlockPos portalCentre,
             BlockPos arrivalPos, long tick) {
         if (tick % 40 == 0) {
             // Nether-family biomes carry a distinctive loop; most overworld
             // biomes have none, so overworld-to-overworld portals are
-            // correctly silent here (PHASE-2 research notes).
+            // correctly silent here.
             targetWorld.getBiome(arrivalPos).value().getLoopSound().ifPresent(sound -> {
                 world.playSound(null, portalCentre, sound.value(), SoundCategory.AMBIENT, 0.3f, 1.0f);
                 MultiverseServer.LOGGER.debug("immersive: biome loop sound at {} from {}",
@@ -1366,8 +1251,8 @@ public final class ImmersiveProjector {
         if (tick % 60 == 0) {
             // Mood sound (cave ambience) stands in for per-mob sounds:
             // LivingEntity.getAmbientSound() is protected and not worth
-            // reaching for (PHASE-2 doc). Rolled at 15% so it doesn't loop
-            // constantly even when the arrival column qualifies every pass.
+            // reaching for. Rolled at 15% so it doesn't loop constantly even
+            // when the arrival column qualifies every pass.
             targetWorld.getBiome(arrivalPos).value().getMoodSound().ifPresent(mood -> {
                 if (world.random.nextFloat() < 0.15f) {
                     world.playSound(null, portalCentre, mood.getSound().value(), SoundCategory.AMBIENT, 0.2f, 1.0f);

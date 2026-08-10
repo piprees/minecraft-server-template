@@ -43,10 +43,6 @@ import java.util.Set;
  * <p>Per-dimension {@code biomePatches} run AFTER this filter, so an
  * author's explicit patch can still stamp a suppressed biome — specific
  * beats general, the same precedence as {@code structures.include}.
- *
- * <p>Generation-affecting — mirrored in
- * scripts/seed/dimension_profiles.generation_payload() and the biome-source
- * mirror in scripts/seed/biome_source_mixing.py; the three move together.
  */
 public final class BiomeSuppression {
 

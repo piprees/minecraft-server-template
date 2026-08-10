@@ -25,16 +25,14 @@ import java.util.OptionalLong;
 import java.util.Set;
 
 /**
- * Custom DimensionType entries from the config's "environment" block
- * (v4 Phase 4): fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
- * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight and
- * ambientLight — plus the Tier 1 vanilla fields (see
- * mods/.ideas/vanilla-custom-world-settings.md): coordinateScale, effects
- * (one of the three vanilla dimension effects), infiniburn (block tag),
- * monsterSpawnLightLevel (int or [min,max]) and
- * monsterSpawnBlockLightLimit. Every unset field inherits from the
- * dimension's base type (the overworld/nether/end type it would have
- * cloned anyway), so a partial environment block is safe.
+ * Custom DimensionType entries from the config's "environment" block:
+ * fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
+ * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight,
+ * ambientLight, coordinateScale, effects (one of the three vanilla
+ * dimension effects), infiniburn (block tag), monsterSpawnLightLevel (int
+ * or [min,max]) and monsterSpawnBlockLightLimit. Every unset field
+ * inherits from the dimension's base type (the overworld/nether/end type
+ * it would have cloned anyway), so a partial environment block is safe.
  *
  * coordinateScale here is the VANILLA travel scale (nether-portal maths,
  * map scaling). The mod's own portal system scales via portal.scale —
@@ -50,9 +48,8 @@ import java.util.Set;
  * rendering concerns (dimension effects / biome tinting) that a server
  * mod cannot apply; they are ignored here with a one-line note.
  *
- * Failure policy (plan open question 2): a malformed environment block
- * logs a warning and falls back to the base type — a typo in one
- * dimension must never turn the boot into a crash loop.
+ * A malformed environment block logs a warning and falls back to the base
+ * type — a typo in one dimension must never turn the boot into a crash loop.
  */
 public final class DimensionTypeBuilder {
 

@@ -79,10 +79,9 @@ public class PortalDefinition {
     private transient FrameMatcher frameMatcher;
     private transient Map<String, FrameMatcher> partMatchers;
     /**
-     * Immersive-portal presentation tuning (Phase 0 onward). Deliberately
-     * transient: this is re-read from dimension config every boot and must
-     * never leak into portal_links.json zone records (PLAN.md Agent
-     * Gotcha #9). Null = not immersive.
+     * Immersive-portal presentation tuning. Deliberately transient: this is
+     * re-read from dimension config every boot and must never leak into
+     * portal_links.json zone records. Null = not immersive.
      */
     private transient ImmersiveSettings immersive;
 

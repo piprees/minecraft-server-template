@@ -5,18 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * The pure decision behind Phase 4c: when a projection refreshes.
- *
- * <p>This class used to also cover 4e's depth auto-scaling — a heuristic that
- * shrank the preview to two blocks when the first depth layer sampled as
- * mostly air. Those tests were correct about the code and useless about the
- * feature: the first layer is the slab just above the destination's SURFACE,
- * so "mostly air" is the healthy case for a portal onto open terrain, and
- * whether a portal ran deep or shallow came down to how much of the
- * previewRadius padding happened to land in a hillside. It shipped a tester a
- * 6x7x2 preview he described as having "no window effect at all". The shrink
- * is gone; the reasoning is preserved in {@code PlayerProjectionState}'s class
- * comment so it is not rediscovered as a good idea.
+ * The pure decision behind when a projection refreshes.
  */
 class PlayerProjectionStateTest {
 

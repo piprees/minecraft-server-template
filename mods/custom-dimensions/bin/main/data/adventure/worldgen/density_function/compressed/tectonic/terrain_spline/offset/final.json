@@ -1,0 +1,61 @@
+{
+ "type": "minecraft:flat_cache",
+ "argument": {
+  "type": "minecraft:cache_2d",
+  "argument": {
+   "type": "minecraft:add",
+   "argument1": {
+    "type": "minecraft:mul",
+    "argument1": {
+     "type": "minecraft:blend_offset"
+    },
+    "argument2": {
+     "type": "minecraft:add",
+     "argument1": 1,
+     "argument2": {
+      "type": "minecraft:mul",
+      "argument1": -1,
+      "argument2": "adventure:compressed/tectonic/blend_alpha"
+     }
+    }
+   },
+   "argument2": {
+    "type": "minecraft:mul",
+    "argument1": {
+     "type": "minecraft:add",
+     "argument1": -0.5037500262260437,
+     "argument2": {
+      "type": "minecraft:clamp",
+      "input": {
+       "type": "minecraft:add",
+       "argument1": {
+        "type": "minecraft:mul",
+        "argument1": "adventure:compressed/tectonic/island_selector",
+        "argument2": "adventure:compressed/tectonic/terrain_spline/offset/islands"
+       },
+       "argument2": {
+        "type": "minecraft:mul",
+        "argument1": "adventure:compressed/tectonic/continent_selector",
+        "argument2": {
+         "type": "minecraft:mul",
+         "argument1": {
+          "type": "minecraft:range_choice",
+          "input": "adventure:compressed/tectonic/terrain_spline/offset/continents",
+          "min_inclusive": 0,
+          "max_exclusive": 64,
+          "when_in_range": "adventure:compressed/tectonic/__constants/vertical_scale",
+          "when_out_of_range": 1
+         },
+         "argument2": "adventure:compressed/tectonic/terrain_spline/offset/continents"
+        }
+       }
+      },
+      "min": -0.6941999999999999,
+      "max": 2.3712
+     }
+    },
+    "argument2": "adventure:compressed/tectonic/blend_alpha"
+   }
+  }
+ }
+}

@@ -1,6 +1,6 @@
 # Biome Catalogue
 
-Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). Source: `scripts/seed/biome_params.json` (extracted from the running server via `/customdim dump-biome-params` — hybrid dump that captures both static multinoise entries and TerraBlender-injected biomes via spatial grid sampling).
+Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). Source: `biome_params.json`, dumped from the running server via `/customdim dump-biome-params` — a hybrid dump that captures both static multinoise entries and TerraBlender-injected biomes via spatial grid sampling.
 
 **Only use ids listed here.** A biome id not in this file will be silently filtered out by the mod — no error, no warning, and if your entire biomes list gets filtered to empty, the dimension falls back to `minecraft:plains`.
 
@@ -12,7 +12,7 @@ Every biome id available on this server, grouped by **family** (which dimension 
 - `type: "paradise_lost:paradise_lost"` → use **paradise_lost** biomes
 - `type: "void"` → use biomes from **one** family (don't mix)
 
-All biomes below — including Nature's Spirit — are fully supported in both `biomes` lists and `seedRoll.spawnFilter`. The dump captures TerraBlender-injected biomes alongside vanilla and Terralith. If `biome_params.json` is stale (pre-hybrid-dump), re-run warmup: delete the LIVE table at `<consumer>/.seedtest/biome_params.json` and run `./dev seed-roll` (or `./dev seed-roll --reset`). `scripts/seed/biome_params.json` is the platform default the bundle ships; it seeds the live copy on first use and is never written back to.
+All biomes below — including Nature's Spirit — are fully supported in both `biomes` lists and `seedRoll.spawnFilter`. The dump captures TerraBlender-injected biomes alongside vanilla and Terralith.
 
 ---
 

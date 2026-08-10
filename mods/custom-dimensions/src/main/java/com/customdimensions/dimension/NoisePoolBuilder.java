@@ -57,28 +57,9 @@ public final class NoisePoolBuilder {
      * uses. YUNG's types and Supplementaries' galleons stay pass-throughs —
      * their cross-set exclusion zones are real behaviour — and
      * concentric_rings is not grid-compatible at all.
-     *
-     * MIRRORED as NOISE_MANAGED_PLACEMENT_TYPES in
-     * scripts/seed/structure_placement.py (consumed by
-     * score-dimensions.structure_group_lookup) — the two lists and
-     * structure-groups.json move together, in the same release, or the
-     * roller scores a different world than the mod generates (T20).
      */
     private static final Set<String> ABSORBED_PLACEMENT_TYPES = Set.of(
             "moogs_structures:advanced_random_spread");
-
-    /**
-     * Every noise-managed placement-type id, sorted — stamped into the
-     * structure_pools.json dump so the roller can spot a dump made under a
-     * different absorption list (a stale pre-conversion dump would score a
-     * newly absorbed set 0.0% forever, the exact T23-adjacent bug class).
-     */
-    public static java.util.List<String> noiseManagedTypeIds() {
-        java.util.List<String> out = new ArrayList<>(ABSORBED_PLACEMENT_TYPES);
-        out.add("minecraft:random_spread");
-        java.util.Collections.sort(out);
-        return out;
-    }
 
     /**
      * Whether a set's placement is dissolved into a noise group. Exact

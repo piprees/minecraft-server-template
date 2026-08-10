@@ -37,10 +37,8 @@ Gotchas:  - This script OWNS structure_themes.json. gen-structure-presets.py
             every invocation.
           - Re-run after extract-structure-sets.py, i.e. after any structure
             mod pin bump. It needs no network of its own.
-          - The rarity thresholds and the group rules are MIRRORED in
-            scripts/seed/structure_placement.py (roller parity, spike task
-            F4 requires bit-exact agreement) and consumed by
-            StructureThemes.java. Change all three together.
+          - The rarity thresholds and the group rules are consumed by
+            StructureThemes.java. Change both together.
 """
 
 import argparse
@@ -162,8 +160,7 @@ DIMENSION_ALIASES = {
 def rarity_for(spacing):
     """Spacing -> rarity tier. Spacing-only by design (spike A1 prose).
 
-    MIRRORED in scripts/seed/structure_placement.py and consumed by
-    StructureThemes.java — change all three together.
+    Consumed by StructureThemes.java — change both together.
     """
     if spacing is None:
         return None
@@ -179,7 +176,7 @@ def rarity_for(spacing):
 def group_for(theme, rarity, set_id, structures):
     """Theme + rarity + id/structure names -> noise meta-group.
 
-    MIRRORED in scripts/seed/structure_placement.py — change both together.
+    Consumed by StructureThemes.java — change both together.
     """
     group = THEME_TO_GROUP.get(theme)
     if group is None:

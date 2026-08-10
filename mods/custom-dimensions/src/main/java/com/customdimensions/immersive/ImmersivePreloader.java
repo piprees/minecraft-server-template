@@ -14,25 +14,25 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Pre-generates arrival chunks around an immersive portal's target the
- * first time a player approaches it, so the target world's terrain is
- * ready before the player steps through (Phase 0 — Instant Transition).
+ * Pre-generates arrival chunks around an immersive portal's target the first
+ * time a player approaches it, so the target world's terrain is ready
+ * before the player steps through.
  *
- * {@link #preloadIfNeeded} calls {@code ServerWorld.getChunk} — a
+ * <p>{@link #preloadIfNeeded} calls {@code ServerWorld.getChunk} — a
  * synchronous chunk-system call that must ONLY be invoked from the server
  * thread (it is always called from {@code ServerWorldMixin.onTick}, which
- * already runs there — c2me's
- * multi-threaded chunk system behaves unpredictably off-thread).
+ * already runs there — c2me's multi-threaded chunk system behaves
+ * unpredictably off-thread).
  */
 public final class ImmersivePreloader {
     /** Chunk radius to pre-generate around the arrival column (2 = 5x5 = 25 chunks). */
     private static final int PRELOAD_RADIUS = 2;
 
     // Dedupe key is per ZONE (source world + interior centre), not per
-    // world — multiple portals can target the same world (PLAN.md Agent
-    // Gotcha #4). Keyed by TARGET world first so the idle unloader's
-    // ServerWorldEvents.UNLOAD listener can invalidate exactly the right
-    // entries when a pre-loaded-but-unvisited world is closed (Gotcha #11).
+    // world — multiple portals can target the same world. Keyed by TARGET
+    // world first so the idle unloader's ServerWorldEvents.UNLOAD listener
+    // can invalidate exactly the right entries when a pre-loaded-but-
+    // unvisited world is closed.
     private static final Map<RegistryKey<World>, Set<String>> PRELOADED = new ConcurrentHashMap<>();
 
     private ImmersivePreloader() {
@@ -84,7 +84,7 @@ public final class ImmersivePreloader {
      * Drops every pre-load record for one target world — called from the
      * {@code ServerWorldEvents.UNLOAD} listener so a world closed by the
      * idle unloader re-triggers pre-loading on the next approach instead
-     * of silently no-opping forever (PLAN.md Agent Gotcha #11).
+     * of silently no-opping forever.
      */
     public static void invalidate(RegistryKey<World> targetWorld) {
         PRELOADED.remove(targetWorld);

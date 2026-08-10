@@ -71,16 +71,16 @@ If the persisted state format changed (config schema, namespace, ids), delete th
 **Start here, not with RCON.** The mod's diagnostic commands write versioned JSON to `data/config/custom-dimensions/` and answer with one line plus a path; checkers in `scripts/` assert over those files with no server running. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
 
 ```bash
-./dev verify                 # every checker, no Docker needed, safe while paused
+./dev verify                 # points at where fingerprint/portal/suppress verification lives now
 ```
 
-Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
+Check the mc boot log for a drift WARN FIRST if you are about to assert anything about worldgen (`docker logs mc | grep "worldgen config changed"`). Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
 
 | Question | Artefact | Checker |
 | --- | --- | --- |
-| Does this world still match its config? | `custom-dimensions-fingerprints.json` | `check-dimension-drift.py` |
+| Does this world still match its config? | `custom-dimensions-fingerprints.json` | the mod, at boot (`DimensionFingerprints`) |
 | Which structures reached each group, and where? | `census/<ns>__<slug>.json` | `check-noise-regression.py` |
-| Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
+| Is persisted portal state sane? | `portal_links.json` | the mod, on load (`PortalStateValidator`) |
 | How was each set classified? | `structure-audit.txt` | human-read |
 
 `/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `census/occupancy__*.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.

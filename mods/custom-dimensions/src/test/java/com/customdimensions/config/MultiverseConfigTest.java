@@ -69,8 +69,8 @@ class MultiverseConfigTest {
 
     @Test
     void sharedIgniterReturnsAllCandidatesClickedFrameFirst(@TempDir Path dir) throws IOException {
-        // Eight shipped dims share ender_eye; first-match-wins made every
-        // portal but the alphabetically first unignitable (2026-07-23).
+        // Eight shipped dims share ender_eye — every matching definition
+        // must be a candidate, not just the first.
         Path dims = dir.resolve("dimensions");
         Files.createDirectories(dims);
         Files.writeString(dims.resolve("the_aaa_maw.json"), """

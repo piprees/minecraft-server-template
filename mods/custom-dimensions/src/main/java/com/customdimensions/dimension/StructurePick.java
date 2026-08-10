@@ -35,9 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * pass-through or forced set. Installed by transformedNoise, replaced
  * wholesale on every calculator rebuild, cleared on
  * {@code ServerWorldEvents.UNLOAD}.
- *
- * MIRRORED in scripts/seed/noise_placement.py (resolve_structure,
- * pick_seed) -- change both together, re-run test_noise_parity.py.
  */
 public final class StructurePick {
 

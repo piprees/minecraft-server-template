@@ -53,8 +53,6 @@ public final class NoiseGroupPlan {
      * area a player actually starts in, which is the opposite of what the
      * setting is for: the complaint it answers is landing on top of a dungeon
      * entrance, not landing near a village.
-     *
-     * <p>MIRRORED as CLEAR_SPAWN_GROUPS in scripts/seed/noise_placement.py.
      */
     public static final java.util.Set<String> CLEAR_SPAWN_GROUPS =
             java.util.Set.of("dungeons", "endgame");
@@ -166,15 +164,12 @@ public final class NoiseGroupPlan {
             if (globalProfileName != null) {
                 profileName = globalProfileName;
             }
-            // The peaceful shift sits ABOVE structureDensity, not below it as
-            // the spike's precedence list has it. A coarse density dial must
-            // not resurrect a group the dimension's own difficulty says does
-            // not exist there: the_luminous_caverns has mobMultiplier 0.0 and
-            // structureDensity "sparse", and structureDensity alone would put
-            // its dungeons straight back. The rule that reads correctly is "a
-            // peaceful world has no dungeons unless the author names a
-            // profile for dungeons specifically" — so only the per-group
-            // override below can undo it.
+            // The peaceful shift sits ABOVE structureDensity: a coarse density
+            // dial must not resurrect a group the dimension's own difficulty
+            // says does not exist there. the_luminous_caverns has
+            // mobMultiplier 0.0 and structureDensity "sparse" — structureDensity
+            // alone would put its dungeons straight back, so only the
+            // per-group override below can undo the peaceful shift.
             if (mobMultiplier <= defaults.peacefulMaxMobMultiplier()
                     && defaults.peacefulProfiles().containsKey(group)) {
                 profileName = defaults.peacefulProfiles().get(group);
@@ -211,9 +206,6 @@ public final class NoiseGroupPlan {
      * The spawn-clearance radius in CHUNKS for one group, rounded up so a
      * radius of 8 blocks still clears the chunk spawn sits in rather than
      * rounding to nothing.
-     *
-     * <p>MIRRORED in scripts/seed/noise_placement.clear_spawn_chunks — the
-     * rounding is the whole of the mirror's contract, so keep the ceiling.
      */
     static int clearSpawnChunks(DimensionConfig.Structures block, String group) {
         if (block == null || block.clearSpawnRadius == null

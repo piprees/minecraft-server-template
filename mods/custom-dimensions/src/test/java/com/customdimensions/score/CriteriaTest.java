@@ -110,7 +110,7 @@ class CriteriaTest {
         var c = new Criteria.SpawnReadsAsNamesake();
         DimensionConfig def = config(List.of("minecraft:snowy_plains"), null, null);
 
-        assertTrue(c.gate(), "namesake must cost no weight (P6)");
+        assertTrue(c.gate(), "namesake must cost no weight");
         assertTrue(c.applicable(def));
         assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(
                 full("minecraft:snowy_plains", 4.0, 5, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), def));
@@ -308,10 +308,10 @@ class CriteriaTest {
 
     @Test
     void theLongWalkBranchStillRanksInsteadOfCollapsingToZero() {
-        // The far branch had the ramp pointed the wrong way, so every seed
-        // whose nearest hostile sat past 30% of the border scored an identical
-        // 0.0 — 70 percentage points of the axis ranking nothing, with a cliff
-        // at the band edge. Both properties are asserted here.
+        // The far branch must decay smoothly with no cliff at the band edge —
+        // a ramp pointed the wrong way would flatten every seed past 30% of
+        // the border to an identical 0.0, ranking 70 percentage points of the
+        // axis as nothing. Both properties are asserted here.
         var c = new Criteria.FirstEncounterDistance();
         DimensionConfig def = config(null, null, null);
         double atEdge = score(c.evaluate(
@@ -388,7 +388,7 @@ class CriteriaTest {
                 .filter(e -> e.outcome().equals("not_applicable")).count();
         assertTrue(notAsked >= 2, "expected the unconfigured criteria to be skipped");
         // Every graded criterion is perfect here, so the percentage is 100 —
-        // which must be REACHABLE, unlike the old absolute scale.
+        // which must be REACHABLE.
         assertEquals(100.0, card.percentage(), 1e-9);
     }
 
@@ -403,7 +403,7 @@ class CriteriaTest {
                 "an unscoreable seed has no percentage, not a zero one");
     }
 
-    // ------------------------------------------------ gate 2: config ceiling
+    // ------------------------------------------------------- config ceiling
 
     @Test
     void theCeilingComesFromConfigAloneAndIsTheSameForEverySeed() {

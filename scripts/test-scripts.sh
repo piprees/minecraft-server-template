@@ -55,7 +55,7 @@ fi
 
 echo "  Checking Python scripts..."
 PYTHON_ERRORS=0
-for py in scripts/*.py scripts/seed/*.py; do
+for py in scripts/*.py; do
   [[ -f "$py" ]] || continue
   if python3 -B -m py_compile "$py"; then
     echo "  ✓ $py syntax OK"
@@ -71,48 +71,6 @@ if python3 -B -m unittest discover -s scripts/tests -p 'test_*.py'; then
 else
   warn "Verification checker tests failed"
   PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
-fi
-
-echo "  Running seed-roll regression tests..."
-if python3 -B -m unittest discover -s scripts/seed -p 'test_*.py'; then
-  echo "  ✓ Seed-roll regression tests pass"
-else
-  warn "Seed-roll regression tests failed"
-  PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
-fi
-
-echo "  Checking seed-roll bundle dependencies..."
-# Two independent questions, both of which have shipped a broken bundle:
-#   1. Does every script roll-all.sh execs appear in the manifest?
-#   2. Does every SIBLING MODULE a shipped seed script imports appear too?
-# (2) is the one that bit: scripts/seed/preset_terrain.py went unshipped for
-# two releases because the only import of it is INDENTED (inside a function
-# in biome_renderer.py) and wrapped in `except ImportError` — so consumers
-# silently rendered every adventure-preset dimension with the approximate
-# terrain, and the old column-0-anchored check saw nothing. Scan every
-# manifest-listed seed .py, at any indentation, not just roll-all's execs.
-BUNDLE_ERRORS=0
-SEED_MANIFEST=$(grep -oE 'scripts/seed/[[:alnum:]_.-]+\.(py|sh)' scripts/build-stack-bundle.sh | sort -u)
-SEED_RUNTIME_FILES=$(grep -hoE '\$SCRIPT_DIR/[[:alnum:]_.-]+\.(py|sh)' scripts/seed/roll-*.sh \
-  | sed 's#\$SCRIPT_DIR/#scripts/seed/#' | sort -u)
-SEED_MODULES=$(ls scripts/seed/*.py | sed 's#scripts/seed/##; s#\.py$##' | grep -v '^test_' | sort -u)
-for bundle_file in $SEED_MANIFEST; do
-  case "$bundle_file" in *.py) ;; *) continue ;; esac
-  [[ -f "$bundle_file" ]] || continue
-  for module in $SEED_MODULES; do
-    if grep -qE "^[[:space:]]*(import|from)[[:space:]]+${module}([[:space:]]|,|$)" "$bundle_file"; then
-      SEED_RUNTIME_FILES="$SEED_RUNTIME_FILES scripts/seed/$module.py"
-    fi
-  done
-done
-for bundle_file in $(printf '%s\n' $SEED_RUNTIME_FILES | sort -u); do
-  if ! grep -Fxq "  $bundle_file" scripts/build-stack-bundle.sh; then
-    warn "Seed-roll dependency missing from bundle manifest: $bundle_file"
-    BUNDLE_ERRORS=$((BUNDLE_ERRORS + 1))
-  fi
-done
-if [[ $BUNDLE_ERRORS -eq 0 ]]; then
-  echo "  ✓ All seed-roll dependencies are bundled"
 fi
 
 echo "  Checking datapack ownership manifests..."
@@ -199,7 +157,7 @@ else
   YAML_ERRORS=1
 fi
 
-STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + BUNDLE_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
+STATIC_ERRORS=$((SHELL_ERRORS + PYTHON_ERRORS + OWNERSHIP_ERRORS + COMPOSE_ERRORS + YAML_ERRORS))
 if [[ $STATIC_ERRORS -gt 0 ]]; then
   echo "::error::$STATIC_ERRORS static-analysis check(s) failed"
   exit 1

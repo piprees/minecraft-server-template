@@ -48,7 +48,7 @@ Tiles the `biomes` list in a fixed grid (vanilla checkerboard biome source) over
 
 Layers are bottom-up; `height` = thickness. Any invalid layer (unknown block, bad height) falls back to the whole default bedrock/dirt/grass stack — never a half-built world. Biome features and structures still generate on superflat terrain (desert wells, dungeons), exactly as vanilla superflat presets behave.
 
-A superflat dimension is always skipped by the seed roller (`dimension_profiles.rollable()` returns false).
+A superflat dimension is always skipped by seed rolling.
 
 ## settingsOverrides
 

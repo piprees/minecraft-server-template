@@ -120,12 +120,9 @@ public final class ExitShrineManager {
     }
 
     // Per-dimension frame substitution: the shipped template hard-codes
-    // crying obsidian, but a shrine in an "any wood" dimension should be
-    // built from that dimension's own placement block. Rewriting the ring
-    // in-world at registration beats template variants: one template, any
-    // material, and detection was always material-agnostic (frameRingIntact
-    // reads whatever sits above the beacon). Idempotent — an already-
-    // substituted ring reads current == place and no-ops.
+    // crying obsidian; a shrine in an "any wood" dimension is rebuilt in
+    // that dimension's placement block instead. Idempotent — an
+    // already-substituted ring is a no-op.
     private static void substituteFrame(ServerWorld world, DimensionConfig def, BlockPos beacon, Direction dir) {
         String placeId = def.hasPortal() ? def.getPortal().resolvePlacementBlockId() : null;
         net.minecraft.util.Identifier id = placeId != null
@@ -149,9 +146,8 @@ public final class ExitShrineManager {
 
     // Ring for the rotation where the second interior column is at beacon+dir:
     // rails at y+1/y+5 under and over both columns, side columns at -dir and
-    // +2*dir for y+2..4. All must be the same (template frame) block and
-    // portal-frame-capable — crying obsidian from the shipped template, but
-    // any solid block survives a resource-pack retexture era.
+    // +2*dir for y+2..4. All must be the same block — crying obsidian from
+    // the shipped template, but any solid block works.
     private static boolean frameRingIntact(ServerWorld world, BlockPos beacon, Direction dir) {
         Block frame = world.getBlockState(beacon.up()).getBlock();
         if (frame == Blocks.AIR || frame == Blocks.NETHER_PORTAL) {

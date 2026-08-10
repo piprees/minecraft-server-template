@@ -19,17 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * deployed, so authoring a new dimension with a scale/border pair that strands
  * players fails the build instead of failing a player.
  *
- * <p>It exists because that failure is invisible from inside the game: outside
- * the destination's player border vanilla forbids breaking AND placing every
- * block, so the player arrives unable to touch anything, and every diagnosis
- * of that symptom points at protection code rather than at two numbers in a
- * config file (2026-07-25, two sessions).
- *
- * <p>PHASE-9 predicted this test would fail on 58 dimensions "by design". That
- * prediction was written under the MULTIPLY-on-entry bug. Entering divides, so
- * the requirement inverted from {@code border >= 8192 * scale} to
- * {@code border >= 8192 / scale} — which is how every dimension was already
- * authored. It passes, and the prediction is the stale half.
+ * <p>The failure is invisible from inside the game: outside the destination's
+ * player border vanilla forbids breaking AND placing every block, so the
+ * player arrives unable to touch anything, and every diagnosis of that
+ * symptom points at protection code rather than at two numbers in a config
+ * file.
  */
 class ShippedDimensionReachabilityTest {
 
@@ -49,20 +43,11 @@ class ShippedDimensionReachabilityTest {
     }
 
     /**
-     * There is deliberately no allow-list here.
-     *
-     * <p>An earlier version of this test carried three known-bad dimensions as
-     * an explicit exception list, because they were awaiting a content
-     * decision (pocket dimensions at {@code scale 1.0} into a 256-block
-     * border). All three were given a {@code portal.anchor} on 2026-07-26 — a
-     * fixed arrival rather than a scaled one, the same fix
-     * {@code the_starwell} already had — so the exception list is gone rather
-     * than being kept around empty.
-     *
-     * <p>Deriving the expected set from the configs would make the assertion
-     * tautological: it would pass whatever the configs said, which is the one
-     * thing a config test must not do. The expectation is a fixed value —
-     * ZERO — and any offender is named in the failure message.
+     * There is deliberately no allow-list here: deriving the expected set
+     * from the configs would make the assertion tautological — it would
+     * pass whatever the configs said, which is the one thing a config test
+     * must not do. The expectation is a fixed value — ZERO — and any
+     * offender is named in the failure message.
      */
     private List<String> unreachableDimensions(Map<String, DimensionConfig> dims) {
         DimensionConfig overworld = dims.get("overworld");
@@ -103,8 +88,6 @@ class ShippedDimensionReachabilityTest {
     void theBootValidatorAgreesWithThePureCheck() {
         // Same invariant through the path that actually runs at boot, so a
         // regression in the WIRING is caught as well as one in the configs.
-        // ArrivalReachability shipped fully written with no callers at all;
-        // nothing would have noticed.
         List<String> warned = PortalSafetyValidator.validate(shipped().values()).stream()
                 .filter(w -> w.contains("arrive inside this dimension's border"))
                 .map(w -> w.substring("Dimension ".length(), w.indexOf(':')))
@@ -137,15 +120,11 @@ class ShippedDimensionReachabilityTest {
 
     @Test
     void noShippedDimensionIsConfiguredSoItCanNeverIgnite() {
-        // The validator already says "the portal can never ignite" out loud at
-        // boot for a self-contradictory config. Nobody read it: five
-        // dimensions shipped with a vertical shape (door/doorway) pinned to
-        // orientation "horizontal", so ignition could not succeed on any axis
-        // and the dimensions were simply unreachable (2026-07-26).
-        //
-        // A warning that only exists in a boot log is a warning that gets
-        // scrolled past. This is the same class of defect as the reachability
-        // check above, so it gets the same treatment: fail the build.
+        // The validator already says "the portal can never ignite" out loud
+        // at boot for a self-contradictory config, but a warning that only
+        // exists in a boot log gets scrolled past. This is the same class
+        // of defect as the reachability check above, so it gets the same
+        // treatment: fail the build.
         List<String> unignitable = PortalSafetyValidator.validate(shipped().values()).stream()
                 .filter(w -> w.contains("can never ignite"))
                 .toList();
@@ -161,10 +140,9 @@ class ShippedDimensionReachabilityTest {
 
     @Test
     void noShippedDimensionUsesAFractionalScale() {
-        // A fractional scale is the fingerprint of the inverted reading that
-        // caused all of this — the old README's "0.125 for nether-style 1:8".
         // Scale is the ratio as people say it: 8 nether : 1 over, a whole
-        // number, applied as a divisor on entry.
+        // number, applied as a divisor on entry. A fractional scale is the
+        // fingerprint of an inverted (multiply-on-entry) reading.
         List<String> fractional = new ArrayList<>();
         for (DimensionConfig config : shipped().values()) {
             double scale = config.getScale();

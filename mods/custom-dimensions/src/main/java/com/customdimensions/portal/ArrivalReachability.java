@@ -3,17 +3,12 @@ package com.customdimensions.portal;
 /**
  * Can a portal built anywhere in the source world actually be arrived at?
  *
- * <h2>Why this exists</h2>
- * Arrival placement is {@code target = source * scale}. Nothing ever asked
- * whether the result lands somewhere a player can exist — and vanilla
- * forbids breaking AND placing blocks outside the world border, so a player
- * who arrives out of bounds cannot touch the portal frame, the portal, or
- * any block around them. Every diagnosis of that symptom points at
- * protection code; the cause is arithmetic in a config file.
- *
- * <p>This check exists as a guard: a badly authored scale/border pair can
- * still put an arrival out of bounds, and the symptom ("I cannot break
- * anything") points at protection code, nowhere near the actual cause.
+ * <p>Arrival placement is {@code target = source * scale}. Vanilla forbids
+ * breaking AND placing blocks outside the world border, so a player who
+ * arrives out of bounds cannot touch the portal frame or anything around
+ * them — a badly authored scale/border pair can silently put an arrival out
+ * of bounds, and the symptom ("I cannot break anything") points at
+ * protection code, nowhere near the actual cause.
  *
  * <p>Pure arithmetic over plain values: no world, no config objects, no
  * Minecraft runtime.

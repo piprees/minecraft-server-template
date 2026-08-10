@@ -42,12 +42,9 @@ class DimensionManagerTest {
 
     @Test
     void getServerReturnsNullBeforeInit() {
-        // DimensionManager.getServer() returns null before onServerStart is called.
-        // In test environment without a real server, this should be null.
-        // Note: this tests the initial state — a running server would override this.
+        // Other tests may already have initialised a server, so this only
+        // checks that a random dimension name is never reported as existing.
         DimensionManager dm = DimensionManager.getInstance();
-        // getServer() may return a server if other tests have initialised it,
-        // but dimensionExists for a random name should always be false
         assertFalse(dm.dimensionExists("random_test_" + System.nanoTime()));
     }
 

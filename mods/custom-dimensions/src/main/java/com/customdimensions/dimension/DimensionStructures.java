@@ -29,7 +29,7 @@ import java.util.List;
  * global registry objects are never mutated, so every other dimension keeps
  * the shared placements.
  *
- * Caveats honoured (customising-structures.md):
+ * Caveats:
  * - Only exact minecraft:random_spread placements are rescaled. Custom
  *   placement types (YUNG's, Moog's) and concentric rings pass through
  *   unchanged — dropping whole sets is type-agnostic and still applies.
@@ -138,8 +138,6 @@ public final class DimensionStructures {
                         // Explicit structures.spacing wins; otherwise the
                         // spacing derives from the playable border — a
                         // 256-radius pocket wants 1-2 shrines, not a grid.
-                        // MIRRORED in scripts/seed/fast_roller.py (tier 1);
-                        // change both together or shrine scoring lies.
                         DimensionConfig.SpacingOverride ov = spacingOverrides.get(setId);
                         if (ov == null) {
                             ov = derivedShrineSpacing(def.getPlayerBorderRadius());
@@ -876,7 +874,6 @@ public final class DimensionStructures {
     /**
      * Automatic shrine spacing from the playable border: roughly
      * radius-in-chunks / 2, clamped 12..48. Pure — unit-tested, and
-     * mirrored bit-for-bit in scripts/seed/fast_roller.py (roller parity).
      */
     static DimensionConfig.SpacingOverride derivedShrineSpacing(int playerBorderRadiusBlocks) {
         DimensionConfig.SpacingOverride out = new DimensionConfig.SpacingOverride();

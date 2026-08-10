@@ -11,24 +11,24 @@ import java.util.Map;
  * What every criterion concluded about one seed, and the one number that
  * follows from it.
  *
- * <p>Three verdicts, never blended (D6):
+ * <p>Three verdicts, never blended:
  *
  * <ul>
  *   <li>{@code INVALID_CONFIG} — a human must edit the JSON. Not a seed
- *       problem, and not scoreable. This is the channel whose absence let 142
- *       broken wants read as bad luck for months.</li>
+ *       problem, and not scoreable: a broken want must surface here rather
+ *       than read as ordinary bad luck on every roll.</li>
  *   <li>{@code REJECTED} — this seed fails a hard gate, and the gate is
  *       named.</li>
  *   <li>{@code SCORED} — a percentage of what THIS dimension could achieve,
  *       plus per-criterion detail.</li>
  * </ul>
  *
- * <p>The headline is {@code achieved / ceiling} (D5), where the ceiling counts
+ * <p>The headline is {@code achieved / ceiling}, where the ceiling counts
  * the criteria this dimension's CONFIG poses — computed with no seed data, so
  * every seed of a dimension is marked out of the same denominator and two
  * percentages can be ranked against each other. 100% means "as good as this
- * dimension gets" and is reachable; the old absolute scale had an unknown,
- * usually unreachable maximum, so 83 out of a possible 87 read as a failure.
+ * dimension gets" and is reachable, unlike a scale with an unknown maximum
+ * where a genuinely strong seed can never see a number close to its top.
  */
 public record Scorecard(
         String dimension,

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Phase 4 gate 3: facts serialise and deserialise round-trip identically.
+ * Facts serialise and deserialise round-trip identically.
  *
  * <p>Two separate claims, and the weaker one is not enough on its own. Byte
  * equality of the re-emitted JSON proves the writer is reproducible; record
@@ -89,8 +89,8 @@ class SeedFactsCodecTest {
 
     @Test
     void anAbsenceComesBackAnAbsenceWithItsReasonIntact() {
-        // The one that matters. D4 is enforced by the type in memory; at the
-        // file boundary it is enforced here. A round trip that turned
+        // The one that matters. Measured enforces exact-or-absent in memory;
+        // at the file boundary it is enforced here. A round trip that turned
         // {"absent": "..."} into 0.0 would defeat the whole layer silently.
         SeedFacts original = partlyAbsent();
         SeedFacts back = SeedFactsCodec.read(original.toJson());
@@ -191,5 +191,25 @@ class SeedFactsCodecTest {
         String json = fullyMeasured().toJson()
                 .replace("\"stackVersion\"", "\"notTheStamp\"");
         assertThrows(RuntimeException.class, () -> SeedFactsCodec.read(json));
+    }
+
+    @Test
+    void aBlankAbsenceReasonInAFileIsRefusedNotSilentlyAccepted() {
+        // check-facts-parity.py's other half: every absence carries a reason.
+        // Measured.absent(reason) already refuses a blank one at construction
+        // (MeasuredTest), so the file boundary is the one place that
+        // guarantee could still be bypassed — a hand-edited or
+        // differently-written artefact reaching the reader directly as JSON.
+        String json = fullyMeasured().toJson()
+                .replace("\"headlineShare\": 0.6", "\"headlineShare\": {\"absent\": \"\"}");
+        assertThrows(IllegalArgumentException.class, () -> SeedFactsCodec.read(json));
+    }
+
+    @Test
+    void everyAbsenceInAPartlyMeasuredRecordCarriesANonBlankReason() {
+        for (String entry : partlyAbsent().absences()) {
+            String reason = entry.substring(entry.indexOf(": ") + 2);
+            assertFalse(reason.isBlank(), entry + " carries no reason a human can act on");
+        }
     }
 }

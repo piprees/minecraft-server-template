@@ -20,8 +20,8 @@ import java.util.function.Function;
  * and, more strongly, that the parsed record equals the original. Both are
  * asserted in {@code SeedFactsCodecTest}. An absence must survive the trip as an
  * absence with its reason intact: a round trip that quietly turns
- * {@code {"absent": "..."}} into a zero would defeat D4 at the file boundary,
- * which is the one place the type system stops helping.
+ * {@code {"absent": "..."}} into a zero would let a guess masquerade as a
+ * measurement at the one boundary the {@link Measured} type cannot police.
  *
  * <p>Reading is parsing, not policy. The record carries the {@code stackVersion}
  * that measured it; whether a record from another release may be used is the

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Hand-worked values for the grid computations: relief, grain, shares and edge
- * density (Phase 4 gate 2).
+ * density.
  *
  * <p>Every expected number here is worked out on a 3x3 layout small enough to
  * count by hand and written in the assertion, not computed by the same code

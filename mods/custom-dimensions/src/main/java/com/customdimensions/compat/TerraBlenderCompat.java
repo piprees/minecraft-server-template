@@ -33,7 +33,7 @@ import java.util.function.Consumer;
  * cells. The vanilla end uses {@code TheEndBiomeSource}, which is not a
  * {@code MultiNoiseBiomeSource} and is excluded from the dump path
  * entirely. A Nullscape-modded end that uses MNBS gets its entries via
- * the datapack JSON (Phase 1 static).
+ * the datapack JSON.
  *
  * <p>Fails open: every failure path returns an empty list, and a
  * throwing call disables itself permanently after one WARN.

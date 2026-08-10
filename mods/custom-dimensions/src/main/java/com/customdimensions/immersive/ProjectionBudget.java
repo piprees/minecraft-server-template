@@ -3,27 +3,18 @@ package com.customdimensions.immersive;
 /**
  * How much projection work one refresh pass is allowed to do.
  *
- * <h2>Why this exists</h2>
- * Walking past a portal inverts the whole sightline mask at once: every
- * position the player could see becomes invisible, and every one of those
- * positions needs a correction packet in the same pass. For the default
- * doorway and preview settings that is on the order of a thousand
- * {@code BlockUpdateS2CPacket}s in a single tick, per viewer, per portal, at
- * the default 4-tick refresh interval — enough to stall the server for
- * several seconds, with fake blocks left showing on the client until the
- * backlog drains.
+ * <p>Walking past a portal inverts the whole sightline mask at once: every
+ * position the player could see needs a correction packet in the same pass —
+ * on the order of a thousand {@code BlockUpdateS2CPacket}s in a single tick,
+ * per viewer, per portal, enough to stall the server for several seconds.
  *
- * <h2>The rule</h2>
- * <b>Restores outrank sends, always.</b> A fake block the client is still
- * showing after it should have gone is a visible defect — the player collides
- * with something that is not there. A fake block not yet sent is merely
- * absent: the view is incomplete for a few ticks and then correct. So when
- * the budget cannot cover everything, restores go first and sends wait.
- *
- * <p>This is the same priority the {@code lastSent} invariant implies:
+ * <p><b>The rule: restores outrank sends, always.</b> A fake block the
+ * client is still showing after it should have gone is a visible defect —
+ * the player collides with something that is not there. A fake block not
+ * yet sent is merely absent. This matches the {@code lastSent} invariant:
  * nothing leaves {@code lastSent} without a correction packet having gone
- * out, so deferring a restore means carrying a known-stale entry for longer.
- * Deferring a send costs nothing but latency.
+ * out, so deferring a restore means carrying a known-stale entry for longer,
+ * while deferring a send costs nothing but latency.
  *
  * <p>Pure arithmetic over plain ints — no packets, no world, no MC runtime.
  */

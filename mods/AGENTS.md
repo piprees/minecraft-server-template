@@ -175,12 +175,12 @@ answer is read from the file.
 | --- | --- | --- |
 | `census/<ns>__<slug>.json` | `customdim structure-census <ns>:<slug>` | `scripts/check-noise-regression.py` |
 | `census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin` (appended on each structural rejection) | `scripts/check-noise-regression.py` |
-| `census/occupancy__<ns>__<slug>.json` | `customdim occupant <ns>:<slug> <cx> <cz>` (reads a LOADED chunk, never generates) | `scripts/seed/verify-occupancy.sh` |
+| `census/occupancy__<ns>__<slug>.json` | `customdim occupant <ns>:<slug> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
 | `structure-audit.txt` | `customdim structure-audit [group]` | — (human-read) |
 | `biome_params.json` | `customdim dump-biome-params <dim>` | the seed roller consumes it |
 | `biome_grid.csv` | `customdim sample-biome-grid <dim> <r> <step>` | — (ad-hoc) |
-| `custom-dimensions-fingerprints.json` | the mod, at world creation | `scripts/check-dimension-drift.py` |
-| `portal_links.json` | the mod, on every portal mutation | `scripts/check-portal-integrity.py` |
+| `custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
+| `portal_links.json` | the mod, on every portal mutation | the mod, on load (`PortalStateValidator`) |
 
 **`occupancy__`/`rejections__` files are append-on-generation-event records,
 not regenerable dumps** — a rejection is written once, when the chunk
@@ -189,8 +189,10 @@ do); deleting one erases the only proof a structural rejection happened, and
 re-proving it means regenerating the chunk (move the region file aside while
 mc is stopped, revisit).
 
-`./dev verify` runs every checker in one pass. It needs no server: run it
-while the server is up, paused, or down.
+`./dev verify` now prints where verification for the fingerprint and portal
+artefacts moved: the mod's own boot-time WARN and load-time validation, plus
+`/customdim lint` for the suppress list — there is no offline checker left
+to run for those three.
 
 **Start any "is the mod behaving?" question here, not with RCON.** The census
 answers which structures reached a pool and where they were placed;
@@ -201,9 +203,9 @@ locate note below).
 
 **A checker is only meaningful against a world created under the config it
 is checking** — worldgen is creation-time-only
-([D2](../TROUBLESHOOTING.md#d2)). `check-dimension-drift.py` is the guard:
-run it FIRST, and if it reports drift, every other result is measuring an
-older config.
+([D2](../TROUBLESHOOTING.md#d2)). The mod's own boot-time drift WARN
+(`DimensionFingerprints`) is the guard: check the mc boot log FIRST, and if
+it reports drift, every other result is measuring an older config.
 
 ## Verification loop
 
@@ -421,11 +423,9 @@ no config at all.
   it is above threshold AND no above-threshold chunk within the exclusion
   radius outranks it, where rank is white noise (`mix64` of seed+coords,
   compared **unsigned**) and ties break on the chunk key. This is the
-  parallel formulation of dart throwing. It is not a greedy spiral, and it
-  must not become one: the roller mirrors this in Python and parity is a set
-  comparison, not two traversals that have to agree step for step. It also
-  means the traversal can be optimised freely — swapping an O(r^3) ring walk
-  for an O(r^2) scan produced byte-identical output.
+  parallel formulation of dart throwing, not a greedy spiral — the traversal
+  can be optimised freely; swapping an O(r^3) ring walk for an O(r^2) scan
+  produced byte-identical output.
 - **Rank on white noise, never on the placement field itself.** Local maxima
   of a *smooth* field occur about once per noise feature, so their density is
   fixed by frequency alone — the threshold barely participates and the
@@ -446,20 +446,17 @@ no config at all.
   generated. `StructureNoise.sampleChunk` adds irrational origin offsets;
   never sample raw chunk coordinates.
 - **Doubles everywhere, and our own Perlin.** `float` rounds differently from
-  Python's always-double floats (`1.3f` is `1.29999995231628418`) and would
-  cost the parity gate for nothing. Vanilla's `PerlinNoiseSampler` is avoided
-  because mirroring it means mirroring `net.minecraft.util.math.random.Random`
-  too, and it drags Bootstrap into unit tests.
+  double math (`1.3f` is `1.29999995231628418`) — doubles throughout avoid
+  that drift. Vanilla's `PerlinNoiseSampler` is avoided because mirroring it
+  means mirroring `net.minecraft.util.math.random.Random` too, and it drags
+  Bootstrap into unit tests.
 - **The peaceful shift outranks `structureDensity`.** A coarse density dial
   must not resurrect a group the dimension's own difficulty says is not
   there. Only an explicit per-group `structures.noise` entry can undo it.
 - **Data is jar-baked, not read from config.** `structure_themes.json` and
   `structure_type_defaults.json` are resources (self-containment rule above);
-  the copies under `config/custom-dimensions/` exist for the seed roller,
-  which in a consumer reads the STACK BUNDLE
-  (`.stack/current/stack/config/custom-dimensions`) plus
-  `overlay/config/custom-dimensions` — never `data/`, which belongs to the mc
-  container and is wiped to reset a world. Regenerate both
+  the copies under `config/custom-dimensions/` exist for seed rolling, which
+  lives in the mod and is driven by `/customdim` subcommands. Regenerate both
   with `scripts/gen-structure-groups.py` after any structure-mod pin bump —
   `--check` gates staleness.
 - **Over half of all sets never enter a group.** 227 of 367 (jar-level
@@ -538,9 +535,6 @@ keyed by `WeightedEntry` OBJECT IDENTITY (`IdentityHashMap`), installed by
 calculator rebuild, cleared on `ServerWorldEvents.UNLOAD` in
 `MultiverseServer`.
 
-MIRRORED in `scripts/seed/noise_placement.py` (`resolve_structure`,
-`pick_seed`) -- change both together, re-run `test_noise_parity.py`.
-
 ### Mixin ordering on `ChunkGenerator.trySetStructureStart`
 
 Two mixins target `trySetStructureStart` at HEAD, both priority 900:
@@ -561,13 +555,10 @@ to vanilla behaviour.
 ### Structure placement lessons (fixed placements)
 
 - **Vanilla CubicSpline EXTRAPOLATES LINEARLY beyond its endpoints** using
-  the endpoint derivative. Any Python re-implementation that clamps to the
-  endpoint value flattens splines with non-zero edge derivatives —
-  tectonic's `full_continents` is `derivative: 1` at both ends (an identity
-  band), so clamping collapsed the whole continents field to a constant.
-  Hit in preset_terrain.py AND latently in terrain_height.py (masked there
-  by Terralith/Incendium/Nullscape splines having zero edge derivatives —
-  the nether snapshot render changed when fixed).
+  the endpoint derivative. A re-implementation that clamps to the endpoint
+  value instead flattens splines with non-zero edge derivatives — tectonic's
+  `full_continents` is `derivative: 1` at both ends (an identity band), so
+  clamping collapses the whole continents field to a constant.
 - **`/locate` is first-found-in-radius-order, NOT nearest-across-sets.**
   ChunkGenerator iterates placements in map order ring by ring; when a
   structure exists in several sets (organic + forced), the organic set's
@@ -603,32 +594,18 @@ to vanilla behaviour.
   returns the router climate point at (x&~3, 0, z&~3); for Terratonic
   graphs depth(y=0) = 1 + offset, so surface_Y = 128*depth. A c2me-free
   itzg container (fabric-api + customdimensions only, MAX_TICK_TIME=-1
-  under qemu — the watchdog kills slow emulated ticks) is the clean rig:
-  preset_terrain.py matched it 36/36 probes to the RCON quantisation
-  floor (1e-4), both presets, positive and negative seeds.
-- **elfydd/production sample-noise vs headless evaluation is a solved
-  mechanism**: Tectonic's `overlay.datapack` makes
-  `minecraft:continentalness`/`erosion`/`ridge` value-identical to its
-  `tectonic:parameter/*` copies, the DF tree's holders canonicalise, and
-  `createNoiseSampler` seeds by the canonical `minecraft:` id. The
-  roller mirrors both halves (`KNOWN_NOISE_ALIASES`, octave-origin
-  verified, plus overlay-aware jar extraction) and matches the live
-  c2me-modded server at zero tolerance on the closed chains
-  (`BIOME_PARITY_STRICT=1` in `test_biome_parity.py`) — c2me introduces
-  no climate delta there. `/customdim eval-df` walks any residual chain
-  divergence node by node.
+  under qemu — the watchdog kills slow emulated ticks) is the clean rig
+  for probing it.
+- **elfydd/production sample-noise parity holds**: Tectonic's
+  `overlay.datapack` makes `minecraft:continentalness`/`erosion`/`ridge`
+  value-identical to its `tectonic:parameter/*` copies, the DF tree's
+  holders canonicalise, and `createNoiseSampler` seeds by the canonical
+  `minecraft:` id — c2me introduces no climate delta there. `/customdim
+  eval-df` walks any residual chain divergence node by node.
 
-### Seed rolling pipeline
+### Seed rolling
 
-The seed-rolling system at `scripts/seed/` evaluates dimension seeds without running the game. See `scripts/seed/README.md` for the full architecture. Key integration points with the custom-dimensions mod:
-
-- `biome_params.json` is dumped via the mod's `/customdim dump-biome-params` command (captures TerraBlender + all mod biomes across 4 families)
-- Dimension configs at `config/custom-dimensions/dimensions/` drive what gets rolled — the roller reads `type`, `biomes`, `seedRoll`, `structureDensity`, and `difficulty` from each file
-- Per-dimension `seedRoll` blocks control spawn filters, wants/shuns, mood, and terrain preferences
-- Winners are written back to `config/custom-dimensions/candidates/` and optionally into the dimension config's `seed` field
-- **Seed-group rolling**: dims with byte-identical generation config (`dimension_profiles.generation_fingerprint`) share measurements — measured once per group, winners forced distinct at finalise (same fingerprint + same seed = literal world clones). Any NEW generation-affecting config field the mod grows MUST be added to `generation_payload()` or grouping silently lies (the roller-parity rule's fingerprint corollary). Example: derived shrine spacing makes `borders.player` generation-affecting for `exitShrines` dims — the payload carries a conditional `shrineSpacing` entry, added ONLY when applicable so pre-existing non-shrine fingerprints stay byte-stable (an always-present key would flag every candidate store DRIFTED)
-- **Config-schema Gson traps**: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants` (free-form, roller-only). Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits
-- **Overlay-written dimension files need the staged-overlay mirror**: tools that create consumer dims at runtime (viewer-server's fork/create) must ALSO write the file into the staged overlay (`<config>/custom-dimensions/overlay/dimensions/`), or fast_roller/finalise can't see the dim until the next `./dev up` re-stage
+Seed rolling lives in the mod and is driven by `/customdim` subcommands. Two Gson traps still apply: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits.
 
 ## Architecture (custom-dimensions)
 

@@ -8,19 +8,17 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Phase 8c — a fake block must never be painted into a body.
+ * A fake block must never be painted into a body.
  *
  * <p>Client-side collision against a fake block is inherent to the
- * server-side approach: the client will not walk through a block it believes
- * is real, and the server has nothing there to mine. A fake block inside
- * somebody is therefore an unmineable wall only they can see, and being
- * unable to move loses the player entirely.
+ * server-side approach: the client won't walk through a block it believes is
+ * real, and the server has nothing there to mine — an unmineable wall only
+ * that player can see.
  *
  * <p>These pin {@link ProjectionVolume#occupiedCells}, the pure decision
- * behind the invariant. The bookkeeping half — that a cell suppressed
- * because somebody walked into it is RESTORED and dropped from
- * {@code lastSent} on the same pass — lives in {@code PlayerProjectionState}
- * and is asserted in game via the "suppressed by bodies" count.
+ * behind the invariant. The bookkeeping half — that a suppressed cell is
+ * RESTORED and dropped from {@code lastSent} on the same pass — lives in
+ * {@code PlayerProjectionState}.
  */
 class BodySuppressionTest {
 

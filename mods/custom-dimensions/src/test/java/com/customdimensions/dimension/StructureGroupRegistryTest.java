@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike task C1. Reads the real jar resources from the build output, so this
- * also gates that gen-structure-groups.py's output is loadable.
+ * Reads the real jar resources from the build output, so this also gates
+ * that gen-structure-groups.py's output is loadable.
  */
 class StructureGroupRegistryTest {
 

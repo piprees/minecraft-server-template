@@ -27,9 +27,9 @@ import net.minecraft.world.gen.noise.NoiseConfig;
 import net.minecraft.world.gen.noise.NoiseRouter;
 
 /**
- * Phase 1 spike: can a seeded biome source and terrain sampler be built for a
- * dimension CONFIG, with no {@link ServerWorld} in existence, and does it agree
- * with the running server?
+ * A seeded biome source and terrain sampler, built for a dimension CONFIG
+ * with no {@link ServerWorld} in existence, checked against what the running
+ * server would answer for the same seed.
  *
  * Two sides, one shape:
  *
@@ -452,17 +452,16 @@ public final class SpikeSampler {
      * <p>A flat generator has no {@link ChunkGeneratorSettings} of its own, but
      * the live server still has a NoiseConfig for its world — vanilla builds
      * one regardless of generator type, because structures and features need
-     * it. Returning null here made the headless side report biome and climate
-     * ABSENT while the live side answered a real biome, which is a 100%
-     * mismatch on every column of every superflat and flat-fallback void
-     * dimension. Absent is only honest when the fact genuinely cannot be had,
-     * and here it can.
+     * it. Returning null would report biome and climate ABSENT for every
+     * superflat and flat-fallback void dimension while the live side answers
+     * a real biome; absent is only honest when the fact genuinely cannot be
+     * had, and here it can.
      *
      * <p>The fallback settings carry a fully zeroed router: a flat world's
      * biome source ignores the sampler entirely (it is fixed or a checkerboard
-     * grid), so the biome is unaffected, and a zeroed router is what reproduces
-     * the live server's all-zero climate point rather than inventing an
-     * overworld climate for a world that has none.
+     * grid), so the biome is unaffected, and a zeroed router reproduces the
+     * live server's all-zero climate point rather than inventing an overworld
+     * climate for a world that has none.
      */
     private static NoiseConfig buildNoiseConfig(
             MinecraftServer server, ChunkGenerator generator, long seed) {

@@ -62,17 +62,9 @@ git diff overlay/mods-extra.txt
 
 The `Updates` workflow (`.github/workflows/update.yml`) does the same thing weekly and opens a PR with the diff, plus a note when a new stack release is available.
 
-### Roll seeds locally
+### Seed rolling
 
-```bash
-./dev seed-roll                # parallel-roll seeds for every dimension
-./dev seed-rescore             # recompute scores vs current configs (no Docker)
-./dev seed-status              # candidate counts, winners, score freshness
-```
-
-Rolls indefinitely (Ctrl+C to finish). Winners are auto-written into the config; the live viewer at `http://127.0.0.1:8765/` lets you pick manually. Measurements are banked — rescoring against updated configs never requires re-rolling.
-
-The viewer keeps the open dimension and candidate in the URL — `/the-nether`, or `/the-nether/4412011349903857317` with a candidate open (underscores become hyphens) — so a refresh or a pasted link reopens the same view.
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
 
 ### Cache assets for offline use
 
@@ -249,10 +241,6 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev unlink`            | Restore the newest pulled release bundle after `./dev link`                        |
 | `./dev reset-world`       | Delete the LOCAL world + player data (the same set `./ops reset-seed` deletes on production); keeps `.env`, mods, config, overlay and the seed bank |
 | `./ops sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
-| `./dev seed-roll`         | Parallel-roll seeds for every dimension, auto-pick winners                         |
-| `./dev seed-rescore`      | Recompute candidate scores vs current configs (no re-rolling)                      |
-| `./dev seed-status`       | Candidate-bank status: counts, winners, score freshness                            |
-| `./dev seed-viewer`       | Interactive viewer: compare candidates, pick winners, re-roll, edit configs         |
 | `./dev verify`            | Run every offline checker over the mod's artefacts (no Docker, no RCON)             |
 | `./dev refresh-config`    | Force-refresh platform config defaults into `data/config` (backs up first)          |
 | `./dev cache`             | Snapshot Docker images, mod JARs, offline client bundles                           |

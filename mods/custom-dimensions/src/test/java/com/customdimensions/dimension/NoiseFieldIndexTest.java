@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Spike task B2. All of NoiseStructurePlacement's behaviour lives in
- * NoiseFieldIndex precisely so it can be tested here, with no Bootstrap.
+ * All of NoiseStructurePlacement's behaviour lives in NoiseFieldIndex so it
+ * can be tested here without Minecraft's Bootstrap.
  */
 class NoiseFieldIndexTest {
 
@@ -145,11 +145,9 @@ class NoiseFieldIndexTest {
 
     @Test
     void aTaperThinsTheBorderWithoutEmptyingIt() {
-        // The regression this whole change exists for. Before 2026-07-29 the
-        // curve multiplied into the noise before the threshold test, so the
-        // moment a taper fell below the profile's threshold the band went to
-        // absolute zero — 33 dimensions had no village past a third of their
-        // radius. A taper must now thin, never delete.
+        // A taper must thin the border, never empty it: multiplying the curve
+        // into the noise before the threshold test would let a taper fall to
+        // absolute zero the moment it crosses the profile's threshold.
         NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, INNER, 512);
         for (int decile = 0; decile < 10; decile++) {
             assertTrue(densityInDecile(index, 512, decile) > 0.0,
@@ -449,8 +447,8 @@ class NoiseFieldIndexTest {
 
     @Test
     void largestDimensionBuildsWithinBudget() {
-        // The spike's target: an 8192-block radius (512 chunks) in under
-        // 200ms. Warm up first so this measures the algorithm, not JIT.
+        // Target: an 8192-block radius (512 chunks) in under 200ms. Warm up
+        // first so this measures the algorithm, not JIT.
         build(NoiseProfile.NATURAL, 3, EVEN, 128);
         long start = System.nanoTime();
         NoiseFieldIndex index = build(NoiseProfile.NATURAL, 3, EVEN, 512);

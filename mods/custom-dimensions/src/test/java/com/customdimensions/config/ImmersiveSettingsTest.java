@@ -108,16 +108,15 @@ class ImmersiveSettingsTest {
     }
 
     /**
-     * Regression test for the restart-loses-immersive bug: ImmersiveSettings
-     * is transient on PortalDefinition (correctly — see the test above), but
-     * that means a plain Gson round-trip — exactly what portal_links.json
-     * does to every restored PortalZone.definition — can NEVER resurrect it
-     * on its own. PortalHelper.restoreZones() MUST re-stamp immersive
-     * settings from the live MultiverseConfig after deserialising a zone,
-     * or every already-ignited immersive portal silently stops being
-     * immersive the moment the server restarts. Do not "fix" this test by
-     * removing the transient modifier — that would leak immersive settings
-     * into portal_links.json, which Gotcha #9 forbids.
+     * ImmersiveSettings is transient on PortalDefinition (correctly — see
+     * the test above), so a plain Gson round-trip — exactly what
+     * portal_links.json does to every restored PortalZone.definition — can
+     * never resurrect it. PortalHelper.restoreZones() must re-stamp
+     * immersive settings from the live MultiverseConfig after
+     * deserialising a zone, or an already-ignited immersive portal
+     * silently stops being immersive after a restart. Do not "fix" this
+     * test by removing the transient modifier — that would leak immersive
+     * settings into portal_links.json.
      */
     @Test
     void immersiveIsLostAcrossGsonRoundTripAndMustBeReStampedOnRestore() {

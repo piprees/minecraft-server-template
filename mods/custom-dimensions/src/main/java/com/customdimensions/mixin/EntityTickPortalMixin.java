@@ -27,20 +27,19 @@ public abstract class EntityTickPortalMixin {
     private void onTickPortal(CallbackInfo ci) {
         Entity self = (Entity) (Object) this;
         if (!(self instanceof ServerPlayerEntity player)) {
-            // Immersive portals (Phase 3d): an item, projectile, XP orb,
-            // falling block or living entity standing in an ARRIVAL portal
-            // block goes back the way it came. Cancel ONLY when it actually
-            // teleported — this callback fires for every non-player entity in
-            // the game every tick, and cancelling it otherwise would break
-            // vanilla's own portal handling for all of them. All gating
-            // (entity type, portal block, immersive config, registered target,
-            // entry edge) lives in EntityPassthrough, which orders its checks
-            // so a mob costs a class check and a cached block state before
-            // anything more expensive is touched.
+            // Immersive portals: an item, projectile, XP orb, falling block
+            // or living entity standing in an ARRIVAL portal block goes back
+            // the way it came. Cancel ONLY when it actually teleported —
+            // this callback fires for every non-player entity in the game
+            // every tick, and cancelling it otherwise would break vanilla's
+            // own portal handling for all of them. All gating (entity type,
+            // portal block, immersive config, registered target, entry edge)
+            // lives in EntityPassthrough, ordered so a mob costs a class
+            // check and a cached block state before anything more expensive
+            // is touched.
             //
             // Returning false is load-bearing for NON-immersive dimensions:
-            // vanilla then runs its own tickPortalTeleportation, which is
-            // what has always happened for entities in those worlds.
+            // vanilla then runs its own tickPortalTeleportation for them.
             if (com.customdimensions.immersive.EntityPassthrough
                     .tryReturnFromArrivalPortal(self, this.world)) {
                 ci.cancel();
@@ -72,13 +71,11 @@ public abstract class EntityTickPortalMixin {
         // player's presence record follows them from world to world — that is
         // what makes arriving through a portal read as a first sighting in the
         // new dimension, with no hook needed in ServerWorldMixin's outbound
-        // teleport. See PortalHelper.enteredArrivalPortal for why this replaced
-        // the old `getPortalCooldown() > 0` early return: vanilla re-pins that
-        // value every tick an entity stands in a portal block, so it never
-        // clears for a player who arrived INSIDE the arrival portal, and the
-        // return could not fire at all. The cooldown is still consulted — as
-        // the seed that tells a teleport arrival apart from a walk-in — just
-        // not as the gate.
+        // teleport. A plain `getPortalCooldown() > 0` check does not work here:
+        // vanilla re-pins that value every tick an entity stands in a portal
+        // block, so it never clears for a player who arrived INSIDE the
+        // arrival portal. The cooldown is still consulted — as the seed that
+        // tells a teleport arrival apart from a walk-in — just not as the gate.
         RegistryKey<World> worldKey = serverLevel.getRegistryKey();
         int now = serverLevel.getServer().getTicks();
         boolean entered = PortalHelper.enteredArrivalPortal(

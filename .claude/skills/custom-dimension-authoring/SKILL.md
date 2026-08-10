@@ -127,7 +127,7 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 ## Size ↔ difficulty: the philosophy
 
-From `scripts/seed/dimension_profiles.py`:
+The scoring model's own philosophy (see `references/scoring-internals.md`):
 
 > Hard dims (dense + hostile + small playable radius) must be WORTH IT: hostile structures close, brutal terrain, places to hide/explore/fight. Easy/peaceful dims are relaxing but not boring: scenery, variety, gentle structures.
 
@@ -339,15 +339,7 @@ Loud failures: invalid JSON, `structures.wants`/`shuns` format violations. Silen
 
 ## Seed rolling
 
-```bash
-./dev up                            # stage config first
-./dev seed-roll                     # roll all dimensions (default)
-./dev seed-roll --dims <slug>       # roll a single dimension
-./dev seed-roll --pool 10000 --count 200  # bigger screening pool
-./dev seed-rescore                  # recompute scores vs current configs (no re-rolling)
-./dev seed-status                   # candidate-bank status: counts, winners, freshness
-./dev seed-viewer                   # interactive picker + background rendering
-```
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
 
 **Rollable requirements**: not `skip: true`, not `superflat`, `void` needs a `biomes` list.
 

@@ -2,6 +2,8 @@ package com.customdimensions.mixin;
 
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
+import com.customdimensions.command.InputHash;
+import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.StructurePick;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -128,14 +130,15 @@ public abstract class NoiseStructureSelectionMixin {
         } else {
             // Structural rejection: the structure's own generation declined.
             // The site stays empty. Record it.
-            customdimensions$recordRejection(worldId, sel.group(), entryId, pos.x, pos.z);
+            customdimensions$recordRejection(world, worldId, sel.group(), entryId, pos.x, pos.z);
             cir.setReturnValue(false);
         }
     }
 
     @Unique
     private static void customdimensions$recordRejection(
-            String worldId, String group, String structureId, int chunkX, int chunkZ) {
+            ServerWorld world, String worldId, String group, String structureId,
+            int chunkX, int chunkZ) {
         String key = worldId + '/' + group + '/' + structureId + '@' + chunkX + ',' + chunkZ;
         if (CUSTOMDIMENSIONS$LOGGED.size() < CUSTOMDIMENSIONS$LOG_CAP
                 && CUSTOMDIMENSIONS$LOGGED.add(key)) {
@@ -145,11 +148,19 @@ public abstract class NoiseStructureSelectionMixin {
                     structureId, chunkX, chunkZ, group, worldId);
         }
 
-        // Append to the rejections artefact (atomic rewrite on each event).
+        // Append to .seed-rolling/events/{inputHash}/{dimension}/rejections.json
+        // (atomic rewrite on each event — a rejection is proven once, when
+        // the chunk generates, and re-proving it means regenerating the chunk).
         try {
+            var dimensionId = world.getRegistryKey().getValue();
+            var def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
+            if (def == null) {
+                def = MultiverseConfig.getInstance().getWorld(dimensionId.getPath());
+            }
+            String hash = InputHash.of(def, world.getServer());
             String dimPart = worldId.replace(":", "__");
-            Path rejectPath = Artefacts.dir("census")
-                    .resolve("rejections__" + dimPart + ".json");
+            Path rejectPath = Artefacts.rollingDir().resolve("events")
+                    .resolve(hash).resolve(dimPart).resolve("rejections.json");
             StringBuilder json;
             if (Files.exists(rejectPath)) {
                 String existing = Files.readString(rejectPath);

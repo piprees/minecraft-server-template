@@ -88,13 +88,13 @@ public final class FactsEngine {
 
     // ------------------------------------------------------------------ grid
 
-    /** One pass over the playable disc. Nulls mark cells that answered nothing. */
     /**
-     * Package-private so the pure grid computations below can be pinned against
-     * hand-built layouts. The alternative is verifying relief, grain, shares and
-     * edge density only through a live parity run, which tells you the whole
-     * pipeline agrees with itself and nothing about whether the arithmetic is
-     * what was intended.
+     * One pass over the playable disc. Nulls mark cells that answered nothing.
+     * Package-private so the pure grid computations below can be pinned
+     * against hand-built layouts — the alternative is verifying relief,
+     * grain, shares and edge density only through a live parity run, which
+     * tells you the whole pipeline agrees with itself and nothing about
+     * whether the arithmetic is what was intended.
      */
     record Grid(String[] biome, Integer[] height, int side, int step,
                 int sampled, String absentReason) {
@@ -351,12 +351,13 @@ public final class FactsEngine {
         // Vanilla's own StructurePlacementCalculator.create drops a SET whose
         // structures' valid biomes miss the biome source, BEFORE the mod's pool
         // builder ever sees it — so a live world's pool is built from a
-        // prefiltered list, not the full registry. Skipping that step gave a
-        // pool that was a strict superset of the live one: identical positions
-        // (the field does not depend on the pool) but a different weighted pick
-        // at 22 of the_boneyard's structures. The same rule is applied here,
-        // then the wanted sets are re-admitted exactly as DimensionStructures
-        // re-admits them.
+        // prefiltered list, not the full registry. Skipping that step produces
+        // a pool that is a strict superset of the live one: identical positions
+        // (the field does not depend on the pool) but a different weighted pick,
+        // since the extra structures compete for probability mass a live
+        // world's pick would never have given them. The same rule is applied
+        // here, then the wanted sets are re-admitted exactly as
+        // DimensionStructures re-admits them.
         var setRegistry = server.getRegistryManager().get(RegistryKeys.STRUCTURE_SET);
         java.util.Set<Identifier> dimensionBiomes =
                 NoisePoolBuilder.biomeIds(base.generator().getBiomeSource());
@@ -509,11 +510,8 @@ public final class FactsEngine {
      * biomes at all, on the reading "no predicate, so it generates anywhere" —
      * which is right for weighting a structure already in a pool. Vanilla's
      * filter is an {@code anyMatch} over the list, and an empty list matches
-     * nothing, so it drops the set. Three Towns &amp; Towers "exclusives"
-     * (swapped in by Cristel Lib rather than placed directly, and carrying no
-     * biome list of their own) were in the facts pool and not the live one
-     * because of exactly this, and shifted 22 of the_boneyard's 256
-     * assignments.
+     * nothing, so it drops the set: a structure with no biome list of its own
+     * survives affinity but fails this prefilter.
      */
     private static boolean intersectsBiomes(
             RegistryEntry<net.minecraft.world.gen.structure.Structure> structure,

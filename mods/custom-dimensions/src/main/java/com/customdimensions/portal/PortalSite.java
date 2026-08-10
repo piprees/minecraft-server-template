@@ -151,12 +151,11 @@ public final class PortalSite {
      * first opaque position walking DOWN from {@code fromY} — or
      * {@link #NO_SITE} when the column is open all the way down.
      *
-     * <p>This is what replaced {@code logicalHeight} as the top of the search
-     * band. {@code logicalHeight} is a property of the dimension TYPE and says
-     * nothing about where a modded generator actually put the roof; this asks
-     * the world. In a nether-type dimension it answers the bedrock roof, and
-     * everything below it is the space a player can be in — which is exactly
-     * the discrimination that "an arrival at y=192, on top of the roof" fails.
+     * <p>{@code logicalHeight} is a property of the dimension TYPE, not of
+     * what a modded generator actually built — using it as the search-band
+     * top can place an arrival on top of the roof instead of below it. This
+     * asks the world instead: in a nether-type dimension it answers the
+     * bedrock roof, and everything below it is the space a player can be in.
      *
      * <p>Reads one column rather than the interior's whole footprint. The
      * footprint is at most 3 blocks wide and {@link #fits} checks every cell
@@ -207,19 +206,16 @@ public final class PortalSite {
      *   <li><b>Under the highest solid block</b> ({@code ceilingY}) is what
      *       makes "standing on the roof" unreachable by construction — the
      *       whole interior sits below something, so there is always cover
-     *       overhead. This is the y=192 fix.</li>
+     *       overhead.</li>
      *   <li><b>Under the roof's UNDERSIDE</b> is what stops an entombed column
      *       being carved out near the top of a forty-block slab instead of at
      *       the open space below it.</li>
      * </ul>
      *
-     * <p>Known limitation, stated rather than silently accepted: a column with
-     * an isolated solid mass floating ABOVE the roof would take its underside
-     * as the bound and could put a site on the roof top beneath it. No
-     * generator in this pack does that — the "roof" here is terrain whose top
-     * varies between roughly y=180 and y=190 with open sky above it, not a
-     * flat lid with things on top — so this is a note for whoever adds one,
-     * not a live defect.
+     * <p>Known limitation: a column with an isolated solid mass floating
+     * above the roof would take ITS underside as the bound and could still
+     * put a site on the roof top beneath it. No generator in this pack does
+     * that today.
      */
     private static int ceilingBandTop(int centreX, int centreZ, int ceilingY, int floor,
             Predicate<BlockPos> isOpaque) {
@@ -242,7 +238,7 @@ public final class PortalSite {
      * <p>Split out so the decision that governs whether a player arrives able
      * to move is testable without a world. The entombment case — every
      * candidate Y solid — is a table entry here, not something you find by
-     * standing in it (see {@code TEST-COVERAGE-AUDIT.md}).
+     * standing in it.
      *
      * @param isClear  may a portal cell occupy this position (air/replaceable)
      * @param isOpaque is this position an opaque full cube (floor support)
@@ -469,16 +465,11 @@ public final class PortalSite {
      * Egress guarantee for an arrival that ALREADY EXISTS — the reuse path.
      *
      * <p>{@link #carveEgress} runs inside {@code createTargetPortal}, so it
-     * only ever fired for a portal being built. Every traversal after the
-     * first reuses the existing arrival ({@code findExistingPortal}) and took
-     * no egress code path at all, which means:
-     *
-     * <ul>
-     *   <li>an arrival built before the {@code PortalSite} fix stays entombed
-     *       forever, and strands the player on EVERY visit;</li>
-     *   <li>an arrival later buried — terrain edits, another mod, an aura
-     *       converting the cells against its face — is never repaired.</li>
-     * </ul>
+     * only fires when a portal is first built. Every traversal after that
+     * reuses the existing arrival ({@code findExistingPortal}) and takes no
+     * egress code path — so an arrival buried later (terrain edits, another
+     * mod, an aura converting cells against its face) is never repaired
+     * without this check.
      *
      * <p>Checks before it writes, so a healthy portal costs a handful of
      * block reads and no world mutation at all — this is on the teleport

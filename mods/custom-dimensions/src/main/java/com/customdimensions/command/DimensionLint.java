@@ -30,12 +30,9 @@ import java.util.TreeMap;
  * rolling, no world — every answer comes from config plus what the server
  * actually has loaded.
  *
- * <p>The check this exists for: a structure named in {@code structures.wants}
- * that the dimension's noise pool cannot contain. Such a want scores zero for
- * every seed of every roll, forever, and reads as bad luck rather than as the
- * config fault it is. 142 of them survived months of rolling in one consumer
- * because nothing anywhere could say "this configuration is wrong" — the score
- * was the only channel, and a score cannot make that distinction.
+ * <p>Catches a want in {@code structures.wants} that the dimension's noise
+ * pool cannot contain — such a want scores zero on every seed of every roll
+ * forever, which looks like bad luck rather than the config fault it is.
  *
  * <p>Every finding carries a {@code fix}: the concrete config edit that
  * resolves it. A finding a human cannot act on is a complaint, not a lint.
@@ -63,9 +60,8 @@ public final class DimensionLint {
         List<Finding> findings = new ArrayList<>();
         Map<String, List<String>> igniters = new TreeMap<>();
         // Base worlds carry the same structures and seedRoll blocks as any
-        // other dimension and are rolled the same way, so they are linted the
-        // same way. Leaving them out is how the first run missed a dead
-        // `fortress` want on the nether.
+        // other dimension and are rolled the same way, so they are linted
+        // the same way.
         for (DimensionConfig def : targets()) {
             if (only != null && !only.equals(def.getName())) {
                 continue;
@@ -75,6 +71,7 @@ public final class DimensionLint {
         }
         if (only == null) {
             findings.addAll(igniterCollisions(igniters));
+            findings.addAll(checkSuppressList(server));
         }
         return findings;
     }
@@ -159,10 +156,8 @@ public final class DimensionLint {
             sets.add(entry);
         }
 
-        // Three builds, so a want that fits is distinguishable from one that
-        // only survives because a filter was bypassed for it. The bypasses are
-        // deliberate features; being unable to see which one is carrying a want
-        // is what let 142 of them look like bad luck.
+        // Three builds distinguish a want that fits from one that only
+        // survives because a filter was bypassed for it:
         //
         //   full     what generation actually builds (include + wants)
         //   noWant   without the wants bypass
@@ -215,15 +210,13 @@ public final class DimensionLint {
             }
             if (forcedIds.contains(id)) {
                 // Placed by hand at a fixed spot, so the pool is irrelevant to
-                // whether it exists — and `exclusive` (the default) deliberately
-                // removes it from the pool so it appears nowhere else.
+                // whether it exists — and `exclusive` (the default) removes
+                // it from the pool so it appears nowhere else.
                 //
-                // It is reported anyway because the SCORER cannot see it: a
-                // banked noiseCensus carries only the noise groups, so a forced
+                // Reported anyway because the scorer cannot see it: a banked
+                // noiseCensus carries only the noise groups, so a forced
                 // structure reads as absent and the want is docked to 0.0 on
-                // every seed of every roll. That is the same permanent zero the
-                // dead wants produce, from the opposite cause, and it accounts
-                // for exactly 7 of the 142 the bank audit reported.
+                // every seed.
                 out.add(new Finding(name, WARN, "want_is_forced", wantName,
                         id + " is placed by structures.force at a fixed position, so "
                         + "it is guaranteed present and deliberately absent from the "
@@ -248,12 +241,9 @@ public final class DimensionLint {
             if (group == null) {
                 String setId = setIdFor(setRegistry, id);
                 // A set whose placement is not noise-managed never reaches a
-                // pool BY DESIGN — it keeps its own grid placement, and it
-                // generates. Reporting it as "not in the pool, so no seed can
-                // place it" was false twice over: false on the fact, and false
-                // on the reason. 227 of 367 sets are pass-throughs, so this is
-                // not an edge case; `betterfortresses:fortress` has 289 live
-                // positions in the nether while lint called it dead.
+                // pool BY DESIGN — it keeps its own grid placement and still
+                // generates. Pass-throughs are common (227 of 367 sets), not
+                // an edge case.
                 String passThroughType = passThroughPlacementType(setRegistry, setId);
                 if (passThroughType != null) {
                     out.add(new Finding(name, WARN, "want_is_passthrough", wantName,
@@ -480,9 +470,10 @@ public final class DimensionLint {
     /**
      * A radial curve is ten control points in 0.0-3.0. The mod clamps a
      * malformed one and carries on, which is right at boot and wrong for an
-     * author who wanted a shape they did not get.
+     * author who wanted a shape they did not get. Package-private for unit
+     * tests (same pattern as {@code derivedShrineSpacing}).
      */
-    private static List<Finding> checkRadialCurves(DimensionConfig def) {
+    static List<Finding> checkRadialCurves(DimensionConfig def) {
         List<Finding> out = new ArrayList<>();
         DimensionConfig.Structures block = def.getStructures();
         if (block == null || block.radial == null || block.radial.isEmpty()) {
@@ -611,6 +602,58 @@ public final class DimensionLint {
         return out;
     }
 
+    // -------------------------------------------------------------- suppress
+
+    /**
+     * settings.json's global {@code suppress.structures}/{@code
+     * suppress.biomes} removes ids from every dimension's noise pools and
+     * biome sources. An id that resolves to nothing suppresses nothing and
+     * is a silent authoring fault — the mod has the live registries, so it
+     * resolves them directly rather than cross-referencing an extracted
+     * catalogue.
+     */
+    private static List<Finding> checkSuppressList(MinecraftServer server) {
+        List<Finding> out = new ArrayList<>();
+        Registry<StructureSet> setRegistry = server.getRegistryManager().get(RegistryKeys.STRUCTURE_SET);
+        for (String id : unknownSuppressedIds(MultiverseConfig.getInstance().getSuppressedStructureSets(),
+                candidate -> setRegistry.getEntry(RegistryKey.of(RegistryKeys.STRUCTURE_SET, candidate)).isPresent())) {
+            out.add(new Finding("<global>", ERROR, "suppress_structure_unknown", id,
+                    "settings.json suppress.structures names " + id + ", which is not in the "
+                    + "structure_set registry — it suppresses nothing",
+                    "correct the id, or remove it from suppress.structures"));
+        }
+        Registry<Biome> biomeRegistry = server.getRegistryManager().get(RegistryKeys.BIOME);
+        for (String id : unknownSuppressedIds(MultiverseConfig.getInstance().getSuppressedBiomes(),
+                candidate -> biomeRegistry.getEntry(RegistryKey.of(RegistryKeys.BIOME, candidate)).isPresent())) {
+            out.add(new Finding("<global>", ERROR, "suppress_biome_unknown", id,
+                    "settings.json suppress.biomes names " + id + ", which is not in the biome "
+                    + "registry — it suppresses nothing",
+                    "correct the id, or remove it from suppress.biomes"));
+        }
+        return out;
+    }
+
+    /**
+     * Suppressed ids that fail {@code known} — malformed ids included.
+     * Package-private and predicate-driven so the syntax half can be
+     * unit-tested without a registry; {@link #checkSuppressList} supplies
+     * the live-registry predicate.
+     */
+    static List<String> unknownSuppressedIds(List<String> suppressed, java.util.function.Predicate<Identifier> known) {
+        List<String> unknown = new ArrayList<>();
+        for (String raw : suppressed) {
+            String trimmed = raw == null ? null : raw.trim();
+            if (trimmed == null || trimmed.isEmpty()) {
+                continue;
+            }
+            Identifier id = Identifier.tryParse(trimmed.toLowerCase(Locale.ROOT));
+            if (id == null || !known.test(id)) {
+                unknown.add(trimmed);
+            }
+        }
+        return unknown;
+    }
+
     // ------------------------------------------------------------------ json
 
     public static String toJson(List<Finding> findings, int dimensionsChecked,
@@ -622,7 +665,6 @@ public final class DimensionLint {
             byCheck.merge(f.check(), 1, Integer::sum);
         }
         StringBuilder json = new StringBuilder(Artefacts.jsonHeader("dimension-lint"));
-        json.append(" \"schemaVersion\": 1,\n");
         json.append(" \"dimensionsChecked\": ").append(dimensionsChecked).append(",\n");
         json.append(" \"elapsedMillis\": ").append(elapsedMillis).append(",\n");
         appendCounts(json, "bySeverity", bySeverity);

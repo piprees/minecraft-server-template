@@ -3,22 +3,17 @@ package com.customdimensions.command;
 import java.util.List;
 
 /**
- * Pure replay of vanilla's multi-entry weighted selection from
- * {@code ChunkGenerator.setStructureStarts}: the carver-seed draw that
- * decides which structure vanilla would TRY first at a noise site.
+ * Pure replay of vanilla's carver-seed draw from
+ * {@code ChunkGenerator.setStructureStarts} — the weighted selection that
+ * decides which structure vanilla would try first at a noise site.
  *
- * This is a read-only instrument -- it does not generate anything, does not
- * simulate rejection fall-through, and does not touch game state. It answers
- * one question: "which structure would vanilla's first nextInt(totalWeight)
- * draw select at this chunk?" -- so the harness can compare that against the
- * noise-managed assignment and identify carver-divergent sites.
- *
- * The algorithm is verified against the decompiled Yarn 1.21.1 source of
- * ChunkGenerator.setStructureStarts (line-for-line: new ChunkRandom(new
- * CheckedRandom(0L)); setCarverSeed(structureSeed, chunkX, chunkZ);
- * j = nextInt(totalWeight); walk entries in LIST ORDER subtracting weights).
- *
- * Pure, Bootstrap-free, unit-testable.
+ * Read-only: does not generate anything, does not simulate rejection
+ * fall-through, does not touch game state. Mirrors the decompiled Yarn
+ * 1.21.1 algorithm (new ChunkRandom(new CheckedRandom(0L));
+ * setCarverSeed(structureSeed, chunkX, chunkZ); j = nextInt(totalWeight);
+ * walk entries in list order subtracting weights) so results can be
+ * compared against the noise-managed assignment to find carver-divergent
+ * sites.
  */
 public final class CarverDraw {
 
@@ -37,7 +32,6 @@ public final class CarverDraw {
     /**
      * Replays vanilla's first-draw selection exactly.
      *
-     * <p>Algorithm (from bytecode-verified Yarn 1.21.1 ChunkGenerator):
      * <pre>
      *   ChunkRandom random = new ChunkRandom(new CheckedRandom(0L));
      *   random.setCarverSeed(structureSeed, chunkX, chunkZ);
@@ -48,16 +42,10 @@ public final class CarverDraw {
      *       if j &lt; 0: selected = entry; break;
      * </pre>
      *
-     * <p>This method mirrors that logic using a standalone LCG implementation
-     * (same constants as java.util.Random / CheckedRandom) so it is
-     * Bootstrap-free and unit-testable without Minecraft classes.
-     *
-     * @param entries     the set's structures() list IN THEIR ORIGINAL ORDER
-     *                    (registry iteration order -- NOT sorted by id)
-     * @param structureSeed the calculator's structure seed (world seed in
-     *                      vanilla; our mixin passes the same value)
-     * @param chunkX      chunk X coordinate
-     * @param chunkZ      chunk Z coordinate
+     * @param entries        structures() list in original (registry iteration) order, not sorted by id
+     * @param structureSeed  the calculator's structure seed (world seed in vanilla)
+     * @param chunkX         chunk X coordinate
+     * @param chunkZ         chunk Z coordinate
      * @return the draw result, or null if the pool is empty or has zero total weight
      */
     public static DrawResult draw(List<Entry> entries, long structureSeed,

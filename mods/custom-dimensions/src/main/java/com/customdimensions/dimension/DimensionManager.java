@@ -172,6 +172,7 @@ public class DimensionManager {
                     MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
                 }
             }
+            DimensionFingerprints.warnOrphans(MultiverseConfig.getInstance().getDimensionNames());
         } finally {
             if (wasFrozen) {
                 accessor.setFrozen(true);
@@ -882,12 +883,9 @@ public class DimensionManager {
 
     /**
      * The generator and dimension type a config would produce, built without
-     * creating (or touching) a ServerWorld.
-     *
-     * <p>Exists so the seed roller can sample a dimension it has no world for.
-     * It deliberately calls the same {@code createDimensionOptions} world
-     * creation uses rather than a parallel builder — a second builder is a
-     * mirror, and a mirror drifts.
+     * creating (or touching) a ServerWorld. Exists so the seed roller can
+     * sample a dimension it has no world for, via the same
+     * {@code createDimensionOptions} world creation uses.
      */
     public DimensionOptions buildOptionsHeadless(DimensionConfig def) {
         return this.createDimensionOptions(def);
@@ -1159,22 +1157,13 @@ public class DimensionManager {
     }
 
     /**
-     * Creating a ServerWorld is a main-thread job and cannot be made
-     * otherwise: it mutates the server's worlds map and fires
-     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons,
-     * and c2me build their per-level state. Several hundred
-     * milliseconds each, and none of it is movable.
-     *
-     * <p>What IS movable is how many of them land on the same tick. Draining
-     * every queued world in one go means a player walking towards a cluster
-     * of portals — a hub, or the test beach — pays for ALL of them at once
-     * and rubber-bands.
-     *
-     * <p>One per tick spreads the same total work over N ticks instead of
-     * stacking it into one. Nothing is dropped — the rest stay queued and are
-     * created on the following ticks, which is exactly the "takes a sec"
-     * trade. The set is unordered, so which world goes first among several is
-     * arbitrary; that is fine, because the player is approaching all of them.
+     * Creating a ServerWorld is a main-thread job costing several hundred
+     * milliseconds: it mutates the server's worlds map and fires
+     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons
+     * and c2me build their per-level state. Draining every queued world in
+     * one go would make a player walking towards a cluster of portals pay
+     * for all of them on one tick and rubber-band; one per tick spreads the
+     * same work over N ticks instead.
      */
     private static final int WORLD_LOADS_PER_TICK = 1;
 

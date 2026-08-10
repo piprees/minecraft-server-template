@@ -55,9 +55,9 @@ public interface Criterion {
      *
      * <p>A gate is pass/fail and contributes to neither the achieved total nor
      * the ceiling — failing it rejects the seed outright, so there is no mark to
-     * award for clearing it. This is what makes {@code namesake} stop occupying
-     * a sixth of the scale while ranking nothing (P6): it still does its job,
-     * for free.
+     * award for clearing it. A criterion like {@code namesake}, which every
+     * seed either clears or fails outright, belongs here rather than occupying
+     * a share of the scale while ranking nothing.
      */
     default boolean gate() {
         return false;
@@ -73,10 +73,10 @@ public interface Criterion {
     /**
      * What a criterion concluded.
      *
-     * <p>Four shapes, and the fourth is the one the old design lacked:
-     * {@link NotApplicable} says "this question does not apply here", which is
-     * different from scoring zero. A void dimension with no structures should
-     * not be marked down for having no landmarks — it should be not asked.
+     * <p>Four shapes. {@link NotApplicable} says "this question does not apply
+     * here", which is different from scoring zero. A void dimension with no
+     * structures should not be marked down for having no landmarks — it
+     * should be not asked.
      */
     sealed interface Result {
 
@@ -103,8 +103,8 @@ public interface Criterion {
          *
          * <p>Excluded from the score AND from the ceiling, so a dimension is
          * never marked down for a question that was never asked of it. Scoring
-         * an inapplicable criterion zero is exactly how 142 config faults
-         * became invisible: a permanent deduction that ranked nothing.
+         * an inapplicable criterion zero instead would be a permanent
+         * deduction that ranks nothing and reads as ordinary bad luck.
          *
          * <p>Only ever returned when {@link Criterion#applicable} is false for
          * the same config — the scorer treats a mismatch as a criterion bug and
@@ -116,8 +116,8 @@ public interface Criterion {
         /**
          * The criterion applies, but the fact it needs was not measured.
          *
-         * <p>Counted in the ceiling and worth zero. D4's exact-or-absent rule
-         * cuts both ways: an absent measurement is not evidence of quality, so
+         * <p>Counted in the ceiling and worth zero. Exact-or-absent cuts both
+         * ways: an absent measurement is not evidence of quality, so
          * it cannot be silently forgiven, and it is not the criterion's fault
          * either, so it is reported as unmeasured rather than as a failure.
          */
