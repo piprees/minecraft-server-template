@@ -88,6 +88,80 @@ jobs:
             fi
           } >> /tmp/gen-notes.md
 
+      - name: Set up Java for in-house mods
+        # The structure census reads mods/*/build/libs/*.jar — build with the
+        # pinned toolchain (mods/mise.toml uses Java 21), same setup as
+        # mod-build.yml, or the runner's default JDK produces a broken jar.
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        if: steps.diff.outputs.changed == 'true'
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.13'
+
+      - name: Build in-house mods for the structure census
+        # Same jar selection as mod-build.yml: the remapped jar from
+        # build/libs/, never the -dev jar from build/devlibs/ — an
+        # unremapped jar has no mixin refmap, and the census would silently
+        # see a jar with no structure_set entries rather than fail.
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          while IFS='|' read -r jar_name project refmap; do
+            [[ "$jar_name" == \#* || -z "$jar_name" ]] && continue
+            echo "::group::Build mods/$project"
+            (
+              cd "mods/$project"
+              gradle build
+              JAR=$(find build/libs -name "${jar_name%.jar}-*.jar" ! -name '*-sources.jar' ! -name '*-dev.jar' | head -1)
+              if [[ -z "$JAR" ]]; then
+                echo "::error::No remapped jar found in mods/$project/build/libs"
+                exit 1
+              fi
+              if ! unzip -l "$JAR" | grep -q "$refmap"; then
+                echo "::error::$JAR is missing $refmap — output is unremapped or empty"
+                exit 1
+              fi
+            )
+            echo "::endgroup::"
+          done < mods/local-mods.manifest
+
+      - name: Regenerate the structure census from the new pins
+        # extract-structure-sets.py downloads every pinned mod plus vanilla —
+        # only worth the cost when a pin actually moved. --check right after
+        # the write proves the regeneration is self-consistent (the cache it
+        # just warmed makes the second pass free of network calls) instead of
+        # trusting the write blindly; a --check failure here means the
+        # generator is non-deterministic, not that the census is merely
+        # stale, so it fails the job rather than folding into the PR.
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          python3 scripts/extract-structure-sets.py 2>&1 | tee /tmp/gen-census.log
+          python3 scripts/extract-structure-sets.py --check
+          python3 scripts/gen-structure-groups.py 2>&1 | tee -a /tmp/gen-census.log
+          python3 scripts/gen-structure-groups.py --check
+          {
+            echo ""
+            echo "## Structure census regenerated"
+            echo ""
+            if git diff --quiet -- scripts/data/structure-sets-extracted.json \
+                config/custom-dimensions/extractors/structures.json \
+                config/custom-dimensions/structure-groups.json \
+                mods/custom-dimensions/src/main/resources/structure_themes.json; then
+              echo "No structure sets changed under the new pins."
+            else
+              echo "Structure census changed — review the diff. Extractor warnings:"
+              echo ""
+              echo '```'
+              grep -iE "warning|skip" /tmp/gen-census.log || echo "(none)"
+              echo '```'
+            fi
+          } >> /tmp/gen-notes.md
+
       - name: Close stale PR (no updates)
         if: steps.diff.outputs.changed == 'false'
         env:
@@ -121,8 +195,11 @@ jobs:
           git checkout -B "$BRANCH"
           git add config/modrinth-mods.txt modpack/adventure.mrpack.json \
             config/datapacks config/datapack-presets \
-            mods/custom-dimensions/src/main/resources
-          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s) + regenerate worldgen presets"
+            mods/custom-dimensions/src/main/resources \
+            scripts/data/structure-sets-extracted.json \
+            config/custom-dimensions/extractors/structures.json \
+            config/custom-dimensions/structure-groups.json
+          git commit -m "chore: update ${{ steps.body.outputs.count }} mod version(s) + regenerate worldgen presets + structure census"
           git push --force origin "$BRANCH"
 
       - name: Open or update PR
