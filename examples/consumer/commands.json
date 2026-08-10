@@ -9,6 +9,10 @@
     "pull":        { "description": "Fetch the stack bundle only", "production": false },
     "update":      { "description": "Pull the latest stack bundle + Docker images", "production": false },
     "refresh-config": { "description": "Force-refresh platform config defaults (backs up data/config; overlay wins)", "production": false },
+    "clean": {
+      "description": "Delete everything git does not track (world, bank, bundle, caches)",
+      "production": false
+    },
     "rollback":    { "description": "Revert to a previous stack bundle version", "production": false },
     "doctor":      { "description": "Local health check (containers, RCON, seed exit)", "production": false },
     "seed-roll":   { "description": "Parallel-roll seeds for every dimension, auto-pick winners", "production": false },

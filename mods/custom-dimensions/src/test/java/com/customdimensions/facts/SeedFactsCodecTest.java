@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SeedFactsCodecTest {
 
     private static SeedFacts fullyMeasured() {
-        return new SeedFacts("adventure:the_boneyard", -8414350508334623889L,
+        return new SeedFacts("5.4.1", "adventure:the_boneyard", -8414350508334623889L,
                 "2026-08-10T09:00:00Z", "fp-abc", 4096,
                 new SeedFacts.SpawnFacts(
+                        Measured.of(new SeedFacts.Column(64, -192, true)),
                         Measured.of("minecraft:snowy_plains"),
                         Measured.of(72),
                         Measured.of(11.5),
@@ -44,6 +45,7 @@ class SeedFactsCodecTest {
                         Measured.of(Map.of("dungeons", 7, "endgame", 1)),
                         Measured.of(Map.of("minecraft:village_plains", 3)),
                         Measured.of(Map.of("minecraft:village_plains", 912.5)),
+                        Measured.of(Map.of("dungeons", 0.7412, "endgame", 1.0891)),
                         Measured.of(0.8123456789),
                         Measured.of(129.0),
                         Measured.of(8)));
@@ -52,7 +54,7 @@ class SeedFactsCodecTest {
     /** A flat generator: real values where they exist, stated absences elsewhere. */
     private static SeedFacts partlyAbsent() {
         SeedFacts f = fullyMeasured();
-        return new SeedFacts(f.dimension(), f.seed(), f.measuredAt(),
+        return new SeedFacts(f.stackVersion(), f.dimension(), f.seed(), f.measuredAt(),
                 f.configFingerprint(), f.playableRadius(),
                 f.spawn(),
                 f.biomes(),
@@ -68,6 +70,7 @@ class SeedFactsCodecTest {
                         f.structures().byGroup(),
                         f.structures().byStructure(),
                         f.structures().nearestByStructure(),
+                        f.structures().clusteringByGroup(),
                         Measured.absent("fewer than two positions, so nearest-neighbour "
                                 + "distance is undefined"),
                         Measured.absent("no hostile placement in this dimension"),
@@ -106,12 +109,13 @@ class SeedFactsCodecTest {
         // after a round trip. A %.6f rendering would make them compare equal,
         // which is the one thing a facts layer must never do.
         SeedFacts a = fullyMeasured();
-        SeedFacts b = new SeedFacts(a.dimension(), a.seed(), a.measuredAt(),
+        SeedFacts b = new SeedFacts(a.stackVersion(), a.dimension(), a.seed(), a.measuredAt(),
                 a.configFingerprint(), a.playableRadius(), a.spawn(), a.biomes(),
                 a.terrain(),
                 new SeedFacts.StructureFacts(
                         a.structures().pool(), a.structures().byGroup(),
                         a.structures().byStructure(), a.structures().nearestByStructure(),
+                        a.structures().clusteringByGroup(),
                         Measured.of(0.8123456789 + 1e-12),
                         a.structures().nearestHostile(), a.structures().totalPositions()));
 
@@ -127,12 +131,65 @@ class SeedFactsCodecTest {
     }
 
     @Test
-    void aRecordFromAnUnknownSchemaIsRefusedRatherThanGuessedAt() {
-        String json = fullyMeasured().toJson().replace(
-                "\"schemaVersion\": " + SeedFacts.SCHEMA_VERSION,
-                "\"schemaVersion\": 99");
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> SeedFactsCodec.read(json));
-        assertTrue(e.getMessage().contains("99"), e.getMessage());
+    void theSpawnColumnSurvivesWithWhetherTheConfigDeclaredIt() {
+        // The measurement site is only derivable from the merged config, so the
+        // record carries it. The flag has to survive the file too: the same
+        // coordinates with declared=false say the config named no spawn and the
+        // origin stood in, which is a different fact.
+        SeedFacts declared = fullyMeasured();
+        SeedFacts fellBack = new SeedFacts(declared.stackVersion(), declared.dimension(),
+                declared.seed(), declared.measuredAt(), declared.configFingerprint(),
+                declared.playableRadius(),
+                new SeedFacts.SpawnFacts(
+                        Measured.of(new SeedFacts.Column(0, 0, false)),
+                        declared.spawn().biome(), declared.spawn().surfaceHeight(),
+                        declared.spawn().localRelief(), declared.spawn().aboveSeaLevel()),
+                declared.biomes(), declared.terrain(), declared.structures());
+
+        SeedFacts backDeclared = SeedFactsCodec.read(declared.toJson());
+        SeedFacts backFellBack = SeedFactsCodec.read(fellBack.toJson());
+
+        assertEquals(new SeedFacts.Column(64, -192, true),
+                backDeclared.spawn().column().orThrow());
+        assertEquals(new SeedFacts.Column(0, 0, false),
+                backFellBack.spawn().column().orThrow());
+        assertTrue(backDeclared.spawn().column().orThrow().declared());
+        assertFalse(backFellBack.spawn().column().orThrow().declared());
+    }
+
+    @Test
+    void perGroupClusteringIsAMapAndNotCollapsedIntoOneNumber() {
+        // The pooled figure cannot answer whether any group forms pockets, so
+        // losing the per-group breakdown through a file would put the reader
+        // back to the statistic that never fell below 1.
+        SeedFacts back = SeedFactsCodec.read(fullyMeasured().toJson());
+        Map<String, Double> byGroup = back.structures().clusteringByGroup().orThrow();
+
+        assertEquals(2, byGroup.size(), byGroup.toString());
+        assertEquals(0.7412, byGroup.get("dungeons"));
+        assertEquals(1.0891, byGroup.get("endgame"));
+        assertTrue(byGroup.get("dungeons") < 1.0 && byGroup.get("endgame") > 1.0,
+                "the fixture must hold one pocketed and one dispersed group, or "
+                + "it cannot show the two being told apart");
+    }
+
+    @Test
+    void theReleaseThatMeasuredARecordSurvivesSoACallerCanRefuseIt() {
+        // The record names the release that wrote it, and that is the only
+        // version there is. A caller reusing a banked record compares it with
+        // the running release and deletes anything else — reading another
+        // release's facts under this build's meanings is what the stamp exists
+        // to prevent, so the stamp has to survive the file.
+        SeedFacts other = SeedFactsCodec.read(
+                fullyMeasured().toJson().replace("\"5.4.1\"", "\"5.3.0\""));
+        assertEquals("5.3.0", other.stackVersion());
+        assertEquals("5.4.1", SeedFactsCodec.read(fullyMeasured().toJson()).stackVersion());
+    }
+
+    @Test
+    void aRecordMissingItsReleaseStampIsRefusedRatherThanGuessedAt() {
+        String json = fullyMeasured().toJson()
+                .replace("\"stackVersion\"", "\"notTheStamp\"");
+        assertThrows(RuntimeException.class, () -> SeedFactsCodec.read(json));
     }
 }

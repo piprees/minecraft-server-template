@@ -139,6 +139,7 @@ MANIFEST=(
   scripts/ddns-update.sh
   scripts/cache-assets.sh
   scripts/dev-up.sh
+  scripts/clean-dev-state.sh
   scripts/pack-build.sh
   scripts/remote-update.sh
   scripts/stack-pull.sh

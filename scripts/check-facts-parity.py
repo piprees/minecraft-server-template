@@ -35,6 +35,8 @@
 #     noise groups. The facts engine measures the NOISE census only, so the
 #     comparison is against `groups` alone — stated here rather than left for a
 #     reader to infer from a mismatch.
+#   - A facts record stamped with another release is refused, not adapted.
+#     There is no backwards compatibility here by design: re-dump the artefact.
 # =============================================================================
 
 import argparse
@@ -42,6 +44,9 @@ import json
 import sys
 from collections import Counter
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import stack_version  # noqa: E402
 
 
 def main():
@@ -63,9 +68,7 @@ def main():
 
     for fp in sorted(args.facts.glob("*.json")):
         facts = json.loads(fp.read_text())
-        if facts.get("schemaVersion") != 1:
-            check(f"{fp.name}: schemaVersion", False,
-                  f"expected 1, got {facts.get('schemaVersion')!r}")
+        if not same_release(facts, fp, check):
             continue
         dim = facts["dimension"]
         seed = facts["seed"]
@@ -143,6 +146,31 @@ def main():
     for name, detail in failures:
         print(f"  FAILED: {name} — {detail}")
     return 1 if failures else 0
+
+
+def same_release(facts, path, check):
+    """Whether this record was measured by the running release.
+
+    The mod and this checker ship in the same bundle, so a record stamped with
+    another release was left by an earlier one and its facts are whatever that
+    build measured. Re-measure it; nothing here reads it under this build's
+    meanings. Two dev builds share one version string, so a dev stamp is
+    treated as no identity and compared with nothing.
+    """
+    stamped = facts.get("stackVersion")
+    running = stack_version.stack_version()
+    if stamped is None:
+        check(f"{path.name}: carries a release stamp", False,
+              "no stackVersion — re-measure it (customdim facts <dim> <seed>)")
+        return False
+    if stack_version.is_dev(stamped) or stack_version.is_dev(running):
+        return True
+    if stamped != running:
+        check(f"{path.name}: measured by the running release", False,
+              f"written by {stamped}, this one is {running} — re-measure it "
+              f"(customdim facts <dim> <seed>)")
+        return False
+    return True
 
 
 def _absent(v):

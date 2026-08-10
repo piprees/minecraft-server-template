@@ -87,11 +87,132 @@ class ClusteringTest {
 
     @Test
     void theResultIsDeterministicForTheSameInput() {
-        // Above the sampling cap the input is strided, not randomly drawn —
-        // a fact must not depend on which run computed it.
-        List<long[]> many = grid(80, 3);   // 6400 points, over the 4000 cap
+        // A fact must not depend on which run computed it.
+        List<long[]> many = grid(80, 3);   // 6400 points
         double a = FactsEngine.clustering(many, 200).orThrow();
         double b = FactsEngine.clustering(many, 200).orThrow();
         assertEquals(a, b, 0.0, "the same layout gave two different answers");
+    }
+
+    @Test
+    void theBucketedSearchAgreesWithBruteForceOnEveryPoint() {
+        // The bucketed search is only worth having if it is exact, so it is
+        // checked against the O(n^2) definition on layouts that stress the ring
+        // bound: a lattice (every neighbour at the same distance), pockets (empty
+        // rings between clusters), a single line (one cell row), and coincident
+        // points (distance zero).
+        List<List<long[]>> layouts = List.of(
+                grid(12, 7),
+                pockets(4, 25, 150),
+                line(50, 9),
+                coincident());
+        for (List<long[]> layout : layouts) {
+            double bucketed = FactsEngine.clustering(layout, 200).orThrow();
+            double brute = bruteForceClarkEvans(layout, 200);
+            assertEquals(brute, bucketed, 0.0,
+                    "bucketed and brute-force disagree on a " + layout.size()
+                    + "-point layout");
+        }
+    }
+
+    @Test
+    void poolingGroupsHidesAPocketedGroupInsideADispersedOne() {
+        // The reason clustering is measured per group. Two groups, measured
+        // apart, are plainly different: one sits in four tight pockets, the other
+        // is a wide lattice. Pooled into one statistic the answer reads as
+        // dispersed and the pocketed group is invisible.
+        List<long[]> pocketed = pockets(4, 25, 150);
+        List<long[]> dispersed = grid(10, 20);
+        List<long[]> pooled = new ArrayList<>(pocketed);
+        pooled.addAll(dispersed);
+
+        double perGroupPocketed = FactsEngine.clustering(pocketed, 120).orThrow();
+        double perGroupDispersed = FactsEngine.clustering(dispersed, 120).orThrow();
+        double pooledValue = FactsEngine.clustering(pooled, 120).orThrow();
+
+        assertTrue(perGroupPocketed < 1.0,
+                "the pocketed group must read as pocketed on its own, got "
+                + perGroupPocketed);
+        assertTrue(perGroupDispersed >= 1.0,
+                "the dispersed group must read as dispersed on its own, got "
+                + perGroupDispersed);
+        assertTrue(pooledValue > perGroupPocketed,
+                "pooling must move the answer away from the pocketed group's own "
+                + "value, or there is nothing to correct: pooled " + pooledValue
+                + " vs pocketed " + perGroupPocketed);
+
+        var byGroup = FactsEngine.clusteringByGroup(java.util.Map.of(
+                "dungeons", pocketed, "deco", dispersed), 120).orThrow();
+        assertEquals(2, byGroup.size());
+        assertEquals(perGroupPocketed, byGroup.get("dungeons"), 0.0);
+        assertEquals(perGroupDispersed, byGroup.get("deco"), 0.0);
+    }
+
+    @Test
+    void aGroupWithOnePlacementIsOmittedRatherThanFilledIn() {
+        // A group's absence from the map is the honest report. A filler value
+        // would be indistinguishable from a measurement and would drag any
+        // average computed over the map.
+        var byGroup = FactsEngine.clusteringByGroup(java.util.Map.of(
+                "dungeons", grid(6, 5),
+                "endgame", List.of(new long[] {0, 0}),
+                "loot", List.<long[]>of()), 120).orThrow();
+        assertEquals(1, byGroup.size(), byGroup.toString());
+        assertTrue(byGroup.containsKey("dungeons"));
+
+        Measured<java.util.Map<String, Double>> none = FactsEngine.clusteringByGroup(
+                java.util.Map.of("endgame", List.of(new long[] {0, 0})), 120);
+        assertFalse(none.isPresent());
+        assertTrue(none.reason().contains("two placements"), none.reason());
+    }
+
+    // ------------------------------------------------------------------ rigs
+
+    private static List<long[]> pockets(int count, int per, int apart) {
+        List<long[]> out = new ArrayList<>();
+        int side = (int) Math.ceil(Math.sqrt(per));
+        for (int p = 0; p < count; p++) {
+            long ox = (long) (p % 2) * apart;
+            long oz = (long) (p / 2) * apart;
+            for (int i = 0; i < per; i++) {
+                out.add(new long[] {ox + i % side, oz + i / side});
+            }
+        }
+        return out;
+    }
+
+    private static List<long[]> line(int count, int spacing) {
+        List<long[]> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            out.add(new long[] {(long) i * spacing, 0});
+        }
+        return out;
+    }
+
+    /** Two placements in the same chunk: a real case across two groups. */
+    private static List<long[]> coincident() {
+        return List.of(new long[] {5, 5}, new long[] {5, 5},
+                new long[] {40, 40}, new long[] {41, 44});
+    }
+
+    /** Clark-Evans straight from the definition, O(n^2), no bucketing. */
+    private static double bruteForceClarkEvans(List<long[]> positions, int radiusChunks) {
+        int n = positions.size();
+        double sum = 0.0;
+        for (int i = 0; i < n; i++) {
+            double best = Double.MAX_VALUE;
+            for (int j = 0; j < n; j++) {
+                if (i == j) {
+                    continue;
+                }
+                double dx = positions.get(i)[0] - positions.get(j)[0];
+                double dz = positions.get(i)[1] - positions.get(j)[1];
+                best = Math.min(best, dx * dx + dz * dz);
+            }
+            sum += Math.sqrt(best);
+        }
+        double observed = sum / n;
+        double area = Math.PI * (double) radiusChunks * radiusChunks;
+        return observed / (0.5 / Math.sqrt(n / area));
     }
 }

@@ -36,6 +36,7 @@ usage() {
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
+  echo "  clean    Delete everything git does not track (world, bank, bundle, caches)"
   echo "  rollback Revert to a previous stack bundle version"
   echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
   echo "  verify      Run every offline checker over the server's artefacts (no RCON)"
@@ -477,6 +478,17 @@ case "$CMD" in
     ensure_stack
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" refresh-config
+    ;;
+  clean)
+    # Runs before the stack is checked, because the bundle is one of the things
+    # it deletes — ensure_stack would re-pull what is about to go.
+    export CONSUMER_DIR
+    script="$CONSUMER_DIR/$STACK_SCRIPTS/clean-dev-state.sh"
+    if [[ ! -f "$script" ]]; then
+      echo "clean is not in this stack version — run ./dev update first." >&2
+      exit 1
+    fi
+    exec bash "$script" "$CONSUMER_DIR" "$@"
     ;;
   rollback)
     if [[ ! -d "$CONSUMER_DIR/.stack" ]]; then

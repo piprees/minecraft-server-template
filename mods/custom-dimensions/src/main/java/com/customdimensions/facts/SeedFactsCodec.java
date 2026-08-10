@@ -22,6 +22,12 @@ import java.util.function.Function;
  * absence with its reason intact: a round trip that quietly turns
  * {@code {"absent": "..."}} into a zero would defeat D4 at the file boundary,
  * which is the one place the type system stops helping.
+ *
+ * <p>Reading is parsing, not policy. The record carries the {@code stackVersion}
+ * that measured it; whether a record from another release may be used is the
+ * caller's decision, taken where the running version is known. There is no
+ * backwards compatibility: a record from any other release is deleted and
+ * re-measured, never adapted.
  */
 public final class SeedFactsCodec {
 
@@ -30,26 +36,20 @@ public final class SeedFactsCodec {
 
     public static SeedFacts read(String json) {
         JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-        int version = root.has("schemaVersion") ? root.get("schemaVersion").getAsInt() : 0;
-        if (version != SeedFacts.SCHEMA_VERSION) {
-            throw new IllegalArgumentException(
-                    "facts schemaVersion " + version + ", this build writes "
-                    + SeedFacts.SCHEMA_VERSION + " — refusing to read a record "
-                    + "whose facts may not mean what they say");
-        }
-
         JsonObject spawn = obj(root, "spawn");
         JsonObject biomes = obj(root, "biomes");
         JsonObject terrain = obj(root, "terrain");
         JsonObject structures = obj(root, "structures");
 
         return new SeedFacts(
+                root.get("stackVersion").getAsString(),
                 root.get("dimension").getAsString(),
                 root.get("seed").getAsLong(),
                 root.get("measuredAt").getAsString(),
                 root.get("configFingerprint").getAsString(),
                 root.get("playableRadius").getAsInt(),
                 new SeedFacts.SpawnFacts(
+                        measured(spawn, "column", SeedFactsCodec::column),
                         measured(spawn, "biome", JsonElement::getAsString),
                         measured(spawn, "surfaceHeight", JsonElement::getAsInt),
                         measured(spawn, "localRelief", JsonElement::getAsDouble),
@@ -70,6 +70,7 @@ public final class SeedFactsCodec {
                         measured(structures, "byGroup", SeedFactsCodec::intMap),
                         measured(structures, "byStructure", SeedFactsCodec::intMap),
                         measured(structures, "nearestByStructure", SeedFactsCodec::doubleMap),
+                        measured(structures, "clusteringByGroup", SeedFactsCodec::doubleMap),
                         measured(structures, "clustering", JsonElement::getAsDouble),
                         measured(structures, "nearestHostile", JsonElement::getAsDouble),
                         measured(structures, "totalPositions", JsonElement::getAsInt)));
@@ -97,6 +98,17 @@ public final class SeedFactsCodec {
             return Measured.absent(element.getAsJsonObject().get("absent").getAsString());
         }
         return Measured.of(parse.apply(element));
+    }
+
+    /**
+     * A spawn column. {@code declared} is read, never defaulted: a record that
+     * lost it would say a measurement site was chosen deliberately when the
+     * origin was used for want of one.
+     */
+    private static SeedFacts.Column column(JsonElement element) {
+        JsonObject o = element.getAsJsonObject();
+        return new SeedFacts.Column(o.get("x").getAsInt(), o.get("z").getAsInt(),
+                o.get("declared").getAsBoolean());
     }
 
     private static Map<String, Double> doubleMap(JsonElement element) {

@@ -49,6 +49,19 @@ public final class Artefacts {
                 .orElse("unknown");
     }
 
+    /**
+     * Whether a stamp names a release rather than a local build.
+     *
+     * <p>Every local build carries the same dev version from gradle.properties
+     * while measuring whatever the working tree does, so a stamp match between
+     * two dev builds proves nothing. Anything that reuses an artefact rather
+     * than re-deriving it must ask this first.
+     */
+    public static boolean isRelease(String version) {
+        return version != null && !version.isBlank()
+                && !"unknown".equals(version) && !version.contains("local");
+    }
+
     private Artefacts() {
     }
 

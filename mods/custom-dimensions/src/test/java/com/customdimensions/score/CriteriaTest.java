@@ -14,10 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Phase 5's gate: every criterion gets a passing case, a failing case and an
- * absent-input case. The tests ARE the argument about what each criterion
- * should mean — the old model's judgement was an emergent property of six
- * interacting constant tables and nothing tested it at all.
+ * Every criterion gets a passing case, a failing case and an absent-input case.
+ * These tests are where what a criterion means is stated: a disagreement about
+ * scoring is a disagreement about one function and one set of assertions.
  */
 class CriteriaTest {
 
@@ -30,12 +29,13 @@ class CriteriaTest {
     private static SeedFacts facts(SeedFacts.SpawnFacts spawn, SeedFacts.BiomeFacts biomes,
                                    SeedFacts.TerrainFacts terrain,
                                    SeedFacts.StructureFacts structures, int radius) {
-        return new SeedFacts("adventure:test", 1L, "now", "fp", radius,
+        return new SeedFacts("test", "adventure:test", 1L, "now", "fp", radius,
                 spawn, biomes, terrain, structures);
     }
 
     private static SeedFacts.SpawnFacts spawn(String biome, Double localRelief) {
         return new SeedFacts.SpawnFacts(
+                Measured.of(new SeedFacts.Column(0, 0, false)),
                 biome == null ? gone() : Measured.of(biome),
                 Measured.of(64),
                 localRelief == null ? gone() : Measured.of(localRelief),
@@ -56,13 +56,27 @@ class CriteriaTest {
                 Measured.of(2.0), Measured.of(0.1), Measured.of(0), Measured.of(100));
     }
 
+    /** One group of ten placements at the given spacing — the simple case. */
     private static SeedFacts.StructureFacts structures(Double clustering, Double nearestHostile) {
+        return structures(clustering == null ? null : Map.of("deco", clustering),
+                Map.of("deco", 10), nearestHostile);
+    }
+
+    private static SeedFacts.StructureFacts structures(Map<String, Double> spacingByGroup,
+                                                       Map<String, Integer> countByGroup,
+                                                       Double nearestHostile) {
+        int total = countByGroup.values().stream().mapToInt(Integer::intValue).sum();
         return new SeedFacts.StructureFacts(
-                Measured.of(Map.of()), Measured.of(Map.of()), Measured.of(Map.of()),
                 Measured.of(Map.of()),
-                clustering == null ? gone() : Measured.of(clustering),
+                Measured.of(countByGroup),
+                Measured.of(Map.of()),
+                Measured.of(Map.of()),
+                spacingByGroup == null ? gone() : Measured.of(spacingByGroup),
+                spacingByGroup == null ? gone()
+                        : Measured.of(spacingByGroup.values().stream()
+                                .mapToDouble(Double::doubleValue).average().orElse(1.0)),
                 nearestHostile == null ? gone() : Measured.of(nearestHostile),
-                Measured.of(10));
+                Measured.of(total));
     }
 
     private static DimensionConfig config(List<String> spawnFilter, String terrainWord,
@@ -178,10 +192,10 @@ class CriteriaTest {
     void evenlySpreadStructuresScoreZeroAndPocketsScoreHigh() {
         var c = new Criteria.StructuresFormPlacesNotNoise();
         DimensionConfig def = config(null, null, null);
-        // Exclusion-based placement never falls below 1.0 in practice, so the
-        // scale has to rank the range it can actually reach: 1.0 is the best
-        // reachable, a perfect lattice is the worst. A pass/fail at 1.0 gave
-        // all 81 dimensions a permanent zero and ranked nothing.
+        // A group on an even profile cannot fall below 1.0 — Poisson-disc
+        // placement enforces a minimum separation — so its scale runs from 1.0
+        // (as loose as its spacing allows) down to a perfect lattice. A pass/fail
+        // at 1.0 scores every such group zero and ranks nothing.
         double loose = score(c.evaluate(
                 full("b", 4.0, 5, 0.4, 0.3, 30.0, 1.02, 900.0, 4096), def));
         double rigid = score(c.evaluate(
@@ -202,6 +216,78 @@ class CriteriaTest {
                 full("b", 4.0, 5, 0.4, 0.3, 30.0, null, 900.0, 4096), def));
         assertFalse(c.applicable(noStructures()),
                 "a dimension with structures switched off is not asked about them");
+    }
+
+    @Test
+    void aPocketedGroupIsNotHiddenBySixDispersedOnes() {
+        // The defect the per-group fact exists to fix. `dungeons` sits in
+        // pockets; six other groups are evenly spread. Judged on the pooled
+        // statistic — one number over every group's placements at once — the
+        // pocket is invisible, which is why the measurement never fell below 1
+        // across the whole bank. Judged per group, weighted by placements, the
+        // pocketed group is worth what it holds.
+        var c = new Criteria.StructuresFormPlacesNotNoise();
+        DimensionConfig def = withClusterGroup("dungeons");
+        assertEquals(List.of("dungeons"),
+                Criteria.StructuresFormPlacesNotNoise.clusterGroups(def),
+                "the fixture must actually put dungeons on the cluster profile, or "
+                + "this test proves nothing about the cluster branch");
+
+        Map<String, Integer> counts = Map.of("dungeons", 40, "deco", 60);
+        SeedFacts pocketed = facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(Map.of("dungeons", 0.45, "deco", 1.05), counts, 900.0), 4096);
+        SeedFacts flat = facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(Map.of("dungeons", 1.05, "deco", 1.05), counts, 900.0), 4096);
+
+        double withPocket = score(c.evaluate(pocketed, def));
+        double withoutPocket = score(c.evaluate(flat, def));
+        assertTrue(withPocket > withoutPocket,
+                "a dimension whose cluster group pocketed (" + withPocket + ") must beat "
+                + "one whose cluster group did not (" + withoutPocket + ")");
+        // 40 of 100 placements score 1.0; the other 60 score the even-profile
+        // value for 1.05. Hand-worked rather than read off the implementation.
+        double evenAt105 = (Criteria.StructuresFormPlacesNotNoise.LATTICE - 1.05)
+                / (Criteria.StructuresFormPlacesNotNoise.LATTICE - 1.0);
+        assertEquals((40 * 1.0 + 60 * evenAt105) / 100.0, withPocket, 1e-9);
+    }
+
+    @Test
+    void aClusterGroupThatFailedToPocketIsMarkedDownWhereAnEvenGroupIsNot() {
+        // The two branches must actually differ, or naming a profile means
+        // nothing. Same measured spacing, two configs: on `cluster` it is a
+        // failure to deliver what was asked for, on an even profile it is the
+        // best the mechanism can do.
+        var c = new Criteria.StructuresFormPlacesNotNoise();
+        Map<String, Double> spacing = Map.of("dungeons", 1.0);
+        Map<String, Integer> counts = Map.of("dungeons", 25);
+        SeedFacts f = facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(spacing, counts, 900.0), 4096);
+
+        double asCluster = score(c.evaluate(f, withClusterGroup("dungeons")));
+        double asEven = score(c.evaluate(f, config(null, null, null)));
+        assertEquals(0.0, asCluster, 1e-9,
+                "a cluster group at a random scatter delivered none of what it asked for");
+        assertEquals(1.0, asEven, 1e-9,
+                "an even group at 1.0 is as loose as its spacing permits");
+    }
+
+    @Test
+    void atwoPlacementGroupCannotSwingTheAnswer() {
+        // Clark-Evans over two points is mostly noise. Weighting by placements
+        // is what stops the noisiest group deciding the score — a plain
+        // best-of-groups reading would systematically pick it.
+        var c = new Criteria.StructuresFormPlacesNotNoise();
+        DimensionConfig def = config(null, null, null);
+        SeedFacts f = facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(Map.of("loot", 1.0, "deco", 1.6),
+                        Map.of("loot", 2, "deco", 500), 900.0), 4096);
+        double v = score(c.evaluate(f, def));
+        double decoAlone = score(c.evaluate(
+                facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                        structures(Map.of("deco", 1.6), Map.of("deco", 500), 900.0), 4096),
+                def));
+        assertTrue(Math.abs(v - decoAlone) < 0.01,
+                "two placements moved the answer by " + Math.abs(v - decoAlone));
     }
 
     // ------------------------------------------------- first encounter band
@@ -349,9 +435,8 @@ class CriteriaTest {
 
     @Test
     void gatesCostNoWeightSoClearingThemBuysNothing() {
-        // P6: namesake was 1.0 for the best candidate of all 81 dimensions — a
-        // sixth of the scale that ranked nothing. As a gate it must not appear
-        // in the denominator at all.
+        // A gate must not appear in the denominator at all: clearing one is a
+        // precondition for being scored, not a mark to be awarded.
         DimensionConfig withGate = config(List.of("minecraft:snowy_plains"), null, null);
         DimensionConfig withoutGate = config(null, null, null);
         assertEquals(Scorer.ceiling(withoutGate, Criteria.all()),
@@ -373,22 +458,35 @@ class CriteriaTest {
     }
 
     private static SeedFacts nothingMeasured() {
-        return facts(new SeedFacts.SpawnFacts(gone(), gone(), gone(), gone()),
+        return facts(new SeedFacts.SpawnFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone()),
+                        gone(), gone(), gone()),
                 4096);
     }
 
     /** Nothing measured except the spawn biome, so the namesake gate passes. */
     private static SeedFacts nothingMeasuredSpawn(String biome) {
-        return facts(new SeedFacts.SpawnFacts(Measured.of(biome), gone(), gone(), gone()),
+        return facts(new SeedFacts.SpawnFacts(
+                        Measured.of(new SeedFacts.Column(0, 0, false)),
+                        Measured.of(biome), gone(), gone(), gone()),
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone()),
+                        gone(), gone(), gone()),
                 4096);
+    }
+
+    /** A config putting one group on the `cluster` profile. */
+    private static DimensionConfig withClusterGroup(String group) {
+        DimensionConfig def = config(null, null, null);
+        DimensionConfig.Structures s = new DimensionConfig.Structures();
+        com.google.gson.JsonObject noise = new com.google.gson.JsonObject();
+        noise.addProperty(group, "cluster");
+        s.noise = noise;
+        def.setStructures(s);
+        return def;
     }
 
     private static DimensionConfig noStructures() {

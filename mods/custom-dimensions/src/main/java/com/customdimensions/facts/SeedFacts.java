@@ -16,6 +16,7 @@ import java.util.Map;
  * absence with a reason rather than a zero that reads like a measurement.
  */
 public record SeedFacts(
+        String stackVersion,
         String dimension,
         long seed,
         String measuredAt,
@@ -26,12 +27,32 @@ public record SeedFacts(
         TerrainFacts terrain,
         StructureFacts structures) {
 
-    /** Where the player starts, and what is there. */
+    /**
+     * Where the player starts, and what is there.
+     *
+     * @param column the column the four facts below were measured at, and
+     *               whether the dimension declared it. Where a fact was measured
+     *               is itself a fact: the measurement site is only derivable from
+     *               the merged config (platform layer plus consumer overlay), and
+     *               either layer alone gives a different answer.
+     */
     public record SpawnFacts(
+            Measured<Column> column,
             Measured<String> biome,
             Measured<Integer> surfaceHeight,
             Measured<Double> localRelief,
             Measured<Boolean> aboveSeaLevel) {
+    }
+
+    /**
+     * A horizontal position, and where it came from.
+     *
+     * @param declared true when the dimension config names this spawn, false
+     *                 when it names none and the origin stands in. A dimension
+     *                 declaring {@code [0, 64, 0]} shares the coordinates and
+     *                 not the meaning.
+     */
+    public record Column(int x, int z, boolean declared) {
     }
 
     /**
@@ -74,19 +95,23 @@ public record SeedFacts(
      *
      * @param pool               structure id -> its summed weight in the pool.
      *                           What COULD be placed, as distinct from what
-     *                           was. Without it, a pool difference and a pick
-     *                           difference look identical from the outside,
-     *                           which is exactly the ambiguity that made the
-     *                           first parity failure hard to localise.
+     *                           was. Without it a pool difference and a pick
+     *                           difference are indistinguishable from outside.
      * @param byGroup            group -> how many positions
      * @param byStructure        structure id -> how many positions assigned
      * @param nearestByStructure structure id -> distance in blocks from spawn
-     * @param clustering         mean nearest-neighbour distance divided by the
-     *                           distance a uniform scatter of the same count
-     *                           would give. Below 1 means pockets (places);
-     *                           at or above 1 means even spread (noise). This
-     *                           is orthogonal to the radial shape, which is
-     *                           why counting positions cannot answer it.
+     * @param clusteringByGroup  group -> Clark-Evans for THAT group's placements
+     *                           alone. Each group is an independent point process
+     *                           — its own noise field, frequency and exclusion
+     *                           radius — so this is the granularity at which
+     *                           pockets exist. Superimposing several independent
+     *                           processes drives the combined statistic toward
+     *                           that of a random scatter whatever the parts look
+     *                           like, so a pocketed group is invisible in the
+     *                           pooled figure.
+     * @param clustering          the same statistic over every group at once: a
+     *                           fact about all structures taken together, and the
+     *                           wrong input for a question about pockets.
      * @param nearestHostile     blocks from spawn to the nearest dungeons or
      *                           endgame placement
      */
@@ -95,6 +120,7 @@ public record SeedFacts(
             Measured<Map<String, Integer>> byGroup,
             Measured<Map<String, Integer>> byStructure,
             Measured<Map<String, Double>> nearestByStructure,
+            Measured<Map<String, Double>> clusteringByGroup,
             Measured<Double> clustering,
             Measured<Double> nearestHostile,
             Measured<Integer> totalPositions) {
@@ -102,20 +128,9 @@ public record SeedFacts(
 
     // ------------------------------------------------------------------ json
 
-    /**
-     * Bumped whenever a fact's MEANING changes, not just the layout.
-     *
-     * <p>This is what stops a banked record being re-scored after the engine
-     * changed what it measures. The config fingerprint cannot see that: it
-     * describes the world, and the defect it misses is measuring the right
-     * world in the wrong place. Version 2 moved spawn facts from the origin to
-     * the dimension's declared spawn.
-     */
-    public static final int SCHEMA_VERSION = 2;
-
     public String toJson() {
         StringBuilder b = new StringBuilder();
-        b.append("{\n \"schemaVersion\": ").append(SCHEMA_VERSION).append(",\n");
+        b.append("{\n \"stackVersion\": ").append(Json.quote(stackVersion)).append(",\n");
         b.append(" \"dimension\": ").append(Json.quote(dimension)).append(",\n");
         b.append(" \"seed\": ").append(seed).append(",\n");
         b.append(" \"measuredAt\": ").append(Json.quote(measuredAt)).append(",\n");
@@ -124,6 +139,7 @@ public record SeedFacts(
         b.append(" \"playableRadius\": ").append(playableRadius).append(",\n");
 
         b.append(" \"spawn\": {\n");
+        field(b, "column", spawn.column().toJson(SeedFacts::column), true);
         field(b, "biome", spawn.biome().toJson(Json::quote), true);
         field(b, "surfaceHeight", spawn.surfaceHeight().toJson(v -> Json.number((long) v)), true);
         field(b, "localRelief", spawn.localRelief().toJson(Json::number), true);
@@ -152,6 +168,8 @@ public record SeedFacts(
         field(b, "byStructure", structures.byStructure().toJson(SeedFacts::intMap), true);
         field(b, "nearestByStructure",
                 structures.nearestByStructure().toJson(SeedFacts::doubleMap), true);
+        field(b, "clusteringByGroup",
+                structures.clusteringByGroup().toJson(SeedFacts::doubleMap), true);
         field(b, "clustering", structures.clustering().toJson(Json::number), true);
         field(b, "nearestHostile", structures.nearestHostile().toJson(Json::number), true);
         field(b, "totalPositions",
@@ -163,6 +181,11 @@ public record SeedFacts(
     private static void field(StringBuilder b, String name, String json, boolean comma) {
         b.append("  ").append(Json.quote(name)).append(": ").append(json)
                 .append(comma ? ",\n" : "\n");
+    }
+
+    private static String column(Column c) {
+        return "{\"x\": " + c.x() + ", \"z\": " + c.z()
+                + ", \"declared\": " + c.declared() + "}";
     }
 
     private static String doubleMap(Map<String, Double> m) {
@@ -192,6 +215,7 @@ public record SeedFacts(
     /** Every absent fact in this record, as "path: reason". For the summary. */
     public List<String> absences() {
         List<String> out = new java.util.ArrayList<>();
+        absent(out, "spawn.column", spawn.column());
         absent(out, "spawn.biome", spawn.biome());
         absent(out, "spawn.surfaceHeight", spawn.surfaceHeight());
         absent(out, "spawn.localRelief", spawn.localRelief());

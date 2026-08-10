@@ -1,5 +1,6 @@
 package com.customdimensions.facts;
 
+import com.customdimensions.command.Artefacts;
 import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
@@ -28,10 +29,9 @@ import java.util.TreeMap;
  * own worldgen classes rather than a mirror of them.
  *
  * <p>Everything here is a measurement. Nothing here is a judgement — no
- * weights, no targets, no verdicts. That separation is the point: the previous
- * design could not distinguish "this seed is poor" from "this config is
- * broken" from "we could not measure it", because all three arrived as one
- * number, and 142 broken configs hid inside it for months.
+ * weights, no targets, no verdicts. The separation is what keeps "this seed is
+ * poor", "this config is broken" and "this could not be measured" three
+ * distinct answers instead of one number.
  *
  * <p>Sampling is a square grid clipped to the playable disc. The step is
  * derived from the radius so a small dimension is not measured more coarsely
@@ -78,6 +78,7 @@ public final class FactsEngine {
         Grid grid = sampleGrid(rig, radius);
 
         return new SeedFacts(
+                Artefacts.stackVersion(),
                 dimensionId.toString(), seed, Instant.now().toString(), fingerprint, radius,
                 spawnFacts(rig, spawnColumn(def)),
                 biomeFacts(grid),
@@ -125,38 +126,35 @@ public final class FactsEngine {
     // ----------------------------------------------------------------- spawn
 
     /**
-     * Where a player actually arrives, as {@code {x, z}}.
+     * Where a player arrives, as {@code {x, z}}.
      *
-     * <p>Not the origin. A dimension's {@code spawn} is what {@code ExitTarget}
-     * resolves an arrival to, and every one of elfydd's 81 dimensions declares
-     * one — none at 0,0. Measuring spawn facts at the origin judged a column no
-     * player ever stands on, and rejected 15 of the bank's own winners on the
-     * namesake gate for it.
+     * <p>Not the origin: {@code ExitTarget} resolves an arrival to the
+     * dimension's declared {@code spawn}, so that is the only column whose
+     * biome, height and relief describe what a player meets.
      */
-    private static int[] spawnColumn(DimensionConfig def) {
+    private static SeedFacts.Column spawnColumn(DimensionConfig def) {
         int[] spawn = def != null ? def.getSpawn() : null;
         return spawn != null && spawn.length >= 3
-                ? new int[] {spawn[0], spawn[2]}
-                : new int[] {0, 0};
+                ? new SeedFacts.Column(spawn[0], spawn[2], true)
+                : new SeedFacts.Column(0, 0, false);
     }
 
-    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig, int[] at0) {
-        SpikeSampler.Sample at = SpikeSampler.sample(rig, at0[0], at0[1]);
+    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig, SeedFacts.Column at0) {
+        SpikeSampler.Sample at = SpikeSampler.sample(rig, at0.x(), at0.z());
         Measured<Integer> h = at.surfaceHeight() == null
                 ? Measured.absent(at.heightAbsent() != null ? at.heightAbsent()
                         : "the generator answered no surface height at spawn")
                 : Measured.of(at.surfaceHeight());
 
-        // Local relief: the spread over the chunk the player actually lands in.
-        // Sampled at SPAWN_PROBE_STEP rather than reused from the coarse grid,
-        // whose neighbours are (radius * 2) / (GRID - 1) apart — 204 blocks at
-        // a 4096 radius. A 34-block rise across 400 blocks is a gentle slope,
-        // and reading it as a cliff rejected nine of the bank's own winners.
+        // Local relief: the spread over the chunk the player lands in. Sampled
+        // at SPAWN_PROBE_STEP rather than reused from the coarse grid, whose
+        // neighbours are (radius * 2) / (GRID - 1) apart — 204 blocks at a 4096
+        // radius, where a 34-block rise is a gentle slope, not a cliff.
         List<Integer> around = new ArrayList<>();
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                Integer v = SpikeSampler.sample(rig, at0[0] + dx * SPAWN_PROBE_STEP,
-                        at0[1] + dz * SPAWN_PROBE_STEP).surfaceHeight();
+                Integer v = SpikeSampler.sample(rig, at0.x() + dx * SPAWN_PROBE_STEP,
+                        at0.z() + dz * SPAWN_PROBE_STEP).surfaceHeight();
                 if (v != null) {
                     around.add(v);
                 }
@@ -178,6 +176,7 @@ public final class FactsEngine {
         }
 
         return new SeedFacts.SpawnFacts(
+                Measured.of(at0),
                 at.biome() == null
                         ? Measured.absent(at.biomeAbsent() != null ? at.biomeAbsent()
                                 : "the biome source answered nothing at spawn")
@@ -383,6 +382,7 @@ public final class FactsEngine {
         Map<String, Integer> byGroup = new TreeMap<>();
         Map<String, Integer> byStructure = new TreeMap<>();
         Map<String, Double> nearest = new TreeMap<>();
+        Map<String, List<long[]>> positionsByGroup = new TreeMap<>();
         List<long[]> allPositions = new ArrayList<>();
         List<long[]> hostilePositions = new ArrayList<>();
         int total = 0;
@@ -410,11 +410,14 @@ public final class FactsEngine {
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
             int count = 0;
+            List<long[]> groupPositions = new ArrayList<>();
+            positionsByGroup.put(group, groupPositions);
             for (ChunkPos pos : placement.index().positions()) {
                 String assigned = StructurePick.assignedStructure(
                         noiseSeed, pos.x, pos.z, sorted);
                 count++;
                 total++;
+                groupPositions.add(new long[] {pos.x, pos.z});
                 allPositions.add(new long[] {pos.x, pos.z});
                 if (HOSTILE_GROUPS.contains(group)) {
                     hostilePositions.add(new long[] {pos.x, pos.z});
@@ -432,7 +435,7 @@ public final class FactsEngine {
             String why = "every enabled group produced an empty pool or an empty field";
             return new SeedFacts.StructureFacts(
                     Measured.of(poolWeights), Measured.of(byGroup), Measured.of(byStructure),
-                    Measured.of(nearest),
+                    Measured.of(nearest), Measured.absent(why),
                     Measured.absent(why), Measured.absent(why), Measured.of(0));
         }
 
@@ -441,11 +444,39 @@ public final class FactsEngine {
                 Measured.of(byGroup),
                 Measured.of(byStructure),
                 Measured.of(nearest),
+                clusteringByGroup(positionsByGroup, radiusChunks),
                 clustering(allPositions, radiusChunks),
                 hostilePositions.isEmpty()
                         ? Measured.absent("this dimension places no dungeons or endgame structures")
                         : Measured.of(nearestDistanceBlocks(hostilePositions)),
                 Measured.of(total));
+    }
+
+    /**
+     * Clark-Evans for each group on its own.
+     *
+     * <p>The pooled figure cannot answer whether a group forms pockets. Each
+     * group is an independent point process — its own noise field, frequency and
+     * exclusion radius — and superimposing several independent processes drives
+     * the combined statistic toward that of a random scatter whatever the parts
+     * look like.
+     *
+     * <p>A group with fewer than two placements contributes no entry rather than
+     * a filler value — the map states what it could measure.
+     */
+    static Measured<Map<String, Double>> clusteringByGroup(
+            Map<String, List<long[]>> positionsByGroup, int radiusChunks) {
+        Map<String, Double> out = new TreeMap<>();
+        for (Map.Entry<String, List<long[]>> e : positionsByGroup.entrySet()) {
+            Measured<Double> c = clustering(e.getValue(), radiusChunks);
+            if (c.isPresent()) {
+                out.put(e.getKey(), c.orThrow());
+            }
+        }
+        return out.isEmpty()
+                ? Measured.absent("no group has two placements, so no group has a spacing "
+                        + "to characterise")
+                : Measured.of(out);
     }
 
     /**
@@ -508,7 +539,7 @@ public final class FactsEngine {
         return new SeedFacts.StructureFacts(
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
-                Measured.absent(why));
+                Measured.absent(why), Measured.absent(why));
     }
 
     private static double nearestDistanceBlocks(List<long[]> positions) {
@@ -528,10 +559,13 @@ public final class FactsEngine {
      * curve cannot answer this: a curve describes density against distance from
      * spawn, and both a clustered and an even layout can share one.
      *
-     * <p>O(n^2) is deliberate and bounded: the largest shipped dimension is
-     * ~62k positions across all groups, and this runs once per measured seed
-     * off the tick loop. It is capped anyway, and the cap is reported rather
-     * than silently applied.
+     * <p>Every placement is measured; there is no subsample. Thinning a
+     * clustered pattern removes members of each pocket, so its mean
+     * nearest-neighbour distance rises toward the random expectation — a
+     * systematic error toward "evenly spread", worst on the dimensions with the
+     * most placements. The nearest-neighbour search is therefore bucketed into a
+     * uniform grid rather than capped: expected linear in the number of
+     * placements, and exact.
      */
     static Measured<Double> clustering(List<long[]> positions, int radiusChunks) {
         int n = positions.size();
@@ -539,55 +573,151 @@ public final class FactsEngine {
             return Measured.absent(
                     "fewer than two placements, so there is no spacing to characterise");
         }
-        final int cap = 4000;
-        List<long[]> sample = positions;
-        if (n > cap) {
-            // Deterministic stride rather than a random draw: a fact must not
-            // depend on which run computed it.
-            sample = new ArrayList<>(cap);
-            double stride = n / (double) cap;
-            for (int i = 0; i < cap; i++) {
-                sample.add(positions.get((int) (i * stride)));
-            }
-        }
-        int m = sample.size();
         double sum = 0.0;
-        for (int i = 0; i < m; i++) {
-            long[] a = sample.get(i);
-            double best = Double.MAX_VALUE;
-            for (int j = 0; j < m; j++) {
-                if (i == j) {
-                    continue;
-                }
-                long[] b = sample.get(j);
-                double dx = a[0] - b[0];
-                double dz = a[1] - b[1];
-                double d = dx * dx + dz * dz;
-                if (d < best) {
-                    best = d;
-                }
-            }
-            sum += Math.sqrt(best);
+        NearestNeighbours nn = new NearestNeighbours(positions);
+        for (int i = 0; i < n; i++) {
+            sum += Math.sqrt(nn.nearestSquared(i));
         }
-        double observed = sum / m;
+        double observed = sum / n;
         double area = Math.PI * (double) radiusChunks * radiusChunks;
         if (area <= 0.0) {
             return Measured.absent("the playable radius is zero, so density is undefined");
         }
-        double expected = 0.5 / Math.sqrt(m / area);
+        double expected = 0.5 / Math.sqrt(n / area);
         if (expected <= 0.0) {
             return Measured.absent("the expected spacing for this density is not positive");
         }
         return Measured.of(observed / expected);
     }
 
+    /**
+     * Exact nearest-neighbour distances over a set of chunk positions, bucketed
+     * into a uniform grid so the whole set can be measured rather than a
+     * subsample of it.
+     *
+     * <p>Duplicates are kept and matched by index, so two groups placing in the
+     * same chunk answer zero. Dropping one would report a spacing the world does
+     * not have.
+     */
+    private static final class NearestNeighbours {
+
+        private final long[] xs;
+        private final long[] zs;
+        private final int cell;
+        private final long minX;
+        private final long minZ;
+        private final int cols;
+        private final int rows;
+        /** CSR: cellStart[c]..cellStart[c+1] indexes into {@link #byCell}. */
+        private final int[] cellStart;
+        private final int[] byCell;
+
+        NearestNeighbours(List<long[]> positions) {
+            int n = positions.size();
+            this.xs = new long[n];
+            this.zs = new long[n];
+            long lowX = Long.MAX_VALUE;
+            long lowZ = Long.MAX_VALUE;
+            long highX = Long.MIN_VALUE;
+            long highZ = Long.MIN_VALUE;
+            for (int i = 0; i < n; i++) {
+                long[] p = positions.get(i);
+                xs[i] = p[0];
+                zs[i] = p[1];
+                lowX = Math.min(lowX, p[0]);
+                lowZ = Math.min(lowZ, p[1]);
+                highX = Math.max(highX, p[0]);
+                highZ = Math.max(highZ, p[1]);
+            }
+            this.minX = lowX;
+            this.minZ = lowZ;
+            // Roughly one point per cell: the ring search then examines a
+            // handful of cells per query whatever the density.
+            double span = (double) (highX - lowX + 1) * (double) (highZ - lowZ + 1);
+            this.cell = Math.max(1, (int) Math.ceil(Math.sqrt(span / n)));
+            this.cols = (int) ((highX - lowX) / cell) + 1;
+            this.rows = (int) ((highZ - lowZ) / cell) + 1;
+
+            int[] counts = new int[cols * rows + 1];
+            for (int i = 0; i < n; i++) {
+                counts[cellOf(i) + 1]++;
+            }
+            for (int c = 0; c < cols * rows; c++) {
+                counts[c + 1] += counts[c];
+            }
+            this.cellStart = counts;
+            this.byCell = new int[n];
+            int[] cursor = new int[cols * rows];
+            for (int i = 0; i < n; i++) {
+                int c = cellOf(i);
+                byCell[cellStart[c] + cursor[c]++] = i;
+            }
+        }
+
+        private int cellOf(int i) {
+            int cx = (int) ((xs[i] - minX) / cell);
+            int cz = (int) ((zs[i] - minZ) / cell);
+            return cz * cols + cx;
+        }
+
+        /**
+         * Squared distance from point {@code i} to the nearest other point, in
+         * chunks. Exact: rings of cells are examined outward until every
+         * unexamined cell is provably farther than the best found so far.
+         */
+        double nearestSquared(int i) {
+            int cx = (int) ((xs[i] - minX) / cell);
+            int cz = (int) ((zs[i] - minZ) / cell);
+            double best = Double.MAX_VALUE;
+            int maxRing = Math.max(cols, rows);
+            for (int r = 0; r <= maxRing; r++) {
+                for (int gz = cz - r; gz <= cz + r; gz++) {
+                    if (gz < 0 || gz >= rows) {
+                        continue;
+                    }
+                    boolean edgeRow = gz == cz - r || gz == cz + r;
+                    for (int gx = cx - r; gx <= cx + r; gx++) {
+                        if (gx < 0 || gx >= cols) {
+                            continue;
+                        }
+                        // Interior cells belong to a smaller ring.
+                        if (!edgeRow && gx != cx - r && gx != cx + r) {
+                            continue;
+                        }
+                        int c = gz * cols + gx;
+                        for (int k = cellStart[c]; k < cellStart[c + 1]; k++) {
+                            int j = byCell[k];
+                            if (j == i) {
+                                continue;
+                            }
+                            double dx = xs[i] - xs[j];
+                            double dz = zs[i] - zs[j];
+                            double d = dx * dx + dz * dz;
+                            if (d < best) {
+                                best = d;
+                            }
+                        }
+                    }
+                }
+                // A point in an unexamined cell sits at Chebyshev ring r+1 or
+                // beyond, so no closer than r cells away.
+                double bound = (double) r * cell;
+                if (best <= bound * bound) {
+                    return best;
+                }
+            }
+            return best;
+        }
+    }
+
     // ------------------------------------------------------------ unmeasured
 
     private static SeedFacts unmeasurable(Identifier id, long seed, int radius,
                                           String fingerprint, String why) {
-        return new SeedFacts(id.toString(), seed, Instant.now().toString(), fingerprint, radius,
+        return new SeedFacts(Artefacts.stackVersion(),
+                id.toString(), seed, Instant.now().toString(), fingerprint, radius,
                 new SeedFacts.SpawnFacts(Measured.absent(why), Measured.absent(why),
-                        Measured.absent(why), Measured.absent(why)),
+                        Measured.absent(why), Measured.absent(why), Measured.absent(why)),
                 new SeedFacts.BiomeFacts(Measured.absent(why), Measured.absent(why),
                         Measured.absent(why), Measured.absent(why)),
                 new SeedFacts.TerrainFacts(Measured.absent(why), Measured.absent(why),

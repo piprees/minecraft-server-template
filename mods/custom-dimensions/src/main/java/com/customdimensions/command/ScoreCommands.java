@@ -78,38 +78,53 @@ public final class ScoreCommands {
     }
 
     /**
-     * A banked facts record for this exact (dimension, seed, config), or null.
+     * A banked facts record for this exact (dimension, seed, config, release),
+     * or null after deleting whatever was there.
      *
-     * <p>Measuring costs up to 26 seconds a dimension, so re-scoring the bank
-     * after a criteria change cost 40 minutes and made iterating on the scoring
-     * model something you avoid doing. Facts do not change when a criterion
-     * does, so the honest saving is to re-read them.
+     * <p>Re-reading facts is what makes a criteria change cheap: facts do not
+     * change when a criterion does, and re-measuring a dimension costs up to 26
+     * seconds. Four things must all hold: the file parses, and its dimension,
+     * seed and config fingerprint match. The fingerprint is the load-bearing
+     * one — a config edit changes what generates, so an older record describes
+     * a different world.
      *
-     * <p>Four things must all hold or it re-measures: the file parses, and its
-     * dimension, seed and config fingerprint match. The fingerprint is the one
-     * that matters — a config edit changes what generates, so a record from
-     * before it describes a different world and scoring it would be reporting
-     * history as if it were current.
+     * <p><b>Release match, not compatibility.</b> A record measured by another
+     * release is deleted, never adapted: what the engine measures is defined by
+     * the build that measured it, and there is deliberately no mechanism for
+     * reading an older record's facts under this build's meanings. A dev build
+     * reports no release, so it never reuses — two dev builds share a version
+     * string while measuring different things.
      */
     private static SeedFacts reusableFacts(Path path, DimensionConfig def,
                                            Identifier dimensionId, long seed) {
         if (!Files.isRegularFile(path)) {
             return null;
         }
+        String running = Artefacts.stackVersion();
         try {
             SeedFacts banked = SeedFactsCodec.read(Files.readString(path));
             String fingerprint = String.valueOf(def.getBiomePatchesFingerprint());
-            if (banked.seed() == seed
+            if (Artefacts.isRelease(running)
+                    && banked.stackVersion().equals(running)
+                    && banked.seed() == seed
                     && banked.dimension().equals(dimensionId.toString())
                     && banked.configFingerprint().equals(fingerprint)) {
                 return banked;
             }
-            return null;
         } catch (IOException | RuntimeException e) {
-            // An unreadable bank is not an error worth failing on — measure.
             MultiverseServer.LOGGER.debug("Banked facts at {} unusable: {}",
                     path, e.toString());
-            return null;
+        }
+        discard(path);
+        return null;
+    }
+
+    /** Stale facts are removed, so nothing downstream can read them again. */
+    private static void discard(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.warn("Could not delete stale facts at {}", path, e);
         }
     }
 }

@@ -11,17 +11,15 @@ import java.util.Map;
 /**
  * The criteria that consume facts the engine actually measures today.
  *
- * <p>Deliberately fewer than the plan's twenty. A criterion that reads a fact
- * nobody computes would be a number invented at scoring time, which is the
- * exact failure this whole rewrite exists to end. The rest arrive with the
- * facts they need — traversability, line-of-sight, spawn buildability and
- * progression reachability all want block-level column probes the sampler does
- * not do yet.
+ * <p>A criterion that reads a fact nothing computes is a number invented at
+ * scoring time, so a criterion arrives only with its facts. Traversability,
+ * line-of-sight, spawn buildability and progression reachability all want
+ * block-level column probes the sampler does not do, and are absent here for
+ * that reason.
  *
- * <p>Every criterion here is pure: facts and config in, a result out. No world,
- * no registry, no randomness — so every one is unit-testable against a
- * hand-built facts record, and the tests are the argument about what the
- * criterion should mean.
+ * <p>Every criterion is pure: facts and config in, a result out. No world, no
+ * registry, no randomness — so each is testable against a hand-built facts
+ * record, and its tests state what it is supposed to mean.
  */
 public final class Criteria {
 
@@ -44,10 +42,9 @@ public final class Criteria {
     // ----------------------------------------------------------------- theme
 
     /**
-     * A GATE, not a score. The old model scored this and it was 1.0 for the
-     * best candidate of all 81 dimensions — a sixth of the scale that ranked
-     * nothing, because the spawn filter had already rejected everything else.
-     * As a gate it costs no weight and still does its job (P6).
+     * A GATE, not a score. The spawn filter rejects every candidate that fails
+     * it during measurement, so a graded version is 1.0 for everything that
+     * reaches scoring: weight that ranks nothing. As a gate it costs none.
      */
     static final class SpawnReadsAsNamesake implements Criterion {
         public String id() {
@@ -148,14 +145,12 @@ public final class Criteria {
         }
 
         /**
-         * The biomes the config asked for — all of them, not a floor of four.
+         * The biomes the config asked for — all of them, not a fixed floor.
          *
-         * <p>A cap of four made this a constant: over the elfydd bank
-         * `distinctCount` ran 2 to 122 and every dimension still scored 1.0,
-         * because four is trivially cleared by anything with a biome list. The
-         * question worth asking is not "are there several biomes" but "did the
-         * dimension deliver the palette its author chose", and that target is
-         * different for every config, which is what makes it rank.
+         * <p>A fixed floor is trivially cleared by anything carrying a biome
+         * list, which makes the criterion a constant. The question that ranks is
+         * not "are there several biomes" but "did the dimension deliver the
+         * palette its author chose", and that target differs per config.
          */
         static int want(DimensionConfig def) {
             return def.getBiomes() == null ? 0 : def.getBiomes().size();
@@ -212,29 +207,44 @@ public final class Criteria {
     }
 
     /**
-     * Three structures in a pocket is a PLACE; three evenly spread is scenery.
+     * Structures in a pocket are a PLACE; structures evenly spread are scenery.
+     * Each group is judged against what its own profile asked for.
      *
-     * <p>Scored against what exclusion-based placement can actually reach, not
-     * against the ideal. Every noise-managed group carries a minimum spacing,
-     * which mechanically produces a layout MORE even than random — measured
-     * over the whole elfydd bank, Clark-Evans ran 1.017 to 1.307 and never once
-     * fell below 1. Scoring "below 1 is good" therefore awarded a permanent 0.0
-     * to all 81 dimensions: a criterion ranking nothing, which is the exact
-     * defect this phase exists to remove.
+     * <p>Judged PER GROUP, and that is the whole of the criterion. A group is an
+     * independent point process — its own noise field, frequency and exclusion
+     * radius — and Clark-Evans over every group at once is the statistic of a
+     * superposition, which tends toward a random scatter whatever the parts look
+     * like. Only the per-group figure can say whether a group forms pockets.
      *
-     * <p>So the scale runs from 1.0 (as close to natural clumping as spacing
-     * permits — the best reachable) to {@link #LATTICE} (a perfect triangular
-     * lattice, the theoretical maximum dispersion). Both anchors come from the
-     * statistic's own definition rather than from the observed spread, so this
-     * is a re-target, not a curve fitted to the bank.
+     * <p>Two branches, because a group's profile is a statement of intent and the
+     * mission is to prove a dimension is what its author said it is:
      *
-     * <p>That the ideal is unreachable is a finding about the placement engine,
-     * not about any seed: the mission asks for places and exclusion radii give
-     * scenery. Fixing that is a change to placement, not to scoring.
+     * <ul>
+     * <li>A {@code cluster} group asked for pockets, so it is scored on whether
+     *     it produced them: {@link #POCKET} or below is the answer in full, 1.0
+     *     (a random scatter) is none of it.</li>
+     * <li>Every other profile asked for an even spread at its own rate, and
+     *     Poisson-disc placement cannot fall below 1.0 by construction — so it is
+     *     scored on staying as loose as its spacing allows, from 1.0 down to
+     *     {@link #LATTICE}, the maximum dispersion there is.</li>
+     * </ul>
+     *
+     * <p>Groups are weighted by how many placements they hold, so a two-placement
+     * group cannot swing the answer with a Clark-Evans that is mostly noise, and
+     * the group carrying most of what a player finds carries most of the mark.
      */
     static final class StructuresFormPlacesNotNoise implements Criterion {
         /** Clark-Evans for a perfect triangular lattice — maximum dispersion. */
         static final double LATTICE = 2.1491;
+
+        /**
+         * What a {@code cluster} group has to reach to be scored as pockets.
+         *
+         * <p>Mean nearest-neighbour spacing at half the random expectation, i.e.
+         * four times the local density: the conventional reading of "strongly
+         * clustered", not a value fitted to any pack.
+         */
+        static final double POCKET = 0.5;
 
         public String id() {
             return "structures_form_places_not_noise";
@@ -245,8 +255,12 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "placements clump as much as their group spacing allows "
-                    + "(Clark-Evans near 1.0, not toward " + LATTICE + ")";
+            List<String> clustered = clusterGroups(def);
+            String spaced = "groups on an even profile stay as loose as their spacing "
+                    + "allows (Clark-Evans near 1.0, not toward " + LATTICE + ")";
+            return clustered.isEmpty() ? spaced
+                    : "the cluster group(s) " + String.join(", ", clustered)
+                            + " reach Clark-Evans " + POCKET + " or below; " + spaced;
         }
 
         public boolean applicable(DimensionConfig def) {
@@ -254,17 +268,70 @@ public final class Criteria {
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
-            Measured<Double> c = facts.structures().clustering();
-            if (!c.isPresent()) {
-                return new Result.Unmeasured(c.reason());
+            Measured<Map<String, Double>> byGroup = facts.structures().clusteringByGroup();
+            if (!byGroup.isPresent()) {
+                return new Result.Unmeasured(byGroup.reason());
             }
-            double v = c.orThrow();
-            double score = v <= 1.0 ? 1.0 : ramp(LATTICE - v, 0.0, LATTICE - 1.0);
-            return new Result.Score(score,
-                    String.format(Locale.ROOT, "Clark-Evans %.3f (%s)", v,
-                            v < 1.0 ? "pocketed"
-                                    : v < 1.15 ? "loosely spaced"
-                                            : "rigidly spaced"));
+            Measured<Map<String, Integer>> counts = facts.structures().byGroup();
+            if (!counts.isPresent()) {
+                return new Result.Unmeasured(counts.reason());
+            }
+            List<String> clustered = clusterGroups(def);
+
+            double weighted = 0.0;
+            double weight = 0.0;
+            String bestGroup = null;
+            String worstGroup = null;
+            double best = Double.MAX_VALUE;
+            double worst = -Double.MAX_VALUE;
+            for (Map.Entry<String, Double> e : byGroup.orThrow().entrySet()) {
+                Integer n = counts.orThrow().get(e.getKey());
+                if (n == null || n <= 0) {
+                    continue;
+                }
+                double ce = e.getValue();
+                double s = clustered.contains(e.getKey())
+                        ? ramp(1.0 - ce, 0.0, 1.0 - POCKET)
+                        : ramp(LATTICE - ce, 0.0, LATTICE - 1.0);
+                weighted += s * n;
+                weight += n;
+                if (ce < best) {
+                    best = ce;
+                    bestGroup = e.getKey();
+                }
+                if (ce > worst) {
+                    worst = ce;
+                    worstGroup = e.getKey();
+                }
+            }
+            if (weight <= 0.0) {
+                return new Result.Unmeasured(
+                        "no group has both a placement count and a measured spacing");
+            }
+            return new Result.Score(weighted / weight, String.format(Locale.ROOT,
+                    "most pocketed %s at %.3f, most spread %s at %.3f, over %d placements",
+                    bestGroup, best, worstGroup, worst, (long) weight));
+        }
+
+        /**
+         * The groups this config puts on the {@code cluster} profile, resolved
+         * through the same precedence chain placement uses. Config only — no
+         * facts, no seed — so it can also be stated in the target.
+         */
+        static List<String> clusterGroups(DimensionConfig def) {
+            List<String> out = new java.util.ArrayList<>();
+            try {
+                var plan = com.customdimensions.dimension.NoiseGroupPlan.resolve(def);
+                for (var e : plan.groups().entrySet()) {
+                    if (e.getValue().profile() != null && e.getValue().profile().isCluster()) {
+                        out.add(e.getKey());
+                    }
+                }
+            } catch (RuntimeException ignored) {
+                // A config the plan cannot resolve asks for no pockets as far as
+                // this criterion is concerned; lint is where that gets reported.
+            }
+            return out;
         }
     }
 
@@ -313,10 +380,9 @@ public final class Criteria {
                 return new Result.Score(ramp(frac, 0.0, 0.05), ev + " — on top of spawn");
             }
             // Mirrors the near branch: 1.0 at the band edge, decaying to 0 at
-            // the border. The pair (0.70, 1.0) reads plausibly and is the wrong
-            // direction — 1.0 - frac can only fall BELOW 0.70 once frac passes
-            // 0.30, so it clamped to zero for the whole upper tail and ranked
-            // "just outside the band" the same as "at the world's edge".
+            // the border. The anchors run low-to-high in the ramp's own terms —
+            // reversed, the whole upper tail clamps to zero and "just outside the
+            // band" ranks the same as "at the world's edge".
             return new Result.Score(ramp(1.0 - frac, 0.0, 1.0 - 0.30),
                     ev + " — a long walk");
         }
