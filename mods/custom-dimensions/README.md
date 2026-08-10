@@ -74,6 +74,35 @@ All commands live under one root, `/customdim`, and require permission level 4.
 | `/customdim carver-draw <dimension> <chunkX> <chunkZ>` | Replay vanilla's would-be first draw beside the noise assignment for a chunk. |
 | `/customdim debug-prng <seed>` | PRNG diagnostics. |
 
+### Seed roller
+
+These run headlessly — no `ServerWorld` is created and none is left behind — and
+each answers with one line plus a path. **Read the artefact, never the RCON
+line**: RCON concatenates feedback with no separator, truncates at a few KB, and
+cannot tell a timeout from a success.
+
+| Command | What it does |
+| --- | --- |
+| `/customdim lint [dimension]` | Every config fault that would score as a bad seed: a `want` naming a structure the dimension cannot place, a biome it never produces, a portal that cannot be lit. Writes `lint/`. |
+| `/customdim facts <dimension> <seed>` | Measure one (dimension, seed) — spawn, biomes, terrain, the full structure census. Writes `facts/`. Every value is exact or an explicit absence with a reason. |
+| `/customdim score <dimension> <seed>` | Measure, then judge against the dimension's own configured intent. Writes `facts/` and `scores/`. Re-reads a banked facts record when its dimension, seed and config fingerprint all match, and says `[banked facts]` when it did. |
+| `/customdim spike-sample <dimension> <seed> <count>` | Throughput and determinism harness for the headless sampler. |
+| `/customdim spike-compare <dimension> <seed>` | Compare headless samples against the live world, for parity work. |
+| `/customdim spike-bench <dimension> <seed> <count>` | Per-seed cost, for sizing a search. |
+
+Assert over the artefacts offline, with no server running:
+
+```bash
+./dev verify                                   # every checker, safe while paused
+./scripts/check-scorecards.py --data <consumer>/data
+./scripts/check-dimension-lint.py --data <consumer>/data
+```
+
+`check-scorecards.py` is the one that catches a scoring model going quietly
+useless: it reports the distribution of percentages and names any criterion
+that returned the same value for every dimension. A criterion that never varies
+ranks nothing, however sensible it reads.
+
 ## Examples
 
 Dimensions and portals are **config**, not commands. A pocket dimension with a
