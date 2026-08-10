@@ -81,8 +81,15 @@ public final class FactsEngine {
     // ------------------------------------------------------------------ grid
 
     /** One pass over the playable disc. Nulls mark cells that answered nothing. */
-    private record Grid(String[] biome, Integer[] height, int side, int step,
-                        int sampled, String absentReason) {
+    /**
+     * Package-private so the pure grid computations below can be pinned against
+     * hand-built layouts. The alternative is verifying relief, grain, shares and
+     * edge density only through a live parity run, which tells you the whole
+     * pipeline agrees with itself and nothing about whether the arithmetic is
+     * what was intended.
+     */
+    record Grid(String[] biome, Integer[] height, int side, int step,
+                int sampled, String absentReason) {
     }
 
     private static Grid sampleGrid(SpikeSampler.Rig rig, int radius) {
@@ -154,7 +161,7 @@ public final class FactsEngine {
 
     // ---------------------------------------------------------------- biomes
 
-    private static SeedFacts.BiomeFacts biomeFacts(Grid grid) {
+    static SeedFacts.BiomeFacts biomeFacts(Grid grid) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         int total = 0;
         for (String b : grid.biome()) {
@@ -220,6 +227,17 @@ public final class FactsEngine {
     // --------------------------------------------------------------- terrain
 
     private static SeedFacts.TerrainFacts terrainFacts(Grid grid, SpikeSampler.Rig rig) {
+        Integer sea = rig.generator() instanceof NoiseChunkGenerator noiseGen
+                ? noiseGen.getSettings().value().seaLevel()
+                : null;
+        return terrainFacts(grid, sea);
+    }
+
+    /**
+     * @param seaLevel the generator's sea level, or null when it has none — a
+     *                 flat generator's water fraction is absent, not zero.
+     */
+    static SeedFacts.TerrainFacts terrainFacts(Grid grid, Integer seaLevel) {
         List<Integer> heights = new ArrayList<>();
         for (Integer h : grid.height()) {
             if (h != null) {
@@ -227,7 +245,7 @@ public final class FactsEngine {
             }
         }
         if (heights.size() < 2) {
-            String why = rig.generator() instanceof NoiseChunkGenerator
+            String why = seaLevel != null
                     ? "fewer than two columns in the playable disc answered a height"
                     : "this dimension's generator places no terrain to measure";
             return new SeedFacts.TerrainFacts(Measured.absent(why), Measured.absent(why),
@@ -266,9 +284,8 @@ public final class FactsEngine {
         }
 
         Measured<Double> water;
-        if (rig.generator() instanceof NoiseChunkGenerator noiseGen) {
-            int sea = noiseGen.getSettings().value().seaLevel();
-            long below = heights.stream().filter(h -> h <= sea).count();
+        if (seaLevel != null) {
+            long below = heights.stream().filter(h -> h <= seaLevel).count();
             water = Measured.of(below / (double) heights.size());
         } else {
             water = Measured.absent(
