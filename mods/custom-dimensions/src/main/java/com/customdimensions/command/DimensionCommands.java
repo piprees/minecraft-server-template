@@ -52,6 +52,7 @@ import java.util.UUID;
  *   /customdim roll-all <count>
  *   /customdim bank <dimension>
  *   /customdim winner <dimension>
+ *   /customdim render <dimension> <seed> [lowres|highres]
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
  * argument, so '-' arrives as "minecraft:-" — both spellings are treated as
@@ -180,6 +181,15 @@ public class DimensionCommands {
                 .then(CommandManager.literal("winner")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(RollCommands::winner)))
+                .then(CommandManager.literal("render")
+                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ctx -> RollCommands.render(ctx,
+                                LongArgumentType.getLong(ctx, "seed"), "lowres"))
+                            .then(CommandManager.argument("resolution", StringArgumentType.word())
+                                .executes(ctx -> RollCommands.render(ctx,
+                                    LongArgumentType.getLong(ctx, "seed"),
+                                    StringArgumentType.getString(ctx, "resolution")))))))
                 .then(CommandManager.literal("spike-compare")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())

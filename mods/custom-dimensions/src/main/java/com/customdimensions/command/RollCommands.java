@@ -3,6 +3,7 @@ package com.customdimensions.command;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
+import com.customdimensions.roll.CandidateRender;
 import com.customdimensions.roll.Roller;
 import com.customdimensions.roll.SeedBank;
 import com.google.gson.GsonBuilder;
@@ -163,6 +164,64 @@ public final class RollCommands {
         } catch (IOException | RuntimeException e) {
             MultiverseServer.LOGGER.error("Failed to write winner seed for {}", dimensionId, e);
             source.sendError(Text.literal("Write failed: " + e.getMessage()));
+            return 0;
+        }
+    }
+
+    /**
+     * Draws one candidate to a PNG beside its JSON — {@code lowres} (the
+     * default) or {@code highres}. The grid, step and measured per-column
+     * cost go in the answer line: nothing about the resolution chosen is
+     * silent.
+     */
+    static int render(CommandContext<ServerCommandSource> ctx, long seed, String resolutionArg) {
+        ServerCommandSource source = ctx.getSource();
+        MinecraftServer server = source.getServer();
+        Identifier dimensionId = SpikeCommands.resolveId(ctx);
+        DimensionConfig def = resolveDef(dimensionId);
+        if (def == null) {
+            source.sendError(Text.literal("No configured dimension " + dimensionId));
+            return 0;
+        }
+        CandidateRender.Resolution resolution;
+        try {
+            resolution = CandidateRender.Resolution.valueOf(resolutionArg.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            source.sendError(Text.literal(
+                    "Unknown resolution '" + resolutionArg + "' — use lowres or highres"));
+            return 0;
+        }
+        // Highres can run past a minute on the calling thread; refuse rather
+        // than freeze a server whose tick watchdog could act on that.
+        if (resolution == CandidateRender.Resolution.HIGHRES) {
+            long watchdogMs = CandidateRender.watchdogTimeoutMillis(server);
+            if (watchdogMs > 0) {
+                source.sendError(Text.literal("render " + dimensionId + " seed=" + seed
+                        + " highres: refused — this server's tick watchdog is armed at "
+                        + watchdogMs + "ms and a highres render can run past a minute on the "
+                        + "main thread. Set MAX_TICK_TIME=-1 (this platform's own default) or "
+                        + "render lowres instead."));
+                return 0;
+            }
+        }
+        String dimension = dimensionId.toString();
+        String inputHash = InputHash.of(def, server);
+        Path path = SeedBank.candidateImagePath(inputHash, dimension, seed, resolution);
+        try {
+            CandidateRender.RenderResult result =
+                    CandidateRender.render(server, dimensionId, def, seed, resolution, path);
+            final String msg = "render " + dimensionId + " seed=" + seed + " "
+                    + resolutionArg.toLowerCase(Locale.ROOT) + ": " + result.side() + "x" + result.side()
+                    + " grid, step=" + result.step() + " blocks, "
+                    + String.format(Locale.ROOT, "%.3fms/column", result.perColumnNanos() / 1_000_000.0)
+                    + ", " + result.sampled() + " sampled, " + result.structureMarkers() + " structure marker(s), "
+                    + String.format(Locale.ROOT, "%.1fs total", result.renderNanos() / 1_000_000_000.0)
+                    + " -> " + result.path();
+            source.sendFeedback(() -> Text.literal(msg), false);
+            return 1;
+        } catch (IOException | RuntimeException e) {
+            MultiverseServer.LOGGER.error("Failed to render {} seed {}", dimensionId, seed, e);
+            source.sendError(Text.literal("Render failed: " + e.getMessage()));
             return 0;
         }
     }

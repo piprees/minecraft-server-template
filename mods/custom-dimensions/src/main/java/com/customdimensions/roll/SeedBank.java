@@ -85,6 +85,13 @@ public final class SeedBank {
         return dimensionDir(inputHash, dimension).resolve(seed + ".json");
     }
 
+    /** The render beside a candidate's own file — {@code {seed}.lowres.png} or {@code {seed}.highres.png}. */
+    public static Path candidateImagePath(String inputHash, String dimension, long seed,
+                                          CandidateRender.Resolution resolution) {
+        String suffix = resolution == CandidateRender.Resolution.LOWRES ? "lowres" : "highres";
+        return dimensionDir(inputHash, dimension).resolve(seed + "." + suffix + ".png");
+    }
+
     /** Every seed this dimension has rejected, so none is ever re-measured. */
     public static Path rejectedPath(String inputHash, String dimension) {
         return dimensionDir(inputHash, dimension).resolve("rejected.json");

@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.Random;
@@ -148,6 +149,18 @@ public final class Roller {
                     scoredCount[0]++;
                 } catch (IOException e) {
                     MultiverseServer.LOGGER.error("Failed to write candidate {} for {}",
+                            seed, dimension, e);
+                }
+                // A banked candidate a person cannot look at is not yet a
+                // candidate they can pick — a failed render is logged, never
+                // fatal to the roll it rode in on.
+                try {
+                    Path image = SeedBank.candidateImagePath(inputHash, dimension, seed,
+                            CandidateRender.Resolution.LOWRES);
+                    CandidateRender.render(server, dimensionId, def, seed,
+                            CandidateRender.Resolution.LOWRES, image);
+                } catch (IOException | RuntimeException e) {
+                    MultiverseServer.LOGGER.error("Failed to render candidate {} for {}",
                             seed, dimension, e);
                 }
                 tried.add(seed);
