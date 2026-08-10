@@ -214,8 +214,10 @@ services:
       # Persistent world data, config, mods, logs - the lot.
       - ./data:/data
       # Seed-rolling artefacts (custom-dimensions mod): candidates, events,
-      # lint reports. Sibling of /data, not inside it - ./dev clean wipes
-      # data/ but must never touch a rolled seed's history.
+      # lint reports. Sibling of /data so a config refresh cannot reach them.
+      # `./dev clean` still deletes them - the tree is gitignored and clean is
+      # `git clean -xdf`. The bank is a cache; the record of a choice is the
+      # winner seed written into the committed overlay.
       - ${SEED_ROLLING_DIR:-./.seed-rolling}:/.seed-rolling
       # Merged modrinth mod list from the seed container.
       - stack-mods:/extras:ro
