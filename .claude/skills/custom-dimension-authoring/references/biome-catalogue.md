@@ -1,6 +1,6 @@
 # Biome Catalogue
 
-Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). Source: `biome_params.json`, dumped from the running server via `/customdim dump-biome-params` — a hybrid dump that captures both static multinoise entries and TerraBlender-injected biomes via spatial grid sampling.
+Every biome id available on this server, grouped by **family** (which dimension types they work with) and **namespace** (which mod provides them). There is no `/customdim dump-biome-params` command any more — this file's family/namespace grouping has no live regeneration path and should be treated as a snapshot, cross-checked against `config/custom-dimensions/extractors/biomes.json` (built by `scripts/extract-biomes.py` from the installed vanilla/mod/datapack JARs) for whether a specific id still exists.
 
 **Only use ids listed here.** A biome id not in this file will be silently filtered out by the mod — no error, no warning, and if your entire biomes list gets filtered to empty, the dimension falls back to `minecraft:plains`.
 

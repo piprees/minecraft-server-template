@@ -275,8 +275,8 @@ Each of these has caused a real incident.
   the foreign biomes held 74–100% of the area, and 0 of 12 sampled seeds
   contained every listed biome.
 - **Who has no climate parameters:** all 47 **Nature's Spirit** biomes (it
-  places through its own layer, not the vanilla multi-noise parameter list —
-  none of them appear in `biome_params.json`), and
+  places through its own layer, not the vanilla multi-noise parameter
+  list — none of them have a multinoise hypercube), and
   `minecraft:end_barrens` / `minecraft:end_midlands` (vanilla places those by
   erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale).
   Nullscape also gives `minecraft:the_end` and `minecraft:end_highlands`
