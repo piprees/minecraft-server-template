@@ -44,9 +44,11 @@ import net.minecraft.world.gen.noise.NoiseRouter;
  *       NoiseConfig construction and not merely the generator.</li>
  * </ul>
  *
- * Measurements are exact or absent. A flat generator has no noise router, so
- * its climate is reported {@code absent} with a reason rather than as six
- * zeroes that would read as a real answer.
+ * Measurements are exact or absent — but absent only when the fact genuinely
+ * cannot be had. A flat generator has no router of its own, and reporting its
+ * biome absent on that basis mismatched every column of every superflat
+ * dimension against a live server that answers one; it gets a zeroed-router
+ * NoiseConfig instead, which is what the live side effectively has.
  */
 public final class SpikeSampler {
 
@@ -241,7 +243,7 @@ public final class SpikeSampler {
             dimensionType = options.dimensionTypeEntry().value();
             return new Base(generator, heightLimit(dimensionType),
                     hasWithSeed(generator.getBiomeSource()), true,
-                    climateSettingsOf(generator), null);
+                    climateSettingsOf(server, generator), null);
         }
 
         Registry<DimensionOptions> registry = (Registry<DimensionOptions>)
@@ -257,13 +259,23 @@ public final class SpikeSampler {
         dimensionType = options.dimensionTypeEntry().value();
         return new Base(generator, heightLimit(dimensionType),
                 hasWithSeed(generator.getBiomeSource()), false,
-                climateSettingsOf(generator), null);
+                climateSettingsOf(server, generator), null);
     }
 
-    private static ChunkGeneratorSettings climateSettingsOf(ChunkGenerator generator) {
-        return generator instanceof NoiseChunkGenerator noiseGen
-                ? climateOnly(noiseGen.getSettings().value())
-                : null;
+    /**
+     * The climate-only settings for a generator. A flat generator gets the
+     * same zeroed-router fallback {@code buildNoiseConfig} uses, so the
+     * screening rig and the full rig answer identically there instead of the
+     * screening rig alone reporting absent — which is the same
+     * unnecessary-pessimism bug one level down.
+     */
+    private static ChunkGeneratorSettings climateSettingsOf(
+            MinecraftServer server, ChunkGenerator generator) {
+        if (generator instanceof NoiseChunkGenerator noiseGen) {
+            return climateOnly(noiseGen.getSettings().value());
+        }
+        ChunkGeneratorSettings base = overworldSettings(server);
+        return base == null ? null : emptyRouter(base);
     }
 
     /** A base plus one seed's NoiseConfig — the per-seed half of the cost. */
@@ -404,7 +416,22 @@ public final class SpikeSampler {
      * with the noise field entirely unread.
      */
     public static int[] probe(int index, int spanBlocks) {
-        long h = mix64(index * 0x9E3779B97F4A7C15L + 0x243F6A8885A308D3L);
+        return probe(index, spanBlocks, 0L);
+    }
+
+    /**
+     * As above, with the seed folded in so two comparisons do not sample the
+     * same twenty points.
+     *
+     * <p>Without this the coordinates depend on the index alone, so every
+     * dimension and every seed probes the identical twenty offsets forever — a
+     * divergence confined to a region those twenty points never land in could
+     * never surface however many pairs are compared. Reproducibility is kept:
+     * the same (index, span, salt) always gives the same point.
+     */
+    public static int[] probe(int index, int spanBlocks, long salt) {
+        long h = mix64(index * 0x9E3779B97F4A7C15L + 0x243F6A8885A308D3L
+                + mix64(salt));
         int x = (int) Math.floorMod(h, (long) spanBlocks * 2) - spanBlocks;
         long h2 = mix64(h ^ 0xBF58476D1CE4E5B9L);
         int z = (int) Math.floorMod(h2, (long) spanBlocks * 2) - spanBlocks;
@@ -419,14 +446,44 @@ public final class SpikeSampler {
 
     // ------------------------------------------------------------------ helpers
 
+    /**
+     * The NoiseConfig for a generator at a seed.
+     *
+     * <p>A flat generator has no {@link ChunkGeneratorSettings} of its own, but
+     * the live server still has a NoiseConfig for its world — vanilla builds
+     * one regardless of generator type, because structures and features need
+     * it. Returning null here made the headless side report biome and climate
+     * ABSENT while the live side answered a real biome, which is a 100%
+     * mismatch on every column of every superflat and flat-fallback void
+     * dimension. Absent is only honest when the fact genuinely cannot be had,
+     * and here it can.
+     *
+     * <p>The fallback settings carry a fully zeroed router: a flat world's
+     * biome source ignores the sampler entirely (it is fixed or a checkerboard
+     * grid), so the biome is unaffected, and a zeroed router is what reproduces
+     * the live server's all-zero climate point rather than inventing an
+     * overworld climate for a world that has none.
+     */
     private static NoiseConfig buildNoiseConfig(
             MinecraftServer server, ChunkGenerator generator, long seed) {
-        if (!(generator instanceof NoiseChunkGenerator noiseGen)) {
-            return null;
-        }
         var lookup = server.getRegistryManager()
                 .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
-        return NoiseConfig.create(noiseGen.getSettings().value(), lookup, seed);
+        if (generator instanceof NoiseChunkGenerator noiseGen) {
+            return NoiseConfig.create(noiseGen.getSettings().value(), lookup, seed);
+        }
+        ChunkGeneratorSettings base = overworldSettings(server);
+        if (base == null) {
+            return null;
+        }
+        return NoiseConfig.create(emptyRouter(base), lookup, seed);
+    }
+
+    /** The overworld's generator settings, as a shape to build a router into. */
+    private static ChunkGeneratorSettings overworldSettings(MinecraftServer server) {
+        var registry = server.getRegistryManager()
+                .get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+        return registry.get(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS,
+                Identifier.of("minecraft", "overworld")));
     }
 
     private static HeightLimitView heightLimit(DimensionType type) {

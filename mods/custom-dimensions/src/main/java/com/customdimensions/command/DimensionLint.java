@@ -247,6 +247,27 @@ public final class DimensionLint {
             String group = poolGroupOf.get(id);
             if (group == null) {
                 String setId = setIdFor(setRegistry, id);
+                // A set whose placement is not noise-managed never reaches a
+                // pool BY DESIGN — it keeps its own grid placement, and it
+                // generates. Reporting it as "not in the pool, so no seed can
+                // place it" was false twice over: false on the fact, and false
+                // on the reason. 227 of 367 sets are pass-throughs, so this is
+                // not an edge case; `betterfortresses:fortress` has 289 live
+                // positions in the nether while lint called it dead.
+                String passThroughType = passThroughPlacementType(setRegistry, setId);
+                if (passThroughType != null) {
+                    out.add(new Finding(name, WARN, "want_is_passthrough", wantName,
+                            id + " is placed on its own grid, not by noise: its set "
+                            + setId + " uses the " + passThroughType + " placement "
+                            + "type, which the pool builder deliberately leaves alone. "
+                            + "It generates — but the census the roller scores against "
+                            + "records only noise groups, so this want is scored 0.0 "
+                            + "on every seed",
+                            "no config change makes it a noise placement; score it "
+                            + "from the census's passThrough section instead, or drop "
+                            + "the want and rely on the set's own grid"));
+                    continue;
+                }
                 boolean excluded = exclude.contains(setId.toLowerCase(Locale.ROOT));
                 out.add(new Finding(name, ERROR, "want_not_in_pool", wantName,
                         id + " reaches no eligible pool in this dimension"
@@ -295,6 +316,27 @@ public final class DimensionLint {
             }
         });
         return out;
+    }
+
+    /**
+     * The registered placement-type id of a set that noise does NOT manage, or
+     * null when the set is noise-managed (or unknown). Naming the type in the
+     * finding is what makes it actionable: "yungsapi:enhanced_random_spread"
+     * tells an author immediately that no biome or include change will move it.
+     */
+    private static String passThroughPlacementType(Registry<StructureSet> setRegistry,
+                                                   String setId) {
+        Identifier id = Identifier.tryParse(setId);
+        if (id == null) {
+            return null;
+        }
+        StructureSet set = setRegistry.get(id);
+        if (set == null || NoisePoolBuilder.noiseManaged(set.placement())) {
+            return null;
+        }
+        Identifier type = net.minecraft.registry.Registries.STRUCTURE_PLACEMENT
+                .getId(set.placement().getType());
+        return type != null ? type.toString() : set.placement().getClass().getSimpleName();
     }
 
     /** The set a structure belongs to, for a fix suggestion. */

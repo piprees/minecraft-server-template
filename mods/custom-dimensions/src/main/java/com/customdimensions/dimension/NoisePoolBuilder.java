@@ -88,7 +88,7 @@ public final class NoisePoolBuilder {
      * FixedStructurePlacement) and every non-random_spread type passes
      * through on its own placement.
      */
-    static boolean noiseManaged(StructurePlacement placement) {
+    public static boolean noiseManaged(StructurePlacement placement) {
         if (placement.getClass() == RandomSpreadStructurePlacement.class) {
             return true;
         }

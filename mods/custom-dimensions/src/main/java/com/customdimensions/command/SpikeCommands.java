@@ -188,7 +188,7 @@ public final class SpikeCommands {
         int mismatchCount = 0;
         int climateMismatchCount = 0;
         for (int i = 0; i < count; i++) {
-            int[] p = SpikeSampler.probe(i, span);
+            int[] p = SpikeSampler.probe(i, span, seed);
             SpikeSampler.Sample h = SpikeSampler.sample(headless, p[0], p[1]);
             SpikeSampler.Sample l = SpikeSampler.sample(live, p[0], p[1]);
             SpikeSampler.Sample c = SpikeSampler.sample(climate, p[0], p[1]);
