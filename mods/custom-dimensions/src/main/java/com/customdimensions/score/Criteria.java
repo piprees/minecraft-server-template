@@ -13,9 +13,12 @@ import java.util.Map;
  *
  * <p>A criterion that reads a fact nothing computes is a number invented at
  * scoring time, so a criterion arrives only with its facts. Traversability,
- * line-of-sight, spawn buildability and progression reachability all want
- * block-level column probes the sampler does not do, and are absent here for
- * that reason.
+ * line-of-sight and spawn buildability all want block-level column probes the
+ * sampler does not do, and are absent here for that reason. Progression
+ * reachability has a narrow slice that needs no column probe — whether a
+ * fortress or end city sits within reach in blocks — and that slice is below;
+ * the block-level version (can a player actually WALK there) is still absent
+ * for the same reason as the other three.
  *
  * <p>Every criterion is pure: facts and config in, a result out. No world, no
  * registry, no randomness — so each is testable against a hand-built facts
@@ -36,6 +39,8 @@ public final class Criteria {
                 new StructuresFormPlacesNotNoise(),
                 new FirstEncounterDistance(),
                 new TerrainMatchesPreset(),
+                new FortressReachableInNether(),
+                new EndCityReachableInEnd(),
                 new NothingIsImmediatelyLethal());
     }
 
@@ -445,6 +450,120 @@ public final class Criteria {
             double miss = v < band[0] ? band[0] - v : v - band[1];
             return new Result.Score(ramp(width - miss, 0.0, width), ev + " — outside the band");
         }
+    }
+
+    // ------------------------------------------------- progression floor
+
+    /**
+     * A GATE. Blaze rods have no source but a fortress, so one that exists in
+     * the pool but sits beyond reach is not a scoring deduction — the seed is
+     * broken regardless of everything else it measures. The floor is the
+     * reachability number the deleted Python roller carried for the Nether
+     * (recovered at {@code git show 2e0bb83}); it stood up to re-reading as a
+     * statement about progression, not a number that happened to pass on one
+     * world, so it moves here unchanged.
+     *
+     * <p>Scoped to the literal {@code minecraft:the_nether}, not every
+     * nether-type dimension: a custom nether-flavoured pocket is optional
+     * adventure content a player is never forced into, and several ship their
+     * progression structures via {@code structures.force} — a fixed position,
+     * not a per-seed risk this gate exists to catch.
+     */
+    static final class FortressReachableInNether implements Criterion {
+        static final String STRUCTURE = "minecraft:fortress";
+        static final double WITHIN_BLOCKS = 512.0;
+
+        public String id() {
+            return "fortress_reachable_in_nether";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            return "a fortress sits within " + (int) WITHIN_BLOCKS + " blocks of spawn";
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            return "minecraft:the_nether".equals(def.getDimensionId());
+        }
+
+        public boolean gate() {
+            return true;
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            return reachabilityGate(facts, STRUCTURE, WITHIN_BLOCKS);
+        }
+    }
+
+    /**
+     * A GATE, same reasoning as {@link FortressReachableInNether}: elytra have
+     * no source but an end city. Scoped to the literal {@code minecraft:the_end}
+     * for the same reason custom end-type dimensions are excluded there —
+     * optional content, not the progression path.
+     */
+    static final class EndCityReachableInEnd implements Criterion {
+        static final String STRUCTURE = "minecraft:end_city";
+        static final double WITHIN_BLOCKS = 2048.0;
+
+        public String id() {
+            return "end_city_reachable_in_end";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            return "an end city sits within " + (int) WITHIN_BLOCKS + " blocks of spawn";
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            return "minecraft:the_end".equals(def.getDimensionId());
+        }
+
+        public boolean gate() {
+            return true;
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            return reachabilityGate(facts, STRUCTURE, WITHIN_BLOCKS);
+        }
+    }
+
+    /**
+     * Shared gate logic. Passes within the floor, fails beyond it. Unmeasured
+     * (never a fail) when the structure is not in this dimension's pool at
+     * all — a config-time fact true for every seed, not evidence about this
+     * one — or when the seed's own placement left {@code nearestByStructure}
+     * with no entry for it: the fact could not be measured, which this
+     * codebase never treats as evidence of poor quality.
+     */
+    private static Criterion.Result reachabilityGate(SeedFacts facts, String structureId, double withinBlocks) {
+        Measured<Map<String, Integer>> pool = facts.structures().pool();
+        if (!pool.isPresent()) {
+            return new Criterion.Result.Unmeasured(pool.reason());
+        }
+        if (!pool.orThrow().containsKey(structureId)) {
+            return new Criterion.Result.Unmeasured(structureId + " is not in this dimension's structure pool");
+        }
+        Measured<Map<String, Double>> nearest = facts.structures().nearestByStructure();
+        if (!nearest.isPresent()) {
+            return new Criterion.Result.Unmeasured(nearest.reason());
+        }
+        Double blocks = nearest.orThrow().get(structureId);
+        if (blocks == null) {
+            return new Criterion.Result.Unmeasured(structureId
+                    + " is in the pool but this seed's nearestByStructure has no entry for it");
+        }
+        String ev = String.format(Locale.ROOT, "nearest %s is %.0f blocks from spawn", structureId, blocks);
+        return blocks <= withinBlocks
+                ? new Criterion.Result.Pass(ev)
+                : new Criterion.Result.Fail(
+                        ev + ", beyond the " + (int) withinBlocks + "-block reachability floor",
+                        "reachability floor: " + (int) withinBlocks + " blocks");
     }
 
     // ------------------------------------------------------------------- fun

@@ -103,6 +103,24 @@ class CriteriaTest {
                 terrain(relief), structures(clustering, nearestHostile), radius);
     }
 
+    /** A structures fact with an explicit pool and nearestByStructure map, for the reachability gates. */
+    private static SeedFacts.StructureFacts structuresWithPoolAndNearest(
+            Map<String, Integer> pool, Map<String, Double> nearestByStructure) {
+        return new SeedFacts.StructureFacts(
+                Measured.of(pool),
+                Measured.of(Map.of("deco", 10)),
+                Measured.of(Map.of()),
+                Measured.of(nearestByStructure),
+                Measured.of(Map.of("deco", 1.0)),
+                Measured.of(1.0),
+                Measured.of(900.0),
+                Measured.of(10));
+    }
+
+    private static SeedFacts withStructures(SeedFacts.StructureFacts structures, int radius) {
+        return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0), structures, radius);
+    }
+
     // --------------------------------------------------- spawn reads as name
 
     @Test
@@ -345,6 +363,109 @@ class CriteriaTest {
         assertFalse(c.applicable(config(null, "lumpy", null)));
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
                 full("b", 4.0, 5, 0.4, 0.3, null, 0.6, 900.0, 4096), mountains));
+    }
+
+    // ------------------------------------------------- progression floor
+
+    @Test
+    void reachabilityGatesApplyOnlyToTheLiteralBaseWorld() {
+        var fortress = new Criteria.FortressReachableInNether();
+        var endCity = new Criteria.EndCityReachableInEnd();
+
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+        DimensionConfig end = new DimensionConfig();
+        end.setName("the_end");
+        DimensionConfig customNetherPocket = new DimensionConfig();
+        customNetherPocket.setName("the_blackstone_keep");
+
+        assertTrue(fortress.gate());
+        assertTrue(endCity.gate());
+        assertTrue(fortress.applicable(nether));
+        assertFalse(fortress.applicable(end));
+        assertFalse(fortress.applicable(customNetherPocket),
+                "a custom nether-flavoured pocket is optional content, not the progression path");
+        assertTrue(endCity.applicable(end));
+        assertFalse(endCity.applicable(nether));
+    }
+
+    @Test
+    void fortressWithinTheFloorPassesBeyondItFails() {
+        var c = new Criteria.FortressReachableInNether();
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+
+        SeedFacts close = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 400.0)), 1024);
+        SeedFacts far = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 4000.0)), 1024);
+
+        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(close, nether));
+        Criterion.Result.Fail fail =
+                assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(far, nether));
+        assertTrue(fail.reason().contains("4000"), fail.reason());
+    }
+
+    @Test
+    void aFortressAbsentFromThePoolIsUnmeasuredNotFailed() {
+        // The whole point of exact-or-absent: a dimension whose pool never
+        // included a fortress at all is not a bad seed, it is a question
+        // that does not apply to this dimension's config.
+        var c = new Criteria.FortressReachableInNether();
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+        SeedFacts noFortressInPool = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:nether_bridge", 50), Map.of()), 1024);
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(noFortressInPool, nether));
+    }
+
+    @Test
+    void aFortressInThePoolButNotPlacedThisSeedIsUnmeasuredNotFailed() {
+        // In the pool (could spawn here) but this seed's own placement left
+        // no measured distance: an absent measurement, not evidence the seed
+        // is bad — the gate must not guess "absent means unreachable".
+        var c = new Criteria.FortressReachableInNether();
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+        SeedFacts unplaced = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 100), Map.of()), 1024);
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(unplaced, nether));
+    }
+
+    @Test
+    void endCityFloorMirrorsTheFortressGate() {
+        var c = new Criteria.EndCityReachableInEnd();
+        DimensionConfig end = new DimensionConfig();
+        end.setName("the_end");
+        SeedFacts close = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 1500.0)), 8192);
+        SeedFacts far = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 3000.0)), 8192);
+        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(close, end));
+        assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(far, end));
+    }
+
+    @Test
+    void reachabilityGatesCostNoCeilingWeight() {
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+        DimensionConfig overworldLike = new DimensionConfig();
+        overworldLike.setName("overworld");
+        assertEquals(Scorer.ceiling(overworldLike, Criteria.all()),
+                Scorer.ceiling(nether, Criteria.all()), 1e-9,
+                "a gate must never appear in the ceiling regardless of which dimension it targets");
+    }
+
+    @Test
+    void aFailedReachabilityGateRejectsTheWholeSeed() {
+        DimensionConfig nether = new DimensionConfig();
+        nether.setName("the_nether");
+        SeedFacts far = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 4000.0)), 1024);
+        Scorecard card = Scorer.score(far, nether, Criteria.all());
+        assertEquals(Scorecard.Verdict.REJECTED, card.verdict());
+        assertTrue(card.verdictReason().startsWith("fortress_reachable_in_nether"),
+                card.verdictReason());
     }
 
     // ------------------------------------------------------------ lethality

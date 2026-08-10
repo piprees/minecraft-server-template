@@ -46,9 +46,19 @@ public final class CensusCommands {
     /** Structure id -> what it gates. Reported whenever placed in this world. */
     private static final Map<String, String> PROGRESSION_CRITICAL = new LinkedHashMap<>();
 
+    /**
+     * Structure id -> the reachability floor the seed roller gates on
+     * (score/Criteria.java's FortressReachableInNether / EndCityReachableInEnd
+     * — change both together). Reported here so this diagnostic and the
+     * roller's verdict can never quietly disagree about the same seed.
+     */
+    private static final Map<String, Double> REACHABILITY_FLOOR_BLOCKS = new LinkedHashMap<>();
+
     static {
         PROGRESSION_CRITICAL.put("minecraft:fortress", "blaze rods");
         PROGRESSION_CRITICAL.put("minecraft:end_city", "elytra");
+        REACHABILITY_FLOOR_BLOCKS.put("minecraft:fortress", 512.0);
+        REACHABILITY_FLOOR_BLOCKS.put("minecraft:end_city", 2048.0);
     }
 
     private CensusCommands() {
@@ -194,8 +204,17 @@ public final class CensusCommands {
                     nearest = blocks;
                 }
             }
-            msg.append("; nearest ").append(id).append(" (").append(critical.getValue()).append("): ")
-                    .append(nearest != null ? Math.round(nearest) + " blocks" : "not placed here");
+            msg.append("; nearest ").append(id).append(" (").append(critical.getValue()).append("): ");
+            if (nearest == null) {
+                msg.append("not placed here");
+            } else {
+                msg.append(Math.round(nearest)).append(" blocks");
+                Double floor = REACHABILITY_FLOOR_BLOCKS.get(id);
+                if (floor != null) {
+                    msg.append(nearest <= floor ? " (within the " : " (BEYOND the ")
+                            .append(floor.intValue()).append("-block reachability floor)");
+                }
+            }
         }
     }
 
