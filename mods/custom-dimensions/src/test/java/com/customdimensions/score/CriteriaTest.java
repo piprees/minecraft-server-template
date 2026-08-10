@@ -29,18 +29,45 @@ class CriteriaTest {
     private static SeedFacts facts(SeedFacts.SpawnFacts spawn, SeedFacts.BiomeFacts biomes,
                                    SeedFacts.TerrainFacts terrain,
                                    SeedFacts.StructureFacts structures, int radius) {
+        // Full coverage by default, same reasoning as terrain()'s water/height
+        // defaults: every other criterion's fixture should stay unaffected by
+        // playable_ground_covers_the_disc unless a test is explicitly about it.
+        return facts(spawn, biomes, terrain, structures, radius, Measured.of(grid(1000, 1000)));
+    }
+
+    private static SeedFacts facts(SeedFacts.SpawnFacts spawn, SeedFacts.BiomeFacts biomes,
+                                   SeedFacts.TerrainFacts terrain,
+                                   SeedFacts.StructureFacts structures, int radius,
+                                   Measured<SeedFacts.Grid> grid) {
         return new SeedFacts("test", "adventure:test", 1L, "now", "fp", radius,
-                spawn, biomes, terrain, structures, gone());
+                spawn, biomes, terrain, structures, grid);
     }
 
     private static SeedFacts.SpawnFacts spawn(String biome, Double localRelief) {
+        // Solid ground on all nine probed columns by default, same reasoning
+        // as terrain()'s water/height defaults: every other criterion's
+        // fixture should stay unaffected by spawn_is_safe_to_build_on unless
+        // a test is explicitly about it.
+        return spawn(biome, localRelief, List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                SeedFacts.GroundKind.SOLID));
+    }
+
+    private static SeedFacts.SpawnFacts spawn(String biome, Double localRelief,
+                                              List<SeedFacts.GroundKind> nearbyGround) {
         return new SeedFacts.SpawnFacts(
                 Measured.of(new SeedFacts.Column(0, 0, false)),
                 biome == null ? gone() : Measured.of(biome),
                 Measured.of(64),
                 localRelief == null ? gone() : Measured.of(localRelief),
                 Measured.of(true),
-                gone());
+                nearbyGround == null ? gone() : Measured.of(nearbyGround));
+    }
+
+    /** A grid fact carrying only what the coverage criterion reads. */
+    private static SeedFacts.Grid grid(int sampled, int heightMeasured) {
+        return new SeedFacts.Grid(41, List.of(), List.of(), List.of(), sampled, heightMeasured);
     }
 
     private static SeedFacts.BiomeFacts biomes(Integer distinct, Double headline, Double edges) {
@@ -132,6 +159,16 @@ class CriteriaTest {
 
     private static SeedFacts withTerrain(SeedFacts.TerrainFacts terrain, int radius) {
         return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain, structures(0.6, 900.0), radius);
+    }
+
+    private static SeedFacts withGrid(Measured<SeedFacts.Grid> grid, int radius) {
+        return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(0.6, 900.0), radius, grid);
+    }
+
+    private static SeedFacts withNearbyGround(List<SeedFacts.GroundKind> ground, int radius) {
+        return facts(spawn("b", 4.0, ground), biomes(5, 0.4, 0.3), terrain(30.0),
+                structures(0.6, 900.0), radius);
     }
 
     // --------------------------------------------------- spawn reads as name
@@ -431,6 +468,35 @@ class CriteriaTest {
                 withTerrain(terrain(30.0, 0.1, null, 320), 4096), ranged));
     }
 
+    // --------------------------------------------------------- disc coverage
+
+    @Test
+    void groundCoverageIsScoredAsTheFractionOfSampledColumnsWithAFloor() {
+        var c = new Criteria.PlayableGroundCoversTheDisc();
+        DimensionConfig def = config(null, null, null);
+
+        assertTrue(c.applicable(def));
+        assertEquals(1.0, score(c.evaluate(
+                withGrid(Measured.of(grid(1000, 1000)), 4096), def)), 1e-9,
+                "every sampled column resolved a floor");
+        assertEquals(0.5, score(c.evaluate(
+                withGrid(Measured.of(grid(1000, 500)), 4096), def)), 1e-9,
+                "half the sampled columns came back with no floor at all");
+
+        // A dimension whose own terrain word already says the floor is
+        // deliberately sparse is not asked the question at all.
+        assertFalse(c.applicable(config(null, "void", null)),
+                "a void dimension is supposed to have gaps");
+        assertFalse(c.applicable(config(null, "islands", null)),
+                "a field of floating islands is supposed to have gaps");
+
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
+                withGrid(gone(), 4096), def));
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
+                withGrid(Measured.of(grid(0, 0)), 4096), def),
+                "zero attempted columns is a measurement failure, not a coverage of zero");
+    }
+
     // ------------------------------------------------- progression floor
 
     @Test
@@ -547,6 +613,46 @@ class CriteriaTest {
                 full("b", 80.0, 5, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), def));
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
                 full("b", null, 5, 0.4, 0.3, 30.0, 0.6, 900.0, 4096), def));
+    }
+
+    @Test
+    void spawnSafetyGatesOnHazardousFluidOrAMinorityOfSolidGround() {
+        var c = new Criteria.SpawnIsSafeToBuildOn();
+        DimensionConfig def = config(null, null, null);
+        assertTrue(c.gate());
+        // No config field states relevance for this one — it is a universal
+        // invariant, same register as NothingIsImmediatelyLethal — so it is
+        // always applicable rather than conditioned on an intent nobody sets.
+        assertTrue(c.applicable(def));
+
+        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(withNearbyGround(
+                List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.OPEN_WATER,
+                        SeedFacts.GroundKind.OPEN_WATER, SeedFacts.GroundKind.OPEN_WATER,
+                        SeedFacts.GroundKind.OPEN_WATER), 4096), def),
+                "five of nine solid is at least half, and nothing is hazardous");
+
+        Criterion.Result.Fail lava = assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(
+                withNearbyGround(List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.HAZARDOUS_FLUID), 4096), def),
+                "one hazardous column among eight solid ones is not a majority vote");
+        assertTrue(lava.reason().contains("hazardous"), lava.reason());
+
+        Criterion.Result.Fail drowning = assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(
+                withNearbyGround(List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.OPEN_WATER, SeedFacts.GroundKind.OPEN_WATER,
+                        SeedFacts.GroundKind.OPEN_WATER, SeedFacts.GroundKind.OPEN_WATER,
+                        SeedFacts.GroundKind.OPEN_WATER), 4096), def),
+                "four of nine solid is under half — no reliable nearby platform, but nothing lethal");
+        assertTrue(drowning.reason().contains("solid"), drowning.reason());
+
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
+                withNearbyGround(null, 4096), def));
     }
 
     // ---------------------------------------------------------------- scorer
@@ -700,7 +806,7 @@ class CriteriaTest {
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
                         gone(), gone(), gone()),
-                4096);
+                4096, gone());
     }
 
     /** Nothing measured except the spawn biome, so the namesake gate passes. */
@@ -712,7 +818,7 @@ class CriteriaTest {
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
                         gone(), gone(), gone()),
-                4096);
+                4096, gone());
     }
 
     /** A config putting one group on the `cluster` profile. */

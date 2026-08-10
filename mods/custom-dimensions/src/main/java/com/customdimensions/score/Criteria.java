@@ -41,9 +41,11 @@ public final class Criteria {
                 new TerrainMatchesPreset(),
                 new WaterMatchesIntent(),
                 new HeightRangeMatchesIntent(),
+                new PlayableGroundCoversTheDisc(),
                 new FortressReachableInNether(),
                 new EndCityReachableInEnd(),
-                new NothingIsImmediatelyLethal());
+                new NothingIsImmediatelyLethal(),
+                new SpawnIsSafeToBuildOn());
     }
 
     // ----------------------------------------------------------------- theme
@@ -571,6 +573,61 @@ public final class Criteria {
         }
     }
 
+    /**
+     * The measured grid's floor coverage over the playable disc. {@code
+     * SeedFacts.Grid.heightMeasured()} / {@code sampled()} is exactly the
+     * ratio {@code PROBES.md} asked for: of the columns the grid pass
+     * actually attempted inside the disc (excluding the corner cells the
+     * square grid samples outside a circular border — {@code sampled}
+     * already excludes those), how many resolved a floor. Scored as that
+     * fraction directly, with no band around it: a coverage ratio already
+     * has units a person reads without translation, and a band would only
+     * be a threshold invented on top of a number that already means
+     * something on its own.
+     *
+     * <p>Not applicable when {@code seedRoll.terrain} states {@code "void"}
+     * or {@code "islands"}: both are the dimension's own author declaring a
+     * deliberately non-solid terrain, and a void world or a field of
+     * floating islands is SUPPOSED to have most of its disc answer with no
+     * floor. Scoring that as a defect would reject the very shape the
+     * config asked for — the same reasoning {@link WaterMatchesIntent} and
+     * {@link TerrainMatchesPreset} apply to their own words.
+     */
+    static final class PlayableGroundCoversTheDisc implements Criterion {
+        public String id() {
+            return "playable_ground_covers_the_disc";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            return "every sampled column inside the playable disc resolves a floor";
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            String word = terrainWord(def);
+            return !("void".equals(word) || "islands".equals(word));
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            Measured<SeedFacts.Grid> gridM = facts.grid();
+            if (!gridM.isPresent()) {
+                return new Result.Unmeasured(gridM.reason());
+            }
+            SeedFacts.Grid grid = gridM.orThrow();
+            if (grid.sampled() <= 0) {
+                return new Result.Unmeasured(
+                        "the grid pass attempted zero columns inside the playable disc");
+            }
+            double coverage = grid.heightMeasured() / (double) grid.sampled();
+            return new Result.Score(coverage, String.format(Locale.ROOT,
+                    "%d of %d sampled columns resolved a floor (%.1f%%)",
+                    grid.heightMeasured(), grid.sampled(), coverage * 100.0));
+        }
+    }
+
     // ------------------------------------------------- progression floor
 
     /**
@@ -716,6 +773,86 @@ public final class Criteria {
                     : new Result.Fail(String.format(Locale.ROOT,
                             "spawn sits on a %.0f-block cliff", v),
                             "local relief over 32 blocks");
+        }
+    }
+
+    /**
+     * A GATE, same register as {@link NothingIsImmediatelyLethal}: whether a
+     * player can actually start playing at spawn is a yes/no question, not a
+     * quality axis a good structure elsewhere buys back. "A spawn ringed by
+     * lava is not a bad world, it is an unusable one" — the same argument
+     * that makes a sheer drop a gate rather than a deduction.
+     *
+     * <p>{@code nearbyGround} lists one entry per probed column that
+     * answered both a height and a ground read — up to the same nine
+     * columns {@code localRelief} already visits (one probe step, 16
+     * blocks, per neighbouring chunk), in no stated order, so this reads
+     * the list as a whole rather than any single position in it: the exact
+     * spawn column cannot be picked out of it.
+     *
+     * <p>Two failure conditions, not one, because "safe to build on" is two
+     * different questions:
+     *
+     * <ul>
+     * <li><b>Any {@code HAZARDOUS_FLUID} column fails outright.</b> Lava or
+     *     fire within one probe step is close enough that a player getting
+     *     their bearings will plausibly walk into it — this is not one
+     *     event in a set to be averaged, it is a death, and a death is not
+     *     a matter of degree. One occurrence among nine is already the
+     *     failure; there is no "mostly avoided the lava" reading of this
+     *     that makes a seed usable.</li>
+     * <li><b>Fewer than half the probed columns being {@code SOLID} also
+     *     fails.</b> Absence of active hazard is not the same as having
+     *     somewhere to stand — a spawn where most of the immediate
+     *     surroundings are open water has no reliable nearby platform even
+     *     though nothing there kills the player outright. Half is the
+     *     threshold because it is the least that still guarantees solid
+     *     ground reachable in at least one direction from spawn without
+     *     already being outnumbered by water; softer than that and "safe to
+     *     build on" stops being a claim about the immediate footprint at
+     *     all.</li>
+     * </ul>
+     */
+    static final class SpawnIsSafeToBuildOn implements Criterion {
+        public String id() {
+            return "spawn_is_safe_to_build_on";
+        }
+
+        public Group group() {
+            return Group.FUN;
+        }
+
+        public String target(DimensionConfig def) {
+            return "no lava or fire within a probe step of spawn, and at least half "
+                    + "of the probed columns are solid ground";
+        }
+
+        public boolean gate() {
+            return true;
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            Measured<List<SeedFacts.GroundKind>> groundM = facts.spawn().nearbyGround();
+            if (!groundM.isPresent()) {
+                return new Result.Unmeasured(groundM.reason());
+            }
+            List<SeedFacts.GroundKind> ground = groundM.orThrow();
+            int total = ground.size();
+            long hazard = ground.stream()
+                    .filter(g -> g == SeedFacts.GroundKind.HAZARDOUS_FLUID).count();
+            long solid = ground.stream()
+                    .filter(g -> g == SeedFacts.GroundKind.SOLID).count();
+            String ev = String.format(Locale.ROOT, "%d/%d solid, %d/%d hazardous fluid",
+                    solid, total, hazard, total);
+            if (hazard > 0) {
+                return new Result.Fail(ev + " — lava or fire within a probe step of spawn",
+                        "no hazardous fluid within a probe step");
+            }
+            if (solid * 2 < total) {
+                return new Result.Fail(ev + " — fewer than half the probed columns are solid",
+                        "at least half of the probed columns must be solid ground");
+            }
+            return new Result.Pass(ev);
         }
     }
 
