@@ -128,7 +128,8 @@ class SeedFactsCodecTest {
 
     @Test
     void aRecordFromAnUnknownSchemaIsRefusedRatherThanGuessedAt() {
-        String json = fullyMeasured().toJson().replace("\"schemaVersion\": 1",
+        String json = fullyMeasured().toJson().replace(
+                "\"schemaVersion\": " + SeedFacts.SCHEMA_VERSION,
                 "\"schemaVersion\": 99");
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> SeedFactsCodec.read(json));

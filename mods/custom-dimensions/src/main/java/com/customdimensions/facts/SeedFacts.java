@@ -102,9 +102,20 @@ public record SeedFacts(
 
     // ------------------------------------------------------------------ json
 
+    /**
+     * Bumped whenever a fact's MEANING changes, not just the layout.
+     *
+     * <p>This is what stops a banked record being re-scored after the engine
+     * changed what it measures. The config fingerprint cannot see that: it
+     * describes the world, and the defect it misses is measuring the right
+     * world in the wrong place. Version 2 moved spawn facts from the origin to
+     * the dimension's declared spawn.
+     */
+    public static final int SCHEMA_VERSION = 2;
+
     public String toJson() {
         StringBuilder b = new StringBuilder();
-        b.append("{\n \"schemaVersion\": 1,\n");
+        b.append("{\n \"schemaVersion\": ").append(SCHEMA_VERSION).append(",\n");
         b.append(" \"dimension\": ").append(Json.quote(dimension)).append(",\n");
         b.append(" \"seed\": ").append(seed).append(",\n");
         b.append(" \"measuredAt\": ").append(Json.quote(measuredAt)).append(",\n");

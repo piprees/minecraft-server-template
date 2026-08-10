@@ -31,10 +31,11 @@ public final class SeedFactsCodec {
     public static SeedFacts read(String json) {
         JsonObject root = JsonParser.parseString(json).getAsJsonObject();
         int version = root.has("schemaVersion") ? root.get("schemaVersion").getAsInt() : 0;
-        if (version != 1) {
+        if (version != SeedFacts.SCHEMA_VERSION) {
             throw new IllegalArgumentException(
-                    "unknown facts schemaVersion " + version + " — refusing to guess "
-                    + "at a layout this build does not know");
+                    "facts schemaVersion " + version + ", this build writes "
+                    + SeedFacts.SCHEMA_VERSION + " — refusing to read a record "
+                    + "whose facts may not mean what they say");
         }
 
         JsonObject spawn = obj(root, "spawn");

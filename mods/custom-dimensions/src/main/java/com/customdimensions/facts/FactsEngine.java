@@ -79,7 +79,7 @@ public final class FactsEngine {
 
         return new SeedFacts(
                 dimensionId.toString(), seed, Instant.now().toString(), fingerprint, radius,
-                spawnFacts(rig),
+                spawnFacts(rig, spawnColumn(def)),
                 biomeFacts(grid),
                 terrainFacts(grid, rig),
                 structureFacts(server, def, base, seed, radius));
@@ -124,8 +124,24 @@ public final class FactsEngine {
 
     // ----------------------------------------------------------------- spawn
 
-    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig) {
-        SpikeSampler.Sample at = SpikeSampler.sample(rig, 0, 0);
+    /**
+     * Where a player actually arrives, as {@code {x, z}}.
+     *
+     * <p>Not the origin. A dimension's {@code spawn} is what {@code ExitTarget}
+     * resolves an arrival to, and every one of elfydd's 81 dimensions declares
+     * one — none at 0,0. Measuring spawn facts at the origin judged a column no
+     * player ever stands on, and rejected 15 of the bank's own winners on the
+     * namesake gate for it.
+     */
+    private static int[] spawnColumn(DimensionConfig def) {
+        int[] spawn = def != null ? def.getSpawn() : null;
+        return spawn != null && spawn.length >= 3
+                ? new int[] {spawn[0], spawn[2]}
+                : new int[] {0, 0};
+    }
+
+    private static SeedFacts.SpawnFacts spawnFacts(SpikeSampler.Rig rig, int[] at0) {
+        SpikeSampler.Sample at = SpikeSampler.sample(rig, at0[0], at0[1]);
         Measured<Integer> h = at.surfaceHeight() == null
                 ? Measured.absent(at.heightAbsent() != null ? at.heightAbsent()
                         : "the generator answered no surface height at spawn")
@@ -139,8 +155,8 @@ public final class FactsEngine {
         List<Integer> around = new ArrayList<>();
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                Integer v = SpikeSampler.sample(rig, dx * SPAWN_PROBE_STEP,
-                        dz * SPAWN_PROBE_STEP).surfaceHeight();
+                Integer v = SpikeSampler.sample(rig, at0[0] + dx * SPAWN_PROBE_STEP,
+                        at0[1] + dz * SPAWN_PROBE_STEP).surfaceHeight();
                 if (v != null) {
                     around.add(v);
                 }
