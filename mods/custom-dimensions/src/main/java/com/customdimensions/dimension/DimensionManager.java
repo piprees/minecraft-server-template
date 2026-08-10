@@ -160,7 +160,7 @@ public class DimensionManager {
                 if (dimRegistry.contains(key)) {
                     // The persisted generator (level.dat) wins for existing
                     // dimensions — warn on drift, never delete or regenerate.
-                    DimensionFingerprints.checkExisting(def);
+                    DimensionFingerprints.checkExisting(def, this.server);
                     continue;
                 }
                 try {

@@ -7,6 +7,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,6 +34,14 @@ import java.util.Map;
  * operator decision (full world wipe). Seed-only drift logs at INFO —
  * the seed roller re-pins winner seeds constantly, and a seed change is
  * routine tuning rather than a structural mismatch.
+ *
+ * <p>A missing store file is only silent for a dimension that has never
+ * generated a chunk — nothing has been baked yet, so there is nothing to
+ * compare against. For a dimension whose world already exists on disk,
+ * an absent fingerprint is worth a WARN naming what cannot be verified
+ * (see {@link #checkExisting}): without it, a lost store file makes every
+ * such dimension silently agree with whatever config is running now, and
+ * a real drift never surfaces again.
  */
 public final class DimensionFingerprints {
 
@@ -114,16 +124,40 @@ public final class DimensionFingerprints {
     }
 
     /**
-     * Existing registry entry seen at boot: compare config vs creation-time
-     * fingerprint. Worldgen drift (type/noiseSettings/biomes) warns; seed-only
-     * drift is an INFO. No stored baseline (pre-feature world) adopts the
-     * current config silently.
+     * Existing registry entry seen at boot: resolves whether this dimension's
+     * world has already generated chunks, then defers to {@link
+     * #checkExisting(DimensionConfig, boolean)}. Split so the decision core
+     * is testable without a {@code MinecraftServer} — this harness cannot
+     * construct one.
      */
-    public static synchronized void checkExisting(DimensionConfig def) {
+    public static synchronized void checkExisting(DimensionConfig def, MinecraftServer server) {
+        checkExisting(def, worldGenerated(def, server));
+    }
+
+    /**
+     * Compare config vs creation-time fingerprint. Worldgen drift
+     * (type/noiseSettings/biomes) warns; seed-only drift is an INFO. No
+     * stored baseline adopts the current config as the new one to compare
+     * against — silently for a dimension with no world on disk yet (nothing
+     * was ever baked, so nothing was ever lost), but with a WARN for one
+     * that already has generated chunks: the store was lost, not the
+     * dimension, and every drift check before this boot is now
+     * unrecoverable. Either way the baseline is adopted, so drift detection
+     * resumes from this boot rather than nagging forever.
+     */
+    static synchronized void checkExisting(DimensionConfig def, boolean worldHasGeneratedChunks) {
         load();
         Map<String, String> current = fields(def);
         Map<String, String> stored = cache.get(def.getName());
         if (stored == null) {
+            if (worldHasGeneratedChunks) {
+                MultiverseServer.LOGGER.warn(
+                        "Dimension {}: no fingerprint on record, but its world already has "
+                        + "generated chunks on disk — the fingerprints store was lost (deleted, or "
+                        + "never carried over), so any worldgen drift before this boot cannot be "
+                        + "verified. Adopting the current config as the new baseline from here.",
+                        def.getName());
+            }
             cache.put(def.getName(), current);
             save();
             return;
@@ -165,6 +199,39 @@ public final class DimensionFingerprints {
                     "Dimension {}: fingerprint recorded but no config entry exists for it — the "
                     + "world still exists on disk with no config describing it.", name);
         }
+    }
+
+    /**
+     * Whether this dimension's world has ever generated and saved a chunk,
+     * independent of whether it is currently loaded. A dimension can be
+     * registered (present in level.dat's dimension registry, which is why
+     * {@link #checkExisting} was reached at all) with nothing on disk yet —
+     * created but never visited — and that case has nothing to lose, so it
+     * stays silent.
+     */
+    private static boolean worldGenerated(DimensionConfig def, MinecraftServer server) {
+        if (server == null) {
+            return false;
+        }
+        return Files.isDirectory(
+                regionDirFor(server.getSavePath(WorldSavePath.ROOT), def.getDimensionIdentifier()));
+    }
+
+    /**
+     * The region directory vanilla creates once a dimension's first chunk
+     * actually saves — pure path arithmetic over the save root, kept
+     * separate from {@link #worldGenerated} so it is testable without a
+     * {@code MinecraftServer}.
+     */
+    static Path regionDirFor(Path saveRoot, Identifier dimensionId) {
+        return saveRoot.resolve("dimensions").resolve(dimensionId.getNamespace())
+                .resolve(dimensionId.getPath()).resolve("region");
+    }
+
+    /** Test seam: the fingerprint currently on record for a dimension, or null. */
+    static synchronized Map<String, String> storedFieldsFor(String name) {
+        load();
+        return cache.get(name);
     }
 
     private static void load() {
