@@ -35,7 +35,8 @@ class SeedBankTest {
         return new SeedFacts("v1.2.3", dimension, seed, "2026-08-10T00:00:00Z", "fp", 4096,
                 new SeedFacts.SpawnFacts(
                         Measured.of(new SeedFacts.Column(0, 0, false)),
-                        goneStr(), goneInt, goneDouble, Measured.absent("not measured in this fixture")),
+                        goneStr(), goneInt, goneDouble, Measured.absent("not measured in this fixture"),
+                        Measured.absent("not measured in this fixture")),
                 new SeedFacts.BiomeFacts(
                         Measured.absent("not measured in this fixture"), goneInt, goneDouble, goneDouble),
                 new SeedFacts.TerrainFacts(goneDouble, goneDouble, goneDouble, goneInt, goneInt),

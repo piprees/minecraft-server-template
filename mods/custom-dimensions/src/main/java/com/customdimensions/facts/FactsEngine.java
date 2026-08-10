@@ -10,13 +10,17 @@ import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.NoiseStructurePlacement;
 import com.customdimensions.dimension.StructurePick;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
+import net.minecraft.world.gen.chunk.VerticalBlockSample;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -110,6 +114,7 @@ public final class FactsEngine {
         Map<String, Integer> biomeIndex = new LinkedHashMap<>();
         List<Integer> biome = new ArrayList<>(grid.biome().length);
         List<Integer> height = new ArrayList<>(grid.height().length);
+        int heightMeasured = 0;
 
         for (int i = 0; i < grid.biome().length; i++) {
             String b = grid.biome()[i];
@@ -125,9 +130,12 @@ public final class FactsEngine {
                 biome.add(idx);
             }
             height.add(grid.height()[i]);
+            if (grid.height()[i] != null) {
+                heightMeasured++;
+            }
         }
 
-        return new SeedFacts.Grid(grid.side(), biomeIds, biome, height);
+        return new SeedFacts.Grid(grid.side(), biomeIds, biome, height, grid.sampled(), heightMeasured);
     }
 
     // ------------------------------------------------------------------ grid
@@ -198,12 +206,22 @@ public final class FactsEngine {
         // neighbours are (radius * 2) / (GRID - 1) apart — 204 blocks at a 4096
         // radius, where a 34-block rise is a gentle slope, not a cliff.
         List<Integer> around = new ArrayList<>();
+        List<SeedFacts.GroundKind> groundKinds = new ArrayList<>();
         for (int dz = -1; dz <= 1; dz++) {
             for (int dx = -1; dx <= 1; dx++) {
-                Integer v = SpikeSampler.sample(rig, at0.x() + dx * SPAWN_PROBE_STEP,
-                        at0.z() + dz * SPAWN_PROBE_STEP).surfaceHeight();
+                int x = at0.x() + dx * SPAWN_PROBE_STEP;
+                int z = at0.z() + dz * SPAWN_PROBE_STEP;
+                Integer v = SpikeSampler.sample(rig, x, z).surfaceHeight();
                 if (v != null) {
                     around.add(v);
+                    try {
+                        groundKinds.add(classifyGround(rig, x, z, v));
+                    } catch (Exception e) {
+                        // Same column, a different question: a height answer
+                        // does not guarantee a block-state read succeeds too.
+                        // Dropped like a null height would be — the count
+                        // this column contributes to just shrinks by one.
+                    }
                 }
             }
         }
@@ -211,6 +229,9 @@ public final class FactsEngine {
                 ? Measured.absent("fewer than two columns near spawn answered a height")
                 : Measured.of((double) (java.util.Collections.max(around)
                         - java.util.Collections.min(around)));
+        Measured<List<SeedFacts.GroundKind>> nearbyGround = groundKinds.isEmpty()
+                ? Measured.absent("no column near spawn answered both a height and a ground read")
+                : Measured.of(groundKinds);
 
         Measured<Boolean> aboveSea;
         if (at.surfaceHeight() == null) {
@@ -228,7 +249,49 @@ public final class FactsEngine {
                         ? Measured.absent(at.biomeAbsent() != null ? at.biomeAbsent()
                                 : "the biome source answered nothing at spawn")
                         : Measured.of(at.biome()),
-                h, relief, aboveSea);
+                h, relief, aboveSea, nearbyGround);
+    }
+
+    /**
+     * What a player standing at this column's floor would be standing in.
+     * Checked at both {@code surfaceHeight} (the player's feet) and
+     * {@code surfaceHeight - 1} (the ground under them): an ocean column
+     * reports its water at the feet position and rock or nothing below it,
+     * while a fluid pooled on solid ground in a ceilinged dimension reports
+     * the reverse — {@code ColumnScan}'s floor is the first OPAQUE block
+     * walking down, and lava is not opaque, so a lava-floored pocket's
+     * reported floor sits at the top of the lava, not beneath it.
+     */
+    private static SeedFacts.GroundKind classifyGround(
+            SpikeSampler.Rig rig, int x, int z, int surfaceHeight) {
+        VerticalBlockSample column =
+                rig.generator().getColumnSample(x, z, rig.heightLimit(), rig.noiseConfig());
+        int bottom = rig.heightLimit().getBottomY();
+        int top = rig.heightLimit().getTopY() - 1;
+        if (isHazard(column, surfaceHeight, bottom, top)
+                || isHazard(column, surfaceHeight - 1, bottom, top)) {
+            return SeedFacts.GroundKind.HAZARDOUS_FLUID;
+        }
+        if (isWater(column, surfaceHeight, bottom, top)
+                || isWater(column, surfaceHeight - 1, bottom, top)) {
+            return SeedFacts.GroundKind.OPEN_WATER;
+        }
+        return SeedFacts.GroundKind.SOLID;
+    }
+
+    private static boolean isHazard(VerticalBlockSample column, int y, int bottom, int top) {
+        if (y < bottom || y > top) {
+            return false;
+        }
+        BlockState state = column.getState(y);
+        return state.isOf(Blocks.FIRE) || state.getFluidState().isIn(FluidTags.LAVA);
+    }
+
+    private static boolean isWater(VerticalBlockSample column, int y, int bottom, int top) {
+        if (y < bottom || y > top) {
+            return false;
+        }
+        return column.getState(y).getFluidState().isIn(FluidTags.WATER);
     }
 
     /** Dumps the spawn column's opaque/open runs top to bottom, DEBUG-gated. */
@@ -801,7 +864,8 @@ public final class FactsEngine {
         return new SeedFacts(Artefacts.stackVersion(),
                 id.toString(), seed, Instant.now().toString(), fingerprint, radius,
                 new SeedFacts.SpawnFacts(Measured.absent(why), Measured.absent(why),
-                        Measured.absent(why), Measured.absent(why), Measured.absent(why)),
+                        Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                        Measured.absent(why)),
                 new SeedFacts.BiomeFacts(Measured.absent(why), Measured.absent(why),
                         Measured.absent(why), Measured.absent(why)),
                 new SeedFacts.TerrainFacts(Measured.absent(why), Measured.absent(why),

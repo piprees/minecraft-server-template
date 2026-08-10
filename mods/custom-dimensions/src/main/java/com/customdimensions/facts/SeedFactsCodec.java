@@ -56,7 +56,8 @@ public final class SeedFactsCodec {
                         measured(spawn, "biome", JsonElement::getAsString),
                         measured(spawn, "surfaceHeight", JsonElement::getAsInt),
                         measured(spawn, "localRelief", JsonElement::getAsDouble),
-                        measured(spawn, "aboveSeaLevel", JsonElement::getAsBoolean)),
+                        measured(spawn, "aboveSeaLevel", JsonElement::getAsBoolean),
+                        measured(spawn, "nearbyGround", SeedFactsCodec::groundKindList)),
                 new SeedFacts.BiomeFacts(
                         measured(biomes, "shares", SeedFactsCodec::doubleMap),
                         measured(biomes, "distinctCount", JsonElement::getAsInt),
@@ -153,6 +154,16 @@ public final class SeedFactsCodec {
                 o.get("side").getAsInt(),
                 stringList(o.getAsJsonArray("biomeIds")),
                 intList(o.getAsJsonArray("biome")),
-                intList(o.getAsJsonArray("height")));
+                intList(o.getAsJsonArray("height")),
+                o.get("sampled").getAsInt(),
+                o.get("heightMeasured").getAsInt());
+    }
+
+    private static List<SeedFacts.GroundKind> groundKindList(JsonElement element) {
+        List<SeedFacts.GroundKind> out = new ArrayList<>();
+        for (JsonElement e : element.getAsJsonArray()) {
+            out.add(SeedFacts.GroundKind.valueOf(e.getAsString()));
+        }
+        return out;
     }
 }

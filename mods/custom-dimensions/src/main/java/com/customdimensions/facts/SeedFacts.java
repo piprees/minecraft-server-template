@@ -39,13 +39,27 @@ public record SeedFacts(
      *               is itself a fact: the measurement site is only derivable from
      *               the merged config (platform layer plus consumer overlay), and
      *               either layer alone gives a different answer.
+     * @param nearbyGround the block classification at each of the columns
+     *                     {@code localRelief} already samples that answered a
+     *                     height — one entry per such column, in no particular
+     *                     order. Absent only when none of them did.
      */
     public record SpawnFacts(
             Measured<Column> column,
             Measured<String> biome,
             Measured<Integer> surfaceHeight,
             Measured<Double> localRelief,
-            Measured<Boolean> aboveSeaLevel) {
+            Measured<Boolean> aboveSeaLevel,
+            Measured<List<GroundKind>> nearbyGround) {
+    }
+
+    /**
+     * What a probed column's floor is made of. {@code HAZARDOUS_FLUID} is lava
+     * or fire; {@code OPEN_WATER} is water with no ground directly beneath it;
+     * anything else the probe can stand on is {@code SOLID}.
+     */
+    public enum GroundKind {
+        SOLID, HAZARDOUS_FLUID, OPEN_WATER
     }
 
     /**
@@ -152,12 +166,21 @@ public record SeedFacts(
      *                  indexed by {@code biome}
      * @param biome     index into {@code biomeIds} per cell, or null
      * @param height    surface height per cell, or null
+     * @param sampled   cells inside the playable disc that were attempted —
+     *                  {@code side * side - sampled} were outside it and never
+     *                  attempted at all
+     * @param heightMeasured of those {@code sampled} cells, how many answered
+     *                  a height — the rest were attempted and came back with
+     *                  none. {@code heightMeasured / sampled} is how much of
+     *                  the disc actually has a floor.
      */
     public record Grid(
             int side,
             List<String> biomeIds,
             List<Integer> biome,
-            List<Integer> height) {
+            List<Integer> height,
+            int sampled,
+            int heightMeasured) {
     }
 
     // ------------------------------------------------------------------ json
@@ -177,7 +200,8 @@ public record SeedFacts(
         field(b, "biome", spawn.biome().toJson(Json::quote), true);
         field(b, "surfaceHeight", spawn.surfaceHeight().toJson(v -> Json.number((long) v)), true);
         field(b, "localRelief", spawn.localRelief().toJson(Json::number), true);
-        field(b, "aboveSeaLevel", spawn.aboveSeaLevel().toJson(String::valueOf), false);
+        field(b, "aboveSeaLevel", spawn.aboveSeaLevel().toJson(String::valueOf), true);
+        field(b, "nearbyGround", spawn.nearbyGround().toJson(SeedFacts::groundKindList), false);
         b.append(" },\n");
 
         b.append(" \"biomes\": {\n");
@@ -276,7 +300,20 @@ public record SeedFacts(
                 + ", \"biomeIds\": " + stringList(g.biomeIds())
                 + ", \"biome\": " + intList(g.biome())
                 + ", \"height\": " + intList(g.height())
+                + ", \"sampled\": " + g.sampled()
+                + ", \"heightMeasured\": " + g.heightMeasured()
                 + "}";
+    }
+
+    private static String groundKindList(List<GroundKind> values) {
+        StringBuilder b = new StringBuilder("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) {
+                b.append(", ");
+            }
+            b.append(Json.quote(values.get(i).name()));
+        }
+        return b.append(']').toString();
     }
 
     /** Every absent fact in this record, as "path: reason". For the summary. */
@@ -287,6 +324,7 @@ public record SeedFacts(
         absent(out, "spawn.surfaceHeight", spawn.surfaceHeight());
         absent(out, "spawn.localRelief", spawn.localRelief());
         absent(out, "spawn.aboveSeaLevel", spawn.aboveSeaLevel());
+        absent(out, "spawn.nearbyGround", spawn.nearbyGround());
         absent(out, "biomes.shares", biomes.shares());
         absent(out, "biomes.distinctCount", biomes.distinctCount());
         absent(out, "biomes.headlineShare", biomes.headlineShare());

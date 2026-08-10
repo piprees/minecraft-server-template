@@ -35,7 +35,8 @@ class ScorecardDistributionTest {
                 Measured.of(biome),
                 Measured.of(64),
                 Measured.of(localRelief),
-                Measured.of(true));
+                Measured.of(true),
+                Measured.absent("not measured in this fixture"));
     }
 
     private static SeedFacts.BiomeFacts biomes(int distinct, double headline, double edges) {

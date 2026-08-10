@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,7 +31,9 @@ class SeedFactsCodecTest {
                         Measured.of("minecraft:snowy_plains"),
                         Measured.of(72),
                         Measured.of(11.5),
-                        Measured.of(true)),
+                        Measured.of(true),
+                        Measured.of(List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                                SeedFacts.GroundKind.OPEN_WATER))),
                 new SeedFacts.BiomeFacts(
                         Measured.of(Map.of("minecraft:plains", 0.6,
                                 "minecraft:desert", 0.4)),
@@ -62,12 +65,15 @@ class SeedFactsCodecTest {
      * floor could not be resolved while its biome came back fine — biome
      * and height are absent independently. Cell 5 is a real height of
      * exactly zero, to prove it survives distinct from an unsampled cell.
+     * Of 9 cells, 8 were sampled (all but cell 2) and 7 of those answered a
+     * height (all but cell 4).
      */
     private static SeedFacts.Grid gridFixture() {
         return new SeedFacts.Grid(3,
                 List.of("minecraft:plains", "minecraft:desert"),
                 Arrays.asList(0, 1, null, null, 0, 1, 1, 0, 1),
-                Arrays.asList(72, 65, null, 140, null, 0, 67, 68, 69));
+                Arrays.asList(72, 65, null, 140, null, 0, 67, 68, 69),
+                8, 7);
     }
 
     /** A flat generator: real values where they exist, stated absences elsewhere. */
@@ -164,7 +170,8 @@ class SeedFactsCodecTest {
                 new SeedFacts.SpawnFacts(
                         Measured.of(new SeedFacts.Column(0, 0, false)),
                         declared.spawn().biome(), declared.spawn().surfaceHeight(),
-                        declared.spawn().localRelief(), declared.spawn().aboveSeaLevel()),
+                        declared.spawn().localRelief(), declared.spawn().aboveSeaLevel(),
+                        declared.spawn().nearbyGround()),
                 declared.biomes(), declared.terrain(), declared.structures(), declared.grid());
 
         SeedFacts backDeclared = SeedFactsCodec.read(declared.toJson());
@@ -248,6 +255,23 @@ class SeedFactsCodecTest {
         assertEquals(List.of("minecraft:plains", "minecraft:desert"), grid.biomeIds());
         assertEquals(Arrays.asList(0, 1, null, null, 0, 1, 1, 0, 1), grid.biome());
         assertEquals(Arrays.asList(72, 65, null, 140, null, 0, 67, 68, 69), grid.height());
+        assertEquals(8, grid.sampled());
+        assertEquals(7, grid.heightMeasured());
+    }
+
+    @Test
+    void sampledCountsCellsInsideTheDiscWhileHeightMeasuredCountsThoseWithAFloor() {
+        // playable_ground_covers_the_disc needs to tell "outside the disc"
+        // (side*side - sampled) apart from "attempted but no floor"
+        // (sampled - heightMeasured) — a null cell in the height array alone
+        // conflates the two.
+        SeedFacts.Grid grid = SeedFactsCodec.read(fullyMeasured().toJson()).grid().orThrow();
+
+        int cells = grid.side() * grid.side();
+        assertEquals(9, cells);
+        assertEquals(1, cells - grid.sampled(), "cell 2 is the only one outside the disc");
+        assertEquals(1, grid.sampled() - grid.heightMeasured(),
+                "cell 4 is the only sampled cell with no floor");
     }
 
     @Test
@@ -291,5 +315,60 @@ class SeedFactsCodecTest {
         SeedFacts back = SeedFactsCodec.read(noGrid.toJson());
         assertFalse(back.grid().isPresent());
         assertEquals(noGrid.grid().reason(), back.grid().reason());
+    }
+
+    // ------------------------------------------------------------ nearbyGround
+
+    @Test
+    void nearbyGroundSurvivesTheRoundTripWithOrderAndKindsIntact() {
+        // spawn_is_safe_to_build_on reads this list to classify the spawn
+        // column and its neighbours; a shuffled or lossy round trip would
+        // silently misreport which of the nine columns was hazardous.
+        List<SeedFacts.GroundKind> back = SeedFactsCodec.read(fullyMeasured().toJson())
+                .spawn().nearbyGround().orThrow();
+
+        assertEquals(List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.SOLID,
+                SeedFacts.GroundKind.OPEN_WATER), back);
+    }
+
+    @Test
+    void nearbyGroundTellsHazardousFluidApartFromOpenWaterAndSolidGround() {
+        // The three GroundKind values must each round-trip distinctly — a
+        // codec that mapped two of them onto the same string would let a
+        // lava column pass for open water.
+        SeedFacts.SpawnFacts spawn = new SeedFacts.SpawnFacts(
+                Measured.of(new SeedFacts.Column(0, 0, true)),
+                Measured.of("minecraft:plains"), Measured.of(64), Measured.of(1.0),
+                Measured.of(true),
+                Measured.of(List.of(SeedFacts.GroundKind.SOLID,
+                        SeedFacts.GroundKind.HAZARDOUS_FLUID, SeedFacts.GroundKind.OPEN_WATER)));
+        SeedFacts f = fullyMeasured();
+        SeedFacts withThreeKinds = new SeedFacts(f.stackVersion(), f.dimension(), f.seed(),
+                f.measuredAt(), f.configFingerprint(), f.playableRadius(), spawn, f.biomes(),
+                f.terrain(), f.structures(), f.grid());
+
+        List<SeedFacts.GroundKind> back = SeedFactsCodec.read(withThreeKinds.toJson())
+                .spawn().nearbyGround().orThrow();
+        assertEquals(3, Set.copyOf(back).size(), "all three kinds must survive as distinct values");
+        assertEquals(List.of(SeedFacts.GroundKind.SOLID, SeedFacts.GroundKind.HAZARDOUS_FLUID,
+                SeedFacts.GroundKind.OPEN_WATER), back);
+    }
+
+    @Test
+    void anAbsentNearbyGroundSurvivesTheRoundTripWithItsReason() {
+        // No column near spawn answered a ground read — distinct from every
+        // column answering SOLID.
+        SeedFacts f = fullyMeasured();
+        SeedFacts noGround = new SeedFacts(f.stackVersion(), f.dimension(), f.seed(),
+                f.measuredAt(), f.configFingerprint(), f.playableRadius(),
+                new SeedFacts.SpawnFacts(f.spawn().column(), f.spawn().biome(),
+                        f.spawn().surfaceHeight(), f.spawn().localRelief(), f.spawn().aboveSeaLevel(),
+                        Measured.absent("no column near spawn answered both a height and a ground read")),
+                f.biomes(), f.terrain(), f.structures(), f.grid());
+
+        assertFalse(noGround.spawn().nearbyGround().isPresent());
+        SeedFacts back = SeedFactsCodec.read(noGround.toJson());
+        assertFalse(back.spawn().nearbyGround().isPresent());
+        assertEquals(noGround.spawn().nearbyGround().reason(), back.spawn().nearbyGround().reason());
     }
 }
