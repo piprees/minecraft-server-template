@@ -39,7 +39,8 @@ class CriteriaTest {
                 biome == null ? gone() : Measured.of(biome),
                 Measured.of(64),
                 localRelief == null ? gone() : Measured.of(localRelief),
-                Measured.of(true));
+                Measured.of(true),
+                gone());
     }
 
     private static SeedFacts.BiomeFacts biomes(Integer distinct, Double headline, Double edges) {
@@ -51,9 +52,17 @@ class CriteriaTest {
     }
 
     private static SeedFacts.TerrainFacts terrain(Double relief) {
+        return terrain(relief, 0.1, 0, 100);
+    }
+
+    private static SeedFacts.TerrainFacts terrain(Double relief, Double water,
+                                                   Integer minHeight, Integer maxHeight) {
         return new SeedFacts.TerrainFacts(
                 relief == null ? gone() : Measured.of(relief),
-                Measured.of(2.0), Measured.of(0.1), Measured.of(0), Measured.of(100));
+                Measured.of(2.0),
+                water == null ? gone() : Measured.of(water),
+                minHeight == null ? gone() : Measured.of(minHeight),
+                maxHeight == null ? gone() : Measured.of(maxHeight));
     }
 
     /** One group of ten placements at the given spacing — the simple case. */
@@ -119,6 +128,10 @@ class CriteriaTest {
 
     private static SeedFacts withStructures(SeedFacts.StructureFacts structures, int radius) {
         return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0), structures, radius);
+    }
+
+    private static SeedFacts withTerrain(SeedFacts.TerrainFacts terrain, int radius) {
+        return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain, structures(0.6, 900.0), radius);
     }
 
     // --------------------------------------------------- spawn reads as name
@@ -363,6 +376,59 @@ class CriteriaTest {
         assertFalse(c.applicable(config(null, "lumpy", null)));
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
                 full("b", 4.0, 5, 0.4, 0.3, null, 0.6, 900.0, 4096), mountains));
+    }
+
+    // ---------------------------------------------------------- water intent
+
+    @Test
+    void waterFractionIsJudgedAgainstTheWordTheConfigUsed() {
+        var c = new Criteria.WaterMatchesIntent();
+        DimensionConfig sea = config(null, null, null);
+        sea.getSeedRoll().water = "sea";
+
+        assertTrue(c.applicable(sea));
+        assertEquals(1.0, score(c.evaluate(
+                withTerrain(terrain(30.0, 0.7, 0, 100), 4096), sea)), 1e-9);
+        assertTrue(score(c.evaluate(
+                withTerrain(terrain(30.0, 0.05, 0, 100), 4096), sea)) < 0.5,
+                "a near-dry world claiming to be a sea dimension should score badly");
+
+        // No water preference configured, and an unrecognised word, are both
+        // "not asked" — decided from config alone, with no facts in sight.
+        assertFalse(c.applicable(config(null, null, null)));
+        DimensionConfig unknown = config(null, null, null);
+        unknown.getSeedRoll().water = "brackish";
+        assertFalse(c.applicable(unknown));
+
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
+                withTerrain(terrain(30.0, null, 0, 100), 4096), sea));
+    }
+
+    // ---------------------------------------------------- height range intent
+
+    @Test
+    void heightRangeIsScoredAsOverlapWithTheConfiguredSpan() {
+        var c = new Criteria.HeightRangeMatchesIntent();
+        DimensionConfig ranged = config(null, null, null);
+        ranged.getSeedRoll().heightRange = new int[] {-64, 320};
+
+        assertTrue(c.applicable(ranged));
+        assertEquals(1.0, score(c.evaluate(
+                withTerrain(terrain(30.0, 0.1, -64, 320), 4096), ranged)), 1e-9,
+                "a measured span exactly matching the configured envelope is full overlap");
+        assertEquals(0.0, score(c.evaluate(
+                withTerrain(terrain(30.0, 0.1, 400, 500), 4096), ranged)), 1e-9,
+                "a measured span entirely outside the configured envelope has no overlap");
+
+        // No height range configured, and a zero-span one, are both "not
+        // asked" — decided from config alone.
+        assertFalse(c.applicable(config(null, null, null)));
+        DimensionConfig degenerate = config(null, null, null);
+        degenerate.getSeedRoll().heightRange = new int[] {100, 100};
+        assertFalse(c.applicable(degenerate), "a zero-span heightRange states no real intent");
+
+        assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
+                withTerrain(terrain(30.0, 0.1, null, 320), 4096), ranged));
     }
 
     // ------------------------------------------------- progression floor
@@ -629,7 +695,7 @@ class CriteriaTest {
     }
 
     private static SeedFacts nothingMeasured() {
-        return facts(new SeedFacts.SpawnFacts(gone(), gone(), gone(), gone(), gone()),
+        return facts(new SeedFacts.SpawnFacts(gone(), gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
@@ -641,7 +707,7 @@ class CriteriaTest {
     private static SeedFacts nothingMeasuredSpawn(String biome) {
         return facts(new SeedFacts.SpawnFacts(
                         Measured.of(new SeedFacts.Column(0, 0, false)),
-                        Measured.of(biome), gone(), gone(), gone()),
+                        Measured.of(biome), gone(), gone(), gone(), gone()),
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),

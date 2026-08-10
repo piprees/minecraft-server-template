@@ -39,6 +39,8 @@ public final class Criteria {
                 new StructuresFormPlacesNotNoise(),
                 new FirstEncounterDistance(),
                 new TerrainMatchesPreset(),
+                new WaterMatchesIntent(),
+                new HeightRangeMatchesIntent(),
                 new FortressReachableInNether(),
                 new EndCityReachableInEnd(),
                 new NothingIsImmediatelyLethal());
@@ -452,6 +454,123 @@ public final class Criteria {
         }
     }
 
+    /**
+     * The dimension's water share should match what {@code seedRoll.water}
+     * asked for. {@code terrain().waterFraction()} is measured on every grid
+     * pass and read by no other criterion — this is that fact's only
+     * consumer. Bands are recovered from the deleted Python roller
+     * ({@code git show 3dfb057^:scripts/seed/dimension_profiles.py}), not
+     * invented: {@code seedRoll.water} overrode the water target to exactly
+     * these three windows regardless of {@code noiseSettings}, and they read
+     * as real statements about how wet "sea", "high" and "none" mean rather
+     * than numbers fitted to one pack.
+     */
+    static final class WaterMatchesIntent implements Criterion {
+        /** word -> (fraction low, fraction high) of the grid's sampled columns that are wet. */
+        static final Map<String, double[]> BANDS = Map.of(
+                "sea", new double[] {0.5, 1.0},
+                "high", new double[] {0.25, 0.8},
+                "none", new double[] {0.0, 0.10});
+
+        public String id() {
+            return "water_matches_intent";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            String word = waterWord(def);
+            if (word == null) {
+                return "no water preference configured";
+            }
+            double[] band = BANDS.get(word);
+            return band == null ? "unknown water preference '" + word + "'"
+                    : word + ": water fraction between " + band[0] + " and " + band[1];
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            String word = waterWord(def);
+            return word != null && BANDS.containsKey(word);
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            String word = waterWord(def);
+            double[] band = BANDS.get(word);
+            Measured<Double> water = facts.terrain().waterFraction();
+            if (!water.isPresent()) {
+                return new Result.Unmeasured(water.reason());
+            }
+            double v = water.orThrow();
+            String ev = String.format(Locale.ROOT, "water fraction %.3f, %s wants %.2f-%.2f",
+                    v, word, band[0], band[1]);
+            if (v >= band[0] && v <= band[1]) {
+                return new Result.Score(1.0, ev + " — inside the band");
+            }
+            double width = band[1] - band[0];
+            double miss = v < band[0] ? band[0] - v : v - band[1];
+            return new Result.Score(ramp(width - miss, 0.0, width), ev + " — outside the band");
+        }
+    }
+
+    /**
+     * The measured terrain should actually use the vertical envelope
+     * {@code seedRoll.heightRange} declared, not sit in a narrow sliver of
+     * it. Unlike {@link WaterMatchesIntent}, this is not a recovered band:
+     * {@code heightRange} was parsed into the deleted Python roller's
+     * profile dict and never once read by its scoring code (checked across
+     * every file under the deleted {@code scripts/seed/} at {@code git show
+     * 3dfb057^}) — there is no prior art to reuse, so the comparison below
+     * (overlap between measured and configured range, as a share of the
+     * configured span) is authored fresh from what the field is named for.
+     */
+    static final class HeightRangeMatchesIntent implements Criterion {
+        public String id() {
+            return "height_range_matches_intent";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            int[] range = heightRange(def);
+            return range == null ? "no height range configured"
+                    : "measured min/max height overlaps " + range[0] + " to " + range[1];
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            return heightRange(def) != null;
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            int[] range = heightRange(def);
+            Measured<Integer> minM = facts.terrain().minHeight();
+            Measured<Integer> maxM = facts.terrain().maxHeight();
+            if (!minM.isPresent()) {
+                return new Result.Unmeasured(minM.reason());
+            }
+            if (!maxM.isPresent()) {
+                return new Result.Unmeasured(maxM.reason());
+            }
+            int measMin = minM.orThrow();
+            int measMax = maxM.orThrow();
+            int confLow = range[0];
+            int confHigh = range[1];
+            double span = confHigh - confLow;
+            String ev = String.format(Locale.ROOT, "measured %d-%d, configured %d-%d",
+                    measMin, measMax, confLow, confHigh);
+            if (span <= 0.0) {
+                return new Result.Unmeasured("configured height range " + confLow + "-" + confHigh
+                        + " has no positive span to overlap against");
+            }
+            double overlap = Math.min(measMax, confHigh) - Math.max(measMin, confLow);
+            double v = Math.max(0.0, Math.min(1.0, overlap / span));
+            return new Result.Score(v, ev + String.format(Locale.ROOT, " — %.0f%% overlap", v * 100.0));
+        }
+    }
+
     // ------------------------------------------------- progression floor
 
     /**
@@ -634,5 +753,22 @@ public final class Criteria {
         DimensionConfig.SeedRoll sr = def.getSeedRoll();
         return sr == null || sr.terrain == null || sr.terrain.isBlank()
                 ? null : sr.terrain.trim().toLowerCase(Locale.ROOT);
+    }
+
+    static String waterWord(DimensionConfig def) {
+        DimensionConfig.SeedRoll sr = def.getSeedRoll();
+        return sr == null || sr.water == null || sr.water.isBlank()
+                ? null : sr.water.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /** {@code seedRoll.heightRange} as {min, max}, or null when unset or malformed. */
+    static int[] heightRange(DimensionConfig def) {
+        DimensionConfig.SeedRoll sr = def.getSeedRoll();
+        if (sr == null || sr.heightRange == null || sr.heightRange.length != 2) {
+            return null;
+        }
+        int lo = Math.min(sr.heightRange[0], sr.heightRange[1]);
+        int hi = Math.max(sr.heightRange[0], sr.heightRange[1]);
+        return lo == hi ? null : new int[] {lo, hi};
     }
 }
