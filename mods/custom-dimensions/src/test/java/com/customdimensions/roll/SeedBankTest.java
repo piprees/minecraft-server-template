@@ -2,6 +2,7 @@ package com.customdimensions.roll;
 
 import com.customdimensions.facts.Measured;
 import com.customdimensions.facts.SeedFacts;
+import com.customdimensions.score.Criterion;
 import com.customdimensions.score.Scorecard;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +80,47 @@ class SeedBankTest {
     void aCorruptCandidateFileIsSkippedNotFatal() {
         SeedBank.CandidateSummary summary = SeedBank.parseSummary("{not json");
         assertNull(summary);
+    }
+
+    // ------------------------------------------------------------ parseScorecard
+
+    @Test
+    void aScorecardWithEveryOutcomeShapeRoundTripsThroughParseScorecard() {
+        // One of each: a graded score, an unmeasured graded criterion (null —
+        // Scorer excludes it from achieved and ceiling, same as a gate or a
+        // not-applicable entry), a passed gate (also null) and a
+        // not-applicable entry (also null) — Frontier depends on all four
+        // surviving the round trip with their outcome intact.
+        List<Scorecard.Entry> entries = List.of(
+                new Scorecard.Entry("biomes", Criterion.Group.INTEREST, "target", "score", 0.7, "evidence"),
+                new Scorecard.Entry("structures", Criterion.Group.INTEREST, "target", "unmeasured", null, "absent"),
+                new Scorecard.Entry("namesake", Criterion.Group.THEME, "target", "pass", null, "cleared"),
+                new Scorecard.Entry("terrain_matches_preset", Criterion.Group.THEME, "target",
+                        "not_applicable", null, "config never asked"));
+        // Ceiling counts only "biomes" — an unmeasured graded criterion is
+        // excluded, not a real denominator entry the way it used to be.
+        Scorecard original = new Scorecard("adventure:the_boneyard", 111L, Scorecard.Verdict.SCORED,
+                "", 0.7, 1.0, entries);
+        SeedFacts facts = fixtureFacts("adventure:the_boneyard", 111L);
+
+        String body = SeedBank.candidateJson("adventure:the_boneyard", 111L, facts, original,
+                "abc123hash", "v1.2.3", "2026-08-10T00:00:00Z");
+        Scorecard parsed = SeedBank.parseScorecard(body);
+
+        // toJson() nests entries under their group in Criterion.Group.values()
+        // order, not input order, so entry ORDER is not a round-trip
+        // guarantee — content, as a set, is.
+        assertEquals(original.dimension(), parsed.dimension());
+        assertEquals(original.seed(), parsed.seed());
+        assertEquals(original.verdict(), parsed.verdict());
+        assertEquals(original.achieved(), parsed.achieved(), 1e-9);
+        assertEquals(original.ceiling(), parsed.ceiling(), 1e-9);
+        assertEquals(Set.copyOf(original.entries()), Set.copyOf(parsed.entries()));
+    }
+
+    @Test
+    void aCorruptCandidateFileIsSkippedNotFatalByParseScorecard() {
+        assertNull(SeedBank.parseScorecard("{not json"));
     }
 
     @Test

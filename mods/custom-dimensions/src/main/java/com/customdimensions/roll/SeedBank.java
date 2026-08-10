@@ -3,6 +3,7 @@ package com.customdimensions.roll;
 import com.customdimensions.command.Artefacts;
 import com.customdimensions.facts.Json;
 import com.customdimensions.facts.SeedFacts;
+import com.customdimensions.score.Criterion;
 import com.customdimensions.score.Scorecard;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -97,6 +99,11 @@ public final class SeedBank {
         return dimensionDir(inputHash, dimension).resolve("rejected.json");
     }
 
+    /** The bank's non-dominated frontier — derived from the candidates, rewritten on every {@code bank}/{@code winner}. */
+    public static Path frontierPath(String inputHash, String dimension) {
+        return dimensionDir(inputHash, dimension).resolve("frontier.json");
+    }
+
     // -------------------------------------------------------------------- writes
 
     /**
@@ -166,15 +173,37 @@ public final class SeedBank {
 
     /** Every scored candidate for a dimension, ranked highest percentage first. */
     public static List<CandidateSummary> leaderboard(String inputHash, String dimension) {
-        Path dir = dimensionDir(inputHash, dimension);
-        if (!Files.isDirectory(dir)) {
-            return List.of();
+        return rank(readCandidateBodies(dimensionDir(inputHash, dimension)));
+    }
+
+    /**
+     * Every candidate's full {@link Scorecard} — the input {@link Frontier}
+     * needs, since a percentage alone cannot say which criteria a candidate
+     * is distinctively strong on. A file the scorecard cannot be parsed back
+     * out of is skipped, the same tolerance {@link #rank} gives a corrupt
+     * candidate.
+     */
+    public static List<Scorecard> scorecards(String inputHash, String dimension) {
+        List<Scorecard> out = new ArrayList<>();
+        for (String body : readCandidateBodies(dimensionDir(inputHash, dimension))) {
+            Scorecard card = parseScorecard(body);
+            if (card != null) {
+                out.add(card);
+            }
         }
+        return out;
+    }
+
+    /** Every candidate file's raw body — shared by {@link #leaderboard} and {@link #scorecards}. */
+    private static List<String> readCandidateBodies(Path dir) {
         List<String> bodies = new ArrayList<>();
+        if (!Files.isDirectory(dir)) {
+            return bodies;
+        }
         try (Stream<Path> stream = Files.list(dir)) {
             for (Path p : stream.toList()) {
                 String name = p.getFileName().toString();
-                if (!name.endsWith(".json") || name.equals("rejected.json")) {
+                if (!name.endsWith(".json") || name.equals("rejected.json") || name.equals("frontier.json")) {
                     continue;
                 }
                 try {
@@ -187,7 +216,7 @@ public final class SeedBank {
         } catch (IOException ignored) {
             // The directory vanished mid-scan: reads the same as no candidates.
         }
-        return rank(bodies);
+        return bodies;
     }
 
     /**
@@ -222,6 +251,44 @@ public final class SeedBank {
                     root.get("ceiling").getAsDouble(),
                     root.get("percentage").getAsDouble(),
                     root.get("verdict").getAsString());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * A candidate file's full {@code scorecard} object, reconstructed as a
+     * real {@link Scorecard} — the inverse of {@link Scorecard#toJson}, which
+     * nests entries under their group name rather than keeping a flat list.
+     * Null on anything unparseable, the same tolerance {@link #parseSummary}
+     * gives a corrupt file.
+     */
+    static Scorecard parseScorecard(String candidateBody) {
+        try {
+            JsonObject root = JsonParser.parseString(candidateBody).getAsJsonObject();
+            JsonObject sc = root.getAsJsonObject("scorecard");
+            String dimension = root.get("dimension").getAsString();
+            long seed = root.get("seed").getAsLong();
+            Scorecard.Verdict verdict = Scorecard.Verdict.valueOf(sc.get("verdict").getAsString());
+            String verdictReason = sc.get("verdictReason").getAsString();
+            double achieved = sc.get("achieved").getAsDouble();
+            double ceiling = sc.get("ceiling").getAsDouble();
+
+            List<Scorecard.Entry> entries = new ArrayList<>();
+            if (sc.has("groups")) {
+                for (var groupEntry : sc.getAsJsonObject("groups").entrySet()) {
+                    Criterion.Group group = Criterion.Group.valueOf(
+                            groupEntry.getKey().toUpperCase(Locale.ROOT));
+                    for (JsonElement el : groupEntry.getValue().getAsJsonArray()) {
+                        JsonObject e = el.getAsJsonObject();
+                        Double value = e.get("value").isJsonNull() ? null : e.get("value").getAsDouble();
+                        entries.add(new Scorecard.Entry(e.get("id").getAsString(), group,
+                                e.get("target").getAsString(), e.get("outcome").getAsString(),
+                                value, e.get("detail").getAsString()));
+                    }
+                }
+            }
+            return new Scorecard(dimension, seed, verdict, verdictReason, achieved, ceiling, entries);
         } catch (RuntimeException e) {
             return null;
         }

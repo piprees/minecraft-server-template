@@ -51,7 +51,7 @@ import java.util.UUID;
  *   /customdim roll <dimension> <count>
  *   /customdim roll-all <count>
  *   /customdim bank <dimension>
- *   /customdim winner <dimension>
+ *   /customdim winner <dimension> [seed]
  *   /customdim render <dimension> <seed> [lowres|highres]
  *
  * '-' marks an optional argument as unset (noiseSettings is an Identifier
@@ -180,7 +180,10 @@ public class DimensionCommands {
                         .executes(RollCommands::bank)))
                 .then(CommandManager.literal("winner")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .executes(RollCommands::winner)))
+                        .executes(ctx -> RollCommands.winner(ctx, null))
+                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
+                            .executes(ctx -> RollCommands.winner(ctx,
+                                LongArgumentType.getLong(ctx, "seed"))))))
                 .then(CommandManager.literal("render")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
