@@ -245,7 +245,8 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "placements cluster into pockets rather than spreading evenly";
+            return "placements clump as much as their group spacing allows "
+                    + "(Clark-Evans near 1.0, not toward " + LATTICE + ")";
         }
 
         public boolean applicable(DimensionConfig def) {
