@@ -70,6 +70,33 @@ not anything reads them.
   unmeasured.
 - **Cost:** Zero, same reason.
 
+### Addendum — the dimensions neither of the above reaches
+
+`water_matches_intent` applies to 17 of 82 shipped dimensions; `height_range_matches_intent` applies to 6. That leaves 65 and 76 silent respectively. Checked each of those against signal independent of the field itself — dimension name, biome list, `seedRoll.terrain` word — to separate "genuinely no opinion" from "opinion never written down."
+
+It's both, in different proportions:
+
+**Water.** ~10 of the 65 carry independent aquatic signal and set nothing in `seedRoll.water`:
+
+- `the_burning_archipelago` — the dimension's own name.
+- `the_icebound_rift` — lists `minecraft:frozen_ocean`.
+- `the_crucible`, `the_underdark`, `the_whispering_wilds`, `the_greywoods` — swamp/mangrove_swamp biomes.
+- `the_blossom_gardens`, `the_gauntlet`, `the_highland_crossing`, `the_frozen_hearth` — river biomes.
+
+The other ~55 are lava/basalt-deltas/deep-dark/nether-flavoured or plain-terrain dimensions with no water theme anywhere in their config — correctly silent, and forcing a water opinion onto them would be inventing intent the theme never had, the same failure mode `applicable()` exists to prevent.
+
+**Height range.** ~15 of the 76 carry a name or `seedRoll.terrain` word implying a distinctive vertical envelope and set nothing in `seedRoll.heightRange`:
+
+- `the_pillared_void`, `the_icebound_rift`, `the_slatemouth` — `terrain: "void"`.
+- `the_burning_archipelago`, `the_shattered_skies`, `the_starwell` — `terrain: "islands"`.
+- `the_gilded_pit`, `the_weeping_vault`, `the_souldrift`, `the_luminous_caverns`, `the_underdark`, `the_basalt_spires`, `the_highland_crossing`, `the_verdant_hollow`, `the_miredeep` — vertical naming (pit/vault/rift/caverns/hollow/spires/crossing/deep).
+
+The remaining ~61 are ordinary-height dimensions where the default vertical envelope is genuinely fine — also correctly silent.
+
+**The consequence of fixing it.** `InputHash` hashes the merged dimension config, so writing `seedRoll.water` or `heightRange` onto one of the dimensions above changes that dimension's input hash and invalidates its entire candidate bank — every existing candidate is re-measured from scratch, at up to ~26s a candidate for the more expensive dimensions. Correct behaviour, not a defect, but it means this authoring belongs in one deliberate pass across the listed candidates, not trickled in a field at a time each triggering its own re-roll.
+
+**Why it belongs in this document.** Authoring `seedRoll.water`/`heightRange` into the ~10-15 dimensions per field listed above is a graded criterion gained for zero new code — cheaper than every probe in Groups 2 and 3 below, because the fact is already measured and the criterion is already written. It is a config-authoring decision per dimension, not a code change, and out of scope here: this document lists the candidates and states the case, it does not author the values.
+
 ## Group 2 — cheap: needs a new fact, but from data already in hand or a handful of extra columns
 
 ### `playable_ground_covers_the_disc`
