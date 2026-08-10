@@ -11,14 +11,10 @@ open, every phase ends with an adversarial pass.
 
 ## Current phase
 
-**Phase 4 — facts engine.** Partially landed; gate 1 is 3 of 4 and the residual
-is named in the plan. The immediate next step is small and specific: dump the
-facts engine's structure-set list and the live calculator's side by side for
-`the_boneyard` and find the entry that differs (`friendsandfoes:citadel` is in
-one and not the other). Positions already match exactly, so only the set list
-is in question.
+**Phase 4 — facts engine.** Gate 1 MET: 4 of 4 (dimension, seed) pairs match the
+live census exactly, per-group, per-structure and in total.
 
-Then: gate 3 (a reader, for round-trip serialisation), a JUnit test per fact
+Still to do: gate 3 (a reader, for round-trip serialisation), a JUnit test per fact
 computation, and the five facts not yet built (spawn buildability, contact
 perimeter, traversability, landmark line-of-sight, progression reachability) —
 all of which need block-level column probes rather than the heightmap.

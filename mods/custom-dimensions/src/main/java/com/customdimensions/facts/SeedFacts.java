@@ -72,6 +72,12 @@ public record SeedFacts(
     /**
      * What is placed, where.
      *
+     * @param pool               structure id -> its summed weight in the pool.
+     *                           What COULD be placed, as distinct from what
+     *                           was. Without it, a pool difference and a pick
+     *                           difference look identical from the outside,
+     *                           which is exactly the ambiguity that made the
+     *                           first parity failure hard to localise.
      * @param byGroup            group -> how many positions
      * @param byStructure        structure id -> how many positions assigned
      * @param nearestByStructure structure id -> distance in blocks from spawn
@@ -85,6 +91,7 @@ public record SeedFacts(
      *                           endgame placement
      */
     public record StructureFacts(
+            Measured<Map<String, Integer>> pool,
             Measured<Map<String, Integer>> byGroup,
             Measured<Map<String, Integer>> byStructure,
             Measured<Map<String, Double>> nearestByStructure,
@@ -129,6 +136,7 @@ public record SeedFacts(
         b.append(" },\n");
 
         b.append(" \"structures\": {\n");
+        field(b, "pool", structures.pool().toJson(SeedFacts::intMap), true);
         field(b, "byGroup", structures.byGroup().toJson(SeedFacts::intMap), true);
         field(b, "byStructure", structures.byStructure().toJson(SeedFacts::intMap), true);
         field(b, "nearestByStructure",
@@ -186,6 +194,7 @@ public record SeedFacts(
         absent(out, "terrain.waterFraction", terrain.waterFraction());
         absent(out, "terrain.minHeight", terrain.minHeight());
         absent(out, "terrain.maxHeight", terrain.maxHeight());
+        absent(out, "structures.pool", structures.pool());
         absent(out, "structures.byGroup", structures.byGroup());
         absent(out, "structures.byStructure", structures.byStructure());
         absent(out, "structures.nearestByStructure", structures.nearestByStructure());

@@ -336,6 +336,7 @@ public final class FactsEngine {
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
 
+        Map<String, Integer> poolWeights = new TreeMap<>();
         Map<String, Integer> byGroup = new TreeMap<>();
         Map<String, Integer> byStructure = new TreeMap<>();
         Map<String, Double> nearest = new TreeMap<>();
@@ -359,6 +360,9 @@ public final class FactsEngine {
             for (var weighted : pool.entries()) {
                 weighted.structure().getKey().ifPresent(k -> pickPool.add(
                         new StructurePick.PoolEntry(k.getValue().toString(), weighted.weight())));
+            }
+            for (StructurePick.PoolEntry pe : pickPool) {
+                poolWeights.merge(pe.structureId(), pe.weight(), Integer::sum);
             }
             List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
 
@@ -384,11 +388,13 @@ public final class FactsEngine {
         if (total == 0) {
             String why = "every enabled group produced an empty pool or an empty field";
             return new SeedFacts.StructureFacts(
-                    Measured.of(byGroup), Measured.of(byStructure), Measured.of(nearest),
+                    Measured.of(poolWeights), Measured.of(byGroup), Measured.of(byStructure),
+                    Measured.of(nearest),
                     Measured.absent(why), Measured.absent(why), Measured.of(0));
         }
 
         return new SeedFacts.StructureFacts(
+                Measured.of(poolWeights),
                 Measured.of(byGroup),
                 Measured.of(byStructure),
                 Measured.of(nearest),
@@ -413,9 +419,44 @@ public final class FactsEngine {
             if (id != null && wanted.contains(id)) {
                 return true;
             }
-            if (NoisePoolBuilder.biomeAffinity(weighted.structure(), dimensionBiomes) > 0.0) {
+            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * Vanilla's own prefilter test: does this structure list a biome the
+     * source produces?
+     *
+     * <p>NOT {@code biomeAffinity > 0}, and the difference is the whole of a
+     * parity failure. Affinity answers 1.0 for a structure with NO valid
+     * biomes at all, on the reading "no predicate, so it generates anywhere" —
+     * which is right for weighting a structure already in a pool. Vanilla's
+     * filter is an {@code anyMatch} over the list, and an empty list matches
+     * nothing, so it drops the set. Three Towns &amp; Towers "exclusives"
+     * (swapped in by Cristel Lib rather than placed directly, and carrying no
+     * biome list of their own) were in the facts pool and not the live one
+     * because of exactly this, and shifted 22 of the_boneyard's 256
+     * assignments.
+     */
+    private static boolean intersectsBiomes(
+            RegistryEntry<net.minecraft.world.gen.structure.Structure> structure,
+            java.util.Set<Identifier> dimensionBiomes) {
+        if (dimensionBiomes.isEmpty()) {
+            return true;   // biome source undeterminable: filter nothing
+        }
+        try {
+            for (RegistryEntry<net.minecraft.world.biome.Biome> biome
+                    : structure.value().getValidBiomes()) {
+                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
+                if (id != null && dimensionBiomes.contains(id)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return true;   // a broken structure is not ours to fail on
         }
         return false;
     }
@@ -423,7 +464,8 @@ public final class FactsEngine {
     private static SeedFacts.StructureFacts absentStructures(String why) {
         return new SeedFacts.StructureFacts(
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
-                Measured.absent(why), Measured.absent(why), Measured.absent(why));
+                Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                Measured.absent(why));
     }
 
     private static double nearestDistanceBlocks(List<long[]> positions) {
