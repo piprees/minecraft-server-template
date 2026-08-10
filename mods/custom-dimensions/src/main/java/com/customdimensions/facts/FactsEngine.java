@@ -1,6 +1,8 @@
 package com.customdimensions.facts;
 
+import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
+import com.customdimensions.command.ColumnScan;
 import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
@@ -77,12 +79,24 @@ public final class FactsEngine {
         // itself.
         Grid grid = sampleGrid(rig, radius);
 
+        SeedFacts.Column spawnAt = spawnColumn(def);
+        SeedFacts.SpawnFacts spawn = spawnFacts(rig, spawnAt);
+        SeedFacts.TerrainFacts terrain = terrainFacts(grid, rig);
+        MultiverseServer.LOGGER.debug(
+                "facts {} seed={}: spawn.surfaceHeight={} terrain.relief={} grain={} min={} max={}",
+                dimensionId, seed, spawn.surfaceHeight(), terrain.relief(), terrain.grain(),
+                terrain.minHeight(), terrain.maxHeight());
+        // TEMPORARY — investigating whether a ceilinged floor reading catches
+        // a ceiling hang rather than the true floor. Remove once resolved.
+        if (rig.hasCeiling()) {
+            MultiverseServer.LOGGER.debug("facts {} seed={} ceiling-diagnostic: {}",
+                    dimensionId, seed, ceilingDiagnostic(rig, radius, spawnAt.x(), spawnAt.z()));
+        }
+
         return new SeedFacts(
                 Artefacts.stackVersion(),
                 dimensionId.toString(), seed, Instant.now().toString(), fingerprint, radius,
-                spawnFacts(rig, spawnColumn(def)),
-                biomeFacts(grid),
-                terrainFacts(grid, rig),
+                spawn, biomeFacts(grid), terrain,
                 structureFacts(server, def, base, seed, radius));
     }
 
@@ -182,6 +196,77 @@ public final class FactsEngine {
                                 : "the biome source answered nothing at spawn")
                         : Measured.of(at.biome()),
                 h, relief, aboveSea);
+    }
+
+    /**
+     * TEMPORARY diagnostic for the ceilinged-floor investigation — not part of
+     * the measurement. Dumps the spawn column's opaque/open runs top to
+     * bottom, plus the grid's floor-height median and the fraction of
+     * resolved columns whose floor sits within 5 blocks of the roof
+     * underside (a ceiling hang reads as a floor "just under the roof";
+     * genuine ground usually does not).
+     */
+    private static String ceilingDiagnostic(SpikeSampler.Rig rig, int radius, int spawnX, int spawnZ) {
+        int top = rig.heightLimit().getTopY() - 1;
+        int bottom = rig.heightLimit().getBottomY();
+
+        var spawnColumn = rig.generator().getColumnSample(spawnX, spawnZ, rig.heightLimit(), rig.noiseConfig());
+        StringBuilder runs = new StringBuilder();
+        Boolean runOpaque = null;
+        int runStart = top;
+        for (int y = top; y >= bottom; y--) {
+            boolean opaque = spawnColumn.getState(y).isOpaque();
+            if (runOpaque == null) {
+                runOpaque = opaque;
+                runStart = y;
+            } else if (opaque != runOpaque) {
+                runs.append(runOpaque ? "solid" : "open").append('[').append(y + 1)
+                        .append("..").append(runStart).append("] ");
+                runOpaque = opaque;
+                runStart = y;
+            }
+        }
+        runs.append(runOpaque != null && runOpaque ? "solid" : "open")
+                .append('[').append(bottom).append("..").append(runStart).append(']');
+
+        int side = GRID;
+        int step = Math.max(1, (radius * 2) / (side - 1));
+        int half = side / 2;
+        List<Integer> floors = new ArrayList<>();
+        int nearRoof = 0;
+        int resolved = 0;
+        for (int gz = 0; gz < side; gz++) {
+            for (int gx = 0; gx < side; gx++) {
+                int dx = (gx - half) * step;
+                int dz = (gz - half) * step;
+                if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
+                    continue;
+                }
+                var column = rig.generator().getColumnSample(dx, dz, rig.heightLimit(), rig.noiseConfig());
+                java.util.function.IntPredicate isOpaque = y -> column.getState(y).isOpaque();
+                int roofY = ColumnScan.findRoofY(top, bottom, isOpaque);
+                if (roofY == ColumnScan.NONE) {
+                    continue;
+                }
+                int undersideY = ColumnScan.findRoofUndersideY(roofY, bottom, isOpaque);
+                if (undersideY == ColumnScan.NONE) {
+                    continue;
+                }
+                int floorY = ColumnScan.findPlayableFloorY(undersideY, bottom, isOpaque);
+                if (floorY == ColumnScan.NONE) {
+                    continue;
+                }
+                resolved++;
+                floors.add(floorY);
+                if (undersideY - floorY <= 5) {
+                    nearRoof++;
+                }
+            }
+        }
+        java.util.Collections.sort(floors);
+        Integer median = floors.isEmpty() ? null : floors.get(floors.size() / 2);
+        return "spawn column " + runs + " | grid " + resolved + " resolved, median floor=" + median
+                + ", " + nearRoof + "/" + resolved + " within 5 blocks of the roof underside";
     }
 
     // ---------------------------------------------------------------- biomes

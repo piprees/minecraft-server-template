@@ -97,6 +97,7 @@ public final class SpikeSampler {
             ChunkGenerator generator,
             NoiseConfig noiseConfig,
             HeightLimitView heightLimit,
+            boolean hasCeiling,
             boolean biomeSourceAcceptsWithSeed,
             boolean climateOnly,
             String error) {
@@ -118,6 +119,7 @@ public final class SpikeSampler {
     public record Base(
             ChunkGenerator generator,
             HeightLimitView heightLimit,
+            boolean hasCeiling,
             boolean biomeSourceAcceptsWithSeed,
             boolean fromConfig,
             ChunkGeneratorSettings climateSettings,
@@ -235,13 +237,13 @@ public final class SpikeSampler {
             try {
                 options = manager.buildOptionsHeadless(def);
             } catch (Exception e) {
-                return new Base(null, null, false, true, null,
+                return new Base(null, null, false, false, true, null,
                         "config build failed: " + e.getClass().getSimpleName()
                         + ": " + e.getMessage());
             }
             generator = options.chunkGenerator();
             dimensionType = options.dimensionTypeEntry().value();
-            return new Base(generator, heightLimit(dimensionType),
+            return new Base(generator, heightLimit(dimensionType), dimensionType.hasCeiling(),
                     hasWithSeed(generator.getBiomeSource()), true,
                     climateSettingsOf(server, generator), null);
         }
@@ -252,12 +254,12 @@ public final class SpikeSampler {
         DimensionOptions options = registry.get(
                 RegistryKey.of(RegistryKeys.DIMENSION, dimensionId));
         if (options == null) {
-            return new Base(null, null, false, false, null,
+            return new Base(null, null, false, false, false, null,
                     "no dimension config and no registry entry for " + dimensionId);
         }
         generator = options.chunkGenerator();
         dimensionType = options.dimensionTypeEntry().value();
-        return new Base(generator, heightLimit(dimensionType),
+        return new Base(generator, heightLimit(dimensionType), dimensionType.hasCeiling(),
                 hasWithSeed(generator.getBiomeSource()), false,
                 climateSettingsOf(server, generator), null);
     }
@@ -281,10 +283,11 @@ public final class SpikeSampler {
     /** A base plus one seed's NoiseConfig — the per-seed half of the cost. */
     public static Rig forSeed(MinecraftServer server, Base base, long seed) {
         if (!base.ok()) {
-            return new Rig(null, null, null, false, false, base.error());
+            return new Rig(null, null, null, false, false, false, base.error());
         }
         return new Rig(base.generator(), buildNoiseConfig(server, base.generator(), seed),
-                base.heightLimit(), base.biomeSourceAcceptsWithSeed(), false, null);
+                base.heightLimit(), base.hasCeiling(), base.biomeSourceAcceptsWithSeed(),
+                false, null);
     }
 
     /**
@@ -294,17 +297,18 @@ public final class SpikeSampler {
      */
     public static Rig forSeedClimate(MinecraftServer server, Base base, long seed) {
         if (!base.ok()) {
-            return new Rig(null, null, null, false, true, base.error());
+            return new Rig(null, null, null, false, false, true, base.error());
         }
         if (base.climateSettings() == null) {
-            return new Rig(base.generator(), null, base.heightLimit(),
+            return new Rig(base.generator(), null, base.heightLimit(), base.hasCeiling(),
                     base.biomeSourceAcceptsWithSeed(), true, null);
         }
         var lookup = server.getRegistryManager()
                 .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
         return new Rig(base.generator(),
                 NoiseConfig.create(base.climateSettings(), lookup, seed),
-                base.heightLimit(), base.biomeSourceAcceptsWithSeed(), true, null);
+                base.heightLimit(), base.hasCeiling(), base.biomeSourceAcceptsWithSeed(),
+                true, null);
     }
 
     /** Build both halves. Convenience for one-shot callers only. */
@@ -325,7 +329,7 @@ public final class SpikeSampler {
         NoiseConfig noiseConfig = seed == world.getSeed()
                 ? world.getChunkManager().getNoiseConfig()
                 : buildNoiseConfig(world.getServer(), generator, seed);
-        return new Rig(generator, noiseConfig, world,
+        return new Rig(generator, noiseConfig, world, world.getDimension().hasCeiling(),
                 hasWithSeed(generator.getBiomeSource()), false, null);
     }
 
@@ -382,6 +386,26 @@ public final class SpikeSampler {
 
         if (rig.climateOnly()) {
             heightAbsent = "climate-only rig: the terrain router is stripped";
+        } else if (rig.hasCeiling()) {
+            // WORLD_SURFACE_WG reads the roof here — identically for every
+            // column, since the roof is the highest opaque block and nothing
+            // this dimension generates sits above it. Scan the column
+            // instead: getColumnSample builds the same block states getHeight
+            // reads internally, so this costs no more than the heightmap did.
+            try {
+                var column = rig.generator().getColumnSample(x, z, rig.heightLimit(), rig.noiseConfig());
+                int top = rig.heightLimit().getTopY() - 1;
+                int bottom = rig.heightLimit().getBottomY();
+                ColumnScan.Result result = ColumnScan.scan(top, bottom,
+                        y -> column.getState(y).isOpaque());
+                if (result.isPresent()) {
+                    height = result.floorY();
+                } else {
+                    heightAbsent = result.absentReason();
+                }
+            } catch (Exception e) {
+                heightAbsent = "getColumnSample threw " + e.getClass().getSimpleName();
+            }
         } else {
             try {
                 height = rig.generator().getHeight(x, z, Heightmap.Type.WORLD_SURFACE_WG,
