@@ -5,6 +5,7 @@ import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.StructureAliases;
+import com.customdimensions.dimension.StructureWants;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -61,7 +62,11 @@ public final class DimensionLint {
     public static List<Finding> lint(MinecraftServer server, String only) {
         List<Finding> findings = new ArrayList<>();
         Map<String, List<String>> igniters = new TreeMap<>();
-        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+        // Base worlds carry the same structures and seedRoll blocks as any
+        // other dimension and are rolled the same way, so they are linted the
+        // same way. Leaving them out is how the first run missed a dead
+        // `fortress` want on the nether.
+        for (DimensionConfig def : targets()) {
             if (only != null && !only.equals(def.getName())) {
                 continue;
             }
@@ -72,6 +77,14 @@ public final class DimensionLint {
             findings.addAll(igniterCollisions(igniters));
         }
         return findings;
+    }
+
+    /** Every configured dimension AND base world, in a stable order. */
+    public static List<DimensionConfig> targets() {
+        List<DimensionConfig> out =
+                new ArrayList<>(MultiverseConfig.getInstance().getDimensions());
+        out.addAll(MultiverseConfig.getInstance().getWorlds());
+        return out;
     }
 
     // --------------------------------------------------------------- one dim
@@ -115,11 +128,20 @@ public final class DimensionLint {
     private static List<Finding> checkWants(MinecraftServer server, DimensionConfig def,
                                             BiomeSource biomeSource) {
         List<Finding> out = new ArrayList<>();
-        DimensionConfig.Structures block = def.getStructures();
-        if (block == null || block.wants == null || block.wants.isEmpty()) {
+        String name = def.getName();
+        StructureWants.Resolved wants = StructureWants.resolve(def);
+        if (wants.names().isEmpty()) {
             return out;
         }
-        String name = def.getName();
+        DimensionConfig.Structures block = def.getStructures();
+        if (wants.source() == StructureWants.Source.FAMILY_DEFAULT) {
+            out.add(new Finding(name, INFO, "wants_inherited", wants.family(),
+                    "this dimension names no wants, so it is scored against the "
+                    + wants.family() + " family default (" + String.join(", ", wants.names())
+                    + ") — structures its author never asked for",
+                    "name the wants you actually want in structures.wants, or accept "
+                    + "the inherited list deliberately"));
+        }
 
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
         Registry<StructureSet> setRegistry = server.getRegistryManager()
@@ -127,7 +149,8 @@ public final class DimensionLint {
         Registry<net.minecraft.world.gen.structure.Structure> structureRegistry =
                 server.getRegistryManager().get(RegistryKeys.STRUCTURE);
 
-        Set<String> exclude = new java.util.HashSet<>(NoisePoolBuilder.lowerSet(block.exclude));
+        Set<String> exclude = new java.util.HashSet<>(NoisePoolBuilder.lowerSet(
+                block == null ? null : block.exclude));
         exclude.addAll(NoisePoolBuilder.lowerSet(
                 MultiverseConfig.getInstance().getSuppressedStructureSets()));
 
@@ -152,30 +175,24 @@ public final class DimensionLint {
         // The same build with `include` emptied, so a want that only survives
         // because of include is distinguishable from one that genuinely fits.
         Map<String, String> poolWithoutInclude = new LinkedHashMap<>();
-        if (!noiseSuppressed && block.include != null && !block.include.isEmpty()) {
-            List<String> savedInclude = block.include;
-            block.include = List.of();
-            try {
-                NoisePoolBuilder.Result bare =
-                        NoisePoolBuilder.build(def, sets, biomeSource, plan, exclude);
-                bare.pools().forEach((group, pool) -> {
-                    for (StructureSet.WeightedEntry weighted : pool.entries()) {
-                        weighted.structure().getKey().ifPresent(
-                                k -> poolWithoutInclude.putIfAbsent(
-                                        k.getValue().toString(), group));
-                    }
-                });
-            } finally {
-                block.include = savedInclude;
-            }
+        if (!noiseSuppressed && block != null
+                && block.include != null && !block.include.isEmpty()) {
+            NoisePoolBuilder.Result bare = NoisePoolBuilder.build(
+                    def, sets, biomeSource, plan, exclude, List.of());
+            bare.pools().forEach((group, pool) -> {
+                for (StructureSet.WeightedEntry weighted : pool.entries()) {
+                    weighted.structure().getKey().ifPresent(
+                            k -> poolWithoutInclude.putIfAbsent(
+                                    k.getValue().toString(), group));
+                }
+            });
         } else {
             poolWithoutInclude.putAll(poolGroupOf);
         }
 
         Set<String> forcedIds = forcedStructureIds(def);
 
-        for (Map.Entry<String, DimensionConfig.StructureWant> e : block.wants.entrySet()) {
-            String wantName = e.getKey();
+        for (String wantName : wants.names()) {
             String id = StructureAliases.resolve(wantName);
             if (id == null) {
                 out.add(new Finding(name, ERROR, "want_unknown_name", wantName,
@@ -206,7 +223,26 @@ public final class DimensionLint {
                 continue;
             }
             if (forcedIds.contains(id)) {
-                continue;   // placed by hand at a fixed spot; the pool is irrelevant
+                // Placed by hand at a fixed spot, so the pool is irrelevant to
+                // whether it exists — and `exclusive` (the default) deliberately
+                // removes it from the pool so it appears nowhere else.
+                //
+                // It is reported anyway because the SCORER cannot see it: a
+                // banked noiseCensus carries only the noise groups, so a forced
+                // structure reads as absent and the want is docked to 0.0 on
+                // every seed of every roll. That is the same permanent zero the
+                // dead wants produce, from the opposite cause, and it accounts
+                // for exactly 7 of the 142 the bank audit reported.
+                out.add(new Finding(name, WARN, "want_is_forced", wantName,
+                        id + " is placed by structures.force at a fixed position, so "
+                        + "it is guaranteed present and deliberately absent from the "
+                        + "noise pool — but the census the roller scores against "
+                        + "records only noise groups, so this want is scored 0.0 on "
+                        + "every seed",
+                        "drop the want (the force already guarantees it), or set "
+                        + "\"exclusive\": false on the force entry so it also enters "
+                        + "the pool and the census can see it"));
+                continue;
             }
             if (noiseSuppressed) {
                 out.add(new Finding(name, ERROR, "want_no_noise_groups", wantName,

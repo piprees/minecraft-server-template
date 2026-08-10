@@ -80,8 +80,7 @@ public final class SpikeCommands {
         java.util.List<DimensionLint.Finding> findings = DimensionLint.lint(server, only);
         long elapsed = (System.nanoTime() - started) / 1_000_000L;
 
-        int checked = only != null ? 1
-                : MultiverseConfig.getInstance().getDimensions().size();
+        int checked = only != null ? 1 : DimensionLint.targets().size();
         int errors = 0;
         java.util.TreeMap<String, Integer> byCheck = new java.util.TreeMap<>();
         for (DimensionLint.Finding f : findings) {

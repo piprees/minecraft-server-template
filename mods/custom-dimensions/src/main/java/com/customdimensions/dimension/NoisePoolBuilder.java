@@ -121,8 +121,26 @@ public final class NoisePoolBuilder {
                                BiomeSource biomeSource,
                                NoiseGroupPlan plan,
                                Set<String> exclude) {
+        return build(def, sets, biomeSource, plan, exclude, null);
+    }
+
+    /**
+     * As above with the include list supplied rather than read from config.
+     *
+     * <p>Only lint passes one: it builds the pool twice, with and without
+     * {@code structures.include}, to tell a want that genuinely fits the
+     * dimension's biomes from one that is only in the pool because the filter
+     * was bypassed. Null means "use the config's", which is every other caller.
+     */
+    public static Result build(DimensionConfig def,
+                               Iterable<RegistryEntry<StructureSet>> sets,
+                               BiomeSource biomeSource,
+                               NoiseGroupPlan plan,
+                               Set<String> exclude,
+                               List<String> includeOverride) {
         DimensionConfig.Structures block = def.getStructures();
-        Set<String> include = lowerSet(block == null ? null : block.include);
+        Set<String> include = lowerSet(includeOverride != null ? includeOverride
+                : (block == null ? null : block.include));
         Map<String, String> rarityOverrides = block == null || block.rarity == null
                 ? Map.of() : block.rarity;
         Set<String> forcedExclusive = forcedExclusiveStructureIds(def);

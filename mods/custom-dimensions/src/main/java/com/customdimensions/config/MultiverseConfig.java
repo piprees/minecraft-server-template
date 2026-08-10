@@ -333,4 +333,15 @@ public class MultiverseConfig {
         DimensionConfig config = this.configs.get(name);
         return config != null && config.isBaseWorld() ? config : null;
     }
+
+    /**
+     * Every configured base world. They carry the same seed, border,
+     * difficulty, portal and structures blocks as any other dimension and are
+     * rolled and scored the same way — so anything checking configs has to
+     * check these too. Lint's first run missed a dead {@code fortress} want on
+     * the nether by iterating only {@link #getDimensions()}.
+     */
+    public List<DimensionConfig> getWorlds() {
+        return this.configs.values().stream().filter(DimensionConfig::isBaseWorld).toList();
+    }
 }

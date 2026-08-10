@@ -82,8 +82,16 @@ def main():
           elapsed <= args.max_seconds,
           f"{elapsed:.2f}s over {report.get('dimensionsChecked')} dimensions")
 
-    lint_dead = {(f["dimension"], f["subject"])
-                 for f in findings if f["check"] == "want_not_in_pool"}
+    # The oracle's definition is "this want never got a position in any banked
+    # census", which has two causes and cannot tell them apart: the structure
+    # is not in the pool, or it IS placed but by structures.force, which the
+    # census does not record. Lint separates them, so the comparison is against
+    # the union — and the split is printed, because it is the finding.
+    lint_not_in_pool = {(f["dimension"], f["subject"])
+                        for f in findings if f["check"] == "want_not_in_pool"}
+    lint_forced = {(f["dimension"], f["subject"])
+                   for f in findings if f["check"] == "want_is_forced"}
+    lint_dead = lint_not_in_pool | lint_forced
     oracle_dead = {(r["dimension"], r["want"]) for r in oracle["dead"]}
     banked = {r["dimension"] for r in oracle["dead"]} | {
         r["dimension"] for r in oracle.get("weak", [])}
@@ -95,9 +103,10 @@ def main():
     lint_unbanked = sorted(p for p in lint_dead if p[0] not in banked)
 
     print()
-    print(f"oracle: {len(oracle_dead)} dead wants across "
+    print(f"oracle: {len(oracle_dead)} wants that never got a position, across "
           f"{len({d for d, _ in oracle_dead})} dimensions")
-    print(f"lint:   {len(lint_dead)} want_not_in_pool findings "
+    print(f"lint:   {len(lint_not_in_pool)} not-in-pool + {len(lint_forced)} "
+          f"placed-by-force = {len(lint_dead)} "
           f"({len(lint_dead_banked)} in dimensions the oracle covers)")
     print()
 
