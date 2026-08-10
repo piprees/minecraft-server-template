@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Runs every criterion over one seed's facts and produces a {@link Scorecard}.
  *
- * <p>Three rules, and each replaces a specific thing the weighted mean got
+ * <p>Four rules, and each replaces a specific thing the weighted mean got
  * wrong:
  *
  * <ol>
@@ -20,9 +20,16 @@ import java.util.List;
  *   <li><b>A criterion that does not apply is excluded from BOTH the score and
  *       the ceiling.</b> Not scored zero. A void dimension is not marked down
  *       for having no landmarks — it is not asked.</li>
+ *   <li><b>A criterion that applies but could not be measured is excluded the
+ *       same way.</b> "Measurements are exact or absent with a reason" means
+ *       an absent one is not a zero either: recording it as one silently
+ *       understates a candidate whose measurement partly failed, which then
+ *       scores BELOW one that measured genuinely badly with no way to tell
+ *       the two apart from the percentage alone.</li>
  *   <li><b>The headline is achieved/ceiling</b>, where the ceiling is the sum
- *       of what the applicable criteria could have reached. 100% means "as
- *       good as this dimension gets" and is reachable.</li>
+ *       of what was actually measured among the applicable criteria. 100%
+ *       means "as good as this dimension gets on what could be measured" and
+ *       is reachable.</li>
  * </ol>
  *
  * <p>Every criterion is weighted 1. That is a deliberate starting point, not
@@ -84,11 +91,12 @@ public final class Scorer {
                 ceiling += 1.0;
                 graded++;
             } else if (r instanceof Criterion.Result.Unmeasured u) {
+                // Excluded from BOTH achieved and ceiling, the same shape as
+                // not_applicable: an absent measurement is not evidence of
+                // quality, so it cannot count against the denominator any
+                // more than it can count for the numerator.
                 entries.add(new Scorecard.Entry(c.id(), c.group(), target,
-                        "unmeasured", c.gate() ? null : 0.0, u.reason()));
-                if (!c.gate()) {
-                    ceiling += 1.0;
-                }
+                        "unmeasured", null, u.reason()));
             } else if (r instanceof Criterion.Result.NotApplicable na) {
                 // applicable(def) said yes and evaluate said no. The two
                 // disagree, so the criterion is wrong about itself; grade it
@@ -110,7 +118,12 @@ public final class Scorer {
                     failedGate + ": " + failedGateReason,
                     achieved, ceiling, entries);
         }
-        if (ceiling <= 0.0) {
+        // Checked from config alone, not the accumulated (now measured-only)
+        // `ceiling` above: that variable is 0.0 whenever nothing was measured
+        // this seed even though the config poses real questions, and the two
+        // INVALID_CONFIG reasons below would be indistinguishable otherwise.
+        double configCeiling = ceiling(def, criteria);
+        if (configCeiling <= 0.0) {
             // The config asks no graded question at all. That is not a score of
             // zero — it is "nothing here was measurable", and saying so is the
             // whole point of keeping the three verdicts apart.
@@ -123,12 +136,16 @@ public final class Scorer {
         if (graded == 0) {
             // Criteria applied and every one of them came back unmeasured. A 0%
             // here would rank this seed below a genuinely poor one that WAS
-            // measured, which is a lie about which is worse.
+            // measured, which is a lie about which is worse. The reported
+            // ceiling is what the config poses, not the (here, zero) measured
+            // total — a seed that measured nothing must not look denominator-
+            // free, or it silently escapes the ceiling-stability guarantee
+            // every other seed of this dimension is held to.
             return new Scorecard(facts.dimension(), facts.seed(),
                     Scorecard.Verdict.INVALID_CONFIG,
                     "every applicable criterion came back unmeasured — read the "
                     + "facts artefact and customdim lint before rolling this",
-                    0.0, ceiling, entries);
+                    0.0, configCeiling, entries);
         }
         return new Scorecard(facts.dimension(), facts.seed(),
                 Scorecard.Verdict.SCORED, "", achieved, ceiling, entries);

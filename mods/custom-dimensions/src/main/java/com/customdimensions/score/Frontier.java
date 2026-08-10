@@ -111,13 +111,14 @@ public final class Frontier {
     /**
      * Criterion id -> comparable value. Only entries carrying a non-null
      * value qualify: {@code not_applicable} is always null (the config never
-     * posed the question), and every gate outcome (pass/fail/unmeasured) is
-     * also null (a gate is binary and a SCORED card never carries a failed
-     * one) — none of these say anything about how GOOD a candidate is, so
-     * treating a null as a zero would let an excluded or gated criterion
-     * manufacture false dominance. An {@code unmeasured} graded criterion
-     * already carries an explicit 0.0 from {@link Scorer} ("counted in the
-     * ceiling and worth zero") and compares like any other score.
+     * posed the question), every gate outcome (pass/fail/unmeasured) is also
+     * null (a gate is binary and a SCORED card never carries a failed one),
+     * and {@link Scorer} now excludes an {@code unmeasured} GRADED criterion
+     * the same way (null, not a defaulted zero) — an absent measurement is
+     * not evidence of quality, so treating it as a real zero would make a
+     * candidate whose measurement partly failed look worse than one that
+     * measured genuinely badly, on a criterion neither side has any actual
+     * value for.
      */
     private static Map<String, Double> values(Scorecard card) {
         Map<String, Double> out = new LinkedHashMap<>();

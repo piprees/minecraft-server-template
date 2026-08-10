@@ -578,6 +578,56 @@ class CriteriaTest {
         }
     }
 
+    @Test
+    void anUnmeasuredGradedCriterionShrinksTheCeilingRatherThanCountingAsAZero() {
+        // "biome_variety_present" applies (three biomes configured) but comes
+        // back unmeasured (distinctCount absent) — it must vanish from the
+        // ceiling exactly like an inapplicable criterion, not sit in the
+        // denominator contributing a silent zero.
+        DimensionConfig def = config(List.of("minecraft:snowy_plains"), "rolling",
+                List.of("a", "b", "c"));
+        double configCeiling = Scorer.ceiling(def, Criteria.all());
+        Scorecard card = Scorer.score(
+                full("minecraft:snowy_plains", 4.0, null, 0.40, 0.50, 30.0, 0.5, 300.0, 2048),
+                def, Criteria.all());
+
+        assertEquals(Scorecard.Verdict.SCORED, card.verdict());
+        long unmeasuredGraded = card.entries().stream()
+                .filter(e -> e.outcome().equals("unmeasured") && e.value() == null)
+                .count();
+        assertEquals(1, unmeasuredGraded, "exactly biome_variety_present should be unmeasured here");
+        assertEquals(configCeiling - 1.0, card.ceiling(), 1e-9,
+                "the one unmeasured criterion must shrink the ceiling by exactly one");
+        // achieved is untouched either way — the fix is entirely about the
+        // denominator, never about crediting an absent measurement.
+        double sumOfValues = card.entries().stream()
+                .filter(e -> e.value() != null)
+                .mapToDouble(Scorecard.Entry::value).sum();
+        assertEquals(sumOfValues, card.achieved(), 1e-9);
+    }
+
+    @Test
+    void aPartiallyMeasuredSeedIsNeverPenalisedBelowWhatItsMeasuredCriteriaEarned() {
+        // The defect itself: under the old "ceiling += 1.0 for every
+        // applicable criterion, measured or not" rule, this seed's
+        // percentage would have been achieved / configCeiling — diluted by
+        // the one criterion that could not be measured. It must now be
+        // achieved / (configCeiling - 1), which is never lower.
+        DimensionConfig def = config(List.of("minecraft:snowy_plains"), "rolling",
+                List.of("a", "b", "c"));
+        double configCeiling = Scorer.ceiling(def, Criteria.all());
+        Scorecard card = Scorer.score(
+                full("minecraft:snowy_plains", 4.0, null, 0.40, 0.50, 30.0, 0.5, 300.0, 2048),
+                def, Criteria.all());
+
+        double oldPercentage = 100.0 * card.achieved() / configCeiling;
+        assertTrue(card.percentage() >= oldPercentage - 1e-9,
+                "new percentage " + card.percentage() + " must never fall below what the old "
+                + "formula (diluted by an unmeasured criterion) gave: " + oldPercentage);
+        assertTrue(card.ceiling() < configCeiling,
+                "the ceiling must genuinely shrink, or this test proves nothing");
+    }
+
     private static SeedFacts nothingMeasured() {
         return facts(new SeedFacts.SpawnFacts(gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),

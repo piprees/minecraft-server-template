@@ -24,7 +24,10 @@ class FrontierTest {
     }
 
     private static Scorecard.Entry unmeasured(String id) {
-        return new Scorecard.Entry(id, Criterion.Group.INTEREST, "target", "unmeasured", 0.0, "absent");
+        // Matches what Scorer actually emits: an unmeasured graded criterion
+        // carries a null value, the same shape as not_applicable — not a
+        // defaulted zero.
+        return new Scorecard.Entry(id, Criterion.Group.INTEREST, "target", "unmeasured", null, "absent");
     }
 
     private static Scorecard.Entry notApplicable(String id) {
@@ -133,16 +136,20 @@ class FrontierTest {
     }
 
     @Test
-    void unmeasuredGradedCriteriaCompareAsTheirExplicitZero() {
-        // "unmeasured" on a graded criterion carries Scorer's own explicit
-        // 0.0 — it must compare exactly like a scored 0.0, not be excluded
-        // like a gate or a not_applicable entry.
+    void anUnmeasuredGradedCriterionIsExcludedFromComparisonNotTreatedAsZero() {
+        // Scorer excludes an unmeasured graded criterion's value entirely
+        // (null, the same shape as not_applicable) rather than defaulting it
+        // to 0.0 — a candidate missing one measurement must not look WORSE
+        // on that criterion, only silent on it. The only comparable
+        // criterion left between these two is "biomes", and it ties, so
+        // neither dominates.
         Scorecard measured = scored("adventure:test", 1, score("biomes", 0.5), score("structures", 0.1));
-        Scorecard neverMeasured = scored("adventure:test", 2, score("biomes", 0.5), unmeasured("structures"));
+        Scorecard partiallyMeasured = scored("adventure:test", 2, score("biomes", 0.5), unmeasured("structures"));
 
-        assertTrue(Frontier.dominates(measured, neverMeasured),
-                "0.1 beats an explicit 0.0 on the same criterion");
-        assertEquals(Set.of(1L), seedsOf(Frontier.of(List.of(measured, neverMeasured))));
+        assertTrue(!Frontier.dominates(measured, partiallyMeasured),
+                "structures has no comparable value on one side — a tie on biomes alone proves nothing");
+        assertTrue(!Frontier.dominates(partiallyMeasured, measured));
+        assertEquals(Set.of(1L, 2L), seedsOf(Frontier.of(List.of(measured, partiallyMeasured))));
     }
 
     @Test
