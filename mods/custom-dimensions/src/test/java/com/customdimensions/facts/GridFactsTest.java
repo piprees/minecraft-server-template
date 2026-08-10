@@ -114,11 +114,12 @@ class GridFactsTest {
     // ---------------------------------------------------------------- terrain
 
     @Test
-    void reliefIsMaxMinusMinAndGrainIsTheMeanAdjacentStep() {
+    void reliefIsTheInterquartileRangeAndGrainIsTheMeanAdjacentStep() {
         // Heights:  60 62 64
         //           60 62 64
         //           60 62 64
-        // Relief 64-60 = 4.
+        // Sorted: three 60s, three 62s, three 64s (n=9). Q1 index (n-1)/4=2
+        // -> 60. Q3 index 3(n-1)/4=6 -> 64. Relief (IQR) 64-60 = 4.
         // Horizontal pairs: 6, each |step| 2 -> 12. Vertical pairs: 6, each 0.
         // Grain = 12 / 12 = 1.0.
         var facts = FactsEngine.terrainFacts(grid(
@@ -131,6 +132,28 @@ class GridFactsTest {
         assertEquals(1.0, facts.grain().orThrow(), 1e-12);
         assertEquals(60, facts.minHeight().orThrow());
         assertEquals(64, facts.maxHeight().orThrow());
+    }
+
+    @Test
+    void aSingleOutlierDoesNotDominateRelief() {
+        // Eight columns tightly clustered at 60-63, one wildly off at 185 —
+        // the shape a ceilinged dimension takes when nearly every column
+        // resolves to genuine ground but one rare column catches a shallow
+        // pocket close under the roof (the_boneyard case: max pinned near
+        // the roof in almost every seed while the terrain that actually
+        // exists barely moves). max - min would read 125; the interquartile
+        // range must describe the middle of the column, not its single
+        // most extreme sample.
+        var facts = FactsEngine.terrainFacts(grid(
+                new String[] {P, P, P, P, P, P, P, P, P},
+                new Integer[] {60, 60, 61,
+                               61, 62, 62,
+                               63, 63, 185}), 63);
+
+        assertEquals(2.0, facts.relief().orThrow(), 1e-12,
+                "the outlier must not drag the interquartile range out to 125");
+        assertEquals(60, facts.minHeight().orThrow(), "min still reports the true extreme");
+        assertEquals(185, facts.maxHeight().orThrow(), "max still reports the true extreme");
     }
 
     @Test
