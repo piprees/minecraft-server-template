@@ -1515,10 +1515,13 @@
         // while rolling, the same slot carries the progress instead.
         countEl.hidden = running
         progEl.hidden = !running
-        toggleBtn.textContent = running ? '■' : '▶'
+        if (!running) stopping = false
+        toggleBtn.disabled = false
+        toggleBtn.textContent = stopping ? '…' : running ? '■' : '▶'
         toggleBtn.classList.toggle('running', running)
-        toggleBtn.title = toggleBtn.ariaLabel =
-          running ? 'Stop rolling' : 'Start rolling'
+        toggleBtn.title = toggleBtn.ariaLabel = stopping
+          ? 'Stopping after the seeds in flight'
+          : running ? 'Stop rolling' : 'Start rolling'
         dimEl.disabled = running
         if (running && st.target) {
           // Rolling finishes in seconds; rendering then runs for minutes.
@@ -1562,8 +1565,18 @@
       .then(function () { setTimeout(poll, 2000) })
   }
 
+  var stopping = false
   toggleBtn.addEventListener('click', function () {
-    if (running) { post('/pipeline/stop'); return }
+    if (running) {
+      // A seed already being measured runs to completion, so a stop lands
+      // in seconds rather than instantly. Say so — an unchanged button for
+      // half a minute reads as a dead control.
+      stopping = true
+      toggleBtn.disabled = true
+      toggleBtn.title = toggleBtn.ariaLabel = 'Stopping after the seeds in flight'
+      post('/pipeline/stop')
+      return
+    }
     toggleBtn.disabled = true
     post('/pipeline/start', {
       count: parseInt(countEl.value, 10) || 100,

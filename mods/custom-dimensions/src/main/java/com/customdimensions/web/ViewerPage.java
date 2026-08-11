@@ -177,6 +177,20 @@ public final class ViewerPage {
         if (!v.rollable()) {
             b.append("<span class='badge'>not rollable</span>");
         }
+        b.append("<span class='badge'>").append(escape(v.id().getNamespace())).append("</span>");
+        if (def.getNoiseSettings() != null && !def.getNoiseSettings().isBlank()) {
+            b.append("<span class='badge'>").append(escape(def.getNoiseSettings())).append("</span>");
+        }
+        if (def.getScale() != 1.0) {
+            b.append("<span class='badge'>").append(fmt(def.getScale())).append("x scale</span>");
+        }
+        DimensionConfig.SeedRoll roll = def.getSeedRoll();
+        if (roll != null && roll.water != null && !roll.water.isBlank()) {
+            b.append("<span class='badge'>").append(escape(roll.water)).append("</span>");
+        }
+        if (roll != null && roll.terrain != null && !roll.terrain.isBlank()) {
+            b.append("<span class='badge'>").append(escape(roll.terrain)).append("</span>");
+        }
         b.append("<span class='badge'>hash ").append(escape(shortHash(v.inputHash()))).append("</span>");
         b.append("</div></div></div>");
 
