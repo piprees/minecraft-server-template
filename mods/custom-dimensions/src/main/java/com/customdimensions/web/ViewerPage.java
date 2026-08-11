@@ -55,8 +55,11 @@ public final class ViewerPage {
             }
         }
 
+        // "All" is the literal the filter compares against, not an empty
+        // string — app.js tests `state.family === 'All'`, so an empty value
+        // matched nothing and clicking All emptied the grid.
         StringBuilder familyButtons = new StringBuilder(
-                "<button class='family-btn active' data-family=''>All</button>");
+                "<button class='family-btn active' data-family='All'>All</button>");
         for (String f : sorted(families)) {
             familyButtons.append("<button class='family-btn' data-family='").append(escape(f))
                     .append("'>").append(escape(f)).append("</button>");

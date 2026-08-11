@@ -41,6 +41,12 @@ public final class RollPipeline {
      */
     private static final int BATCH = 1;
 
+    /**
+     * Seeds between shortlist reconciles. Cheap (a directory read) but not
+     * free, and the board rarely changes on every single seed.
+     */
+    private static final int RECONCILE_EVERY = 5;
+
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final AtomicBoolean CANCEL = new AtomicBoolean(false);
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
@@ -168,7 +174,14 @@ public final class RollPipeline {
             }
             done += batch;
             ROLLED.addAndGet(batch);
+            // The board moves while this runs, so the shortlist is redrawn as
+            // it goes rather than only at the end — the top ten are lookable
+            // long before the roll finishes.
+            if (done % RECONCILE_EVERY == 0) {
+                RenderQueue.reconcile(server, def);
+            }
         }
+        RenderQueue.reconcile(server, def);
         SURVEYED.incrementAndGet();
         // Each finished dimension is a new thing to look at, so the page is
         // told to refresh now rather than at the end of the run.
@@ -231,7 +244,9 @@ public final class RollPipeline {
         b.append(", \"generation\": ").append(GENERATION.get());
         b.append(", \"stage\": ").append(Json.quote(STAGE.get()));
         b.append(", \"current\": ").append(Json.quote(CURRENT.get()));
-        b.append(", \"render_pending\": ").append(RENDERING.get() ? 1 : 0);
+        b.append(", \"render_pending\": ").append(RenderQueue.pending());
+        b.append(", \"rendering_low\": [").append(RenderQueue.current().isEmpty()
+                ? "" : Json.quote(RenderQueue.current())).append("]");
         b.append(", \"error\": ").append(Json.quote(ERROR.get()));
         return b.append("}\n").toString();
     }

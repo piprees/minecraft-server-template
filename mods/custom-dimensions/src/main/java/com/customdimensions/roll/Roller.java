@@ -151,18 +151,12 @@ public final class Roller {
                     MultiverseServer.LOGGER.error("Failed to write candidate {} for {}",
                             seed, dimension, e);
                 }
-                // A banked candidate a person cannot look at is not yet a
-                // candidate they can pick — a failed render is logged, never
-                // fatal to the roll it rode in on.
-                try {
-                    Path image = SeedBank.candidateImagePath(inputHash, dimension, seed,
-                            CandidateRender.Resolution.LOWRES);
-                    CandidateRender.render(server, dimensionId, def, seed,
-                            CandidateRender.Resolution.LOWRES, image);
-                } catch (IOException | RuntimeException e) {
-                    MultiverseServer.LOGGER.error("Failed to render candidate {} for {}",
-                            seed, dimension, e);
-                }
+                // Rendering is not part of the search. A map costs far more
+                // than a measurement, only the handful of candidates at the
+                // top of the board is ever looked at, and which ones those are
+                // keeps changing while a roll runs — so drawing them is a
+                // separate job that reconciles against the board, not
+                // something every scored seed pays for on its way past.
                 tried.add(seed);
             }
 

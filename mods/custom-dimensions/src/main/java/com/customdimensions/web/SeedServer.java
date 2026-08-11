@@ -118,6 +118,8 @@ public final class SeedServer {
                 pick(minecraftServer, exchange);
             } else if (path.equals("/render")) {
                 renderRequest(minecraftServer, exchange);
+            } else if (path.startsWith("/census/")) {
+                census(minecraftServer, exchange, path.substring("/census/".length()));
             } else if (path.startsWith("/renders/")) {
                 render(minecraftServer, exchange, path.substring("/renders/".length()));
             } else {
@@ -260,6 +262,29 @@ public final class SeedServer {
                 ("{\"ok\": " + result.ok() + ", \"message\": "
                         + com.customdimensions.facts.Json.quote(result.message()) + "}")
                         .getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * One candidate's structure census, straight out of the file the roll
+     * wrote. Counts per structure and the distance to the nearest of each —
+     * what the modal's facts panel reads.
+     *
+     * <p>No per-position coordinates: the bank stores counts and distances,
+     * not a list of every placement, so this answers with what was actually
+     * measured rather than inventing the rest.
+     */
+    private static void census(MinecraftServer minecraftServer, HttpExchange exchange, String rest)
+            throws IOException {
+        int slash = rest.lastIndexOf('/');
+        if (slash < 0) {
+            sendJson(exchange, "{\"ok\": false, \"error\": \"expected /census/<dimension>/<seed>\"}");
+            return;
+        }
+        // The page spells a slug with dashes; the config spells it with
+        // underscores.
+        String slug = rest.substring(0, slash).replace('-', '_');
+        String seed = rest.substring(slash + 1);
+        sendJson(exchange, BankView.censusJson(minecraftServer, slug, seed));
     }
 
     /** Draws a candidate's map on demand — the high-res one the modal offers. */

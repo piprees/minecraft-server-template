@@ -1,0 +1,230 @@
+{
+ "_comment": "Surface-block map colours per biome, ported from the Python renderer on main (scripts/seed/surface_rules.py). materials: MaterialColor x0.86, the shade vanilla maps use at the same height as the cell north of them. biomes: explicit biome -> material; anything absent resolves through SurfacePalette's keyword rules.",
+ "biomes": {
+  "incendium:ash_barrens": "netherrack",
+  "incendium:infernal_dunes": "netherrack",
+  "incendium:inverted_forest": "warped_nylium",
+  "incendium:quartz_flats": "netherrack",
+  "incendium:toxic_heap": "netherrack",
+  "incendium:volcanic_deltas": "netherrack",
+  "incendium:weeping_valley": "crimson_nylium",
+  "incendium:withered_forest": "netherrack",
+  "minecraft:badlands": "red_sand",
+  "minecraft:bamboo_jungle": "grass",
+  "minecraft:basalt_deltas": "basalt",
+  "minecraft:beach": "sand",
+  "minecraft:birch_forest": "grass",
+  "minecraft:cherry_grove": "grass",
+  "minecraft:cold_ocean": "water_cold",
+  "minecraft:crimson_forest": "crimson_nylium",
+  "minecraft:dark_forest": "grass",
+  "minecraft:deep_cold_ocean": "water_cold",
+  "minecraft:deep_dark": "stone",
+  "minecraft:deep_frozen_ocean": "water_frozen",
+  "minecraft:deep_lukewarm_ocean": "water_warm",
+  "minecraft:deep_ocean": "water",
+  "minecraft:desert": "sand",
+  "minecraft:dripstone_caves": "stone",
+  "minecraft:end_barrens": "end_stone",
+  "minecraft:end_highlands": "end_stone",
+  "minecraft:end_midlands": "end_stone",
+  "minecraft:eroded_badlands": "red_sand",
+  "minecraft:flower_forest": "grass",
+  "minecraft:forest": "grass",
+  "minecraft:frozen_ocean": "water_frozen",
+  "minecraft:frozen_peaks": "snow",
+  "minecraft:frozen_river": "water_frozen",
+  "minecraft:grove": "grass",
+  "minecraft:ice_spikes": "snow",
+  "minecraft:jagged_peaks": "snow",
+  "minecraft:jungle": "grass",
+  "minecraft:lukewarm_ocean": "water_warm",
+  "minecraft:lush_caves": "grass",
+  "minecraft:mangrove_swamp": "mud",
+  "minecraft:meadow": "grass",
+  "minecraft:mushroom_fields": "mycelium",
+  "minecraft:nether_wastes": "netherrack",
+  "minecraft:ocean": "water",
+  "minecraft:old_growth_birch_forest": "grass",
+  "minecraft:old_growth_pine_taiga": "podzol",
+  "minecraft:old_growth_spruce_taiga": "podzol",
+  "minecraft:pale_garden": "grass",
+  "minecraft:plains": "grass",
+  "minecraft:river": "water",
+  "minecraft:savanna": "grass",
+  "minecraft:savanna_plateau": "grass",
+  "minecraft:small_end_islands": "end_stone",
+  "minecraft:snowy_beach": "sand",
+  "minecraft:snowy_plains": "snow",
+  "minecraft:snowy_slopes": "snow",
+  "minecraft:snowy_taiga": "grass",
+  "minecraft:soul_sand_valley": "soul_sand",
+  "minecraft:sparse_jungle": "grass",
+  "minecraft:stony_peaks": "stone",
+  "minecraft:stony_shore": "stone",
+  "minecraft:sunflower_plains": "grass",
+  "minecraft:swamp": "grass",
+  "minecraft:taiga": "grass",
+  "minecraft:the_end": "end_stone",
+  "minecraft:the_void": "void",
+  "minecraft:warm_ocean": "water_warm",
+  "minecraft:warped_forest": "warped_nylium",
+  "minecraft:windswept_forest": "grass",
+  "minecraft:windswept_gravelly_hills": "gravel",
+  "minecraft:windswept_hills": "stone",
+  "minecraft:windswept_savanna": "grass",
+  "minecraft:wooded_badlands": "red_sand",
+  "natures_spirit:coniferous_covert": "grass",
+  "natures_spirit:fir_forest": "grass",
+  "nullscape:shadowlands": "end_stone",
+  "nullscape:void_barrens": "end_stone",
+  "paradise_lost:autumnal_tundra": "grass",
+  "paradise_lost:calcite_craglands": "stone",
+  "paradise_lost:continental_plateau": "grass",
+  "paradise_lost:highlands": "grass",
+  "paradise_lost:highlands_forest": "grass",
+  "paradise_lost:highlands_shield": "grass",
+  "paradise_lost:wisteria_woods": "grass",
+  "terralith:alpine_highlands": "grass",
+  "terralith:amethyst_canyon": "grass",
+  "terralith:amethyst_rainforest": "grass",
+  "terralith:arid_highlands": "grass",
+  "terralith:basalt_cliffs": "stone",
+  "terralith:birch_taiga": "grass",
+  "terralith:brushland": "grass",
+  "terralith:caldera": "stone",
+  "terralith:cave/infested_caves": "stone",
+  "terralith:cloud_forest": "grass",
+  "terralith:cold_shrubland": "grass",
+  "terralith:deep_warm_ocean": "water_warm",
+  "terralith:desert_canyon": "sand",
+  "terralith:desert_oasis": "grass",
+  "terralith:desert_spires": "sand",
+  "terralith:forested_highlands": "grass",
+  "terralith:fractured_savanna": "grass",
+  "terralith:highlands": "grass",
+  "terralith:hot_shrubland": "grass",
+  "terralith:lavender_valley": "grass",
+  "terralith:lush_valley": "grass",
+  "terralith:moonlight_grove": "grass",
+  "terralith:moonlight_valley": "grass",
+  "terralith:orchid_swamp": "grass",
+  "terralith:rocky_mountains": "stone",
+  "terralith:sakura_grove": "grass",
+  "terralith:sakura_valley": "grass",
+  "terralith:scarlet_mountains": "stone",
+  "terralith:shield": "grass",
+  "terralith:shield_clearing": "grass",
+  "terralith:siberian_taiga": "grass",
+  "terralith:snowy_cherry_grove": "snow",
+  "terralith:steppe": "grass",
+  "terralith:temperate_highlands": "grass",
+  "terralith:volcanic_crater": "stone",
+  "terralith:volcanic_peaks": "stone",
+  "terralith:warm_river": "water_warm",
+  "terralith:warped_mesa": "grass",
+  "terralith:yellowstone": "grass"
+ },
+ "materials": {
+  "basalt": [
+   60,
+   60,
+   60
+  ],
+  "crimson_nylium": [
+   148,
+   63,
+   63
+  ],
+  "end_stone": [
+   213,
+   201,
+   140
+  ],
+  "grass": [
+   109,
+   153,
+   48
+  ],
+  "gravel": [
+   109,
+   109,
+   109
+  ],
+  "mud": [
+   92,
+   75,
+   57
+  ],
+  "mycelium": [
+   128,
+   94,
+   168
+  ],
+  "netherrack": [
+   112,
+   2,
+   0
+  ],
+  "podzol": [
+   111,
+   74,
+   42
+  ],
+  "red_sand": [
+   168,
+   88,
+   36
+  ],
+  "sand": [
+   213,
+   201,
+   140
+  ],
+  "snow": [
+   220,
+   220,
+   220
+  ],
+  "soul_sand": [
+   80,
+   60,
+   40
+  ],
+  "stone": [
+   104,
+   104,
+   104
+  ],
+  "void": [
+   20,
+   20,
+   30
+  ],
+  "warped_nylium": [
+   22,
+   126,
+   134
+  ],
+  "water": [
+   55,
+   55,
+   220
+  ],
+  "water_cold": [
+   40,
+   40,
+   195
+  ],
+  "water_frozen": [
+   150,
+   160,
+   210
+  ],
+  "water_warm": [
+   55,
+   150,
+   220
+  ]
+ }
+}

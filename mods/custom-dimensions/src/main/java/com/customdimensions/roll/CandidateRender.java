@@ -49,13 +49,14 @@ import java.util.Set;
  * server must never be able to reach a display toolkit just because a render
  * was requested.
  *
- * <p>Colour comes from each sampled biome's own {@link BiomeEffects}: grass
- * or foliage where the biome carries one, its fog/sky blend where it does not
- * (every nether/end biome, and any overworld biome with no explicit tint) —
- * never a hash-derived palette. Water uses the biome's own water colour.
- * Terrain is shaded by the height actually sampled at that column, relative
- * to the minimum and maximum this render measured — never a value borrowed
- * from a different pass or a different resolution.
+ * <p>Colour is the map colour of the block a biome's surface rule places
+ * ({@link SurfacePalette}) — netherrack dark red, grass green, end stone
+ * bone. Water uses the biome's own water colour, darkened by depth. Terrain
+ * is shaded the way vanilla's own maps are: each cell brighter, level with,
+ * or darker than the cell to its NORTH, with a directional hillshade off the
+ * local gradient mixed in. Both are local comparisons — a shade spread over
+ * the dimension's whole height range put maximum contrast between two cells
+ * a few blocks apart and rendered a nether world as static.
  *
  * <p>Lowres and highres get their pixels two different ways. {@code
  * FactsEngine} already samples a biome+height grid to measure a candidate
@@ -89,14 +90,22 @@ public final class CandidateRender {
     private CandidateRender() {
     }
 
+    /**
+     * How densely a map is sampled and how big its file is — two separate
+     * numbers, the way the renderer this replaced had them. A wall-clock
+     * budget used to decide the sample count, which made the picture's
+     * resolution depend on what the machine happened to be doing.
+     */
     public enum Resolution {
-        LOWRES(Duration.ofSeconds(5).toNanos()),
-        HIGHRES(Duration.ofSeconds(60).toNanos());
+        LOWRES(128, 512),
+        HIGHRES(512, 2048);
 
-        private final long budgetNanos;
+        final int samples;
+        final int pixels;
 
-        Resolution(long budgetNanos) {
-            this.budgetNanos = budgetNanos;
+        Resolution(int samples, int pixels) {
+            this.samples = samples;
+            this.pixels = pixels;
         }
     }
 
@@ -112,6 +121,27 @@ public final class CandidateRender {
      */
     static final int MIN_SIDE = 33;
     static final int MAX_SIDE = 2049;
+
+    /**
+     * Columns a sampled render is allowed to take. 65,536 is a 289-cell side
+     * once the out-of-disc corners are dropped — enough that a coastline
+     * reads as a coastline. At ~24ms a column that is about half an hour on
+     * one thread and a couple of minutes across a machine's cores, which is
+     * why the sampling is threaded rather than the budget being lowered.
+     */
+    private static final int HIGHRES_COLUMNS = 65_536;
+
+    /** The square side whose inscribed disc holds about {@code columns} cells. */
+    static int sideForColumns(int columns) {
+        // A disc covers pi/4 of its square, so a side of sqrt(4n/pi) samples
+        // about n columns. Odd, so the centre is a cell and spawn sits on it.
+        int side = (int) Math.round(Math.sqrt(columns * 4.0 / Math.PI));
+        side |= 1;
+        return Math.max(MIN_SIDE, Math.min(MAX_SIDE, side));
+    }
+
+    /** Stands in for "this biome has no colour" in a map that cannot hold nulls. */
+    private static final BiomeColors MISSING = new BiomeColors(0, 0);
 
     /**
      * Calibration spends real wall-clock time, not a fixed sample count, so
@@ -132,12 +162,26 @@ public final class CandidateRender {
      * whether a world is worth visiting; a highres render, with room to
      * spare, marks every group.
      */
-    private static final Set<String> LOWRES_STRUCTURE_GROUPS = Set.of("landmarks", "endgame", "dungeons");
+    // One marker costs a whole cell at the measurement grid's size, and a
+    // dense dimension has hundreds of placements against ~1265 cells inside
+    // the disc — drawing three groups buried the terrain under confetti.
+    // Endgame alone is a handful of the rarest things in a world, which is
+    // what a thumbnail can carry.
+    private static final Set<String> LOWRES_STRUCTURE_GROUPS = Set.of("endgame");
 
     // A column that could not be measured — never confused with a real biome tint.
     private static final int UNKNOWN_COLOR = 0xFF00FF;
     // Outside the playable border: no biome ever produced this pixel.
     private static final int VOID_COLOR = 0x101018;
+    /**
+     * Inside the border with no floor under it. A floating-island dimension
+     * is mostly this, so it is terrain rather than a gap in the measurement
+     * — {@link #UNKNOWN_COLOR} painted 87% of {@code the_burning_archipelago}
+     * magenta before the two were told apart.
+     */
+    private static final int OPEN_AIR_COLOR = 0x171B26;
+    /** Blocks between contour lines — the strongest cue that a picture is terrain. */
+    private static final int CONTOUR_INTERVAL = 20;
     // Annotations over the terrain, not facts about it.
     private static final int BORDER_COLOR = 0xFFFF00;
     private static final int STRUCTURE_COLOR = 0xFFFFFF;
@@ -145,7 +189,23 @@ public final class CandidateRender {
     private static final int SPAWN_COLOR = 0x00E5FF;
     // A biome boundary, tinted rather than opaque so it reads as a line, not a wall.
     private static final int BIOME_BOUNDARY_COLOR = 0xD8D8D8;
-    private static final double BOUNDARY_STRENGTH = 0.55;
+    private static final double BOUNDARY_STRENGTH = 0.28;
+    /** Below this, a boundary line is a whole landmass wide and buries the terrain. */
+    private static final int BOUNDARY_MIN_SIDE = 192;
+
+    // Vanilla's map shading: a cell is brighter, level with, or darker than
+    // the one to its north, and nothing else. It is what makes a Minecraft
+    // map read as terrain rather than as a biome chart, and it is relative
+    // to a NEIGHBOUR — the old shade spread the dimension's whole height
+    // range over every cell independently, so a nether roof and its floor
+    // put maximum contrast between two cells a few blocks apart and the
+    // result was noise.
+    private static final double MC_SHADE_DARK = 0.71 / 0.86;
+    private static final double MC_SHADE_LEVEL = 1.0;
+    private static final double MC_SHADE_BRIGHT = 1.0 / 0.86;
+    /** How much of the final shade comes from a directional light rather than the vanilla step. */
+    private static final double HILLSHADE_MIX = 0.4;
+    private static final double HILLSHADE_GAIN = 0.12;
 
     // A wide range: this family's biomes carry no grass tint and cluster in
     // fog/sky hue, so relief has to come from brightness doing real work
@@ -166,259 +226,181 @@ public final class CandidateRender {
     public static RenderResult render(MinecraftServer server, Identifier dimensionId,
                                       DimensionConfig def, long seed, Resolution resolution,
                                       Path outputPath) throws IOException {
-        Objects.requireNonNull(def, "render needs a resolved dimension config");
-        return resolution == Resolution.LOWRES
-                ? renderFromGrid(server, dimensionId, def, seed, outputPath)
-                : renderBySampling(server, dimensionId, def, seed, outputPath);
+        return draw(server, dimensionId, def, seed, resolution, outputPath);
     }
 
     /**
-     * Reads the biome+height grid {@code FactsEngine} already persisted for
-     * this candidate and paints it — no sampling, no calibration, no time
-     * budget, and it renders a seed measured before this feature existed
-     * exactly as well as one measured a second ago.
+     * Samples a square of the world and writes it at a fixed output size.
      *
-     * <p>A grid cell is {@code null} in {@link SeedFacts.Grid#biome} or
-     * {@link SeedFacts.Grid#height} both for a column outside the playable
-     * disc and for one inside it that answered nothing — the writer does not
-     * distinguish them. This method still draws them differently, because it
-     * can recompute which is which from {@code side}/{@code step}/{@code
-     * radius} alone — the same geometry {@code FactsEngine.sampleGrid} used
-     * to decide which cells to attempt in the first place — not by guessing.
+     * <p>Square, because the playable area is: {@code WorldBorderManager}
+     * sets a vanilla {@code WorldBorder}, which spans the radius on each axis
+     * — a disc threw away the four corners, a fifth of every world.
+     *
+     * <p>Sample density and output size are separate. The sampler answers a
+     * grid of {@code samples} on a side; every pixel of the {@code pixels}
+     * -wide image reads the sample under it, so the file is the size a person
+     * wants to look at whatever the sampling cost allowed.
      */
-    private static RenderResult renderFromGrid(MinecraftServer server, Identifier dimensionId,
-                                               DimensionConfig def, long seed,
-                                               Path outputPath) throws IOException {
+    private static RenderResult draw(MinecraftServer server, Identifier dimensionId,
+                                     DimensionConfig def, long seed, Resolution resolution,
+                                     Path outputPath) throws IOException {
         long renderStart = System.nanoTime();
-        String dimension = dimensionId.toString();
-        String inputHash = InputHash.of(def, server);
-        Path candidatePath = SeedBank.candidatePath(inputHash, dimension, seed);
-        if (!Files.isRegularFile(candidatePath)) {
-            throw new IOException("no banked candidate for " + dimensionId + " seed=" + seed
-                    + " at " + candidatePath + " — run /customdim roll first, or render highres "
-                    + "to sample fresh without banking");
-        }
-        JsonObject root = JsonParser.parseString(Files.readString(candidatePath)).getAsJsonObject();
-        SeedFacts facts;
-        try {
-            facts = SeedFactsCodec.read(root.getAsJsonObject("facts").toString());
-        } catch (RuntimeException e) {
-            // Whichever field the codec reaches first, a record this codec
-            // cannot parse in full is from an older schema, not a partially
-            // readable one — this platform keeps no backwards compatibility.
-            throw new IOException("candidate " + candidatePath + " is from an older schema and "
-                    + "should be re-rolled (" + e.getMessage() + ")");
-        }
-        if (!facts.grid().isPresent()) {
-            throw new IOException("candidate " + candidatePath + " has no grid: " + facts.grid().reason());
-        }
-        SeedFacts.Grid grid = facts.grid().orThrow();
-
         int radius = Math.max(1, def.getPlayerBorderRadius());
-        int side = grid.side();
-        int step = Math.max(1, (radius * 2) / (side - 1));
-        int half = side / 2;
+        int samples = resolution.samples;
+        int pixels = resolution.pixels;
 
         SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
         if (!base.ok()) {
             throw new IOException("cannot render " + dimensionId + ": " + base.error());
         }
+        // Edge to edge of the real border, so the picture is the world.
+        int step = Math.max(1, (radius * 2) / samples);
+        int half = samples / 2;
+
         Integer seaLevel = base.generator() instanceof NoiseChunkGenerator noiseGen
                 ? noiseGen.getSettings().value().seaLevel() : null;
         Registry<Biome> biomeRegistry = server.getRegistryManager().get(RegistryKeys.BIOME);
-        // The palette is a handful of ids for the whole grid — resolved once
-        // each, not once per cell.
-        List<BiomeColors> palette = new ArrayList<>();
-        for (String id : grid.biomeIds()) {
-            palette.add(biomeColors(biomeRegistry, id));
-        }
 
-        int cells = side * side;
+        int cells = samples * samples;
         int[] terrainColor = new int[cells];
         int[] waterColor = new int[cells];
         int[] height = new int[cells];
-        int[] biomeId = new int[cells];
         boolean[] known = new boolean[cells];
-        boolean[] inDisc = new boolean[cells];
-        Arrays.fill(biomeId, -1);
+        boolean[] water = new boolean[cells];
 
-        int minHeight = Integer.MAX_VALUE;
-        int maxHeight = Integer.MIN_VALUE;
-        for (int gz = 0; gz < side; gz++) {
-            for (int gx = 0; gx < side; gx++) {
-                int dx = gridToWorldOffset(gx, step, half);
-                int dz = gridToWorldOffset(gz, step, half);
-                if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
-                    continue;   // recomputed geometry, not the grid's own null — see the javadoc above
-                }
-                int idx = gz * side + gx;
-                inDisc[idx] = true;
-                Integer paletteIndex = grid.biome().get(idx);
-                Integer h = grid.height().get(idx);
-                if (paletteIndex == null || h == null) {
-                    continue;
-                }
-                BiomeColors colors = palette.get(paletteIndex);
-                if (colors == null) {
-                    continue;   // an id the live registry no longer knows — unmeasurable, not invented
-                }
-                known[idx] = true;
-                terrainColor[idx] = colors.terrain();
-                waterColor[idx] = colors.water();
-                height[idx] = h;
-                biomeId[idx] = paletteIndex;
-                minHeight = Math.min(minHeight, h);
-                maxHeight = Math.max(maxHeight, h);
+        Map<String, BiomeColors> sharedColors = new java.util.concurrent.ConcurrentHashMap<>();
+        java.util.concurrent.atomic.AtomicInteger sampled = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger minH =
+                new java.util.concurrent.atomic.AtomicInteger(Integer.MAX_VALUE);
+        java.util.concurrent.atomic.AtomicInteger maxH =
+                new java.util.concurrent.atomic.AtomicInteger(Integer.MIN_VALUE);
+
+        // One rig per worker: a rig carries noise state a column read walks,
+        // and SpikeSampler makes no promise about sharing one across threads.
+        // A quarter of the machine. Rendering is a background nicety that
+        // runs beside the search; taking every core made a map arrive sooner
+        // and every measurement behind it arrive later, which is the wrong
+        // trade when the search is what the shortlist is made of.
+        int workers = Math.max(2,
+                Math.min(Runtime.getRuntime().availableProcessors() / 4, samples));
+        java.util.concurrent.ExecutorService pool =
+                java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
+                    Thread t = new Thread(r, "customdim-render");
+                    t.setDaemon(true);
+                    return t;
+                });
+        final int sideF = samples;
+        final int stepF = step;
+        final int halfF = half;
+        try {
+            List<java.util.concurrent.Future<?>> tasks = new ArrayList<>();
+            for (int w = 0; w < workers; w++) {
+                final int worker = w;
+                final int stride = workers;
+                tasks.add(pool.submit(() -> {
+                    SpikeSampler.Rig own = SpikeSampler.forSeed(server, base, seed);
+                    for (int gz = worker; gz < sideF; gz += stride) {
+                        for (int gx = 0; gx < sideF; gx++) {
+                            int dx = gridToWorldOffset(gx, stepF, halfF);
+                            int dz = gridToWorldOffset(gz, stepF, halfF);
+                            int idx = gz * sideF + gx;
+                            SpikeSampler.Sample s = SpikeSampler.sample(own, dx, dz);
+                            sampled.incrementAndGet();
+                            if (s.biome() == null) {
+                                continue;
+                            }
+                            BiomeColors colors = sharedColors.computeIfAbsent(s.biome(), id -> {
+                                BiomeColors c = biomeColors(biomeRegistry, id);
+                                return c == null ? MISSING : c;
+                            });
+                            if (colors == MISSING) {
+                                continue;
+                            }
+                            terrainColor[idx] = colors.terrain();
+                            waterColor[idx] = colors.water();
+                            water[idx] = SurfacePalette.isWater(s.biome());
+                            if (s.surfaceHeight() == null) {
+                                // A biome with no floor under it is open air —
+                                // most of a floating-island world, and terrain
+                                // rather than a failed measurement.
+                                continue;
+                            }
+                            known[idx] = true;
+                            height[idx] = s.surfaceHeight();
+                            minH.accumulateAndGet(s.surfaceHeight(), Math::min);
+                            maxH.accumulateAndGet(s.surfaceHeight(), Math::max);
+                        }
+                    }
+                }));
             }
+            for (java.util.concurrent.Future<?> t : tasks) {
+                t.get();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("render interrupted", e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            throw new IOException("render sampling failed: " + e.getCause(), e.getCause());
+        } finally {
+            pool.shutdownNow();
         }
 
-        BufferedImage image = paintTerrain(side, step, half, radius, terrainColor, waterColor,
-                height, biomeId, known, inDisc, seaLevel, minHeight, maxHeight);
-        int markers = paintStructuresAndSpawn(image, server, def, seed, radius, side, step, half,
-                base, LOWRES_STRUCTURE_GROUPS);
-
+        BufferedImage image = paint(samples, pixels, terrainColor, waterColor, height, known,
+                water, seaLevel, minH.get(), maxH.get());
         writeImageAtomically(image, outputPath);
         long renderNanos = System.nanoTime() - renderStart;
-        return new RenderResult(outputPath, side, step, 0L, renderNanos, grid.sampled(), markers);
+        int n = Math.max(1, sampled.get());
+        return new RenderResult(outputPath, pixels, step, renderNanos / n, renderNanos,
+                sampled.get(), 0);
     }
 
     /**
-     * Samples its own grid via {@link SpikeSampler} at a side chosen from a
-     * real timing of this dimension's own per-column cost. Never reads a
-     * candidate file — highres wants finer detail than {@code
-     * FactsEngine}'s measurement grid carries, so a fresh, denser sample is
-     * the only way to get it, whether or not this seed has ever been banked.
+     * Turns the sampled grid into pixels.
+     *
+     * <p>Nothing is drawn over the terrain — no structure markers, no spawn
+     * dot, no border ring. Those were a fifth of every thumbnail's pixels and
+     * read as confetti; the viewer draws them as SVG layers over the image,
+     * where they can be toggled and where they cost the map nothing.
      */
-    private static RenderResult renderBySampling(MinecraftServer server, Identifier dimensionId,
-                                                  DimensionConfig def, long seed,
-                                                  Path outputPath) throws IOException {
-        long renderStart = System.nanoTime();
-        int radius = Math.max(1, def.getPlayerBorderRadius());
-
-        SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
-        if (!base.ok()) {
-            throw new IOException("cannot render " + dimensionId + ": " + base.error());
-        }
-        SpikeSampler.Rig rig = SpikeSampler.forSeed(server, base, seed);
-
-        long perColumnNanos = timePerColumn(rig, radius, seed);
-        int side = chooseSide(perColumnNanos, Resolution.HIGHRES.budgetNanos, MIN_SIDE, MAX_SIDE);
-        int step = Math.max(1, (radius * 2) / (side - 1));
-        int half = side / 2;
-
-        Integer seaLevel = rig.generator() instanceof NoiseChunkGenerator noiseGen
-                ? noiseGen.getSettings().value().seaLevel() : null;
-        Registry<Biome> biomeRegistry = server.getRegistryManager().get(RegistryKeys.BIOME);
-        Map<String, BiomeColors> colorCache = new HashMap<>();
-        Map<String, Integer> biomeIndex = new HashMap<>();
-
-        int cells = side * side;
-        int[] terrainColor = new int[cells];
-        int[] waterColor = new int[cells];
-        int[] height = new int[cells];
-        // The biome IDENTITY, not its colour — two biomes can resolve to a
-        // near-identical hue (the fog/sky fallback clusters hard in a
-        // nether/end family), and a boundary line must still separate them.
-        int[] biomeId = new int[cells];
-        boolean[] known = new boolean[cells];
-        boolean[] inDisc = new boolean[cells];
-        Arrays.fill(biomeId, -1);
-
-        int minHeight = Integer.MAX_VALUE;
-        int maxHeight = Integer.MIN_VALUE;
-        int sampled = 0;
-        for (int gz = 0; gz < side; gz++) {
-            for (int gx = 0; gx < side; gx++) {
-                int dx = gridToWorldOffset(gx, step, half);
-                int dz = gridToWorldOffset(gz, step, half);
-                if ((long) dx * dx + (long) dz * dz > (long) radius * radius) {
-                    continue;
-                }
-                int idx = gz * side + gx;
-                inDisc[idx] = true;
-                SpikeSampler.Sample s = SpikeSampler.sample(rig, dx, dz);
-                sampled++;
-                if (s.biome() == null || s.surfaceHeight() == null) {
-                    continue;   // stays "known[idx] == false" — painted as unknown, never as air
-                }
-                BiomeColors colors = colorCache.computeIfAbsent(s.biome(),
-                        id -> biomeColors(biomeRegistry, id));
-                if (colors == null) {
-                    continue;   // an id the live registry no longer knows — unmeasurable, not invented
-                }
-                known[idx] = true;
-                terrainColor[idx] = colors.terrain();
-                waterColor[idx] = colors.water();
-                height[idx] = s.surfaceHeight();
-                biomeId[idx] = biomeIndex.computeIfAbsent(s.biome(), id -> biomeIndex.size());
-                minHeight = Math.min(minHeight, s.surfaceHeight());
-                maxHeight = Math.max(maxHeight, s.surfaceHeight());
-            }
-        }
-
-        BufferedImage image = paintTerrain(side, step, half, radius, terrainColor, waterColor,
-                height, biomeId, known, inDisc, seaLevel, minHeight, maxHeight);
-        int markers = paintStructuresAndSpawn(image, server, def, seed, radius, side, step, half,
-                base, null);   // highres has room for every group
-
-        writeImageAtomically(image, outputPath);
-        long renderNanos = System.nanoTime() - renderStart;
-        return new RenderResult(outputPath, side, step, perColumnNanos, renderNanos, sampled, markers);
-    }
-
-    /**
-     * The terrain fill, biome-boundary tint and border ring — everything
-     * that depends only on a biome/height grid, not on how that grid was
-     * obtained. Shared by {@link #renderFromGrid} and {@link
-     * #renderBySampling} so the two pixel sources produce the same picture
-     * language.
-     */
-    private static BufferedImage paintTerrain(int side, int step, int half, int radius,
-                                              int[] terrainColor, int[] waterColor, int[] height,
-                                              int[] biomeId, boolean[] known, boolean[] inDisc,
-                                              Integer seaLevel, int minHeight, int maxHeight) {
-        BufferedImage image = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB);
-        for (int gz = 0; gz < side; gz++) {
-            for (int gx = 0; gx < side; gx++) {
-                int idx = gz * side + gx;
+    private static BufferedImage paint(int samples, int pixels, int[] terrainColor,
+                                       int[] waterColor, int[] height, boolean[] known,
+                                       boolean[] water, Integer seaLevel,
+                                       int minHeight, int maxHeight) {
+        BufferedImage image = new BufferedImage(pixels, pixels, BufferedImage.TYPE_INT_RGB);
+        int range = Math.max(1, maxHeight - minHeight);
+        for (int py = 0; py < pixels; py++) {
+            int gz = Math.min(py * samples / pixels, samples - 1);
+            for (int px = 0; px < pixels; px++) {
+                int gx = Math.min(px * samples / pixels, samples - 1);
+                int idx = gz * samples + gx;
                 int color;
-                if (!inDisc[idx]) {
-                    color = VOID_COLOR;
-                } else if (!known[idx]) {
-                    color = UNKNOWN_COLOR;
-                } else if (seaLevel != null && height[idx] <= seaLevel && minHeight <= maxHeight) {
-                    color = waterColorAt(waterColor[idx], height[idx], seaLevel, minHeight);
+                if (!known[idx]) {
+                    color = OPEN_AIR_COLOR;
+                } else if (water[idx] || (seaLevel != null && height[idx] <= seaLevel)) {
+                    color = waterColorAt(waterColor[idx], height[idx],
+                            seaLevel == null ? height[idx] : seaLevel, minHeight);
                 } else {
-                    color = shade(terrainColor[idx], heightFactor(height[idx], minHeight, maxHeight));
+                    int base = terrainColor[idx];
+                    // Higher ground reads slightly cooler and lighter, the way
+                    // a hypsometric map does — it separates a plateau from a
+                    // valley of the same biome.
+                    double lift = (height[idx] - minHeight) / (double) range;
+                    base = shade(base, 0.94 + 0.12 * lift);
+                    // Contour lines every CONTOUR_INTERVAL blocks: cheap, and
+                    // the single strongest cue that a picture is terrain.
+                    int band = Math.floorMod(height[idx], CONTOUR_INTERVAL);
+                    if (band < 1 || band > CONTOUR_INTERVAL - 2) {
+                        base = shade(base, 0.88);
+                    }
+                    color = shade(base, relief(height, known, samples, gx, gz));
                 }
-                if (known[idx] && bordersADifferentBiome(biomeId, known, side, gx, gz)) {
-                    color = blend(color, BIOME_BOUNDARY_COLOR, BOUNDARY_STRENGTH);
-                }
-                image.setRGB(gx, gz, color);
-            }
-        }
-
-        // The border ring is an annotation over the terrain, drawn as its own
-        // pass so it reads as a clean circle rather than fighting the fill
-        // loop's early-continue for out-of-disc cells.
-        for (int gz = 0; gz < side; gz++) {
-            for (int gx = 0; gx < side; gx++) {
-                int dx = gridToWorldOffset(gx, step, half);
-                int dz = gridToWorldOffset(gz, step, half);
-                double dist = Math.sqrt((double) dx * dx + (double) dz * dz);
-                if (nearBorder(dist, radius, step)) {
-                    image.setRGB(gx, gz, BORDER_COLOR);
-                }
+                image.setRGB(px, py, color);
             }
         }
         return image;
     }
 
-    /**
-     * Structure markers and the spawn marker — the two overlays that need a
-     * live server (structure placement, the dimension's declared spawn)
-     * rather than anything in the grid.
-     */
+
     private static int paintStructuresAndSpawn(BufferedImage image, MinecraftServer server,
                                                DimensionConfig def, long seed, int radius,
                                                int side, int step, int half, SpikeSampler.Base base,
@@ -522,10 +504,12 @@ public final class CandidateRender {
             return null;
         }
         BiomeEffects effects = biome.getEffects();
-        Integer grass = effects.getGrassColor().orElse(null);
-        Integer foliage = effects.getFoliageColor().orElse(null);
-        int terrain = terrainBaseColor(grass, foliage, effects.getFogColor(), effects.getSkyColor());
-        return new BiomeColors(terrain, effects.getWaterColor());
+        // The GROUND, not the air. A biome's fog and sky are the colour you
+        // see looking through a world, and the modded nether packs set them
+        // to vivid pinks — a map painted with them carries no information
+        // about the terrain. SurfacePalette answers with the map colour of
+        // the block the surface rule actually places.
+        return new BiomeColors(SurfacePalette.colourOf(biomeId), effects.getWaterColor());
     }
 
     /**
@@ -545,6 +529,46 @@ public final class CandidateRender {
             return foliageOverride;
         }
         return blend(fogColor, skyColor, 0.5);
+    }
+
+    /**
+     * How lit a cell is, from the terrain around it.
+     *
+     * <p>Vanilla's three-step comparison against the cell to the north
+     * carries the shape of the land; a directional hillshade off the local
+     * gradient is mixed in on top so a slope reads as a slope rather than as
+     * a stack of terraces. Both are LOCAL — a cell's colour says how it sits
+     * relative to its neighbours, never where it sits in the dimension's
+     * whole height range, which is what turned a nether world into static.
+     */
+    static double relief(int[] height, boolean[] known, int side, int gx, int gz) {
+        int here = height[gz * side + gx];
+        int north = sampleHeight(height, known, side, gx, gz - 1, here);
+        double step = here > north ? MC_SHADE_BRIGHT : here < north ? MC_SHADE_DARK : MC_SHADE_LEVEL;
+
+        int west = sampleHeight(height, known, side, gx - 1, gz, here);
+        int east = sampleHeight(height, known, side, gx + 1, gz, here);
+        int south = sampleHeight(height, known, side, gx, gz + 1, here);
+        double dzdx = (east - west) * HILLSHADE_GAIN;
+        double dzdy = (south - north) * HILLSHADE_GAIN;
+        // Light from the north-west, the convention every relief map uses.
+        double light = (-dzdx + -dzdy) / Math.sqrt(dzdx * dzdx + dzdy * dzdy + 2.0);
+        double directional = 0.75 + 0.35 * clamp(light, -1.0, 1.0);
+        return clamp(step * (1.0 - HILLSHADE_MIX) + directional * HILLSHADE_MIX,
+                MIN_SHADE, MAX_SHADE);
+    }
+
+    /** A neighbour's height, or this cell's own where the grid has nothing (edge, outside the disc). */
+    private static int sampleHeight(int[] height, boolean[] known, int side, int gx, int gz, int fallback) {
+        if (gx < 0 || gz < 0 || gx >= side || gz >= side) {
+            return fallback;
+        }
+        int idx = gz * side + gx;
+        return known[idx] ? height[idx] : fallback;
+    }
+
+    private static double clamp(double v, double lo, double hi) {
+        return v < lo ? lo : Math.min(v, hi);
     }
 
     /** Deeper water reads darker, floored so a deep column is still recognisably water, not black. */
@@ -607,7 +631,10 @@ public final class CandidateRender {
 
     /** Within one grid step of the border radius — a ring with constant pixel thickness. */
     static boolean nearBorder(double distanceFromCentre, int radius, int step) {
-        return Math.abs(distanceFromCentre - radius) <= step;
+        // Half a step either side is one cell wide. A full step was two, and
+        // at the measurement grid's size that ring was a seventh of the
+        // picture — an annotation eating the thing it annotates.
+        return Math.abs(distanceFromCentre - radius) <= step / 2.0;
     }
 
     /** True when any in-bounds, measured neighbour carries a different biome identity. */

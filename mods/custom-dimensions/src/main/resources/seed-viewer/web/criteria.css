@@ -6,6 +6,30 @@
  * colours from the same custom properties app.css declares, so the two stay
  * in step through the tokens rather than through copied hex values. */
 
+/* dartboard.js builds this button in JS and app.css only positions the two
+ * that are authored in the template, so it was landing wherever the flow
+ * left it — floating over the middle of the map. Same corner treatment as
+ * its siblings. */
+#lightbox .lb-image .lb-dart-toggle {
+  position: absolute;
+  right: 0.6rem;
+  top: 0.6rem;
+  z-index: 3;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--edge, #272c35);
+  background: rgba(10, 12, 14, 0.82);
+  color: var(--text, #e6e8ec);
+  cursor: pointer;
+}
+
+#lightbox .lb-image .lb-dart-toggle[aria-pressed='true'] {
+  border-color: var(--action, #5b8dd0);
+  color: var(--action, #5b8dd0);
+}
+
 .criteria-groups {
   display: flex;
   flex-direction: column;

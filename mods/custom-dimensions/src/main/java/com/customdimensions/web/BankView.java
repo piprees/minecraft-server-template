@@ -12,6 +12,7 @@ import com.customdimensions.score.Scorecard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -130,6 +131,72 @@ public final class BankView {
         String dimension = def.getDimensionIdentifier().toString();
         return SeedBank.candidateImagePath(InputHash.of(def, server), dimension, parsed,
                 hires ? CandidateRender.Resolution.HIGHRES : CandidateRender.Resolution.LOWRES);
+    }
+
+    /**
+     * One candidate's structure census, read back out of the file the roll
+     * wrote — counts per structure, the distance to the nearest of each, and
+     * where spawn landed.
+     *
+     * <p>Carries no {@code positions}: the bank stores counts and distances,
+     * never a coordinate per placement, so the answer says what was measured
+     * instead of implying a precision that was never taken.
+     */
+    public static String censusJson(MinecraftServer server, String slug, String seedText) {
+        DimensionConfig def = resolve(slug);
+        long seed;
+        try {
+            seed = Long.parseLong(seedText);
+        } catch (NumberFormatException e) {
+            return "{\"ok\": false, \"error\": \"unreadable seed\"}\n";
+        }
+        if (def == null) {
+            return "{\"ok\": false, \"error\": " + Json.quote("no configured world " + slug) + "}\n";
+        }
+        Path file = SeedBank.candidatePath(InputHash.of(def, server),
+                def.getDimensionIdentifier().toString(), seed);
+        if (!Files.isRegularFile(file)) {
+            return "{\"ok\": false, \"error\": \"this seed is not banked under the current inputs\"}\n";
+        }
+        try {
+            com.google.gson.JsonObject root = com.google.gson.JsonParser
+                    .parseString(Files.readString(file)).getAsJsonObject();
+            com.google.gson.JsonObject facts = root.getAsJsonObject("facts");
+            com.google.gson.JsonObject out = new com.google.gson.JsonObject();
+            out.addProperty("ok", true);
+            com.google.gson.JsonElement structures = facts.get("structures");
+            if (structures != null && structures.isJsonObject()) {
+                com.google.gson.JsonObject s = structures.getAsJsonObject();
+                copy(s, out, "totalPositions");
+                copy(s, out, "byStructure");
+                copy(s, out, "nearestByStructure");
+                copy(s, out, "byGroup");
+                copy(s, out, "nearestHostile");
+                // groups without positions: the panel reads counts, and the
+                // marker layer stays dark rather than plotting made-up points.
+                out.add("groups", new com.google.gson.JsonObject());
+            }
+            com.google.gson.JsonElement spawn = facts.get("spawn");
+            if (spawn != null && spawn.isJsonObject()) {
+                copyAs(spawn.getAsJsonObject(), out, "x", "spawnX");
+                copyAs(spawn.getAsJsonObject(), out, "z", "spawnZ");
+            }
+            return out + "\n";
+        } catch (IOException | RuntimeException e) {
+            return "{\"ok\": false, \"error\": " + Json.quote("census unreadable: " + e) + "}\n";
+        }
+    }
+
+    private static void copy(com.google.gson.JsonObject from, com.google.gson.JsonObject to, String key) {
+        copyAs(from, to, key, key);
+    }
+
+    private static void copyAs(com.google.gson.JsonObject from, com.google.gson.JsonObject to,
+                               String key, String as) {
+        com.google.gson.JsonElement v = from.get(key);
+        if (v != null && !v.isJsonNull()) {
+            to.add(as, v);
+        }
     }
 
     // ------------------------------------------------------------------ json

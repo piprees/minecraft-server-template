@@ -134,14 +134,16 @@ class CandidateRenderTest {
     }
 
     @Test
-    void nearBorderIsTrueOnlyWithinOneStepOfTheRadius() {
+    void theBorderRingIsOneCellWide() {
         int radius = 1000;
         int step = 20;
         assertTrue(CandidateRender.nearBorder(radius, radius, step));
-        assertTrue(CandidateRender.nearBorder(radius - step, radius, step));
-        assertTrue(CandidateRender.nearBorder(radius + step, radius, step));
-        assertFalse(CandidateRender.nearBorder(radius - step * 3L, radius, step));
-        assertFalse(CandidateRender.nearBorder(radius + step * 3L, radius, step));
+        assertTrue(CandidateRender.nearBorder(radius - step / 2.0, radius, step));
+        assertTrue(CandidateRender.nearBorder(radius + step / 2.0, radius, step));
+        // A full step either side is a two-cell band, which at the
+        // measurement grid's size was a seventh of the whole picture.
+        assertFalse(CandidateRender.nearBorder(radius - step, radius, step));
+        assertFalse(CandidateRender.nearBorder(radius + step, radius, step));
     }
 
     // ---------------------------------------------------------- biome boundary
