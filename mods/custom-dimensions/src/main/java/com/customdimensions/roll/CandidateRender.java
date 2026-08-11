@@ -102,23 +102,28 @@ public final class CandidateRender {
      * around spawn, the detail view is 2048 blocks of it.
      */
     public enum Resolution {
-        /** 512 blocks across, 512px. */
-        LOWRES(512),
-        /** 2048 blocks across, 2048px. */
-        HIGHRES(2048);
-
-        /** Blocks the picture covers, edge to edge — and its pixel width. */
-        final int blocks;
-
-        Resolution(int blocks) {
-            this.blocks = blocks;
-        }
-
-        /** Grid side: one sample per {@link #BLOCKS_PER_SAMPLE} blocks. */
-        int samples() {
-            return blocks / BLOCKS_PER_SAMPLE;
-        }
+        /** The 512 blocks around spawn, one block a pixel. */
+        LOWRES,
+        /** The whole world, edge to edge of its player border. */
+        HIGHRES
     }
+
+    /**
+     * Blocks the thumbnail covers. A close look at spawn, at one block a
+     * pixel — the question it answers is "what is it like where I would land",
+     * not "what shape is this world".
+     */
+    private static final int THUMBNAIL_BLOCKS = 512;
+
+    /**
+     * Widest picture either view produces. One block a pixel stops being
+     * possible well before the biggest border here: a 16,384-block world
+     * would be a 16,384px image, and a {@code BufferedImage} that size is a
+     * gigabyte of heap on a server with six. Past this the scale drops to
+     * several blocks a pixel instead, which is the right trade — the fine
+     * detail belongs to the structure overlays, not the pixels.
+     */
+    private static final int MAX_PIXELS = 2048;
 
     /**
      * Blocks between samples. Four, because biome and climate are both
@@ -286,7 +291,7 @@ public final class CandidateRender {
                                      Path outputPath) throws IOException {
         long renderStart = System.nanoTime();
         int radius = Math.max(1, def.getPlayerBorderRadius());
-        int pixels = resolution.blocks;
+
 
         SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
         if (!base.ok()) {
@@ -299,15 +304,19 @@ public final class CandidateRender {
         // rather than from a more exact height per column. Depth also has no
         // roof problem — the heightmap reading a nether ceiling is what made
         // ceilinged worlds need a column scan in the first place.
-        int samples = resolution.samples();
+        // The thumbnail is a fixed window on spawn; the detail view is the
+        // whole world, however big that is. Neither samples finer than the
+        // image it produces — asking the same question several times per
+        // pixel and throwing the answers away is where the cost used to go.
+        int coverage = resolution == Resolution.HIGHRES
+                ? Math.max(THUMBNAIL_BLOCKS, radius * 2) : THUMBNAIL_BLOCKS;
+        int pixels = Math.min(coverage, MAX_PIXELS);
+        int step = Math.max(BLOCKS_PER_SAMPLE, coverage / pixels);
+        int samples = Math.max(1, coverage / step);
         // Below this, the column is looking down into something rather than
         // standing on it. The Python renderer drew the same line.
         int floorBelow = voidFloorFor(def);
-        // A fixed block scale, not the whole world squeezed into the frame:
-        // the thumbnail is a close look at spawn and the detail view is a
-        // wider one, and a 256-block pocket and a 16k overworld read at the
-        // same scale as each other rather than both filling the same square.
-        int step = BLOCKS_PER_SAMPLE;
+
         int half = samples / 2;
 
         // A sea level only means water where the sea IS water. A nether

@@ -12,7 +12,6 @@ import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +28,8 @@ import java.util.stream.Stream;
 /**
  * SHA-256 identity for everything that could change what a rolled seed
  * measures: one dimension's merged config, the platform's stack version,
- * the mod's own compiled bytes, and every loaded mod's id and version. A
+ * the measurement-relevant parts of the mod's own bytes, and every loaded
+ * mod's id and version. A
  * {@code .seed-rolling/} file keyed by this hash is safe to reuse only as
  * long as none of those four moved — a stale hash is a config that changed
  * underneath the file, not a name collision.
@@ -144,27 +144,78 @@ public final class InputHash {
         }
     }
 
-    /** A packaged jar is hashed as bytes; a dev-environment class directory as a manifest. */
+    /**
+     * Only the parts of the mod that can change what a measurement SAYS.
+     *
+     * <p>Hashing the whole artefact meant a stylesheet in the viewer, or a
+     * colour in the map renderer, invalidated every banked candidate in the
+     * pack — thousands of measurements thrown away for a change that could
+     * not move a single number. What can move one is the sampler, the facts
+     * engine, the scorer, the search, the worldgen and structure placement,
+     * the config parser, and the jar-baked worldgen data.
+     *
+     * <p>Under-inclusion is the dangerous direction: a measurement change
+     * that goes unnoticed reuses a stale number. Anything ambiguous belongs
+     * on this list.
+     */
+    private static final List<String> MEASUREMENT_PATHS = List.of(
+            "com/customdimensions/facts/",
+            "com/customdimensions/score/",
+            "com/customdimensions/dimension/",
+            "com/customdimensions/config/",
+            "com/customdimensions/mixin/",
+            "com/customdimensions/command/SpikeSampler",
+            "com/customdimensions/command/ColumnScan",
+            "com/customdimensions/command/InputHash",
+            "com/customdimensions/roll/Roller",
+            "com/customdimensions/roll/SeedBank",
+            "data/",
+            "structure_themes.json",
+            "structure_type_defaults.json",
+            "structure_default_wants.json");
+
+    /** Whether a jar entry or class path is one a measurement depends on. */
+    static boolean affectsMeasurement(String entry) {
+        String normalised = entry.replace('\\', '/');
+        for (String prefix : MEASUREMENT_PATHS) {
+            if (normalised.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A packaged jar is hashed entry by entry; a dev-environment class
+     * directory as a manifest. Either way only the measurement-relevant
+     * entries count, so the viewer and the map renderer can change without
+     * discarding a bank.
+     */
     private static String hashArtefactPath(Path path) throws IOException {
+        List<String> entries = new ArrayList<>();
         if (Files.isRegularFile(path)) {
-            MessageDigest digest = newDigest();
-            try (InputStream in = Files.newInputStream(path)) {
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    digest.update(buffer, 0, read);
+            try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(path.toFile())) {
+                var it = zip.entries();
+                while (it.hasMoreElements()) {
+                    java.util.zip.ZipEntry entry = it.nextElement();
+                    if (entry.isDirectory() || !affectsMeasurement(entry.getName())) {
+                        continue;
+                    }
+                    // The CRC the archive already carries: exact for "did
+                    // these bytes change", and free to read.
+                    entries.add(entry.getName() + ":" + entry.getCrc());
                 }
             }
-            return toHex(digest.digest());
-        }
-        List<String> entries = new ArrayList<>();
-        try (Stream<Path> walk = Files.walk(path)) {
-            for (Path p : walk.filter(Files::isRegularFile).toList()) {
-                if (!p.toString().endsWith(".class")) {
-                    continue;
+        } else {
+            try (Stream<Path> walk = Files.walk(path)) {
+                for (Path p : walk.filter(Files::isRegularFile).toList()) {
+                    String relative = path.relativize(p).toString();
+                    if (!affectsMeasurement(relative)) {
+                        continue;
+                    }
+                    entries.add(relative + ":" + Files.size(p) + ":"
+                            + Files.getLastModifiedTime(p).toMillis());
                 }
-                entries.add(path.relativize(p) + ":" + Files.size(p) + ":"
-                        + Files.getLastModifiedTime(p).toMillis());
             }
         }
         Collections.sort(entries);
