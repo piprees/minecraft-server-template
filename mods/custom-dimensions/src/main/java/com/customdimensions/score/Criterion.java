@@ -88,13 +88,29 @@ public interface Criterion {
         record Fail(String reason, String evidence) implements Result {
         }
 
-        /** A graded judgement in 0..1, with the facts that produced it. */
-        record Score(double value, String evidence) implements Result {
+        /**
+         * A graded judgement in 0..1, with the facts that produced it.
+         *
+         * <p>{@code band} is the range this criterion wanted, in BLOCKS from
+         * spawn, or null where the question is not a distance — a biome
+         * share is a fraction and has no radius. It exists so the map can
+         * draw what a criterion asked for; nothing scores from it.
+         */
+        record Score(double value, String evidence, double[] band) implements Result {
             public Score {
                 if (Double.isNaN(value) || value < 0.0 || value > 1.0) {
                     throw new IllegalArgumentException(
                             "a criterion score is a finite 0..1, got " + value);
                 }
+                if (band != null && band.length != 2) {
+                    throw new IllegalArgumentException(
+                            "a band is [min, max] in blocks, got " + band.length + " values");
+                }
+            }
+
+            /** A criterion whose question has no distance behind it. */
+            public Score(double value, String evidence) {
+                this(value, evidence, null);
             }
         }
 

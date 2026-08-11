@@ -43,9 +43,21 @@ public record Scorecard(
         INVALID_CONFIG, REJECTED, SCORED
     }
 
-    /** One criterion's conclusion, with the evidence that produced it. */
+    /**
+     * One criterion's conclusion, with the evidence that produced it.
+     *
+     * <p>{@code band} is the range it wanted in BLOCKS from spawn, or null
+     * where the question is not a distance. The viewer draws it on the map;
+     * nothing scores from it.
+     */
     public record Entry(String id, Criterion.Group group, String target,
-                        String outcome, Double value, String detail) {
+                        String outcome, Double value, String detail, double[] band) {
+
+        /** A criterion whose question has no distance behind it. */
+        public Entry(String id, Criterion.Group group, String target,
+                     String outcome, Double value, String detail) {
+            this(id, group, target, outcome, value, detail, null);
+        }
     }
 
     /** achieved/ceiling as a percentage, or absent when nothing applied. */
@@ -96,7 +108,12 @@ public record Scorecard(
                 b.append(", \"value\": ")
                         .append(e.value() == null ? "null" : Json.number(e.value()));
                 b.append(", \"target\": ").append(Json.quote(e.target()));
-                b.append(", \"detail\": ").append(Json.quote(e.detail())).append('}');
+                b.append(", \"detail\": ").append(Json.quote(e.detail()));
+                if (e.band() != null) {
+                    b.append(", \"band\": [").append(Json.number(e.band()[0]))
+                            .append(", ").append(Json.number(e.band()[1])).append(']');
+                }
+                b.append('}');
             }
             b.append("\n  ]");
         }

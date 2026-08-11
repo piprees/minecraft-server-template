@@ -382,18 +382,21 @@ public final class Criteria {
             String ev = String.format(Locale.ROOT,
                     "nearest hostile %.0f blocks (%.1f%% of the border)",
                     nearest.orThrow(), frac * 100.0);
+            // The wanted range in blocks, so the map can draw the ring this
+            // criterion is actually asking about.
+            double[] band = {0.05 * radius, 0.30 * radius};
             if (frac >= 0.05 && frac <= 0.30) {
-                return new Result.Score(1.0, ev + " — inside the band");
+                return new Result.Score(1.0, ev + " — inside the band", band);
             }
             if (frac < 0.05) {
-                return new Result.Score(ramp(frac, 0.0, 0.05), ev + " — on top of spawn");
+                return new Result.Score(ramp(frac, 0.0, 0.05), ev + " — on top of spawn", band);
             }
             // Mirrors the near branch: 1.0 at the band edge, decaying to 0 at
             // the border. The anchors run low-to-high in the ramp's own terms —
             // reversed, the whole upper tail clamps to zero and "just outside the
             // band" ranks the same as "at the world's edge".
             return new Result.Score(ramp(1.0 - frac, 0.0, 1.0 - 0.30),
-                    ev + " — a long walk");
+                    ev + " — a long walk", band);
         }
     }
 

@@ -240,7 +240,14 @@ public final class ViewerPage {
 
         // The modal's body: the score AND the reasons behind it.
         b.append("<div class='cand-detail' style='display:none'>");
-        b.append("<div class='lb-header'><div class='lb-title'>")
+        // How many blocks each render covers, stated rather than inferred:
+        // the overlays project a distance in blocks onto the image, and
+        // app.js used to derive this from constants describing a render
+        // geometry that no longer exists, so it came back zero and every
+        // overlay silently drew nothing.
+        int borderBlocks = Math.max(512, v.config().getPlayerBorderRadius() * 2);
+        b.append("<div class='lb-header' data-coverage='").append(borderBlocks)
+                .append("' data-coverage-low='512'><div class='lb-title'>")
                 .append("<span class='dim-label'>").append(escape(slug)).append("</span> ")
                 .append("<span class='score' style='color:").append(scoreColour(pct)).append("'>")
                 .append(fmt(pct)).append("</span> ")
@@ -297,8 +304,22 @@ public final class ViewerPage {
             b.append("<div class='crit-group'><div class='crit-label'>")
                     .append(escape(g.getKey().name().toLowerCase(Locale.ROOT))).append("</div>");
             for (Scorecard.Entry e : g.getValue()) {
-                b.append("<div class='crit-row' data-outcome='")
-                        .append(escape(e.outcome().toLowerCase(Locale.ROOT))).append("'>")
+                // .mrow[data-band] is dartboard.js's contract: a range in
+                // BLOCKS from spawn, which it draws as an arc. Only a
+                // criterion whose question IS a distance carries one — a
+                // biome share is a fraction and has no radius, and inventing
+                // one would draw a ring that means nothing.
+                double[] band = e.band();
+                b.append("<div class='crit-row")
+                        .append(band != null ? " mrow" : "")
+                        .append(severityClass(e))
+                        .append("' data-outcome='")
+                        .append(escape(e.outcome().toLowerCase(Locale.ROOT))).append("'");
+                if (band != null) {
+                    b.append(" data-band='").append(fmt(band[0])).append(',')
+                            .append(fmt(band[1])).append("'");
+                }
+                b.append(">")
                         .append("<span class='crit-value'>")
                         .append(e.value() == null ? "&mdash;" : fmtScore(e.value()))
                         .append("</span>")
@@ -412,6 +433,21 @@ public final class ViewerPage {
 
     private static String fmt(double v) {
         return String.format(Locale.ROOT, "%.1f", v);
+    }
+
+    /**
+     * dartboard.js colours an arc by severity: {@code sev2} bad, {@code sev1}
+     * warning, neither for good. Read off the score the criterion gave, so
+     * the map agrees with the number beside it.
+     */
+    private static String severityClass(Scorecard.Entry e) {
+        if (e.value() == null) {
+            return "";
+        }
+        if (e.value() < 0.34) {
+            return " sev2";
+        }
+        return e.value() < 0.67 ? " sev1" : "";
     }
 
     /** A criterion's score reads to two places — most of them land on 0.3, 0.5, 1.0. */

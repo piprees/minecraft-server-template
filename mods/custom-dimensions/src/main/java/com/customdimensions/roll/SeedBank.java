@@ -288,9 +288,15 @@ public final class SeedBank {
                     for (JsonElement el : groupEntry.getValue().getAsJsonArray()) {
                         JsonObject e = el.getAsJsonObject();
                         Double value = e.get("value").isJsonNull() ? null : e.get("value").getAsDouble();
+                        double[] band = null;
+                        if (e.has("band") && e.get("band").isJsonArray()
+                                && e.getAsJsonArray("band").size() == 2) {
+                            band = new double[]{e.getAsJsonArray("band").get(0).getAsDouble(),
+                                    e.getAsJsonArray("band").get(1).getAsDouble()};
+                        }
                         entries.add(new Scorecard.Entry(e.get("id").getAsString(), group,
                                 e.get("target").getAsString(), e.get("outcome").getAsString(),
-                                value, e.get("detail").getAsString()));
+                                value, e.get("detail").getAsString(), band));
                     }
                 }
             }

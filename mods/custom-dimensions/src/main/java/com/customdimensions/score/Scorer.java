@@ -86,7 +86,7 @@ public final class Scorer {
                 }
             } else if (r instanceof Criterion.Result.Score s) {
                 entries.add(new Scorecard.Entry(c.id(), c.group(), target,
-                        "score", s.value(), s.evidence()));
+                        "score", s.value(), s.evidence(), s.band()));
                 achieved += s.value();
                 ceiling += 1.0;
                 graded++;
