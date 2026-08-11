@@ -2,7 +2,6 @@ package com.customdimensions.web;
 
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.config.DimensionConfig;
-import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.facts.Json;
 import com.customdimensions.roll.Roller;
 import net.minecraft.server.MinecraftServer;
@@ -92,7 +91,7 @@ public final class RollPipeline {
 
     private static List<DimensionConfig> resolve(String dimension) {
         List<DimensionConfig> out = new ArrayList<>();
-        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig def : BankView.rollTargets()) {
             if (!Roller.rollable(def)) {
                 continue;
             }
@@ -105,39 +104,75 @@ public final class RollPipeline {
         return out;
     }
 
+    /**
+     * How many dimensions are measured at once.
+     *
+     * <p>A measurement is pure CPU with no {@code ServerWorld} and no shared
+     * mutable state — each dimension reads its own candidate directory and
+     * writes only into it — so the search is embarrassingly parallel across
+     * dimensions and there is no reason to leave a machine's cores idle while
+     * a pack of eighty takes hours on one. One core is left for the server
+     * thread and one for everything else.
+     */
+    private static int workers() {
+        return Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
+    }
+
     private static void run(MinecraftServer server, List<DimensionConfig> targets, int count) {
+        int workers = Math.min(workers(), targets.size());
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(
+                workers, r -> {
+                    Thread t = new Thread(r, "customdim-roll");
+                    t.setDaemon(true);
+                    return t;
+                });
+        MultiverseServer.LOGGER.info("roll: {} dimension(s) x {} seed(s) across {} worker(s)",
+                targets.size(), count, workers);
         try {
+            List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
             for (DimensionConfig def : targets) {
-                if (CANCEL.get()) {
+                futures.add(pool.submit(() -> rollOne(server, def, count)));
+            }
+            for (java.util.concurrent.Future<?> f : futures) {
+                try {
+                    f.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     break;
+                } catch (java.util.concurrent.ExecutionException e) {
+                    MultiverseServer.LOGGER.error("Roll worker failed", e.getCause());
                 }
-                Identifier id = def.getDimensionIdentifier();
-                CURRENT.set(id.getPath());
-                STAGE.set("rolling " + id.getPath());
-                int done = 0;
-                while (done < count && !CANCEL.get()) {
-                    int batch = Math.min(BATCH, count - done);
-                    try {
-                        Roller.rollDimension(server, id, def, batch);
-                    } catch (RuntimeException e) {
-                        MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
-                        ERROR.set(id.getPath() + ": " + e);
-                        break;
-                    }
-                    done += batch;
-                    ROLLED.addAndGet(batch);
-                }
-                SURVEYED.incrementAndGet();
-                // Each finished dimension is a new thing to look at, so the
-                // page is told to refresh now rather than at the end of the run.
-                GENERATION.incrementAndGet();
             }
         } finally {
+            pool.shutdownNow();
             STAGE.set(CANCEL.get() ? "stopped" : "done");
             CURRENT.set("");
             RUNNING.set(false);
             GENERATION.incrementAndGet();
         }
+    }
+
+    private static void rollOne(MinecraftServer server, DimensionConfig def, int count) {
+        Identifier id = def.getDimensionIdentifier();
+        CURRENT.set(id.getPath());
+        STAGE.set("rolling " + id.getPath());
+        int done = 0;
+        while (done < count && !CANCEL.get()) {
+            int batch = Math.min(BATCH, count - done);
+            try {
+                Roller.rollDimension(server, id, def, batch);
+            } catch (RuntimeException e) {
+                MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
+                ERROR.set(id.getPath() + ": " + e);
+                break;
+            }
+            done += batch;
+            ROLLED.addAndGet(batch);
+        }
+        SURVEYED.incrementAndGet();
+        // Each finished dimension is a new thing to look at, so the page is
+        // told to refresh now rather than at the end of the run.
+        GENERATION.incrementAndGet();
     }
 
     /**
@@ -151,7 +186,7 @@ public final class RollPipeline {
      */
     public static String render(MinecraftServer server, String dimensionSlug, long seed,
                                 boolean highres) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionSlug);
+        DimensionConfig def = BankView.resolve(dimensionSlug);
         if (def == null) {
             return "no configured dimension " + dimensionSlug;
         }
@@ -164,10 +199,7 @@ public final class RollPipeline {
                 com.customdimensions.roll.CandidateRender.Resolution resolution = highres
                         ? com.customdimensions.roll.CandidateRender.Resolution.HIGHRES
                         : com.customdimensions.roll.CandidateRender.Resolution.LOWRES;
-                java.nio.file.Path path = com.customdimensions.roll.SeedBank.candidateImagePath(
-                        com.customdimensions.command.InputHash.of(def, server), id.toString(),
-                        seed, resolution);
-                com.customdimensions.roll.CandidateRender.render(server, id, def, seed, resolution, path);
+                render(server, def, id, seed, resolution);
                 GENERATION.incrementAndGet();
             } catch (Exception e) {
                 MultiverseServer.LOGGER.error("Render failed for {} seed {}", id, seed, e);
@@ -179,6 +211,14 @@ public final class RollPipeline {
         worker.setDaemon(true);
         worker.start();
         return null;
+    }
+
+    private static void render(MinecraftServer server, DimensionConfig def, Identifier id, long seed,
+                               com.customdimensions.roll.CandidateRender.Resolution resolution)
+            throws java.io.IOException {
+        java.nio.file.Path path = com.customdimensions.roll.SeedBank.candidateImagePath(
+                com.customdimensions.command.InputHash.of(def, server), id.toString(), seed, resolution);
+        com.customdimensions.roll.CandidateRender.render(server, id, def, seed, resolution, path);
     }
 
     /** The status shape the viewer's roller controls poll. */

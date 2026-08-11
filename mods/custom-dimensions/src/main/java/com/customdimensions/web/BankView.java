@@ -44,16 +44,43 @@ public final class BankView {
     }
 
     /**
-     * Every configured dimension, in config order, with its bank. A dimension
-     * with no candidates is included: the work not yet done is the most
-     * useful row on the page.
+     * Every configured world, in config order, with its bank — the base
+     * worlds included. The overworld, the nether, the end and paradise_lost
+     * carry the same seed, border, difficulty and structures blocks as any
+     * custom dimension and are rolled and scored the same way, so a page that
+     * skipped them would be missing the four worlds people spend most of
+     * their time in.
+     *
+     * <p>A world with no candidates is included: the work not yet done is the
+     * most useful row on the page.
      */
     public static List<DimensionView> all(MinecraftServer server) {
         List<DimensionView> out = new ArrayList<>();
-        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig def : rollTargets()) {
             out.add(of(server, def));
         }
         return out;
+    }
+
+    /**
+     * Every world the roller and the viewer both work over: base worlds
+     * first, since they are the ones a player actually lives in, then the
+     * custom dimensions.
+     */
+    public static List<DimensionConfig> rollTargets() {
+        List<DimensionConfig> out = new ArrayList<>(MultiverseConfig.getInstance().getWorlds());
+        out.addAll(MultiverseConfig.getInstance().getDimensions());
+        return out;
+    }
+
+    /**
+     * A configured world by its slug, base worlds included. Every caller that
+     * takes a slug off a URL or a button needs this rather than
+     * {@code getDimension}, which answers null for a base world by design.
+     */
+    public static DimensionConfig resolve(String slug) {
+        DimensionConfig def = MultiverseConfig.getInstance().getDimension(slug);
+        return def != null ? def : MultiverseConfig.getInstance().getWorld(slug);
     }
 
     public static DimensionView of(MinecraftServer server, DimensionConfig def) {
@@ -90,7 +117,7 @@ public final class BankView {
      */
     public static Path renderPath(MinecraftServer server, String dimensionSlug, String seed,
                                   boolean hires) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionSlug);
+        DimensionConfig def = resolve(dimensionSlug);
         if (def == null) {
             return null;
         }

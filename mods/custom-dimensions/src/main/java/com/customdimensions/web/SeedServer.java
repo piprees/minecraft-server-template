@@ -179,7 +179,7 @@ public final class SeedServer {
         String slug = body.has("dim") ? body.get("dim").getAsString() : null;
         long seed = body.has("seed") ? body.get("seed").getAsLong() : 0L;
         com.customdimensions.config.DimensionConfig def = slug == null ? null
-                : com.customdimensions.config.MultiverseConfig.getInstance().getDimension(slug);
+                : BankView.resolve(slug);
         if (def == null) {
             sendJson(exchange, "{\"error\": \"no configured dimension " + escape(slug) + "\"}");
             return;

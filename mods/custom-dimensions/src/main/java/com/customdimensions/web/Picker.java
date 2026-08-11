@@ -3,7 +3,6 @@ package com.customdimensions.web;
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
 import com.customdimensions.config.DimensionConfig;
-import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.tryout.TryOut;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -44,7 +43,7 @@ public final class Picker {
     }
 
     public static Result pick(MinecraftServer server, String dimensionSlug, long seed) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionSlug);
+        DimensionConfig def = BankView.resolve(dimensionSlug);
         if (def == null) {
             return new Result(false, "No configured dimension " + dimensionSlug, null);
         }

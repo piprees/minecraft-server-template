@@ -719,6 +719,7 @@
   // Lightbox hires (32K render) gets a red ring at 50% showing the border.
   var RENDER_SIZE = 1024,
     BASE_SCALE = 8
+  function wrapImages () {
   var maxDiameter = 0
   document.querySelectorAll('.dim-card').forEach(function (card) {
     var r = parseFloat(card.dataset.radius || 0)
@@ -749,6 +750,12 @@
       div.appendChild(lbl)
     })
   })
+  }
+  // The roller replaces #grid on every bank change, and the fresh markup has
+  // no wrappers — without re-running this the border overlay stops working
+  // for the whole of a run.
+  window.wrapCardImages = wrapImages
+  wrapImages()
 
   applyState()
 
@@ -1491,6 +1498,7 @@
         var fresh = doc.getElementById('grid')
         var live = document.getElementById('grid')
         if (fresh && live) live.innerHTML = fresh.innerHTML
+        if (window.wrapCardImages) window.wrapCardImages()
         if (window.applyFilters) window.applyFilters()
         // The swap discarded the expanded card along with the old markup;
         // the URL still says which one it was.

@@ -26,6 +26,10 @@
        template repo at scripts/seed/web/. Every custom property the styles
        below read is declared there — see its legacy variable bridge. -->
   <link rel="stylesheet" href="assets/app.css" />
+  <!-- The scorecard reasoning's own styles. app.css is a build of the design
+       system and knows nothing about these class names; this reads its
+       colours from the same custom properties rather than copying values. -->
+  <link rel="stylesheet" href="assets/criteria.css" />
 
   <!-- Single nav row. The view settings keep their checkbox inputs behind
        icon labels so every existing filter handler still reads .checked;

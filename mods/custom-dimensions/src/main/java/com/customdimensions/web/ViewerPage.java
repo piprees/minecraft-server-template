@@ -132,7 +132,7 @@ public final class ViewerPage {
         // Compact face
         b.append("<div class='compact'>");
         if (best != null) {
-            b.append(image(slug, best, "512"));
+            b.append(image(slug, best));
         } else {
             b.append("<div class='no-render'>not rolled</div>");
         }
@@ -210,7 +210,7 @@ public final class ViewerPage {
                 .append("' data-parts='").append(escape(partsJson(c.scorecard())))
                 .append("' data-render='renders/").append(escape(slug)).append('/').append(c.seed())
                 .append(".png'").append(idx >= 6 ? " style='display:none'" : "").append('>');
-        b.append(image(slug, c, "512"));
+        b.append(image(slug, c));
         if (c.hasHighres()) {
             b.append("<div class='hires-badge'>HD</div>");
         }
@@ -275,20 +275,28 @@ public final class ViewerPage {
         for (Scorecard.Entry e : card.entries()) {
             grouped.computeIfAbsent(e.group(), k -> new ArrayList<>()).add(e);
         }
-        StringBuilder b = new StringBuilder("<div class='criteria'>");
+        StringBuilder b = new StringBuilder("<div class='criteria-groups'>");
         for (Map.Entry<Criterion.Group, List<Scorecard.Entry>> g : grouped.entrySet()) {
-            b.append("<div class='crit-group'><b>")
-                    .append(escape(g.getKey().name().toLowerCase(Locale.ROOT))).append("</b>");
+            b.append("<div class='crit-group'><div class='crit-label'>")
+                    .append(escape(g.getKey().name().toLowerCase(Locale.ROOT))).append("</div>");
             for (Scorecard.Entry e : g.getValue()) {
-                b.append("<div class='crit-row' data-outcome='").append(escape(e.outcome())).append("'>")
-                        .append("<span class='crit-id'>").append(escape(e.id())).append("</span> ")
-                        .append("<span class='crit-outcome'>").append(escape(e.outcome())).append("</span> ")
+                b.append("<div class='crit-row' data-outcome='")
+                        .append(escape(e.outcome().toLowerCase(Locale.ROOT))).append("'>")
                         .append("<span class='crit-value'>")
-                        .append(e.value() == null ? "unmeasured" : fmt(e.value()))
-                        .append("</span> ")
-                        .append("<span class='crit-target meta'>want ").append(escape(e.target())).append("</span>");
-                if (e.detail() != null && !e.detail().isBlank()) {
-                    b.append(" <span class='crit-detail meta'>").append(escape(e.detail())).append("</span>");
+                        .append(e.value() == null ? "&mdash;" : fmtScore(e.value()))
+                        .append("</span>")
+                        .append("<span class='crit-id'>").append(escape(e.id())).append("</span>");
+                String detail = e.detail() == null ? "" : e.detail().trim();
+                String want = e.target() == null ? "" : e.target().trim();
+                if (!detail.isEmpty() || !want.isEmpty()) {
+                    b.append("<span class='crit-detail'>");
+                    if (!want.isEmpty()) {
+                        b.append("want ").append(escape(want));
+                    }
+                    if (!detail.isEmpty()) {
+                        b.append(want.isEmpty() ? "" : " &mdash; ").append(escape(detail));
+                    }
+                    b.append("</span>");
                 }
                 b.append("</div>");
             }
@@ -322,15 +330,23 @@ public final class ViewerPage {
         return b.append('}').toString();
     }
 
-    private static String image(String slug, BankView.CandidateView c, String size) {
+    /**
+     * A candidate's map.
+     *
+     * <p>No {@code width}/{@code height} attributes: they arrive as
+     * presentational hints, a fixed {@code height} in pixels beats the
+     * stylesheet's {@code aspect-ratio: 1}, and a square render was being
+     * stretched into a tall rectangle in every card.
+     */
+    private static String image(String slug, BankView.CandidateView c) {
         if (!c.hasLowres() && !c.hasHighres()) {
             return "<div class='no-render'>render queued</div>";
         }
         String low = "renders/" + slug + "/" + c.seed() + ".png";
         String hires = "renders/" + slug + "/" + c.seed() + "_hires.png";
         return "<img src='" + escape(c.hasLowres() ? low : hires) + "' data-hires='" + escape(hires)
-                + "' loading='lazy' decoding='async' width='" + size + "' height='" + size
-                + "' alt='Map render " + escape(slug) + " seed " + c.seed() + "'"
+                + "' loading='lazy' decoding='async'"
+                + " alt='Map render " + escape(slug) + " seed " + c.seed() + "'"
                 + " onerror=\"this.onerror=null;var d=document.createElement('div');"
                 + "d.className='no-render '+this.className;d.textContent='render queued';"
                 + "this.replaceWith(d)\">";
@@ -379,6 +395,11 @@ public final class ViewerPage {
 
     private static String fmt(double v) {
         return String.format(Locale.ROOT, "%.1f", v);
+    }
+
+    /** A criterion's score reads to two places — most of them land on 0.3, 0.5, 1.0. */
+    private static String fmtScore(double v) {
+        return String.format(Locale.ROOT, "%.2f", v);
     }
 
     private static String scoreColour(double score) {
