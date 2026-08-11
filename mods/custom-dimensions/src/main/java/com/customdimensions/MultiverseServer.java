@@ -88,6 +88,11 @@ public class MultiverseServer implements DedicatedServerModInitializer {
         // "spawn": [x, y, z] replaces the SPAWN_X/Y/Z env enforcement.
         // Other worlds share the global spawn in vanilla, so only the
         // overworld entry is applied.
+        // Try-out worlds never reach level.dat, so anything left on disk from
+        // a previous run is unreferenced bytes — and region files are not
+        // small. SERVER_STARTED, because nothing can have created one yet.
+        ServerLifecycleEvents.SERVER_STARTED.register(
+                com.customdimensions.tryout.TryOut::purgeOnStart);
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             com.customdimensions.config.DimensionConfig ow =
                     MultiverseConfig.getInstance().getWorld("overworld");
@@ -176,9 +181,6 @@ public class MultiverseServer implements DedicatedServerModInitializer {
 
     public static void onServerStarting(MinecraftServer server) {
         StorageHelper.ensureDirectoryAsync(StorageHelper.getDimensionDirectory(server, ""));
-        // Try-out worlds never reach level.dat, so anything left on disk from
-        // a previous run is unreferenced bytes.
-        com.customdimensions.tryout.TryOut.purgeOnStart(server);
     }
 
     public static void onServerStopping(MinecraftServer server) {
