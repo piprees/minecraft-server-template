@@ -797,6 +797,11 @@
     }
   }
   window.applyViewerRoute = applyRoute
+  // The roller swaps #grid wholesale each time the bank changes, and the
+  // fresh markup arrives unfiltered. Without this the search and family
+  // filters silently reset every couple of seconds for the whole of a run —
+  // exactly when narrowing the view matters most.
+  window.applyFilters = applyState
   if (routed) {
     applyRoute()
     window.addEventListener('popstate', function () {
