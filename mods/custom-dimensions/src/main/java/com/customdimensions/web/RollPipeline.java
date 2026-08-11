@@ -116,12 +116,14 @@ public final class RollPipeline {
      * <p>A measurement is pure CPU with no {@code ServerWorld} and no shared
      * mutable state — each dimension reads its own candidate directory and
      * writes only into it — so the search is embarrassingly parallel across
-     * dimensions and there is no reason to leave a machine's cores idle while
-     * a pack of eighty takes hours on one. One core is left for the server
-     * thread and one for everything else.
+     * dimensions. It takes what the renderer is not using: two cores are left
+     * for the server thread and everything else, and
+     * {@link com.customdimensions.roll.CandidateRender#RENDER_CORES} for the
+     * maps, which run beside the search rather than after it.
      */
     private static int workers() {
-        return Math.max(1, Runtime.getRuntime().availableProcessors() - 2);
+        return Math.max(1, Runtime.getRuntime().availableProcessors() - 2
+                - com.customdimensions.roll.CandidateRender.RENDER_CORES);
     }
 
     private static void run(MinecraftServer server, List<DimensionConfig> targets, int count) {

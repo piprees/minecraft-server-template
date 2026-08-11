@@ -96,18 +96,37 @@ public final class CandidateRender {
      * budget used to decide the sample count, which made the picture's
      * resolution depend on what the machine happened to be doing.
      */
+    /**
+     * The two views, which differ in how much world they cover — not in
+     * fidelity. Both are one block per pixel; the thumbnail is the 512 blocks
+     * around spawn, the detail view is 2048 blocks of it.
+     */
     public enum Resolution {
-        LOWRES(128, 512),
-        HIGHRES(256, 2048);
+        /** 512 blocks across, 512px. */
+        LOWRES(512),
+        /** 2048 blocks across, 2048px. */
+        HIGHRES(2048);
 
-        final int samples;
-        final int pixels;
+        /** Blocks the picture covers, edge to edge — and its pixel width. */
+        final int blocks;
 
-        Resolution(int samples, int pixels) {
-            this.samples = samples;
-            this.pixels = pixels;
+        Resolution(int blocks) {
+            this.blocks = blocks;
+        }
+
+        /** Grid side: one sample per {@link #BLOCKS_PER_SAMPLE} blocks. */
+        int samples() {
+            return blocks / BLOCKS_PER_SAMPLE;
         }
     }
+
+    /**
+     * Blocks between samples. Four, because biome and climate are both
+     * defined at quarter resolution ({@code qx = x >> 2}) — sampling finer
+     * asks the same question four times, and upscaling a quarter-resolution
+     * grid back to one block per pixel loses nothing.
+     */
+    private static final int BLOCKS_PER_SAMPLE = 4;
 
     /**
      * Below this side the picture is a handful of pixels, not a decision
@@ -192,6 +211,17 @@ public final class CandidateRender {
     private static final int VOID_CAVE = 0x14120F;       // unlit rock
     /** Blocks between contour lines — the strongest cue that a picture is terrain. */
     private static final int CONTOUR_INTERVAL = 20;
+
+    /**
+     * Cores a single render fans out over. Fixed rather than a fraction of
+     * the machine: the roller takes what is left, so the two shares are
+     * stated once in {@link com.customdimensions.web.RollPipeline} and here
+     * rather than each guessing at the other.
+     */
+    public static final int RENDER_CORES = 8;
+
+    /** The nether's lava sea. Anything under it is lava, not ground. */
+    private static final int NETHER_LAVA_Y = 31;
     // Annotations over the terrain, not facts about it.
     private static final int BORDER_COLOR = 0xFFFF00;
     private static final int STRUCTURE_COLOR = 0xFFFFFF;
@@ -256,19 +286,41 @@ public final class CandidateRender {
                                      Path outputPath) throws IOException {
         long renderStart = System.nanoTime();
         int radius = Math.max(1, def.getPlayerBorderRadius());
-        int samples = resolution.samples;
-        int pixels = resolution.pixels;
+        int pixels = resolution.blocks;
 
         SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
         if (!base.ok()) {
             throw new IOException("cannot render " + dimensionId + ": " + base.error());
         }
-        // Edge to edge of the real border, so the picture is the world.
-        int step = Math.max(1, (radius * 2) / samples);
+        // Every dimension reads the climate point. The real terrain router
+        // answers one column at a time and rebuilds a ChunkNoiseSampler to do
+        // it, which made one map minutes of work; at map scale it buys
+        // nothing the eye reads, and detail comes from sampling more columns
+        // rather than from a more exact height per column. Depth also has no
+        // roof problem — the heightmap reading a nether ceiling is what made
+        // ceilinged worlds need a column scan in the first place.
+        int samples = resolution.samples();
+        // Below this, the column is looking down into something rather than
+        // standing on it. The Python renderer drew the same line.
+        int floorBelow = voidFloorFor(def);
+        // A fixed block scale, not the whole world squeezed into the frame:
+        // the thumbnail is a close look at spawn and the detail view is a
+        // wider one, and a 256-block pocket and a 16k overworld read at the
+        // same scale as each other rather than both filling the same square.
+        int step = BLOCKS_PER_SAMPLE;
         int half = samples / 2;
 
-        Integer seaLevel = base.generator() instanceof NoiseChunkGenerator noiseGen
-                ? noiseGen.getSettings().value().seaLevel() : null;
+        // A sea level only means water where the sea IS water. A nether
+        // generator has one too and fills it with lava, so comparing heights
+        // against it painted half the Nether blue; the generator's own
+        // default fluid is what tells the two apart.
+        Integer seaLevel = null;
+        if (base.generator() instanceof NoiseChunkGenerator noiseGen) {
+            var settings = noiseGen.getSettings().value();
+            if (settings.defaultFluid().isOf(net.minecraft.block.Blocks.WATER)) {
+                seaLevel = settings.seaLevel();
+            }
+        }
         Registry<Biome> biomeRegistry = server.getRegistryManager().get(RegistryKeys.BIOME);
 
         int cells = samples * samples;
@@ -285,8 +337,6 @@ public final class CandidateRender {
         // landmass and coastline the eye is actually reading at this size.
         // Not for a ceilinged or island world: there, "is there ground here at
         // all" is the whole picture, and depth cannot answer it.
-        boolean fast = resolution == Resolution.LOWRES && !base.hasCeiling()
-                && !isIslandType(def);
         final int floorY = base.heightLimit().getBottomY();
         final int topY = base.heightLimit().getTopY() - 1;
 
@@ -303,8 +353,7 @@ public final class CandidateRender {
         // runs beside the search; taking every core made a map arrive sooner
         // and every measurement behind it arrive later, which is the wrong
         // trade when the search is what the shortlist is made of.
-        int workers = Math.max(2,
-                Math.min(Runtime.getRuntime().availableProcessors() / 4, samples));
+        int workers = Math.max(1, Math.min(RENDER_CORES, samples));
         java.util.concurrent.ExecutorService pool =
                 java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
                     Thread t = new Thread(r, "customdim-render");
@@ -320,9 +369,7 @@ public final class CandidateRender {
                 final int worker = w;
                 final int stride = workers;
                 tasks.add(pool.submit(() -> {
-                    SpikeSampler.Rig own = fast
-                            ? SpikeSampler.forSeedClimate(server, base, seed)
-                            : SpikeSampler.forSeed(server, base, seed);
+                    SpikeSampler.Rig own = SpikeSampler.forSeedClimate(server, base, seed);
                     for (int gz = worker; gz < sideF; gz += stride) {
                         for (int gx = 0; gx < sideF; gx++) {
                             int dx = gridToWorldOffset(gx, stepF, halfF);
@@ -333,9 +380,9 @@ public final class CandidateRender {
                             if (s.biome() == null) {
                                 continue;
                             }
-                            Integer surface = s.surfaceHeight();
-                            if (fast) {
-                                surface = heightFromDepth(s.climate(), floorY, topY);
+                            Integer surface = heightFromDepth(s.climate(), floorY, topY);
+                            if (surface != null && surface < floorBelow) {
+                                surface = null;   // void, lava sea, open sky
                             }
                             BiomeColors colors = sharedColors.computeIfAbsent(s.biome(), id -> {
                                 BiomeColors c = biomeColors(biomeRegistry, id);
@@ -399,10 +446,25 @@ public final class CandidateRender {
         return Math.max(floorY, Math.min(topY, y));
     }
 
-    /** Worlds where "is there ground here at all" is the picture. */
-    static boolean isIslandType(DimensionConfig def) {
+    /**
+     * The height below which a column is void rather than ground.
+     *
+     * <p>An island or end world is mostly nothing, and a nether column below
+     * the lava sea is lava — drawing either as terrain is what made a void
+     * world look solid. Overworld-family dimensions have no such line.
+     */
+    static int voidFloorFor(DimensionConfig def) {
         String type = def.getType() == null ? "" : def.getType().toLowerCase(java.util.Locale.ROOT);
-        return type.contains("islands") || type.equals("void") || type.equals("end");
+        if (type.contains("islands") || type.equals("end") || type.equals("void")) {
+            return 1;
+        }
+        if (type.startsWith("nether")) {
+            return NETHER_LAVA_Y;
+        }
+        if (type.contains("paradise_lost")) {
+            return 40;
+        }
+        return Integer.MIN_VALUE;
     }
 
     /** What this dimension's empty columns are looking down into. */
@@ -446,6 +508,9 @@ public final class CandidateRender {
                 if (!known[idx]) {
                     color = voidColor;
                 } else if (water[idx] || (seaLevel != null && height[idx] <= seaLevel)) {
+                    // Either the biome is water-surfaced, or the column sits
+                    // under a water sea — a lake in a plains biome is water
+                    // without the biome ever saying so.
                     color = waterColorAt(waterColor[idx], height[idx],
                             seaLevel == null ? height[idx] : seaLevel, minHeight);
                 } else {

@@ -12,45 +12,55 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 /**
- * Keeps the top of each dimension's board drawn, and nothing else.
+ * Keeps the top of every dimension's board drawn, thumbnails first.
  *
- * <p>A map costs orders of magnitude more than a measurement, and only the
- * handful of candidates at the top is ever opened — so rendering is not part
- * of the search. It runs beside it, reconciling against the board: the best
- * {@link #KEEP} seeds get a low-res map first so the whole shortlist is
- * lookable quickly, then a high-res one each.
+ * <p>A map costs orders of magnitude more than a measurement and only the
+ * handful at the top of a board is ever opened, so rendering is not part of
+ * the search — it runs beside it, reconciling against the board.
  *
- * <p>The board moves while a roll runs. A seed pushed out of the top has its
- * files deleted, so the bank never accumulates renders nobody will open, and
- * a seed pushed into it is drawn on the next pass.
+ * <p>Work is ordered by <em>kind before age</em>, across the whole pack:
+ * every low-res map anywhere outranks every high-res map anywhere. Eighty-two
+ * dimensions each showing ten thumbnails is a page you can review; one
+ * dimension showing ten perfect maps while the rest show nothing is not. A
+ * board that moves mid-roll puts a new thumbnail straight to the front, ahead
+ * of high-res work already queued.
  *
- * <p>One render at a time. A single render already fans out across the
- * machine's cores internally; running two would only make both slower.
+ * <p>A seed pushed out of the top has its files deleted, so the bank never
+ * accumulates maps nobody will open.
  */
 public final class RenderQueue {
 
     /** How many of a dimension's candidates stay drawn. */
     public static final int KEEP = 10;
 
-    private static final ExecutorService POOL = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "customdim-render-queue");
-        t.setDaemon(true);
-        return t;
-    });
+    /** Thumbnails everywhere before detail anywhere. */
+    private static final int PRIORITY_LOWRES = 0;
+    private static final int PRIORITY_HIGHRES = 1;
+
+    private record Job(int priority, long sequence, String key, Runnable work) {
+    }
+
+    private static final PriorityBlockingQueue<Job> QUEUE = new PriorityBlockingQueue<>(64,
+            Comparator.comparingInt(Job::priority).thenComparingLong(Job::sequence));
+    private static final AtomicLong SEQUENCE = new AtomicLong();
     private static final AtomicInteger PENDING = new AtomicInteger();
+    private static final AtomicInteger THUMBNAILS_PENDING = new AtomicInteger();
     private static final AtomicReference<String> CURRENT = new AtomicReference<>("");
-    /** In-flight or queued jobs, so a reconcile during a roll never queues the same map twice. */
+    /** Queued or in flight, so a reconcile during a roll never queues the same map twice. */
     private static final Set<String> QUEUED = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final AtomicBoolean STARTED = new AtomicBoolean();
 
     private RenderQueue() {
     }
@@ -59,16 +69,21 @@ public final class RenderQueue {
         return PENDING.get();
     }
 
+    /** How many thumbnails are still owed — the number that decides whether the page is reviewable. */
+    public static int thumbnailsPending() {
+        return THUMBNAILS_PENDING.get();
+    }
+
     public static String current() {
         return CURRENT.get();
     }
 
     /**
      * Brings one dimension's renders in line with its board: deletes what has
-     * dropped out of the top {@link #KEEP}, queues what is missing — every
-     * low-res first, then the high-res ones.
+     * dropped out of the top {@link #KEEP}, queues what is missing.
      */
     public static void reconcile(MinecraftServer server, DimensionConfig def) {
+        ensureWorker();
         String hash = InputHash.of(def, server);
         Identifier id = def.getDimensionIdentifier();
         String dimension = id.toString();
@@ -83,11 +98,8 @@ public final class RenderQueue {
         if (top.isEmpty()) {
             return;
         }
-        Set<Long> keep = new LinkedHashSet<>(top);
-        sweep(SeedBank.dimensionDir(hash, dimension), keep);
+        sweep(SeedBank.dimensionDir(hash, dimension), new LinkedHashSet<>(top));
 
-        // Low-res for the whole shortlist before any high-res: a person
-        // scanning ten thumbnails is served long before one perfect map is.
         for (long seed : top) {
             enqueue(server, def, id, hash, dimension, seed, CandidateRender.Resolution.LOWRES);
         }
@@ -135,13 +147,19 @@ public final class RenderQueue {
         if (!QUEUED.add(key)) {
             return;
         }
+        boolean thumbnail = resolution == CandidateRender.Resolution.LOWRES;
         PENDING.incrementAndGet();
-        POOL.submit(() -> {
-            CURRENT.set(id.getPath() + " " + seed);
+        if (thumbnail) {
+            THUMBNAILS_PENDING.incrementAndGet();
+        }
+        Runnable work = () -> {
+            CURRENT.set(id.getPath() + " " + seed
+                    + (thumbnail ? "" : " (detail)"));
             try {
-                // The board may have moved on since this was queued; a map
-                // nobody is going to open is not worth the cores.
-                if (Files.isRegularFile(target) || !stillOnBoard(server, def, hash, dimension, seed)) {
+                // The board may have moved since this was queued; a map nobody
+                // is going to open is not worth the cores.
+                if (Files.isRegularFile(target)
+                        || !stillOnBoard(server, def, hash, dimension, seed)) {
                     return;
                 }
                 CandidateRender.render(server, id, def, seed, resolution, target);
@@ -150,9 +168,38 @@ public final class RenderQueue {
             } finally {
                 QUEUED.remove(key);
                 PENDING.decrementAndGet();
+                if (thumbnail) {
+                    THUMBNAILS_PENDING.decrementAndGet();
+                }
                 CURRENT.set("");
             }
-        });
+        };
+        QUEUE.add(new Job(thumbnail ? PRIORITY_LOWRES : PRIORITY_HIGHRES,
+                SEQUENCE.incrementAndGet(), key, work));
+    }
+
+    /**
+     * One consumer. Each render already fans out across its own share of the
+     * machine, so a second consumer would only make both of them slower.
+     */
+    private static void ensureWorker() {
+        if (!STARTED.compareAndSet(false, true)) {
+            return;
+        }
+        Thread worker = new Thread(() -> {
+            while (true) {
+                try {
+                    QUEUE.take().work().run();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (RuntimeException e) {
+                    MultiverseServer.LOGGER.error("Render queue job failed", e);
+                }
+            }
+        }, "customdim-render-queue");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     private static boolean stillOnBoard(MinecraftServer server, DimensionConfig def,
