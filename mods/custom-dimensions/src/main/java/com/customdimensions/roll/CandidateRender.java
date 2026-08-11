@@ -318,6 +318,18 @@ public final class CandidateRender {
         int floorBelow = voidFloorFor(def);
 
         int half = samples / 2;
+        // The thumbnail is centred on SPAWN, not the origin. A dimension can
+        // declare its spawn anywhere — paradise_lost measures at (-192,-512)
+        // — and centring on 0,0 meant the picture showed one place while the
+        // sidebar reported the biome of another. The border view stays on the
+        // origin, because that is where the border is centred.
+        int[] configured = def.getSpawn();
+        int centreX = 0;
+        int centreZ = 0;
+        if (resolution == Resolution.LOWRES && configured != null && configured.length >= 3) {
+            centreX = configured[0];
+            centreZ = configured[2];
+        }
 
         // A sea level only means water where the sea IS water. A nether
         // generator has one too and fills it with lava, so comparing heights
@@ -369,6 +381,8 @@ public final class CandidateRender {
                     t.setDaemon(true);
                     return t;
                 });
+        final int centreXF = centreX;
+        final int centreZF = centreZ;
         final int sideF = samples;
         final int stepF = step;
         final int halfF = half;
@@ -381,8 +395,8 @@ public final class CandidateRender {
                     SpikeSampler.Rig own = SpikeSampler.forSeedClimate(server, base, seed);
                     for (int gz = worker; gz < sideF; gz += stride) {
                         for (int gx = 0; gx < sideF; gx++) {
-                            int dx = gridToWorldOffset(gx, stepF, halfF);
-                            int dz = gridToWorldOffset(gz, stepF, halfF);
+                            int dx = centreXF + gridToWorldOffset(gx, stepF, halfF);
+                            int dz = centreZF + gridToWorldOffset(gz, stepF, halfF);
                             int idx = gz * sideF + gx;
                             SpikeSampler.Sample s = SpikeSampler.sample(own, dx, dz);
                             sampled.incrementAndGet();
