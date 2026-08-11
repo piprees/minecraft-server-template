@@ -32,9 +32,15 @@ import java.util.function.LongSupplier;
  *
  * <p>{@link FactsEngine#measure} builds its rig headlessly — no
  * {@code ServerWorld} is created and no chunk is loaded — so a roll never
- * touches the tick loop or the world the server is actually running. A large
- * budget still runs on the calling thread for its whole duration, the same
- * as {@code spike-bench}; keep counts modest on a live server.
+ * touches the tick loop or the world the server is actually running.
+ * {@code web/RollPipeline} drives it with a worker per dimension on its own
+ * threads, so the server stays playable and RCON keeps answering throughout;
+ * this class is single-threaded per call and holds no shared state.
+ *
+ * <p>Rendering is NOT part of the search. A map costs orders of magnitude
+ * more than a measurement and only the top of a board is ever opened, so
+ * {@code web/RenderQueue} reconciles against the leaderboard beside the roll
+ * rather than every scored seed paying for a picture on its way past.
  */
 public final class Roller {
 

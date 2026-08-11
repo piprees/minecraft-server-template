@@ -197,7 +197,7 @@ loop (`~/Projects/elfydd/reports/PLAN.md`).
 | `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` | the roller, one file per measured seed (full facts + scorecard) | `web/BankView` builds the page and `/api/bank` from these |
 | `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | the roller (lowres, on every scored seed) and `POST /render` | the viewer, and `GET /renders/<dim>/<seed>.png` |
 | `.seed-rolling/candidates/<inputHash>/<dim>/rejected.json` | the roller, on a pre-scoring gate failure | the roller, so a seed is never re-measured |
-| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | (no longer written — the frontier is derived live by `Frontier.of` for the page) | — |
+| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | Nothing writes one — `Frontier.of` derives the non-dominated set live on every page render, so a file could only ever be staler than the screen. Older banks carry them and the candidate scan skips them | — |
 | `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
 | `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
 | `.seed-rolling/lint/<hash>.json` | `/customdim lint [dimension]` | the command's own ERROR-count return value |
@@ -661,7 +661,8 @@ command. `./dev seeds` opens it.
 | `POST /pipeline/start`, `/pipeline/stop`, `GET /pipeline-status` | Roll in the background, with progress |
 | `POST /tryout`, `/tryout/back`, `GET /tryout/status` | Build a throwaway world from a candidate's seed and fly around in it |
 | `POST /pick` | Write the chosen seed (and your standing position as the spawn) into the consumer overlay |
-| `POST /render` | Draw a candidate's map, low- or high-res |
+| `POST /render` | Draw a candidate's map on demand |
+| `GET /census/<dim>/<seed>` | One candidate's structure census — counts, nearest distance, and every noise-managed site's position by group |
 
 **Rolling runs on its own thread, not the tick loop.** `FactsEngine` measures
 headlessly, so the server stays playable and RCON keeps answering while a roll
@@ -676,9 +677,34 @@ dimension's own options with the candidate's seed applied at world
 construction; the runtime DEFINITION carries the seed, which is what
 `ServerWorldSeedMixin`, `DimensionStructures` and `DifficultyManager` resolve.
 
-**Every mod rebuild mints a new `InputHash` and starts a fresh bank.** Roll
-after the jar settles, not during — candidates measured by a previous build
-live under a different directory and will not appear in the viewer.
+**`InputHash` covers only what can change what a measurement SAYS** —
+`facts/`, `score/`, `dimension/`, `config/`, `mixin/`, `SpikeSampler`,
+`ColumnScan`, `Roller`, `SeedBank`, and the jar-baked worldgen data
+(`InputHash.MEASUREMENT_PATHS`). Changing the viewer, the map renderer or the
+try-out keeps a bank; changing any of the above starts a fresh one, and
+candidates from a previous build live under a different directory. Hashing
+the whole artefact meant a stylesheet threw away thousands of measurements.
+Under-inclusion is the dangerous direction — put anything ambiguous on that
+list.
+
+**Rendering is not part of the search.** `web/RenderQueue` reconciles against
+each dimension's leaderboard beside the roll: the top ten get a map, ordered
+thumbnails-everywhere before detail-anywhere, and a seed pushed off the
+shortlist has its files deleted. Eight cores to the renderer, the rest to the
+roller.
+
+**Maps are drawn from the CLIMATE point, not the terrain router.** vanilla's
+`getHeight` rebuilds a `ChunkNoiseSampler` per column, which made one map
+minutes of work; `surface_Y = 128 * depth` is the relation `customdim
+sample-noise` documents as ground truth, and depth has no roof problem — the
+heightmap reading a nether ceiling is what once forced ceilinged worlds down
+a column scan. Void is a threshold per family, not a probe. Measured: a
+2048px map is 2s for a 1024-radius world, 8s for an 8192 one.
+
+**Nothing is drawn over the terrain in the PNG.** Structure markers, the
+spawn dot and the border ring all lived in the pixels once and made a
+thumbnail unreadable — the border toggle in the nav could not turn off a ring
+that was part of the image. The viewer overlays them as SVG.
 
 Two Gson traps still apply: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits.
 

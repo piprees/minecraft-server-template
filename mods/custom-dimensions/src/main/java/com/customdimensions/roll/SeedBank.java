@@ -99,7 +99,13 @@ public final class SeedBank {
         return dimensionDir(inputHash, dimension).resolve("rejected.json");
     }
 
-    /** The bank's non-dominated frontier — derived from the candidates, rewritten on every {@code bank}/{@code winner}. */
+    /**
+     * Where a frontier file WOULD live. Nothing writes one any more — the
+     * viewer derives the non-dominated set live with {@code Frontier.of} on
+     * every page render, so a file on disk could only ever be staler than
+     * what is on screen. Kept because older banks carry these and the
+     * candidate scan has to know to skip them.
+     */
     public static Path frontierPath(String inputHash, String dimension) {
         return dimensionDir(inputHash, dimension).resolve("frontier.json");
     }

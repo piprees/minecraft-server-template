@@ -4,10 +4,15 @@
  * (biome_renderer.render_structure_overlay), one per candidate per render
  * geometry, stacked over the map as a second <img>. It cost a full RGBA
  * raster per candidate, it could not be styled or interrogated, and it drew
- * every placement in `structure_all` — INCLUDING the noise-placed sets,
- * whose grid position is fiction. The detail panel already refuses to show
- * those numbers for exactly that reason; the overlay was drawing them as
- * squares on the map anyway.
+ * every placement in `structure_all`.
+ *
+ * NB the old claim here — that noise-placed positions were "fiction" — was
+ * true of the Python, which reproduced a vanilla grid it did not own. In the
+ * mod, NoiseFieldIndex IS the placement: those positions are the real sites,
+ * and the noise-managed groups are most of what a dimension places. The sets
+ * to treat carefully are the pass-throughs on their own custom placement
+ * types, where we genuinely do not own the answer.
+ * `GET /census/<dim>/<seed>` serves the real positions, keyed by group.
  *
  * TWO SOURCES OF POSITIONS, and they are different kinds of fact:
  *

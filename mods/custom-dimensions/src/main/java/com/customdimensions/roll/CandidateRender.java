@@ -49,6 +49,11 @@ import java.util.Set;
  * server must never be able to reach a display toolkit just because a render
  * was requested.
  *
+ * <p>Nothing is drawn OVER the terrain here. Structure markers, the spawn
+ * dot and the border ring all lived in the pixels once and made a thumbnail
+ * unreadable — the viewer overlays them as SVG, where they can be toggled
+ * and where the border toggle in the nav can actually reach them.
+ *
  * <p>Colour is the map colour of the block a biome's surface rule places
  * ({@link SurfacePalette}) — netherrack dark red, grass green, end stone
  * bone. Water uses the biome's own water colour, darkened by depth. Terrain
@@ -58,32 +63,6 @@ import java.util.Set;
  * the dimension's whole height range put maximum contrast between two cells
  * a few blocks apart and rendered a nether world as static.
  *
- * <p>Lowres and highres get their pixels two different ways. {@code
- * FactsEngine} already samples a biome+height grid to measure a candidate
- * and persists it in the candidate's own {@code SeedFacts.grid} — lowres
- * reads that back, so it costs nothing beyond a file read and works for a
- * candidate measured before this render feature existed. That grid is
- * {@code FactsEngine.GRID} on a side (41, as of this writing) — coarser than
- * the budget-chosen size a sampled lowres used to produce (typically 51-53),
- * and worth it: a free render at the resolution a measurement already paid
- * for beats a slower one at a resolution nobody actually chose. Highres wants
- * finer detail than that measurement grid carries, so it samples its own, at
- * a side chosen from a real timing of this dimension's own per-column cost —
- * a cheap flat dimension and {@code the_gauntlet} do not deserve the same
- * pixel count for the same time budget.
- *
- * <p>Highres runs on the calling thread for its whole duration, the same as
- * {@link Roller#rollDimension} — it occupies the server's main thread for
- * close to its 60s budget when called from RCON. Lowres has no such cost and
- * is wired into {@link Roller}'s own scoring loop; nothing triggers a
- * highres render automatically. This platform's own {@code docker-compose.yml}
- * sets {@code MAX_TICK_TIME: -1} for the {@code mc} service in every
- * profile, local and cloud, so a stock deployment has no tick watchdog for a
- * long main-thread block to trip. A highres call still refuses outright on
- * any server where the watchdog IS armed — a consumer that overrides the
- * compose file, or a build running outside it entirely — because no
- * per-column timing bound here can promise staying under an arbitrary
- * configured limit.
  */
 public final class CandidateRender {
 
@@ -133,68 +112,15 @@ public final class CandidateRender {
      */
     private static final int BLOCKS_PER_SAMPLE = 4;
 
-    /**
-     * Below this side the picture is a handful of pixels, not a decision
-     * aid; above it, memory and PNG size stop being worth the extra
-     * resolution. The floor stays low on purpose: it exists only to guard a
-     * pathologically expensive dimension against a degenerate image, and a
-     * floor high enough to matter for an ordinary per-column cost would blow
-     * every ordinary render's time budget to protect against the extreme
-     * one. Both bounds are stated, never silent — a render that hits either
-     * says so in its result.
-     */
-    static final int MIN_SIDE = 33;
-    static final int MAX_SIDE = 2049;
 
-    /**
-     * Columns a sampled render is allowed to take. 65,536 is a 289-cell side
-     * once the out-of-disc corners are dropped — enough that a coastline
-     * reads as a coastline. At ~24ms a column that is about half an hour on
-     * one thread and a couple of minutes across a machine's cores, which is
-     * why the sampling is threaded rather than the budget being lowered.
-     */
-    private static final int HIGHRES_COLUMNS = 65_536;
 
-    /** The square side whose inscribed disc holds about {@code columns} cells. */
-    static int sideForColumns(int columns) {
-        // A disc covers pi/4 of its square, so a side of sqrt(4n/pi) samples
-        // about n columns. Odd, so the centre is a cell and spawn sits on it.
-        int side = (int) Math.round(Math.sqrt(columns * 4.0 / Math.PI));
-        side |= 1;
-        return Math.max(MIN_SIDE, Math.min(MAX_SIDE, side));
-    }
 
     /** Stands in for "this biome has no colour" in a map that cannot hold nulls. */
     private static final BiomeColors MISSING = new BiomeColors(0, 0);
 
-    /**
-     * Calibration spends real wall-clock time, not a fixed sample count, so
-     * its own cost stays a small, bounded slice of the budget whether a
-     * column costs a microsecond or fifty milliseconds.
-     */
-    private static final long CALIBRATION_BUDGET_NANOS = Duration.ofMillis(200).toNanos();
-    private static final int MIN_CALIBRATION_SAMPLES = 8;
-    private static final long CALIBRATION_SALT = 0x43414C4942L;
 
-    /** Groups the render marks distinctly — the same split {@code FactsEngine} scores separately. */
-    private static final Set<String> HOSTILE_GROUPS = Set.of("dungeons", "endgame");
 
-    /**
-     * The only groups a lowres render marks. At thumbnail scale, hundreds of
-     * {@code deco} sites own the picture and the biome layout underneath
-     * disappears — these three are what a person actually cites when judging
-     * whether a world is worth visiting; a highres render, with room to
-     * spare, marks every group.
-     */
-    // One marker costs a whole cell at the measurement grid's size, and a
-    // dense dimension has hundreds of placements against ~1265 cells inside
-    // the disc — drawing three groups buried the terrain under confetti.
-    // Endgame alone is a handful of the rarest things in a world, which is
-    // what a thumbnail can carry.
-    private static final Set<String> LOWRES_STRUCTURE_GROUPS = Set.of("endgame");
 
-    // A column that could not be measured — never confused with a real biome tint.
-    private static final int UNKNOWN_COLOR = 0xFF00FF;
     // Outside the playable border: no biome ever produced this pixel.
     private static final int VOID_COLOR = 0x101018;
     /**
@@ -227,16 +153,6 @@ public final class CandidateRender {
 
     /** The nether's lava sea. Anything under it is lava, not ground. */
     private static final int NETHER_LAVA_Y = 31;
-    // Annotations over the terrain, not facts about it.
-    private static final int BORDER_COLOR = 0xFFFF00;
-    private static final int STRUCTURE_COLOR = 0xFFFFFF;
-    private static final int HOSTILE_STRUCTURE_COLOR = 0xB22222;
-    private static final int SPAWN_COLOR = 0x00E5FF;
-    // A biome boundary, tinted rather than opaque so it reads as a line, not a wall.
-    private static final int BIOME_BOUNDARY_COLOR = 0xD8D8D8;
-    private static final double BOUNDARY_STRENGTH = 0.28;
-    /** Below this, a boundary line is a whole landmass wide and buries the terrain. */
-    private static final int BOUNDARY_MIN_SIDE = 192;
 
     // Vanilla's map shading: a cell is brighter, level with, or darker than
     // the one to its north, and nothing else. It is what makes a Minecraft
@@ -557,97 +473,6 @@ public final class CandidateRender {
         return image;
     }
 
-
-    private static int paintStructuresAndSpawn(BufferedImage image, MinecraftServer server,
-                                               DimensionConfig def, long seed, int radius,
-                                               int side, int step, int half, SpikeSampler.Base base,
-                                               Set<String> allowedGroups) {
-        // A structure marker is at most one grid cell wide until the image is
-        // large enough to spare more: hundreds of sites on a small grid would
-        // otherwise paint over most of the terrain a low-res render exists to
-        // show, and a single pixel per site is still a real, findable mark.
-        int structureMarkerRadius = Math.max(0, side / 400);
-        List<long[]> hostilePositions = new ArrayList<>();
-        List<long[]> structures = structurePositions(
-                server, def, base, seed, radius, allowedGroups, hostilePositions);
-        // Identity, not value, equality — every hostile position is the exact
-        // same array instance structurePositions() also put in `structures`,
-        // so reference-identity membership is correct, not merely convenient.
-        Set<long[]> hostileSet = new HashSet<>(hostilePositions);
-        int markers = 0;
-        for (long[] pos : structures) {
-            int gx = worldToGrid((int) pos[0], step, half);
-            int gz = worldToGrid((int) pos[1], step, half);
-            if (paintMarker(image, side, gx, gz, structureMarkerRadius,
-                    hostileSet.contains(pos) ? HOSTILE_STRUCTURE_COLOR : STRUCTURE_COLOR)) {
-                markers++;
-            }
-        }
-
-        int[] spawn = def.getSpawn();
-        if (spawn != null && spawn.length >= 3) {
-            // One marker, always visible regardless of grid size — unlike a
-            // structure site, there is only ever one, so it can afford to be
-            // a few pixels wide even on a small image.
-            int spawnMarkerRadius = Math.max(1, side / 150);
-            int gx = worldToGrid(spawn[0], step, half);
-            int gz = worldToGrid(spawn[2], step, half);
-            paintMarker(image, side, gx, gz, spawnMarkerRadius, SPAWN_COLOR);
-        }
-        return markers;
-    }
-
-    /**
-     * The dedicated server's own configured tick-watchdog timeout in
-     * milliseconds ({@code server.properties}' {@code max-tick-time}, this
-     * platform's {@code MAX_TICK_TIME} env var), or a non-positive number
-     * when the watchdog is off — vanilla's own convention, since a
-     * non-positive value disables the check. A non-dedicated server (never
-     * this platform's deployment target) reports {@code -1}: there is no
-     * watchdog to ask.
-     */
-    public static long watchdogTimeoutMillis(MinecraftServer server) {
-        return server instanceof MinecraftDedicatedServer dedicated ? dedicated.getMaxTickTime() : -1;
-    }
-
-    // ------------------------------------------------------------ calibration
-
-    /**
-     * Measures this rig's own per-column cost by sampling for a bounded
-     * WALL-CLOCK slice rather than a fixed sample count, so calibration
-     * itself stays a small fraction of the budget whether a column is cheap
-     * or expensive — {@code the_gauntlet} and a flat dimension both get a
-     * fair, short calibration pass rather than one sized for the other.
-     */
-    static long timePerColumn(SpikeSampler.Rig rig, int radius, long seed) {
-        long deadline = System.nanoTime() + CALIBRATION_BUDGET_NANOS;
-        long start = System.nanoTime();
-        int i = 0;
-        while (i < MIN_CALIBRATION_SAMPLES || System.nanoTime() < deadline) {
-            int[] p = SpikeSampler.probe(i, radius, seed ^ CALIBRATION_SALT);
-            SpikeSampler.sample(rig, p[0], p[1]);
-            i++;
-        }
-        return Math.max(1, (System.nanoTime() - start) / i);
-    }
-
-    /**
-     * The square grid side whose in-disc sample count fits {@code budgetNanos}
-     * at {@code perColumnNanos} per column, clamped to {@code [minSide,
-     * maxSide]}. Pure: a JUnit test drives this with synthetic timings and no
-     * Minecraft Bootstrap. The budget bounds the SAMPLING pass only — PNG
-     * encoding is additional and, at these pixel counts, small next to it.
-     */
-    static int chooseSide(long perColumnNanos, long budgetNanos, int minSide, int maxSide) {
-        long affordableColumns = Math.max(1, budgetNanos / Math.max(1, perColumnNanos));
-        // Only pi/4 of a bounding square lies inside the disc the sampling loop keeps.
-        int side = (int) Math.sqrt(affordableColumns / (Math.PI / 4.0));
-        if (side % 2 == 0) {
-            side++;   // odd, so the centre column (the origin) is a sampled cell
-        }
-        return Math.max(minSide, Math.min(maxSide, side));
-    }
-
     // ----------------------------------------------------------------- colour
 
     /** One biome's terrain tint and water colour, both real {@link BiomeEffects} fields. */
@@ -708,8 +533,12 @@ public final class CandidateRender {
         int south = sampleHeight(height, known, side, gx, gz + 1, here);
         double dzdx = (east - west) * HILLSHADE_GAIN;
         double dzdy = (south - north) * HILLSHADE_GAIN;
-        // Light from the north-west, the convention every relief map uses.
-        double light = (-dzdx + -dzdy) / Math.sqrt(dzdx * dzdx + dzdy * dzdy + 2.0);
+        // Light from the north-west. The dzdy term is PLUS: z grows southward,
+        // so ground rising to the south faces north, toward the light — the
+        // same cell vanilla's step calls bright. Negating it put the two in
+        // opposition and the directional won, so a slope rising away from the
+        // viewer rendered darker than one falling away.
+        double light = (-dzdx + dzdy) / Math.sqrt(dzdx * dzdx + dzdy * dzdy + 2.0);
         double directional = 0.75 + 0.35 * clamp(light, -1.0, 1.0);
         return clamp(step * (1.0 - HILLSHADE_MIX) + directional * HILLSHADE_MIX,
                 MIN_SHADE, MAX_SHADE);
@@ -757,15 +586,6 @@ public final class CandidateRender {
         return (clampByte(r) << 16) | (clampByte(g) << 8) | clampByte(b);
     }
 
-    /** Where a height sits between this render's own min and max, as a shading multiplier. */
-    static double heightFactor(int height, int minHeight, int maxHeight) {
-        if (maxHeight <= minHeight) {
-            return 1.0;
-        }
-        double t = (height - minHeight) / (double) (maxHeight - minHeight);
-        return MIN_SHADE + (MAX_SHADE - MIN_SHADE) * t;
-    }
-
     private static double clamp01(double v) {
         return Math.max(0.0, Math.min(1.0, v));
     }
@@ -784,32 +604,6 @@ public final class CandidateRender {
     /** The nearest grid index for a world block offset from the centre. */
     static int worldToGrid(int worldOffset, int step, int half) {
         return (int) Math.round(worldOffset / (double) step) + half;
-    }
-
-    /** Within one grid step of the border radius — a ring with constant pixel thickness. */
-    static boolean nearBorder(double distanceFromCentre, int radius, int step) {
-        // Half a step either side is one cell wide. A full step was two, and
-        // at the measurement grid's size that ring was a seventh of the
-        // picture — an annotation eating the thing it annotates.
-        return Math.abs(distanceFromCentre - radius) <= step / 2.0;
-    }
-
-    /** True when any in-bounds, measured neighbour carries a different biome identity. */
-    static boolean bordersADifferentBiome(int[] biomeId, boolean[] known, int side, int gx, int gz) {
-        int here = biomeId[gz * side + gx];
-        return differingNeighbour(biomeId, known, side, gx - 1, gz, here)
-                || differingNeighbour(biomeId, known, side, gx + 1, gz, here)
-                || differingNeighbour(biomeId, known, side, gx, gz - 1, here)
-                || differingNeighbour(biomeId, known, side, gx, gz + 1, here);
-    }
-
-    private static boolean differingNeighbour(int[] biomeId, boolean[] known, int side,
-                                              int gx, int gz, int here) {
-        if (gx < 0 || gx >= side || gz < 0 || gz >= side) {
-            return false;
-        }
-        int idx = gz * side + gx;
-        return known[idx] && biomeId[idx] != here;
     }
 
     private static boolean paintMarker(BufferedImage image, int side, int gx, int gz, int radius, int color) {
@@ -833,6 +627,9 @@ public final class CandidateRender {
 
     // ---------------------------------------------------------- structures
 
+    /** Groups the overlays mark as dangerous — the split the scorer uses too. */
+    private static final Set<String> HOSTILE_GROUPS = Set.of("dungeons", "endgame");
+
     /**
      * Every noise-managed structure site, block-centred, for groups whose
      * pool actually has something in it — an empty-pool group would draw
@@ -843,17 +640,17 @@ public final class CandidateRender {
      * shows an assignment, only that a site exists — the same field
      * positions either way.
      *
-     * @param allowedGroups when non-null, only these groups are drawn — the
-     *                      lowres restriction to the groups that decide
-     *                      whether a world is worth visiting. Null marks
-     *                      every active group, which highres has room for.
+     * <p>Keyed by group, because that is how a person reads them — landmarks
+     * and settlements are different questions, and drawing all of them at
+     * once is an opaque blob rather than a map. Nothing draws these into the
+     * PNG; the viewer overlays the group a person selects.
      */
-    private static List<long[]> structurePositions(MinecraftServer server, DimensionConfig def,
-                                                    SpikeSampler.Base base, long seed, int radius,
-                                                    Set<String> allowedGroups, List<long[]> hostileOut) {
+    public static Map<String, List<long[]>> structurePositions(
+            MinecraftServer server, DimensionConfig def, SpikeSampler.Base base,
+            long seed, int radius) {
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
         if (plan.isSuppressed()) {
-            return List.of();
+            return Map.of();
         }
         var setRegistry = server.getRegistryManager().get(RegistryKeys.STRUCTURE_SET);
         Set<String> exclude = new HashSet<>(NoisePoolBuilder.lowerSet(
@@ -865,12 +662,9 @@ public final class CandidateRender {
 
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
-        List<long[]> positions = new ArrayList<>();
+        Map<String, List<long[]>> byGroup = new java.util.LinkedHashMap<>();
         for (var groupEntry : plan.groups().entrySet()) {
             String group = groupEntry.getKey();
-            if (allowedGroups != null && !allowedGroups.contains(group)) {
-                continue;
-            }
             NoiseGroupPlan.Group settings = groupEntry.getValue();
             NoisePoolBuilder.Pool pool = pools.pools().get(group);
             if (pool == null || pool.entries().isEmpty()) {
@@ -880,16 +674,17 @@ public final class CandidateRender {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
-            boolean hostile = HOSTILE_GROUPS.contains(group);
+            List<long[]> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
-                long[] block = {pos.x * 16L + 8, pos.z * 16L + 8};
-                positions.add(block);
-                if (hostile) {
-                    hostileOut.add(block);
-                }
+                positions.add(new long[]{pos.x * 16L + 8, pos.z * 16L + 8});
             }
         }
-        return positions;
+        return byGroup;
+    }
+
+    /** Whether a group is one the overlays mark as dangerous. */
+    public static boolean isHostileGroup(String group) {
+        return HOSTILE_GROUPS.contains(group);
     }
 
     // ---------------------------------------------------------------- write

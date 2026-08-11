@@ -1,5 +1,6 @@
 package com.customdimensions.web;
 
+import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.InputHash;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
@@ -138,9 +139,9 @@ public final class BankView {
      * wrote — counts per structure, the distance to the nearest of each, and
      * where spawn landed.
      *
-     * <p>Carries no {@code positions}: the bank stores counts and distances,
-     * never a coordinate per placement, so the answer says what was measured
-     * instead of implying a precision that was never taken.
+     * <p>Positions are recomputed rather than read: the bank stores counts
+     * and distances, never a coordinate per placement, and the sites are
+     * derivable from the seed for a fraction of what measuring them cost.
      */
     public static String censusJson(MinecraftServer server, String slug, String seedText) {
         DimensionConfig def = resolve(slug);
@@ -172,9 +173,7 @@ public final class BankView {
                 copy(s, out, "nearestByStructure");
                 copy(s, out, "byGroup");
                 copy(s, out, "nearestHostile");
-                // groups without positions: the panel reads counts, and the
-                // marker layer stays dark rather than plotting made-up points.
-                out.add("groups", new com.google.gson.JsonObject());
+                out.add("groups", positions(server, def, seed));
             }
             com.google.gson.JsonElement spawn = facts.get("spawn");
             if (spawn != null && spawn.isJsonObject()) {
@@ -185,6 +184,48 @@ public final class BankView {
         } catch (IOException | RuntimeException e) {
             return "{\"ok\": false, \"error\": " + Json.quote("census unreadable: " + e) + "}\n";
         }
+    }
+
+    /**
+     * Every noise-managed structure site, by group, recomputed here rather
+     * than banked.
+     *
+     * <p>A dimension can carry thousands of placements; writing those into
+     * every candidate file would multiply the bank for data only ever read
+     * when one of a board's top ten is open. {@code NoiseFieldIndex} derives
+     * them from the seed, so recomputing costs a fraction of the measurement
+     * that produced the candidate in the first place.
+     */
+    private static com.google.gson.JsonObject positions(MinecraftServer server,
+                                                        DimensionConfig def, long seed) {
+        com.google.gson.JsonObject groups = new com.google.gson.JsonObject();
+        try {
+            com.customdimensions.command.SpikeSampler.Base base =
+                    com.customdimensions.command.SpikeSampler.base(
+                            server, def.getDimensionIdentifier());
+            if (!base.ok()) {
+                return groups;
+            }
+            int radius = Math.max(1, def.getPlayerBorderRadius());
+            for (Map.Entry<String, List<long[]>> e
+                    : CandidateRender.structurePositions(server, def, base, seed, radius).entrySet()) {
+                com.google.gson.JsonArray points = new com.google.gson.JsonArray();
+                for (long[] p : e.getValue()) {
+                    com.google.gson.JsonArray xz = new com.google.gson.JsonArray();
+                    xz.add(p[0]);
+                    xz.add(p[1]);
+                    points.add(xz);
+                }
+                com.google.gson.JsonObject group = new com.google.gson.JsonObject();
+                group.add("positions", points);
+                group.addProperty("hostile", CandidateRender.isHostileGroup(e.getKey()));
+                groups.add(e.getKey(), group);
+            }
+        } catch (RuntimeException ex) {
+            MultiverseServer.LOGGER.warn("Structure positions unavailable for {} seed {}: {}",
+                    def.getName(), seed, ex.toString());
+        }
+        return groups;
     }
 
     private static void copy(com.google.gson.JsonObject from, com.google.gson.JsonObject to, String key) {
