@@ -98,7 +98,7 @@ public final class CandidateRender {
      */
     public enum Resolution {
         LOWRES(128, 512),
-        HIGHRES(512, 2048);
+        HIGHRES(256, 2048);
 
         final int samples;
         final int pixels;
@@ -180,6 +180,16 @@ public final class CandidateRender {
      * magenta before the two were told apart.
      */
     private static final int OPEN_AIR_COLOR = 0x171B26;
+    /**
+     * What a column with no floor reads as, by family — you are looking down
+     * into something, and which something it is says a lot about the world.
+     * A single grey for all of them made an end void and a nether lava sea
+     * the same picture.
+     */
+    private static final int VOID_END = 0x08050F;        // near-black, the end's own nothing
+    private static final int VOID_NETHER = 0x3C1405;     // the lava sea under the nether
+    private static final int VOID_SKY = 0xA0BEDC;        // pale sky, for skyland worlds
+    private static final int VOID_CAVE = 0x14120F;       // unlit rock
     /** Blocks between contour lines — the strongest cue that a picture is terrain. */
     private static final int CONTOUR_INTERVAL = 20;
     // Annotations over the terrain, not facts about it.
@@ -268,6 +278,18 @@ public final class CandidateRender {
         boolean[] known = new boolean[cells];
         boolean[] water = new boolean[cells];
 
+        // The thumbnail asks the climate sampler for a height instead of the
+        // terrain router. vanilla's getHeight builds a fresh ChunkNoiseSampler
+        // per call, which is what made a map cost minutes; the climate point
+        // is already being read for the biome, and its depth carries the same
+        // landmass and coastline the eye is actually reading at this size.
+        // Not for a ceilinged or island world: there, "is there ground here at
+        // all" is the whole picture, and depth cannot answer it.
+        boolean fast = resolution == Resolution.LOWRES && !base.hasCeiling()
+                && !isIslandType(def);
+        final int floorY = base.heightLimit().getBottomY();
+        final int topY = base.heightLimit().getTopY() - 1;
+
         Map<String, BiomeColors> sharedColors = new java.util.concurrent.ConcurrentHashMap<>();
         java.util.concurrent.atomic.AtomicInteger sampled = new java.util.concurrent.atomic.AtomicInteger();
         java.util.concurrent.atomic.AtomicInteger minH =
@@ -298,7 +320,9 @@ public final class CandidateRender {
                 final int worker = w;
                 final int stride = workers;
                 tasks.add(pool.submit(() -> {
-                    SpikeSampler.Rig own = SpikeSampler.forSeed(server, base, seed);
+                    SpikeSampler.Rig own = fast
+                            ? SpikeSampler.forSeedClimate(server, base, seed)
+                            : SpikeSampler.forSeed(server, base, seed);
                     for (int gz = worker; gz < sideF; gz += stride) {
                         for (int gx = 0; gx < sideF; gx++) {
                             int dx = gridToWorldOffset(gx, stepF, halfF);
@@ -308,6 +332,10 @@ public final class CandidateRender {
                             sampled.incrementAndGet();
                             if (s.biome() == null) {
                                 continue;
+                            }
+                            Integer surface = s.surfaceHeight();
+                            if (fast) {
+                                surface = heightFromDepth(s.climate(), floorY, topY);
                             }
                             BiomeColors colors = sharedColors.computeIfAbsent(s.biome(), id -> {
                                 BiomeColors c = biomeColors(biomeRegistry, id);
@@ -319,16 +347,16 @@ public final class CandidateRender {
                             terrainColor[idx] = colors.terrain();
                             waterColor[idx] = colors.water();
                             water[idx] = SurfacePalette.isWater(s.biome());
-                            if (s.surfaceHeight() == null) {
+                            if (surface == null) {
                                 // A biome with no floor under it is open air —
                                 // most of a floating-island world, and terrain
                                 // rather than a failed measurement.
                                 continue;
                             }
                             known[idx] = true;
-                            height[idx] = s.surfaceHeight();
-                            minH.accumulateAndGet(s.surfaceHeight(), Math::min);
-                            maxH.accumulateAndGet(s.surfaceHeight(), Math::max);
+                            height[idx] = surface;
+                            minH.accumulateAndGet(surface, Math::min);
+                            maxH.accumulateAndGet(surface, Math::max);
                         }
                     }
                 }));
@@ -346,12 +374,53 @@ public final class CandidateRender {
         }
 
         BufferedImage image = paint(samples, pixels, terrainColor, waterColor, height, known,
-                water, seaLevel, minH.get(), maxH.get());
+                water, seaLevel, minH.get(), maxH.get(), voidColourFor(def));
         writeImageAtomically(image, outputPath);
         long renderNanos = System.nanoTime() - renderStart;
         int n = Math.max(1, sampled.get());
         return new RenderResult(outputPath, pixels, step, renderNanos / n, renderNanos,
                 sampled.get(), 0);
+    }
+
+    /**
+     * Surface height from the climate point's depth.
+     *
+     * <p>{@code surface_Y = 128 * depth} is the relation {@code customdim
+     * sample-noise} documents as generation ground truth for these graphs.
+     * It is an approximation of the real router's answer — good enough for
+     * the landmass, the coastline and the shading a thumbnail is read for,
+     * and never used for a measurement.
+     */
+    static Integer heightFromDepth(double[] climate, int floorY, int topY) {
+        if (climate == null || climate.length < 5) {
+            return null;
+        }
+        int y = (int) Math.round(128.0 * climate[4]);
+        return Math.max(floorY, Math.min(topY, y));
+    }
+
+    /** Worlds where "is there ground here at all" is the picture. */
+    static boolean isIslandType(DimensionConfig def) {
+        String type = def.getType() == null ? "" : def.getType().toLowerCase(java.util.Locale.ROOT);
+        return type.contains("islands") || type.equals("void") || type.equals("end");
+    }
+
+    /** What this dimension's empty columns are looking down into. */
+    static int voidColourFor(DimensionConfig def) {
+        String type = def.getType() == null ? "" : def.getType().toLowerCase(java.util.Locale.ROOT);
+        if (type.startsWith("nether")) {
+            return VOID_NETHER;
+        }
+        if (type.startsWith("end") || type.equals("sky_islands")) {
+            return VOID_END;
+        }
+        if (type.equals("cave")) {
+            return VOID_CAVE;
+        }
+        if (type.contains("paradise_lost")) {
+            return VOID_SKY;
+        }
+        return OPEN_AIR_COLOR;
     }
 
     /**
@@ -365,7 +434,7 @@ public final class CandidateRender {
     private static BufferedImage paint(int samples, int pixels, int[] terrainColor,
                                        int[] waterColor, int[] height, boolean[] known,
                                        boolean[] water, Integer seaLevel,
-                                       int minHeight, int maxHeight) {
+                                       int minHeight, int maxHeight, int voidColor) {
         BufferedImage image = new BufferedImage(pixels, pixels, BufferedImage.TYPE_INT_RGB);
         int range = Math.max(1, maxHeight - minHeight);
         for (int py = 0; py < pixels; py++) {
@@ -375,7 +444,7 @@ public final class CandidateRender {
                 int idx = gz * samples + gx;
                 int color;
                 if (!known[idx]) {
-                    color = OPEN_AIR_COLOR;
+                    color = voidColor;
                 } else if (water[idx] || (seaLevel != null && height[idx] <= seaLevel)) {
                     color = waterColorAt(waterColor[idx], height[idx],
                             seaLevel == null ? height[idx] : seaLevel, minHeight);

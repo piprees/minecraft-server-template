@@ -20,10 +20,12 @@ services:
     volumes:
       - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
     ports:
-      # The seed viewer the mod hosts. Local only and bound to localhost:
-      # picking writes into the committed overlay, which production must
-      # never do, and nothing publishes this port there.
-      - "127.0.0.1:${SEED_VIEWER_PORT:-8765}:8765"
+      # The seed viewer the mod hosts. Bound on every interface so it can be
+      # opened from a phone on the same network. It has no authentication and
+      # it can teleport the player and write into the committed overlay, so
+      # this is a trusted-LAN tool — nothing publishes it in the cloud
+      # profile, and it is not reachable from the internet.
+      - "${SEED_VIEWER_PORT:-8765}:8765"
     environment:
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"

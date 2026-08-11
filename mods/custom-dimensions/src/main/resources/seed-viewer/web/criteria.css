@@ -14,6 +14,10 @@
   position: absolute;
   right: 0.6rem;
   top: 0.6rem;
+  /* app.css pins this class on all four edges, so setting only two stretched
+     it across the whole map. */
+  left: auto;
+  bottom: auto;
   z-index: 3;
   font-size: 0.72rem;
   line-height: 1.1;
