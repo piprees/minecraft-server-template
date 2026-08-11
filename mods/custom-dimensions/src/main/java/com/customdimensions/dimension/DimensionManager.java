@@ -891,6 +891,76 @@ public class DimensionManager {
         return this.createDimensionOptions(def);
     }
 
+    /**
+     * A ServerWorld that exists only in the server's worlds map, never in the
+     * DIMENSION registry.
+     *
+     * <p>Vanilla encodes that registry into {@code level.dat} on every save,
+     * so a world kept out of it leaves nothing behind to scrub — closing it
+     * and deleting its region directory is the entire cleanup. Used by the
+     * seed try-out, whose worlds are disposable by definition.
+     *
+     * <p>Must be called from a safe point ({@code END_SERVER_TICK}), never
+     * from a request thread or a world tick: it mutates the worlds map and
+     * fires {@code ServerWorldEvents.LOAD}, off which Distant Horizons and
+     * c2me build their per-level state.
+     */
+    public ServerWorld createEphemeralWorld(Identifier worldId, DimensionOptions options, long seed) {
+        if (this.server == null || options == null) {
+            return null;
+        }
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) this.server;
+        Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
+        ServerWorld existing = worlds.get(worldKey);
+        if (existing != null) {
+            return existing;
+        }
+
+        ServerWorld overworld = this.server.getOverworld();
+        SaveProperties saveProperties = serverAccessor.getSaveProperties();
+        ServerWorldProperties worldProperties = (ServerWorldProperties)
+                new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
+
+        ServerWorld newWorld = new ServerWorld(
+                this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
+                worldProperties, worldKey, options, NO_OP_WORLD_GEN_PROGRESS,
+                false, seed, List.of(), false, overworld.getRandomSequences());
+
+        worlds.put(worldKey, newWorld);
+        lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
+        MultiverseServer.LOGGER.info("Created ephemeral world: {} (seed {})", worldId, seed);
+        return newWorld;
+    }
+
+    /**
+     * Evacuates and closes an ephemeral world. Players go to the overworld
+     * spawn first — a player inside a closed world is a guaranteed
+     * disconnect, the same reason {@link #processPendingWorldUnloads} does it.
+     */
+    public boolean closeEphemeralWorld(MinecraftServer server, Identifier worldId) {
+        if (server == null) {
+            return false;
+        }
+        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        if (PROTECTED_DIMENSIONS.contains(key)) {
+            return false;
+        }
+        Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) server).getWorlds();
+        ServerWorld world = worlds.get(key);
+        if (world == null) {
+            return false;
+        }
+        ServerWorld overworld = server.getOverworld();
+        net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
+        for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+            player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                    Set.of(), player.getYaw(), player.getPitch());
+        }
+        return this.closeWorld(server, key);
+    }
+
     public ServerWorld getOrCreateDimension(String dimName) {
         if (this.server == null) {
             return null;

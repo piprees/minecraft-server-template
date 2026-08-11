@@ -1,0 +1,372 @@
+package com.customdimensions.web;
+
+import com.customdimensions.MultiverseServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpServer;
+import net.minecraft.server.MinecraftServer;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.Executors;
+
+/**
+ * The seed tool's HTTP port. The browser talks to the mod directly.
+ *
+ * <p>Rolling, rendering, trying out and picking are method calls inside this
+ * process — the one that owns the registries and the live
+ * {@link MinecraftServer}. There is no RCON hop, no chat command and no
+ * static regeneration step between the browser and the code that answers it.
+ *
+ * <p>Reads come off the request thread; anything that touches a world is
+ * queued onto the server thread by the code it calls.
+ *
+ * <p>Off by default in production by construction: nothing publishes this
+ * port outside the container except {@code docker-compose.local.yml}, and
+ * {@code SEED_VIEWER_PORT=0} disables the listener entirely.
+ */
+public final class SeedServer {
+
+    private static final int DEFAULT_PORT = 8765;
+
+    private static HttpServer server;
+
+    private SeedServer() {
+    }
+
+    public static void start(MinecraftServer minecraftServer) {
+        int port = configuredPort();
+        if (port <= 0) {
+            MultiverseServer.LOGGER.info("Seed viewer disabled (SEED_VIEWER_PORT=0)");
+            return;
+        }
+        if (server != null) {
+            return;
+        }
+        try {
+            server = HttpServer.create(new InetSocketAddress(port), 0);
+            server.createContext("/", exchange -> route(minecraftServer, exchange));
+            // One thread: every handler is a short read off disk or memory,
+            // and a pool here would only invite two rolls at once.
+            server.setExecutor(Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "customdim-seed-viewer");
+                t.setDaemon(true);
+                return t;
+            }));
+            server.start();
+            MultiverseServer.LOGGER.info("Seed viewer listening on port {}", port);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Seed viewer failed to bind port {}", port, e);
+            server = null;
+        }
+    }
+
+    public static void stop() {
+        if (server != null) {
+            server.stop(0);
+            server = null;
+        }
+    }
+
+    private static int configuredPort() {
+        String raw = System.getenv("SEED_VIEWER_PORT");
+        if (raw == null || raw.isBlank()) {
+            return DEFAULT_PORT;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return DEFAULT_PORT;
+        }
+    }
+
+    // ------------------------------------------------------------------ routes
+
+    private static void route(MinecraftServer minecraftServer, HttpExchange exchange) {
+        String path = exchange.getRequestURI().getPath();
+        try {
+            if (path.equals("/") || path.isEmpty()) {
+                send(exchange, 200, "text/html; charset=utf-8",
+                        ViewerPage.render(minecraftServer).getBytes(StandardCharsets.UTF_8));
+            } else if (path.startsWith("/assets/")) {
+                asset(exchange, path.substring("/assets/".length()));
+            } else if (path.equals("/api/bank")) {
+                send(exchange, 200, "application/json; charset=utf-8",
+                        BankView.json(minecraftServer).getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/pipeline-status")) {
+                send(exchange, 200, "application/json; charset=utf-8",
+                        RollPipeline.statusJson().getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/pipeline/start")) {
+                startRoll(minecraftServer, exchange);
+            } else if (path.equals("/pipeline/stop")) {
+                RollPipeline.stop();
+                send(exchange, 200, "application/json; charset=utf-8",
+                        "{\"ok\": true}".getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/tryout")) {
+                tryOut(minecraftServer, exchange);
+            } else if (path.equals("/tryout/back")) {
+                tryOutBack(minecraftServer, exchange);
+            } else if (path.equals("/tryout/status")) {
+                send(exchange, 200, "application/json; charset=utf-8",
+                        tryOutStatus(minecraftServer).getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/pick")) {
+                pick(minecraftServer, exchange);
+            } else if (path.equals("/render")) {
+                renderRequest(minecraftServer, exchange);
+            } else if (path.startsWith("/renders/")) {
+                render(minecraftServer, exchange, path.substring("/renders/".length()));
+            } else {
+                // Deep links (/the-nether, /the-nether/<seed>) are the same
+                // page; route.js reads the URL and opens what it names.
+                send(exchange, 200, "text/html; charset=utf-8",
+                        ViewerPage.render(minecraftServer).getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (IOException | RuntimeException e) {
+            MultiverseServer.LOGGER.error("Seed viewer {} failed", path, e);
+            try {
+                send(exchange, 500, "text/plain; charset=utf-8",
+                        String.valueOf(e).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException ignored) {
+                // The client is gone; nothing to report to.
+            }
+        }
+    }
+
+    /**
+     * Starts a roll from the browser. The body is the roller controls' own
+     * shape: {@code {"count": n, "dim": "<slug>"|null}}.
+     */
+    private static void startRoll(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        int count = 100;
+        String dim = null;
+        try {
+            com.google.gson.JsonObject json = body.isBlank() ? new com.google.gson.JsonObject()
+                    : com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+            if (json.has("count") && !json.get("count").isJsonNull()) {
+                count = json.get("count").getAsInt();
+            }
+            if (json.has("dim") && !json.get("dim").isJsonNull()) {
+                dim = json.get("dim").getAsString();
+            }
+        } catch (RuntimeException e) {
+            send(exchange, 400, "application/json; charset=utf-8",
+                    ("{\"error\": \"unreadable request body\"}").getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        String refusal = RollPipeline.start(minecraftServer, dim, count);
+        String answer = refusal == null ? "{\"ok\": true}"
+                : "{\"error\": " + com.customdimensions.facts.Json.quote(refusal) + "}";
+        send(exchange, 200, "application/json; charset=utf-8", answer.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Try a candidate out: build its throwaway world and step into it.
+     *
+     * <p>Answers {@code ready:false} while the world is still being built —
+     * creation is drained on the server tick, never from this thread. The
+     * browser calls again; the second call teleports.
+     */
+    private static void tryOut(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        com.google.gson.JsonObject body = readJson(exchange);
+        String slug = body.has("dim") ? body.get("dim").getAsString() : null;
+        long seed = body.has("seed") ? body.get("seed").getAsLong() : 0L;
+        com.customdimensions.config.DimensionConfig def = slug == null ? null
+                : com.customdimensions.config.MultiverseConfig.getInstance().getDimension(slug);
+        if (def == null) {
+            sendJson(exchange, "{\"error\": \"no configured dimension " + escape(slug) + "\"}");
+            return;
+        }
+        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        if (player == null) {
+            sendJson(exchange, "{\"error\": \"join the server first — a try-out is a place you fly "
+                    + "around in, so it needs exactly one player online\"}");
+            return;
+        }
+        net.minecraft.util.Identifier worldId = com.customdimensions.tryout.TryOut.request(
+                minecraftServer, def.getDimensionIdentifier(), seed, player.getUuid());
+        boolean ready = worldId != null
+                && com.customdimensions.tryout.TryOut.isReady(minecraftServer, worldId);
+        if (ready) {
+            // Teleporting mutates the world the tick loop is iterating, so it
+            // goes through the server's own queue rather than this thread.
+            minecraftServer.execute(() ->
+                    com.customdimensions.tryout.TryOut.enter(player, worldId));
+        }
+        sendJson(exchange, "{\"ok\": true, \"ready\": " + ready + ", \"world\": "
+                + com.customdimensions.facts.Json.quote(String.valueOf(worldId)) + "}");
+    }
+
+    private static void tryOutBack(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        if (player == null) {
+            sendJson(exchange, "{\"error\": \"no player online\"}");
+            return;
+        }
+        minecraftServer.execute(() -> com.customdimensions.tryout.TryOut.leave(player));
+        sendJson(exchange, "{\"ok\": true}");
+    }
+
+    /** Which try-outs are live, and which one the player is standing in. */
+    private static String tryOutStatus(MinecraftServer minecraftServer) {
+        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        String inside = "";
+        if (player != null) {
+            String world = player.getWorld().getRegistryKey().getValue().toString();
+            if (world.contains(":" + com.customdimensions.tryout.TryOut.PATH_PREFIX)) {
+                inside = world;
+            }
+        }
+        StringBuilder b = new StringBuilder("{\"player\": ")
+                .append(com.customdimensions.facts.Json.quote(
+                        player == null ? "" : player.getName().getString()))
+                .append(", \"inside\": ").append(com.customdimensions.facts.Json.quote(inside))
+                .append(", \"sessions\": [");
+        List<com.customdimensions.tryout.TryOut.Session> sessions =
+                com.customdimensions.tryout.TryOut.sessions();
+        for (int i = 0; i < sessions.size(); i++) {
+            com.customdimensions.tryout.TryOut.Session s = sessions.get(i);
+            b.append(i > 0 ? ", " : "").append("{\"dimension\": ")
+                    .append(com.customdimensions.facts.Json.quote(s.dimension()))
+                    .append(", \"seed\": ").append(s.seed())
+                    .append(", \"world\": ")
+                    .append(com.customdimensions.facts.Json.quote(s.worldId().toString()))
+                    .append("}");
+        }
+        return b.append("]}\n").toString();
+    }
+
+    private static void pick(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        com.google.gson.JsonObject body = readJson(exchange);
+        String slug = body.has("dim") ? body.get("dim").getAsString() : null;
+        long seed = body.has("seed") ? body.get("seed").getAsLong() : 0L;
+        if (slug == null) {
+            sendJson(exchange, "{\"error\": \"no dimension named\"}");
+            return;
+        }
+        Picker.Result result = Picker.pick(minecraftServer, slug, seed);
+        // A refusal answers 409 so the browser's own `res.ok` check sees it —
+        // a 200 carrying {"ok": false} reads as saved and reloads the page.
+        send(exchange, result.ok() ? 200 : 409, "application/json; charset=utf-8",
+                ("{\"ok\": " + result.ok() + ", \"message\": "
+                        + com.customdimensions.facts.Json.quote(result.message()) + "}")
+                        .getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** Draws a candidate's map on demand — the high-res one the modal offers. */
+    private static void renderRequest(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        com.google.gson.JsonObject body = readJson(exchange);
+        String slug = body.has("dim") ? body.get("dim").getAsString() : null;
+        long seed = body.has("seed") ? body.get("seed").getAsLong() : 0L;
+        boolean highres = body.has("resolution")
+                && "highres".equalsIgnoreCase(body.get("resolution").getAsString());
+        if (slug == null) {
+            sendJson(exchange, "{\"error\": \"no dimension named\"}");
+            return;
+        }
+        String refusal = RollPipeline.render(minecraftServer, slug, seed, highres);
+        sendJson(exchange, refusal == null ? "{\"ok\": true}"
+                : "{\"error\": " + com.customdimensions.facts.Json.quote(refusal) + "}");
+    }
+
+    /**
+     * The one person using this tool. Several players online is ambiguous
+     * rather than harmless: teleporting the wrong one into a throwaway world
+     * is not something to guess at.
+     */
+    private static net.minecraft.server.network.ServerPlayerEntity solePlayer(MinecraftServer server) {
+        List<net.minecraft.server.network.ServerPlayerEntity> players =
+                server.getPlayerManager().getPlayerList();
+        return players.size() == 1 ? players.get(0) : null;
+    }
+
+    private static com.google.gson.JsonObject readJson(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        try {
+            return body.isBlank() ? new com.google.gson.JsonObject()
+                    : com.google.gson.JsonParser.parseString(body).getAsJsonObject();
+        } catch (RuntimeException e) {
+            return new com.google.gson.JsonObject();
+        }
+    }
+
+    private static void sendJson(HttpExchange exchange, String body) throws IOException {
+        send(exchange, 200, "application/json; charset=utf-8", body.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String escape(String s) {
+        return s == null ? "" : s.replace("\"", "'");
+    }
+
+    /** Static viewer files, served straight out of the jar. */
+    private static void asset(HttpExchange exchange, String name) throws IOException {
+        if (name.contains("..") || name.contains("/")) {
+            send(exchange, 404, "text/plain", "not found".getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        try (InputStream in = SeedServer.class.getResourceAsStream("/seed-viewer/web/" + name)) {
+            if (in == null) {
+                send(exchange, 404, "text/plain", "not found".getBytes(StandardCharsets.UTF_8));
+                return;
+            }
+            send(exchange, 200, contentType(name), in.readAllBytes());
+        }
+    }
+
+    /**
+     * A candidate's PNG. The URL names the dimension and seed a person can
+     * read; the input hash it actually lives under is resolved here, so a
+     * link never has to carry one.
+     */
+    private static void render(MinecraftServer minecraftServer, HttpExchange exchange, String rest)
+            throws IOException {
+        int slash = rest.lastIndexOf('/');
+        if (slash < 0 || !rest.endsWith(".png")) {
+            send(exchange, 404, "text/plain", "not found".getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        String dimension = rest.substring(0, slash);
+        String file = rest.substring(slash + 1, rest.length() - ".png".length());
+        boolean hires = file.endsWith("_hires");
+        String seed = hires ? file.substring(0, file.length() - "_hires".length()) : file;
+        Path png = BankView.renderPath(minecraftServer, dimension, seed, hires);
+        if (png == null || !Files.isRegularFile(png)) {
+            send(exchange, 404, "text/plain", "no render".getBytes(StandardCharsets.UTF_8));
+            return;
+        }
+        send(exchange, 200, "image/png", Files.readAllBytes(png));
+    }
+
+    private static String contentType(String name) {
+        if (name.endsWith(".css")) {
+            return "text/css; charset=utf-8";
+        }
+        if (name.endsWith(".js")) {
+            return "text/javascript; charset=utf-8";
+        }
+        if (name.endsWith(".png")) {
+            return "image/png";
+        }
+        return "application/octet-stream";
+    }
+
+    private static void send(HttpExchange exchange, int status, String contentType, byte[] body)
+            throws IOException {
+        exchange.getResponseHeaders().set("Content-Type", contentType);
+        exchange.getResponseHeaders().set("Cache-Control", "no-store");
+        exchange.sendResponseHeaders(status, body.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(body);
+        }
+    }
+}

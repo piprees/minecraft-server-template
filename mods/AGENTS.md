@@ -152,9 +152,9 @@ inline instead, by design — see the table below for which.
 **Seed rolling does not use RCON or chat commands at all.** The mod runs inside
 the server process that owns the registries and the live `MinecraftServer`, so
 the seed tool reaches it over an HTTP port the mod hosts, and the browser talks
-to it directly. The contract below governs diagnostics that genuinely inspect a
-running world — never the roll, view, try-out and pick loop
-(`~/Projects/elfydd/reports/PLAN.md`).
+to it directly (§ Seed rolling below). The contract here governs diagnostics
+that genuinely inspect a running world — never the roll, view, try-out and pick
+loop (`~/Projects/elfydd/reports/PLAN.md`).
 
 ### The contract
 
@@ -194,17 +194,17 @@ running world — never the roll, view, try-out and pick loop
 
 | Artefact | Written by | Read by |
 | --- | --- | --- |
-| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` | `/customdim roll`, `roll-all` (full facts + scorecard per seed) | `/customdim bank`/`winner` build the frontier from these; no standalone checker |
-| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | `/customdim render` | human-read |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` | the roller, one file per measured seed (full facts + scorecard) | `web/BankView` builds the page and `/api/bank` from these |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | the roller (lowres, on every scored seed) and `POST /render` | the viewer, and `GET /renders/<dim>/<seed>.png` |
 | `.seed-rolling/candidates/<inputHash>/<dim>/rejected.json` | the roller, on a pre-scoring gate failure | the roller, so a seed is never re-measured |
-| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | `/customdim bank`, `/customdim winner` | human-read — the non-dominated set, not a single ranked winner |
+| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | (no longer written — the frontier is derived live by `Frontier.of` for the page) | — |
 | `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
 | `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
 | `.seed-rolling/lint/<hash>.json` | `/customdim lint [dimension]` | the command's own ERROR-count return value |
 | `.seed-rolling/lint/<hash>.structure-audit.json` | `/customdim structure-audit [group]` | human-read |
 | `data/config/custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
 | `data/config/portal_links.json` | the mod, on every portal mutation | the mod, on load (`PortalStateValidator`) |
-| `overlay/config/custom-dimensions/dimensions/<slug>.json` | `/customdim winner`, writing the chosen seed into the consumer's committed overlay — the mount that makes this possible ships only in `docker-compose.local.yml`, so this is a local-dev write, not a production one | a human, before committing |
+| `overlay/config/custom-dimensions/dimensions/<slug>.json` | `POST /pick` (`web/Picker`), writing the chosen seed and — when you pick while standing in that candidate's try-out — your position as the spawn. The mount that makes this possible ships only in `docker-compose.local.yml`, so this is a local-dev write, not a production one | a human, before committing |
 
 `/customdim structure-census` and `/customdim spike-compare` write no file:
 census compares the live world's `StructurePlacementCalculator` against a
@@ -213,7 +213,7 @@ mismatches inline; spike-compare does the same for the headless sampler
 against the live world. Both cap the mismatch list so a bad run can't
 overflow RCON. `/customdim facts` and `/customdim score` also answer inline
 and persist nothing — the durable record of a (dimension, seed) measurement
-is the candidate file `/customdim roll` writes, not a second copy from these
+is the candidate file the roller writes, not a second copy from these
 ad-hoc commands.
 
 There is no offline checker to run outside the game. `./dev verify` states
@@ -271,8 +271,16 @@ pre-patch as a second layer covering a fresh environment's first boot).
 Verify via log grep, never the config file (the key is stripped again by
 the boot that honours it).
 
+**Copy over the jar `./dev up` installs, never beside it.** `dev-up.sh` writes
+`stack/local-mods/*.jar` into `data/mods/` under their own filenames, so a copy
+made under a different name leaves TWO jars declaring the same mod id. Fabric
+loads one of them and the choice is not yours: the symptom is a rebuilt feature
+that is simply absent — new endpoints 404, new commands do not parse — while the
+jar you just built sits in `data/mods/` looking correct. `ls data/mods | grep
+<modid>` must return exactly one line.
+
 ```bash
-cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
+cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>-<version>.jar
 docker restart mc && sleep 45
 docker inspect mc --format '{{.State.Health.Status}}'            # must be healthy
 docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
@@ -639,7 +647,40 @@ to vanilla behaviour.
 
 ### Seed rolling
 
-Seed rolling lives in the mod and is driven by `/customdim` subcommands. Two Gson traps still apply: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits.
+Seed rolling lives in the mod and is driven from a browser. The mod hosts an
+HTTP port (`web/SeedServer`, default 8765, published on localhost only by
+`docker-compose.local.yml`) and the page talks to the process that owns the
+registries and the live `MinecraftServer` — there is no RCON hop and no chat
+command. `./dev seeds` opens it.
+
+| Route | What it does |
+| --- | --- |
+| `GET /` | The viewer: every dimension, a card per candidate, the scorecard's own per-criterion reasons in the modal |
+| `GET /assets/*`, `GET /renders/<dim>/<seed>[_hires].png` | Front-end files from the jar; candidate PNGs from `.seed-rolling/` |
+| `GET /api/bank` | The whole bank as JSON |
+| `POST /pipeline/start`, `/pipeline/stop`, `GET /pipeline-status` | Roll in the background, with progress |
+| `POST /tryout`, `/tryout/back`, `GET /tryout/status` | Build a throwaway world from a candidate's seed and fly around in it |
+| `POST /pick` | Write the chosen seed (and your standing position as the spawn) into the consumer overlay |
+| `POST /render` | Draw a candidate's map, low- or high-res |
+
+**Rolling runs on its own thread, not the tick loop.** `FactsEngine` measures
+headlessly, so the server stays playable and RCON keeps answering while a roll
+is going — which is the difference between this and the command it replaced.
+
+**A try-out world is never in the DIMENSION registry** (`tryout/TryOut`), and
+that registry is what vanilla encodes into `level.dat` on save. So a try-out
+leaves nothing to scrub: closing the world and deleting its region directory
+under `dimensions/<ns>/tryout/` is the entire cleanup, and anything left on
+disk after a crash is removed at the next boot. Its worldgen is the real
+dimension's own options with the candidate's seed applied at world
+construction; the runtime DEFINITION carries the seed, which is what
+`ServerWorldSeedMixin`, `DimensionStructures` and `DifficultyManager` resolve.
+
+**Every mod rebuild mints a new `InputHash` and starts a fresh bank.** Roll
+after the jar settles, not during — candidates measured by a previous build
+live under a different directory and will not appear in the viewer.
+
+Two Gson traps still apply: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits.
 
 ## Architecture (custom-dimensions)
 

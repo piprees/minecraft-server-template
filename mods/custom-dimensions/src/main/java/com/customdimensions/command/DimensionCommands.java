@@ -105,6 +105,8 @@ public class DimensionCommands {
                 .then(CommandManager.literal("destroy")
                     .then(CommandManager.argument("name", StringArgumentType.word())
                         .executes(ctx -> destroy(ctx, StringArgumentType.getString(ctx, "name")))))
+                .then(CommandManager.literal("tryout-list")
+                    .executes(DimensionCommands::tryOutList))
                 .then(CommandManager.literal("list")
                     .executes(DimensionCommands::list))
                 .then(CommandManager.literal("load")
@@ -167,35 +169,6 @@ public class DimensionCommands {
                 .then(CommandManager.literal("structure-census")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .executes(CensusCommands::structureCensus)))
-                .then(CommandManager.literal("roll")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .then(CommandManager.argument("count", IntegerArgumentType.integer(1, 100000))
-                            .executes(ctx -> RollCommands.roll(ctx,
-                                IntegerArgumentType.getInteger(ctx, "count"))))))
-                .then(CommandManager.literal("roll-all")
-                    .then(CommandManager.argument("count", IntegerArgumentType.integer(1, 100000))
-                        .executes(ctx -> RollCommands.rollAll(ctx,
-                            IntegerArgumentType.getInteger(ctx, "count")))))
-                .then(CommandManager.literal("bank")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .executes(RollCommands::bank)))
-                .then(CommandManager.literal("bank-all")
-                    .executes(RollCommands::bankAll))
-                .then(CommandManager.literal("winner")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .executes(ctx -> RollCommands.winner(ctx, null))
-                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
-                            .executes(ctx -> RollCommands.winner(ctx,
-                                LongArgumentType.getLong(ctx, "seed"))))))
-                .then(CommandManager.literal("render")
-                    .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
-                        .then(CommandManager.argument("seed", LongArgumentType.longArg())
-                            .executes(ctx -> RollCommands.render(ctx,
-                                LongArgumentType.getLong(ctx, "seed"), "lowres"))
-                            .then(CommandManager.argument("resolution", StringArgumentType.word())
-                                .executes(ctx -> RollCommands.render(ctx,
-                                    LongArgumentType.getLong(ctx, "seed"),
-                                    StringArgumentType.getString(ctx, "resolution")))))))
                 .then(CommandManager.literal("spike-compare")
                     .then(CommandManager.argument("dimension", IdentifierArgumentType.identifier())
                         .then(CommandManager.argument("seed", LongArgumentType.longArg())
@@ -542,6 +515,24 @@ public class DimensionCommands {
             source.sendError(Text.literal("Failed to create dimension: " + e.getMessage()));
             return 0;
         }
+    }
+
+    /**
+     * Which try-out worlds are live. A diagnostic, not a way in: starting,
+     * entering, leaving and ending a try-out all happen in the browser,
+     * through the port the mod hosts.
+     */
+    private static int tryOutList(CommandContext<ServerCommandSource> ctx) {
+        ServerCommandSource source = ctx.getSource();
+        var sessions = com.customdimensions.tryout.TryOut.sessions();
+        StringBuilder b = new StringBuilder("tryout-list: " + sessions.size() + " live");
+        for (var s : sessions) {
+            b.append(" | ").append(s.dimension()).append(" seed=").append(s.seed())
+                    .append(" -> ").append(s.worldId());
+        }
+        final String msg = b.toString();
+        source.sendFeedback(() -> Text.literal(msg), false);
+        return sessions.size();
     }
 
     private static int destroy(CommandContext<ServerCommandSource> ctx, String name) {

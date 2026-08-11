@@ -19,6 +19,11 @@ services:
     # overlay, and its absence there is what makes `winner` refuse.
     volumes:
       - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
+    ports:
+      # The seed viewer the mod hosts. Local only and bound to localhost:
+      # picking writes into the committed overlay, which production must
+      # never do, and nothing publishes this port there.
+      - "127.0.0.1:${SEED_VIEWER_PORT:-8765}:8765"
     environment:
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"

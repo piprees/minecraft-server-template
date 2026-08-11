@@ -60,7 +60,10 @@ The `ops` script delegates to the bundle's operational scripts:
 
 Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow. The full step-by-step walkthrough and credential guide live in the `server-provisioning` skill.
 
-Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands in-game.
+Seed rolling is a browser tool the mod hosts: `./dev seeds` opens it. Roll candidate
+seeds for any dimension, look at their maps and scores, fly around the best two in a
+throwaway world, and pick one — the chosen seed (and where you were standing) is
+written into the dimension's overlay config.
 
 ## Upgrading
 

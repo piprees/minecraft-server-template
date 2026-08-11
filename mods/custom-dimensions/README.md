@@ -74,7 +74,30 @@ All commands live under one root, `/customdim`, and require permission level 4.
 | `/customdim carver-draw <dimension> <chunkX> <chunkZ>` | Replay vanilla's would-be first draw beside the noise assignment for a chunk. |
 | `/customdim debug-prng <seed>` | PRNG diagnostics. |
 
-### Seed roller
+### Seed roller — a browser tool, not a command
+
+Rolling, looking, trying a candidate out and picking one all happen on a page
+the mod hosts. `./dev seeds` opens it (default `http://127.0.0.1:8765/`;
+`SEED_VIEWER_PORT` moves it, `0` turns it off). The port is published on
+localhost by `docker-compose.local.yml` and by nothing in the cloud profile.
+
+| Route | What it does |
+| --- | --- |
+| `GET /` | Every dimension at once, a card per candidate, and a modal carrying the render, the score and the scorecard's own per-criterion reasons |
+| `GET /api/bank` | The same bank as JSON |
+| `POST /pipeline/start` `{count, dim}` · `POST /pipeline/stop` · `GET /pipeline-status` | Roll on a background thread; the server stays playable and RCON keeps answering throughout |
+| `POST /tryout` `{dim, seed}` · `POST /tryout/back` · `GET /tryout/status` | Build a throwaway world from that candidate's seed, teleport in creative and flying, come back to the overworld at 0,0 |
+| `POST /pick` `{dim, seed}` | Write the seed — and, if you are standing in that candidate's try-out, your position as the dimension's spawn — into the consumer's committed overlay |
+| `POST /render` `{dim, seed, resolution}` | Draw a candidate's map; low-res comes from its persisted grid, high-res samples a fresh wider one |
+
+A try-out world is never added to the DIMENSION registry, so it never reaches
+`level.dat` and needs no scrub: closing it and deleting its directory under
+`dimensions/<ns>/tryout/` is the whole cleanup, and it expires ten minutes
+after the last person leaves. Every mod rebuild mints a new `InputHash`, which
+starts a fresh bank — roll after the jar settles, not during.
+
+The commands below are the diagnostics that remain.
+
 
 These run headlessly — no `ServerWorld` is created and none is left behind — and
 each answers with one line plus a path. **Read the artefact, never the RCON
@@ -85,12 +108,7 @@ cannot tell a timeout from a success.
 | --- | --- |
 | `/customdim lint [dimension]` | Every config fault that would score as a bad seed: a `want` naming a structure the dimension cannot place, a biome it never produces, a portal that cannot be lit. Writes `.seed-rolling/lint/<hash>.json`, one hash-scoped file per dimension checked. Returns the ERROR count. |
 | `/customdim facts <dimension> <seed>` | Measure one (dimension, seed) — spawn, biomes, terrain, the full structure census. Reports inline; writes nothing. Every value is exact or an explicit absence with a reason. |
-| `/customdim score <dimension> <seed>` | Measure fresh, then judge against the dimension's own configured intent. Reports inline; writes nothing — the durable record of a (dimension, seed) result is the candidate file `/customdim roll` writes, not a second copy from this command. |
-| `/customdim roll <dimension> <count>` | Roll and score up to `<count>` new seeds. Writes one file per candidate to `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` (never rewrites another candidate), plus `rejected.json` for seeds that failed a gate before scoring. |
-| `/customdim roll-all <count>` | `roll` for every rollable dimension. |
-| `/customdim bank <dimension>` | Derives the bank's non-dominated frontier from the candidates on disk and writes `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` — several genuinely different good seeds, not one ranked list. |
-| `/customdim winner <dimension> [seed]` | Writes the chosen seed into the consumer's committed overlay (`overlay/config/custom-dimensions/dimensions/<slug>.json`) — refuses if the frontier has more than one member and no `seed` was named, and refuses a seed not on the frontier. Local dev only: the overlay mount ships in `docker-compose.local.yml`, not the cloud profile. |
-| `/customdim render <dimension> <seed> [lowres\|highres]` | Draws one candidate to a PNG beside its JSON. |
+| `/customdim score <dimension> <seed>` | Measure fresh, then judge against the dimension's own configured intent. Reports inline; writes nothing — the durable record of a (dimension, seed) result is the candidate file the roller writes, not a second copy from this command. |
 | `/customdim spike-compare <dimension> <seed> <count> <span>` | Headless sampler vs the live world, for parity work — zero-tolerance, reports mismatches inline (capped), writes nothing. |
 
 There is no offline checker script to run against these artefacts. `./dev verify` states where each kind of verification lives: worldgen drift is a boot-time WARN (`DimensionFingerprints`), portal state is validated on load (`PortalStateValidator`), and the suppress list is checked with `/customdim lint`. The equivalents of the old Python checkers are JUnit tests under `mods/custom-dimensions/src/test/java/` — `ScorecardDistributionTest` is the one that catches a scoring model going quietly useless (reports the distribution of percentages and names any criterion that returned the same value for every dimension), and `DimensionLintTest` covers the lint findings.

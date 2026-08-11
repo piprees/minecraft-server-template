@@ -64,7 +64,10 @@ The `Updates` workflow (`.github/workflows/update.yml`) does the same thing week
 
 ### Seed rolling
 
-Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
+Seed rolling is a browser tool the mod hosts: `./dev seeds` opens it. Roll candidate
+seeds for any dimension, look at their maps and scores, fly around the best two in a
+throwaway world, and pick one — the chosen seed (and where you were standing) is
+written into the dimension's overlay config.
 
 ### Cache assets for offline use
 

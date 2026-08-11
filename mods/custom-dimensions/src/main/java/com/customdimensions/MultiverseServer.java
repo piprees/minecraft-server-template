@@ -107,6 +107,9 @@ public class MultiverseServer implements DedicatedServerModInitializer {
             // createWorlds so vanilla's overworld border-load can't clobber
             // them (see WorldBorderManager for the syncer trap).
             com.customdimensions.dimension.WorldBorderManager.applyAll(server);
+            // The seed tool's browser talks to this process directly — the
+            // registries, the bank and the live server are all right here.
+            com.customdimensions.web.SeedServer.start(server);
         });
         // Runtime-created dimensions get their border the moment they load.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register(
@@ -161,6 +164,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                         player.getUuid(), player.getName().getString(), origin.getRegistryKey());
             });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+            com.customdimensions.tryout.TryOut.tick(server);
             DimensionManager.getInstance().processPendingWorldLoads();
             DimensionManager.getInstance().reconcileOrphansOnce();
             DimensionManager.getInstance().processPendingWorldUnloads();
@@ -172,9 +176,13 @@ public class MultiverseServer implements DedicatedServerModInitializer {
 
     public static void onServerStarting(MinecraftServer server) {
         StorageHelper.ensureDirectoryAsync(StorageHelper.getDimensionDirectory(server, ""));
+        // Try-out worlds never reach level.dat, so anything left on disk from
+        // a previous run is unreferenced bytes.
+        com.customdimensions.tryout.TryOut.purgeOnStart(server);
     }
 
     public static void onServerStopping(MinecraftServer server) {
+        com.customdimensions.web.SeedServer.stop();
         com.customdimensions.command.LocateManager.getInstance().shutdown();
         StorageHelper.shutdown();
         LOGGER.info("CustomDimensions shutdown complete");
