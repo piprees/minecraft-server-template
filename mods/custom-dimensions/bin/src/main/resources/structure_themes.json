@@ -1,0 +1,1902 @@
+{
+ "adventure:exit_shrines": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "adventuredungeons:bygonedungeon": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:coldlair": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:murkydungeon": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:ruins_desert": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:ruins_snow": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:ruins_standard": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:trialrooms": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "adventuredungeons:underground_camp": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "ati_structures:aboveground_large": {
+  "theme": "landmark",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "ati_structures:aboveground_medium": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "ati_structures:aboveground_small": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "ati_structures:rare": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "ati_structures:underground_medium": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "ati_structures:underground_small": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "betterdeserttemples:desert_temples": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "betterdungeons:skeleton_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "betterdungeons:small_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "betterdungeons:small_nether_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "betterdungeons:spider_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "betterdungeons:zombie_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "betterfortresses:fortress": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "betterjungletemples:jungle_temples": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "bettermineshafts:mineshafts": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "betteroceanmonuments:ocean_monument": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "betterstrongholds:stronghold": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "betterwitchhuts:witch_circle": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "betterwitchhuts:witch_hut": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "ddd:dddtowers": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "ddd:dddungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "dungeons_arise:major_structures": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "dungeons_arise:minor_structures": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "dungeons_plus:dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "dungeons_plus:ruins": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "epic:large_dungeons": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "epic:medium_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "epic:small_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "explorify:badlands_pyramids": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "explorify:black_spirals": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "explorify:campsites": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "explorify:dark_forest_settlements": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "explorify:desert_shrines": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "explorify:end_shipwrecks": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "common"
+ },
+ "explorify:farmsteads": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "explorify:guide_posts": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "explorify:mangrove_huts": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "explorify:mausoleums": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "explorify:ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "explorify:supply_caches": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "uncommon"
+ },
+ "explorify:taverns": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "explorify:watchtowers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "friendsandfoes:citadel": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "friendsandfoes:iceologer_cabin": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "friendsandfoes:illusioner_shack": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "friendsandfoes:illusioner_training_grounds": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "incendium:greater_structures": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "incendium:lesser_structures": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "mes:astral_hideaway": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mes:astral_meteorite": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:ender_spire": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mes:enderbloom_grove": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:enderkeep_courtyard": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mes:enderpin_spikes": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:enderskog": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mes:enderwatch_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mes:endscraps": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:manuscript_shrine": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mes:mega_ship": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mes:mega_ship_basic": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mes:mega_ship_crashed": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mes:mega_ship_crashed_2": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mes:mega_ship_crashed_deepslate": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mes:mega_ship_deepslate": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mes:mega_ship_deepslate_2": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mes:mega_ship_deepslate_3": {
+  "theme": "maritime",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mes:monolith": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mes:mystical_archway": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mes:mythic_garden": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:phantom_citadel": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "mes:placid_prairie": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mes:ruined_pillar": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mes:starlight_voyager": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "minecraft:ancient_cities": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "minecraft:buried_treasures": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "common"
+ },
+ "minecraft:desert_pyramids": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "minecraft:end_cities": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "minecraft:igloos": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "minecraft:jungle_temples": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "minecraft:mineshafts": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "minecraft:nether_complexes": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "minecraft:nether_fossils": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "minecraft:ocean_monuments": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "minecraft:ocean_ruins": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "common"
+ },
+ "minecraft:pillager_outposts": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "minecraft:ruined_portals": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "minecraft:shipwrecks": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "common"
+ },
+ "minecraft:strongholds": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "minecraft:swamp_huts": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "minecraft:trail_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "minecraft:trial_chambers": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "minecraft:villages": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "minecraft:woodland_mansions": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "rare"
+ },
+ "mns:bridge_1": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:bridge_2": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:bridge_3": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:bridge_4": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:bridge_5": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:bridge_6": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:circle_blackstone": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:circle_nether_brick": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:copper_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mns:crimson_forge": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "mns:crimson_lava_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:giant_skull": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mns:grave_yard": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "mns:large_blackstone_pillars": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:large_blackstone_walls": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:large_house_1": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mns:large_nether_brick": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:lava_pool": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:leafy_rubble": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:medium_blackstone": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:medium_crimson_fungus": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:medium_crimson_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:medium_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mns:medium_house_2": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mns:medium_warped_fungus": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:medium_warped_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:mega_arenas": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mns:mega_fortress": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mns:nether_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mns:nether_wart_farm": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mns:ruined_portal": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:sandy_skull": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:shrine": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "mns:small_nether_brick": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:soul_fire": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:sword": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mns:train": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mns:very_small_blackstone": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:very_small_nether_brick": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mns:warped_dome": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mns:warped_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mns:warped_pool": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mss:arena": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mss:birch_river": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:calcite_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mss:castle_ruin": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:castle_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:cherry_river": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mss:desert_pyramid": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mss:desert_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mss:diorite_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mss:frozen_pond": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:jungle": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mss:large_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:leaf_hollow": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:mangrove": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mss:muddy_water_hole": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:mushroom": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:nether_portal": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:palm_island": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:red_sand": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:small_deepslate_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mss:small_oak_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mss:small_pond": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:small_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:spruce_huts": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mss:taiga": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_1": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_2": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_3": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_4": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_5": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_6": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_7": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:tree_8": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mss:volcano": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mss:white_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "mtr:badlands_temple": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mtr:desert_temple": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mtr:jungle_temple": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mtr:nether_temple": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mtr:ocean_temple": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "rare"
+ },
+ "mtr:stronghold": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "mvs:acacia_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:acacia_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:azelea_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:barn": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:beach_bar": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:bee_dome": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:bench": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:big_oak_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:birch_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:birch_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:boulder": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:campsite": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:cart": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:cartographer_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:castle_ruins": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mvs:cathedral": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:cherry_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:crimson_enchanting_table": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "rare"
+ },
+ "mvs:crystal": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:dark_oak_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dark_oak_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:dead_tree_acacia": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_birch": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_cherry": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_dark_oak": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_jungle": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_mangrove": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:dead_tree_oak": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:deepslate_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:desert_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:desert_pump": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:diorite_and_deepslate_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:diorite_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mvs:duck": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:fire_camp": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:floating_islands": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:flower_hole": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:fox_hut": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:gallows": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "mvs:haystack": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:horse_campsite": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "mvs:horse_pen": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:jungle_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:jungle_palm_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:jungle_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:jungle_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:lamp_chest": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "uncommon"
+ },
+ "mvs:large_cart_1": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:large_cart_2": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:large_floating_island": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:large_mushroom": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mvs:large_warped_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mvs:lecturn_garden": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "uncommon"
+ },
+ "mvs:log_ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:medium_bamboo_cart": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:medium_igloo_1": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:medium_oak_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:mine_with_campsite": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:mud_brick_house_1": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:mushroom_pond": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:mushroom_statue": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "mvs:mushroom_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "mvs:nether_devil": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "mvs:nether_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:oak_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:oak_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:ocean_tower": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "mvs:other_wells": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:out_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:paths": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:prismarine_house_1": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:prismarine_house_2": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:railway": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:rare_well": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "mvs:red_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mvs:ruined_beacon": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "rare"
+ },
+ "mvs:shed": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:small_acacia_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_bamboo_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_birch_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_campfire_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_cherry_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_dark_oak_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_igloo": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:small_jungle_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_mangrove_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_oak_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_oak_pond": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:small_pillager_tower": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "mvs:small_ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:small_ship": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "mvs:small_spruce_lantern": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:small_swamp_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:small_tower_well": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "mvs:snowy_dog_hut": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:snowy_fossil": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:spruce_log_pile": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:spruce_tree": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:stalls": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:statue_ruins": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mvs:stone_fountain": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "mvs:stone_pillars": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:stone_rock": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "mvs:sunzi_gate": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mvs:tall_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:tree_monument": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "mvs:villager_statue": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "mvs:warped_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "mvs:wheat_grain_bin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "mvs:windmill": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "mvs:wooden_wheat_farm": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "nova_structures:badlands_miner_outpost": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "nova_structures:badlands_miner_outpost_mineshafts": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "nova_structures:bunker": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "nova_structures:conduit_ruin": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "endgame"
+ },
+ "nova_structures:creeping_crypt": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "nova_structures:deepslate_camp": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "nova_structures:desert_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "nova_structures:end_castle": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "nova_structures:end_lighthouses": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "nova_structures:end_ship": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "nova_structures:firewatch_towers": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "nova_structures:illager_camp": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "nova_structures:illager_hideout": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "nova_structures:jungle_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "nova_structures:mangrove_witch_hut": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "nova_structures:nether_camps": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "nova_structures:nether_skeleton_towers": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "nova_structures:nether_structures": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "endgame"
+ },
+ "nova_structures:remnants": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "nova_structures:ruin_town": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "nova_structures:shrine_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "nova_structures:shrines": {
+  "theme": "loot",
+  "group": "loot",
+  "rarity": "rare"
+ },
+ "nova_structures:stray_fort": {
+  "theme": "dungeon",
+  "group": "endgame",
+  "rarity": "endgame"
+ },
+ "nova_structures:swamp_structure": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "nova_structures:taverns": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "nova_structures:trident_trial_monument": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "nova_structures:undead_crypt": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "nova_structures:underground_house": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "nova_structures:villages_birch": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "nova_structures:villages_jungle": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "nova_structures:villages_swamp": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "nova_structures:wells": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "nova_structures:wild_ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "nullscape:dragon_skeleton": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "nullscape:rift": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "paradise_lost:aurel_tower": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "paradise_lost:birdcage": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "paradise_lost:palace": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "paradise_lost:remains": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "paradise_lost:vault": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "philipsruins:ancient_crypt": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "philipsruins:ancient_dungeon": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "philipsruins:ancient_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "philipsruins:ancient_towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "philipsruins:antiquus_crypta": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "philipsruins:desert_structures": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "philipsruins:end_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "philipsruins:field_stone_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "philipsruins:field_stone_ruins_rocks": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "philipsruins:level_one_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "philipsruins:level_three_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "philipsruins:level_two_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "philipsruins:lost_soul_city": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "philipsruins:nether_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "philipsruins:nether_structures": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "philipsruins:ocean_fortress_main": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "philipsruins:ocean_ruins": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "rare"
+ },
+ "philipsruins:pumpkin_ruins": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "rare"
+ },
+ "philipsruins:rare_ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "endgame"
+ },
+ "philipsruins:underground_structures": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "structory:mid_rare_ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "structory:old_manor": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "structory:outcast_villager": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "structory:ruin": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "structory:ruin_quiet": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "structory_towers:end_towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "endgame"
+ },
+ "structory_towers:nether_towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "structory_towers:rare_towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "structory_towers:towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "structory_towers:ultra_rare_towers": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "rare"
+ },
+ "supplementaries:galleons": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "uncommon"
+ },
+ "supplementaries:road_signs": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "common"
+ },
+ "terralith:mage": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "terralith:rare_dungeon": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "terralith:rare_village": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "terralith:regular": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "terralith:rubble": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "terralith:underground": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "terralith:underground_dungeon": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "towns_and_towers:other": {
+  "theme": "deco",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "towns_and_towers:towers": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "rare"
+ },
+ "towns_and_towers:towns": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ }
+}

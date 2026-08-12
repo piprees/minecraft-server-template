@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:lime_wool",
+    "minecraft:lime_concrete",
+    "minecraft:lime_concrete_powder",
+    "minecraft:lime_terracotta",
+    "minecraft:lime_glazed_terracotta",
+    "minecraft:lime_stained_glass"
+  ]
+}

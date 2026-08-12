@@ -1,0 +1,15 @@
+{
+  "name": "adventure:exit_shrine/shrine",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "adventure:exit_shrine/shrine_ruin",
+        "processors": "minecraft:empty",
+        "projection": "rigid"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+ "type": "minecraft:clamp",
+ "input": {
+  "type": "minecraft:mul",
+  "argument1": 10.0,
+  "argument2": {
+   "type": "minecraft:add",
+   "argument1": "adventure:compressed/tectonic/depth",
+   "argument2": {
+    "type": "minecraft:mul",
+    "argument1": -1,
+    "argument2": 0.1
+   }
+  }
+ },
+ "min": 0,
+ "max": 1
+}

@@ -1,0 +1,5 @@
+{
+ "type": "minecraft:add",
+ "argument1": "adventure:wide/tectonic/noise/full_continents",
+ "argument2": 0
+}

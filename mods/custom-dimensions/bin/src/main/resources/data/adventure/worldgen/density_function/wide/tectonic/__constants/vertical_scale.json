@@ -1,0 +1,12 @@
+{
+ "type": "minecraft:add",
+ "argument1": {
+  "type": "minecraft:mul",
+  "argument1": 0.3,
+  "argument2": {
+   "type": "minecraft:square",
+   "argument": "adventure:wide/tectonic/terrain_spline/offset/continents"
+  }
+ },
+ "argument2": 1.0
+}
