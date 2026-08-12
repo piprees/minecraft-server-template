@@ -158,10 +158,17 @@
     }
     // Fewer drawn than selected is normal — a site outside the rendered area
     // is dropped rather than clamped to the edge, which would put it
-    // somewhere it is not.
-    el.textContent = drawn === total
-      ? drawn + ' sites'
-      : drawn + ' of ' + total + ' sites on this view'
+    // somewhere it is not. But NONE drawn while sites exist reads as a broken
+    // selection, so that case says where they went and how to see them.
+    el.classList.toggle('ef-note-loud', drawn === 0 && total > 0)
+    if (drawn === 0 && total > 0) {
+      el.textContent = 'all ' + total + ' sites are outside this view — switch to the '
+        + 'whole-world map to see them'
+    } else {
+      el.textContent = drawn === total
+        ? drawn + ' sites'
+        : drawn + ' of ' + total + ' sites on this view'
+    }
   }
 
   // -------------------------------------------------------------- the panel

@@ -144,3 +144,19 @@
   color: #cbd5e1;
   border-radius: 4px;
 }
+
+/* A selection that draws nothing looks broken. When every site is off-view,
+   the note is the only thing distinguishing that from a bug. */
+#lightbox .lb-image .ef-marker-note.ef-note-loud {
+  left: 50%;
+  right: auto;
+  bottom: 50%;
+  transform: translate(-50%, 50%);
+  max-width: 70%;
+  text-align: center;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: rgba(8, 10, 14, 0.88);
+  border: 1px solid var(--action, #5b8dd0);
+  color: #e6e8ec;
+}

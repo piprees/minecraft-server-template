@@ -513,7 +513,7 @@ public final class FactsEngine {
         java.util.Set<String> wanted = NoisePoolBuilder.wantedStructureIds(def);
         List<RegistryEntry<StructureSet>> sets = new ArrayList<>();
         for (var e : setRegistry.getIndexedEntries()) {
-            if (survivesVanillaPrefilter(e, dimensionBiomes, wanted)) {
+            if (NoisePoolBuilder.survivesVanillaPrefilter(e, dimensionBiomes, wanted)) {
                 sets.add(e);
             }
         }
@@ -627,59 +627,6 @@ public final class FactsEngine {
                 ? Measured.absent("no group has two placements, so no group has a spacing "
                         + "to characterise")
                 : Measured.of(out);
-    }
-
-    /**
-     * Whether a set would survive vanilla's biome prefilter — at least one of
-     * its structures can generate in one of this dimension's biomes — or is
-     * re-admitted because it carries a wanted structure.
-     */
-    private static boolean survivesVanillaPrefilter(
-            RegistryEntry<StructureSet> entry, java.util.Set<Identifier> dimensionBiomes,
-            java.util.Set<String> wanted) {
-        for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
-            String id = weighted.structure().getKey()
-                    .map(k -> k.getValue().toString()).orElse(null);
-            if (id != null && wanted.contains(id)) {
-                return true;
-            }
-            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Vanilla's own prefilter test: does this structure list a biome the
-     * source produces?
-     *
-     * <p>NOT {@code biomeAffinity > 0}, and the difference is the whole of a
-     * parity failure. Affinity answers 1.0 for a structure with NO valid
-     * biomes at all, on the reading "no predicate, so it generates anywhere" —
-     * which is right for weighting a structure already in a pool. Vanilla's
-     * filter is an {@code anyMatch} over the list, and an empty list matches
-     * nothing, so it drops the set: a structure with no biome list of its own
-     * survives affinity but fails this prefilter.
-     */
-    private static boolean intersectsBiomes(
-            RegistryEntry<net.minecraft.world.gen.structure.Structure> structure,
-            java.util.Set<Identifier> dimensionBiomes) {
-        if (dimensionBiomes.isEmpty()) {
-            return true;   // biome source undeterminable: filter nothing
-        }
-        try {
-            for (RegistryEntry<net.minecraft.world.biome.Biome> biome
-                    : structure.value().getValidBiomes()) {
-                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
-                if (id != null && dimensionBiomes.contains(id)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            return true;   // a broken structure is not ours to fail on
-        }
-        return false;
     }
 
     private static SeedFacts.StructureFacts absentStructures(String why) {

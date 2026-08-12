@@ -81,14 +81,13 @@ points `.stack/current` at it.
 
 - `./dev` then reads the platform checkout's configs and scripts directly —
   an edit in the repo is live on the next `./dev up`.
-- `local-mods/` is populated by **copying** the checkout's built jars at the
-  moment `link` runs — it is a snapshot, not a symlink. So `./dev up` installs
-  whatever was built when you last linked, and every rebuild after that makes
-  it staler. `link` inverts trap #2 below only for the build that was on disk
-  at link time; for an edit-build-test loop it re-arms it with an older jar.
-  Re-run `./dev link` after every build, or copy your jar straight into
-  `data/mods/` under the same filename (`ls data/mods | grep <modid>` must
-  return one line).
+- `link` is run ONCE per consumer. `config`, `scripts`, `examples` and the
+  compose files are symlinks, so a checkout edit is live immediately;
+  `local-mods/` is a `cp` taken at link time, so it does NOT track rebuilds.
+- **Never `./dev up` in an edit-build-test loop.** Copy your jar into
+  `data/mods/` under the same filename and `docker restart mc`
+  (`ls data/mods | grep <modid>` must return one line). `./dev update`
+  repoints `.stack/current` at a release and undoes the link.
 - `readlink .stack/current` answering `dev` is the tell that a consumer is on
   a checkout, not a release — `./dev up` prints a loud LINKED banner while
   active. Run `./dev unlink` before trusting any "works on the shipped

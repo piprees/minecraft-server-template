@@ -304,6 +304,66 @@ public final class NoisePoolBuilder {
         return matched / (double) total;
     }
 
+    /**
+     * Whether a set survives vanilla's biome prefilter — at least one of its
+     * structures can generate in one of this dimension's biomes — or is
+     * re-admitted because it carries a wanted structure.
+     *
+     * <p>{@code StructurePlacementCalculator.create} drops such a set BEFORE
+     * this builder ever sees it, so a live world's pool is built from a
+     * prefiltered list. Anything reproducing a live pool headlessly must apply
+     * this first: skipping it yields a strict superset whose extra structures
+     * take probability mass a live world would never give them. Positions are
+     * unaffected; the weighted PICK is not.
+     *
+     * <p>One definition, called by the facts engine and by the census — a
+     * second copy would drift and the drift would look like a working pool.
+     */
+    public static boolean survivesVanillaPrefilter(RegistryEntry<StructureSet> entry,
+                                                   Set<Identifier> dimensionBiomes,
+                                                   Set<String> wanted) {
+        for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+            String id = weighted.structure().getKey()
+                    .map(k -> k.getValue().toString()).orElse(null);
+            if (id != null && wanted.contains(id)) {
+                return true;
+            }
+            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Vanilla's own prefilter test: does this structure list a biome the source
+     * produces?
+     *
+     * <p>NOT {@code biomeAffinity > 0}, and the difference is the whole of a
+     * parity failure. Affinity answers 1.0 for a structure with NO valid biomes
+     * at all, on the reading "no predicate, so it generates anywhere" — right
+     * for weighting a structure already in a pool. Vanilla's filter is an
+     * {@code anyMatch} over the list, and an empty list matches nothing, so it
+     * drops the set.
+     */
+    public static boolean intersectsBiomes(RegistryEntry<Structure> structure,
+                                           Set<Identifier> dimensionBiomes) {
+        if (dimensionBiomes.isEmpty()) {
+            return true;   // biome source undeterminable: filter nothing
+        }
+        try {
+            for (RegistryEntry<Biome> biome : structure.value().getValidBiomes()) {
+                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
+                if (id != null && dimensionBiomes.contains(id)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return true;   // a broken structure is not ours to fail on
+        }
+        return false;
+    }
+
     /** Biome ids the dimension's source can produce. Empty if undeterminable. */
     public static Set<Identifier> biomeIds(BiomeSource biomeSource) {
         Set<Identifier> out = new HashSet<>();

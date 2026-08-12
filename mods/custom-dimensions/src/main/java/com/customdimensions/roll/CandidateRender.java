@@ -800,7 +800,7 @@ public final class CandidateRender {
         List<net.minecraft.registry.entry.RegistryEntry<
                 net.minecraft.structure.StructureSet>> sets = new ArrayList<>();
         for (var e : setRegistry.getIndexedEntries()) {
-            if (survivesVanillaPrefilter(e, dimensionBiomes, wanted)) {
+            if (NoisePoolBuilder.survivesVanillaPrefilter(e, dimensionBiomes, wanted)) {
                 sets.add(e);
             }
         }
@@ -843,53 +843,6 @@ public final class CandidateRender {
         return HOSTILE_GROUPS.contains(group);
     }
 
-    /**
-     * Whether a set survives vanilla's biome prefilter — at least one of its
-     * structures can generate in one of this dimension's biomes — or is
-     * re-admitted because it carries a wanted structure.
-     */
-    private static boolean survivesVanillaPrefilter(
-            net.minecraft.registry.entry.RegistryEntry<
-                    net.minecraft.structure.StructureSet> entry,
-            Set<net.minecraft.util.Identifier> dimensionBiomes, Set<String> wanted) {
-        for (var weighted : entry.value().structures()) {
-            String id = weighted.structure().getKey()
-                    .map(k -> k.getValue().toString()).orElse(null);
-            if (id != null && wanted.contains(id)) {
-                return true;
-            }
-            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Vanilla's prefilter test: does this structure list a biome the source
-     * produces? Not {@code biomeAffinity > 0} — affinity answers 1.0 for a
-     * structure with no valid biomes at all, where vanilla's {@code anyMatch}
-     * over an empty list drops the set.
-     */
-    private static boolean intersectsBiomes(
-            net.minecraft.registry.entry.RegistryEntry<
-                    net.minecraft.world.gen.structure.Structure> structure,
-            Set<net.minecraft.util.Identifier> dimensionBiomes) {
-        if (dimensionBiomes.isEmpty()) {
-            return true;   // biome source undeterminable: filter nothing
-        }
-        try {
-            for (var biome : structure.value().getValidBiomes()) {
-                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
-                if (id != null && dimensionBiomes.contains(id)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            return true;   // a broken structure is not ours to fail on
-        }
-        return false;
-    }
 
     // ---------------------------------------------------------------- write
 

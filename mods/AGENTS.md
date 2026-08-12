@@ -279,12 +279,9 @@ that is simply absent — new endpoints 404, new commands do not parse — while
 jar you just built sits in `data/mods/` looking correct. `ls data/mods | grep
 <modid>` must return exactly one line.
 
-**`./dev link` does not make `./dev up` safe for an iteration loop.** `link`
-builds a symlink farm over the platform checkout, but `local-mods/` is a
-**copy** taken at the moment `link` ran, not a symlink — so `./dev up`
-installs the jar that existed when you linked, and every rebuild after that
-makes it staler. Re-run `./dev link` after each build, or copy straight into
-`data/mods/` under the same filename.
+**`./dev link` is run once per consumer** and does not make `./dev up` safe
+for an iteration loop: its `local-mods/` is a `cp` taken at link time and does
+not track rebuilds. Copy straight into `data/mods/` under the same filename.
 
 ```bash
 cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>-<version>.jar
