@@ -180,6 +180,13 @@ public final class BankView {
                 copyAs(spawn.getAsJsonObject(), out, "x", "spawnX");
                 copyAs(spawn.getAsJsonObject(), out, "z", "spawnZ");
             }
+            // Distances are measured from spawn, so the page needs one even
+            // where the measurement recorded no spawn column.
+            int[] configured = def.getSpawn();
+            if (!out.has("spawnX") && configured != null && configured.length >= 3) {
+                out.addProperty("spawnX", configured[0]);
+                out.addProperty("spawnZ", configured[2]);
+            }
             return out + "\n";
         } catch (IOException | RuntimeException e) {
             return "{\"ok\": false, \"error\": " + Json.quote("census unreadable: " + e) + "}\n";
@@ -207,18 +214,29 @@ public final class BankView {
                 return groups;
             }
             int radius = Math.max(1, def.getPlayerBorderRadius());
-            for (Map.Entry<String, List<long[]>> e
+            int[] spawn = def.getSpawn();
+            long sx = spawn != null && spawn.length >= 3 ? spawn[0] : 0;
+            long sz = spawn != null && spawn.length >= 3 ? spawn[2] : 0;
+            for (Map.Entry<String, List<CandidateRender.Site>> e
                     : CandidateRender.structurePositions(server, def, base, seed, radius).entrySet()) {
                 com.google.gson.JsonArray points = new com.google.gson.JsonArray();
-                for (long[] p : e.getValue()) {
+                double nearest = Double.MAX_VALUE;
+                for (CandidateRender.Site p : e.getValue()) {
                     com.google.gson.JsonArray xz = new com.google.gson.JsonArray();
-                    xz.add(p[0]);
-                    xz.add(p[1]);
+                    xz.add(p.x());
+                    xz.add(p.z());
+                    xz.add(p.structureId());
                     points.add(xz);
+                    double dx = p.x() - sx;
+                    double dz = p.z() - sz;
+                    nearest = Math.min(nearest, Math.sqrt(dx * dx + dz * dz));
                 }
                 com.google.gson.JsonObject group = new com.google.gson.JsonObject();
                 group.add("positions", points);
                 group.addProperty("hostile", CandidateRender.isHostileGroup(e.getKey()));
+                if (nearest < Double.MAX_VALUE) {
+                    group.addProperty("nearestBlocks", nearest);
+                }
                 groups.add(e.getKey(), group);
             }
         } catch (RuntimeException ex) {

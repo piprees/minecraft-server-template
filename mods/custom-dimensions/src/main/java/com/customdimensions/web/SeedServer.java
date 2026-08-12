@@ -186,10 +186,10 @@ public final class SeedServer {
             sendJson(exchange, "{\"error\": \"no configured dimension " + escape(slug) + "\"}");
             return;
         }
-        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        net.minecraft.server.network.ServerPlayerEntity player = driver(minecraftServer);
         if (player == null) {
             sendJson(exchange, "{\"error\": \"join the server first — a try-out is a place you fly "
-                    + "around in, so it needs exactly one player online\"}");
+                    + "around in, so somebody has to be online to fly\"}");
             return;
         }
         net.minecraft.util.Identifier worldId = com.customdimensions.tryout.TryOut.request(
@@ -208,7 +208,7 @@ public final class SeedServer {
 
     private static void tryOutBack(MinecraftServer minecraftServer, HttpExchange exchange)
             throws IOException {
-        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        net.minecraft.server.network.ServerPlayerEntity player = driver(minecraftServer);
         if (player == null) {
             sendJson(exchange, "{\"error\": \"no player online\"}");
             return;
@@ -219,7 +219,7 @@ public final class SeedServer {
 
     /** Which try-outs are live, and which one the player is standing in. */
     private static String tryOutStatus(MinecraftServer minecraftServer) {
-        net.minecraft.server.network.ServerPlayerEntity player = solePlayer(minecraftServer);
+        net.minecraft.server.network.ServerPlayerEntity player = driver(minecraftServer);
         String inside = "";
         if (player != null) {
             String world = player.getWorld().getRegistryKey().getValue().toString();
@@ -230,6 +230,8 @@ public final class SeedServer {
         StringBuilder b = new StringBuilder("{\"player\": ")
                 .append(com.customdimensions.facts.Json.quote(
                         player == null ? "" : player.getName().getString()))
+                .append(", \"online\": ")
+                .append(minecraftServer.getPlayerManager().getPlayerList().size())
                 .append(", \"inside\": ").append(com.customdimensions.facts.Json.quote(inside))
                 .append(", \"sessions\": [");
         List<com.customdimensions.tryout.TryOut.Session> sessions =
@@ -265,13 +267,14 @@ public final class SeedServer {
     }
 
     /**
-     * One candidate's structure census, straight out of the file the roll
-     * wrote. Counts per structure and the distance to the nearest of each —
-     * what the modal's facts panel reads.
+     * One candidate's structure census — what the modal's structures panel
+     * reads. Counts and nearest distances come straight out of the file the
+     * roll wrote; the per-site positions and their assigned structure ids are
+     * recomputed, because the bank stores no coordinate per placement.
      *
-     * <p>No per-position coordinates: the bank stores counts and distances,
-     * not a list of every placement, so this answers with what was actually
-     * measured rather than inventing the rest.
+     * <p>The recomputation is exact, not an estimate: same prefiltered set
+     * list, same pool, same seed and same weighted pick the measurement used,
+     * so every id and count here equals the banked {@code byStructure}.
      */
     private static void census(MinecraftServer minecraftServer, HttpExchange exchange, String rest)
             throws IOException {
@@ -305,14 +308,29 @@ public final class SeedServer {
     }
 
     /**
-     * The one person using this tool. Several players online is ambiguous
-     * rather than harmless: teleporting the wrong one into a throwaway world
-     * is not something to guess at.
+     * The person driving this tool.
+     *
+     * <p>Refusing unless EXACTLY one player is connected made the button
+     * unusable whenever anything else held a connection — a Carpet fake
+     * player left over from a test does, and this repo's own notes say those
+     * survive every attempt to remove them short of an {@code mc} restart. A
+     * player already standing in a try-out is unambiguously the driver;
+     * otherwise the first connected one is, and {@link #tryOutStatus} names
+     * whoever was chosen so it is never a silent guess.
      */
-    private static net.minecraft.server.network.ServerPlayerEntity solePlayer(MinecraftServer server) {
+    private static net.minecraft.server.network.ServerPlayerEntity driver(MinecraftServer server) {
         List<net.minecraft.server.network.ServerPlayerEntity> players =
                 server.getPlayerManager().getPlayerList();
-        return players.size() == 1 ? players.get(0) : null;
+        if (players.isEmpty()) {
+            return null;
+        }
+        for (net.minecraft.server.network.ServerPlayerEntity p : players) {
+            if (p.getWorld().getRegistryKey().getValue().getPath()
+                    .startsWith(com.customdimensions.tryout.TryOut.PATH_PREFIX)) {
+                return p;
+            }
+        }
+        return players.get(0);
     }
 
     private static com.google.gson.JsonObject readJson(HttpExchange exchange) throws IOException {

@@ -8,10 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The maths behind a render, pinned with synthetic input and no Minecraft
- * Bootstrap: colour blending, the height a climate point implies, where a
- * world's void begins, the local relief shading, and the grid/world
- * coordinate transform. {@code render} itself — the Fabric-dependent half —
- * is exercised live (mods/AGENTS.md's verification loop).
+ * Bootstrap: colour blending, the height a climate point implies, the local
+ * relief shading, and the grid/world coordinate transform. Finding the ground
+ * where depth cannot describe it is {@link TerrainShapeTest}. {@code render}
+ * itself — the Fabric-dependent half — is exercised live (mods/AGENTS.md's
+ * verification loop).
  */
 class CandidateRenderTest {
 

@@ -46,11 +46,17 @@ public final class ScoreCommands {
         Scorecard card = Scorer.score(facts, def, Criteria.all());
 
         Double pct = card.percentage();
+        // The verdict alone cannot be acted on: REJECTED and INVALID_CONFIG
+        // both name the gate or the config fault in verdictReason, and that is
+        // the only place a roll's rejection reason survives — the bank records
+        // rejected seeds without one.
+        String reason = card.verdictReason() == null || card.verdictReason().isBlank()
+                ? "" : " — " + card.verdictReason();
         final String msg = String.format(Locale.ROOT,
-                "score %s seed=%d: %s%s (%.1f/%.1f)",
+                "score %s seed=%d: %s%s (%.1f/%.1f)%s",
                 dimensionId, seed, card.verdict(),
                 pct == null ? "" : String.format(Locale.ROOT, " %.1f%%", pct),
-                card.achieved(), card.ceiling());
+                card.achieved(), card.ceiling(), reason);
         source.sendFeedback(() -> Text.literal(msg), false);
         return pct == null ? 0 : (int) Math.round(pct);
     }

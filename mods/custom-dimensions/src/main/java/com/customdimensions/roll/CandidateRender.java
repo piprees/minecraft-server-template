@@ -8,6 +8,7 @@ import com.customdimensions.dimension.DimensionStructures;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.NoiseStructurePlacement;
+import com.customdimensions.dimension.StructurePick;
 import com.customdimensions.facts.SeedFacts;
 import com.customdimensions.facts.SeedFactsCodec;
 import com.google.gson.JsonObject;
@@ -20,7 +21,13 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeEffects;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.chunk.GenerationShapeConfig;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
+import net.minecraft.world.gen.densityfunction.DensityFunction;
+import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
+import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.world.gen.noise.NoiseRouter;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -144,15 +151,20 @@ public final class CandidateRender {
     private static final int CONTOUR_INTERVAL = 20;
 
     /**
+     * Columns the depth calibration probes before the map is drawn. Ninety-six
+     * costs under two hundred density samples once per render — nothing beside
+     * the picture itself — and is enough that a coastline or two disagreeing
+     * cannot flip the verdict.
+     */
+    private static final int CALIBRATION_COLUMNS = 96;
+
+    /**
      * Cores a single render fans out over. Fixed rather than a fraction of
      * the machine: the roller takes what is left, so the two shares are
      * stated once in {@link com.customdimensions.web.RollPipeline} and here
      * rather than each guessing at the other.
      */
     public static final int RENDER_CORES = 8;
-
-    /** The nether's lava sea. Anything under it is lava, not ground. */
-    private static final int NETHER_LAVA_Y = 31;
 
     // Vanilla's map shading: a cell is brighter, level with, or darker than
     // the one to its north, and nothing else. It is what makes a Minecraft
@@ -229,9 +241,6 @@ public final class CandidateRender {
         int pixels = Math.min(coverage, MAX_PIXELS);
         int step = Math.max(BLOCKS_PER_SAMPLE, coverage / pixels);
         int samples = Math.max(1, coverage / step);
-        // Below this, the column is looking down into something rather than
-        // standing on it. The Python renderer drew the same line.
-        int floorBelow = voidFloorFor(def);
 
         int half = samples / 2;
         // The thumbnail is centred on SPAWN, not the origin. A dimension can
@@ -277,6 +286,23 @@ public final class CandidateRender {
         final int floorY = base.heightLimit().getBottomY();
         final int topY = base.heightLimit().getTopY() - 1;
 
+        // The shape half of the router, kept beside the climate half so one
+        // NoiseConfig answers both the biome and where the ground is.
+        ChunkGeneratorSettings shapeSettings = climateAndShape(server, base);
+        TerrainShape.Band band = bandOf(shapeSettings, floorY, topY);
+        boolean depthIsHeight = true;
+        if (shapeSettings != null) {
+            SpikeSampler.Rig probe = shapeRig(server, base, shapeSettings, seed);
+            TerrainShape.Calibration calibration = calibrate(probe, band, coverage, floorY, topY);
+            depthIsHeight = calibration.depthIsHeight();
+            com.customdimensions.MultiverseServer.LOGGER.debug(
+                    "render {} seed={}: depth {} a height ({}/{} columns agreed)",
+                    dimensionId, seed, depthIsHeight ? "is" : "is NOT",
+                    calibration.agreed(), calibration.tested());
+        }
+        final boolean useDepth = depthIsHeight || shapeSettings == null;
+        final ChunkGeneratorSettings shapeSettingsF = shapeSettings;
+
         Map<String, BiomeColors> sharedColors = new java.util.concurrent.ConcurrentHashMap<>();
         java.util.concurrent.atomic.AtomicInteger sampled = new java.util.concurrent.atomic.AtomicInteger();
         java.util.concurrent.atomic.AtomicInteger minH =
@@ -308,7 +334,10 @@ public final class CandidateRender {
                 final int worker = w;
                 final int stride = workers;
                 tasks.add(pool.submit(() -> {
-                    SpikeSampler.Rig own = SpikeSampler.forSeedClimate(server, base, seed);
+                    SpikeSampler.Rig own = shapeSettingsF == null
+                            ? SpikeSampler.forSeedClimate(server, base, seed)
+                            : shapeRig(server, base, shapeSettingsF, seed);
+                    TerrainShape.Density shape = useDepth ? null : finalDensityOf(own);
                     for (int gz = worker; gz < sideF; gz += stride) {
                         for (int gx = 0; gx < sideF; gx++) {
                             int dx = centreXF + gridToWorldOffset(gx, stepF, halfF);
@@ -319,10 +348,9 @@ public final class CandidateRender {
                             if (s.biome() == null) {
                                 continue;
                             }
-                            Integer surface = heightFromDepth(s.climate(), floorY, topY);
-                            if (surface != null && surface < floorBelow) {
-                                surface = null;   // void, lava sea, open sky
-                            }
+                            Integer surface = shape == null
+                                    ? heightFromDepth(s.climate(), floorY, topY)
+                                    : TerrainShape.surfaceY(shape, band, dx, dz);
                             BiomeColors colors = sharedColors.computeIfAbsent(s.biome(), id -> {
                                 BiomeColors c = biomeColors(biomeRegistry, id);
                                 return c == null ? MISSING : c;
@@ -386,24 +414,117 @@ public final class CandidateRender {
     }
 
     /**
-     * The height below which a column is void rather than ground.
+     * The dimension's settings with the climate chains and the final density
+     * kept and everything else zeroed — one {@link NoiseConfig} that answers
+     * both the biome and where the ground is.
      *
-     * <p>An island or end world is mostly nothing, and a nether column below
-     * the lava sea is lava — drawing either as terrain is what made a void
-     * world look solid. Overworld-family dimensions have no such line.
+     * <p>Null for a generator with no settings of its own (a flat or void
+     * fallback), which has no terrain to ask about either.
      */
-    static int voidFloorFor(DimensionConfig def) {
-        String type = def.getType() == null ? "" : def.getType().toLowerCase(java.util.Locale.ROOT);
-        if (type.contains("islands") || type.equals("end") || type.equals("void")) {
-            return 1;
+    private static ChunkGeneratorSettings climateAndShape(MinecraftServer server,
+                                                          SpikeSampler.Base base) {
+        if (!(base.generator() instanceof NoiseChunkGenerator noiseGen)) {
+            return null;
         }
-        if (type.startsWith("nether")) {
-            return NETHER_LAVA_Y;
+        ChunkGeneratorSettings settings = noiseGen.getSettings().value();
+        NoiseRouter r = settings.noiseRouter();
+        DensityFunction zero = DensityFunctionTypes.zero();
+        return new ChunkGeneratorSettings(
+                settings.generationShapeConfig(), settings.defaultBlock(), settings.defaultFluid(),
+                new NoiseRouter(zero, zero, zero, zero,
+                        r.temperature(), r.vegetation(), r.continents(),
+                        r.erosion(), r.depth(), r.ridges(),
+                        zero, r.finalDensity(), zero, zero, zero),
+                settings.surfaceRule(), settings.spawnTarget(), settings.seaLevel(),
+                settings.mobGenerationDisabled(), settings.aquifers(), settings.oreVeins(),
+                settings.usesLegacyRandom());
+    }
+
+    /**
+     * One worker's rig over {@link #climateAndShape} settings. Each worker
+     * builds its own: a {@code NoiseConfig} carries per-seed noise samplers
+     * and nothing promises they are shared safely.
+     */
+    private static SpikeSampler.Rig shapeRig(MinecraftServer server, SpikeSampler.Base base,
+                                             ChunkGeneratorSettings settings, long seed) {
+        var lookup = server.getRegistryManager()
+                .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+        return new SpikeSampler.Rig(base.generator(),
+                NoiseConfig.create(settings, lookup, seed), base.heightLimit(),
+                base.hasCeiling(), base.biomeSourceAcceptsWithSeed(), true, null);
+    }
+
+    /**
+     * The rig's final density as {@link TerrainShape}'s plain seam. Sampling
+     * it outside a {@code ChunkNoiseSampler} is what makes it affordable —
+     * vanilla's own {@code getHeight} rebuilds one of those per column.
+     */
+    private static TerrainShape.Density finalDensityOf(SpikeSampler.Rig rig) {
+        if (rig.noiseConfig() == null) {
+            return null;
         }
-        if (type.contains("paradise_lost")) {
-            return 40;
+        DensityFunction fd = rig.noiseConfig().getNoiseRouter().finalDensity();
+        return (x, y, z) -> fd.sample(new DensityFunction.UnblendedNoisePos(x, y, z));
+    }
+
+    /**
+     * The band terrain can occupy, and the spacing a column through it is
+     * walked at — both read off the generator's own shape config, clipped to
+     * the dimension type's height limit.
+     *
+     * <p>A dimension type is routinely taller than the generator that fills
+     * it (the End's type is 256 blocks and its generator places nothing above
+     * 128), and every worldgen mod in this pack declares its own shape, so
+     * neither number can be assumed.
+     */
+    private static TerrainShape.Band bandOf(ChunkGeneratorSettings settings,
+                                            int floorY, int topY) {
+        if (settings == null) {
+            return new TerrainShape.Band(floorY, topY, 8);
         }
-        return Integer.MIN_VALUE;
+        GenerationShapeConfig shape = settings.generationShapeConfig().trimHeight(
+                new net.minecraft.world.HeightLimitView() {
+                    @Override
+                    public int getHeight() {
+                        return topY - floorY + 1;
+                    }
+
+                    @Override
+                    public int getBottomY() {
+                        return floorY;
+                    }
+                });
+        return new TerrainShape.Band(
+                Math.max(floorY, shape.minimumY()),
+                Math.min(topY, shape.minimumY() + shape.height() - 1),
+                shape.verticalCellBlockCount());
+    }
+
+    /**
+     * Whether {@code 128 * depth} describes this generator's surface, decided
+     * by asking the final density at the height depth claims.
+     *
+     * <p>The columns are the same deterministic off-lattice spread the spike
+     * probes use — a grid-aligned sample would land on the noise lattice,
+     * where Perlin is exactly zero, and agree for the wrong reason.
+     */
+    private static TerrainShape.Calibration calibrate(SpikeSampler.Rig rig, TerrainShape.Band band,
+                                                      int coverage, int floorY, int topY) {
+        TerrainShape.Density shape = finalDensityOf(rig);
+        if (shape == null) {
+            return new TerrainShape.Calibration(0, 0, true);
+        }
+        int[] xs = new int[CALIBRATION_COLUMNS];
+        int[] zs = new int[CALIBRATION_COLUMNS];
+        Integer[] claimed = new Integer[CALIBRATION_COLUMNS];
+        for (int i = 0; i < CALIBRATION_COLUMNS; i++) {
+            int[] at = SpikeSampler.probe(i, Math.max(1, coverage / 2));
+            xs[i] = at[0];
+            zs[i] = at[1];
+            claimed[i] = heightFromDepth(SpikeSampler.sample(rig, at[0], at[1]).climate(),
+                    floorY, topY);
+        }
+        return TerrainShape.calibrate(shape, band, xs, zs, claimed);
     }
 
     /** What this dimension's empty columns are looking down into. */
@@ -631,6 +752,16 @@ public final class CandidateRender {
     private static final Set<String> HOSTILE_GROUPS = Set.of("dungeons", "endgame");
 
     /**
+     * One noise-managed site: where it is, and which structure the pick
+     * assigned there. The id is the real assignment
+     * ({@link com.customdimensions.dimension.StructurePick}), not a guess from
+     * the group — the sidebar names a structure, so it has to be the one that
+     * generates.
+     */
+    public record Site(long x, long z, String structureId) {
+    }
+
+    /**
      * Every noise-managed structure site, block-centred, for groups whose
      * pool actually has something in it — an empty-pool group would draw
      * markers where nothing can ever generate. Mirrors {@code
@@ -645,7 +776,7 @@ public final class CandidateRender {
      * once is an opaque blob rather than a map. Nothing draws these into the
      * PNG; the viewer overlays the group a person selects.
      */
-    public static Map<String, List<long[]>> structurePositions(
+    public static Map<String, List<Site>> structurePositions(
             MinecraftServer server, DimensionConfig def, SpikeSampler.Base base,
             long seed, int radius) {
         NoiseGroupPlan plan = NoiseGroupPlan.resolve(def);
@@ -657,12 +788,28 @@ public final class CandidateRender {
                 def.getStructures() == null ? null : def.getStructures().exclude));
         exclude.addAll(NoisePoolBuilder.lowerSet(
                 MultiverseConfig.getInstance().getSuppressedStructureSets()));
+        // The same prefiltered set list FactsEngine measures from. Positions do
+        // not depend on the pool, but the ASSIGNMENT does — an unfiltered pool
+        // is a strict superset whose extra structures take probability mass a
+        // live world would never give them, and the sidebar would then name a
+        // structure that cannot generate here. The check is a live one: every
+        // id/count in /census must equal the candidate's banked byStructure.
+        Set<net.minecraft.util.Identifier> dimensionBiomes =
+                NoisePoolBuilder.biomeIds(base.generator().getBiomeSource());
+        Set<String> wanted = NoisePoolBuilder.wantedStructureIds(def);
+        List<net.minecraft.registry.entry.RegistryEntry<
+                net.minecraft.structure.StructureSet>> sets = new ArrayList<>();
+        for (var e : setRegistry.getIndexedEntries()) {
+            if (survivesVanillaPrefilter(e, dimensionBiomes, wanted)) {
+                sets.add(e);
+            }
+        }
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
-                def, setRegistry.getIndexedEntries(), base.generator().getBiomeSource(), plan, exclude);
+                def, sets, base.generator().getBiomeSource(), plan, exclude, null, wanted);
 
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
-        Map<String, List<long[]>> byGroup = new java.util.LinkedHashMap<>();
+        Map<String, List<Site>> byGroup = new java.util.LinkedHashMap<>();
         for (var groupEntry : plan.groups().entrySet()) {
             String group = groupEntry.getKey();
             NoiseGroupPlan.Group settings = groupEntry.getValue();
@@ -674,9 +821,18 @@ public final class CandidateRender {
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
                     settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
-            List<long[]> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
+            // Same pool, same sort, same seed as DimensionStructures builds for
+            // the live world, so a site's id here is the one that generates.
+            List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
+            for (var weighted : pool.entries()) {
+                weighted.structure().getKey().ifPresent(key -> pickPool.add(
+                        new StructurePick.PoolEntry(key.getValue().toString(), weighted.weight())));
+            }
+            List<StructurePick.PoolEntry> sorted = StructurePick.sortedPool(pickPool);
+            List<Site> positions = byGroup.computeIfAbsent(group, g -> new ArrayList<>());
             for (ChunkPos pos : placement.index().positions()) {
-                positions.add(new long[]{pos.x * 16L + 8, pos.z * 16L + 8});
+                positions.add(new Site(pos.x * 16L + 8, pos.z * 16L + 8,
+                        StructurePick.assignedStructure(noiseSeed, pos.x, pos.z, sorted)));
             }
         }
         return byGroup;
@@ -685,6 +841,54 @@ public final class CandidateRender {
     /** Whether a group is one the overlays mark as dangerous. */
     public static boolean isHostileGroup(String group) {
         return HOSTILE_GROUPS.contains(group);
+    }
+
+    /**
+     * Whether a set survives vanilla's biome prefilter — at least one of its
+     * structures can generate in one of this dimension's biomes — or is
+     * re-admitted because it carries a wanted structure.
+     */
+    private static boolean survivesVanillaPrefilter(
+            net.minecraft.registry.entry.RegistryEntry<
+                    net.minecraft.structure.StructureSet> entry,
+            Set<net.minecraft.util.Identifier> dimensionBiomes, Set<String> wanted) {
+        for (var weighted : entry.value().structures()) {
+            String id = weighted.structure().getKey()
+                    .map(k -> k.getValue().toString()).orElse(null);
+            if (id != null && wanted.contains(id)) {
+                return true;
+            }
+            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Vanilla's prefilter test: does this structure list a biome the source
+     * produces? Not {@code biomeAffinity > 0} — affinity answers 1.0 for a
+     * structure with no valid biomes at all, where vanilla's {@code anyMatch}
+     * over an empty list drops the set.
+     */
+    private static boolean intersectsBiomes(
+            net.minecraft.registry.entry.RegistryEntry<
+                    net.minecraft.world.gen.structure.Structure> structure,
+            Set<net.minecraft.util.Identifier> dimensionBiomes) {
+        if (dimensionBiomes.isEmpty()) {
+            return true;   // biome source undeterminable: filter nothing
+        }
+        try {
+            for (var biome : structure.value().getValidBiomes()) {
+                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
+                if (id != null && dimensionBiomes.contains(id)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return true;   // a broken structure is not ours to fail on
+        }
+        return false;
     }
 
     // ---------------------------------------------------------------- write

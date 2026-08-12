@@ -279,6 +279,13 @@ that is simply absent — new endpoints 404, new commands do not parse — while
 jar you just built sits in `data/mods/` looking correct. `ls data/mods | grep
 <modid>` must return exactly one line.
 
+**`./dev link` does not make `./dev up` safe for an iteration loop.** `link`
+builds a symlink farm over the platform checkout, but `local-mods/` is a
+**copy** taken at the moment `link` ran, not a symlink — so `./dev up`
+installs the jar that existed when you linked, and every rebuild after that
+makes it staler. Re-run `./dev link` after each build, or copy straight into
+`data/mods/` under the same filename.
+
 ```bash
 cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>-<version>.jar
 docker restart mc && sleep 45
@@ -662,7 +669,7 @@ command. `./dev seeds` opens it.
 | `POST /tryout`, `/tryout/back`, `GET /tryout/status` | Build a throwaway world from a candidate's seed and fly around in it |
 | `POST /pick` | Write the chosen seed (and your standing position as the spawn) into the consumer overlay |
 | `POST /render` | Draw a candidate's map on demand |
-| `GET /census/<dim>/<seed>` | One candidate's structure census — counts, nearest distance, and every noise-managed site's position by group |
+| `GET /census/<dim>/<seed>` | One candidate's structure census — banked counts and nearest distances, plus every noise-managed site as `[x, z, structureId]` by group. The positions and ids are recomputed, not banked, and must stay EXACT: build the pool from the same vanilla biome-prefiltered set list `FactsEngine` uses, or the assignment drifts and the sidebar names structures that cannot generate there. The check is `byStructure` parity against the candidate file |
 
 **Rolling runs on its own thread, not the tick loop.** `FactsEngine` measures
 headlessly, so the server stays playable and RCON keeps answering while a roll
