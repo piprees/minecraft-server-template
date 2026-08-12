@@ -48,9 +48,23 @@ public final class RollPipeline {
     private static final int RECONCILE_EVERY = 5;
 
     /**
-     * Candidates a dimension needs before a roll leaves it alone, matched to
-     * {@link RenderQueue#KEEP} — the board only ever draws that many, so a
-     * eleventh candidate costs seeds and shows nobody anything.
+     * The score a candidate must reach to be worth keeping, as a percentage.
+     *
+     * <p>One definition, read by the roll target here and by the card's
+     * flagged state in {@link ViewerPage} — two numbers would let a board look
+     * full while the roller thought otherwise.
+     */
+    public static final double SCORE_THRESHOLD = 80.0;
+
+    /**
+     * Candidates ABOVE {@link #SCORE_THRESHOLD} a dimension needs before a roll
+     * leaves it alone, matched to {@link RenderQueue#KEEP} — the board only
+     * ever draws that many, so an eleventh costs seeds and shows nobody
+     * anything.
+     *
+     * <p>Counting only the good ones is the point: a board of ten mediocre
+     * candidates is not a choice, and stopping at ten of anything would leave
+     * it that way for good.
      */
     private static final int WANTED = RenderQueue.KEEP;
 
@@ -62,6 +76,8 @@ public final class RollPipeline {
     private static final AtomicBoolean CANCEL = new AtomicBoolean(false);
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
     private static final AtomicInteger TARGET = new AtomicInteger();
+    /** Dimensions this run will visit — what progress is actually measured against. */
+    private static final AtomicInteger DIMENSIONS = new AtomicInteger();
     private static final AtomicInteger ROLLED = new AtomicInteger();
     private static final AtomicInteger SURVEYED = new AtomicInteger();
     private static final AtomicInteger GENERATION = new AtomicInteger();
@@ -87,6 +103,13 @@ public final class RollPipeline {
             return dimension == null ? "nothing rollable in this pack"
                     : "no rollable dimension named " + dimension;
         }
+        // Emptiest first. Workers take from the head of this list, so the
+        // dimensions with nothing to show start immediately rather than
+        // waiting behind eighty others — and a run stopped halfway has spent
+        // its time on the boards that needed it.
+        targets.sort(java.util.Comparator.comparingInt(
+                def -> banked(com.customdimensions.command.InputHash.of(def, server),
+                        def.getDimensionIdentifier().toString())));
         if (!RUNNING.compareAndSet(false, true)) {
             return "a roll is already running";
         }
@@ -96,6 +119,7 @@ public final class RollPipeline {
         // A ceiling, not a plan: a dimension stops at WANTED candidates, so a
         // run that finds them early rolls far fewer seeds than this.
         TARGET.set(count * targets.size());
+        DIMENSIONS.set(targets.size());
         ROLLED.set(0);
         SURVEYED.set(0);
         STAGE.set("rolling");
@@ -223,8 +247,9 @@ public final class RollPipeline {
         if (got < WANTED && !CANCEL.get()) {
             STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + done + " seeds)");
             MultiverseServer.LOGGER.warn(
-                    "roll: {} kept {}/{} candidates from {} seeds — its gates reject nearly "
-                    + "everything", id.getPath(), got, WANTED, done);
+                    "roll: {} kept {}/{} candidates at {}%+ from {} seeds — either its gates "
+                    + "reject nearly everything or nothing it makes scores that well",
+                    id.getPath(), got, WANTED, (int) SCORE_THRESHOLD, done);
         }
         RenderQueue.reconcile(server, def);
         SURVEYED.incrementAndGet();
@@ -233,8 +258,16 @@ public final class RollPipeline {
         GENERATION.incrementAndGet();
     }
 
+    /** Candidates at or above {@link #SCORE_THRESHOLD} — the only ones that count. */
     private static int banked(String hash, String dimension) {
-        return com.customdimensions.roll.SeedBank.leaderboard(hash, dimension).size();
+        int good = 0;
+        for (com.customdimensions.roll.SeedBank.CandidateSummary c
+                : com.customdimensions.roll.SeedBank.leaderboard(hash, dimension)) {
+            if (c.percentage() >= SCORE_THRESHOLD) {
+                good++;
+            }
+        }
+        return good;
     }
 
     /**
@@ -290,6 +323,7 @@ public final class RollPipeline {
         b.append(", \"target\": ").append(TARGET.get());
         b.append(", \"rolled\": ").append(ROLLED.get());
         b.append(", \"surveyed\": ").append(SURVEYED.get());
+        b.append(", \"dimensions\": ").append(DIMENSIONS.get());
         b.append(", \"generation\": ").append(GENERATION.get());
         b.append(", \"stage\": ").append(Json.quote(STAGE.get()));
         b.append(", \"current\": ").append(Json.quote(CURRENT.get()));

@@ -1523,24 +1523,34 @@
           ? 'Stopping after the seeds in flight'
           : running ? 'Stop rolling' : 'Start rolling'
         dimEl.disabled = running
-        if (running && st.target) {
-          // Rolling finishes in seconds; rendering then runs for minutes.
-          // A bar pinned at 100% for that whole tail would read as done,
-          // so it goes indeterminate once there is nothing left to count.
-          var doneRolling = st.rolled >= st.target
+        if (running && st.dimensions) {
+          // Measured in DIMENSIONS, not seeds. Seeds are a budget a run is
+          // meant to come in under — a dimension stops at ten candidates —
+          // so a bar reading rolled/target would sit near empty and then
+          // jump, reporting a finished run as barely started.
+          // Rolling finishes long before rendering does; a bar pinned at
+          // 100% for that tail would read as done, so it goes indeterminate
+          // once there is nothing left to count.
+          var doneRolling = st.surveyed >= st.dimensions
           fillEl.classList.toggle('indeterminate', doneRolling)
           fillEl.style.width = doneRolling
-            ? '' : Math.min(100, st.rolled / st.target * 100) + '%'
+            ? '' : Math.min(100, st.surveyed / st.dimensions * 100) + '%'
           textEl.textContent = doneRolling
             ? st.stage.replace('_', ' ')
-            : st.rolled + '/' + st.target
+            : st.surveyed + '/' + st.dimensions + ' dims · ' + st.rolled + ' seeds'
         }
         // Everything else that used to crowd the bar lives on the status
         // line under it, where it can wrap without reflowing the nav.
         var bits = []
         if (st.backfill) bits.push('enriching bank ' + st.backfill)
         if (st.enriched) bits.push(st.enriched + ' enriched')
-        if (st.surveyed) bits.push(st.surveyed + ' surveyed')
+        // Surveyed is the bar now. A dimension that spent its whole budget
+        // without filling its board is the thing worth the space: it looks
+        // identical to an unlucky one otherwise, and that is how twenty empty
+        // boards went unexplained for hours.
+        if (st.starved && st.starved.length) {
+          bits.push(st.starved.length + ' short of a full board: ' + st.starved.join(', '))
+        }
         // Rendering is its own background lifecycle now, so this line is
         // the only place it is visible — name the dimension and say how
         // much is left rather than just "rendering".

@@ -68,12 +68,12 @@
       <input
         type="number"
         id="roll-count"
-        value="100"
+        value="5000"
         min="1"
         max="100000"
-        step="25"
-        aria-label="Seeds to roll"
-        title="Seeds to roll"
+        step="500"
+        aria-label="Seed budget per dimension"
+        title="Seed budget per dimension — each one stops once it has ten candidates, so a dimension that yields freely costs a fraction of this"
       />
       <span id="roll-progress" hidden>
         <span class="rp-bar"><span id="rp-fill"></span></span>
@@ -94,7 +94,7 @@
 
     <span class="view-toggles">
       <label class="icon-toggle" title="Below threshold only">
-        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;70</b></span></label
+        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;80</b></span></label
       >
       <label class="icon-toggle" title="Shortlisted only">
         <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label

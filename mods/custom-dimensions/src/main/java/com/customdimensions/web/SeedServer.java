@@ -146,7 +146,11 @@ public final class SeedServer {
     private static void startRoll(MinecraftServer minecraftServer, HttpExchange exchange)
             throws IOException {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-        int count = 100;
+        // A per-dimension seed BUDGET, not a plan: a dimension stops at ten
+        // candidates. Five thousand is what gives the worst yields in the pack
+        // — roughly one candidate per 250 seeds — a fair shot at a full board,
+        // while a dimension that yields freely still costs about ten.
+        int count = 5000;
         String dim = null;
         try {
             com.google.gson.JsonObject json = body.isBlank() ? new com.google.gson.JsonObject()
