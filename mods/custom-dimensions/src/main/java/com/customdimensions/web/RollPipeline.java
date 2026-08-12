@@ -47,6 +47,17 @@ public final class RollPipeline {
      */
     private static final int RECONCILE_EVERY = 5;
 
+    /**
+     * Candidates a dimension needs before a roll leaves it alone, matched to
+     * {@link RenderQueue#KEEP} — the board only ever draws that many, so a
+     * eleventh candidate costs seeds and shows nobody anything.
+     */
+    private static final int WANTED = RenderQueue.KEEP;
+
+    /** Dimensions that spent their seeds without reaching {@link #WANTED}. */
+    private static final java.util.Set<String> STARVED =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final AtomicBoolean CANCEL = new AtomicBoolean(false);
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
@@ -81,6 +92,9 @@ public final class RollPipeline {
         }
         CANCEL.set(false);
         ERROR.set("");
+        STARVED.clear();
+        // A ceiling, not a plan: a dimension stops at WANTED candidates, so a
+        // run that finds them early rolls far fewer seeds than this.
         TARGET.set(count * targets.size());
         ROLLED.set(0);
         SURVEYED.set(0);
@@ -160,12 +174,34 @@ public final class RollPipeline {
         }
     }
 
+    /**
+     * Rolls one dimension until it holds {@link #WANTED} candidates, or its
+     * share of seeds runs out.
+     *
+     * <p>Seeds go where they are NEEDED, not equally. Yields differ by two
+     * orders of magnitude across the pack — {@code the_burning_archipelago}
+     * banks a candidate from nearly every seed while {@code the_abyssal_shrine}
+     * clears its gates about once in 250 — so an equal split spends most of a
+     * run topping up boards that were already full and leaves the empty ones
+     * empty. A dimension that already has enough is skipped outright.
+     *
+     * <p>{@code count} is the per-dimension seed budget, which is what bounds
+     * a dimension whose gates reject nearly everything: it stops, and
+     * {@link #STARVED} records that it stopped short so the page can say so
+     * rather than looking merely unlucky.
+     */
     private static void rollOne(MinecraftServer server, DimensionConfig def, int count) {
         Identifier id = def.getDimensionIdentifier();
+        String hash = com.customdimensions.command.InputHash.of(def, server);
+        String dimension = id.toString();
+        if (banked(hash, dimension) >= WANTED) {
+            SURVEYED.incrementAndGet();
+            return;
+        }
         CURRENT.set(id.getPath());
         STAGE.set("rolling " + id.getPath());
         int done = 0;
-        while (done < count && !CANCEL.get()) {
+        while (done < count && !CANCEL.get() && banked(hash, dimension) < WANTED) {
             int batch = Math.min(BATCH, count - done);
             try {
                 Roller.rollDimension(server, id, def, batch);
@@ -183,11 +219,22 @@ public final class RollPipeline {
                 RenderQueue.reconcile(server, def);
             }
         }
+        int got = banked(hash, dimension);
+        if (got < WANTED && !CANCEL.get()) {
+            STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + done + " seeds)");
+            MultiverseServer.LOGGER.warn(
+                    "roll: {} kept {}/{} candidates from {} seeds — its gates reject nearly "
+                    + "everything", id.getPath(), got, WANTED, done);
+        }
         RenderQueue.reconcile(server, def);
         SURVEYED.incrementAndGet();
         // Each finished dimension is a new thing to look at, so the page is
         // told to refresh now rather than at the end of the run.
         GENERATION.incrementAndGet();
+    }
+
+    private static int banked(String hash, String dimension) {
+        return com.customdimensions.roll.SeedBank.leaderboard(hash, dimension).size();
     }
 
     /**
@@ -252,6 +299,15 @@ public final class RollPipeline {
         b.append(", \"thumbnails_pending\": ").append(RenderQueue.thumbnailsPending());
         b.append(", \"rendering_low\": [").append(RenderQueue.current().isEmpty()
                 ? "" : Json.quote(RenderQueue.current())).append("]");
+        // Named, not counted: "12 dimensions came up short" is not something
+        // anyone can act on, and a dimension that never yields a candidate is
+        // the one thing a roll must not report as merely finished.
+        b.append(", \"starved\": [");
+        int i = 0;
+        for (String s : STARVED) {
+            b.append(i++ > 0 ? ", " : "").append(Json.quote(s));
+        }
+        b.append("]");
         b.append(", \"error\": ").append(Json.quote(ERROR.get()));
         return b.append("}\n").toString();
     }
