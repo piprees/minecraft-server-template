@@ -672,6 +672,10 @@ public final class Criteria {
             return true;
         }
 
+        public double[] band(DimensionConfig def) {
+            return new double[] {0.0, WITHIN_BLOCKS};
+        }
+
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
             return reachabilityGate(facts, STRUCTURE, WITHIN_BLOCKS);
         }
@@ -705,6 +709,10 @@ public final class Criteria {
 
         public boolean gate() {
             return true;
+        }
+
+        public double[] band(DimensionConfig def) {
+            return new double[] {0.0, WITHIN_BLOCKS};
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {

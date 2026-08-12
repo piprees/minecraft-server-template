@@ -74,19 +74,25 @@ public final class Scorer {
                         + ": " + e.getMessage());
             }
 
+            // A gate's band comes from the criterion, not the result: Pass and
+            // Fail carry no band, and a reachability floor is exactly the kind
+            // of radius the map should draw.
+            double[] declared = safeBand(c, def);
+
             if (r instanceof Criterion.Result.Pass p) {
                 entries.add(new Scorecard.Entry(c.id(), c.group(), target,
-                        "pass", null, p.evidence()));
+                        "pass", null, p.evidence(), declared));
             } else if (r instanceof Criterion.Result.Fail f) {
                 entries.add(new Scorecard.Entry(c.id(), c.group(), target,
-                        "fail", null, f.reason() + " (" + f.evidence() + ")"));
+                        "fail", null, f.reason() + " (" + f.evidence() + ")", declared));
                 if (failedGate == null) {
                     failedGate = c.id();
                     failedGateReason = f.reason();
                 }
             } else if (r instanceof Criterion.Result.Score s) {
                 entries.add(new Scorecard.Entry(c.id(), c.group(), target,
-                        "score", s.value(), s.evidence(), s.band()));
+                        "score", s.value(), s.evidence(),
+                        s.band() != null ? s.band() : declared));
                 achieved += s.value();
                 ceiling += 1.0;
                 graded++;
@@ -173,6 +179,16 @@ public final class Scorer {
             // A criterion that cannot decide whether it applies is applicable:
             // the alternative silently removes marks from the denominator.
             return true;
+        }
+    }
+
+    /** A criterion that cannot state its band has none — never a guessed radius. */
+    private static double[] safeBand(Criterion c, DimensionConfig def) {
+        try {
+            double[] b = c.band(def);
+            return b != null && b.length == 2 ? b : null;
+        } catch (RuntimeException e) {
+            return null;
         }
     }
 

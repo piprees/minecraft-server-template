@@ -63,6 +63,23 @@ public interface Criterion {
         return false;
     }
 
+    /**
+     * The range this criterion wants, in BLOCKS from spawn, or null where its
+     * question is not a distance.
+     *
+     * <p>Declared on the criterion rather than carried on a result, because a
+     * GATE answers {@link Result.Pass}/{@link Result.Fail} and neither holds a
+     * band — yet "a fortress within 512 blocks" is exactly the kind of radius
+     * the map should draw. A graded criterion may still supply a per-seed band
+     * on its {@link Result.Score}, which wins over this one.
+     *
+     * <p>A fraction, a density and a clustering figure have no radius. Leave
+     * them null rather than inventing a plausible one.
+     */
+    default double[] band(DimensionConfig def) {
+        return null;
+    }
+
     /** Judge one seed. Must not throw: an error is an {@link Result.NotApplicable}. */
     Result evaluate(SeedFacts facts, DimensionConfig def);
 
