@@ -697,13 +697,39 @@ thumbnails-everywhere before detail-anywhere, and a seed pushed off the
 shortlist has its files deleted. Eight cores to the renderer, the rest to the
 roller.
 
-**Maps are drawn from the CLIMATE point, not the terrain router.** vanilla's
+Priority alone is not enough, because it only decides what is taken NEXT.
+With one consumer a detail map already running holds the cores for minutes,
+so a detail render ABANDONS itself the moment any thumbnail is owed and
+re-queues at the back of its own class, writing nothing on the way out. It
+cannot livelock: it is only taken when no thumbnail is queued, which is
+exactly when its abandon condition is false. `pipeline-status` splits
+`thumbnails_pending` from `render_pending` so the invariant is observable.
+
+**A roll allocates by NEED, not equally.** Yields differ by two orders of
+magnitude across the pack, so an equal split spends most of a run topping up
+boards that were already full. A dimension stops once it holds
+`RenderQueue.KEEP` candidates at or above `RollPipeline.SCORE_THRESHOLD`,
+one already there is skipped without spending a seed, and targets are sorted
+emptiest-first. `count` is the per-dimension seed BUDGET (default 5000), not
+a plan. A dimension that spends it without filling its board is NAMED in
+`pipeline-status.starved` — it previously reported "done" and looked merely
+unlucky, which is how twenty empty boards went unexplained.
+
+**A map asks the climate point where it can, and the density function where
+it cannot.** `surface_Y = 128 * depth` is the relation `customdim
+sample-noise` documents as ground truth, and it is cheap — vanilla's
 `getHeight` rebuilds a `ChunkNoiseSampler` per column, which made one map
-minutes of work; `surface_Y = 128 * depth` is the relation `customdim
-sample-noise` documents as ground truth, and depth has no roof problem — the
-heightmap reading a nether ceiling is what once forced ceilinged worlds down
-a column scan. Void is a threshold per family, not a probe. Measured: a
-2048px map is 2s for a 1024-radius world, 8s for an 8192 one.
+minutes of work. But depth is a CONSTANT in the End's router and the
+Nether's, so that product is one height for every column in the world: it
+rendered an island world as solid ground with holes in it, and every pre-fix
+End thumbnail was a uniform 1880-byte fill.
+
+`roll/TerrainShape` walks the generator's own final density down a column on
+its `verticalCellBlockCount` rung, and `TerrainShape.calibrate` decides PER
+DIMENSION AND SEED whether depth describes that generator at all — measured
+at render time, never a list of family names, so no family needs a special
+case. Measured: a 2048px map is 2s for a 1024-radius world, 8s for an 8192
+one.
 
 **Nothing is drawn over the terrain in the PNG.** Structure markers, the
 spawn dot and the border ring all lived in the pixels once and made a
