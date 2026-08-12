@@ -247,6 +247,9 @@ public final class RollPipeline {
         b.append(", \"stage\": ").append(Json.quote(STAGE.get()));
         b.append(", \"current\": ").append(Json.quote(CURRENT.get()));
         b.append(", \"render_pending\": ").append(RenderQueue.pending());
+        // Split out because the two are not interchangeable: thumbnails are
+        // what makes the page reviewable, and a detail render yields to them.
+        b.append(", \"thumbnails_pending\": ").append(RenderQueue.thumbnailsPending());
         b.append(", \"rendering_low\": [").append(RenderQueue.current().isEmpty()
                 ? "" : Json.quote(RenderQueue.current())).append("]");
         b.append(", \"error\": ").append(Json.quote(ERROR.get()));

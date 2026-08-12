@@ -37,6 +37,15 @@ import java.util.stream.Stream;
  * board that moves mid-roll puts a new thumbnail straight to the front, ahead
  * of high-res work already queued.
  *
+ * <p>That ordering is not enough on its own, because it only decides what is
+ * taken NEXT. With one consumer, a detail map already running holds the cores
+ * until it finishes, and a detail map of a big world is minutes — so a
+ * thumbnail queued behind one waits for all of it. A detail render therefore
+ * abandons itself as soon as any thumbnail is owed and re-queues at the back
+ * of its own class, writing nothing on the way out. It cannot livelock: it is
+ * only ever taken when no thumbnail is queued, and that is exactly when its
+ * abandon condition is false.
+ *
  * <p>A seed pushed out of the top has its files deleted, so the bank never
  * accumulates maps nobody will open.
  */
@@ -152,26 +161,48 @@ public final class RenderQueue {
         if (thumbnail) {
             THUMBNAILS_PENDING.incrementAndGet();
         }
-        Runnable work = () -> {
-            CURRENT.set(id.getPath() + " " + seed
-                    + (thumbnail ? "" : " (detail)"));
-            try {
-                // The board may have moved since this was queued; a map nobody
-                // is going to open is not worth the cores.
-                if (Files.isRegularFile(target)
-                        || !stillOnBoard(server, def, hash, dimension, seed)) {
-                    return;
+        // A thumbnail runs to completion; a detail map yields the moment any
+        // thumbnail is owed. Priority orders the QUEUE, but the job already
+        // running cannot be preempted by it, and a detail map of a big world is
+        // minutes — long enough that every thumbnail behind it waits.
+        java.util.function.BooleanSupplier abandonIf = thumbnail
+                ? () -> false
+                : () -> THUMBNAILS_PENDING.get() > 0;
+
+        Runnable work = new Runnable() {
+            @Override
+            public void run() {
+                CURRENT.set(id.getPath() + " " + seed + (thumbnail ? "" : " (detail)"));
+                boolean requeue = false;
+                try {
+                    // The board may have moved since this was queued; a map nobody
+                    // is going to open is not worth the cores.
+                    if (Files.isRegularFile(target)
+                            || !stillOnBoard(server, def, hash, dimension, seed)) {
+                        return;
+                    }
+                    CandidateRender.render(server, id, def, seed, resolution, target, abandonIf);
+                } catch (CandidateRender.Abandoned e) {
+                    requeue = true;
+                } catch (IOException | RuntimeException e) {
+                    MultiverseServer.LOGGER.error("Render failed for {} seed {}", id, seed, e);
+                } finally {
+                    CURRENT.set("");
+                    if (requeue) {
+                        // Back of its own class, so the thumbnails that displaced
+                        // it go first and it is not retried until they are done.
+                        // Still QUEUED and still PENDING — it is deferred, not
+                        // dropped, and the counters must not say otherwise.
+                        QUEUE.add(new Job(PRIORITY_HIGHRES, SEQUENCE.incrementAndGet(),
+                                key, this));
+                    } else {
+                        QUEUED.remove(key);
+                        PENDING.decrementAndGet();
+                        if (thumbnail) {
+                            THUMBNAILS_PENDING.decrementAndGet();
+                        }
+                    }
                 }
-                CandidateRender.render(server, id, def, seed, resolution, target);
-            } catch (IOException | RuntimeException e) {
-                MultiverseServer.LOGGER.error("Render failed for {} seed {}", id, seed, e);
-            } finally {
-                QUEUED.remove(key);
-                PENDING.decrementAndGet();
-                if (thumbnail) {
-                    THUMBNAILS_PENDING.decrementAndGet();
-                }
-                CURRENT.set("");
             }
         };
         QUEUE.add(new Job(thumbnail ? PRIORITY_LOWRES : PRIORITY_HIGHRES,

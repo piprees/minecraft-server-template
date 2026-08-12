@@ -191,15 +191,37 @@ public final class CandidateRender {
                                long renderNanos, int sampled, int structureMarkers) {
     }
 
+    /** Thrown when {@code abandonIf} asks a render to give up its cores. */
+    public static final class Abandoned extends RuntimeException {
+        public Abandoned() {
+            super("render abandoned for higher-priority work", null, false, false);
+        }
+    }
+
     /**
-     * Renders one (dimension, seed) to {@code outputPath}. Lowres reads the
-     * candidate's own persisted grid ({@link #renderFromGrid}); highres
-     * samples its own, finer one ({@link #renderBySampling}).
+     * Renders one (dimension, seed) to {@code outputPath}.
      */
     public static RenderResult render(MinecraftServer server, Identifier dimensionId,
                                       DimensionConfig def, long seed, Resolution resolution,
                                       Path outputPath) throws IOException {
-        return draw(server, dimensionId, def, seed, resolution, outputPath);
+        return draw(server, dimensionId, def, seed, resolution, outputPath, () -> false);
+    }
+
+    /**
+     * The same, abandoning partway when {@code abandonIf} turns true.
+     *
+     * <p>A detail map of a big world is minutes of work and the queue has one
+     * consumer, so a thumbnail queued behind one waits for all of it — priority
+     * cannot preempt the job already running. Checked once per sampled row:
+     * often enough to give the cores up promptly, far too rare to measure.
+     * Nothing is written on the way out, so an abandoned render leaves no
+     * partial PNG and simply runs again later.
+     */
+    public static RenderResult render(MinecraftServer server, Identifier dimensionId,
+                                      DimensionConfig def, long seed, Resolution resolution,
+                                      Path outputPath, java.util.function.BooleanSupplier abandonIf)
+            throws IOException {
+        return draw(server, dimensionId, def, seed, resolution, outputPath, abandonIf);
     }
 
     /**
@@ -216,7 +238,8 @@ public final class CandidateRender {
      */
     private static RenderResult draw(MinecraftServer server, Identifier dimensionId,
                                      DimensionConfig def, long seed, Resolution resolution,
-                                     Path outputPath) throws IOException {
+                                     Path outputPath, java.util.function.BooleanSupplier abandonIf)
+            throws IOException {
         long renderStart = System.nanoTime();
         int radius = Math.max(1, def.getPlayerBorderRadius());
 
@@ -339,6 +362,9 @@ public final class CandidateRender {
                             : shapeRig(server, base, shapeSettingsF, seed);
                     TerrainShape.Density shape = useDepth ? null : finalDensityOf(own);
                     for (int gz = worker; gz < sideF; gz += stride) {
+                        if (abandonIf.getAsBoolean()) {
+                            throw new Abandoned();
+                        }
                         for (int gx = 0; gx < sideF; gx++) {
                             int dx = centreXF + gridToWorldOffset(gx, stepF, halfF);
                             int dz = centreZF + gridToWorldOffset(gz, stepF, halfF);
@@ -382,6 +408,9 @@ public final class CandidateRender {
             Thread.currentThread().interrupt();
             throw new IOException("render interrupted", e);
         } catch (java.util.concurrent.ExecutionException e) {
+            if (e.getCause() instanceof Abandoned abandoned) {
+                throw abandoned;
+            }
             throw new IOException("render sampling failed: " + e.getCause(), e.getCause());
         } finally {
             pool.shutdownNow();
