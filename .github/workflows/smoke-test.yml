@@ -105,7 +105,16 @@ jobs:
         # mounted at /.seed-rolling by docker-compose.yml). render-check writes
         # its answer there; without the directory the mount is created root-owned
         # and the host cannot read the file back.
-        run: mkdir -p data/mods data/config modpack-dist overlay backups .seed-rolling
+        #
+        # It also has to be writable BY THE CONTAINER, which runs as a different
+        # uid from the runner: mkdir leaves it runner-owned, so mc could create
+        # nothing inside it and every render-check failed with an
+        # AccessDeniedException carrying only the path. macOS Docker Desktop does
+        # not enforce the uid mapping, so this passes locally and fails here —
+        # the directory is a throwaway, so open it rather than match uids.
+        run: |
+          mkdir -p data/mods data/config modpack-dist overlay backups .seed-rolling
+          chmod 777 .seed-rolling
 
       - uses: actions/setup-java@v5
         with:

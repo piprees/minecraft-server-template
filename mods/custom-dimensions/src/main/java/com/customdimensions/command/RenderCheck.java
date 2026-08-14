@@ -1090,7 +1090,14 @@ public final class RenderCheck {
                 Artefacts.write(target, b.toString());
                 this.artefact = target;
             } catch (IOException e) {
-                fail("could not write the artefact: " + e.getMessage());
+                // NAME the exception. A FileSystemException's getMessage() is
+                // the path and nothing else, so an unwritable mount reported
+                // "could not write the artefact: /.seed-rolling/render-check"
+                // and left the reason to be guessed at — it was an
+                // AccessDeniedException, and saying so would have been the
+                // whole diagnosis.
+                fail("could not write the artefact: " + e.getClass().getSimpleName()
+                        + ": " + e.getMessage());
                 return;
             }
 
