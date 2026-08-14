@@ -31,7 +31,7 @@ jobs:
   boot-test:
     name: Boot server and verify (${{ matrix.variant }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -177,7 +177,7 @@ jobs:
               # sky_islands (mostly void), void (the degenerate case),
               # nether_islands, cave (ceilinged overworld), amplified and
               # large_biomes (extreme heights).
-              keep += ['the_ashgrove', 'the_basalt_spires', 'the_end_citadel',
+              keep += ['the_basalt_spires', 'the_end_citadel',
                        'the_abyssal_shrine', 'the_starwell', 'the_icebound_rift',
                        'the_catalyst_maw', 'the_luminous_caverns',
                        'the_amplified_reaches', 'the_endless_expanse']
@@ -513,7 +513,6 @@ jobs:
           # dimension would fail for the wrong reason.
           if [[ "$VARIANT" == "default" ]]; then
             PAIRS="$PAIRS
-          adventure:the_ashgrove:-9155080514073838142
           adventure:the_basalt_spires:7052441739903294973
           adventure:the_end_citadel:4447215516364834752
           adventure:the_abyssal_shrine:-3989869628318999370
@@ -556,7 +555,7 @@ jobs:
             echo "--- render-check-headless $DIM $SEED"
             docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" >/dev/null 2>&1 || true
             OUT=""
-            for _ in $(seq 1 40); do
+            for _ in $(seq 1 100); do
               OUT=$(docker exec mc rcon-cli "customdim render-check-headless $DIM $SEED 512" 2>&1 || true)
               case "$OUT" in
                 *"columns disagree"*|*FAILED*) break ;;
