@@ -66,24 +66,12 @@ public final class PortalSafetyValidator {
 
     /**
      * Slack subtracted from the destination border before deciding whether an
-     * arrival fits. <b>Zero, deliberately.</b>
-     *
-     * <p>PHASE-9 specified a non-zero margin here so an arrival's frame ring
-     * and egress pocket would be inside the border too, not just its centre
-     * cell. That is a real concern — vanilla forbids placing blocks outside
-     * the border, so a portal centred one block inside cannot be built. But
-     * every dimension in the shipped set is authored as EXACTLY
-     * {@code overworldBorder / scale} (8192/8 = 1024, 8192/1 = 8192, and so
-     * on), so any margin at all makes all 74 of them fail by exactly that
-     * margin. A warning that fires on every dimension is not a warning; it is
-     * something people learn to scroll past, and this check only earns its
-     * place by being quiet until something is actually wrong.
-     *
-     * <p>So the boot check answers the first-order question — does the scaled
-     * arrival COLUMN land inside the border — and the last few blocks at the
-     * extreme corner are left to the arrival site search, which is where
-     * "nudge inward until it fits" belongs anyway. Raising this to 8 is a
-     * one-character change if the authoring convention ever gains headroom.
+     * arrival fits. Zero, deliberately: every shipped dimension is authored
+     * as EXACTLY {@code overworldBorder / scale} (8192/8 = 1024, 8192/1 =
+     * 8192, and so on), so any non-zero margin fails all of them by exactly
+     * that margin. The boot check only answers whether the scaled arrival
+     * COLUMN lands inside the border — the last few blocks at the extreme
+     * corner are left to the arrival site search.
      */
     static final int ARRIVAL_MARGIN = 0;
 
@@ -111,18 +99,15 @@ public final class PortalSafetyValidator {
      * R / scale and needs {@code destBorder >= R / scale + margin}. Outside
      * the destination's PLAYER border vanilla forbids breaking AND placing
      * every block, so the player arrives unable to touch the portal, the
-     * frame, or the ground — a symptom whose diagnosis naturally points at
-     * protection code rather than at a number in a config file. This check
-     * turns that into a boot warning instead.
+     * frame, or the ground.
      *
      * <p>Anchor dimensions are exempt: their arrival is a fixed configured
      * position, not a scaled one, so the source radius is irrelevant.
      *
-     * <p>Note for anyone re-deriving this: the tempting formula is
-     * {@code destinationBorder < sourceBorder * scale} — that MULTIPLIES on
-     * entry, which is the wrong direction; entering DIVIDES.
-     * {@link com.customdimensions.portal.ArrivalReachability} has the
-     * correct arithmetic and is the authority.
+     * <p>The tempting formula is {@code destinationBorder < sourceBorder *
+     * scale} — that MULTIPLIES on entry, which is the wrong direction;
+     * entering DIVIDES. {@link com.customdimensions.portal.ArrivalReachability}
+     * has the correct arithmetic.
      */
     private static void validateArrivalReachability(DimensionConfig config, int sourceRadius,
                                                     List<String> warnings) {
@@ -162,9 +147,9 @@ public final class PortalSafetyValidator {
     private static final java.util.Set<String> ORIENTATIONS = java.util.Set.of(
             "vertical", "horizontal", "vertical_x", "vertical_z", "any");
 
-    // Frame-material hygiene (Tier 1 of further-portal-customisations):
-    // malformed accept forms, unknown colour groups, missing framePlaceBlock
-    // on non-plain frames, unknown orientation values. WARN and keep going.
+    // Frame-material hygiene: malformed accept forms, unknown colour groups,
+    // missing framePlaceBlock on non-plain frames, unknown orientation
+    // values. WARN and keep going.
     private static void validateFrameConfig(DimensionConfig config, List<String> warnings) {
         DimensionConfig.Portal portal = config.getPortal();
         if (portal == null) {

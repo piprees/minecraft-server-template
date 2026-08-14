@@ -1,31 +1,57 @@
 #!/usr/bin/env python3
-"""Extract every structure set from mod JARs, datapacks, and vanilla server JAR.
+"""Extract every structure set from the platform's own pinned inputs.
 
 Sources:
-  1. Mod JARs:     elfydd/data/mods/*.jar
-  2. Datapacks:     config/datapacks/*/data/*/worldgen/structure_set/*.json
-  3. Vanilla JAR:   elfydd/data/versions/1.21.1/server-1.21.1.jar
+  1. Pinned Modrinth mods/datapacks: config/modrinth-mods.txt, downloaded the
+     same way gen-structure-presets.py does (scripts/modrinth_pins.py).
+  2. In-house mods:  mods/local-mods.manifest -> mods/<project>/build/libs/,
+     the remapped jar only (never the -dev jar from build/devlibs/).
+  3. Vanilla:        misode/mcmeta on GitHub, pinned to 1.21.1-data — every
+     worldgen/structure_set/*.json listed there, not a hand-picked subset.
+  4. World datapacks: config/datapacks/*/data/*/worldgen/structure_set/*.json
+     (these shadow a mod's/vanilla's set at the same registry path and win
+     the census for it).
 
-Output: scripts/data/structure-sets-extracted.csv
+Output: scripts/data/structure-sets-extracted.json
         config/custom-dimensions/extractors/structures.json  (v4 Phase 0)
+
+Usage:
+    scripts/extract-structure-sets.py [--cache DIR] [--check]
+    --check exits 1 if the committed outputs are stale instead of
+    rewriting them (CI / pre-release gate, matches gen-structure-groups.py).
+
+Gotchas: - Not currently run by any .github/workflows/*.yml — nothing keeps
+           this census in step with mod-updates.yml's weekly re-pins. Re-run
+           by hand after a pin bump, same as gen-structure-groups.py.
+         - An in-house mod with no build/libs/*.jar is skipped with a
+           warning, not a failure — the platform's own mods aren't always
+           freshly built when this runs.
 """
 
-import csv
+import argparse
+import io
 import json
 import os
 import re
 import sys
+import urllib.request
 import zipfile
 from pathlib import Path
 
-PLATFORM_DIR = Path(__file__).resolve().parent.parent
-ELFYDD_DIR = Path.home() / "Projects" / "elfydd"
+import modrinth_pins
 
-MODS_DIR = ELFYDD_DIR / "data" / "mods"
-VANILLA_JAR = ELFYDD_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
+PLATFORM_DIR = Path(__file__).resolve().parent.parent
 DATAPACKS_DIR = PLATFORM_DIR / "config" / "datapacks"
-OUTPUT_CSV = PLATFORM_DIR / "scripts" / "data" / "structure-sets-extracted.csv"
+LOCAL_MODS_MANIFEST = PLATFORM_DIR / "mods" / "local-mods.manifest"
+OUTPUT_EXTRACTED = PLATFORM_DIR / "scripts" / "data" / "structure-sets-extracted.json"
 OUTPUT_JSON = PLATFORM_DIR / "config" / "custom-dimensions" / "extractors" / "structures.json"
+
+MCMETA_REF = "1.21.1-data"
+MCMETA_CONTENTS = (
+    "https://api.github.com/repos/misode/mcmeta/contents/"
+    f"data/minecraft/worldgen/structure_set?ref={MCMETA_REF}"
+)
+MCMETA_RAW = f"https://raw.githubusercontent.com/misode/mcmeta/{MCMETA_REF}/data/minecraft/worldgen/structure_set"
 
 # ── Dimension inference ──────────────────────────────────────────────
 
@@ -162,7 +188,6 @@ def parse_structure_set(data, file_path, source_name):
         structure_ids.append(f"{sid}(w={weight})")
 
     placement = data.get("placement", {})
-    ptype = placement.get("type", "unknown")
     spacing = placement.get("spacing", 0)
     separation = placement.get("separation", 0)
     frequency = placement.get("frequency", 1.0)
@@ -198,23 +223,39 @@ def parse_structure_set(data, file_path, source_name):
 
 # ── Source extractors ────────────────────────────────────────────────
 
-def extract_from_jar(jar_path, source_label=None):
-    """Extract all structure sets from a JAR/ZIP file."""
+def _scan_zip(zf, source_name):
+    """One zip's worldgen/structure_set/*.json entries -> parsed rows."""
     rows = []
+    for entry in zf.namelist():
+        if "worldgen/structure_set/" in entry and entry.endswith(".json"):
+            try:
+                data = json.loads(zf.read(entry))
+                if "structures" in data and "placement" in data:
+                    rows.append(parse_structure_set(data, entry, source_name))
+            except (json.JSONDecodeError, KeyError):
+                pass
+    return rows
+
+
+def extract_from_jar_path(jar_path, source_label=None):
+    """Structure sets from an on-disk jar (the in-house mod build output)."""
     label = source_label or jar_path.name
     try:
         with zipfile.ZipFile(jar_path) as zf:
-            for entry in zf.namelist():
-                if "worldgen/structure_set/" in entry and entry.endswith(".json"):
-                    try:
-                        data = json.loads(zf.read(entry))
-                        if "structures" in data and "placement" in data:
-                            rows.append(parse_structure_set(data, entry, label))
-                    except (json.JSONDecodeError, KeyError):
-                        pass
+            return _scan_zip(zf, label)
     except (zipfile.BadZipFile, FileNotFoundError) as e:
-        print(f"  SKIP {jar_path.name}: {e}", file=sys.stderr)
-    return rows
+        print(f"  SKIP {label}: {e}", file=sys.stderr)
+        return []
+
+
+def extract_from_jar_bytes(data, source_label):
+    """Structure sets from a downloaded jar/datapack zip's raw bytes."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            return _scan_zip(zf, source_label)
+    except zipfile.BadZipFile as e:
+        print(f"  SKIP {source_label}: {e}", file=sys.stderr)
+        return []
 
 
 def extract_from_datapacks(datapacks_dir):
@@ -240,30 +281,94 @@ def extract_from_datapacks(datapacks_dir):
     return rows
 
 
+def extract_pinned_mods(cache_dir):
+    """Every structure set in the platform's pinned Modrinth mods/datapacks."""
+    pin_map = modrinth_pins.pins()
+    print(f"Scanning {len(pin_map)} pinned Modrinth mods/datapacks")
+    rows = []
+    scanned = 0
+    for slug, version_id in sorted(pin_map.items()):
+        try:
+            f = modrinth_pins.primary_file(modrinth_pins.version_meta(slug, version_id, cache_dir))
+            if f is None:
+                print(f"  SKIP {slug}:{version_id}: no primary file", file=sys.stderr)
+                continue
+            data = modrinth_pins.fetch(f["url"], cache_dir, f"{slug}-{version_id}.zip")
+        except Exception as e:
+            print(f"  SKIP {slug}:{version_id}: {e}", file=sys.stderr)
+            continue
+        found = extract_from_jar_bytes(data, f["filename"])
+        if found:
+            print(f"  {f['filename']}: {len(found)} structure sets")
+        rows.extend(found)
+        scanned += 1
+    if scanned == 0:
+        raise SystemExit("no pinned mod resolved — network or Modrinth API problem, refusing to "
+                          "write a census with zero mod-sourced structure sets")
+    return rows
+
+
+def extract_local_mods():
+    """Every structure set in this platform's own in-house mod jars."""
+    if not LOCAL_MODS_MANIFEST.exists():
+        print(f"  SKIP: {LOCAL_MODS_MANIFEST} not found — no in-house mods to scan", file=sys.stderr)
+        return []
+    rows = []
+    for line in LOCAL_MODS_MANIFEST.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        jar_name, project, _ref_map = line.split("|")
+        libs_dir = PLATFORM_DIR / "mods" / project / "build" / "libs"
+        candidates = [j for j in sorted(libs_dir.glob("*.jar"))
+                      if not j.name.endswith("-sources.jar") and not j.name.endswith("-dev.jar")]
+        if not candidates:
+            print(f"  SKIP {jar_name}: no built jar in {libs_dir} "
+                  f"(run mods/{project}'s Gradle build first)", file=sys.stderr)
+            continue
+        found = extract_from_jar_path(candidates[0], source_label=jar_name)
+        print(f"  {jar_name}: {len(found)} structure sets")
+        rows.extend(found)
+    return rows
+
+
+def extract_vanilla(cache_dir):
+    """Every vanilla structure set, from misode/mcmeta pinned to 1.21.1-data."""
+    req = urllib.request.Request(MCMETA_CONTENTS, headers={"User-Agent": "extract-structure-sets.py"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            listing = json.loads(r.read())
+    except Exception as e:
+        raise SystemExit(f"could not list vanilla structure sets from {MCMETA_CONTENTS}: {e}")
+    rows = []
+    for entry in listing:
+        name = entry.get("name", "")
+        if not name.endswith(".json"):
+            continue
+        body = json.loads(modrinth_pins.fetch(f"{MCMETA_RAW}/{name}", cache_dir, f"vanilla-{name}"))
+        if "structures" in body and "placement" in body:
+            rows.append(parse_structure_set(
+                body, f"data/minecraft/worldgen/structure_set/{name}", "vanilla"))
+    if not rows:
+        raise SystemExit(f"vanilla listing at {MCMETA_CONTENTS} returned zero structure sets")
+    return rows
+
+
 # ── Main ─────────────────────────────────────────────────────────────
 
-def main():
+def build(cache_dir):
     all_rows = []
 
-    # 1. Vanilla server JAR
-    print(f"Scanning vanilla JAR: {VANILLA_JAR}")
-    vanilla = extract_from_jar(VANILLA_JAR, "vanilla")
+    print(f"Scanning vanilla structure sets ({MCMETA_REF})")
+    vanilla = extract_vanilla(cache_dir)
     print(f"  Found {len(vanilla)} structure sets")
     all_rows.extend(vanilla)
 
-    # 2. Mod JARs
-    jar_files = sorted(MODS_DIR.glob("*.jar"))
-    print(f"Scanning {len(jar_files)} mod JARs in {MODS_DIR}")
-    mod_total = 0
-    for jar in jar_files:
-        rows = extract_from_jar(jar)
-        if rows:
-            mod_total += len(rows)
-            print(f"  {jar.name}: {len(rows)} structure sets")
-        all_rows.extend(rows)
-    print(f"  Total from mods: {mod_total}")
+    all_rows.extend(extract_pinned_mods(cache_dir))
 
-    # 3. Datapacks
+    print("Scanning in-house mods")
+    all_rows.extend(extract_local_mods())
+
     if DATAPACKS_DIR.exists():
         print(f"Scanning datapacks in {DATAPACKS_DIR}")
         dp = extract_from_datapacks(DATAPACKS_DIR)
@@ -284,23 +389,19 @@ def main():
         else:
             seen[key] = row
 
-    final = sorted(seen.values(), key=lambda r: (r["mod_source"], r["structure_set_id"]))
+    return sorted(seen.values(), key=lambda r: (r["mod_source"], r["structure_set_id"]))
 
-    # Write CSV
-    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
+
+def render_extracted(final):
     fields = [
         "mod_source", "structure_set_id", "theme", "structures",
         "spacing", "separation", "frequency", "dimensions", "rarity_class",
     ]
-    with open(OUTPUT_CSV, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(final)
+    rows_out = [{field: str(r[field]) for field in fields} for r in final]
+    return json.dumps(rows_out, indent=1) + "\n"
 
-    print(f"\nWrote {len(final)} structure sets to {OUTPUT_CSV}")
 
-    # Machine-readable mirror for the v4 config tree (Phase 0 extractors).
-    OUTPUT_JSON.parent.mkdir(parents=True, exist_ok=True)
+def render_extractors_json(final):
     sets_json = {}
     for r in final:
         sets_json[r["structure_set_id"]] = {
@@ -313,11 +414,46 @@ def main():
             "dimension": r["dimensions"],
             "rarity": r["rarity_class"],
         }
-    with open(OUTPUT_JSON, "w") as f:
-        json.dump({"count": len(sets_json),
-                   "structure_sets": dict(sorted(sets_json.items()))}, f, indent=2)
-        f.write("\n")
-    print(f"Wrote {len(sets_json)} structure sets to {OUTPUT_JSON}")
+    return json.dumps({"count": len(sets_json),
+                       "structure_sets": dict(sorted(sets_json.items()))}, indent=2) + "\n"
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cache", default=str(PLATFORM_DIR / ".cache/structure-jars"))
+    ap.add_argument("--check", action="store_true",
+                    help="exit 1 if the committed outputs are stale instead of rewriting")
+    args = ap.parse_args()
+    cache_dir = Path(args.cache)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    final = build(cache_dir)
+
+    outputs = {
+        OUTPUT_EXTRACTED: render_extracted(final),
+        OUTPUT_JSON: render_extractors_json(final),
+    }
+
+    stale = []
+    for path, body in outputs.items():
+        current = path.read_text() if path.exists() else None
+        if current != body:
+            stale.append(path)
+
+    if args.check:
+        if stale:
+            for p in stale:
+                print(f"STALE: {p.relative_to(PLATFORM_DIR)}", file=sys.stderr)
+            print("Run scripts/extract-structure-sets.py to regenerate.", file=sys.stderr)
+            return 1
+        print(f"structure set census up to date ({len(final)} sets)")
+        return 0
+
+    for path, body in outputs.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body)
+    print(f"\nWrote {len(final)} structure sets to {OUTPUT_EXTRACTED}")
+    print(f"Wrote {len(final)} structure sets to {OUTPUT_JSON}")
 
     # Summary
     by_source = {}
@@ -339,6 +475,8 @@ def main():
     for r, c in sorted(by_rarity.items()):
         print(f"  {r}: {c}")
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

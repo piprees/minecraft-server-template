@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Per-dimension mob difficulty (v4 Phase 2): after a mob finishes its
- * natural spawn initialisation, apply the dimension's attribute modifiers
+ * Per-dimension mob difficulty: after a mob finishes its natural spawn
+ * initialisation, apply the dimension's attribute modifiers
  * (DimensionConfig.difficulty). initialize runs once per spawn and the
  * modifiers persist in NBT, so loaded entities are never re-scaled;
  * conversions that re-run initialize are handled idempotently

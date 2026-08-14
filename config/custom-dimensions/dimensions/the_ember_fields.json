@@ -2,7 +2,6 @@
   "type": "nether",
   "description": "Rolling ember meadows where piglin villages still tend the geyser fields. The gentlest face of piglin civilisation — farmers and traders, not soldiers. The fortress at the rim is a precaution, not a threat.",
   "seed": -1428534289047767583,
-  "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:crimson_forest",
     "incendium:infernal_dunes",
@@ -39,6 +38,7 @@
   },
   "seedRoll": {
     "mood": "scenic",
+    "water": "none",
     "spawnFilter": [
       "minecraft:crimson_forest",
       "incendium:infernal_dunes",

@@ -35,8 +35,7 @@ import java.util.function.Predicate;
  * overrides any of it (palette/flora/trees/fluids/conversions/fireChance)
  * or switches it off.
  *
- * Engineering rules (mods/.ideas/portal-auras.md — learned the hard way):
- * the exclusion set (interior + frame ring) is never converted; passes run
+ * The exclusion set (interior + frame ring) is never converted; passes run
  * from the world tick with a chunk-loaded guard and bounded work; every
  * write uses NOTIFY_LISTENERS | FORCE_STATE; budgets persist so restarts
  * resume rather than re-burn; fluids only form in depressions and count
@@ -328,16 +327,9 @@ public final class PortalAuraManager {
                 }
                 return 0;
             }
-            // Trees are planted ONLY from an explicit aura.trees config.
-            //
-            // Derived tree palettes are no longer produced (see sample()), but
-            // records persisted before that change still carry them, and those
-            // records outlive the code — a portal linked yesterday would go on
-            // planting dark oaks forever. Gating at the point of use fixes
-            // already-affected worlds on the next boot instead of needing a
-            // migration, and costs one list check.
-            // `s.trees` is the EXPLICIT config list; `trees` is whatever was
-            // persisted, which for older records is a derived palette.
+            // Trees are planted ONLY from the explicit aura.trees config
+            // (s.trees) — never from `trees`, which may hold a derived
+            // palette persisted by older records.
             List<String> explicitTrees = s.trees;
             if (explicitTrees != null && !explicitTrees.isEmpty()
                     && random.nextDouble() < TREE_CHANCE) {
@@ -433,21 +425,15 @@ public final class PortalAuraManager {
     }
 
     /**
-     * Block ids the histogram must never pick up, however much of them is
-     * standing around: the portal's own building materials.
+     * Block ids the histogram must never pick up: the portal's own building
+     * materials. Position-based exclusion only covers the frame ring — a
+     * portal built into a wall or tower leaves plenty of frame material
+     * inside the 9x7x9 sample box, which would otherwise seed that material
+     * across the destination.
      *
-     * <p>Position-based exclusion only covers the frame RING. A player who
-     * builds their portal into a wall, a tower or a plinth — which is most
-     * portals anyone bothers to decorate — leaves plenty of the frame
-     * material inside the 9x7x9 sample box, so it wins a slot in the terrain
-     * histogram and the far side starts sprouting it — a portal framed in
-     * something distinctive (cherry planks, say) would seed that same
-     * material across the destination.
-     *
-     * <p>Covers the accept forms AND the placement block, so a tag- or
+     * <p>Covers the accept forms and the placement block, so a tag- or
      * colour-group-framed portal excludes what it is actually built from.
-     * Plain ids only — a "#tag" accept form has no single block to exclude
-     * and is skipped rather than guessed at.
+     * Plain ids only — a "#tag" form has no single block to exclude.
      */
     private static Set<String> frameMaterialsOf(PortalDefinition definition) {
         if (definition == null) {
@@ -517,10 +503,8 @@ public final class PortalAuraManager {
                     if (state.isIn(BlockTags.LOGS)) {
                         String feature = LOG_TO_TREE.get(id);
                         if (feature != null) {
-                            // DERIVED TREES ARE DISABLED — see the comment on
-                            // the trees list below. Kept as a no-op rather
-                            // than deleting the log->feature mapping, which is
-                            // still what an explicit aura.trees config needs.
+                            // Collected but unused — see the trees note below.
+                            // The mapping still backs explicit aura.trees.
                             derivedTrees.add(feature);
                         }
                     } else if (isFlora(state, id)) {
@@ -541,20 +525,11 @@ public final class PortalAuraManager {
         Sampled out = new Sampled();
         out.terrain = topN(counts, PALETTE_SIZE);
         out.flora = new ArrayList<>(flora);
-        // TREES ARE NOT DERIVED FROM SAMPLING.
-        //
-        // A sampled tree palette turns any portal near a forest into a
-        // thicket: a dark oak is a 2x2 trunk with an enormous canopy, and at
-        // TREE_CHANCE per pass against a 300 budget an 8-radius aura plants
-        // roughly a dozen of them. The aura is meant to make somewhere feel
-        // touched by the other side, not to wall it in, and trees are the
-        // one palette entry whose footprint is orders of magnitude bigger
-        // than the block that seeded it.
-        //
-        // Trees remain available as a deliberate, per-dimension choice via
-        // an explicit `aura.trees` config (Sampled.explicit), which is the
-        // path a dimension takes when someone has decided a forest IS the
-        // effect. They are simply never inferred.
+        // Trees are never derived from sampling: a sampled tree palette
+        // turns any portal near a forest into a thicket (a dark oak canopy
+        // is huge, and TREE_CHANCE against a typical 300 budget plants
+        // roughly a dozen). Trees are only available via an explicit
+        // `aura.trees` config (Sampled.explicit).
         out.trees = List.of();
         out.fluids = new ArrayList<>(fluids);
         return out;

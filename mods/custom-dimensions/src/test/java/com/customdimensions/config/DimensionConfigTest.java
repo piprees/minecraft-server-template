@@ -498,7 +498,7 @@ class DimensionConfigTest {
         assertEquals(0.3, config.getBiomeParameters().get("minecraft:cherry_grove")
                 .get("continentalness").getAsDouble());
         assertNotNull(config.getBiomeParametersFingerprint());
-        // Plain string arrays keep the old behaviour exactly.
+        // Plain string arrays produce no biome parameters and no fingerprint.
         DimensionConfig plain = parse("d", "{\"biomes\":[\"minecraft:swamp\",\"natures_spirit:marsh\"]}");
         assertEquals("minecraft:swamp,natures_spirit:marsh", plain.getBiome());
         assertTrue(plain.getBiomeParameters().isEmpty());
@@ -592,7 +592,7 @@ class DimensionConfigTest {
         assertEquals(1228, config.getStructures().endgame.safeRadius);
     }
 
-    // --- frame material generalisation (further-portal-customisations Tier 1) ---
+    // --- frame material generalisation (Tier 1) ---
 
     @Test
     void frameBlockAcceptsAllFourForms() {
@@ -640,8 +640,8 @@ class DimensionConfigTest {
 
     @Test
     void toPortalDefinitionCarriesFrameTier1Fields() {
-        // Simple config: definition (and its persisted zone records) look
-        // exactly like before — no accepts, no place block, no orientation.
+        // Simple config: no accepts list, no place block, no orientation in
+        // the JSON — the definition resolves them all from the plain frameBlock.
         PortalDefinition plain = parse("d",
                 "{\"portal\":{\"frameBlock\":\"minecraft:clay\",\"igniterItem\":\"minecraft:stick\"}}")
                 .toPortalDefinition();

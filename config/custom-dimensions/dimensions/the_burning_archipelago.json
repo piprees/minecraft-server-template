@@ -40,6 +40,7 @@
   },
   "seedRoll": {
     "mood": "adventurous",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:crimson_forest",
       "incendium:volcanic_deltas",

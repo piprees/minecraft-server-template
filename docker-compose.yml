@@ -111,7 +111,7 @@ services:
   # Uses the excellent itzg/minecraft-server image which handles Fabric
   # installation, mod loading via Modrinth, RCON, and graceful shutdown.
   #
-  # Present in BOTH profiles: local (seed-rolling) and cloud (production).
+  # Present in BOTH profiles: local and cloud (production).
   # The key difference is ONLINE_MODE - disabled locally so you don't need
   # a valid Mojang session for throwaway test worlds.
   # ==========================================================================
@@ -134,7 +134,7 @@ services:
 
       # --- Authentication ---
       # Production: ONLINE_MODE=TRUE (from .env) enforces Mojang auth.
-      # Local: ONLINE_MODE=FALSE (from .env) skips auth for seed-rolling.
+      # Local: ONLINE_MODE=FALSE (from .env) skips auth.
       ONLINE_MODE: "${ONLINE_MODE:-TRUE}"
 
       # --- Allowlist & operators ---
@@ -213,6 +213,12 @@ services:
     volumes:
       # Persistent world data, config, mods, logs - the lot.
       - ./data:/data
+      # Seed-rolling artefacts (custom-dimensions mod): candidates, events,
+      # lint reports. Sibling of /data so a config refresh cannot reach them.
+      # `./dev clean` still deletes them - the tree is gitignored and clean is
+      # `git clean -xdf`. The bank is a cache; the record of a choice is the
+      # winner seed written into the committed overlay.
+      - ${SEED_ROLLING_DIR:-./.seed-rolling}:/.seed-rolling
       # Merged modrinth mod list from the seed container.
       - stack-mods:/extras:ro
       # Seeded config (log4j2, etc.) - read-only.
@@ -336,7 +342,7 @@ services:
   # Uses RCON to issue save-off / save-on around snapshots so the world
   # files are consistent.
   #
-  # Cloud profile only - you don't need backups of throwaway seed-rolling
+  # Cloud profile only - you don't need backups of a throwaway local
   # worlds.
   # ==========================================================================
   mc-backup:

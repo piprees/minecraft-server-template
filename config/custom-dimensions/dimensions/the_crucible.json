@@ -60,6 +60,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:jungle",
       "minecraft:bamboo_jungle",

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for the pure carver-draw replay (precision plan section 7.2).
+ * Tests for the pure carver-draw replay.
  *
  * <p>Covers:
  * <ul>

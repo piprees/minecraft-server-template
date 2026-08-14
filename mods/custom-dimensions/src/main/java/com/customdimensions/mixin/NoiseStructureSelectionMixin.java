@@ -128,14 +128,15 @@ public abstract class NoiseStructureSelectionMixin {
         } else {
             // Structural rejection: the structure's own generation declined.
             // The site stays empty. Record it.
-            customdimensions$recordRejection(worldId, sel.group(), entryId, pos.x, pos.z);
+            customdimensions$recordRejection(world, worldId, sel.group(), entryId, pos.x, pos.z);
             cir.setReturnValue(false);
         }
     }
 
     @Unique
     private static void customdimensions$recordRejection(
-            String worldId, String group, String structureId, int chunkX, int chunkZ) {
+            ServerWorld world, String worldId, String group, String structureId,
+            int chunkX, int chunkZ) {
         String key = worldId + '/' + group + '/' + structureId + '@' + chunkX + ',' + chunkZ;
         if (CUSTOMDIMENSIONS$LOGGED.size() < CUSTOMDIMENSIONS$LOG_CAP
                 && CUSTOMDIMENSIONS$LOGGED.add(key)) {
@@ -145,10 +146,14 @@ public abstract class NoiseStructureSelectionMixin {
                     structureId, chunkX, chunkZ, group, worldId);
         }
 
-        // Append to the rejections artefact (atomic rewrite on each event).
+        // Append to <world>/customdimensions/census/rejections__{dimension}.json
+        // (atomic rewrite on each event — a rejection is proven once, when
+        // the chunk generates, and re-proving it means regenerating the
+        // chunk). World state, not a seed-rolling hypothesis, so it is keyed
+        // by dimension alone, not by config hash.
         try {
             String dimPart = worldId.replace(":", "__");
-            Path rejectPath = Artefacts.dir("census")
+            Path rejectPath = Artefacts.censusDir(world.getServer())
                     .resolve("rejections__" + dimPart + ".json");
             StringBuilder json;
             if (Files.exists(rejectPath)) {

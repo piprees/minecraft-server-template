@@ -29,7 +29,7 @@ import java.util.List;
  * global registry objects are never mutated, so every other dimension keeps
  * the shared placements.
  *
- * Caveats honoured (customising-structures.md):
+ * Caveats:
  * - Only exact minecraft:random_spread placements are rescaled. Custom
  *   placement types (YUNG's, Moog's) and concentric rings pass through
  *   unchanged — dropping whole sets is type-agnostic and still applies.
@@ -138,8 +138,6 @@ public final class DimensionStructures {
                         // Explicit structures.spacing wins; otherwise the
                         // spacing derives from the playable border — a
                         // 256-radius pocket wants 1-2 shrines, not a grid.
-                        // MIRRORED in scripts/seed/fast_roller.py (tier 1);
-                        // change both together or shrine scoring lies.
                         DimensionConfig.SpacingOverride ov = spacingOverrides.get(setId);
                         if (ov == null) {
                             ov = derivedShrineSpacing(def.getPlayerBorderRadius());
@@ -280,8 +278,18 @@ public final class DimensionStructures {
             }
         }
 
+        // A wanted structure whose SET vanilla's own StructurePlacementCalculator
+        // prefilter dropped is invisible to the pool builder — the set is not in
+        // `original.getStructureSets()` at all, so `structures.include` cannot
+        // reach it either. Re-admit those sets from the full registry, then let
+        // the pool builder bypass the affinity filter for the wanted structures
+        // inside them.
+        java.util.Set<String> wanted = NoisePoolBuilder.wantedStructureIds(def);
+        Iterable<RegistryEntry<StructureSet>> poolSets = withWantedSets(
+                world, original.getStructureSets(), wanted, def.getName());
+
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
-                def, original.getStructureSets(), biomeSource, plan, exclude);
+                def, poolSets, biomeSource, plan, exclude, null, wanted);
         // Which structures a group can draw from is decided HERE, from the
         // dimension's biome source against each structure's own biome list, so
         // the seed roller cannot derive it. Recording it is what lets the roller
@@ -350,7 +358,7 @@ public final class DimensionStructures {
             long noiseSeed = worldSeed ^ dimensionSalt ^ saltOf(group);
             NoiseStructurePlacement placement = new NoiseStructurePlacement(
                     group, noiseSeed, settings.profile(), settings.exclusion(),
-                    settings.radial(), radiusChunks, 0, 0);
+                    settings.radial(), radiusChunks, 0, 0, settings.clearSpawnChunks());
 
             // Build the sorted pool for this group's pick algorithm.
             java.util.List<StructurePick.PoolEntry> pickPool = new ArrayList<>();
@@ -418,11 +426,87 @@ public final class DimensionStructures {
     }
 
     /**
+     * The calculator's set list plus any set from the FULL registry that holds
+     * a wanted structure and is not already there.
+     *
+     * <p>Vanilla's {@code StructurePlacementCalculator.create} drops a set
+     * whose structures' valid biomes miss the dimension's biome source. That is
+     * correct for organic generation and wrong for a want, which is the author
+     * saying "put one here anyway". Only sets carrying a wanted structure are
+     * re-admitted, and only the wanted structures inside them bypass the
+     * affinity filter — the rest of such a set is still filtered normally.
+     *
+     * <p>Returns the original list unchanged when nothing needs re-admitting,
+     * which is every dimension whose wants already fit its biomes.
+     */
+    private static Iterable<RegistryEntry<StructureSet>> withWantedSets(
+            ServerWorld world, Iterable<RegistryEntry<StructureSet>> present,
+            java.util.Set<String> wanted, String dimensionName) {
+        if (wanted.isEmpty()) {
+            return present;
+        }
+        java.util.Set<String> haveIds = new java.util.HashSet<>();
+        java.util.Set<String> haveSets = new java.util.HashSet<>();
+        for (RegistryEntry<StructureSet> entry : present) {
+            entry.getKey().ifPresent(k -> haveSets.add(k.getValue().toString()));
+            for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+                weighted.structure().getKey()
+                        .ifPresent(k -> haveIds.add(k.getValue().toString()));
+            }
+        }
+        java.util.List<String> missing = new ArrayList<>();
+        for (String id : wanted) {
+            if (!haveIds.contains(id)) {
+                missing.add(id);
+            }
+        }
+        if (missing.isEmpty()) {
+            return present;
+        }
+        var registry = world.getRegistryManager()
+                .get(net.minecraft.registry.RegistryKeys.STRUCTURE_SET);
+        List<RegistryEntry<StructureSet>> combined = new ArrayList<>();
+        present.forEach(combined::add);
+        java.util.List<String> readmitted = new ArrayList<>();
+        for (var setEntry : registry.getEntrySet()) {
+            String setId = setEntry.getKey().getValue().toString();
+            if (haveSets.contains(setId)) {
+                continue;
+            }
+            boolean carriesWanted = false;
+            for (StructureSet.WeightedEntry weighted : setEntry.getValue().structures()) {
+                String id = weighted.structure().getKey()
+                        .map(k -> k.getValue().toString()).orElse(null);
+                if (id != null && missing.contains(id)) {
+                    carriesWanted = true;
+                    break;
+                }
+            }
+            if (carriesWanted) {
+                combined.add(registry.getEntry(setEntry.getKey()).orElseThrow());
+                readmitted.add(setId);
+            }
+        }
+        if (!readmitted.isEmpty()) {
+            MultiverseServer.LOGGER.info(
+                    "Dimension {}: re-admitted {} structure set(s) for wanted structures "
+                    + "the biome prefilter had dropped: {}",
+                    dimensionName, readmitted.size(), readmitted);
+        } else {
+            MultiverseServer.LOGGER.warn(
+                    "Dimension {}: wanted structure(s) {} are in no registered structure "
+                    + "set — nothing can place them (check the id, or the mod that "
+                    + "provides them)", dimensionName, missing);
+        }
+        return combined;
+    }
+
+    /**
      * Per-dimension and per-group noise salt. A plain String.hashCode would
      * give neighbouring names neighbouring salts (and it is only 32 bits), so
      * the noise fields of two similarly-named dimensions would correlate.
      */
-    static long saltOf(String name) {
+    public static long saltOf(String name) {
         if (name == null) {
             return 0L;
         }
@@ -790,7 +874,6 @@ public final class DimensionStructures {
     /**
      * Automatic shrine spacing from the playable border: roughly
      * radius-in-chunks / 2, clamped 12..48. Pure — unit-tested, and
-     * mirrored bit-for-bit in scripts/seed/fast_roller.py (roller parity).
      */
     static DimensionConfig.SpacingOverride derivedShrineSpacing(int playerBorderRadiusBlocks) {
         DimensionConfig.SpacingOverride out = new DimensionConfig.SpacingOverride();

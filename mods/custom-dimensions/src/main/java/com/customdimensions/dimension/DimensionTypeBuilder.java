@@ -25,16 +25,14 @@ import java.util.OptionalLong;
 import java.util.Set;
 
 /**
- * Custom DimensionType entries from the config's "environment" block
- * (v4 Phase 4): fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
- * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight and
- * ambientLight — plus the Tier 1 vanilla fields (see
- * mods/.ideas/vanilla-custom-world-settings.md): coordinateScale, effects
- * (one of the three vanilla dimension effects), infiniburn (block tag),
- * monsterSpawnLightLevel (int or [min,max]) and
- * monsterSpawnBlockLightLimit. Every unset field inherits from the
- * dimension's base type (the overworld/nether/end type it would have
- * cloned anyway), so a partial environment block is safe.
+ * Custom DimensionType entries from the config's "environment" block:
+ * fixedTime, ceiling/skylight, ultraWarm, natural, bedWorks,
+ * respawnAnchorWorks, piglinSafe, hasRaids, minY/height/logicalHeight,
+ * ambientLight, coordinateScale, effects (one of the three vanilla
+ * dimension effects), infiniburn (block tag), monsterSpawnLightLevel (int
+ * or [min,max]) and monsterSpawnBlockLightLimit. Every unset field
+ * inherits from the dimension's base type (the overworld/nether/end type
+ * it would have cloned anyway), so a partial environment block is safe.
  *
  * coordinateScale here is the VANILLA travel scale (nether-portal maths,
  * map scaling). The mod's own portal system scales via portal.scale —
@@ -50,9 +48,8 @@ import java.util.Set;
  * rendering concerns (dimension effects / biome tinting) that a server
  * mod cannot apply; they are ignored here with a one-line note.
  *
- * Failure policy (plan open question 2): a malformed environment block
- * logs a warning and falls back to the base type — a typo in one
- * dimension must never turn the boot into a crash loop.
+ * A malformed environment block logs a warning and falls back to the base
+ * type — a typo in one dimension must never turn the boot into a crash loop.
  */
 public final class DimensionTypeBuilder {
 
@@ -64,8 +61,15 @@ public final class DimensionTypeBuilder {
                                                             DimensionConfig config,
                                                             RegistryEntry<DimensionType> base) {
         DimensionConfig.Environment env = config.getEnvironment();
+        Boolean typeCeiling = ceilingForWorldType(config.getType());
         if (env == null) {
-            return base;
+            if (typeCeiling == null || typeCeiling == base.value().hasCeiling()) {
+                return base;
+            }
+            // The world type roofs this dimension and the base type says
+            // otherwise. Build one anyway rather than hand back a type that
+            // contradicts the generator — see ceilingForWorldType.
+            env = new DimensionConfig.Environment();
         }
         Registry<DimensionType> registry = server.getCombinedDynamicRegistries()
                 .getCombinedRegistryManager().get(RegistryKeys.DIMENSION_TYPE);
@@ -75,7 +79,7 @@ public final class DimensionTypeBuilder {
         if (existing.isPresent()) {
             return existing.get();
         }
-        DimensionType built = build(env, base.value(), config.getName());
+        DimensionType built = build(env, base.value(), config.getName(), typeCeiling);
         if (built == null) {
             return base;
         }
@@ -106,8 +110,42 @@ public final class DimensionTypeBuilder {
         }
     }
 
+    /**
+     * Whether a world type roofs its dimensions, or null where it has no
+     * opinion and the base type decides.
+     *
+     * <p>A world type already chooses the generator settings; it has to choose
+     * the ceiling with them, because the two are one decision. {@code cave}
+     * builds on {@code minecraft:caves} — a bedrock roof at the top and no sky
+     * access — while taking the OVERWORLD's dimension type, which says there is
+     * no ceiling. Everything downstream then read the column as open, and the
+     * highest solid block in an open column of a roofed world is the roof:
+     * identical in every column, so `the_luminous_caverns` and
+     * `the_emberglass_foundry` drew as one flat colour with a height spread of
+     * zero and all three sources agreeing about it.
+     *
+     * <p>This is also the more correct answer in play, not only on the map:
+     * {@code hasCeiling} is what tells the game there is no sky over a
+     * fully-underground world.
+     *
+     * <p>An explicit {@code environment.hasCeiling} still wins — the type
+     * supplies a default, never an override.
+     */
+    static Boolean ceilingForWorldType(String worldType) {
+        if (worldType == null) {
+            return null;
+        }
+        return "cave".equals(worldType.toLowerCase(java.util.Locale.ROOT)) ? Boolean.TRUE : null;
+    }
+
     /** Base type with the environment overrides applied; null when invalid. */
     static DimensionType build(DimensionConfig.Environment env, DimensionType base, String name) {
+        return build(env, base, name, null);
+    }
+
+    /** As above, with a world-type default for the fields that have one. */
+    static DimensionType build(DimensionConfig.Environment env, DimensionType base, String name,
+                               Boolean typeCeiling) {
         int minY = env.minY != null ? env.minY : base.minY();
         int height = env.height != null ? env.height : base.height();
         int logicalHeight = env.logicalHeight != null ? env.logicalHeight : base.logicalHeight();
@@ -184,7 +222,8 @@ public final class DimensionTypeBuilder {
         return new DimensionType(
                 fixedTime,
                 env.hasSkylight != null ? env.hasSkylight : base.hasSkyLight(),
-                env.hasCeiling != null ? env.hasCeiling : base.hasCeiling(),
+                env.hasCeiling != null ? env.hasCeiling
+                        : (typeCeiling != null ? typeCeiling : base.hasCeiling()),
                 env.ultraWarm != null ? env.ultraWarm : base.ultrawarm(),
                 env.natural != null ? env.natural : base.natural(),
                 coordinateScale,

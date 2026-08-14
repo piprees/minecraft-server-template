@@ -1,6 +1,6 @@
 # Valid Structure Short Names
 
-Ground truth: `STRUCTS` dict in `/Users/pip/Projects/minecraft-server-template/scripts/seed/dimension_profiles.py`. These are the short names usable in `structures.wants`/`structures.shuns` and `seedRoll.wants`/`seedRoll.shuns`. A short name resolves to a full structure id (e.g. `village` → `#minecraft:village`); you can also use a full `<namespace>:<path>` id directly if a structure you want isn't in this list (`resolve_struct()` passes through anything containing a `:`), but prefer a listed short name when one exists — it's guaranteed to be pattern-matched correctly by the roller. **Every id here is already verified against the shipped mod/datapack registries** — do not invent new short names, they will resolve to `None` and be silently dropped from scoring.
+Ground truth: `mods/custom-dimensions/src/main/java/com/customdimensions/dimension/StructureAliases.java`. These are the short names usable in `structures.wants`/`structures.shuns` and `seedRoll.wants`/`seedRoll.shuns`. A short name resolves to a full structure id (e.g. `village` → `#minecraft:village`); you can also use a full `<namespace>:<path>` id directly if a structure you want isn't in this list, but prefer a listed short name when one exists — it's guaranteed to be pattern-matched correctly. **Every id here is already verified against the shipped mod/datapack registries** — do not invent new short names, they will resolve to nothing and be silently dropped from scoring.
 
 ## Settlements & civilisation
 

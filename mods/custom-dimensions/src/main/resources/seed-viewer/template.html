@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Seed Viewer — Multiverse</title>
+  <!-- The page is served at /, at /the-nether, and at /the-nether/<seed>
+       (see web/route.js). At the two-segment route every relative href
+       would otherwise resolve against /the-nether/, so the stylesheet and
+       every render would 404. One <base> pins them to the server root.
+       It must run BEFORE the stylesheet link below, which is why it is
+       inline here rather than in route.js.
+
+       Skipped on file://, where there is no routing and "/" would mean the
+       filesystem root — roll-all.sh prints .seedtest/index.html as a path
+       to open directly, and that has to keep working. -->
+  <script>
+    if (location.protocol !== 'file:') {
+      var b = document.createElement('base')
+      b.href = '/'
+      document.head.appendChild(b)
+    }
+  </script>
+  <!-- Tailwind v4 build + the shadcn token contract. Copied beside this file
+       into assets/ by score-dimensions.install_web_assets, so the same
+       relative href works over http://127.0.0.1:8765/ and from a file://
+       open of .seedtest/index.html. Source and build script live in the
+       template repo at scripts/seed/web/. Every custom property the styles
+       below read is declared there — see its legacy variable bridge. -->
+  <link rel="stylesheet" href="assets/app.css" />
+  <!-- The scorecard reasoning's own styles. app.css is a build of the design
+       system and knows nothing about these class names; this reads its
+       colours from the same custom properties rather than copying values. -->
+  <link rel="stylesheet" href="assets/criteria.css" />
+  <!-- The structures section and its map markers, on the same terms. -->
+  <link rel="stylesheet" href="assets/structures.css" />
+
+  <!-- Single nav row. The view settings keep their checkbox inputs behind
+       icon labels so every existing filter handler still reads .checked;
+       only the presentation changed. -->
+  <div class="filter-bar">
+    <div class="family-btns">{{FAMILY_BUTTONS}}</div>
+
+    <details class="more-filters">
+      <summary>Filters</summary>
+      <div class="more-filters-body">
+        <select id="f-type" aria-label="Filter by type">
+          {{TYPE_OPTIONS}}
+        </select>
+        <select id="f-mood" aria-label="Filter by mood">
+          {{MOOD_OPTIONS}}
+        </select>
+        <select id="f-sort" aria-label="Sort order">
+          <option value="name">Sort: Name</option>
+          <option value="score-desc">Sort: Score ↓</option>
+          <option value="score-asc">Sort: Score ↑</option>
+          <option value="family">Sort: Family</option>
+          <option value="candidates">Sort: Most tested</option>
+        </select>
+      </div>
+    </details>
+
+    <input id="f-search" type="text" placeholder="Search…" aria-label="Search dimensions" />
+
+    <span class="nav-sep" aria-hidden="true"></span>
+
+    <span class="roller-group">
+      <!-- Swaps to a progress bar while rolling: the seed count is an input
+           until you commit to it, and a readout afterwards. -->
+      <input
+        type="number"
+        id="roll-count"
+        value="5000"
+        min="1"
+        max="100000"
+        step="500"
+        aria-label="Seed budget per dimension"
+        title="Seed budget per dimension — each one stops once it has ten candidates, so a dimension that yields freely costs a fraction of this"
+      />
+      <span id="roll-progress" hidden>
+        <span class="rp-bar"><span id="rp-fill"></span></span>
+        <span class="rp-lines">
+          <span id="rp-text" class="rp-text"></span>
+          <span id="rp-sub" class="rp-sub"></span>
+        </span>
+      </span>
+      <select id="roll-dim" aria-label="Dimension to roll" title="Dimension to roll">
+        <option value="">All</option>
+      </select>
+      <button type="button" id="roll-toggle" class="icon-btn" aria-label="Start rolling" title="Start rolling">
+        ▶
+      </button>
+    </span>
+
+    <span class="nav-sep" aria-hidden="true"></span>
+
+    <span class="view-toggles">
+      <label class="icon-toggle" title="Below threshold only">
+        <input type="checkbox" id="f-flagged" /><span>⚠<b>below&nbsp;80</b></span></label
+      >
+      <label class="icon-toggle" title="Shortlisted only">
+        <input type="checkbox" id="f-shortlisted" /><span>★<b>shortlist</b></span></label
+      >
+      <label class="icon-toggle" title="Flat view — all candidates, ungrouped">
+        <input type="checkbox" id="f-ungrouped" /><span>▤<b>flat</b></span></label
+      >
+      <label class="icon-toggle" title="Scatter — every candidate across every dimension">
+        <input type="checkbox" id="f-scatter" /><span>⁘<b>scatter</b></span></label
+      >
+      <label class="icon-toggle" title="Show hidden dimensions">
+        <input type="checkbox" id="f-hidden" /><span>👁<b>hidden</b></span></label
+      >
+      <label class="icon-toggle" title="Show world borders on renders">
+        <input type="checkbox" id="f-borders" /><span>◎<b>borders</b></span></label
+      >
+    </span>
+
+    <button type="button" class="action-btn nav-right" id="new-dim-btn" onclick="openConfigDialog('create', '', '')">
+      New dimension
+    </button>
+  </div>
+
+  <h1 class="sr-only">Dimension seed candidates</h1>
+  <p class="summary">{{SUMMARY_STATS}}</p>
+  <!-- Two separate facts, two separate nodes. These shared one element and
+       the roller poll (every 2s) silently destroyed the review counter
+       within two seconds of page load. -->
+  <p class="summary" id="review-progress"></p>
+  <p class="summary" id="roll-status" aria-live="polite"></p>
+
+  <!-- Grouped mode: dimension cards -->
+  <p class="empty-state" id="empty-state" hidden>
+    <b>No dimensions match.</b>
+    <button type="button" class="btn btn-secondary" id="clear-filters">Clear filters</button>
+  </p>
+
+  <!-- Cross-dimension scatter. Canvas, not SVG: ~7000 dots with hover is how
+       a page starts stuttering, and the bank only grows. -->
+  <section class="scatter" id="scatter-view" hidden aria-label="Candidate scatter">
+    <div class="sc-controls">
+      <label class="field-label"
+        >x
+        <select class="sc-x" aria-label="X axis"></select
+      ></label>
+      <label class="field-label"
+        >y
+        <select class="sc-y" aria-label="Y axis"></select
+      ></label>
+      <span class="sc-count"></span>
+      <span class="sc-legend">
+        <i class="swatch swatch-variety"></i>overworld <i class="swatch swatch-structures"></i>nether
+        <i class="swatch swatch-terrain"></i>end <i class="swatch swatch-namesake"></i>paradise_lost
+      </span>
+    </div>
+    <div class="sc-plot">
+      <canvas></canvas>
+      <div class="sc-tip" hidden></div>
+    </div>
+  </section>
+
+  <div class="grid" id="grid">{{DIMENSIONS_HTML}}</div>
+
+  <!-- Ungrouped mode: flat candidate cards (populated by JS) -->
+  <div id="ungrouped-grid"></div>
+
+  <dialog id="create-dim-dialog">
+    <h3 id="cd-title">Fork as new dimension</h3>
+    <label>Name<input type="text" id="cd-name" required /></label>
+    <div class="cd-error" data-err="name" id="cd-name-error"></div>
+    <label>Description<textarea id="cd-desc" maxlength="300"></textarea></label>
+
+    <details class="cf-section" open>
+      <summary>World</summary>
+      <div class="cf-grid">
+        <label>Type<select id="cf-type"></select></label>
+        <label>Noise preset<select id="cf-noise"></select></label>
+        <label>Structure density<select id="cf-density"></select></label>
+        <label
+          >Portal scale<select id="cf-scale">
+            <option value="">(inherit)</option>
+            <option>1</option>
+            <option>4</option>
+            <option>8</option>
+            <option>12</option>
+            <option>16</option>
+          </select></label
+        >
+        <label
+          >Border radius<select id="cf-border">
+            <option value="">(inherit)</option>
+            <option value="256">256 pocket</option>
+            <option value="512">512</option>
+            <option value="1024">1024</option>
+            <option value="2048">2048</option>
+            <option value="4096">4096</option>
+            <option value="8192">8192</option>
+            <option value="custom">custom…</option>
+          </select></label
+        >
+        <label id="cf-border-custom-wrap" hidden
+          >Custom radius <input type="number" id="cf-border-custom" min="64" max="100000" step="64"
+        /></label>
+      </div>
+      <div class="cf-hint" id="cf-band-hint"></div>
+      <div class="cd-error" data-err="type"></div>
+      <div class="cd-error" data-err="noiseSettings"></div>
+      <div class="cd-error" data-err="borderRadius"></div>
+      <div class="cd-error" data-err="scale"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Mood &amp; scoring</summary>
+      <div class="cf-grid">
+        <label>Mood<select id="cf-mood"></select></label>
+        <label>Water<select id="cf-water"></select></label>
+      </div>
+      <div class="cf-hint" id="cf-mood-blurb"></div>
+      <label class="cf-sub">Spawn filter (subset of chosen biomes)</label>
+      <div class="cf-checklist" id="cf-spawnfilter"></div>
+      <div class="cd-error" data-err="mood"></div>
+      <div class="cd-error" data-err="spawnFilter"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Biomes <span class="cf-count" id="cf-biome-count"></span></summary>
+      <input type="text" id="cf-biome-filter" placeholder="Filter ~1800 biomes…" />
+      <div class="cf-checklist tall" id="cf-biomes"></div>
+      <div class="cd-error" data-err="biomes"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Structures — wants</summary>
+      <div id="cf-wants"></div>
+      <button type="button" class="cf-add" id="cf-add-want">+ add want</button>
+      <div class="cf-hint cf-warn" id="cf-hostile-warn" hidden></div>
+      <div class="cd-error" data-err="wants"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Structures — shuns</summary>
+      <div id="cf-shuns"></div>
+      <button type="button" class="cf-add" id="cf-add-shun">+ add shun</button>
+      <div class="cd-error" data-err="shuns"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Difficulty</summary>
+      <div class="cf-grid">
+        <label>Mob multiplier<select id="cf-mobmult"></select></label>
+        <label>Player luck<select id="cf-luck"></select></label>
+        <label class="cf-check"><input type="checkbox" id="cf-hostile" /> Hostile spawning</label>
+      </div>
+      <div class="cd-error" data-err="mobMultiplier"></div>
+      <div class="cd-error" data-err="playerLuck"></div>
+    </details>
+
+    <details class="cf-section">
+      <summary>Portal</summary>
+      <div class="cf-grid">
+        <label>Frame block<input type="text" id="cf-frame" placeholder="minecraft:obsidian" /></label>
+        <label>Igniter item<input type="text" id="cf-igniter" placeholder="minecraft:flint_and_steel" /></label>
+        <label>Colour<input type="text" id="cf-color" placeholder="8844FF" maxlength="7" /></label>
+        <label>Particle<input type="text" id="cf-particle" placeholder="minecraft:portal" /></label>
+      </div>
+      <div class="cd-error" data-err="frameBlock"></div>
+      <div class="cd-error" data-err="igniterItem"></div>
+      <div class="cd-error" data-err="color"></div>
+      <div class="cd-error" data-err="particleType"></div>
+    </details>
+
+    <datalist id="cf-structs-list"></datalist>
+    <div class="cd-error" data-err="config"></div>
+    <div class="dialog-actions">
+      <button type="button" id="cd-cancel">Cancel</button>
+      <button type="button" id="cd-create" class="primary">Create</button>
+    </div>
+    <input type="hidden" id="cd-parent-dim" />
+    <input type="hidden" id="cd-seed" />
+    <input type="hidden" id="cd-mode" value="fork" />
+  </dialog>
+
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Candidate detail">
+    <div class="lb-inner">
+      <button type="button" class="lb-close" aria-label="Close">&times;</button>
+      <div class="lb-image">
+        <img alt="" width="2048" height="2048" loading="eager" decoding="async" style="background: #101216" />
+        <!-- Two overlay layers over one map, each owned by one feature:
+             #lb-markers (structicons.js) draws the structures themselves,
+             #lb-overlay (the hover handler in app.js, and dartboard.js)
+             draws the criteria annotating them. Both carry .lb-layer, which
+             is what window.alignLbOverlay() measures and positions. -->
+        <svg id="lb-overlay" class="lb-layer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+        <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
+          Structures
+        </button>
+        <!-- Swaps the SAME candidate between its low-res render (smaller
+             area, arrives immediately) and its hi-res one (wider area, once
+             a probe confirms it exists) — see lbMapCoverage in app.js for
+             why the two are not interchangeable. Hidden until a hi-res src
+             is known, disabled until the probe confirms it actually loads. -->
+        <button type="button" class="lb-res-toggle" aria-pressed="false" hidden>High-def</button>
+      </div>
+      <div class="lb-info"></div>
+    </div>
+  </div>
+
+  <!-- project.js first: it owns the one block-offset -> viewBox sum every
+       overlay below depends on, and it must be defined before they run. -->
+  <script src="assets/project.js" defer></script>
+  <!-- route.js before app.js for the same reason: app.js reads the URL on
+       load to restore the expanded dimension and the open candidate. -->
+  <script src="assets/route.js" defer></script>
+  <script src="assets/app.js" defer></script>
+  <script src="assets/dartboard.js" defer></script>
+  <script src="assets/structicons.js" defer></script>
+  <script src="assets/exactfacts.js" defer></script>
+  <script src="assets/scatter.js" defer></script>
+  <script src="assets/tryout.js" defer></script>
+</html>

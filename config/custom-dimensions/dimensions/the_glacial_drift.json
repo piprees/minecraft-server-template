@@ -95,11 +95,7 @@
     "shuns": [],
     "description": "A glacial drift among the skylands — frozen paradise islands calving into the void. The oldest animals shelter here in tundra that predates every civilisation. Nothing was ever built; nothing needs to be.",
     "family": "overworld",
-    "terrain": "islands",
-    "heightRange": [
-      -60,
-      440
-    ]
+    "terrain": "islands"
   },
   "spawn": [
     0,

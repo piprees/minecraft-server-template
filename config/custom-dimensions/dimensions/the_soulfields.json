@@ -2,7 +2,6 @@
   "type": "nether",
   "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
   "seed": 8788869748950071596,
-  "noiseSettings": "adventure:wide",
   "biomes": [
     "minecraft:soul_sand_valley",
     "incendium:ash_barrens",
@@ -43,6 +42,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
+    "water": "none",
     "spawnFilter": [
       "minecraft:soul_sand_valley",
       "incendium:ash_barrens"

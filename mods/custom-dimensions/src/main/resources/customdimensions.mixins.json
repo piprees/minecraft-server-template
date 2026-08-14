@@ -25,6 +25,7 @@
     "StructureAccessorAccessor",
     "StructurePlacementAccessor",
     "StructurePlacementCalculatorInvoker",
+    "StructurePoolIdCaseMixin",
     "StructureTerrainAdaptationMixin",
     "StructureWeightSamplerMixin",
     "WorldLoaderMixin",

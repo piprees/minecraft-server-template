@@ -75,8 +75,8 @@ public class MultiverseConfig {
             // Base worlds are deliberately NOT added to managedNamespaces:
             // minecraft: and paradise_lost: are namespaces other mods also
             // populate, and the mixins' definition lookup behind that gate is
-            // by PATH. They are resolved by exact dimension id instead
-            // (getBaseWorld) — same management, no path collisions.
+            // by PATH. Base worlds resolve by exact dimension id instead
+            // (getBaseWorld) — no collisions.
             if (!config.isBaseWorld()) {
                 this.managedNamespaces.add(config.getNamespace());
             }
@@ -174,11 +174,10 @@ public class MultiverseConfig {
      * Live immersive settings for a target dimension, or null. Zone records
      * in portal_links.json carry a Gson-deserialised PortalDefinition whose
      * transient immersive field is always null — restoreZones re-stamps
-     * from here so "immersive" stays boot-re-read (PLAN.md: "Changes apply
-     * without a wipe") for zones ignited before the setting existed, or
-     * before it last changed. Never throws — a malformed/legacy
-     * targetDimension string on any live portal must not abort the lookup
-     * for every other zone.
+     * from here so "immersive" stays boot-re-read for zones ignited before
+     * the setting existed, or before it last changed. Never throws — a
+     * malformed/legacy targetDimension string on any live portal must not
+     * abort the lookup for every other zone.
      */
     public ImmersiveSettings getImmersiveFor(RegistryKey<World> targetWorld) {
         if (targetWorld == null) {
@@ -230,19 +229,9 @@ public class MultiverseConfig {
      * The portal definition describing travel INTO {@code targetWorld}, or
      * null when nothing configures one.
      *
-     * <p>A dimension's {@code portal} block has always meant "the portal that
-     * leads to this dimension", which is what makes this lookup meaningful
-     * for the RETURN direction too: the portal standing in a custom dimension
-     * that takes you home is, by that definition, an overworld portal, and
-     * should look and sound like one.
-     *
-     * <p>Vanilla never needed this — there is no such thing as an "overworld
-     * portal" there, because the nether portal you came through is the same
-     * block you go back through. Ours are built per dimension, so without a
-     * lookup the way home inherits the presentation of the place you are
-     * trying to leave: a portal home from an ember dimension rendered in
-     * ember colours, which reads as another door deeper in rather than the
-     * way out.
+     * <p>Used for the RETURN direction too: the portal standing in a custom
+     * dimension that leads home is presented using the destination
+     * (overworld) portal's look and sound, not the dimension's own.
      */
     public PortalDefinition getPortalFor(RegistryKey<World> targetWorld) {
         if (targetWorld == null) {
@@ -332,5 +321,15 @@ public class MultiverseConfig {
     public DimensionConfig getWorld(String name) {
         DimensionConfig config = this.configs.get(name);
         return config != null && config.isBaseWorld() ? config : null;
+    }
+
+    /**
+     * Every configured base world. They carry the same seed, border,
+     * difficulty, portal and structures blocks as any other dimension and are
+     * rolled and scored the same way — so anything checking configs has to
+     * check these too.
+     */
+    public List<DimensionConfig> getWorlds() {
+        return this.configs.values().stream().filter(DimensionConfig::isBaseWorld).toList();
     }
 }

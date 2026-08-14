@@ -66,24 +66,24 @@ If the persisted state format changed (config schema, namespace, ids), delete th
 
 **Verify via log grep, never by inspecting the config file afterwards** — the key's absence from `c2me.toml` post-boot is expected (c2me strips it after reading it): `docker exec mc grep "Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler" /data/logs/latest.log`.
 
-## 4. Verify via artefacts and checkers, not RCON output
+## 4. Verify via artefacts, not RCON output
 
-**Start here, not with RCON.** The mod's diagnostic commands write versioned JSON to `data/config/custom-dimensions/` and answer with one line plus a path; checkers in `scripts/` assert over those files with no server running. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
+**Start here, not with RCON.** The mod's diagnostic commands write JSON under `.seed-rolling/` (a directory sibling to `data/`, outside the reach of `deploy.sh`'s config sync and `./dev refresh-config`) and answer with one line plus a path; a few compare two measurements and report a capped pass/fail summary inline instead. RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot distinguish a timeout from a success — so parsing its output is how you get a green run over a broken world. There is no offline checker script left to run — the Python checkers were ported to JUnit tests under `mods/custom-dimensions/src/test/java/`. Full contract: `mods/AGENTS.md` § Diagnostic artefacts.
 
 ```bash
-./dev verify                 # every checker, no Docker needed, safe while paused
+./dev verify                 # points at where fingerprint/portal/suppress verification lives now
 ```
 
-Run `check-dimension-drift.py` FIRST if you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
+Check the mc boot log for a drift WARN FIRST if you are about to assert anything about worldgen (`docker logs mc | grep "worldgen config changed"`). Worldgen is creation-time-only, so a world created before your config change still generates the OLD world, and every other assertion is then measuring history. A stale world is the most likely reason a worldgen assertion disagrees with config — a "failed" structure-filter check is often just an old world, not a wrong filter.
 
-| Question | Artefact | Checker |
+| Question | Instrument | Verified by |
 | --- | --- | --- |
-| Does this world still match its config? | `custom-dimensions-fingerprints.json` | `check-dimension-drift.py` |
-| Which structures reached each group, and where? | `census/<ns>__<slug>.json` | `check-noise-regression.py` |
-| Is persisted portal state sane? | `portal_links.json` | `check-portal-integrity.py` |
-| How was each set classified? | `structure-audit.txt` | human-read |
+| Does this world still match its config? | `data/config/custom-dimensions-fingerprints.json` | the mod, at boot (`DimensionFingerprints`) |
+| Which structures reached each group, and where? | `/customdim structure-census <dim>` (needs a LOADED dimension) | live world vs headless `FactsEngine`, compared inline — no file, no separate checker |
+| Is persisted portal state sane? | `data/config/portal_links.json` | the mod, on load (`PortalStateValidator`) |
+| How was each set classified? | `/customdim structure-audit [group]` | writes `.seed-rolling/lint/<hash>.structure-audit.json`, human-read |
 
-`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `census/occupancy__*.json`) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
+`/locate` is NOT an occupancy instrument — a miss walks placements for minutes and wedges RCON. Use `/customdim occupant <dim> <cx> <cz>` to read a loaded chunk's live `StructureStart`s (never generates, appends `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` — this world's own save, not `.seed-rolling`, since it's a fact about chunks that actually generated) and `/customdim carver-draw <dim> <cx> <cz>` to replay vanilla's would-be first draw beside the noise assignment. Locating a vanilla village in the **stock overworld** times out at 120 s, and Chunky pre-generation does not help.
 
 ## 5. Exercise via RCON, headless
 

@@ -1,6 +1,8 @@
 package com.customdimensions.command;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -10,43 +12,38 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 
 /**
- * Diagnostic artefacts — the answer goes in a file, not down the wire.
+ * RCON truncates and concatenates response lines, so diagnostic commands
+ * write results to a file here instead of returning them inline — a checker
+ * in {@code scripts/} reads the file offline.
  *
- * RCON concatenates feedback lines with no separator and truncates the
- * response at a few KB, so any command that iterates a registry or a world
- * comes back as one unreadable, half-missing string — which looks like a
- * working command until you try to use it. Every diagnostic command therefore
- * answers with a one-line summary plus a path, and writes the real answer
- * here for a checker in {@code scripts/} to assert over offline.
- *
- * Two properties this class exists to guarantee:
- *
- * <ul>
- *   <li><b>Atomic.</b> A large census is tens of thousands of positions and
- *       takes real time to serialise. A checker reading the file while it is
- *       being written would see truncated JSON and report a fault that does
- *       not exist. Writes go to a sibling {@code .tmp} and are renamed into
- *       place, so a reader sees either the old file or the new one.</li>
- *   <li><b>Stamped.</b> Every artefact carries the {@code stackVersion} that
- *       produced it and {@code generatedAt}. A checker meeting a stamp other
- *       than its own says so instead of silently reading stale data — this
- *       codebase's worst failure mode is a green run over an artefact nobody
- *       has re-dumped. The stamp is derived, never hand-set.</li>
- * </ul>
+ * Writes go through a temp file and an atomic rename so a reader never sees
+ * a half-written file. Every artefact is stamped with {@code stackVersion}
+ * and {@code generatedAt} so a checker can detect stale data.
  */
 public final class Artefacts {
 
     /**
-     * The release that built this jar. release.yml passes the release tag as
-     * {@code -Pmod_version}, so a shipped artefact is stamped with the stack
-     * version that wrote it; a local build reports the dev default from
-     * gradle.properties, which the checkers treat as "unknown, don't compare".
+     * The release that built this jar, from {@code -Pmod_version} (release.yml);
+     * a local build reports the gradle.properties dev default, which checkers
+     * treat as "unknown, don't compare".
      */
     public static String stackVersion() {
         return FabricLoader.getInstance()
                 .getModContainer("customdimensions")
                 .map(m -> m.getMetadata().getVersion().getFriendlyString())
                 .orElse("unknown");
+    }
+
+    /**
+     * Whether a stamp names a release rather than a local build.
+     *
+     * <p>Local builds all share the same dev version, so a stamp match
+     * between two dev builds proves nothing — anything reusing an artefact
+     * rather than re-deriving it must ask this first.
+     */
+    public static boolean isRelease(String version) {
+        return version != null && !version.isBlank()
+                && !"unknown".equals(version) && !version.contains("local");
     }
 
     private Artefacts() {
@@ -62,6 +59,49 @@ public final class Artefacts {
     }
 
     /**
+     * {@code .seed-rolling/} in the CONSUMER directory — never under
+     * {@code data/}, which {@code ./dev clean} wipes and which is the mc
+     * container's own volume, not the consumer's. The container has no
+     * filesystem path back up to the consumer root, so this relies on a
+     * dedicated bind mount sibling to the data mount: docker-compose.yml
+     * mounts {@code ${SEED_ROLLING_DIR:-./.seed-rolling}} to
+     * {@code /.seed-rolling}, a sibling of the run directory ({@code /data})
+     * inside the container — the same one-hop relationship this resolves.
+     */
+    public static Path rollingDir() {
+        return FabricLoader.getInstance().getGameDir().resolveSibling(".seed-rolling");
+    }
+
+    /**
+     * The consumer's committed {@code overlay/config/custom-dimensions/dimensions/},
+     * bind-mounted as a sibling of the run directory. A winner seed written
+     * anywhere else does not reach git and does not survive
+     * {@code ./dev refresh-config}, so a caller that finds this absent must
+     * refuse rather than fall back to {@link #dir()}.
+     */
+    public static Path overlayDimensionsDir() {
+        return FabricLoader.getInstance().getGameDir().resolveSibling("overlay-dimensions");
+    }
+
+    /** Whether the mount exists, i.e. whether durable output can be written. */
+    public static boolean canWriteDurably() {
+        return Files.isDirectory(rollingDir().getParent());
+    }
+
+    /**
+     * {@code customdimensions/census/} inside this server's own world save —
+     * a sibling of {@code region/} and {@code playerdata/}, not the consumer's
+     * config directory and not {@link #rollingDir()}. A census record
+     * describes chunks that actually generated in this save: it is world
+     * state, not a seed-rolling hypothesis, so it belongs where a world wipe
+     * takes it with the chunks it describes, and a config refresh or a
+     * {@code .seed-rolling} reset leaves it alone.
+     */
+    public static Path censusDir(MinecraftServer server) {
+        return server.getSavePath(WorldSavePath.ROOT).resolve("customdimensions").resolve("census");
+    }
+
+    /**
      * The JSON header every artefact opens with, including the trailing
      * comma — callers append their own fields straight after it.
      */
@@ -69,13 +109,6 @@ public final class Artefacts {
         return "{\n \"stackVersion\": \"" + stackVersion() + "\""
                 + ",\n \"kind\": \"" + kind + "\""
                 + ",\n \"generatedAt\": \"" + Instant.now() + "\",\n";
-    }
-
-    /** The same header as a comment block, for the text/CSV artefacts. */
-    public static String textHeader(String kind) {
-        return "# stackVersion=" + stackVersion()
-                + " kind=" + kind
-                + " generatedAt=" + Instant.now() + "\n";
     }
 
     /**
@@ -90,9 +123,8 @@ public final class Artefacts {
             Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING,
                     StandardCopyOption.ATOMIC_MOVE);
         } catch (AtomicMoveNotSupportedException e) {
-            // Some bind-mounted filesystems refuse ATOMIC_MOVE. A plain
-            // replace still beats writing in place: the window where a reader
-            // can see a partial file shrinks to the rename itself.
+            // Some bind-mounted filesystems refuse ATOMIC_MOVE; plain replace
+            // still narrows the partial-read window to the rename itself.
             Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(tmp);

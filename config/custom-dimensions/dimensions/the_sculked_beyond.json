@@ -48,6 +48,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:deep_dark",
       "terralith:cave/infested_caves",

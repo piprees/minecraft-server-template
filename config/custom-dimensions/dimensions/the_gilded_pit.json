@@ -103,6 +103,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:nether_wastes",
       "minecraft:basalt_deltas"

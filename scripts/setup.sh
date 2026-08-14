@@ -20,7 +20,6 @@
 #  10. Preflight      Validate config (delegates to preflight-check.sh)
 #  11. /etc/hosts     Offer to add local subdomain entries
 #  12. Local test     Start the server locally (delegates to dev-up.sh)
-#  13. Seed rolling   Optional multi-hour seed search (delegates to seed/)
 #  14. Cloud deploy   provision.sh → harden.sh → prepare-droplet.sh → first boot
 #  15. DNS & tunnel   Cloudflare tunnel + DNS records (cloudflare-setup.sh)
 #  16. Networking     LAN / VPN / internet exposure guidance
@@ -742,9 +741,7 @@ if [[ $SKIP_CREDENTIALS -eq 0 ]]; then
 
   step "World seed"
   info "Enter a seed if you have one, or leave blank to get a random one."
-  info "If you want to find a really good seed, skip this and use the"
-  info "seed roller later (it tests hundreds of seeds against the real modpack)."
-  prompt_value SEED "Seed (blank = random, or roll later)" "${SEED:-}"
+  prompt_value SEED "Seed (blank = random)" "${SEED:-}"
   if [[ -n "$SEED" ]]; then
     persist_secret SEED "$SEED"
   fi
@@ -1213,41 +1210,6 @@ if ask_yes_no "Start local server?" "$LOCAL_DEFAULT"; then
 fi
 
 # =============================================================================
-#  Phase 13: Seed Rolling (optional)
-# =============================================================================
-banner "Seed Rolling (optional)"
-
-if [[ -n "${SEED:-}" ]]; then
-  echo "You already have a seed set: ${SEED}"
-  echo "Skip this unless you want to find a better one."
-else
-  echo "No seed set yet. The server will pick a random one on first boot."
-  echo "The seed roller finds good ones by testing structure placement and"
-  echo "spawn biomes against the real modpack. Worth doing if you care about"
-  echo "your world's starting area."
-fi
-echo ""
-setup_warn "Seed rolling takes HOURS (each seed = full server boot + worldgen)."
-info "It's resumable though, so you can stop and come back to it."
-echo ""
-
-if ask_yes_no "Start seed rolling?" "N"; then
-  echo ""
-  # Optional feature: a seed-rolling failure must not kill the wizard.
-  run_script "Rolling seeds" "$SCRIPT_DIR/seed/roll-all.sh"
-
-  echo ""
-  step "Choose your seed"
-  echo "  Winners are written into the dimension configs; review with"
-  echo "  ./dev seed-status, or override the overworld seed here:"
-  prompt_value CHOSEN_SEED "Winning seed" ""
-  if [[ -n "$CHOSEN_SEED" ]]; then
-    persist_secret SEED "$CHOSEN_SEED"
-    echo -e "  ${GREEN}✓${RESET} Seed saved to .env"
-  fi
-fi
-
-# =============================================================================
 #  Phase 14: Cloud Deployment
 # =============================================================================
 if [[ $IS_CLOUD -eq 1 ]]; then
@@ -1587,7 +1549,6 @@ else
   echo "  Start server:     ./scripts/dev-up.sh"
   echo "  Stop server:      ./scripts/dev-up.sh --down"
   echo "  Watch logs:       ./scripts/dev-up.sh --logs"
-  echo "  Roll seeds:       ./dev seed-roll"
   echo "  Build modpack:    ./dev pack"
   echo "  Teardown:         ./scripts/teardown.sh --target local"
   echo ""

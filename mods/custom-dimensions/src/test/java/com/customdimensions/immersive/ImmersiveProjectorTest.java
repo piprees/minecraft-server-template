@@ -17,12 +17,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Headless safety of the projector's teardown paths.
  *
- * These matter beyond the assertions: {@code PortalHelper.removeZone} now
- * calls into {@link ImmersiveProjector}, whose static initialiser builds a
- * {@code ChunkTicketType}. If that class could not initialise outside a
- * running server, every unit test touching zone removal would fail — and
- * worse, so would the comment in {@code removeZone} promising it is a no-op
- * there. This pins both.
+ * <p>{@code PortalHelper.removeZone} calls into {@link ImmersiveProjector},
+ * whose static initialiser builds a {@code ChunkTicketType}. If that class
+ * could not initialise outside a running server, every unit test touching
+ * zone removal would fail, and the comment in {@code removeZone} promising a
+ * no-op there would be wrong. This pins both.
  */
 class ImmersiveProjectorTest {
 

@@ -50,7 +50,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `exits` | object (map) | boot-re-read | Exit condition rules — void/death/enderPearl/fallFrom triggers. See [Exits](#exits-object) below. |
 | `exitShrines` | object | worldgen creation-time; beacon detection boot-re-read | `{"enabled": true, "target": "bed"}` — scattered jigsaw exit ruins. |
 | `environment` | object | mostly boot-re-read (a few creation-time) | Custom `DimensionType` registration (`{ns}:{slug}_type`). See [Environment](#environment-object) below. |
-| `seedRoll` | object | ignored by the mod at runtime | Scoring config for the Python roller only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
+| `seedRoll` | object | ignored by the mod at runtime | Scoring config for seed rolling only. See [seedRoll](#seedroll-object) below — this is the block that actually determines what "good" means for this dimension. |
 | ~~`dimensionId`~~ | string | — | **Legacy — omit.** The id is always derived from `{namespace}:{filename}`. |
 | ~~`hostileSpawning`~~ (top-level) | bool | — | **Legacy — use `difficulty.hostileSpawning` instead**, which wins when both are present. |
 
@@ -219,7 +219,7 @@ All fields optional; anything unset inherits from the base dimension type. Regis
 
 ## `seedRoll` object
 
-The mod ignores this block entirely at runtime — it exists purely for the Python roller (`scripts/seed/dimension_profiles.py`). This is the block that actually defines "what does a good seed for this dimension look like":
+The mod ignores this block entirely at runtime — it exists purely for seed rolling. This is the block that actually defines "what does a good seed for this dimension look like":
 
 ```json
 {
@@ -234,6 +234,7 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
     "heightRange": [-60, 440],
     "family": "overworld",
     "allowEndgameNearSpawn": false,
+    "allowHazardousSpawn": false,
     "description": "Human-readable dimension philosophy.",
     "wants": { "village": "near_spawn", "ancient_city": "spread" },
     "shuns": ["village", "tavern"]
@@ -245,17 +246,18 @@ The mod ignores this block entirely at runtime — it exists purely for the Pyth
 | --- | --- |
 | `skip` | `true` excludes this dimension from rolling entirely. |
 | `mood` | One of the 8 valid moods (`hard`/`adventurous`/`dramatic`/`scenic`/`pastoral`/`serene`/`desolate`/`standard`) — see `references/scoring-internals.md` for exact weights/behaviour. |
-| `spawnFilter` | Biome ids. Candidates whose spawn biome isn't in this list are rejected outright — this is the #1 cause of zero candidates if it lists a biome that doesn't actually exist in the biome table for this family. |
+| `spawnFilter` | Biome ids the dimension is named after. GRADED, not a gate: a spawn already in one is full marks, otherwise the mark is those biomes' combined share of the world, because picking a candidate writes the position you were standing in as the spawn. A filter naming a biome that cannot occur in this family scores every seed zero — still the first thing to check when a board stays empty. |
 | `spawnRadius` | Sampling radius for spawn biome checks. |
-| `water` | `"none"` / `"high"` / `"sea"` water-fraction preference. |
+| `water` | `"none"` (≤0.20) / `"high"` (0.25–0.80) / `"sea"` (≥0.50) — the fraction of columns WITH GROUND that sit at or below the generator's sea level. Nothing in the generator reads this; a dimension that needs a genuinely dry or drowned world sets `settingsOverrides.seaLevel`, which the generator does read. |
 | `locateCap` | Max locate distance; defaults to generation border + 1000. |
-| `terrain` | `"solid"` / `"islands"` / `"void"` override of the auto-detected terrain kind. |
-| `heightRange` | `[minY, maxY]` for terrain height computation (mostly matters for clone types). |
+| `terrain` | Two vocabularies. Relief words — `flat`, `gently_rolling`, `rolling`, `hilly`, `mountainous`, `extreme` — score against the terrain's interquartile height spread. Ground-shape words — `islands` (5–70% of the disc carries ground) and `void` (≤10%) — score against `terrain.groundFraction`. A dimension setting neither is asked instead whether it has a floor at all. `"solid"` is NOT a recognised word. |
+| `heightRange` | `[minY, maxY]` envelope the terrain should live INSIDE. Scored as the share of the terrain that exists which falls within it, so a narrow world inside a wide envelope is full marks — an envelope is a permission, not a quota. A range wide enough to contain anything (all six shipped uses declare `[-60, 440]`) discriminates nothing; make it fit the dimension. |
 | `family` | `"overworld"`/`"nether"`/`"end"`/`"paradise_lost"` override of auto-detection from `type`. |
 | `allowEndgameNearSpawn` | Lets endgame/boss structures sit near spawn without penalty. |
+| `allowHazardousSpawn` | `true` withdraws BOTH spawn-safety gates — `nothing_is_immediately_lethal` (a sheer drop at the spawn column) and `spawn_is_safe_to_build_on` (lava, or nothing to stand on). For a dimension entered through a portal the mod builds the arrival itself — `PortalSite` finds an open site or carves one, lays a floor, and refuses the traversal rather than dropping somebody somewhere unopenable — so a player never steps out onto the column these measure, and for a dimension whose proposition IS danger a cliff there is scenery. Opt-out and never derived: every dimension has a portal, so deriving it would switch the gates off pack-wide in one silent step. Shipped on the 19 dimensions with `difficulty.mobMultiplier >= 2.0`, the same threshold the hard structure shift uses. |
 | `description` | Human-readable philosophy — shown in the viewer UI. Reuse the theme prompt here. |
-| `wants` | **Band-name** form: short-name → `"near_spawn"`/`"spread"`/`"near_border"`. Different format from `structures.wants` — see main SKILL.md traps. |
-| `shuns` | Bare list of short names (or map form) to penalise. |
+| `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
+| `shuns` | Bare list of short names (or map form). Absent is full marks; present is scored by how much of the world separates a player from it. |
 
 ## Base worlds
 

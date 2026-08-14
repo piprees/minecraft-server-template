@@ -107,15 +107,7 @@ public final class StructureGroupRegistry {
         return classify(setId, spacing).rarity();
     }
 
-    /**
-     * Spacing to rarity tier.
-     *
-     * MIRRORED from rarity_for() in scripts/gen-structure-groups.py and
-     * scripts/seed/structure_placement.py — change all three together. A
-     * negative spacing means "not a random-spread placement", which lands on
-     * `uncommon`: the middle tier, so an unclassifiable set neither floods
-     * its group nor vanishes from it.
-     */
+    /** Spacing to rarity tier. */
     public static String rarityForSpacing(int spacing) {
         if (spacing < 0) {
             return "uncommon";

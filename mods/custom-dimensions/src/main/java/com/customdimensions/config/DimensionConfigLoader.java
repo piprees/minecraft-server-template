@@ -58,16 +58,13 @@ public final class DimensionConfigLoader {
          * global counterpart of a dimension's {@code structures.exclude}.
          * Applied through the same filters (DimensionStructures.keepSet +
          * NoisePoolBuilder). Unknown ids WARN at boot rather than failing.
-         * Generation-affecting — mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
          */
         public java.util.List<String> suppressStructures = java.util.List.of();
         /**
          * Biome ids removed from every world's biome source ({@code
          * "suppress": {"biomes": [...]}}) — applied by BiomeSuppression to
          * listed sources, full-source dims, and the base worlds alike.
-         * Unknown ids WARN at boot. Generation-affecting — mirrored in
-         * scripts/seed/dimension_profiles.generation_payload().
+         * Unknown ids WARN at boot.
          */
         public java.util.List<String> suppressBiomes = java.util.List.of();
     }
@@ -105,8 +102,6 @@ public final class DimensionConfigLoader {
     /**
      * Platform settings with the consumer overlay's settings.json merged
      * over them (deepMerge: overlay scalars win, objects merge key-by-key).
-     * The overlay file was staged for a long time and read by nothing — the
-     * suppress list is the first consumer-facing key that needs it.
      */
     static Settings loadSettings(Path settingsFile, Path overlayFile) {
         Settings settings = new Settings();
@@ -298,10 +293,8 @@ public final class DimensionConfigLoader {
      * characters are {@code //} is blanked (line numbers preserved for
      * parse errors). Trailing comments are deliberately NOT supported —
      * a {@code //} inside a string (URLs) must never be a comment, and
-     * the whole-line rule needs no string-state tracking. The SAME narrow
-     * rule lives in scripts/seed/dimension_profiles.strip_json_comments
-     * and scripts/check-dimension-drift.py — change all three together.
-     * No Gson lenient mode: everything else stays strict JSON.
+     * the whole-line rule needs no string-state tracking. Gson otherwise
+     * stays in strict (non-lenient) mode.
      */
     public static String stripJsonComments(String text) {
         if (text == null || !text.contains("//")) {

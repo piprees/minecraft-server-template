@@ -47,6 +47,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "incendium:weeping_valley",
       "minecraft:crimson_forest"

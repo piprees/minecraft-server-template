@@ -14,40 +14,20 @@ import java.util.concurrent.ConcurrentSkipListMap;
  *
  * A noise position is one weighted draw from its group's pool, so "is there a
  * Village within 500 blocks" and "is there a settlement within 500 blocks" are
- * different questions. The seed roller could only ever ask the second one: the
- * census it banks per candidate records per-GROUP counts and a radial
- * histogram, never which structure landed on which position. That made two
- * whole classes of criterion meaningless:
- *
- * <ul>
- *   <li>a shun failed whenever its group was present, and an enabled group is
- *       populated by definition — so 167 shuns across 64 of 81 dimensions had
- *       never once been satisfied on any seed;</li>
- *   <li>a want was credited whenever ANY group member reached the band, so
- *       asking for a Village was really asking for any one of forty settlement
- *       types.</li>
- * </ul>
- *
- * The roller cannot derive the pool. Membership is decided server-side by
- * {@link NoisePoolBuilder}, intersecting each structure's own biome list with
- * the dimension's biome source — registry data the roller has no access to. So
- * it has to be told, and this is the telling.
+ * different questions. The seed roller's per-group census cannot distinguish
+ * them, because group membership is decided server-side by {@link
+ * NoisePoolBuilder}, intersecting each structure's own biome list with the
+ * dimension's biome source — registry data the roller has no access to. This
+ * records that resolution so the roller can be told rather than guess.
  *
  * <h2>Why a recorder rather than a command that computes it</h2>
  *
- * {@link NoisePoolBuilder#build} needs a live {@code BiomeSource}, which only
- * exists once a world is loaded. A command that loaded 81 worlds to answer
- * would have to go through {@code requestWorldLoad} — asynchronous, because
- * calling {@code getOrCreateDimension} synchronously from command context
- * deadlocks the main thread. Recording what the boot path already computes
- * costs nothing and cannot deadlock: every managed dimension registers its pool
- * as its own placement calculator is installed.
- *
- * The consequence is that a dump covers the dimensions loaded SO FAR, and says
- * how many. That is deliberate. A missing dimension makes the roller fall back
- * to the group-level reading it used before — the same answer as today, never a
- * wrong one — so partial data improves scoring for what it covers and breaks
- * nothing else.
+ * Records what the boot path already computes rather than exposing a command
+ * that builds it on demand: {@link NoisePoolBuilder#build} needs a live
+ * {@code BiomeSource}, and loading a world synchronously from command context
+ * deadlocks the main thread. The dump therefore only covers dimensions loaded
+ * so far; a missing dimension makes the roller fall back to the group-level
+ * reading it used before — the same answer as today, never a wrong one.
  *
  * Thread-safe: chunk generation is multithreaded under c2me and worlds load in
  * parallel, so both maps are concurrent.

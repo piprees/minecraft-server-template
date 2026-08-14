@@ -78,7 +78,7 @@ FOOTER = """\
 def strip_json_comments(text):
     """Whole-line // comments only — the shared contract in
     DimensionConfigLoader.stripJsonComments (Java) and
-    scripts/seed/dimension_profiles.strip_json_comments. Change together."""
+    DimensionConfigLoader.stripJsonComments. Change together."""
     if "//" not in text:
         return text
     return re.sub(r"^[ \t]*//.*$", "", text, flags=re.M)

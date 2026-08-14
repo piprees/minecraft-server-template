@@ -63,6 +63,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "end_gate_fortress": "near_spawn",

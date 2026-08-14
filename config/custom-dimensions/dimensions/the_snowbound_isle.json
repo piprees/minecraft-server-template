@@ -95,11 +95,7 @@
     "shuns": [],
     "description": "A snowbound island adrift in the sky. Fir forests and drifts on floating ground — animal country where the cold keeps everything honest. The towers and vaults here grew naturally, like the trees.",
     "family": "overworld",
-    "terrain": "islands",
-    "heightRange": [
-      -60,
-      440
-    ]
+    "terrain": "islands"
   },
   "spawn": [
     0,

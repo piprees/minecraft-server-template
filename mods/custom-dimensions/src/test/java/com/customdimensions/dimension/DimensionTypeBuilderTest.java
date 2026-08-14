@@ -67,4 +67,24 @@ class DimensionTypeBuilderTest {
         assertNull(DimensionTypeBuilder.validateSpawnLight(JsonParser.parseString("\"bright\""), "t"));
         assertNull(DimensionTypeBuilder.validateSpawnLight(JsonParser.parseString("[1, 2, 3]"), "t"));
     }
+
+    @Test
+    void aCaveWorldIsRoofedAndEveryOtherTypeLeavesItToTheBase() {
+        // cave builds on minecraft:caves — a bedrock roof and no sky — while
+        // taking the OVERWORLD's dimension type, which says hasCeiling false.
+        // Everything downstream then reads the column as open, and the highest
+        // solid block in an open column of a roofed world is the roof: the same
+        // in every column. the_luminous_caverns and the_emberglass_foundry drew
+        // as one flat colour, height spread zero, all three sources agreeing.
+        assertEquals(Boolean.TRUE, DimensionTypeBuilder.ceilingForWorldType("cave"));
+        assertEquals(Boolean.TRUE, DimensionTypeBuilder.ceilingForWorldType("CAVE"));
+
+        // null is "no opinion, the base type decides" — NOT false, which would
+        // strip the ceiling off a nether that its base type correctly roofs.
+        for (String t : new String[] {"multi_biome", "nether", "nether_islands",
+                                      "end", "sky_islands", "void", "superflat", null}) {
+            assertNull(DimensionTypeBuilder.ceilingForWorldType(t),
+                    t + " must leave the ceiling to its base type");
+        }
+    }
 }

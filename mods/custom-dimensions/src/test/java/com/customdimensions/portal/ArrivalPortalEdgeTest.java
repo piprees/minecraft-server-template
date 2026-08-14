@@ -15,14 +15,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * The arrival-portal entry edge — {@code PortalHelper.enteredArrivalPortal}
  * and {@code markArrivedInPortal} — driven as the state machine it is.
  *
- * <p><b>What this is defending.</b> Arrival portals are real portal blocks, so
- * vanilla's {@code Entity.tryUsePortal} re-pins the portal cooldown to
- * {@code getDefaultPortalCooldown()} (verified against 1.21.1 bytecode: 10 for
- * a player, 300 for everything else) on every tick an entity stands in one.
- * Both return paths used to gate on that cooldown reaching zero, which it never
- * does while you stand still — so a player who arrived by portal, and therefore
- * landed INSIDE the arrival portal, was trapped. Measured live on a player:
- * {@code PortalCooldown=10} at t=2s, t=6s and t=12s without moving.
+ * <p>Arrival portals are real portal blocks, so vanilla's {@code
+ * Entity.tryUsePortal} re-pins the portal cooldown to {@code
+ * getDefaultPortalCooldown()} (10 for a player, 300 for everything else) on
+ * every tick an entity stands in one — it never reaches zero while standing
+ * still, so gating the return on cooldown-zero would trap anyone who arrives
+ * inside their own arrival portal.
  *
  * <p>Every test here therefore keeps {@code warmCooldown} TRUE while the entity
  * stands in the portal, exactly as vanilla would. A rule that only works with a
@@ -57,7 +55,7 @@ class ArrivalPortalEdgeTest {
     }
 
     // ------------------------------------------------------------------
-    // The reported bug
+    // Arriving inside the arrival portal must not bounce the player back
     // ------------------------------------------------------------------
 
     @Test
@@ -73,7 +71,7 @@ class ArrivalPortalEdgeTest {
                 "arriving inside the arrival portal must not fire the return");
 
         // Ticks 4-250: standing still. Vanilla holds the cooldown at 10 the
-        // whole time — the exact state the old gate could never escape.
+        // whole time.
         for (int tick = 4; tick <= 250; tick++) {
             assertFalse(sample(GARDENS, true, WARM, tick),
                     "standing still must not fire the return (tick " + tick + ")");
@@ -82,9 +80,8 @@ class ArrivalPortalEdgeTest {
         // Tick 251: one step out of the portal block.
         assertFalse(sample(GARDENS, false, WARM, 251));
 
-        // Tick 252: step straight back in — cooldown STILL warm, because they
-        // were only out for a single tick. This is the case the old code got
-        // wrong and the whole point of the change: the edge fires regardless.
+        // Tick 252: step straight back in — cooldown still warm, because they
+        // were only out for a single tick. The edge must fire regardless.
         assertTrue(sample(GARDENS, true, WARM, 252),
                 "stepping back in must fire the return even with a warm cooldown");
     }
@@ -93,8 +90,8 @@ class ArrivalPortalEdgeTest {
     void anEntityThatArrivedInAnArrivalPortalIsNeverTrappedEither() {
         // The entity path samples ONLY while inside a portal, so "it left" is
         // inferred from the gap. Vanilla's re-pin for a non-player is 300, so
-        // the cooldown is warm throughout — an item or mob dropped through a
-        // portal used to sit in the arrival forever.
+        // the cooldown is warm throughout — without this check, a dropped
+        // item or spawned mob would never leave the arrival.
         UUID cow = UUID.randomUUID();
         PortalHelper.markArrivedInPortal(GARDENS, cow, 10);
 
@@ -182,16 +179,16 @@ class ArrivalPortalEdgeTest {
     @Test
     void walkingInWithNoCooldownFiresImmediately() {
         // A player who walked to an arrival portal from elsewhere in the same
-        // dimension: no cooldown, no history here. Pre-change behaviour, kept.
+        // dimension has no cooldown and no history here.
         assertTrue(sample(GARDENS, true, COLD, 7));
     }
 
     @Test
     void somethingThatMaterialisesInAPortalStillCrosses() {
         // An item dropped into an arrival portal, or a mob spawned in one, has
-        // never teleported and so has no cooldown. Before this change it
-        // crossed on its first tick; it still does. This is the regression the
-        // "first sighting is decided by the cooldown" rule exists to prevent.
+        // never teleported and so has no cooldown — it must cross on its
+        // first tick, which is what "first sighting is decided by the
+        // cooldown" guarantees.
         UUID item = UUID.randomUUID();
         assertTrue(PortalHelper.enteredArrivalPortal(GARDENS, item, true, COLD, 42));
     }

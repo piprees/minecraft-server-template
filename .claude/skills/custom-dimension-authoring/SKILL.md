@@ -127,7 +127,7 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 ## Size ↔ difficulty: the philosophy
 
-From `scripts/seed/dimension_profiles.py`:
+The scoring model's own philosophy (see `references/scoring-internals.md`):
 
 > Hard dims (dense + hostile + small playable radius) must be WORTH IT: hostile structures close, brutal terrain, places to hide/explore/fight. Easy/peaceful dims are relaxing but not boring: scenery, variety, gentle structures.
 
@@ -283,7 +283,7 @@ Four **profiles** control the shape of a group's distribution:
 Two things to hold in mind when tuning them:
 
 - **Placement is boot-re-read, so no world wipe is needed** — but already-generated chunks keep the structures they have, and the boundary shows, the same way a `structures.spacing` change shows. The overworld is the world everyone is already standing in.
-- **The Nether gates blaze rods on fortresses and the End gates elytra on end cities.** `scripts/check-noise-regression.py` holds a reachability floor for both. Re-run it after any change to either world's groups, density or border.
+- **The Nether gates blaze rods on fortresses and the End gates elytra on end cities.** `/customdim structure-census` reports the nearest live instance of each against the reachability floor (512 blocks for a fortress, 2048 for an end city — `CensusCommands`' `REACHABILITY_FLOOR_BLOCKS`, matching `score/Criteria.java`). Re-run it after any change to either world's groups, density or border.
 
 ### Switching it off
 
@@ -339,16 +339,8 @@ Loud failures: invalid JSON, `structures.wants`/`shuns` format violations. Silen
 
 ## Seed rolling
 
-```bash
-./dev up                            # stage config first
-./dev seed-roll                     # roll all dimensions (default)
-./dev seed-roll --dims <slug>       # roll a single dimension
-./dev seed-roll --pool 10000 --count 200  # bigger screening pool
-./dev seed-rescore                  # recompute scores vs current configs (no re-rolling)
-./dev seed-status                   # candidate-bank status: counts, winners, freshness
-./dev seed-viewer                   # interactive picker + background rendering
-```
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
 
 **Rollable requirements**: not `skip: true`, not `superflat`, `void` needs a `biomes` list.
 
-**Zero candidates?** Most common cause: `seedRoll.spawnFilter` lists a biome that doesn't exist in `biome_params.json` for that family. Check `references/biome-catalogue.md`.
+**Zero candidates?** Most common cause: `seedRoll.spawnFilter` lists a biome that doesn't exist in the roller's biome parameter table for that family (see trap 13 above). Check `references/biome-catalogue.md`.

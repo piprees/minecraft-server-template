@@ -37,6 +37,7 @@ import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList;
 import net.minecraft.world.biome.source.util.MultiNoiseUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.gen.WorldPreset;
+import net.minecraft.world.gen.surfacebuilder.MaterialRules;
 import net.minecraft.world.gen.WorldPresets;
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
@@ -160,7 +161,7 @@ public class DimensionManager {
                 if (dimRegistry.contains(key)) {
                     // The persisted generator (level.dat) wins for existing
                     // dimensions — warn on drift, never delete or regenerate.
-                    DimensionFingerprints.checkExisting(def);
+                    DimensionFingerprints.checkExisting(def, this.server);
                     continue;
                 }
                 try {
@@ -172,6 +173,7 @@ public class DimensionManager {
                     MultiverseServer.LOGGER.error("Failed to register dimension {}", key, e);
                 }
             }
+            DimensionFingerprints.warnOrphans(MultiverseConfig.getInstance().getDimensionNames());
         } finally {
             if (wasFrozen) {
                 accessor.setFrozen(true);
@@ -725,9 +727,86 @@ public class DimensionManager {
         // Suppression runs BEFORE biomePatches: an author's explicit patch
         // may still stamp a suppressed biome — specific beats general.
         BiomeSuppression.warnUnknownSuppressedBiomes(biomeRegistry);
-        return applyBiomePatches(def,
+        // Surface composition runs OUTERMOST, after biomePatches: a patch can
+        // stamp a biome the list never named, and a biome that reaches the
+        // finished source is one this dimension has to be able to dress.
+        return applySurfaceComposition(def, applyBiomePatches(def,
                 BiomeSuppression.filterOptions(applySettingsOverrides(def, built), def.getName()),
-                biomeRegistry);
+                biomeRegistry));
+    }
+
+    /**
+     * Lets a biome from another world wear its own skin here.
+     *
+     * <p>A biome carries no terrain shape — depth and scale left {@code Biome}
+     * in 1.18 — so a nether biome in an overworld dimension already generates
+     * with overworld terrain at overworld heights. What does not travel with
+     * it is the SURFACE: surface rules belong to the generator, and an
+     * overworld generator's rule names only overworld biomes, so a
+     * transplanted one takes the fall-through and comes out as grass with
+     * nether features standing on it.
+     *
+     * <p>Foreign is decided per biome against the HOST's family, and the host
+     * family comes from the same jar-baked table the structure groups use. A
+     * dimension whose type belongs to no family is left alone: without a host
+     * family there is no way to say what is foreign, and guessing would
+     * re-skin biomes nobody asked about.
+     */
+    private DimensionOptions applySurfaceComposition(DimensionConfig def, DimensionOptions built) {
+        String hostFamily = BiomeFamilies.hostFamily(def.getType());
+        if (hostFamily == null
+                || !(built.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
+            return built;
+        }
+        Map<String, List<RegistryKey<Biome>>> foreign = new java.util.LinkedHashMap<>();
+        for (RegistryEntry<Biome> biome : noiseGen.getBiomeSource().getBiomes()) {
+            String family = BiomeFamilies.familyOf(biome);
+            if (family == null || family.equals(hostFamily)) {
+                continue;
+            }
+            RegistryKey<Biome> key = biome.getKey().orElse(null);
+            if (key != null) {
+                foreign.computeIfAbsent(family, f -> new ArrayList<>()).add(key);
+            }
+        }
+        ChunkGeneratorSettings base = noiseGen.getSettings().value();
+        SurfaceComposition.Result composed = SurfaceComposition.compose(
+                base.surfaceRule(), foreign, this::homeSurfaceRule);
+        if (!composed.composed()) {
+            return built;
+        }
+        ChunkGeneratorSettings dressed = new ChunkGeneratorSettings(
+                base.generationShapeConfig(), base.defaultBlock(), base.defaultFluid(),
+                base.noiseRouter(), composed.rule(), base.spawnTarget(), base.seaLevel(),
+                base.mobGenerationDisabled(), base.aquifers(), base.oreVeins(),
+                base.usesLegacyRandom());
+        MultiverseServer.LOGGER.info(
+                "Dimension {}: surface composed for biomes from other worlds ({}) — host family {}",
+                def.getName(), composed.describe(), hostFamily);
+        return new DimensionOptions(built.dimensionTypeEntry(),
+                new NoiseChunkGenerator(noiseGen.getBiomeSource(), RegistryEntry.of(dressed)));
+    }
+
+    /**
+     * A family's own surface rule, from the LIVE settings entry.
+     *
+     * <p>Live rather than vanilla's original is the whole economy of this:
+     * mods that add biomes to a family patch that family's settings
+     * themselves — Incendium overrides {@code minecraft:nether}, Nullscape
+     * overrides {@code minecraft:end} — so borrowing the rule inherits their
+     * surface work and a new mod needs no change here. Null when the settings
+     * are absent, which leaves those biomes on the host's fall-through
+     * exactly as they are today.
+     */
+    private MaterialRules.MaterialRule homeSurfaceRule(String family) {
+        Identifier id = BiomeFamilies.homeSettings(family);
+        if (id == null || this.server == null) {
+            return null;
+        }
+        ChunkGeneratorSettings settings = this.server.getCombinedDynamicRegistries()
+                .getCombinedRegistryManager().get(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
+                .get(RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS, id));
+        return settings == null ? null : settings.surfaceRule();
     }
 
     // "biomePatches" (precision placement): wrap the built generator's biome
@@ -878,6 +957,86 @@ public class DimensionManager {
         } catch (ReflectiveOperationException e) {
             return null;
         }
+    }
+
+    /**
+     * The generator and dimension type a config would produce, built without
+     * creating (or touching) a ServerWorld. Exists so the seed roller can
+     * sample a dimension it has no world for, via the same
+     * {@code createDimensionOptions} world creation uses.
+     */
+    public DimensionOptions buildOptionsHeadless(DimensionConfig def) {
+        return this.createDimensionOptions(def);
+    }
+
+    /**
+     * A ServerWorld that exists only in the server's worlds map, never in the
+     * DIMENSION registry.
+     *
+     * <p>Vanilla encodes that registry into {@code level.dat} on every save,
+     * so a world kept out of it leaves nothing behind to scrub — closing it
+     * and deleting its region directory is the entire cleanup. Used by the
+     * seed try-out, whose worlds are disposable by definition.
+     *
+     * <p>Must be called from a safe point ({@code END_SERVER_TICK}), never
+     * from a request thread or a world tick: it mutates the worlds map and
+     * fires {@code ServerWorldEvents.LOAD}, off which Distant Horizons and
+     * c2me build their per-level state.
+     */
+    public ServerWorld createEphemeralWorld(Identifier worldId, DimensionOptions options, long seed) {
+        if (this.server == null || options == null) {
+            return null;
+        }
+        RegistryKey<World> worldKey = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        MinecraftServerAccessor serverAccessor = (MinecraftServerAccessor) this.server;
+        Map<RegistryKey<World>, ServerWorld> worlds = serverAccessor.getWorlds();
+        ServerWorld existing = worlds.get(worldKey);
+        if (existing != null) {
+            return existing;
+        }
+
+        ServerWorld overworld = this.server.getOverworld();
+        SaveProperties saveProperties = serverAccessor.getSaveProperties();
+        ServerWorldProperties worldProperties = (ServerWorldProperties)
+                new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
+
+        ServerWorld newWorld = new ServerWorld(
+                this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
+                worldProperties, worldKey, options, NO_OP_WORLD_GEN_PROGRESS,
+                false, seed, List.of(), false, overworld.getRandomSequences());
+
+        worlds.put(worldKey, newWorld);
+        lastPlayerPresence.put(worldKey, (long) this.server.getTicks());
+        ServerWorldEvents.LOAD.invoker().onWorldLoad(this.server, newWorld);
+        MultiverseServer.LOGGER.info("Created ephemeral world: {} (seed {})", worldId, seed);
+        return newWorld;
+    }
+
+    /**
+     * Evacuates and closes an ephemeral world. Players go to the overworld
+     * spawn first — a player inside a closed world is a guaranteed
+     * disconnect, the same reason {@link #processPendingWorldUnloads} does it.
+     */
+    public boolean closeEphemeralWorld(MinecraftServer server, Identifier worldId) {
+        if (server == null) {
+            return false;
+        }
+        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, worldId);
+        if (PROTECTED_DIMENSIONS.contains(key)) {
+            return false;
+        }
+        Map<RegistryKey<World>, ServerWorld> worlds = ((MinecraftServerAccessor) server).getWorlds();
+        ServerWorld world = worlds.get(key);
+        if (world == null) {
+            return false;
+        }
+        ServerWorld overworld = server.getOverworld();
+        net.minecraft.util.math.BlockPos spawn = overworld.getSpawnPos();
+        for (net.minecraft.server.network.ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+            player.teleport(overworld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
+                    Set.of(), player.getYaw(), player.getPitch());
+        }
+        return this.closeWorld(server, key);
     }
 
     public ServerWorld getOrCreateDimension(String dimName) {
@@ -1146,22 +1305,13 @@ public class DimensionManager {
     }
 
     /**
-     * Creating a ServerWorld is a main-thread job and cannot be made
-     * otherwise: it mutates the server's worlds map and fires
-     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons,
-     * and c2me build their per-level state. Several hundred
-     * milliseconds each, and none of it is movable.
-     *
-     * <p>What IS movable is how many of them land on the same tick. Draining
-     * every queued world in one go means a player walking towards a cluster
-     * of portals — a hub, or the test beach — pays for ALL of them at once
-     * and rubber-bands.
-     *
-     * <p>One per tick spreads the same total work over N ticks instead of
-     * stacking it into one. Nothing is dropped — the rest stay queued and are
-     * created on the following ticks, which is exactly the "takes a sec"
-     * trade. The set is unordered, so which world goes first among several is
-     * arbitrary; that is fine, because the player is approaching all of them.
+     * Creating a ServerWorld is a main-thread job costing several hundred
+     * milliseconds: it mutates the server's worlds map and fires
+     * {@code ServerWorldEvents.LOAD}, off the back of which Distant Horizons
+     * and c2me build their per-level state. Draining every queued world in
+     * one go would make a player walking towards a cluster of portals pay
+     * for all of them on one tick and rubber-band; one per tick spreads the
+     * same work over N ticks instead.
      */
     private static final int WORLD_LOADS_PER_TICK = 1;
 

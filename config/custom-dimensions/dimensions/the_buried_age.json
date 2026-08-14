@@ -42,6 +42,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:nether_wastes",
       "incendium:quartz_flats"

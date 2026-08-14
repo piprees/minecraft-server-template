@@ -43,6 +43,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:frozen_ocean",
       "minecraft:deep_frozen_ocean",

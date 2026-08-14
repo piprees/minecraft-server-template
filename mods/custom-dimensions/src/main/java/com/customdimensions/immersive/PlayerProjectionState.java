@@ -33,23 +33,17 @@ import java.util.UUID;
  *
  * <h2>Why every packet is a {@code BlockUpdateS2CPacket}</h2>
  * {@code ChunkDeltaUpdateS2CPacket} looks like the batched answer, but its
- * only 1.21.1 constructor is
- * {@code (ChunkSectionPos, ShortSet, net.minecraft.world.chunk.ChunkSection)}
- * — it reads the block states out of a REAL chunk section of the world it is
- * describing, so it cannot express fake states at all. Verified against the
- * Yarn-mapped 1.21.1 jar; do not "optimise" back to it.
+ * only 1.21.1 constructor reads block states out of a REAL chunk section of
+ * the world it describes, so it cannot express fake states at all.
  *
- <h2>The pass is budgeted — {@link ProjectionBudget}</h2>
+ * <h2>The pass is budgeted — {@link ProjectionBudget}</h2>
  * Walking past a portal inverts the WHOLE mask at once, so everything the
  * player could see needs a correction packet in the same pass — on the order
  * of a thousand {@code BlockUpdateS2CPacket}s in one tick, per viewer, per
- * portal, at the default 4-tick interval: a multi-second stall with fake
- * blocks left lingering until the backlog drains.
- *
- * {@link #send} therefore CLASSIFIES the whole volume first and only then
- * spends a per-pass ceiling, restores before sends. Steady state — the few
- * positions entering and leaving the view cone as a player walks — is far
- * under the ceiling and never queues.
+ * portal, at the default 4-tick interval. {@link #send} therefore CLASSIFIES
+ * the whole volume first and only then spends a per-pass ceiling, restores
+ * before sends. Steady state — the few positions entering and leaving the
+ * view cone as a player walks — is far under the ceiling and never queues.
  *
  * <h2>Player identity</h2>
  * The live {@link ServerPlayerEntity} is passed in on every call rather than
@@ -59,15 +53,12 @@ import java.util.UUID;
  * <h2>The sightline mask, and the invariant that makes it safe</h2>
  * {@link ProjectionVolume#computeSourcePositions} returns a rectangular slab,
  * most of which sits behind the frame WALL rather than behind the opening.
- * Sending all of it put destination terrain beside and above the frame for
- * anyone looking in the portal's general direction. Every position is
- * therefore filtered through {@link ProjectionVolume#seesThroughOpening}
- * against this player's eye, on every send — the mask is a property of where
- * they are standing, not of the zone, so it cannot be computed once and
- * cached on the volume.
+ * Every position is therefore filtered through {@link
+ * ProjectionVolume#seesThroughOpening} against this player's eye, on every
+ * send — the mask is a property of where they are standing, not of the zone.
  *
- * That makes fake blocks come and go while a player walks, which puts all the
- * weight on one invariant:
+ * <p>That makes fake blocks come and go while a player walks, which rests on
+ * one invariant:
  *
  * <blockquote><b>{@code lastSent} is exactly the set of positions this client
  * is currently showing a fake block at, and nothing leaves it without a
@@ -77,16 +68,14 @@ import java.util.UUID;
  * <ul>
  *   <li>{@code lastSent} only ever gains positions drawn from {@link #volume},
  *       and every rebuild of {@code volume} is preceded by {@link #restore}
- *       plus a clear — so iterating {@code volume} always reaches every faked
- *       position;</li>
+ *       plus a clear;</li>
  *   <li>a position that becomes masked-out is restored and removed on the
- *       same pass, in the send loop, rather than being silently skipped —
- *       skipping it is what would leave a trail of stuck fake blocks behind a
- *       player who walks around a portal;</li>
+ *       same pass, in the send loop — skipping it is what would leave a
+ *       trail of stuck fake blocks behind a player who walks around a
+ *       portal;</li>
  *   <li>the removal is conditional on the correction actually going out. An
  *       unloaded source chunk (or a player who has left the world) keeps the
- *       position in {@code lastSent} so a later pass — or the teardown — can
- *       retry, instead of forgetting a block that is still faked.</li>
+ *       position in {@code lastSent} so a later pass can retry.</li>
  * </ul>
  *
  * <h2>The one exemption: the aperture</h2>
@@ -95,63 +84,42 @@ import java.util.UUID;
  * {@code lightLevel}, or plain air when it has none and the aperture is an
  * arrival portal whose purple swirl needs hiding.
  *
- * <p>It has to bypass the mask, and it has to be the APERTURE rather than the
- * slab layer behind it. A view-DEPENDENT set of light sources is a
- * view-dependent amount of light — the client relights the area every time the
- * set changes. Deriving the layer from the zone instead of the mask removes
- * that dependency but not every side effect: the zone's first slab layer
- * still has a SIDE, and {@code viewerFarSide} flips it when a player walks
- * round the frame, flipping the light with it. The aperture is the one piece
- * of the geometry that is the same set of cells from everywhere.
+ * <p>It has to be the APERTURE rather than the slab layer behind it: a
+ * view-DEPENDENT set of light sources is a view-dependent amount of light,
+ * relighting the area every time the set changes. The zone's first slab
+ * layer still has a SIDE that flips as a player walks round the frame; the
+ * aperture is the one piece of geometry that is the same set of cells from
+ * everywhere. {@code LIGHT} is invisible, so an aperture cell hidden behind
+ * the frame wall leaks no geometry.
  *
- * <p>{@code LIGHT} is invisible, so an aperture cell that sits behind the
- * frame wall from this player's angle leaks no geometry — the mask exists to
- * keep VISIBLE blocks inside the opening, and this is not one of those.
+ * <p>These positions still go through {@code lastSent} and are restored by
+ * the same {@link #restore}, so the invariant above is untouched.
  *
- * The exemption is deliberately narrow: these positions still go through
- * {@code lastSent} and are restored by the same {@link #restore}, so there is
- * one bookkeeping path and the invariant above is untouched. Everything else
- * in the volume is masked exactly as before.
- *
- * <h2>Phase 4: three block states, not two</h2>
- * Everything this class reads from the target world is one of THREE things,
- * and collapsing them to two is a bug this feature kept rediscovering:
+ * <h2>Three block states, not two</h2>
+ * Everything this class reads from the target world is one of THREE things:
  * <ul>
  *   <li><b>air</b> — a loaded chunk says there is nothing there;</li>
  *   <li><b>solid</b> — a loaded chunk says there is something there;</li>
- *   <li><b>unknown</b> — the chunk is not loaded (or the position is outside
- *       the target world's height range), so there is no evidence either
- *       way.</li>
+ *   <li><b>unknown</b> — the chunk is not loaded, so there is no evidence
+ *       either way.</li>
  * </ul>
  * Unknown is the NORMAL state for the first tick or two after a zone takes
- * its chunk ticket, and the initial full send can cover most of the slab
- * before the far chunk has fully arrived. Any future heuristic over
- * projected content must keep the three
+ * its chunk ticket. Any heuristic over projected content must keep the three
  * apart; treating unknown as air is how you conclude "empty dimension" from a
  * chunk that simply had not arrived.
  *
- * <h2>Withdrawn: 4e's depth auto-scaling — do not re-add it</h2>
- * Phase 4e shrank the preview to 2 blocks when more than 80% of the first
- * depth layer sampled as air, aiming to stop "a portal to a void dimension
- * shows void" from looking like a bug. It was built carefully — three-state
- * counting, a 75%-known quorum before deciding, the air ratio measured over
- * known samples only — and it was still wrong, because the QUESTION was wrong:
- *
- * <p>{@code ArrivalResolver} lands the interior's floor row on the destination
- * SURFACE. The first depth layer is therefore the slab immediately above the
- * destination's terrain, which is air almost everywhere that is not a cave.
- * Only the {@code previewRadius} padding rows, which map below the floor,
- * catch solid ground. "First layer is mostly air" is the healthy case for a
- * portal onto open terrain, not a void-dimension signal — so whether a portal
- * ran at full depth or half depth came down to how much padding happened to
- * land in a hillside: an arbitrary coin flip on the air ratio, not a real
- * signal.
- *
- * <p>Raising the threshold would only move the coin flip. The depth is now
- * always {@code settings.previewDepth()}, and a portal to a void dimension
- * previews void — an honest result that needs no rescuing. If someone wants
- * emptiness handled again, it needs a question about the DESTINATION (its
- * generator, its configured type) rather than about one slab of blocks.
+ * <h2>Withdrawn: depth auto-scaling — do not re-add it</h2>
+ * A prior version shrank the preview to 2 blocks when most of the first depth
+ * layer sampled as air, aiming to stop "a portal to a void dimension shows
+ * void" from looking like a bug. The question was wrong: {@code
+ * ArrivalResolver} lands the interior's floor row on the destination
+ * SURFACE, so the first depth layer is the slab immediately above the
+ * destination's terrain — air almost everywhere that is not a cave. "First
+ * layer is mostly air" is the healthy case for a portal onto open terrain,
+ * not a void-dimension signal, so whether a portal ran deep or shallow came
+ * down to an arbitrary coin flip on how much padding landed in a hillside.
+ * The depth is now always {@code settings.previewDepth()}, and a portal to a
+ * void dimension previews void — an honest result that needs no rescuing.
  */
 public final class PlayerProjectionState {
 
@@ -162,44 +130,24 @@ public final class PlayerProjectionState {
     static final int LIGHT_LAYER_MIN_DEPTH = 2;
 
     /**
-     * 4a: the invisible light source painted over the positions directly
-     * behind the opening, so a preview of a dark destination is not a black
+     * The invisible light source painted over the positions directly behind
+     * the opening, so a preview of a dark destination is not a black
      * rectangle.
      *
-     * <b>A method and not a constant, deliberately:</b> {@code Blocks.LIGHT}
+     * <p>A method and not a constant, deliberately: {@code Blocks.LIGHT}
      * resolves through the block registry, so touching it from a static
      * initialiser makes this whole class unloadable outside a bootstrapped
-     * game — every unit test over {@link #shouldRefresh} dies with
-     * {@code ExceptionInInitializerError}.
-     * {@code getDefaultState()} returns the interned instance every time, so
-     * calling it per position is a field read and the identity comparison in
-     * the delta pass still short-circuits.
+     * game. {@code getDefaultState()} returns the interned instance every
+     * time, so calling it per position is a field read.
      *
-     * <h2>Why still level 15</h2>
-     * Lowering {@code Blocks.LIGHT}'s level property is the obvious fix for a
-     * preview that reads too bright. It is the wrong one to pull: switching
-     * the light source from the slab layer to the aperture already cuts the
-     * light hard in two better ways:
-     * <ul>
-     *   <li><b>7x fewer sources.</b> The layer was the padded first slab layer
-     *       (42 positions for the default doorway); it is now the aperture
-     *       itself (6).</li>
-     *   <li><b>Aimed through the hole.</b> The padded positions sat behind the
-     *       frame WALL, lighting the real world from inside it — which is
-     *       literally "light coming out of the portal". What is left shines
-     *       out of the doorway, which is what a portal to somewhere bright
-     *       should do.</li>
-     * </ul>
-     * Block light decrements one per step and does not pass opaque blocks, so
-     * the visible surfaces at the far, lateral edge of an 8-deep preview are
-     * 10-12 steps from the nearest source: light 3-5 at level 15, and 0-2 at
-     * level 12. Dropping the level would black out exactly the deep periphery
-     * 4a exists to rescue, and with 7x fewer sources there is no longer a
-     * neighbouring light to make up the difference.
-     *
-     * If it still reads hot in-game after this change, the level IS the next
-     * lever — that cost is the reason it is not this one. Lower it with
-     * {@code .with(Properties.LEVEL_15, n)} here and nowhere else.
+     * <p>Still level 15: the light source lives on the aperture (a handful of
+     * cells) rather than the padded slab layer behind it (dozens of cells),
+     * which already cuts total light hard. Block light decrements one per
+     * step and does not pass opaque blocks, so the visible surfaces at the
+     * far, lateral edge of an 8-deep preview are already dim at level 15;
+     * dropping the level further would black out that periphery with no
+     * neighbouring light left to make up the difference. Lower it with
+     * {@code .with(Properties.LEVEL_15, n)} here and nowhere else if needed.
      */
     private static BlockState lightState(int level) {
         return Blocks.LIGHT.getDefaultState().with(Properties.LEVEL_15, level);
@@ -222,10 +170,9 @@ public final class PlayerProjectionState {
 
     /** Last state sent per source position — the delta baseline. */
     /**
-     * Phase 8c: blocks of clearance kept around every body. One covers the
-     * step a player takes between refresh passes (4 ticks by default) — with
-     * no padding the projection still paints into the cell they are walking
-     * into, which collides just the same.
+     * Blocks of clearance kept around every body — covers the step a player
+     * takes between refresh passes (4 ticks by default); with no padding the
+     * projection still paints into the cell they are walking into.
      */
     private static final int BODY_PAD = 1;
 
@@ -238,18 +185,15 @@ public final class PlayerProjectionState {
      * the volume.
      *
      * <p>Restoring them all in one unbudgeted burst inside {@link #send}
-     * (restore-everything, then clear) would reproduce the same
-     * ~1000-packets-in-one-tick spike {@link ProjectionBudget} exists to
-     * prevent — just triggered by walking ROUND a portal rather than past it.
+     * would reproduce the packet spike {@link ProjectionBudget} exists to
+     * prevent, just triggered by walking ROUND a portal rather than past it.
+     * Carried here instead and drained under the budget, ahead of the
+     * volume's own restores, since nothing else will ever revisit them.
      *
-     * <p>Carried here instead and drained under the budget, ahead of the
-     * volume's own restores: nothing else will ever revisit these, so they
-     * outrank a masked position that the next pass would re-queue anyway.
-     *
-     * <p>The {@code lastSent} invariant extends over this map unchanged — it
-     * is still "exactly what the client is showing", just in two buckets. Every
+     * <p>The {@code lastSent} invariant extends over this map unchanged —
+     * still "exactly what the client is showing", just in two buckets. Every
      * teardown path drains both ({@link #restore}), {@link #forget} clears
-     * both, and a position that re-enters the volume is removed from here the
+     * both, and a position re-entering the volume is removed from here the
      * moment {@code lastSent} takes responsibility for it again.
      */
     private final Map<BlockPos, BlockState> staleOutsideVolume = new HashMap<>();
@@ -343,8 +287,8 @@ public final class PlayerProjectionState {
                 this.zone.interior, this.zone.axis, player.getBlockPos(), this.normal);
         boolean sideFlip = wanted != this.normal;
         // Always the configured depth. There is deliberately no heuristic
-        // here any more — see "Withdrawn: 4e's depth auto-scaling" in the
-        // class comment before adding one back.
+        // here any more — see "Withdrawn: depth auto-scaling" in the class
+        // comment before adding one back.
         int depth = settings.previewDepth();
 
         if (full || sideFlip || depth != this.builtDepth || this.volume.isEmpty()) {
@@ -379,14 +323,10 @@ public final class PlayerProjectionState {
                                 && sourceWorld.getBlockState(probePos)
                                         .isOpaqueFullCube(sourceWorld, probePos));
 
-        // 4a: the positions directly behind the opening are sent as invisible
+        // The positions directly behind the opening are sent as invisible
         // LIGHT instead of their sampled block, so the preview is lit by its
-        // own front face rather than by whatever the SOURCE dimension's sky
-        // happens to be doing. Skipped for a one-block-deep slab, where it
-        // would leave nothing to look at.
-        //
-        // View-INDEPENDENT, and that is the whole point: derived from the
-        // zone's own geometry, never from the mask. See lightPositions.
+        // own front face rather than the SOURCE dimension's sky. View-
+        // INDEPENDENT: derived from the zone's own geometry, never the mask.
         Direction.Axis normalAxis = wanted.getAxis();
 
         // Per-player sightline mask. Resolved once per pass: the plane never
@@ -399,10 +339,9 @@ public final class PlayerProjectionState {
         int lights = 0;
         int bodies = 0;
 
-        // Phase 8c: every cell any player's body occupies (padded by one for
-        // the step they take between passes). A fake block here is an
-        // unmineable wall only that player can see — see
-        // ProjectionVolume.occupiedCells. The viewer is included: their own
+        // Every cell any player's body occupies (padded by one for the step
+        // they take between passes). A fake block here is an unmineable wall
+        // only that player can see. The viewer is included: their own
         // preview must not wall them in either.
         Set<BlockPos> occupied = new HashSet<>();
         for (ServerPlayerEntity nearby : sourceWorld.getPlayers()) {
@@ -414,20 +353,12 @@ public final class PlayerProjectionState {
         int bottomY = targetWorld.getBottomY();
         int topY = targetWorld.getTopY();
         // CLASSIFY first, ACT second — the pass is budgeted (ProjectionBudget).
-        //
-        // Walking past a portal inverts the whole sightline mask, so every
-        // position the player could see needs a correction packet in the SAME
-        // pass — on the order of a thousand BlockUpdateS2CPackets in one
-        // tick, per viewer, per portal, at the default 4-tick interval. That
-        // is the multi-second stall, and the backlog is why fake blocks
-        // appear to linger.
-        //
         // Acting inside the classification loop would let ITERATION ORDER
-        // decide what fits the budget. The rule is that restores outrank
-        // sends (a fake block still showing is a wall the player collides
-        // with; one not yet sent is merely absent), and that can only be
-        // honoured by knowing both totals before spending. The sightline
-        // probe — the expensive part — still runs exactly once per position.
+        // decide what fits the budget; restores must outrank sends (a fake
+        // block still showing is a wall the player collides with, one not
+        // yet sent is merely absent), which can only be honoured by knowing
+        // both totals before spending. The sightline probe — the expensive
+        // part — still runs exactly once per position.
         List<BlockPos> pendingRestores = new ArrayList<>();
         List<BlockPos> pendingSendPos = new ArrayList<>();
         List<BlockState> pendingSendState = new ArrayList<>();
@@ -531,29 +462,20 @@ public final class PlayerProjectionState {
         // THE APERTURE, in both directions — the light layer and the
         // swirl-killer, which turn out to be the same pass.
         //
-        // Lighting the preview from the first slab layer BEHIND the opening
-        // would not work: that layer sits on whichever side the slab is on,
-        // and viewerFarSide flips the slab when a player walks round the
-        // frame, so the light would flip with it. Deriving the layer from
-        // the zone rather than the mask removes the relighting dependency,
-        // but the SIDE is still a property of the viewer, so it does not
-        // solve this.
+        // The aperture is the one part of the geometry that has no side, so
+        // light emitted there cannot flip as a player walks round the frame
+        // (unlike the first slab layer, which sits on whichever side the
+        // slab currently is).
         //
-        // The aperture is the one part of the geometry that has no side. It
-        // is the same set of cells from everywhere, so light emitted there
-        // cannot flip, and it is where a player would say the light is
-        // coming from anyway — the portal is the light source.
-        //
-        // It also solves the arrival side's purple swirl for free. An
-        // arrival aperture is real NETHER_PORTAL blocks, so it kept vanilla's
-        // texture AND its client-side particle storm in front of the preview;
-        // an invisible LIGHT over the top removes both, because a client that
-        // believes it is looking at LIGHT has nothing to draw and no
-        // randomDisplayTick to run. The real block is untouched, traversal is
-        // unaffected, and restore() hands the portal block back (Gotcha #8).
+        // It also solves the arrival side's purple swirl for free: an
+        // arrival aperture is real NETHER_PORTAL blocks, so an invisible
+        // LIGHT over the top removes both its texture and its client-side
+        // particle storm — a client looking at LIGHT has nothing to draw and
+        // no randomDisplayTick to run. The real block is untouched and
+        // traversal is unaffected; restore() hands the portal block back.
         //
         // Colour is not available: vanilla block light is white, and tinting
-        // it needs a shader. Noted for the client mod (PHASE-5 5d).
+        // it needs a shader.
         BlockState apertureState = apertureState();
         if (apertureState != null) {
             for (BlockPos pos : this.zone.interior) {
@@ -593,25 +515,18 @@ public final class PlayerProjectionState {
     }
 
     /**
-     * 4c: is this projection due a delta pass?
+     * Is this projection due a delta pass?
      *
-     * A stationary player is looking at a view that only changes when the
+     * <p>A stationary player is looking at a view that only changes when the
      * far side does, so their refresh interval is stretched by {@link
-     * #STATIONARY_MULTIPLIER} — roughly 75% fewer passes for someone AFK
-     * next to a hub portal. Nothing is skipped by doing so: {@code lastSent}
-     * stays the authoritative baseline and the next pass sends every
-     * position that has changed since, whenever that pass happens.
+     * #STATIONARY_MULTIPLIER}. Nothing is skipped: {@code lastSent} stays
+     * the authoritative baseline and the next pass sends every position that
+     * has changed since, whenever that pass happens.
      *
-     * This is also the sightline mask's update rate, which is why the
-     * movement test measures the EYE and not the feet — the mask is computed
-     * from the eye, and a stretched interval must only ever apply to a
-     * viewer whose sightlines have not moved. A MOVING player is back on the
-     * configured interval immediately, so the frustum follows them and
-     * positions it leaves behind are restored on the same pass.
-     *
-     * A projection with no baseline yet refreshes at the full rate, so one
-     * still waiting on its arrival chunks fills in within a few ticks rather
-     * than a few seconds.
+     * <p>This is also the sightline mask's update rate, which is why the
+     * movement test measures the EYE and not the feet. A MOVING player is
+     * back on the configured interval immediately, so the frustum follows
+     * them and positions it leaves behind are restored on the same pass.
      */
     public boolean needsRefresh(ServerPlayerEntity player, long tick, ImmersiveSettings settings) {
         double movedSq = this.lastRefreshEye == null
@@ -747,13 +662,12 @@ public final class PlayerProjectionState {
     /**
      * Hand one position's REAL block back to the client, never a hardcoded
      * AIR: a projection position that overlaps a real portal block (anchor
-     * portals) must come back as the portal block (PLAN.md Gotcha #8).
+     * portals) must come back as the portal block.
      *
-     * Returns false when nothing was sent because the source chunk is not
+     * <p>Returns false when nothing was sent because the source chunk is not
      * loaded — reading its state would load it, which the projector must
-     * never do (Rule 1). Callers that are dropping the position anyway
-     * ignore that; the mask keeps the position in {@code lastSent} so a
-     * later pass retries rather than stranding a fake block.
+     * never do (Rule 1). The mask keeps the position in {@code lastSent} so
+     * a later pass retries rather than stranding a fake block.
      */
     private static boolean restoreOne(ServerPlayNetworkHandler handler, ServerWorld sourceWorld, BlockPos pos) {
         if (sourceWorld == null

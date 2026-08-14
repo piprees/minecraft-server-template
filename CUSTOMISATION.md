@@ -26,9 +26,7 @@ Source of truth for the dimension-file schema: [`mods/custom-dimensions/README.m
 
 ## Seed rolling
 
-`./dev seed-roll` evaluates dimension seeds without running the game. Covers candidate banking, scoring, the interactive viewer, and seed groups.
-
-**Skill:** [`.claude/skills/seed-rolling/SKILL.md`](.claude/skills/seed-rolling/SKILL.md)
+Seed rolling lives in the custom-dimensions mod, driven by `/customdim` subcommands.
 
 ## Web surface styling
 

@@ -4,8 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * Presentation-only tuning for immersive portal previews (Phase 0 onward of
- * the immersive-portals feature). Parsed from the
+ * Presentation-only tuning for immersive portal previews. Parsed from the
  * "immersive" field on {@link DimensionConfig.Portal}:
  *
  * <pre>
@@ -25,9 +24,7 @@ import com.google.gson.JsonObject;
  *
  * Deliberately NOT serialised into portal_links.json zone records: it is
  * transient on {@link PortalDefinition} and re-read from dimension config
- * every boot, exactly like the rest of the portal block (unlike
- * creation-time worldgen config, this presentation feature applies to
- * existing dimensions without a wipe).
+ * every boot, so changes apply without a world wipe.
  */
 public record ImmersiveSettings(
         boolean enabled,

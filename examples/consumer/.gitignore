@@ -1,7 +1,6 @@
 .env
 .stack/
 modpack-dist/
-seed-report-*.md
 
 # === Secrets - never commit ===
 .env
@@ -26,13 +25,7 @@ config/cloudflared/cert.pem
 restic-password.txt
 
 # === Seed-rolling artefacts ===
-seedtest-data/
-seedtest-data-*/
-seedtest-data-*/*
-scripts/seed/seed-errors.log
-scripts/seed/seed-errors.log.lock
-scripts/seed/seed-results.csv
-scripts/seed/seed-results.csv.lock
+/.seed-rolling/
 
 __pycache__
 */__pycache__/*

@@ -6,13 +6,12 @@ package com.customdimensions.dimension;
  *
  * <h2>Why not vanilla's PerlinNoiseSampler</h2>
  *
- * The seed roller has to reproduce every placement position exactly in Python
- * (spike task F4 — "zero tolerance for positional divergence"). Vanilla's
- * sampler derives its permutation from {@code net.minecraft.util.math.random
- * .Random}, whose two implementations and their seed scrambling would all have
- * to be mirrored, and it drags Bootstrap-bound static init into unit tests —
- * the same reason {@code FixedStructurePlacement.Index} exists as a separate
- * pure class.
+ * Every placement position must be reproducible exactly by the Python mirror.
+ * Vanilla's sampler derives its permutation from {@code
+ * net.minecraft.util.math.random.Random}, whose two implementations and their
+ * seed scrambling would all have to be mirrored, and it drags Bootstrap-bound
+ * static init into unit tests — the same reason {@code
+ * FixedStructurePlacement.Index} exists as a separate pure class.
  *
  * This implementation is deliberately small and mechanical so the Python side
  * can be a line-for-line transcription:
@@ -21,8 +20,8 @@ package com.customdimensions.dimension;
  * <li>the permutation is a Fisher-Yates shuffle of 0..255 driven by a
  *     SplitMix64 stream seeded from the noise seed — no library RNG;</li>
  * <li>every intermediate is a {@code double}. Java {@code float} would round
- *     differently from Python's (always-double) floats and put F4 out of
- *     reach for the sake of nothing;</li>
+ *     differently from Python's (always-double) floats, for the sake of
+ *     nothing;</li>
  * <li>one octave. Extra octaves add sampling cost and three more constants to
  *     keep in sync across two languages, for variation the radial curve and
  *     the per-group salts already provide.</li>
@@ -34,9 +33,6 @@ package com.customdimensions.dimension;
  * integers are unbounded and {@code >>} is arithmetic. The mirror must mask
  * every SplitMix64 step to 64 bits. {@link #sample} takes the floor of a
  * double, which matches Python's {@code math.floor} for all inputs here.
- *
- * MIRRORED in scripts/seed/structure_placement.py — change both together, and
- * re-run the parity test.
  */
 public final class StructureNoise {
 
@@ -54,7 +50,7 @@ public final class StructureNoise {
      * under the `dense` profile (threshold 0.45) every one of them would
      * place. That is the exact artefact this whole system exists to remove,
      * and it would have been invisible in a "does it look random" eyeball
-     * test. Caught by B1's differentSeedsGiveDifferentFields.
+     * test.
      *
      * Irrational offsets cannot produce an integer from a rational input, so
      * this holds for any frequency, not just the four shipped ones.

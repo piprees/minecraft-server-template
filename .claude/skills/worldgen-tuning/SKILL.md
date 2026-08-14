@@ -3,14 +3,14 @@ name: worldgen-tuning
 description: |
   Tunes terrain shape, structure frequency, and per-dimension worldgen profiles for the Adventure Server platform. Covers Tectonic 3.x terrain dials (erosion_scale, ridge_scale, vertical_scale, max_y, ultrasmooth), the three structure-frequency presets (default/dense/sparse) and their datapack-overlay swap, per-dimension noiseSettings (adventure:wide / adventure:compressed) and structureDensity, generator types (checkerboard, superflat with layers), settingsOverrides (seaLevel, defaultBlock/Fluid), per-biome placement parameters, biomePatches (stamp/clipped-swap/global-swap with blend and shape), and per-dimension structure control (spacing overrides, mode allow/reject/none, forced placements).
 
-  Use when: changing terrain shape or proportions, adjusting structure density globally or per dimension, swapping structure presets, adding biome patches, overriding structure placement per dimension, configuring checkerboard or superflat generators, or tuning settingsOverrides. Not for portal/exit config (see custom-dimension-authoring), seed rolling (see seed-rolling), or consumer-level branding/overlay (see consumer-customisation).
+  Use when: changing terrain shape or proportions, adjusting structure density globally or per dimension, swapping structure presets, adding biome patches, overriding structure placement per dimension, configuring checkerboard or superflat generators, or tuning settingsOverrides. Not for portal/exit config (see custom-dimension-authoring), seed rolling (driven by `/customdim` subcommands in the mod), or consumer-level branding/overlay (see consumer-customisation).
 ---
 
 # Worldgen Tuning
 
 You are changing how the world generates — terrain shape, structure frequency, or per-dimension worldgen profiles. All worldgen config is **creation-time-only** ([TROUBLESHOOTING.md#d2](../../../TROUBLESHOOTING.md#d2)): changes affect newly generated chunks only, never existing terrain. Expect visible seams at the boundary between old and new terrain on an existing world.
 
-**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → [seed-rolling](../seed-rolling/SKILL.md); consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../../mods/custom-dimensions/README.md).
+**Not this skill:** portal/exit/shrine config → [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md); seed rolling → driven by `/customdim` subcommands in the mod; consumer branding and overlay basics → [consumer-customisation](../consumer-customisation/SKILL.md); the dimension JSON schema beyond worldgen fields → [mods/custom-dimensions/README.md](../../../mods/custom-dimensions/README.md).
 
 ## MANDATORY: read before editing
 
@@ -179,8 +179,8 @@ docker exec mc grep -i "Couldn't load tectonic" /data/logs/latest.log   # expect
 # Verify structure preset ownership is intact
 python3 -c "import json; d=json.load(open('config/datapacks/structures/data/ownership.json')); print(f'{len(d)} overrides tracked')"
 
-# Verify dimension worldgen config drift
-./dev verify   # runs check-dimension-drift.py among other checkers
+# Verify dimension worldgen config drift (the mod WARNs at boot, not a script)
+docker logs mc 2>&1 | grep "worldgen config changed"   # expect no output on a fresh world
 
 # Check which preset is active
 ls overlay/config/datapacks/structures/ 2>/dev/null && echo "consumer override" || echo "platform default"
@@ -191,4 +191,4 @@ ls overlay/config/datapacks/structures/ 2>/dev/null && echo "consumer override" 
 - [references/tectonic-dials.md](references/tectonic-dials.md) — full dial table, shipped values, interaction notes
 - [references/structure-presets.md](references/structure-presets.md) — preset details, swap instructions, ownership.json, mod-removal safety
 - [references/generator-types.md](references/generator-types.md) — checkerboard, superflat, settingsOverrides, biome parameters, biomePatches, structure spacing/mode/force
-- Sibling skills: [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md) (dimension JSON schema, portals, exits), [seed-rolling](../seed-rolling/SKILL.md) (evaluating seeds against worldgen), [consumer-customisation](../consumer-customisation/SKILL.md) (overlay basics)
+- Sibling skills: [custom-dimension-authoring](../custom-dimension-authoring/SKILL.md) (dimension JSON schema, portals, exits), [consumer-customisation](../consumer-customisation/SKILL.md) (overlay basics)

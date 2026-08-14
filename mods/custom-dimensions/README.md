@@ -66,13 +66,56 @@ All commands live under one root, `/customdim`, and require permission level 4.
 | `/customdim locate biome <dimension> <biome_id> [timeout]` | Async biome locate; returns a ticket UUID. |
 | `/customdim locate structure <dimension> <structure_id> [timeout]` | Async structure locate; returns a ticket UUID. |
 | `/customdim locate-result <uuid>` | Collect the result of an async locate. |
-| `/customdim dump-biome-params <dimension>` | Dump TerraBlender + mod biome parameters (feeds the seed roller's `biome_params.json`). |
 | `/customdim sample-noise <dimension> <x> <z>` | Generation ground-truth oracle: the router climate point at `(x & ~3, 0, z & ~3)`. |
-| `/customdim sample-biome-grid <dimension> <radius> <step>` | Sample the biome layout on a grid; the CSV header stamps `tbInjected` so the parity gate knows whether TerraBlender's region selection shaped it. |
 | `/customdim eval-df <dimension> <df_id> <x> <y> <z>` | Evaluate any registry density function at a block position through the dimension's own noise binding — the node-level oracle for DF-graph parity work. |
-| `/customdim occupant <dimension> <chunkX> <chunkZ>` | Read a LOADED chunk's live `StructureStart`s (never generates); appends `census/occupancy__<ns>__<slug>.json`. |
+| `/customdim occupant <dimension> <chunkX> <chunkZ>` | Read a LOADED chunk's live `StructureStart`s (never generates); appends `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` — this world's own save, not `.seed-rolling`. |
+| `/customdim structure-audit [group]` | Classify every structure set (group/rarity/theme); writes `.seed-rolling/lint/<hash>.structure-audit.json`. |
+| `/customdim structure-census <dimension>` | Needs a LOADED dimension. Compares the live `StructurePlacementCalculator` against a headless `FactsEngine` measurement of the same seed and reports mismatches inline — writes no file. |
 | `/customdim carver-draw <dimension> <chunkX> <chunkZ>` | Replay vanilla's would-be first draw beside the noise assignment for a chunk. |
+| `/customdim render-check <dimension> <seed> [radius]` | Three heights and three water verdicts per column on ONE grid — the live try-out world's real blocks, the facts' sampler, and the renderer's own rule. Runs across ticks (it generates the sample grid); re-run to poll. Writes `.seed-rolling/render-check/<inputHash>/<dim>-<seed>-r<radius>.json`. |
+| `/customdim render-check-headless <dimension> <seed> [radius]` | The same, facts ↔ render only. No world, so it works on a dimension that has never been created — this is the variant CI runs. |
+| `/customdim render-check-reset` | Drop every render-check job so a check can be re-run in the same session. |
+| `/customdim column-ladder <dimension> <seed> <x> <z>` | One column's block-state ladder beside its density ladder, every y in the band, with each walk's own answer and the first y they disagree about. `render-check` says WHICH columns two height sources disagree about; this says why. Headless and inline. Writes `.seed-rolling/column-ladder/<dim>-<seed>-<x>_<z>.json`. |
 | `/customdim debug-prng <seed>` | PRNG diagnostics. |
+
+### Seed roller — a browser tool, not a command
+
+Rolling, looking, trying a candidate out and picking one all happen on a page
+the mod hosts. `./dev seeds` opens it (default `http://127.0.0.1:8765/`;
+`SEED_VIEWER_PORT` moves it, `0` turns it off). The port is published on
+localhost by `docker-compose.local.yml` and by nothing in the cloud profile.
+
+| Route | What it does |
+| --- | --- |
+| `GET /` | Every dimension at once, a card per candidate, and a modal carrying the render, the score and the scorecard's own per-criterion reasons |
+| `GET /api/bank` | The same bank as JSON |
+| `POST /pipeline/start` `{count, dim}` · `POST /pipeline/stop` · `GET /pipeline-status` | Roll on a background thread; the server stays playable and RCON keeps answering throughout |
+| `POST /tryout` `{dim, seed}` · `POST /tryout/back` · `GET /tryout/status` | Build a throwaway world from that candidate's seed, teleport in creative and flying, come back to the overworld at 0,0 |
+| `POST /pick` `{dim, seed}` | Write the seed — and, if you are standing in that candidate's try-out, your position as the dimension's spawn — into the consumer's committed overlay |
+| `POST /render` `{dim, seed, resolution}` | Draw a candidate's map; low-res comes from its persisted grid, high-res samples a fresh wider one |
+
+A try-out world is never added to the DIMENSION registry, so it never reaches
+`level.dat` and needs no scrub: closing it and deleting its directory under
+`dimensions/<ns>/tryout/` is the whole cleanup, and it expires ten minutes
+after the last person leaves. Every mod rebuild mints a new `InputHash`, which
+starts a fresh bank — roll after the jar settles, not during.
+
+The commands below are the diagnostics that remain.
+
+
+These run headlessly — no `ServerWorld` is created and none is left behind — and
+each answers with one line plus a path. **Read the artefact, never the RCON
+line**: RCON concatenates feedback with no separator, truncates at a few KB, and
+cannot tell a timeout from a success.
+
+| Command | What it does |
+| --- | --- |
+| `/customdim lint [dimension]` | Every config fault that would score as a bad seed: a `want` naming a structure the dimension cannot place, a biome it never produces, a portal that cannot be lit. Writes `.seed-rolling/lint/<hash>.json`, one hash-scoped file per dimension checked. Returns the ERROR count. |
+| `/customdim facts <dimension> <seed>` | Measure one (dimension, seed) — spawn, biomes, terrain, the full structure census. Reports inline; writes nothing. Every value is exact or an explicit absence with a reason. |
+| `/customdim score <dimension> <seed>` | Measure fresh, then judge against the dimension's own configured intent. Reports inline; writes nothing — the durable record of a (dimension, seed) result is the candidate file the roller writes, not a second copy from this command. |
+| `/customdim spike-compare <dimension> <seed> <count> <span>` | Headless sampler vs the live world, for parity work — zero-tolerance, reports mismatches inline (capped), writes nothing. |
+
+There is no offline checker script to run against these artefacts. `./dev verify` states where each kind of verification lives: worldgen drift is a boot-time WARN (`DimensionFingerprints`), portal state is validated on load (`PortalStateValidator`), and the suppress list is checked with `/customdim lint`. The equivalents of the old Python checkers are JUnit tests under `mods/custom-dimensions/src/test/java/` — `ScorecardDistributionTest` is the one that catches a scoring model going quietly useless (reports the distribution of percentages and names any criterion that returned the same value for every dimension), and `DimensionLintTest` covers the lint findings.
 
 ## Examples
 
@@ -265,18 +308,24 @@ resolves a deterministic weighted selection from the group's pool. The
 assignment governs generation via `NoiseStructureSelectionMixin`: only
 the assigned structure can start at a noise site, its biome predicate
 bypassed; a structural rejection leaves the site empty and is recorded in
-the `census/rejections__<ns>__<slug>.json` artefact.
+`<world save root>/customdimensions/census/rejections__<ns>__<slug>.json`
+(`Artefacts.censusDir(server)` — this world's own save, not `.seed-rolling`,
+because a rejection is a fact about chunks that actually generated), appended
+once per rejection as it happens.
 
-The `schemaVersion: 2` census (`/customdim structure-census`) emits
-every position as `[chunkX, chunkZ, "ns:structure_id"]`, and the seed
-roller mirrors the algorithm exactly.
+`/customdim structure-census` no longer dumps positions to a file — it
+measures the live world's own assignment and compares it against a headless
+`FactsEngine` measurement of the same seed, failing loudly on any
+disagreement between the two. The seed roller uses `FactsEngine`'s algorithm
+directly, so this comparison is what proves the roller is judging the same
+world the server will generate.
 
 **Locate vs assignment discrepancy.** Vanilla `/locate` on a
 multi-structure set walks placements without knowing which structure
-occupies each site. The mod now does know — the census is the
-sanctioned instrument for asking "where is structure X". Teaching
-`/locate` to honour assignment is a candidate follow-up; the locate
-semantics are unchanged today.
+occupies each site. `structure-census` and `/customdim occupant` are the
+sanctioned instruments for asking "where is structure X" and "what occupies
+this chunk". Teaching `/locate` to honour assignment is a candidate
+follow-up; the locate semantics are unchanged today.
 
 ### Difficulty, exits, and the remaining fields
 

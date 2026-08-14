@@ -31,17 +31,15 @@ usage() {
   echo "  down     Stop the local dev stack"
   echo "  logs     Tail the Minecraft server logs"
   echo "  rcon     Run an RCON command (e.g. ./dev rcon \"list\")"
+  echo "  seeds    Open the seed viewer — roll, look, try a candidate out, pick one"
   echo "  pack     Build the client modpack into ./modpack-dist/"
   echo "  pin      Re-pin overlay/mods-extra.txt to latest mod builds (review with git diff)"
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
+  echo "  clean    Delete everything git does not track (world, bank, bundle, caches)"
   echo "  rollback Revert to a previous stack bundle version"
-  echo "  seed-roll   Parallel-roll seeds for every dimension, auto-pick winners"
-  echo "  verify      Run every offline checker over the server's artefacts (no RCON)"
-  echo "  seed-rescore Recompute candidate scores vs current configs (no re-rolling)"
-  echo "  seed-status Candidate-bank status: counts, winners, score freshness"
-  echo "  seed-viewer Launch the interactive seed viewer (re-roll, edit configs, pick winners)"
+  echo "  verify      Show where dimension/portal verification lives now (mod tests + /customdim lint)"
   echo "  link     Point .stack/current at a platform checkout (default ../minecraft-server-template)"
   echo "  unlink   Restore the newest pulled release bundle"
   echo "  reset-world Delete the LOCAL world + player data (same set ./ops reset-seed deletes on production)"
@@ -381,6 +379,26 @@ case "$CMD" in
     ensure_stack
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/rcon.sh" --local "$@"
     ;;
+  seeds)
+    # Rolling, looking, trying out and picking all happen in the browser.
+    # The mod hosts the page from inside the mc container, so there is
+    # nothing to start here — the server being up IS the tool being up.
+    PORT="${SEED_VIEWER_PORT:-8765}"
+    if [[ -f "$CONSUMER_DIR/.env" ]]; then
+      ENV_PORT=$(grep -E '^SEED_VIEWER_PORT=' "$CONSUMER_DIR/.env" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'") || true
+      [[ -n "${ENV_PORT:-}" ]] && PORT="$ENV_PORT"
+    fi
+    URL="http://127.0.0.1:$PORT/"
+    if ! curl -fsS -o /dev/null --max-time 3 "$URL" 2> /dev/null; then
+      echo "The seed viewer is not answering at $URL."
+      echo "It is hosted by the mc container — start the stack with ./dev up first."
+      exit 1
+    fi
+    echo "Seed viewer: $URL"
+    if [[ "$(uname)" == "Darwin" ]]; then
+      open "$URL"
+    fi
+    ;;
   pack)
     ensure_env
     ensure_stack
@@ -438,8 +456,8 @@ case "$CMD" in
         mv "$CONSUMER_DIR/$f.new" "$CONSUMER_DIR/$f"
       fi
     done
-    # Migration: the puller moved into the bundle (scripts/stack-pull.sh);
-    # remove the old vendored consumer-root copy.
+    # The puller lives in the bundle (scripts/stack-pull.sh); delete any
+    # vendored copy left behind in the consumer root.
     rm -f "$CONSUMER_DIR/stack-pull.sh"
     reexec_if_self_updated "$SELF_BEFORE" update "$@"
     # Non-executable files that track the platform.
@@ -478,6 +496,17 @@ case "$CMD" in
     export CONSUMER_DIR
     exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" refresh-config
     ;;
+  clean)
+    # Runs before the stack is checked, because the bundle is one of the things
+    # it deletes — ensure_stack would re-pull what is about to go.
+    export CONSUMER_DIR
+    script="$CONSUMER_DIR/$STACK_SCRIPTS/clean-dev-state.sh"
+    if [[ ! -f "$script" ]]; then
+      echo "clean is not in this stack version — run ./dev update first." >&2
+      exit 1
+    fi
+    exec bash "$script" "$CONSUMER_DIR" "$@"
+    ;;
   rollback)
     if [[ ! -d "$CONSUMER_DIR/.stack" ]]; then
       echo "No stack directory found — nothing to roll back to."
@@ -507,77 +536,16 @@ case "$CMD" in
     ln -sfn "$target" "$CONSUMER_DIR/.stack/current"
     echo "Rolled back to $target. Run ./dev up to restart."
     ;;
-  seed-roll)
-    ensure_env
-    ensure_stack
-    ensure_docker
-    export CONSUMER_DIR
-    exec bash "$CONSUMER_DIR/$STACK_SCRIPTS/seed/roll-all.sh" "$@"
-    ;;
   verify)
-    # Offline verification: every checker reads artefacts the mod already
-    # wrote and asserts over them. No Docker, no RCON, no running server —
-    # so it is safe while the server is up, paused, or down.
-    ensure_stack
-    export CONSUMER_DIR
-    VERIFY_CFG="$CONSUMER_DIR/config/custom-dimensions"
-    [[ -d "$VERIFY_CFG/dimensions" ]] || VERIFY_CFG="$CONSUMER_DIR/.stack/current/stack/config/custom-dimensions"
-    VERIFY_FAILED=0
-    for check in check-dimension-drift check-portal-integrity; do
-      script="$CONSUMER_DIR/$STACK_SCRIPTS/$check.py"
-      if [[ ! -f "$script" ]]; then
-        echo "  SKIP $check (not in this stack version)"
-        continue
-      fi
-      echo "== $check"
-      python3 "$script" --data "$CONSUMER_DIR/data" || VERIFY_FAILED=1
-    done
-    CENSUS_DIR="$CONSUMER_DIR/.seedtest/census"
-    if [[ -d "$CENSUS_DIR" ]]; then
-      echo "== check-noise-regression"
-      python3 "$CONSUMER_DIR/$STACK_SCRIPTS/check-noise-regression.py" \
-        --census "$CENSUS_DIR" --config "$VERIFY_CFG" || VERIFY_FAILED=1
-    else
-      echo "  SKIP check-noise-regression (no census dumps — run"
-      echo "       'customdim structure-census <ns>:<slug>' for the dims you care about)"
-    fi
-    # Cross-reference settings.json suppress.structures (platform, overlay,
-    # and the server's staged copies) against the extracted structure-set
-    # catalogue — a typo'd id suppresses nothing and only WARNs at boot.
-    script="$CONSUMER_DIR/$STACK_SCRIPTS/check-suppress-list.py"
-    if [[ -f "$script" ]]; then
-      echo "== check-suppress-list"
-      python3 "$script" --data "$CONSUMER_DIR/data" --config "$VERIFY_CFG" \
-        --overlay "$CONSUMER_DIR/overlay/config/custom-dimensions" || VERIFY_FAILED=1
-    else
-      echo "  SKIP check-suppress-list (not in this stack version)"
-    fi
-    exit $VERIFY_FAILED
-    ;;
-  seed-rescore | seed-status)
-    # v4 candidate bank: rescore = recompute scores from banked measurements
-    # against the CURRENT configs (no Docker, no re-rolling); status = per-
-    # dimension candidate counts, winners, and score freshness.
-    ensure_stack
-    export CONSUMER_DIR
-    # Same resolution as roll-all.sh: a full local config/ first (platform
-    # checkouts), else the stack bundle's defaults, with the consumer's
-    # overlay/ merged over the top. Never data/ — that is the mc container's
-    # tree and is wiped to reset a world.
-    resolve_seed_config
-    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/score-dimensions.py" "${CMD#seed-}" \
-      --config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest" "$@"
-    ;;
-  seed-viewer)
-    ensure_stack
-    export CONSUMER_DIR
-    resolve_seed_config
-    VIEWER_ARGS=(--config "$SEED_CFG" --seedtest "$CONSUMER_DIR/.seedtest")
-    # Consumer mode: pass overlay path so re-roll writes winners there
-    if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
-      VIEWER_ARGS+=(--write-config --winner-overlay "$CONSUMER_DIR/overlay/config/custom-dimensions")
-    fi
-    exec python3 "$CONSUMER_DIR/$STACK_SCRIPTS/seed/viewer-server.py" "${VIEWER_ARGS[@]}" "$@"
+    # Dimension worldgen drift, persisted portal state, and the
+    # settings.json suppress list are validated by the mod itself now
+    # (boot WARN, load-time validation, and a lint check) — there is no
+    # offline Python checker left to run from here.
+    echo "Dimension/portal/suppress-list verification lives in the mod now:"
+    echo "  - worldgen drift: WARN in the mc boot log (DimensionFingerprints)"
+    echo "  - portal state: validated on load, bad records are skipped (PortalStateValidator)"
+    echo "  - suppress list: ./dev rcon \"customdim lint\""
+    echo "Unit tests: mods/custom-dimensions/src/test/java/"
     ;;
   cache)
     ensure_env

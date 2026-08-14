@@ -21,9 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * `none` is not a profile — it is the absence of one, represented by a null
  * profile for that group. Making it a record would mean every caller had to
  * remember to test for it before building a placement.
- *
- * MIRRORED in scripts/seed/noise_placement.py (PROFILES). The constants
- * here are the contract; change both together.
  */
 public sealed interface NoiseProfile permits NoiseProfile.Simple, NoiseProfile.Cluster {
 

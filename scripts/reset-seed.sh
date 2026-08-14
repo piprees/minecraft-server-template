@@ -8,7 +8,13 @@
 # Deletes: all world data (overworld, nether, end, dimensions/),
 # player data (playerdata, stats, advancements), uNmINeD map renders,
 # Chunky markers + task state + .skip-pause, Distant Horizons cache,
-# POI, ledger, dynamic-data-pack-cache. Deletion runs under sudo (sidecars
+# POI, ledger, dynamic-data-pack-cache, and the two mod state files that
+# describe the world being destroyed — portal_links.json (every portal's
+# links, countdowns and aura state) and custom-dimensions-fingerprints.json
+# (each dimension's creation-time worldgen baseline). Keeping either would
+# leave portals resolving into a world at coordinates that meant something
+# else, and drift reported against a world that no longer exists. The mod
+# writes both fresh on the next boot. Deletion runs under sudo (sidecars
 # write as root, so DEPLOY_USER cannot remove data/unmined-web) and is
 # verified afterwards rather than assumed. Also wipes the old world's bot
 # and webhook messages from the Discord channels (DISCORD_CHANNEL_ID +
@@ -121,6 +127,7 @@ echo "   5. Delete uNmINeD map renders (data/unmined-web)"
 echo "   6. Delete all Chunky markers, task state, and .skip-pause"
 echo "   7. Delete Distant Horizons LOD cache"
 echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
+echo "   8b. Delete portal links and dimension fingerprints for the old world"
 echo "   9. Wipe old-world bot/webhook messages from the Discord channels"
 if [[ "$WIPE_BACKUPS" == true ]]; then
 echo "  10. WIPE all restic snapshots in R2"
@@ -265,6 +272,7 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
   sudo rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete; \
   sudo rm -f  data/.skip-pause; \
   sudo rm -rf data/config/chunky/tasks/; \
+  sudo rm -f  data/config/portal_links.json data/config/custom-dimensions-fingerprints.json; \
   sudo rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite; \
   sudo rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
 
@@ -284,6 +292,7 @@ echo "  Deleted: player data (playerdata, stats, advancements)"
 echo "  Deleted: uNmINeD map renders (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
 echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
+echo "  Deleted: portal links and dimension fingerprints (rewritten on next boot)"
 
 # =============================================================================
 # 5b. Wipe Discord channels — the old world's chat and notifications

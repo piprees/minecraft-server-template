@@ -31,52 +31,27 @@ import java.util.Set;
  *                     chunk key, so the order is total)
  * </pre>
  *
- * Three knobs, three jobs. The threshold decides what fraction of the world is
- * candidate material, uniformly. The radial curve scales the exclusion radius,
- * which sets how densely the candidates pack — see {@link #exclusionFor}, and
- * note that the curve value IS the relative density multiplier. The priority
- * then thins the candidates to a Poisson-disc set at that separation.
+ * Three knobs: the threshold decides what fraction of the world is candidate
+ * material, uniformly; the radial curve scales the exclusion radius, which
+ * sets how densely the candidates pack (see {@link #exclusionFor} — the curve
+ * value IS the relative density multiplier); the priority then thins the
+ * candidates to a Poisson-disc set at that separation.
  *
- * <h3>Why the radial curve is not part of the eligibility test</h3>
+ * The curve scales the exclusion radius rather than gating the noise
+ * directly, because multiplying it into the noise before the threshold would
+ * make every authored taper a hard wall at the point it crosses the
+ * threshold — weight 0.0 is the one deliberate exception, still expressible
+ * as an explicit hard edge. Candidates are thinned by ranking on white noise
+ * rather than by local maxima of the field, because maxima of a smooth field
+ * occur about once per noise feature regardless of density settings, which
+ * makes the exclusion radius powerless to raise or lower the count. Ranking
+ * is also order-free, so parity with the Python mirror is a set comparison
+ * rather than a walk that has to replay the same traversal order.
  *
- * Multiplying the curve into the noise before the threshold would make it a
- * binary gate: a chunk whose weight is below the threshold could never place
- * however the noise falls, so every authored taper would become a hard wall
- * wherever it crosses the profile's threshold. The exclusion radius — not the
- * curve — is what controls packing density, so a curve folded into
- * eligibility can only decide where a group exists, never how much of it
- * there is.
- *
- * Weight 0.0 still suppresses outright, so a hard edge is still expressible;
- * it is opt-in rather than an accidental consequence of a taper.
- *
- * <h3>Why not the local maximum of the noise itself</h3>
- *
- * Local maxima of a <em>smooth</em> field occur about once per noise
- * feature, so their density is set by the frequency and nothing else: the
- * threshold barely matters (a peak is usually well clear of it) and the
- * exclusion radius is inert — a small pocket dimension can end up with a
- * single structure in the entire world, with the exclusion radius powerless
- * to raise that count. Ranking by white noise instead keeps every
- * above-threshold chunk in the running, so both dials work.
- *
- * <h3>Why not the spike's greedy spiral</h3>
- *
- * The spike keeps a candidate unless something already accepted sits too
- * close. Same density behaviour as this, but the answer depends on the visit
- * order, so the Python mirror would have to reproduce the traversal chunk for
- * chunk to pass the parity gate (F4). Ranking is the order-free form of the
- * same idea — the standard parallel formulation of dart throwing — so parity
- * becomes a set comparison rather than a walk.
- *
- * The tie-break on the chunk key exists because two chunks CAN rank
- * identically, and without it a tied pair would each see a neighbour that is
- * "not strictly higher" and both would place, breaking the separation
+ * The tie-break on the chunk key matters: two chunks can rank identically,
+ * and without a deterministic tie-break a tied pair would each see the other
+ * as "not strictly higher" and both would place, breaking the separation
  * guarantee.
- *
- * MIRRORED in scripts/seed/noise_placement.py — change both together, then
- * re-run test_noise_parity.py, which diffs this against a live
- * {@code /customdim structure-census} dump with zero tolerance.
  */
 public final class NoiseFieldIndex {
 
@@ -84,7 +59,7 @@ public final class NoiseFieldIndex {
      * Cap on the chunk radius that gets scanned. A dimension with a huge
      * border would otherwise scan its whole area at world load; 8192 blocks
      * (512 chunks, ~1M chunks scanned) is the largest border any shipped
-     * dimension uses, and is the spike's stated performance target.
+     * dimension uses.
      */
     public static final int MAX_RADIUS_CHUNKS = 512;
 
@@ -120,13 +95,28 @@ public final class NoiseFieldIndex {
      * @param exclusion   minimum chunks between two placements, >= 1
      * @param radial      10-point curve, spawn -> border; null means uniform.
      *                    double[], not float[]: the Python mirror uses doubles
-     *                    throughout and 1.3f != 1.3 (F4 parity).
+     *                    throughout and 1.3f != 1.3.
      * @param radiusChunks playable radius in chunks (clamped to MAX_RADIUS_CHUNKS)
      * @param spawnChunkX  centre of the radial curve, in chunks
      * @param spawnChunkZ  centre of the radial curve, in chunks
      */
     public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
                            double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ) {
+        this(noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, 0);
+    }
+
+    /**
+     * @param clearSpawnChunks radius around spawn this group may not place in,
+     *                         in chunks; 0 for no clearance. Applied BEFORE the
+     *                         radial curve and the noise, so a cleared disc
+     *                         costs no Perlin work — and, more to the point, so
+     *                         a structure inside it is never a candidate rather
+     *                         than a candidate somebody disapproves of later.
+     */
+    public NoiseFieldIndex(long noiseSeed, NoiseProfile profile, int exclusion,
+                           double[] radial, int radiusChunks, int spawnChunkX, int spawnChunkZ,
+                           int clearSpawnChunks) {
         int r = Math.min(Math.max(radiusChunks, 0), MAX_RADIUS_CHUNKS);
         int excl = Math.max(1, exclusion);
         // The locate cell has to be sized from the SMALLEST separation the
@@ -170,11 +160,20 @@ public final class NoiseFieldIndex {
         long[] ranks = new long[side * side];
         double rSquared = (double) r * r;
         double threshold = profile.threshold();
+        // structures.clearSpawnRadius. Everything strictly inside the disc is
+        // not a candidate at all, which is the difference between this and the
+        // scoring penalty it replaces: a penalty can only regret a dungeon on
+        // spawn after the fact, and every seed still has one.
+        int clear = Math.max(0, clearSpawnChunks);
+        double clearSquared = (double) clear * clear;
         for (int dz = -r; dz <= r; dz++) {
             for (int dx = -r; dx <= r; dx++) {
                 double distSq = (double) dx * dx + (double) dz * dz;
                 if (distSq > rSquared) {
                     continue;   // outside the world, stays false
+                }
+                if (clear > 0 && distSq < clearSquared) {
+                    continue;   // inside the spawn-clearance disc
                 }
                 // Weight 0.0 is the author's explicit hard suppression, and the
                 // only reason the curve can rule a chunk out. Everything else
@@ -270,29 +269,17 @@ public final class NoiseFieldIndex {
     /**
      * A chunk's rank among competing candidates: white noise, deliberately
      * uncorrelated with the placement field so that ranking thins candidates
-     * without re-expressing the same shape.
+     * without re-expressing the same shape. Compared as UNSIGNED — a signed
+     * comparison would systematically favour whichever half of the range
+     * came out negative.
      *
-     * Compared as UNSIGNED — a signed comparison would systematically favour
-     * whichever half of the range came out negative.
-     *
-     * <h3>Why each coordinate is mixed before they are combined</h3>
-     *
-     * XOR-ing the two raw multiples collided ANTIPODALLY. Negating a
-     * two's-complement value leaves every bit at and below its lowest set bit
-     * unchanged and flips the rest, so when {@code chunkX} and {@code chunkZ}
-     * share a trailing-zero count, {@code (x, z)} and {@code (-x, -z)} XOR to
-     * the same value and rank identically. About a third of coordinate pairs
-     * qualify: measured 25,699 duplicate ranks among 836,056 eligible chunks
-     * (3.1%) in one overworld census, and 43,692 of 263,169 over a full
-     * radius-256 grid.
-     *
-     * The tie-break below made that harmless rather than wrong, but "harmless"
-     * depended on the pair rarely landing inside one exclusion disc — which is
-     * a property of today's exclusion radii, not of the maths. Passing each
-     * coordinate through the finaliser first destroys the low-bit structure
-     * the symmetry relies on: measured zero collisions over the same grids.
-     *
-     * MIRRORED in scripts/seed/noise_placement.priority (and priority_np).
+     * Each coordinate is mixed individually before combining, rather than
+     * XOR-ing the two raw multiples directly: negating a two's-complement
+     * value leaves every bit at and below its lowest set bit unchanged and
+     * flips the rest, so whenever {@code chunkX} and {@code chunkZ} share a
+     * trailing-zero count, {@code (x, z)} and {@code (-x, -z)} collide
+     * antipodally and rank identically. Mixing each coordinate first destroys
+     * that low-bit structure before the XOR ever sees it.
      */
     static long priority(long noiseSeed, int chunkX, int chunkZ) {
         long h = noiseSeed
@@ -378,10 +365,6 @@ public final class NoiseFieldIndex {
      * Weight 0.0 returns 0, which the caller reads as ineligible rather than as
      * a separation. {@link #MIN_RADIAL_WEIGHT} caps how large the disc can get,
      * because the neighbourhood scan is O(d^2) per candidate.
-     *
-     * MIRRORED in scripts/seed/noise_placement.exclusion_for — Math.round is
-     * floor(x + 0.5), which is NOT Python's banker's rounding, so the mirror
-     * uses its own _java_round rather than round().
      */
     static int exclusionFor(int baseExclusion, double weight) {
         if (weight <= 0.0) {

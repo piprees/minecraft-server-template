@@ -57,28 +57,9 @@ public final class NoisePoolBuilder {
      * uses. YUNG's types and Supplementaries' galleons stay pass-throughs —
      * their cross-set exclusion zones are real behaviour — and
      * concentric_rings is not grid-compatible at all.
-     *
-     * MIRRORED as NOISE_MANAGED_PLACEMENT_TYPES in
-     * scripts/seed/structure_placement.py (consumed by
-     * score-dimensions.structure_group_lookup) — the two lists and
-     * structure-groups.json move together, in the same release, or the
-     * roller scores a different world than the mod generates (T20).
      */
     private static final Set<String> ABSORBED_PLACEMENT_TYPES = Set.of(
             "moogs_structures:advanced_random_spread");
-
-    /**
-     * Every noise-managed placement-type id, sorted — stamped into the
-     * structure_pools.json dump so the roller can spot a dump made under a
-     * different absorption list (a stale pre-conversion dump would score a
-     * newly absorbed set 0.0% forever, the exact T23-adjacent bug class).
-     */
-    public static java.util.List<String> noiseManagedTypeIds() {
-        java.util.List<String> out = new ArrayList<>(ABSORBED_PLACEMENT_TYPES);
-        out.add("minecraft:random_spread");
-        java.util.Collections.sort(out);
-        return out;
-    }
 
     /**
      * Whether a set's placement is dissolved into a noise group. Exact
@@ -88,7 +69,7 @@ public final class NoisePoolBuilder {
      * FixedStructurePlacement) and every non-random_spread type passes
      * through on its own placement.
      */
-    static boolean noiseManaged(StructurePlacement placement) {
+    public static boolean noiseManaged(StructurePlacement placement) {
         if (placement.getClass() == RandomSpreadStructurePlacement.class) {
             return true;
         }
@@ -121,8 +102,71 @@ public final class NoisePoolBuilder {
                                BiomeSource biomeSource,
                                NoiseGroupPlan plan,
                                Set<String> exclude) {
+        return build(def, sets, biomeSource, plan, exclude, null);
+    }
+
+    /**
+     * As above with the include list supplied rather than read from config.
+     *
+     * <p>Only lint passes one: it builds the pool twice, with and without
+     * {@code structures.include}, to tell a want that genuinely fits the
+     * dimension's biomes from one that is only in the pool because the filter
+     * was bypassed. Null means "use the config's", which is every other caller.
+     */
+    public static Result build(DimensionConfig def,
+                               Iterable<RegistryEntry<StructureSet>> sets,
+                               BiomeSource biomeSource,
+                               NoiseGroupPlan plan,
+                               Set<String> exclude,
+                               List<String> includeOverride) {
+        return build(def, sets, biomeSource, plan, exclude, includeOverride,
+                wantedStructureIds(def));
+    }
+
+    /**
+     * The structure ids this dimension's config asks for, resolved through the
+     * alias table. These bypass the biome-affinity filter: a want is an
+     * instruction, not a wish.
+     */
+    public static Set<String> wantedStructureIds(DimensionConfig def) {
+        Set<String> out = new HashSet<>();
+        for (String name : StructureWants.resolve(def).names()) {
+            String id = StructureAliases.resolve(name);
+            if (id != null && !id.startsWith("#")) {
+                out.add(id);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * As above with the wanted set supplied.
+     *
+     * <p>{@code wanted} bypasses the biome-affinity filter exactly as
+     * {@code structures.include} does, but per STRUCTURE rather than per set —
+     * which is the granularity a want is written at. The structure then reaches
+     * {@link StructurePick} and, at its assigned site,
+     * {@code NoiseStructureSelectionMixin} creates its start with the biome
+     * predicate bypassed. That last step already existed; this is the wire that
+     * was missing in front of it.
+     *
+     * <p>What it does NOT do is guarantee the structure generates: its own
+     * {@code createStructureStart} can still decline the position, and that
+     * rejection is recorded in {@code census/rejections__*.json}. "Wanted" buys
+     * a place in the pool and a chance at every site the noise assigns it, not
+     * a promise the terrain will accept it.
+     */
+    public static Result build(DimensionConfig def,
+                               Iterable<RegistryEntry<StructureSet>> sets,
+                               BiomeSource biomeSource,
+                               NoiseGroupPlan plan,
+                               Set<String> exclude,
+                               List<String> includeOverride,
+                               Set<String> wanted) {
         DimensionConfig.Structures block = def.getStructures();
-        Set<String> include = lowerSet(block == null ? null : block.include);
+        Set<String> include = lowerSet(includeOverride != null ? includeOverride
+                : (block == null ? null : block.include));
+        Set<String> wantedIds = wanted == null ? Set.of() : wanted;
         Map<String, String> rarityOverrides = block == null || block.rarity == null
                 ? Map.of() : block.rarity;
         Set<String> forcedExclusive = forcedExclusiveStructureIds(def);
@@ -180,14 +224,18 @@ public final class NoisePoolBuilder {
                     counter[1]++;
                     continue;   // placed by hand, and nowhere else
                 }
+                boolean wantedHere = structureId != null && wantedIds.contains(structureId);
                 double affinity = biomeAffinity(structure, dimensionBiomes);
-                if (affinity <= 0.0 && !bypassBiomeFilter) {
+                if (affinity <= 0.0 && !bypassBiomeFilter && !wantedHere) {
                     counter[0]++;
                     continue;   // cannot generate in any of this dim's biomes
                 }
                 // Structures that belong to MORE of this dimension's biomes
-                // weigh more, so generation leans towards what fits.
-                double affinityFactor = bypassBiomeFilter ? 1.0 : 0.5 + 0.5 * affinity;
+                // weigh more, so generation leans towards what fits. A wanted
+                // structure keeps full weight: the author asked for it, so it
+                // must not be quietly out-competed by whatever happens to fit.
+                double affinityFactor = bypassBiomeFilter || wantedHere
+                        ? 1.0 : 0.5 + 0.5 * affinity;
                 int weight = (int) Math.max(1, Math.round(
                         weighted.weight() * share * affinityFactor));
                 byGroup.computeIfAbsent(group, k -> new ArrayList<>())
@@ -231,7 +279,7 @@ public final class NoisePoolBuilder {
      * Fraction of a structure's valid biomes that this dimension actually
      * has. 0.0 means the structure can never generate here.
      */
-    static double biomeAffinity(RegistryEntry<Structure> structure, Set<Identifier> dimensionBiomes) {
+    public static double biomeAffinity(RegistryEntry<Structure> structure, Set<Identifier> dimensionBiomes) {
         if (dimensionBiomes.isEmpty()) {
             return 1.0;   // unknown biome source: filter nothing
         }
@@ -256,8 +304,68 @@ public final class NoisePoolBuilder {
         return matched / (double) total;
     }
 
+    /**
+     * Whether a set survives vanilla's biome prefilter — at least one of its
+     * structures can generate in one of this dimension's biomes — or is
+     * re-admitted because it carries a wanted structure.
+     *
+     * <p>{@code StructurePlacementCalculator.create} drops such a set BEFORE
+     * this builder ever sees it, so a live world's pool is built from a
+     * prefiltered list. Anything reproducing a live pool headlessly must apply
+     * this first: skipping it yields a strict superset whose extra structures
+     * take probability mass a live world would never give them. Positions are
+     * unaffected; the weighted PICK is not.
+     *
+     * <p>One definition, called by the facts engine and by the census — a
+     * second copy would drift and the drift would look like a working pool.
+     */
+    public static boolean survivesVanillaPrefilter(RegistryEntry<StructureSet> entry,
+                                                   Set<Identifier> dimensionBiomes,
+                                                   Set<String> wanted) {
+        for (StructureSet.WeightedEntry weighted : entry.value().structures()) {
+            String id = weighted.structure().getKey()
+                    .map(k -> k.getValue().toString()).orElse(null);
+            if (id != null && wanted.contains(id)) {
+                return true;
+            }
+            if (intersectsBiomes(weighted.structure(), dimensionBiomes)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Vanilla's own prefilter test: does this structure list a biome the source
+     * produces?
+     *
+     * <p>NOT {@code biomeAffinity > 0}, and the difference is the whole of a
+     * parity failure. Affinity answers 1.0 for a structure with NO valid biomes
+     * at all, on the reading "no predicate, so it generates anywhere" — right
+     * for weighting a structure already in a pool. Vanilla's filter is an
+     * {@code anyMatch} over the list, and an empty list matches nothing, so it
+     * drops the set.
+     */
+    public static boolean intersectsBiomes(RegistryEntry<Structure> structure,
+                                           Set<Identifier> dimensionBiomes) {
+        if (dimensionBiomes.isEmpty()) {
+            return true;   // biome source undeterminable: filter nothing
+        }
+        try {
+            for (RegistryEntry<Biome> biome : structure.value().getValidBiomes()) {
+                Identifier id = biome.getKey().map(k -> k.getValue()).orElse(null);
+                if (id != null && dimensionBiomes.contains(id)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return true;   // a broken structure is not ours to fail on
+        }
+        return false;
+    }
+
     /** Biome ids the dimension's source can produce. Empty if undeterminable. */
-    static Set<Identifier> biomeIds(BiomeSource biomeSource) {
+    public static Set<Identifier> biomeIds(BiomeSource biomeSource) {
         Set<Identifier> out = new HashSet<>();
         if (biomeSource == null) {
             return out;
@@ -293,8 +401,12 @@ public final class NoisePoolBuilder {
         return out;
     }
 
-    /** Lowercased, null-safe set. Shared with DimensionStructures' filters. */
-    static Set<String> lowerSet(List<String> values) {
+    /**
+     * Lowercased, null-safe set. Shared with DimensionStructures' filters and
+     * with lint, which must assemble the same exclude union the live build
+     * uses or it reports a pool the world will not have.
+     */
+    public static Set<String> lowerSet(List<String> values) {
         if (values == null || values.isEmpty()) {
             return Set.of();
         }

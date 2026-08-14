@@ -72,8 +72,15 @@ public class NoiseStructurePlacement extends RandomSpreadStructurePlacement {
     public NoiseStructurePlacement(String group, long noiseSeed, NoiseProfile profile,
                                    int exclusion, double[] radial, int radiusChunks,
                                    int spawnChunkX, int spawnChunkZ) {
+        this(group, noiseSeed, profile, exclusion, radial, radiusChunks,
+                spawnChunkX, spawnChunkZ, 0);
+    }
+
+    public NoiseStructurePlacement(String group, long noiseSeed, NoiseProfile profile,
+                                   int exclusion, double[] radial, int radiusChunks,
+                                   int spawnChunkX, int spawnChunkZ, int clearSpawnChunks) {
         this(group, new NoiseFieldIndex(noiseSeed, profile, exclusion, radial,
-                radiusChunks, spawnChunkX, spawnChunkZ));
+                radiusChunks, spawnChunkX, spawnChunkZ, clearSpawnChunks));
     }
 
     @Override

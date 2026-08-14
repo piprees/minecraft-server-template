@@ -17,15 +17,13 @@ structure-groups.json via the structure_set files in the same jars
 (structure -> owning set -> group/theme). Structures in no known set are
 reported unclassified.
 
-Output: scripts/data/terrain-adaptation-audit.csv + ranked console summary.
-Offline — no Docker, no network.
+Output: ranked console summary only. Offline — no Docker, no network.
 
 Usage:
     python3 scripts/audit-terrain-adaptation.py [--mods-dir DIR]
 """
 
 import argparse
-import csv
 import json
 import sys
 import zipfile
@@ -37,7 +35,6 @@ ELFYDD_DIR = Path.home() / "Projects" / "elfydd"
 DEFAULT_MODS_DIR = ELFYDD_DIR / "data" / "mods"
 VANILLA_JAR = ELFYDD_DIR / "data" / "versions" / "1.21.1" / "server-1.21.1.jar"
 GROUPS_JSON = PLATFORM_DIR / "config" / "custom-dimensions" / "structure-groups.json"
-OUTPUT_CSV = PLATFORM_DIR / "scripts" / "data" / "terrain-adaptation-audit.csv"
 
 STRUCTURE_PREFIX = "worldgen/structure/"
 SET_PREFIX = "worldgen/structure_set/"
@@ -138,15 +135,7 @@ def main():
         row["theme"] = meta.get("theme", "")
         rows.append(row)
     rows.sort(key=lambda r: (r["group"] or "~", r["source"], r["structure_id"]))
-
-    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["structure_id", "set_id", "group", "theme",
-              "terrain_adaptation", "structure_type", "source"]
-    with open(OUTPUT_CSV, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"\nWrote {len(rows)} structures to {OUTPUT_CSV}")
+    print(f"\nScanned {len(rows)} structures")
 
     # Ranked summaries: which mods and which groups ship bare structures.
     by_adaptation = Counter(r["terrain_adaptation"] for r in rows)

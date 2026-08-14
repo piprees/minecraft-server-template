@@ -7,7 +7,7 @@ own constant.
 
 `./dev link` writes `dev`: a linked platform checkout has no release identity
 and changes continuously, so callers must treat it as "unknown, don't compare"
-via `is_dev()`. On a dev stack the escape hatch is `./dev seed-roll --reset`.
+via `is_dev()`.
 """
 from pathlib import Path
 

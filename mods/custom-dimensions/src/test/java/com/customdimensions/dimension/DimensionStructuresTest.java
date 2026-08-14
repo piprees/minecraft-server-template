@@ -7,12 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DimensionStructuresTest {
 
-    /**
-     * Derived shrine spacing must stay bit-identical to the mirror in
-     * scripts/seed/fast_roller.py (roller parity): clamp(radius/32,
-     * 12, 48), separation = spacing / 2. The expected values below are
-     * duplicated in test_dimension_profiles.py — change both together.
-     */
+    /** Derived shrine spacing must stay bit-identical to the roller's mirror. */
     @Test
     void derivedShrineSpacingMatchesRollerMirror() {
         assertSpacing(256, 12, 6);     // small pocket clamps up to 12
@@ -85,13 +80,9 @@ class DimensionStructuresTest {
     }
 
     /**
-     * FixedStructurePlacement.Index contract (mirrored in the roller:
-     * scripts/seed/structure_placement.py treats forced structures as
-     * constants): membership is exact, and startFor answers with the
-     * region's forced position for ANY probe chunk in that region — that is
-     * what vanilla's locateRandomSpreadStructure calls while ring-probing.
-     * (Index, not the placement itself: StructurePlacement's static init
-     * needs Bootstrap, which unit tests deliberately avoid.)
+     * FixedStructurePlacement.Index contract (Index, not the placement
+     * itself: StructurePlacement's static init needs Bootstrap, which unit
+     * tests deliberately avoid).
      */
     @Test
     void fixedPlacementRegionAndMembership() {

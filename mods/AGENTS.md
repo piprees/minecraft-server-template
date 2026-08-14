@@ -142,68 +142,121 @@ carries no error type: a parse failure, a timeout and an empty result are
 indistinguishable, and under load an empty response reads exactly like
 success.
 
-So verification does not parse command output. **A diagnostic command answers
-with a one-line summary plus a path, writes the real answer to a versioned
-file, and a checker in `scripts/` asserts over that file with no server
-running.** RCON's job is to trigger the dump and to run short commands; the
-answer is read from the file.
+So verification does not parse command output. **A diagnostic command
+answers with a one-line summary plus a path, and writes the real answer to a
+file** (`Artefacts.write`, `.tmp` + `ATOMIC_MOVE`, so a reader never sees a
+half-written file). RCON's job is to trigger the write and run short
+commands; the answer is read from the file. Several diagnostics answer
+inline instead, by design — see the table below for which.
+
+**Seed rolling does not use RCON or chat commands at all.** The mod runs inside
+the server process that owns the registries and the live `MinecraftServer`, so
+the seed tool reaches it over an HTTP port the mod hosts, and the browser talks
+to it directly (§ Seed rolling below). The contract here governs diagnostics
+that genuinely inspect a running world — never the roll, view, try-out and pick
+loop (`~/Projects/elfydd/reports/PLAN.md`).
 
 ### The contract
 
 1. **One line back, everything else on disk** —
    `<command> <subject>: <summary> -> <path>`. The summary must be
    independently useful (counts, not "OK").
-2. **Artefacts live under `config/custom-dimensions/`** in the server data
-   directory (`data/config/custom-dimensions/…` on the host).
-3. **JSON by default.** `structure-audit.txt` and `biome_grid.csv` are
-   grandfathered because their consumer is a human or a spreadsheet.
-4. **Every artefact carries `schemaVersion` and `generatedAt`**
-   (`Artefacts.jsonHeader` / `Artefacts.textHeader`). A checker meeting an
-   unexpected version must fail loudly, never mis-read silently.
-   `biome_params.json` is the one exception — it is a bare JSON array the
-   seed roller loads as a list, and wrapping it would break every roller.
-5. **Writes are atomic** — `Artefacts.write` does `.tmp` + `ATOMIC_MOVE`. A
-   62k-position census takes real time to serialise and a checker reading
-   mid-write would report a fault that does not exist.
-6. **Every artefact has a checker** in `scripts/` that runs with no Docker
-   and exits non-zero on failure.
-7. **A command that iterates a registry or a world MUST NOT answer inline.**
+2. **Artefacts live under `.seed-rolling/`**, a directory in the consumer
+   repo, sibling to `data/` (mounted into the mc container at
+   `/.seed-rolling`, path overridable via `SEED_ROLLING_DIR`;
+   `Artefacts.rollingDir()`). This is what keeps them out of `deploy.sh`
+   step 8's and `./dev refresh-config`'s reach — both only ever touch
+   `data/config/`. `./dev clean` (`git clean -xdf`) still removes
+   `.seed-rolling/` along with everything else derived, since it's
+   gitignored like `data/` — that's expected, not a bug: every artefact
+   here regenerates by re-running the command that made it.
+3. **JSON.** `Artefacts.jsonHeader(kind)` opens every artefact with
+   `stackVersion`, `kind` and `generatedAt`; callers append their own
+   fields after it.
+4. **A command that iterates a registry or a world writes a file rather than
+   answering inline** — with two documented exceptions
+   (`structure-census`, `spike-compare`) that compare two measurements and
+   report a capped pass/fail summary inline because the assertion IS the
+   comparison, not a dump to inspect later.
+5. **`rejections__<ns>__<slug>.json` and `occupancy__<ns>__<slug>.json` are
+   append-on-event records of facts about THIS world's generated chunks, not
+   seed-rolling hypotheses** — they live under `Artefacts.censusDir(server)`
+   (`<world save root>/customdimensions/census/`, a sibling of `region/` and
+   `playerdata/` — inside `data/world/`, not `.seed-rolling/`), keyed by
+   dimension alone with no `inputHash`, so a `.seed-rolling` reset or a
+   config change never wipes them: a world wipe is the only thing that
+   should. An entry is written once, when the event happens; deleting one
+   erases the only proof it happened, and re-proving a structural rejection
+   means regenerating the chunk (move the region file aside while mc is
+   stopped, revisit).
 
 ### What exists today
 
-| Artefact | Written by | Checked by |
+| Artefact | Written by | Read by |
 | --- | --- | --- |
-| `census/<ns>__<slug>.json` | `customdim structure-census <ns>:<slug>` | `scripts/check-noise-regression.py` |
-| `census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin` (appended on each structural rejection) | `scripts/check-noise-regression.py` |
-| `census/occupancy__<ns>__<slug>.json` | `customdim occupant <ns>:<slug> <cx> <cz>` (reads a LOADED chunk, never generates) | `scripts/seed/verify-occupancy.sh` |
-| `structure-audit.txt` | `customdim structure-audit [group]` | — (human-read) |
-| `biome_params.json` | `customdim dump-biome-params <dim>` | the seed roller consumes it |
-| `biome_grid.csv` | `customdim sample-biome-grid <dim> <r> <step>` | — (ad-hoc) |
-| `custom-dimensions-fingerprints.json` | the mod, at world creation | `scripts/check-dimension-drift.py` |
-| `portal_links.json` | the mod, on every portal mutation | `scripts/check-portal-integrity.py` |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.json` | the roller, one file per measured seed (full facts + scorecard) | `web/BankView` builds the page and `/api/bank` from these |
+| `.seed-rolling/candidates/<inputHash>/<dim>/<seed>.{lowres,highres}.png` | the roller (lowres, on every scored seed) and `POST /render` | the viewer, and `GET /renders/<dim>/<seed>.png` |
+| `.seed-rolling/candidates/<inputHash>/<dim>/rejected.json` | the roller, on a pre-scoring gate failure | the roller, so a seed is never re-measured |
+| `.seed-rolling/candidates/<inputHash>/<dim>/frontier.json` | Nothing writes one — `Frontier.of` derives the non-dominated set live on every page render, so a file could only ever be staler than the screen. Older banks carry them and the candidate scan skips them | — |
+| `<world save root>/customdimensions/census/rejections__<ns>__<slug>.json` | `NoiseStructureSelectionMixin`, appended on each structural rejection | — (ad-hoc) |
+| `<world save root>/customdimensions/census/occupancy__<ns>__<slug>.json` | `/customdim occupant <dim> <cx> <cz>` (reads a LOADED chunk, never generates) | — (ad-hoc) |
+| `.seed-rolling/render-check/<inputHash>/<dim>-<seed>-r<radius>[-headless].json` | `/customdim render-check <dim> <seed> [radius]` — three heights and three water verdicts per column on the facts' own grid | `smoke-test.yml`'s render-check gate, and `elfydd/reports/render-check-report.py` |
+| `.seed-rolling/lint/<hash>.json` | `/customdim lint [dimension]` | the command's own ERROR-count return value |
+| `.seed-rolling/lint/<hash>.structure-audit.json` | `/customdim structure-audit [group]` | human-read |
+| `data/config/custom-dimensions-fingerprints.json` | the mod, at world creation | the mod, at boot (`DimensionFingerprints`) |
+| `data/config/portal_links.json` | the mod, on every portal mutation | the mod, on load (`PortalStateValidator`) |
+| `overlay/config/custom-dimensions/dimensions/<slug>.json` | `POST /pick` (`web/Picker`), writing the chosen seed and — when you pick while standing in that candidate's try-out — your position as the spawn. The mount that makes this possible ships only in `docker-compose.local.yml`, so this is a local-dev write, not a production one | a human, before committing |
 
-**`occupancy__`/`rejections__` files are append-on-generation-event records,
-not regenerable dumps** — a rejection is written once, when the chunk
-generates. Any census-directory clear must exempt them (the refresh scripts
-do); deleting one erases the only proof a structural rejection happened, and
-re-proving it means regenerating the chunk (move the region file aside while
-mc is stopped, revisit).
+`/customdim structure-census` and `/customdim spike-compare` write no file:
+census compares the live world's `StructurePlacementCalculator` against a
+headless `FactsEngine` measurement of the same dimension and reports
+mismatches inline; spike-compare does the same for the headless sampler
+against the live world. Both cap the mismatch list so a bad run can't
+overflow RCON. `/customdim facts` and `/customdim score` also answer inline
+and persist nothing — the durable record of a (dimension, seed) measurement
+is the candidate file the roller writes, not a second copy from these
+ad-hoc commands.
 
-`./dev verify` runs every checker in one pass. It needs no server: run it
-while the server is up, paused, or down.
+There is no offline checker to run outside the game. `./dev verify` states
+this directly: worldgen drift is a boot-time WARN (`DimensionFingerprints`),
+portal state is validated on load (`PortalStateValidator`), and the suppress
+list is checked with `/customdim lint`. The equivalents of the old Python
+checkers now live as JUnit tests under
+`mods/custom-dimensions/src/test/java/` — e.g. `ScorecardDistributionTest`
+(catches a scoring model that stopped discriminating between dimensions) and
+`DimensionLintTest`.
 
-**Start any "is the mod behaving?" question here, not with RCON.** The census
-answers which structures reached a pool and where they were placed;
-`/customdim occupant` reads a loaded chunk's live `StructureStart`s to
-confirm what actually occupies a site. `/locate` is NOT an occupancy
-instrument — a miss walks placements for minutes and wedges RCON (see the
-locate note below).
+**A map and a measurement are two answers to one question, and they drifted.**
+`/customdim render-check <dim> <seed>` is what tells them apart: one grid (the
+facts' own 41×41 disc), three readings per column — real blocks from the live
+try-out world, `SpikeSampler` on the headless rig, and the renderer's own
+height and water rule via `CandidateRender.HeightModel`. A two-way comparison
+says two sources disagree and never which is wrong. Base worlds are the
+control: their generator carries no custom-dimensions machinery, so a
+disagreement there is the harness or the renderer, never the pack.
+`render-check-headless` drops the world side and compares facts ↔ render only —
+seconds per dimension, no world, and the variant CI runs.
 
-**A checker is only meaningful against a world created under the config it
-is checking** — worldgen is creation-time-only
-([D2](../TROUBLESHOOTING.md#d2)). `check-dimension-drift.py` is the guard:
-run it FIRST, and if it reports drift, every other result is measuring an
-older config.
+**A thumbnail is not the world.** `Resolution.LOWRES` is a fixed 512-block
+window centred on the dimension's declared spawn, which the roller picks to be
+habitable — so it is the island cluster by construction, half the world's width
+and a quarter of its area. Reading it as the world is what produced a reported
+"the render is wrong about water" that measurement did not support: the
+thumbnail was 81.4% blue, the highres render of the same seed 96.6%, the facts
+98.0% and the live world 97.3% (2026-08-14, `elfydd/reports/render-check-findings.md`).
+
+**Start any "is the mod behaving?" question here, not with RCON.**
+`structure-census` proves the live world agrees with the facts engine for a
+loaded dimension; `/customdim occupant` reads a loaded chunk's live
+`StructureStart`s to confirm what actually occupies a site. `/locate` is NOT
+an occupancy instrument — a miss walks placements for minutes and wedges
+RCON (see the locate note below).
+
+**A result is only meaningful against a world created under the config it is
+checking** — worldgen is creation-time-only ([D2](../TROUBLESHOOTING.md#d2)).
+The mod's own boot-time drift WARN (`DimensionFingerprints`) is the guard:
+check the mc boot log FIRST, and if it reports drift, every other result is
+measuring an older config.
 
 ## Verification loop
 
@@ -238,8 +291,20 @@ pre-patch as a second layer covering a fresh environment's first boot).
 Verify via log grep, never the config file (the key is stripped again by
 the boot that honours it).
 
+**Copy over the jar `./dev up` installs, never beside it.** `dev-up.sh` writes
+`stack/local-mods/*.jar` into `data/mods/` under their own filenames, so a copy
+made under a different name leaves TWO jars declaring the same mod id. Fabric
+loads one of them and the choice is not yours: the symptom is a rebuilt feature
+that is simply absent — new endpoints 404, new commands do not parse — while the
+jar you just built sits in `data/mods/` looking correct. `ls data/mods | grep
+<modid>` must return exactly one line.
+
+**`./dev link` is run once per consumer** and does not make `./dev up` safe
+for an iteration loop: its `local-mods/` is a `cp` taken at link time and does
+not track rebuilds. Copy straight into `data/mods/` under the same filename.
+
 ```bash
-cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
+cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>-<version>.jar
 docker restart mc && sleep 45
 docker inspect mc --format '{{.State.Health.Status}}'            # must be healthy
 docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
@@ -421,11 +486,9 @@ no config at all.
   it is above threshold AND no above-threshold chunk within the exclusion
   radius outranks it, where rank is white noise (`mix64` of seed+coords,
   compared **unsigned**) and ties break on the chunk key. This is the
-  parallel formulation of dart throwing. It is not a greedy spiral, and it
-  must not become one: the roller mirrors this in Python and parity is a set
-  comparison, not two traversals that have to agree step for step. It also
-  means the traversal can be optimised freely — swapping an O(r^3) ring walk
-  for an O(r^2) scan produced byte-identical output.
+  parallel formulation of dart throwing, not a greedy spiral — the traversal
+  can be optimised freely; swapping an O(r^3) ring walk for an O(r^2) scan
+  produced byte-identical output.
 - **Rank on white noise, never on the placement field itself.** Local maxima
   of a *smooth* field occur about once per noise feature, so their density is
   fixed by frequency alone — the threshold barely participates and the
@@ -446,20 +509,17 @@ no config at all.
   generated. `StructureNoise.sampleChunk` adds irrational origin offsets;
   never sample raw chunk coordinates.
 - **Doubles everywhere, and our own Perlin.** `float` rounds differently from
-  Python's always-double floats (`1.3f` is `1.29999995231628418`) and would
-  cost the parity gate for nothing. Vanilla's `PerlinNoiseSampler` is avoided
-  because mirroring it means mirroring `net.minecraft.util.math.random.Random`
-  too, and it drags Bootstrap into unit tests.
+  double math (`1.3f` is `1.29999995231628418`) — doubles throughout avoid
+  that drift. Vanilla's `PerlinNoiseSampler` is avoided because mirroring it
+  means mirroring `net.minecraft.util.math.random.Random` too, and it drags
+  Bootstrap into unit tests.
 - **The peaceful shift outranks `structureDensity`.** A coarse density dial
   must not resurrect a group the dimension's own difficulty says is not
   there. Only an explicit per-group `structures.noise` entry can undo it.
 - **Data is jar-baked, not read from config.** `structure_themes.json` and
   `structure_type_defaults.json` are resources (self-containment rule above);
-  the copies under `config/custom-dimensions/` exist for the seed roller,
-  which in a consumer reads the STACK BUNDLE
-  (`.stack/current/stack/config/custom-dimensions`) plus
-  `overlay/config/custom-dimensions` — never `data/`, which belongs to the mc
-  container and is wiped to reset a world. Regenerate both
+  the copies under `config/custom-dimensions/` exist for seed rolling, which
+  lives in the mod and is driven by `/customdim` subcommands. Regenerate both
   with `scripts/gen-structure-groups.py` after any structure-mod pin bump —
   `--check` gates staleness.
 - **Over half of all sets never enter a group.** 227 of 367 (jar-level
@@ -488,8 +548,9 @@ no config at all.
   **Chunky pre-generation does NOT fix it** — a complete 1024-radius pass
   over `the_overgrowth` (16,384 chunks) leaves the same locate timing out at
   240 s, up from 180 s before the pass. Verify placement with
-  `structure-census` and `scripts/check-noise-regression.py` instead; locate
-  proves one instance, the census proves the whole layout.
+  `/customdim structure-census` instead; locate proves one instance,
+  structure-census proves the live world agrees with the facts engine for
+  the whole layout.
 - **Accepted: a large dense dimension takes seconds to build its
   placements.** `the_end_citadel` (8192 border, `dense`,
   5 groups) is ~2.5 s for 62,556 positions; it logs a warning, runs once per
@@ -508,10 +569,11 @@ no config at all.
   lookup behind the managed-namespace gate is by PATH, so widening that set
   would let a third party's `minecraft:whatever` resolve against one of our
   configs. The Nether gates blaze rods on fortresses and the End gates elytra
-  on end cities, so `scripts/check-noise-regression.py` holds a
-  **reachability floor** for both: expected instances within a radius,
-  `positions_within x weight / pool_weight` — presence in a pool says nothing
-  about reach when vanilla picks the member by weight.
+  on end cities, so `/customdim structure-census` reports the nearest live
+  instance of each against a **reachability floor** (512 blocks for a
+  fortress, 2048 for an end city — `CensusCommands.REACHABILITY_FLOOR_BLOCKS`,
+  matching `score/Criteria.java`) — presence in a pool says nothing about
+  reach when vanilla picks the member by weight.
 - `/customdim structure-audit` and `/customdim structure-census <dim>` both
   **write files** and return a summary — RCON concatenates feedback lines
   with no separator and truncates at a few KB, so hundreds of rows come back
@@ -524,7 +586,8 @@ that structure iff the structure's own generation accepts the position, and
 by nothing else, ever. A structural rejection leaves the site empty and is
 itself recorded exactly: `NoiseStructureSelectionMixin` logs every rejection
 with dimension, group, structure id and chunk coordinates, and appends it to
-`census/rejections__<ns>__<slug>.json` via `Artefacts.write`.
+`<world save root>/customdimensions/census/rejections__<ns>__<slug>.json`
+(`Artefacts.censusDir(server)`) via `Artefacts.write`.
 
 Assignment: `StructurePick.assignedStructure(noiseSeed, cx, cz, sortedPool)`
 with `pickSeed = noiseSeed ^ saltOf("structure_pick")`. The sorted pool is a
@@ -537,9 +600,6 @@ keyed by `WeightedEntry` OBJECT IDENTITY (`IdentityHashMap`), installed by
 `DimensionStructures.transformedNoise`, replaced wholesale on every
 calculator rebuild, cleared on `ServerWorldEvents.UNLOAD` in
 `MultiverseServer`.
-
-MIRRORED in `scripts/seed/noise_placement.py` (`resolve_structure`,
-`pick_seed`) -- change both together, re-run `test_noise_parity.py`.
 
 ### Mixin ordering on `ChunkGenerator.trySetStructureStart`
 
@@ -561,13 +621,10 @@ to vanilla behaviour.
 ### Structure placement lessons (fixed placements)
 
 - **Vanilla CubicSpline EXTRAPOLATES LINEARLY beyond its endpoints** using
-  the endpoint derivative. Any Python re-implementation that clamps to the
-  endpoint value flattens splines with non-zero edge derivatives —
-  tectonic's `full_continents` is `derivative: 1` at both ends (an identity
-  band), so clamping collapsed the whole continents field to a constant.
-  Hit in preset_terrain.py AND latently in terrain_height.py (masked there
-  by Terralith/Incendium/Nullscape splines having zero edge derivatives —
-  the nether snapshot render changed when fixed).
+  the endpoint derivative. A re-implementation that clamps to the endpoint
+  value instead flattens splines with non-zero edge derivatives — tectonic's
+  `full_continents` is `derivative: 1` at both ends (an identity band), so
+  clamping collapses the whole continents field to a constant.
 - **`/locate` is first-found-in-radius-order, NOT nearest-across-sets.**
   ChunkGenerator iterates placements in map order ring by ring; when a
   structure exists in several sets (organic + forced), the organic set's
@@ -603,32 +660,103 @@ to vanilla behaviour.
   returns the router climate point at (x&~3, 0, z&~3); for Terratonic
   graphs depth(y=0) = 1 + offset, so surface_Y = 128*depth. A c2me-free
   itzg container (fabric-api + customdimensions only, MAX_TICK_TIME=-1
-  under qemu — the watchdog kills slow emulated ticks) is the clean rig:
-  preset_terrain.py matched it 36/36 probes to the RCON quantisation
-  floor (1e-4), both presets, positive and negative seeds.
-- **elfydd/production sample-noise vs headless evaluation is a solved
-  mechanism**: Tectonic's `overlay.datapack` makes
-  `minecraft:continentalness`/`erosion`/`ridge` value-identical to its
-  `tectonic:parameter/*` copies, the DF tree's holders canonicalise, and
-  `createNoiseSampler` seeds by the canonical `minecraft:` id. The
-  roller mirrors both halves (`KNOWN_NOISE_ALIASES`, octave-origin
-  verified, plus overlay-aware jar extraction) and matches the live
-  c2me-modded server at zero tolerance on the closed chains
-  (`BIOME_PARITY_STRICT=1` in `test_biome_parity.py`) — c2me introduces
-  no climate delta there. `/customdim eval-df` walks any residual chain
-  divergence node by node.
+  under qemu — the watchdog kills slow emulated ticks) is the clean rig
+  for probing it.
+- **elfydd/production sample-noise parity holds**: Tectonic's
+  `overlay.datapack` makes `minecraft:continentalness`/`erosion`/`ridge`
+  value-identical to its `tectonic:parameter/*` copies, the DF tree's
+  holders canonicalise, and `createNoiseSampler` seeds by the canonical
+  `minecraft:` id — c2me introduces no climate delta there. `/customdim
+  eval-df` walks any residual chain divergence node by node.
 
-### Seed rolling pipeline
+### Seed rolling
 
-The seed-rolling system at `scripts/seed/` evaluates dimension seeds without running the game. See `scripts/seed/README.md` for the full architecture. Key integration points with the custom-dimensions mod:
+Seed rolling lives in the mod and is driven from a browser. The mod hosts an
+HTTP port (`web/SeedServer`, default 8765, published on localhost only by
+`docker-compose.local.yml`) and the page talks to the process that owns the
+registries and the live `MinecraftServer` — there is no RCON hop and no chat
+command. `./dev seeds` opens it.
 
-- `biome_params.json` is dumped via the mod's `/customdim dump-biome-params` command (captures TerraBlender + all mod biomes across 4 families)
-- Dimension configs at `config/custom-dimensions/dimensions/` drive what gets rolled — the roller reads `type`, `biomes`, `seedRoll`, `structureDensity`, and `difficulty` from each file
-- Per-dimension `seedRoll` blocks control spawn filters, wants/shuns, mood, and terrain preferences
-- Winners are written back to `config/custom-dimensions/candidates/` and optionally into the dimension config's `seed` field
-- **Seed-group rolling**: dims with byte-identical generation config (`dimension_profiles.generation_fingerprint`) share measurements — measured once per group, winners forced distinct at finalise (same fingerprint + same seed = literal world clones). Any NEW generation-affecting config field the mod grows MUST be added to `generation_payload()` or grouping silently lies (the roller-parity rule's fingerprint corollary). Example: derived shrine spacing makes `borders.player` generation-affecting for `exitShrines` dims — the payload carries a conditional `shrineSpacing` entry, added ONLY when applicable so pre-existing non-shrine fingerprints stay byte-stable (an always-present key would flag every candidate store DRIFTED)
-- **Config-schema Gson traps**: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants` (free-form, roller-only). Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits
-- **Overlay-written dimension files need the staged-overlay mirror**: tools that create consumer dims at runtime (viewer-server's fork/create) must ALSO write the file into the staged overlay (`<config>/custom-dimensions/overlay/dimensions/`), or fast_roller/finalise can't see the dim until the next `./dev up` re-stage
+| Route | What it does |
+| --- | --- |
+| `GET /` | The viewer: every dimension, a card per candidate, the scorecard's own per-criterion reasons in the modal |
+| `GET /assets/*`, `GET /renders/<dim>/<seed>[_hires].png` | Front-end files from the jar; candidate PNGs from `.seed-rolling/` |
+| `GET /api/bank` | The whole bank as JSON |
+| `POST /pipeline/start`, `/pipeline/stop`, `GET /pipeline-status` | Roll in the background, with progress |
+| `POST /tryout`, `/tryout/back`, `GET /tryout/status` | Build a throwaway world from a candidate's seed and fly around in it |
+| `POST /pick` | Write the chosen seed (and your standing position as the spawn) into the consumer overlay |
+| `POST /render` | Draw a candidate's map on demand |
+| `GET /census/<dim>/<seed>` | One candidate's structure census — banked counts and nearest distances, plus every noise-managed site as `[x, z, structureId]` by group. The positions and ids are recomputed, not banked, and must stay EXACT: build the pool from the same vanilla biome-prefiltered set list `FactsEngine` uses, or the assignment drifts and the sidebar names structures that cannot generate there. The check is `byStructure` parity against the candidate file |
+
+**Rolling runs on its own thread, not the tick loop.** `FactsEngine` measures
+headlessly, so the server stays playable and RCON keeps answering while a roll
+is going — which is the difference between this and the command it replaced.
+
+**A try-out world is never in the DIMENSION registry** (`tryout/TryOut`), and
+that registry is what vanilla encodes into `level.dat` on save. So a try-out
+leaves nothing to scrub: closing the world and deleting its region directory
+under `dimensions/<ns>/tryout/` is the entire cleanup, and anything left on
+disk after a crash is removed at the next boot. Its worldgen is the real
+dimension's own options with the candidate's seed applied at world
+construction; the runtime DEFINITION carries the seed, which is what
+`ServerWorldSeedMixin`, `DimensionStructures` and `DifficultyManager` resolve.
+
+**`InputHash` covers only what can change what a measurement SAYS** —
+`facts/`, `score/`, `dimension/`, `config/`, `mixin/`, `SpikeSampler`,
+`ColumnScan`, `Roller`, `SeedBank`, and the jar-baked worldgen data
+(`InputHash.MEASUREMENT_PATHS`). Changing the viewer, the map renderer or the
+try-out keeps a bank; changing any of the above starts a fresh one, and
+candidates from a previous build live under a different directory. Hashing
+the whole artefact meant a stylesheet threw away thousands of measurements.
+Under-inclusion is the dangerous direction — put anything ambiguous on that
+list.
+
+**Rendering is not part of the search.** `web/RenderQueue` reconciles against
+each dimension's leaderboard beside the roll: the top ten get a map, ordered
+thumbnails-everywhere before detail-anywhere, and a seed pushed off the
+shortlist has its files deleted. Eight cores to the renderer, the rest to the
+roller.
+
+Priority alone is not enough, because it only decides what is taken NEXT.
+With one consumer a detail map already running holds the cores for minutes,
+so a detail render ABANDONS itself the moment any thumbnail is owed and
+re-queues at the back of its own class, writing nothing on the way out. It
+cannot livelock: it is only taken when no thumbnail is queued, which is
+exactly when its abandon condition is false. `pipeline-status` splits
+`thumbnails_pending` from `render_pending` so the invariant is observable.
+
+**A roll allocates by NEED, not equally.** Yields differ by two orders of
+magnitude across the pack, so an equal split spends most of a run topping up
+boards that were already full. A dimension stops once it holds
+`RenderQueue.KEEP` candidates at or above `RollPipeline.SCORE_THRESHOLD`,
+one already there is skipped without spending a seed, and targets are sorted
+emptiest-first. `count` is the per-dimension seed BUDGET (default 5000), not
+a plan. A dimension that spends it without filling its board is NAMED in
+`pipeline-status.starved` — it previously reported "done" and looked merely
+unlucky, which is how twenty empty boards went unexplained.
+
+**A map asks the climate point where it can, and the density function where
+it cannot.** `surface_Y = 128 * depth` is the relation `customdim
+sample-noise` documents as ground truth, and it is cheap — vanilla's
+`getHeight` rebuilds a `ChunkNoiseSampler` per column, which made one map
+minutes of work. But depth is a CONSTANT in the End's router and the
+Nether's, so that product is one height for every column in the world: it
+rendered an island world as solid ground with holes in it, and every pre-fix
+End thumbnail was a uniform 1880-byte fill.
+
+`roll/TerrainShape` walks the generator's own final density down a column on
+its `verticalCellBlockCount` rung, and `TerrainShape.calibrate` decides PER
+DIMENSION AND SEED whether depth describes that generator at all — measured
+at render time, never a list of family names, so no family needs a special
+case. Measured: a 2048px map is 2s for a 1024-radius world, 8s for an 8192
+one.
+
+**Nothing is drawn over the terrain in the PNG.** Structure markers, the
+spawn dot and the border ring all lived in the pixels once and made a
+thumbnail unreadable — the border toggle in the nav could not turn off a ring
+that was part of the image. The viewer overlays them as SVG.
+
+Two Gson traps still apply: `structures.wants` is `Map<String, StructureWant>` — a band-name STRING there is a parse crash ("config invalid — skipped"); band wants belong in `seedRoll.wants`. Same family: list-form `structures.shuns` crashes (must be the MAP form). The fork-config GUI's server-side validation enforces both splits.
 
 ## Architecture (custom-dimensions)
 

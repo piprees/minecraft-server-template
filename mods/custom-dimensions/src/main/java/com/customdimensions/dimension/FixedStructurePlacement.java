@@ -67,9 +67,7 @@ public class FixedStructurePlacement extends RandomSpreadStructurePlacement {
 
     /**
      * The pure region/membership maths, separated so unit tests never touch
-     * StructurePlacement's registry-bound static init (Bootstrap-only). The
-     * roller mirror in scripts/seed/structure_placement.py follows the same
-     * contract: forced positions are constants.
+     * StructurePlacement's registry-bound static init (Bootstrap-only).
      */
     static final class Index {
         private final List<ChunkPos> positions;

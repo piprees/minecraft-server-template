@@ -70,6 +70,7 @@
   },
   "seedRoll": {
     "mood": "desolate",
+    "allowHazardousSpawn": true,
     "spawnFilter": ["minecraft:end_midlands"],
     "wants": {
       "monolith": "spread",

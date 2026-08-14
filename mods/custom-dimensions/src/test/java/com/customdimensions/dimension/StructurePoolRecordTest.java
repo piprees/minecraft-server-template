@@ -16,10 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The pool record is what lets the seed roller tell a Village from any-old
- * settlement. Its contract is narrow and almost entirely about the SHAPE of the
- * dump, because the thing reading it is a Python mirror in scripts/seed
- * (census_scoring.load_structure_pools) — a field renamed here and not there is
- * a silent scoring change.
+ * settlement. Its contract is narrow and almost entirely about the SHAPE of
+ * the JSON it produces.
  *
  * Pure logic, no Minecraft Bootstrap: the registry lookup that turns a
  * RegistryEntry into an id lives at the DimensionStructures call site, which

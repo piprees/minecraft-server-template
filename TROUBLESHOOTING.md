@@ -6,9 +6,9 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T31](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
-| **D** | [D1–D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
+| **D** | [D1–D6, D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
@@ -61,19 +61,16 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | RCON output truncated, concatenated, or empty; `/locate` never returns | [T17](#t17) |
 | `Unknown dimension 'adventure:<slug>'` on a healthy server | [T18](#t18) |
 | One listed biome covers a whole dimension; the rest never appear | [T19](#t19) |
-| A dimension RENDERS as one biome but SCORES as a mixture | [T20](#t20) |
-| The top candidates all share one score, captioned "same as winner" | [T21](#t21) |
 | Structures generating in a void/superflat dimension | [T22](#t22) |
 | `structures.mode`/`exclude` listing a Moog's/YUNG's set does nothing | [T23](#t23) |
 | A RETURN/`@ModifyReturnValue` hook on StructureWeightSampler never fires | [T24](#t24) |
 | Flat slabs of terrain hanging under floating-island structures | [T26](#t26) |
 | Buildings on cliff shelves, or sunk into the floor | [T26](#t26) |
 | A fill kernel makes solid terrain in open sky | [T27](#t27) |
-| `seed-roll` dies with a numpy broadcast error in `_disc_max` | [T28](#t28) |
-| Warmup never re-dumps `biome_params.json`; no `_tbRegions` | [T29](#t29) |
 | A fix verified in `.stack/` is missing later; `current` moved | [T30](#t30) |
 | New seed set but the world regenerates the old terrain | [T31](#t31) |
 | An overlay `seed`/`spawn` override looks ignored | [T31](#t31) |
+| A seed's map and its banked facts contradict each other | [T32](#t32) |
 | A `structures.force` position never generates its structure | [T25](#t25) |
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
@@ -224,17 +221,21 @@ Each of these has caused a real incident.
   The search blocks the main thread long enough that every connected client
   times out and drops (observed on production and locally, 2026-08-09). Treat
   `/locate` as a player-affecting command, never a read-only probe, and never
-  run one on production while anyone is on. Use `structure-census` +
-  `scripts/check-noise-regression.py` for placement questions, and
-  `/customdim occupant` for "what is actually in this chunk".
-- **Fix:** do not parse RCON output. Diagnostic commands write versioned JSON
-  under `data/config/custom-dimensions/` and answer with a summary plus a
-  path; checkers in `scripts/` assert over those files with no server
-  running. `./dev verify` runs all of them. Contract and the full table:
-  `mods/AGENTS.md` § Diagnostic artefacts.
-- **Corollary:** run `scripts/check-dimension-drift.py` before trusting any
-  worldgen assertion — see [D2](#d2). A world created under an older config
-  makes every other check measure history.
+  run one on production while anyone is on. Use `/customdim structure-census`
+  for placement questions, and `/customdim occupant` for "what is actually in
+  this chunk".
+- **Fix:** do not parse RCON output. Diagnostic commands write JSON under
+  `.seed-rolling/` (a directory sibling to `data/`, outside the reach of
+  `deploy.sh`'s config sync and `./dev refresh-config`) and answer with a
+  summary plus a path; a few compare two measurements and report a capped
+  pass/fail summary inline instead of writing a file. There is no offline
+  checker script left to run — `./dev verify` says where verification for
+  each artefact lives now (mostly the mod's own boot/load-time checks, plus
+  JUnit tests under `mods/custom-dimensions/src/test/java/`). Contract and
+  the full table: `mods/AGENTS.md` § Diagnostic artefacts.
+- **Corollary:** check the mc boot log for a `worldgen config changed` WARN
+  before trusting any worldgen assertion — see [D2](#d2). A world created
+  under an older config makes every other check measure history.
 
 <a id="t18"></a>
 ### T18 — A custom dimension is created on first entry, so it is absent until then
@@ -262,7 +263,7 @@ Each of these has caused a real incident.
 ### T19 — A listed biome with no climate parameters swallows the whole dimension
 
 - **Symptom:** a `multi_biome` (or any biome-listed) dimension generates as
-  one biome nearly everywhere. The seed roller reports the rest as "not
+  one biome nearly everywhere. Seed rolling reports the rest as "not
   found" no matter how many candidates are rolled, and re-rolling never
   helps because the outcome is structural, not unlucky.
 - **Cause:** `DimensionManager.buildMixedSource` splits a dimension's biome
@@ -275,8 +276,8 @@ Each of these has caused a real incident.
   the foreign biomes held 74–100% of the area, and 0 of 12 sampled seeds
   contained every listed biome.
 - **Who has no climate parameters:** all 47 **Nature's Spirit** biomes (it
-  places through its own layer, not the vanilla multi-noise parameter list —
-  none of them appear in `scripts/seed/biome_params.json`), and
+  places through its own layer, not the vanilla multi-noise parameter
+  list — none of them have a multinoise hypercube), and
   `minecraft:end_barrens` / `minecraft:end_midlands` (vanilla places those by
   erosion in `TheEndBiomeSource`, which Nullscape replaces wholesale).
   Nullscape also gives `minecraft:the_end` and `minecraft:end_highlands`
@@ -296,64 +297,6 @@ Each of these has caused a real incident.
   affects newly created worlds, and changing it re-keys the dimension's
   generation fingerprint — every affected dimension needs a re-roll, not a
   rescore.
-
-<a id="t20"></a>
-### T20 — Every sampler caller must be handed every layout input, or it measures a different world
-
-- **Symptom:** a Tier-3 dimension (one whose `biomes` entries carry
-  `parameters`) renders as a single flat colour edge to edge, and its detail
-  panel reports every biome but one as "not found" — beside a score computed
-  from all of them being present. Nothing errors and nothing warns. The
-  natural reading is that the worldgen is broken; it is not.
-- **Cause:** five inputs decide a dimension's biome layout — noise family,
-  ordered biome list, Tier-3 per-biome hypercubes, biome patches, checkerboard
-  scale. Four places need a sampler (`fast_roller`, `biome_renderer`,
-  `viewer-server._survey_dim`, `terrain_survey.survey_task`) and each used to
-  assemble those by hand. Only the roller passed the parameters. Without them
-  a listed biome with no climate parameters in the table is *foreign* ([T19](#t19))
-  and, when it is the only one, receives the entire round-robin pool: measured
-  on `the_wuthering_wisteria`, 5 sampler entries and a 49/21/13/11/6 mixture
-  became 1713 entries and 100% `natures_spirit:wisteria_forest` (2026-08-01).
-  The same omission put the terrain survey's water fraction — a SCORED input —
-  on the wrong biome source.
-- **Fix (in place):** `biome_sampler.sampler_spec(profile)` derives the inputs
-  once and `build_from_spec()` is the only constructor. A field that is not in
-  `sampler_spec` does not change the layout; a field that does belongs there
-  and nowhere else. `test_sampler_parity.py` holds the line.
-- **This is the second time.** `resolve_noise_family` exists because the
-  renderer resolved the noise FAMILY differently and drew `paradise_lost`
-  dimensions as overworlds (2026-07-28). The lesson was written down for one
-  input, and the next input added went the same way.
-- **Recovering a bank:** no measurement is wrong, so **nothing needs
-  re-rolling**. Renders and biome surveys are derived and must be regenerated:
-  delete the affected dimensions' renders (`./dev seed-viewer --refresh <dim>`)
-  and rescore. `biome_survey` records written before this carry no fingerprint
-  and are ignored rather than trusted, so they rebuild on the next viewer pass.
-
-<a id="t21"></a>
-### T21 — A flat-topped window stops ranking the moment most candidates pass
-
-- **Symptom:** a dimension's top candidates all carry the identical score and
-  the viewer captions every one of them "same as winner". On
-  `the_wuthering_wisteria`, 19 of 1099 candidates scored exactly 92.50.
-- **Cause:** two of the three live components saturated. `window_score`
-  returned exactly 1.0 anywhere inside the target band, so terrain stopped
-  discriminating once most candidates were acceptable — which for a peaceful
-  pocket dimension is nearly all of them. `namesake` is a membership test, and
-  `spawnFilter` defaulting to the first FOUR listed biomes made almost every
-  spawn a hit. Meanwhile `variety` measured only the distance to the nearest
-  instance of each biome, which a 96% monoculture answers exactly as well as an
-  even split does.
-- **Fix (in place):** `window_score` peaks at the band centre and eases to
-  `1.0 - WINDOW_COMFORT` at the edges (the falloff outside starts from the edge
-  value, so being just outside can never outscore being on the boundary).
-  `terrain_survey` records per-biome area `shares` on the walk it already
-  makes, and `variety` scores presence, the rarest biome's share, and a
-  dominance cap from those.
-- **Authoring note:** name ONE biome in `seedRoll.spawnFilter` — where the
-  player lands — and leave the rest to variety. A filter naming eight of a
-  dimension's biomes pins `namesake` at 1.0 and removes the component from the
-  ranking entirely.
 
 <a id="t22"></a>
 ### T22 — "groups": [] suppressed noise only, so void/superflat dims generated every structure set
@@ -563,75 +506,34 @@ Each of these has caused a real incident.
   Checking top-level keys reports `seed`/`spawn` as absent while the merged
   config carries them, which reads exactly like the override being ignored.
 
-<a id="t29"></a>
-### T29 — A staleness check only knows the schema generation it was written in
+<a id="t32"></a>
+### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world
 
-- **Symptom:** `.seedtest/biome_params.json` carries no `_tbRegions`
-  sentinel, so every TerraBlender-placed biome is scored against a degraded
-  layout — and the warmup that would fix it never runs, however many times
-  you `--warmup-only`. Deleting the file does not help either.
-- **Cause:** `roll-all.sh`'s warmup gate asked one question,
-  `nether_count < 5`, written when `family` tags were the newest field in the
-  table. `_tbRegions` arrived later; the shipped
-  `scripts/seed/biome_params.json` carries 13 nether-tagged entries and zero
-  TB regions, so the gate passes on a table that is missing the newer half
-  entirely. The file-absent path is no escape hatch: the shipped copy is
-  copied in *before* the check.
-- **Fix (in place):** the outer gate and the inner dump guard both test every
-  generation of the table's schema. `test_tb_uniqueness_live` skips rather
-  than fails on the same missing sentinel — a hard failure there makes the
-  platform repo uncommittable after any `--reset`, because the pre-commit
-  hook runs the suite.
-- **Rule:** a new field in a cached artefact is a new freshness question, not
-  a variant of the old one. Adding one means finding every check that decides
-  whether that artefact is stale. Same rule as the fingerprint corollary in
-  `generation_payload()`.
-- **An overworld-only region table is correct here.** The dump yields
-  `overworld: 6 regions` and no nether table, and the nether fixture skips
-  with `no _tbRegions sentinel for type nether`. The nether's 13 biomes are 5
-  vanilla plus 8 Incendium, and Incendium places through the nether's own
-  multi-noise parameter list rather than TerraBlender region injection, so
-  `tbInjectedHere` is false and there is no table to emit. `Initialized
-  TerraBlender biomes for level stem minecraft:the_nether` in the boot log is
-  TB initialising the stem; it does not imply any mod registered regions for
-  it. Dumping the real `minecraft:the_nether` gives the same 14 entries as a
-  warmup clone — the dimension is not the variable.
-
-<a id="t28"></a>
-### T28 — A negative Python slice bound turned "off the grid" into a wrong-shaped array
-
-- **Symptom:** `./dev seed-roll` dies partway through the census with
-
-  ```
-  ValueError: operands could not be broadcast together with
-  shapes (0,33) (24,33) (0,33)
-  ```
-
-  from `noise_placement._disc_max`, inside a multiprocessing worker.
-- **Cause:** `_disc_max` dilates the rank grid by an exclusion disc, shifting
-  the grid by `dz` for each row of the disc. When the disc is LARGER than the
-  grid, `dz` can exceed the grid height, and `row[:h + dz]` is then sliced
-  with a NEGATIVE bound — which Python reads as "all but the last `|h+dz|`
-  rows" rather than "empty", so a non-empty array of the wrong height meets an
-  empty destination. Latent since the vectorised path was written; only
-  reachable once an exclusion radius exceeded the grid side.
-- **Reachable when an exclusion radius exceeds the grid side** (2026-08-09).
-  `endgame` base 20 × sparse 2.6 = 52, `/sqrt(1.55)` from the `outer` curve
-  → 42; a `borders.player: 256` dimension is `r=16`, `side=33`. Retuning the
-  profile exclusion multipliers upward is what puts a group in that regime.
-- **Fix (in place):** skip rows shifted clear off the grid
-  (`if dz <= -h or dz >= h: continue`). Exact — such a row contributes
-  nothing. `test_noise_placement.py` pins both the crash and, more
-  importantly, that the vectorised and scalar paths agree at oversize discs.
-- **Java is unaffected:** `NoiseFieldIndex.outranksNeighbours` bounds-checks
-  every neighbour (`nx < -r || nx > r`), so it handles any exclusion size.
-  This was a mirror-only defect — but the mirror is the thing that decides
-  which seeds you keep, so it silently stops a roll rather than mis-scoring.
-- **Design note, not a defect:** an exclusion wider than the dimension means
-  at most ONE placement of that group in the whole world. Exclusion does not
-  scale with radius the way frequency does
-  (`REFERENCE_RADIUS_CHUNKS / radiusChunks`), so small dimensions with
-  rare-group bases are the regime to watch when retuning multipliers.
+- **Symptom:** a seed's map and its banked facts appear to contradict each
+  other — the thumbnail shows an island and a coastline while
+  `terrain.waterFraction` reports the world as almost entirely submerged, and
+  play confirms the FACTS. Reported 2026-08-13 as "the render is wrong, and so
+  is the fact; they are wrong in opposite directions".
+- **Cause:** `CandidateRender.Resolution.LOWRES` covers a fixed
+  `THUMBNAIL_BLOCKS` (512) centred on the dimension's **declared spawn**, at
+  one block per pixel. The facts cover the whole playable disc — for a
+  512-radius dimension that is 1024 blocks across, so the thumbnail is half the
+  width and a quarter of the area. The roller picks a spawn that is habitable,
+  which makes that quarter the least representative part of the world by
+  construction. The HIGHRES view is the whole world and does not have this
+  property.
+- **Measured** (`the_wuthering_wisteria`, seed `-8181123680324586121`, one
+  grid via `customdim render-check`): banked facts **98.0%** water, live world
+  **97.3%**, the renderer's own rule over the disc **98.1%**, the **highres**
+  PNG **96.6%** — and the **lowres** PNG **81.4%**. A 25-column probe over
+  ±200 blocks of the same spawn island gave 64%.
+- **Fix:** compare like with like. `customdim render-check <dim> <seed>` puts
+  the world, the facts and the render on ONE grid and reports where they
+  disagree; `render-check-headless` does facts ↔ render with no world. Judge a
+  seed's wetness from the highres view or the facts, never from the thumbnail.
+- **Corollary:** any "the map disagrees with the measurement" report needs the
+  sampled AREA established before anything else. Two right answers about two
+  different places look exactly like one wrong answer.
 
 ---
 
@@ -654,7 +556,7 @@ The mod's `createDimensionOptions` uses `overworldOpts` as a template. When the 
 <a id="p3"></a>
 ### P3 — `grep -P` does not exist on macOS
 
-BSD grep has no PCRE. Use `grep -oE` (extended regex) or `sed`. BSD `grep -E` also doesn't support `\s` — use `[[:space:]]`. This has caused multiple CI and runtime failures, and recurred in the seed-rolling scripts after being documented.
+BSD grep has no PCRE. Use `grep -oE` (extended regex) or `sed`. BSD `grep -E` also doesn't support `\s` — use `[[:space:]]`. This has caused multiple CI and runtime failures.
 
 <a id="p4"></a>
 ### P4 — `mise exec` is required for mod builds
@@ -714,12 +616,6 @@ Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler b
 
 The one gap is the very first boot in a fresh environment (new jar + no key on disk); `deploy.sh` (step 8c) and `dev-up.sh` still pre-patch as a second layer, which covers that boot on every scripted path. Only a hand-deleted `c2me.toml` followed by a bare restart boots unpatched once — and self-heals on the following boot.
 
-<a id="d7"></a>
-### D7 — Seed-roll worker dirs need cleaning
-
-- **`collective` must not be stripped from seed rolls.** 9+ mods depend on it (healingcampfire, nametagtweaks, nutritiousmilk, …). Without it, Fabric fails with a `FormattedException` listing every missing dep.
-- **DistantHorizons configs leak into seedtest dirs.** Copying `data/config/` wholesale brings DH per-level state that causes map-loading warnings at boot. Delete `config/DistantHorizons` from worker dirs after copying.
-
 <a id="d8"></a>
 ### D8 — A new dimension appears on the map only once it has generated chunks
 
@@ -739,6 +635,63 @@ Open, unfixed, on the watch list.
 `epic:chests/DungeonZombie` (uppercase = invalid identifier path) throws `Non [a-z0-9/._-] character in path` during chunk feature placement when an Epic Dungeons dungeon generates. Under c2me the chunk upgrade fails once (`Error upgrading chunk [x, z] to "minecraft:features"`) and a main-thread sync load waiting on that chunk (RCON `forceload add`, `execute if block` on ungenerated chunks) then hangs FOREVER — RCON goes i/o-timeout while `docker ps` stays healthy.
 
 **Second trigger:** deleting a runtime dimension's world directory without scrubbing its level.dat entry — the next boot re-creates the dim and regenerates its spawn chunks, and if a dungeon lands there the BOOT ITSELF wedges (hit twice 2026-07-24). See [D3](#d3).
+
+**Third trigger — and it is NOT Epic Dungeons** (2026-08-14, local, `the_abyssal_shrine`):
+
+```
+[c2me-worker-4/ERROR]: Error upgrading chunk [-13, -10] to "minecraft:structure_starts"
+net.minecraft.class_151: Non [a-z0-9/._-] character in path of location: minecraft:emptY
+  at …lithostitched.worldgen.structure.AlternateJigsawGenerator$StructurePoolGenerator.getTemplatePoolKey
+```
+
+A capital `Y` in `minecraft:emptY`, thrown while Lithostitched's alternate
+jigsaw resolves a template pool key. Same consequence as the Epic Dungeons
+case: the chunk's future never completes, and anything waiting on it waits
+forever.
+
+**Reproduced a second time, and an ASYNC caller does not save you.** The same
+`minecraft:emptY` throw hit `the_abyssal_shrine` again on 2026-08-14 with a
+caller that requests chunk futures and never waits on one. The chunk still
+cannot generate; c2me's chunk system thrashes on it (`Can't keep up! Running
+3158ms or 63 ticks behind`), and RCON stops answering within minutes while
+`docker ps` still says healthy. On the second occurrence the throw was not even
+logged as `Error upgrading chunk` — it propagated uncaught through
+`VanillaWorldGenerationDelegate` on a c2me worker.
+
+**So this is worse than a diagnostic-side hazard: a dimension in the shipped
+pack had chunks that could not be generated.** `the_abyssal_shrine` wedged the
+server for anyone who reached the affected area, not only for a tool that
+scanned it, and nothing on the caller's side can work around a chunk that will
+not generate.
+
+**Where the typo lives.** Not in Lithostitched, and not in any JSON — it is a
+jigsaw block's `pool` tag inside a gzipped structure NBT. Decompressing every
+`.nbt` in every jar (10,799 files) finds exactly one:
+
+```
+t_and_t-neoforge-fabric-1.13.9+1.21.1.jar
+  data/kaisyn/structure/outpost/towers/exclusives/nilotic/base_plate.nbt
+```
+
+Towns & Towers, one piece of the Nilotic outpost tower. Lithostitched read that
+string correctly; vanilla's own jigsaw generator hands it to
+`StructurePools.of` the same way and would throw identically.
+
+**Fixed on our side** by `StructurePoolIdCaseMixin` (custom-dimensions), which
+lowercases a pool id at `StructurePools.of` — hooked on vanilla, so it covers
+every caller and every structure mod. Uppercase is *forbidden* in an
+`Identifier` path, so the repair can only ever touch an id that was going to
+throw, and `emptY` lands on vanilla's real `minecraft:empty` terminator pool.
+Only case is repaired; any other illegal character still throws loudly. Each
+distinct offender logs one WARN naming the id.
+
+**The general rule this establishes:** the trigger is *any* mod whose chunk
+generation throws, not one mod's bad loot table. Treat "a synchronous chunk
+load can hang forever" as the invariant and never write one on a path that
+must not stall. `customdim render-check` requests chunk futures and polls them
+with a finite deadline for exactly this reason — a per-tick time budget is no
+defence, because one bad chunk is enough and the budget is only ever checked
+between chunks.
 
 **Diagnosis caveat:** spark's `Timed out waiting for world statistics` alone is NOT proof — it also fires through legitimately heavy boots (mass dimension creation can run 10+ min). Confirm with `Error upgrading chunk`/`DungeonZombie` counts and whether the log has stopped advancing.
 

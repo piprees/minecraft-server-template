@@ -47,6 +47,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:basalt_deltas",
       "incendium:volcanic_deltas",

@@ -48,7 +48,7 @@ Before the table below sends you to a `docker exec … rcon-cli` one-liner: **th
 
 RCON concatenates feedback lines with no separator, truncates at a few KB, and cannot tell a timeout from a success — so parsing its output is how a broken world produces a green run ([T17](../../../TROUBLESHOOTING.md#t17)). Use RCON to _trigger_ a dump and to run short commands; read the answer from the file.
 
-**Run `scripts/check-dimension-drift.py` first** whenever you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world and every other assertion is measuring history — this is the single most likely reason a local test disagrees with the config in front of you.
+**Check the mc boot log for a drift WARN first** (`docker logs mc | grep "worldgen config changed"`) whenever you are about to assert anything about worldgen. Worldgen is creation-time-only, so a world created before your config change still generates the OLD world and every other assertion is measuring history — this is the single most likely reason a local test disagrees with the config in front of you.
 
 ## The verification principle — read this twice
 
@@ -79,11 +79,15 @@ layout (config/scripts/examples/compose/.env.example → the checkout;
 jars without a refmap are skipped with a warning), writes `VERSION=dev`, and
 points `.stack/current` at it.
 
-- The seed roller and `./dev` then read the platform checkout's configs and
-  scripts directly — an edit in the repo is live on the next roll or `./dev up`.
-- `local-mods/` carrying your locally built jars inverts trap #2 below:
-  `./dev up` now installs the LOCAL build instead of silently reverting it to
-  the released one.
+- `./dev` then reads the platform checkout's configs and scripts directly —
+  an edit in the repo is live on the next `./dev up`.
+- `link` is run ONCE per consumer. `config`, `scripts`, `examples` and the
+  compose files are symlinks, so a checkout edit is live immediately;
+  `local-mods/` is a `cp` taken at link time, so it does NOT track rebuilds.
+- **Never `./dev up` in an edit-build-test loop.** Copy your jar into
+  `data/mods/` under the same filename and `docker restart mc`
+  (`ls data/mods | grep <modid>` must return one line). `./dev update`
+  repoints `.stack/current` at a release and undoes the link.
 - `readlink .stack/current` answering `dev` is the tell that a consumer is on
   a checkout, not a release — `./dev up` prints a loud LINKED banner while
   active. Run `./dev unlink` before trusting any "works on the shipped
@@ -154,7 +158,7 @@ The five/six traps in the decision table above are the core of this skill, resta
 6. **On macOS Docker, bind-mount file-change events are unreliable.** Any container watching a bind-mounted path may never see a change locally. Validate pickup with an explicit `docker restart <service>` rather than waiting on a watcher.
 7. **The local consumer server (`~/Projects/elfydd`) is shared.** Check nobody is mid-test before restarting its containers — a `docker restart` there affects a real, currently-in-use dev world, not a disposable one.
 8. **`data/logs/latest.log` is reset on every boot** (itzg's `OnStartupTriggeringPolicy`). A crash-loop's real error lives in `docker logs mc`, not in a stale `latest.log` from a previous boot.
-9. **Copying `data/config/` wholesale into a test/seedtest dir brings per-dimension DistantHorizons state**, causing boot warnings about per-level configs that don't match the copied worlds. Delete `config/DistantHorizons` from the copy first.
+9. **Copying `data/config/` wholesale into a test dir brings per-dimension DistantHorizons state**, causing boot warnings about per-level configs that don't match the copied worlds. Delete `config/DistantHorizons` from the copy first.
 10. **`mise exec` is required for mod builds.** `mods/mise.toml` pins Java 21, but a global Java (e.g. 25) wins on `PATH` and Gradle fails with a misleading task-creation error, not a clear wrong-Java message. Use `mise exec -- ./gradlew build`.
 11. **Running `scripts/dev-up.sh` bare from a platform checkout resolves `CONSUMER_DIR` outside the repo.** The script's path-walk assumes `<consumer>/.stack/vX.Y.Z/stack/scripts/dev-up.sh` nesting; from this repo's plain `scripts/` directory it resolves two levels above the repo root instead (verified: `cd scripts && CONSUMER_DIR` auto-resolves to the repo's grandparent). Use `docker compose --profile local up -d` directly, or export `CONSUMER_DIR="$(pwd)"` first.
 

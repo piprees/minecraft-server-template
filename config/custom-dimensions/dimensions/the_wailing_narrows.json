@@ -45,6 +45,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:soul_sand_valley",
       "minecraft:basalt_deltas"

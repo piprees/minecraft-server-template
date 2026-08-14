@@ -14,6 +14,18 @@ services:
       - /bin/bash
       - -c
       - unset WHITELIST; exec /image/scripts/start
+    # A rolled winner is written into the consumer's committed overlay, so the
+    # mod needs it mounted. Local only: production must never write to the
+    # overlay, and its absence there is what makes `winner` refuse.
+    volumes:
+      - ./overlay/config/custom-dimensions/dimensions:/overlay-dimensions
+    ports:
+      # The seed viewer the mod hosts. Bound on every interface so it can be
+      # opened from a phone on the same network. It has no authentication and
+      # it can teleport the player and write into the committed overlay, so
+      # this is a trusted-LAN tool — nothing publishes it in the cloud
+      # profile, and it is not reachable from the internet.
+      - "${SEED_VIEWER_PORT:-8765}:8765"
     environment:
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"

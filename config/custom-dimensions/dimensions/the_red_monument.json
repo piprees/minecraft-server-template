@@ -78,6 +78,7 @@
   },
   "seedRoll": {
     "mood": "dramatic",
+    "allowHazardousSpawn": true,
     "spawnFilter": ["minecraft:end_highlands"],
     "wants": {
       "monolith": "near_spawn",

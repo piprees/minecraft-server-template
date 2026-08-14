@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Structure-set id -> classification, generated from
- * scripts/data/structure-dials.csv + structure-sets-extracted.csv by
+ * scripts/data/structure-dials.json + structure-sets-extracted.json by
  * scripts/gen-structure-groups.py and baked into the jar as
  * structure_themes.json.
  *

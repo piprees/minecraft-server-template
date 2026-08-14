@@ -67,6 +67,7 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "allowHazardousSpawn": true,
     "spawnFilter": [
       "minecraft:jagged_peaks",
       "minecraft:frozen_peaks",

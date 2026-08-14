@@ -7,7 +7,7 @@ description: Operate on a custom-dimensions Fabric mod dimension that already ex
 
 You are operating on a **custom-dimensions** dimension that already exists on a running server (local or production) — not writing its JSON. For the schema, biome/structure catalogues, and mood scoring, see `.claude/skills/custom-dimension-authoring/SKILL.md` (`custom-dimension-authoring`). This skill owns what happens after the config exists: which fields take effect on restart versus never without a wipe, removing a dimension without wedging the boot, reading the drift warning correctly, and confirming a dimension is actually live and on the map.
 
-**Not this skill:** writing/editing dimension JSON → `custom-dimension-authoring`. Rolling seeds → `seed-rolling`. Mod internals/mixins/build → `fabric-mod-development`.
+**Not this skill:** writing/editing dimension JSON → `custom-dimension-authoring`. Rolling seeds — there is no dedicated skill for this any more; see `mods/custom-dimensions/README.md` § Seed roller and `mods/AGENTS.md` § Diagnostic artefacts. Mod internals/mixins/build → `fabric-mod-development`.
 
 ## The timing question — ask this first
 
@@ -135,9 +135,7 @@ Dimensions and portals are config, not commands — there is **no** `/dimension 
 | `locate biome <dimension> <biome_id> [timeout]` | Async biome locate; returns a ticket UUID. |
 | `locate structure <dimension> <structure_id> [timeout]` | Async structure locate; returns a ticket UUID. |
 | `locate-result <uuid>` | Collect the result of an async locate. |
-| `dump-biome-params <dimension>` | Dump biome parameters (feeds the seed roller). |
 | `sample-noise <dimension> <x> <z>` | Generation ground-truth oracle at `(x & ~3, 0, z & ~3)`. |
-| `sample-biome-grid <dimension> <radius> <step>` | Sample the biome layout on a grid. |
 | `debug-prng <seed>` | PRNG diagnostics. |
 
 ## See also
