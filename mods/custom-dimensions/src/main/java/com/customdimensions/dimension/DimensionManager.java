@@ -216,6 +216,55 @@ public class DimensionManager {
         return DimensionTypeBuilder.typeEntryFor(this.server, def, base);
     }
 
+    // Suffixes for the runtime-built ChunkGeneratorSettings variants this
+    // mod registers under {namespace}:{slug}{suffix} — distinct per call
+    // site, because a dimension can need both (settingsOverrides, then
+    // surface composition on top of it) and the second registration must
+    // build its OWN entry rather than finding the first one's id already
+    // taken and handing back its now-stale, pre-composition value.
+    private static final String SETTINGS_OVERRIDES_SUFFIX = "_settings_overrides";
+    private static final String SURFACE_COMPOSED_SUFFIX = "_surface_composed";
+
+    // Pure: the registry id a dimension's runtime-built settings variant
+    // gets. Same shape as DimensionTypeBuilder's "{slug}_type".
+    static Identifier generatorSettingsId(DimensionConfig def, String suffix) {
+        return Identifier.of(def.getNamespace(), def.getName() + suffix);
+    }
+
+    // Registers a runtime-built ChunkGeneratorSettings as a REFERENCE entry
+    // and hands that back — never RegistryEntry.of(value), which wraps a
+    // DIRECT entry that vanilla's RegistryElementCodec inlines wholesale
+    // (noise router and surface rule included) into level.dat on every save
+    // instead of writing an id. Idempotent like DimensionTypeBuilder.
+    // typeEntryFor: an id already registered wins, so repeated calls for the
+    // same dimension (the seed roller's headless facts runs measure one
+    // dimension many times over a roll) reuse one entry instead of never
+    // being read back out.
+    private RegistryEntry<ChunkGeneratorSettings> registerGeneratorSettings(Identifier id, ChunkGeneratorSettings value) {
+        DynamicRegistryManager.Immutable regManager = this.server.getCombinedDynamicRegistries().getCombinedRegistryManager();
+        Registry<ChunkGeneratorSettings> registry = regManager.get(RegistryKeys.CHUNK_GENERATOR_SETTINGS);
+        RegistryKey<ChunkGeneratorSettings> key = RegistryKey.of(RegistryKeys.CHUNK_GENERATOR_SETTINGS, id);
+        Optional<? extends RegistryEntry<ChunkGeneratorSettings>> existing = registry.getEntry(key);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        MutableRegistry<ChunkGeneratorSettings> mutable = (MutableRegistry<ChunkGeneratorSettings>) registry;
+        SimpleRegistryAccessor accessor = (SimpleRegistryAccessor) mutable;
+        boolean wasFrozen = accessor.isFrozen();
+        if (wasFrozen) {
+            accessor.setFrozen(false);
+        }
+        try {
+            RegistryEntry<ChunkGeneratorSettings> entry = mutable.add(key, value, RegistryEntryInfo.DEFAULT);
+            MultiverseServer.LOGGER.info("Registered generator settings: {}", id);
+            return entry;
+        } finally {
+            if (wasFrozen) {
+                accessor.setFrozen(true);
+            }
+        }
+    }
+
     // Swap a noise generator's ChunkGeneratorSettings while keeping its biome
     // source. No-op for flat/void generators (noiseSettings has no meaning
     // there) and when no override is set.
@@ -783,8 +832,10 @@ public class DimensionManager {
         MultiverseServer.LOGGER.info(
                 "Dimension {}: surface composed for biomes from other worlds ({}) — host family {}",
                 def.getName(), composed.describe(), hostFamily);
+        RegistryEntry<ChunkGeneratorSettings> dressedEntry = this.registerGeneratorSettings(
+                generatorSettingsId(def, SURFACE_COMPOSED_SUFFIX), dressed);
         return new DimensionOptions(built.dimensionTypeEntry(),
-                new NoiseChunkGenerator(noiseGen.getBiomeSource(), RegistryEntry.of(dressed)));
+                new NoiseChunkGenerator(noiseGen.getBiomeSource(), dressedEntry));
     }
 
     /**
@@ -876,7 +927,7 @@ public class DimensionManager {
     // AFTER the type switch so it composes with noiseSettings presets and
     // every noise-generator type. Per-field warn + keep-base on invalid
     // values; flat/void generators warn + no-op (nothing to override).
-    private static DimensionOptions applySettingsOverrides(DimensionConfig def, DimensionOptions built) {
+    private DimensionOptions applySettingsOverrides(DimensionConfig def, DimensionOptions built) {
         DimensionConfig.SettingsOverrides so = def.getSettingsOverrides();
         if (so == null) {
             return built;
@@ -914,8 +965,10 @@ public class DimensionManager {
                 base.usesLegacyRandom());
         MultiverseServer.LOGGER.info("Dimension {}: settingsOverrides applied ({})",
                 def.getName(), def.getSettingsOverridesFingerprint());
+        RegistryEntry<ChunkGeneratorSettings> swappedEntry = this.registerGeneratorSettings(
+                generatorSettingsId(def, SETTINGS_OVERRIDES_SUFFIX), swapped);
         NoiseChunkGenerator swappedGen = new NoiseChunkGenerator(
-                noiseGen.getBiomeSource(), RegistryEntry.of(swapped));
+                noiseGen.getBiomeSource(), swappedEntry);
         return new DimensionOptions(built.dimensionTypeEntry(), swappedGen);
     }
 
