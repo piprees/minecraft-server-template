@@ -21,10 +21,15 @@ Usage:
 Template-only (platform development); deliberately NOT in the bundle
 MANIFEST — consumers never run this.
 
-Gotchas: the overworld's exported seed must ALSO reach the server's SEED
-(.env / the reset-seed run) — per-dimension seeds come from these configs,
-but the main world's level seed comes from SEED. The script prints the
-overworld seed at the end as the reminder. Winner spawns of [0, 64, 0] are
+Gotchas: the config drives every seed, including the overworld's —
+ServerWorldSeedMixin reads each base world's own file (overworld.json,
+the_nether.json, the_end.json, paradise_lost.json), so exporting a winner
+here IS what changes that world's terrain. `.env SEED` seeds level.dat only,
+and reaches terrain solely when a config's seed field is the literal string
+"env" (see TROUBLESHOOTING.md#t31). Passing the overworld winner to
+reset-seed keeps level.dat's reported seed consistent with the terrain; it is
+not the lever that generates it. What actually matters is that these configs
+reach the server BEFORE the world is deleted. Winner spawns of [0, 64, 0] are
 the "not chosen" placeholder and are never exported.
 """
 import argparse
@@ -171,8 +176,10 @@ def main():
     print(f"\n{verb} {changed} file(s); {skipped} unchanged/no-winner; "
           f"{missing} missing template(s)")
     if overworld_seed is not None:
-        print(f"REMINDER: the overworld winner {overworld_seed} must also become the "
-              f"server's SEED — pass it to ./ops reset-seed (it updates .env).")
+        print(f"NOTE: the overworld winner is {overworld_seed}. Its terrain comes from "
+              f"overworld.json, which this script just wrote — deploy that config BEFORE "
+              f"the wipe. Passing the same seed to ./ops reset-seed only keeps level.dat's "
+              f"reported seed consistent; it does not drive generation (T31).")
 
 
 if __name__ == "__main__":
