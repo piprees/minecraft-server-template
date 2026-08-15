@@ -214,7 +214,7 @@ Mod configs in `config/<modname>/` (or flat `config/<file>` when the mod reads a
 
 **Game rules** live in two places that must match: `config/boring_default_game_rules/config.json` (new-world defaults) AND the RCON enforcement block in `scripts/deploy.sh` (existing world). Each has a comment pointing at the other.
 
-**World spawn** is enforced the same way: `deploy.sh` runs `setworldspawn` from `SPAWN_X/Y/Z` in `config/.env` on every deploy, so an in-game `/setworldspawn` doesn't stick - change the env vars instead.
+**World spawn** is config-driven: the overworld dimension config's `spawn` field wins, and `deploy.sh` only falls back to `SPAWN_X/Y/Z` in `config/.env` when that config has no spawn chosen (`[0, 64, 0]` is the "not chosen" sentinel) — see [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31). Either way an in-game `/setworldspawn` doesn't stick; deploy.sh re-applies the resolved value on every deploy.
 
 ## Web surfaces (styles & markup)
 

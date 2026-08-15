@@ -157,6 +157,7 @@ Three layers, one direction of truth:
 STACK_VERSION=v4
 BRAND_NAME="My Server"
 MC_VERSION=1.21.1
+# SEED/SPAWN_* are a legacy fallback, not the real lever — see below.
 SEED=your_seed
 SPAWN_X=0
 SPAWN_Y=64
@@ -396,7 +397,9 @@ RCON is never exposed publicly — it only exists inside the Docker network, rea
 
 ### Reset the world (launch events)
 
-`./ops reset-seed <seed>` — backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates the seed, and restarts. Triple-confirmed and prints undo instructions. Commit `.env` afterwards.
+`./ops reset-seed <seed>` — backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates `SEED` in `.env`, and restarts. Triple-confirmed and prints undo instructions. Commit `.env` afterwards.
+
+`.env`'s `SEED` only reaches terrain when the overworld's dimension config has `"seed": "env"` — every dimension, base worlds included, generates from its own file under `config/custom-dimensions/dimensions/`. Put the seed there (or in the consumer overlay) and deploy it BEFORE running the reset, or the world regenerates with the old terrain under a new seed value that changed nothing. See [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31).
 
 ## Contributing
 
