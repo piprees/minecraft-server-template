@@ -19,15 +19,14 @@
       document.head.appendChild(b)
     }
   </script>
-  <!-- Tailwind v4 build + the shadcn token contract. Copied beside this file
-       into assets/ by score-dimensions.install_web_assets, so the same
-       relative href works over http://127.0.0.1:8765/ and from a file://
-       open of .seedtest/index.html. Source and build script live in the
-       template repo at scripts/seed/web/. Every custom property the styles
-       below read is declared there — see its legacy variable bridge. -->
-  <link rel="stylesheet" href="assets/app.css" />
-  <!-- The scorecard reasoning's own styles. app.css is a build of the design
-       system and knows nothing about these class names; this reads its
+  <!-- Tailwind v4 build + the shadcn token contract. The BUILT stylesheet, not
+       the source: web/app.css is Tailwind syntax (@apply, @theme, --alpha())
+       that no browser reads, so build-viewer-css.sh compiles it to
+       app.built.css and build.gradle keeps the source out of the jar.
+       SeedServer serves /assets/<name> from the jar's seed-viewer/web/. -->
+  <link rel="stylesheet" href="assets/app.built.css" />
+  <!-- The scorecard reasoning's own styles. Plain CSS, no build: the design
+       system above knows nothing about these class names, and this reads its
        colours from the same custom properties rather than copying values. -->
   <link rel="stylesheet" href="assets/criteria.css" />
   <!-- The structures section and its map markers, on the same terms. -->

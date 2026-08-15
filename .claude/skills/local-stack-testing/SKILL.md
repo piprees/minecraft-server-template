@@ -13,12 +13,19 @@ description: |
   skip-if-exists by dev-up.sh), plus the c2me density-function-compiler key
   stripped from c2me.toml on every boot.
 
+  Also covers the seed viewer's compiled stylesheet: web/app.css is Tailwind
+  v4 source, the jar ships web/app.built.css, and build-viewer-css.sh is what
+  turns one into the other — Gradle never does, so an unbuilt CSS edit rebuilds
+  silently with the old styles.
+
   Use when: linking a consumer to a platform checkout; iterating on an
-  in-house Fabric mod or the seed viewer without cutting a release; testing
+  in-house Fabric mod or the seed viewer without cutting a release; editing the
+  viewer's CSS, markup or JS; testing
   unreleased defaults-seed content; choosing between `./dev up`, `./dev
   refresh-config`, `./dev restart <service>` and a raw `docker restart`; or
   working out why a local pass didn't reflect the change under test. Consult
-  before trusting a `./dev up` boot as proof a change is live, and when
+  before trusting a `./dev up` boot as proof a change is live, when a Tailwind
+  utility class written into the viewer's markup styles nothing, and when
   debugging "Removing config entry
   .vanillaWorldGenOptimizations.useDensityFunctionCompiler".
 ---
@@ -235,6 +242,28 @@ routes `/assets/*` to the second. No mount shadows them: mc mounts
 `./data:/data` (`docker-compose.yml`, `mc`’s `./data:/data`) and the roller's artefact directory
 (`docker-compose.yml`, `mc`’s `.seed-rolling` mount), neither of which is the jar. Edit under
 `mods/custom-dimensions/src/main/resources/seed-viewer/`, then run case 1.
+
+**`web/app.css` is Tailwind source, not a stylesheet — the jar ships
+`web/app.built.css`.** Gradle does not compile it (that keeps the mod build
+offline), so a CSS edit needs one extra step before case 1:
+
+```bash
+cd ~/Projects/minecraft-server-template/mods/custom-dimensions
+./build-viewer-css.sh          # app.css -> app.built.css, commit both
+```
+
+Skip it and the rebuild ships the previous stylesheet with no error anywhere —
+`build.gradle` excludes `app.css` from the jar, so the source can never be
+served by mistake, but a stale build is silent. `mod-build.yml` runs
+`./build-viewer-css.sh --check` and fails when the two disagree.
+
+Utilities come only from `@apply` inside `app.css`; the sheet declares
+`source(none)` and scans nothing. **A Tailwind utility class written into
+`template.html`, the JS or `ViewerPage.java` generates no rule** — give the
+element a component class and style it in `app.css`, `criteria.css` or
+`structures.css`. That is also why class names assembled at runtime
+(`'db-' + severity`) are safe here: nothing is purged because nothing is
+scanned.
 
 `POST /pick` writes into the consumer's
 `overlay/config/custom-dimensions/dimensions/`, mounted at

@@ -27,6 +27,18 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      # Generated stylesheets are committed, not built by Gradle, so nothing
+      # else notices when one stops matching its source. A stale file ships a
+      # viewer whose rules silently stop applying.
+      - name: Check generated stylesheets are current
+        run: |
+          for script in mods/*/build-viewer-css.sh; do
+            [[ -x "$script" ]] || continue
+            echo "::group::$script --check"
+            "$script" --check
+            echo "::endgroup::"
+          done
+
       - name: Build & verify all mods from manifest
         run: |
           while IFS='|' read -r jar_name project refmap; do

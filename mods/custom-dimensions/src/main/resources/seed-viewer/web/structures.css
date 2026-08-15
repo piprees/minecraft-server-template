@@ -1,8 +1,8 @@
 /* The structures section in the lightbox sidebar, and its markers on the map.
  *
- * Same arrangement as criteria.css: app.css is a build of the design system
- * and knows nothing about these class names, so their styles live here and
- * read their colours from the same custom properties. */
+ * Same arrangement as criteria.css: plain CSS, served as written, because
+ * app.built.css is the design system and knows nothing about these class
+ * names. Colours come from the same custom properties it declares. */
 
 .ef-panel {
   display: flex;

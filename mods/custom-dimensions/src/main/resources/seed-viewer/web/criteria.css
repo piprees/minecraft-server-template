@@ -1,21 +1,21 @@
 /* The scorecard's reasoning, in the card detail and in the lightbox.
  *
- * app.css is a build of the design system the rest of the page uses and
- * knows nothing about these class names, so their styles live here rather
- * than being wedged into a generated stylesheet. Everything reads its
- * colours from the same custom properties app.css declares, so the two stay
- * in step through the tokens rather than through copied hex values. */
+ * Plain CSS, served as written — app.built.css is the design system the rest
+ * of the page uses and knows nothing about these class names, so their styles
+ * live here rather than being wedged into a generated stylesheet. Everything
+ * reads its colours from the same custom properties that stylesheet declares,
+ * so the two stay in step through the tokens rather than copied hex values. */
 
-/* dartboard.js builds this button in JS and app.css only positions the two
- * that are authored in the template, so it was landing wherever the flow
- * left it — floating over the middle of the map. Same corner and same size
- * as .lb-structs-toggle, which sits along the bottom edge beside it. */
+/* dartboard.js builds this button in JS; the design system only positions the
+ * two that are authored in the template, so it lands wherever the flow leaves
+ * it without this. Same corner and same size as .lb-structs-toggle, which
+ * sits along the bottom edge beside it. */
 #lightbox .lb-image .lb-dart-toggle {
   position: absolute;
   left: 0.6rem;
   bottom: 0.6rem;
-  /* app.css pins this class on all four edges, so setting only two stretched
-     it across the whole map. */
+  /* app.built.css pins this class on all four edges, so setting only two
+     stretches it across the whole map. */
   right: auto;
   top: auto;
   z-index: 3;
@@ -73,14 +73,13 @@
 }
 
 /* `mrow` is dartboard.js's marker for "this row carries a band", nothing to
- * do with layout — but app.css's legacy sheet already owns that class as a
- * SIX-column measurement table (`6px minmax(9rem, 1.4fr) 3.5rem ...`) with a
- * severity dot in the first cell. Both sheets are unlayered, so a row that
- * carries a band was rebuilt as that table: the score landed in the 1.4fr
- * column and the id in the 3.5rem one, which wrapped it a few characters at
- * a time. Two classes beat one, so restating the row's own shape here wins
- * whatever order the sheets load in. Severity still reads from the score's
- * colour, so the dot is not missed. */
+ * do with layout — but the legacy sheet also owns that class as a SIX-column
+ * measurement table (`6px minmax(9rem, 1.4fr) 3.5rem ...`) with a severity dot
+ * in the first cell. Both are unlayered, so without this a banded row is
+ * rebuilt as that table: the score lands in the 1.4fr column and the id in the
+ * 3.5rem one, which wraps it a few characters at a time. Two classes beat one,
+ * so restating the row's own shape here wins whatever order the sheets load
+ * in. Severity still reads from the score's colour, so the dot is not missed. */
 .crit-row.mrow {
   grid-template-columns: 1.9rem minmax(0, 1fr);
   gap: 0.1rem 0.5rem;

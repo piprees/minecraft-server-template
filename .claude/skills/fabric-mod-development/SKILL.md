@@ -1,6 +1,6 @@
 ---
 name: fabric-mod-development
-description: Builds, verifies, and ships an in-house Fabric mod under mods/<name> (currently mods/custom-dimensions) — the mise-pinned Gradle build, the artefact-verification gate that catches an empty or unremapped jar, the fast local iteration loop against a running mc container, the Carpet fake-player harness for player-dependent paths, soak testing timers, and the release path into the stack bundle. Use when building or changing a mod under mods/, verifying a build before restarting a container with it, iterating locally without corrupting the test with a stale bundle jar, writing a headless RCON test for a portal/zone/timer path, or diagnosing a crash-looping server after a mod change. Also use when troubleshooting "could not find any targets ... No refMap loaded", a ClassCastException from an unlisted accessor mixin, or a ConcurrentModificationException from a world-tick mixin. Not for authoring dimension JSON (see custom-dimension-authoring) or cutting a release (see AGENTS.md § Cutting a release).
+description: Builds, verifies, and ships an in-house Fabric mod under mods/<name> (currently mods/custom-dimensions) — the mise-pinned Gradle build, the pre-build compile of generated resources (the seed viewer's Tailwind stylesheet, via build-viewer-css.sh), the artefact-verification gate that catches an empty or unremapped jar, the fast local iteration loop against a running mc container, the Carpet fake-player harness for player-dependent paths, soak testing timers, and the release path into the stack bundle. Use when building or changing a mod under mods/, editing the seed viewer's CSS, verifying a build before restarting a container with it, iterating locally without corrupting the test with a stale bundle jar, writing a headless RCON test for a portal/zone/timer path, or diagnosing a crash-looping server after a mod change. Also use when troubleshooting "could not find any targets ... No refMap loaded", a ClassCastException from an unlisted accessor mixin, a ConcurrentModificationException from a world-tick mixin, or a green build that shipped the previous stylesheet. Not for authoring dimension JSON (see custom-dimension-authoring) or cutting a release (see AGENTS.md § Cutting a release).
 ---
 
 # Fabric Mod Development
@@ -33,6 +33,8 @@ mise exec -- ./gradlew build
 
 **Never bare `./gradlew build`.** `mods/mise.toml` pins `java = "temurin-21"`, and `mise exec --` is what applies that pin to the build ([P4](../../../TROUBLESHOOTING.md#p4)). First time in a project without a wrapper: `mise install && gradle wrapper --gradle-version 8.13`.
 
+**Generated resources are not Gradle's job — compile them first.** `custom-dimensions` ships one: the seed viewer's stylesheet. `src/main/resources/seed-viewer/web/app.css` is Tailwind v4 source and the jar carries `app.built.css`, so a CSS edit needs `./build-viewer-css.sh` (mod root) before the build, with both files committed. Gradle deliberately does not run it — that is what keeps `mod-build.yml` and `release.yml` offline — so an unbuilt edit produces a green build shipping the old stylesheet. Same failure shape as the dev-jar trap below: `BUILD SUCCESSFUL` over a wrong artefact.
+
 ## 2. Verify the artefact, not the build — mandatory gate
 
 **Gradle reports `BUILD SUCCESSFUL` even when `remapJar` emits an empty or unremapped jar.** This shipped a production crash loop once. Run these on `build/libs/<mod>-<version>.jar` before you do anything else with it:
@@ -47,6 +49,8 @@ unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep
 **Dev-jar trap:** `build/devlibs/<mod>-<version>-dev.jar` uses Yarn-named mappings and carries no refmap — it only works inside a Loom dev environment. On a real server every mixin fails with `could not find any targets ... No refMap loaded` and the server crash-loops. **Only ever ship `build/libs/<mod>-<version>.jar`.**
 
 CI runs the identical check twice, so a local pass should never surprise it: `mod-build.yml` on every push/PR touching `mods/**` (floor: 10 classes, refmap must be present in the jar named by `mods/local-mods.manifest`'s third field), and `release.yml` again per mod listed in that manifest before it stages `dist/local-mods/<jar_name>` into the bundle. See `references/jar-verification.md` for the full manifest format and CI internals.
+
+`mod-build.yml` also runs `mods/*/build-viewer-css.sh --check` before the Gradle build, which is what catches a committed stylesheet that no longer matches its source.
 
 ## 3. Fast local loop
 
