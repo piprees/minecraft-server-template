@@ -142,11 +142,21 @@ else
   warn "Local profile invalid"
   COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
 fi
+# The line above does NOT read docker-compose.local.yml — compose auto-loads
+# docker-compose.override.yml and nothing else, so the local override shipped
+# unparseable in v5.5.0 while both checks above were green. dev-up.sh merges
+# both files, so validate the same pair it runs.
+if docker compose -f docker-compose.yml -f docker-compose.local.yml --profile local config --quiet; then
+  echo "  ✓ Local profile + local override valid"
+else
+  warn "Local override (docker-compose.local.yml) invalid"
+  COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
+fi
 
 echo "  Checking YAML files..."
 YAML_ERRORS=0
 if command -v yamllint &> /dev/null; then
-  if yamllint -c .yamllint.yml docker-compose.yml .github/workflows/*.yml config/cloudflared/config.yml; then
+  if yamllint -c .yamllint.yml docker-compose.yml docker-compose.local.yml .github/workflows/*.yml config/cloudflared/config.yml; then
     echo "  ✓ YAML lint clean"
   else
     warn "YAML lint issues"
