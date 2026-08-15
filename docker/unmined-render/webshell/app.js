@@ -5,9 +5,12 @@
  * routing — caching is king.
  *
  * Data contract (written by render-loop.sh):
- *   /manifest.json              — { dimensions: [ { slug, name, family,
- *                                   rendered, spawn, version, renderedAt } ] }
+ *   /manifest.json              — { dimensions: [ { slug, name, type,
+ *                                   typeLabel, family, difficulty, theme,
+ *                                   spawnBiome, rendered, spawn, version,
+ *                                   renderedAt, thumb } ] }
  *   /maps/<slug>/…              — uNmINeD web output per dimension
+ *   /maps/<slug>/thumb.webp     — sidebar card preview (absent = unrendered)
  *   /maps/<slug>/markers.json   — custom markers merged into the map
  */
 (function () {
@@ -71,6 +74,11 @@
     return null;
   }
 
+  // One preview card per dimension: thumbnail (when rendered), name, an
+  // info line built from whatever config-derived fields the manifest
+  // carries (type/difficulty/theme/spawn biome — any of these may be
+  // absent for a sparsely-configured dimension, so the line only joins
+  // the ones actually present), and the render/pending status line.
   function buildSidebar(manifest) {
     var currentSlug = slugFromPath();
     var frag = document.createDocumentFragment();
@@ -78,20 +86,47 @@
       var li = document.createElement('li');
       var a = document.createElement('a');
       a.href = '/' + encodeURIComponent(toPath(dim.slug));
-      a.textContent = dim.name;
       a.dataset.slug = dim.slug;
-      if (!dim.rendered) {
-        a.classList.add('dim-pending');
-        var hint = document.createElement('span');
-        hint.className = 'dim-when';
-        hint.textContent = 'awaiting first explorer';
-        a.appendChild(hint);
-      } else if (dim.renderedAt) {
+      if (!dim.rendered) { a.classList.add('dim-pending'); }
+
+      a.appendChild(buildThumb(dim));
+
+      var body = document.createElement('span');
+      body.className = 'dim-body';
+
+      var name = document.createElement('span');
+      name.className = 'dim-name';
+      name.textContent = dim.name;
+      body.appendChild(name);
+
+      var metaParts = [dim.typeLabel, dim.difficulty, dim.theme, dim.spawnBiome]
+        .filter(function (v) { return v; });
+      if (metaParts.length) {
+        var metaText = metaParts.join(' · ');
+        var meta = document.createElement('span');
+        meta.className = 'dim-meta';
+        meta.textContent = metaText;
+        body.appendChild(meta);
+        // Name and info line are both CSS-truncated in the fixed-width
+        // sidebar; the title tooltip is the only way a mouse user sees the
+        // full text (screen readers already get it from the untruncated
+        // textContent above).
+        a.title = dim.name + ' — ' + metaText;
+      } else {
+        a.title = dim.name;
+      }
+
+      var whenText = dim.rendered
+        ? (dim.renderedAt ? 'rendered ' + new Date(dim.renderedAt * 1000).toLocaleString() : '')
+        : 'awaiting first explorer';
+      if (whenText) {
         var when = document.createElement('span');
         when.className = 'dim-when';
-        when.textContent = 'rendered ' + new Date(dim.renderedAt * 1000).toLocaleString();
-        a.appendChild(when);
+        when.textContent = whenText;
+        body.appendChild(when);
       }
+      a.appendChild(body);
+
       if (dim.slug === currentSlug || (!findDim(manifest, currentSlug) && dim === manifest[0])) {
         a.setAttribute('aria-current', 'page');
       }
@@ -100,6 +135,33 @@
     });
     listEl.innerHTML = '';
     listEl.appendChild(frag);
+  }
+
+  // The card thumbnail frame. No <img> is created at all when the manifest
+  // has no thumbnail URL, so there is never a moment where a broken-image
+  // icon can show; if the file 404s anyway (render succeeded but the
+  // spawn-area thumbnail render did not) the error handler falls back to
+  // the same empty-frame treatment.
+  function buildThumb(dim) {
+    var thumb = document.createElement('span');
+    thumb.className = 'dim-thumb';
+    if (!dim.thumb) {
+      thumb.classList.add('dim-thumb-empty');
+      thumb.setAttribute('aria-hidden', 'true');
+      return thumb;
+    }
+    var img = document.createElement('img');
+    img.src = dim.thumb + '?v=' + String(dim.version || 0);
+    img.alt = dim.name + ' — aerial map preview';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.addEventListener('error', function () {
+      img.remove();
+      thumb.classList.add('dim-thumb-empty');
+      thumb.setAttribute('aria-hidden', 'true');
+    });
+    thumb.appendChild(img);
+    return thumb;
   }
 
   function loadCurrentDimension(manifest) {

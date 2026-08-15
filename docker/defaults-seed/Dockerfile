@@ -24,8 +24,9 @@ COPY config/datapacks/    /defaults/config/datapacks/
 # extractors/ (authoring-only worldgen extraction data, ~2.6MB) is deliberately
 # excluded — the mod never reads it, and deploy.sh/dev-up.sh already skip it
 # when syncing data/config, so it would only ever bloat this image.
-COPY config/custom-dimensions/settings.json    /defaults/config/custom-dimensions/settings.json
-COPY config/custom-dimensions/dimensions/      /defaults/config/custom-dimensions/dimensions/
+COPY config/custom-dimensions/settings.json      /defaults/config/custom-dimensions/settings.json
+COPY config/custom-dimensions/display-names.json /defaults/config/custom-dimensions/display-names.json
+COPY config/custom-dimensions/dimensions/        /defaults/config/custom-dimensions/dimensions/
 # Noise-placement data. The MOD reads its own jar-baked copies of both, so
 # these are not the runtime source — they ship because the seed roller reads
 # them, and in consumer mode the roller resolves config from

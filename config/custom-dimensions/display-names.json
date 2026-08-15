@@ -1,0 +1,7 @@
+{
+  "_comment": "Dimension display-name overrides, read by docker/unmined-render/render-loop.sh (display_name()). Anything not listed here is title-cased mechanically from its slug (the_wuthering_wisteria -> The Wuthering Wisteria) — only list a slug here when the mechanical rule gives the wrong answer.",
+  "overworld": "The Overworld",
+  "nether": "The Nether",
+  "end": "The End",
+  "paradise_lost": "The Lost Paradise"
+}
