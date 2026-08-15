@@ -78,6 +78,15 @@
                      sawmill recipes come from universal-sawmill's generated pack. -->
                 <RegexFilter regex="Parsing error loading recipe dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <RegexFilter regex="Parsing error loading custom advancement dramaticdoors:.*" onMatch="DENY" onMismatch="NEUTRAL" />
+                <!-- Supplementaries' bundled Farmer's Delight integration recipes
+                     (ash/lapis brick salvaging, the FD quiver) give their result as
+                     a bare item-id string and their tool requirement as an unwrapped
+                     {"type":"farmersdelight:item_ability",...} predicate — neither
+                     matches farmers-delight-refabricated's cutting-board codec, which
+                     needs an object result and a Fabric-custom-ingredient-wrapped
+                     tool ({"fabric:type": ...}). They can never parse against this FD
+                     build; only these three optional recipes are lost. -->
+                <RegexFilter regex="Parsing error loading recipe supplementaries:integration/(ash_bricks_salvaging_fd|lapis_bricks_salvaging_fd|quiver_fd)" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- When Dungeons Arise data bugs (pre-1.21 item predicate format) -->
                 <RegexFilter regex="Parsing error loading custom advancement dungeons_arise:.*" onMatch="DENY" onMismatch="NEUTRAL" />
                 <!-- The follow-up summary line for the same known-broken advancements -->
