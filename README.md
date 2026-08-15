@@ -1,53 +1,38 @@
 # Adventure Server
 
-A published platform for running a modded Minecraft **1.21.1** server as infrastructure-as-code. Pre-built Docker images, a versioned stack bundle, and a reusable CI/CD workflow — so your server repo stays thin and upgrades are a one-line version bump.
-
-Runs Fabric on Docker (`itzg/minecraft-server`) with ~150 pinned server mods (Terralith, Incendium, Nullscape, seasons, YUNG's structures, and more) plus a 100+ mod client pack. Invite-only via online-mode + whitelist, driven by Discord roles. Cloudflare tunnel for web services, restic backups to R2, Uptime Kuma for monitoring.
+A published platform for running a modded Minecraft **1.21.1** server as infrastructure-as-code. Pre-built Docker images, a versioned stack bundle, and a reusable CI/CD workflow — so your server repo stays thin and upgrades are a one-line version bump. It runs Fabric on Docker (`itzg/minecraft-server`) with ~150 pinned server mods (Terralith, Incendium, Nullscape, seasons, YUNG's structures, and more) plus a 100+ mod client pack. Invite-only via online-mode + whitelist, driven by Discord roles. Cloudflare tunnel for web services, restic backups to R2, Uptime Kuma for monitoring.
 
 [![Deploy Minecraft Server](../../actions/workflows/deploy-reusable.yml/badge.svg)](../../actions/workflows/deploy-reusable.yml)
 
-> **AI agents:** read [`AGENTS.md`](AGENTS.md) before making any changes. It has the constraints and access details that apply to every task, and points at [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) for every known problem.
->
-> **Commands:** see [`COMMANDS.md`](COMMANDS.md) for in-game commands, RCON recipes, and Discord `/mc` commands.
+> **AI agents:** read [`AGENTS.md`](AGENTS.md) first — constraints, traps, and production access. **Commands:** [`COMMANDS.md`](COMMANDS.md). **Problems:** [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md). **Customising a server:** [`CUSTOMISATION.md`](CUSTOMISATION.md). **Everything else:** [`docs/README.md`](docs/README.md).
 
 ## Run your own server
 
-Copy the consumer scaffold, run the setup wizard, and you're up in 10 minutes:
+Copy the consumer scaffold and run the setup wizard. Full consumer documentation: [`examples/consumer/README.md`](examples/consumer/README.md).
 
 ```bash
 # Option A: degit (no git history)
 npx degit piprees/minecraft-server-template/examples/consumer my-server
-
 # Option B: curl + tar
 mkdir my-server && curl -sL https://github.com/piprees/minecraft-server-template/archive/refs/heads/main.tar.gz \
   | tar -xz --strip-components=3 -C my-server 'minecraft-server-template-main/examples/consumer'
 
-cd my-server
-./ops setup                      # guided wizard: credentials -> .env -> local test -> production
+cd my-server && ./ops setup      # guided wizard: credentials -> .env -> local test -> production
 ```
 
-Prefer to do it by hand? For local dev only:
+### Try it locally in 10 minutes
 
 ```bash
 cp .env.example .env             # every variable documented in comments
-./dev up                          # pulls the stack bundle + starts everything
-```
-
-Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`). Add the `/etc/hosts` entries printed by `./dev up` for subdomain routing.
-
-```bash
+./dev up                         # pulls the stack bundle + starts everything
 ./dev logs                       # tail the Minecraft server logs
 ./dev rcon "list"                # run an RCON command
 ./dev down                       # stop everything
 ```
 
-Local profile disables `ONLINE_MODE`, whitelist, and autopause. Backups go to MinIO (console at `localhost:9001`, minioadmin/minioadmin123).
-
-For the full consumer README, see [`examples/consumer/README.md`](examples/consumer/README.md).
+Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`), after adding the `/etc/hosts` entries `./dev up` prints. The local profile disables `ONLINE_MODE`, whitelist, and autopause, and backs up to MinIO (console at `localhost:9001`, minioadmin/minioadmin123). `./dev seeds` opens the [seed roller](mods/custom-dimensions/README.md#seed-roller--a-browser-tool-not-a-command) — roll candidate seeds for a dimension, compare maps and scores, fly the best two, and the winner is written into the dimension's overlay config. **Local profile only by design:** no authentication, it can teleport a player, and it writes into your committed overlay.
 
 ### Going to production
-
-The `ops` script delegates to the bundle's operational scripts:
 
 ```bash
 ./ops setup                      # interactive wizard: credentials → .env
@@ -58,42 +43,11 @@ The `ops` script delegates to the bundle's operational scripts:
 ./ops cloudflare                 # tunnel + DNS records + R2 bucket
 ```
 
-Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow. The full step-by-step walkthrough and credential guide live in the `server-provisioning` skill.
-
-Seed rolling is a browser tool the mod hosts: `./dev seeds` opens it. Roll candidate
-seeds for any dimension, look at their maps and scores, fly around the best two in a
-throwaway world, and pick one — the chosen seed (and where you were standing) is
-written into the dimension's overlay config.
-
-Locally it also sits behind the nav bar at `http://seeds.<LOCAL_DOMAIN>:<WEB_PORT>`,
-alongside map/status/pack/mods, and the bare domain redirects to the pack page.
-**The roller is local-profile only by design** — it has no authentication, it can
-teleport a player, and it writes into your committed overlay, so nothing publishes
-it in the cloud profile.
+Then push to `main` — `.github/workflows/deploy.yml` calls the reusable workflow. Walkthrough and credential guide: the `server-provisioning` skill.
 
 ## Upgrading
 
-Bump `STACK_VERSION` in `.env` (or leave it as `v4` to track the latest v4.x.y):
-
-```bash
-./dev update                     # re-pulls the bundle + Docker images
-./dev up                         # restart with the new version
-```
-
-### What a release contains
-
-Each GitHub release `vX.Y.Z` on this repo:
-
-- Tags every GHCR image (`defaults-seed`, `modpack-builder`, sidecars) with `X.Y.Z`, `X.Y`, `X`, `latest`
-- Attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified — installed into `data/mods/` by `deploy.sh` and `./dev up`)
-
-### Compatibility promise
-
-- **Major** (`v4` → `v5`): breaking changes to `.env` keys, overlay contract, or compose structure. Migration guide provided, but likely breaking.
-- **Minor** (`v4.1` → `v4.2`): new features, new default mods, config additions. Backwards-compatible.
-- **Patch** (`v4.1.0` → `v4.1.1`): bug fixes, mod pin updates. Drop-in safe.
-
-Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updates. See the `platform-release-management` skill for the full release process and pipeline details.
+Bump `STACK_VERSION` in `.env` (or leave it as `v4` to track the latest v4.x.y), then `./dev update && ./dev up`. Each release `vX.Y.Z` tags every GHCR image (`X.Y.Z`, `X.Y`, `X`, `latest`) and attaches a **stack bundle** tarball: compose files, all host-side operational scripts, default configs, and the in-house mod JARs (`local-mods/`, CI-built and remap-verified, installed into `data/mods/` by `deploy.sh` and `./dev up`). **Compatibility:** `v4` → `v5` is breaking (`.env` keys, overlay contract, compose structure) and ships a migration guide; `v4.1` → `v4.2` adds features, default mods, and config, backwards-compatible; `v4.1.0` → `v4.1.1` is drop-in. Pinning `STACK_VERSION=v4` picks up minors and patches automatically. Cutting a release: the `platform-release-management` skill.
 
 ## Architecture
 
@@ -134,75 +88,38 @@ Consumers pinning `STACK_VERSION=v4` automatically receive minor and patch updat
 | `unmined-render` | ghcr.io/.../unmined-render | both | Scheduled static uNmINeD map renders into `data/unmined-web/`, served at map.DOMAIN/unmined/ (off until `UNMINED_INTERVAL` is set) |
 | `discord-sync` | ghcr.io/.../discord-sync | both | Discord bot: `/register`, `/mc` admin commands, role→whitelist sync |
 
-**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only.
-
-**Autopause:** the JVM freezes when the server has been empty for 10 minutes. RCON stops responding while paused — scripts and monitors treat "no RCON" as paused, not down. Never add anything that pokes the game port on an interval (it wakes the server); `idle-tasks` does this deliberately, but only to keep Chunky running.
+**Ports:** game `25577/tcp` (host) → `25565` (container), voice `24454/udp`, RCON `25575` (Docker network only), Kuma `3001` and pack-web `8080` bound to localhost only. **Autopause:** the JVM freezes when the server has been empty for 10 minutes and RCON stops responding, so scripts and monitors treat "no RCON" as paused, not down — never add anything that pokes the game port on an interval, it wakes the server.
 
 ## Configuration
 
-Three layers, one direction of truth:
+Four layers, one direction of truth:
 
-1. **Platform defaults** — baked into the `defaults-seed` image (configs, mod list, datapacks). These are the starting point.
+1. **Platform defaults** — baked into the `defaults-seed` image (configs, mod list, datapacks). The starting point.
 2. **Consumer overlay** — `overlay/` in your consumer repo (extra mods, config overrides, branding). Applied on top of defaults by the seed container.
-3. **`.env`** (git-ignored) — all settings and secrets for local use. Recoverable from 1Password (`./ops op-env > .env`).
-4. **GitHub `production` environment** (Settings → Environments): secrets and variables. CI generates the server `.env` entirely from these — `./ops github-env-sync` pushes them from your local `.env`.
-
-**On every full CI deploy, the server's `.env` is regenerated** from the GitHub environment secrets. Hand-edits to `.env` on the server don't survive the next full deploy — change the source of truth instead.
-
-**1Password** (optional) can serve as a recovery store for secrets. `./ops op-env > .env` rebuilds `.env` from 1Password references; `./ops op-sync` pushes local changes back.
-
-### Example `.env` settings
-
-```bash
-STACK_VERSION=v4
-BRAND_NAME="My Server"
-MC_VERSION=1.21.1
-# SEED/SPAWN_* are a legacy fallback, not the real lever — see below.
-SEED=your_seed
-SPAWN_X=0
-SPAWN_Y=64
-SPAWN_Z=0
-MEMORY=6G
-DOMAIN=example.com
-SERVER_PORT=25577
-VIEW_DISTANCE=12
-SIMULATION_DISTANCE=8
-DISCORD_ADMIN_ROLE_ID=000000000000000000
-DISCORD_PLAYER_ROLE_ID=000000000000000000
-```
+3. **`.env`** (git-ignored) — all settings and secrets for local use. Every variable is documented in `.env.example`; `./ops op-env > .env` rebuilds it from 1Password and `./ops op-sync` pushes local changes back.
+4. **GitHub `production` environment** (Settings → Environments) — secrets and variables, pushed from your local `.env` by `./ops github-env-sync`. **Every full CI deploy regenerates the server's `.env`** from these, so hand-edits on the server don't survive; change the source of truth instead.
 
 ## Repository layout
 
-This is the **platform repo** — it builds and publishes images, the stack bundle, and reusable workflows. Consumers don't clone this; they copy `examples/consumer/`.
+This is the **platform repo** — it builds and publishes the images, the stack bundle, and the reusable workflows. Consumers don't clone it; they copy `examples/consumer/`.
 
 ```
 .
-├── AGENTS.md                        # AI agent constraints and access — read first
-├── TROUBLESHOOTING.md               # Every known trap, quirk, and open issue (T/P/D/K ids)
-├── COMMANDS.md                      # Command reference (player, admin, RCON, Discord)
-├── README.md                        # This file
-├── docker/                          # Dockerfiles for all published GHCR images
-│   ├── defaults-seed/               #   platform defaults seeder
-│   ├── modpack-builder/             #   client pack builder
-│   ├── discord-sync/                #   Discord bot
-│   ├── idle-tasks/                  #   idle maintenance runner
-│   ├── kuma-init/                   #   Uptime Kuma provisioner
-│   └── mod-checker/                 #   mod update checker
-├── examples/consumer/               # Consumer scaffold — copy this to start your server
-├── mods/                            # In-house Fabric mods (Gradle projects; see mods/AGENTS.md)
-├── scripts/                         # Operational + build scripts (see table below)
-├── config/                          # Default server configs, mod list, messages, nginx, etc.
-├── modpack/                         # Client pack manifest + overrides + built .mrpack (dist/)
-├── assets/                          # Placeholder brand assets (SVG icon, logo, cover, favicon)
-├── docs/                            # Setup guide, customisation, releasing
-├── docker-compose.yml               # Full stack, local/cloud profiles
-├── .env.example                     # Secrets template
-└── .github/workflows/               # deploy.yml, deploy-reusable.yml, lint.yml, publish.yml, etc.
+├── docker/                # Dockerfiles for all published GHCR images
+├── examples/consumer/     # Consumer scaffold — copy this to start your server
+├── mods/                  # In-house Fabric mods (Gradle projects; see mods/AGENTS.md)
+├── scripts/               # Operational + build scripts (catalogued below)
+├── config/                # Default server configs, mod list, messages, nginx, etc.
+├── modpack/               # Client pack manifest + overrides + built .mrpack (dist/)
+├── assets/                # Placeholder brand assets (SVG icon, logo, cover, favicon)
+├── docs/                  # Reference documentation and the docs index
+├── docker-compose.yml     # Full stack, local/cloud profiles (`.env.example` alongside)
+└── .github/workflows/     # deploy.yml, deploy-reusable.yml, lint.yml, publish.yml, etc.
 ```
 
 ## Scripts
 
-Scripts fall into three categories depending on where they live and who runs them.
+Three categories, by where a script ends up and who runs it. Every script has a header comment with usage, context, and gotchas — **read the header before running it**. Authoring rules: the `bundle-script-authoring` skill.
 
 ### Bundle scripts (shipped in the stack tarball, run by consumers via `./ops`)
 
@@ -239,139 +156,44 @@ Scripts fall into three categories depending on where they live and who runs the
 
 ### Image scripts (baked into GHCR images, not run directly)
 
-| Script                    | Image           | What it does                                                           |
-| ------------------------- | --------------- | ---------------------------------------------------------------------- |
-| `build-modpack.sh`        | modpack-builder | Build versioned `.mrpack` + download page from the manifest            |
-| `check-pack-coherence.py` | modpack-builder | Validate pack manifest consistency                                     |
-| `modrinth-api.py`         | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
-| `discord-sync.py`         | discord-sync    | Discord bot: `/register`, `/mc` commands, role sync                    |
-| `kuma-provision.py`       | kuma-init       | One-shot Kuma provisioning from kuma-config.json                       |
-| `idle-tasks.sh`           | idle-tasks      | Save/GC/Chunky when the server is empty                                |
-| `check-updates.sh`        | mod-checker     | Mod update check, HTML status page generation                          |
+| Script | Image | What it does |
+| --- | --- | --- |
+| `build-modpack.sh` | modpack-builder | Build versioned `.mrpack` + download page from the manifest |
+| `check-pack-coherence.py` | modpack-builder | Validate pack manifest consistency |
+| `modrinth-api.py` | modpack-builder | Bulk Modrinth resolution with connection reuse and rate-limit handling |
+| `discord-sync.py` | discord-sync | Discord bot: `/register`, `/mc` commands, role sync |
+| `kuma-provision.py` | kuma-init | One-shot Kuma provisioning from kuma-config.json |
+| `idle-tasks.sh` | idle-tasks | Save/GC/Chunky when the server is empty |
+| `check-updates.sh` | mod-checker | Mod update check, HTML status page generation |
 
-### Template-only scripts (for platform development, not shipped)
+### Template-only scripts (platform development, not shipped)
 
-| Script                       | What it does                                                        |
-| ---------------------------- | ------------------------------------------------------------------- |
-| `pin-mod-versions.sh`        | Re-pin every mod to its latest build (used by mod-updates.yml)      |
-| `check-modrinth-compat.sh`   | Check the mod list against a target MC version/loader               |
-| `build-mod-update-report.py` | Build the mod-update PR body with changelogs                        |
-| `client-defaults.sh`         | Diff/sync shipped client defaults against the source Prism instance |
-| `test-scripts.sh`            | shellcheck + py_compile + compose validation                        |
-| `build-stack-bundle.sh`      | Assemble the release tarball                                        |
-| `sync-mod-cache.sh`          | Reconcile `mods-cache/` against the pinned mod lists (`--apply`)   |
-| `export-seed-winners.py`     | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
-
-Every script has a header comment with usage, context, and gotchas — **read the header before running it**.
+| Script | What it does |
+| --- | --- |
+| `pin-mod-versions.sh` | Re-pin every mod to its latest build (used by mod-updates.yml) |
+| `check-modrinth-compat.sh` | Check the mod list against a target MC version/loader |
+| `build-mod-update-report.py` | Build the mod-update PR body with changelogs |
+| `client-defaults.sh` | Diff/sync shipped client defaults against the source Prism instance |
+| `test-scripts.sh` | shellcheck + py_compile + compose validation |
+| `build-stack-bundle.sh` | Assemble the release tarball |
+| `sync-mod-cache.sh` | Reconcile `mods-cache/` against the pinned mod lists (`--apply`) |
+| `export-seed-winners.py` | Copy rolled winner seeds/spawns from a consumer overlay into the platform dimension configs (`--dry-run` diffs) |
 
 ## How to do things
 
-- [Add or remove mods](#add-or-remove-mods)
-- [Update Minecraft version](#update-minecraft-version)
-- [Manage players](#manage-players)
-- [Discord integration](#discord-integration)
-- [Backups](#backups)
-- [Deploy to production](#deploy-to-production)
-- [Server access](#server-access)
-- [Reset the world](#reset-the-world-launch-events)
+Task → file → command lookup: [`docs/common-tasks.md`](docs/common-tasks.md).
 
 ### Add or remove mods
 
-| What | Edit | Then |
-| --- | --- | --- |
-| Add a server mod | `overlay/mods-extra.txt` in your consumer repo | `./dev up` (locally) or push to `main` (production) |
-| Remove a default mod | `overlay/mods-remove.txt` in your consumer repo | Same |
-| Client mod | `modpack/adventure.mrpack.json` (`_clientMods.required` / `.optional`) | Push — CI rebuilds `.mrpack` |
-| Datapack | `overlay/config/datapacks/` or `overlay/mods-extra.txt` with `datapack:` prefix | Push (full deploy) |
-
-Mods must target **Fabric for 1.21.1**. Before adding anything, check its dependencies via the Modrinth API and add them too (see the mandatory checklist in [AGENTS.md](AGENTS.md#mods)). Dependency libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) are never optional.
-
-Mod downloads never touch the Modrinth **API** at boot: the seed container resolves every pin to a direct download URL once (cached in the stack-mods volume — version IDs are immutable), and the mc container's `MODS_FILE` downloads only files missing from `data/mods/` straight from the CDN. Adding one mod costs one API lookup in the seed and one CDN download — no more 429 restart loops.
-
-**Auto-updates** come via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror), and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task — every launch hash-syncs mods and pack configs from the CDN.
-
-**Weekly update PRs:** `mod-updates.yml` runs every Monday (or `gh workflow run mod-updates.yml`), re-pins everything via `pin-mod-versions.sh --apply`, and opens/refreshes a PR on `mod-updates/auto` with per-mod changelogs.
+Server mods go in `overlay/mods-extra.txt` (consumer) or `config/modrinth-mods.txt` (platform), removals in `overlay/mods-remove.txt`, client mods in `modpack/adventure.mrpack.json`. Everything must target **Fabric for 1.21.1**, and resolving a mod's dependencies before adding it is mandatory — that checklist, version holds, and the offline delivery model are in the `server-mod-management` skill. Clients auto-update via **packwiz**: the build generates `dist/packwiz/` (pack.toml + per-mod metafiles pointing at the mirror) and the one-click Prism instance zip runs `packwiz-installer` as a pre-launch task, so every launch hash-syncs mods and pack configs from the CDN.
 
 ### Update Minecraft version
 
-**Big job:** all ~150 server mods and ~110 client mods must support the target version.
-
-1. Back up: `./ops backup`
-2. Check compatibility: `./scripts/check-modrinth-compat.sh --version <target>`
-3. Update `MC_VERSION` in `.env`, re-pin: `./scripts/pin-mod-versions.sh --version <target> --apply`
-4. Test locally: `./dev up` — watch for mod load errors
-5. Deploy: push to `main`; then force a map re-render: `./ops map render`
-
-Terralith, Incendium, and Nullscape generate custom terrain — version changes can cause visible chunk borders. Test on a copy first.
-
-### Manage players
-
-Players self-serve through Discord — this is the normal path:
-
-1. Player joins the Discord and runs `/register <minecraft_username>` (verified against Mojang).
-2. An admin gives them the `@Player` role.
-3. Within 60s the bot whitelists them via RCON. `@Admin` role additionally grants op. Role removal de-whitelists/de-ops on the same cycle.
-
-Manual RCON still works and takes effect immediately:
-
-```bash
-docker exec -i mc rcon-cli "whitelist add Alex"
-docker exec -i mc rcon-cli "lp user Alex parent add admin"     # LuckPerms admin group
-docker exec -i mc rcon-cli "op Alex"                            # full operator
-```
-
-See [COMMANDS.md](COMMANDS.md) for the LuckPerms permission model and the full `/mc` Discord command set.
-
-### Discord integration
-
-Two clients share **one bot token** — understand this before touching anything Discord-side:
-
-| Client | Runs in | Owns |
-| --- | --- | --- |
-| **dcintegration** (Fabric mod) | `mc` container | Chat bridge: game↔Discord chat, join/leave/death/advancement posts (via webhook) |
-| **discord-sync** (`scripts/discord-sync.py`) | `discord-sync` container | **All slash commands** (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, audit log, command relay |
-
-Slash commands are **guild-scoped and owned by discord-sync**, which purges the global command registry at every boot. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it bulk-overwrites the registry on every mc boot and wipes `/mc` and `/register` — `deploy.sh` enforces this on every full deploy.
-
-Troubleshooting:
-
-| Symptom | Check |
-| --- | --- |
-| Slash commands missing from the client | `docker logs discord-sync` for "Slash commands synced"; restart discord-sync to re-sync; Ctrl+R the Discord client |
-| Commands present but failing | `docker logs discord-sync` — RCON errors mean mc is paused or the password drifted |
-| No chat relay | `docker logs mc \| grep -i discord`; check `botToken` in the live TOML |
-| Registry state (ground truth) | `GET /applications/<app_id>/guilds/<guild_id>/commands` with the bot token — guild should list `register`, `unregister`, `mc`; global should be `[]` |
-
-### Backups
-
-Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency. Retention: 3 daily, 1 weekly, 1 monthly (fits R2's free 10GB). Override the interval with `BACKUP_INTERVAL`.
-
-**Size cap + Discord notify**: after every backup, if the restic repo's raw size still exceeds `BACKUP_SIZE_CAP_GIB` (default 10) despite retention, the oldest snapshot is forgotten and pruned — repeated until it fits, but never below one snapshot (a genuinely oversized world keeps one copy and the notification carries a warning instead of silently deleting your only backup). Every run posts to `DISCORD_WEBHOOK_URL` if set: backup OK with the current size and snapshot count, or backup failed with the exit code. Restic's hostname is brand-scoped (`${BRAND_SLUG}-mc-backup`) so retention groups correctly across deploys — see [TROUBLESHOOTING.md#t14](TROUBLESHOOTING.md#t14) if snapshot counts ever look wrong.
-
-**Excludes** (regenerable data): `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`, `.fabric`. Only world, player data, and config are backed up.
-
-```bash
-./ops backup                                     # manual backup
-docker logs mc-backup --tail 50                      # verify (look for "snapshot ... saved")
-```
-
-**Restore** (on the server):
-
-```bash
-docker compose --profile cloud down
-export RESTIC_REPOSITORY="s3:https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET}"
-export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" RESTIC_PASSWORD
-restic snapshots --latest 5
-restic restore latest --target /tmp/mc-restore       # or a specific snapshot ID
-rsync -av /tmp/mc-restore/data/ ./data/ && rm -rf /tmp/mc-restore
-docker compose --profile cloud up -d
-```
-
-**`RESTIC_PASSWORD` can't be recovered.** Store it somewhere safe (1Password, a password manager, etc.). All backups are unreadable without it.
+A big job — all ~150 server mods and ~110 client mods must support the target first. Procedure: [`docs/minecraft-version-upgrade.md`](docs/minecraft-version-upgrade.md).
 
 ### Deploy to production
 
-Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. The workflow first **resolves the symbolic `STACK_VERSION` pin (`v4`, `latest`) to a concrete release tag**, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against **the server's currently deployed commit** and picks a tier:
+Pushing to `main` in a consumer repo triggers the caller workflow, which invokes the reusable `deploy-reusable.yml` from this platform repo. It resolves the symbolic `STACK_VERSION` pin (`v4`, `latest`) to a concrete release tag, compares it against the bundle the server is actually running (`readlink .stack/current`), then diffs consumer files against the server's deployed commit and picks a tier:
 
 | Mode | Trigger | What happens |
 | --- | --- | --- |
@@ -379,77 +201,34 @@ Pushing to `main` in a consumer repo triggers the caller workflow, which invokes
 | **Infra** | Other `overlay/` changes (assets, branding) | Image pull + compose up (mc untouched) + force-recreate sidecars |
 | **Pull** | Docs, CI, everything else — and no stack change | Nothing touches the server |
 
-Consumer repos have almost no deployable files of their own — the stack bundle carries the compose file, scripts, and default configs — so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs. A consumer push made after a platform release lands is what actually rolls that release out.
+Consumer repos have almost no deployable files of their own, so **most full deploys are driven by the resolved-tag comparison**, not by consumer file diffs: a consumer push made after a platform release lands is what rolls it out. CI rebuilds the `.mrpack` + download page after every full deploy. Monitoring and recovery: the `deploy-pipeline-operations` skill.
 
-After a full deploy, CI also rebuilds the `.mrpack` + download page (Discord ping only when mod content actually changed).
+### Backups
+
+Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency and `BACKUP_INTERVAL` to override. Retention is 3 daily, 1 weekly, 1 monthly, and `BACKUP_SIZE_CAP_GIB` (default 10) trims below that if the repo outgrows R2's free tier. Only world, player data, and config are backed up — the map, mods, and caches are excluded and regenerate. Take one now with `./ops backup`, and verify it with `docker logs mc-backup --tail 50` (look for `snapshot ... saved`).
+
+**`RESTIC_PASSWORD` can't be recovered.** Store it somewhere safe (1Password); every backup is unreadable without it. The restore procedure, the full excludes list, and chunk surgery are in the `backup-and-recovery` skill.
+
+### Discord integration
+
+Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc` container owns the chat bridge only, and **discord-sync** owns every slash command (`/register`, `/unregister`, `/mc ...`), role→whitelist sync, and the audit log. The mod's command feature must stay off (`[commands] enabled = false` in the live `data/config/Discord-Integration.toml`) or it wipes the command registry on every mc boot; `deploy.sh` enforces this on every full deploy. Players self-serve: `/register <minecraft_username>` in Discord, an admin grants the `@Player` role, and the bot whitelists them via RCON within 60s (`@Admin` also grants op; removing a role reverses both). Manual RCON is the immediate fallback — [COMMANDS.md](COMMANDS.md#useful-admin-recipes). Missing commands, registry checks, and shipping a bot change: the `discord-integration-ops` skill.
 
 ### Server access
 
-Production host is `DROPLET_HOST` in `.env` (also a GitHub Actions variable). The server directory is `~/server`.
-
-```bash
-ssh -i ~/.ssh/mc_deploy_key deploy@SERVER                                    # shell
-ssh -i ~/.ssh/mc_deploy_key deploy@SERVER 'docker exec -i mc rcon-cli "list"' # RCON one-shot
-ssh -i ~/.ssh/mc_deploy_key deploy@SERVER 'docker logs mc --tail 50'          # log snapshot
-./ops stats                                                                   # system + container summary
-```
-
-RCON is never exposed publicly — it only exists inside the Docker network, reached via `docker exec`.
+Production host is `DROPLET_HOST` in `.env` (also a GitHub Actions variable) and the server directory is `~/server`. RCON is never exposed publicly — it exists only inside the Docker network, reached via `docker exec`. Start with `./ops doctor` (full health triage) and `./ops stats` (system + container summary); `ssh -i ~/.ssh/mc_deploy_key deploy@SERVER` gets a shell, or runs a command directly when you append one. The `./ops` log and RCON equivalents are in [AGENTS.md § Production access](AGENTS.md#production-access).
 
 ### Reset the world (launch events)
 
-`./ops reset-seed <seed>` — backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates `SEED` in `.env`, and restarts. Triple-confirmed and prints undo instructions. Commit `.env` afterwards.
-
-`.env`'s `SEED` only reaches terrain when the overworld's dimension config has `"seed": "env"` — every dimension, base worlds included, generates from its own file under `config/custom-dimensions/dimensions/`. Put the seed there (or in the consumer overlay) and deploy it BEFORE running the reset, or the world regenerates with the old terrain under a new seed value that changed nothing. See [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31).
-
-## Contributing
-
-This is the platform repo. Contributors work here to improve the images, bundle scripts, default configs, and workflows that all consumers inherit.
-
-**Repo layout:** `docker/` contains Dockerfiles for all GHCR images. `scripts/` has the operational scripts shipped in the bundle plus template-only tooling. `config/` holds the default configs seeded by the `defaults-seed` image. `mods/` holds the in-house Fabric mods — changes there must go through the [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop) (build → inspect the remapped jar → local RCON exercise → soak timed paths) before a release ships them.
-
-**How defaults get released:** push to `main` triggers image builds. Cut a release with `vX.Y.Z` tag to publish the stack bundle and tag images. See the `platform-release-management` skill.
-
-**Local development:** platform changes are tested through a consumer repo linked to this checkout. Once linked, an edited script or compose file and every rebuilt in-house mod jar go live on the next `./dev up`, with no release:
-
-```bash
-# in the consumer repo (e.g. ~/Projects/elfydd), alongside this checkout
-./dev link                       # once — .stack/current -> this checkout
-./dev up
-./dev refresh-config             # only when a config/ file changed
-./dev unlink                     # back to the newest pulled release bundle
-```
-
-An edited `config/` file needs `./dev refresh-config`, because `./dev up` seeds `data/config/` skip-if-exists; content baked into the `defaults-seed` image (`config/nginx/`, `config/modrinth-mods.txt`) a link does not reach at all. The full workflow — in-house mod development, platform configs, and seed roller work — is in `.claude/skills/local-stack-testing/SKILL.md` § Linked local development. To run the stack straight from this checkout instead, use `docker compose --profile local up -d`; `./scripts/dev-up.sh` is not meant to be called directly (its path math assumes bundle nesting).
-
-**Quality gates:** `./scripts/test-scripts.sh --quick` (shellcheck, py_compile, compose validation). CI runs the same plus yamllint.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions, mod change checklists, and PR expectations.
+`./ops reset-seed <seed>` backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates `SEED` in `.env`, and restarts. Triple-confirmed, prints undo instructions; commit `.env` afterwards. But `.env`'s `SEED` only reaches terrain when the overworld's dimension config has `"seed": "env"` — every dimension, base worlds included, generates from its own file under `config/custom-dimensions/dimensions/`. Put the seed there (or in the consumer overlay) and deploy it BEFORE running the reset, or the world regenerates with the old terrain under a new seed value that changed nothing. See [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31).
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — the single source of truth for traps, platform quirks, and open issues, with a symptom index and permanent per-entry anchors.
+[TROUBLESHOOTING.md](TROUBLESHOOTING.md) is the single source of truth for traps, platform quirks, and open issues, with a symptom index and permanent per-entry anchors. Start any diagnosis with `./ops doctor`.
 
-## More documentation
+## Contributing
 
-| Topic                                    | Link                                           |
-| ---------------------------------------- | ---------------------------------------------- |
-| Deployment targets & backup alternatives | `server-provisioning` skill (§ Per-OS notes, § Home hosting) |
-| Security hardening                       | [SECURITY.md](SECURITY.md)                     |
-| Credentials & API tokens                 | `server-provisioning` skill (references/credentials.md) |
-| Server customisation                     | [CUSTOMISATION.md](CUSTOMISATION.md)           |
-| Releasing                                | `platform-release-management` skill (references/releasing-procedure.md) |
+Contributors work here to improve the images, bundle scripts, default configs, and workflows that every consumer inherits. Platform changes are tested through a consumer repo linked to this checkout (`./dev link`), so an edited script, compose file, or rebuilt mod jar goes live on the next `./dev up` with no release. Quality gate before pushing: `./scripts/test-scripts.sh --quick`. Commit conventions, the mod change checklist, and PR expectations: [CONTRIBUTING.md](CONTRIBUTING.md). Security policy: [SECURITY.md](SECURITY.md). Full history: [CHANGELOG.md](CHANGELOG.md) and the [release notes](../../releases).
 
-## Changelog
+**Fixed decisions:** Minecraft **1.21.1**, Fabric, Docker, conventional networking, Cloudflare HTTP tunnel only, Incendium-only Nether, restic to R2, guild-scoped Discord commands owned by discord-sync — each is load-bearing. Full list and rationale: [AGENTS.md](AGENTS.md#fixed-decisions-template-defaults).
 
-See [CHANGELOG.md](CHANGELOG.md) for a full history of changes, or check individual [release notes on GitHub](../../releases).
-
-## Fixed decisions
-
-Minecraft **1.21.1**, Fabric, Docker, conventional networking, Cloudflare HTTP tunnel only, Incendium-only Nether, restic to R2, guild-scoped Discord commands owned by discord-sync. See [AGENTS.md](AGENTS.md#fixed-decisions-template-defaults) for the full list and rationale.
-
-## Acknowledgements
-
-- [itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server) — the Docker image this project is built on
-
-This project is released under the [MIT Licence](LICENSE).
+Built on [itzg/docker-minecraft-server](https://github.com/itzg/docker-minecraft-server), and released under the [MIT Licence](LICENSE).

@@ -1,166 +1,98 @@
 # My Minecraft Server
 
-A consumer repo powered by [minecraft-server-template](https://github.com/piprees/minecraft-server-template).
-
-To get started, run `./ops setup` and follow the instructions carefully.
+A consumer repo powered by [minecraft-server-template](https://github.com/piprees/minecraft-server-template). Run `./ops setup` and follow it carefully: the wizard walks you through every credential (with the exact dashboard pages and settings), writes `.env`, and can take you from local test all the way to production.
 
 ## Quick start
 
 <!-- Maintainer note: keep this section to 3 commands maximum.
      Everything below here is optional for local-only development. -->
 
-The setup wizard walks you through every credential (with the exact dashboard pages and settings), writes `.env`, and can take you all the way from local test to production.
-
 Local-only alternative, if you'd rather fill the file in by hand:
 
 ```bash
 cp .env.example .env          # every variable documented in comments
-./dev up                       # pulls the stack bundle + starts everything
+./dev up                      # pulls the stack bundle + starts everything
 ```
 
-Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`). Add the `/etc/hosts` entries printed by `./dev up` for subdomain routing.
+Connect at `mc.<LOCAL_DOMAIN>:<SERVER_PORT>` (default `mc.myserver.local:25577`). Add the `/etc/hosts` entries `./dev up` prints for subdomain routing.
 
 ```bash
-./dev logs                     # tail the Minecraft server logs
-./dev rcon "list"              # run an RCON command
-./dev rcon                     # interactive RCON console
-./dev down                     # stop everything
-```
-
-### Build the client modpack
-
-```bash
-./dev pack                     # outputs to ./modpack-dist/
+./dev logs                    # tail the Minecraft server logs
+./dev rcon "list"             # RCON command ("./dev rcon" alone opens a console)
+./dev pack                    # build the client modpack into ./modpack-dist/
+./dev cache                   # snapshot Docker images, mod JARs, offline client bundles
+./dev down                    # stop everything
 ```
 
 ### Update the platform
 
-`STACK_VERSION` in `.env` pins the platform release: a major pin like `v2` floats on the latest `v2.x.y`, an exact pin (`v2.0.1`) holds it, and unset tracks the latest release. `./ops setup` records the line in use. To update:
+`STACK_VERSION` in `.env` pins the platform release: a major pin like `v2` floats on the latest `v2.x.y`, an exact pin (`v2.0.1`) holds it, and unset tracks the latest release. `./ops setup` records the line in use.
 
 ```bash
-./dev update                   # re-pulls the bundle + Docker images
-./dev up                       # restart with the new version
-./dev rollback                 # list available versions to roll back to
-./dev rollback v2.6.0          # revert to a specific version
+./dev update                  # re-pull the bundle + Docker images
+./dev up                      # restart on the new version
+./dev rollback                # list versions; "./dev rollback v2.6.0" reverts to one
+./ops sync                    # local down → update → .env to GitHub → server deploy → local up
 ```
-
-### Sync everything (local + server + GitHub)
-
-```bash
-./ops sync                     # stops local, updates bundle, syncs .env to GitHub, deploys to server, starts local
-```
-
-One command to bring local and production into alignment.
 
 ### Update your extra mods
 
 ```bash
-./dev pin                      # re-pin overlay/mods-extra.txt to latest builds
+./dev pin                     # re-pin overlay/mods-extra.txt to latest builds
 git diff overlay/mods-extra.txt
-./dev up                       # or push to main to deploy
+./dev up                      # or push to main to deploy
 ```
 
-The `Updates` workflow (`.github/workflows/update.yml`) does the same thing weekly and opens a PR with the diff, plus a note when a new stack release is available.
+The `Updates` workflow (`.github/workflows/update.yml`) does the same weekly and opens a PR with the diff, plus a note when a new stack release is available.
 
 ### Seed rolling
 
-Seed rolling is a browser tool the mod hosts: `./dev seeds` opens it. Roll candidate
-seeds for any dimension, look at their maps and scores, fly around the best two in a
-throwaway world, and pick one — the chosen seed (and where you were standing) is
-written into the dimension's overlay config.
-
-### Cache assets for offline use
-
-```bash
-./dev cache                    # snapshot Docker images, mod JARs, offline client bundles
-```
+`./dev seeds` opens the seed viewer the mod hosts. Roll candidate seeds for any dimension, compare their maps and scores, fly around the best two in a throwaway world, and pick one — the chosen seed (and where you were standing) is written into that dimension's overlay config.
 
 ## Going to production
 
 The `ops` script delegates to the bundle's operational scripts with your consumer environment loaded:
 
 ```bash
-./ops setup                    # interactive wizard: credentials -> .env
-./ops preflight                # validate everything before provisioning
-./ops provision                # create the cloud server (Hetzner by default)
-./ops harden                   # lock down SSH, firewall, fail2ban
-./ops prepare                  # deploy key, .env on server, GitHub env sync
-./ops cloudflare               # tunnel + DNS records + R2 bucket
-./ops update                   # pull latest bundle + images on server, restart
-./ops update v1.0.18           # pin to a specific release version
+./ops setup                   # interactive wizard: credentials → .env
+./ops preflight               # validate everything before provisioning
+./ops provision               # create the cloud server (Hetzner by default)
+./ops harden                  # lock down SSH, firewall, fail2ban
+./ops prepare                 # deploy key, .env on server, GitHub env sync
+./ops cloudflare              # tunnel + DNS records + R2 bucket
+./ops update                  # later: pull bundle + images on the server ("./ops update v1.0.18" pins)
 ```
 
-Then push to `main` -- the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the reusable workflow.
+Then push to `main` — the caller workflow in `.github/workflows/deploy.yml` handles CI/CD via the platform's reusable workflow.
 
-### Operations
-
-```bash
-./ops doctor                   # full production health triage
-./ops ssh                      # drop into server shell
-./ops rcon "list"              # RCON command (always targets production)
-./ops chunky                   # Chunky pre-generation status
-./ops status                   # all container statuses
-./ops live-logs mc --errors    # recent errors/warnings
-./ops backup                   # trigger an immediate backup
-./ops wipe-chunk --block -1808 -2832  # delete a region file (regenerates from seed)
-./ops reset-seed <seed>        # world reset (triple-confirmed, backs up first)
-```
-
-Run `./ops help` for the full list.
+Day to day: `./ops doctor` (full health triage — start here), `./ops ssh`, `./ops status`, `./ops logs mc --tail 200`, `./ops backup`, `./ops chunky`.
 
 ## Customising your server
 
-### Add a server mod
+### Mods
 
-Add a line to `overlay/mods-extra.txt`:
+Add server mods to `overlay/mods-extra.txt` (one `slug:versionId` per line, e.g. `tree-harvester:AANobbMI`); remove defaults by slug in `overlay/mods-remove.txt` (e.g. `distant-horizons`). Then `./dev up` locally, or push to `main`.
 
-```
-tree-harvester:AANobbMI
-```
+Every default mod is removable without breaking the boot — including the worldgen pair (Tectonic, Terralith): the platform's structure datapacks strip removed mods' overrides automatically, and the custom-dimension noise presets are self-contained. Two caveats: remove a mod's dependents with it (`fabric-seasons-terralith-compat` goes when `terralith` goes), and removing a worldgen mod changes NEW terrain only — existing chunks keep their shape and new ones generate with vanilla semantics, so expect borders. CI's smoke removal matrix guards this promise.
 
-Then `./dev up` (locally) or push to `main` (production).
+**Keep the CLIENT pack in sync.** The client manifest is yours (forked), and ~50 default mods are required on BOTH sides — removing one of those server-side while clients still carry it gets every player kicked at the Fabric handshake ("Incompatible mod set"). Per removed slug: check `_clientMods.required` in `modpack/adventure.mrpack.json`, remove it there too along with any client-only dependents (removing `trinkets` also takes `charm-of-undying` and `elytra-slot`), then rebuild the pack — the coherence check catches dangling dependencies, and the build warns when a slug in `mods-remove.txt` is still required client-side.
 
-### Remove a default mod
+### Config, worldgen, and branding
 
-Add the slug to `overlay/mods-remove.txt`:
+A file placed in `overlay/config/` at the same path as the platform's `config/` replaces that default. Changes under `overlay/` deploy as the infra tier on push — no server restart.
 
-```
-distant-horizons
-```
-
-Every default mod is removable without breaking the boot — including the worldgen pair (Tectonic, Terralith): the platform's structure datapacks strip removed mods' overrides automatically, and the custom-dimension noise presets are self-contained. Two caveats: remove a mod's dependents with it (e.g. `fabric-seasons-terralith-compat` goes when `terralith` goes), and removing a worldgen mod changes NEW terrain — existing chunks keep their shape, new chunks generate with vanilla semantics, so expect borders. CI's smoke removal matrix guards this promise.
-
-**Keep the CLIENT pack in sync.** The client manifest is yours (forked), and ~50 default mods are required on BOTH sides — removing one of those server-side while clients still carry it gets every player kicked at the Fabric handshake ("Incompatible mod set"). The pack build warns when a slug in `mods-remove.txt` is still in `_clientMods.required`. Checklist per removed slug:
-
-1. Is it in `_clientMods.required` in `modpack/adventure.mrpack.json`?
-2. If yes, remove it there too — along with any client-only dependents (e.g. removing `trinkets` also takes `charm-of-undying` and `elytra-slot`).
-3. Rebuild the pack; the coherence check catches dangling dependencies.
-
-### Override a config file
-
-Place the file in `overlay/config/` with the same path as the template's `config/` directory. Your file replaces the platform default.
-
-### Tune worldgen
-
-- **Terrain shape**: copy the platform's `config/tectonic.json` to `overlay/config/tectonic.json` and adjust the dials (keep every key — a partial file silently falls back to factory defaults). New chunks only; existing terrain keeps its shape.
-- **Structure frequency**: the platform ships a "sparse & natural" `structures` datapack. Swap preset with `cp -r .stack/current/stack/config/datapack-presets/dense/structures overlay/config/datapacks/structures` (or `sparse`); delete the overlay copy to return to default.
-- **Per-dimension character**: each dimension in the multiverse config accepts optional `"noiseSettings"` (`adventure:wide` / `adventure:compressed`) and `"structureDensity"` (`dense`/`normal`/`sparse`/`none`); dimensions with `"hostileSpawning": false` automatically lose dungeon-theme structures.
-- **Your own structure mods**: mods you add via `overlay/mods-extra.txt` keep their default spawn rates, and per-dimension density can't classify their structure sets until you theme them. Drop `overlay/config/structure_themes.json` mapping each set id to a theme (`dungeon`, `settlement`, `maritime`, `landmark`, `deco`, `loot`) — e.g. `{"somemod:big_dungeon": "dungeon"}` — and `structureDensity` plus the peaceful overlay apply to them too.
-
-### Rebrand
-
-Edit `.env`: `BRAND_NAME`, `BRAND_SLUG`, `MOTD`, `DISCORD_INVITE_URL`. Place custom assets in `overlay/assets/` (see `overlay/assets/README.md`).
-
-| File | What to customise |
+| Want | Do |
 | --- | --- |
-| `.env` | `BRAND_NAME`, `BRAND_SLUG`, `MOTD`, `DOMAIN`, `SEED`, spawn coords, Discord IDs |
-| `overlay/config/messages.json` | Player/Discord-facing messages, welcome pin |
-| `overlay/config/essentialcommands/rules.txt` | In-game `/rules` text |
-| `overlay/assets/` | icon.svg, logo.svg, cover.svg, favicon.svg |
+| Terrain shape | Copy the platform's `config/tectonic.json` to `overlay/config/tectonic.json` and adjust the dials — keep **every** key, a partial file silently falls back to factory defaults. New chunks only; existing terrain keeps its shape |
+| Structure frequency | `cp -r .stack/current/stack/config/datapack-presets/dense/structures overlay/config/datapacks/structures` (or `sparse`); delete the overlay copy to return to the shipped "sparse & natural" preset |
+| Per-dimension character | Optional `"noiseSettings"` (`adventure:wide` / `adventure:compressed`) and `"structureDensity"` (`dense`/`normal`/`sparse`/`none`) per dimension; `"hostileSpawning": false` also drops dungeon-theme structures |
+| Your own structure mods | They keep default spawn rates until themed: `overlay/config/structure_themes.json` maps each structure set id to a theme (`dungeon`, `settlement`, `maritime`, `landmark`, `deco`, `loot`) — e.g. `{"somemod:big_dungeon": "dungeon"}` — and then `structureDensity` plus the peaceful overlay apply to them |
+| Branding | `.env`: `BRAND_NAME`, `BRAND_SLUG`, `MOTD`, `DOMAIN`, `SEED`, spawn coords, Discord IDs; assets (icon/logo/cover/favicon SVG) in `overlay/assets/`, see `overlay/assets/README.md` |
+| Messages and rules | `overlay/config/messages.json` (player/Discord messages, welcome pin), `overlay/config/essentialcommands/rules.txt` (in-game `/rules`) |
 
-### Customise the web pages
+### Web pages
 
-All four surfaces ship with one shared dark palette and get the nav bar injected by the nav-proxy. To restyle them:
+All four surfaces ship with one shared dark palette and get the nav bar injected by the nav-proxy.
 
 | Surface | Override with | Notes |
 | --- | --- | --- |
@@ -169,117 +101,36 @@ All four surfaces ship with one shared dark palette and get the nav bar injected
 | `status.DOMAIN` (Uptime Kuma) | `overlay/config/uptime-kuma/kuma-config.json` | Full config replacement; copy the default from the template repo and edit `statusPage.customCSS` |
 | `map.DOMAIN` (world map) | rendered by the `unmined-render` sidecar | Static output; only the nav bar and viewer shell are ours |
 
-The nav bar itself lives in the template's `config/nginx/nav-proxy.conf` (platform-level; open an issue or PR there for structural changes).
+The nav bar itself lives in the template's `config/nginx/nav-proxy.conf.template` (platform-level; open an issue or PR there for structural changes).
 
-Changes under `overlay/` deploy as the infra tier on push — no server restart.
+### Client-side look
 
-### Loading screen
+| What | Where | Constraints |
+| --- | --- | --- |
+| Loading screen background | `overlay/modpack/overrides/configureddefaults/config/customsplashscreen/backgrounds/` | Several images there are picked from at random on startup ([Custom Splash Screen](https://modrinth.com/mod/custom-splash-screen)) |
+| Loading screen logo | `…/configureddefaults/config/customsplashscreen/square_logo.png` | Hidden by default; show it by creating `…/configureddefaults/config/customsplashscreen.json` containing `{"logoStyle": "Aspect1to1"}` |
+| Title screen panorama | `overlay/modpack/overrides/configureddefaults/resourcepacks/server-panorama/assets/minecraft/textures/gui/title/background/` | 6 **square** PNGs, `panorama_0`–`panorama_5` = South, West, North, East, Up, Down, captured at exactly 90° FOV (`fov:0.5`, `fovEffectScale:0.0`) — [capture guide](https://github.com/piprees/minecraft-server-template/blob/main/.claude/skills/consumer-customisation/references/panorama-capture.md) |
+| Starter kit | `overlay/config/starterkit/` | Arrange your inventory in-game exactly as the kit should be, run `/starterkit set` as an op, then copy the files out of `data/config/starterkit/` so they survive redeploys |
+| Resource packs | Declared in the template's manifest, auto-installed with the modpack | Enabled by exact filename in `modpack/overrides/configureddefaults/options.txt`; the build fails on an enabled filename that wasn't downloaded, so refresh it when a pack's version bumps |
 
-The client pack includes [Custom Splash Screen](https://modrinth.com/mod/custom-splash-screen) for a branded loading experience. Override the background image:
+Signs carrying place names show an on-screen title when a player enters the area ([Areas](https://modrinth.com/mod/areas)). The web map is a static render — terrain only, no live player positions — and stays online 24/7, even while the server is asleep.
 
-```
-overlay/modpack/overrides/configureddefaults/config/customsplashscreen/backgrounds/
-```
+## Commands
 
-Multiple images in the `backgrounds/` directory are randomly selected at startup. Override the logo:
+`./dev help` and `./ops help` list every command with a description. The ones worth knowing before you run them:
 
-```
-overlay/modpack/overrides/configureddefaults/config/customsplashscreen/square_logo.png
-```
-
-To show the logo (hidden by default), create `overlay/modpack/overrides/configureddefaults/config/customsplashscreen.json`:
-
-```json
-{
-  "logoStyle": "Aspect1to1"
-}
-```
-
-### Title screen panorama
-
-The template ships a `server-panorama` resource pack with default cubemap images. Override by dropping 6 cubemap face PNGs into:
-
-```
-overlay/modpack/overrides/configureddefaults/resourcepacks/server-panorama/
-└── assets/minecraft/textures/gui/title/background/
-    ├── panorama_0.png   (South)
-    ├── panorama_1.png   (West)
-    ├── panorama_2.png   (North)
-    ├── panorama_3.png   (East)
-    ├── panorama_4.png   (Up)
-    └── panorama_5.png   (Down)
-```
-
-Cubemap faces must be **square** screenshots at **exactly 90° FOV** (`fov:0.5` in options.txt) with `fovEffectScale:0.0`. See the [panorama capture guide](https://github.com/piprees/minecraft-server-template/blob/main/.claude/skills/consumer-customisation/references/panorama-capture.md) for the step-by-step process.
-
-### Area titles from signs
-
-Signs with place names show the text as an on-screen title when entering/leaving the area ([Areas](https://modrinth.com/mod/areas)).
-
-> The web map is a static render, so it shows terrain only — no live player positions or marker layers. It stays online 24/7, even while the server is asleep.
-
-### Starter kit
-
-The starter kit is handed to every new player by [Starter Kit](https://modrinth.com/mod/starter-kit). The easiest way to build a kit is **in-game**: arrange your inventory exactly as the kit should be, then run `/starterkit set` as an op. Copy the resulting files from `data/config/starterkit/` into `overlay/config/starterkit/` so they survive redeploys.
-
-### Resource packs
-
-Resource packs are declared in the template's manifest and auto-install with the modpack. They're **enabled by exact filename** in `modpack/overrides/configureddefaults/options.txt` — the build fails if an enabled filename doesn't match a downloaded pack (prevents silently disabled packs after version bumps).
-
-## Command reference
-
-### `./dev` (local development)
-
-| Command                   | Description                                                                        |
-| ------------------------- | ---------------------------------------------------------------------------------- |
-| `./dev up`                | Start the local dev stack                                                          |
-| `./dev down`              | Stop the local dev stack                                                           |
-| `./dev logs`              | Tail the Minecraft server logs                                                     |
-| `./dev rcon "list"`       | Run an RCON command locally                                                        |
-| `./dev rcon`              | Interactive RCON console                                                           |
-| `./dev pack`              | Build the client modpack into `./modpack-dist/`                                    |
-| `./dev pin`               | Re-pin `overlay/mods-extra.txt` to latest mod builds                               |
-| `./dev update`            | Pull the latest stack bundle + Docker images                                       |
-| `./dev link [path]`       | Point `.stack/current` at a platform checkout (default `../minecraft-server-template`). Run **once**: the farm is built from symlinks, so an edited script or compose file and every rebuilt mod jar go live on the next `./dev up` with no re-link (a `config/` edit also needs `./dev refresh-config`). Local only; deploys refuse it |
-| `./dev unlink`            | Restore the newest pulled release bundle after `./dev link` (`./dev pull`, `./dev update` and `./dev rollback` also undo a link) |
-| `./dev seeds`             | Open the seed viewer (hosted by the `mc` container on `SEED_VIEWER_PORT`, default 8765) |
-| `./dev reset-world`       | Delete the LOCAL world + player data (the same set `./ops reset-seed` deletes on production); keeps `.env`, mods, config, overlay and the seed bank |
-| `./ops sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
-| `./dev verify`            | Print where dimension/portal/suppress-list verification lives now (boot WARN, load-time validation, `customdim lint`) |
-| `./dev refresh-config`    | Force-refresh platform config defaults into `data/config` (backs up first)          |
-| `./dev cache`             | Snapshot Docker images, mod JARs, offline client bundles                           |
-| `./dev start <service>`   | Start a stopped local service                                                      |
-| `./dev stop <service>`    | Stop a running local service                                                       |
-| `./dev restart <service>` | Force-recreate a local service                                                     |
-| `./dev status`            | Show all local container statuses                                                  |
-
-### `./ops` (production)
-
-| Command                        | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `./ops setup`                  | Interactive wizard: credentials, .env, deploy             |
-| `./ops preflight`              | Validate everything before provisioning                   |
-| `./ops provision`              | Create the cloud server                                   |
-| `./ops harden`                 | Lock down SSH, firewall, fail2ban                         |
-| `./ops prepare`                | Deploy key, .env on server, GitHub env sync               |
-| `./ops cloudflare`             | Tunnel + DNS records + R2 bucket                          |
-| `./ops update`                 | Pull latest bundle + images on server, restart            |
-| `./ops doctor`                 | Full production health triage                             |
-| `./ops ssh`                    | Drop into server shell                                    |
-| `./ops ssh '<command>'`        | Run a one-shot command on the server                      |
-| `./ops rcon "list"`            | RCON command (always targets production)                  |
-| `./ops chunky`                 | Chunky pre-generation status                              |
-| `./ops status`                 | All container statuses                                    |
-| `./ops logs mc --tail 200`     | Recent log snapshot                                       |
-| `./ops stats --once`           | System + container stats snapshot                         |
-| `./ops backup`                 | Trigger an immediate backup                               |
-| `./ops wipe-chunk --block X Z` | Delete a region file (regenerates from seed)              |
-| `./ops reset-seed <seed>`      | World reset (triple-confirmed, backs up first)            |
-| `./ops github-env-sync`        | Push local .env to GitHub production environment          |
-| `./ops start <service>`        | Start a stopped production service                        |
-| `./ops stop <service>`         | Stop a running production service                         |
-| `./ops restart <service>`      | Force-recreate a production service                       |
-| `./ops map render`             | Force a full map re-render (normal updates are automatic) |
+| Command | What to know |
+| --- | --- |
+| `./dev link [path]` | Point `.stack/current` at a platform checkout (default `../minecraft-server-template`). Run **once**: the farm is symlinks, so an edited script or compose file and every rebuilt mod jar go live on the next `./dev up`. A `config/` edit also needs `./dev refresh-config`. Local only — deploys refuse it |
+| `./dev unlink` | Restore the newest pulled release bundle (`./dev pull`, `update` and `rollback` also undo a link) |
+| `./dev refresh-config` | Force-refresh platform config defaults into `data/config` (backs up first; your overlay still wins) |
+| `./dev reset-world` | Delete the LOCAL world + player data — the same set `./ops reset-seed` deletes on production. Keeps `.env`, mods, config, overlay and the seed bank |
+| `./ops rcon "list"` | Always targets production (`./dev rcon` is the local one) |
+| `./ops restart <service>` | Force-recreates that service |
+| `./ops map render` | Force a full map re-render; normal updates are automatic |
+| `./ops wipe-chunk --block X Z` | Delete a region file so it regenerates from the seed |
+| `./ops reset-seed <seed>` | World reset: triple-confirmed, backs up first |
+| `./ops teardown` | Destroys your cloud resources |
 
 For in-game commands, RCON recipes, Discord `/mc` commands, and the LuckPerms permission model, see the [Commands reference](https://github.com/piprees/minecraft-server-template/blob/main/COMMANDS.md).
 

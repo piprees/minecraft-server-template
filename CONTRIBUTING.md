@@ -1,159 +1,80 @@
 # Contributing
 
-This is a Minecraft server template built as infrastructure-as-code. Bug fixes, setup improvements, and useful features are all welcome.
+Bug fixes, setup improvements, and useful features are all welcome.
 
 ## Before you start
 
-1. **Read the docs.** [`README.md`](README.md) has the architecture and quickstart; [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) has every known problem; [`AGENTS.md`](AGENTS.md) has the constraints and architecture traps that apply to every change.
-2. **Check existing issues** for related discussion before opening a new one.
-3. **For large changes**, open an issue first to discuss the approach. Small bug fixes and documentation improvements can go straight to a PR.
+Read [`README.md`](README.md) (architecture, quickstart), [`AGENTS.md`](AGENTS.md) (constraints and architecture traps), and [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) (every known problem). Check existing issues before opening one. Open an issue first for a large change; small bug fixes and docs can go straight to a PR.
 
 ## Which workflow am I in?
 
-- **Platform contributor** (you cloned this repo to improve scripts, configs, images, or workflows):
-  Create a consumer repo alongside this checkout (copy `examples/consumer/` or use an existing one like `elfydd`). Platform changes are tested through the consumer's stack — the same way a real consumer uses them:
-  ```bash
-  # In your consumer repo:
-  cp .env.example .env
-  ./dev link                # once: point .stack/current at this checkout
-  ./dev up                  # starts everything from the checkout, no release needed
-  ```
-  `./dev link` builds a farm of symlinks over the checkout, so an edited script or compose file — and every rebuilt in-house mod jar — is live on the next `./dev up`. An edited `config/` file needs `./dev refresh-config` as well, and content baked into the `defaults-seed` image (`config/nginx/`, `config/modrinth-mods.txt`) a link does not reach at all. `link` is run **once** per consumer; `./dev unlink` restores the newest pulled release bundle. Full workflow: `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
+Most people reading this are platform contributors — it lives in the platform repo. If you're in a consumer repo, read that repo's README instead.
 
-  Do not run `./scripts/dev-up.sh` directly from a platform checkout — its path math assumes bundle nesting and resolves incorrectly.
-- **Consumer contributor** (you cloned a consumer repo to add mods or overlays):
-  ```bash
-  cp .env.example .env
-  ./dev up
-  ```
+**Platform contributor** (improving scripts, configs, images, or workflows): platform changes are tested through a consumer repo — copy `examples/consumer/`, or use an existing one — the same way a real consumer uses them.
 
-Most people reading this file are platform contributors — it lives in the platform repo. If you're working in a consumer repo, see that repo's README instead.
+```bash
+# in the consumer repo:
+cp .env.example .env
+./dev link                # once: point .stack/current at this checkout
+./dev up                  # starts everything from the checkout, no release needed
+```
 
-The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account.
+`./dev link` builds a farm of symlinks over the checkout, so an edited script or compose file — and every rebuilt in-house mod jar — is live on the next `./dev up`. An edited `config/` file also needs `./dev refresh-config`; content baked into the `defaults-seed` image (`config/nginx/`, `config/modrinth-mods.txt`) a link doesn't reach at all. `./dev unlink` restores the newest pulled release bundle. Full workflow: `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
 
-**Note:** `build-stack-bundle.sh` uses GNU tar for reproducible bundles. On macOS, `brew install gnu-tar` provides `gtar`; without it, locally-built bundles won't byte-match CI's output (harmless — CI does the real build on Linux).
+**Never run `./scripts/dev-up.sh` directly from a platform checkout** — its path math assumes bundle nesting and resolves incorrectly.
+
+**Consumer contributor** (adding mods or overlays): `cp .env.example .env` then `./dev up`.
+
+The local profile disables online-mode and whitelist, so you can connect at `localhost:25577` without a Microsoft account. `build-stack-bundle.sh` uses GNU tar for reproducible bundles — on macOS `brew install gnu-tar` provides `gtar`; without it locally-built bundles won't byte-match CI's output (harmless, CI does the real build).
 
 ## Quality gates
 
-Lefthook runs the static checks below automatically before commits that change scripts, Docker entrypoints, Compose, or CI configuration. Install the repository hook once after cloning:
-
 ```bash
-lefthook install
+lefthook install                   # once after cloning — runs the checks pre-commit
+./scripts/test-scripts.sh --quick  # the same gate by hand, before opening a PR
 ```
 
-Run the same gate manually before opening a PR:
+ShellCheck (severity: warning) on all scripts, Docker entrypoints, and consumer dispatchers; `py_compile` on Python scripts; `docker compose config` on both profiles; yamllint against [`.yamllint.yml`](.yamllint.yml). Every issue fails the gate — no static check is downgraded to a warning. CI runs the same plus bundle-reference and Python dependency checks, and PRs that fail lint won't be merged.
 
-```bash
-./scripts/test-scripts.sh --quick
-```
+## Conventions
 
-This checks:
-
-- **ShellCheck** (severity: warning) on all scripts, Docker entrypoints, and consumer dispatchers
-- **py_compile** on all Python scripts
-- **docker compose config** validation for both profiles
-- **yamllint** using [`.yamllint.yml`](.yamllint.yml)
-
-The quick gate fails on every issue; it never turns a failed static check into a warning. CI runs the same checks and also verifies bundle references and Python dependency health. PRs that fail lint won't be merged.
-
-## Commit conventions
-
-Use [conventional commits](https://www.conventionalcommits.org/) with imperative mood:
-
-```
-feat: add Terralith biome presets to seed scorer
-fix: handle RCON timeout during autopause
-chore: update mod pinned versions
-docs: clarify Discord bot setup steps
-ci: align checkout action to v7
-```
-
-Common prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `refactor:`, `style:`, `test:`.
-
-## Style guide
-
-- British English in all user-facing strings, docs, and commit messages (colour, behaviour, initialise).
-- Second-person imperative for instructions ("Run", "Edit", "Add"). Present tense for descriptions ("The seed container resolves pins"). Blunt warnings with no softening ("Never", "Don't", "This will break").
-- Shell scripts use `#!/usr/bin/env bash` + `set -euo pipefail`. Must run on macOS bash 3.2 (no `declare -A`, no `${var,,}`, no `|&`). Idempotent - safe to run twice.
-- Player-facing messages all live in `config/messages.json`. Never hard-code user-facing strings in scripts.
-- Docker Compose values come from `.env`. No hard-coded values in `docker-compose.yml`.
+- [Conventional commits](https://www.conventionalcommits.org/), imperative mood: `feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `refactor:`, `style:`, `test:` — e.g. `fix: handle RCON timeout during autopause`.
+- British English in all user-facing strings, docs, and commit messages (colour, behaviour, initialise). Second-person imperative for instructions, present tense for descriptions, blunt warnings with no softening ("Never", "Don't", "This will break").
+- Shell scripts: `#!/usr/bin/env bash` + `set -euo pipefail`, idempotent, and macOS bash 3.2 compatible (no `declare -A`, no `${var,,}`, no `|&`). Full rules: [AGENTS.md § Conventions](AGENTS.md#conventions).
+- Player-facing messages live in `config/messages.json` and Compose values come from `.env`. Never hard-code either.
 
 ## Adding or removing mods
 
-This is the most common type of change and the one most likely to break things. Follow this checklist:
-
-### Dependency checklist (mandatory)
-
-Before adding any mod, resolve its dependencies:
+The most common change, and the one most likely to break things. Resolving a mod's dependencies before you add it is **mandatory**:
 
 ```bash
 # 1. List dependencies for 1.21.1 Fabric
 curl -s "https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%221.21.1%22%5D&loaders=%5B%22fabric%22%5D" \
   | python3 -c "import sys,json; [print(f'  {d[\"project_id\"]} ({d[\"dependency_type\"]})') for v in json.load(sys.stdin)[:1] for d in v.get('dependencies',[])]"
-
 # 2. Resolve each project_id to a slug
 curl -s "https://api.modrinth.com/v2/project/{project_id}" \
   | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['slug'], d['title'])"
 ```
 
-### What to edit
+Every required dependency must already be in the pack or be added alongside; libraries (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional. Verify the resolved version really targets 1.21.1 — Modrinth metadata is sometimes wrong — then pin with `./scripts/pin-mod-versions.sh --apply`. All worldgen/dimension mods must be present from chunk zero. Version holds and pack manifests: [AGENTS.md § Mods](AGENTS.md#mods).
 
 | What | Edit | Then |
 | --- | --- | --- |
-| Server mod | `config/modrinth-mods.txt` (format `slug:versionId`, `?` suffix = optional) | Push to `main` (triggers full deploy) |
+| Server mod | `config/modrinth-mods.txt` (`slug:versionId`, `?` suffix = optional) | Push (full deploy) |
 | Client mod | `modpack/adventure.mrpack.json` (`_clientMods.required` / `.optional`) | Push (CI rebuilds `.mrpack`) |
-| Datapack | `config/modrinth-mods.txt` with `datapack:` prefix, or drop into `config/datapacks/` | Push (full deploy) |
+| Datapack | `config/modrinth-mods.txt` with `datapack:` prefix, or `config/datapacks/` | Push (full deploy) |
 
-### Rules
+A mod with server-side config needs **two** places: the files in `config/<modname>/`, and a `COPY` line in `docker/defaults-seed/Dockerfile` — without it the config never reaches a consumer. Seeding itself is automatic; see [AGENTS.md § Config sync](AGENTS.md#config-sync).
 
-- Every required dependency must already be in the pack or be added alongside.
-- Library dependencies (`fabric-api`, `yungs-api`, `moonlight`, `balm`, `lithostitched`, `fabric-language-kotlin`) go in required, never optional.
-- Verify the resolved version actually targets 1.21.1 - Modrinth metadata isn't always accurate.
-- After adding, pin versions: `./scripts/pin-mod-versions.sh --apply`.
-- All worldgen/dimension mods must be present from chunk zero - adding them to an existing world causes visible chunk borders.
+## Pull requests
 
-## Pull request expectations
-
-- One logical change per PR. If your change touches mods _and_ scripts, that's fine as long as they're related.
-- Include a brief description of what changed and why.
-- If your change affects deployment (new env vars, new services, config changes), note which deploy tier it triggers (full/infra/pull - see [README.md](README.md#deploy-to-production)).
-- Screenshots or logs for UI changes or bug fixes are appreciated.
-- Keep PRs small. Large refactors should be discussed in an issue first.
-
-## Config sync
-
-If you add a mod with server-side configuration, you need to touch two places:
-
-1. Config files in `config/<modname>/`
-2. A `COPY` line in `docker/defaults-seed/Dockerfile` so the seed image carries the default (without it the config never reaches a consumer)
-
-Config seeding is handled automatically by `deploy.sh` step 8 — it copies all files from the bundle's `config/` into `data/config/` (skip-if-exists for defaults, force-overwrite for consumer overlay). This runs before mc starts so mods don't create their own defaults first.
+- One logical change per PR. Keep it small — discuss large refactors in an issue first.
+- Say what changed and why, and name the deploy tier if the change affects deployment (new env vars, services, configs — see the [tier table](README.md#deploy-to-production)).
+- Screenshots or logs for UI changes and bug fixes are appreciated.
+- Maintained by one person: straightforward changes with green CI usually turn around fast, and the maintainer may squash-merge with a conventional commit message. If CI fails, fix the flagged annotations and push again — CI re-runs automatically.
 
 ## Good first contributions
 
-Not sure where to start? These are low-risk and always welcome:
+Documentation fixes (typos, clarifications, dead links), adding a mod to `config/modrinth-mods.txt` (checklist above), ShellCheck fixes, issue-template improvements. Look for issues labelled `good first issue` or `help wanted`.
 
-- Documentation improvements (typos, clarifications, dead links)
-- Adding a mod to `config/modrinth-mods.txt` (follow the dependency checklist above)
-- Shell script linting fixes flagged by ShellCheck
-- Improving issue templates
-
-Look for issues labelled `good first issue` or `help wanted`.
-
-## After you open a PR
-
-This is maintained by one person — response times vary, but straightforward changes with green CI typically get a fast turnaround. The maintainer may squash-merge with a conventional commit message.
-
-If CI fails, fix the issues flagged in the annotations (click them for exact locations), push again, and CI re-runs automatically. Quick local check: `./scripts/test-scripts.sh --quick`.
-
-## Reporting issues
-
-Use the issue templates:
-
-- **Bug report** - something is broken
-- **Config / setup help** - you're stuck getting the server running
-- **Mod request** - suggest a mod to add to the pack
-
-## Code of Conduct
-
-This project follows the [Contributor Covenant 2.1](CODE_OF_CONDUCT.md). Be kind.
+Report problems with the issue templates: **bug report** (something is broken), **config / setup help** (stuck getting the server running), **mod request**. This project follows the [Contributor Covenant 2.1](CODE_OF_CONDUCT.md) — be kind.

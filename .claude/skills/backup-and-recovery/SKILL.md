@@ -61,7 +61,7 @@ docker logs mc-backup --tail 50                 # verify — look for "snapshot 
 
 ## Restoring from backup
 
-Full step-by-step procedure with a verification point after each step: **`references/restore-procedure.md`**. Read it before touching `data/` on the server — the README's version of this procedure has no verification steps at all, which is exactly where a restore silently goes wrong.
+Full step-by-step procedure with a verification point after each step: **`references/restore-procedure.md`**. Read it before touching `data/` on the server. It is the only copy of the procedure, and its verification points are where a restore otherwise goes silently wrong.
 
 Summary of the shape (do not skip the reference file's detail): stop the stack → export `RESTIC_REPOSITORY`/credentials → `restic snapshots --latest 5` (confirm you're targeting the right snapshot) → `restic restore <id> --target /tmp/mc-restore` → **inspect the restored tree before touching `data/`** → `rsync -av /tmp/mc-restore/data/ ./data/` → remove the temp dir → bring the stack back up → verify via RCON. Pause for human confirmation before the `rsync` step — it's the point of no return for whatever is currently in `data/`.
 
