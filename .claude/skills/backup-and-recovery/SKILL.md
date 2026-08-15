@@ -44,7 +44,7 @@ unmined-web, mods, libraries, versions, logs, crash-reports,
 kuma, DistantHorizons.sqlite, poi, ledger.sqlite, dynamic-data-pack-cache, .fabric
 ```
 
-Restic's `EXCLUDES` patterns match by name at any depth, not just at the top of `/data` — a bare name like `DistantHorizons.sqlite` excludes it in `data/world/data/`, `data/world/DIM1/data/`, and every custom dimension's `dimensions/<ns>/<slug>/data/` copy in one entry. Confirmed via `docker exec mc-backup restic ls latest --long | grep -i distanthorizons` returning nothing on a world with Distant Horizons enabled in four dimensions.
+Restic's `EXCLUDES` patterns match by name at any depth, not just at the top of `/data` — a bare name like `DistantHorizons.sqlite` excludes it in `data/world/data/`, `data/world/DIM1/data/`, and every custom dimension's `dimensions/<ns>/<slug>/data/` copy in one entry. Verify with `docker exec mc-backup restic ls latest --long | grep -i distanthorizons` — it should return nothing even with Distant Horizons enabled across multiple dimensions.
 
 After a restore, the map is blank, mods are missing from `data/mods/`, Kuma history is gone, and Distant Horizons/POI/ledger caches are empty. **This is correct, not a failed restore** — the map re-renders, mods re-download via `sync-mods.sh`, DH/POI/ledger regenerate from the restored world on next boot. Don't restart triage on a blank map after a restore; confirm the world/playerdata/config are actually present first.
 

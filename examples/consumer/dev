@@ -310,16 +310,16 @@ case "$CMD" in
   reset-world)
     # Local sibling of ./ops reset-seed: stops the stack and deletes the
     # SAME set production deletes. data/world/ alone carries the terrain,
-    # player data, DH cache, POI, and ledger for every dimension (confirmed
-    # against a live server's layout, 2026-08-15 — playerdata/stats/
-    # advancements/DIM-1/DIM1/dimensions/DistantHorizons.sqlite/poi/
-    # ledger.sqlite/level.dat all live UNDER data/world/, not beside it).
-    # Also deletes map renders, Chunky state, dynamic-data-pack-cache, the
-    # portal/fingerprint state files that describe the destroyed world, and
-    # (deploy.sh-only in production, so nothing to delete here) the
-    # per-dimension deploy-setup markers. Keeps .env, mods, data/config
-    # (aside from the world-specific files above), overlay/ and the seed
-    # bank. Change SEED in .env before ./dev up if a new seed is wanted.
+    # player data, DH cache, POI, and ledger for every dimension —
+    # playerdata/stats/advancements/DIM-1/DIM1/dimensions/
+    # DistantHorizons.sqlite/poi/ledger.sqlite/level.dat all live UNDER
+    # data/world/, not beside it. Also deletes map renders, Chunky state,
+    # dynamic-data-pack-cache, and the portal/fingerprint state files that
+    # describe the destroyed world. (deploy.sh-only in production, so
+    # nothing to delete here): the per-dimension deploy-setup markers.
+    # Keeps .env, mods, data/config (aside from the world-specific files
+    # above), overlay/ and the seed bank. Change SEED in .env before
+    # ./dev up if a new seed is wanted.
     ensure_env
     ensure_stack
     echo "This deletes the LOCAL world and player data under $CONSUMER_DIR/data."

@@ -143,9 +143,9 @@ else
   COMPOSE_ERRORS=$((COMPOSE_ERRORS + 1))
 fi
 # The line above does NOT read docker-compose.local.yml — compose auto-loads
-# docker-compose.override.yml and nothing else, so the local override shipped
-# unparseable in v5.5.0 while both checks above were green. dev-up.sh merges
-# both files, so validate the same pair it runs.
+# docker-compose.override.yml and nothing else, so a syntax error in the
+# local override passes both checks above undetected. dev-up.sh merges both
+# files, so validate the same pair it runs.
 if docker compose -f docker-compose.yml -f docker-compose.local.yml --profile local config --quiet; then
   echo "  ✓ Local profile + local override valid"
 else

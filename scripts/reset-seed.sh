@@ -271,11 +271,9 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${B
   --exclude='data/dynamic-data-pack-cache' \
   --exclude='data/kuma' \
   data/" || TAR_STATUS=$?
-# The DH/poi/ledger excludes above are paths INSIDE data/world/ (confirmed
-# against a live server, 2026-08-15) — data/DistantHorizons.sqlite and
-# data/poi at the top level of data/ don't exist, so a tar --exclude naming
-# them silently excludes nothing and the archive used to carry a multi-GB
-# DistantHorizons.sqlite it never needed to.
+# The DH/poi/ledger excludes above are paths INSIDE data/world/, not at the
+# top level of data/ — a tar --exclude naming a nonexistent top-level path
+# silently excludes nothing.
 if [[ "$TAR_STATUS" -ge 2 ]]; then
   echo "ERROR: tar failed (exit ${TAR_STATUS}). Refusing to delete the world without a backup."
   echo "       The stack is stopped. Bring it back with:"
@@ -300,9 +298,8 @@ echo "==> Deleting world and player data on the droplet..."
 # dimensions/<ns>/<slug>/ (every custom dimension incl. paradise_lost),
 # playerdata/stats/advancements, modplayerdata, essentialcommands,
 # ec_player_profiles, and data/world/data/ (openpartiesandclaims claims,
-# DistantHorizons.sqlite, poi, ledger.sqlite, level.dat) — confirmed against
-# a live server's directory layout, 2026-08-15. Everything else here is a
-# genuinely separate top-level path.
+# DistantHorizons.sqlite, poi, ledger.sqlite, level.dat). Everything else
+# here is a genuinely separate top-level path.
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
   sudo rm -rf data/world/; \
   sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html data/unmined-web/manifest.json; \

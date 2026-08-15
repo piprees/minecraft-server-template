@@ -62,12 +62,9 @@ services:
         echo 'nav-proxy: no seeds template in the config volume, skipping the seed roller surface'; } &&
         exec /docker-entrypoint.sh nginx -g 'daemon off;'
     environment:
-      # dev-up.sh prints /etc/hosts entries for *.LOCAL_DOMAIN, but nav-proxy
-      # rendered its server_name from DOMAIN — the PRODUCTION domain — so no
-      # local Host matched any block and every surface fell through to the
-      # first one. Locally that made map, status, pack and mods all serve the
-      # world map. The server names must be built from the domain the browser
-      # actually sends.
+      # nav-proxy's server_name blocks match against DOMAIN, but dev-up.sh's
+      # /etc/hosts entries and the browser both use *.LOCAL_DOMAIN — override
+      # so server_name matches the Host the browser actually sends.
       DOMAIN: ${LOCAL_DOMAIN:-${DOMAIN:-localhost}}
       # Local is plain http on the published WEB_PORT, so every absolute nav
       # link needs both — with the cloud defaults the whole nav is dead
