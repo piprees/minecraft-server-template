@@ -10,9 +10,7 @@
     "fabric-loader": "0.19.3"
   },
   "_comment": "This manifest is the source for build-modpack.sh. The 'files' array is populated at build time from the client mod list below. Only 'both' and 'client' side mods go in the pack - server-only mods are excluded.",
-  "_holds": {
-    "c2me-fabric": "0.4.0-alpha.0.21 wedges fresh-world creation: the Server thread parks forever in getChunkBlocking while locating spawn (chunk future never completes; verified via thread dump 2026-07-22 on a full local world wipe). Hold at 0.4.0-alpha.0.19 (GC7ouKxZ) until a later alpha survives a fresh-world boot end to end. The failure is a HANG, not a crash, so a smoke test cannot be trusted to surface it on a reduced config \u2014 clearing this hold needs a deliberate full fresh-world boot."
-  },
+  "_holds": {},
   "_clientMods": {
     "_comment": "Modrinth slugs for mods that clients need (side=both or side=client). build-modpack.sh resolves these to download URLs and populates 'files'.",
     "required": [
