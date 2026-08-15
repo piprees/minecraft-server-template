@@ -2,7 +2,7 @@
 # Re-pin: ./scripts/pin-mod-versions.sh --version 1.21.1
 
 # === core / performance ===
-fabric-api:aUrTRV7H
+fabric-api:Nlt8gI9z
 fabric-language-kotlin:bdhiINYC
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
@@ -76,7 +76,7 @@ dungeons-and-taverns:EUlNXs9V
 # === boss dungeons & extra structures ===
 deadly-deadly-dungeon:MlHPA0g5
 adventure-dungeons:EIun1fbq
-epic-structures-dungeons:enEtoyym
+epic-structures-dungeons:xR2jWhmr
 dungeons+:m8RPwRlg
 dungeonsreborn:PIK4U4ip
 datapack:ati-structures-fabricforge:K7cpaKjN  # ATI structures, ruins, towers, camps
@@ -88,9 +88,9 @@ mss-moogs-soaring-structures:i1RQPVjQ
 mtr-moogs-temples-reimagined:pI3PZZrR
 
 # === mobs & animals ===
-friends-and-foes:SJvhiYGe
+friends-and-foes:UaBxLkkc
 untitled-duck-mod:1iG0fXae
-critters-and-companions:YuM4Jtu5
+critters-and-companions:p19ZPlZD
 creeper-overhaul:O6yuPiE8
 
 # === villager overhaul ===
@@ -109,9 +109,9 @@ villagerapi:5cNuAKiT
 terrablender:XNtIBXyQ
 collective:4XRlrKGN
 cristel-lib:K1dyr5gj
-architectury-api:Wto0RchG
+architectury-api:Pzc2FP5K
 forge-config-api-port:N5qzq0XV
-moonlight:OtIOgMN8
+moonlight:hveZJByF
 kambrik:eMIEIbFZ
 playeranimator:CkedfDp3
 almanac:hUgNmeCO
@@ -137,7 +137,7 @@ inmis:iE11BIfP
 # === variety ===
 immersive-armors:4m0lwLNO
 3d-placeable-food:F9DGEOfs
-supplementaries:kVl8AtPd
+supplementaries:9UlfVS6z
 natures-spirit:TRMapjpU
 macaws-bridges:pl1CA7dW
 macaws-doors:Zsfvgzu6
@@ -148,7 +148,7 @@ chipped:6h2mVZcb
 dramatic-doors:X5oMCwaA
 # universal-sawmill: provides the woodworks:sawmill recipe type dramatic-doors
 # references (kills the boot recipe-parse errors). Dep: moonlight (present).
-universal-sawmill:xpemrBXJ
+universal-sawmill:1Z66lBRN
 farmers-delight-refabricated:NCLOIK5z
 appleskin:b5ZiCjAr
 
@@ -164,9 +164,9 @@ pause-day-cycle:KQWm3NrZ
 
 # === quality of life ===
 fallingtree:wxGXaJMA
-carry-on:eFWFmwmL
+carry-on:iDV62vEU
 bountiful:LFm1BWOE
-lootr:uapIrG9e
+lootr:VYbLUFAk
 better-combat:JJQpBecL
 stack-refill:5RkgQCwL
 softer-hay-bales:RnWSv8yZ
@@ -227,8 +227,8 @@ sound-physics-remastered:tVu2EZ4u
 
 # === admin / community ===
 luckperms:l47d4ZWk
-open-parties-and-claims:cNfQARzn
-simple-voice-chat:jd1cFrJn
+open-parties-and-claims:rUrxgVyp
+simple-voice-chat:VS5X7jZd
 ledger:t1AtqfxZ
 styled-chat:4e1xZSk3
 essential-commands:kev3hDqV
