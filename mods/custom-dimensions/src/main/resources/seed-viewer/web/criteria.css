@@ -8,19 +8,18 @@
 
 /* dartboard.js builds this button in JS and app.css only positions the two
  * that are authored in the template, so it was landing wherever the flow
- * left it — floating over the middle of the map. Same corner treatment as
- * its siblings. */
+ * left it — floating over the middle of the map. Same corner and same size
+ * as .lb-structs-toggle, which sits along the bottom edge beside it. */
 #lightbox .lb-image .lb-dart-toggle {
   position: absolute;
-  right: 0.6rem;
-  top: 0.6rem;
+  left: 0.6rem;
+  bottom: 0.6rem;
   /* app.css pins this class on all four edges, so setting only two stretched
      it across the whole map. */
-  left: auto;
-  bottom: auto;
+  right: auto;
+  top: auto;
   z-index: 3;
-  font-size: 0.72rem;
-  line-height: 1.1;
+  font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   border: 1px solid var(--edge, #272c35);

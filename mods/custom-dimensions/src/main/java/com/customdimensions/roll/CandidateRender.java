@@ -816,7 +816,7 @@ public final class CandidateRender {
     }
 
     /** What this dimension's empty columns are looking down into. */
-    static int voidColourFor(DimensionConfig def) {
+    public static int voidColourFor(DimensionConfig def) {
         String type = def.getType() == null ? "" : def.getType().toLowerCase(java.util.Locale.ROOT);
         if (type.startsWith("nether")) {
             return VOID_NETHER;

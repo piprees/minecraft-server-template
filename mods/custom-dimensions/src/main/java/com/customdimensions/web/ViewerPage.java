@@ -47,6 +47,20 @@ public final class ViewerPage {
                 + escape(roleTitle(role)) + "'>" + role.badge() + "</span>";
     }
 
+    /**
+     * The colour behind this dimension's map: its configured sky, or what its
+     * empty columns look down into when it declares none.
+     */
+    private static String skyColour(DimensionConfig def) {
+        DimensionConfig.Environment env = def.getEnvironment();
+        if (env != null && env.skyColor != null && !env.skyColor.isBlank()) {
+            String raw = env.skyColor.trim();
+            return raw.startsWith("#") ? raw : "#" + raw;
+        }
+        return String.format(Locale.ROOT, "#%06x",
+                com.customdimensions.roll.CandidateRender.voidColourFor(def) & 0xFFFFFF);
+    }
+
     /** What a badge means, spelled out — an emoji alone is a guess. */
     private static String roleTitle(SeedRoster.Role role) {
         switch (role) {
@@ -163,6 +177,7 @@ public final class ViewerPage {
                 .append("' data-cands='").append(v.banked())
                 .append("' data-shortlisted='").append(anyShortlisted ? 1 : 0)
                 .append("' data-pinned='").append(v.picked() ? 1 : 0)
+                .append("' data-sky='").append(escape(skyColour(def)))
                 .append("' data-radius='")
                 .append(def.getPlayerBorderRadius())
                 .append("' data-dim-scale='").append(fmt(def.getScale()))
@@ -298,8 +313,16 @@ public final class ViewerPage {
         // geometry that no longer exists, so it came back zero and every
         // overlay silently drew nothing.
         int borderBlocks = Math.max(512, v.config().getPlayerBorderRadius() * 2);
+        int[] spawnAt = v.config().getSpawn();
         b.append("<div class='lb-header' data-coverage='").append(borderBlocks)
-                .append("' data-coverage-low='512'><div class='lb-title'>")
+                .append("' data-coverage-low='512'")
+                // Where the spawn view sits inside the whole-world frame —
+                // what places the stand-in while the wide render is drawn.
+                .append(" data-spawn-x='")
+                .append(spawnAt != null && spawnAt.length >= 3 ? spawnAt[0] : 0)
+                .append("' data-spawn-z='")
+                .append(spawnAt != null && spawnAt.length >= 3 ? spawnAt[2] : 0)
+                .append("'><div class='lb-title'>")
                 .append("<span class='dim-label'>").append(escape(slug)).append("</span> ")
                 .append("<span class='score' style='color:").append(scoreColour(pct)).append("'>")
                 .append(c.banked() ? fmt(pct) : "&mdash;").append("</span> ")
@@ -321,7 +344,14 @@ public final class ViewerPage {
             b.append("</div>");
         }
         b.append("</div>");
+        // The panel's only scrolling part. The header names the seed and the
+        // actions decide its fate — both have to stay put while the reasons
+        // behind the score are read, and the structures panel appends itself
+        // in here (exactfacts.js) so it scrolls with the criteria rather than
+        // landing under the buttons.
+        b.append("<div class='lb-scroll'>");
         b.append(criteria(c.scorecard()));
+        b.append("</div>");
         // The two things a person does from here: go and look at it, then
         // choose it. Nothing between the map and the decision.
         b.append("<div class='lb-actions'>")

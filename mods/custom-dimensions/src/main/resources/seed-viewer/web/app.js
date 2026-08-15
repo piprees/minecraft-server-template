@@ -95,6 +95,9 @@
       btn.hidden = true
       return
     }
+    // Usable before the whole-world render exists. Switching sets the view
+    // the overlays project against, which is what the criteria and structure
+    // markers need; the picture catches up when the render lands.
     // SAY WHAT THE PICTURE COVERS. The two renders are different areas, not
     // two qualities of the same one: the zoomed-in view is a fixed 512-block
     // window centred on the dimension's declared SPAWN, which the roller
@@ -109,21 +112,59 @@
     var lowLabel = cov.low ? 'Around spawn · ' + cov.low + ' blocks' : 'Zoomed in'
     var highLabel = cov.high ? 'Whole world · ' + cov.high + ' blocks' : 'High-def'
     btn.hidden = false
-    btn.disabled = !lbHiresReady
+    btn.disabled = false
     btn.setAttribute('aria-pressed', lbShowingHires ? 'true' : 'false')
-    btn.textContent = lbShowingHires ? highLabel : lowLabel
-    btn.title = !lbHiresReady
-      ? 'The whole-world render has not been produced for this candidate yet'
+    var pending = lbShowingHires && !lbHiresReady
+    btn.textContent = (lbShowingHires ? highLabel : lowLabel) + (pending ? ' · rendering' : '')
+    btn.title = pending
+      ? 'The whole-world render is not drawn yet — the spawn view is shown at its'
+        + ' true scale inside the frame until it arrives'
       : lbShowingHires
         ? 'Showing the whole world — click for the ' + lowLabel.toLowerCase() + ' view'
         : 'Showing ' + lowLabel.toLowerCase()
           + ', NOT the whole world — click for the ' + highLabel.toLowerCase()
+    var box = lb.querySelector('.lb-image')
+    if (box) box.classList.toggle('awaiting-hires', pending)
   }
   function lbSetRes(showHires) {
-    if (showHires === lbShowingHires || (showHires && !lbHiresReady)) return
+    if (showHires === lbShowingHires) return
     lbShowingHires = showHires
-    lbImg.src = showHires ? lbHiresSrc : lbLowSrc
+    // Without the whole-world render, the spawn view stands in for it — drawn
+    // at the fraction of the frame it actually covers rather than stretched
+    // across it, so a marker projected against the wider area still lands
+    // where it belongs.
+    lbImg.src = showHires && !lbHiresReady ? lbLowSrc
+      : showHires ? lbHiresSrc : lbLowSrc
+    lbScaleInset()
     updateResToggle()
+  }
+
+  /**
+   * Sizes the stand-in. The spawn view covers `low` blocks of a frame that
+   * now stands for `high`, so it occupies low/high of the frame, offset by
+   * where spawn sits in it. Cleared whenever the real render is showing.
+   */
+  function lbScaleInset() {
+    if (!lbImg) return
+    var cov = lbCoverageBlocks()
+    var standIn = lbShowingHires && !lbHiresReady && cov.low && cov.high
+    if (!standIn || cov.low >= cov.high) {
+      lbImg.style.width = ''
+      lbImg.style.height = ''
+      lbImg.style.left = ''
+      lbImg.style.top = ''
+      lbImg.style.position = ''
+      return
+    }
+    var pct = (cov.low / cov.high) * 100
+    var host = lbInfo && lbInfo.querySelector('[data-coverage]')
+    var sx = parseFloat((host && host.dataset.spawnX) || '0') || 0
+    var sz = parseFloat((host && host.dataset.spawnZ) || '0') || 0
+    lbImg.style.position = 'absolute'
+    lbImg.style.width = pct + '%'
+    lbImg.style.height = pct + '%'
+    lbImg.style.left = (50 + (sx / cov.high) * 100 - pct / 2) + '%'
+    lbImg.style.top = (50 + (sz / cov.high) * 100 - pct / 2) + '%'
   }
   // A stale index.html (finalised before this button existed) has no
   // .lb-res-toggle; an unguarded dereference here killed the whole IIFE
@@ -274,6 +315,12 @@
     // nothing... which is most candidates most of the time, since a render is
     // minutes of CPU. The measurements are the point of this panel; the map
     // is context. Open it either way.
+    // The frame behind the map is this dimension's own sky, so a render that
+    // does not fill it (a stand-in, or a world smaller than its border) sits
+    // on the colour that world actually is.
+    var skyCard = cand.closest('.dim-card')
+    var skyBox = lb.querySelector('.lb-image')
+    if (skyBox) skyBox.style.background = (skyCard && skyCard.dataset.sky) || ''
     var img = cand.querySelector('img')
     setNoRender(!img, cand)
     lbHiresSrc = (img && img.dataset.hires) || null

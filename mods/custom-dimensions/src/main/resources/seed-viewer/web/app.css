@@ -776,7 +776,7 @@ h1 {
   border-color: var(--edge-hover);
 }
 .dim-card.expanded {
-  border-color: var(--action);
+  border-color: var(--edge);
   grid-column: 1 / -1;
   cursor: default;
 }
@@ -956,10 +956,9 @@ h1 {
   overflow: hidden;
   min-width: 0;
 }
-.cand.winner {
-  border-color: var(--accent-gold);
-  box-shadow: 0 0 0 1px var(--accent-gold);
-}
+/* No ring. On a board of eight, six candidates are on the frontier — a
+   marker nearly every tile carries is decoration, not information, and the
+   badge beside the seed already names the ones that matter. */
 .cand img {
   width: 100%;
   aspect-ratio: 1;
@@ -1498,9 +1497,11 @@ img.winner-img {
   image-rendering: pixelated;
   display: block;
 }
+/* .lb-dart-toggle is positioned and sized in criteria.css, which owns this
+   button — a copy here only ever loses to it and drifts. */
 #lightbox .lb-structs-toggle {
   position: absolute;
-  left: 0.6rem;
+  left: 5.6rem;
   bottom: 0.6rem;
   z-index: 6;
   font-size: 0.75rem;
@@ -1548,16 +1549,32 @@ img.winner-img {
   outline: 2px solid var(--action);
   outline-offset: 2px;
 }
+/* Header, scroller, actions — three bands, and only the middle one moves.
+   The panel itself scrolled before, which took the seed's name off the top
+   and the two buttons that decide its fate off the bottom of a long criteria
+   list. */
 #lightbox .lb-info {
-  overscroll-behavior: contain;
+  position: relative;
   min-width: 0px;
   color: var(--text);
   flex-direction: column;
   flex: 1 1 0%;
-  padding: 1rem 1rem 0px 0px;
   font-size: 0.82rem;
   display: flex;
+  overflow: hidden;
+}
+#lightbox .lb-header {
+  flex: 0 0 auto;
+  padding: 1rem 1rem 0.5rem 0;
+}
+/* The panel's only scrolling part: the criteria and the structures panel,
+   which exactfacts.js appends in here so it scrolls with them. */
+#lightbox .lb-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden auto;
+  overscroll-behavior: contain;
+  padding: 0 1rem 4rem 0;
 }
 #lightbox .lb-header .lb-title {
   display: flex;
@@ -1604,22 +1621,19 @@ img.winner-img {
    whole modal exists for scrolled off the screen. */
 #lightbox .lb-actions {
   position: absolute;
-  right: 1rem;
-  bottom: 1rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   z-index: 6;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--rule);
-  border-radius: var(--r-lg);
+  padding: 0.6rem;
+  border-top: 1px solid var(--rule);
   background: var(--bg-card);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
-}
-/* Room to scroll clear of the bar, so it never covers the last criterion. */
-#lightbox .lb-info {
-  padding-bottom: 4rem;
+  box-shadow: 0 -10px 12px -8px rgba(0, 0, 0, 0.55);
 }
 #lightbox .lb-actions .pick,
 #lightbox .lb-actions .action-btn {
@@ -1647,19 +1661,6 @@ img.winner-img {
 #lightbox .lb-close:hover {
   color: var(--text);
 }
-@media (max-width: 800px) {
-  #lightbox .lb-inner {
-    flex-direction: column;
-    max-height: 95vh;
-  }
-  #lightbox .lb-image {
-    max-width: 100%;
-  }
-  #lightbox {
-    padding: 0.5rem;
-  }
-}
-
 /* --- Responsive --- */
 @media (max-width: 900px) {
   body {
@@ -2292,15 +2293,6 @@ details.incidental .mrow {
   opacity: 0.85;
   cursor: help;
 }
-.cand.named {
-  border-color: var(--accent-gold);
-}
-.cand[data-role='best'] {
-  box-shadow: 0 0 0 1px var(--accent-gold);
-}
-.cand[data-role='shortlisted'] {
-  border-color: var(--accent-gold-bright);
-}
 
 /* --- The modal on a narrow screen --- */
 /* A 2:1 flex row gives the square map the full width and pushes the panel off
@@ -2311,44 +2303,36 @@ details.incidental .mrow {
   #lightbox {
     padding: 0.75rem;
   }
+  /* Portrait, and no taller than twice the square map — the modal stays
+     tight to the picture instead of stretching to the viewport. */
   #lightbox .lb-inner {
     flex-direction: column;
-    aspect-ratio: auto;
-    width: 100%;
-    max-height: 92vh;
+    aspect-ratio: 1/2;
+    /* Width drives it. The base rule's height:100% + max-height:90vh would
+       take the height from the viewport and derive a width from that, which
+       on a tall phone is wider than the screen. */
+    height: auto;
+    max-height: none;
+    max-width: 100%;
     gap: 0.75rem;
-    overflow: hidden auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
   }
   #lightbox .lb-image {
     flex: 0 0 auto;
     width: 100%;
     height: auto;
-    max-height: 55vh;
     justify-content: center;
   }
   #lightbox .lb-image img {
     width: 100%;
     height: auto;
-    max-height: 55vh;
     object-fit: contain;
   }
-  /* The panel no longer scrolls on its own — the modal does — so an inner
-     scroller here would trap the gesture in a box with nowhere to go. */
-  #lightbox .lb-info {
-    flex: 0 0 auto;
-    overflow: visible;
-    padding: 0 0.9rem 5rem;
-    min-height: 0;
+  #lightbox .lb-header {
+    padding: 0 0.9rem 0.5rem;
   }
-  /* Fixed to the viewport rather than the modal: the modal now scrolls, and
-     an absolute bar would scroll away with it. */
-  #lightbox .lb-actions {
-    position: fixed;
-    right: 0.75rem;
-    bottom: 0.75rem;
-    left: 0.75rem;
-    justify-content: center;
+  #lightbox .lb-scroll {
+    padding: 0 0.9rem 4rem;
   }
 }
 
@@ -2360,4 +2344,11 @@ details.incidental .mrow {
   align-items: center;
   gap: 0.3rem;
   margin-top: 0.4rem;
+}
+
+/* The stand-in for a whole-world render that is not drawn yet: the spawn view
+   at the fraction of the frame it really covers, on the dimension's sky. */
+#lightbox .lb-image.awaiting-hires img {
+  outline: 1px solid rgba(255, 255, 255, 0.25);
+  outline-offset: 0;
 }

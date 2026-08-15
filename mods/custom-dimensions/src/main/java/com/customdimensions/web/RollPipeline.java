@@ -134,32 +134,84 @@ public final class RollPipeline {
     }
 
     /**
-     * Queues the thumbnail for every dimension's named seeds, without rolling
+     * Scores and draws every dimension's named seeds, without rolling
      * anything.
      *
      * <p>The point of the page before a roll is "what have I got" — every
      * dimension has a configured world whether or not a search ever ran, and
-     * on a fresh bank that seed's map is the only one there is. Nothing else
-     * would ever queue it: a reconcile happens during a roll, and a bank with
-     * no candidates would have nothing to reconcile.
+     * on a fresh bank that seed is the only one there is. Nothing else would
+     * ever measure or draw it: the search draws at random, and a reconcile
+     * only happens during a roll, which a bank with no candidates never has.
      *
-     * <p>One thumbnail per dimension, at {@code PRIORITY_PINNED}, on a
-     * background thread so a boot never waits for a picture. Already-drawn
-     * maps are skipped, so a restart costs nothing.
+     * <p>Measured BEFORE the map is queued. A render says what the world
+     * looks like; the scorecard says whether it is any good, and the whole
+     * reason to show the configured seed beside the candidates is to compare
+     * the two — a card with a picture and no score cannot be compared with
+     * anything.
+     *
+     * <p>Runs on the roll pool so eighty-odd measurements go at the width of
+     * the machine, and skips anything already banked, so a restart costs
+     * nothing.
      */
-    public static void drawNamedSeeds(MinecraftServer server) {
-        Thread worker = new Thread(() -> {
-            for (DimensionConfig def : BankView.rollTargets()) {
-                try {
-                    RenderQueue.reconcile(server, def, false);
-                } catch (RuntimeException e) {
-                    MultiverseServer.LOGGER.warn("Could not queue the named seeds for {}: {}",
-                            def.getName(), e.toString());
+    public static void primeNamedSeeds(MinecraftServer server) {
+        Thread starter = new Thread(() -> {
+            List<DimensionConfig> targets = BankView.rollTargets();
+            int workers = Math.max(1, Math.min(workers(), targets.size()));
+            java.util.concurrent.ExecutorService pool =
+                    java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
+                        Thread t = new Thread(r, "customdim-roll");
+                        t.setDaemon(true);
+                        return t;
+                    });
+            try {
+                List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
+                for (DimensionConfig def : targets) {
+                    futures.add(pool.submit(() -> {
+                        measureNamed(server, def);
+                        RenderQueue.reconcile(server, def, false);
+                    }));
                 }
+                for (java.util.concurrent.Future<?> f : futures) {
+                    try {
+                        f.get();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    } catch (java.util.concurrent.ExecutionException e) {
+                        MultiverseServer.LOGGER.warn("Priming named seeds failed", e.getCause());
+                    }
+                }
+            } finally {
+                pool.shutdownNow();
+                GENERATION.incrementAndGet();
             }
         }, "customdim-roll");
-        worker.setDaemon(true);
-        worker.start();
+        starter.setDaemon(true);
+        starter.start();
+    }
+
+    /**
+     * Measures this dimension's named seeds that the bank does not already
+     * hold. Never throws: a seed that cannot be measured must not take the
+     * roll down with it.
+     */
+    private static void measureNamed(MinecraftServer server, DimensionConfig def) {
+        Identifier id = def.getDimensionIdentifier();
+        String hash = com.customdimensions.command.InputHash.of(def, server);
+        for (SeedRoster.Slot slot : RenderQueue.roster(def, hash, id.toString())) {
+            if (!slot.role().pinned() || CANCEL.get()) {
+                continue;
+            }
+            try {
+                if (Roller.measureNamed(server, id, def, slot.seed())) {
+                    MultiverseServer.LOGGER.debug("scored the {} seed for {}",
+                            slot.role().id(), id.getPath());
+                }
+            } catch (java.io.IOException | RuntimeException e) {
+                MultiverseServer.LOGGER.warn("Could not score the {} seed {} for {}: {}",
+                        slot.role().id(), slot.seed(), id.getPath(), e.toString());
+            }
+        }
     }
 
     private static List<DimensionConfig> resolve(String dimension) {
@@ -336,11 +388,19 @@ public final class RollPipeline {
         Identifier id = def.getDimensionIdentifier();
         String hash = com.customdimensions.command.InputHash.of(def, server);
         String dimension = id.toString();
+        // The seeds this dimension already has, before any it might get. They
+        // are what the rest of the board is compared against, so an unscored
+        // one makes the whole comparison unavailable — and a full board is no
+        // reason to skip it, since the configured seed is not a candidate and
+        // never counted toward WANTED.
+        CURRENT.set(id.getPath());
+        STAGE.set("scoring the named seeds for " + id.getPath());
+        measureNamed(server, def);
         if (banked(hash, dimension) >= WANTED) {
+            RenderQueue.reconcile(server, def);
             SURVEYED.incrementAndGet();
             return;
         }
-        CURRENT.set(id.getPath());
         STAGE.set("rolling " + id.getPath());
         int done = 0;
         while (done < count && !CANCEL.get() && banked(hash, dimension) < WANTED) {

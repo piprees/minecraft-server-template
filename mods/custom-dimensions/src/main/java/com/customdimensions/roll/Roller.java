@@ -198,6 +198,37 @@ public final class Roller {
     }
 
     /**
+     * Measures ONE named seed and banks it, whatever the verdict.
+     *
+     * <p>The search draws at random and only keeps what clears the gates,
+     * which is right for finding candidates and useless for the seed a
+     * dimension already has: that one is not a candidate, it is the world,
+     * and a card saying UNROLLED beside a render of it answers nothing. It is
+     * the point of comparison every other card is judged against, so it needs
+     * the same scorecard they have.
+     *
+     * <p>A rejected one is written too. {@link Scorecard#percentage} is null
+     * for any verdict but SCORED, and {@link SeedBank#parseSummary} drops a
+     * candidate without one, so this can never enter a leaderboard or count
+     * toward a roll target — it only gives the card its reasons.
+     *
+     * @return true when it measured, false when the bank already held it
+     */
+    public static boolean measureNamed(MinecraftServer server, Identifier dimensionId,
+                                       DimensionConfig def, long seed) throws IOException {
+        String dimension = dimensionId.toString();
+        String inputHash = InputHash.of(def, server);
+        if (java.nio.file.Files.isRegularFile(
+                SeedBank.candidatePath(inputHash, dimension, seed))) {
+            return false;
+        }
+        SeedFacts facts = FactsEngine.measure(server, dimensionId, seed);
+        Scorecard card = Scorer.score(facts, def, Criteria.forConfig(def));
+        SeedBank.writeCandidate(dimension, seed, facts, card, inputHash);
+        return true;
+    }
+
+    /**
      * Whether a dimension is worth rolling at all, from config alone. A
      * superflat dimension has no organic placement to score against; a void
      * dimension without a biome list has nothing seed-dependent in it either

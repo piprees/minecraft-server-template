@@ -207,7 +207,7 @@ public final class RenderQueue {
      * That seed arrives here as {@code starting} and is drawn like any other
      * named one, so the card shows the world rather than "not rolled" forever.
      */
-    private static List<SeedRoster.Slot> roster(DimensionConfig def, String hash, String dimension) {
+    static List<SeedRoster.Slot> roster(DimensionConfig def, String hash, String dimension) {
         List<Long> ranked = new ArrayList<>();
         for (SeedBank.CandidateSummary c : SeedBank.leaderboard(hash, dimension)) {
             ranked.add(c.seed());

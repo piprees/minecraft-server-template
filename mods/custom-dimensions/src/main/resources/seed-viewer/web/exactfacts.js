@@ -19,6 +19,13 @@
   var lb = document.getElementById('lightbox')
   if (!lb) return
   var info = lb.querySelector('.lb-info')
+  // The panel belongs with the criteria, inside the panel's scrolling part —
+  // appended to .lb-info it landed after the action bar, outside anything
+  // that scrolls. Resolved per call: .lb-scroll arrives with each candidate's
+  // markup, so a reference taken once would go stale on the next open.
+  function mount() {
+    return info.querySelector('.lb-scroll') || info
+  }
   var imageBox = lb.querySelector('.lb-image')
   if (!info || !imageBox) return
 
@@ -104,6 +111,46 @@
   }
 
   function clearLayer() { while (layer.firstChild) layer.removeChild(layer.firstChild) }
+
+  // The map's structure toggle. Nothing else drives it, so its count comes
+  // from the census this file already fetches: a bare 0 before the fetch
+  // lands is a measurement nobody took, and reads as "this world has none".
+  var structsBtn = lb.querySelector('.lb-structs-toggle')
+
+  function totalSites(data) {
+    if (!data || !data.ok || !data.groups) return null
+    var n = 0
+    Object.keys(data.groups).forEach(function (g) {
+      var e = data.groups[g]
+      if (e && e.positions) n += e.positions.length
+    })
+    return n
+  }
+
+  function setStructsLabel(count) {
+    if (!structsBtn) return
+    var known = typeof count === 'number'
+    structsBtn.textContent = 'Structures ' + (known ? count : '…')
+    structsBtn.disabled = !known || count === 0
+    structsBtn.title = !known
+      ? 'Counting this seed’s structure sites…'
+      : count === 0
+        ? 'This seed placed no structure sites'
+        : 'Toggle structure markers'
+  }
+
+  function structsOn() {
+    return !structsBtn || structsBtn.getAttribute('aria-pressed') !== 'false'
+  }
+
+  if (structsBtn) {
+    structsBtn.addEventListener('click', function (e) {
+      e.stopPropagation()
+      var next = !structsOn()
+      structsBtn.setAttribute('aria-pressed', next ? 'true' : 'false')
+      layer.style.display = next ? '' : 'none'
+    })
+  }
 
   function drawMarkers(data) {
     clearLayer()
@@ -322,18 +369,20 @@
       lastKey = null
       selection = null
       clearLayer()
-      var gone = info.querySelector('.ef-panel')
+      setStructsLabel(null)
+      var gone = mount().querySelector('.ef-panel')
       if (gone) gone.remove()
       return
     }
     // Inserting the panel mutates the node this file observes; without the
     // guard the observer re-runs its own insertion forever.
     var key = cacheKey(cand)
-    if (key === lastKey && info.querySelector('.ef-panel')) return
+    if (key === lastKey && mount().querySelector('.ef-panel')) return
     lastKey = key
     selection = null
     clearLayer()
-    var existing = info.querySelector('.ef-panel')
+    setStructsLabel(null)
+    var existing = mount().querySelector('.ef-panel')
     if (existing) existing.remove()
 
     fetchFacts(cand, function (data) {
@@ -341,12 +390,13 @@
         var current = window.lbCandidate()
         if (!current || current.dim !== cand.dim || current.seed !== cand.seed) return
       }
-      var old = info.querySelector('.ef-panel')
+      setStructsLabel(totalSites(data))
+      var old = mount().querySelector('.ef-panel')
       if (old) old.remove()
       var html = buildPanel(data)
       if (!html) return
-      info.insertAdjacentHTML('beforeend', html)
-      var panel = info.querySelector('.ef-panel')
+      mount().insertAdjacentHTML('beforeend', html)
+      var panel = mount().querySelector('.ef-panel')
       if (panel) wire(panel, data)
     })
   }

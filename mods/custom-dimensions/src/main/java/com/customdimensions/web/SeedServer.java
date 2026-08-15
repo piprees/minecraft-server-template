@@ -62,8 +62,8 @@ public final class SeedServer {
             MultiverseServer.LOGGER.info("Seed viewer listening on port {}", port);
             // What the pack looks like RIGHT NOW, before anybody rolls
             // anything: every dimension has a configured world, and on a fresh
-            // bank its map is the only one there is to look at.
-            RollPipeline.drawNamedSeeds(minecraftServer);
+            // bank its seed is the only one there is to score or look at.
+            RollPipeline.primeNamedSeeds(minecraftServer);
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Seed viewer failed to bind port {}", port, e);
             server = null;

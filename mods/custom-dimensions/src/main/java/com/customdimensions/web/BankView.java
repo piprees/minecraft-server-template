@@ -132,20 +132,34 @@ public final class BankView {
         for (SeedRoster.Slot slot : SeedRoster.of(current, starting, ranked, shortlisted)) {
             long seed = slot.seed();
             SeedBank.CandidateSummary s = summaries.get(seed);
+            // A named seed is measured whatever its verdict, and a scorecard
+            // that did not reach SCORED carries no percentage — so it is
+            // banked, with reasons, and still absent from the leaderboard the
+            // summaries come from. Read its numbers off the scorecard rather
+            // than reporting a measured seed as unrolled.
+            Scorecard card = bySeed.get(seed);
+            // Boxed deliberately. CandidateSummary.percentage() is a primitive
+            // double and Scorecard.percentage() is a nullable Double; a
+            // conditional mixing the two is promoted to double and unboxes the
+            // null, which is an NPE on every seed that did not reach SCORED —
+            // exactly the named seeds this branch exists for.
+            Double percentage = s != null ? Double.valueOf(s.percentage())
+                    : card != null ? card.percentage() : null;
             candidates.add(new CandidateView(seed,
-                    s == null ? 0.0 : s.achieved(),
-                    s == null ? 0.0 : s.ceiling(),
-                    s == null ? null : s.percentage(),
-                    // A named seed need never have been rolled — the config can
-                    // hold one nothing measured. Said plainly rather than shown
-                    // as a zero, which reads as "measured, and bad".
-                    s == null ? "UNROLLED" : s.verdict(),
-                    bySeed.get(seed), strengths.getOrDefault(seed, List.of()),
+                    s != null ? s.achieved() : card != null ? card.achieved() : 0.0,
+                    s != null ? s.ceiling() : card != null ? card.ceiling() : 0.0,
+                    percentage,
+                    // Only a seed nothing has measured at all is UNROLLED —
+                    // said plainly rather than shown as a zero, which reads as
+                    // "measured, and bad".
+                    s != null ? s.verdict()
+                            : card != null ? card.verdict().name() : "UNROLLED",
+                    card, strengths.getOrDefault(seed, List.of()),
                     Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, seed,
                             CandidateRender.Resolution.LOWRES)),
                     Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, seed,
                             CandidateRender.Resolution.HIGHRES)),
-                    slot.role(), shortlisted.contains(seed), s != null));
+                    slot.role(), shortlisted.contains(seed), s != null || card != null));
         }
         return new DimensionView(id.getPath(), id, def, inputHash, Roller.rollable(def),
                 candidates, SeedBank.rejectedSeeds(inputHash, dimension).size(), frontierSeeds,
