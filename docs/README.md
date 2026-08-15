@@ -2,7 +2,15 @@
 
 Server customisation is covered by [CUSTOMISATION.md](../CUSTOMISATION.md) at the repo root.
 
-Most procedural documentation now lives in the skills system (`.claude/skills/`):
+Reference material split out of [AGENTS.md](../AGENTS.md), so an agent reads it only when the task needs it:
+
+| Topic | File |
+| --- | --- |
+| Task → file → command lookup | [common-tasks.md](common-tasks.md) |
+| Which network calls exist and how each is mitigated | [network-dependencies.md](network-dependencies.md) |
+| Web page markup, styles, nav injection | [web-surfaces.md](web-surfaces.md) |
+
+Most procedural documentation lives in the skills system (`.claude/skills/`):
 
 | Topic | Skill |
 | --- | --- |
