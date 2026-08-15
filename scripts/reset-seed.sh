@@ -5,10 +5,22 @@
 # Backs up everything before destroying world data, then restarts
 # the server with the new seed.
 #
-# Deletes: all world data (overworld, nether, end, dimensions/),
-# player data (playerdata, stats, advancements), uNmINeD map renders,
-# Chunky markers + task state + .skip-pause, Distant Horizons cache,
-# POI, ledger, dynamic-data-pack-cache, and the two mod state files that
+# Deletes: everything under data/world/ in one sweep — that single directory
+# holds the overworld, DIM-1 (nether), DIM1 (end), dimensions/<ns>/<slug>/
+# (every custom dimension, including paradise_lost), playerdata, stats,
+# advancements, modplayerdata, essentialcommands homes, ec_player_profiles,
+# openpartiesandclaims claims (data/world/data/openpartiesandclaims), the
+# per-world DistantHorizons.sqlite (+ -shm/-wal), poi, ledger.sqlite, and
+# level.dat itself — so there is never a lingering WorldGenSettings.dimensions
+# registry entry outliving the world it describes (the D3 boot-wedge trap
+# doesn't apply here: level.dat and the world dirs it references die together).
+# Separately: uNmINeD map renders (maps/, index.html, manifest.json), Chunky
+# markers + task state + .skip-pause, dynamic-data-pack-cache (a real
+# top-level dir, unlike the rest of this list), the per-dimension "already
+# set up" markers deploy.sh uses to skip re-running `dimension load` on every
+# deploy (data/.dimension-setup/ — stale markers here would make deploy.sh
+# think every dimension on the NEW world was already loaded on the OLD one,
+# and silently skip loading all of them), and the two mod state files that
 # describe the world being destroyed — portal_links.json (every portal's
 # links, countdowns and aura state) and custom-dimensions-fingerprints.json
 # (each dimension's creation-time worldgen baseline). Keeping either would
@@ -20,6 +32,15 @@
 # and webhook messages from the Discord channels (DISCORD_CHANNEL_ID +
 # DISCORD_CHAT_CHANNEL_ID when distinct) via discord-cleanup.sh — fire and
 # forget, a Discord outage never blocks a reset.
+#
+# Deliberately NOT touched: whitelist.json, ops.json, banned-*.json (the
+# whitelist is a door lock, not world state); discord-players.json and
+# DiscordIntegration-Data/LinkedPlayers.json (Discord-account <-> MC-player
+# links survive same as the whitelist — players don't re-link just because
+# the world did); .seed-rolling/ (a sibling of data/, not under it — its
+# candidate-seed banks, lint, render-check and column-ladder artefacts are
+# keyed by a hash of the DIMENSION CONFIG, not the live world, so they stay
+# valid across a reset and are irrelevant to the world just destroyed).
 #
 # The seed argument updates SEED in .env locally and on the server, which
 # seeds level.dat ONLY. Terrain comes from each base world's dimension config
@@ -121,19 +142,18 @@ else
 echo "   1. Back up the world to restic, then stop all containers on the droplet"
 fi
 echo "   2. Back up data/ to a cold tar.gz on the droplet"
-echo "   3. Delete world data (Overworld, Nether, End, dimensions/)"
-echo "   4. Delete player data (playerdata, stats, advancements)"
-echo "   5. Delete uNmINeD map renders (data/unmined-web)"
-echo "   6. Delete all Chunky markers, task state, and .skip-pause"
-echo "   7. Delete Distant Horizons LOD cache"
-echo "   8. Delete regenerable state (POI, ledger, dynamic-data-pack-cache)"
-echo "   8b. Delete portal links and dimension fingerprints for the old world"
-echo "   9. Wipe old-world bot/webhook messages from the Discord channels"
+echo "   3. Delete data/world/ (every dimension's terrain, player data, DH cache,"
+echo "      POI, ledger, and level.dat, in one sweep)"
+echo "   4. Delete uNmINeD map renders (data/unmined-web: maps/, index.html, manifest.json)"
+echo "   5. Delete all Chunky markers, task state, and .skip-pause"
+echo "   6. Delete dynamic-data-pack-cache and the per-dimension deploy-setup markers"
+echo "   6b. Delete portal links and dimension fingerprints for the old world"
+echo "   7. Wipe old-world bot/webhook messages from the Discord channels"
 if [[ "$WIPE_BACKUPS" == true ]]; then
-echo "  10. WIPE all restic snapshots in R2"
+echo "   8. WIPE all restic snapshots in R2"
 fi
-echo "  11. Update the seed in .env (local + droplet)"
-echo "  12. Restart and re-apply game rules, permissions, world borders"
+echo "   9. Update the seed in .env (local + droplet)"
+echo "  10. Restart and re-apply game rules, permissions, world borders"
 echo ""
 echo " This is IRREVERSIBLE without restoring from the backup."
 echo "=================================================================="
@@ -238,13 +258,17 @@ ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && mkdir -p backups && tar czf ${B
   --exclude='data/versions' \
   --exclude='data/logs' \
   --exclude='data/crash-reports' \
-  --exclude='data/DistantHorizons' \
-  --exclude='data/DistantHorizons.sqlite' \
-  --exclude='data/poi' \
-  --exclude='data/ledger.sqlite' \
+  --exclude='data/world/data/DistantHorizons.sqlite*' \
+  --exclude='data/world/poi' \
+  --exclude='data/world/ledger.sqlite' \
   --exclude='data/dynamic-data-pack-cache' \
   --exclude='data/kuma' \
   data/" || TAR_STATUS=$?
+# The DH/poi/ledger excludes above are paths INSIDE data/world/ (confirmed
+# against a live server, 2026-08-15) — data/DistantHorizons.sqlite and
+# data/poi at the top level of data/ don't exist, so a tar --exclude naming
+# them silently excludes nothing and the archive used to carry a multi-GB
+# DistantHorizons.sqlite it never needed to.
 if [[ "$TAR_STATUS" -ge 2 ]]; then
   echo "ERROR: tar failed (exit ${TAR_STATUS}). Refusing to delete the world without a backup."
   echo "       The stack is stopped. Bring it back with:"
@@ -265,20 +289,26 @@ echo "==> Deleting world and player data on the droplet..."
 # not '&&' — chaining meant one Permission denied skipped every later deletion
 # and, under set -e, aborted the reset with the world already gone and the
 # stack still down.
+# data/world/ alone accounts for the overworld, DIM-1/DIM1 (nether/end),
+# dimensions/<ns>/<slug>/ (every custom dimension incl. paradise_lost),
+# playerdata/stats/advancements, modplayerdata, essentialcommands,
+# ec_player_profiles, and data/world/data/ (openpartiesandclaims claims,
+# DistantHorizons.sqlite, poi, ledger.sqlite, level.dat) — confirmed against
+# a live server's directory layout, 2026-08-15. Everything else here is a
+# genuinely separate top-level path.
 ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR}; \
-  sudo rm -rf data/world/ data/world_the_nether/ data/world_the_end/ data/dimensions/; \
-  sudo rm -rf data/playerdata/ data/stats/ data/advancements/; \
-  sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html; \
+  sudo rm -rf data/world/; \
+  sudo rm -rf data/unmined-web/maps/ data/unmined-web/index.html data/unmined-web/manifest.json; \
   sudo rm -f  data/.chunky-complete data/.chunky-nether-complete data/.chunky-end-complete data/.chunky-paradise-lost-complete; \
   sudo rm -f  data/.skip-pause; \
   sudo rm -rf data/config/chunky/tasks/; \
   sudo rm -f  data/config/portal_links.json data/config/custom-dimensions-fingerprints.json; \
-  sudo rm -rf data/DistantHorizons/ data/DistantHorizons.sqlite; \
-  sudo rm -rf data/poi/ data/ledger.sqlite data/dynamic-data-pack-cache/"
+  sudo rm -rf data/dynamic-data-pack-cache/; \
+  sudo rm -rf data/.dimension-setup/"
 
 # Verify rather than trust: a partial delete leaves the old world in place and
 # the new seed would silently generate nothing.
-LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/world_the_nether data/world_the_end data/dimensions data/unmined-web/maps data/config/chunky/tasks data/dynamic-data-pack-cache 2>/dev/null" || true)"
+LEFTOVERS="$(ssh -i "$SSH_KEY" "$REMOTE" "cd ${REMOTE_DIR} && ls -d data/world data/unmined-web/maps data/unmined-web/manifest.json data/config/chunky/tasks data/dynamic-data-pack-cache data/.dimension-setup 2>/dev/null" || true)"
 if [[ -n "$LEFTOVERS" ]]; then
   echo "ERROR: these paths survived deletion:"
   echo "$LEFTOVERS" | sed 's/^/         /'
@@ -287,11 +317,11 @@ if [[ -n "$LEFTOVERS" ]]; then
   exit 1
 fi
 
-echo "  Deleted: world data (all dimensions)"
-echo "  Deleted: player data (playerdata, stats, advancements)"
-echo "  Deleted: uNmINeD map renders (regenerated on the next render pass)"
+echo "  Deleted: data/world/ (every dimension's terrain, player data, DH cache, POI, ledger, level.dat)"
+echo "  Deleted: uNmINeD map renders and manifest (regenerated on the next render pass)"
 echo "  Deleted: Chunky markers, task state, .skip-pause"
-echo "  Deleted: Distant Horizons, POI, ledger, dynamic-data-pack-cache"
+echo "  Deleted: dynamic-data-pack-cache"
+echo "  Deleted: per-dimension deploy-setup markers (deploy.sh will re-run 'dimension load' for all of them)"
 echo "  Deleted: portal links and dimension fingerprints (rewritten on next boot)"
 
 # =============================================================================

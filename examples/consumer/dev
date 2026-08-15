@@ -309,14 +309,22 @@ case "$CMD" in
     ;;
   reset-world)
     # Local sibling of ./ops reset-seed: stops the stack and deletes the
-    # SAME set production deletes — world, player data, map renders, Chunky
-    # state, DH cache, POI, ledger, dynamic-data-pack-cache. Keeps .env,
-    # mods, data/config, overlay/ and the seed bank. Change SEED in .env
-    # before ./dev up if a new seed is wanted.
+    # SAME set production deletes. data/world/ alone carries the terrain,
+    # player data, DH cache, POI, and ledger for every dimension (confirmed
+    # against a live server's layout, 2026-08-15 — playerdata/stats/
+    # advancements/DIM-1/DIM1/dimensions/DistantHorizons.sqlite/poi/
+    # ledger.sqlite/level.dat all live UNDER data/world/, not beside it).
+    # Also deletes map renders, Chunky state, dynamic-data-pack-cache, the
+    # portal/fingerprint state files that describe the destroyed world, and
+    # (deploy.sh-only in production, so nothing to delete here) the
+    # per-dimension deploy-setup markers. Keeps .env, mods, data/config
+    # (aside from the world-specific files above), overlay/ and the seed
+    # bank. Change SEED in .env before ./dev up if a new seed is wanted.
     ensure_env
     ensure_stack
     echo "This deletes the LOCAL world and player data under $CONSUMER_DIR/data."
-    echo "Kept: .env, data/mods, data/config, overlay/, .seedtest."
+    echo "Kept: .env, data/mods, data/config (aside from portal_links.json /"
+    echo "custom-dimensions-fingerprints.json), overlay/, .seed-rolling/."
     if [[ "${1:-}" != "--force" ]]; then
       read -rp "Type RESET to confirm: " CONFIRM
       if [[ "$CONFIRM" != "RESET" ]]; then
@@ -327,19 +335,20 @@ case "$CMD" in
     ensure_docker
     export CONSUMER_DIR
     bash "$CONSUMER_DIR/$STACK_SCRIPTS/dev-up.sh" down || true
-    rm -rf "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/world_the_nether" \
-      "$CONSUMER_DIR/data/world_the_end" "$CONSUMER_DIR/data/dimensions" \
-      "$CONSUMER_DIR/data/playerdata" "$CONSUMER_DIR/data/stats" \
-      "$CONSUMER_DIR/data/advancements" "$CONSUMER_DIR/data/unmined-web/maps" \
+    rm -rf "$CONSUMER_DIR/data/world" \
+      "$CONSUMER_DIR/data/unmined-web/maps" \
       "$CONSUMER_DIR/data/unmined-web/index.html" \
-      "$CONSUMER_DIR/data/DistantHorizons" "$CONSUMER_DIR/data/DistantHorizons.sqlite" \
-      "$CONSUMER_DIR/data/poi" "$CONSUMER_DIR/data/ledger.sqlite" \
+      "$CONSUMER_DIR/data/unmined-web/manifest.json" \
       "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
       "$CONSUMER_DIR/data/config/chunky/tasks"
     rm -f "$CONSUMER_DIR/data/.chunky-complete" "$CONSUMER_DIR/data/.chunky-nether-complete" \
       "$CONSUMER_DIR/data/.chunky-end-complete" "$CONSUMER_DIR/data/.chunky-paradise-lost-complete" \
-      "$CONSUMER_DIR/data/.skip-pause"
-    LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/dimensions" 2> /dev/null || true)
+      "$CONSUMER_DIR/data/.skip-pause" \
+      "$CONSUMER_DIR/data/config/portal_links.json" \
+      "$CONSUMER_DIR/data/config/custom-dimensions-fingerprints.json"
+    LEFT=$(ls -d "$CONSUMER_DIR/data/world" "$CONSUMER_DIR/data/unmined-web/maps" \
+      "$CONSUMER_DIR/data/unmined-web/manifest.json" "$CONSUMER_DIR/data/dynamic-data-pack-cache" \
+      2> /dev/null || true)
     if [[ -n "$LEFT" ]]; then
       echo "ERROR: paths survived deletion:"
       echo "$LEFT"
