@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
-| **D** | [D1–D6, D8](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
+| **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
@@ -75,6 +75,8 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Vanilla fortresses/mineshafts/strongholds never found organically | [T25](#t25) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
+| `Tried to read NBT tag that was too big` on a world that used to boot | [D9](#d9) |
+| `level.dat` growing every boot with no config change | [D9](#d9) |
 | Boot hangs after deleting a dimension's world directory | [D3](#d3), [K1](#k1) |
 | Custom dimensions all generate identical terrain | [D6](#d6) |
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
@@ -620,6 +622,50 @@ The one gap is the very first boot in a fresh environment (new jar + no key on d
 ### D8 — A new dimension appears on the map only once it has generated chunks
 
 `unmined-render` discovers dimensions by scanning `data/world/dimensions/<ns>/<slug>/region/*.mca` — there is no map config to write and no reload to call. A dimension that exists in config but has never been visited or pre-generated has no region files and renders nothing. Visit it, or let Chunky pre-gen reach it, then force a pass with `./ops map render`.
+
+<a id="d9"></a>
+### D9 — An inlined generator setting grows `level.dat` on every boot until the world will not load
+
+- **Symptom:** a world that booted fine for weeks stops loading, with
+  `net.minecraft.class_8801: Tried to read NBT tag that was too big; tried to
+  allocate: 104857586 + 44 bytes where max allowed: 104857600`. Nothing in the
+  config changed. The file is far smaller than 100 MB — a 16.7 MB raw
+  `level.dat` is enough, because `NbtSizeTracker` charges per TAG, and a deeply
+  nested surface rule is millions of tiny ones (2026-08-14, local, 83
+  dimensions).
+- **Cause, two halves.** `applySettingsOverrides` and `applySurfaceComposition`
+  built a new `ChunkGeneratorSettings` and handed it over as
+  `RegistryEntry.of(value)` — a DIRECT entry, which vanilla's
+  `RegistryElementCodec` writes into `level.dat` in full (noise router and
+  surface rule included) instead of writing an id. That alone is only bulk.
+  **TerraBlender merges its surface rules into the generator settings on every
+  boot**, which is idempotent while the settings are a registry REFERENCE
+  because they are rebuilt clean from the datapack each boot. Persisted inline,
+  the merged result comes back as the next boot's input, so each boot wraps the
+  previous merge in another `terrablender:merged` layer.
+- **Measured:** `adventure:the_dustbowl.surface_rule` 163,129 → 219,834 →
+  276,539 bytes over three consecutive boots — **+56,705 bytes per boot,
+  linear**. The world that died had done (6,514,089 − 163,129) / 56,705 = 112
+  boots. Within that dimension the split is 99.97% `generator.settings` and
+  0.03% `generator.biome_source`, so a big biome list is never the cause.
+- **The write path has no size budget and the read path has a 100 MB one**, so
+  a server saves a `level.dat` it can never open again with no warning on the
+  way there.
+- **Fix (in place):** both call sites register their built settings under
+  `{namespace}:{slug}_settings_overrides` / `_surface_composed` and hand back
+  that reference. Verified live: the dimensions the mod rebuilds each boot went
+  from an inlined Compound of 164–171 KB to a reference String of 43–53 bytes.
+- **The fix does NOT rescue a world that is already infected.** A dimension
+  whose poisoned entry decodes successfully is skipped by `registerDimensions`,
+  never rebuilt, and keeps compounding. Those need the [D3](#d3) scrub or a
+  world wipe.
+- **Diagnosing which dimensions are affected:** read
+  `Data.WorldGenSettings.dimensions.<id>.generator.settings` — a `TAG_String`
+  is healthy (a registry id), a `TAG_Compound` is inlined. Note that decode
+  failures can MASK the leak: a dimension whose entry fails to decode is
+  rebuilt from config every boot, which restarts its merge clean, so fixing
+  unrelated decode errors can turn a two-dimension leak into a twelve-dimension
+  one.
 
 ---
 
