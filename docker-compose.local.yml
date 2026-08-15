@@ -35,3 +35,24 @@ services:
   nav-proxy:
     ports:
       - "${WEB_PORT:-8080}:80"
+    # Stage the local-only seeds surface alongside the shared template. The
+    # cloud profile's command copies nav-proxy.conf.template and nothing
+    # else, so seeds.${DOMAIN} does not exist there at all — the roller has
+    # no authentication and can write into the committed overlay, and that
+    # is what keeps it off the internet rather than the absence of a DNS
+    # record.
+    command: /bin/sh -c "mkdir -p /etc/nginx/templates && cp /config-vol/nginx/nav-proxy.conf.template /etc/nginx/templates/default.conf.template && cp /config-vol/nginx/nav-proxy-seeds.conf.template /etc/nginx/templates/seeds.conf.template && exec /docker-entrypoint.sh nginx -g 'daemon off;'"
+    environment:
+      # dev-up.sh prints /etc/hosts entries for *.LOCAL_DOMAIN, but nav-proxy
+      # rendered its server_name from DOMAIN — the PRODUCTION domain — so no
+      # local Host matched any block and every surface fell through to the
+      # first one. Locally that made map, status, pack and mods all serve the
+      # world map. The server names must be built from the domain the browser
+      # actually sends.
+      DOMAIN: ${LOCAL_DOMAIN:-${DOMAIN:-localhost}}
+      # Local is plain http on the published WEB_PORT, so every absolute nav
+      # link needs both — with the cloud defaults the whole nav is dead
+      # locally (https, no port).
+      NAV_SCHEME: http
+      NAV_PORT: ":${WEB_PORT:-8080}"
+      NAV_EXTRA_LINKS: '<a href="http://seeds.${LOCAL_DOMAIN:-${DOMAIN:-localhost}}:${WEB_PORT:-8080}">Seeds</a>'

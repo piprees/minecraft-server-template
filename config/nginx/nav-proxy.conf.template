@@ -96,11 +96,11 @@ server {
 
         sub_filter '</body>' '
 <nav class="site-nav">
-<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
-<a href="https://map.${DOMAIN}" aria-current="page">Map</a>
-<a href="https://status.${DOMAIN}">Status</a>
-<a href="https://pack.${DOMAIN}">Download</a>
-<a href="https://mods.${DOMAIN}">Mods</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="${NAV_SCHEME}://map.${DOMAIN}${NAV_PORT}" aria-current="page">Map</a>
+<a href="${NAV_SCHEME}://status.${DOMAIN}${NAV_PORT}">Status</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}">Download</a>
+<a href="${NAV_SCHEME}://mods.${DOMAIN}${NAV_PORT}">Mods</a>${NAV_EXTRA_LINKS}
 </nav>
 </body>';
 
@@ -178,11 +178,11 @@ body{padding-top:44px !important}
 
         sub_filter '</body>' '
 <nav class="site-nav">
-<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
-<a href="https://map.${DOMAIN}">Map</a>
-<a href="https://status.${DOMAIN}" aria-current="page">Status</a>
-<a href="https://pack.${DOMAIN}">Download</a>
-<a href="https://mods.${DOMAIN}">Mods</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="${NAV_SCHEME}://map.${DOMAIN}${NAV_PORT}">Map</a>
+<a href="${NAV_SCHEME}://status.${DOMAIN}${NAV_PORT}" aria-current="page">Status</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}">Download</a>
+<a href="${NAV_SCHEME}://mods.${DOMAIN}${NAV_PORT}">Mods</a>${NAV_EXTRA_LINKS}
 </nav>
 </body>';
 
@@ -247,11 +247,11 @@ body{padding-top:44px !important}
 
         sub_filter '</body>' '
 <nav class="site-nav">
-<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
-<a href="https://map.${DOMAIN}">Map</a>
-<a href="https://status.${DOMAIN}">Status</a>
-<a href="https://pack.${DOMAIN}" aria-current="page">Download</a>
-<a href="https://mods.${DOMAIN}">Mods</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="${NAV_SCHEME}://map.${DOMAIN}${NAV_PORT}">Map</a>
+<a href="${NAV_SCHEME}://status.${DOMAIN}${NAV_PORT}">Status</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" aria-current="page">Download</a>
+<a href="${NAV_SCHEME}://mods.${DOMAIN}${NAV_PORT}">Mods</a>${NAV_EXTRA_LINKS}
 </nav>
 </body>';
 
@@ -321,15 +321,32 @@ body{padding-top:44px !important}
 
         sub_filter '</body>' '
 <nav class="site-nav">
-<a href="https://pack.${DOMAIN}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="https://pack.${DOMAIN}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
-<a href="https://map.${DOMAIN}">Map</a>
-<a href="https://status.${DOMAIN}">Status</a>
-<a href="https://pack.${DOMAIN}">Download</a>
-<a href="https://mods.${DOMAIN}" aria-current="page">Mods</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}" class="site-nav-brand" aria-label="${BRAND_NAME}"><img src="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}/icon.svg" alt="" role="presentation" width="28" height="28" loading="eager" decoding="async">${BRAND_NAME}</a>
+<a href="${NAV_SCHEME}://map.${DOMAIN}${NAV_PORT}">Map</a>
+<a href="${NAV_SCHEME}://status.${DOMAIN}${NAV_PORT}">Status</a>
+<a href="${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}">Download</a>
+<a href="${NAV_SCHEME}://mods.${DOMAIN}${NAV_PORT}" aria-current="page">Mods</a>${NAV_EXTRA_LINKS}
 </nav>
 </body>';
 
         sub_filter_once on;
         proxy_set_header Accept-Encoding "";
     }
+}
+
+# Apex and www — the bare domain is not a surface of its own, so it hands
+# over to the download page rather than 404ing or falling through to
+# whichever server block happens to be first. Last in the file on purpose:
+# nginx uses the FIRST server block as the default for an unmatched Host,
+# and that should stay the map, not a redirect.
+server {
+    listen 80;
+    server_name ${DOMAIN} www.${DOMAIN};
+
+    server_tokens off;
+
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    return 301 ${NAV_SCHEME}://pack.${DOMAIN}${NAV_PORT}$request_uri;
 }

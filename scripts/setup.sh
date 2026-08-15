@@ -1145,27 +1145,49 @@ persist_secret LOCAL_DOMAIN "$LOCAL_DOMAIN"
 HOSTS_MARKER_BEGIN="# BEGIN minecraft-${BRAND_SLUG:-adventure}"
 HOSTS_MARKER_END="# END minecraft-${BRAND_SLUG:-adventure}"
 
+# One definition of the hostnames, used by the write, the "is it current?"
+# comparison and the Windows instructions alike. The apex is here because
+# nav-proxy redirects it to the pack page, and seeds.* because the local
+# profile serves the seed roller there.
+HOSTS_LINE="127.0.0.1  ${LOCAL_DOMAIN} mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN} seeds.${LOCAL_DOMAIN}"
+
 if [[ "$(uname)" == "Darwin" ]] || [[ "$(uname)" == "Linux" ]]; then
   step "Add local /etc/hosts entries?"
   info "Maps local subdomains to 127.0.0.1 so you can access web services"
   info "in your browser while keeping your real domain pointing at prod."
   echo ""
   echo "  Entries to add:"
-  echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+  echo "    ${HOSTS_LINE}"
   echo ""
 
+  # Three states, not two: absent, present-and-current, present-and-STALE.
+  # Treating the third as "already present" is how an existing consumer
+  # silently never receives a hostname added in a later release.
   ALREADY_PRESENT=0
+  HOSTS_CURRENT=0
   if grep -q "$HOSTS_MARKER_BEGIN" /etc/hosts 2> /dev/null; then
     ALREADY_PRESENT=1
-    echo -e "  ${GREEN}✓${RESET} Entries already present (inside ${HOSTS_MARKER_BEGIN}...${HOSTS_MARKER_END})"
+    if grep -qF "seeds.${LOCAL_DOMAIN}" /etc/hosts 2> /dev/null; then
+      HOSTS_CURRENT=1
+      echo -e "  ${GREEN}✓${RESET} Entries already present and current (inside ${HOSTS_MARKER_BEGIN}...${HOSTS_MARKER_END})"
+    else
+      echo -e "  ${YELLOW}○${RESET} Entries present but missing newer hostnames (seeds, apex)."
+    fi
   fi
 
-  if [[ $ALREADY_PRESENT -eq 0 ]]; then
+  if [[ $ALREADY_PRESENT -eq 1 && $HOSTS_CURRENT -eq 0 ]]; then
+    if ask_yes_no "  Update the existing block? (requires sudo)"; then
+      sudo sed -i.bak "/${HOSTS_MARKER_BEGIN}/,/${HOSTS_MARKER_END}/d" /etc/hosts
+      printf '%s\n%s\n%s\n' "$HOSTS_MARKER_BEGIN" "$HOSTS_LINE" "$HOSTS_MARKER_END" \
+        | sudo tee -a /etc/hosts > /dev/null
+      echo -e "  ${GREEN}✓${RESET} Updated (previous /etc/hosts saved as /etc/hosts.bak)"
+    else
+      info "Skipped. The seed roller at seeds.${LOCAL_DOMAIN} won't resolve until you add it."
+    fi
+  elif [[ $ALREADY_PRESENT -eq 0 ]]; then
     if ask_yes_no "  Add entries to /etc/hosts? (requires sudo)"; then
-      HOSTS_BLOCK="${HOSTS_MARKER_BEGIN}
-127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}
-${HOSTS_MARKER_END}"
-      echo "$HOSTS_BLOCK" | sudo tee -a /etc/hosts > /dev/null
+      printf '%s\n%s\n%s\n' "$HOSTS_MARKER_BEGIN" "$HOSTS_LINE" "$HOSTS_MARKER_END" \
+        | sudo tee -a /etc/hosts > /dev/null
       echo -e "  ${GREEN}✓${RESET} Added. Remove later with: sudo sed -i '' '/${HOSTS_MARKER_BEGIN}/,/${HOSTS_MARKER_END}/d' /etc/hosts"
     else
       info "Skipped. Add manually or re-run ${SELF_CMD}."
@@ -1179,7 +1201,7 @@ else
   echo "  Add these lines to C:\\Windows\\System32\\drivers\\etc\\hosts"
   echo "  (open Notepad as Administrator):"
   echo ""
-  echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+  echo "    ${HOSTS_LINE}"
   echo ""
   pause
 fi

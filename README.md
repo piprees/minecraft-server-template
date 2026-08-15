@@ -65,6 +65,12 @@ seeds for any dimension, look at their maps and scores, fly around the best two 
 throwaway world, and pick one — the chosen seed (and where you were standing) is
 written into the dimension's overlay config.
 
+Locally it also sits behind the nav bar at `http://seeds.<LOCAL_DOMAIN>:<WEB_PORT>`,
+alongside map/status/pack/mods, and the bare domain redirects to the pack page.
+**The roller is local-profile only by design** — it has no authentication, it can
+teleport a player, and it writes into your committed overlay, so nothing publishes
+it in the cloud profile.
+
 ## Upgrading
 
 Bump `STACK_VERSION` in `.env` (or leave it as `v4` to track the latest v4.x.y):

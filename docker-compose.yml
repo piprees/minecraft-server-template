@@ -518,6 +518,17 @@ services:
     environment:
       DOMAIN: ${DOMAIN:-example.com}
       BRAND_NAME: ${BRAND_NAME:-Adventure Server}
+      # The nav links are absolute because one nginx serves every subdomain,
+      # so they carry whatever scheme and port the browser actually reached
+      # us on. Cloud is https on the default port; the local profile is http
+      # on WEB_PORT and overrides both. Must stay DEFINED even when empty —
+      # nginx's envsubst only substitutes variables present in the
+      # environment and leaves an undefined ${...} in the rendered config.
+      NAV_SCHEME: ${NAV_SCHEME:-https}
+      NAV_PORT: ${NAV_PORT:-}
+      # Extra entries appended to every surface's nav bar. Empty here: the
+      # only current user is the seed roller, which is local-profile only.
+      NAV_EXTRA_LINKS: ${NAV_EXTRA_LINKS:-}
     # No mc dependency: the map is static files, so nav-proxy serves it
     # nav-proxy has no mc upstream — web services come up (and stay up)
     # independently of the game server.

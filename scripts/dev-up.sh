@@ -232,12 +232,13 @@ echo "Starting Minecraft server (local profile, project: ${COMPOSE_PROJECT_NAME}
 echo "  Version:  ${MC_VERSION:-1.21.1}"
 echo "  Game:     mc.${LOCAL_DOMAIN}:${GAME_PORT}"
 echo "  Voice:    mc.${LOCAL_DOMAIN}:${VOICE_PORT} (UDP)"
-echo "  Web:      http://map.${LOCAL_DOMAIN}:${WEB_PORT}"
+echo "  Web:      http://${LOCAL_DOMAIN}:${WEB_PORT}"
+echo "  Seeds:    http://seeds.${LOCAL_DOMAIN}:${WEB_PORT} (local only)"
 echo "  Memory:   ${MEMORY:-5G}"
 echo ""
 echo "  Add to /etc/hosts if not already present:"
 echo ""
-echo "    127.0.0.1  mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN}"
+echo "    127.0.0.1  ${LOCAL_DOMAIN} mc.${LOCAL_DOMAIN} map.${LOCAL_DOMAIN} status.${LOCAL_DOMAIN} pack.${LOCAL_DOMAIN} mods.${LOCAL_DOMAIN} seeds.${LOCAL_DOMAIN}"
 echo ""
 
 # --- Seed default mod configs into data/config/ ------------------------------
