@@ -9,7 +9,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
+| **K** | [K1–K2, K4](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -81,6 +81,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | Custom dimensions all generate identical terrain | [D6](#d6) |
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
+| `IFastCacheLike` ClassCastException from the seed roller / render-check | [K4](#k4) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -749,6 +750,26 @@ between chunks.
 `Error executing task on Chunk source main thread executor for <dim>` … `TheChunkSystem.lambda$onItemUpgrade$0`.
 
 c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. **Do NOT filter it from logs** — it is a real error. If it starts crashing servers, the only lever on our side is removing c2me.
+
+<a id="k4"></a>
+### K4 — c2me above 0.4.0-alpha.0.19 breaks the seed roller's renderer
+
+`c2me-fabric` is held at `0.4.0-alpha.0.19` (`GC7ouKxZ`) in `modpack/adventure.mrpack.json`'s `_holds`. Bumping to `0.4.0-alpha.0.27` throws on every dimension the renderer draws:
+
+```
+ClassCastException: com.customdimensions.roll.CandidateRender$CellInterpolated
+cannot be cast to com.ishland.c2me.opts.dfc.common.ducks.IFastCacheLike
+```
+
+c2me's dfc module mixins its own duck interface onto the density-function types it knows about, then casts children to it. `CandidateRender.densityFor` takes the router off a LIVE `NoiseConfig` — whose nodes c2me has already compiled — and calls `.apply(visitor)` to swap in `CellInterpolated` at the `minecraft:interpolated` marker. That re-enters c2me's rebuild path, which casts our node and fails.
+
+**Scope: seed rolling and the render-check/column-ladder diagnostics only.** `CandidateRender` is reachable from `roll/`, `web/` and `command/` — never from gameplay worldgen — so production is unaffected by the bug itself.
+
+**Why it still blocks the bump:** `smoke-test.yml`'s `default` variant runs the render-check matrix against the full mod set, so a bumped c2me fails the release gate.
+
+**The fix is to stop the renderer touching a c2me-owned graph**, not to reach further into c2me. Do NOT add `@Accessor` mixins to `DensityFunctionTypes`' inner types to rebuild the graph by hand — those types are not visible, and it trades one coupling for a worse one. Blending the FINAL density instead of the marker is also not equivalent (nether ±9+ 632 whole-blend vs 529 marker-level).
+
+Until then the roller does not need c2me at all: it is a performance mod and rolling is local and single-user.
 
 ---
 
