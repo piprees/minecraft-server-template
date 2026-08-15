@@ -9,7 +9,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K4](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
+| **K** | [K1–K2, K4–K5](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -82,6 +82,7 @@ Run this before anything else. It covers deploy drift, disk, every expected cont
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
 | `IFastCacheLike` ClassCastException from the seed roller / render-check | [K4](#k4) |
+| The map looks imprecise on steep terrain | [K5](#k5) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
 ---
@@ -770,6 +771,28 @@ c2me's dfc module mixins its own duck interface onto the density-function types 
 **The fix is to stop the renderer touching a c2me-owned graph**, not to reach further into c2me. Do NOT add `@Accessor` mixins to `DensityFunctionTypes`' inner types to rebuild the graph by hand — those types are not visible, and it trades one coupling for a worse one. Blending the FINAL density instead of the marker is also not equivalent (nether ±9+ 632 whole-blend vs 529 marker-level).
 
 Until then the roller does not need c2me at all: it is a performance mod and rolling is local and single-user.
+
+<a id="k5"></a>
+### K5 — the map is imprecise on steep terrain; cause not established
+
+The rendered height disagrees with the facts on high-relief columns. The error is **unsigned** (`render − world` runs −71 to +91, mean +1.0, median 0), and it scales monotonically with local relief:
+
+| Quartile by local relief | median relief | median \|render − world\| | ≥9 blocks |
+| --- | ---: | ---: | ---: |
+| flattest | 5 | 2 | 17.2% |
+| steepest | 23 | 20 | 75.5% |
+
+**It does not affect the facts, and it does not affect `terrain.waterFraction`** — the number the seed roller scores on. It makes steep terrain imprecise on the map and nothing else. Both CI gate signals (`renderHeightSpread >= 1`, `medianSignedRenderMinusFacts == 0`) stay clean throughout.
+
+**What is measured:** `finalDensity` ends in `squeeze`, which clamps to ±0.4583, so under deep rock it SATURATES and carries no surface — a column whose blocks end at 203 reads a flat +0.4585 from y≈150 to 250, and the first zero-crossing lands 92 blocks high. `finalDensity`, sampled by anyone at any point including the generator's own cell corners, is not the field that dimension's blocks are placed from; the world, the facts and `getColumnSample` all agree with each other and disagree with it.
+
+**Ruled out by measurement, not argument** — do not re-try these: the interpolation rewrite (±9+ 608 → 594, then 594 → 594 at the marker), router trimming, cell geometry, off-corner sampling, the rung blind spot, and substituting `initialDensityWithoutJaggedness` (tried and REVERTED — it moved the wisteria anchor 8 → 1011 and stripped every ceilinged dimension of its ground). Vanilla's beardifier and this mod's `KernelDensity` are both structurally incapable of it ([T27](#t27)).
+
+**The most promising unexplored lead** is an off-thread benchmark of vanilla's own `getHeight`. A previous "~23 ms/column, so the honest height source is unaffordable" figure was WRONG — it came from `render-check`, which is tick-budget-bound at 12 ms a tick, not CPU-bound, so it does not mean what it was used to mean.
+
+`customdim column-ladder <dim> <seed> <x> <z>` prints one column's block ladder beside its density ladder and is the tool for this.
+
+**Related:** `the_abyssal_shrine` is excluded from the CI render-check gate — it has never satisfied it (median 2 / 1 / −10 across three seeds). Restore it when this closes.
 
 ---
 
