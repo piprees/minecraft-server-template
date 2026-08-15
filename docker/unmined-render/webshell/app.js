@@ -8,9 +8,12 @@
  *   /manifest.json              — { dimensions: [ { slug, name, type,
  *                                   typeLabel, family, difficulty, theme,
  *                                   spawnBiome, rendered, spawn, version,
- *                                   renderedAt, thumb } ] }
+ *                                   renderedAt, thumb, thumbVersion } ] }
  *   /maps/<slug>/…              — uNmINeD web output per dimension
- *   /maps/<slug>/thumb.webp     — sidebar card preview (absent = unrendered)
+ *   /maps/<slug>/thumb.png      — sidebar card preview, published from the
+ *                                 seed roller's own committed render (absent
+ *                                 = nobody has picked a seed for this
+ *                                 dimension yet — never generated on demand)
  *   /maps/<slug>/markers.json   — custom markers merged into the map
  */
 (function () {
@@ -74,8 +77,9 @@
     return null;
   }
 
-  // One preview card per dimension: thumbnail (when rendered), name, an
-  // info line built from whatever config-derived fields the manifest
+  // One preview card per dimension: thumbnail (when a seed has been picked
+  // for it, independent of whether the world has ever been rendered), name,
+  // an info line built from whatever config-derived fields the manifest
   // carries (type/difficulty/theme/spawn biome — any of these may be
   // absent for a sparsely-configured dimension, so the line only joins
   // the ones actually present), and the render/pending status line.
@@ -139,8 +143,7 @@
 
   // The card thumbnail frame. No <img> is created at all when the manifest
   // has no thumbnail URL, so there is never a moment where a broken-image
-  // icon can show; if the file 404s anyway (render succeeded but the
-  // spawn-area thumbnail render did not) the error handler falls back to
+  // icon can show; if the file 404s anyway the error handler falls back to
   // the same empty-frame treatment.
   function buildThumb(dim) {
     var thumb = document.createElement('span');
@@ -151,7 +154,9 @@
       return thumb;
     }
     var img = document.createElement('img');
-    img.src = dim.thumb + '?v=' + String(dim.version || 0);
+    // thumbVersion tracks the committed PNG itself, not the world render —
+    // a re-picked seed changes the thumbnail without touching dim.version.
+    img.src = dim.thumb + '?v=' + String(dim.thumbVersion || dim.version || 0);
     img.alt = dim.name + ' — aerial map preview';
     img.loading = 'lazy';
     img.decoding = 'async';

@@ -2,7 +2,10 @@ package com.customdimensions.web;
 
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.Artefacts;
+import com.customdimensions.command.InputHash;
 import com.customdimensions.config.DimensionConfig;
+import com.customdimensions.roll.CandidateRender;
+import com.customdimensions.roll.SeedBank;
 import com.customdimensions.tryout.TryOut;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -12,9 +15,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Choosing a seed: the last step, and the only one a person makes.
@@ -32,8 +39,23 @@ import java.nio.file.Path;
  * anywhere else reaches neither git nor the next roll, and would be destroyed
  * by the next config refresh — silently doing nothing useful is worse than
  * saying no.
+ *
+ * <p>The winning candidate's own renders are copied beside the JSON as
+ * {@code &lt;slug&gt;_low.png} / {@code &lt;slug&gt;_high.png} — the map
+ * sidebar's source for that dimension's card (see
+ * {@code docker/unmined-render/render-loop.sh}), so a preview exists for
+ * every picked dimension without the server ever rendering the live world for
+ * one. Committed to git alongside the config, so both copies are downscaled
+ * on the way out: {@link #THUMB_LOW_MAX_SIDE} is a card thumbnail's size,
+ * {@link #THUMB_HIGH_MAX_SIDE} is a lightbox's — well below the roller's own
+ * render sizes, which exist to be judged on screen, not stored forever.
  */
 public final class Picker {
+
+    /** Sidebar card thumbnail — a few hundred px is all a card ever shows. */
+    private static final int THUMB_LOW_MAX_SIDE = 400;
+    /** Lightbox copy — bigger than the card, still a fraction of a highres render. */
+    private static final int THUMB_HIGH_MAX_SIDE = 960;
 
     private Picker() {
     }
@@ -72,6 +94,7 @@ public final class Picker {
             }
             root.add("overrides", overrides);
             Artefacts.write(target, new GsonBuilder().setPrettyPrinting().create().toJson(root) + "\n");
+            copyThumbnails(server, def, dimensionSlug, seed, overlayDir);
             String where = spawn == null ? ""
                     : " spawn=" + spawn[0] + "," + spawn[1] + "," + spawn[2];
             MultiverseServer.LOGGER.info("pick {}: seed={}{} -> {}", dimensionSlug, seed, where, target);
@@ -97,5 +120,98 @@ public final class Picker {
             }
         }
         return null;
+    }
+
+    /**
+     * Copies (or clears) the winner's low/high renders beside its JSON. Best
+     * effort: a candidate picked straight off the leaderboard may never have
+     * had a highres render drawn, and that must not fail the pick — the seed
+     * itself is what matters. Always resolved from THIS pick's inputs, so a
+     * re-pick under a stale hash never copies a render for the wrong seed.
+     */
+    private static void copyThumbnails(MinecraftServer server, DimensionConfig def,
+                                       String dimensionSlug, long seed, Path overlayDir) {
+        String dimension = def.getDimensionIdentifier().toString();
+        String inputHash = InputHash.of(def, server);
+        writeThumbnail(
+                SeedBank.candidateImagePath(inputHash, dimension, seed, CandidateRender.Resolution.LOWRES),
+                overlayDir.resolve(dimensionSlug + "_low.png"), THUMB_LOW_MAX_SIDE);
+        writeThumbnail(
+                SeedBank.candidateImagePath(inputHash, dimension, seed, CandidateRender.Resolution.HIGHRES),
+                overlayDir.resolve(dimensionSlug + "_high.png"), THUMB_HIGH_MAX_SIDE);
+    }
+
+    /**
+     * One render copied to {@code target}, downscaled to {@code maxSide} on
+     * its long edge when it is bigger. Missing source (no render at this
+     * resolution) clears a stale {@code target} left by an earlier pick,
+     * rather than leaving a thumbnail that no longer matches the chosen seed.
+     */
+    private static void writeThumbnail(Path source, Path target, int maxSide) {
+        try {
+            if (!Files.isRegularFile(source)) {
+                Files.deleteIfExists(target);
+                return;
+            }
+            BufferedImage src = ImageIO.read(source.toFile());
+            if (src == null) {
+                return;
+            }
+            BufferedImage out = Math.max(src.getWidth(), src.getHeight()) <= maxSide
+                    ? src : downscale(src, maxSide);
+            Files.createDirectories(target.getParent());
+            Path tmp = target.resolveSibling(target.getFileName() + ".tmp");
+            if (!ImageIO.write(out, "png", tmp.toFile())) {
+                throw new IOException("no PNG writer registered for this JVM");
+            }
+            try {
+                Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+            } finally {
+                Files.deleteIfExists(tmp);
+            }
+        } catch (IOException | RuntimeException e) {
+            MultiverseServer.LOGGER.warn("Could not write thumbnail {} -> {}: {}", source, target, e.toString());
+        }
+    }
+
+    /**
+     * Box-average downsample to at most {@code maxSide} on the long edge.
+     * These renders are flat-colour maps, not photos, so an average over each
+     * destination cell's source block reads as a clean shrink rather than
+     * needing a resampling filter.
+     */
+    private static BufferedImage downscale(BufferedImage src, int maxSide) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        double scale = maxSide / (double) Math.max(w, h);
+        int outW = Math.max(1, (int) Math.round(w * scale));
+        int outH = Math.max(1, (int) Math.round(h * scale));
+        BufferedImage out = new BufferedImage(outW, outH, BufferedImage.TYPE_INT_RGB);
+        for (int oy = 0; oy < outH; oy++) {
+            int sy0 = oy * h / outH;
+            int sy1 = Math.max(sy0 + 1, (oy + 1) * h / outH);
+            for (int ox = 0; ox < outW; ox++) {
+                int sx0 = ox * w / outW;
+                int sx1 = Math.max(sx0 + 1, (ox + 1) * w / outW);
+                long r = 0;
+                long g = 0;
+                long b = 0;
+                long n = 0;
+                for (int sy = sy0; sy < sy1; sy++) {
+                    for (int sx = sx0; sx < sx1; sx++) {
+                        int rgb = src.getRGB(sx, sy);
+                        r += (rgb >> 16) & 0xFF;
+                        g += (rgb >> 8) & 0xFF;
+                        b += rgb & 0xFF;
+                        n++;
+                    }
+                }
+                int avg = (int) ((r / n) << 16 | (g / n) << 8 | (b / n));
+                out.setRGB(ox, oy, avg);
+            }
+        }
+        return out;
     }
 }

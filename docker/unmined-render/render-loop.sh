@@ -9,14 +9,16 @@
 # regions whose .mca files changed, and whole dimensions are skipped when
 # nothing changed since the last pass (mtime marker).
 #
-# Alongside the tile pyramid, each render also produces a small spawn-centred
-# thumb.webp via `unmined-cli image render` — a single flat image (distinct
-# from `web render`'s tile pyramid) that the sidebar uses as each dimension's
-# preview card. It reads the same live region files as the tile pyramid and
-# is regenerated in the same skip-if-unchanged branch, so it can never show a
-# seed or layout that isn't the one actually on disk. The seed-roller's own
-# candidate PNGs live in the consumer's gitignored .seed-rolling/ and never
-# reach the server, so they aren't a usable source for this.
+# Sidebar preview cards read a thumbnail this script never renders. The seed
+# roller already draws a low/high PNG for every candidate it scores, and
+# `web/Picker` (the mod's /pick route) copies the chosen candidate's pair
+# beside the dimension's own JSON when a seed is picked — committed to git,
+# not generated server-side. This script's only job for a card is to publish
+# whatever committed PNG exists into $OUT_DIR so nginx can serve it, and
+# record its path in manifest.json; a dimension nobody has picked a seed for
+# (or one whose config still comes from `unmined-cli`-only worlds predating
+# the roller) simply has none, and the sidebar shows a placeholder frame
+# instead — it never asks this container to render one.
 #
 # Usage (container entrypoint; also runnable standalone for testing):
 #   UNMINED_INTERVAL=6h render-loop.sh          # daemon: render every 6h
@@ -75,44 +77,6 @@ generation_radius() {
   [[ -n "$r" ]] && echo "$r" || echo "$PREGEN_BORDER_RADIUS"
 }
 
-# Card thumbnail: one flat overview image via uNmINeD's "image render" verb
-# (distinct from "web render" — renders a single file, not a tile pyramid).
-# Sourced from the same live world data as the interactive map, at the same
-# render pass, so it can never show a stale or since-rejected seed-roller
-# candidate — there's no separate delivery path to go out of sync. Cropped
-# to the dimension's own player border (capped at 768, X half-extent) so
-# pocket dimensions render edge-to-edge and large worlds get a bounded,
-# spawn-centred preview rather than a thumbnail that balloons with how much
-# has been explored. The Z half-extent is 10/16 of that so the render
-# matches the sidebar's 16:10 card frame — object-fit:cover still crops a
-# non-16:10 render safely, but with a matching aspect ratio it barely has to.
-render_thumb() {
-  name="$1" dim="$2"
-  out="$OUT_DIR/maps/$name/thumb.webp"
-  cfg="$(config_file_for "$name")"
-  border=8192
-  if [[ -f "$cfg" ]]; then
-    b=$(jq -r '(.borders.player // .overrides.borders.player // empty)' "$cfg" 2>/dev/null || true)
-    [[ -n "$b" && "$b" != "null" ]] && border="$b"
-  fi
-  read -r rx rz <<< "$(awk -v b="$border" 'BEGIN {
-      rx = (b < 768) ? b : 768; if (rx < 128) rx = 128;
-      rz = rx * 10 / 16;
-      printf "%d %d", rx, rz
-    }')"
-  if ! "$UNMINED_HOME/unmined-cli" image render \
-      --world "$WORLD_DIR" \
-      --dimension "$dim" \
-      --output "$out" \
-      --zoom -3 \
-      --area="b((-${rx},-${rz}),(${rx},${rz}))" \
-      --background 0c1319 \
-      -c >/dev/null 2>&1; then
-    log "WARN: thumbnail render failed for $name (card falls back to a placeholder)"
-    rm -f "$out"
-  fi
-}
-
 # One web render, skipped when no region file changed since the last pass.
 # args: <map name> <dimension spec> <region dir> <radius>
 render_one() {
@@ -140,7 +104,6 @@ render_one() {
       --area="b((-${radius},-${radius}),(${radius},${radius}))" \
       -c >/dev/null; then
     touch "$marker"
-    render_thumb "$name" "$dim"
   else
     log "WARN: render failed for $name (leaving previous tiles in place)"
   fi
@@ -156,23 +119,24 @@ config_file_for() {
   esac
 }
 
-# The --dimension spec for a map name: bare word for the three base worlds,
-# else <namespace>:<slug> discovered from where its region files actually
-# live. Used to backfill a thumbnail for a dimension that already has a full
-# render but predates thumbnails (or whose own thumbnail render failed)
-# without forcing a region re-render just to get one.
-dim_spec_for() {
-  case "$1" in
-    overworld|nether|end) echo "$1"; return ;;
-  esac
-  for nsdir in "$WORLD_DIR"/dimensions/*/; do
-    [[ -d "$nsdir" ]] || continue
-    if [[ -d "${nsdir}$1/region" ]]; then
-      echo "$(basename "$nsdir"):$1"
-      return
-    fi
+# The committed thumbnail for a map name, at one of the two sizes Picker
+# writes ("low" | "high"). Checked overlay-first, same precedence
+# config_file_for's own dimension JSON gets — deploy.sh/dev-up.sh route
+# overlay/config/custom-dimensions/ to data/config/custom-dimensions/overlay/
+# rather than merging it into dimensions/ directly (the mod resolves
+# replace/"overrides"/empty-{} itself), so a picked-but-not-yet-exported
+# consumer seed is staged there, not beside the platform default. The file's
+# basename always matches config_file_for's own JSON basename (Picker writes
+# both under the same dimension slug), so there is one mapping to know, not
+# two. Empty output means no committed render exists yet.
+thumb_file_for() {
+  name="$1" size="$2"
+  base="$(basename "$(config_file_for "$name")" .json)"
+  for dir in "$CONFIG_DIR/overlay/dimensions" "$CONFIG_DIR/dimensions"; do
+    f="$dir/${base}_${size}.png"
+    [[ -f "$f" ]] && { echo "$f"; return; }
   done
-  echo "$1"
+  return 0
 }
 
 # Title-case a slug or namespaced id: strips a leading "namespace:", splits
@@ -301,8 +265,19 @@ manifest_entry() {
     rendered="true"
     ver=$(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0)
   fi
-  local has_thumb="false"
-  [[ -f "$OUT_DIR/maps/$name/thumb.webp" ]] && has_thumb="true"
+  # Published from whatever committed render exists (see thumb_file_for) —
+  # never rendered by this container, and independent of $rendered: a picked
+  # seed can have a card long before anyone has generated a single chunk.
+  local thumb="" thumb_ver=0
+  local low_src; low_src="$(thumb_file_for "$name" low)"
+  if [[ -n "$low_src" ]]; then
+    mkdir -p "$OUT_DIR/maps/$name"
+    cp "$low_src" "$OUT_DIR/maps/$name/thumb.png"
+    thumb="/maps/$name/thumb.png"
+    thumb_ver=$(stat -c %Y "$low_src" 2>/dev/null || stat -f %m "$low_src" 2>/dev/null || echo 0)
+  fi
+  local high_src; high_src="$(thumb_file_for "$name" high)"
+  [[ -n "$high_src" ]] && cp "$high_src" "$OUT_DIR/maps/$name/thumb_high.png"
   local theme="" spawn_biome=""
   [[ -n "$mood" ]] && theme="$(titlecase_slug "$mood")"
   [[ -n "$spawn_biome_raw" ]] && spawn_biome="$(titlecase_slug "$spawn_biome_raw")"
@@ -310,12 +285,13 @@ manifest_entry() {
     --argjson spawn "$spawn" --argjson ver "$ver" --argjson rendered "$rendered" \
     --arg pretty "$(display_name "$name")" --arg typeLabel "$(type_label "$name" "$dim_type")" \
     --arg difficulty "$difficulty" --arg theme "$theme" --arg spawnBiome "$spawn_biome" \
-    --arg thumb "/maps/$name/thumb.webp" --argjson hasThumb "$has_thumb" \
+    --arg thumb "$thumb" --argjson thumbVer "$thumb_ver" \
     '{slug: $slug, name: $pretty, type: $type, typeLabel: $typeLabel, family: $family,
       difficulty: $difficulty, theme: (if $theme == "" then null else $theme end),
       spawnBiome: (if $spawnBiome == "" then null else $spawnBiome end),
       spawn: $spawn, version: $ver, renderedAt: (if $rendered then $ver else null end),
-      rendered: $rendered, thumb: (if $hasThumb then $thumb else null end)}'
+      rendered: $rendered, thumb: (if $thumb == "" then null else $thumb end),
+      thumbVersion: (if $thumb == "" then null else $thumbVer end)}'
 }
 
 # Manifest consumed by the web shell (served no-cache). Always includes the
@@ -379,10 +355,6 @@ render_all() {
     [[ -f "$d/unmined.map.properties.js" ]] || continue
     name=$(basename "$d")
     write_markers "$name"
-    # Backfill: a dimension rendered before thumbnails existed, or whose
-    # thumbnail render failed last pass, gets one now without waiting for
-    # its region files to change again.
-    [[ -f "$d/thumb.webp" ]] || render_thumb "$name" "$(dim_spec_for "$name")"
   done
   install_shell
   write_manifest

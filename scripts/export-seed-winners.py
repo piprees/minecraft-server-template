@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""export-seed-winners.py - Copy rolled winner seeds and spawns from a
-consumer's overlay into the platform's default dimension configs.
+"""export-seed-winners.py - Copy rolled winner seeds, spawns and thumbnails
+from a consumer's overlay into the platform's default dimension configs.
 
 Context: after a final roll and winner picking on the consumer (elfydd),
 each chosen `seed` and `spawn` lives in an overlay "overrides" file
@@ -10,6 +10,12 @@ config/custom-dimensions/dimensions/<slug>.json. This tool surgically
 replaces ONLY the top-level "seed" number and "spawn" array in each
 template file — plain text substitution, no JSON round-trip, so JSONC
 comments and formatting survive untouched.
+
+The same `web/Picker` write also drops the winner's own low/high renders
+beside its JSON, as <slug>_low.png / <slug>_high.png — this tool copies
+those across unchanged (binary, no substitution to do) so the map sidebar
+has a thumbnail for the exported dimension without the production server
+ever rendering one itself.
 
 Usage:
   scripts/export-seed-winners.py [--consumer PATH] [--dry-run]
@@ -117,6 +123,26 @@ def insert_after_open_brace(text, line):
     return text[:newline + 1] + line + text[newline + 1:]
 
 
+def export_thumbnails(overlay_dir, template_dir, dry_run):
+    """Copies every <slug>_low.png / <slug>_high.png Picker wrote beside a
+    winner config into the platform template directory under the same name.
+    Independent of the JSON substitution above — a re-pick at an unchanged
+    seed can still swap in a different render, and there is nothing to
+    diff for a binary file, so this always copies what it finds."""
+    copied = 0
+    sources = sorted(overlay_dir.glob("*_low.png")) + sorted(overlay_dir.glob("*_high.png"))
+    for src in sources:
+        dest = template_dir / src.name
+        size = src.stat().st_size
+        if dry_run:
+            print(f"  {src.name}: would copy ({size} bytes)")
+        else:
+            dest.write_bytes(src.read_bytes())
+            print(f"  {src.name}: exported ({size} bytes)")
+        copied += 1
+    return copied
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Export rolled winner seeds/spawns from a consumer overlay "
@@ -172,9 +198,12 @@ def main():
             template.write_text(updated)
             print(f"  {overlay_path.name}: exported")
 
+    png_copied = export_thumbnails(overlay_dir, template_dir, args.dry_run)
+
     verb = "would change" if args.dry_run else "changed"
+    png_verb = "would copy" if args.dry_run else "copied"
     print(f"\n{verb} {changed} file(s); {skipped} unchanged/no-winner; "
-          f"{missing} missing template(s)")
+          f"{missing} missing template(s); {png_verb} {png_copied} thumbnail(s)")
     if overworld_seed is not None:
         print(f"NOTE: the overworld winner is {overworld_seed}. Its terrain comes from "
               f"overworld.json, which this script just wrote — deploy that config BEFORE "
