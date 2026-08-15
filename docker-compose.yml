@@ -322,6 +322,9 @@ services:
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       RCON_HOST: mc
       RCON_PASSWORD: ${RCON_PASSWORD:-}
+      # Same excludes as mc-backup (below) - local verification should match
+      # what production actually does.
+      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache,.fabric
     volumes:
       - ./data:/data:ro
       - ./backups:/backups
@@ -382,8 +385,9 @@ services:
 
       # --- Exclude regenerable data from backups ---
       # Only world/ and config/ are irreplaceable; everything else is
-      # re-downloaded or regenerated on deploy.
-      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache
+      # re-downloaded or regenerated on deploy. .fabric is the Fabric
+      # installer's own cache, rebuilt by TYPE:FABRIC on every boot.
+      EXCLUDES: unmined-web,mods,libraries,versions,logs,crash-reports,kuma,DistantHorizons.sqlite,poi,ledger.sqlite,dynamic-data-pack-cache,.fabric
 
       # --- RCON connection to the game server ---
       RCON_HOST: mc

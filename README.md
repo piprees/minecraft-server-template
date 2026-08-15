@@ -346,7 +346,7 @@ Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), w
 
 **Size cap + Discord notify**: after every backup, if the restic repo's raw size still exceeds `BACKUP_SIZE_CAP_GIB` (default 10) despite retention, the oldest snapshot is forgotten and pruned — repeated until it fits, but never below one snapshot (a genuinely oversized world keeps one copy and the notification carries a warning instead of silently deleting your only backup). Every run posts to `DISCORD_WEBHOOK_URL` if set: backup OK with the current size and snapshot count, or backup failed with the exit code. Restic's hostname is brand-scoped (`${BRAND_SLUG}-mc-backup`) so retention groups correctly across deploys — see [TROUBLESHOOTING.md#t14](TROUBLESHOOTING.md#t14) if snapshot counts ever look wrong.
 
-**Excludes** (regenerable data): `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`. Only world, player data, and config are backed up.
+**Excludes** (regenerable data): `unmined-web`, `mods`, `libraries`, `versions`, `logs`, `crash-reports`, `kuma`, `DistantHorizons.sqlite`, `poi`, `ledger.sqlite`, `dynamic-data-pack-cache`, `.fabric`. Only world, player data, and config are backed up.
 
 ```bash
 ./ops backup                                     # manual backup

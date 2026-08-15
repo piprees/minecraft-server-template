@@ -41,8 +41,10 @@ Only the world, player data, and config are irreplaceable, so only those are bac
 
 ```
 unmined-web, mods, libraries, versions, logs, crash-reports,
-kuma, DistantHorizons.sqlite, poi, ledger.sqlite, dynamic-data-pack-cache
+kuma, DistantHorizons.sqlite, poi, ledger.sqlite, dynamic-data-pack-cache, .fabric
 ```
+
+Restic's `EXCLUDES` patterns match by name at any depth, not just at the top of `/data` — a bare name like `DistantHorizons.sqlite` excludes it in `data/world/data/`, `data/world/DIM1/data/`, and every custom dimension's `dimensions/<ns>/<slug>/data/` copy in one entry. Confirmed via `docker exec mc-backup restic ls latest --long | grep -i distanthorizons` returning nothing on a world with Distant Horizons enabled in four dimensions.
 
 After a restore, the map is blank, mods are missing from `data/mods/`, Kuma history is gone, and Distant Horizons/POI/ledger caches are empty. **This is correct, not a failed restore** — the map re-renders, mods re-download via `sync-mods.sh`, DH/POI/ledger regenerate from the restored world on next boot. Don't restart triage on a blank map after a restore; confirm the world/playerdata/config are actually present first.
 
@@ -92,6 +94,7 @@ In short: `./ops reset-seed <seed>` backs up (restic, best-effort, plus a local 
 5. **A restore does not bring back the map, mods, or Kuma history — this is by design, not a failure.** See the excludes list above before reporting a restore as broken.
 6. **`wipe-chunk` refuses while `mc` is running unless `--force`.** Forcing it against a live server risks corrupting the region file the server still holds open.
 7. **`reset-seed --wipe-backups` purges every restic snapshot in R2, with no undo.** Only the local `tar.gz` backup on the droplet and any off-server copy survive that flag.
+8. **A repo stuck at exactly one snapshot doesn't always mean the excludes are broken.** `BACKUP_SIZE_CAP_GIB` bounds the whole repo, not one snapshot — if a single full snapshot of the non-excluded data (world region files, mainly) is already bigger than the cap, the post-backup trim forgets every older snapshot on every run and the repo never holds more than one. Check `docker exec mc-backup restic stats --mode raw-data` (repo size, what the cap compares against) against `restic stats latest --mode restore-size` (size of one snapshot's actual files) before assuming the excludes are wrong — an actively-explored world with Terralith/Incendium/custom-dimension terrain can legitimately need a `BACKUP_SIZE_CAP_GIB` well above the 10 GiB R2-free-tier default; raising it is the fix, not inventing new excludes.
 
 ## Validation — run these, don't assume
 
