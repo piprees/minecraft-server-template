@@ -31,9 +31,36 @@ import java.util.Set;
  */
 public final class ViewerPage {
 
-    private static final int TOP_CANDIDATES = 12;
-
     private ViewerPage() {
+    }
+
+    /**
+     * A named seed's marker, inline and immediately left of the seed it
+     * describes. Empty for an ordinary candidate, so the seed line of an
+     * unnamed card is unchanged.
+     */
+    private static String roleBadge(SeedRoster.Role role) {
+        if (!role.pinned()) {
+            return "";
+        }
+        return "<span class='role-badge role-" + escape(role.id()) + "' title='"
+                + escape(roleTitle(role)) + "'>" + role.badge() + "</span>";
+    }
+
+    /** What a badge means, spelled out — an emoji alone is a guess. */
+    private static String roleTitle(SeedRoster.Role role) {
+        switch (role) {
+            case CURRENT:
+                return "Current seed — what this dimension's config says right now";
+            case STARTING:
+                return "Starting seed — the world this server booted with";
+            case BEST:
+                return "Best scoring seed in the bank";
+            case SHORTLISTED:
+                return "Shortlisted — kept by hand, survives a re-roll";
+            default:
+                return "";
+        }
     }
 
     public static String render(MinecraftServer server) throws IOException {
@@ -105,8 +132,20 @@ public final class ViewerPage {
         DimensionConfig def = v.config();
         String slug = v.slug();
         List<BankView.CandidateView> candidates = v.candidates();
-        BankView.CandidateView best = candidates.isEmpty() ? null : candidates.get(0);
-        double bestScore = best != null && best.percentage() != null ? best.percentage() : 0.0;
+        // The compact face shows the world this dimension IS, not the best one
+        // the search found: the first roster slot is the configured seed
+        // whenever there is one, which is the picture a person opens the page
+        // to check. The score beside it stays the best score, because that is
+        // what the flag and the sort are about.
+        BankView.CandidateView face = candidates.isEmpty() ? null : candidates.get(0);
+        double bestScore = 0.0;
+        boolean anyShortlisted = false;
+        for (BankView.CandidateView c : candidates) {
+            if (c.percentage() != null) {
+                bestScore = Math.max(bestScore, c.percentage());
+            }
+            anyShortlisted |= c.shortlisted();
+        }
         String panelId = "detail-" + slug;
 
         StringBuilder b = new StringBuilder();
@@ -119,15 +158,17 @@ public final class ViewerPage {
                 .append("' data-type='").append(escape(nullSafe(def.getType(), "unknown")))
                 .append("' data-mood='").append(escape(mood(def)))
                 .append("' data-flagged='")
-                .append(candidates.isEmpty() || bestScore < RollPipeline.SCORE_THRESHOLD ? 1 : 0)
+                .append(v.banked() == 0 || bestScore < RollPipeline.SCORE_THRESHOLD ? 1 : 0)
                 .append("' data-score='").append(fmt(bestScore))
-                .append("' data-cands='").append(candidates.size())
-                .append("' data-shortlisted='0' data-pinned='0' data-radius='")
+                .append("' data-cands='").append(v.banked())
+                .append("' data-shortlisted='").append(anyShortlisted ? 1 : 0)
+                .append("' data-pinned='").append(v.picked() ? 1 : 0)
+                .append("' data-radius='")
                 .append(def.getPlayerBorderRadius())
                 .append("' data-dim-scale='").append(fmt(def.getScale()))
                 .append("'>");
 
-        if (candidates.isEmpty()) {
+        if (v.banked() == 0) {
             b.append("<div class='flag-dot red'></div>");
         } else if (bestScore < 50) {
             b.append("<div class='flag-dot amber'></div>");
@@ -135,18 +176,19 @@ public final class ViewerPage {
 
         // Compact face
         b.append("<div class='compact'>");
-        if (best != null) {
-            b.append(image(slug, best));
+        if (face != null) {
+            b.append(image(slug, face));
         } else {
             b.append("<div class='no-render'>not rolled</div>");
         }
         b.append("<div class='dim-name'>").append(escape(slug)).append("</div>");
         b.append("<div class='dim-meta'>")
+                .append(face == null ? "" : roleBadge(face.role()))
                 .append("<span class='dim-score' style='color:").append(scoreColour(bestScore))
-                .append("'>").append(candidates.isEmpty() ? "&mdash;" : fmt(bestScore)).append("</span>")
+                .append("'>").append(v.banked() == 0 ? "&mdash;" : fmt(bestScore)).append("</span>")
                 .append("<span class='badge'>").append(escape(nullSafe(def.getType(), "unknown"))).append("</span>")
                 .append("<span class='badge'>").append(escape(mood(def))).append("</span>")
-                .append("<span>").append(candidates.size()).append(" seeds</span>")
+                .append("<span>").append(v.banked()).append(" seeds</span>")
                 .append("</div>");
         String blurb = description(def);
         if (!blurb.isEmpty()) {
@@ -193,21 +235,25 @@ public final class ViewerPage {
             b.append("<span class='badge'>").append(escape(roll.terrain)).append("</span>");
         }
         b.append("<span class='badge'>hash ").append(escape(shortHash(v.inputHash()))).append("</span>");
+        // What the row is showing, stated where the other facts about this
+        // dimension already are rather than as a footnote under the cards.
+        if (!candidates.isEmpty()) {
+            b.append("<span class='badge' title='Top ").append(SeedRoster.OTHERS)
+                    .append(" by score, plus the current, starting, best and shortlisted seeds'>")
+                    .append(candidates.size()).append(" shown of ").append(v.banked())
+                    .append(" banked</span>");
+        }
         b.append("</div></div></div>");
 
         if (candidates.isEmpty()) {
-            b.append("<p class='meta'>No seeds banked under this dimension's current inputs.</p>");
+            b.append("<p class='meta'>No seeds banked under this dimension's current inputs, "
+                    + "and no seed configured.</p>");
         } else {
             b.append("<div class='all-cands'>");
-            int shown = Math.min(candidates.size(), TOP_CANDIDATES);
-            for (int i = 0; i < shown; i++) {
+            for (int i = 0; i < candidates.size(); i++) {
                 b.append(candidate(i, slug, candidates.get(i), v));
             }
             b.append("</div>");
-            if (candidates.size() > shown) {
-                b.append("<p class='cand-count meta'>Top ").append(shown).append(" of ")
-                        .append(candidates.size()).append(" banked</p>");
-            }
         }
         b.append("</div></div>");
         return b.toString();
@@ -221,21 +267,28 @@ public final class ViewerPage {
         boolean onFrontier = v.frontierSeeds().contains(c.seed());
         StringBuilder b = new StringBuilder();
         b.append("<div class='cand cand-item").append(onFrontier ? " winner" : "")
+                .append(c.role().pinned() ? " named" : "")
                 .append("' data-idx='").append(idx)
                 .append("' data-score='").append(fmt(pct))
                 .append("' data-dim='").append(escape(slug))
                 .append("' data-seed='").append(c.seed())
-                .append("' data-parts='").append(escape(partsJson(c.scorecard())))
+                .append("' data-role='").append(escape(c.role().id()))
+                // Presence, not value: app.js filters on
+                // `.cand[data-shortlisted]` and clears the attribute outright
+                // when a seed is dropped, so a data-shortlisted='0' would
+                // match the filter and show every candidate.
+                .append('\'').append(c.shortlisted() ? " data-shortlisted='1'" : "")
+                .append(" data-parts='").append(escape(partsJson(c.scorecard())))
                 .append("' data-render='renders/").append(escape(slug)).append('/').append(c.seed())
-                .append(".png'").append(idx >= 6 ? " style='display:none'" : "").append('>');
+                .append(".png'>");
         b.append(image(slug, c));
         if (c.hasHighres()) {
             b.append("<div class='hires-badge'>HD</div>");
         }
         b.append("<div class='cand-dim-label'>").append(escape(slug)).append("</div>");
         b.append("<div class='score' style='color:").append(scoreColour(pct)).append("'>")
-                .append(fmt(pct)).append("</div>");
-        b.append("<div class='seed'>").append(c.seed()).append("</div>");
+                .append(c.banked() ? fmt(pct) : "&mdash;").append("</div>");
+        b.append("<div class='seed'>").append(roleBadge(c.role())).append(c.seed()).append("</div>");
 
         // The modal's body: the score AND the reasons behind it.
         b.append("<div class='cand-detail' style='display:none'>");
@@ -249,8 +302,9 @@ public final class ViewerPage {
                 .append("' data-coverage-low='512'><div class='lb-title'>")
                 .append("<span class='dim-label'>").append(escape(slug)).append("</span> ")
                 .append("<span class='score' style='color:").append(scoreColour(pct)).append("'>")
-                .append(fmt(pct)).append("</span> ")
-                .append("<span class='seed'>").append(c.seed()).append("</span></div>");
+                .append(c.banked() ? fmt(pct) : "&mdash;").append("</span> ")
+                .append("<span class='seed'>").append(roleBadge(c.role())).append(c.seed())
+                .append("</span></div>");
         b.append("<div class='score-parts'>").append(tiers(c.scorecard()))
                 .append(fmt(c.achieved())).append(" of ")
                 .append(fmt(c.ceiling())).append(" &middot; ").append(escape(c.verdict()));
@@ -275,6 +329,10 @@ public final class ViewerPage {
                 .append(escape(slug)).append("' data-seed='").append(c.seed())
                 .append("'>Try it out</button>")
                 .append("<button type='button' class='action-btn tryout-back'>Back to spawn</button>")
+                .append("<button type='button' class='action-btn shortlist' data-dim='")
+                .append(escape(slug)).append("' data-seed='").append(c.seed())
+                .append("'>").append(c.shortlisted() ? "Remove from shortlist" : "Shortlist")
+                .append("</button>")
                 .append("<button type='button' class='pick' data-dim='").append(escape(slug))
                 .append("' data-seed='").append(c.seed())
                 .append("'>Use this seed</button>")

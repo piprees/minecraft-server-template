@@ -209,20 +209,34 @@
 @layer components {
   /* A src-less <img> in the lightbox draws the browser's broken-image chrome;
      say what is actually true instead. */
+  /* Written out rather than @applied: this stylesheet is served to the
+     browser exactly as it is on disk, with no Tailwind build in front of it,
+     so an @apply is a comment. Everything this rule needed to centre the
+     message lived in one. */
   .lb-noimg {
-    @apply bg-background text-muted-foreground grid w-full place-items-center
-      gap-2 p-8 text-center text-sm;
-    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
     align-content: center;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+    gap: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.875rem;
+    background: var(--bg-page);
+    color: var(--text-muted);
   }
   .lb-noimg .relief-chip {
     width: 5rem;
   }
   .lb-noimg p {
     margin: 0;
+    max-width: 32ch;
   }
   .lb-noimg-sub {
-    @apply text-[0.75rem] opacity-80;
+    font-size: 0.75rem;
+    opacity: 0.8;
     max-width: 28ch;
   }
 
@@ -1108,16 +1122,8 @@ kbd {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Shortlisted candidate indicator */
-.cand[data-shortlisted]::after {
-  content: '\2605';
-  position: absolute;
-  top: 0.3rem;
-  right: 0.3rem;
-  color: var(--accent-gold);
-  font-size: 0.85rem;
-  line-height: 1;
-}
+/* The shortlist marker is the 📋 beside the seed — a corner star said the
+   same thing a second time, in a glyph that reads as "best". */
 
 /* Shortlist filter: hide non-shortlisted candidates when active */
 body.shortlist-filter .cand:not([data-shortlisted]) {
@@ -1592,19 +1598,28 @@ img.winner-img {
   gap: 0.25rem;
   margin-bottom: 0.1rem;
 }
+/* Pinned to the modal, not to the scrolling panel. Sticky bottom:0 inside
+   .lb-info only holds while that panel has somewhere left to scroll — past
+   the end of the criteria list the bar left with it, so the two buttons the
+   whole modal exists for scrolled off the screen. */
 #lightbox .lb-actions {
-  border-top: 1px solid var(--rule);
-  background: var(--bg-card);
-  z-index: 2;
-  flex-wrap: wrap;
-  flex: 0 0 auto;
-  gap: 0.4rem;
-  margin-top: auto;
-  padding: 0.6rem 0px;
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 6;
   display: flex;
-  position: sticky;
-  bottom: 0px;
-  box-shadow: rgba(0, 0, 0, 0.55) 0px -10px 12px -8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+/* Room to scroll clear of the bar, so it never covers the last criterion. */
+#lightbox .lb-info {
+  padding-bottom: 4rem;
 }
 #lightbox .lb-actions .pick,
 #lightbox .lb-actions .action-btn {
@@ -2265,4 +2280,84 @@ details.incidental .mrow {
   top: 100%;
   left: 0;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Named seeds: current, starting, best, shortlisted --- */
+/* Inline, immediately left of the seed it describes: the marker qualifies a
+   specific number, and floated over the map it qualified the picture. */
+.role-badge {
+  font-size: 0.75em;
+  line-height: 1;
+  margin-right: 0.3em;
+  opacity: 0.85;
+  cursor: help;
+}
+.cand.named {
+  border-color: var(--accent-gold);
+}
+.cand[data-role='best'] {
+  box-shadow: 0 0 0 1px var(--accent-gold);
+}
+.cand[data-role='shortlisted'] {
+  border-color: var(--accent-gold-bright);
+}
+
+/* --- The modal on a narrow screen --- */
+/* A 2:1 flex row gives the square map the full width and pushes the panel off
+   the side, where nothing can scroll to it: .lb-inner clips, and the only
+   scrollable box is the panel that is no longer on screen. Stack the two and
+   let the whole modal scroll instead. */
+@media (max-width: 860px) {
+  #lightbox {
+    padding: 0.75rem;
+  }
+  #lightbox .lb-inner {
+    flex-direction: column;
+    aspect-ratio: auto;
+    width: 100%;
+    max-height: 92vh;
+    gap: 0.75rem;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+  }
+  #lightbox .lb-image {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    max-height: 55vh;
+    justify-content: center;
+  }
+  #lightbox .lb-image img {
+    width: 100%;
+    height: auto;
+    max-height: 55vh;
+    object-fit: contain;
+  }
+  /* The panel no longer scrolls on its own — the modal does — so an inner
+     scroller here would trap the gesture in a box with nowhere to go. */
+  #lightbox .lb-info {
+    flex: 0 0 auto;
+    overflow: visible;
+    padding: 0 0.9rem 5rem;
+    min-height: 0;
+  }
+  /* Fixed to the viewport rather than the modal: the modal now scrolls, and
+     an absolute bar would scroll away with it. */
+  #lightbox .lb-actions {
+    position: fixed;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    justify-content: center;
+  }
+}
+
+/* The dimension's facts, as a wrapping row rather than run-together inline
+   spans — adjacent badges with no gap read as one long pill. */
+.detail-header .meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
 }

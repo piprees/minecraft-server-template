@@ -1,6 +1,7 @@
 package com.customdimensions.web;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.command.Artefacts;
 import com.customdimensions.command.InputHash;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
@@ -8,6 +9,7 @@ import com.customdimensions.facts.Json;
 import com.customdimensions.roll.CandidateRender;
 import com.customdimensions.roll.Roller;
 import com.customdimensions.roll.SeedBank;
+import com.customdimensions.roll.Shortlist;
 import com.customdimensions.score.Frontier;
 import com.customdimensions.score.Scorecard;
 import net.minecraft.server.MinecraftServer;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * What the bank on disk looks like right now, for the browser.
@@ -33,16 +36,25 @@ public final class BankView {
     private BankView() {
     }
 
-    /** One dimension and every candidate banked under its current input hash. */
+    /**
+     * One dimension and the seeds it shows: its named ones (see
+     * {@link SeedRoster}) followed by the top of its board.
+     *
+     * <p>{@code candidates} is the roster, not the leaderboard — it can carry
+     * a seed with no bank entry at all, because the seed a dimension is
+     * configured with need never have been rolled.
+     */
     public record DimensionView(String slug, Identifier id, DimensionConfig config, String inputHash,
                                 boolean rollable, List<CandidateView> candidates, int rejected,
-                                List<Long> frontierSeeds) {
+                                List<Long> frontierSeeds, Long currentSeed, Long startingSeed,
+                                int banked, boolean picked) {
     }
 
-    /** One candidate, with the scorecard's own per-criterion entries. */
+    /** One card, with the scorecard's own per-criterion entries and the role it is shown for. */
     public record CandidateView(long seed, double achieved, double ceiling, Double percentage,
                                 String verdict, Scorecard scorecard, List<String> strengths,
-                                boolean hasLowres, boolean hasHighres) {
+                                boolean hasLowres, boolean hasHighres, SeedRoster.Role role,
+                                boolean shortlisted, boolean banked) {
     }
 
     /**
@@ -105,19 +117,86 @@ public final class BankView {
         for (Scorecard c : cards) {
             bySeed.putIfAbsent(c.seed(), c);
         }
-
-        List<CandidateView> candidates = new ArrayList<>();
+        Map<Long, SeedBank.CandidateSummary> summaries = new LinkedHashMap<>();
+        List<Long> ranked = new ArrayList<>();
         for (SeedBank.CandidateSummary s : SeedBank.leaderboard(inputHash, dimension)) {
-            Scorecard card = bySeed.get(s.seed());
-            candidates.add(new CandidateView(s.seed(), s.achieved(), s.ceiling(), s.percentage(),
-                    s.verdict(), card, strengths.getOrDefault(s.seed(), List.of()),
-                    Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, s.seed(),
+            summaries.putIfAbsent(s.seed(), s);
+            ranked.add(s.seed());
+        }
+
+        Set<Long> shortlisted = Shortlist.of(dimension);
+        Long starting = def.getSeed();
+        Long picked = overlaySeed(def);
+        Long current = picked != null ? picked : starting;
+        List<CandidateView> candidates = new ArrayList<>();
+        for (SeedRoster.Slot slot : SeedRoster.of(current, starting, ranked, shortlisted)) {
+            long seed = slot.seed();
+            SeedBank.CandidateSummary s = summaries.get(seed);
+            candidates.add(new CandidateView(seed,
+                    s == null ? 0.0 : s.achieved(),
+                    s == null ? 0.0 : s.ceiling(),
+                    s == null ? null : s.percentage(),
+                    // A named seed need never have been rolled — the config can
+                    // hold one nothing measured. Said plainly rather than shown
+                    // as a zero, which reads as "measured, and bad".
+                    s == null ? "UNROLLED" : s.verdict(),
+                    bySeed.get(seed), strengths.getOrDefault(seed, List.of()),
+                    Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, seed,
                             CandidateRender.Resolution.LOWRES)),
-                    Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, s.seed(),
-                            CandidateRender.Resolution.HIGHRES))));
+                    Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, seed,
+                            CandidateRender.Resolution.HIGHRES)),
+                    slot.role(), shortlisted.contains(seed), s != null));
         }
         return new DimensionView(id.getPath(), id, def, inputHash, Roller.rollable(def),
-                candidates, SeedBank.rejectedSeeds(inputHash, dimension).size(), frontierSeeds);
+                candidates, SeedBank.rejectedSeeds(inputHash, dimension).size(), frontierSeeds,
+                current, starting, ranked.size(), picked != null);
+    }
+
+    /**
+     * The seed the overlay picks for this dimension, or null when it picks
+     * none — which is also the answer to "has anybody chosen one yet".
+     *
+     * <p>Read from the overlay file rather than from {@code def}, because
+     * {@link Picker} writes a pick straight into
+     * {@code overlay/config/custom-dimensions/dimensions/&lt;slug&gt;.json}
+     * and nothing reloads the config afterwards — the loaded
+     * {@link DimensionConfig} is the world the server is actually running,
+     * which is exactly what makes it the STARTING seed and not this one. The
+     * two differ from the moment a pick is made until the next restart, and
+     * that gap is the thing worth showing.
+     */
+    static Long overlaySeed(DimensionConfig def) {
+        Path overlay = Artefacts.overlayDimensionsDir().resolve(def.getName() + ".json");
+        if (!Files.isRegularFile(overlay)) {
+            return null;
+        }
+        try {
+            com.google.gson.JsonObject root = com.google.gson.JsonParser
+                    .parseString(Files.readString(overlay)).getAsJsonObject();
+            if (!root.has("overrides") || !root.get("overrides").isJsonObject()) {
+                return null;
+            }
+            com.google.gson.JsonObject overrides = root.getAsJsonObject("overrides");
+            if (!overrides.has("seed") || overrides.get("seed").isJsonNull()) {
+                return null;
+            }
+            com.google.gson.JsonElement seed = overrides.get("seed");
+            // "env" is a sentinel, not a number: the overlay says "take SEED
+            // from the environment", which is what the loaded config already
+            // resolved, so it names no seed of its own.
+            return seed.isJsonPrimitive() && seed.getAsJsonPrimitive().isNumber()
+                    ? seed.getAsLong() : null;
+        } catch (IOException | RuntimeException e) {
+            MultiverseServer.LOGGER.debug("Overlay seed unreadable for {}: {}",
+                    def.getName(), e.toString());
+            return null;
+        }
+    }
+
+    /** What the config says right now: the overlay's pick, else the loaded config's own seed. */
+    static Long currentSeed(DimensionConfig def, Long fallback) {
+        Long picked = overlaySeed(def);
+        return picked != null ? picked : fallback;
     }
 
     /**
@@ -280,11 +359,20 @@ public final class BankView {
             b.append(", \"inputHash\": ").append(Json.quote(v.inputHash()));
             b.append(", \"rollable\": ").append(v.rollable());
             b.append(", \"rejected\": ").append(v.rejected());
+            b.append(", \"banked\": ").append(v.banked());
+            b.append(", \"picked\": ").append(v.picked());
+            b.append(", \"currentSeed\": ")
+                    .append(v.currentSeed() == null ? "null" : v.currentSeed());
+            b.append(", \"startingSeed\": ")
+                    .append(v.startingSeed() == null ? "null" : v.startingSeed());
             b.append(", \"candidates\": [");
             for (int j = 0; j < v.candidates().size(); j++) {
                 CandidateView c = v.candidates().get(j);
                 b.append(j > 0 ? ", " : "");
                 b.append("{\"seed\": ").append(c.seed());
+                b.append(", \"role\": ").append(Json.quote(c.role().id()));
+                b.append(", \"shortlisted\": ").append(c.shortlisted());
+                b.append(", \"banked\": ").append(c.banked());
                 b.append(", \"percentage\": ")
                         .append(c.percentage() == null ? "null" : Json.number(c.percentage()));
                 b.append(", \"achieved\": ").append(Json.number(c.achieved()));

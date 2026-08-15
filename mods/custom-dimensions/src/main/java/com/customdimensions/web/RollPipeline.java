@@ -58,12 +58,12 @@ public final class RollPipeline {
 
     /**
      * Candidates ABOVE {@link #SCORE_THRESHOLD} a dimension needs before a roll
-     * leaves it alone, matched to {@link RenderQueue#KEEP} — the board only
-     * ever draws that many, so an eleventh costs seeds and shows nobody
-     * anything.
+     * leaves it alone, matched to {@link RenderQueue#KEEP} — a dimension shows
+     * only that many ranked seeds beside its named ones, so a sixth costs
+     * seeds and shows nobody anything.
      *
-     * <p>Counting only the good ones is the point: a board of ten mediocre
-     * candidates is not a choice, and stopping at ten of anything would leave
+     * <p>Counting only the good ones is the point: a board of five mediocre
+     * candidates is not a choice, and stopping at five of anything would leave
      * it that way for good.
      */
     private static final int WANTED = RenderQueue.KEEP;
@@ -131,6 +131,35 @@ public final class RollPipeline {
 
     public static void stop() {
         CANCEL.set(true);
+    }
+
+    /**
+     * Queues the thumbnail for every dimension's named seeds, without rolling
+     * anything.
+     *
+     * <p>The point of the page before a roll is "what have I got" — every
+     * dimension has a configured world whether or not a search ever ran, and
+     * on a fresh bank that seed's map is the only one there is. Nothing else
+     * would ever queue it: a reconcile happens during a roll, and a bank with
+     * no candidates would have nothing to reconcile.
+     *
+     * <p>One thumbnail per dimension, at {@code PRIORITY_PINNED}, on a
+     * background thread so a boot never waits for a picture. Already-drawn
+     * maps are skipped, so a restart costs nothing.
+     */
+    public static void drawNamedSeeds(MinecraftServer server) {
+        Thread worker = new Thread(() -> {
+            for (DimensionConfig def : BankView.rollTargets()) {
+                try {
+                    RenderQueue.reconcile(server, def, false);
+                } catch (RuntimeException e) {
+                    MultiverseServer.LOGGER.warn("Could not queue the named seeds for {}: {}",
+                            def.getName(), e.toString());
+                }
+            }
+        }, "customdim-roll");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     private static List<DimensionConfig> resolve(String dimension) {

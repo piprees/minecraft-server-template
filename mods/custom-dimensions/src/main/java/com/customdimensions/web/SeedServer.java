@@ -60,6 +60,10 @@ public final class SeedServer {
             }));
             server.start();
             MultiverseServer.LOGGER.info("Seed viewer listening on port {}", port);
+            // What the pack looks like RIGHT NOW, before anybody rolls
+            // anything: every dimension has a configured world, and on a fresh
+            // bank its map is the only one there is to look at.
+            RollPipeline.drawNamedSeeds(minecraftServer);
         } catch (IOException e) {
             MultiverseServer.LOGGER.error("Seed viewer failed to bind port {}", port, e);
             server = null;
@@ -139,6 +143,8 @@ public final class SeedServer {
             } else if (path.equals("/tryout/status")) {
                 send(exchange, 200, "application/json; charset=utf-8",
                         tryOutStatus(minecraftServer).getBytes(StandardCharsets.UTF_8));
+            } else if (path.equals("/shortlist")) {
+                shortlist(minecraftServer, exchange);
             } else if (path.equals("/pick")) {
                 pick(minecraftServer, exchange);
             } else if (path.equals("/render")) {
@@ -282,6 +288,41 @@ public final class SeedServer {
                     .append("}");
         }
         return b.append("]}\n").toString();
+    }
+
+    /**
+     * Keeps a seed, or stops keeping it.
+     *
+     * <p>A shortlisted seed stays on the dimension's roster for good: it is
+     * drawn, it survives a re-roll that would otherwise push it off the
+     * ranking, and it does not take one of the ranked places. Reconciled
+     * immediately so the render is queued before the browser reloads, rather
+     * than waiting for the next roll to notice.
+     */
+    private static void shortlist(MinecraftServer minecraftServer, HttpExchange exchange)
+            throws IOException {
+        com.google.gson.JsonObject body = readJson(exchange);
+        String slug = body.has("dim") ? body.get("dim").getAsString() : null;
+        com.customdimensions.config.DimensionConfig def = slug == null ? null
+                : BankView.resolve(slug);
+        if (def == null) {
+            sendJson(exchange, "{\"ok\": false, \"error\": \"no configured dimension "
+                    + escape(slug) + "\"}");
+            return;
+        }
+        long seed;
+        try {
+            seed = body.has("seed") ? Long.parseLong(body.get("seed").getAsString().trim()) : 0L;
+        } catch (NumberFormatException | UnsupportedOperationException e) {
+            sendJson(exchange, "{\"ok\": false, \"error\": \"unreadable seed\"}");
+            return;
+        }
+        boolean add = !"remove".equalsIgnoreCase(
+                body.has("action") ? body.get("action").getAsString() : "add");
+        boolean now = com.customdimensions.roll.Shortlist.set(
+                def.getDimensionIdentifier().toString(), seed, add);
+        RenderQueue.reconcile(minecraftServer, def);
+        sendJson(exchange, "{\"ok\": true, \"shortlisted\": " + now + "}");
     }
 
     private static void pick(MinecraftServer minecraftServer, HttpExchange exchange)

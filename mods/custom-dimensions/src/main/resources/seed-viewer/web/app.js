@@ -510,7 +510,20 @@
   var grid = document.getElementById('grid')
   var ugGrid = document.getElementById('ungrouped-grid')
 
+  // A named seed (current, starting, best, shortlisted) keeps the place the
+  // server gave it, ahead of everything ranked. Sorting by score alone put the
+  // configured world — which often has no score at all — last, which is the
+  // one card the page exists to show first.
+  function namedRank(el) {
+    var role = el.dataset.role
+    return role && role !== 'other' ? parseInt(el.dataset.idx || '0', 10) : Infinity
+  }
   function candSort(a, b) {
+    var na = namedRank(a)
+    var nb = namedRank(b)
+    // Both unnamed leaves this false (Infinity !== Infinity is false), so the
+    // ranked cards fall through to the chosen sort.
+    if (na !== nb) return na - nb
     switch (state.sort) {
       case 'score-desc':
         return parseFloat(b.dataset.score || 0) - parseFloat(a.dataset.score || 0)

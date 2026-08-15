@@ -4,8 +4,8 @@ import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.InputHash;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.roll.CandidateRender;
-import com.customdimensions.roll.Roller;
 import com.customdimensions.roll.SeedBank;
+import com.customdimensions.roll.Shortlist;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -25,18 +24,20 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 /**
- * Keeps the top of every dimension's board drawn, thumbnails first.
+ * Keeps every dimension's roster drawn, thumbnails first.
  *
  * <p>A map costs orders of magnitude more than a measurement and only the
- * handful at the top of a board is ever opened, so rendering is not part of
- * the search — it runs beside it, reconciling against the board.
+ * handful of seeds a dimension actually shows is ever opened, so rendering is
+ * not part of the search — it runs beside it, reconciling against the same
+ * {@link SeedRoster} the page is built from.
  *
- * <p>Work is ordered by <em>kind before age</em>, across the whole pack:
- * every low-res map anywhere outranks every high-res map anywhere. Eighty-two
- * dimensions each showing ten thumbnails is a page you can review; one
- * dimension showing ten perfect maps while the rest show nothing is not. A
- * board that moves mid-roll puts a new thumbnail straight to the front, ahead
- * of high-res work already queued.
+ * <p>Work is ordered by <em>kind before age</em>, across the whole pack: a
+ * named seed's thumbnail (current, starting, best, shortlisted) before an
+ * ordinary one, and every thumbnail anywhere before every detail map
+ * anywhere. Eighty-two dimensions each showing their configured world plus a
+ * few candidates is a page you can review; one dimension showing ten perfect
+ * maps while the rest show nothing is not. A roster that moves mid-roll puts a
+ * new thumbnail straight to the front, ahead of high-res work already queued.
  *
  * <p>Detail maps are NOT queued speculatively. A detail map covers the whole
  * playable border rather than the 512 blocks around spawn, which is a grid
@@ -56,15 +57,30 @@ import java.util.stream.Stream;
  * own thumbnails already outrank it, so what it would be yielding to is work
  * for a dimension nobody asked about.
  *
- * <p>A seed pushed out of the top has its files deleted, so the bank never
- * accumulates maps nobody will open.
+ * <p>A seed pushed off the roster has its files deleted, so the bank never
+ * accumulates maps nobody will open. A named seed is never pushed off — that
+ * is what naming it means.
  */
 public final class RenderQueue {
 
-    /** How many of a dimension's candidates stay drawn. */
-    public static final int KEEP = 10;
+    /**
+     * How many purely-ranked candidates stay drawn. A dimension's named seeds
+     * — current, starting, best, shortlisted — are drawn on top of these and
+     * are not capped; see {@link SeedRoster}.
+     */
+    public static final int KEEP = SeedRoster.OTHERS;
 
-    /** Thumbnails everywhere before detail anywhere. */
+    /**
+     * A named seed's thumbnail before an ordinary one, then thumbnails
+     * everywhere before detail anywhere.
+     *
+     * <p>The seed a dimension is CONFIGURED with is the one a person opens the
+     * page to see: it is the point of comparison every other card is judged
+     * against, and it need never have been rolled, so it is often the one
+     * thumbnail that does not exist yet. Drawn behind eighty dimensions' worth
+     * of ordinary candidates it arrives last, which is the wrong way round.
+     */
+    private static final int PRIORITY_PINNED = -1;
     private static final int PRIORITY_LOWRES = 0;
     private static final int PRIORITY_HIGHRES = 1;
 
@@ -142,10 +158,9 @@ public final class RenderQueue {
     }
 
     /**
-     * Brings one dimension's renders in line with its board: deletes what has
-     * dropped out of the top {@link #KEEP}, queues the thumbnails that are
-     * missing, and queues the detail maps only for a dimension somebody has
-     * open.
+     * Brings one dimension's renders in line with its roster: deletes what has
+     * dropped off it, queues the thumbnails that are missing, and queues the
+     * detail maps only for a dimension somebody has open.
      */
     public static void reconcile(MinecraftServer server, DimensionConfig def) {
         reconcile(server, def, isFocused(def.getName()));
@@ -163,40 +178,46 @@ public final class RenderQueue {
         Identifier id = def.getDimensionIdentifier();
         String dimension = id.toString();
 
-        List<Long> top = new ArrayList<>();
-        for (SeedBank.CandidateSummary c : SeedBank.leaderboard(hash, dimension)) {
-            if (top.size() >= KEEP) {
-                break;
-            }
-            top.add(c.seed());
-        }
-        if (top.isEmpty()) {
-            // A dimension that never rolls still HAS a world. `the_canvas` is
-            // superflat and opts out with `seedRoll.skip`, so no seed is ever
-            // banked for it — but its config names the seed it will always
-            // generate, and that is the place. Draw it, so the card shows the
-            // world rather than "not rolled" forever.
-            Long fixed = def.getSeed();
-            if (fixed != null && !Roller.rollable(def)) {
-                enqueue(server, def, id, hash, dimension, fixed,
-                        CandidateRender.Resolution.LOWRES);
-            }
+        List<SeedRoster.Slot> roster = roster(def, hash, dimension);
+        if (roster.isEmpty()) {
             return;
         }
-        sweep(SeedBank.dimensionDir(hash, dimension), new LinkedHashSet<>(top));
+        sweep(SeedBank.dimensionDir(hash, dimension), SeedRoster.seeds(roster));
 
-        for (long seed : top) {
-            enqueue(server, def, id, hash, dimension, seed, CandidateRender.Resolution.LOWRES);
+        for (SeedRoster.Slot slot : roster) {
+            enqueue(server, def, id, hash, dimension, slot.seed(),
+                    CandidateRender.Resolution.LOWRES, slot.role().pinned());
         }
         if (!detail) {
             return;
         }
-        for (long seed : top) {
-            enqueue(server, def, id, hash, dimension, seed, CandidateRender.Resolution.HIGHRES);
+        for (SeedRoster.Slot slot : roster) {
+            enqueue(server, def, id, hash, dimension, slot.seed(),
+                    CandidateRender.Resolution.HIGHRES, slot.role().pinned());
         }
     }
 
-    /** Deletes renders for seeds no longer on the shortlist. */
+    /**
+     * The seeds this dimension shows — the same roster the page builds, so
+     * what is drawn and what is displayed can never disagree.
+     *
+     * <p>A dimension that never rolls still HAS a world: {@code the_canvas} is
+     * superflat and opts out with {@code seedRoll.skip}, so nothing is ever
+     * banked for it, but its config names the seed it will always generate.
+     * That seed arrives here as {@code starting} and is drawn like any other
+     * named one, so the card shows the world rather than "not rolled" forever.
+     */
+    private static List<SeedRoster.Slot> roster(DimensionConfig def, String hash, String dimension) {
+        List<Long> ranked = new ArrayList<>();
+        for (SeedBank.CandidateSummary c : SeedBank.leaderboard(hash, dimension)) {
+            ranked.add(c.seed());
+        }
+        Long starting = def.getSeed();
+        return SeedRoster.of(BankView.currentSeed(def, starting), starting, ranked,
+                Shortlist.of(dimension));
+    }
+
+    /** Deletes renders for seeds no longer on the roster. */
     private static void sweep(Path dir, Set<Long> keep) {
         if (!Files.isDirectory(dir)) {
             return;
@@ -226,7 +247,7 @@ public final class RenderQueue {
 
     private static void enqueue(MinecraftServer server, DimensionConfig def, Identifier id,
                                 String hash, String dimension, long seed,
-                                CandidateRender.Resolution resolution) {
+                                CandidateRender.Resolution resolution, boolean pinned) {
         Path target = SeedBank.candidateImagePath(hash, dimension, seed, resolution);
         if (Files.isRegularFile(target)) {
             return;
@@ -254,6 +275,8 @@ public final class RenderQueue {
         java.util.function.BooleanSupplier abandonIf = thumbnail
                 ? () -> false
                 : () -> THUMBNAILS_PENDING.get() > 0 && !isFocused(slug);
+        int priority = !thumbnail ? PRIORITY_HIGHRES
+                : pinned ? PRIORITY_PINNED : PRIORITY_LOWRES;
 
         Runnable work = new Runnable() {
             @Override
@@ -261,10 +284,10 @@ public final class RenderQueue {
                 CURRENT.set(id.getPath() + " " + seed + (thumbnail ? "" : " (detail)"));
                 boolean requeue = false;
                 try {
-                    // The board may have moved since this was queued; a map nobody
-                    // is going to open is not worth the cores.
+                    // The roster may have moved since this was queued; a map
+                    // nobody is going to open is not worth the cores.
                     if (Files.isRegularFile(target)
-                            || !stillOnBoard(server, def, hash, dimension, seed)) {
+                            || !onRoster(def, hash, dimension, seed)) {
                         return;
                     }
                     CandidateRender.render(server, id, def, seed, resolution, target, abandonIf);
@@ -291,8 +314,7 @@ public final class RenderQueue {
                 }
             }
         };
-        QUEUE.add(new Job(thumbnail ? PRIORITY_LOWRES : PRIORITY_HIGHRES,
-                SEQUENCE.incrementAndGet(), key, slug, work));
+        QUEUE.add(new Job(priority, SEQUENCE.incrementAndGet(), key, slug, work));
     }
 
     /**
@@ -319,23 +341,13 @@ public final class RenderQueue {
         worker.start();
     }
 
-    private static boolean stillOnBoard(MinecraftServer server, DimensionConfig def,
-                                        String hash, String dimension, long seed) {
-        // The fixed world of a dimension that never rolls is not on any board
-        // and never drops off one. It is the only world that dimension has.
-        Long fixed = def.getSeed();
-        if (fixed != null && fixed == seed && !Roller.rollable(def)) {
-            return true;
-        }
-        int rank = 0;
-        for (SeedBank.CandidateSummary c : SeedBank.leaderboard(hash, dimension)) {
-            if (c.seed() == seed) {
-                return true;
-            }
-            if (++rank >= KEEP) {
-                return false;
-            }
-        }
-        return false;
+    /**
+     * Whether this seed is still one the dimension shows. Re-derived rather
+     * than remembered: a roll moves the ranking under a queued job, and a seed
+     * that has dropped off is a map nobody will open. A NAMED seed never drops
+     * off — that is what naming it means — so the roster answers for both.
+     */
+    private static boolean onRoster(DimensionConfig def, String hash, String dimension, long seed) {
+        return SeedRoster.seeds(roster(def, hash, dimension)).contains(seed);
     }
 }
