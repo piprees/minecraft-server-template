@@ -38,14 +38,23 @@ import java.util.stream.Stream;
  * board that moves mid-roll puts a new thumbnail straight to the front, ahead
  * of high-res work already queued.
  *
- * <p>That ordering is not enough on its own, because it only decides what is
- * taken NEXT. With one consumer, a detail map already running holds the cores
- * until it finishes, and a detail map of a big world is minutes — so a
- * thumbnail queued behind one waits for all of it. A detail render therefore
- * abandons itself as soon as any thumbnail is owed and re-queues at the back
- * of its own class, writing nothing on the way out. It cannot livelock: it is
- * only ever taken when no thumbnail is queued, and that is exactly when its
- * abandon condition is false.
+ * <p>Detail maps are NOT queued speculatively. A detail map covers the whole
+ * playable border rather than the 512 blocks around spawn, which is a grid
+ * hundreds of times larger and minutes of work, and a roll keeps the board
+ * moving underneath it: queued for every candidate of every dimension, a
+ * detail map is taken only in the gap where nothing is owed a thumbnail,
+ * abandons the moment the next reconcile files one, and writes nothing on the
+ * way out — so it burns its share of the machine for the length of a roll and
+ * finishes none. They are queued for the dimension somebody has OPEN, and for
+ * everything else once a run finishes ({@link #reconcile(MinecraftServer,
+ * DimensionConfig, boolean)}), which is when they can actually run to
+ * completion.
+ *
+ * <p>The abandon rule stays, for the case that remains: a detail map for a
+ * dimension nobody is looking at yields to any thumbnail and re-queues at the
+ * back of its own class. A focused one runs to completion — its dimension's
+ * own thumbnails already outrank it, so what it would be yielding to is work
+ * for a dimension nobody asked about.
  *
  * <p>A seed pushed out of the top has its files deleted, so the bank never
  * accumulates maps nobody will open.
@@ -59,7 +68,13 @@ public final class RenderQueue {
     private static final int PRIORITY_LOWRES = 0;
     private static final int PRIORITY_HIGHRES = 1;
 
-    private record Job(int priority, long sequence, String key, String dimension, Runnable work) {
+    /**
+     * {@code slug} is the dimension's bare path, not its full identifier: it
+     * is what the viewer sends to {@code /focus} and what
+     * {@link com.customdimensions.web.RollPipeline} matches a roll target on,
+     * so comparing a focus against anything else silently never matches.
+     */
+    private record Job(int priority, long sequence, String key, String slug, Runnable work) {
     }
 
     /**
@@ -70,8 +85,12 @@ public final class RenderQueue {
 
     /** 0 for the focused dimension, 1 for everything else. */
     private static int focusRank(Job job) {
+        return isFocused(job.slug()) ? 0 : 1;
+    }
+
+    private static boolean isFocused(String slug) {
         String want = FOCUS.get();
-        return !want.isEmpty() && want.equals(job.dimension()) ? 0 : 1;
+        return !want.isEmpty() && want.equals(slug);
     }
 
     private static final PriorityBlockingQueue<Job> QUEUE = new PriorityBlockingQueue<>(64,
@@ -124,9 +143,21 @@ public final class RenderQueue {
 
     /**
      * Brings one dimension's renders in line with its board: deletes what has
-     * dropped out of the top {@link #KEEP}, queues what is missing.
+     * dropped out of the top {@link #KEEP}, queues the thumbnails that are
+     * missing, and queues the detail maps only for a dimension somebody has
+     * open.
      */
     public static void reconcile(MinecraftServer server, DimensionConfig def) {
+        reconcile(server, def, isFocused(def.getName()));
+    }
+
+    /**
+     * The same, with {@code detail} deciding whether the whole-world maps are
+     * queued alongside the thumbnails. True for the dimension in focus and for
+     * every dimension once a run finishes; false during a run, when a detail
+     * map cannot survive long enough to be written.
+     */
+    public static void reconcile(MinecraftServer server, DimensionConfig def, boolean detail) {
         ensureWorker();
         String hash = InputHash.of(def, server);
         Identifier id = def.getDimensionIdentifier();
@@ -156,6 +187,9 @@ public final class RenderQueue {
 
         for (long seed : top) {
             enqueue(server, def, id, hash, dimension, seed, CandidateRender.Resolution.LOWRES);
+        }
+        if (!detail) {
+            return;
         }
         for (long seed : top) {
             enqueue(server, def, id, hash, dimension, seed, CandidateRender.Resolution.HIGHRES);
@@ -202,17 +236,24 @@ public final class RenderQueue {
             return;
         }
         boolean thumbnail = resolution == CandidateRender.Resolution.LOWRES;
+        String slug = id.getPath();
         PENDING.incrementAndGet();
         if (thumbnail) {
             THUMBNAILS_PENDING.incrementAndGet();
         }
-        // A thumbnail runs to completion; a detail map yields the moment any
-        // thumbnail is owed. Priority orders the QUEUE, but the job already
-        // running cannot be preempted by it, and a detail map of a big world is
-        // minutes — long enough that every thumbnail behind it waits.
+        // A thumbnail runs to completion; a detail map for a dimension nobody
+        // is looking at yields the moment any thumbnail is owed. Priority
+        // orders the QUEUE, but the job already running cannot be preempted by
+        // it, and a detail map of a big world is minutes — long enough that
+        // every thumbnail behind it waits.
+        //
+        // A FOCUSED detail map does not yield: its own dimension's thumbnails
+        // already outrank it in the queue, so the only work left to yield to
+        // belongs to a dimension nobody asked about, and yielding to that is
+        // how the map somebody is waiting on never gets drawn.
         java.util.function.BooleanSupplier abandonIf = thumbnail
                 ? () -> false
-                : () -> THUMBNAILS_PENDING.get() > 0;
+                : () -> THUMBNAILS_PENDING.get() > 0 && !isFocused(slug);
 
         Runnable work = new Runnable() {
             @Override
@@ -239,7 +280,7 @@ public final class RenderQueue {
                         // Still QUEUED and still PENDING — it is deferred, not
                         // dropped, and the counters must not say otherwise.
                         QUEUE.add(new Job(PRIORITY_HIGHRES, SEQUENCE.incrementAndGet(),
-                                key, dimension, this));
+                                key, slug, this));
                     } else {
                         QUEUED.remove(key);
                         PENDING.decrementAndGet();
@@ -251,7 +292,7 @@ public final class RenderQueue {
             }
         };
         QUEUE.add(new Job(thumbnail ? PRIORITY_LOWRES : PRIORITY_HIGHRES,
-                SEQUENCE.incrementAndGet(), key, dimension, work));
+                SEQUENCE.incrementAndGet(), key, slug, work));
     }
 
     /**

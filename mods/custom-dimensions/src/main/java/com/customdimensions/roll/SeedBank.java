@@ -10,10 +10,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
@@ -58,6 +61,52 @@ public final class SeedBank {
     /** One scored candidate's ranking fields — enough to build a leaderboard without re-reading its facts. */
     public record CandidateSummary(long seed, double achieved, double ceiling,
                                    double percentage, String verdict) {
+    }
+
+    // ------------------------------------------------------------------ cache
+
+    /**
+     * The derived views of a dimension's directory, held in memory.
+     *
+     * <p>Deriving the leaderboard means reading and parsing every candidate
+     * file, and the roll loop asks for it twice per seed — once to decide
+     * whether the board is full, once to skip already-tried seeds — while the
+     * viewer asks for it (and the scorecards) once per dimension on every
+     * page poll. At a few hundred candidates of 30 KB each that is megabytes
+     * of re-read and re-parse for a search whose measurement is the only part
+     * worth spending time on, and it grows with the bank: the roll of a
+     * low-yielding dimension slows down the longer it runs.
+     *
+     * <p>This process is the only writer, so the cache is updated in place by
+     * {@link #writeCandidate} and {@link #appendRejected} rather than dropped
+     * — invalidating on write would re-read the whole directory on the next
+     * seed, which is every seed. A bank deleted underneath a running server
+     * is the one case this cannot see; restart the server after wiping
+     * {@code .seed-rolling/}.
+     */
+    private static final Map<String, List<CandidateSummary>> SUMMARIES = new ConcurrentHashMap<>();
+
+    /**
+     * Full scorecards, softly held: a scorecard carries every criterion entry,
+     * so a pack-wide bank of them is orders of magnitude larger than the
+     * summaries and is only ever read by the viewer. The GC may take these
+     * back under pressure; the next read re-derives them from disk.
+     */
+    private static final Map<String, SoftReference<List<Scorecard>>> SCORECARDS =
+            new ConcurrentHashMap<>();
+
+    private static final Map<String, Map<Long, String>> REJECTED = new ConcurrentHashMap<>();
+
+    private static String cacheKey(String inputHash, String dimension) {
+        return inputHash + '/' + dimension;
+    }
+
+    /** Forgets a dimension's cached views, for a bank changed by something other than this class. */
+    public static void forget(String inputHash, String dimension) {
+        String key = cacheKey(inputHash, dimension);
+        SUMMARIES.remove(key);
+        SCORECARDS.remove(key);
+        REJECTED.remove(key);
     }
 
     // -------------------------------------------------------------------- paths
@@ -127,6 +176,51 @@ public final class SeedBank {
         String body = candidateJson(dimension, seed, facts, card, inputHash,
                 Artefacts.stackVersion(), Instant.now().toString());
         Artefacts.write(candidatePath(inputHash, dimension, seed), body);
+        remember(inputHash, dimension, seed, card);
+    }
+
+    /**
+     * Folds one just-written candidate into the cached views, so the next
+     * read does not go back to disk for a directory this process just changed.
+     * Only an already-populated entry is updated: an absent one is derived on
+     * demand, and would otherwise be built here from a single candidate and
+     * mistaken for the whole bank.
+     */
+    private static void remember(String inputHash, String dimension, long seed, Scorecard card) {
+        String key = cacheKey(inputHash, dimension);
+        Double percentage = card.percentage();
+        if (percentage == null) {
+            // Unmeasurable: rank() drops it, so the cached views must not gain
+            // an entry the disk scan would never produce.
+            return;
+        }
+        CandidateSummary fresh = new CandidateSummary(seed, card.achieved(), card.ceiling(),
+                percentage, card.verdict().name());
+        SUMMARIES.computeIfPresent(key, (k, existing) -> {
+            List<CandidateSummary> merged = new ArrayList<>(existing.size() + 1);
+            for (CandidateSummary c : existing) {
+                if (c.seed() != seed) {
+                    merged.add(c);
+                }
+            }
+            merged.add(fresh);
+            merged.sort(Comparator.comparingDouble(CandidateSummary::percentage).reversed());
+            return List.copyOf(merged);
+        });
+        SCORECARDS.computeIfPresent(key, (k, ref) -> {
+            List<Scorecard> existing = ref.get();
+            if (existing == null) {
+                return null;
+            }
+            List<Scorecard> merged = new ArrayList<>(existing.size() + 1);
+            for (Scorecard c : existing) {
+                if (c.seed() != seed) {
+                    merged.add(c);
+                }
+            }
+            merged.add(card);
+            return new SoftReference<>(List.copyOf(merged));
+        });
     }
 
     /**
@@ -171,6 +265,7 @@ public final class SeedBank {
         }
         String body = rejectedJson(dimension, current, Artefacts.stackVersion(), Instant.now().toString());
         Artefacts.write(rejectedPath(inputHash, dimension), body);
+        REJECTED.put(cacheKey(inputHash, dimension), Collections.unmodifiableMap(current));
     }
 
     /** The rejected-seeds file's body. Pure, for the same reason {@link #candidateJson} is. */
@@ -195,7 +290,8 @@ public final class SeedBank {
 
     /** Every scored candidate for a dimension, ranked highest percentage first. */
     public static List<CandidateSummary> leaderboard(String inputHash, String dimension) {
-        return rank(readCandidateBodies(dimensionDir(inputHash, dimension)));
+        return SUMMARIES.computeIfAbsent(cacheKey(inputHash, dimension),
+                k -> List.copyOf(rank(readCandidateBodies(dimensionDir(inputHash, dimension)))));
     }
 
     /**
@@ -206,6 +302,12 @@ public final class SeedBank {
      * candidate.
      */
     public static List<Scorecard> scorecards(String inputHash, String dimension) {
+        String key = cacheKey(inputHash, dimension);
+        SoftReference<List<Scorecard>> held = SCORECARDS.get(key);
+        List<Scorecard> cached = held == null ? null : held.get();
+        if (cached != null) {
+            return cached;
+        }
         List<Scorecard> out = new ArrayList<>();
         for (String body : readCandidateBodies(dimensionDir(inputHash, dimension))) {
             Scorecard card = parseScorecard(body);
@@ -213,7 +315,9 @@ public final class SeedBank {
                 out.add(card);
             }
         }
-        return out;
+        List<Scorecard> fixed = List.copyOf(out);
+        SCORECARDS.put(key, new SoftReference<>(fixed));
+        return fixed;
     }
 
     /** Every candidate file's raw body — shared by {@link #leaderboard} and {@link #scorecards}. */
@@ -341,8 +445,18 @@ public final class SeedBank {
         return new LinkedHashSet<>(rejectedSeedReasons(inputHash, dimension).keySet());
     }
 
-    /** Every rejected seed for a dimension and the gate that rejected it. */
+    /**
+     * Every rejected seed for a dimension and the gate that rejected it.
+     *
+     * <p>A fresh mutable copy each call — {@link #appendRejected} adds to what
+     * it gets back, and the cached map behind it is shared.
+     */
     public static Map<Long, String> rejectedSeedReasons(String inputHash, String dimension) {
+        return new LinkedHashMap<>(REJECTED.computeIfAbsent(cacheKey(inputHash, dimension),
+                k -> Collections.unmodifiableMap(readRejectedSeeds(inputHash, dimension))));
+    }
+
+    private static Map<Long, String> readRejectedSeeds(String inputHash, String dimension) {
         Path p = rejectedPath(inputHash, dimension);
         if (!Files.isRegularFile(p)) {
             return new LinkedHashMap<>();

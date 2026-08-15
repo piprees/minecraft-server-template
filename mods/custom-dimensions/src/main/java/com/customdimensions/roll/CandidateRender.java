@@ -159,12 +159,19 @@ public final class CandidateRender {
     private static final int CALIBRATION_COLUMNS = 96;
 
     /**
-     * Cores a single render fans out over. Fixed rather than a fraction of
-     * the machine: the roller takes what is left, so the two shares are
-     * stated once in {@link com.customdimensions.web.RollPipeline} and here
-     * rather than each guessing at the other.
+     * Cores a single render fans out over — a quarter of the machine, and the
+     * roller takes what is left, so the two shares are stated once in
+     * {@link com.customdimensions.web.RollPipeline} and here rather than each
+     * guessing at the other.
+     *
+     * <p>A fraction rather than a fixed count, because a fixed one silently
+     * inverts the split on a smaller machine: eight was more than half of a
+     * sixteen-core container once the server thread and its two reserved
+     * cores came out, so drawing pictures outran the search that makes
+     * anything worth drawing.
      */
-    public static final int RENDER_CORES = 8;
+    public static final int RENDER_CORES =
+            Math.max(1, Runtime.getRuntime().availableProcessors() / 4);
 
     // Vanilla's map shading: a cell is brighter, level with, or darker than
     // the one to its north, and nothing else. It is what makes a Minecraft
@@ -653,6 +660,14 @@ public final class CandidateRender {
         writeImageAtomically(image, outputPath);
         long renderNanos = System.nanoTime() - renderStart;
         int n = Math.max(1, sampled.get());
+        // Per-column cost is the number that says whether a render is paying
+        // for its columns or for its setup: each of the `workers` threads
+        // builds its own NoiseConfig before it samples anything, so a cheap
+        // grid split many ways can spend most of a render on rigs.
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "render {} seed={} {}: {}x{} grid, {} columns, {} workers, {} ms ({} us/column)",
+                dimensionId, seed, resolution, samples, samples, sampled.get(), workers,
+                renderNanos / 1_000_000L, renderNanos / n / 1_000L);
         return new RenderResult(outputPath, pixels, step, renderNanos / n, renderNanos,
                 sampled.get(), 0);
     }

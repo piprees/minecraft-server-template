@@ -98,9 +98,17 @@ public final class BankView {
             frontierSeeds.add(m.scorecard().seed());
         }
 
+        // Indexed rather than scanned: the page is built for every dimension
+        // on every poll, and a scan per candidate is quadratic in a bank that
+        // grows all through a roll.
+        Map<Long, Scorecard> bySeed = new LinkedHashMap<>();
+        for (Scorecard c : cards) {
+            bySeed.putIfAbsent(c.seed(), c);
+        }
+
         List<CandidateView> candidates = new ArrayList<>();
         for (SeedBank.CandidateSummary s : SeedBank.leaderboard(inputHash, dimension)) {
-            Scorecard card = cards.stream().filter(c -> c.seed() == s.seed()).findFirst().orElse(null);
+            Scorecard card = bySeed.get(s.seed());
             candidates.add(new CandidateView(s.seed(), s.achieved(), s.ceiling(), s.percentage(),
                     s.verdict(), card, strengths.getOrDefault(s.seed(), List.of()),
                     Files.isRegularFile(SeedBank.candidateImagePath(inputHash, dimension, s.seed(),

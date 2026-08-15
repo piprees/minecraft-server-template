@@ -127,7 +127,7 @@ public final class SeedServer {
                     // A malformed focus request clears the focus rather than
                     // failing the page: this is a hint, not an instruction.
                 }
-                RollPipeline.focus(slug);
+                RollPipeline.focus(minecraftServer, slug);
                 send(exchange, 200, "application/json; charset=utf-8",
                         ("{\"ok\": true, \"focus\": "
                                 + com.customdimensions.facts.Json.quote(RollPipeline.focused())

@@ -201,9 +201,18 @@ public final class RollPipeline {
             }
         } finally {
             pool.shutdownNow();
+            RUNNING.set(false);
+            // The boards have stopped moving, so the detail maps held back
+            // during the run can now be drawn without being abandoned. Skipped
+            // on a stop: somebody who stopped a roll wants the machine back.
+            if (!CANCEL.get()) {
+                STAGE.set("drawing detail maps");
+                for (DimensionConfig def : targets) {
+                    RenderQueue.reconcile(server, def, true);
+                }
+            }
             STAGE.set(CANCEL.get() ? "stopped" : "done");
             CURRENT.set("");
-            RUNNING.set(false);
             GENERATION.incrementAndGet();
         }
     }
@@ -219,10 +228,24 @@ public final class RollPipeline {
     private static final java.util.concurrent.atomic.AtomicReference<String> FOCUS =
             new java.util.concurrent.atomic.AtomicReference<>("");
 
-    /** Sets (or with a blank slug clears) the dimension that jumps the queue. */
-    public static void focus(String slug) {
-        FOCUS.set(slug == null ? "" : slug.trim());
-        RenderQueue.focus(slug);
+    /**
+     * Sets (or with a blank slug clears) the dimension that jumps the queue.
+     *
+     * <p>Opening one also queues its detail maps: those are not queued during
+     * a roll, because a detail map cannot survive a board that keeps moving —
+     * so the act of opening a dimension is what asks for them.
+     */
+    public static void focus(MinecraftServer server, String slug) {
+        String want = slug == null ? "" : slug.trim();
+        FOCUS.set(want);
+        RenderQueue.focus(want);
+        if (want.isEmpty()) {
+            return;
+        }
+        DimensionConfig def = BankView.resolve(want);
+        if (def != null) {
+            RenderQueue.reconcile(server, def, true);
+        }
     }
 
     public static String focused() {
