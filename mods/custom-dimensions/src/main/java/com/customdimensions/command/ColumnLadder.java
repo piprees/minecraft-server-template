@@ -54,7 +54,7 @@ public final class ColumnLadder {
 
         SpikeSampler.Rig factsRig = SpikeSampler.forSeed(server, base, seed);
         CandidateRender.HeightModel model =
-                CandidateRender.heightModel(server, base, seed, 1024);
+                CandidateRender.heightModel(server, dimensionId, base, seed, 1024);
         SpikeSampler.Rig renderRig = CandidateRender.rigFor(server, base, model, seed);
         TerrainShape.Density renderDensity = CandidateRender.densityFor(model, renderRig);
 

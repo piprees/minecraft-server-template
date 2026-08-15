@@ -119,6 +119,48 @@ public final class CandidateRender {
      */
     private static final int BLOCKS_PER_SAMPLE = 4;
 
+    /**
+     * Sample points per height measurement, on each axis.
+     *
+     * <p>Biome and climate are quarter-resolution facts and are read at every
+     * point of the grid; HEIGHT is not, and it is the expensive one — a
+     * column walk asks the generator's density function tens of times, where
+     * a biome asks the climate chains once. So the height field is measured
+     * on its own coarser lattice and interpolated back up, which costs this
+     * squared fewer column walks.
+     *
+     * <p>One means "measure every point", and is exactly the old behaviour —
+     * the interpolation degenerates to reading the corner it sits on. Four is
+     * what this ships: at a thumbnail's four blocks per sample that is a
+     * height every sixteen blocks, under a biome layout still drawn at four,
+     * for a sixteenth of the column walks.
+     */
+    private static final int HEIGHT_SAMPLE_FACTOR = 4;
+
+    /**
+     * How many (dimension, seed) shape configs stay built.
+     *
+     * <p>A {@link NoiseConfig} is a pure function of its settings, the noise
+     * registry and the seed, so the one a thumbnail built is the one its
+     * detail view needs — and building it is the single most expensive thing
+     * a render does that is not sampling. Four, because the queue draws a
+     * dimension's thumbnails and then its detail maps, and a handful of
+     * entries covers that without holding a modded router's samplers for
+     * every dimension in the pack at once.
+     */
+    private static final int SHAPE_CONFIG_CACHE = 4;
+
+    /**
+     * Columns a two-dimensional cache marker's claim is tested over before it
+     * is believed. Off-lattice, because Perlin is exactly zero on its lattice
+     * and a lattice-aligned pair would agree with the noise field unread.
+     */
+    private static final int Y_INDEPENDENCE_PROBES = 6;
+
+    /** Whether a y-reading two-dimensional marker has been reported this run. */
+    private static final java.util.concurrent.atomic.AtomicBoolean REFUSAL_REPORTED =
+            new java.util.concurrent.atomic.AtomicBoolean();
+
 
 
 
@@ -199,6 +241,21 @@ public final class CandidateRender {
     }
 
     /**
+     * Where a render's time went, split so the answer to "is it paying for
+     * its columns or for its setup" is measured rather than argued about.
+     *
+     * <p>{@code rigTotal} is core time summed across workers and {@code
+     * loopWall} is wall time, so the two are not comparable directly —
+     * {@code rigMax} is the one that lands on the critical path, since every
+     * worker builds its rig before it samples anything.
+     */
+    private record Timings(long modelNanos, long rigTotalNanos, long rigMaxNanos,
+                           long loopWallNanos, long climateNanos, long surfaceNanos,
+                           long paintNanos, long densityProbes, int heightColumns,
+                           int heightStride) {
+    }
+
+    /**
      * Everything a render decides about where the ground is and where the
      * water is, before it paints a pixel.
      *
@@ -223,8 +280,9 @@ public final class CandidateRender {
      */
     public record HeightModel(TerrainShape.Band band, boolean useDepth, Integer seaLevel,
                               int floorY, int topY, ChunkGeneratorSettings shapeSettings,
-                              TerrainShape.Calibration calibration, boolean hasCeiling,
-                              int cellHorizontal, int shapeMinimumY, boolean floodsVoid) {
+                              NoiseConfig shapeConfig, TerrainShape.Calibration calibration,
+                              boolean hasCeiling, int cellHorizontal, int shapeMinimumY,
+                              boolean floodsVoid) {
 
         /** Which of the two height sources this render uses, by name. */
         public String heightSource() {
@@ -238,9 +296,12 @@ public final class CandidateRender {
      * <p>{@code coverage} is the width in blocks the calibration probes over
      * — the same number {@link #draw} derives from the resolution, and the
      * only thing the calibration's column spread depends on.
+     *
+     * <p>{@code dimensionId} is only the cache key for the {@link NoiseConfig}
+     * this builds; nothing else reads it.
      */
-    public static HeightModel heightModel(MinecraftServer server, SpikeSampler.Base base,
-                                          long seed, int coverage) {
+    public static HeightModel heightModel(MinecraftServer server, Identifier dimensionId,
+                                          SpikeSampler.Base base, long seed, int coverage) {
         int floorY = base.heightLimit().getBottomY();
         int topY = base.heightLimit().getTopY() - 1;
 
@@ -260,25 +321,34 @@ public final class CandidateRender {
         GenerationShapeConfig shape = shapeOf(shapeSettings, floorY, topY);
         TerrainShape.Band band = bandOf(shape, floorY, topY);
         TerrainShape.Calibration calibration = new TerrainShape.Calibration(0, 0, true);
+        NoiseConfig shapeConfig = null;
         if (shapeSettings != null) {
-            calibration = calibrate(shapeRig(server, base, shapeSettings, seed),
+            shapeConfig = shapeConfigFor(server, dimensionId, shapeSettings, seed);
+            calibration = calibrate(rigOver(base, shapeConfig),
                     band, coverage, floorY, topY,
                     shape.horizontalCellBlockCount(), shape.minimumY());
         }
         // Only a generator with no density to walk falls back to depth.
         boolean useDepth = shapeSettings == null;
         return new HeightModel(band, useDepth, seaLevel, floorY, topY,
-                shapeSettings, calibration, base.hasCeiling(),
+                shapeSettings, shapeConfig, calibration, base.hasCeiling(),
                 shape == null ? 4 : shape.horizontalCellBlockCount(),
                 shape == null ? floorY : shape.minimumY(), floodsVoid);
     }
 
-    /** One caller's own rig for a model — never shared between threads. */
+    /**
+     * One caller's rig for a model.
+     *
+     * <p>The {@link NoiseConfig} inside it is the model's, SHARED — see
+     * {@link #shapeConfigFor} for why that is safe. What must not be shared
+     * is the rewritten density tree {@link #densityFor} builds on top of it,
+     * and that is built fresh per call.
+     */
     public static SpikeSampler.Rig rigFor(MinecraftServer server, SpikeSampler.Base base,
                                           HeightModel model, long seed) {
         return model.shapeSettings() == null
                 ? SpikeSampler.forSeedClimate(server, base, seed)
-                : shapeRig(server, base, model.shapeSettings(), seed);
+                : rigOver(base, model.shapeConfig());
     }
 
     /** The density a rig walks, or null when this model reads depth instead. */
@@ -287,57 +357,91 @@ public final class CandidateRender {
             return null;
         }
         DensityFunction root = rig.noiseConfig().getNoiseRouter().finalDensity();
-        InterpolateAtTheMarker rewrite = new InterpolateAtTheMarker(
+        WrapperRewrite rewrite = new WrapperRewrite(
                 model.cellHorizontal(), model.band().cellHeight(), model.shapeMinimumY());
         DensityFunction rewritten = root.apply(rewrite);
         // The marker is matched by NAME, because its enum lives inside a
-        // protected class. A name that stopped matching would leave the map
-        // reading an un-interpolated density with nothing to say so — the
+        // package-private class. A name that stopped matching would leave the
+        // map reading an un-interpolated density with nothing to say so — the
         // exact silent failure this codebase treats as its worst kind. Count
         // it and say so.
-        if (rewrite.rewritten.get() == 0) {
+        if (rewrite.interpolated.get() == 0) {
             com.customdimensions.MultiverseServer.LOGGER.warn(
                     "render: no interpolated marker found in this router's final density — "
                     + "the map is reading an EXACT density where generation interpolates one");
         }
+        // Said out loud once, because it is the difference between a cache and
+        // a changed picture: caching a marker that reads y freezes whichever
+        // height happened to be probed first, and which one that is depends on
+        // how the grid was split across workers. Measured on this pack, six of
+        // ~37,800 markers do read it.
+        if (rewrite.columnRefused.get() > 0 && REFUSAL_REPORTED.compareAndSet(false, true)) {
+            com.customdimensions.MultiverseServer.LOGGER.info(
+                    "render: {} of {} two-dimensional cache marker(s) in this router read y "
+                    + "and are left uncached", rewrite.columnRefused.get(),
+                    rewrite.columnRefused.get() + rewrite.columnCached.get());
+        }
+        com.customdimensions.MultiverseServer.LOGGER.debug(
+                "render: rewrote {} interpolated marker(s); cached {} two-dimensional "
+                + "marker(s) and left {} uncached for reading y",
+                rewrite.interpolated.get(), rewrite.columnCached.get(),
+                rewrite.columnRefused.get());
         return (x, y, z) -> rewritten.sample(new DensityFunction.UnblendedNoisePos(x, y, z));
     }
 
     /**
-     * Puts the cell interpolation exactly where the generator puts it.
+     * Makes the router's own wrapper markers mean something outside a
+     * {@code ChunkNoiseSampler}.
      *
-     * <p>A router marks ONE sub-tree {@code minecraft:interpolated}, and
-     * vanilla's {@code ChunkNoiseSampler} substitutes a real interpolating
-     * sampler for that marker and nothing else — everything downstream of it
-     * is evaluated per block, exactly. Terralith's, Tectonic's and this mod's
-     * own overworld routers all read
+     * <p>Every marker a router carries — {@code interpolated},
+     * {@code flat_cache}, {@code cache_2d} — is a no-op when the tree is
+     * sampled directly: vanilla's {@code Wrapping} delegates straight to what
+     * it wraps, and the real behaviour lives in the sampler this render
+     * deliberately does not build. So the map re-derives the whole graph at
+     * every probe, including the two-dimensional half a generator evaluates
+     * once per column.
+     *
+     * <p><b>Interpolation.</b> A router marks ONE sub-tree
+     * {@code minecraft:interpolated}, and vanilla substitutes a real
+     * interpolating sampler for that marker and nothing else — everything
+     * downstream of it is evaluated per block, exactly. Terralith's,
+     * Tectonic's and this mod's own overworld routers all read
      * {@code min(squeeze(0.64 * interpolated(...)), noodle)}: the shape core
      * is blended across the cell, and the squeeze clamp and the cave
-     * subtraction are not.
+     * subtraction are not. Blending the WHOLE final density instead is a
+     * different approximation, and the two agree only where the downstream
+     * part happens to be linear across a cell. It is not linear on a slope,
+     * and a hard clamp is about as far from linear as a density function
+     * gets: measured, the error was unsigned, rose with local relief, and was
+     * worst in the nether, whose roof clamp lives downstream of the marker.
      *
-     * <p>Blending the WHOLE final density instead — which is what this did
-     * first — is a different approximation, and the two agree only where the
-     * downstream part happens to be linear across a cell. It is not linear on
-     * a slope, and a hard clamp is about as far from linear as a density
-     * function gets: measured, the error was unsigned, rose with local
-     * relief, and was worst in the nether, whose roof clamp lives downstream
-     * of the marker.
+     * <p><b>Column caching.</b> {@code flat_cache} and {@code cache_2d} both
+     * declare their sub-tree to be a function of {@code (x, z)} alone —
+     * vanilla keys the first on the quart and the second on the exact block,
+     * and neither passes {@code y} down in a way that could matter.
+     * {@link ColumnCache} keys on the exact block column, which is the finer
+     * of the two, so a cached answer is the same number the uncached
+     * delegation produced and the picture cannot move.
      *
-     * <p>Generic on purpose. The marker is authored in the worldgen JSON, so
-     * this reads the boundary out of whatever graph the pack actually loaded
+     * <p>Generic on purpose. The markers are authored in the worldgen JSON,
+     * so this reads them out of whatever graph the pack actually loaded
      * rather than knowing anything about a generator family — the same rule
      * {@link TerrainShape#calibrate} follows, and for the same reason.
      */
-    private static final class InterpolateAtTheMarker
+    private static final class WrapperRewrite
             implements DensityFunction.DensityFunctionVisitor {
 
         private final int cellHorizontal;
         private final int cellVertical;
         private final int shapeMinimumY;
-        final java.util.concurrent.atomic.AtomicInteger rewritten =
+        final java.util.concurrent.atomic.AtomicInteger interpolated =
+                new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger columnCached =
+                new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger columnRefused =
                 new java.util.concurrent.atomic.AtomicInteger();
 
-        InterpolateAtTheMarker(int cellHorizontal, int cellVertical, int shapeMinimumY) {
+        WrapperRewrite(int cellHorizontal, int cellVertical, int shapeMinimumY) {
             this.cellHorizontal = cellHorizontal;
             this.cellVertical = cellVertical;
             this.shapeMinimumY = shapeMinimumY;
@@ -345,23 +449,165 @@ public final class CandidateRender {
 
         @Override
         public DensityFunction apply(DensityFunction function) {
-            // The marker's enum type is nested inside a PROTECTED class, so
-            // it cannot be named from here. Its identity is compared by name
-            // instead, which covers both the enum constant (INTERPOLATED) and
-            // the StringIdentifiable spelling (interpolated) without needing
-            // an accessor mixin for one comparison.
-            if (function instanceof DensityFunctionTypes.Wrapper wrapper
-                    && "interpolated".equalsIgnoreCase(String.valueOf(wrapper.type()))) {
-                this.rewritten.incrementAndGet();
-                return new CellInterpolated(wrapper.wrapped(),
-                        this.cellHorizontal, this.cellVertical, this.shapeMinimumY);
+            if (!(function instanceof DensityFunctionTypes.Wrapper wrapper)) {
+                return function;
             }
-            return function;
+            switch (markerName(wrapper)) {
+                case "interpolated" -> {
+                    this.interpolated.incrementAndGet();
+                    return new CellInterpolated(wrapper.wrapped(),
+                            this.cellHorizontal, this.cellVertical, this.shapeMinimumY);
+                }
+                case "flatcache", "cache2d" -> {
+                    if (!ignoresY(wrapper.wrapped())) {
+                        this.columnRefused.incrementAndGet();
+                        return function;
+                    }
+                    this.columnCached.incrementAndGet();
+                    return new ColumnCache(wrapper.wrapped());
+                }
+                default -> {
+                    return function;
+                }
+            }
+        }
+
+        /**
+         * Whether a marked sub-tree really does ignore {@code y}.
+         *
+         * <p>{@code flat_cache} and {@code cache_2d} are a router AUTHOR's
+         * claim, and vanilla acts on it without checking — its flat cache
+         * samples the sub-tree at {@code y = 0} and reuses that answer for a
+         * whole quart column. Sampled raw, as this render does, the real
+         * {@code y} goes down instead, so a sub-tree that reads {@code y}
+         * answers differently for every rung of a walk. Caching such a
+         * sub-tree on {@code (x, z)} would freeze whichever rung happened to
+         * be probed first, which depends on how the grid was split across
+         * workers.
+         *
+         * <p>So the claim is measured, not taken: the sub-tree is asked at two
+         * heights over several off-lattice columns, and only a sub-tree that
+         * answers identically is cached. One that does not is left exactly as
+         * it was, and the picture cannot move either way.
+         */
+        private static boolean ignoresY(DensityFunction wrapped) {
+            for (int i = 0; i < Y_INDEPENDENCE_PROBES; i++) {
+                int[] at = SpikeSampler.probe(i, 4096);
+                double low = wrapped.sample(
+                        new DensityFunction.UnblendedNoisePos(at[0], -48, at[1]));
+                double high = wrapped.sample(
+                        new DensityFunction.UnblendedNoisePos(at[0], 176, at[1]));
+                // compare, not !=, so two NaNs count as agreeing rather than
+                // as evidence of a y-dependence that is not there.
+                if (Double.compare(low, high) != 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * The marker's name, spelling-agnostic.
+         *
+         * <p>The enum lives inside a package-private class and cannot be named
+         * from here, so it is compared as text — and the two spellings differ:
+         * {@code toString()} gives the constant ({@code CACHE2D}) while
+         * {@code asString()} gives the registry id ({@code cache_2d}).
+         * Lower-casing and dropping underscores collapses both onto one key.
+         */
+        private static String markerName(DensityFunctionTypes.Wrapper wrapper) {
+            return String.valueOf(wrapper.type())
+                    .toLowerCase(java.util.Locale.ROOT).replace("_", "");
         }
 
         @Override
         public DensityFunction.Noise apply(DensityFunction.Noise noise) {
             return noise;
+        }
+    }
+
+    /**
+     * A sub-tree the router declares to be two-dimensional, evaluated once
+     * per block column instead of once per probe.
+     *
+     * <p>A surface walk asks its column's four cell corners at every rung it
+     * descends, and the two-dimensional half of a modded router — the
+     * continent, erosion and ridge chains and every spline stacked on them —
+     * answers identically each time. Measured on this pack before it was
+     * cached: one probe of {@code the_crystal_vale}'s final density cost 283
+     * microseconds, and a thumbnail spent all but a fraction of a percent of
+     * its time inside that walk.
+     *
+     * <p>Direct-mapped rather than a single slot, because the access pattern
+     * is four columns interleaved, not one: vanilla's own {@code cache_2d}
+     * holds one entry and would miss on every corner. Sixteen slots hold a
+     * walk's four corners and its neighbours' with room to spare; a conflict
+     * costs a recomputation and never a wrong answer. Small on purpose —
+     * a modded overworld router carries tens of thousands of these markers,
+     * so every slot is paid for that many times over, per worker.
+     *
+     * <p><b>Stateful: one per worker</b>, like the interpolation it sits
+     * beside, and for the same reason.
+     */
+    private static final class ColumnCache implements DensityFunction {
+
+        private static final int SLOTS = 16;
+        private static final int HASH_SHIFT = 64 - Integer.numberOfTrailingZeros(SLOTS);
+
+        private final DensityFunction wrapped;
+        private final long[] columns = new long[SLOTS];
+        private final boolean[] filled = new boolean[SLOTS];
+        private final double[] values = new double[SLOTS];
+
+        ColumnCache(DensityFunction wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public double sample(NoisePos pos) {
+            long column = ((long) pos.blockX() << 32) ^ (pos.blockZ() & 0xFFFFFFFFL);
+            int slot = slotOf(column);
+            if (this.filled[slot] && this.columns[slot] == column) {
+                return this.values[slot];
+            }
+            double value = this.wrapped.sample(pos);
+            this.columns[slot] = column;
+            this.values[slot] = value;
+            this.filled[slot] = true;
+            return value;
+        }
+
+        /** Fibonacci hashing: the top bits, which mix both coordinates. */
+        private static int slotOf(long column) {
+            return (int) ((column * 0x9E3779B97F4A7C15L) >>> HASH_SHIFT);
+        }
+
+        @Override
+        public void fill(double[] densities, EachApplier applier) {
+            applier.fill(densities, this);
+        }
+
+        @Override
+        public DensityFunction apply(DensityFunctionVisitor visitor) {
+            return visitor.apply(this);
+        }
+
+        @Override
+        public double minValue() {
+            return this.wrapped.minValue();
+        }
+
+        @Override
+        public double maxValue() {
+            return this.wrapped.maxValue();
+        }
+
+        @Override
+        public net.minecraft.util.dynamic.CodecHolder<? extends DensityFunction> getCodecHolder() {
+            // Never serialised: this lives only inside a render's private
+            // rewritten tree. Loud rather than silently wrong if that changes.
+            throw new UnsupportedOperationException(
+                    "ColumnCache is a render-local rewrite and has no codec");
         }
     }
 
@@ -420,12 +666,53 @@ public final class CandidateRender {
         }
     }
 
-    /** The surface the render would paint at one column, or null for open air. */
+    /**
+     * The surface the render would paint at one column, or null for open air.
+     *
+     * <p>{@code sample} is read only by the depth fallback, so a caller that
+     * walks the density — which is every caller with a {@code shape} — may
+     * pass null rather than measuring a climate point it has no other use
+     * for. Defined once here so {@link #draw}'s height pass and
+     * {@code render-check} cannot drift apart.
+     */
     public static Integer surfaceAt(HeightModel model, TerrainShape.Density shape,
                                     SpikeSampler.Sample sample, int x, int z) {
-        return shape == null
-                ? heightFromDepth(sample.climate(), model.floorY(), model.topY())
-                : TerrainShape.surfaceY(shape, model.band(), x, z, model.hasCeiling());
+        if (shape != null) {
+            return TerrainShape.surfaceY(shape, model.band(), x, z, model.hasCeiling());
+        }
+        return sample == null ? null
+                : heightFromDepth(sample.climate(), model.floorY(), model.topY());
+    }
+
+    /**
+     * The height at a fine-grid point, read off the coarser height lattice.
+     *
+     * <p>Bilinear where the cell's four measured corners all found ground,
+     * and the NEAREST corner where they did not. A blend across a shore or an
+     * island edge would invent a floor in the gap and move the coastline half
+     * a cell inward; taking the nearest measured column instead keeps the
+     * edge where it was measured, at the lattice's own resolution.
+     *
+     * <p>With a stride of one this returns the corner it sits on exactly, so
+     * the whole mechanism is a no-op rather than a rounding error.
+     */
+    static Integer heightAt(int[] coarseHeight, boolean[] coarseKnown, int coarseSide,
+                            int gx, int gz, int stride) {
+        int cx = gx / stride;
+        int cz = gz / stride;
+        double tx = (gx - cx * stride) / (double) stride;
+        double tz = (gz - cz * stride) / (double) stride;
+        int i00 = cz * coarseSide + cx;
+        int i10 = i00 + 1;
+        int i01 = i00 + coarseSide;
+        int i11 = i01 + 1;
+        if (coarseKnown[i00] && coarseKnown[i10] && coarseKnown[i01] && coarseKnown[i11]) {
+            double north = coarseHeight[i00] + (coarseHeight[i10] - coarseHeight[i00]) * tx;
+            double south = coarseHeight[i01] + (coarseHeight[i11] - coarseHeight[i01]) * tx;
+            return (int) Math.round(north + (south - north) * tz);
+        }
+        int nearest = (tz >= 0.5 ? cz + 1 : cz) * coarseSide + (tx >= 0.5 ? cx + 1 : cx);
+        return coarseKnown[nearest] ? coarseHeight[nearest] : null;
     }
 
     /**
@@ -558,7 +845,9 @@ public final class CandidateRender {
         // all" is the whole picture, and depth cannot answer it.
         // The shape half of the router, kept beside the climate half so one
         // NoiseConfig answers both the biome and where the ground is.
-        final HeightModel model = heightModel(server, base, seed, coverage);
+        long modelStart = System.nanoTime();
+        final HeightModel model = heightModel(server, dimensionId, base, seed, coverage);
+        long modelNanos = System.nanoTime() - modelStart;
         final Integer seaLevel = model.seaLevel();
         com.customdimensions.MultiverseServer.LOGGER.debug(
                 "render {} seed={}: height source {} ({}/{} columns agreed depth is a height)",
@@ -572,8 +861,6 @@ public final class CandidateRender {
         java.util.concurrent.atomic.AtomicInteger maxH =
                 new java.util.concurrent.atomic.AtomicInteger(Integer.MIN_VALUE);
 
-        // One rig per worker: a rig carries noise state a column read walks,
-        // and SpikeSampler makes no promise about sharing one across threads.
         // A quarter of the machine. Rendering is a background nicety that
         // runs beside the search; taking every core made a map arrive sooner
         // and every measurement behind it arrive later, which is the wrong
@@ -590,28 +877,116 @@ public final class CandidateRender {
         final int sideF = samples;
         final int stepF = step;
         final int halfF = half;
+        java.util.concurrent.atomic.AtomicLong rigTotal = new java.util.concurrent.atomic.AtomicLong();
+        java.util.concurrent.atomic.AtomicLong rigMax = new java.util.concurrent.atomic.AtomicLong();
+        java.util.concurrent.atomic.AtomicLong climateNanos = new java.util.concurrent.atomic.AtomicLong();
+        java.util.concurrent.atomic.AtomicLong surfaceNanos = new java.util.concurrent.atomic.AtomicLong();
+        java.util.concurrent.atomic.AtomicLong densityProbes = new java.util.concurrent.atomic.AtomicLong();
+
+        // The height field, on its own lattice. Biome and climate are read at
+        // every grid point below; a column walk is a hundred times dearer
+        // than either and does not need that density to draw relief, so it is
+        // measured every HEIGHT_SAMPLE_FACTOR points and interpolated back up
+        // (heightAt). A generator with no density to walk keeps the depth
+        // fallback, which is free — the climate point is already being read —
+        // and so takes no lattice at all.
+        final boolean walkDensity = !model.useDepth();
+        final int heightStride = walkDensity ? Math.max(1, HEIGHT_SAMPLE_FACTOR) : 1;
+        final int coarseSide = (samples - 1) / heightStride + 2;
+        final int[] coarseHeight = new int[coarseSide * coarseSide];
+        final boolean[] coarseKnown = new boolean[coarseSide * coarseSide];
+
+        long loopStart = System.nanoTime();
         try {
+            if (walkDensity) {
+                List<java.util.concurrent.Future<?>> heights = new ArrayList<>();
+                for (int w = 0; w < workers; w++) {
+                    final int worker = w;
+                    final int stride = workers;
+                    heights.add(pool.submit(() -> {
+                        long rigStart = System.nanoTime();
+                        SpikeSampler.Rig own = rigFor(server, base, model, seed);
+                        // The rewritten tree is per-worker and must stay so:
+                        // its interpolation and column caches carry state. The
+                        // NoiseConfig underneath it is the model's, shared.
+                        TerrainShape.Density built = densityFor(model, own);
+                        // Counted per worker and summed once at the end: an
+                        // atomic per probe would contend on the one number the
+                        // render is busiest producing, and measure the counter.
+                        long[] probes = new long[1];
+                        TerrainShape.Density shape = built == null ? null
+                                : (x, y, z) -> {
+                                    probes[0]++;
+                                    return built.at(x, y, z);
+                                };
+                        long rigCost = System.nanoTime() - rigStart;
+                        rigTotal.addAndGet(rigCost);
+                        rigMax.accumulateAndGet(rigCost, Math::max);
+                        long surfaceAcc = 0;
+                        for (int cz = worker; cz < coarseSide; cz += stride) {
+                            if (abandonIf.getAsBoolean()) {
+                                surfaceNanos.addAndGet(surfaceAcc);
+                                densityProbes.addAndGet(probes[0]);
+                                throw new Abandoned();
+                            }
+                            for (int cx = 0; cx < coarseSide; cx++) {
+                                int dx = centreXF
+                                        + gridToWorldOffset(cx * heightStride, stepF, halfF);
+                                int dz = centreZF
+                                        + gridToWorldOffset(cz * heightStride, stepF, halfF);
+                                long t0 = System.nanoTime();
+                                Integer y = surfaceAt(model, shape, null, dx, dz);
+                                surfaceAcc += System.nanoTime() - t0;
+                                if (y != null) {
+                                    int i = cz * coarseSide + cx;
+                                    coarseKnown[i] = true;
+                                    coarseHeight[i] = y;
+                                }
+                            }
+                        }
+                        surfaceNanos.addAndGet(surfaceAcc);
+                        densityProbes.addAndGet(probes[0]);
+                    }));
+                }
+                for (java.util.concurrent.Future<?> t : heights) {
+                    t.get();
+                }
+            }
+
             List<java.util.concurrent.Future<?>> tasks = new ArrayList<>();
             for (int w = 0; w < workers; w++) {
                 final int worker = w;
                 final int stride = workers;
                 tasks.add(pool.submit(() -> {
+                    // No density here: this pass reads the biome and the
+                    // climate point, and takes its height off the lattice the
+                    // pass above measured.
+                    long rigStart = System.nanoTime();
                     SpikeSampler.Rig own = rigFor(server, base, model, seed);
-                    TerrainShape.Density shape = densityFor(model, own);
+                    long rigCost = System.nanoTime() - rigStart;
+                    rigTotal.addAndGet(rigCost);
+                    rigMax.accumulateAndGet(rigCost, Math::max);
+                    long climateAcc = 0;
                     for (int gz = worker; gz < sideF; gz += stride) {
                         if (abandonIf.getAsBoolean()) {
+                            climateNanos.addAndGet(climateAcc);
                             throw new Abandoned();
                         }
                         for (int gx = 0; gx < sideF; gx++) {
                             int dx = centreXF + gridToWorldOffset(gx, stepF, halfF);
                             int dz = centreZF + gridToWorldOffset(gz, stepF, halfF);
                             int idx = gz * sideF + gx;
+                            long t0 = System.nanoTime();
                             SpikeSampler.Sample s = SpikeSampler.sample(own, dx, dz);
+                            climateAcc += System.nanoTime() - t0;
                             sampled.incrementAndGet();
                             if (s.biome() == null) {
                                 continue;
                             }
-                            Integer surface = surfaceAt(model, shape, s, dx, dz);
+                            Integer surface = walkDensity
+                                    ? heightAt(coarseHeight, coarseKnown, coarseSide,
+                                            gx, gz, heightStride)
+                                    : surfaceAt(model, null, s, dx, dz);
                             BiomeColors colors = sharedColors.computeIfAbsent(s.biome(), id -> {
                                 BiomeColors c = biomeColors(biomeRegistry, id);
                                 return c == null ? MISSING : c;
@@ -638,6 +1013,7 @@ public final class CandidateRender {
                             maxH.accumulateAndGet(surface, Math::max);
                         }
                     }
+                    climateNanos.addAndGet(climateAcc);
                 }));
             }
             for (java.util.concurrent.Future<?> t : tasks) {
@@ -654,10 +1030,13 @@ public final class CandidateRender {
         } finally {
             pool.shutdownNow();
         }
+        long loopWallNanos = System.nanoTime() - loopStart;
 
+        long paintStart = System.nanoTime();
         BufferedImage image = paint(samples, pixels, terrainColor, waterColor, height, known,
                 water, seaLevel, minH.get(), maxH.get(), voidColourFor(def));
         writeImageAtomically(image, outputPath);
+        long paintNanos = System.nanoTime() - paintStart;
         long renderNanos = System.nanoTime() - renderStart;
         int n = Math.max(1, sampled.get());
         // Per-column cost is the number that says whether a render is paying
@@ -668,8 +1047,49 @@ public final class CandidateRender {
                 "render {} seed={} {}: {}x{} grid, {} columns, {} workers, {} ms ({} us/column)",
                 dimensionId, seed, resolution, samples, samples, sampled.get(), workers,
                 renderNanos / 1_000_000L, renderNanos / n / 1_000L);
+        logTimings(dimensionId, seed, resolution, workers, n,
+                new Timings(modelNanos, rigTotal.get(), rigMax.get(), loopWallNanos,
+                        climateNanos.get(), surfaceNanos.get(), paintNanos,
+                        densityProbes.get(),
+                        walkDensity ? coarseSide * coarseSide : 0, heightStride));
         return new RenderResult(outputPath, pixels, step, renderNanos / n, renderNanos,
                 sampled.get(), 0);
+    }
+
+    /**
+     * Where the render's time went, as one line.
+     *
+     * <p>The parts are not the same kind of number and saying so is the point:
+     * the model and the paint are wall time on this thread, the rigs and the
+     * two loop halves are core time summed across workers, and the loop's own
+     * figure is wall. Reporting them undifferentiated is how "four workers
+     * cost the same as eight" gets read as a conclusion rather than as a
+     * measurement taken under contention.
+     *
+     * <p>The probe count is what separates the two ways a surface walk can be
+     * expensive — too many probes down a column, or too costly a density
+     * behind each one. A time with no count behind it cannot tell them apart.
+     */
+    private static void logTimings(Identifier dimensionId, long seed, Resolution resolution,
+                                   int workers, int columns, Timings t) {
+        long probes = Math.max(1, t.densityProbes());
+        long heightColumns = Math.max(1, t.heightColumns());
+        com.customdimensions.MultiverseServer.LOGGER.info(
+                "render {} seed={} {} split: heightModel {} ms (wall, calibrate included), "
+                + "rigs {} ms core over {} workers (slowest {} ms), loop {} ms wall = "
+                + "climate {} ms over {} columns + surface {} ms over {} columns "
+                + "(1 height per {}x{} grid points), paint {} ms; "
+                + "{} density probes ({} per height column, {} us each)",
+                dimensionId, seed, resolution,
+                t.modelNanos() / 1_000_000L,
+                t.rigTotalNanos() / 1_000_000L, workers, t.rigMaxNanos() / 1_000_000L,
+                t.loopWallNanos() / 1_000_000L,
+                t.climateNanos() / 1_000_000L, columns,
+                t.surfaceNanos() / 1_000_000L, t.heightColumns(),
+                t.heightStride(), t.heightStride(),
+                t.paintNanos() / 1_000_000L,
+                t.densityProbes(), t.densityProbes() / heightColumns,
+                t.surfaceNanos() / probes / 1_000L);
     }
 
     /**
@@ -716,18 +1136,56 @@ public final class CandidateRender {
                 settings.usesLegacyRandom());
     }
 
-    /**
-     * One worker's rig over {@link #climateAndShape} settings. Each worker
-     * builds its own: a {@code NoiseConfig} carries per-seed noise samplers
-     * and nothing promises they are shared safely.
-     */
-    private static SpikeSampler.Rig shapeRig(MinecraftServer server, SpikeSampler.Base base,
-                                             ChunkGeneratorSettings settings, long seed) {
-        var lookup = server.getRegistryManager()
-                .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
-        return new SpikeSampler.Rig(base.generator(),
-                NoiseConfig.create(settings, lookup, seed), base.heightLimit(),
+    /** A rig over an already-built config — no per-seed work of its own. */
+    private static SpikeSampler.Rig rigOver(SpikeSampler.Base base, NoiseConfig config) {
+        return new SpikeSampler.Rig(base.generator(), config, base.heightLimit(),
                 base.hasCeiling(), base.biomeSourceAcceptsWithSeed(), true, null);
+    }
+
+    /** The most recently built shape configs, newest last. */
+    private static final Map<String, NoiseConfig> SHAPE_CONFIGS =
+            java.util.Collections.synchronizedMap(
+                    new java.util.LinkedHashMap<String, NoiseConfig>(8, 0.75f, true) {
+                        @Override
+                        protected boolean removeEldestEntry(
+                                Map.Entry<String, NoiseConfig> eldest) {
+                            return size() > SHAPE_CONFIG_CACHE;
+                        }
+                    });
+
+    /**
+     * The {@link NoiseConfig} for one (dimension, seed), built once.
+     *
+     * <p><b>Shared, deliberately.</b> Every worker used to build its own,
+     * which on a modded overworld router is around a hundred milliseconds of
+     * noise samplers each, repeated per worker and again for the detail view
+     * of the same candidate. It is safe to share for the two things a render
+     * asks of it — {@code getNoiseRouter()} and {@code getMultiNoiseSampler()}
+     * — because both are plain reads of final fields, and everything they
+     * reach is immutable: {@code DensityFunctionTypes.Wrapping} and
+     * {@code MultiNoiseSampler} are records, and a
+     * {@code DoublePerlinNoiseSampler} is a pure function of the seed it was
+     * built with. What is NOT safe is {@code getOrCreateSampler} and
+     * {@code getOrCreateRandomDeriver}, which fill a plain {@code HashMap}
+     * lazily — nothing on the render path calls either, and the aquifer probe
+     * that would ({@code SpikeSampler.groundlessHoldsFluid}) is never reached
+     * from {@link #draw}, which skips a groundless column before asking about
+     * its water.
+     *
+     * <p>Keyed by dimension and seed rather than by the settings object,
+     * because {@link #climateAndShape} builds a fresh settings record every
+     * call and two of them are equal only by luck. That makes the key sound
+     * for one boot, which is the whole life of a cache entry: the generator a
+     * dimension resolves to is fixed once the config is loaded.
+     */
+    private static NoiseConfig shapeConfigFor(MinecraftServer server, Identifier dimensionId,
+                                              ChunkGeneratorSettings settings, long seed) {
+        String key = dimensionId + "|" + seed;
+        return SHAPE_CONFIGS.computeIfAbsent(key, k -> {
+            var lookup = server.getRegistryManager()
+                    .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+            return NoiseConfig.create(settings, lookup, seed);
+        });
     }
 
     /**

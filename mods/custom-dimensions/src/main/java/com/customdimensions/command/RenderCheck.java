@@ -51,11 +51,13 @@ import java.util.function.Predicate;
  *       {@link ColumnScan} over {@code getColumnSample} for a ceilinged
  *       one. Both answer the block ABOVE the floor.</td></tr>
  *   <tr><td>{@code render}</td><td>{@link CandidateRender#surfaceAt} through
- *       the renderer's own {@code HeightModel}, so this is the height the
- *       PNG was painted from and not a re-derivation of it. Answers the
- *       floor block itself when it walks the density, and
- *       {@code round(128 * depth)} when the calibration says depth is a
- *       height.</td></tr>
+ *       the renderer's own {@code HeightModel}, so this is the renderer's own
+ *       rule and not a re-derivation of it. Answers the floor block itself
+ *       when it walks the density, and {@code round(128 * depth)} when the
+ *       calibration says depth is a height. Measured at EVERY column here;
+ *       the PNG measures on a coarser lattice and interpolates between, so
+ *       this is the height the map is drawn from at a lattice point and the
+ *       value it interpolates toward everywhere else.</td></tr>
  *   <tr><td>{@code world}</td><td>Real block states from the live try-out
  *       world, read with vanilla's own {@code OCEAN_FLOOR_WG} predicate (or
  *       the same {@link ColumnScan} the facts use, when ceilinged), so a
@@ -446,8 +448,8 @@ public final class RenderCheck {
                 this.factsRig = SpikeSampler.forSeed(server, this.base, this.seed);
                 // The same coverage the detail render calibrates over, so the
                 // verdict here is the verdict the PNG was drawn under.
-                this.model = CandidateRender.heightModel(server, this.base, this.seed,
-                        Math.max(512, this.radius * 2));
+                this.model = CandidateRender.heightModel(server, this.dimensionId, this.base,
+                        this.seed, Math.max(512, this.radius * 2));
                 this.renderRig = CandidateRender.rigFor(server, this.base, this.model, this.seed);
                 this.renderDensity = CandidateRender.densityFor(this.model, this.renderRig);
             }

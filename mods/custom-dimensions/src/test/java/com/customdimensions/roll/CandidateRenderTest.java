@@ -84,6 +84,70 @@ class CandidateRenderTest {
                 "vanilla shades a cell against the one to its NORTH");
     }
 
+    // ------------------------------------------------------ height lattice
+
+    /** A 3x3 coarse field of known ground, ten blocks apart in each direction. */
+    private static int[] slope(int coarseSide) {
+        int[] h = new int[coarseSide * coarseSide];
+        for (int cz = 0; cz < coarseSide; cz++) {
+            for (int cx = 0; cx < coarseSide; cx++) {
+                h[cz * coarseSide + cx] = 60 + 10 * cx + 100 * cz;
+            }
+        }
+        return h;
+    }
+
+    @Test
+    void aStrideOfOneReadsTheCornerItSitsOnAndNothingElse() {
+        // The whole coarse-lattice mechanism has to vanish at stride 1, or
+        // "the same picture" could never be asserted against the old renderer.
+        int coarseSide = 5;
+        int[] h = slope(coarseSide);
+        boolean[] known = new boolean[coarseSide * coarseSide];
+        java.util.Arrays.fill(known, true);
+        for (int gz = 0; gz < 4; gz++) {
+            for (int gx = 0; gx < 4; gx++) {
+                assertEquals(h[gz * coarseSide + gx],
+                        CandidateRender.heightAt(h, known, coarseSide, gx, gz, 1));
+            }
+        }
+    }
+
+    @Test
+    void aPointBetweenFourMeasuredCornersIsTheirBilinearBlend() {
+        int coarseSide = 3;
+        int[] h = slope(coarseSide);
+        boolean[] known = new boolean[coarseSide * coarseSide];
+        java.util.Arrays.fill(known, true);
+        // gx=1, gz=1 at stride 2 is the exact centre of the first cell:
+        // corners 60, 70, 160, 170 average to 115.
+        assertEquals(115, CandidateRender.heightAt(h, known, coarseSide, 1, 1, 2));
+        // On the cell edge it is the midpoint of that edge's two corners.
+        assertEquals(65, CandidateRender.heightAt(h, known, coarseSide, 1, 0, 2));
+    }
+
+    @Test
+    void aCellStraddlingAnEdgeTakesTheNearestMeasuredColumnRatherThanABlend() {
+        int coarseSide = 3;
+        int[] h = slope(coarseSide);
+        boolean[] known = new boolean[coarseSide * coarseSide];
+        java.util.Arrays.fill(known, true);
+        known[1] = false;                       // the (1, 0) corner has no ground
+        // Nearest to (gx=1, gz=0) at stride 2 is that missing corner itself, so
+        // the answer is "no ground" rather than a blend of the three that have it.
+        assertNull(CandidateRender.heightAt(h, known, coarseSide, 1, 0, 2));
+        // Nearest to (gx=0, gz=0) is the corner that IS measured.
+        assertEquals(60, CandidateRender.heightAt(h, known, coarseSide, 0, 0, 2));
+    }
+
+    @Test
+    void aCellWithNoMeasuredCornerIsOpenAir() {
+        int coarseSide = 3;
+        int[] h = slope(coarseSide);
+        boolean[] known = new boolean[coarseSide * coarseSide];
+        assertNull(CandidateRender.heightAt(h, known, coarseSide, 1, 1, 2));
+    }
+
     // ---------------------------------------------------------------- geometry
 
     @Test
