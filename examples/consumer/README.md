@@ -240,11 +240,12 @@ Resource packs are declared in the template's manifest and auto-install with the
 | `./dev pack`              | Build the client modpack into `./modpack-dist/`                                    |
 | `./dev pin`               | Re-pin `overlay/mods-extra.txt` to latest mod builds                               |
 | `./dev update`            | Pull the latest stack bundle + Docker images                                       |
-| `./dev link [path]`       | Point `.stack/current` at a platform checkout (default `../minecraft-server-template`) — configs, scripts and locally-built mod jars go live without a release. Local only; deploys refuse it |
-| `./dev unlink`            | Restore the newest pulled release bundle after `./dev link`                        |
+| `./dev link [path]`       | Point `.stack/current` at a platform checkout (default `../minecraft-server-template`). Run **once**: the farm is built from symlinks, so an edited script or compose file and every rebuilt mod jar go live on the next `./dev up` with no re-link (a `config/` edit also needs `./dev refresh-config`). Local only; deploys refuse it |
+| `./dev unlink`            | Restore the newest pulled release bundle after `./dev link` (`./dev pull`, `./dev update` and `./dev rollback` also undo a link) |
+| `./dev seeds`             | Open the seed viewer (hosted by the `mc` container on `SEED_VIEWER_PORT`, default 8765) |
 | `./dev reset-world`       | Delete the LOCAL world + player data (the same set `./ops reset-seed` deletes on production); keeps `.env`, mods, config, overlay and the seed bank |
 | `./ops sync`              | Update everything: local down, update, env sync to GitHub, server update, local up |
-| `./dev verify`            | Run every offline checker over the mod's artefacts (no Docker, no RCON)             |
+| `./dev verify`            | Print where dimension/portal/suppress-list verification lives now (boot WARN, load-time validation, `customdim lint`) |
 | `./dev refresh-config`    | Force-refresh platform config defaults into `data/config` (backs up first)          |
 | `./dev cache`             | Snapshot Docker images, mod JARs, offline client bundles                           |
 | `./dev start <service>`   | Start a stopped local service                                                      |

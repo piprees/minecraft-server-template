@@ -12,9 +12,10 @@
 #   ./dev start nav-proxy
 #   ./dev stop uptime-kuma
 #
-# MC lifecycle is intentionally excluded: deploy.sh (or Discord /mc restart)
-# owns the countdown, save, allowlist and config choreography. This script
-# only performs raw Compose operations for named sidecars.
+# Production refuses every mc action but status: deploy.sh (or Discord
+# /mc restart) owns the countdown, save, allowlist and config choreography.
+# SERVICE_LOCAL=1 lifts that refusal, because none of it exists locally and
+# stopping mc is part of the normal inner loop.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,7 +51,7 @@ usage() {
   echo "  status   Show container status (all if no service named)"
   echo ""
   echo "Mutable services: ${SERVICES[*]}"
-  echo "Read-only status also accepts: mc"
+  echo "mc: status anywhere; start/stop/restart only via ./dev (local)"
 }
 
 if [[ -z "$ACTION" || "$ACTION" == "help" || "$ACTION" == "--help" ]]; then

@@ -53,7 +53,7 @@ customdimensions.jar|custom-dimensions|customdimensions-refmap.json
 
 Fields, pipe-separated:
 
-1. **bundle_name** — the filename the jar is staged as in `dist/local-mods/` and later `stack/local-mods/`, and what `data/mods/` will contain on a running server.
+1. **bundle_name** — the filename the jar is staged as in `dist/local-mods/` and later `stack/local-mods/`, and what `data/mods/` contains on a server running a release bundle. A consumer on a `./dev link` gets the checkout's own build filename instead (`customdimensions-0.0.0-local.jar`), and the release-named jar is pruned. Neither filename is ever placed by hand — see `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
 2. **gradle_project** — the directory under `mods/` to `cd` into and `gradle build`.
 3. **loom_refmap** — the exact refmap filename `release.yml` greps for inside the built jar.
 

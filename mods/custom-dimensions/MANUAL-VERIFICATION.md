@@ -10,15 +10,24 @@
 
 ## How to run these
 
-Local only, against `~/Projects/elfydd`. Never `./dev up` to test a build —
-it overwrites your jar with the bundle's. Install and restart:
+Local only, against `~/Projects/elfydd`, which is linked to this checkout
+(`./dev link`, run once — see
+`.claude/skills/local-stack-testing/SKILL.md` § Linked local development).
+Build, install, restart:
 
 ```bash
-cp mods/custom-dimensions/build/libs/customdimensions-*.jar \
-   ~/Projects/elfydd/data/mods/customdimensions.jar
-# re-patch c2me useDensityFunctionCompiler BEFORE every restart (see dev-up.sh)
-docker stop -t 60 mc && docker start mc
+cd ~/Projects/minecraft-server-template/mods/custom-dimensions
+mise exec -- ./gradlew build
+
+cd ~/Projects/elfydd
+./dev up                                 # installs the checkout's build via the link
+ls data/mods | grep customdimensions     # exactly one line
 ```
+
+Never copy a jar into `data/mods/` yourself — it is managed, and a hand-placed
+jar is overwritten or pruned. The c2me `useDensityFunctionCompiler` patch needs
+no manual step either: the mod's preLaunch entrypoint re-supplies it every boot
+(TROUBLESHOOTING.md#d6).
 
 **Mod DEBUG logging is an env var, not a file patch.** Set
 `CUSTOMDIM_LOG_LEVEL='debug'` in the consumer `.env` and restart mc;
@@ -27,11 +36,11 @@ hand-patch that file inside the `stack-config` volume — every seed run
 reverts it (TROUBLESHOOTING.md#t12), so the diagnostics disappear on the next
 `./dev up` without a word.
 
-**`./dev up` overwrites your locally-built mod jar** with the bundle's, and
-**recreating mc outside `./dev up` breaks the mod set** — a
-`docker compose up --force-recreate --no-deps mc` skips the seed and booted
-with 4 mods instead of 287 (hit 2026-07-25). Use `docker stop`/`docker start`
-to keep both, and `./dev up` only when you want the bundle's jars back.
+**Only `./dev up` installs a jar.** `./dev restart mc` recreates the container
+with `--no-deps` (`service.sh`, the `restart)` action), which runs neither the seed container nor
+the jar install at `dev-up.sh`, "Install in-house mod JARs" — so it restarts whatever is already in
+`data/mods/`. Use it to re-read config or clear state, never to pick up a
+build.
 
 Check for ghosts before believing any visual report — orphaned fake blocks
 from a previous session look identical to a live masking failure:

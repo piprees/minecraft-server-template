@@ -232,7 +232,8 @@ Scripts fall into three categories depending on where they live and who runs the
 | `discord-pin-sync.sh` | Mac | Sync the #general welcome pin from messages.json |
 | `ddns-update.sh` | local host | Cloudflare dynamic DNS for home hosting (cron-installable) |
 | `cache-assets.sh` | Mac | Snapshot Docker images, mod JARs, offline client bundles |
-| `service.sh` | Mac | Start, stop, restart, or check status of sidecars (local or production; never MC) |
+| `clean-dev-state.sh` | Mac | `./dev clean`: delete regenerable local state by named target (`--list`, `--dry-run`); world, seed bank and backups are opt-in |
+| `service.sh` | Mac | Start, stop, restart, or check status of a service. Production refuses every `mc` action but `status`; the local profile (`./dev`) allows all of them |
 | `map-render.sh` | Mac | Drive the unmined-render sidecar: status, force a render pass |
 | `lib.sh` | (sourced) | Shared utilities: env loading, RCON, provider detection |
 
@@ -409,12 +410,17 @@ This is the platform repo. Contributors work here to improve the images, bundle 
 
 **How defaults get released:** push to `main` triggers image builds. Cut a release with `vX.Y.Z` tag to publish the stack bundle and tag images. See the `platform-release-management` skill.
 
-**Local development:** contributors can run the full stack from a checkout:
+**Local development:** platform changes are tested through a consumer repo linked to this checkout. Once linked, an edited script or compose file and every rebuilt in-house mod jar go live on the next `./dev up`, with no release:
 
 ```bash
-cp .env.example .env
-./scripts/dev-up.sh              # or: docker compose --profile local up -d
+# in the consumer repo (e.g. ~/Projects/elfydd), alongside this checkout
+./dev link                       # once — .stack/current -> this checkout
+./dev up
+./dev refresh-config             # only when a config/ file changed
+./dev unlink                     # back to the newest pulled release bundle
 ```
+
+An edited `config/` file needs `./dev refresh-config`, because `./dev up` seeds `data/config/` skip-if-exists; content baked into the `defaults-seed` image (`config/nginx/`, `config/modrinth-mods.txt`) a link does not reach at all. The full workflow — in-house mod development, platform configs, and seed roller work — is in `.claude/skills/local-stack-testing/SKILL.md` § Linked local development. To run the stack straight from this checkout instead, use `docker compose --profile local up -d`; `./scripts/dev-up.sh` is not meant to be called directly (its path math assumes bundle nesting).
 
 **Quality gates:** `./scripts/test-scripts.sh --quick` (shellcheck, py_compile, compose validation). CI runs the same plus yamllint.
 

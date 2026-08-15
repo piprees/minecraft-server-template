@@ -13,6 +13,7 @@ Building, verifying, and shipping the in-house Fabric mods in `mods/` (currently
 
 | File | Why you need it |
 | --- | --- |
+| `.claude/skills/local-stack-testing/SKILL.md` § Linked local development | The canonical `./dev link` workflow every local loop in this skill depends on |
 | `mods/AGENTS.md` § Verification loop | The full 5-stage loop this skill summarises, with every gotcha in place |
 | `mods/AGENTS.md` § Architecture (custom-dimensions) | The component tree — reference it, never reproduce it here |
 | `mods/AGENTS.md` § Worldgen self-containment rules, § Structure placement lessons | Noise-id vs DF-id seeding rules, CubicSpline extrapolation, `/locate` ordering — only relevant if you touch worldgen |
@@ -30,7 +31,7 @@ cd mods/<name>
 mise exec -- ./gradlew build
 ```
 
-**Never bare `./gradlew build`.** A global Java (e.g. 25) takes precedence over the `mods/mise.toml` pin (`temurin-21`), and Gradle fails with a misleading task-creation error — not a clear wrong-Java message (root `AGENTS.md:162`). First time in a project without a wrapper: `mise install && gradle wrapper --gradle-version 8.13`.
+**Never bare `./gradlew build`.** `mods/mise.toml` pins `java = "temurin-21"`, and `mise exec --` is what applies that pin to the build ([P4](../../../TROUBLESHOOTING.md#p4)). First time in a project without a wrapper: `mise install && gradle wrapper --gradle-version 8.13`.
 
 ## 2. Verify the artefact, not the build — mandatory gate
 
@@ -49,16 +50,28 @@ CI runs the identical check twice, so a local pass should never surprise it: `mo
 
 ## 3. Fast local loop
 
-Install straight into the local consumer's `data/mods/` and restart only the `mc` container — no release, no bundle, no full stack cycle. A release → deploy cycle costs 10–15 minutes and restarts production; this costs about a minute.
+Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs 10–15 minutes and restarts production; this costs about a minute.
 
-> **Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle over `data/mods/` on every run — it silently overwrites your locally-built jar with the old released version, so a test can run the OLD code and still "pass". Use `docker stop mc && docker start mc` (or `docker restart mc`). Only run `./dev up` when you deliberately want to reset to the bundle's shipped jars.
+**The canonical workflow — first-time setup, what the link reaches, and the three development cases — is `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.** Read it there; what follows is the mod-shaped summary.
 
 ```bash
-cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>.jar
-docker restart mc && sleep 45
+cd ~/Projects/elfydd && ./dev link        # once per consumer; readlink .stack/current -> dev
+
+cd ~/Projects/minecraft-server-template/mods/<name>
+mise exec -- ./gradlew build              # step 2's gate runs on the jar this produces
+
+cd ~/Projects/elfydd
+./dev up
+ls data/mods | grep <modid>                                       # exactly one line
 docker inspect mc --format '{{.State.Health.Status}}'             # must be healthy
-docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
+docker logs mc --tail 80 2>&1 | grep -iE 'mixin apply|<modid>|error'
 ```
+
+`./dev link` builds a farm of symlinks at `.stack/dev/stack`, one `local-mods/<jar>` per built jar (`dev`, the `link)` case's `ln -sfn`), so a rebuild changes what the link points at and needs no re-link. `dev-up.sh`, "Install in-house mod JARs" copies those into `data/mods/`, and `cp` follows the symlink, so the current build installs. **Re-run `./dev link` after `gradlew clean` or a `mod_version` change** — the symlink then names a deleted file and that `cp` aborts `./dev up`.
+
+**Never place or delete a jar in `data/mods/` by hand.** It is managed: each `./dev up` installs the farm's jars, rewrites `data/mods/.local-mods-manifest` from their basenames (`dev-up.sh`, the `.local-mods-manifest` write), then deletes every `data/mods/*.jar` named in neither this boot's seed manifest, that file, nor `$STACK_DIR/local-mods/` (`dev-up.sh`, "Prune stale mod jars"). A hand-placed jar matches none of the three.
+
+`./dev pull`, `./dev update` and `./dev rollback` all repoint `.stack/current` at a release bundle and undo the link; `./dev unlink` is the deliberate way back to the shipped jars.
 
 If the persisted state format changed (config schema, namespace, ids), delete the mod's state file(s) under `data/config/` before restarting — stale state from a previous build masks bugs and creates ghosts.
 
@@ -149,7 +162,7 @@ The pipeline itself: `release.yml` builds each mod listed in `mods/local-mods.ma
 6. **Never sync-load a chunk from a world tick.** That is the Epic Dungeons + c2me wedge — RCON goes i/o-timeout while `docker ps` stays healthy.
 7. **Fields serialised into `portal_links.json` must stay parseable by every jar that might read them back** — deploys roll back. A `#tag` in a persisted `frameBlock` crash-loops older jars. General rule: persisted-state fields are a compatibility contract, not just today's schema.
 8. **If the persisted state format changed, delete the mod's state files under `data/config/` before restarting** — stale state masks bugs and creates ghosts.
-9. **Never hand-copy jars into consumer repos and never publish to Modrinth.** The pipeline is release → bundle `stack/local-mods/` → `deploy.sh` step 8b / `dev-up.sh`.
+9. **Never hand-copy jars into consumer repos and never publish to Modrinth.** The shipping pipeline is release → bundle `stack/local-mods/` → `deploy.sh` step 8b / `dev-up.sh`; the local iteration path is `./dev link` (§ 3), which symlinks the checkout's built jars into the same slot.
 
 ## Validation (do not skip this)
 
@@ -160,7 +173,7 @@ docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartC
 docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
 ```
 
-Loud failures: `BUILD FAILED`, missing mixin targets with `"defaultRequire": 1` set, an unhealthy container. Silent failures: an unremapped/empty jar that still reports `BUILD SUCCESSFUL`; a stripped c2me key that looks like "nothing happened" but is actually expected; a `./dev up` silently reverting your test jar to the bundle version; a world-tick mixin that skips `ServerWorldEvents` and only surfaces as a DH NPE much later.
+Loud failures: `BUILD FAILED`, missing mixin targets with `"defaultRequire": 1` set, an unhealthy container. Silent failures: an unremapped/empty jar that still reports `BUILD SUCCESSFUL`; a stripped c2me key that looks like "nothing happened" but is actually expected; an unlinked consumer installing the released jar over your build on every `./dev up`; a world-tick mixin that skips `ServerWorldEvents` and only surfaces as a DH NPE much later.
 
 ## References
 

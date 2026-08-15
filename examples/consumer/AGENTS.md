@@ -41,7 +41,9 @@ The bundle puller lives in the bundle itself (`.stack/current/stack/scripts/stac
 
 ## In-house platform mods & custom dimensions
 
-The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-edit `data/mods/`**: it's managed (Modrinth sync + bundle installs) and your changes will be overwritten.
+The bundle ships platform-built Fabric mods in `stack/local-mods/` (e.g. `customdimensions.jar`). They're installed into `data/mods/` automatically — by `./dev up` locally and by the deploy on production. **Never hand-place or delete anything in `data/mods/`**: it's managed (Modrinth sync + bundle installs), so a hand-copied jar is overwritten or pruned on the next boot. Extra mods go in `overlay/mods-extra.txt`.
+
+Developing the platform's own mods against this repo: `./dev link ../minecraft-server-template` once, then rebuild the mod and `./dev up` — the link symlinks the checkout's built jars, so no jar is ever copied by hand. `./dev unlink` restores the release bundle.
 
 The custom-dimensions mod reads per-dimension config files from `config/custom-dimensions/dimensions/` at boot and creates all dimensions automatically — no RCON commands needed. Those configs are repo-owned and deploy-seeded; the mod never writes to them. Consumers customise via `overlay/config/custom-dimensions/dimensions/{slug}.json`: a file with a top-level `"overrides"` object deep-merges over the platform default, a file without one replaces it entirely, an empty `{}` disables that dimension, and a new filename adds a consumer dimension (namespaced by `BRAND_SLUG`). Full architecture: [mods/AGENTS.md in the template](https://github.com/piprees/minecraft-server-template/blob/main/mods/AGENTS.md).
 

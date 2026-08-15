@@ -37,7 +37,8 @@ usage() {
   echo "  pull     Fetch the stack bundle only (first boot / cache recovery)"
   echo "  update   Pull the latest stack bundle + Docker images"
   echo "  refresh-config Force-refresh platform config defaults (backs up data/config; overlay wins)"
-  echo "  clean    Delete everything git does not track (world, bank, bundle, caches)"
+  echo "  clean    Delete regenerable state by target (./dev clean --list)."
+  echo "           Default: stack pack cache mods config. --dry-run to preview"
   echo "  rollback Revert to a previous stack bundle version"
   echo "  verify      Show where dimension/portal verification lives now (mod tests + /customdim lint)"
   echo "  link     Point .stack/current at a platform checkout (default ../minecraft-server-template)"
@@ -228,21 +229,6 @@ if [[ "$CMD" != "help" && "$CMD" != "--help" && "$CMD" != "-h" ]]; then
   unset _banner _brand
 fi
 
-# Dimension config resolution for the seed tools. Order: this repo's own
-# config (platform), else the stack bundle (consumer). The consumer's
-# overrides live in overlay/ and are passed separately via SEED_OVERLAY_DIR.
-# data/ is the mc container's and is never read here.
-resolve_seed_config() {
-  SEED_CFG="$CONSUMER_DIR/config/custom-dimensions"
-  if [[ ! -d "$SEED_CFG/dimensions" ]]; then
-    SEED_CFG="$CONSUMER_DIR/.stack/current/stack/config/custom-dimensions"
-  fi
-  if [[ -d "$CONSUMER_DIR/overlay/config/custom-dimensions" ]]; then
-    SEED_OVERLAY_DIR="$CONSUMER_DIR/overlay/config/custom-dimensions"
-    export SEED_OVERLAY_DIR
-  fi
-}
-
 case "$CMD" in
   up)
     ensure_env
@@ -262,8 +248,10 @@ case "$CMD" in
   link)
     # Point .stack/current at a symlink farm over a platform checkout, so a
     # config/script/compose edit there is live here on the next roll or
-    # ./dev up — no release needed. local-mods/ carries the checkout's BUILT
+    # ./dev up — no release needed. local-mods/ symlinks the checkout's BUILT
     # jars, so ./dev up installs local builds instead of reverting them.
+    # Run once per consumer: every entry is a symlink, so a rebuild needs no
+    # re-link.
     PLATFORM_ARG="${1:-$CONSUMER_DIR/../minecraft-server-template}"
     PLATFORM="$(cd "$PLATFORM_ARG" 2> /dev/null && pwd)" || {
       echo "ERROR: platform checkout not found: $PLATFORM_ARG"
@@ -294,7 +282,8 @@ case "$CMD" in
         echo "  WARNING: $(basename "$j") has no refmap — dev/unremapped jar skipped"
         continue
       fi
-      cp "$j" "$FARM/local-mods/"
+      # Symlinked like the rest of the farm, so a rebuild needs no re-link.
+      ln -sfn "$j" "$FARM/local-mods/$(basename "$j")"
       JAR_COUNT=$((JAR_COUNT + 1))
     done
     echo "dev" > "$FARM/VERSION"

@@ -15,9 +15,12 @@ This is a Minecraft server template built as infrastructure-as-code. Bug fixes, 
   ```bash
   # In your consumer repo:
   cp .env.example .env
-  ./dev up                  # pulls the stack bundle + starts everything
+  ./dev link                # once: point .stack/current at this checkout
+  ./dev up                  # starts everything from the checkout, no release needed
   ```
-  To test an unreleased platform change locally, point `STACK_VERSION` at a local path or build images with `docker compose build`. Do not run `./scripts/dev-up.sh` directly from a platform checkout — its path math assumes bundle nesting and resolves incorrectly.
+  `./dev link` builds a farm of symlinks over the checkout, so an edited script or compose file — and every rebuilt in-house mod jar — is live on the next `./dev up`. An edited `config/` file needs `./dev refresh-config` as well, and content baked into the `defaults-seed` image (`config/nginx/`, `config/modrinth-mods.txt`) a link does not reach at all. `link` is run **once** per consumer; `./dev unlink` restores the newest pulled release bundle. Full workflow: `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
+
+  Do not run `./scripts/dev-up.sh` directly from a platform checkout — its path math assumes bundle nesting and resolves incorrectly.
 - **Consumer contributor** (you cloned a consumer repo to add mods or overlays):
   ```bash
   cp .env.example .env

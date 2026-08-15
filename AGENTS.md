@@ -155,7 +155,7 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Bundle manifest trap:** new bundle scripts must be added to the `MANIFEST` array in `scripts/build-stack-bundle.sh` or they won't be shipped to consumers. CI validates this — `lint.yml` checks that every `.sh` file referenced by `ops` or imported by other bundle scripts exists in the manifest.
 
-**Consumer scaffold sync trap:** files in `examples/consumer/` are copied to consumer repos by `./dev update`. The sync list lives in the `update)` case of `examples/consumer/dev` — executable entry points (`dev`, `ops`), non-executable files (`.env.example`, `.gitignore`, `AGENTS.md`), and workflows (`.github/workflows/*.yml`). **When adding a new file to `examples/consumer/`, add it to the sync list too** or existing consumers will never receive it. `README.md` and `overlay/` are deliberately excluded — those are consumer-owned content. The bundle puller is NOT a scaffold file: it ships in the bundle (`scripts/stack-pull.sh`); `dev` carries only a minimal inline bootstrap for the first-ever pull.
+**Consumer scaffold sync trap:** files in `examples/consumer/` are copied to consumer repos by `./dev update`. The sync list lives in the `update)` case of `examples/consumer/dev` and is three explicit loops, every entry named — executable entry points (`dev`, `ops`), non-executable files (`.env.example`, `.gitignore`, `AGENTS.md`, `commands.json`), and exactly three workflows (`.github/workflows/deploy.yml`, `update.yml`, `server-power.yml`; **not** a `*.yml` glob). **When adding a new file to `examples/consumer/`, add it to the sync list too** or existing consumers will never receive it — a fourth workflow is as invisible as a new top-level file. `README.md` is copied only when the consumer has none, and `overlay/` is never touched — both are consumer-owned content. The bundle puller is NOT a scaffold file: it ships in the bundle (`scripts/stack-pull.sh`); `dev` carries only a minimal inline bootstrap for the first-ever pull.
 
 ## Conventions
 
@@ -183,7 +183,9 @@ See the [full scripts table in README.md](README.md#scripts) for the complete li
 
 **Delivery pipeline (never hand-copy jars into consumer repos, never publish to Modrinth):** `release.yml` builds each mod and stages the **remapped** jar from `build/libs/` (never the `-dev` jar from `build/devlibs/`) as `dist/local-mods/<mod>.jar`; `build-stack-bundle.sh` packs it into the bundle as `stack/local-mods/`; from there `deploy.sh` (production, step 8b — while mc is stopped, before it starts) and `dev-up.sh` (local, every `./dev up`) copy `stack/local-mods/*.jar` into `data/mods/`. Both `mod-build.yml` and `release.yml` verify the jar contains compiled classes and the Loom-generated refmap — an unremapped or empty jar boots as a production crash loop, and Gradle will happily report BUILD SUCCESSFUL while producing one.
 
-**Iterate locally before releasing.** A release→deploy→sync cycle costs ~10–15 minutes per attempt and restarts production; the local loop costs ~1 minute and catches almost everything. Follow the [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop): build → install into the local consumer's `data/mods/` → restart local mc → exercise via RCON → soak time-based paths. Only cut a release once the local loop passes end to end.
+**Iterate locally before releasing.** A release→deploy→sync cycle costs ~10–15 minutes per attempt and restarts production; the local loop costs ~1 minute and catches almost everything. `./dev link` a consumer repo (`~/Projects/elfydd`) to this checkout **once**, then the loop is: `mise exec -- ./gradlew build` → `./dev up` → exercise via RCON → soak time-based paths. The link symlinks the checkout's built jars, scripts and compose files into the consumer's `.stack/current`, so a rebuild is live on the next `./dev up` with no re-link and no hand-copied jar (a `config/` edit additionally needs `./dev refresh-config`). Canonical workflow: `.claude/skills/local-stack-testing/SKILL.md` § Linked local development; mod-specific detail: [verification loop in mods/AGENTS.md](mods/AGENTS.md#verification-loop). Only cut a release once the local loop passes end to end.
+
+**Never hand-place or delete a jar in a consumer's `data/mods/`.** It is managed — `dev-up.sh` and `deploy.sh` install the bundle's (or the link's) jars and prune everything they cannot account for.
 
 ## Mods
 
@@ -312,7 +314,8 @@ These actions are allowed but carry irreversible consequences — pause and ask 
 | --- | --- | --- |
 | Add a server mod (consumer) | `overlay/mods-extra.txt` (+ deps, pinned) | `./dev up` or push to `main` |
 | Add a default server mod (platform) | `config/modrinth-mods.txt` (+ deps, pinned) | Push, cut release |
-| Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && ./gradlew build` → local verification loop ([mods/AGENTS.md](mods/AGENTS.md#verification-loop)) → cut a release to ship |
+| Build an in-house mod | `mods/<name>/` (Fabric project) | `cd mods/<name> && mise exec -- ./gradlew build` → `./dev up` in a linked consumer ([local-stack-testing](.claude/skills/local-stack-testing/SKILL.md)) → cut a release to ship |
+| Link a consumer to this checkout | - | `cd ~/Projects/elfydd && ./dev link` (once; `./dev unlink` to restore a release) |
 | Cut a platform release | - | `gh workflow run release.yml -f version=vX.Y.Z` (**never** `gh release create`) |
 | Add a client mod | `modpack/adventure.mrpack.json` | Push (CI rebuilds `.mrpack`) |
 | Change a game rule | `config/boring_default_game_rules/config.json` + `scripts/deploy.sh` | Push (full deploy) |

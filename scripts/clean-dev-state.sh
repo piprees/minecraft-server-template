@@ -1,86 +1,289 @@
 #!/usr/bin/env bash
-# clean-dev-state.sh - Delete every file git does not track, leaving a checkout
-#                      with nothing derived in it.
+# clean-dev-state.sh - Delete named categories of regenerable local state.
 #
-# Context: Runs on a developer Mac, invoked as `./dev clean` in a consumer repo.
-# Implemented as `git clean -xdf`, so the rule is exactly "if git does not track
-# it, it goes" — there is no list of directories to fall out of date and no
-# judgement about which stale artefact is worth keeping. Git is the backup.
-# Never run against production; it is not in the ops surface.
+# Context: runs on a developer Mac, invoked as `./dev clean` in a consumer
+# repo. It deletes only the paths this platform generates, each one named in
+# the table below. It is NOT "delete everything git does not track": notes,
+# scratch directories, agent state, wizard state and any other untracked file
+# you keep in the repo survive, because nothing here names them.
 #
 # Usage:
-#   clean-dev-state.sh [<consumer-dir>] [--platform DIR] [--dry-run]
+#   clean-dev-state.sh [<consumer-dir>] [target...] [options]
 #
-#   <consumer-dir>  defaults to $CONSUMER_DIR, then the current directory
-#   --platform DIR  also clean a platform checkout (auto-detected when the
-#                   consumer is linked to one via `./dev link`)
-#   --dry-run       list what would go, delete nothing
+# Targets (default: stack pack cache mods config):
+#   stack     .stack/                       pulled bundles and the ./dev link farm
+#   pack      modpack-dist/, modpack/dist/  built client pack and mod mirror
+#   cache     cache/                        Docker image / mod jar snapshots
+#   mods      data/mods/                    re-seeded and re-downloaded on the next up
+#   config    data/config/                  re-seeded from the bundle on the next up
+#   world     data/world/ and friends       OPT-IN. The same set ./dev reset-world
+#                                           deletes: map renders, Chunky markers,
+#                                           dynamic data packs, portal/fingerprint state
+#   seeds     .seed-rolling/                OPT-IN. Candidate bank, renders, lint output
+#   backups   backups/                      OPT-IN. Local backup archives
 #
-# What this destroys: the local world and player data, every diagnostic artefact,
-# the seed roller's candidate bank and renders, the pulled stack bundle,
-# downloaded mods, build output and every cache. All of it regenerates —
-# `./dev pull` (or `./dev link`) restores the bundle, `./dev up` re-seeds config
-# and re-downloads mods, and the world regenerates from the seed in .env.
+# Options:
+#   --all          every target, including world, seeds and backups
+#   --dry-run      list what would go, delete nothing
+#   --yes          skip the confirmation prompt
+#   --list         print the target table and exit
+#   --platform DIR also clean build output in a platform checkout:
+#                  mods/*/build, mods/*/.gradle, mods/*/run, mods/*/.fabric,
+#                  dist/, modpack/dist/
 #
-# Gotchas: `.env` is the only exclusion — it is a credential file git does not
-# have (recover with `./ops op-env`). Anything else you want to survive must be
-# committed first: to git, an uncommitted report is indistinguishable from cruft.
-# Must run on macOS bash 3.2 — no mapfile, no ${var,,}.
+# Confirmation: any run that includes world, seeds or backups asks first, and
+# --all asks for a typed CLEAN. The default target set deletes nothing that
+# takes human effort to recreate, so it just runs.
+#
+# A linked platform checkout is never cleaned implicitly. Deleting its
+# mods/*/build leaves `./dev link`'s jar symlinks pointing at nothing, and the
+# next `./dev up` aborts copying local-mods — so it takes an explicit
+# --platform, and afterwards you rebuild and re-run `./dev link`.
+#
+# Never touched by any target: .env, overlay/, config/, .claude/, scratch/,
+# and every path not listed above.
+#
+# Must run on macOS bash 3.2 - no mapfile, no ${var,,}, no declare -A.
 set -euo pipefail
 
 CONSUMER=""
 PLATFORM=""
 DRY_RUN=0
+ASSUME_YES=0
+TARGETS=""
+
+DEFAULT_TARGETS="stack pack cache mods config"
+OPTIONAL_TARGETS="world seeds backups"
+ALL_TARGETS="$DEFAULT_TARGETS $OPTIONAL_TARGETS"
+
+print_targets() {
+  sed -n '/^# Targets/,/^# Options:/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+}
+
+# Paths a target owns, one per line, relative to the consumer directory.
+# Every path is literal: no globs to expand into something unintended, and
+# nothing here is a parent of a directory the user authors.
+target_paths() {
+  case "$1" in
+    stack) echo ".stack" ;;
+    pack)
+      echo "modpack-dist"
+      echo "modpack/dist"
+      ;;
+    cache) echo "cache" ;;
+    mods) echo "data/mods" ;;
+    config) echo "data/config" ;;
+    seeds) echo ".seed-rolling" ;;
+    backups) echo "backups" ;;
+    world)
+      # Kept identical to the `reset-world` case in examples/consumer/dev, so
+      # the two commands cannot disagree about what "the world" is.
+      echo "data/world"
+      echo "data/unmined-web/maps"
+      echo "data/unmined-web/index.html"
+      echo "data/unmined-web/manifest.json"
+      echo "data/dynamic-data-pack-cache"
+      echo "data/config/chunky/tasks"
+      echo "data/.chunky-complete"
+      echo "data/.chunky-nether-complete"
+      echo "data/.chunky-end-complete"
+      echo "data/.chunky-paradise-lost-complete"
+      echo "data/.skip-pause"
+      echo "data/config/portal_links.json"
+      echo "data/config/custom-dimensions-fingerprints.json"
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+platform_paths() {
+  local dir="$1" d
+  for d in "$dir"/mods/*/; do
+    [[ -d "$d" ]] || continue
+    echo "mods/$(basename "$d")/build"
+    echo "mods/$(basename "$d")/.gradle"
+    echo "mods/$(basename "$d")/run"
+    echo "mods/$(basename "$d")/.fabric"
+  done
+  echo "dist"
+  echo "modpack/dist"
+}
+
+is_target() {
+  local t
+  for t in $ALL_TARGETS; do
+    [[ "$t" == "$1" ]] && return 0
+  done
+  return 1
+}
+
+has_target() {
+  local t
+  for t in $TARGETS; do
+    [[ "$t" == "$1" ]] && return 0
+  done
+  return 1
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --platform) PLATFORM="$2"; shift 2 ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,29p' "${BASH_SOURCE[0]}"; exit 0 ;;
+    --all) TARGETS="$ALL_TARGETS"; shift ;;
+    --platform) PLATFORM="${2:-}"; shift 2 ;;
+    --dry-run | -n) DRY_RUN=1; shift ;;
+    --yes | -y) ASSUME_YES=1; shift ;;
+    --list) print_targets; exit 0 ;;
+    -h | --help) sed -n '2,45p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "Unknown argument: $1" >&2; exit 2 ;;
-    *) CONSUMER="$1"; shift ;;
+    *)
+      if [[ -z "$CONSUMER" && -d "$1" ]] && ! is_target "$1"; then
+        CONSUMER="$1"
+      elif is_target "$1"; then
+        TARGETS="$TARGETS $1"
+      else
+        echo "Unknown target: $1" >&2
+        echo "Valid targets: $ALL_TARGETS" >&2
+        exit 2
+      fi
+      shift
+      ;;
   esac
 done
 
 [[ -n "$CONSUMER" ]] || CONSUMER="${CONSUMER_DIR:-$(pwd)}"
+CONSUMER="$(cd "$CONSUMER" && pwd)"
+TARGETS="$(echo "${TARGETS:-$DEFAULT_TARGETS}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ')"
 
-# A linked consumer points .stack/current at a platform checkout's symlink farm,
-# so that checkout's build output and caches are part of this dev environment.
-if [[ -z "$PLATFORM" && -L "$CONSUMER/.stack/dev/stack/scripts" ]]; then
-  linked="$(cd "$(dirname "$(readlink "$CONSUMER/.stack/dev/stack/scripts")")" && pwd)"
-  [[ -d "$linked/.git" ]] && PLATFORM="$linked"
-fi
-
-clean_repo() {
-  local dir="$1"
-  local before after
-  before=$(du -sk "$dir" 2>/dev/null | awk '{print $1}')
-  before=${before:-0}
-
-  echo "== $dir ($(( before / 1024 ))M)"
-  if [[ $DRY_RUN -eq 1 ]]; then
-    git -C "$dir" clean -xdn -e '.env' -e '.env.*' \
-      | sed 's/^Would remove /  would remove  /'
-    return 0
-  fi
-
-  git -C "$dir" clean -xdf -e '.env' -e '.env.*' | sed 's/^Removing /  removed  /'
-  after=$(du -sk "$dir" 2>/dev/null | awk '{print $1}')
-  after=${after:-0}
-  echo "  $(( (before - after) / 1024 ))M freed"
-}
-
-if [[ ! -d "$CONSUMER/.git" ]]; then
-  echo "Not a git repository: $CONSUMER" >&2
+# A consumer repo is where dev/ops live. Refusing elsewhere stops a mistyped
+# path deleting a data/ or cache/ that belongs to something else entirely.
+if [[ ! -f "$CONSUMER/dev" && ! -f "$CONSUMER/ops" ]]; then
+  echo "Not a consumer repo (no dev or ops entry point): $CONSUMER" >&2
   exit 1
 fi
 
-clean_repo "$CONSUMER"
-if [[ -n "$PLATFORM" && -d "$PLATFORM/.git" && "$PLATFORM" != "$CONSUMER" ]]; then
-  clean_repo "$PLATFORM"
+# Every deletion is confined to the root it was resolved against. A path that
+# escapes - through .. or a symlinked parent - is skipped rather than removed.
+resolve_inside() {
+  local root="$1" rel="$2" parent base resolved
+  parent="$(dirname "$CONSUMER/$rel")"
+  base="$(basename "$rel")"
+  [[ -d "$parent" ]] || return 1
+  parent="$(cd "$parent" && pwd -P)"
+  resolved="$parent/$base"
+  case "$resolved" in
+    "$root"/*) printf '%s\n' "$resolved" ;;
+    *) return 1 ;;
+  esac
+}
+
+# Sub-megabyte paths print as 0M under integer division, which reads as
+# "nothing there" next to a path that is about to be deleted.
+fmt_size() {
+  if [[ "$1" -ge 1024 ]]; then
+    echo "$(( $1 / 1024 ))M"
+  else
+    echo "$1K"
+  fi
+}
+
+size_kb() {
+  local p="$1" k
+  k=$(du -sk "$p" 2> /dev/null | awk '{print $1}')
+  echo "${k:-0}"
+}
+
+# Collect what exists, per target, before deleting anything.
+CONSUMER_REAL="$(cd "$CONSUMER" && pwd -P)"
+PENDING=""
+TOTAL_KB=0
+for t in $TARGETS; do
+  while IFS= read -r rel; do
+    [[ -n "$rel" ]] || continue
+    full="$(resolve_inside "$CONSUMER_REAL" "$rel")" || continue
+    # -e is false for a broken symlink; -L catches those so a dangling
+    # .stack/current is still cleared.
+    [[ -e "$full" || -L "$full" ]] || continue
+    kb=$(size_kb "$full")
+    TOTAL_KB=$((TOTAL_KB + kb))
+    PENDING="${PENDING}${t}|${CONSUMER_REAL}|${full}|${kb}
+"
+  done <<< "$(target_paths "$t")"
+done
+
+PLATFORM_PENDING=""
+if [[ -n "$PLATFORM" ]]; then
+  if [[ ! -d "$PLATFORM" ]]; then
+    echo "Platform checkout not found: $PLATFORM" >&2
+    exit 1
+  fi
+  PLATFORM="$(cd "$PLATFORM" && pwd -P)"
+  if [[ ! -f "$PLATFORM/docker-compose.yml" || ! -d "$PLATFORM/scripts" ]]; then
+    echo "Not a platform checkout (needs docker-compose.yml and scripts/): $PLATFORM" >&2
+    exit 1
+  fi
+  while IFS= read -r rel; do
+    [[ -n "$rel" ]] || continue
+    full="$PLATFORM/$rel"
+    [[ -e "$full" || -L "$full" ]] || continue
+    case "$full" in "$PLATFORM"/*) ;; *) continue ;; esac
+    kb=$(size_kb "$full")
+    TOTAL_KB=$((TOTAL_KB + kb))
+    PLATFORM_PENDING="${PLATFORM_PENDING}build|${PLATFORM}|${full}|${kb}
+"
+  done <<< "$(platform_paths "$PLATFORM")"
 fi
 
-if [[ $DRY_RUN -eq 0 ]]; then
-  echo
-  echo "Next: ./dev pull (or ./dev link) then ./dev up"
+if [[ -z "$PENDING$PLATFORM_PENDING" ]]; then
+  echo "Nothing to clean (targets: $TARGETS)."
+  exit 0
 fi
+
+echo "Consumer: $CONSUMER"
+echo "Targets:  $TARGETS"
+[[ -n "$PLATFORM" ]] && echo "Platform: $PLATFORM (build output)"
+echo ""
+printf '%s%s' "$PENDING" "$PLATFORM_PENDING" | while IFS='|' read -r t root path kb; do
+  [[ -n "$path" ]] || continue
+  printf '  %-8s %7s  %s\n' "$t" "$(fmt_size "$kb")" "${path#"$root"/}"
+done
+echo ""
+echo "Total: $(fmt_size "$TOTAL_KB")"
+
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo "(dry run - nothing deleted)"
+  exit 0
+fi
+
+# The default set costs a download or a boot to rebuild. World, seed bank and
+# backups cost human time, so those ask.
+NEEDS_CONFIRM=0
+for t in $OPTIONAL_TARGETS; do
+  has_target "$t" && NEEDS_CONFIRM=1
+done
+
+if [[ $NEEDS_CONFIRM -eq 1 && $ASSUME_YES -eq 0 ]]; then
+  echo ""
+  echo "This includes state that does not come back on its own:"
+  has_target world && echo "  world   - the local world and player data"
+  has_target seeds && echo "  seeds   - the seed candidate bank and its renders"
+  has_target backups && echo "  backups - local backup archives"
+  read -rp "Type CLEAN to confirm: " CONFIRM
+  if [[ "$CONFIRM" != "CLEAN" ]]; then
+    echo "Confirmation not received. Nothing deleted."
+    exit 1
+  fi
+fi
+
+echo ""
+printf '%s%s' "$PENDING" "$PLATFORM_PENDING" | while IFS='|' read -r t root path kb; do
+  [[ -n "$path" ]] || continue
+  rm -rf "$path"
+  printf '  removed  %s\n' "${path#"$root"/}"
+done
+
+echo ""
+echo "Freed roughly $(fmt_size "$TOTAL_KB")."
+if [[ -n "$PLATFORM" ]]; then
+  echo "Platform build output is gone: rebuild the mods, then re-run ./dev link"
+  echo "so the farm's jar symlinks point at real files again."
+fi
+echo "Next: ./dev pull (or ./dev link) then ./dev up"

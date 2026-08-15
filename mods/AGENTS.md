@@ -8,10 +8,12 @@ Java 21 (temurin) is required — pinned via `mise.toml` in this directory. Fabr
 
 ```bash
 cd mods/<mod-name>
-mise install                         # ensures Java 21
-gradle wrapper --gradle-version 8.13 # one-time, if no wrapper yet
-./gradlew build                      # output: build/libs/<mod>-<version>.jar
+mise install                          # ensures Java 21
+gradle wrapper --gradle-version 8.13  # one-time, if no wrapper yet
+mise exec -- ./gradlew build          # output: build/libs/<mod>-<version>.jar
 ```
+
+**Always `mise exec --`.** `mise.toml` here is the whole toolchain pin (`java = "temurin-21"`), and `mise exec --` is what applies it to the build — see [P4](../TROUBLESHOOTING.md#p4).
 
 ## Conventions
 
@@ -166,10 +168,10 @@ loop (`~/Projects/elfydd/reports/PLAN.md`).
    `/.seed-rolling`, path overridable via `SEED_ROLLING_DIR`;
    `Artefacts.rollingDir()`). This is what keeps them out of `deploy.sh`
    step 8's and `./dev refresh-config`'s reach — both only ever touch
-   `data/config/`. `./dev clean` (`git clean -xdf`) still removes
-   `.seed-rolling/` along with everything else derived, since it's
-   gitignored like `data/` — that's expected, not a bug: every artefact
-   here regenerates by re-running the command that made it.
+   `data/config/`. `./dev clean` leaves the bank alone too — `seeds` is an
+   opt-in target, so removing it takes `./dev clean seeds` (or `--all`) and a
+   typed confirmation. Everything here does regenerate by re-running the
+   command that made it, but a full roll is hours, so it is never collateral.
 3. **JSON.** `Artefacts.jsonHeader(kind)` opens every artefact with
    `stackVersion`, `kind` and `generatedAt`; callers append their own
    fields after it.
@@ -267,7 +269,7 @@ There is no automated test framework for Fabric mods in this repo — verificati
 Gradle reports `BUILD SUCCESSFUL` even when `remapJar` emits an empty or unremapped jar (this shipped a production crash loop once). After every build, inspect the jar you intend to ship:
 
 ```bash
-./gradlew build
+mise exec -- ./gradlew build
 unzip -l build/libs/<mod>-<version>.jar | grep -c '\.class$'   # expect your real class count, not 0
 unzip -l build/libs/<mod>-<version>.jar | grep refmap          # <mod>-refmap.json MUST be present
 unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep -m3 'class_'
@@ -278,9 +280,28 @@ unzip -p build/libs/<mod>-<version>.jar path/to/SomeMixin.class | strings | grep
 
 ### 2. Fast local loop
 
-Install straight into the local consumer's `data/mods/` and restart only the mc container — no release, no bundle, no full stack cycle.
+Link a local consumer repo to this checkout once, then build and `./dev up` — no release, no bundle download, no hand-copied jar.
 
-**Never use `./dev up` to test a local mod build.** `dev-up.sh` copies `stack/local-mods/*.jar` from the bundle into `data/mods/` on every run, silently overwriting your locally-built JAR with the old released version — a test can then run the OLD code and still "pass" while the change under test never executes. Use `docker stop mc && docker start mc` (or `docker restart mc`) — these restart the container without touching the mod files. Only use `./dev up` when you deliberately want to reset to the bundle's shipped JARs.
+**The canonical workflow is `.claude/skills/local-stack-testing/SKILL.md` § Linked local development** — first-time setup, what a link does and does not reach, and the three cases (mod code, platform configs, seed roller). The mod-shaped summary:
+
+```bash
+cd ~/Projects/elfydd && ./dev link        # once per consumer; readlink .stack/current -> dev
+
+cd ~/Projects/minecraft-server-template/mods/<name>
+mise exec -- ./gradlew build
+
+cd ~/Projects/elfydd
+./dev up
+ls data/mods | grep <modid>                                      # exactly one line
+docker inspect mc --format '{{.State.Health.Status}}'            # must be healthy
+docker logs mc --tail 80 2>&1 | grep -iE 'mixin apply|<modid>|error'
+```
+
+`./dev link` builds a farm of symlinks at `.stack/dev/stack`; `local-mods/<jar>` symlinks each built jar under `<checkout>/mods/*/build/libs/`, skipping `-dev` and `-sources` jars (`dev`, the `link)` case's jar loop) and any jar with no refmap (`dev`, the `link)` case's refmap check). Because those entries are symlinks, a rebuild changes what they point at and needs no re-link. `dev-up.sh`, "Install in-house mod JARs" copies them into `data/mods/` and `cp` follows the symlink, so the current build installs. **Re-run `./dev link` after `gradlew clean` or a `mod_version` change** — the symlink then names a deleted file and that `cp` aborts `./dev up`.
+
+**Never place or delete a jar in `data/mods/` by hand.** It is managed: each `./dev up` installs the farm's jars, rewrites `data/mods/.local-mods-manifest` from their basenames (`dev-up.sh`, the `.local-mods-manifest` write), then deletes every `data/mods/*.jar` named in neither this boot's seed manifest, that file, nor `$STACK_DIR/local-mods/` (`dev-up.sh`, "Prune stale mod jars"). That prune is also what removes the release-named `customdimensions.jar` once a link installs `customdimensions-0.0.0-local.jar`, and back again after `./dev unlink`.
+
+The seed viewer's markup, CSS and JS are jar resources — `ViewerPage.render` reads `/seed-viewer/template.html` and `SeedServer.asset` reads `/seed-viewer/web/<name>`, both via `getResourceAsStream` — so a viewer change is a mod REBUILD, not a container restart.
 
 **c2me's DFC patch is automatic.** The mod's preLaunch entrypoint
 (`C2meConfigPatch`) forces `useDensityFunctionCompiler = false` into
@@ -290,25 +311,6 @@ start mc` cycles stay patched with no manual step
 pre-patch as a second layer covering a fresh environment's first boot).
 Verify via log grep, never the config file (the key is stripped again by
 the boot that honours it).
-
-**Copy over the jar `./dev up` installs, never beside it.** `dev-up.sh` writes
-`stack/local-mods/*.jar` into `data/mods/` under their own filenames, so a copy
-made under a different name leaves TWO jars declaring the same mod id. Fabric
-loads one of them and the choice is not yours: the symptom is a rebuilt feature
-that is simply absent — new endpoints 404, new commands do not parse — while the
-jar you just built sits in `data/mods/` looking correct. `ls data/mods | grep
-<modid>` must return exactly one line.
-
-**`./dev link` is run once per consumer** and does not make `./dev up` safe
-for an iteration loop: its `local-mods/` is a `cp` taken at link time and does
-not track rebuilds. Copy straight into `data/mods/` under the same filename.
-
-```bash
-cp build/libs/<mod>-<version>.jar <consumer>/data/mods/<mod>-<version>.jar
-docker restart mc && sleep 45
-docker inspect mc --format '{{.State.Health.Status}}'            # must be healthy
-docker logs mc 2>&1 | grep -iE 'mixin apply|<modid>|error' | tail -20
-```
 
 If the persisted state format changed (config schema, namespace, IDs), delete the mod's state file(s) under `data/config/` before restarting — stale state from a previous build masks bugs and creates ghosts.
 
@@ -672,10 +674,22 @@ to vanilla behaviour.
 ### Seed rolling
 
 Seed rolling lives in the mod and is driven from a browser. The mod hosts an
-HTTP port (`web/SeedServer`, default 8765, published on localhost only by
-`docker-compose.local.yml`) and the page talks to the process that owns the
-registries and the live `MinecraftServer` — there is no RCON hop and no chat
-command. `./dev seeds` opens it.
+HTTP port (`web/SeedServer`, default 8765) and the page talks to the process
+that owns the registries and the live `MinecraftServer` — there is no RCON hop
+and no chat command. `./dev seeds` opens it.
+
+The listener is local-profile only: `docker-compose.yml`, `mc`’s `SEED_VIEWER_PORT` sets
+`SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-0}`, and `docker-compose.local.yml`
+overrides it to 8765 and publishes `${SEED_VIEWER_PORT:-8765}:8765`. That
+mapping has no host-IP prefix, so it binds every interface — and the page has
+no authentication.
+
+**The page is a jar resource.** `ViewerPage` reads
+`/seed-viewer/template.html` and `SeedServer` serves `/assets/*` from
+`/seed-viewer/web/`, both through `getResourceAsStream`. Nothing mounts over
+them and there is no live reload, so an HTML/CSS/JS change needs a mod
+rebuild and `./dev up` (§ Fast local loop) — a container restart serves the
+old page.
 
 | Route | What it does |
 | --- | --- |

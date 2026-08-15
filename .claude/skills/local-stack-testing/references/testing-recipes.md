@@ -10,20 +10,26 @@ One recipe per row of the decision table in `SKILL.md`. Each ends with a verific
 
 ## 1. An in-house mod jar (`mods/custom-dimensions/`)
 
-Never `./dev up` for this — it overwrites `data/mods/<mod>.jar` from the bundle's `stack/local-mods/` on every run (2026-07-25 incident: a whole lazy-init feature looked broken across four boot cycles because every test ran the old bundle jar).
+Link the consumer once, then build and `./dev up`. Full workflow, including what the link does and does not reach: `SKILL.md` § Linked local development.
 
 ```bash
-cd mods/custom-dimensions
+cd ~/Projects/elfydd && ./dev link        # once per consumer; readlink .stack/current -> dev
+
+cd ~/Projects/minecraft-server-template/mods/custom-dimensions
 mise exec -- ./gradlew build
-unzip -l build/libs/customdimensions-*.jar | grep -c '\.class$'   # not 0
+unzip -l build/libs/customdimensions-*.jar | grep -c '\.class$'   # CI's floor is 10
 unzip -l build/libs/customdimensions-*.jar | grep refmap          # must be present
 
-cp build/libs/customdimensions-*.jar <consumer>/data/mods/customdimensions.jar
-docker stop mc && docker start mc      # or: docker restart mc
-sleep 45
+cd ~/Projects/elfydd
+./dev up
+ls data/mods | grep customdimensions                    # exactly one line
 docker inspect mc --format '{{.State.Health.Status}}'   # must be healthy
-docker logs mc 2>&1 | grep -iE 'mixin apply|customdimensions|error' | tail -20
+docker logs mc --tail 80 2>&1 | grep -iE 'mixin apply|customdimensions|error'
 ```
+
+Never place or delete a jar in `data/mods/` by hand — `dev-up.sh`, "Install in-house mod JARs" installs the farm's jars and `dev-up.sh`, "Prune stale mod jars" deletes every jar named in neither this boot's seed manifest, `data/mods/.local-mods-manifest`, nor `$STACK_DIR/local-mods/`.
+
+Re-run `./dev link` after `gradlew clean` or a `mod_version` change: the farm's symlink then names a deleted file and the `cp` at `dev-up.sh`, "Install in-house mod JARs" aborts `./dev up`.
 
 If the persisted state format changed (config schema, namespace, IDs), delete the mod's state file(s) under `data/config/` before restarting — otherwise stale state from the previous build masks the bug you're testing.
 
@@ -112,7 +118,8 @@ Don't wait on the `-u` watcher locally — on macOS Docker its file-change event
 ## Reset to a clean baseline
 
 ```bash
-./dev up      # restores bundle-shipped in-house mod jars, re-seeds any
+./dev unlink  # back to the newest pulled release bundle
+./dev up      # restores that bundle's in-house mod jars, re-seeds any
               # missing data/config file — deliberate, not a bug
 ./dev down    # stops and removes containers (data/ and volumes untouched)
 

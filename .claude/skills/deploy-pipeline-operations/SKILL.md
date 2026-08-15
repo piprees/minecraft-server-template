@@ -117,7 +117,7 @@ If the whitelist was cleared and the deploy died before step 15 restored it, the
 
 5. **Concurrent deploys race.** Symptom: `client_loop: send disconnect: Broken pipe`. A second deploy started (or a manual SSH session collided) while one was already restarting Docker. Wait for the in-progress run, verify health, then re-run.
 6. **Never run `harden.sh` during or near a deploy** — it restarts Docker and will pull the rug out from under an in-flight deploy.
-7. **Never `docker restart mc` on production.** It skips the countdown, kick, save-flush and whitelist dance that `deploy.sh` does deliberately. Use `deploy.sh` or Discord `/mc restart`. `./ops start|stop|restart mc` is meant to be prohibited too, but `service.sh` still technically permits raw `mc` operations — treat it as off-limits regardless, this is an acknowledged enforcement gap.
+7. **Never `docker restart mc` on production.** It skips the countdown, kick, save-flush and whitelist dance that `deploy.sh` does deliberately. Use `deploy.sh` or Discord `/mc restart`. `./ops start|stop|restart mc` is blocked for you: `service.sh`, `validate_targets` dies with "Refusing raw MC lifecycle operation" for any action but `status`. The same guard is skipped when `SERVICE_LOCAL=1` (`service.sh`, `validate_targets`), so `./dev start|stop|restart mc` works locally by design — that is the local mod loop, not a gap in the production rail.
 8. **A run's own script counters aren't proof of success.** `rcon_best_effort`/`rcon()` in `deploy.sh` log a warning on failure but don't abort the deploy — a step can "complete" having silently failed every RCON call inside it. Verify outcomes (world border, dimension count, whitelist contents), not just that the step printed.
 
 ## Validation

@@ -82,8 +82,16 @@ All commands live under one root, `/customdim`, and require permission level 4.
 
 Rolling, looking, trying a candidate out and picking one all happen on a page
 the mod hosts. `./dev seeds` opens it (default `http://127.0.0.1:8765/`;
-`SEED_VIEWER_PORT` moves it, `0` turns it off). The port is published on
-localhost by `docker-compose.local.yml` and by nothing in the cloud profile.
+`SEED_VIEWER_PORT` moves it, `0` turns it off). `docker-compose.local.yml`
+publishes `${SEED_VIEWER_PORT:-8765}:8765` and sets the same variable in the
+environment; the shared compose file defaults it to `0`
+(`docker-compose.yml`, `mc`’s `SEED_VIEWER_PORT`), so nothing listens in the cloud profile. The
+mapping carries no host-IP prefix, so locally it binds every interface — and
+the page has no authentication.
+
+Changing the page means rebuilding the mod: `ViewerPage.render` and
+`SeedServer.asset` read `/seed-viewer/template.html` and
+`/seed-viewer/web/<name>` out of the jar.
 
 | Route | What it does |
 | --- | --- |
@@ -733,26 +741,37 @@ Sound fields (`igniteSound`, `enterSound`, `exitSound`) are config-file-only -- 
 ## Building
 
 ```bash
-mise install                         # ensure Java 21
-gradle wrapper --gradle-version 8.13 # one-time, generates gradlew
-./gradlew build                      # output: build/libs/customdimensions-1.0.5-fork.jar
+mise install                          # ensure Java 21
+gradle wrapper --gradle-version 8.13  # one-time, generates gradlew
+mise exec -- ./gradlew build          # output: build/libs/customdimensions-<mod_version>.jar
 ```
+
+Always `mise exec --`: `mods/mise.toml` pins `java = "temurin-21"`, and `mise exec --` is what applies that pin to the build (see TROUBLESHOOTING.md#p4).
 
 ## Testing
 
 ```bash
-./gradlew test
+mise exec -- ./gradlew test
 ```
 
 Tests cover config serialisation round-trips, definition defaults, colour parsing, direction arrays, and dimension manager state. Minecraft-dependent tests (registry lookups, block state checks) require the game test harness and are not included.
 
 ## Installation
 
-Copy the built JAR to the server's `mods/` directory, or to `overlay/mods/` in a consumer repo for automatic deployment.
+Never copy the jar into a server's `data/mods/` by hand — that directory is managed, and a hand-placed jar is overwritten or pruned on the next boot.
+
+**Locally:** link a consumer repo to this checkout once, then rebuild and `./dev up`. The link symlinks `build/libs/`'s remapped jar into the bundle slot `dev-up.sh` installs from.
 
 ```bash
-cp build/libs/customdimensions-1.0.5-fork.jar ../../overlay/mods/
+cd ~/Projects/elfydd && ./dev link      # once
+cd ~/Projects/minecraft-server-template/mods/custom-dimensions
+mise exec -- ./gradlew build
+cd ~/Projects/elfydd && ./dev up
 ```
+
+**To ship it:** cut a platform release. `release.yml` builds the mod, stages the remapped jar as `dist/local-mods/customdimensions.jar`, `build-stack-bundle.sh` packs it into the stack bundle, and `deploy.sh` / `dev-up.sh` install it. Nothing is published to Modrinth and no jar is committed to git.
+
+Full workflow: `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.
 
 ## Fork notes
 

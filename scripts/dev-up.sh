@@ -394,11 +394,12 @@ elif [[ -z "${DISCORD_BOT_TOKEN:-}" && -f "$DI_TOML" ]]; then
   echo "  Warning: DISCORD_BOT_TOKEN not set — dcintegration will fail to connect"
 fi
 
-# --- Install in-house mod JARs from the bundle --------------------------------
-# Mirrors deploy.sh on production: stack/local-mods/*.jar -> data/mods/.
-# Overwrite deliberately so a bundle update replaces stale copies. Without
-# this step the local stack runs WITHOUT the in-house mods and local testing
-# can't catch mod regressions before they hit production.
+# --- Install in-house mod JARs ------------------------------------------------
+# Mirrors deploy.sh on production: <stack>/local-mods/*.jar -> data/mods/.
+# Under `./dev link` those entries are symlinks into a platform checkout's
+# build/libs, and cp follows them — so this installs the current local build.
+# Overwrite deliberately, so a bundle update or a rebuild replaces stale
+# copies. Without this step the local stack runs WITHOUT the in-house mods.
 LOCAL_MODS="$STACK_DIR/local-mods"
 if [[ -d "$LOCAL_MODS" ]] && ls "$LOCAL_MODS"/*.jar &> /dev/null 2>&1; then
   cp "$LOCAL_MODS"/*.jar "$CONSUMER_DIR/data/mods/"
