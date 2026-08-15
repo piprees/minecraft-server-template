@@ -27,6 +27,9 @@ services:
       # profile, and it is not reachable from the internet.
       - "${SEED_VIEWER_PORT:-8765}:8765"
     environment:
+      # Turns the roller's listener on for local dev; the shared compose file
+      # defaults it to 0 so it never binds in the cloud profile.
+      SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-8765}
       ONLINE_MODE: "FALSE"
       ENABLE_WHITELIST: "FALSE"
       ENFORCE_WHITELIST: "FALSE"

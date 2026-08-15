@@ -152,6 +152,11 @@ services:
 
       # --- World generation ---
       SEED: ${SEED:-}
+      # The seed roller's HTTP listener, off unless a profile turns it on.
+      # It has no authentication, can teleport a player and writes into the
+      # consumer overlay, so it belongs on a trusted LAN only — the local
+      # profile sets a real port, and nothing in the cloud profile does.
+      SEED_VIEWER_PORT: ${SEED_VIEWER_PORT:-0}
       # Consumer namespace for consumer-added dimension files in
       # overlay/config/custom-dimensions/ (custom-dimensions mod).
       BRAND_SLUG: ${BRAND_SLUG:-}
