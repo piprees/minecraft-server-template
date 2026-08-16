@@ -8,13 +8,13 @@ tags: [release, recovery, gh-workflow-run, immutable-release, burnt-tag, publish
 
 Read this when a release has already been dispatched (or published) and something went wrong. Each failure mode below states what state you're actually in — whether the tag is burnt or not is the first thing to establish, because it changes the recovery entirely.
 
-## 1. Cancelled image builds (the publish.yml collision)
+## 1. Missing version-tagged images
 
-**Symptom:** the release published successfully (bundle attached, tag exists), but some or all version-tagged GHCR images are missing. `gh run list --workflow publish.yml` shows a run with conclusion `cancelled` around the time of the release.
+**Symptom:** the release published successfully (bundle attached, tag exists), but some or all version-tagged GHCR images are missing. `gh run list --workflow publish.yml` shows a run around the time of the release with conclusion `cancelled` or `failure`.
 
-**Cause:** `publish.yml` uses `concurrency: { group: publish-${{ github.ref }}, cancel-in-progress: true }`. `release.yml`'s `images` job calls `publish.yml` via `workflow_call` from `main` — same ref as any ordinary push-triggered `publish.yml` run. If something pushes to `main` while the release's `images` job is running, GitHub cancels the release's build mid-flight to start the new one.
+**Why it matters:** production pulls images by version tag (`IMAGE_TAG="${STACK_VERSION#v}"`), so a consumer upgrading to that release gets a pull failure for the missing service. The GitHub release page looks entirely correct — bundle, tag, notes — so nothing surfaces this except a consumer's deploy.
 
-**Documented incident:** 2026-07-13 — a docs-only push cancelled the discord-sync 2.14.0 image build partway through a release. The release itself published fine (bundle, tag, GitHub release page all correct); only the version-tagged `discord-sync:2.14.0` image never existed in GHCR. Production pulls images by version tag (`IMAGE_TAG="${STACK_VERSION#v}"`), so any consumer who upgraded to that release got a pull failure for that one service.
+**Concurrency:** `publish.yml` groups on `publish-${{ inputs.version || github.ref }}` with `cancel-in-progress: ${{ !inputs.version }}`, so a versioned build has a group of its own and a push to `main` cannot cancel it. A cancellation here therefore means something else cancelled it — a manual cancel, or a second release dispatch of the same version.
 
 **Recovery — the tag and release are NOT burnt by this:**
 
@@ -31,7 +31,7 @@ gh run list --workflow publish.yml --limit 3
 docker pull ghcr.io/<owner>/<repo>/discord-sync:2.14.0   # or whichever image was missing
 ```
 
-**Prevention:** never push to `main` while a release is in flight. Check `gh run list --limit 5` (or `gh run list --workflow release.yml --json status`) before any push, not only before cutting a release yourself — this collision is triggered by _anyone's_ push, release-related or not.
+**Prevention:** check `gh run list --limit 5` before pushing to `main` during a release. The images are protected by their own concurrency group, but the bundle job's best-effort `CHANGELOG.md` commit-back still races a concurrent push.
 
 ## 2. Release published without a bundle
 

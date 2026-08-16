@@ -80,10 +80,9 @@ Holds live in `modpack/adventure.mrpack.json` → `_holds` (keyed by slug, value
 
 | Slug | Held at | Why |
 | --- | --- | --- |
-| `c2me-fabric` | `0.4.0-alpha.0.19` (`GC7ouKxZ`) | `0.4.0-alpha.0.21` wedges fresh-world creation — the server thread parks forever in `getChunkBlocking` while locating spawn (verified via thread dump, 2026-07-22) |
-| `critters-and-companions` | `1.21.1-2.4.1` (`YuM4Jtu5`) | `2.6.x` claims 1.21.1 but needs a newer Architectury than the newest 1.21.1 build provides — `AbstractMethodError` at boot killed the v3.2.0 smoke test (2026-07-22) |
+| `critters-and-companions` | `1.21.1-2.4.1` (`YuM4Jtu5`) | `2.6.x` claims 1.21.1 but needs a newer Architectury than the newest 1.21.1 build provides — `AbstractMethodError` at boot |
 
-`c2me-fabric` is a _server-only_ mod — it lives in `config/modrinth-mods.txt`, not in `_clientMods.required`/`.optional` — which is exactly why holds are read by both loops: `./scripts/pin-mod-versions.sh --apply`, and the Monday `mod-updates.yml` that runs it unattended, leave it on its held pin and print `c2me-fabric - HELD`.
+A hold covers server-only mods too — a slug that lives in `config/modrinth-mods.txt` and not in `_clientMods.required`/`.optional` is exactly why both loops read the same map: `./scripts/pin-mod-versions.sh --apply`, and the Monday `mod-updates.yml` that runs it unattended, leave a held slug on its pin and print `<slug> - HELD`.
 
 Never bump a held slug manually; remove the hold only once its stated blocker clears. Read the live table from `modpack/adventure.mrpack.json` rather than trusting this copy — holds come and go.
 
@@ -106,7 +105,7 @@ Either way, **stale jars are pruned automatically**: `deploy.sh` (production) an
 5. **`MODRINTH_PROJECTS` must never come back.** It made itzg re-resolve ~160 versions through the live API on every sync-enabled boot and 429-crash-looped `mc` whenever the mod list changed — this is exactly why the seed/resolve-cache/sync-mods pipeline exists.
 6. **A failed required resolution fails the seed and blocks the boot — loudly, on purpose.** Booting without a worldgen mod corrupts chunks; don't try to make this fail softer.
 7. **The mod mirror and packwiz index are build output.** `modpack/dist/mods/` and `modpack/dist/packwiz/` are generated and pruned by `build-modpack.sh` — never hand-edit them.
-8. **Holds don't protect the server mod list**, only the client manifest re-pin. See "Version holds" above — a held server-only mod (`c2me-fabric`) depends entirely on human review of the weekly PR diff.
+8. **Holds don't protect the server mod list**, only the client manifest re-pin. See "Version holds" above — a held server-only mod depends entirely on human review of the weekly PR diff.
 9. **macOS BSD tools trip on this workflow in two specific ways**: `grep -P` doesn't exist (use `grep -oE`), and BSD `grep -E` doesn't support `\s` either — `[[:space:]]` or a POSIX character class is what actually works cross-platform. Verified directly while auditing `config/modrinth-mods.txt`: a `\s`-based count silently returned the wrong number with no error.
 10. **CONTRIBUTING.md's config-sync section is stale**: it names `MC_PATTERNS` in `.github/workflows/deploy.yml`. The real trigger list is `FULL_PATTERNS` in `.github/workflows/deploy-reusable.yml` (currently `^overlay/config/|^overlay/mods-extra\.txt$|^overlay/mods-remove\.txt$`). Go by the workflow file, not the doc, if they ever disagree again.
 
