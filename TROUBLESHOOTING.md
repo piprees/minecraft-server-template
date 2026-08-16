@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25); K4 fixed and retired — the renderer no longer rewrites a built router) |
+| **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -306,7 +306,7 @@ The platform copy under `config/` is the source of truth; the consumer copy unde
 
 `useDensityFunctionCompiler` must stay `false` or every custom dimension silently clones the main world. Patching is automatic: the customdimensions jar's preLaunch entrypoint (`C2meConfigPatch`) forces the key into `config/c2me.toml` on every boot, and c2me reads its config at mixin-bootstrap time — before any entrypoint — so each boot's write is consumed by the NEXT boot's read. The one gap is the very first boot in a fresh environment (new jar, no key on disk); `deploy.sh` (step 8c) and `dev-up.sh` pre-patch as a second layer, covering that boot on every scripted path. Only a hand-deleted `c2me.toml` followed by a bare restart boots unpatched once, and self-heals on the next boot.
 
-**How to verify depends on the c2me version.** `0.4.0-alpha.0.19` treats the key as unknown and STRIPS it when it rewrites the file, so the key's absence proves nothing and the log line `Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used` is the proof. `0.4.0-alpha.0.27` recognises the key: it keeps `useDensityFunctionCompiler = false` in the rewritten file with its own comment block, and never logs that line. On 0.27 read the file; on 0.19 read the log. The preLaunch entrypoint's own line — `c2me density-function compiler forced off (config/c2me.toml)` — is present either way and says only that the patch was written, not that c2me honoured it.
+**Verify by reading the file:** `docker exec mc grep useDensityFunctionCompiler /data/config/c2me.toml` must answer `useDensityFunctionCompiler = false`. c2me rewrites `c2me.toml` on every boot with its own comment block and keeps the value. A c2me pinned below `0.4.0-alpha.0.27` treats the key as unknown and strips it instead, so on those the file says nothing and the proof is the log line `Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used`. The preLaunch entrypoint's own line — `c2me density-function compiler forced off (config/c2me.toml)` — says only that the patch was written, not that c2me honoured it.
 
 <a id="d8"></a>
 ### D8 — A new dimension appears on the map only once it has generated chunks

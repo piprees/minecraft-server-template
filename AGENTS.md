@@ -45,6 +45,8 @@ Requests are tasks; tasks go on a list. Finish each before starting the next, th
 
 **Commentary:** the code is the documentation. Comments are present-tense statements of what is true now; no comment beats a pointless comment, and if the purpose isn't clear from the code, refactor the code rather than narrating it. Never write a comment that narrates a change, retells an incident, dates a decision or attributes one — incidents live in `TROUBLESHOOTING.md` with an id, so cite the id, never the story. If a comment would still read correctly with every "used to", "was" and date removed, remove them. One line of why where the why is non-obvious; no paragraph, no date, no before-and-after.
 
+**This rule governs every file in the repo, not just code.** Docs, tables, index rows, changelog-adjacent prose and commit-adjacent notes state the CURRENT state and nothing else. Git holds the history; a doc that also holds it is two sources of truth, one of which rots. Never write "fixed", "retired", "removed", "renamed", "now", "no longer", "previously", "used to" or a date into a doc to explain how it got this way — delete the entry and say what is true. When something stops existing, its row goes; do not leave a tombstone explaining the absence. The one exception is a rule that constrains future work ("never reuse a retired id"), which is an instruction, not a record.
+
 ## Fixed decisions (template defaults)
 
 Consumer repos can override some via the overlay — understand the consequence first. Each is load-bearing.
