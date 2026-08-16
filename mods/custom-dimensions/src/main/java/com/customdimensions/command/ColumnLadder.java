@@ -33,7 +33,7 @@ public final class ColumnLadder {
     }
 
     /** One y's worth of every reading. */
-    private record Rung(int y, boolean opaque, boolean solid, double density, double raw,
+    private record Rung(int y, boolean opaque, boolean solid, double density,
                         double factsDensity, double initial, double depth) {
     }
 
@@ -54,24 +54,19 @@ public final class ColumnLadder {
 
         SpikeSampler.Rig factsRig = SpikeSampler.forSeed(server, base, seed);
         CandidateRender.HeightModel model =
-                CandidateRender.heightModel(server, dimensionId, base, seed, 1024);
+                CandidateRender.heightModel(server, base, seed, 1024);
         SpikeSampler.Rig renderRig = CandidateRender.rigFor(server, base, model, seed);
         TerrainShape.Density renderDensity = CandidateRender.densityFor(model, renderRig);
 
         var column = factsRig.generator().getColumnSample(
                 x, z, factsRig.heightLimit(), factsRig.noiseConfig());
 
-        // The rig's finalDensity WITHOUT the render's interpolation rewrite, so
-        // a disagreement between the two ladders can be pinned on the rewrite
-        // or cleared of it. Sampling the raw function is what the render did
-        // before it learned to interpolate where generation interpolates.
-        net.minecraft.world.gen.densityfunction.DensityFunction rawRoot =
-                renderRig.noiseConfig() == null ? null
-                        : renderRig.noiseConfig().getNoiseRouter().finalDensity();
-
-        // The same function off the FACTS rig, which carries the generator's
-        // COMPLETE settings. The render's rig is built from a trimmed router,
-        // and a difference between these two is that trimming and nothing else.
+        // The same function off the FACTS rig, whose router carries the
+        // generator's COMPLETE settings and none of the render's interpolation
+        // rewrite — so this is the density UNBLENDED, and a disagreement
+        // between it and `density` is the rewrite and nothing else. The render
+        // rig's own finalDensity is not a second reading: trimming leaves that
+        // field untouched, so before the rewrite the two are the same number.
         net.minecraft.world.gen.densityfunction.DensityFunction factsRoot =
                 factsRig.noiseConfig() == null ? null
                         : factsRig.noiseConfig().getNoiseRouter().finalDensity();
@@ -92,9 +87,6 @@ public final class ColumnLadder {
         for (int y = topY; y >= floorY; y--) {
             boolean opaque = column.getState(y).isOpaque();
             double d = renderDensity.at(x, y, z);
-            double raw = rawRoot == null ? Double.NaN
-                    : rawRoot.sample(new net.minecraft.world.gen.densityfunction
-                            .DensityFunction.UnblendedNoisePos(x, y, z));
             double fd = factsRoot == null ? Double.NaN
                     : factsRoot.sample(new net.minecraft.world.gen.densityfunction
                             .DensityFunction.UnblendedNoisePos(x, y, z));
@@ -102,7 +94,7 @@ public final class ColumnLadder {
                     .DensityFunction.UnblendedNoisePos(x, y, z);
             double init = initialRoot == null ? Double.NaN : initialRoot.sample(pos);
             double dep = depthRoot == null ? Double.NaN : depthRoot.sample(pos);
-            rungs.add(new Rung(y, opaque, d > 0.0, d, raw, fd, init, dep));
+            rungs.add(new Rung(y, opaque, d > 0.0, d, fd, init, dep));
         }
 
         ColumnScan.Result blockWalk = ColumnScan.scan(topY, floorY,
@@ -169,7 +161,7 @@ public final class ColumnLadder {
         json.append("  \"rungNote\": \"opaque is the generated block state; solid is "
                 + "density > 0. A y where they differ is a y where the renderer is "
                 + "reading something the world was not built from.\",\n");
-        json.append("  \"rungColumns\": [\"y\", \"opaque\", \"solid\", \"density\", \"raw\", \"factsDensity\", \"initial\", \"depth\"],\n");
+        json.append("  \"rungColumns\": [\"y\", \"opaque\", \"solid\", \"density\", \"factsDensity\", \"initial\", \"depth\"],\n");
         json.append("  \"rungs\": [");
         for (int i = 0; i < rungs.size(); i++) {
             Rung r = rungs.get(i);
@@ -179,8 +171,6 @@ public final class ColumnLadder {
             json.append("\n    [").append(r.y()).append(", ").append(r.opaque())
                     .append(", ").append(r.solid()).append(", ")
                     .append(String.format(java.util.Locale.ROOT, "%.5f", r.density()))
-                    .append(", ")
-                    .append(String.format(java.util.Locale.ROOT, "%.5f", r.raw()))
                     .append(", ")
                     .append(String.format(java.util.Locale.ROOT, "%.5f", r.factsDensity()))
                     .append(", ")

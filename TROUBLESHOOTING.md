@@ -7,7 +7,7 @@
 | **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
-| **K** | [K1–K2, K4–K5](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25)) |
+| **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list (K3 fixed and retired — see [T25](#t25); K4 fixed and retired — the renderer no longer rewrites a built router) |
 
 Related contracts: [`AGENTS.md`](AGENTS.md) (how to behave), [`COMMANDS.md`](COMMANDS.md) (command reference), [`mods/AGENTS.md`](mods/AGENTS.md) (in-house mod development, including portal-subsystem specifics).
 
@@ -73,7 +73,6 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | Custom dimensions all generate identical terrain | [D6](#d6) |
 | `Error upgrading chunk`, RCON i/o-timeout, container healthy | [K1](#k1) |
 | `TheChunkSystem` ConcurrentModificationException | [K2](#k2) |
-| `IFastCacheLike` ClassCastException from the seed roller / render-check | [K4](#k4) |
 | The map looks imprecise on steep terrain | [K5](#k5) |
 | Can't connect / server won't start / backups failing / lag | [Common symptoms](#common-symptoms) |
 
@@ -305,7 +304,9 @@ The platform copy under `config/` is the source of truth; the consumer copy unde
 <a id="d6"></a>
 ### D6 — c2me DFC: self-patching; verify via log grep, not config inspection
 
-`useDensityFunctionCompiler` must stay `false` or every custom dimension silently clones the main world. Patching is automatic: the customdimensions jar's preLaunch entrypoint (`C2meConfigPatch`) forces the key into `config/c2me.toml` on every boot, and c2me reads its config at mixin-bootstrap time — before any entrypoint — then strips the unknown key when it rewrites the file, so each boot's write is consumed by the NEXT boot's read. The key's absence from `c2me.toml` after a boot is expected and proves nothing; the log line `Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used` confirms it was applied. The one gap is the very first boot in a fresh environment (new jar, no key on disk); `deploy.sh` (step 8c) and `dev-up.sh` pre-patch as a second layer, covering that boot on every scripted path. Only a hand-deleted `c2me.toml` followed by a bare restart boots unpatched once, and self-heals on the next boot.
+`useDensityFunctionCompiler` must stay `false` or every custom dimension silently clones the main world. Patching is automatic: the customdimensions jar's preLaunch entrypoint (`C2meConfigPatch`) forces the key into `config/c2me.toml` on every boot, and c2me reads its config at mixin-bootstrap time — before any entrypoint — so each boot's write is consumed by the NEXT boot's read. The one gap is the very first boot in a fresh environment (new jar, no key on disk); `deploy.sh` (step 8c) and `dev-up.sh` pre-patch as a second layer, covering that boot on every scripted path. Only a hand-deleted `c2me.toml` followed by a bare restart boots unpatched once, and self-heals on the next boot.
+
+**How to verify depends on the c2me version.** `0.4.0-alpha.0.19` treats the key as unknown and STRIPS it when it rewrites the file, so the key's absence proves nothing and the log line `Removing config entry .vanillaWorldGenOptimizations.useDensityFunctionCompiler because it is not used` is the proof. `0.4.0-alpha.0.27` recognises the key: it keeps `useDensityFunctionCompiler = false` in the rewritten file with its own comment block, and never logs that line. On 0.27 read the file; on 0.19 read the log. The preLaunch entrypoint's own line — `c2me density-function compiler forced off (config/c2me.toml)` — is present either way and says only that the patch was written, not that c2me honoured it.
 
 <a id="d8"></a>
 ### D8 — A new dimension appears on the map only once it has generated chunks
@@ -335,15 +336,6 @@ The platform copy under `config/` is the source of truth; the consumer copy unde
 ### K2 — c2me `TheChunkSystem` ConcurrentModificationException
 
 `Error executing task on Chunk source main thread executor for <dim>` … `TheChunkSystem.lambda$onItemUpgrade$0`. c2me 0.4.0-alpha's chunk-system rewrite races vanilla's entity manager during heavy multi-dimension chunk activity (boot world creation, forceloads). Non-fatal — the executor catches it — but bursts correlate with degraded TPS during boots. **Do NOT filter it from logs**; it is a real error. If it starts crashing servers, the only lever on our side is removing c2me.
-
-<a id="k4"></a>
-### K4 — c2me above 0.4.0-alpha.0.19 breaks the seed roller's renderer
-
-`c2me-fabric` is held at `0.4.0-alpha.0.19` (`GC7ouKxZ`) in `modpack/adventure.mrpack.json`'s `_holds`. Bumping to `0.4.0-alpha.0.27` throws `ClassCastException: com.customdimensions.roll.CandidateRender$CellInterpolated cannot be cast to com.ishland.c2me.opts.dfc.common.ducks.IFastCacheLike` on every dimension the renderer draws. c2me's dfc module mixins its own duck interface onto the density-function types it knows about, then casts children to it; `CandidateRender.densityFor` takes the router off a LIVE `NoiseConfig` — whose nodes c2me has already compiled — and calls `.apply(visitor)` to swap in `CellInterpolated` at the `minecraft:interpolated` marker, re-entering c2me's rebuild path, which casts our node and fails.
-
-**Scope: seed rolling and the render-check/column-ladder diagnostics only.** `CandidateRender` is reachable from `roll/`, `web/` and `command/`, never from gameplay worldgen, so production is unaffected by the bug itself. It still blocks the bump because `smoke-test.yml`'s `default` variant runs the render-check matrix against the full mod set.
-
-**The fix is to stop the renderer touching a c2me-owned graph**, not to reach further into c2me. Do NOT add `@Accessor` mixins to `DensityFunctionTypes`' inner types to rebuild the graph by hand — those types are not visible, and it trades one coupling for a worse one. Blending the FINAL density instead of the marker is not equivalent (nether ±9+ 632 whole-blend vs 529 marker-level). Until then the roller does not need c2me at all: it is a performance mod, and rolling is local and single-user.
 
 <a id="k5"></a>
 ### K5 — the map is imprecise on steep terrain; cause not established

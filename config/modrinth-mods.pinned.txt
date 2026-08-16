@@ -7,7 +7,7 @@ fabric-language-kotlin:bdhiINYC
 lithium:N08Z8wog
 ferrite-core:sOzRw3CG
 krypton:Acz3ttTp
-c2me-fabric:GC7ouKxZ
+c2me-fabric:gRm1ZAvc
 # carpet — server admin/testing tool: fake players for the headless
 # verification loop (ops-gated commands; no client counterpart).
 #

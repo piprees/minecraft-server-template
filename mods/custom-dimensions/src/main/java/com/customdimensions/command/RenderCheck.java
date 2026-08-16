@@ -448,7 +448,7 @@ public final class RenderCheck {
                 this.factsRig = SpikeSampler.forSeed(server, this.base, this.seed);
                 // The same coverage the detail render calibrates over, so the
                 // verdict here is the verdict the PNG was drawn under.
-                this.model = CandidateRender.heightModel(server, this.dimensionId, this.base,
+                this.model = CandidateRender.heightModel(server, this.base,
                         this.seed, Math.max(512, this.radius * 2));
                 this.renderRig = CandidateRender.rigFor(server, this.base, this.model, this.seed);
                 this.renderDensity = CandidateRender.densityFor(this.model, this.renderRig);

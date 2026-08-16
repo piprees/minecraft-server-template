@@ -138,19 +138,6 @@ public final class CandidateRender {
     private static final int HEIGHT_SAMPLE_FACTOR = 4;
 
     /**
-     * How many (dimension, seed) shape configs stay built.
-     *
-     * <p>A {@link NoiseConfig} is a pure function of its settings, the noise
-     * registry and the seed, so the one a thumbnail built is the one its
-     * detail view needs — and building it is the single most expensive thing
-     * a render does that is not sampling. Four, because the queue draws a
-     * dimension's thumbnails and then its detail maps, and a handful of
-     * entries covers that without holding a modded router's samplers for
-     * every dimension in the pack at once.
-     */
-    private static final int SHAPE_CONFIG_CACHE = 4;
-
-    /**
      * Columns a two-dimensional cache marker's claim is tested over before it
      * is believed. Off-lattice, because Perlin is exactly zero on its lattice
      * and a lattice-aligned pair would agree with the noise field unread.
@@ -280,7 +267,7 @@ public final class CandidateRender {
      */
     public record HeightModel(TerrainShape.Band band, boolean useDepth, Integer seaLevel,
                               int floorY, int topY, ChunkGeneratorSettings shapeSettings,
-                              NoiseConfig shapeConfig, TerrainShape.Calibration calibration,
+                              TerrainShape.Calibration calibration,
                               boolean hasCeiling, int cellHorizontal, int shapeMinimumY,
                               boolean floodsVoid) {
 
@@ -296,20 +283,18 @@ public final class CandidateRender {
      * <p>{@code coverage} is the width in blocks the calibration probes over
      * — the same number {@link #draw} derives from the resolution, and the
      * only thing the calibration's column spread depends on.
-     *
-     * <p>{@code dimensionId} is only the cache key for the {@link NoiseConfig}
-     * this builds; nothing else reads it.
      */
-    public static HeightModel heightModel(MinecraftServer server, Identifier dimensionId,
-                                          SpikeSampler.Base base, long seed, int coverage) {
+    public static HeightModel heightModel(MinecraftServer server, SpikeSampler.Base base,
+                                          long seed, int coverage) {
         int floorY = base.heightLimit().getBottomY();
         int topY = base.heightLimit().getTopY() - 1;
 
         Integer seaLevel = null;
+        ChunkGeneratorSettings raw = null;
         if (base.generator() instanceof NoiseChunkGenerator noiseGen) {
-            var settings = noiseGen.getSettings().value();
-            if (settings.defaultFluid().isOf(net.minecraft.block.Blocks.WATER)) {
-                seaLevel = settings.seaLevel();
+            raw = noiseGen.getSettings().value();
+            if (raw.defaultFluid().isOf(net.minecraft.block.Blocks.WATER)) {
+                seaLevel = raw.seaLevel();
             }
         }
         // Broader than the WATER-specific seaLevel gate above: any non-empty
@@ -317,76 +302,105 @@ public final class CandidateRender {
         // probing rather than assumed dry — see waterAt.
         boolean floodsVoid = SpikeSampler.floodsVoid(base.generator());
 
-        ChunkGeneratorSettings shapeSettings = climateAndShape(server, base);
-        GenerationShapeConfig shape = shapeOf(shapeSettings, floorY, topY);
+        // The cell geometry the rewrite needs is read off the generator's own
+        // shape config, which climateAndShape copies through untouched — so it
+        // is the same answer either side of the rewrite.
+        GenerationShapeConfig shape = shapeOf(raw, floorY, topY);
         TerrainShape.Band band = bandOf(shape, floorY, topY);
+        int cellHorizontal = shape == null ? 4 : shape.horizontalCellBlockCount();
+        int shapeMinimumY = shape == null ? floorY : shape.minimumY();
+
+        MarkerCounts counts = new MarkerCounts();
+        ChunkGeneratorSettings shapeSettings = climateAndShape(raw,
+                new WrapperRewrite(counts, cellHorizontal, band.cellHeight(), shapeMinimumY));
         TerrainShape.Calibration calibration = new TerrainShape.Calibration(0, 0, true);
-        NoiseConfig shapeConfig = null;
         if (shapeSettings != null) {
-            shapeConfig = shapeConfigFor(server, dimensionId, shapeSettings, seed);
-            calibration = calibrate(rigOver(base, shapeConfig),
-                    band, coverage, floorY, topY,
-                    shape.horizontalCellBlockCount(), shape.minimumY());
+            // Seeding is what resolves the two-dimensional markers, so the
+            // counts are only complete once a NoiseConfig has been built.
+            SpikeSampler.Rig rig = rigOver(base, shapeConfigFor(server, shapeSettings, seed));
+            counts.report();
+            calibration = calibrate(rig, band, coverage, floorY, topY);
         }
         // Only a generator with no density to walk falls back to depth.
         boolean useDepth = shapeSettings == null;
         return new HeightModel(band, useDepth, seaLevel, floorY, topY,
-                shapeSettings, shapeConfig, calibration, base.hasCeiling(),
-                shape == null ? 4 : shape.horizontalCellBlockCount(),
-                shape == null ? floorY : shape.minimumY(), floodsVoid);
+                shapeSettings, calibration, base.hasCeiling(),
+                cellHorizontal, shapeMinimumY, floodsVoid);
     }
 
     /**
-     * One caller's rig for a model.
+     * One caller's rig for a model, with a {@link NoiseConfig} of its own.
      *
-     * <p>The {@link NoiseConfig} inside it is the model's, SHARED — see
-     * {@link #shapeConfigFor} for why that is safe. What must not be shared
-     * is the rewritten density tree {@link #densityFor} builds on top of it,
-     * and that is built fresh per call.
+     * <p>Not shared: building the config is what seeds the router, and seeding
+     * rebuilds the stateful nodes {@link #climateAndShape} planted in the final
+     * density. One config per rig is therefore one interpolation cache and one
+     * set of column caches per rig, which is the rule those nodes have always
+     * been written to.
      */
     public static SpikeSampler.Rig rigFor(MinecraftServer server, SpikeSampler.Base base,
                                           HeightModel model, long seed) {
         return model.shapeSettings() == null
                 ? SpikeSampler.forSeedClimate(server, base, seed)
-                : rigOver(base, model.shapeConfig());
+                : rigOver(base, shapeConfigFor(server, model.shapeSettings(), seed));
     }
 
-    /** The density a rig walks, or null when this model reads depth instead. */
+    /**
+     * The density a rig walks, or null when this model reads depth instead.
+     *
+     * <p>A plain read: the interpolation the map needs is already inside the
+     * rig's router, put there before the router was seeded.
+     */
     public static TerrainShape.Density densityFor(HeightModel model, SpikeSampler.Rig rig) {
-        if (model.useDepth() || rig.noiseConfig() == null) {
-            return null;
+        return model.useDepth() ? null : finalDensityOf(rig);
+    }
+
+    /**
+     * What one rewrite of a router did, counted across the rewrite itself and
+     * the seeding pass that follows it.
+     *
+     * <p>Two halves, because the two decisions are made at different moments:
+     * the interpolated marker is substituted while the graph is still the
+     * datapack's own template, and a two-dimensional marker's claim can only
+     * be tested once seeding has bound its noise leaves.
+     */
+    private static final class MarkerCounts {
+
+        final java.util.concurrent.atomic.AtomicInteger interpolated =
+                new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger columnCached =
+                new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger columnRefused =
+                new java.util.concurrent.atomic.AtomicInteger();
+
+        /** Says what the rewrite found, once the first seeding has resolved it. */
+        void report() {
+            // The marker is matched by NAME, because its enum lives inside a
+            // package-private class. A name that stopped matching would leave
+            // the map reading an un-interpolated density with nothing to say
+            // so — the exact silent failure this codebase treats as its worst
+            // kind. Count it and say so.
+            if (this.interpolated.get() == 0) {
+                com.customdimensions.MultiverseServer.LOGGER.warn(
+                        "render: no interpolated marker found in this router's final density — "
+                        + "the map is reading an EXACT density where generation interpolates one");
+            }
+            // Said out loud once, because it is the difference between a cache
+            // and a changed picture: caching a marker that reads y freezes
+            // whichever height happened to be probed first, and which one that
+            // is depends on how the grid was split across workers. Measured on
+            // this pack, six of ~37,800 markers do read it.
+            if (this.columnRefused.get() > 0 && REFUSAL_REPORTED.compareAndSet(false, true)) {
+                com.customdimensions.MultiverseServer.LOGGER.info(
+                        "render: {} of {} two-dimensional cache marker(s) in this router read y "
+                        + "and are left uncached", this.columnRefused.get(),
+                        this.columnRefused.get() + this.columnCached.get());
+            }
+            com.customdimensions.MultiverseServer.LOGGER.debug(
+                    "render: rewrote {} interpolated marker(s); cached {} two-dimensional "
+                    + "marker(s) and left {} uncached for reading y",
+                    this.interpolated.get(), this.columnCached.get(),
+                    this.columnRefused.get());
         }
-        DensityFunction root = rig.noiseConfig().getNoiseRouter().finalDensity();
-        WrapperRewrite rewrite = new WrapperRewrite(
-                model.cellHorizontal(), model.band().cellHeight(), model.shapeMinimumY());
-        DensityFunction rewritten = root.apply(rewrite);
-        // The marker is matched by NAME, because its enum lives inside a
-        // package-private class. A name that stopped matching would leave the
-        // map reading an un-interpolated density with nothing to say so — the
-        // exact silent failure this codebase treats as its worst kind. Count
-        // it and say so.
-        if (rewrite.interpolated.get() == 0) {
-            com.customdimensions.MultiverseServer.LOGGER.warn(
-                    "render: no interpolated marker found in this router's final density — "
-                    + "the map is reading an EXACT density where generation interpolates one");
-        }
-        // Said out loud once, because it is the difference between a cache and
-        // a changed picture: caching a marker that reads y freezes whichever
-        // height happened to be probed first, and which one that is depends on
-        // how the grid was split across workers. Measured on this pack, six of
-        // ~37,800 markers do read it.
-        if (rewrite.columnRefused.get() > 0 && REFUSAL_REPORTED.compareAndSet(false, true)) {
-            com.customdimensions.MultiverseServer.LOGGER.info(
-                    "render: {} of {} two-dimensional cache marker(s) in this router read y "
-                    + "and are left uncached", rewrite.columnRefused.get(),
-                    rewrite.columnRefused.get() + rewrite.columnCached.get());
-        }
-        com.customdimensions.MultiverseServer.LOGGER.debug(
-                "render: rewrote {} interpolated marker(s); cached {} two-dimensional "
-                + "marker(s) and left {} uncached for reading y",
-                rewrite.interpolated.get(), rewrite.columnCached.get(),
-                rewrite.columnRefused.get());
-        return (x, y, z) -> rewritten.sample(new DensityFunction.UnblendedNoisePos(x, y, z));
     }
 
     /**
@@ -431,17 +445,14 @@ public final class CandidateRender {
     private static final class WrapperRewrite
             implements DensityFunction.DensityFunctionVisitor {
 
+        private final MarkerCounts counts;
         private final int cellHorizontal;
         private final int cellVertical;
         private final int shapeMinimumY;
-        final java.util.concurrent.atomic.AtomicInteger interpolated =
-                new java.util.concurrent.atomic.AtomicInteger();
-        final java.util.concurrent.atomic.AtomicInteger columnCached =
-                new java.util.concurrent.atomic.AtomicInteger();
-        final java.util.concurrent.atomic.AtomicInteger columnRefused =
-                new java.util.concurrent.atomic.AtomicInteger();
 
-        WrapperRewrite(int cellHorizontal, int cellVertical, int shapeMinimumY) {
+        WrapperRewrite(MarkerCounts counts, int cellHorizontal, int cellVertical,
+                       int shapeMinimumY) {
+            this.counts = counts;
             this.cellHorizontal = cellHorizontal;
             this.cellVertical = cellVertical;
             this.shapeMinimumY = shapeMinimumY;
@@ -454,56 +465,21 @@ public final class CandidateRender {
             }
             switch (markerName(wrapper)) {
                 case "interpolated" -> {
-                    this.interpolated.incrementAndGet();
+                    this.counts.interpolated.incrementAndGet();
                     return new CellInterpolated(wrapper.wrapped(),
                             this.cellHorizontal, this.cellVertical, this.shapeMinimumY);
                 }
                 case "flatcache", "cache2d" -> {
-                    if (!ignoresY(wrapper.wrapped())) {
-                        this.columnRefused.incrementAndGet();
-                        return function;
-                    }
-                    this.columnCached.incrementAndGet();
-                    return new ColumnCache(wrapper.wrapped());
+                    // The marker keeps its wrapper: whether the claim holds is
+                    // a question about a SEEDED sub-tree, and this graph has
+                    // not been seeded yet, so ColumnCache asks it when the
+                    // seeding pass rebuilds the node.
+                    return new ColumnCache(function, this.counts);
                 }
                 default -> {
                     return function;
                 }
             }
-        }
-
-        /**
-         * Whether a marked sub-tree really does ignore {@code y}.
-         *
-         * <p>{@code flat_cache} and {@code cache_2d} are a router AUTHOR's
-         * claim, and vanilla acts on it without checking — its flat cache
-         * samples the sub-tree at {@code y = 0} and reuses that answer for a
-         * whole quart column. Sampled raw, as this render does, the real
-         * {@code y} goes down instead, so a sub-tree that reads {@code y}
-         * answers differently for every rung of a walk. Caching such a
-         * sub-tree on {@code (x, z)} would freeze whichever rung happened to
-         * be probed first, which depends on how the grid was split across
-         * workers.
-         *
-         * <p>So the claim is measured, not taken: the sub-tree is asked at two
-         * heights over several off-lattice columns, and only a sub-tree that
-         * answers identically is cached. One that does not is left exactly as
-         * it was, and the picture cannot move either way.
-         */
-        private static boolean ignoresY(DensityFunction wrapped) {
-            for (int i = 0; i < Y_INDEPENDENCE_PROBES; i++) {
-                int[] at = SpikeSampler.probe(i, 4096);
-                double low = wrapped.sample(
-                        new DensityFunction.UnblendedNoisePos(at[0], -48, at[1]));
-                double high = wrapped.sample(
-                        new DensityFunction.UnblendedNoisePos(at[0], 176, at[1]));
-                // compare, not !=, so two NaNs count as agreeing rather than
-                // as evidence of a y-dependence that is not there.
-                if (Double.compare(low, high) != 0) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /**
@@ -546,8 +522,9 @@ public final class CandidateRender {
      * a modded overworld router carries tens of thousands of these markers,
      * so every slot is paid for that many times over, per worker.
      *
-     * <p><b>Stateful: one per worker</b>, like the interpolation it sits
-     * beside, and for the same reason.
+     * <p><b>Stateful: one per rig</b>, like the interpolation it sits beside,
+     * and for the same reason. {@link #apply} is what delivers that — every
+     * seeding pass rebuilds the node, and a rig is one seeding pass.
      */
     private static final class ColumnCache implements DensityFunction {
 
@@ -555,12 +532,14 @@ public final class CandidateRender {
         private static final int HASH_SHIFT = 64 - Integer.numberOfTrailingZeros(SLOTS);
 
         private final DensityFunction wrapped;
+        private final MarkerCounts counts;
         private final long[] columns = new long[SLOTS];
         private final boolean[] filled = new boolean[SLOTS];
         private final double[] values = new double[SLOTS];
 
-        ColumnCache(DensityFunction wrapped) {
+        ColumnCache(DensityFunction wrapped, MarkerCounts counts) {
             this.wrapped = wrapped;
+            this.counts = counts;
         }
 
         @Override
@@ -587,9 +566,61 @@ public final class CandidateRender {
             applier.fill(densities, this);
         }
 
+        /**
+         * Rebuilds around the visited sub-tree, and decides here whether to
+         * keep the cache at all.
+         *
+         * <p>The visitor that matters is the one {@code NoiseConfig}'s
+         * constructor runs, which binds every {@code Noise} leaf beneath this
+         * node. Sub-trees are visited before their parents, so by the time
+         * this runs the child is fully seeded — which is the only state in
+         * which the y-independence question can be answered. Asked of an
+         * unseeded graph every leaf reads zero and every sub-tree looks
+         * two-dimensional.
+         */
         @Override
         public DensityFunction apply(DensityFunctionVisitor visitor) {
-            return visitor.apply(this);
+            DensityFunction seeded = this.wrapped.apply(visitor);
+            if (!ignoresY(seeded)) {
+                this.counts.columnRefused.incrementAndGet();
+                return seeded;
+            }
+            this.counts.columnCached.incrementAndGet();
+            return visitor.apply(new ColumnCache(seeded, this.counts));
+        }
+
+        /**
+         * Whether a marked sub-tree really does ignore {@code y}.
+         *
+         * <p>{@code flat_cache} and {@code cache_2d} are a router AUTHOR's
+         * claim, and vanilla acts on it without checking — its flat cache
+         * samples the sub-tree at {@code y = 0} and reuses that answer for a
+         * whole quart column. Sampled raw, as this render does, the real
+         * {@code y} goes down instead, so a sub-tree that reads {@code y}
+         * answers differently for every rung of a walk. Caching such a
+         * sub-tree on {@code (x, z)} would freeze whichever rung happened to
+         * be probed first, which depends on how the grid was split across
+         * workers.
+         *
+         * <p>So the claim is measured, not taken: the sub-tree is asked at two
+         * heights over several off-lattice columns, and only a sub-tree that
+         * answers identically is cached. One that does not is left exactly as
+         * it was, and the picture cannot move either way.
+         */
+        private static boolean ignoresY(DensityFunction wrapped) {
+            for (int i = 0; i < Y_INDEPENDENCE_PROBES; i++) {
+                int[] at = SpikeSampler.probe(i, 4096);
+                double low = wrapped.sample(
+                        new DensityFunction.UnblendedNoisePos(at[0], -48, at[1]));
+                double high = wrapped.sample(
+                        new DensityFunction.UnblendedNoisePos(at[0], 176, at[1]));
+                // compare, not !=, so two NaNs count as agreeing rather than
+                // as evidence of a y-dependence that is not there.
+                if (Double.compare(low, high) != 0) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -622,11 +653,17 @@ public final class CandidateRender {
     private static final class CellInterpolated implements DensityFunction {
 
         private final DensityFunction wrapped;
+        private final int cellHorizontal;
+        private final int cellVertical;
+        private final int shapeMinimumY;
         private final TerrainShape.Density blended;
 
         CellInterpolated(DensityFunction wrapped, int cellHorizontal, int cellVertical,
                          int shapeMinimumY) {
             this.wrapped = wrapped;
+            this.cellHorizontal = cellHorizontal;
+            this.cellVertical = cellVertical;
+            this.shapeMinimumY = shapeMinimumY;
             this.blended = TerrainShape.cellInterpolated(
                     (x, y, z) -> wrapped.sample(new DensityFunction.UnblendedNoisePos(x, y, z)),
                     cellHorizontal, cellVertical, shapeMinimumY);
@@ -642,9 +679,19 @@ public final class CandidateRender {
             applier.fill(densities, this);
         }
 
+        /**
+         * Visits the sub-tree and rebuilds, the contract vanilla's own
+         * {@code Wrapping} follows.
+         *
+         * <p>Load-bearing in both directions. This node is planted before the
+         * router is seeded, so a visitor that stopped here would leave every
+         * {@code Noise} leaf beneath it unbound — and the rebuild is also what
+         * gives each rig its own interpolation cache.
+         */
         @Override
         public DensityFunction apply(DensityFunctionVisitor visitor) {
-            return visitor.apply(this);
+            return visitor.apply(new CellInterpolated(this.wrapped.apply(visitor),
+                    this.cellHorizontal, this.cellVertical, this.shapeMinimumY));
         }
 
         @Override
@@ -846,7 +893,7 @@ public final class CandidateRender {
         // The shape half of the router, kept beside the climate half so one
         // NoiseConfig answers both the biome and where the ground is.
         long modelStart = System.nanoTime();
-        final HeightModel model = heightModel(server, dimensionId, base, seed, coverage);
+        final HeightModel model = heightModel(server, base, seed, coverage);
         long modelNanos = System.nanoTime() - modelStart;
         final Integer seaLevel = model.seaLevel();
         com.customdimensions.MultiverseServer.LOGGER.debug(
@@ -905,10 +952,10 @@ public final class CandidateRender {
                     final int stride = workers;
                     heights.add(pool.submit(() -> {
                         long rigStart = System.nanoTime();
+                        // Per-worker and it must stay so: the rig's own
+                        // NoiseConfig carries this worker's interpolation and
+                        // column caches, which are state.
                         SpikeSampler.Rig own = rigFor(server, base, model, seed);
-                        // The rewritten tree is per-worker and must stay so:
-                        // its interpolation and column caches carry state. The
-                        // NoiseConfig underneath it is the model's, shared.
                         TerrainShape.Density built = densityFor(model, own);
                         // Counted per worker and summed once at the end: an
                         // atomic per probe would contend on the one number the
@@ -1111,26 +1158,37 @@ public final class CandidateRender {
 
     /**
      * The dimension's settings with the climate chains and the final density
-     * kept and everything else zeroed — one {@link NoiseConfig} that answers
-     * both the biome and where the ground is.
+     * kept, everything else zeroed, and the final density's wrapper markers
+     * rewritten — one {@link NoiseConfig} that answers both the biome and
+     * where the ground is, and answers the second the way generation does.
+     *
+     * <p><b>The rewrite happens here, on the datapack's own template, and not
+     * on a built router.</b> Seeding and rewriting are independent transforms
+     * of the same graph and they commute: vanilla's constructor binds
+     * {@code Noise} leaves and leaves wrappers alone, and
+     * {@link WrapperRewrite} substitutes at wrappers and leaves leaves alone.
+     * Doing ours first means our nodes enter a graph nothing else has
+     * instrumented, and that nothing is ever asked to rebuild a graph it
+     * already compiled — which is what a router taken off a live
+     * {@code NoiseConfig} would be.
      *
      * <p>Null for a generator with no settings of its own (a flat or void
      * fallback), which has no terrain to ask about either.
      */
-    private static ChunkGeneratorSettings climateAndShape(MinecraftServer server,
-                                                          SpikeSampler.Base base) {
-        if (!(base.generator() instanceof NoiseChunkGenerator noiseGen)) {
+    private static ChunkGeneratorSettings climateAndShape(ChunkGeneratorSettings settings,
+                                                          WrapperRewrite rewrite) {
+        if (settings == null) {
             return null;
         }
-        ChunkGeneratorSettings settings = noiseGen.getSettings().value();
         NoiseRouter r = settings.noiseRouter();
         DensityFunction zero = DensityFunctionTypes.zero();
+        DensityFunction interpolated = r.finalDensity().apply(rewrite);
         return new ChunkGeneratorSettings(
                 settings.generationShapeConfig(), settings.defaultBlock(), settings.defaultFluid(),
                 new NoiseRouter(zero, zero, zero, zero,
                         r.temperature(), r.vegetation(), r.continents(),
                         r.erosion(), r.depth(), r.ridges(),
-                        zero, r.finalDensity(), zero, zero, zero),
+                        zero, interpolated, zero, zero, zero),
                 settings.surfaceRule(), settings.spawnTarget(), settings.seaLevel(),
                 settings.mobGenerationDisabled(), settings.aquifers(), settings.oreVeins(),
                 settings.usesLegacyRandom());
@@ -1142,50 +1200,21 @@ public final class CandidateRender {
                 base.hasCeiling(), base.biomeSourceAcceptsWithSeed(), true, null);
     }
 
-    /** The most recently built shape configs, newest last. */
-    private static final Map<String, NoiseConfig> SHAPE_CONFIGS =
-            java.util.Collections.synchronizedMap(
-                    new java.util.LinkedHashMap<String, NoiseConfig>(8, 0.75f, true) {
-                        @Override
-                        protected boolean removeEldestEntry(
-                                Map.Entry<String, NoiseConfig> eldest) {
-                            return size() > SHAPE_CONFIG_CACHE;
-                        }
-                    });
-
     /**
-     * The {@link NoiseConfig} for one (dimension, seed), built once.
+     * The {@link NoiseConfig} for one (settings, seed).
      *
-     * <p><b>Shared, deliberately.</b> Every worker used to build its own,
-     * which on a modded overworld router is around a hundred milliseconds of
-     * noise samplers each, repeated per worker and again for the detail view
-     * of the same candidate. It is safe to share for the two things a render
-     * asks of it — {@code getNoiseRouter()} and {@code getMultiNoiseSampler()}
-     * — because both are plain reads of final fields, and everything they
-     * reach is immutable: {@code DensityFunctionTypes.Wrapping} and
-     * {@code MultiNoiseSampler} are records, and a
-     * {@code DoublePerlinNoiseSampler} is a pure function of the seed it was
-     * built with. What is NOT safe is {@code getOrCreateSampler} and
-     * {@code getOrCreateRandomDeriver}, which fill a plain {@code HashMap}
-     * lazily — nothing on the render path calls either, and the aquifer probe
-     * that would ({@code SpikeSampler.groundlessHoldsFluid}) is never reached
-     * from {@link #draw}, which skips a groundless column before asking about
-     * its water.
-     *
-     * <p>Keyed by dimension and seed rather than by the settings object,
-     * because {@link #climateAndShape} builds a fresh settings record every
-     * call and two of them are equal only by luck. That makes the key sound
-     * for one boot, which is the whole life of a cache entry: the generator a
-     * dimension resolves to is fixed once the config is loaded.
+     * <p><b>Never shared.</b> Building it is what seeds the router, and the
+     * seeding pass rebuilds the stateful nodes {@link #climateAndShape}
+     * planted in the final density — so one config is one interpolation cache
+     * and one set of column caches, and two threads sampling one config would
+     * be two threads sharing them. Each render worker builds its own for the
+     * same reason it has always held its own rewritten tree.
      */
-    private static NoiseConfig shapeConfigFor(MinecraftServer server, Identifier dimensionId,
+    private static NoiseConfig shapeConfigFor(MinecraftServer server,
                                               ChunkGeneratorSettings settings, long seed) {
-        String key = dimensionId + "|" + seed;
-        return SHAPE_CONFIGS.computeIfAbsent(key, k -> {
-            var lookup = server.getRegistryManager()
-                    .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
-            return NoiseConfig.create(settings, lookup, seed);
-        });
+        var lookup = server.getRegistryManager()
+                .get(RegistryKeys.NOISE_PARAMETERS).getReadOnlyWrapper();
+        return NoiseConfig.create(settings, lookup, seed);
     }
 
     /**
@@ -1249,14 +1278,11 @@ public final class CandidateRender {
      * where Perlin is exactly zero, and agree for the wrong reason.
      */
     private static TerrainShape.Calibration calibrate(SpikeSampler.Rig rig, TerrainShape.Band band,
-                                                      int coverage, int floorY, int topY,
-                                                      int cellHorizontal, int shapeMinimumY) {
-        // Through the same cell interpolation the render reads, so the
-        // recorded verdict describes what a map would actually have done.
-        TerrainShape.Density raw = finalDensityOf(rig);
-        TerrainShape.Density shape = raw == null ? null
-                : TerrainShape.cellInterpolated(raw, cellHorizontal,
-                        band.cellHeight(), shapeMinimumY);
+                                                      int coverage, int floorY, int topY) {
+        // The rig's own final density, which already blends at the router's
+        // interpolated marker — so the recorded verdict describes what a map
+        // would actually have done, blended once and at the right place.
+        TerrainShape.Density shape = finalDensityOf(rig);
         if (shape == null) {
             return new TerrainShape.Calibration(0, 0, true);
         }
