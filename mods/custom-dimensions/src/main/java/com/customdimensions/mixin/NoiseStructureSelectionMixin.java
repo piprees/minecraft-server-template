@@ -67,6 +67,11 @@ public abstract class NoiseStructureSelectionMixin {
     @Unique
     private static final int CUSTOMDIMENSIONS$LOG_CAP = 4096;
 
+    /** One lock per dimension, guarding its rejection file's read-modify-write. */
+    @Unique
+    private static final java.util.Map<String, Object> CUSTOMDIMENSIONS$REJECT_LOCKS =
+            new ConcurrentHashMap<>();
+
     @Inject(method = "trySetStructureStart", at = @At("HEAD"), cancellable = true)
     private void customdimensions$noiseStructureSelection(
             StructureSet.WeightedEntry weightedEntry,
@@ -151,34 +156,44 @@ public abstract class NoiseStructureSelectionMixin {
         // the chunk generates, and re-proving it means regenerating the
         // chunk). World state, not a seed-rolling hypothesis, so it is keyed
         // by dimension alone, not by config hash.
-        try {
-            String dimPart = worldId.replace(":", "__");
-            Path rejectPath = Artefacts.censusDir(world.getServer())
-                    .resolve("rejections__" + dimPart + ".json");
-            StringBuilder json;
-            if (Files.exists(rejectPath)) {
-                String existing = Files.readString(rejectPath);
-                // Strip trailing \n]\n}\n and append
-                int lastBracket = existing.lastIndexOf(']');
-                if (lastBracket > 0) {
-                    json = new StringBuilder(existing.substring(0, lastBracket));
-                    json.append(",\n  ");
+        //
+        // Locked per dimension: this is a read-modify-write of one file and
+        // chunk generation runs it from several c2me workers at once, so
+        // unsynchronised writers read the same content and each append over
+        // the other's entry. The lock is per world id, so busy dimensions
+        // never wait on each other.
+        Object lock = CUSTOMDIMENSIONS$REJECT_LOCKS.computeIfAbsent(worldId, k -> new Object());
+        synchronized (lock) {
+            try {
+                String dimPart = worldId.replace(":", "__");
+                Path rejectPath = Artefacts.censusDir(world.getServer())
+                        .resolve("rejections__" + dimPart + ".json");
+                StringBuilder json;
+                if (Files.exists(rejectPath)) {
+                    String existing = Files.readString(rejectPath);
+                    // Strip trailing \n]\n}\n and append
+                    int lastBracket = existing.lastIndexOf(']');
+                    if (lastBracket > 0) {
+                        json = new StringBuilder(existing.substring(0, lastBracket));
+                        json.append(",\n  ");
+                    } else {
+                        json = customdimensions$newRejectionFile(worldId);
+                    }
                 } else {
                     json = customdimensions$newRejectionFile(worldId);
                 }
-            } else {
-                json = customdimensions$newRejectionFile(worldId);
+                json.append("{\"group\": \"").append(group)
+                        .append("\", \"structure\": \"").append(structureId)
+                        .append("\", \"chunkX\": ").append(chunkX)
+                        .append(", \"chunkZ\": ").append(chunkZ)
+                        .append('}');
+                json.append("\n ]\n}\n");
+                Artefacts.write(rejectPath, json.toString());
+            } catch (IOException e) {
+                // Best effort -- a failed rejection log is not worth crashing over.
+                MultiverseServer.LOGGER.debug(
+                        "Failed to write rejection artefact: {}", e.getMessage());
             }
-            json.append("{\"group\": \"").append(group)
-                    .append("\", \"structure\": \"").append(structureId)
-                    .append("\", \"chunkX\": ").append(chunkX)
-                    .append(", \"chunkZ\": ").append(chunkZ)
-                    .append('}');
-            json.append("\n ]\n}\n");
-            Artefacts.write(rejectPath, json.toString());
-        } catch (IOException e) {
-            // Best effort -- a failed rejection log is not worth crashing over.
-            MultiverseServer.LOGGER.debug("Failed to write rejection artefact: {}", e.getMessage());
         }
     }
 

@@ -111,13 +111,25 @@ public final class Artefacts {
                 + ",\n \"generatedAt\": \"" + Instant.now() + "\",\n";
     }
 
+    /** Distinguishes concurrent writers' temp files from each other. */
+    private static final java.util.concurrent.atomic.AtomicLong WRITE_SEQ =
+            new java.util.concurrent.atomic.AtomicLong();
+
     /**
      * Write an artefact atomically. Creates parent directories; leaves the
      * previous file untouched if serialisation or the write fails.
+     *
+     * <p>The temp name carries a sequence number because chunk generation
+     * calls this from several c2me workers at once. On one shared temp path
+     * they overwrite each other's bytes and then race the rename, and the
+     * loser fails with a NoSuchFileException it can do nothing about.
+     * Serialising the read-modify-write around this call is still the
+     * caller's job — a unique temp only stops the writes colliding.
      */
     public static void write(Path target, String body) throws IOException {
         Files.createDirectories(target.getParent());
-        Path tmp = target.resolveSibling(target.getFileName() + ".tmp");
+        Path tmp = target.resolveSibling(
+                target.getFileName() + "." + WRITE_SEQ.incrementAndGet() + ".tmp");
         Files.writeString(tmp, body);
         try {
             Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING,
