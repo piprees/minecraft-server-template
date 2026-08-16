@@ -484,11 +484,11 @@ services:
   # ==========================================================================
   # unmined-render - Scheduled static map renders (uNmINeD CLI)
   # ==========================================================================
-  # Renders every base world + on-disk custom dimension to a static web map
+  # Renders every on-disk dimension to a static web map
   # (webp tiles, self-contained viewer) in ./data/unmined-web on an interval.
   # Incremental: only changed regions re-render; unchanged dimensions are
   # skipped entirely. Renders are clamped to borders.generation (custom
-  # dims) / PREGEN_BORDER_RADIUS (base worlds). nav-proxy serves the output
+  # dims) / PREGEN_BORDER_RADIUS (the four reserved ones). nav-proxy serves the output
   # (SPA shell + tiles) as map.DOMAIN — plain files, edge-cacheable, always
   # up regardless of mc's state.
   #

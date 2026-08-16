@@ -43,7 +43,7 @@
 # valid across a reset and are irrelevant to the world just destroyed).
 #
 # The seed argument updates SEED in .env locally and on the server, which
-# seeds level.dat ONLY. Terrain comes from each base world's dimension config
+# seeds level.dat ONLY. Terrain comes from each dimension's own config
 # (TROUBLESHOOTING.md#t31), so a new seed here changes nothing on its own:
 # put the seed in the config, deploy it, and reset AFTER it is on the server.
 # Same for spawn — the overworld entry's "spawn" replaces SPAWN_X/Y/Z.

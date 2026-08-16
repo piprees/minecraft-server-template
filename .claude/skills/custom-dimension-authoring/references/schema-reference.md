@@ -91,7 +91,9 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 - `mobMultiplier` (double, default `1.0`) — scales hostile mob health/damage/armor via attribute modifiers at spawn (persisted in NBT). `0` is effectively peaceful even with `hostileSpawning: true`.
 - `attributes` — which stats the multiplier touches. Platform default: health+damage+armor true, speed/knockback false.
 - `playerLuck` (double, default `1.0`) — flat luck bonus on join/world-change. Higher = better loot rolls.
-- `depthScaling` — ramps the multiplier from `minMultiplier` at `startY` to `maxMultiplier` at `endY` (deeper = harder). Used by `overworld.json` (`64→-64`, `1.0→1.5`).
+- `depthScaling` — ramps a FACTOR from `minMultiplier` at `startY` to `maxMultiplier` at `endY` (deeper = harder). Used by `overworld.json` (`64→-64`, `1.0→1.5`).
+  **These are factors on `mobMultiplier`, not effective values.** `DifficultyManager.effectiveMultiplier` returns `mobMultiplier * depthFactor(y)`, so `the_forged_depths` at `mobMultiplier` 2.5 with `1.5→3.5` runs 3.75 to 8.75, not 1.5 to 3.5. Writing the numbers you want as if they were absolute silently doubles the dimension's difficulty.
+  The `>= 2.0` / `<= 0.5` structure-group shift reads the STATIC `mobMultiplier` only (`NoiseGroupPlan`), never the depth-scaled value — so a ramp may exceed 2.0 at depth without changing which structures generate.
 
 Observed shipped patterns: peaceful `mobMultiplier: 0.0` + `hostileSpawning: false` + `playerLuck: 2.0-3.0`; standard `1.0`; hard `1.5-2.0`; brutal pocket dims `3.0` + `playerLuck: 2.0` (e.g. `the_gauntlet.json`).
 

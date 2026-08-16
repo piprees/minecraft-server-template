@@ -78,8 +78,8 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 | `void` | No terrain at all. Biome layout still drives mob spawning, ambient sounds, and fog colour — variety matters even though nothing generates. Must have a `biomes` list to be rollable. | any (but biomes must match a single family for the roller — don't mix overworld + end biomes) | Empty void | 2 |
 | `sky_islands` | Floating islands. | overworld | Islands in the sky, void below | 2 |
 | `nether_islands` | End-island-style bones with nether biomes. | nether | Floating nether islands | 2 |
-| `amplified` | Amplified terrain (extreme heights). | overworld | Very tall, dramatic | 1 |
-| `large_biomes` | Large biomes (biome regions 4× bigger). | overworld | Huge biome regions | 1 |
+| `amplified` | Amplified terrain (extreme heights). **IGNORES `biomes` — see below.** | n/a | Very tall, dramatic | 1 |
+| `large_biomes` | Large biomes (biome regions 4× bigger). **IGNORES `biomes` — see below.** | n/a | Huge biome regions | 1 |
 | `superflat` | Flat world. Never rollable. | — | Flat | 1 |
 | `paradise_lost:paradise_lost` | Clone of the Paradise Lost skylands dimension. | paradise_lost | Floating skylands | 6 |
 | `single_biome` | One biome, `biomes` must have exactly 1 entry. | overworld | Single biome terrain | 0 |
@@ -88,6 +88,22 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 **Common mistake: using `overworld` when you mean `multi_biome`.** `overworld` uses ALL registered biomes — your `biomes` list only affects what the roller scores, not what generates. If you want a "jungle-only dimension" or "frozen peaks dimension", use `multi_biome`. The original `the_overgrowth` had `type: "overworld"` with a jungle biome list, which meant every overworld biome could appear (deserts, oceans, etc.) — only the roller cared about the jungle list, not the generator.
 
 **Void dimensions: keep biomes from ONE family.** A void dim with `minecraft:deep_dark` (overworld) AND `minecraft:the_end` (end) will confuse the roller — it can't determine which family's noise config to use for sampling. If you want an end-themed void, use only end-family biomes from `references/biome-catalogue.md`.
+
+## Two types discard the biome list
+
+`amplified` and `large_biomes` clone the world preset's overworld
+`DimensionOptions` wholesale and never call `resolveListedSource`
+(`DimensionManager.java:729-757`). A biome list on either generates a plain
+overworld, and a `seedRoll.spawnFilter` naming a biome that cannot occur
+rejects every candidate — an empty board with no error.
+
+The two shipped users, `the_amplified_reaches` and `the_endless_expanse`, both
+carry an empty `biomes` array. That is not an oversight; it is the only honest
+config for these types.
+
+**Want amplified relief with a curated palette?** Use `multi_biome` with
+`noiseSettings: "adventure:compressed"`. It composes with a biome list, which
+amplified does not.
 
 ## Cross-family biomes and surface composition
 

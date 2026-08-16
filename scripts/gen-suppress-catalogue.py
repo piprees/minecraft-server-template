@@ -8,9 +8,9 @@
 #   biomes.json) into a commented settings.json: every structure set and
 #   biome the pack knows about appears as one commented-out line, grouped
 #   by mod (structures also by theme). Uncomment a line to suppress it
-#   everywhere — biome suppression covers every world, base worlds
-#   included; the file is a valid settings.json with any subset of lines
-#   uncommented.
+#   everywhere — biome suppression covers every dimension, including the four
+#   Minecraft and other mods call "worlds"; the file is a valid settings.json
+#   with any subset of lines uncommented.
 #
 # Context:
 #   Reads files only — no Docker, no RCON, no running server. The output is
@@ -49,8 +49,9 @@ HEADER = """\
   // commented line, grouped by mod (structure sets also by theme).
   // Uncommenting a structure-set line removes it from EVERY dimension's
   // pools and pass-throughs; uncommenting a biome line removes it from
-  // EVERY world's biome source, base worlds included (existing chunks
-  // keep what they have — worldgen is creation-time-only per chunk).
+  // EVERY dimension's biome source, including the ones Minecraft and other
+  // mods call "worlds" (existing chunks keep what they have — worldgen is
+  // creation-time-only per chunk).
   //
   // To use: uncomment the lines you want, then save this file as
   //   overlay/config/custom-dimensions/settings.json

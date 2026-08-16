@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # render-loop.sh — scheduled uNmINeD static map renders (unmined-render image)
 #
-# Context: renders every base world + every on-disk custom dimension to a
+# Context: renders every on-disk dimension to a
 # static web map (webp tiles + self-contained OpenLayers viewer) under
 # $OUT_DIR/maps/<name>/, plus a generated $OUT_DIR/index.html listing them.
 # Output is plain files — served by nav-proxy at map.DOMAIN/unmined/ with
@@ -31,7 +31,7 @@
 #                           borders.generation bounds each dimension's render
 #   OUT_DIR     (/web)    — output root (tiles + index.html)
 #   UNMINED_HOME (/opt/unmined) — CLI install dir (override for local tests)
-#   PREGEN_BORDER_RADIUS (8192) — base-world bound; nether uses /8
+#   PREGEN_BORDER_RADIUS (8192) — bound for the reserved four; nether uses /8
 #   UNMINED_INTERVAL (0)  — sleep between passes (sleep(1) syntax); 0 = off
 #   UNMINED_ZOOMOUT  (6)  — zoom-out levels for the web viewer
 #
@@ -110,7 +110,7 @@ render_one() {
   return 0
 }
 
-# Config file for a map name (base worlds use their v4 config slugs).
+# Config file for a map name (the reserved four use their v4 config slugs).
 config_file_for() {
   case "$1" in
     nether) echo "$CONFIG_DIR/dimensions/the_nether.json" ;;
@@ -147,7 +147,7 @@ titlecase_slug() {
 }
 
 # Display name for a dimension slug. Overrides for names that don't
-# mechanically title-case (the four base worlds: single words, or a
+# mechanically title-case (the reserved four: single words, or a
 # deliberately different name from the slug) live in
 # config/custom-dimensions/display-names.json, next to the dimension
 # configs — not here — so a new override doesn't need a script change.
@@ -334,7 +334,7 @@ install_shell() {
 
 render_all() {
   rendered=0
-  # Base worlds. Vanilla layouts: region/ (overworld), DIM-1 (nether),
+  # The reserved four. MC's own on-disk layout: region/ (overworld), DIM-1 (nether),
   # DIM1 (end). Nether coordinates are 1/8 scale.
   render_one overworld overworld "$WORLD_DIR/region" "$PREGEN_BORDER_RADIUS" && rendered=$((rendered + 1)) || true
   render_one nether nether "$WORLD_DIR/DIM-1/region" "$((PREGEN_BORDER_RADIUS / 8))" && rendered=$((rendered + 1)) || true

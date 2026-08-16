@@ -28,7 +28,7 @@ Template-only (platform development); deliberately NOT in the bundle
 MANIFEST — consumers never run this.
 
 Gotchas: the config drives every seed, including the overworld's —
-ServerWorldSeedMixin reads each base world's own file (overworld.json,
+ServerWorldSeedMixin reads each dimension's own file (overworld.json,
 the_nether.json, the_end.json, paradise_lost.json), so exporting a winner
 here IS what changes that world's terrain. `.env SEED` seeds level.dat only,
 and reaches terrain solely when a config's seed field is the literal string
