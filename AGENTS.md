@@ -55,11 +55,33 @@ Consumer repos can override some via the overlay — understand the consequence 
 - **Fabric** loader. Not Forge, NeoForge or Quilt.
 - **`ONLINE_MODE=TRUE` + `ENFORCE_WHITELIST=TRUE`** in production. Both stay on.
 - **Cloudflare tunnels carry HTTP only.** The game port uses a plain DNS A record — the free tier can't tunnel it and fails silently.
-- **One Nether overhaul.** Incendium owns the Nether; no competing Nether worldgen mods.
+- **One Nether overhaul.** Incendium is the pack's Nether worldgen mod; no competing ones.
 - **Conventional networking.** No VPN, no Tailscale. Friends connect directly.
 - **`itzg/minecraft-server` owns the mc container lifecycle.**
 - **discord-sync owns all Discord slash commands** (guild-scoped). dcintegration is chat-bridge only; its command feature stays disabled.
 - **`.env` on the server is CI-generated**, never the source of truth.
+- **Every dimension is managed the same way** — [§ Dimensions](#dimensions).
+
+## Dimensions
+
+`overworld`, `the_nether`, `the_end` and `paradise_lost` are Minecraft's base
+worlds. Here they are four dimensions among 82, and every field applies to them
+as it does to the rest: `seed`, `spawn`, `biomes`, `borders`, `difficulty`,
+`portal`, `structures`, `settingsOverrides`, `environment`, `seedRoll`. They are
+rolled, scored, shrunk and retyped like any other.
+
+Two operational differences: they are visible to players on the map, and their
+spawn areas are not idled when empty. Leaving one out of a change needs a reason
+specific to that dimension — a progression gate, a forced coordinate, a border
+invariant.
+
+`custom-dimensions` owns every generator in the pack. Installed mods supply
+material: the live `minecraft:end` settings carry Nullscape's surface rule,
+`minecraft:nether` carries Incendium's, the overworld carries Terralith's and
+Tectonic's. This mod reads those entries and builds its own
+`ChunkGeneratorSettings` from them, composing across families, re-surfacing,
+patching and overriding. Everything in a generator is changeable here. Describe
+a rule by the registry entry it comes from, not by an owner.
 
 ## Production access
 

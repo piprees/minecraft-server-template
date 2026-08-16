@@ -33,7 +33,7 @@ import java.util.TreeMap;
  *
  * Consumer-added slugs (overlay-only) get their namespace from the
  * BRAND_SLUG environment variable, falling back to the platform namespace.
- * Base-world slugs keep vanilla ids regardless of namespace.
+ * Reserved slugs keep their existing dimension ids regardless of namespace.
 
  */
 public final class DimensionConfigLoader {

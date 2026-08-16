@@ -26,7 +26,7 @@ This skill has five reference files. **You must read ALL of them before writing 
 - `the_blossom_gardens.json` — large (8192), peaceful, `multi_biome`, wide noise
 - `the_basalt_spires.json` — pocket (1024), nether type
 - `the_end_citadel.json` — medium (4096), end type
-- `overworld.json` — base-world override (no type, just seed/spawn/scoring)
+- `overworld.json` — an ordinary dimension like any other; names no `type` because `getType()` supplies the family
 
 **And always check blocks, structures, and items against the json files inside the extractors** (`config/custom-dimensions/extractors/`) — the mod silently ignores unknown ids. These catalogues are authoritative; don't guess ids from memory or the wiki, just choose from the lists.
 
@@ -276,9 +276,17 @@ Four **profiles** control the shape of a group's distribution:
 
 **`force` is exclusive by default.** Forcing a structure removes it from the noise pool everywhere else in that dimension — "put exactly this here" almost always means "and nowhere else". Add `"exclusive": false` to keep organic copies too. Other structures in the same group are unaffected.
 
-### Base worlds
+### `overworld`, `the_nether`, `the_end`, `paradise_lost`
 
-`overworld.json`, `the_nether.json`, `the_end.json` and `paradise_lost.json` get noise placement like everything else. Their generator is vanilla's, so they name no `type` and the mod resolves their groups against their family (`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`). Write an explicit `type` only to move one deliberately onto another family's group set.
+Four dimensions among 82, managed like the rest — every field in this schema
+applies to them, noise placement included ([AGENTS.md § Dimensions](../../../AGENTS.md#dimensions)).
+Leaving one out of a change needs a reason specific to that dimension.
+
+They name no `type` because `DimensionConfig.getType()` supplies the family
+(`overworld`, `nether`, `end`, `paradise_lost:paradise_lost`); writing one moves
+that dimension onto another family's group set. Their generators come from live
+registry entries this mod reads and rebuilds, so their surface rules and
+settings are as changeable as any other dimension's.
 
 Two things to hold in mind when tuning them:
 

@@ -219,7 +219,7 @@ Production host is `DROPLET_HOST` in `.env` (also a GitHub Actions variable) and
 
 ### Reset the world (launch events)
 
-`./ops reset-seed <seed>` backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates `SEED` in `.env`, and restarts. Triple-confirmed, prints undo instructions; commit `.env` afterwards. But `.env`'s `SEED` only reaches terrain when the overworld's dimension config has `"seed": "env"` — every dimension, base worlds included, generates from its own file under `config/custom-dimensions/dimensions/`. Put the seed there (or in the consumer overlay) and deploy it BEFORE running the reset, or the world regenerates with the old terrain under a new seed value that changed nothing. See [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31).
+`./ops reset-seed <seed>` backs up (restic + tar), stops the stack, deletes world/map/Chunky/DH data, updates `SEED` in `.env`, and restarts. Triple-confirmed, prints undo instructions; commit `.env` afterwards. But `.env`'s `SEED` only reaches terrain when the overworld's dimension config has `"seed": "env"` — every dimension generates from its own file under `config/custom-dimensions/dimensions/`, `overworld` and the other three reserved names included. Put the seed there (or in the consumer overlay) and deploy it BEFORE running the reset, or the world regenerates with the old terrain under a new seed value that changed nothing. See [TROUBLESHOOTING.md#t31](TROUBLESHOOTING.md#t31).
 
 ## Troubleshooting
 

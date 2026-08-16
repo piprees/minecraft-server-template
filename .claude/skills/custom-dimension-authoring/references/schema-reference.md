@@ -29,7 +29,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 
 | Key | Type | Timing | Notes |
 | --- | --- | --- | --- |
-| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any new (non-base-world) dimension. On a **base world** it selects nothing — it is the opt-in to structure management; see [Base worlds](#base-worlds). |
+| `type` | string | creation-time | See [Valid types](#valid-type-values) below. Required for any dimension whose filename is not one of the four reserved ones. On `overworld`/`the_nether`/`the_end`/`paradise_lost` it selects nothing — `getType()` already supplies the family, so writing one moves that dimension onto another family's group set. See [the section on those four](#overworld-the_nether-the_end-paradise_lost). |
 | `description` | string | — | Documentation only; never parsed by the mod. Still worth writing well — good practice, and useful for humans skimming files. |
 | `seed` | number \| `"env"` | creation-time | Per-dimension world seed. `"env"` reads the `SEED` env var. Changing this after the world exists does nothing. |
 | `spawn` | `[x, y, z]` | boot-re-read | Spawn point. The seed roller overwrites this when it finalises a winner. |
@@ -40,7 +40,7 @@ Ground truth: `/Users/pip/Projects/minecraft-server-template/mods/custom-dimensi
 | `flatBiome` | string | creation-time | `type: "superflat"` only. Default `minecraft:plains`. |
 | `settingsOverrides` | object | creation-time | `{"seaLevel": int, "defaultBlock": id, "defaultFluid": id, "disableMobGeneration": bool}`. Applied after `noiseSettings` resolves. |
 | `biomePatches` | array | creation-time | Fixed circular biome patches over the generated layout — precision placement. Rare; 0 uses in shipped dims. |
-| `scale` | number | — | Base-world (overworld/nether/end/paradise_lost overrides) travel-scale metadata only; custom dimensions use `portal.scale` instead. |
+| `scale` | number | — | Top-level travel-scale metadata, only read on the four reserved filenames; every dimension including those four uses `portal.scale` for real portal scaling. |
 | `borders` | object | see below | `{"player": int, "generation": int}` — both default 8192. `player`: vanilla world border radius, set at boot, boot-re-read (safe to tune anytime). `generation`: tooling metadata for Chunky/render bounds + the seed-group fingerprint key (creation/rolling relevant, not enforced by the mod at runtime). |
 | `difficulty` | object | boot-re-read | See [Difficulty](#difficulty-object) below. |
 | `structureDensity` | `"dense"` \| `"normal"` \| `"sparse"` \| `"none"` | boot-re-read (new chunks only) | Scales dungeon/loot structure frequency. `dense` ≈2x, `sparse` ≈half. Peaceful dims drop dungeon-theme sets regardless of density. |
@@ -259,13 +259,29 @@ The mod ignores this block entirely at runtime — it exists purely for seed rol
 | `wants` | **Band-name** form: short-name → `"near_spawn"` (0–15% of `borders.player`) / `"spread"` (10–75%) / `"near_border"` (55–100%). One criterion per entry, scored on the nearest instance's distance as a fraction of this dimension's own border. Different format from `structures.wants` — see main SKILL.md traps. |
 | `shuns` | Bare list of short names (or map form). Absent is full marks; present is scored by how much of the world separates a player from it. |
 
-## Base worlds
+## `overworld`, `the_nether`, `the_end`, `paradise_lost`
 
-`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json` are **reserved filenames** — they override vanilla/existing worlds (map to `minecraft:overworld` etc.) rather than creating a new dimension. Don't create a new file with one of these names unless you deliberately mean to override that base world.
+Four dimensions among 82, managed like the rest. Every field in this document
+applies to them: `seed`, `spawn`, `biomes`, `borders`, `difficulty`, `portal`,
+`structures`, `structureDensity`, `settingsOverrides`, `environment` and
+`seedRoll`. They are rolled, scored, bordered, portalled, scaled, shrunk and
+retyped like any other. Leaving one out of a change needs a reason specific to
+that dimension — a progression gate, a forced coordinate, a border invariant
+([AGENTS.md § Dimensions](../../../../AGENTS.md#dimensions)).
 
-They are managed like any other dimension: `seed`, `spawn`, `scale`, `borders`, `difficulty`, `seedRoll`, `structureDensity`, `structures` and `portal` all apply. The mod resolves them by **exact dimension id**, never by namespace — `minecraft:` and `paradise_lost:` hold other mods' dimensions too.
+Their filenames are **reserved**: they resolve to existing dimension ids
+(`minecraft:overworld` and so on) rather than creating a new dimension, so reuse
+one only when that is what you mean. The mod resolves them by **exact dimension
+id**, never by namespace — `minecraft:` and `paradise_lost:` hold other mods'
+dimensions too.
 
-**A base world names no `type`** — vanilla owns its generator — and its structure groups resolve against its family instead:
+Their generators come from live registry entries this mod reads and rebuilds:
+`minecraft:end` carries Nullscape's surface rule, `minecraft:nether` carries
+Incendium's, the overworld carries Terralith's and Tectonic's. Every one of
+those is composable and overridable here.
+
+**These four name no `type`** because `DimensionConfig.getType()` already
+supplies the family, and their structure groups resolve against it:
 
 | File | Family |
 | --- | --- |
@@ -274,9 +290,9 @@ They are managed like any other dimension: `seed`, `spawn`, `scale`, `borders`, 
 | `the_end.json` | `end` |
 | `paradise_lost.json` | `paradise_lost:paradise_lost` |
 
-Writing an explicit `type` overrides that, which is how you move a base world onto another family's group set.
+Writing an explicit `type` overrides that, which is how you move one onto another family's group set.
 
-**A base world's `portal` block is live**: `the_nether.json`'s obsidian/flint-and-steel portal is the way to the Nether, at its configured scale, colour and sounds. `portal.scale` and `borders.player` must agree — a portal built at the source world's border divides by the scale on arrival and must land inside the destination's border. `ShippedDimensionReachabilityTest` pins that for every shipped dimension, base worlds included.
+**Their `portal` block is live**: `the_nether.json`'s obsidian/flint-and-steel portal is the way to the Nether, at its configured scale, colour and sounds. `portal.scale` and `borders.player` must agree — a portal built at the source world's border divides by the scale on arrival and must land inside the destination's border. `ShippedDimensionReachabilityTest` pins that for every shipped dimension, these four included.
 
 ## `structures` — noise placement fields
 

@@ -80,7 +80,7 @@ config/custom-dimensions/
                                # from overlay/config/custom-dimensions/
 ```
 
-The slug comes from the filename. Base-world filenames (`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json`) override existing worlds (seed/spawn) instead of creating new ones — `"seed": "env"` reads the `SEED` environment variable. **Overlay resolution:** a top-level `"overrides"` object deep-merges over the platform default; a file without one replaces it entirely; an empty `{}` skips the dimension; overlay-only files are consumer-added dimensions namespaced by `BRAND_SLUG`.
+The slug comes from the filename. Four filenames are reserved (`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json`): they resolve to existing dimension ids instead of creating new ones, and are managed like every other dimension — each field below applies to them ([AGENTS.md § Dimensions](../../AGENTS.md#dimensions)). `"seed": "env"` reads the `SEED` environment variable. **Overlay resolution:** a top-level `"overrides"` object deep-merges over the platform default; a file without one replaces it entirely; an empty `{}` skips the dimension; overlay-only files are consumer-added dimensions namespaced by `BRAND_SLUG`.
 
 A whole dimension, `dimensions/cherry_pocket.json`:
 
@@ -127,7 +127,7 @@ A whole dimension, `dimensions/cherry_pocket.json`:
 
 ### Worldgen
 
-- **`type`** — `overworld`/`multi_biome`, `nether`, `end`, `void`, `superflat`, `cave`, `checkerboard`, `sky_islands`, `nether_islands`, `amplified`, `large_biomes`, `single_biome`, or `ns:path` to clone any registered dimension. Base worlds name no type; `DimensionConfig.getType()` supplies the family.
+- **`type`** — `overworld`/`multi_biome`, `nether`, `end`, `void`, `superflat`, `cave`, `checkerboard`, `sky_islands`, `nether_islands`, `amplified`, `large_biomes`, `single_biome`, or `ns:path` to clone any registered dimension. The four reserved filenames name no type; `DimensionConfig.getType()` supplies the family. Writing one moves that dimension onto another family's group set.
 - **`checkerboard`** tiles the `biomes` list in a fixed grid (seed-independent layout, seeded terrain); `checkerboardScale` 0-62 (default 2) sets the cell size, `2^(scale+4)` blocks.
 - **`superflat`** takes `layers` (bottom-up `{block, height}` list) and `flatBiome`; invalid config falls back to the whole default bedrock/dirt/grass stack.
 - **`settingsOverrides`** swaps `seaLevel`, `defaultBlock`, `defaultFluid`, `disableMobGeneration` on the type's (or preset's) generator settings; invalid values warn and keep the base per field.
@@ -214,7 +214,7 @@ An `"environment"` block registers a per-dimension `DimensionType` as `{ns}:{slu
 
 `ambientLight` is 0–1, `fixedTime` a tick of day (locks the sun), `natural: false` makes compasses and beds go weird, `effects` picks `minecraft:overworld|the_nether|the_end` sky rendering, `infiniburn` is a block tag, `monsterSpawnLightLevel` an int or int-provider.
 
-**Cosmetic and identity fields:** `"description"` is documentation-only (surfaced by tooling, never parsed). `portal.particleType` (any particle id, e.g. `minecraft:end_rod`) overrides the coloured particles, and `color` is ignored when it is set. `dimensionId` is LEGACY — omit it; the id derives from `{namespace}:{filename}`, and base worlds map to their vanilla ids.
+**Cosmetic and identity fields:** `"description"` is documentation-only (surfaced by tooling, never parsed). `portal.particleType` (any particle id, e.g. `minecraft:end_rod`) overrides the coloured particles, and `color` is ignored when it is set. `dimensionId` is LEGACY — omit it; the id derives from `{namespace}:{filename}`, and the four reserved filenames resolve to their existing ids.
 
 ## Portals
 
