@@ -50,16 +50,24 @@ public final class NoisePoolBuilder {
 
     /**
      * The placement type ids noise placement absorbs, beyond the exact
-     * vanilla class. Moog's advanced_random_spread's getStartChunk is
-     * byte-identical vanilla maths; "advanced" adds only an optional
-     * origin-clearance disc (superseded by our radial curves and
-     * clearSpawnRadius) and an optional cross-set exclusion no shipped set
-     * uses. YUNG's types and Supplementaries' galleons stay pass-throughs —
-     * their cross-set exclusion zones are real behaviour — and
-     * concentric_rings is not grid-compatible at all.
+     * vanilla class. Every one is a RandomSpreadStructurePlacement subclass
+     * whose getStartChunk is vanilla maths; what each adds on top is a
+     * cross-set exclusion zone, which our per-group exclusion radius covers
+     * at group scope instead of tag scope.
+     *
+     * Absorbing is what puts a set under structureDensity, group profiles,
+     * radial curves, rarity tiers and the difficulty shifts, and into the
+     * scorecard. A pass-through has none of that — only an on/off switch.
+     *
+     * Two stay out. betterstrongholds:stronghold is ring placement, and the
+     * rings are how a player finds the End. concentric_rings is not
+     * grid-compatible at all.
      */
     private static final Set<String> ABSORBED_PLACEMENT_TYPES = Set.of(
-            "moogs_structures:advanced_random_spread");
+            "moogs_structures:advanced_random_spread",
+            "yungsapi:enhanced_random_spread",
+            "betterjungletemples:jungle_temple",
+            "betterdeserttemples:desert_temple");
 
     /**
      * Whether a set's placement is dissolved into a noise group. Exact

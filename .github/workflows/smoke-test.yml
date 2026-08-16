@@ -320,7 +320,12 @@ jobs:
       # loaded — targets() reads the configs directly — so it runs here rather
       # than after the load loop, and catches an authoring mistake that would
       # otherwise only ever be a line in a boot log nobody reads.
+      #
+      # Default variant only. The removal variant deletes terralith, which 47
+      # dimensions name across 201 biome references, and every one would report
+      # biome_unknown against configs that are correct for the shipped mod set.
       - name: Assert dimension configs lint clean
+        if: matrix.variant == 'default'
         run: |
           OUT=$(docker exec mc rcon-cli "customdim lint" 2>/dev/null)
           echo "$OUT"

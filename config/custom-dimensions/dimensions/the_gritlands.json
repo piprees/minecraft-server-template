@@ -72,13 +72,6 @@
       "terralith:cold_shrubland"
     ],
     "water": "none",
-    "wants": {
-      "ruined_portal": "near_spawn",
-      "field_ruins": "spread",
-      "mineshaft": "spread",
-      "scorched_tomb": "near_border",
-      "badlands_ruins": "spread"
-    },
     "shuns": [
       "village",
       "tavern",

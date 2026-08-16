@@ -230,12 +230,24 @@ public final class DimensionLint {
                 continue;
             }
             if (noiseSuppressed) {
-                out.add(new Finding(name, ERROR, "want_no_noise_groups", wantName,
+                // An inherited list is not an authoring fault: there is no
+                // wants block to remove, so ERROR would fail a build over a
+                // config nobody wrote. The dimension places only what it
+                // forces, which is a complete answer on its own.
+                boolean inherited = wants.source() == StructureWants.Source.FAMILY_DEFAULT;
+                out.add(new Finding(name, inherited ? INFO : ERROR, "want_no_noise_groups",
+                        wantName,
                         "this dimension places no noise-managed structures ("
                         + plan.reason() + "), so '" + wantName
-                        + "' can never be placed or scored",
-                        "remove the wants block, or give the dimension a "
-                        + "structureDensity other than \"none\""));
+                        + "' can never be placed or scored"
+                        + (inherited ? " — and it comes from the " + wants.family()
+                                + " family default, not from this config" : ""),
+                        inherited
+                                ? "no action needed; a dimension that places only what it "
+                                  + "forces is not scored on the family list. Name an empty "
+                                  + "structures.wants to silence this."
+                                : "remove the wants block, or give the dimension a "
+                                  + "structureDensity other than \"none\""));
                 continue;
             }
             String group = poolGroupOf.get(id);
@@ -243,7 +255,7 @@ public final class DimensionLint {
                 String setId = setIdFor(setRegistry, id);
                 // A set whose placement is not noise-managed never reaches a
                 // pool BY DESIGN — it keeps its own grid placement and still
-                // generates. Seven of 380 sets are pass-throughs, so a want
+                // generates. Four of 380 sets are pass-throughs, so a want
                 // naming one is a warning rather than an error.
                 String passThroughType = passThroughPlacementType(setRegistry, setId);
                 if (passThroughType != null) {
