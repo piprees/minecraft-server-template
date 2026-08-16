@@ -314,6 +314,26 @@ jobs:
             exit 1
           }
 
+      # customdim lint reads every dimension config and reports unknown biomes,
+      # unknown or out-of-border forced structures, malformed radial curves,
+      # unknown portal blocks and igniter collisions. It needs no dimension
+      # loaded — targets() reads the configs directly — so it runs here rather
+      # than after the load loop, and catches an authoring mistake that would
+      # otherwise only ever be a line in a boot log nobody reads.
+      - name: Assert dimension configs lint clean
+        run: |
+          OUT=$(docker exec mc rcon-cli "customdim lint" 2>/dev/null)
+          echo "$OUT"
+          ERRORS=$(echo "$OUT" | grep -oE '[0-9]+ error\(s\)' | grep -oE '^[0-9]+' | head -1)
+          if [[ -z "$ERRORS" ]]; then
+            echo "::error::customdim lint produced no parseable summary — RCON returned: $OUT"
+            exit 1
+          fi
+          if [[ "$ERRORS" -gt 0 ]]; then
+            echo "::error::customdim lint found $ERRORS ERROR-severity finding(s) in the shipped dimension configs"
+            exit 1
+          fi
+
       - name: Assert custom dimensions, noise presets and tectonic config
         run: |
           LOG=$(docker logs mc 2>&1)
