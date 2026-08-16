@@ -16,38 +16,39 @@ import java.util.Set;
  *
  * The slug (name) comes from the FILENAME, never from the JSON; the loader
  * stamps it (and the resolved namespace) after deserialisation. Every field
- * is optional: getters return sensible defaults so a two-line base-world
- * file ({"seed": ..., "spawn": [...]}) is a complete config.
+ * is optional: getters return sensible defaults so a two-line reserved-
+ * dimension file ({"seed": ..., "spawn": [...]}) is a complete config.
  *
  * Legacy multiverse_config.json fields ("biome" comma string, top-level
  * "hostileSpawning", explicit "dimensionId") deserialise into the same class.
  */
 public class DimensionConfig {
 
-    /** Filenames that override existing worlds instead of creating new ones. */
-    public static final Set<String> BASE_WORLDS =
+    /** Filenames that resolve to an existing dimension instead of creating a new one. */
+    public static final Set<String> RESERVED_NAMES =
             Set.of("overworld", "the_nether", "the_end", "paradise_lost");
 
-    private static final Map<String, String> BASE_WORLD_ID_BY_NAME = Map.of(
+    private static final Map<String, String> RESERVED_DIMENSION_ID_BY_NAME = Map.of(
             "overworld", "minecraft:overworld",
             "the_nether", "minecraft:the_nether",
             "the_end", "minecraft:the_end",
             "paradise_lost", "paradise_lost:paradise_lost");
 
-    /** Full dimension ids of the base worlds, for callers that work in ids. */
-    public static final Set<String> BASE_WORLD_IDS =
-            Set.copyOf(BASE_WORLD_ID_BY_NAME.values());
+    /** Full dimension ids of the reserved dimensions, for callers that work in ids. */
+    public static final Set<String> RESERVED_DIMENSION_IDS =
+            Set.copyOf(RESERVED_DIMENSION_ID_BY_NAME.values());
 
     /**
-     * The world type each base world's structure groups resolve against.
+     * The world type each reserved dimension's structure groups resolve
+     * against.
      *
-     * <p>A base world's generator is vanilla's, so its file carries no
-     * {@code type}; this supplies the one its structure groups are resolved
-     * against ({@link #getType()}). An explicit {@code type} in the file wins,
-     * which is how a consumer moves a base world onto another family's group
-     * set.
+     * <p>A reserved dimension's generator is vanilla's, so its file carries
+     * no {@code type}; this supplies the one its structure groups are
+     * resolved against ({@link #getType()}). An explicit {@code type} in the
+     * file wins, which is how a consumer moves a reserved dimension onto
+     * another family's group set.
      */
-    public static final Map<String, String> BASE_WORLD_TYPES = Map.of(
+    public static final Map<String, String> RESERVED_TYPE_BY_NAME = Map.of(
             "overworld", "overworld",
             "the_nether", "nether",
             "the_end", "end",
@@ -65,7 +66,7 @@ public class DimensionConfig {
     private String description;
 
     // === World generation ===
-    /** A number, or the string "env" (base worlds: read SEED from the environment). */
+    /** A number, or the string "env" (reserved dimensions: read SEED from the environment). */
     @SerializedName("seed")
     private JsonElement seed;
     @SerializedName("spawn")
@@ -97,7 +98,7 @@ public class DimensionConfig {
     /** Fixed circular biome patches over the generated layout (precision placement). */
     @SerializedName("biomePatches")
     private List<BiomePatch> biomePatches;
-    /** Base-world travel-scale metadata (worlds[].scale) — tooling only. */
+    /** Reserved-dimension travel-scale metadata (worlds[].scale) — tooling only. */
     @SerializedName("scale")
     private Double scale;
 
@@ -138,7 +139,7 @@ public class DimensionConfig {
         this.biomes = biomes;
     }
 
-    /** Legacy explicit id; when absent the id is {namespace}:{slug} (vanilla ids for base worlds). */
+    /** Legacy explicit id; when absent the id is {namespace}:{slug} (vanilla ids for reserved dimensions). */
     @SerializedName("dimensionId")
     private String dimensionId;
 
@@ -166,14 +167,14 @@ public class DimensionConfig {
     }
 
     /**
-     * The world type structure groups resolve against. Base worlds fall back
-     * to their family ({@link #BASE_WORLD_TYPES}) — they generate with
-     * vanilla's generator, so their files name no type, but they are managed
-     * like any other dimension and need one.
+     * The world type structure groups resolve against. Reserved dimensions
+     * fall back to their family ({@link #RESERVED_TYPE_BY_NAME}) — they
+     * generate with vanilla's generator, so their files name no type, but
+     * they are managed like any other dimension and need one.
      */
     public String getType() {
         if (this.type == null && this.name != null) {
-            return BASE_WORLD_TYPES.get(this.name);
+            return RESERVED_TYPE_BY_NAME.get(this.name);
         }
         return this.type;
     }
@@ -187,14 +188,14 @@ public class DimensionConfig {
     }
 
     /** True for filenames that override existing worlds (overworld, the_nether, the_end, paradise_lost). */
-    public boolean isBaseWorld() {
-        return this.name != null && BASE_WORLDS.contains(this.name);
+    public boolean isReserved() {
+        return this.name != null && RESERVED_NAMES.contains(this.name);
     }
 
-    /** Full dimension id for an explicit namespace: {namespace}:{slug} (base worlds keep vanilla ids). */
+    /** Full dimension id for an explicit namespace: {namespace}:{slug} (reserved dimensions keep vanilla ids). */
     public String getDimensionId(String namespace) {
-        if (this.name != null && BASE_WORLD_ID_BY_NAME.containsKey(this.name)) {
-            return BASE_WORLD_ID_BY_NAME.get(this.name);
+        if (this.name != null && RESERVED_DIMENSION_ID_BY_NAME.containsKey(this.name)) {
+            return RESERVED_DIMENSION_ID_BY_NAME.get(this.name);
         }
         if (this.dimensionId != null && !this.dimensionId.isBlank()) {
             return this.dimensionId.toLowerCase();
@@ -474,7 +475,7 @@ public class DimensionConfig {
         return sb.toString();
     }
 
-    /** Base-world travel scale (tooling metadata); custom dims use portal.scale. */
+    /** Reserved-dimension travel scale (tooling metadata); custom dims use portal.scale. */
     public double getScale() {
         if (this.scale != null) {
             return this.scale;
@@ -1466,7 +1467,7 @@ public class DimensionConfig {
      * mod detects on chunk load and registers as an exit zone. The shrine
      * structure SET ships with a near-zero frequency, raised to full only
      * for dimensions that enable this block (DimensionStructures), so
-     * shrines never leak into base worlds or unopted dims. The spawn
+     * shrines never leak into reserved dimensions or unopted dims. The spawn
      * exitPortal remains the guarantee; shrines are scenery.
      */
     public static class ExitShrines {

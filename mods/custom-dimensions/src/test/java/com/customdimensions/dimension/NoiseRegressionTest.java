@@ -310,7 +310,7 @@ class NoiseRegressionTest {
         assertFalse(plan.groups().containsKey("loot"));
     }
 
-    // --- base worlds: managed exactly like custom dimensions ----------------
+    // --- reserved dimensions: managed exactly like custom dimensions --------
 
     @Test
     void theOverworldEnablesItsFullGroupSetOnItsOwnCurves() {

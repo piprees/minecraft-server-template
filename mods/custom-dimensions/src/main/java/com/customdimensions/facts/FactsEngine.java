@@ -112,7 +112,7 @@ public final class FactsEngine {
     public static SeedFacts measure(MinecraftServer server, Identifier dimensionId, long seed) {
         DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
         if (def == null) {
-            def = MultiverseConfig.getInstance().getBaseWorld(dimensionId.toString());
+            def = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
         }
         int radius = def != null ? def.getPlayerBorderRadius() : 8192;
 

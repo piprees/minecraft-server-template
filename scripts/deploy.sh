@@ -781,7 +781,7 @@ if [[ -e "$MULTIVERSE_CONFIG" ]]; then
 import json, sys
 from pathlib import Path
 src = Path(sys.argv[1])
-base_worlds = {"overworld", "the_nether", "the_end", "paradise_lost"}
+reserved_names = {"overworld", "the_nether", "the_end", "paradise_lost"}
 if src.is_dir():
     settings = {}
     sf = src / "settings.json"
@@ -789,7 +789,7 @@ if src.is_dir():
         settings = json.load(open(sf))
     print(settings.get("namespace", "adventure"))
     for f in sorted((src / "dimensions").glob("*.json")):
-        if f.stem in base_worlds:
+        if f.stem in reserved_names:
             continue
         try:
             d = json.load(open(f))

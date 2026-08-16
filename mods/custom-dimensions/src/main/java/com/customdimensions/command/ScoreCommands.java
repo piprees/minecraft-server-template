@@ -35,7 +35,7 @@ public final class ScoreCommands {
         DimensionConfig def = MultiverseConfig.getInstance()
                 .getDimension(dimensionId.getPath());
         if (def == null) {
-            def = MultiverseConfig.getInstance().getBaseWorld(dimensionId.toString());
+            def = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
         }
         if (def == null) {
             source.sendError(Text.literal("No configured dimension " + dimensionId));

@@ -18,7 +18,7 @@ public final class PortalSafetyValidator {
 
     public static List<String> validate(Collection<DimensionConfig> configs) {
         List<String> warnings = new ArrayList<>();
-        // Known link targets: every configured dimension id + the base worlds.
+        // Known link targets: every configured dimension id + the reserved dimensions.
         java.util.Set<String> knownIds = new java.util.HashSet<>(
                 java.util.Set.of("minecraft:overworld", "minecraft:the_nether",
                         "minecraft:the_end", "paradise_lost:paradise_lost"));

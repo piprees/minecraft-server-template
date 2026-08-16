@@ -296,11 +296,11 @@ class NoiseGroupPlanTest {
         }
     }
 
-    // --- base worlds -------------------------------------------------------
+    // --- reserved dimensions -------------------------------------------------
 
     @Test
-    void aBaseWorldResolvesItsFamilysGroupsFromItsNameAlone() {
-        // A base-world file names no type — its generator is vanilla's — so
+    void aReservedDimensionResolvesItsFamilysGroupsFromItsNameAlone() {
+        // A reserved-dimension file names no type — its generator is vanilla's — so
         // the family comes from the filename the loader stamped.
         DimensionConfig config = GSON.fromJson(
                 "{\"seed\": 42, \"borders\": {\"player\": 1024}}", DimensionConfig.class);
@@ -312,7 +312,7 @@ class NoiseGroupPlanTest {
     }
 
     @Test
-    void eachBaseWorldCanonicalTypeResolvesToItsFamilysGroups() {
+    void eachReservedDimensionCanonicalTypeResolvesToItsFamilysGroups() {
         assertEquals(StructureGroupRegistry.knownGroups(),
                 plan("{\"type\": \"overworld\"}").groups().keySet());
         assertEquals(java.util.Set.of("deco", "settlements", "dungeons", "landmarks", "endgame"),
@@ -324,9 +324,9 @@ class NoiseGroupPlanTest {
     }
 
     @Test
-    void baseWorldDifficultyStillDrivesTheShifts() {
+    void reservedDimensionDifficultyStillDrivesTheShifts() {
         // the_end ships mobMultiplier 1.5 and the_nether higher still — the
-        // shifts must apply to a base world exactly as to any other dimension.
+        // shifts must apply to a reserved dimension exactly as to any other dimension.
         NoiseGroupPlan hostile = plan("{\"type\": \"nether\", "
                 + "\"difficulty\": {\"mobMultiplier\": 2.5}}");
         assertEquals(1.0, hostile.groups().get("dungeons").radial()[0], 1e-6);

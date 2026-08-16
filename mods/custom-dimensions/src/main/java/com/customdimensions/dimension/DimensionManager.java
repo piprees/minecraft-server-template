@@ -1297,10 +1297,10 @@ public class DimensionManager {
     }
 
     public void requestWorldLoad(String name) {
-        // Base worlds queue here too — CreateWorldsMixin defers them exactly
-        // like a custom dimension, so the guard must check getWorld() as
-        // well as getDimension(), or a base-world load request is silently
-        // dropped despite reporting success.
+        // Reserved dimensions queue here too — CreateWorldsMixin defers them
+        // exactly like a custom dimension, so the guard must check
+        // getWorld() as well as getDimension(), or a reserved-dimension load
+        // request is silently dropped despite reporting success.
         if (MultiverseConfig.getInstance().getDimension(name) != null
                 || MultiverseConfig.getInstance().getWorld(name) != null) {
             this.pendingWorldLoads.add(name);
@@ -1339,14 +1339,14 @@ public class DimensionManager {
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
         ServerWorldProperties worldProperties = (ServerWorldProperties) new UnmodifiableLevelProperties(saveProperties, saveProperties.getMainWorldProperties());
         DimensionConfig runtimeDef = this.runtimeDefinitions.get(dimName);
-        // A base world's seed comes from its own config file, exactly as
-        // ServerWorldSeedMixin serves it — the constructor seed builds the
+        // A reserved dimension's seed comes from its own config file, exactly
+        // as ServerWorldSeedMixin serves it — the constructor seed builds the
         // NoiseConfig, so handing it the overworld's would generate the
         // wrong nether while getSeed() reported the right one.
-        Long baseWorldSeed = MultiverseConfig.getInstance().getWorldSeedOverride(dimId.toString());
+        Long reservedSeed = MultiverseConfig.getInstance().getWorldSeedOverride(dimId.toString());
         long worldSeed = runtimeDef != null && runtimeDef.getSeed() != null
                 ? runtimeDef.getSeed()
-                : (baseWorldSeed != null ? baseWorldSeed : overworld.getSeed());
+                : (reservedSeed != null ? reservedSeed : overworld.getSeed());
 
         ServerWorld newWorld = new ServerWorld(
                 this.server, serverAccessor.getWorkerExecutor(), serverAccessor.getSession(),
@@ -1445,11 +1445,11 @@ public class DimensionManager {
         if (def != null) {
             return def.getDimensionIdentifier();
         }
-        // Base worlds keep their vanilla ids. Without this, "the_nether"
-        // resolved to {namespace}:the_nether and the lazy-load path could
-        // never reach minecraft:the_nether — which matters because
-        // CreateWorldsMixin defers EVERY non-overworld world, base worlds
-        // included, so nothing else was ever going to create them.
+        // Reserved dimensions keep their vanilla ids. Without this,
+        // "the_nether" resolved to {namespace}:the_nether and the lazy-load
+        // path could never reach minecraft:the_nether — which matters because
+        // CreateWorldsMixin defers EVERY non-overworld world, reserved
+        // dimensions included, so nothing else was ever going to create them.
         DimensionConfig world = MultiverseConfig.getInstance().getWorld(name);
         if (world != null) {
             return world.getDimensionIdentifier();

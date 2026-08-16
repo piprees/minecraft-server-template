@@ -590,13 +590,13 @@
   })
   if (live) document.body.classList.add('live')
 
-  // The base worlds, in the order they are worth seeing: the one everybody
-  // starts in, then the two that gate progression, then the skylands.
-  var BASE_WORLDS = ['overworld', 'the_nether', 'the_end', 'paradise_lost']
+  // The reserved dimensions, in the order they are worth seeing: the one
+  // everybody starts in, then the two that gate progression, then the skylands.
+  var RESERVED_NAMES = ['overworld', 'the_nether', 'the_end', 'paradise_lost']
 
-  function baseWorldRank(name) {
-    var i = BASE_WORLDS.indexOf(name)
-    return i === -1 ? BASE_WORLDS.length : i
+  function reservedRank(name) {
+    var i = RESERVED_NAMES.indexOf(name)
+    return i === -1 ? RESERVED_NAMES.length : i
   }
 
   // --- Filter + sort state from the query string, view state from the path ---
@@ -845,14 +845,14 @@
           case 'candidates':
             return parseInt(b.dataset.cands) - parseInt(a.dataset.cands)
           default:
-            // The four base worlds lead the default sort. Not strictly by
+            // The four reserved dimensions lead the default sort. Not strictly by
             // name, deliberately: they are the worlds every session starts
             // from, and hunting for "overworld" under O every time is the
             // sort serving the alphabet rather than the person reading it.
             // Only this default does it — an explicitly chosen sort stays
             // strictly on its own key.
             return (
-              baseWorldRank(a.dataset.name) - baseWorldRank(b.dataset.name) ||
+              reservedRank(a.dataset.name) - reservedRank(b.dataset.name) ||
               a.dataset.name.localeCompare(b.dataset.name)
             )
         }

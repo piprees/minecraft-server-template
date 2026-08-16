@@ -80,7 +80,7 @@ class PortalPresentationTest {
 
     @Test
     void aChainedDimensionKeepsItsOwnPresentation() {
-        // Only BASE worlds are neutral. A chained arrival (dim A -> dim B)
+        // Only RESERVED dimensions are neutral. A chained arrival (dim A -> dim B)
         // has a real config for A, so getPortalFor(A) answers and B's arrival
         // presents as A. Asserted through the lookup rather than the write
         // path, which needs a ServerWorld.

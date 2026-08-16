@@ -77,9 +77,9 @@ public final class BankView {
     }
 
     /**
-     * Every world the roller and the viewer both work over: base worlds
-     * first, since they are the ones a player actually lives in, then the
-     * custom dimensions.
+     * Every world the roller and the viewer both work over: reserved
+     * dimensions first, since they are the ones a player actually lives in,
+     * then the custom dimensions.
      */
     public static List<DimensionConfig> rollTargets() {
         List<DimensionConfig> out = new ArrayList<>(MultiverseConfig.getInstance().getWorlds());
@@ -88,9 +88,10 @@ public final class BankView {
     }
 
     /**
-     * A configured world by its slug, base worlds included. Every caller that
-     * takes a slug off a URL or a button needs this rather than
-     * {@code getDimension}, which answers null for a base world by design.
+     * A configured world by its slug, reserved dimensions included. Every
+     * caller that takes a slug off a URL or a button needs this rather than
+     * {@code getDimension}, which answers null for a reserved dimension by
+     * design.
      */
     public static DimensionConfig resolve(String slug) {
         DimensionConfig def = MultiverseConfig.getInstance().getDimension(slug);

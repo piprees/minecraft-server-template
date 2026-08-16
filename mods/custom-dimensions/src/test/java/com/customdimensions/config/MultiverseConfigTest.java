@@ -96,24 +96,24 @@ class MultiverseConfigTest {
         assertEquals("the_other", config.getPortalsByIgniter("minecraft:pink_petals", "x").get(0).getId());
     }
 
-    // --- base worlds --------------------------------------------------------
+    // --- reserved dimensions -------------------------------------------------
 
     @Test
-    void baseWorldsResolveByExactDimensionId(@TempDir Path dir) throws IOException {
+    void reservedDimensionsResolveByExactDimensionId(@TempDir Path dir) throws IOException {
         Path dims = dir.resolve("dimensions");
         Files.createDirectories(dims);
         Files.writeString(dims.resolve("the_end.json"), "{\"seed\":5,\"borders\":{\"player\":4096}}");
         Files.writeString(dims.resolve("paradise_lost.json"), "{\"seed\":6}");
         MultiverseConfig config = fromDirectory(dir);
 
-        DimensionConfig end = config.getBaseWorld("minecraft:the_end");
+        DimensionConfig end = config.getReservedDimension("minecraft:the_end");
         assertNotNull(end);
         assertEquals(4096, end.getPlayerBorderRadius());
-        assertNotNull(config.getBaseWorld("paradise_lost:paradise_lost"));
-        assertNull(config.getBaseWorld("minecraft:overworld"));   // not configured
-        assertNull(config.getBaseWorld(null));
+        assertNotNull(config.getReservedDimension("paradise_lost:paradise_lost"));
+        assertNull(config.getReservedDimension("minecraft:overworld"));   // not configured
+        assertNull(config.getReservedDimension(null));
 
-        // Managing a base world must never widen the namespace set: the
+        // Managing a reserved dimension must never widen the namespace set: the
         // lookup behind that gate is by PATH, and these namespaces carry
         // other mods' dimensions.
         assertFalse(config.isManagedNamespace("minecraft"));
@@ -131,21 +131,21 @@ class MultiverseConfigTest {
         Files.writeString(dims.resolve("the_claymarsh.json"), "{\"type\":\"overworld\",\"seed\":1}");
         MultiverseConfig config = fromDirectory(dir);
 
-        assertNull(config.getBaseWorld("someothermod:the_end"));
-        assertNull(config.getBaseWorld("someothermod:the_claymarsh"));
-        assertNull(config.getBaseWorld("minecraft:the_claymarsh"));
+        assertNull(config.getReservedDimension("someothermod:the_end"));
+        assertNull(config.getReservedDimension("someothermod:the_claymarsh"));
+        assertNull(config.getReservedDimension("minecraft:the_claymarsh"));
     }
 
     @Test
-    void baseWorldsTakeTheirFamilysWorldTypeWithoutConfiguringOne(@TempDir Path dir)
+    void reservedDimensionsTakeTheirFamilysWorldTypeWithoutConfiguringOne(@TempDir Path dir)
             throws IOException {
         Path dims = dir.resolve("dimensions");
         Files.createDirectories(dims);
-        for (String slug : DimensionConfig.BASE_WORLD_TYPES.keySet()) {
+        for (String slug : DimensionConfig.RESERVED_TYPE_BY_NAME.keySet()) {
             Files.writeString(dims.resolve(slug + ".json"), "{\"seed\":1}");
         }
         MultiverseConfig config = fromDirectory(dir);
-        for (var e : DimensionConfig.BASE_WORLD_TYPES.entrySet()) {
+        for (var e : DimensionConfig.RESERVED_TYPE_BY_NAME.entrySet()) {
             DimensionConfig def = config.getWorld(e.getKey());
             assertNotNull(def, e.getKey());
             assertEquals(e.getValue(), def.getType(), e.getKey());
@@ -160,7 +160,7 @@ class MultiverseConfigTest {
     }
 
     @Test
-    void baseWorldPortalsAreRegisteredLikeAnyOther(@TempDir Path dir) throws IOException {
+    void reservedDimensionPortalsAreRegisteredLikeAnyOther(@TempDir Path dir) throws IOException {
         Path dims = dir.resolve("dimensions");
         Files.createDirectories(dims);
         Files.writeString(dims.resolve("the_nether.json"), """
@@ -170,7 +170,7 @@ class MultiverseConfigTest {
         MultiverseConfig config = fromDirectory(dir);
 
         PortalDefinition portal = config.getPortal("the_nether");
-        assertNotNull(portal, "a base world's portal must reach the portal registry");
+        assertNotNull(portal, "a reserved dimension's portal must reach the portal registry");
         assertEquals("minecraft:the_nether", portal.getTargetDimension());
         assertEquals(8.0, portal.getScale());
         assertTrue(config.getPortalByIgniter("minecraft:flint_and_steel").isPresent());
@@ -181,7 +181,7 @@ class MultiverseConfigTest {
     }
 
     @Test
-    void baseWorldSeedOverridesResolveByExactId(@TempDir Path dir) throws IOException {
+    void reservedDimensionSeedOverridesResolveByExactId(@TempDir Path dir) throws IOException {
         Path dims = dir.resolve("dimensions");
         Files.createDirectories(dims);
         Files.writeString(dims.resolve("the_nether.json"), "{\"seed\":111}");

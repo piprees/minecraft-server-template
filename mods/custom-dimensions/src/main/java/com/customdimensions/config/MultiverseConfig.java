@@ -31,7 +31,7 @@ public class MultiverseConfig {
     private transient Path configRoot;
     private transient MinecraftServer server;
 
-    /** Every configured entry, keyed by slug — base worlds included. */
+    /** Every configured entry, keyed by slug — reserved dimensions included. */
     private Map<String, DimensionConfig> configs = new LinkedHashMap<>();
     /** Portal views for the custom dimensions that declare one. */
     private List<PortalDefinition> portals = new ArrayList<>();
@@ -72,12 +72,13 @@ public class MultiverseConfig {
         this.managedNamespaces = new LinkedHashSet<>();
         this.managedNamespaces.add(this.settings.namespace);
         for (DimensionConfig config : this.configs.values()) {
-            // Base worlds are deliberately NOT added to managedNamespaces:
-            // minecraft: and paradise_lost: are namespaces other mods also
-            // populate, and the mixins' definition lookup behind that gate is
-            // by PATH. Base worlds resolve by exact dimension id instead
-            // (getBaseWorld) — no collisions.
-            if (!config.isBaseWorld()) {
+            // Reserved dimensions are deliberately NOT added to
+            // managedNamespaces: minecraft: and paradise_lost: are
+            // namespaces other mods also populate, and the mixins'
+            // definition lookup behind that gate is by PATH. Reserved
+            // dimensions resolve by exact dimension id instead
+            // (getReservedDimension) — no collisions.
+            if (!config.isReserved()) {
                 this.managedNamespaces.add(config.getNamespace());
             }
             if (config.hasPortal()) {
@@ -114,14 +115,14 @@ public class MultiverseConfig {
         return this.managedNamespaces.contains(namespace);
     }
 
-    /** A CUSTOM dimension by slug (base worlds resolve via getWorld). */
+    /** A CUSTOM dimension by slug (reserved dimensions resolve via getWorld). */
     public DimensionConfig getDimension(String name) {
         DimensionConfig config = this.configs.get(name);
-        return config != null && !config.isBaseWorld() ? config : null;
+        return config != null && !config.isReserved() ? config : null;
     }
 
     public List<DimensionConfig> getDimensions() {
-        return this.configs.values().stream().filter(c -> !c.isBaseWorld()).toList();
+        return this.configs.values().stream().filter(c -> !c.isReserved()).toList();
     }
 
     public List<String> getDimensionNames() {
@@ -280,14 +281,14 @@ public class MultiverseConfig {
 
     /**
      * Seed override for a static world, by full dimension id ("minecraft:
-     * overworld" etc.). Driven by the base-world files (overworld.json,
+     * overworld" etc.). Driven by the reserved-dimension files (overworld.json,
      * the_nether.json, ...); "seed": "env" reads the SEED environment
      * variable. The config loads at createWorlds HEAD, so the override is
      * active from the overworld's very first chunk.
      */
     public Long getWorldSeedOverride(String dimensionId) {
         return this.configs.values().stream()
-                .filter(DimensionConfig::isBaseWorld)
+                .filter(DimensionConfig::isReserved)
                 .filter(c -> dimensionId.equals(c.getDimensionId()))
                 .map(DimensionConfig::getSeed)
                 .filter(s -> s != null)
@@ -296,40 +297,40 @@ public class MultiverseConfig {
     }
 
     /**
-     * The base-world config for an EXACT dimension id, or null.
+     * The reserved-dimension config for an EXACT dimension id, or null.
      *
-     * <p>Base worlds are managed exactly like custom dimensions — seed,
-     * border, difficulty, portal, structures — but they are resolved by full
-     * id rather than through {@link #isManagedNamespace}. {@code minecraft:}
+     * <p>Reserved dimensions are managed exactly like custom dimensions —
+     * seed, border, difficulty, portal, structures — but they are resolved by
+     * full id rather than through {@link #isManagedNamespace}. {@code minecraft:}
      * and {@code paradise_lost:} carry other mods' dimensions, and the lookup
      * behind the namespace gate is by PATH, so a third party's
      * {@code minecraft:whatever} would resolve against one of our configs.
      */
-    public DimensionConfig getBaseWorld(String dimensionId) {
+    public DimensionConfig getReservedDimension(String dimensionId) {
         if (dimensionId == null) {
             return null;
         }
         for (DimensionConfig config : this.configs.values()) {
-            if (config.isBaseWorld() && dimensionId.equals(config.getDimensionId())) {
+            if (config.isReserved() && dimensionId.equals(config.getDimensionId())) {
                 return config;
             }
         }
         return null;
     }
 
-    /** The base-world config for a given name (e.g. "overworld"), or null. */
+    /** The reserved-dimension config for a given name (e.g. "overworld"), or null. */
     public DimensionConfig getWorld(String name) {
         DimensionConfig config = this.configs.get(name);
-        return config != null && config.isBaseWorld() ? config : null;
+        return config != null && config.isReserved() ? config : null;
     }
 
     /**
-     * Every configured base world. They carry the same seed, border,
+     * Every configured reserved dimension. They carry the same seed, border,
      * difficulty, portal and structures blocks as any other dimension and are
      * rolled and scored the same way — so anything checking configs has to
      * check these too.
      */
     public List<DimensionConfig> getWorlds() {
-        return this.configs.values().stream().filter(DimensionConfig::isBaseWorld).toList();
+        return this.configs.values().stream().filter(DimensionConfig::isReserved).toList();
     }
 }

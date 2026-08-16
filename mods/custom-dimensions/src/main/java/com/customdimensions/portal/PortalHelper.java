@@ -247,9 +247,9 @@ public class PortalHelper {
         }
     }
 
-    /** Every dimension id the current config can produce, plus the base worlds — for orphan checks. */
+    /** Every dimension id the current config can produce, plus the reserved dimensions — for orphan checks. */
     private static Set<String> knownDimensionIds() {
-        Set<String> ids = new HashSet<>(DimensionConfig.BASE_WORLD_IDS);
+        Set<String> ids = new HashSet<>(DimensionConfig.RESERVED_DIMENSION_IDS);
         for (DimensionConfig config : MultiverseConfig.getInstance().getDimensions()) {
             ids.add(config.getDimensionId());
         }
@@ -770,7 +770,7 @@ public class PortalHelper {
 
     /**
      * Presentation for an arrival whose source world has no portal config —
-     * a base world such as the overworld. Vanilla's portal violet, matching
+     * a reserved dimension such as the overworld. Vanilla's portal violet, matching
      * {@link #parseColor}'s own fallback, so the way home reads as an
      * ordinary portal rather than as the dimension you are standing in.
      */
@@ -1246,7 +1246,7 @@ public class PortalHelper {
         // to leave, so the way home out of an ember dimension glowed ember
         // and read as another door deeper in.
         PortalDefinition presentation = MultiverseConfig.getInstance().getPortalFor(sourceWorld);
-        // No config for the source world means a BASE world — the overworld,
+        // No config for the source world means a RESERVED dimension — the overworld,
         // in practice, which is where almost every portal comes from. It has
         // no portal block of its own, so falling back to `definition` (the
         // DESTINATION's portal) would repeat the mistake described above.

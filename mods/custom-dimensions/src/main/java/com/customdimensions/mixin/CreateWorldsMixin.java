@@ -16,13 +16,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Filters vanilla's createWorlds dimension loop down to the BASE WORLDS.
+ * Filters vanilla's createWorlds dimension loop down to the RESERVED DIMENSIONS.
  * The loop iterates Registry.getEntrySet() and creates a ServerWorld for
  * every entry; redirecting getEntrySet() leaves the ~80 custom dimensions
  * to DimensionManager.getOrCreateDimension(), which builds each one when a
  * player first enters it, so DH and c2me only pay for dimensions in use.
  *
- * The base worlds are NOT deferred. Vanilla asks for them by key from paths
+ * The reserved dimensions are NOT deferred. Vanilla asks for them by key from paths
  * with no lazy-creation hook — portal travel is ServerWorld.getWorld(NETHER)
  * and takes null at face value — so they must exist from the first tick,
  * exactly as they do without this mod. This mixin is the ONE definition of
@@ -73,8 +73,8 @@ public class CreateWorldsMixin {
         Set<Map.Entry<RegistryKey<DimensionOptions>, DimensionOptions>> filtered =
             registry.getEntrySet().stream()
                 .filter(entry -> entry.getKey().equals(DimensionOptions.OVERWORLD)
-                        || DimensionConfig.BASE_WORLD_IDS.contains(entry.getKey().getValue().toString()))
-                // Base worlds are mod-controlled like every other world:
+                        || DimensionConfig.RESERVED_DIMENSION_IDS.contains(entry.getKey().getValue().toString()))
+                // Reserved dimensions are mod-controlled like every other world:
                 // suppress.biomes filters the options vanilla constructs
                 // from, right here at the one seam that defines them.
                 // Construction-only — nothing is written back to the
@@ -96,7 +96,7 @@ public class CreateWorldsMixin {
         if (skipped > 0) {
             MultiverseServer.LOGGER.info(
                 "Lazy world creation: {} custom dimension(s) deferred to first entry, "
-                + "{} base world(s) created now", skipped, filtered.size());
+                + "{} reserved dimension(s) created now", skipped, filtered.size());
         }
         return filtered;
     }

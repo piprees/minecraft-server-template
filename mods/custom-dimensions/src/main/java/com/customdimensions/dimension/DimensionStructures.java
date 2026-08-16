@@ -54,12 +54,12 @@ public final class DimensionStructures {
             def = com.customdimensions.dimension.DimensionManager.getInstance()
                     .resolveDefinition(key.getPath());
         } else {
-            // Base worlds (minecraft:overworld/the_nether/the_end,
+            // Reserved dimensions (minecraft:overworld/the_nether/the_end,
             // paradise_lost:paradise_lost) resolve by EXACT dimension id.
             // They are absent from the managed-namespace set on purpose —
             // those namespaces hold other mods' dimensions and the lookup
             // above is by path.
-            def = MultiverseConfig.getInstance().getBaseWorld(key.toString());
+            def = MultiverseConfig.getInstance().getReservedDimension(key.toString());
         }
         if (def == null) {
             return null;
@@ -126,7 +126,7 @@ public final class DimensionStructures {
             String theme = setId != null ? StructureThemes.themeOf(setId) : null;
 
             // Exit shrines ship with a near-zero frequency so they can never
-            // generate in worlds that bypass this rebuild (base worlds).
+            // generate in worlds that bypass this rebuild (reserved dimensions).
             // Opted-in dims get the full-frequency copy; everyone else keeps
             // the effectively-off original. Exempt from every theme factor.
             if ("adventure:exit_shrines".equals(setId)) {

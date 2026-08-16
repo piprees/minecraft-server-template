@@ -63,13 +63,13 @@ public final class DimensionConfigLoader {
         /**
          * Biome ids removed from every world's biome source ({@code
          * "suppress": {"biomes": [...]}}) — applied by BiomeSuppression to
-         * listed sources, full-source dims, and the base worlds alike.
+         * listed sources, full-source dims, and the reserved dimensions alike.
          * Unknown ids WARN at boot.
          */
         public java.util.List<String> suppressBiomes = java.util.List.of();
     }
 
-    /** Settings + resolved dimension map (base worlds included, keyed by slug). */
+    /** Settings + resolved dimension map (reserved dimensions included, keyed by slug). */
     public record LoadResult(Settings settings, Map<String, DimensionConfig> dimensions) {
     }
 

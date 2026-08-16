@@ -132,7 +132,7 @@ public final class PortalAuraManager {
         Map<BlockPos, PortalHelper.AuraSite> sites =
                 PortalHelper.getAuraSites().computeIfAbsent(targetKey, k -> new HashMap<>());
         if (!sites.containsKey(siteKey) && settings.affectsTarget()) {
-            // Target side takes on the SOURCE's nature. Base-world sources
+            // Target side takes on the SOURCE's nature. Reserved-dimension sources
             // have no portal config, so this side usually samples; a
             // chained dimension's own aura.palette overrides its emission.
             PortalDefinition.AuraSettings sourceEmission = emissionOverrideFor(sourceWorld);

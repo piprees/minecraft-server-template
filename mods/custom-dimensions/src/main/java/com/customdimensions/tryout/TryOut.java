@@ -193,9 +193,9 @@ public final class TryOut {
     }
 
     /**
-     * A dimension's config by id, base worlds included.
+     * A dimension's config by id, reserved dimensions included.
      *
-     * <p>A managed dimension is keyed by PATH and a base world by its FULL
+     * <p>A managed dimension is keyed by PATH and a reserved dimension by its FULL
      * id, so a path-only lookup answers null for the overworld, the nether,
      * the end and paradise_lost — and a null here is reported as "not ready
      * yet", which never becomes ready. Every other caller that takes a
@@ -205,7 +205,7 @@ public final class TryOut {
     private static DimensionConfig resolve(Identifier dimensionId) {
         DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
         return def != null ? def
-                : MultiverseConfig.getInstance().getBaseWorld(dimensionId.toString());
+                : MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
     }
 
     private static void build(MinecraftServer server, PendingStart start) {

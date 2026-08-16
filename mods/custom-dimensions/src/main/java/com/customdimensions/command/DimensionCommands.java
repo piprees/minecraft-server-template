@@ -684,7 +684,7 @@ public class DimensionCommands {
      */
     private static int load(CommandContext<ServerCommandSource> ctx, String name) {
         ServerCommandSource source = ctx.getSource();
-        // Base worlds load through here too: CreateWorldsMixin defers every
+        // Reserved dimensions load through here too: CreateWorldsMixin defers every
         // non-overworld world, so "the_nether" is as absent at boot as any
         // custom dimension and needs the same way in.
         if (MultiverseConfig.getInstance().getDimension(name) == null

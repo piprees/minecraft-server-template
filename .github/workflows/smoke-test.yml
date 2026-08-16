@@ -657,7 +657,7 @@ jobs:
                   bad.append(f"the render's height is CONSTANT across all {sampled} columns "
                              f"(spread {spread}) — it is not describing terrain")
           if bad:
-              where = ("a BASE WORLD — vanilla's own generator, no pack worldgen. "
+              where = ("a MINECRAFT-NAMESPACE dimension — this harness's own control. "
                        "The harness or the renderer is broken, not the pack."
                        if control else
                        "a pack dimension. The renderer and the facts have drifted apart.")

@@ -55,13 +55,13 @@ class DimensionConfigTest {
     }
 
     @Test
-    void baseWorldsKeepVanillaIds() {
+    void reservedDimensionsKeepVanillaIds() {
         assertEquals("minecraft:overworld", parse("overworld", "{}").getDimensionId());
         assertEquals("minecraft:the_nether", parse("the_nether", "{}").getDimensionId());
         assertEquals("minecraft:the_end", parse("the_end", "{}").getDimensionId());
         assertEquals("paradise_lost:paradise_lost", parse("paradise_lost", "{}").getDimensionId());
-        assertTrue(parse("overworld", "{}").isBaseWorld());
-        assertFalse(parse("the_claymarsh", "{}").isBaseWorld());
+        assertTrue(parse("overworld", "{}").isReserved());
+        assertFalse(parse("the_claymarsh", "{}").isReserved());
     }
 
     @Test

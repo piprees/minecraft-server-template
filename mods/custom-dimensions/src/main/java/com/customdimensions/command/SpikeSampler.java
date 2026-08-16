@@ -220,7 +220,7 @@ public final class SpikeSampler {
      * <p>It comes from {@code DimensionManager}'s own
      * {@code createDimensionOptions} — the exact code world creation runs —
      * so a divergence here is a real divergence and not two builders
-     * disagreeing. Base worlds (the nether, the end, paradise_lost) have no
+     * disagreeing. Reserved dimensions (the nether, the end, paradise_lost) have no
      * config-built generator; theirs is read from the DIMENSION registry.
      */
     public static Base base(MinecraftServer server, Identifier dimensionId) {

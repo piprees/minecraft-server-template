@@ -345,7 +345,7 @@ public final class RenderCheck {
             DimensionConfig resolved =
                     MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
             if (resolved == null) {
-                resolved = MultiverseConfig.getInstance().getBaseWorld(dimensionId.toString());
+                resolved = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
             }
             this.def = resolved;
             int configured = resolved != null ? resolved.getPlayerBorderRadius() : 8192;
@@ -422,11 +422,11 @@ public final class RenderCheck {
         /**
          * Resolves the world and builds both headless rigs.
          *
-         * <p>Base worlds use the LIVE world, never a try-out: their generator
-         * is vanilla's own, read from the DIMENSION registry, and
+         * <p>Reserved dimensions use the LIVE world, never a try-out: their
+         * generator is vanilla's own, read from the DIMENSION registry, and
          * {@code createDimensionOptions} would hand a try-out a MANAGED
-         * generator built from the base world's family instead — which is
-         * exactly the thing a control is supposed to rule out.
+         * generator built from the reserved dimension's family instead —
+         * which is exactly the thing a control is supposed to rule out.
          */
         private void prepare(MinecraftServer server) {
             if (this.base == null) {
@@ -460,19 +460,19 @@ public final class RenderCheck {
                 return;
             }
 
-            boolean isBaseWorld =
-                    MultiverseConfig.getInstance().getBaseWorld(this.dimensionId.toString()) != null;
-            if (isBaseWorld) {
+            boolean isReserved =
+                    MultiverseConfig.getInstance().getReservedDimension(this.dimensionId.toString()) != null;
+            if (isReserved) {
                 ServerWorld live = server.getWorld(
                         RegistryKey.of(RegistryKeys.WORLD, this.dimensionId));
                 if (live == null) {
-                    fail("base world " + this.dimensionId + " is not loaded");
+                    fail("reserved dimension " + this.dimensionId + " is not loaded");
                     return;
                 }
                 if (live.getSeed() != this.seed) {
-                    fail("base world " + this.dimensionId + " runs seed " + live.getSeed()
+                    fail("reserved dimension " + this.dimensionId + " runs seed " + live.getSeed()
                             + ", not " + this.seed
-                            + " — a base world has no try-out that keeps vanilla's generator, "
+                            + " — a reserved dimension has no try-out that keeps vanilla's generator, "
                             + "so the control must be run against the seed it actually has");
                     return;
                 }

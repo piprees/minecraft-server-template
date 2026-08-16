@@ -41,12 +41,12 @@ public final class DifficultyManager {
     private DifficultyManager() {
     }
 
-    /** The dimension config governing a world: base worlds by full id, managed custom dims by path. */
+    /** The dimension config governing a world: reserved dimensions by full id, managed custom dims by path. */
     public static DimensionConfig configFor(RegistryKey<World> worldKey) {
         MultiverseConfig config = MultiverseConfig.getInstance();
         Identifier id = worldKey.getValue();
-        for (String base : DimensionConfig.BASE_WORLDS) {
-            DimensionConfig world = config.getWorld(base);
+        for (String reservedName : DimensionConfig.RESERVED_NAMES) {
+            DimensionConfig world = config.getWorld(reservedName);
             if (world != null && world.getDimensionId().equals(id.toString())) {
                 return world;
             }

@@ -612,7 +612,7 @@ class CriteriaTest {
     // ------------------------------------------------- progression floor
 
     @Test
-    void reachabilityGatesApplyOnlyToTheLiteralBaseWorld() {
+    void reachabilityGatesApplyOnlyToTheLiteralReservedDimension() {
         var fortress = new Criteria.FortressReachableInNether();
         var endCity = new Criteria.EndCityReachableInEnd();
 
@@ -926,7 +926,7 @@ class CriteriaTest {
     void gatesCostNoWeightSoClearingThemBuysNothing() {
         // A gate must not appear in the denominator at all: clearing one is a
         // precondition for being scored, not a mark to be awarded. Every gate
-        // this pack has is unconditional or keyed on a base world's id, so the
+        // this pack has is unconditional or keyed on a reserved dimension's id, so the
         // check is that no config change adds one to the ceiling.
         DimensionConfig plain = config(null, null, null);
         DimensionConfig nether = new DimensionConfig();

@@ -59,7 +59,7 @@ public final class DimensionLint {
     public static List<Finding> lint(MinecraftServer server, String only) {
         List<Finding> findings = new ArrayList<>();
         Map<String, List<String>> igniters = new TreeMap<>();
-        // Base worlds carry the same structures and seedRoll blocks as any
+        // Reserved dimensions carry the same structures and seedRoll blocks as any
         // other dimension and are rolled the same way, so they are linted
         // the same way.
         for (DimensionConfig def : targets()) {
@@ -76,7 +76,7 @@ public final class DimensionLint {
         return findings;
     }
 
-    /** Every configured dimension AND base world, in a stable order. */
+    /** Every configured dimension AND reserved dimension, in a stable order. */
     public static List<DimensionConfig> targets() {
         List<DimensionConfig> out =
                 new ArrayList<>(MultiverseConfig.getInstance().getDimensions());
