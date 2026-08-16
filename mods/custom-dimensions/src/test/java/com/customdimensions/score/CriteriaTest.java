@@ -602,8 +602,7 @@ class CriteriaTest {
     @Test
     void fortressWithinTheFloorPassesBeyondItFails() {
         var c = new Criteria.FortressReachableInNether();
-        DimensionConfig nether = new DimensionConfig();
-        nether.setName("the_nether");
+        DimensionConfig nether = withBorder("the_nether", 1024);
 
         SeedFacts close = withStructures(structuresWithPoolAndNearest(
                 Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 400.0)), 1024);
@@ -642,17 +641,55 @@ class CriteriaTest {
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(unplaced, nether));
     }
 
+    /** A dimension config with an explicit player border, so no default is assumed. */
+    private static DimensionConfig withBorder(String name, int playerBorder) {
+        DimensionConfig def = new DimensionConfig();
+        def.setName(name);
+        DimensionConfig.Borders b = new DimensionConfig.Borders();
+        b.player = playerBorder;
+        b.generation = playerBorder;
+        def.setBorders(b);
+        return def;
+    }
+
+    @Test
+    void reachabilityFloorIsHalfTheDimensionsOwnBorder() {
+        // Both gates ask the same question against their own scale, because a
+        // distance in blocks means different things at a 1024 border and an
+        // 8192 one.
+        DimensionConfig nether = withBorder("the_nether", 1024);
+        DimensionConfig end = withBorder("the_end", 8192);
+        assertEquals(512.0, Criteria.reachableWithin(nether), 1e-9);
+        assertEquals(4096.0, Criteria.reachableWithin(end), 1e-9);
+    }
+
     @Test
     void endCityFloorMirrorsTheFortressGate() {
         var c = new Criteria.EndCityReachableInEnd();
-        DimensionConfig end = new DimensionConfig();
-        end.setName("the_end");
+        DimensionConfig end = withBorder("the_end", 8192);
         SeedFacts close = withStructures(structuresWithPoolAndNearest(
                 Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 1500.0)), 8192);
         SeedFacts far = withStructures(structuresWithPoolAndNearest(
-                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 3000.0)), 8192);
+                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 5000.0)), 8192);
         assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(close, end));
         assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(far, end));
+    }
+
+    @Test
+    void anEndCityBeyondTheVoidRingIsStillReachable() {
+        // End cities only generate on the outer islands, which start about
+        // 1024 blocks out, so the nearest one measures ~2050-3450 blocks from
+        // spawn on an ordinary seed. A floor that rejects those is rejecting
+        // the End's geometry, not a bad world.
+        var c = new Criteria.EndCityReachableInEnd();
+        DimensionConfig end = withBorder("the_end", 8192);
+        for (double blocks : new double[] {2048.0, 2291.0, 3453.0}) {
+            SeedFacts facts = withStructures(structuresWithPoolAndNearest(
+                    Map.of("minecraft:end_city", 80),
+                    Map.of("minecraft:end_city", blocks)), 8192);
+            assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(facts, end),
+                    blocks + " blocks is inside an 8192 border and must pass");
+        }
     }
 
     @Test
@@ -668,8 +705,7 @@ class CriteriaTest {
 
     @Test
     void aFailedReachabilityGateRejectsTheWholeSeed() {
-        DimensionConfig nether = new DimensionConfig();
-        nether.setName("the_nether");
+        DimensionConfig nether = withBorder("the_nether", 1024);
         SeedFacts far = withStructures(structuresWithPoolAndNearest(
                 Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 4000.0)), 1024);
         Scorecard card = Scorer.score(far, nether, Criteria.all());
@@ -742,8 +778,7 @@ class CriteriaTest {
         // surplus elsewhere. A gate is not for sale. Blaze rods have no source
         // but a fortress, so a Nether whose only one is 4000 blocks out is
         // broken however well it measures everywhere else.
-        DimensionConfig nether = new DimensionConfig();
-        nether.setName("the_nether");
+        DimensionConfig nether = withBorder("the_nether", 1024);
         Scorecard card = Scorer.score(withStructures(structuresWithPoolAndNearest(
                 Map.of("minecraft:fortress", 100), Map.of("minecraft:fortress", 4000.0)), 1024),
                 nether, Criteria.all());

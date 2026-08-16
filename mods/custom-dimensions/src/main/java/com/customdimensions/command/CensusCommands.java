@@ -46,19 +46,9 @@ public final class CensusCommands {
     /** Structure id -> what it gates. Reported whenever placed in this world. */
     private static final Map<String, String> PROGRESSION_CRITICAL = new LinkedHashMap<>();
 
-    /**
-     * Structure id -> the reachability floor the seed roller gates on
-     * (score/Criteria.java's FortressReachableInNether / EndCityReachableInEnd
-     * — change both together). Reported here so this diagnostic and the
-     * roller's verdict can never quietly disagree about the same seed.
-     */
-    private static final Map<String, Double> REACHABILITY_FLOOR_BLOCKS = new LinkedHashMap<>();
-
     static {
         PROGRESSION_CRITICAL.put("minecraft:fortress", "blaze rods");
         PROGRESSION_CRITICAL.put("minecraft:end_city", "elytra");
-        REACHABILITY_FLOOR_BLOCKS.put("minecraft:fortress", 512.0);
-        REACHABILITY_FLOOR_BLOCKS.put("minecraft:end_city", 2048.0);
     }
 
     private CensusCommands() {
@@ -141,7 +131,7 @@ public final class CensusCommands {
                     .append(mismatches.size()).append(" mismatch(es), first differing group ")
                     .append(firstGroup).append(", first differing structure ").append(firstStructure)
                     .append(", first differing pool entry ").append(firstPool);
-            appendReachability(msg, liveNearest, forced);
+            appendReachability(msg, liveNearest, forced, facts.playableRadius());
             appendForced(msg, forced);
             source.sendError(Text.literal(msg.toString()));
             return 0;
@@ -149,7 +139,7 @@ public final class CensusCommands {
 
         msg.append("live and facts agree (").append(liveTotal).append(" positions, ")
                 .append(liveByGroup.size()).append(" group(s))");
-        appendReachability(msg, liveNearest, forced);
+        appendReachability(msg, liveNearest, forced, facts.playableRadius());
         appendForced(msg, forced);
         final String out = msg.toString();
         source.sendFeedback(() -> Text.literal(out), false);
@@ -194,7 +184,8 @@ public final class CensusCommands {
      * comparison above would never surface.
      */
     private static void appendReachability(StringBuilder msg, Map<String, Double> liveNearest,
-                                           Map<String, List<ChunkPos>> forced) {
+                                           Map<String, List<ChunkPos>> forced, double playableRadius) {
+        double floor = com.customdimensions.score.Criteria.reachableWithin(playableRadius);
         for (Map.Entry<String, String> critical : PROGRESSION_CRITICAL.entrySet()) {
             String id = critical.getKey();
             Double nearest = liveNearest.get(id);
@@ -209,11 +200,8 @@ public final class CensusCommands {
                 msg.append("not placed here");
             } else {
                 msg.append(Math.round(nearest)).append(" blocks");
-                Double floor = REACHABILITY_FLOOR_BLOCKS.get(id);
-                if (floor != null) {
-                    msg.append(nearest <= floor ? " (within the " : " (BEYOND the ")
-                            .append(floor.intValue()).append("-block reachability floor)");
-                }
+                msg.append(nearest <= floor ? " (within the " : " (BEYOND the ")
+                        .append((int) floor).append("-block reachability floor)");
             }
         }
     }

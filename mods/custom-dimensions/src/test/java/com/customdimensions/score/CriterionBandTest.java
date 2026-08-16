@@ -156,12 +156,22 @@ class CriterionBandTest {
 
     @Test
     void theReachabilityGatesDeclareTheirOwnFloors() {
-        // The two floors are the numbers CensusCommands.REACHABILITY_FLOOR_BLOCKS
-        // mirrors; a drift between them is a real bug, so pin both.
+        // Both floors are half the dimension's own playable border, so they
+        // scale with it instead of meaning different things at a 1024 border
+        // and an 8192 one. CensusCommands reads the same definition rather
+        // than mirroring a number that could drift from it.
+        DimensionConfig nether = new DimensionConfig();
+        DimensionConfig.Borders small = new DimensionConfig.Borders();
+        small.player = 1024;
+        nether.setBorders(small);
+        DimensionConfig end = new DimensionConfig();
+        DimensionConfig.Borders large = new DimensionConfig.Borders();
+        large.player = 8192;
+        end.setBorders(large);
         assertArrayEquals(new double[] {0.0, 512.0},
-                new Criteria.FortressReachableInNether().band(new DimensionConfig()));
-        assertArrayEquals(new double[] {0.0, 2048.0},
-                new Criteria.EndCityReachableInEnd().band(new DimensionConfig()));
+                new Criteria.FortressReachableInNether().band(nether));
+        assertArrayEquals(new double[] {0.0, 4096.0},
+                new Criteria.EndCityReachableInEnd().band(end));
     }
 
     @Test

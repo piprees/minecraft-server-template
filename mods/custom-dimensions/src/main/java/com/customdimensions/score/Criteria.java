@@ -870,7 +870,6 @@ public final class Criteria {
      */
     static final class FortressReachableInNether implements Criterion {
         static final String STRUCTURE = "minecraft:fortress";
-        static final double WITHIN_BLOCKS = 512.0;
 
         public String id() {
             return "fortress_reachable_in_nether";
@@ -881,7 +880,7 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "a fortress sits within " + (int) WITHIN_BLOCKS + " blocks of spawn";
+            return "a fortress sits within " + (int) reachableWithin(def) + " blocks of spawn";
         }
 
         public boolean applicable(DimensionConfig def) {
@@ -893,12 +892,42 @@ public final class Criteria {
         }
 
         public double[] band(DimensionConfig def) {
-            return new double[] {0.0, WITHIN_BLOCKS};
+            return new double[] {0.0, reachableWithin(def)};
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
-            return reachabilityGate(facts, STRUCTURE, WITHIN_BLOCKS);
+            return reachabilityGate(facts, STRUCTURE, reachableWithin(def));
         }
+    }
+
+    /**
+     * How far a progression structure may sit from spawn and still count as
+     * reachable, as a fraction of the dimension's own playable radius.
+     *
+     * <p>A fraction for the reason {@link Band} gives: the pack spans
+     * 1024-block borders to 16384-block ones, and one distance in blocks cannot
+     * mean the same thing across that range. Both gates carried an absolute
+     * number, and the End's was a quarter of its 8192 border while the Nether's
+     * was half of its 1024 one — so the End demanded an end city inside the
+     * radius where the void ring and the central island are the only things
+     * that exist, and rejected essentially every seed on geometry rather than
+     * quality. Half the radius is the Nether's own working figure, which this
+     * reproduces exactly (0.5 x 1024 = 512).
+     */
+    public static final double REACHABLE_FRACTION = 0.5;
+
+    /** The reachability floor in blocks for this dimension's own border. */
+    public static double reachableWithin(DimensionConfig def) {
+        return def.getPlayerBorderRadius() * REACHABLE_FRACTION;
+    }
+
+    /**
+     * The same floor from a measured playable radius, for callers holding facts
+     * rather than a config. One definition, so the roller's verdict and any
+     * diagnostic reporting it can never disagree about the same seed.
+     */
+    public static double reachableWithin(double playableRadius) {
+        return playableRadius * REACHABLE_FRACTION;
     }
 
     /**
@@ -909,7 +938,6 @@ public final class Criteria {
      */
     static final class EndCityReachableInEnd implements Criterion {
         static final String STRUCTURE = "minecraft:end_city";
-        static final double WITHIN_BLOCKS = 2048.0;
 
         public String id() {
             return "end_city_reachable_in_end";
@@ -920,7 +948,7 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "an end city sits within " + (int) WITHIN_BLOCKS + " blocks of spawn";
+            return "an end city sits within " + (int) reachableWithin(def) + " blocks of spawn";
         }
 
         public boolean applicable(DimensionConfig def) {
@@ -932,11 +960,11 @@ public final class Criteria {
         }
 
         public double[] band(DimensionConfig def) {
-            return new double[] {0.0, WITHIN_BLOCKS};
+            return new double[] {0.0, reachableWithin(def)};
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
-            return reachabilityGate(facts, STRUCTURE, WITHIN_BLOCKS);
+            return reachabilityGate(facts, STRUCTURE, reachableWithin(def));
         }
     }
 
