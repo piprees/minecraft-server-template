@@ -30,6 +30,15 @@
     if (lbReturnFocus && document.contains(lbReturnFocus)) lbReturnFocus.focus()
     lbReturnFocus = null
     lbCurrentCand = null
+    // Closing drops back to the spawn view. Reopening starts there again
+    // unless the whole-world map exists by then, which the probe decides.
+    lbShowingHires = false
+    lbHiresReady = false
+    lbRenderAsked = ''
+    lbRenderWatching = ''
+    lbNote('')
+    var box = lb.querySelector('.lb-image')
+    if (box) box.classList.remove('awaiting-hires')
     // The candidate leaves the URL; the dimension behind it stays, because
     // closing the lightbox reveals the expanded card rather than the root.
     setRoute(expandedDimName(), '')
@@ -76,6 +85,18 @@
   var lbHiresSrc = null
   var lbHiresReady = false
   var lbShowingHires = false
+  // The candidate this modal has asked the server to draw, as
+  // "<dim>/<seed>" — the same spelling /pipeline-status reports it under.
+  // Kept so a second press does not post a second request, and so the modal
+  // can tell that the render it was watching has finished.
+  var lbRenderAsked = ''
+  var lbRenderWatching = ''
+  var lbRenderNoteEl = lb.querySelector('.lb-render-note')
+  function lbNote(text) {
+    if (!lbRenderNoteEl) return
+    lbRenderNoteEl.textContent = text || ''
+    lbRenderNoteEl.hidden = !text
+  }
   // How much world each render covers, in blocks, from the attributes the
   // page already carries. Guarded end to end: a missing panel, a stale
   // index.html or an unparseable attribute answers 0, and the labels fall
@@ -115,6 +136,18 @@
     btn.disabled = false
     btn.setAttribute('aria-pressed', lbShowingHires ? 'true' : 'false')
     var pending = lbShowingHires && !lbHiresReady
+    if (!lbHiresReady && !lbShowingHires) {
+      // No whole-world map on disk for this candidate. The button is an
+      // ASK, not a toggle: pressing it is the only thing on the page that
+      // starts a detail render, and it costs minutes of CPU — so say that
+      // rather than leaving it looking like a free view change.
+      btn.textContent = 'High-def'
+      btn.title = 'Draw the whole-world map for this seed — ' + highLabel.toLowerCase()
+        + '. It is minutes of CPU, and progress is reported here on the card.'
+      var askBox = lb.querySelector('.lb-image')
+      if (askBox) askBox.classList.remove('awaiting-hires')
+      return
+    }
     btn.textContent = (lbShowingHires ? highLabel : lowLabel) + (pending ? ' · rendering' : '')
     btn.title = pending
       ? 'The whole-world render is not drawn yet — the spawn view is shown at its'
@@ -173,8 +206,109 @@
   var lbResToggle = lb.querySelector('.lb-res-toggle')
   if (lbResToggle) lbResToggle.addEventListener('click', function (e) {
     e.stopPropagation()
-    lbSetRes(!lbShowingHires)
+    var want = !lbShowingHires
+    lbSetRes(want)
+    // The ONE place a detail render is started. Not on open, not on arrowing
+    // between candidates or dimensions: a whole-world map samples the world
+    // edge to edge and runs the generator at every sample, so nothing may
+    // ask for one on the user's behalf.
+    if (want && !lbHiresReady) askForDetailRender()
   })
+
+  /**
+   * Asks the server to draw this candidate's whole-world map.
+   *
+   * <p>One render runs at a time server-side, and a refusal is reported here
+   * rather than swallowed — a button that posts, is turned down and says
+   * nothing is indistinguishable from a broken one.
+   */
+  function askForDetailRender() {
+    if (!live) return
+    var c = window.lbCandidate()
+    if (!c) return
+    var key = c.dim + '/' + c.seed
+    if (lbRenderAsked === key) return
+    lbRenderAsked = key
+    lbNote('Asking for the whole-world map…')
+    fetch('/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // The seed goes as a string: a 64-bit seed does not survive a JSON
+      // number in this browser, and the server parses either form.
+      body: JSON.stringify({ dim: c.dim, seed: String(c.seed), resolution: 'highres' }),
+    })
+      .then(function (r) { return r.json() })
+      .then(function (d) {
+        if (lbRenderAsked !== key) return
+        if (d && d.error) {
+          lbRenderAsked = ''
+          lbNote(d.error === 'a render is already running'
+            ? 'Another map is being drawn — press High-def again once it finishes.'
+            : d.error)
+          return
+        }
+        lbNote('Drawing the whole world — minutes of CPU. This card updates when it lands.')
+      })
+      .catch(function () {
+        if (lbRenderAsked !== key) return
+        lbRenderAsked = ''
+        lbNote('Could not reach the server.')
+      })
+  }
+
+  /**
+   * Looks for this candidate's whole-world render and shows it if it is
+   * there. A plain GET of an image, never a request to draw one.
+   */
+  function probeHires(cand) {
+    if (!lbHiresSrc) return
+    var p = new Image()
+    p.onload = function () {
+      // Arrow-key nav can move on before an earlier candidate's probe
+      // lands — a stale probe must not overwrite what is on screen now.
+      if (lbCurrentCand !== cand) return
+      lbHiresReady = true
+      lbShowingHires = true
+      lbImg.src = lbHiresSrc
+      lbScaleInset()
+      updateResToggle()
+      if (window.alignLbOverlay) window.alignLbOverlay()
+    }
+    p.src = lbHiresSrc
+  }
+
+  /**
+   * What the roller's status poll hands the modal each time it lands.
+   *
+   * <p>Progress for a detail render belongs on the card that asked for it,
+   * not on the roller's line under the nav — that line is about the bank as
+   * a whole, and a page that looks frozen while one modal works is exactly
+   * what it produced. Matched on {@code <dim>/<seed>} so a render for some
+   * other candidate says nothing here.
+   */
+  window.lbRenderStatus = function (st) {
+    if (!lb.classList.contains('open')) {
+      lbRenderWatching = ''
+      return
+    }
+    var open = window.lbCandidate()
+    if (!open) return
+    var mine = open.dim + '/' + open.seed
+    var busy = (st.rendering_high || [])[0] || ''
+    if (busy === mine) {
+      lbRenderWatching = mine
+      var secs = st.rendering_high_seconds || 0
+      lbNote('Drawing the whole world — ' + secs + 's so far. It runs to minutes.')
+      return
+    }
+    if (lbRenderWatching === mine) {
+      // The render this card was watching has finished; its file is on disk.
+      lbRenderWatching = ''
+      lbRenderAsked = ''
+      lbNote('')
+      probeHires(lbCurrentCand)
+    }
+  }
   function getVisibleCands() {
     var src
     var expanded = document.querySelector('.dim-card.expanded')
@@ -334,6 +468,12 @@
       : null
     lbHiresReady = false
     lbShowingHires = false
+    // A render this modal asked for belongs to the card that asked. Moving
+    // to another candidate stops reporting it here; the render itself is
+    // never cancelled, and its own card picks the picture up on reopen.
+    lbRenderAsked = ''
+    lbRenderWatching = ''
+    lbNote('')
     updateResToggle()
     if (!img) {
       lbImg.removeAttribute('src')
@@ -344,19 +484,10 @@
       return
     }
     lbImg.src = lbLowSrc
-    if (lbHiresSrc) {
-      var p = new Image()
-      p.onload = function () {
-        // Arrow-key nav can move on before an earlier candidate's probe
-        // lands — a stale probe must not overwrite what is on screen now.
-        if (lbCurrentCand !== cand) return
-        lbHiresReady = true
-        lbShowingHires = true
-        lbImg.src = lbHiresSrc
-        updateResToggle()
-      }
-      p.src = lbHiresSrc
-    }
+    // A LOOK, not an ask. A candidate whose whole-world map already exists
+    // opens on it; one whose does not opens on the spawn view and stays
+    // there until somebody presses High-def.
+    probeHires(cand)
     var detail = candDetailFor(cand)
     lbInfo.innerHTML = detail ? detail.innerHTML : ''
     // Again, now the panel exists: the toggle's labels read the coverage
@@ -737,8 +868,38 @@
     // The scatter honours the same filters; a scatter showing everything
     // while the grid shows one family answers a different question.
     if (window.refreshScatter) window.refreshScatter()
+    // The roller's Filtered option rolls whatever is left after this, so its
+    // count has to move with the filters rather than with the page load.
+    if (window.rollFilteredCount) window.rollFilteredCount()
     writeHash(state)
   }
+
+  /**
+   * The dimensions the grid is SHOWING, in the order it is showing them.
+   *
+   * <p>Read back out of the DOM applyState has just arranged, not recomputed:
+   * the family buttons, the type and mood filters, the search, the sort and
+   * the flat-view rebuild all end by writing their result there, so the DOM
+   * is the one place the display order actually exists. A second
+   * implementation would be a second answer.
+   *
+   * <p>Grouped view orders whole cards. Flat view orders candidates across
+   * dimensions, so a dimension takes the place of its first visible one.
+   */
+  function visibleDimensions() {
+    var nodes = document.body.classList.contains('ungrouped')
+      ? ugGrid.querySelectorAll('.cand[data-dim]')
+      : grid.querySelectorAll('.dim-card:not(.hidden)')
+    var out = []
+    Array.prototype.forEach.call(nodes, function (el) {
+      // A card carries both spellings and a candidate only data-dim; both
+      // are the slug the server matches on.
+      var name = el.dataset.dim || el.dataset.name
+      if (name && out.indexOf(name) < 0) out.push(name)
+    })
+    return out
+  }
+  window.visibleDimensions = visibleDimensions
 
   document.querySelectorAll('.family-btn').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -1611,6 +1772,31 @@
     })
   })()
 
+  // Not a dimension: the sentinel the Filtered option carries. A slug can be
+  // any lowercase word, so it is spelled as something no slug can be.
+  var FILTERED = '__filtered__'
+
+  function filteredDims () {
+    return window.visibleDimensions ? window.visibleDimensions() : []
+  }
+
+  /**
+   * Keeps the Filtered option's count honest. "Filtered" alone says nothing
+   * about how big the batch is, and the batch is whatever the filters left —
+   * which is the one thing worth knowing before pressing play.
+   */
+  function refreshFilteredOption () {
+    var opt = dimEl.querySelector('option[value="' + FILTERED + '"]')
+    if (!opt) return
+    var n = filteredDims().length
+    opt.textContent = 'Filtered (' + n + ')'
+    opt.title = n
+      ? 'Roll the ' + n + ' dimension(s) the grid is showing, in display order'
+      : 'Nothing is visible to roll'
+  }
+  window.rollFilteredCount = refreshFilteredOption
+  refreshFilteredOption()
+
   function post (path, body) {
     return fetch(path, {
       method: 'POST',
@@ -1680,13 +1866,12 @@
         if (st.starved && st.starved.length) {
           bits.push(st.starved.length + ' short of a full board: ' + st.starved.join(', '))
         }
-        // Rendering is its own background lifecycle now, so this line is
-        // the only place it is visible — name the dimension and say how
-        // much is left rather than just "rendering".
+        // Thumbnails only. They are the whole bank's work, which is what
+        // this line is about — name the dimension and say how much is left
+        // rather than just "rendering". A detail render belongs to one
+        // candidate's card and reports there instead.
         var lo = (st.rendering_low || [])[0]
-        var hi = (st.rendering_high || [])[0]
         if (lo) bits.push('rendering ' + lo)
-        else if (hi) bits.push('rendering ' + hi + ' (hi-res)')
         if (st.render_pending) bits.push(st.render_pending + ' images queued')
         if (st.error) bits.push('error: ' + st.error)
         var detail = bits.join(' · ')
@@ -1695,6 +1880,10 @@
         var sub = document.getElementById('rp-sub')
         if (sub) sub.textContent = running ? detail : ''
         if (statusEl) statusEl.textContent = running ? '' : detail
+        // One poll for the page. The open candidate's own detail render is
+        // reported on its card rather than on the line above, which is about
+        // the bank as a whole.
+        if (window.lbRenderStatus) window.lbRenderStatus(st)
         if (st.generation !== lastGeneration) {
           lastGeneration = st.generation
           if (lastGeneration > 0) refreshGrid()
@@ -1717,10 +1906,24 @@
       return
     }
     toggleBtn.disabled = true
-    post('/pipeline/start', {
-      count: parseInt(countEl.value, 10) || 100,
-      dim: dimEl.value || null
-    })
+    var body = { count: parseInt(countEl.value, 10) || 100, dim: dimEl.value || null }
+    if (dimEl.value === FILTERED) {
+      var dims = filteredDims()
+      if (!dims.length) {
+        // A fact about the filters, not a server error. Posting a run that
+        // could only be refused would report it as one.
+        if (statusEl) {
+          statusEl.textContent = 'Nothing is visible to roll — clear a filter, or pick All.'
+        }
+        toggleBtn.disabled = false
+        return
+      }
+      // The sentinel names no dimension; the list is the instruction, and
+      // its ORDER is what makes a sorted grid a work queue.
+      body.dim = null
+      body.dims = dims
+    }
+    post('/pipeline/start', body)
       .then(function (r) {
         if (r.error && statusEl) statusEl.textContent = r.error
       })

@@ -39,23 +39,13 @@ import java.util.stream.Stream;
  * maps while the rest show nothing is not. A roster that moves mid-roll puts a
  * new thumbnail straight to the front, ahead of high-res work already queued.
  *
- * <p>Detail maps are NOT queued speculatively. A detail map covers the whole
- * playable border rather than the 512 blocks around spawn, which is a grid
- * hundreds of times larger and minutes of work, and a roll keeps the board
- * moving underneath it: queued for every candidate of every dimension, a
- * detail map is taken only in the gap where nothing is owed a thumbnail,
- * abandons the moment the next reconcile files one, and writes nothing on the
- * way out — so it burns its share of the machine for the length of a roll and
- * finishes none. They are queued for the dimension somebody has OPEN, and for
- * everything else once a run finishes ({@link #reconcile(MinecraftServer,
- * DimensionConfig, boolean)}), which is when they can actually run to
- * completion.
- *
- * <p>The abandon rule stays, for the case that remains: a detail map for a
- * dimension nobody is looking at yields to any thumbnail and re-queues at the
- * back of its own class. A focused one runs to completion — its dimension's
- * own thumbnails already outrank it, so what it would be yielding to is work
- * for a dimension nobody asked about.
+ * <p>This queue draws thumbnails and nothing else. A detail map covers the
+ * whole playable border rather than the 512 blocks around spawn — a grid
+ * hundreds of times larger and minutes of work for ONE candidate — so it is
+ * never queued speculatively. Queued for every candidate of every dimension it
+ * only ever burned its share of the machine and finished none, and eighty-odd
+ * of them are drawn for boards nobody opens. A detail map is drawn when
+ * somebody opens the card that shows it, through {@code POST /render}.
  *
  * <p>A seed pushed off the roster has its files deleted, so the bank never
  * accumulates maps nobody will open. A named seed is never pushed off — that
@@ -159,20 +149,14 @@ public final class RenderQueue {
 
     /**
      * Brings one dimension's renders in line with its roster: deletes what has
-     * dropped off it, queues the thumbnails that are missing, and queues the
-     * detail maps only for a dimension somebody has open.
+     * dropped off it and queues the thumbnails that are missing.
+     *
+     * <p>Thumbnails only. A detail map is minutes of work for one candidate
+     * and is drawn when somebody opens that candidate's card, through
+     * {@code POST /render} — never queued speculatively for a board nobody has
+     * looked at.
      */
     public static void reconcile(MinecraftServer server, DimensionConfig def) {
-        reconcile(server, def, isFocused(def.getName()));
-    }
-
-    /**
-     * The same, with {@code detail} deciding whether the whole-world maps are
-     * queued alongside the thumbnails. True for the dimension in focus and for
-     * every dimension once a run finishes; false during a run, when a detail
-     * map cannot survive long enough to be written.
-     */
-    public static void reconcile(MinecraftServer server, DimensionConfig def, boolean detail) {
         ensureWorker();
         String hash = InputHash.of(def, server);
         Identifier id = def.getDimensionIdentifier();
@@ -187,13 +171,6 @@ public final class RenderQueue {
         for (SeedRoster.Slot slot : roster) {
             enqueue(server, def, id, hash, dimension, slot.seed(),
                     CandidateRender.Resolution.LOWRES, slot.role().pinned());
-        }
-        if (!detail) {
-            return;
-        }
-        for (SeedRoster.Slot slot : roster) {
-            enqueue(server, def, id, hash, dimension, slot.seed(),
-                    CandidateRender.Resolution.HIGHRES, slot.role().pinned());
         }
     }
 

@@ -187,20 +187,34 @@ public final class CandidateRender {
      */
     private static final int CALIBRATION_COLUMNS = 96;
 
+    /** Whether a roll is under way, so the two share the machine rather than fight for it. */
+    private static final java.util.concurrent.atomic.AtomicBoolean ROLLING =
+            new java.util.concurrent.atomic.AtomicBoolean();
+
+    /** Told by {@code web/RollPipeline} when a run starts and when it ends. */
+    public static void rolling(boolean rolling) {
+        ROLLING.set(rolling);
+    }
+
     /**
-     * Cores a single render fans out over — a quarter of the machine, and the
-     * roller takes what is left, so the two shares are stated once in
-     * {@link com.customdimensions.web.RollPipeline} and here rather than each
-     * guessing at the other.
+     * Cores a single render fans out over.
+     *
+     * <p>A quarter of the machine while a roll is running — the search is what
+     * makes anything worth drawing, so it keeps the majority — and nearly all
+     * of it when nothing is rolling, because a detail map is then the only
+     * work there is and leaving three quarters of the cores idle just makes
+     * somebody wait. Read per render rather than fixed at class load, so the
+     * split follows what the machine is actually doing.
      *
      * <p>A fraction rather than a fixed count, because a fixed one silently
      * inverts the split on a smaller machine: eight was more than half of a
      * sixteen-core container once the server thread and its two reserved
-     * cores came out, so drawing pictures outran the search that makes
-     * anything worth drawing.
+     * cores came out, so drawing pictures outran the search.
      */
-    public static final int RENDER_CORES =
-            Math.max(1, Runtime.getRuntime().availableProcessors() / 4);
+    public static int renderCores() {
+        int cpus = Runtime.getRuntime().availableProcessors();
+        return ROLLING.get() ? Math.max(1, cpus / 4) : Math.max(1, cpus - 2);
+    }
 
     // Vanilla's map shading: a cell is brighter, level with, or darker than
     // the one to its north, and nothing else. It is what makes a Minecraft
@@ -912,7 +926,7 @@ public final class CandidateRender {
         // runs beside the search; taking every core made a map arrive sooner
         // and every measurement behind it arrive later, which is the wrong
         // trade when the search is what the shortlist is made of.
-        int workers = Math.max(1, Math.min(RENDER_CORES, samples));
+        int workers = Math.max(1, Math.min(renderCores(), samples));
         java.util.concurrent.ExecutorService pool =
                 java.util.concurrent.Executors.newFixedThreadPool(workers, r -> {
                     Thread t = new Thread(r, "customdim-render");

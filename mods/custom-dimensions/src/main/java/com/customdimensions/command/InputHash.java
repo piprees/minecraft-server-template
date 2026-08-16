@@ -84,12 +84,34 @@ public final class InputHash {
         canonical.append("artefact=").append(modArtefactHash).append('\n');
         canonical.append("dimension=").append(def == null ? "null" : def.getName()).append('\n');
         canonical.append("config=");
-        canonical.append(def == null ? "null" : canonicaliseJson(GSON.toJsonTree(def)));
+        canonical.append(def == null ? "null" : canonicaliseJson(measurementConfig(def)));
         canonical.append('\n');
         List<String> sorted = new ArrayList<>(modVersions);
         Collections.sort(sorted);
         canonical.append("mods=[").append(String.join(";", sorted)).append(']');
         return sha256Hex(canonical.toString());
+    }
+
+    /**
+     * The config as it bears on a measurement — everything except {@code seed}.
+     *
+     * <p>A candidate is measured at the seed the ROLL drew, never at the one
+     * the config names: no criterion and no part of {@link
+     * com.customdimensions.facts.FactsEngine} reads it, and its only readers
+     * are the viewer's "starting" badge. Hashing it meant picking a winner
+     * rewrote the config and re-keyed the dimension's whole bank, so the board
+     * the choice was made from vanished at the moment of choosing and a roll
+     * for more candidates started from nothing.
+     *
+     * <p>{@code spawn} stays in: the facts measure at the declared spawn
+     * column, so moving it genuinely changes what every candidate says.
+     */
+    private static JsonElement measurementConfig(DimensionConfig def) {
+        JsonElement tree = GSON.toJsonTree(def);
+        if (tree.isJsonObject()) {
+            tree.getAsJsonObject().remove("seed");
+        }
+        return tree;
     }
 
     private static List<String> sortedModVersions() {

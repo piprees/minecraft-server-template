@@ -1686,6 +1686,24 @@ body.show-borders .img-wrap img {
   outline: 2px solid var(--action);
   outline-offset: 2px;
 }
+#lightbox .lb-render-note {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 7;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text);
+  background: rgba(16, 18, 22, 0.88);
+  border-bottom: 1px solid var(--action);
+}
+#lightbox .lb-render-note[hidden] {
+  display: none;
+}
 #lightbox .lb-info {
   position: relative;
   min-width: 0px;

@@ -80,6 +80,23 @@ public final class RollPipeline {
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final AtomicBoolean CANCEL = new AtomicBoolean(false);
     private static final AtomicBoolean RENDERING = new AtomicBoolean(false);
+
+    /**
+     * The candidate whose detail map is being drawn, as {@code <slug>/<seed>},
+     * or empty when none is.
+     *
+     * <p>Named rather than counted because a detail render belongs to ONE
+     * card: the modal that asked for it matches this against the candidate it
+     * is showing and reports progress there. A bare "rendering" flag on the
+     * roller's status line is what made the page look frozen — the work was
+     * reported nowhere near the thing that started it.
+     */
+    private static final AtomicReference<String> RENDERING_DETAIL =
+            new AtomicReference<>("");
+
+    /** When the in-flight detail render started, for the "how long so far" the modal shows. */
+    private static final java.util.concurrent.atomic.AtomicLong RENDER_STARTED =
+            new java.util.concurrent.atomic.AtomicLong();
     private static final AtomicInteger TARGET = new AtomicInteger();
     /** Dimensions this run will visit — what progress is actually measured against. */
     private static final AtomicInteger DIMENSIONS = new AtomicInteger();
@@ -94,27 +111,42 @@ public final class RollPipeline {
     }
 
     /**
-     * Starts a run. {@code dimension} names one dimension (bare slug or full
+     * Starts a run.
+     *
+     * <p>{@code order} is an explicit list of dimensions to roll, in the order
+     * to roll them — what the viewer's Filtered option sends, which is the
+     * grid as the person is looking at it. Sorted by score ascending, that is
+     * "top up my worst boards first", so the order IS the instruction and
+     * nothing here may re-sort it. Empty or null falls back to
+     * {@code dimension}, which names one dimension (bare slug, id path or full
      * id) or is null for every rollable dimension in the pack.
      *
      * @return null on success, or why it refused
      */
-    public static String start(MinecraftServer server, String dimension, int count) {
+    public static String start(MinecraftServer server, String dimension, List<String> order,
+                               int count) {
         if (count <= 0) {
             return "count must be at least 1";
         }
-        List<DimensionConfig> targets = resolve(dimension);
+        boolean ordered = order != null && !order.isEmpty();
+        List<DimensionConfig> targets = ordered ? resolveOrdered(order) : resolve(dimension);
         if (targets.isEmpty()) {
+            if (ordered) {
+                return "none of those " + order.size() + " dimension(s) is rollable";
+            }
             return dimension == null ? "nothing rollable in this pack"
                     : "no rollable dimension named " + dimension;
         }
-        // Emptiest first. Workers take from the head of this list, so the
-        // dimensions with nothing to show start immediately rather than
-        // waiting behind eighty others — and a run stopped halfway has spent
-        // its time on the boards that needed it.
-        targets.sort(java.util.Comparator.comparingInt(
-                def -> banked(com.customdimensions.command.InputHash.of(def, server),
-                        def.getDimensionIdentifier().toString())));
+        if (!ordered) {
+            // Emptiest first. Workers take from the head of this list, so the
+            // dimensions with nothing to show start immediately rather than
+            // waiting behind eighty others — and a run stopped halfway has
+            // spent its time on the boards that needed it. A given order is
+            // already a statement about which boards matter, so it stands.
+            targets.sort(java.util.Comparator.comparingInt(
+                    def -> banked(com.customdimensions.command.InputHash.of(def, server),
+                            def.getDimensionIdentifier().toString())));
+        }
         if (!RUNNING.compareAndSet(false, true)) {
             return "a roll is already running";
         }
@@ -126,14 +158,21 @@ public final class RollPipeline {
         FOCUS.set("");
         UNSERVED_FOCUS.set("");
         STARVED.clear();
-        // A ceiling, not a plan: a dimension stops at WANTED candidates, so a
-        // run that finds them early rolls far fewer seeds than this.
+        // A ceiling, not a plan: a full sweep skips a dimension that already
+        // holds WANTED candidates, so it rolls far fewer seeds than this. A
+        // top-up rolls every dimension it was given and comes closer.
         TARGET.set(count * targets.size());
         DIMENSIONS.set(targets.size());
         ROLLED.set(0);
         SURVEYED.set(0);
         STAGE.set("rolling");
-        Thread worker = new Thread(() -> run(server, targets, count), "customdim-roll");
+        com.customdimensions.roll.CandidateRender.rolling(true);
+        // Naming dimensions — one, or a filtered list of them — is a request
+        // for MORE candidates, so each rolls whatever it already holds. A
+        // sweep over the whole pack is a resume, and skips the boards that
+        // are already full.
+        boolean topUp = ordered || (dimension != null && !dimension.isBlank());
+        Thread worker = new Thread(() -> run(server, targets, count, topUp), "customdim-roll");
         worker.setDaemon(true);
         worker.start();
         return null;
@@ -178,7 +217,7 @@ public final class RollPipeline {
                 for (DimensionConfig def : targets) {
                     futures.add(pool.submit(() -> {
                         measureNamed(server, def);
-                        RenderQueue.reconcile(server, def, false);
+                        RenderQueue.reconcile(server, def);
                     }));
                 }
                 for (java.util.concurrent.Future<?> f : futures) {
@@ -230,10 +269,51 @@ public final class RollPipeline {
             if (!Roller.rollable(def)) {
                 continue;
             }
-            if (dimension == null || dimension.isBlank()
-                    || dimension.equals(def.getName())
-                    || dimension.equals(def.getDimensionIdentifier().toString())) {
+            if (dimension == null || dimension.isBlank() || names(def, dimension)) {
                 out.add(def);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Whether {@code key} names this dimension.
+     *
+     * <p>Three spellings, because three are in circulation and a caller has no
+     * way to know which it holds: the config's own name, the identifier's path
+     * — which is what the viewer puts in every card's {@code data-dim} and
+     * therefore what every button on the page sends back — and the full id.
+     */
+    private static boolean names(DimensionConfig def, String key) {
+        Identifier id = def.getDimensionIdentifier();
+        return key.equals(def.getName()) || key.equals(id.getPath()) || key.equals(id.toString());
+    }
+
+    /**
+     * The named dimensions, in the order named. Anything that does not resolve
+     * or is not rollable is dropped rather than failing the run: the list comes
+     * from a grid that may have moved since it was read, and losing one board
+     * must not cost the other seventeen.
+     */
+    private static List<DimensionConfig> resolveOrdered(List<String> order) {
+        List<DimensionConfig> pool = new ArrayList<>();
+        for (DimensionConfig def : BankView.rollTargets()) {
+            if (Roller.rollable(def)) {
+                pool.add(def);
+            }
+        }
+        List<DimensionConfig> out = new ArrayList<>();
+        java.util.Set<String> taken = new java.util.LinkedHashSet<>();
+        for (String key : order) {
+            if (key == null || key.isBlank()) {
+                continue;
+            }
+            String want = key.trim();
+            for (DimensionConfig def : pool) {
+                if (names(def, want) && taken.add(def.getDimensionIdentifier().toString())) {
+                    out.add(def);
+                    break;
+                }
             }
         }
         return out;
@@ -247,15 +327,16 @@ public final class RollPipeline {
      * writes only into it — so the search is embarrassingly parallel across
      * dimensions. It takes what the renderer is not using: two cores are left
      * for the server thread and everything else, and
-     * {@link com.customdimensions.roll.CandidateRender#RENDER_CORES} for the
+     * {@link com.customdimensions.roll.CandidateRender#renderCores()} for the
      * maps, which run beside the search rather than after it.
      */
     private static int workers() {
         return Math.max(1, Runtime.getRuntime().availableProcessors() - 2
-                - com.customdimensions.roll.CandidateRender.RENDER_CORES);
+                - com.customdimensions.roll.CandidateRender.renderCores());
     }
 
-    private static void run(MinecraftServer server, List<DimensionConfig> targets, int count) {
+    private static void run(MinecraftServer server, List<DimensionConfig> targets, int count,
+                            boolean topUp) {
         int workers = Math.min(workers(), targets.size());
         java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(
                 workers, r -> {
@@ -276,7 +357,7 @@ public final class RollPipeline {
                 futures.add(pool.submit(() -> {
                     DimensionConfig def;
                     while ((def = nextTarget(pending)) != null) {
-                        rollOne(server, def, count);
+                        rollOne(server, def, count, topUp);
                     }
                 }));
             }
@@ -293,15 +374,12 @@ public final class RollPipeline {
         } finally {
             pool.shutdownNow();
             RUNNING.set(false);
-            // The boards have stopped moving, so the detail maps held back
-            // during the run can now be drawn without being abandoned. Skipped
-            // on a stop: somebody who stopped a roll wants the machine back.
-            if (!CANCEL.get()) {
-                STAGE.set("drawing detail maps");
-                for (DimensionConfig def : targets) {
-                    RenderQueue.reconcile(server, def, true);
-                }
-            }
+            com.customdimensions.roll.CandidateRender.rolling(false);
+            // No detail maps at the end of a run. One covers the world edge to
+            // edge and runs the generator at every sample — minutes apiece,
+            // eighty-odd of them — and almost none are ever looked at. A
+            // detail map is drawn when somebody opens the card that shows it,
+            // and not before.
             STAGE.set(CANCEL.get() ? "stopped" : "done");
             CURRENT.set("");
             GENERATION.incrementAndGet();
@@ -344,9 +422,9 @@ public final class RollPipeline {
     /**
      * Sets (or with a blank slug clears) the dimension that jumps the queue.
      *
-     * <p>Opening one also queues its detail maps: those are not queued during
-     * a roll, because a detail map cannot survive a board that keeps moving —
-     * so the act of opening a dimension is what asks for them.
+     * <p>Opening a dimension queues its THUMBNAILS — that is what the list of
+     * cards shows. It does not queue a detail map: the detail map belongs to
+     * one candidate's own card, so the card asks for it when it opens.
      */
     public static void focus(MinecraftServer server, String slug) {
         String want = slug == null ? "" : slug.trim();
@@ -358,7 +436,7 @@ public final class RollPipeline {
         }
         DimensionConfig def = BankView.resolve(want);
         if (def != null) {
-            RenderQueue.reconcile(server, def, true);
+            RenderQueue.reconcile(server, def);
         }
     }
 
@@ -428,7 +506,8 @@ public final class RollPipeline {
      * nearly everything still gets a fair shortlist to draw from.
      * {@link #STARVED} records a dimension that fell short even so.
      */
-    private static void rollOne(MinecraftServer server, DimensionConfig def, int count) {
+    private static void rollOne(MinecraftServer server, DimensionConfig def, int count,
+                                boolean topUp) {
         Identifier id = def.getDimensionIdentifier();
         String hash = com.customdimensions.command.InputHash.of(def, server);
         String dimension = id.toString();
@@ -440,7 +519,7 @@ public final class RollPipeline {
         CURRENT.set(id.getPath());
         STAGE.set("scoring the named seeds for " + id.getPath());
         measureNamed(server, def);
-        if (banked(hash, dimension) >= WANTED) {
+        if (!topUp && banked(hash, dimension) >= WANTED) {
             RenderQueue.reconcile(server, def);
             SURVEYED.incrementAndGet();
             return;
@@ -572,6 +651,13 @@ public final class RollPipeline {
             return "a render is already running";
         }
         Identifier id = def.getDimensionIdentifier();
+        // The identifier's path, not the config's name: the card spells its
+        // own slug that way ({@link BankView.DimensionView#slug}), and this
+        // is compared against it character for character in the browser.
+        // Set before the thread starts, so the poll that lands between the
+        // claim and the first sample already names the card being drawn.
+        RENDERING_DETAIL.set(highres ? id.getPath() + "/" + seed : "");
+        RENDER_STARTED.set(System.currentTimeMillis());
         Thread worker = new Thread(() -> {
             try {
                 com.customdimensions.roll.CandidateRender.Resolution resolution = highres
@@ -583,6 +669,7 @@ public final class RollPipeline {
                 MultiverseServer.LOGGER.error("Render failed for {} seed {}", id, seed, e);
                 ERROR.set("render " + id.getPath() + ": " + e);
             } finally {
+                RENDERING_DETAIL.set("");
                 RENDERING.set(false);
             }
         }, "customdim-render");
@@ -616,6 +703,14 @@ public final class RollPipeline {
         b.append(", \"thumbnails_pending\": ").append(RenderQueue.thumbnailsPending());
         b.append(", \"rendering_low\": [").append(RenderQueue.current().isEmpty()
                 ? "" : Json.quote(RenderQueue.current())).append("]");
+        // The one candidate whose detail map is being drawn, spelled exactly
+        // as its card identifies itself (<slug>/<seed>) so the modal can tell
+        // ITS render from somebody else's and report only its own.
+        String detail = RENDERING_DETAIL.get();
+        b.append(", \"rendering_high\": [")
+                .append(detail.isEmpty() ? "" : Json.quote(detail)).append("]");
+        b.append(", \"rendering_high_seconds\": ").append(detail.isEmpty() ? 0
+                : Math.max(0, (System.currentTimeMillis() - RENDER_STARTED.get()) / 1000));
         // Named, not counted: "12 dimensions came up short" is not something
         // anyone can act on, and a dimension that never yields a candidate is
         // the one thing a roll must not report as merely finished.

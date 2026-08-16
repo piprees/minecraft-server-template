@@ -172,7 +172,11 @@ public final class SeedServer {
 
     /**
      * Starts a roll from the browser. The body is the roller controls' own
-     * shape: {@code {"count": n, "dim": "<slug>"|null}}.
+     * shape: {@code {"count": n, "dim": "<slug>"|null, "dims": ["<slug>", …]}}.
+     *
+     * <p>{@code dims} is the Filtered option: the dimensions the grid is
+     * showing, in the order it is showing them. Present and non-empty, it
+     * wins over {@code dim} — the order is the whole point of it.
      */
     private static void startRoll(MinecraftServer minecraftServer, HttpExchange exchange)
             throws IOException {
@@ -183,6 +187,7 @@ public final class SeedServer {
         // while a dimension that yields freely still costs about ten.
         int count = 5000;
         String dim = null;
+        List<String> dims = new java.util.ArrayList<>();
         try {
             com.google.gson.JsonObject json = body.isBlank() ? new com.google.gson.JsonObject()
                     : com.google.gson.JsonParser.parseString(body).getAsJsonObject();
@@ -192,12 +197,19 @@ public final class SeedServer {
             if (json.has("dim") && !json.get("dim").isJsonNull()) {
                 dim = json.get("dim").getAsString();
             }
+            if (json.has("dims") && json.get("dims").isJsonArray()) {
+                for (com.google.gson.JsonElement el : json.getAsJsonArray("dims")) {
+                    if (el != null && el.isJsonPrimitive()) {
+                        dims.add(el.getAsString());
+                    }
+                }
+            }
         } catch (RuntimeException e) {
             send(exchange, 400, "application/json; charset=utf-8",
                     ("{\"error\": \"unreadable request body\"}").getBytes(StandardCharsets.UTF_8));
             return;
         }
-        String refusal = RollPipeline.start(minecraftServer, dim, count);
+        String refusal = RollPipeline.start(minecraftServer, dim, dims, count);
         String answer = refusal == null ? "{\"ok\": true}"
                 : "{\"error\": " + com.customdimensions.facts.Json.quote(refusal) + "}";
         send(exchange, 200, "application/json; charset=utf-8", answer.getBytes(StandardCharsets.UTF_8));

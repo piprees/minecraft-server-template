@@ -83,6 +83,11 @@
       </span>
       <select id="roll-dim" aria-label="Dimension to roll" title="Dimension to roll">
         <option value="">All</option>
+        <!-- Rolls what the grid is SHOWING, in the order it is showing it, so
+             the filters and the sort choose the batch: score ascending is
+             "top up my worst boards first". app.js keeps the count current;
+             the per-dimension options are appended after this one. -->
+        <option value="__filtered__">Filtered</option>
       </select>
       <button type="button" id="roll-toggle" class="icon-btn" aria-label="Start rolling" title="Start rolling">
         ▶
@@ -290,12 +295,17 @@
         <button type="button" class="lb-structs-toggle" aria-pressed="true" title="Toggle structure markers">
           Structures
         </button>
-        <!-- Swaps the SAME candidate between its low-res render (smaller
-             area, arrives immediately) and its hi-res one (wider area, once
-             a probe confirms it exists) — see lbMapCoverage in app.js for
-             why the two are not interchangeable. Hidden until a hi-res src
-             is known, disabled until the probe confirms it actually loads. -->
+        <!-- Two jobs, one button. When this candidate's whole-world render
+             already exists it swaps between that and the 512-block spawn view
+             (see lbMapCoverage in app.js for why the two are not
+             interchangeable). When it does not, pressing it ASKS for one —
+             the only thing anywhere that starts a detail render, so flicking
+             through candidates queues nothing. -->
         <button type="button" class="lb-res-toggle" aria-pressed="false" hidden>High-def</button>
+        <!-- Where a render this card asked for reports back. The roller's
+             status line under the nav is about the whole bank; work started
+             from here has to be visible from here. -->
+        <p class="lb-render-note" role="status" hidden></p>
       </div>
       <div class="lb-info"></div>
     </div>

@@ -1569,6 +1569,28 @@ img.winner-img {
   outline: 2px solid var(--action);
   outline-offset: 2px;
 }
+/* Progress for a detail render this card asked for. Over the map and across
+   its full width, because the complaint it answers is a page that looks
+   frozen: a note tucked beside a button is one more thing to find. */
+#lightbox .lb-render-note {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 7;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text);
+  background: rgba(16, 18, 22, 0.88);
+  border-bottom: 1px solid var(--action);
+}
+/* [hidden] alone loses to the rule above, which is more specific. */
+#lightbox .lb-render-note[hidden] {
+  display: none;
+}
 /* Header, scroller, actions — three bands, and only the middle one moves.
    The panel itself scrolled before, which took the seed's name off the top
    and the two buttons that decide its fate off the bottom of a long criteria
