@@ -72,8 +72,8 @@
     "force": [
       {
         "structure": "mes:mystical_archway",
-        "x": 384,
-        "z": 128,
+        "x": 200,
+        "z": 68,
         "exclusive": false
       }
     ]

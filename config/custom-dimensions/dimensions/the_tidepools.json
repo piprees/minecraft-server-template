@@ -57,14 +57,14 @@
     "force": [
       {
         "structure": "philipsruins:ocean_ruins",
-        "x": 912,
-        "z": 336,
+        "x": 200,
+        "z": 74,
         "exclusive": false
       },
       {
         "structure": "structory_towers:ocean_pillar",
-        "x": -704,
-        "z": -1120,
+        "x": -126,
+        "z": -200,
         "exclusive": false
       }
     ]
