@@ -21,8 +21,10 @@ import java.util.Set;
  *
  * Reads the per-dimension directory config/custom-dimensions/
  * (settings.json + dimensions/*.json + overlay/) via DimensionConfigLoader.
- * Everything — getDimension/getDimensions, getPortal/getPortals, getWorld,
- * getWorldSeedOverride — resolves against one Map&lt;String, DimensionConfig&gt;.
+ * Everything — getCustomDimension/getCustomDimensions,
+ * getReservedDimension/getReservedDimensionBySlug, getAllDimensions,
+ * getPortal/getPortals, getWorldSeedOverride — resolves against one
+ * Map&lt;String, DimensionConfig&gt;.
  */
 public class MultiverseConfig {
     private static final MultiverseConfig INSTANCE = new MultiverseConfig();
@@ -115,18 +117,19 @@ public class MultiverseConfig {
         return this.managedNamespaces.contains(namespace);
     }
 
-    /** A CUSTOM dimension by slug (reserved dimensions resolve via getWorld). */
-    public DimensionConfig getDimension(String name) {
+    /** A dimension THIS MOD CREATES, by slug (reserved dimensions resolve via getReservedDimensionBySlug). */
+    public DimensionConfig getCustomDimension(String name) {
         DimensionConfig config = this.configs.get(name);
         return config != null && !config.isReserved() ? config : null;
     }
 
-    public List<DimensionConfig> getDimensions() {
+    /** Every dimension THIS MOD CREATES — not the reserved four, which it only configures. */
+    public List<DimensionConfig> getCustomDimensions() {
         return this.configs.values().stream().filter(c -> !c.isReserved()).toList();
     }
 
     public List<String> getDimensionNames() {
-        return this.getDimensions().stream().map(DimensionConfig::getName).toList();
+        return this.getCustomDimensions().stream().map(DimensionConfig::getName).toList();
     }
 
     public PortalDefinition getPortal(String id) {
@@ -319,18 +322,13 @@ public class MultiverseConfig {
     }
 
     /** The reserved-dimension config for a given name (e.g. "overworld"), or null. */
-    public DimensionConfig getWorld(String name) {
+    public DimensionConfig getReservedDimensionBySlug(String name) {
         DimensionConfig config = this.configs.get(name);
         return config != null && config.isReserved() ? config : null;
     }
 
-    /**
-     * Every configured reserved dimension. They carry the same seed, border,
-     * difficulty, portal and structures blocks as any other dimension and are
-     * rolled and scored the same way — so anything checking configs has to
-     * check these too.
-     */
-    public List<DimensionConfig> getWorlds() {
-        return this.configs.values().stream().filter(DimensionConfig::isReserved).toList();
+    /** Every configured dimension, custom and reserved alike. */
+    public List<DimensionConfig> getAllDimensions() {
+        return List.copyOf(this.configs.values());
     }
 }

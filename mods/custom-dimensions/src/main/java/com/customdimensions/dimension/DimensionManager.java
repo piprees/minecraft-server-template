@@ -156,7 +156,7 @@ public class DimensionManager {
             // Per-dim isolation: one broken config must not abort registration
             // of every dimension after it.
             DimensionFingerprints.init(this.server);
-            for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+            for (DimensionConfig def : MultiverseConfig.getInstance().getCustomDimensions()) {
                 RegistryKey<DimensionOptions> key = RegistryKey.of(RegistryKeys.DIMENSION, def.getDimensionIdentifier());
                 if (dimRegistry.contains(key)) {
                     // The persisted generator (level.dat) wins for existing
@@ -1099,7 +1099,7 @@ public class DimensionManager {
         if (this.server == null) {
             return null;
         }
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimName);
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimName);
         if (def == null) {
             // Command-created dimensions have no config entry — their options
             // are already in the registry (registerDimension), load directly.
@@ -1217,7 +1217,7 @@ public class DimensionManager {
             if (!MultiverseConfig.getInstance().isManagedNamespace(key.getValue().getNamespace())) {
                 continue;
             }
-            if (MultiverseConfig.getInstance().getDimension(key.getValue().getPath()) == null) {
+            if (MultiverseConfig.getInstance().getCustomDimension(key.getValue().getPath()) == null) {
                 continue;
             }
 
@@ -1299,10 +1299,11 @@ public class DimensionManager {
     public void requestWorldLoad(String name) {
         // Reserved dimensions queue here too — CreateWorldsMixin defers them
         // exactly like a custom dimension, so the guard must check
-        // getWorld() as well as getDimension(), or a reserved-dimension load
-        // request is silently dropped despite reporting success.
-        if (MultiverseConfig.getInstance().getDimension(name) != null
-                || MultiverseConfig.getInstance().getWorld(name) != null) {
+        // getReservedDimensionBySlug() as well as getCustomDimension(), or a
+        // reserved-dimension load request is silently dropped despite
+        // reporting success.
+        if (MultiverseConfig.getInstance().getCustomDimension(name) != null
+                || MultiverseConfig.getInstance().getReservedDimensionBySlug(name) != null) {
             this.pendingWorldLoads.add(name);
         }
     }
@@ -1394,7 +1395,7 @@ public class DimensionManager {
     }
 
     public void bootCreateDimensions() {
-        for (DimensionConfig def : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig def : MultiverseConfig.getInstance().getCustomDimensions()) {
             this.requestWorldLoad(def.getName());
         }
     }
@@ -1422,12 +1423,12 @@ public class DimensionManager {
     }
 
     public boolean dimensionExists(String name) {
-        return MultiverseConfig.getInstance().getDimension(name) != null;
+        return MultiverseConfig.getInstance().getCustomDimension(name) != null;
     }
 
     // Config first, then runtime (command-created) definitions.
     public DimensionConfig resolveDefinition(String name) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(name);
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(name);
         return def != null ? def : this.runtimeDefinitions.get(name);
     }
 
@@ -1450,7 +1451,7 @@ public class DimensionManager {
         // path could never reach minecraft:the_nether — which matters because
         // CreateWorldsMixin defers EVERY non-overworld world, reserved
         // dimensions included, so nothing else was ever going to create them.
-        DimensionConfig world = MultiverseConfig.getInstance().getWorld(name);
+        DimensionConfig world = MultiverseConfig.getInstance().getReservedDimensionBySlug(name);
         if (world != null) {
             return world.getDimensionIdentifier();
         }

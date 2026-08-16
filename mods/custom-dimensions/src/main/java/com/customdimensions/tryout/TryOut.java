@@ -203,7 +203,7 @@ public final class TryOut {
      * {@code ScoreCommands}); this is the same pair, in one place.
      */
     private static DimensionConfig resolve(Identifier dimensionId) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
         return def != null ? def
                 : MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
     }

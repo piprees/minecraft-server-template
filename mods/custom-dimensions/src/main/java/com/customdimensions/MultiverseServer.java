@@ -95,7 +95,7 @@ public class MultiverseServer implements DedicatedServerModInitializer {
                 com.customdimensions.tryout.TryOut::purgeOnStart);
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             com.customdimensions.config.DimensionConfig ow =
-                    MultiverseConfig.getInstance().getWorld("overworld");
+                    MultiverseConfig.getInstance().getReservedDimensionBySlug("overworld");
             int[] spawn = ow != null ? ow.getSpawn() : null;
             // [0, 64, 0] means "no spawn chosen" — the same contract
             // deploy.sh's spawn guard reads. Stamping it would overwrite

@@ -225,7 +225,7 @@ public final class SpikeSampler {
      */
     public static Base base(MinecraftServer server, Identifier dimensionId) {
         DimensionManager manager = DimensionManager.getInstance();
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
         if (def == null || !def.getDimensionIdentifier().equals(dimensionId)) {
             def = null;
         }

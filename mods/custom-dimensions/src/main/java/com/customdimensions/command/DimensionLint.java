@@ -79,8 +79,9 @@ public final class DimensionLint {
     /** Every configured dimension AND reserved dimension, in a stable order. */
     public static List<DimensionConfig> targets() {
         List<DimensionConfig> out =
-                new ArrayList<>(MultiverseConfig.getInstance().getDimensions());
-        out.addAll(MultiverseConfig.getInstance().getWorlds());
+                new ArrayList<>(MultiverseConfig.getInstance().getCustomDimensions());
+        out.addAll(MultiverseConfig.getInstance().getAllDimensions().stream()
+                .filter(DimensionConfig::isReserved).toList());
         return out;
     }
 

@@ -82,8 +82,9 @@ public final class BankView {
      * then the custom dimensions.
      */
     public static List<DimensionConfig> rollTargets() {
-        List<DimensionConfig> out = new ArrayList<>(MultiverseConfig.getInstance().getWorlds());
-        out.addAll(MultiverseConfig.getInstance().getDimensions());
+        List<DimensionConfig> out = new ArrayList<>(MultiverseConfig.getInstance().getAllDimensions().stream()
+                .filter(DimensionConfig::isReserved).toList());
+        out.addAll(MultiverseConfig.getInstance().getCustomDimensions());
         return out;
     }
 
@@ -94,8 +95,8 @@ public final class BankView {
      * design.
      */
     public static DimensionConfig resolve(String slug) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(slug);
-        return def != null ? def : MultiverseConfig.getInstance().getWorld(slug);
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(slug);
+        return def != null ? def : MultiverseConfig.getInstance().getReservedDimensionBySlug(slug);
     }
 
     public static DimensionView of(MinecraftServer server, DimensionConfig def) {

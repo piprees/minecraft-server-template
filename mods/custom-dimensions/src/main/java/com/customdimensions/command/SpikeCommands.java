@@ -44,11 +44,11 @@ public final class SpikeCommands {
         if (!"minecraft".equals(raw.getNamespace())) {
             return raw;
         }
-        var def = MultiverseConfig.getInstance().getDimension(raw.getPath());
+        var def = MultiverseConfig.getInstance().getCustomDimension(raw.getPath());
         if (def != null) {
             return def.getDimensionIdentifier();
         }
-        var base = MultiverseConfig.getInstance().getWorld(raw.getPath());
+        var base = MultiverseConfig.getInstance().getReservedDimensionBySlug(raw.getPath());
         if (base != null) {
             return base.getDimensionIdentifier();
         }

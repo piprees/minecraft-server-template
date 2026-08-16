@@ -250,7 +250,7 @@ public class PortalHelper {
     /** Every dimension id the current config can produce, plus the reserved dimensions — for orphan checks. */
     private static Set<String> knownDimensionIds() {
         Set<String> ids = new HashSet<>(DimensionConfig.RESERVED_DIMENSION_IDS);
-        for (DimensionConfig config : MultiverseConfig.getInstance().getDimensions()) {
+        for (DimensionConfig config : MultiverseConfig.getInstance().getCustomDimensions()) {
             ids.add(config.getDimensionId());
         }
         return ids;

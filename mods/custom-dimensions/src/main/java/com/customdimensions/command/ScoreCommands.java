@@ -33,7 +33,7 @@ public final class ScoreCommands {
         long seed = LongArgumentType.getLong(ctx, "seed");
 
         DimensionConfig def = MultiverseConfig.getInstance()
-                .getDimension(dimensionId.getPath());
+                .getCustomDimension(dimensionId.getPath());
         if (def == null) {
             def = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
         }

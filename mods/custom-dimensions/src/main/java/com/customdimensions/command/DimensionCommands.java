@@ -687,8 +687,8 @@ public class DimensionCommands {
         // Reserved dimensions load through here too: CreateWorldsMixin defers every
         // non-overworld world, so "the_nether" is as absent at boot as any
         // custom dimension and needs the same way in.
-        if (MultiverseConfig.getInstance().getDimension(name) == null
-                && MultiverseConfig.getInstance().getWorld(name) == null) {
+        if (MultiverseConfig.getInstance().getCustomDimension(name) == null
+                && MultiverseConfig.getInstance().getReservedDimensionBySlug(name) == null) {
             source.sendError(Text.literal("No configured dimension named '" + name + "'"));
             return 0;
         }

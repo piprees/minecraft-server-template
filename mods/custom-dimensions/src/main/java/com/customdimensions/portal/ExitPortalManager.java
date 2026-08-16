@@ -48,7 +48,7 @@ public final class ExitPortalManager {
             return;
         }
         DimensionConfig config = MultiverseConfig.getInstance()
-                .getDimension(world.getRegistryKey().getValue().getPath());
+                .getCustomDimension(world.getRegistryKey().getValue().getPath());
         if (config == null || !config.hasExitPortal()
                 || !MultiverseConfig.getInstance().isManagedNamespace(world.getRegistryKey().getValue().getNamespace())) {
             return;

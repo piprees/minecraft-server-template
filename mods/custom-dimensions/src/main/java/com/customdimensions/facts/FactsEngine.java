@@ -110,7 +110,7 @@ public final class FactsEngine {
     }
 
     public static SeedFacts measure(MinecraftServer server, Identifier dimensionId, long seed) {
-        DimensionConfig def = MultiverseConfig.getInstance().getDimension(dimensionId.getPath());
+        DimensionConfig def = MultiverseConfig.getInstance().getCustomDimension(dimensionId.getPath());
         if (def == null) {
             def = MultiverseConfig.getInstance().getReservedDimension(dimensionId.toString());
         }

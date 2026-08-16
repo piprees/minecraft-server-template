@@ -45,11 +45,9 @@ public final class DifficultyManager {
     public static DimensionConfig configFor(RegistryKey<World> worldKey) {
         MultiverseConfig config = MultiverseConfig.getInstance();
         Identifier id = worldKey.getValue();
-        for (String reservedName : DimensionConfig.RESERVED_NAMES) {
-            DimensionConfig world = config.getWorld(reservedName);
-            if (world != null && world.getDimensionId().equals(id.toString())) {
-                return world;
-            }
+        DimensionConfig reserved = config.getReservedDimension(id.toString());
+        if (reserved != null) {
+            return reserved;
         }
         if (config.isManagedNamespace(id.getNamespace())) {
             return DimensionManager.getInstance().resolveDefinition(id.getPath());

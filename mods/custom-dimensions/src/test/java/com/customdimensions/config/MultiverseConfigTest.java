@@ -40,9 +40,9 @@ class MultiverseConfigTest {
 
         MultiverseConfig config = fromDirectory(dir);
         assertEquals(9, config.getIdleUnloadMinutes());
-        assertEquals(2, config.getDimensions().size());
+        assertEquals(2, config.getCustomDimensions().size());
         assertEquals(77L, config.getWorldSeedOverride("minecraft:overworld"));
-        assertArrayEquals(new int[]{1, 64, 2}, config.getWorld("overworld").getSpawn());
+        assertArrayEquals(new int[]{1, 64, 2}, config.getReservedDimensionBySlug("overworld").getSpawn());
         assertEquals(1, config.getPortals().size());
         assertEquals("adventure:the_claymarsh", config.getPortal("the_claymarsh").getTargetDimension());
         assertTrue(config.isManagedNamespace("adventure"));
@@ -119,8 +119,8 @@ class MultiverseConfigTest {
         assertFalse(config.isManagedNamespace("minecraft"));
         assertFalse(config.isManagedNamespace("paradise_lost"));
         // ...nor make it a custom dimension.
-        assertNull(config.getDimension("the_end"));
-        assertTrue(config.getDimensions().isEmpty());
+        assertNull(config.getCustomDimension("the_end"));
+        assertTrue(config.getCustomDimensions().isEmpty());
     }
 
     @Test
@@ -146,7 +146,7 @@ class MultiverseConfigTest {
         }
         MultiverseConfig config = fromDirectory(dir);
         for (var e : DimensionConfig.RESERVED_TYPE_BY_NAME.entrySet()) {
-            DimensionConfig def = config.getWorld(e.getKey());
+            DimensionConfig def = config.getReservedDimensionBySlug(e.getKey());
             assertNotNull(def, e.getKey());
             assertEquals(e.getValue(), def.getType(), e.getKey());
             assertFalse(com.customdimensions.dimension.StructureGroupRegistry
@@ -156,7 +156,7 @@ class MultiverseConfigTest {
         // An explicit type still wins — that is how a consumer moves a base
         // world onto another family's group set.
         Files.writeString(dims.resolve("the_end.json"), "{\"seed\":1,\"type\":\"nether\"}");
-        assertEquals("nether", fromDirectory(dir).getWorld("the_end").getType());
+        assertEquals("nether", fromDirectory(dir).getReservedDimensionBySlug("the_end").getType());
     }
 
     @Test
