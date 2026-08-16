@@ -152,6 +152,82 @@ public final class FactsEngine {
     }
 
     /**
+     * A cheap subset of {@link #measure}, for screening a large pool of seeds
+     * before the full grid is worth paying for. Two facts, both obtainable
+     * with no per-seed terrain router:
+     *
+     * <ul>
+     *   <li>{@code structures} — the real {@link #structureFacts}, unchanged.
+     *       It reads {@code base} alone, never a {@code NoiseConfig}: placement
+     *       is {@code seed ^ salt} arithmetic through {@link
+     *       com.customdimensions.dimension.NoiseStructurePlacement} and
+     *       vanilla's own random-spread grid, so this is exact, not an
+     *       estimate — a seed rejected here is rejected for the same reason
+     *       {@link #measure} would reject it, from the same fields.</li>
+     *   <li>{@code spawn.biome} and {@code biomes.edgeDensityNearSpawn} — from
+     *       a CLIMATE-ONLY rig ({@link SpikeSampler#forSeedClimate}), which
+     *       skips the terrain, aquifer and ore density functions {@link
+     *       SpikeSampler#climateOnly} exists to avoid paying for. Read at the
+     *       same spawn column and the same {@link #MOSAIC_SIDE} patch {@link
+     *       #measure} uses, through the same {@link #mosaic}/{@link
+     *       #edgeDensity} helpers, so a later full measurement of the same
+     *       seed reads identically here.</li>
+     * </ul>
+     *
+     * <p>Everything else — height, relief, ground, the full biome mosaic
+     * share, every terrain fact — reads {@link Measured#absent} with a
+     * reason. That is deliberate, not a shortcut taken and hidden: {@link
+     * com.customdimensions.score.Scorer} already excludes an absent fact's
+     * criterion from both the achieved total and the ceiling, so scoring
+     * this partial record with the dimension's REAL criteria gives an honest
+     * coarse rank over exactly what was cheap to measure — never a guess
+     * standing in for the rest.
+     *
+     * @param base the seed-independent half, built once per roll and handed
+     *             in rather than rebuilt per seed — see {@link
+     *             SpikeSampler.Base}'s own javadoc for why.
+     */
+    public static SeedFacts measureCheap(MinecraftServer server, Identifier dimensionId,
+                                         DimensionConfig def, SpikeSampler.Base base, long seed) {
+        int radius = def != null ? def.getPlayerBorderRadius() : 8192;
+        String fingerprint = def != null ? String.valueOf(def.getBiomePatchesFingerprint()) : "";
+        String why = "tier-1 screen: only structures and near-spawn biome were measured for this seed";
+
+        SeedFacts.StructureFacts structures = def == null
+                ? absentStructures("no dimension config, so its structure plan cannot be resolved")
+                : structureFacts(server, def, base, seed, radius);
+
+        SeedFacts.SpawnFacts spawn;
+        SeedFacts.BiomeFacts biomes;
+        if (!base.ok()) {
+            spawn = new SeedFacts.SpawnFacts(Measured.absent(why), Measured.absent(why),
+                    Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                    Measured.absent(why), Measured.absent(why));
+            biomes = new SeedFacts.BiomeFacts(Measured.absent(why), Measured.absent(why),
+                    Measured.absent(why), Measured.absent(why));
+        } else {
+            SpikeSampler.Rig rig = SpikeSampler.forSeedClimate(server, base, seed);
+            SeedFacts.Column at = spawnColumn(def);
+            String spawnBiome = SpikeSampler.spawnBiome(rig, at.x(), at.z());
+            Measured<String> biome = spawnBiome == null
+                    ? Measured.absent("the biome source answered nothing at spawn")
+                    : Measured.of(spawnBiome);
+            spawn = new SeedFacts.SpawnFacts(Measured.of(at), biome,
+                    Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                    Measured.absent(why), Measured.absent(why));
+            biomes = new SeedFacts.BiomeFacts(Measured.absent(why), Measured.absent(why),
+                    Measured.absent(why), edgeDensity(mosaic(rig, at, radius), MOSAIC_SIDE));
+        }
+
+        return new SeedFacts(Artefacts.stackVersion(), dimensionId.toString(), seed,
+                Instant.now().toString(), fingerprint, radius, spawn, biomes,
+                new SeedFacts.TerrainFacts(Measured.absent(why), Measured.absent(why),
+                        Measured.absent(why), Measured.absent(why), Measured.absent(why),
+                        Measured.absent(why)),
+                structures, Measured.absent(why));
+    }
+
+    /**
      * The biomes on a fixed-step patch centred on spawn, row-major over
      * {@link #MOSAIC_SIDE}, with nulls where the biome source answered
      * nothing.

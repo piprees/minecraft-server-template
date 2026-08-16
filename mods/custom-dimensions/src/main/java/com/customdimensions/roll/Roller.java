@@ -2,6 +2,7 @@ package com.customdimensions.roll;
 
 import com.customdimensions.MultiverseServer;
 import com.customdimensions.command.InputHash;
+import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.facts.FactsEngine;
 import com.customdimensions.facts.SeedFacts;
@@ -12,9 +13,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.LongPredicate;
@@ -27,8 +29,10 @@ import java.util.function.LongSupplier;
  *
  * <p>{@link #roll} touches no filesystem and no Fabric API — persistence is
  * entirely the {@link Sink}'s concern, which is what makes the search loop
- * itself testable with a stub measurer and no server. {@link #rollDimension}
- * is the live wiring: it persists through {@link SeedBank}.
+ * itself testable with a stub measurer and no server. {@link #screenShortlist}
+ * and {@link #measureOne} are the live wiring: a cheap tier-1 sweep over a
+ * pool of {@code count} seeds narrows to {@link #SHORTLIST}, then a full
+ * tier-2 measurement per survivor — both persist through {@link SeedBank}.
  *
  * <p>{@link FactsEngine#measure} builds its rig headlessly — no
  * {@code ServerWorld} is created and no chunk is loaded — so a roll never
@@ -94,10 +98,6 @@ public final class Roller {
         }
     }
 
-    /** How many seeds one roll actually measured, and how each verdict split. */
-    public record RollResult(int measured, int scored, int rejected) {
-    }
-
     /**
      * Draws seeds from {@code seeds} until {@code budget} is spent, skipping
      * any {@code alreadyTried} reports true for and measuring the rest with
@@ -108,9 +108,23 @@ public final class Roller {
      */
     public static int roll(LongPredicate alreadyTried, LongSupplier seeds,
                            Measurer measurer, Sink sink, Budget budget) {
+        return roll(alreadyTried, seeds, measurer, sink, budget, () -> false);
+    }
+
+    /**
+     * The same, abandoning partway when {@code abandonIf} turns true.
+     *
+     * <p>A tier-1 screen is thousands of seeds and minutes long, so the budget
+     * alone is far too coarse a place to notice that somebody cancelled the
+     * run or opened a different dimension. Checked once per seed, which costs
+     * nothing beside a measurement and bounds the wait at one.
+     */
+    public static int roll(LongPredicate alreadyTried, LongSupplier seeds,
+                           Measurer measurer, Sink sink, Budget budget,
+                           java.util.function.BooleanSupplier abandonIf) {
         int attempts = 0;
         int measured = 0;
-        while (!budget.exceeded(attempts)) {
+        while (!budget.exceeded(attempts) && !abandonIf.getAsBoolean()) {
             attempts++;
             long seed = seeds.getAsLong();
             if (alreadyTried.test(seed)) {
@@ -127,56 +141,110 @@ public final class Roller {
         return measured;
     }
 
+    /** How many tier-1 survivors a shortlist carries into a full tier-2 measurement. */
+    public static final int SHORTLIST = 10;
+
     /**
-     * The live wiring: an in-memory index of every seed {@link SeedBank}
-     * already has on disk for {@code dimensionId} (read once, not per draw),
-     * a sink that persists each new outcome as it happens, and
-     * {@link FactsEngine}/{@link Scorer} doing the actual measuring.
-     *
-     * <p>The measurer stashes the facts and scorecard it just built in a
-     * one-slot holder; the sink below reads them straight back out instead of
-     * measuring twice, which is safe because {@link #roll} always calls the
-     * sink immediately after the measurer for the same seed, on one thread.
+     * A rank tier 1 assigned one seed, and the order it was drawn in — the
+     * tie-break, so a fixed draw sequence always shortlists the same set in
+     * the same order.
      */
-    public static RollResult rollDimension(MinecraftServer server, Identifier dimensionId,
-                                           DimensionConfig def, int count) {
+    private record Ranked(long seed, double rank, int order) {
+    }
+
+    private static int compareRanked(Ranked a, Ranked b) {
+        int byRank = Double.compare(b.rank(), a.rank());   // descending: best first
+        return byRank != 0 ? byRank : Integer.compare(a.order(), b.order());
+    }
+
+    /**
+     * A bounded top-N by descending rank. Re-sorts on the rare insert that
+     * grows past capacity rather than keeping a heap — capacity is {@link
+     * #SHORTLIST}, ten, so the whole list is cheaper to re-sort each time
+     * than a heap is to code correctly for a size this small. Not
+     * thread-safe: one per {@link #screenShortlist} call, on one thread.
+     */
+    static final class TopN {
+        private final int capacity;
+        private final List<Ranked> entries = new ArrayList<>();
+        private int seq;
+
+        TopN(int capacity) {
+            this.capacity = capacity;
+        }
+
+        void add(long seed, double rank) {
+            entries.add(new Ranked(seed, rank, seq++));
+            if (entries.size() > capacity) {
+                entries.sort(Roller::compareRanked);
+                entries.remove(entries.size() - 1);
+            }
+        }
+
+        /** Every seed added, best rank first, ties broken by draw order. */
+        List<Long> bestFirst() {
+            List<Ranked> sorted = new ArrayList<>(entries);
+            sorted.sort(Roller::compareRanked);
+            List<Long> out = new ArrayList<>(sorted.size());
+            for (Ranked r : sorted) {
+                out.add(r.seed());
+            }
+            return out;
+        }
+    }
+
+    /**
+     * TIER 1: screens up to {@code count} fresh seeds — {@code count} is now
+     * genuinely the pool size, not a ceiling that never bound — through
+     * {@link FactsEngine#measureCheap} and the dimension's real {@link
+     * com.customdimensions.score.Criterion criteria}, and returns the best
+     * {@link #SHORTLIST} by coarse rank, best first.
+     *
+     * <p>A seed whose cheap facts already fail a hard gate ({@code
+     * fortress_reachable_in_nether}, {@code end_city_reachable_in_end}) is
+     * rejected here, PERMANENTLY, and never reaches tier 2: both gates read
+     * only {@link com.customdimensions.facts.SeedFacts.StructureFacts},
+     * which this tier measures in full (the real {@link
+     * FactsEngine#measure}'s own structure pass — no NoiseConfig, pure
+     * arithmetic through {@code NoiseStructurePlacement}'s seeded noise field
+     * and vanilla's own random-spread grid), so a full measurement could
+     * never change the verdict a fuller one already reached exactly. This is
+     * the "fail faster" tier 2 would otherwise need its own reordering for —
+     * subsumed here, because nothing a seed does at tier 2 alters what its
+     * structures already are at tier 1.
+     *
+     * <p>Every surviving seed is ranked by {@link Scorecard#percentage()}
+     * over whatever this tier could cheaply measure (structures, spawn
+     * biome, near-spawn biome edges) — the SAME criteria tier 2 will apply,
+     * over a smaller set of facts, so the rank is a genuine partial reading
+     * of the same scorecard rather than a heuristic standing in for it.
+     * Deterministic: the same seed against the same config always gets the
+     * same cheap facts and the same rank.
+     */
+    public static List<Long> screenShortlist(MinecraftServer server, Identifier dimensionId,
+                                             DimensionConfig def, int count,
+                                             java.util.function.BooleanSupplier abandonIf) {
         String dimension = dimensionId.toString();
         String inputHash = InputHash.of(def, server);
         Set<Long> tried = new LinkedHashSet<>(SeedBank.alreadyTriedSeeds(inputHash, dimension));
         Random random = new Random();
-
-        // Resolved once, not per seed: the criteria a dimension poses come
-        // from its config, which does not move during a roll.
         java.util.List<com.customdimensions.score.Criterion> criteria = Criteria.forConfig(def);
-        SeedFacts[] lastFacts = new SeedFacts[1];
-        Scorecard[] lastCard = new Scorecard[1];
-        Measurer measurer = seed -> {
-            SeedFacts facts = FactsEngine.measure(server, dimensionId, seed);
-            Scorecard card = Scorer.score(facts, def, criteria);
-            lastFacts[0] = facts;
-            lastCard[0] = card;
-            return new Draw(seed, card.verdict(), card.achieved(), card.ceiling(),
-                    card.verdictReason());
-        };
+        SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
 
-        int[] scoredCount = {0};
-        int[] rejectedCount = {0};
+        TopN shortlist = new TopN(SHORTLIST);
+        Measurer tier1 = seed -> {
+            SeedFacts cheap = FactsEngine.measureCheap(server, dimensionId, def, base, seed);
+            Scorecard card = Scorer.score(cheap, def, criteria);
+            boolean hardFail = card.verdict() == Scorecard.Verdict.REJECTED;
+            Double pct = card.percentage();
+            double rank = hardFail || pct == null ? 0.0 : pct;
+            return new Draw(seed, hardFail ? Scorecard.Verdict.REJECTED : Scorecard.Verdict.SCORED,
+                    rank, 100.0, card.verdictReason());
+        };
         Sink sink = new Sink() {
             @Override
             public void scored(long seed, double achieved, double ceiling) {
-                try {
-                    SeedBank.writeCandidate(dimension, seed, lastFacts[0], lastCard[0], inputHash);
-                    scoredCount[0]++;
-                } catch (IOException e) {
-                    MultiverseServer.LOGGER.error("Failed to write candidate {} for {}",
-                            seed, dimension, e);
-                }
-                // Rendering is not part of the search. A map costs far more
-                // than a measurement, only the handful of candidates at the
-                // top of the board is ever looked at, and which ones those are
-                // keeps changing while a roll runs — so drawing them is a
-                // separate job that reconciles against the board, not
-                // something every scored seed pays for on its way past.
+                shortlist.add(seed, achieved);
                 tried.add(seed);
             }
 
@@ -184,17 +252,42 @@ public final class Roller {
             public void rejected(long seed, String reason) {
                 try {
                     SeedBank.appendRejected(inputHash, dimension, seed, reason);
-                    rejectedCount[0]++;
                 } catch (IOException e) {
-                    MultiverseServer.LOGGER.error("Failed to record rejected seed {} for {}",
-                            seed, dimension, e);
+                    MultiverseServer.LOGGER.error(
+                            "Failed to record tier-1 rejected seed {} for {}", seed, dimension, e);
                 }
                 tried.add(seed);
             }
         };
+        roll(seed -> tried.contains(seed), random::nextLong, tier1, sink,
+                Budget.seeds(count), abandonIf);
+        return shortlist.bestFirst();
+    }
 
-        int measured = roll(seed -> tried.contains(seed), random::nextLong, measurer, sink, Budget.seeds(count));
-        return new RollResult(measured, scoredCount[0], rejectedCount[0]);
+    /**
+     * TIER 2: the full measurement and score for ONE shortlisted seed —
+     * {@link FactsEngine#measure} and {@link Scorer#score}, unweakened and
+     * unreordered, the same pair every candidate in the bank was always
+     * judged by. Writes the result to {@link SeedBank} whatever the
+     * verdict, and returns it so a caller can log or assert against it.
+     */
+    public static Draw measureOne(MinecraftServer server, Identifier dimensionId,
+                                  DimensionConfig def, long seed) {
+        String dimension = dimensionId.toString();
+        String inputHash = InputHash.of(def, server);
+        java.util.List<com.customdimensions.score.Criterion> criteria = Criteria.forConfig(def);
+        SeedFacts facts = FactsEngine.measure(server, dimensionId, seed);
+        Scorecard card = Scorer.score(facts, def, criteria);
+        try {
+            if (card.verdict() == Scorecard.Verdict.SCORED) {
+                SeedBank.writeCandidate(dimension, seed, facts, card, inputHash);
+            } else {
+                SeedBank.appendRejected(inputHash, dimension, seed, card.verdictReason());
+            }
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error("Failed to record seed {} for {}", seed, dimension, e);
+        }
+        return new Draw(seed, card.verdict(), card.achieved(), card.ceiling(), card.verdictReason());
     }
 
     /**

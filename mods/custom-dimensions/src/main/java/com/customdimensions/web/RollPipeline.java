@@ -16,16 +16,19 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Rolling driven from the browser, with progress while it works.
  *
- * <p>A run is a background thread calling {@link Roller#rollDimension} — the
- * same search the bank was always built by. It measures headlessly (no
- * {@code ServerWorld}, no chunk load), so it never touches the tick loop; the
- * server stays playable and a try-out running beside it is unaffected.
+ * <p>A run is a background thread calling {@link Roller#screenShortlist} then
+ * {@link Roller#measureOne} — the same two-tier search the bank is now built
+ * by. Both measure headlessly (no {@code ServerWorld}, no chunk load), so a
+ * run never touches the tick loop; the server stays playable and a try-out
+ * running beside it is unaffected.
  *
- * <p>Seeds are rolled in small batches so a stop is honoured within seconds
- * and the counter moves while a long run is going. {@code generation} is
- * bumped each time a dimension finishes, which is the browser's cue to
- * refetch the grid — a batch kicked off up front fills in as it goes rather
- * than appearing all at once at the end.
+ * <p>The tier-1 sweep is one call over the whole per-dimension pool — cheap
+ * enough, by design, that it is not worth chopping into batches for
+ * responsiveness. CANCEL and a FOCUS-yield are instead checked at the
+ * granularity that costs something: once per shortlisted seed, in the tier-2
+ * loop below it, where a single measurement still runs to about a hundred
+ * core-seconds on a modded dimension. {@code generation} is bumped each time
+ * a dimension finishes, which is the browser's cue to refetch the grid.
  *
  * <p>One run at a time. Two concurrent searches would compete for the same
  * candidate directory and neither would be faster.
@@ -33,17 +36,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class RollPipeline {
 
     /**
-     * Seeds per {@link Roller#rollDimension} call: the stop and progress
-     * granularity. One, because a single measurement runs from under a second
-     * to half a minute depending on the dimension — the re-read of the
-     * already-tried set each call costs is nothing beside that, and a counter
-     * that only moves every fifth seed reads as a stall.
-     */
-    private static final int BATCH = 1;
-
-    /**
-     * Seeds between shortlist reconciles. Cheap (a directory read) but not
-     * free, and the board rarely changes on every single seed.
+     * Tier-2 measurements between shortlist reconciles. Cheap (a directory
+     * read) but not free, and {@link Roller#SHORTLIST} is small enough that
+     * this mostly fires once, partway through.
      */
     private static final int RECONCILE_EVERY = 5;
 
@@ -380,19 +375,25 @@ public final class RollPipeline {
 
     /**
      * Rolls one dimension until it holds {@link #WANTED} candidates, or its
-     * share of seeds runs out.
+     * pool of seeds is spent.
      *
-     * <p>Seeds go where they are NEEDED, not equally. Yields differ by two
-     * orders of magnitude across the pack — {@code the_burning_archipelago}
-     * banks a candidate from nearly every seed while {@code the_abyssal_shrine}
-     * clears its gates about once in 250 — so an equal split spends most of a
-     * run topping up boards that were already full and leaves the empty ones
-     * empty. A dimension that already has enough is skipped outright.
+     * <p>Two tiers, not a flat search. {@link Roller#screenShortlist} sweeps
+     * {@code count} seeds cheaply — no per-seed terrain router — and ranks
+     * the best {@link Roller#SHORTLIST}; that sweep is one call, since a
+     * single tier-1 screen is cheap enough that CANCEL and a FOCUS-yield are
+     * checked at the coarser, per-seed granularity of what actually costs
+     * something: the loop below, over the shortlist alone, calls {@link
+     * Roller#measureOne} — a full measurement, ~a hundred core-seconds on a
+     * modded dimension — one at a time, exactly as a roll always has, and
+     * stops the moment {@link #WANTED} is banked rather than spending the
+     * rest of the shortlist. A dimension that already has enough is skipped
+     * before either tier runs.
      *
-     * <p>{@code count} is the per-dimension seed budget, which is what bounds
-     * a dimension whose gates reject nearly everything: it stops, and
-     * {@link #STARVED} records that it stopped short so the page can say so
-     * rather than looking merely unlucky.
+     * <p>{@code count} is now the tier-1 POOL size, not a ceiling that never
+     * bound: the sweep is a search over the whole pool, not a stream that
+     * stopped at the first few survivors, so a dimension whose gates reject
+     * nearly everything still gets a fair shortlist to draw from.
+     * {@link #STARVED} records a dimension that fell short even so.
      */
     private static void rollOne(MinecraftServer server, DimensionConfig def, int count) {
         Identifier id = def.getDimensionIdentifier();
@@ -411,50 +412,78 @@ public final class RollPipeline {
             SURVEYED.incrementAndGet();
             return;
         }
+        STAGE.set("screening " + id.getPath());
+        long tier1Start = System.nanoTime();
+        java.util.List<Long> shortlist;
+        // The screen is thousands of seeds and minutes long, so it watches the
+        // same two signals the tier-2 loop below does rather than running to
+        // the end of the pool regardless.
+        java.util.function.BooleanSupplier abandonScreen = () -> {
+            if (CANCEL.get()) {
+                return true;
+            }
+            String focused = FOCUS.get();
+            return !focused.isEmpty() && !focused.equals(def.getName());
+        };
+        try {
+            shortlist = Roller.screenShortlist(server, id, def, count, abandonScreen);
+        } catch (RuntimeException e) {
+            MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
+            ERROR.set(id.getPath() + ": " + e);
+            shortlist = java.util.List.of();
+        }
+        long tier1Ms = (System.nanoTime() - tier1Start) / 1_000_000;
+        MultiverseServer.LOGGER.info(
+                "roll: {} tier 1 screened {} seed(s) in {} ms ({} ms/seed), {} shortlisted",
+                id.getPath(), count, tier1Ms, count == 0 ? 0 : tier1Ms / (double) count,
+                shortlist.size());
+        ROLLED.addAndGet(count);
         STAGE.set("rolling " + id.getPath());
-        int done = 0;
-        // Stops at WANTED candidates, and that is what makes a roll finish. A
-        // seed measurement costs around a hundred core-seconds on a modded
-        // dimension, so `count` is a ceiling that never binds in practice —
-        // spending it would be 9 seeds a minute against a 5000-seed budget.
-        // The board is therefore the first WANTED that clear the gates, ranked
-        // by SeedBank's descending sort rather than chosen by a search.
-        while (done < count && !CANCEL.get() && banked(hash, dimension) < WANTED) {
-            // Yield to a dimension somebody has just opened. Checked between
-            // batches, so a worker grinding a slow dimension frees up in
-            // seconds rather than when its whole budget is spent — a focus
-            // that waits minutes for a slot is not "it starts rolling".
-            // Re-queued, never dropped: it resumes with the seeds it has
-            // left once the focused one is served. Same shape as a detail
-            // render abandoning itself the moment a thumbnail is owed.
+        long tier2Start = System.nanoTime();
+        int measured = 0;
+        for (long seed : shortlist) {
+            if (CANCEL.get() || banked(hash, dimension) >= WANTED) {
+                break;
+            }
+            // Yield to a dimension somebody has just opened. Re-queued, never
+            // dropped: a focus that resumes this dimension later re-screens a
+            // fresh pool rather than resuming the part-drawn shortlist — tier
+            // 1 is cheap enough that the redraw costs little, and carrying a
+            // shortlist across a yield would need state this method has no
+            // other reason to keep.
             String want = FOCUS.get();
             if (!want.isEmpty() && !want.equals(def.getName())) {
                 YIELDED.offer(def);
                 return;
             }
-            int batch = Math.min(BATCH, count - done);
             try {
-                Roller.rollDimension(server, id, def, batch);
+                Roller.measureOne(server, id, def, seed);
             } catch (RuntimeException e) {
                 MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
                 ERROR.set(id.getPath() + ": " + e);
                 break;
             }
-            done += batch;
-            ROLLED.addAndGet(batch);
+            measured++;
             // The board moves while this runs, so the shortlist is redrawn as
             // it goes rather than only at the end — the top ten are lookable
             // long before the roll finishes.
-            if (done % RECONCILE_EVERY == 0) {
+            if (measured % RECONCILE_EVERY == 0) {
                 RenderQueue.reconcile(server, def);
             }
         }
+        long tier2Ms = (System.nanoTime() - tier2Start) / 1_000_000;
+        MultiverseServer.LOGGER.info(
+                "roll: {} tier 2 measured {} of {} shortlisted seed(s) in {} ms ({} ms/seed)",
+                id.getPath(), measured, shortlist.size(), tier2Ms,
+                measured == 0 ? 0 : tier2Ms / (double) measured);
         int got = banked(hash, dimension);
         if (got < WANTED && !CANCEL.get()) {
-            STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + done + " seeds)");
+            STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + count
+                    + " screened, " + shortlist.size() + " shortlisted)");
             MultiverseServer.LOGGER.warn(
-                    "roll: {} kept only {}/{} candidates from {} seeds — its gates reject nearly everything",
-                    id.getPath(), got, WANTED, done);
+                    "roll: {} kept only {}/{} candidates from {} screened seeds ({} shortlisted) "
+                    + "— its gates reject nearly everything",
+                    id.getPath(), got, WANTED, count, shortlist.size());
         }
         RenderQueue.reconcile(server, def);
         SURVEYED.incrementAndGet();

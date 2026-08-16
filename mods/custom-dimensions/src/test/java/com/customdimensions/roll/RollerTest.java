@@ -17,11 +17,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The search loop's boundedness — the property {@code roll} exists to
- * guarantee. {@link Roller#rollDimension} wires in {@code SeedBank},
- * {@code FactsEngine} and {@code Scorer} and needs a live server, so it is
- * exercised in the local verification loop (mods/AGENTS.md), not here;
- * everything below is the pure loop with a stub {@link Roller.Measurer} and
- * a {@link Roller.Sink} backed by plain in-memory collections.
+ * guarantee. {@link Roller#screenShortlist} and {@link Roller#measureOne}
+ * wire in {@code SeedBank}, {@code FactsEngine} and {@code Scorer} and need a
+ * live server, so they are exercised in the local verification loop
+ * (mods/AGENTS.md), not here; everything below is the pure loop with a stub
+ * {@link Roller.Measurer} and a {@link Roller.Sink} backed by plain in-memory
+ * collections, plus {@link Roller.TopN}, which needs neither.
  */
 class RollerTest {
 
@@ -121,10 +122,10 @@ class RollerTest {
 
     @Test
     void aSeedDrawnTwiceInOneRunIsMeasuredOnlyOnceWhenTheSinkFeedsBackIntoAlreadyTried() {
-        // The shape rollDimension actually uses: alreadyTried and the sink
-        // share one mutable set, so a seed the sink just recorded is not
-        // drawn again within the same run even though the seed source alone
-        // would offer it forever.
+        // The shape screenShortlist and measureOne actually use: alreadyTried
+        // and the sink share one mutable set, so a seed the sink just
+        // recorded is not drawn again within the same run even though the
+        // seed source alone would offer it forever.
         Set<Long> tried = new HashSet<>();
         AtomicInteger measured = new AtomicInteger();
         Roller.Measurer measurer = seed -> {
@@ -181,5 +182,52 @@ class RollerTest {
             def.setBiomes(raw);
         }
         return def;
+    }
+
+    /**
+     * {@link Roller.TopN} is tier 1's accumulator: pure, so its ranking is
+     * pinned here rather than only inferred from a live shortlist that
+     * needed a server to produce.
+     */
+    @org.junit.jupiter.api.Nested
+    class TopNTest {
+
+        @Test
+        void keepsOnlyTheBestCapacityEntries() {
+            Roller.TopN top = new Roller.TopN(3);
+            top.add(1L, 10.0);
+            top.add(2L, 90.0);
+            top.add(3L, 50.0);
+            top.add(4L, 20.0);
+            top.add(5L, 80.0);
+
+            assertEquals(List.of(2L, 5L, 3L), top.bestFirst(),
+                    "only the three highest-ranked seeds survive, best first");
+        }
+
+        @Test
+        void ordersDescendingByRank() {
+            Roller.TopN top = new Roller.TopN(10);
+            top.add(10L, 5.0);
+            top.add(20L, 95.0);
+            top.add(30L, 50.0);
+
+            assertEquals(List.of(20L, 30L, 10L), top.bestFirst());
+        }
+
+        @Test
+        void tiesBreakByDrawOrderNotBySeedValue() {
+            Roller.TopN top = new Roller.TopN(5);
+            top.add(999L, 50.0);
+            top.add(1L, 50.0);
+
+            assertEquals(List.of(999L, 1L), top.bestFirst(),
+                    "equal rank keeps the seed drawn first ahead of one drawn later");
+        }
+
+        @Test
+        void anEmptyAccumulatorShortlistsNothing() {
+            assertTrue(new Roller.TopN(Roller.SHORTLIST).bestFirst().isEmpty());
+        }
     }
 }
