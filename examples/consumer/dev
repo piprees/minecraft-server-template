@@ -493,6 +493,11 @@ case "$CMD" in
       -f "$STACK_DIR/docker-compose.local.yml" \
       --project-directory "$CONSUMER_DIR" \
       --profile local pull
+    # modpack-builder is not a compose service — dev-up.sh runs it with a bare
+    # docker run — so the compose pull above never reaches it and the pack
+    # would keep building from whatever tag was cached.
+    docker pull "${IMAGE_REGISTRY:-ghcr.io/piprees/minecraft-server-template}/modpack-builder:${IMAGE_TAG:-latest}" \
+      || echo "  ! modpack-builder pull failed — the client pack may build stale"
     echo ""
     echo "Stack and images updated."
     echo "Tip: run 'git diff' to see what changed in synced scaffold files."
