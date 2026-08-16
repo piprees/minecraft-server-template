@@ -141,6 +141,59 @@ public final class BiomeFamilies {
         return StructureWants.familyForType(trimmed);
     }
 
+    /**
+     * Types whose generator borrows another family's whole settings record.
+     *
+     * <p>{@code sky_islands} and {@code nether_islands} are both built from
+     * {@code endGen.getSettings()} — the live {@code minecraft:end} record, so
+     * on this stack Nullscape's. Their {@link #hostFamily} is right about
+     * everything else about them (an overworld sky world wants overworld
+     * structures) and wrong about the only thing this table is for: the
+     * surface rule in play names End biomes, and its third and last branch is
+     * an unconditional {@code minecraft:end_stone} block with no biome gate.
+     * Judged against their structure family every biome they carry is native,
+     * nothing composes, and every one of them hits that branch — sakura
+     * gardens and crimson forests alike arrive as bare end stone.
+     */
+    private static final Map<String, String> SURFACE_FAMILY_BY_TYPE = Map.of(
+            "sky_islands", END,
+            "nether_islands", END);
+
+    /**
+     * The family whose surface rule this dimension's generator actually
+     * carries — which is what decides whether a biome needs dressing.
+     *
+     * <p>Usually {@link #hostFamily}, and the two are the same for every type
+     * that builds on its own family's settings. Two things separate them:
+     *
+     * <ul>
+     * <li>The island types, which borrow the End's record whole
+     *     ({@link #SURFACE_FAMILY_BY_TYPE}).</li>
+     * <li>An explicit {@code noiseSettings}, which replaces the record
+     *     entirely — surface rule included — so the preset decides and the
+     *     type no longer does. Every preset this mod ships is built from the
+     *     overworld's rule by {@code gen-terrain-presets.py}; {@code
+     *     adventure:void} is suppressed before it reaches a generator and so
+     *     never arrives here.</li>
+     * </ul>
+     *
+     * <p>Null carries the same meaning as it does for {@link #hostFamily}: no
+     * way to say what is foreign, so the caller dresses nothing.
+     *
+     * @param type          the dimension's configured type
+     * @param noiseSettings its {@code noiseSettings}, or null when unset
+     */
+    public static String surfaceHostFamily(String type, String noiseSettings) {
+        if (noiseSettings != null && !noiseSettings.isBlank()) {
+            return OVERWORLD;
+        }
+        if (type == null || type.isBlank()) {
+            return null;
+        }
+        String borrowed = SURFACE_FAMILY_BY_TYPE.get(type.trim());
+        return borrowed != null ? borrowed : hostFamily(type);
+    }
+
     /** Every family this class can dress, for lint and for the boot log. */
     public static java.util.Set<String> known() {
         return HOME_SETTINGS.keySet();

@@ -795,14 +795,17 @@ public class DimensionManager {
      * transplanted one takes the fall-through and comes out as grass with
      * nether features standing on it.
      *
-     * <p>Foreign is decided per biome against the HOST's family, and the host
-     * family comes from the same jar-baked table the structure groups use. A
-     * dimension whose type belongs to no family is left alone: without a host
-     * family there is no way to say what is foreign, and guessing would
-     * re-skin biomes nobody asked about.
+     * <p>Foreign is decided per biome against the family whose surface rule
+     * this generator is actually carrying, which is
+     * {@link BiomeFamilies#surfaceHostFamily} rather than the structure host:
+     * the island types borrow the End's whole settings record, and an explicit
+     * {@code noiseSettings} replaces it outright. A dimension whose generator
+     * belongs to no family is left alone: without a host there is no way to
+     * say what is foreign, and guessing would re-skin biomes nobody asked
+     * about.
      */
     private DimensionOptions applySurfaceComposition(DimensionConfig def, DimensionOptions built) {
-        String hostFamily = BiomeFamilies.hostFamily(def.getType());
+        String hostFamily = BiomeFamilies.surfaceHostFamily(def.getType(), def.getNoiseSettings());
         if (hostFamily == null
                 || !(built.chunkGenerator() instanceof NoiseChunkGenerator noiseGen)) {
             return built;

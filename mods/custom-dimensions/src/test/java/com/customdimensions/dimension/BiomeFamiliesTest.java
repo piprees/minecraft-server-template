@@ -105,6 +105,52 @@ class BiomeFamiliesTest {
     }
 
     @Test
+    void theIslandTypesAreDressedByTheEndBecauseThatIsWhoseSettingsTheyCarry() {
+        // Both island types are built from endGen.getSettings() — the live
+        // minecraft:end record. Nullscape's rule for it ends in an
+        // unconditional minecraft:end_stone block with no biome gate, so a
+        // biome judged native against the STRUCTURE family composes nothing
+        // and arrives as bare end stone. the_shattered_skies' 20 overworld
+        // biomes and the_burning_archipelago's 10 nether ones are the four
+        // shipped dimensions this decides.
+        assertEquals(BiomeFamilies.END,
+                BiomeFamilies.surfaceHostFamily("sky_islands", null));
+        assertEquals(BiomeFamilies.END,
+                BiomeFamilies.surfaceHostFamily("nether_islands", null));
+        // Their structure family is unchanged and still says what it should:
+        // an overworld sky world wants overworld structures.
+        assertEquals(BiomeFamilies.OVERWORLD, BiomeFamilies.hostFamily("sky_islands"));
+        assertEquals(BiomeFamilies.NETHER, BiomeFamilies.hostFamily("nether_islands"));
+    }
+
+    @Test
+    void anExplicitNoiseSettingsDecidesTheSurfaceInsteadOfTheType() {
+        // withSettings replaces the whole ChunkGeneratorSettings record, the
+        // surface rule with it, so the preset is the host and the type is not.
+        // the_catalyst_maw is nether_islands on adventure:compressed, and is
+        // therefore dressed by the overworld rather than by the End.
+        assertEquals(BiomeFamilies.OVERWORLD,
+                BiomeFamilies.surfaceHostFamily("nether_islands", "adventure:compressed"));
+        assertEquals(BiomeFamilies.OVERWORLD,
+                BiomeFamilies.surfaceHostFamily("end", "adventure:wide"));
+    }
+
+    @Test
+    void everyOtherTypeIsDressedByItsOwnStructureFamily() {
+        for (String type : new String[] {
+            "multi_biome", "overworld", "cave", "checkerboard",
+            "amplified", "large_biomes", "nether", "end"}) {
+            assertEquals(BiomeFamilies.hostFamily(type),
+                    BiomeFamilies.surfaceHostFamily(type, null),
+                    type + " builds on its own family's settings, so the two must agree");
+        }
+        assertNull(BiomeFamilies.surfaceHostFamily("void", null));
+        assertNull(BiomeFamilies.surfaceHostFamily("superflat", null));
+        assertNull(BiomeFamilies.surfaceHostFamily(null, null));
+        assertNull(BiomeFamilies.surfaceHostFamily("  ", ""));
+    }
+
+    @Test
     void everyFamilyNamesTheGeneratorThatDressesIt() {
         // A family with no home settings is a family whose biomes can be
         // classified and then never dressed — the classifier would report a
