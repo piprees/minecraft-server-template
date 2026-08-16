@@ -147,6 +147,18 @@ public final class Roller {
     public static final int SHORTLIST = 10;
 
     /**
+     * What one tier-1 screen produced.
+     *
+     * <p>{@code screened} is how many seeds were actually measured, which is
+     * NOT the pool size: a screen that is cancelled, or told to yield to a
+     * dimension somebody has just opened, stops early and measures fewer. The
+     * two were conflated once and a screen that measured nothing reported the
+     * whole pool, which hid the reason every board came back empty.
+     */
+    public record Screen(List<Long> shortlist, int screened) {
+    }
+
+    /**
      * A rank tier 1 assigned one seed, and the order it was drawn in — the
      * tie-break, so a fixed draw sequence always shortlists the same set in
      * the same order.
@@ -223,7 +235,7 @@ public final class Roller {
      * Deterministic: the same seed against the same config always gets the
      * same cheap facts and the same rank.
      */
-    public static List<Long> screenShortlist(MinecraftServer server, Identifier dimensionId,
+    public static Screen screenShortlist(MinecraftServer server, Identifier dimensionId,
                                              DimensionConfig def, int count,
                                              java.util.function.BooleanSupplier abandonIf) {
         String dimension = dimensionId.toString();
@@ -267,15 +279,21 @@ public final class Roller {
                 tried.add(seed);
             }
         };
-        roll(seed -> tried.contains(seed), random::nextLong, tier1, sink,
+        int screenedCount = roll(seed -> tried.contains(seed), random::nextLong, tier1, sink,
                 Budget.seeds(count), abandonIf);
-        try {
-            SeedBank.writeScreened(inputHash, dimension, screened);
-        } catch (IOException e) {
-            MultiverseServer.LOGGER.error(
-                    "Failed to record the tier-1 screen for {}", dimension, e);
+        // A screen that measured nothing has nothing to say about the pool, and
+        // the record it would write is indistinguishable from one whose every
+        // seed was rejected. Writing it destroys the previous screen's ranks,
+        // which are the only account of how the pool scored.
+        if (screenedCount > 0) {
+            try {
+                SeedBank.writeScreened(inputHash, dimension, screened);
+            } catch (IOException e) {
+                MultiverseServer.LOGGER.error(
+                        "Failed to record the tier-1 screen for {}", dimension, e);
+            }
         }
-        return shortlist.bestFirst();
+        return new Screen(shortlist.bestFirst(), screenedCount);
     }
 
     /**

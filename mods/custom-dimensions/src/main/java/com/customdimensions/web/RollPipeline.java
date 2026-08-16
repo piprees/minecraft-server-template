@@ -120,6 +120,11 @@ public final class RollPipeline {
         }
         CANCEL.set(false);
         ERROR.set("");
+        // A focus is a statement about the page somebody had open, not about
+        // the run they are starting now. Left set, it makes every OTHER
+        // dimension yield or abandon on its first check.
+        FOCUS.set("");
+        UNSERVED_FOCUS.set("");
         STARVED.clear();
         // A ceiling, not a plan: a dimension stops at WANTED candidates, so a
         // run that finds them early rolls far fewer seeds than this.
@@ -315,6 +320,28 @@ public final class RollPipeline {
             new java.util.concurrent.atomic.AtomicReference<>("");
 
     /**
+     * The focused dimension while it is still waiting for a worker — what a
+     * yield is actually for, and the only thing a worker should step aside
+     * over.
+     *
+     * <p>Yielding on {@link #FOCUS} itself makes EVERY worker abandon, when
+     * one stepping aside is enough to serve the focus: the other nine then
+     * cycle the queue abandoning each dimension in turn, and a focus on a
+     * dimension this run will never hand out (already surveyed, or not a roll
+     * target) never stops. {@link #nextTarget} clears this the moment the
+     * focused dimension is handed out or found absent, so a yield is bounded
+     * to the handful of workers that check before the claim lands.
+     */
+    private static final java.util.concurrent.atomic.AtomicReference<String> UNSERVED_FOCUS =
+            new java.util.concurrent.atomic.AtomicReference<>("");
+
+    /** Whether this dimension should step aside for one somebody has just opened. */
+    private static boolean yieldTo(DimensionConfig def) {
+        String want = UNSERVED_FOCUS.get();
+        return !want.isEmpty() && !want.equals(def.getName());
+    }
+
+    /**
      * Sets (or with a blank slug clears) the dimension that jumps the queue.
      *
      * <p>Opening one also queues its detail maps: those are not queued during
@@ -324,6 +351,7 @@ public final class RollPipeline {
     public static void focus(MinecraftServer server, String slug) {
         String want = slug == null ? "" : slug.trim();
         FOCUS.set(want);
+        UNSERVED_FOCUS.set(want);
         RenderQueue.focus(want);
         if (want.isEmpty()) {
             return;
@@ -365,9 +393,14 @@ public final class RollPipeline {
                     DimensionConfig def = it.next();
                     if (want.equals(def.getName())) {
                         it.remove();
+                        UNSERVED_FOCUS.compareAndSet(want, "");
                         return def;
                     }
                 }
+                // Nothing here can serve it: it is already surveyed, in flight
+                // with another worker, or not a target of this run. Every case
+                // means stepping aside for it achieves nothing.
+                UNSERVED_FOCUS.compareAndSet(want, "");
             }
             return pending.poll();
         }
@@ -415,28 +448,39 @@ public final class RollPipeline {
         STAGE.set("screening " + id.getPath());
         long tier1Start = System.nanoTime();
         java.util.List<Long> shortlist;
+        int screened;
         // The screen is thousands of seeds and minutes long, so it watches the
         // same two signals the tier-2 loop below does rather than running to
         // the end of the pool regardless.
-        java.util.function.BooleanSupplier abandonScreen = () -> {
-            if (CANCEL.get()) {
-                return true;
-            }
-            String focused = FOCUS.get();
-            return !focused.isEmpty() && !focused.equals(def.getName());
-        };
+        java.util.function.BooleanSupplier abandonScreen = () -> CANCEL.get() || yieldTo(def);
         try {
-            shortlist = Roller.screenShortlist(server, id, def, count, abandonScreen);
+            Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandonScreen);
+            shortlist = screen.shortlist();
+            screened = screen.screened();
         } catch (RuntimeException e) {
             MultiverseServer.LOGGER.error("Roll failed for {}", id, e);
             ERROR.set(id.getPath() + ": " + e);
             shortlist = java.util.List.of();
+            screened = 0;
         }
         long tier1Ms = (System.nanoTime() - tier1Start) / 1_000_000;
         MultiverseServer.LOGGER.info(
-                "roll: {} tier 1 screened {} seed(s) in {} ms ({} ms/seed), {} shortlisted",
-                id.getPath(), count, tier1Ms, count == 0 ? 0 : tier1Ms / (double) count,
-                shortlist.size());
+                "roll: {} tier 1 screened {} of {} seed(s) in {} ms ({} ms/seed), {} shortlisted",
+                id.getPath(), screened, count, tier1Ms,
+                screened == 0 ? 0 : tier1Ms / (double) screened, shortlist.size());
+        // A screen that measured nothing did not find a bad pool — it never
+        // ran, because the run was cancelled or the queue was told to serve a
+        // different dimension first. Re-queue rather than record a starved
+        // board: an empty shortlist skips the tier-2 loop entirely, so the
+        // yield inside it would never be reached. Its seeds are not counted
+        // either; a run that reported them would show progress it never made.
+        if (screened == 0 && count > 0 && shortlist.isEmpty()) {
+            if (CANCEL.get()) {
+                return;
+            }
+            YIELDED.offer(def);
+            return;
+        }
         ROLLED.addAndGet(count);
         STAGE.set("rolling " + id.getPath());
         long tier2Start = System.nanoTime();
@@ -458,8 +502,7 @@ public final class RollPipeline {
             // 1 is cheap enough that the redraw costs little, and carrying a
             // shortlist across a yield would need state this method has no
             // other reason to keep.
-            String want = FOCUS.get();
-            if (!want.isEmpty() && !want.equals(def.getName())) {
+            if (yieldTo(def)) {
                 YIELDED.offer(def);
                 return;
             }
