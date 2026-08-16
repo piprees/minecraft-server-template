@@ -156,10 +156,12 @@ class CriterionBandTest {
 
     @Test
     void theReachabilityGatesDeclareTheirOwnFloors() {
-        // Both floors are half the dimension's own playable border, so they
-        // scale with it instead of meaning different things at a 1024 border
-        // and an 8192 one. CensusCommands reads the same definition rather
-        // than mirroring a number that could drift from it.
+        // Both floors are fractions of the dimension's own playable border, so
+        // they scale with it instead of meaning different things at a 1024
+        // border and an 8192 one. The fractions differ: a fortress is findable
+        // across the Nether, while end cities sit only in the outer islands, so
+        // the End's floor is its whole radius. CensusCommands reads the same
+        // definitions rather than mirroring numbers that could drift from them.
         DimensionConfig nether = new DimensionConfig();
         DimensionConfig.Borders small = new DimensionConfig.Borders();
         small.player = 1024;
@@ -170,7 +172,7 @@ class CriterionBandTest {
         end.setBorders(large);
         assertArrayEquals(new double[] {0.0, 512.0},
                 new Criteria.FortressReachableInNether().band(nether));
-        assertArrayEquals(new double[] {0.0, 4096.0},
+        assertArrayEquals(new double[] {0.0, 8192.0},
                 new Criteria.EndCityReachableInEnd().band(end));
     }
 

@@ -164,6 +164,20 @@ class CriteriaTest {
                 gone(), gone(), gone(), gone());
     }
 
+    /** Structures whose placement counts are the interesting field. */
+    private static SeedFacts.StructureFacts structuresWithCounts(Map<String, Integer> byStructure) {
+        return new SeedFacts.StructureFacts(
+                Measured.of(byStructure),
+                Measured.of(Map.of("deco", 10)),
+                Measured.of(byStructure),
+                Measured.of(Map.of()),
+                Measured.of(Map.of("deco", 1.0)),
+                Measured.of(1.0),
+                Measured.of(900.0),
+                Measured.of(10),
+                gone(), gone(), gone(), gone());
+    }
+
     private static SeedFacts withStructures(SeedFacts.StructureFacts structures, int radius) {
         return facts(spawn("b", 4.0), biomes(5, 0.4, 0.3), terrain(30.0), structures, radius);
     }
@@ -673,26 +687,71 @@ class CriteriaTest {
     }
 
     @Test
-    void reachabilityFloorIsHalfTheDimensionsOwnBorder() {
-        // Both gates ask the same question against their own scale, because a
-        // distance in blocks means different things at a 1024 border and an
-        // 8192 one.
+    void eachReachabilityFloorScalesToItsOwnDimensionsBorder() {
+        // A distance in blocks means different things at a 1024 border and an
+        // 8192 one, so both floors are fractions of their own dimension.
         DimensionConfig nether = withBorder("the_nether", 1024);
         DimensionConfig end = withBorder("the_end", 8192);
-        assertEquals(512.0, Criteria.reachableWithin(nether), 1e-9);
-        assertEquals(4096.0, Criteria.reachableWithin(end), 1e-9);
+        assertEquals(512.0,
+                Criteria.reachableWithin(nether, Criteria.REACHABLE_FRACTION), 1e-9);
+
+        // The End's fraction is the whole radius: end cities generate only in
+        // the outer islands, so half the radius asks for one in the ring where
+        // the central island and the void gap are all there is.
+        assertEquals(8192.0,
+                Criteria.reachableWithin(end, Criteria.END_REACHABLE_FRACTION), 1e-9);
+        assertEquals(4096.0,
+                Criteria.reachableWithin(withBorder("the_end", 4096),
+                        Criteria.END_REACHABLE_FRACTION), 1e-9);
     }
 
     @Test
-    void endCityFloorMirrorsTheFortressGate() {
+    void anEndCityAnywhereInsideTheBorderClearsTheGate() {
+        // End cities generate only in the outer islands, so a floor at half the
+        // radius asks for one in the ring where the central island and the void
+        // gap are all there is — the shape that left the board at 135 rejected
+        // and 0 banked. What progression needs is an end city a player can
+        // reach at all, which is the border.
         var c = new Criteria.EndCityReachableInEnd();
         DimensionConfig end = withBorder("the_end", 8192);
-        SeedFacts close = withStructures(structuresWithPoolAndNearest(
-                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 1500.0)), 8192);
-        SeedFacts far = withStructures(structuresWithPoolAndNearest(
+        SeedFacts outer = withStructures(structuresWithPoolAndNearest(
                 Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 5000.0)), 8192);
-        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(close, end));
-        assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(far, end));
+        SeedFacts beyond = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:end_city", 80), Map.of("minecraft:end_city", 9000.0)), 8192);
+        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(outer, end));
+        assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(beyond, end));
+    }
+
+    @Test
+    void elytraSupplyIsEstimatedFromEndCityCount() {
+        var c = new Criteria.EndSuppliesEnoughElytra();
+        DimensionConfig end = withBorder("the_end", 8192);
+
+        // 60 cities / 3 = 20 elytra = the target.
+        assertEquals(1.0, score(c.evaluate(withStructures(
+                structuresWithCounts(Map.of("minecraft:end_city", 60)), 8192), end)), 1e-9);
+        assertEquals(0.5, score(c.evaluate(withStructures(
+                structuresWithCounts(Map.of("minecraft:end_city", 30)), 8192), end)), 1e-9);
+        assertEquals(0.0, score(c.evaluate(withStructures(
+                structuresWithCounts(Map.of()), 8192), end)), 1e-9);
+
+        // Only the End is asked.
+        assertTrue(c.applicable(end));
+        assertFalse(c.applicable(withBorder("the_nether", 1024)));
+    }
+
+    @Test
+    void theFortressGateStillAsksForHalfTheNethersRadius() {
+        // Unchanged, and stated separately so a future edit to the End's
+        // fraction cannot quietly move the Nether's with it.
+        var c = new Criteria.FortressReachableInNether();
+        DimensionConfig nether = withBorder("the_nether", 1024);
+        SeedFacts near = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 12), Map.of("minecraft:fortress", 400.0)), 1024);
+        SeedFacts far = withStructures(structuresWithPoolAndNearest(
+                Map.of("minecraft:fortress", 12), Map.of("minecraft:fortress", 900.0)), 1024);
+        assertInstanceOf(Criterion.Result.Pass.class, c.evaluate(near, nether));
+        assertInstanceOf(Criterion.Result.Fail.class, c.evaluate(far, nether));
     }
 
     @Test

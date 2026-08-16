@@ -51,6 +51,7 @@ public final class Criteria {
                 new PlayableGroundCoversTheDisc(),
                 new FortressReachableInNether(),
                 new EndCityReachableInEnd(),
+                new EndSuppliesEnoughElytra(),
                 new SpawnIsPlayable());
     }
 
@@ -894,7 +895,7 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "a fortress sits within " + (int) reachableWithin(def) + " blocks of spawn";
+            return "a fortress sits within " + (int) reachableWithin(def, REACHABLE_FRACTION) + " blocks of spawn";
         }
 
         public boolean applicable(DimensionConfig def) {
@@ -906,11 +907,11 @@ public final class Criteria {
         }
 
         public double[] band(DimensionConfig def) {
-            return new double[] {0.0, reachableWithin(def)};
+            return new double[] {0.0, reachableWithin(def, REACHABLE_FRACTION)};
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
-            return reachabilityGate(facts, STRUCTURE, reachableWithin(def));
+            return reachabilityGate(facts, STRUCTURE, reachableWithin(def, REACHABLE_FRACTION));
         }
     }
 
@@ -920,19 +921,24 @@ public final class Criteria {
      *
      * <p>A fraction for the reason {@link Band} gives: the pack spans
      * 1024-block borders to 16384-block ones, and one distance in blocks cannot
-     * mean the same thing across that range. Both gates carried an absolute
-     * number, and the End's was a quarter of its 8192 border while the Nether's
-     * was half of its 1024 one — so the End demanded an end city inside the
-     * radius where the void ring and the central island are the only things
-     * that exist, and rejected essentially every seed on geometry rather than
-     * quality. Half the radius is the Nether's own working figure, which this
-     * reproduces exactly (0.5 x 1024 = 512).
+     * mean the same thing across that range. Half the radius is the Nether's
+     * own working figure (0.5 x 1024 = 512).
      */
     public static final double REACHABLE_FRACTION = 0.5;
 
+    /**
+     * The End's fraction is the WHOLE radius, and the difference is structural
+     * rather than a softening. End cities generate only in the outer islands,
+     * so half the radius excludes most of the ground they can occupy: the gate
+     * was demanding a city in the ring where the central island and the void
+     * gap are the only things that exist. What progression actually requires is
+     * an end city somewhere a player can reach at all, and the border is that.
+     */
+    public static final double END_REACHABLE_FRACTION = 1.0;
+
     /** The reachability floor in blocks for this dimension's own border. */
-    public static double reachableWithin(DimensionConfig def) {
-        return def.getPlayerBorderRadius() * REACHABLE_FRACTION;
+    public static double reachableWithin(DimensionConfig def, double fraction) {
+        return def.getPlayerBorderRadius() * fraction;
     }
 
     /**
@@ -940,8 +946,8 @@ public final class Criteria {
      * rather than a config. One definition, so the roller's verdict and any
      * diagnostic reporting it can never disagree about the same seed.
      */
-    public static double reachableWithin(double playableRadius) {
-        return playableRadius * REACHABLE_FRACTION;
+    public static double reachableWithin(double playableRadius, double fraction) {
+        return playableRadius * fraction;
     }
 
     /**
@@ -962,7 +968,7 @@ public final class Criteria {
         }
 
         public String target(DimensionConfig def) {
-            return "an end city sits within " + (int) reachableWithin(def) + " blocks of spawn";
+            return "an end city anywhere inside the " + (int) reachableWithin(def, END_REACHABLE_FRACTION) + "-block border";
         }
 
         public boolean applicable(DimensionConfig def) {
@@ -974,11 +980,66 @@ public final class Criteria {
         }
 
         public double[] band(DimensionConfig def) {
-            return new double[] {0.0, reachableWithin(def)};
+            return new double[] {0.0, reachableWithin(def, END_REACHABLE_FRACTION)};
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
-            return reachabilityGate(facts, STRUCTURE, reachableWithin(def));
+            return reachabilityGate(facts, STRUCTURE, reachableWithin(def, END_REACHABLE_FRACTION));
+        }
+    }
+
+    /**
+     * Elytra supply, estimated from end city count.
+     *
+     * <p>Graded, not a gate — {@link EndCityReachableInEnd} refuses a seed with
+     * no reachable city.
+     *
+     * <p>A proxy by necessity: an end ship is a jigsaw piece inside
+     * {@code minecraft:end_city}, not a structure, so no
+     * {@code minecraft:end_ship} exists in any structure set and
+     * {@code structures.byStructure} cannot count one. A real count needs the
+     * jigsaw pieces of generated starts; the facts layer samples without
+     * generating.
+     */
+    static final class EndSuppliesEnoughElytra implements Criterion {
+        /** Ship rate per end city. */
+        static final double CITIES_PER_SHIP = 3.0;
+        /** Elytra count at full marks. */
+        static final double ELYTRA_TARGET = 20.0;
+        static final String STRUCTURE = "minecraft:end_city";
+
+        public String id() {
+            return "end_supplies_enough_elytra";
+        }
+
+        public Group group() {
+            return Group.APPROPRIATE;
+        }
+
+        public String target(DimensionConfig def) {
+            return "enough end cities for about " + (int) ELYTRA_TARGET
+                    + " elytra (~" + (int) (ELYTRA_TARGET * CITIES_PER_SHIP) + " cities)";
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            return "minecraft:the_end".equals(def.getDimensionId());
+        }
+
+        public Result evaluate(SeedFacts facts, DimensionConfig def) {
+            Measured<Map<String, Integer>> byStructure = facts.structures().byStructure();
+            if (!byStructure.isPresent()) {
+                return new Result.Unmeasured(byStructure.reason());
+            }
+            Integer cities = byStructure.orThrow().get(STRUCTURE);
+            int placed = cities == null ? 0 : cities;
+            double elytra = placed / CITIES_PER_SHIP;
+            String ev = String.format(Locale.ROOT,
+                    "%d end cities placed, about %.0f elytra at one ship per %.0f cities",
+                    placed, elytra, CITIES_PER_SHIP);
+            if (placed <= 0) {
+                return new Result.Score(0.0, ev + " — nothing here to fly with");
+            }
+            return new Result.Score(ramp(elytra, 0.0, ELYTRA_TARGET), ev);
         }
     }
 

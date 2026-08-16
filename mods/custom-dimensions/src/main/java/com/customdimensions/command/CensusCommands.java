@@ -46,9 +46,16 @@ public final class CensusCommands {
     /** Structure id -> what it gates. Reported whenever placed in this world. */
     private static final Map<String, String> PROGRESSION_CRITICAL = new LinkedHashMap<>();
 
+    /** Each gate's share of the playable radius, matching {@code score/Criteria.java}. */
+    private static final Map<String, Double> PROGRESSION_FRACTION = new LinkedHashMap<>();
+
     static {
         PROGRESSION_CRITICAL.put("minecraft:fortress", "blaze rods");
         PROGRESSION_CRITICAL.put("minecraft:end_city", "elytra");
+        PROGRESSION_FRACTION.put("minecraft:fortress",
+                com.customdimensions.score.Criteria.REACHABLE_FRACTION);
+        PROGRESSION_FRACTION.put("minecraft:end_city",
+                com.customdimensions.score.Criteria.END_REACHABLE_FRACTION);
     }
 
     private CensusCommands() {
@@ -185,9 +192,11 @@ public final class CensusCommands {
      */
     private static void appendReachability(StringBuilder msg, Map<String, Double> liveNearest,
                                            Map<String, List<ChunkPos>> forced, double playableRadius) {
-        double floor = com.customdimensions.score.Criteria.reachableWithin(playableRadius);
         for (Map.Entry<String, String> critical : PROGRESSION_CRITICAL.entrySet()) {
             String id = critical.getKey();
+            // Per structure: the gates use different fractions.
+            double floor = com.customdimensions.score.Criteria.reachableWithin(
+                    playableRadius, PROGRESSION_FRACTION.get(id));
             Double nearest = liveNearest.get(id);
             for (ChunkPos pos : forced.getOrDefault(id, List.of())) {
                 double blocks = Math.hypot(pos.x * 16.0, pos.z * 16.0);
