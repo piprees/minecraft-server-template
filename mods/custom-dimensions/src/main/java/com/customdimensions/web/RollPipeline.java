@@ -441,8 +441,15 @@ public final class RollPipeline {
         STAGE.set("rolling " + id.getPath());
         long tier2Start = System.nanoTime();
         int measured = 0;
+        // EVERY shortlisted seed, not the first WANTED of them. Tier 1 ranks on
+        // structures and biome alone, so its order is not the order the full
+        // scorecard produces — stopping once the board is full would bank the
+        // first five of the shortlist rather than its best five, and the
+        // difference is exactly what tier 2 exists to find. SeedBank keeps
+        // every card and leaderboard sorts descending, so the board is the top
+        // WANTED by FINAL score once all ten are in.
         for (long seed : shortlist) {
-            if (CANCEL.get() || banked(hash, dimension) >= WANTED) {
+            if (CANCEL.get()) {
                 break;
             }
             // Yield to a dimension somebody has just opened. Re-queued, never
