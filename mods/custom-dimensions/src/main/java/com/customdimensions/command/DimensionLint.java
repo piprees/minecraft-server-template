@@ -465,6 +465,14 @@ public final class DimensionLint {
                         "correct the id, or add the mod that provides it"));
                 continue;
             }
+            if (f.y == null && "void".equals(def.getType())) {
+                out.add(new Finding(name, ERROR, "force_needs_y", f.structure,
+                        f.structure + " is forced into a void dimension with no \"y\", so it "
+                        + "asks the generator for ground, is told there is none, and declines "
+                        + "the position — nothing generates and the only trace is a WARN",
+                        "give the entry a \"y\" to pin it there without ground, or move the "
+                        + "placement to a dimension whose type generates terrain"));
+            }
             if (generationBorder > 0
                     && (Math.abs(f.x) > generationBorder || Math.abs(f.z) > generationBorder)) {
                 out.add(new Finding(name, ERROR, "force_outside_border", f.structure,

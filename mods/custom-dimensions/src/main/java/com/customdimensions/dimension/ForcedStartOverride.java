@@ -27,8 +27,14 @@ public final class ForcedStartOverride {
     private ForcedStartOverride() {
     }
 
-    /** A world's forced placements: display name + chunkKey -> structure ids. */
-    record WorldForces(String dimensionName, Map<Long, Set<String>> byChunk) {
+    /**
+     * A world's forced placements: display name, chunkKey -> structure ids,
+     * and the subset of those that named a {@code y}. The height map holds
+     * only entries that set one, so "absent" and "null" never have to be told
+     * apart and {@link #isForced} stays a single set lookup.
+     */
+    record WorldForces(String dimensionName, Map<Long, Set<String>> byChunk,
+                       Map<Long, Map<String, Integer>> heights) {
     }
 
     private static final Map<String, WorldForces> FORCED = new ConcurrentHashMap<>();
@@ -50,13 +56,25 @@ public final class ForcedStartOverride {
      */
     public static void install(String worldId, String dimensionName,
                                Map<Long, Set<String>> byChunk) {
+        install(worldId, dimensionName, byChunk, Map.of());
+    }
+
+    /** As above, carrying the {@code y} of every entry that named one. */
+    public static void install(String worldId, String dimensionName,
+                               Map<Long, Set<String>> byChunk,
+                               Map<Long, Map<String, Integer>> heights) {
         if (byChunk == null || byChunk.isEmpty()) {
             FORCED.remove(worldId);
             return;
         }
         Map<Long, Set<String>> copy = new HashMap<>();
         byChunk.forEach((key, ids) -> copy.put(key, Set.copyOf(ids)));
-        FORCED.put(worldId, new WorldForces(dimensionName, Map.copyOf(copy)));
+        Map<Long, Map<String, Integer>> heightCopy = new HashMap<>();
+        if (heights != null) {
+            heights.forEach((key, ids) -> heightCopy.put(key, Map.copyOf(ids)));
+        }
+        FORCED.put(worldId, new WorldForces(dimensionName, Map.copyOf(copy),
+                Map.copyOf(heightCopy)));
     }
 
     /** Whether this exact (world, chunk, structure) attempt is forced. */
@@ -67,6 +85,19 @@ public final class ForcedStartOverride {
         }
         Set<String> ids = forces.byChunk().get(chunkKey);
         return ids != null && ids.contains(structureId);
+    }
+
+    /**
+     * The height this exact forced placement pinned, or null when it named
+     * none and the structure should find its own ground.
+     */
+    public static Integer forcedY(String worldId, long chunkKey, String structureId) {
+        WorldForces forces = FORCED.get(worldId);
+        if (forces == null || structureId == null) {
+            return null;
+        }
+        Map<String, Integer> ids = forces.heights().get(chunkKey);
+        return ids == null ? null : ids.get(structureId);
     }
 
     /** The dimension's display name for log lines, or the world id itself. */
@@ -120,7 +151,24 @@ public final class ForcedStartOverride {
         return map;
     }
 
-    /** One parsed forced placement: structure id + chunk key. */
-    public record ForcedEntry(String structureId, long chunkKey) {
+    /** The height map install() wants — only entries that named a y. */
+    public static Map<Long, Map<String, Integer>> heightsByChunk(
+            java.util.List<ForcedEntry> entries) {
+        Map<Long, Map<String, Integer>> map = new HashMap<>();
+        for (ForcedEntry entry : entries) {
+            if (entry.y() == null) {
+                continue;
+            }
+            map.computeIfAbsent(entry.chunkKey(), k -> new HashMap<>())
+                    .put(entry.structureId(), entry.y());
+        }
+        return map;
+    }
+
+    /** One parsed forced placement: structure id, chunk key, optional height. */
+    public record ForcedEntry(String structureId, long chunkKey, Integer y) {
+        public ForcedEntry(String structureId, long chunkKey) {
+            this(structureId, chunkKey, null);
+        }
     }
 }

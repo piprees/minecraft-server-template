@@ -1,6 +1,7 @@
 package com.customdimensions.mixin;
 
 import com.customdimensions.MultiverseServer;
+import com.customdimensions.dimension.ForcedGroundLevel;
 import com.customdimensions.dimension.ForcedStartOverride;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -41,6 +42,12 @@ import java.util.function.Predicate;
  * The body mirrors vanilla's own {@code trySetStructureStart} with the
  * biome predicate replaced — "put THIS structure at THIS spot" is a
  * literal override, not a suggestion.
+ *
+ * <p>A {@code y} on the force entry pins the generator's ground queries for
+ * the duration of the attempt ({@link ForcedGroundLevel}), which is what lets
+ * a placement hang over void. Without one the structure finds its own ground
+ * and declines when there is none — the right answer for a placement that
+ * meant to sit on terrain. See TROUBLESHOOTING.md#t33.
  *
  * <p>Not affected, deliberately: {@code /locate}, which reads
  * {@code StructurePlacementCalculator.getPlacements} — that map indexes a
@@ -85,26 +92,49 @@ public abstract class ChunkGeneratorForcedStartMixin {
         StructureStart existing = structureAccessor.getStructureStart(sectionPos, structure, chunk);
         int references = existing != null ? existing.getReferences() : 0;
         ChunkGenerator self = (ChunkGenerator) (Object) this;
-        StructureStart start = structure.createStructureStart(registryManager,
-                self, self.getBiomeSource(),
-                noiseConfig, templateManager, seed, pos, references, chunk,
-                CUSTOMDIMENSIONS$ANY_BIOME);
+        Integer forcedY = ForcedStartOverride.forcedY(worldId, pos.toLong(), structureId);
+        StructureStart start;
+        if (forcedY != null) {
+            // Pinned for exactly this call: every ground query the structure
+            // makes answers with forcedY, so it places there whether or not
+            // anything holds it up.
+            ForcedGroundLevel.arm(forcedY);
+            try {
+                start = structure.createStructureStart(registryManager,
+                        self, self.getBiomeSource(),
+                        noiseConfig, templateManager, seed, pos, references, chunk,
+                        CUSTOMDIMENSIONS$ANY_BIOME);
+            } finally {
+                ForcedGroundLevel.disarm();
+            }
+        } else {
+            start = structure.createStructureStart(registryManager,
+                    self, self.getBiomeSource(),
+                    noiseConfig, templateManager, seed, pos, references, chunk,
+                    CUSTOMDIMENSIONS$ANY_BIOME);
+        }
         String dimensionName = ForcedStartOverride.dimensionName(worldId);
         if (start.hasChildren()) {
             structureAccessor.setStructureStart(sectionPos, structure, start, chunk);
             if (ForcedStartOverride.firstSighting(dimensionName, structureId, pos.x, pos.z)) {
                 MultiverseServer.LOGGER.info(
-                        "Dimension {}: forced {} generated at chunk [{}, {}] "
+                        "Dimension {}: forced {} generated at chunk [{}, {}]{} "
                         + "(start overridden; biome predicate bypassed)",
-                        dimensionName, structureId, pos.x, pos.z);
+                        dimensionName, structureId, pos.x, pos.z,
+                        forcedY != null ? " pinned to y=" + forcedY : "");
             }
             cir.setReturnValue(true);
         } else {
             if (ForcedStartOverride.firstFailure(dimensionName, structureId, pos.x, pos.z)) {
                 MultiverseServer.LOGGER.warn(
                         "Dimension {}: forced {} produced no start at chunk [{}, {}] — "
-                        + "the structure's own generation rejected the position",
-                        dimensionName, structureId, pos.x, pos.z);
+                        + "the structure's own generation rejected the position{}",
+                        dimensionName, structureId, pos.x, pos.z,
+                        forcedY == null
+                                ? "; give the entry a \"y\" if it should hang there "
+                                  + "without ground"
+                                : " even pinned to y=" + forcedY
+                                  + " (its start height is its own, not the ground's)");
             }
             cir.setReturnValue(false);
         }

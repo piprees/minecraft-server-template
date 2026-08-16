@@ -909,6 +909,22 @@ public class DimensionConfig {
         @SerializedName("z")
         public Integer z;
         /**
+         * The height to place at, or null to let the structure find its own
+         * ground. Set it and the placement no longer needs ground at all: the
+         * generator answers every height query with this value for the
+         * duration of the start attempt, so a structure hangs where it is put
+         * — over void, over lava, in open sky. Absent, a structure whose own
+         * generation finds nothing to stand on declines the position and
+         * nothing spawns, which is the right answer for a placement that meant
+         * to sit on terrain.
+         *
+         * <p>A structure whose start height is an absolute constant ignores
+         * ground queries entirely and lands where its own config says; this
+         * field cannot move those. See TROUBLESHOOTING.md#t33.
+         */
+        @SerializedName("y")
+        public Integer y;
+        /**
          * Whether forcing this structure also removes it from the noise pool.
          * Defaults to TRUE (absent = true): "put exactly this here" normally
          * means "and nowhere else", which is what makes a hand-placed

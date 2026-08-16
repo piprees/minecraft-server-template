@@ -66,6 +66,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | A fix verified in `.stack/` is missing later; `current` moved | [T30](#t30) |
 | New seed set but the world regenerates the old terrain; an overlay `seed`/`spawn` override looks ignored | [T31](#t31) |
 | A seed's map and its banked facts contradict each other | [T32](#t32) |
+| Forced structures generate nothing in a `void` dimension; `produced no start` | [T33](#t33) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
@@ -240,6 +241,15 @@ A fix verified in the consumer's bundle stops being present, and `readlink .stac
 ### T31 — `.env SEED` does not drive terrain; the dimension config does
 
 A world regenerates with the old terrain after a reset that set a new seed, or the seed reported in game does not match `.env`. `ServerWorldSeedMixin` overrides `ServerWorld.getSeed()` per dimension from each config file, the four reserved ones included (`overworld.json`, `the_nether.json`, `the_end.json`, `paradise_lost.json`); `.env SEED` seeds `level.dat` only, and the literal string `"env"` in a config `seed` field is the opt-in to read it. `reset-seed.sh` writes `SEED` into `.env`, which reads as though it were the lever and is not. Same for spawn: the overworld entry's `"spawn": [x, y, z]` replaces the `SPAWN_X/Y/Z` enforcement, with `[0, 64, 0]` as the "not chosen" sentinel that hands back to deploy.sh's env guard. Change seed and spawn in the dimension config — where the seed roller writes winners — and get that config onto the server BEFORE the world is deleted; a reset that runs first regenerates from the deployed config, not the one in your working tree. **Read an overlay file's `overrides` block, not its top level:** an overlay is `{"overrides": {...}}` (deep-merge), full replace, or `{}`, so checking top-level keys reports `seed`/`spawn` as absent while the merged config carries them.
+
+<a id="t33"></a>
+### T33 — A forced structure over void needs a `y`; without one it asks for ground and is refused
+
+- **Symptom:** every `structures.force` entry in a `void` dimension logs `forced <id> produced no start at chunk [x, z] — the structure's own generation rejected the position`, and the dimension generates completely empty. The census still reports the forced placements, because that reflects config rather than generation.
+- **Cause:** a structure decides whether it can generate by asking the chunk generator for the ground height. `type: "void"` produces no terrain at any column, so the answer is "nowhere" and the structure declines. Neither `structureDensity` nor `structures.mode` is involved — a controlled A/B on `the_red_monument` with both pinned at `none` and only `type` changed (void → end) went from 5 of 5 rejected to 0. Terrain adaptation cannot rescue it either: `pedestal` is an unconditional fill ([T27](#t27)) but it runs during the noise fill, a chunk-status *after* the start decision, so a declined start never reaches it.
+- **Fix (in place):** `structures.force[].y`. Set it and `ForcedGroundLevel` pins every height query for the duration of that one start attempt, so the structure places at that height with nothing beneath it. Omit it and the old behaviour stands, which is what a placement meant to sit on terrain wants. `customdim lint` reports `force_needs_y` (ERROR) for a `void` dimension whose force entry omits it.
+- **Known limit:** a structure whose start height is an absolute constant never asks for ground, so `y` cannot move it. The WARN says so explicitly when a pinned attempt still fails.
+- **History worth keeping:** this is the residue of K3, which was *"structures.force generates no starts in fresh chunks"* — one symptom, two causes. [T25](#t25) fixed the third-party-cancel cause and closed the whole issue; the no-ground cause survived unnamed and untested for a release. Both causes looked identical before T25 added the WARN that distinguishes them.
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world

@@ -15,6 +15,7 @@
     "MobSpawnMixin",
     "MultiNoiseBiomeSourceAccessor",
     "NoiseChunkGeneratorAccessor",
+    "NoiseChunkGeneratorForcedGroundMixin",
     "PeacefulDimensionSpawnMixin",
     "PlayerRespawnRedirectMixin",
     "PortalIgnitionMixin",

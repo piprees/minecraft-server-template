@@ -113,6 +113,55 @@ class ForcedStartOverrideTest {
         assertFalse(ForcedStartOverride.firstFailure("d", "minecraft:ancient_city", 75, -50));
     }
 
+    /** A y is carried per exact triple; an entry without one answers null. */
+    @Test
+    void forcedYIsPerTripleAndOptional() {
+        ForcedStartOverride.install("adventure:the_red_monument", "the_red_monument",
+                ForcedStartOverride.byChunk(List.of(
+                        new ForcedStartOverride.ForcedEntry("mes:monolith", chunkKey(0, 0), 96),
+                        new ForcedStartOverride.ForcedEntry("mes:mythic_garden", chunkKey(-6, 10)))),
+                ForcedStartOverride.heightsByChunk(List.of(
+                        new ForcedStartOverride.ForcedEntry("mes:monolith", chunkKey(0, 0), 96),
+                        new ForcedStartOverride.ForcedEntry("mes:mythic_garden", chunkKey(-6, 10)))));
+
+        assertEquals(96, ForcedStartOverride.forcedY(
+                "adventure:the_red_monument", chunkKey(0, 0), "mes:monolith"));
+        // Same chunk, different structure; and an entry that named no y.
+        assertNull(ForcedStartOverride.forcedY(
+                "adventure:the_red_monument", chunkKey(0, 0), "mes:mythic_garden"));
+        assertNull(ForcedStartOverride.forcedY(
+                "adventure:the_red_monument", chunkKey(-6, 10), "mes:mythic_garden"));
+        assertNull(ForcedStartOverride.forcedY(
+                "adventure:nowhere", chunkKey(0, 0), "mes:monolith"));
+        assertNull(ForcedStartOverride.forcedY(
+                "adventure:the_red_monument", chunkKey(0, 0), null));
+        // Forcing still works for both, y or no y.
+        assertTrue(ForcedStartOverride.isForced(
+                "adventure:the_red_monument", chunkKey(-6, 10), "mes:mythic_garden"));
+    }
+
+    /** heightsByChunk carries only the entries that named a y. */
+    @Test
+    void heightsByChunkSkipsEntriesWithoutY() {
+        var heights = ForcedStartOverride.heightsByChunk(List.of(
+                new ForcedStartOverride.ForcedEntry("a:one", chunkKey(1, 1), 40),
+                new ForcedStartOverride.ForcedEntry("a:two", chunkKey(1, 1)),
+                new ForcedStartOverride.ForcedEntry("a:three", chunkKey(2, 2))));
+
+        assertEquals(Map.of(chunkKey(1, 1), Map.of("a:one", 40)), heights);
+    }
+
+    /** A negative y is a real height in a -64-floored world, not a "no value". */
+    @Test
+    void negativeYIsCarried() {
+        ForcedStartOverride.install("adventure:d", "d",
+                ForcedStartOverride.byChunk(List.of(
+                        new ForcedStartOverride.ForcedEntry("a:deep", chunkKey(0, 0), -48))),
+                ForcedStartOverride.heightsByChunk(List.of(
+                        new ForcedStartOverride.ForcedEntry("a:deep", chunkKey(0, 0), -48))));
+        assertEquals(-48, ForcedStartOverride.forcedY("adventure:d", chunkKey(0, 0), "a:deep"));
+    }
+
     /** The dedupe set is capped so a pathological config cannot grow it forever. */
     @Test
     void logDedupeStopsAtTheCap() {

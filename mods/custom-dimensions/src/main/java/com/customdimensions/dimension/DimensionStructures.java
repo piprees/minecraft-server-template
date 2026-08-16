@@ -631,10 +631,11 @@ public final class DimensionStructures {
                 continue;
             }
             entries.add(new ForcedStartOverride.ForcedEntry(sid.toString(),
-                    net.minecraft.util.math.ChunkPos.toLong(f.x >> 4, f.z >> 4)));
+                    net.minecraft.util.math.ChunkPos.toLong(f.x >> 4, f.z >> 4), f.y));
         }
         ForcedStartOverride.install(world.getRegistryKey().getValue().toString(),
-                def.getName(), ForcedStartOverride.byChunk(entries));
+                def.getName(), ForcedStartOverride.byChunk(entries),
+                ForcedStartOverride.heightsByChunk(entries));
     }
 
     private static volatile boolean warnedSuppressList;
