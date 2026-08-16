@@ -150,6 +150,11 @@ public final class SeedBank {
         return dimensionDir(inputHash, dimension).resolve("rejected.json");
     }
 
+    /** Every seed a tier-1 screen scored, and what it scored — one file per dimension. */
+    public static Path screenedPath(String inputHash, String dimension) {
+        return dimensionDir(inputHash, dimension).resolve("screened.json");
+    }
+
     /**
      * Where a frontier file WOULD live. Nothing writes one any more — the
      * viewer derives the non-dominated set live with {@code Frontier.of} on
@@ -269,6 +274,43 @@ public final class SeedBank {
     }
 
     /** The rejected-seeds file's body. Pure, for the same reason {@link #candidateJson} is. */
+    /**
+     * Records what a tier-1 screen saw, written ONCE at the end of the screen
+     * rather than per seed — a pool is thousands of seeds and
+     * {@link #appendRejected}'s rewrite-the-file shape would be quadratic over
+     * it.
+     *
+     * <p>The rank a seed was given is the whole point: it is the only record of
+     * how the shortlist was chosen, and comparing it against the final score
+     * the survivors earn is what says whether the screen ranks anything. It
+     * also carries the pool's score distribution, which is what sizing the pool
+     * has to be argued from.
+     */
+    public static void writeScreened(String inputHash, String dimension,
+                                     Map<Long, Double> scores) throws IOException {
+        Artefacts.write(screenedPath(inputHash, dimension),
+                screenedJson(dimension, scores, Artefacts.stackVersion(),
+                        Instant.now().toString()));
+    }
+
+    static String screenedJson(String dimension, Map<Long, Double> scores,
+                               String stackVersion, String generatedAt) {
+        StringBuilder b = new StringBuilder("{\n \"kind\": \"seed-screened\",\n");
+        b.append(" \"generatedAt\": ").append(Json.quote(generatedAt)).append(",\n");
+        b.append(" \"stackVersion\": ").append(Json.quote(stackVersion)).append(",\n");
+        b.append(" \"dimension\": ").append(Json.quote(dimension)).append(",\n");
+        b.append(" \"screened\": ").append(scores.size()).append(",\n");
+        b.append(" \"scores\": {");
+        int i = 0;
+        for (Map.Entry<Long, Double> e : scores.entrySet()) {
+            b.append(i++ > 0 ? ",\n  " : "\n  ")
+                    .append(Json.quote(String.valueOf(e.getKey())))
+                    .append(": ").append(Json.number(e.getValue()));
+        }
+        b.append(scores.isEmpty() ? "}\n}\n" : "\n }\n}\n");
+        return b.toString();
+    }
+
     static String rejectedJson(String dimension, Map<Long, String> seeds,
                                String stackVersion, String generatedAt) {
         StringBuilder b = new StringBuilder("{\n \"kind\": \"seed-rejected\",\n");

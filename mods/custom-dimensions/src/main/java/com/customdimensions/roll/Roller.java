@@ -15,7 +15,9 @@ import net.minecraft.util.Identifier;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -232,6 +234,11 @@ public final class Roller {
         SpikeSampler.Base base = SpikeSampler.base(server, dimensionId);
 
         TopN shortlist = new TopN(SHORTLIST);
+        // Every survivor's rank, kept for one write at the end. Without it the
+        // only trace of how a shortlist was chosen is the order tier 2 happened
+        // to measure it in, and the pool's score distribution — the thing
+        // sizing the pool has to be argued from — is gone entirely.
+        Map<Long, Double> screened = new LinkedHashMap<>();
         Measurer tier1 = seed -> {
             SeedFacts cheap = FactsEngine.measureCheap(server, dimensionId, def, base, seed);
             Scorecard card = Scorer.score(cheap, def, criteria);
@@ -245,6 +252,7 @@ public final class Roller {
             @Override
             public void scored(long seed, double achieved, double ceiling) {
                 shortlist.add(seed, achieved);
+                screened.put(seed, achieved);
                 tried.add(seed);
             }
 
@@ -261,6 +269,12 @@ public final class Roller {
         };
         roll(seed -> tried.contains(seed), random::nextLong, tier1, sink,
                 Budget.seeds(count), abandonIf);
+        try {
+            SeedBank.writeScreened(inputHash, dimension, screened);
+        } catch (IOException e) {
+            MultiverseServer.LOGGER.error(
+                    "Failed to record the tier-1 screen for {}", dimension, e);
+        }
         return shortlist.bestFirst();
     }
 
