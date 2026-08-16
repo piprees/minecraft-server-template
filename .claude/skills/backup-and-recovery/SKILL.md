@@ -46,14 +46,24 @@ unmined-web, mods, libraries, versions, logs, crash-reports,
 kuma, DistantHorizons.sqlite, poi, ledger.sqlite, dynamic-data-pack-cache, .fabric
 ```
 
-Restic's `EXCLUDES` patterns match by name at any depth, not just at the top of `/data` — a bare name like `DistantHorizons.sqlite` excludes it in `data/world/data/`, `data/world/DIM1/data/`, and every custom dimension's `dimensions/<ns>/<slug>/data/` copy in one entry. Verify with `docker exec mc-backup restic ls latest --long | grep -i distanthorizons` — it should return nothing even with Distant Horizons enabled across multiple dimensions.
+Restic's `EXCLUDES` patterns match by name at any depth, not just at the top of `/data` — a bare name like `DistantHorizons.sqlite` excludes it in `data/world/data/`, `data/world/DIM1/data/`, and every custom dimension's `dimensions/<ns>/<slug>/data/` copy in one entry. Verify with `docker exec -u 1000 mc-backup restic ls latest --long | grep -i distanthorizons` — it should return nothing even with Distant Horizons enabled across multiple dimensions.
 
 After a restore, the map is blank, mods are missing from `data/mods/`, Kuma history is gone, and Distant Horizons/POI/ledger caches are empty. **This is correct, not a failed restore** — the map re-renders, mods re-download via `sync-mods.sh`, DH/POI/ledger regenerate from the restored world on next boot. Don't restart triage on a blank map after a restore; confirm the world/playerdata/config are actually present first.
 
 ## Taking a manual backup
 
+`backup-now.sh` restarts the sidecar rather than invoking restic, and drives it
+with a bare `docker restart`, so it only acts on the machine it runs on. `./ops`
+execs bundle scripts locally, so `./ops backup` works ON the server and does
+nothing from a Mac (the cloud-profile `mc-backup` container is not there —
+locally it is `mc-backup-local`).
+
 ```bash
-./ops backup                                    # restarts mc-backup; backup runs after a 2m INITIAL_DELAY
+# on the server
+./ops backup
+# from a Mac, against production
+ssh -i ~/.ssh/${BRAND_SLUG}_mc_deploy_key deploy@$DROPLET_HOST 'docker restart mc-backup'
+
 docker logs mc-backup --tail 50                 # verify — look for "snapshot ... saved"
 ```
 
@@ -89,23 +99,37 @@ In short: `./ops reset-seed <seed>` backs up (restic, best-effort, plus a local 
 
 ## Traps
 
-1. **Restic retention groups by `(host, paths)` — a container id is not a stable host.** `mc-backup`'s hostname used to default to its container id; every full deploy recreates the sidecar, so each deploy era became its own retention group whose last snapshot was retained forever and never cleaned up (23 snapshots / ~50GiB by 2026-07-24). Fixed by the load-bearing `hostname: "${BRAND_SLUG:-adventure}-mc-backup"` line in `docker-compose.yml` — brand-scoped so multiple servers sharing one bucket keep separate retention groups. If snapshot counts or R2 usage look wrong, check for dead-hostname groups: `docker exec mc-backup restic forget --group-by paths --keep-last N --prune` (plain `--keep-last` keeps N snapshots **per dead host**, not N total — that's the whole point of the fix). Check real usage with `docker exec mc-backup restic stats --mode raw-data`, not the snapshot count.
+1. **Restic retention groups by `(host, paths)` — a container id is not a stable host.** `mc-backup`'s hostname used to default to its container id; every full deploy recreates the sidecar, so each deploy era became its own retention group whose last snapshot was retained forever and never cleaned up (23 snapshots / ~50GiB by 2026-07-24). Fixed by the load-bearing `hostname: "${BRAND_SLUG:-adventure}-mc-backup"` line in `docker-compose.yml` — brand-scoped so multiple servers sharing one bucket keep separate retention groups. If snapshot counts or R2 usage look wrong, check for dead-hostname groups: `docker exec -u 1000 mc-backup restic forget --group-by paths --keep-last N --prune` (plain `--keep-last` keeps N snapshots **per dead host**, not N total — that's the whole point of the fix). Check real usage with `docker exec -u 1000 mc-backup restic stats --mode raw-data`, not the snapshot count.
 2. **Never run restic directly to take a backup.** Different paths/tags/excludes than the sidecar breaks retention grouping for that snapshot permanently. Use `./ops backup`.
 3. **`RESTIC_PASSWORD` rotation destroys access to every existing backup.** There is no re-encrypt. If a rotation is genuinely required, start a new repository instead of rotating the password on the existing one.
 4. **The R2 credential mix-up.** R2's "Manage API Tokens" page shows three values (Token value, Access Key ID, Secret Access Key) but only the Access Key ID and Secret go into `.env` as `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`. Pasting the Token value into `CLOUDFLARE_API_TOKEN` produces `Invalid API Token` on every DNS and tunnel call — it's scoped to R2 only. See the credentials reference § Cloudflare (in the `server-provisioning` skill).
 5. **A restore does not bring back the map, mods, or Kuma history — this is by design, not a failure.** See the excludes list above before reporting a restore as broken.
 6. **`wipe-chunk` refuses while `mc` is running unless `--force`.** Forcing it against a live server risks corrupting the region file the server still holds open.
 7. **`reset-seed --wipe-backups` purges every restic snapshot in R2, with no undo.** Only the local `tar.gz` backup on the droplet and any off-server copy survive that flag.
-8. **A repo stuck at exactly one snapshot doesn't always mean the excludes are broken.** `BACKUP_SIZE_CAP_GIB` bounds the whole repo, not one snapshot — if a single full snapshot of the non-excluded data (world region files, mainly) is already bigger than the cap, the post-backup trim forgets every older snapshot on every run and the repo never holds more than one. Check `docker exec mc-backup restic stats --mode raw-data` (repo size, what the cap compares against) against `restic stats latest --mode restore-size` (size of one snapshot's actual files) before assuming the excludes are wrong — an actively-explored world with Terralith/Incendium/custom-dimension terrain can legitimately outgrow the cap; raising it is the fix, not inventing new excludes. Price the new figure before setting it — R2 Standard is $0.015/GB-month past the free 10 GB, so each extra 10 GiB is about $0.16/month.
+8. **A repo stuck at exactly one snapshot doesn't always mean the excludes are broken.** `BACKUP_SIZE_CAP_GIB` bounds the whole repo, not one snapshot — if a single full snapshot of the non-excluded data (world region files, mainly) is already bigger than the cap, the post-backup trim forgets every older snapshot on every run and the repo never holds more than one. Check `docker exec -u 1000 mc-backup restic stats --mode raw-data` (repo size, what the cap compares against) against `restic stats latest --mode restore-size` (size of one snapshot's actual files) before assuming the excludes are wrong — an actively-explored world with Terralith/Incendium/custom-dimension terrain can legitimately outgrow the cap; raising it is the fix, not inventing new excludes. Price the new figure before setting it — R2 Standard is $0.015/GB-month past the free 10 GB, so each extra 10 GiB is about $0.16/month.
 
 ## Validation — run these, don't assume
 
+**Always `docker exec -u 1000` for a restic command.** The backup loop runs as
+uid 1000, but `docker exec` defaults to the image's USER — root — and restic
+populates `/tmp/.cache/restic` with whatever uid ran it, mode 0700. A single
+root-run `restic snapshots` therefore leaves directories the backup process
+cannot write into, and every backup afterwards fails with `permission denied`
+on a cache path and retries with backoff forever. The repair is
+`docker exec mc-backup sh -c 'rm -rf /tmp/.cache/restic'` then
+`docker restart mc-backup`; the cache is disposable and restic rebuilds it.
+
 ```bash
-./ops backup && docker logs mc-backup --tail 50   # expect "snapshot ... saved"
-docker exec mc-backup restic snapshots --latest 5
-docker exec mc-backup restic stats --mode raw-data
+docker restart mc-backup && docker logs mc-backup --tail 50   # expect "snapshot ... saved" after INITIAL_DELAY
+docker exec -u 1000 mc-backup restic snapshots --latest 5
+docker exec -u 1000 mc-backup restic stats --mode raw-data
 ./ops doctor                                       # snapshot-age check: FAIL >48h, WARN >26h (schedule is 12h)
 ```
+
+`./ops backup` runs `backup-now.sh` locally rather than over SSH, and that
+script drives the sidecar with a bare `docker restart mc-backup`, so it only
+does anything when run ON the server. From a Mac, restart the container over
+SSH instead.
 
 `"repository does not exist"` from any restic command means either the R2 bucket/credentials in `.env` are wrong or the repo was never initialised — `restic -r <repo> init`. To swap the backend: set `RESTIC_REPOSITORY` in `.env` to a different target (Backblaze B2 `s3:https://s3.REGION.backblazeb2.com/BUCKET`, local path, `sftp:user@host:/path`, MinIO, Wasabi), init the new repo, restart `mc-backup`, and test with `./ops backup`. `TROUBLESHOOTING.md` § Common symptoms → Backups covers the same triage: verify R2 credentials, check `restic snapshots`, check disk (`df -h`), check `docker logs mc-backup --tail 50`.
 

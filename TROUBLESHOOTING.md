@@ -156,8 +156,8 @@ Map problems get looked for in mc, or a quiet render log is read as a failure. `
 Snapshot count and R2 usage grow without bound despite the retention policy. `restic forget` groups by `(host, paths)`, the mc-backup container's hostname defaulted to its container id, and every full deploy recreates the sidecar — so each deploy era became its own retention group with stranded snapshots. Fixed by `hostname: "${BRAND_SLUG:-adventure}-mc-backup"` pinned in `docker-compose.yml`, brand-scoped so servers sharing a bucket keep separate groups. One-off cleanup across dead hosts:
 
 ```bash
-docker exec mc-backup restic forget --group-by paths --keep-last N --prune   # plain --keep-last keeps N PER DEAD HOST
-docker exec mc-backup restic stats --mode raw-data                           # real usage, not snapshot count
+docker exec -u 1000 mc-backup restic forget --group-by paths --keep-last N --prune   # plain --keep-last keeps N PER DEAD HOST
+docker exec -u 1000 mc-backup restic stats --mode raw-data                           # real usage, not snapshot count
 ```
 
 <a id="t16"></a>
