@@ -215,7 +215,7 @@ Two clients share **one bot token**: the **dcintegration** Fabric mod in the `mc
 
 ### Server access
 
-Production host is `DROPLET_HOST` in `.env` (also a GitHub Actions variable) and the server directory is `~/server`. RCON is never exposed publicly — it exists only inside the Docker network, reached via `docker exec`. Start with `./ops doctor` (full health triage) and `./ops stats` (system + container summary); `ssh -i ~/.ssh/mc_deploy_key deploy@SERVER` gets a shell, or runs a command directly when you append one. The `./ops` log and RCON equivalents are in [AGENTS.md § Production access](AGENTS.md#production-access).
+Production host is `DROPLET_HOST` in `.env` (also a GitHub Actions variable) and the server directory is `~/server`. RCON is never exposed publicly — it exists only inside the Docker network, reached via `docker exec`. Start with `./ops doctor` (full health triage) and `./ops stats` (system + container summary); `ssh -i ~/.ssh/${BRAND_SLUG}_mc_deploy_key deploy@SERVER` gets a shell, or runs a command directly when you append one (the key is brand-prefixed whenever `BRAND_SLUG` is set). The `./ops` log and RCON equivalents are in [AGENTS.md § Production access](AGENTS.md#production-access).
 
 ### Reset the world (launch events)
 

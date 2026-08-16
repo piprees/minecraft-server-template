@@ -10,8 +10,8 @@
 # both delegate here. Keep REQUIRED_SECRETS / OPTIONAL_SECRETS / *_VARS in
 # sync with `secrets.*` / `vars.*` usage in .github/workflows/*.yml.
 #
-# DEPLOY_SSH_KEY is read from the private key file (DEPLOY_KEY_PATH,
-# default ~/.ssh/mc_deploy_key), not from .env.
+# DEPLOY_SSH_KEY is read from the private key file (DEPLOY_KEY_PATH, default
+# ~/.ssh/${BRAND_SLUG}_mc_deploy_key), not from .env.
 #
 # Requires: gh (authenticated), a GitHub remote on this repo, .env.
 #
