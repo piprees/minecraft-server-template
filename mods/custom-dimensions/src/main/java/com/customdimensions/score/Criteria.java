@@ -213,6 +213,16 @@ public final class Criteria {
      * a single-biome world the config said was multi_biome, and a share near
      * 0.1 is a mosaic with no identity. The target band is stated, not a curve
      * fitted to whatever the pack happens to do.
+     *
+     * <p>The band is a judgement about a PALETTE, so it is only asked of a
+     * dimension that declared one — the same rule and the same reason as
+     * {@link BiomeVarietyPresent#applicable}. A dimension whose biomes come
+     * from its noise settings stated no palette, and there is no share it was
+     * aiming for: the overworld carries Terralith's ~1800 biomes and a headline
+     * share of 0.088, which no seed can move into a 0.30-0.55 band, so asking
+     * was a permanent deduction that ranked nothing. A one-entry list is
+     * excluded for the mirror reason — full domination is what that author
+     * asked for, and marking it down for delivering it inverts the question.
      */
     static final class HeadlineBiomeDominatesAppropriately implements Criterion {
         static final double LOW = 0.20;
@@ -230,6 +240,10 @@ public final class Criteria {
 
         public String target(DimensionConfig def) {
             return "the largest biome share sits between " + IDEAL_LOW + " and " + IDEAL_HIGH;
+        }
+
+        public boolean applicable(DimensionConfig def) {
+            return declaredBiomes(def) > 1;
         }
 
         public Result evaluate(SeedFacts facts, DimensionConfig def) {
@@ -281,7 +295,7 @@ public final class Criteria {
          * palette its author chose", and that target differs per config.
          */
         static int want(DimensionConfig def) {
-            return def.getBiomes() == null ? 0 : def.getBiomes().size();
+            return declaredBiomes(def);
         }
 
         /**
@@ -1367,6 +1381,17 @@ public final class Criteria {
     }
 
     // ----------------------------------------------------------------- utils
+
+    /**
+     * How many biomes this config declared.
+     *
+     * <p>The shared input to both palette criteria, so "did this dimension
+     * state a palette" is one answer rather than two that can drift.
+     */
+    static int declaredBiomes(DimensionConfig def) {
+        List<String> biomes = def == null ? null : def.getBiomes();
+        return biomes == null ? 0 : biomes.size();
+    }
 
     /** A fraction of the border as a percentage, for a target sentence. */
     private static String pct(double fraction) {

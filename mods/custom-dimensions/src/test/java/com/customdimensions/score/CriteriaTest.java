@@ -243,7 +243,7 @@ class CriteriaTest {
     @Test
     void headlineShareFailsAtBothEndsNotJustOne() {
         var c = new Criteria.HeadlineBiomeDominatesAppropriately();
-        DimensionConfig def = config(null, null, null);
+        DimensionConfig def = config(null, null, List.of("a", "b", "c", "d", "e"));
 
         double inBand = score(c.evaluate(full("b", 4.0, 5, 0.40, 0.3, 30.0, 0.6, 900.0, 4096), def));
         double mush = score(c.evaluate(full("b", 4.0, 5, 0.12, 0.3, 30.0, 0.6, 900.0, 4096), def));
@@ -255,6 +255,26 @@ class CriteriaTest {
         assertTrue(monoculture < 0.5, "a single-biome world scored " + monoculture);
         assertInstanceOf(Criterion.Result.Unmeasured.class, c.evaluate(
                 full("b", 4.0, 5, null, 0.3, 30.0, 0.6, 900.0, 4096), def));
+    }
+
+    @Test
+    void headlineShareIsOnlyAskedOfADimensionThatDeclaredAPalette() {
+        var c = new Criteria.HeadlineBiomeDominatesAppropriately();
+
+        // The overworld declares no biome list, so its biomes are whatever the
+        // mod stack registered: Terralith's ~1800 of them put the headline
+        // share at 0.088 and no seed can lift it into the 0.30-0.55 band. Asked,
+        // it is a guaranteed zero occupying a share of the scale and ranking
+        // nothing between one seed and the next.
+        assertFalse(c.applicable(config(null, null, null)));
+        assertFalse(c.applicable(config(null, null, List.of())));
+
+        // One declared biome is full domination BY REQUEST — the band exists to
+        // catch a multi-biome dimension that collapsed to one, not to mark down
+        // an author who asked for exactly one.
+        assertFalse(c.applicable(config(null, null, List.of("only"))));
+
+        assertTrue(c.applicable(config(null, null, List.of("a", "b"))));
     }
 
     // -------------------------------------------------------------- variety
