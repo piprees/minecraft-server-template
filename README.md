@@ -205,7 +205,7 @@ Consumer repos have almost no deployable files of their own, so **most full depl
 
 ### Backups
 
-Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency and `BACKUP_INTERVAL` to override. Retention is 3 daily, 1 weekly, 1 monthly, and `BACKUP_SIZE_CAP_GIB` (default 10) trims below that if the repo outgrows R2's free tier. Only world, player data, and config are backed up — the map, mods, and caches are excluded and regenerate. Take one now with `./ops backup`, and verify it with `docker logs mc-backup --tail 50` (look for `snapshot ... saved`).
+Automatic every **12h** by default via `mc-backup` (restic → Cloudflare R2), with RCON `save-off`/`save-on` for consistency and `BACKUP_INTERVAL` to override. Retention is 3 daily, 1 weekly, 1 monthly, and `BACKUP_SIZE_CAP_GIB` (default 80) trims below that if the repo outgrows it — a budget rather than a technical limit, costing about $1.14/month on R2 Standard at a full 80 GiB. Only world, player data, and config are backed up — the map, mods, and caches are excluded and regenerate. Take one now with `./ops backup`, and verify it with `docker logs mc-backup --tail 50` (look for `snapshot ... saved`).
 
 **`RESTIC_PASSWORD` can't be recovered.** Store it somewhere safe (1Password); every backup is unreadable without it. The restore procedure, the full excludes list, and chunk surgery are in the `backup-and-recovery` skill.
 

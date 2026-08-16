@@ -1,7 +1,7 @@
 ---
 name: backup-and-recovery
 description: |
-  Guides taking, verifying, and restoring backups of the Minecraft server's world, player data, and config, resetting the world with a new seed, and repairing a single corrupted chunk region. Covers the mc-backup restic-to-R2 sidecar (and its local MinIO stand-in via mc-backup-local), the default 12h schedule, 3-daily/1-weekly/1-monthly retention, the BACKUP_SIZE_CAP_GIB trim behaviour that really bounds the repo, the restic hostname retention trap, and the excluded-paths list so a restore isn't mistaken for a failure.
+  Guides taking, verifying, and restoring backups of the Minecraft server's world, player data, and config, resetting the world with a new seed, and repairing a single corrupted chunk region. Covers the mc-backup restic-to-R2 sidecar (and its local MinIO stand-in via mc-backup-local), the default 12h schedule, 3-daily/1-weekly/1-monthly retention, the BACKUP_SIZE_CAP_GIB trim behaviour that really bounds the repo, why the bucket stays on R2 Standard rather than Infrequent Access, the restic hostname retention trap, and the excluded-paths list so a restore isn't mistaken for a failure.
 
   Use when: taking or verifying a manual backup, writing a restore plan, running ./ops reset-seed or ./ops wipe-chunk, diagnosing "repository does not exist" or ballooning snapshot counts, or confirming a backup with "snapshot ... saved" in the mc-backup logs.
 ---
@@ -18,7 +18,9 @@ description: |
 
 The `mc-backup` sidecar (`docker-compose.yml`) runs restic against Cloudflare R2 on a schedule (`BACKUP_INTERVAL`, default `12h`), wrapping each snapshot in RCON `save-off`/`save-on` so the world files are consistent while restic reads them. Locally, `mc-backup-local` talks to a MinIO container instead (console at `localhost:9001`, `minioadmin`/`minioadmin123`) — same restic code path, same excludes, same retention, so what you verify locally is what runs in production.
 
-Retention: **3 daily, 1 weekly, 1 monthly** — `--keep-daily 3 --keep-weekly 1 --keep-monthly 1`, from `RESTIC_RETENTION_DAILY`/`_WEEKLY`/`_MONTHLY` in `.env`, with those figures as the compose fallbacks so a lean `.env` gets the documented policy. Sized to fit R2's free 10GB tier.
+Retention: **3 daily, 1 weekly, 1 monthly** — `--keep-daily 3 --keep-weekly 1 --keep-monthly 1`, from `RESTIC_RETENTION_DAILY`/`_WEEKLY`/`_MONTHLY` in `.env`, with those figures as the compose fallbacks so a lean `.env` gets the documented policy.
+
+**Keep the bucket on R2 Standard.** Infrequent Access looks cheaper per GB ($0.01 vs $0.015) and is not: it has no free tier (Standard's first 10 GB-month, 1M Class A and 10M Class B operations are all free), charges $0.01/GB to read, doubles Class A operations to $9.00/million, and enforces a **30-day minimum storage duration** — so every pack file that 3-daily retention prunes is still billed for a full month. A repo that prunes after every backup is the workload IA penalises most.
 
 **Before diagnosing a snapshot count as wrong, read the policy off the running server rather than assuming the default:**
 
@@ -33,7 +35,7 @@ grep RESTIC_RETENTION .env                              # set only if this serve
 
 ## The size cap — it deletes data if the world outgrows the cap
 
-After every backup, `POST_BACKUP_SCRIPT` (the `x-backup-post` block in `docker-compose.yml`) checks the repo's raw size against `BACKUP_SIZE_CAP_GIB` (default `10`, i.e. R2's free tier). If it's still over the cap after normal retention pruning, it forgets and prunes the **oldest** snapshot, repeats, up to 10 times — but it will never drop below **one** snapshot. A genuinely oversized world keeps exactly one copy and the Discord notification carries a `:warning:` telling you to raise `BACKUP_SIZE_CAP_GIB` or shrink the world, rather than silently deleting the only backup. Every run posts to `DISCORD_WEBHOOK_URL` (skipped when unset, e.g. local dev): backup OK with size/count, or backup FAILED with the exit code.
+After every backup, `POST_BACKUP_SCRIPT` (the `x-backup-post` block in `docker-compose.yml`) checks the repo's raw size against `BACKUP_SIZE_CAP_GIB` (default `80`). If it's still over the cap after normal retention pruning, it forgets and prunes the **oldest** snapshot, repeats, up to 10 times — but it will never drop below **one** snapshot. A genuinely oversized world keeps exactly one copy and the Discord notification carries a `:warning:` telling you to raise `BACKUP_SIZE_CAP_GIB` or shrink the world, rather than silently deleting the only backup. Every run posts to `DISCORD_WEBHOOK_URL` (skipped when unset, e.g. local dev): backup OK with size/count, or backup FAILED with the exit code.
 
 ## What is excluded — know this before calling a restore "failed"
 
@@ -94,7 +96,7 @@ In short: `./ops reset-seed <seed>` backs up (restic, best-effort, plus a local 
 5. **A restore does not bring back the map, mods, or Kuma history — this is by design, not a failure.** See the excludes list above before reporting a restore as broken.
 6. **`wipe-chunk` refuses while `mc` is running unless `--force`.** Forcing it against a live server risks corrupting the region file the server still holds open.
 7. **`reset-seed --wipe-backups` purges every restic snapshot in R2, with no undo.** Only the local `tar.gz` backup on the droplet and any off-server copy survive that flag.
-8. **A repo stuck at exactly one snapshot doesn't always mean the excludes are broken.** `BACKUP_SIZE_CAP_GIB` bounds the whole repo, not one snapshot — if a single full snapshot of the non-excluded data (world region files, mainly) is already bigger than the cap, the post-backup trim forgets every older snapshot on every run and the repo never holds more than one. Check `docker exec mc-backup restic stats --mode raw-data` (repo size, what the cap compares against) against `restic stats latest --mode restore-size` (size of one snapshot's actual files) before assuming the excludes are wrong — an actively-explored world with Terralith/Incendium/custom-dimension terrain can legitimately need a `BACKUP_SIZE_CAP_GIB` well above the 10 GiB R2-free-tier default; raising it is the fix, not inventing new excludes.
+8. **A repo stuck at exactly one snapshot doesn't always mean the excludes are broken.** `BACKUP_SIZE_CAP_GIB` bounds the whole repo, not one snapshot — if a single full snapshot of the non-excluded data (world region files, mainly) is already bigger than the cap, the post-backup trim forgets every older snapshot on every run and the repo never holds more than one. Check `docker exec mc-backup restic stats --mode raw-data` (repo size, what the cap compares against) against `restic stats latest --mode restore-size` (size of one snapshot's actual files) before assuming the excludes are wrong — an actively-explored world with Terralith/Incendium/custom-dimension terrain can legitimately outgrow the cap; raising it is the fix, not inventing new excludes. Price the new figure before setting it — R2 Standard is $0.015/GB-month past the free 10 GB, so each extra 10 GiB is about $0.16/month.
 
 ## Validation — run these, don't assume
 
