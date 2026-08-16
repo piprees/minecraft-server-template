@@ -89,6 +89,37 @@ Every dimension needs a `type`. This is the most consequential choice — it det
 
 **Void dimensions: keep biomes from ONE family.** A void dim with `minecraft:deep_dark` (overworld) AND `minecraft:the_end` (end) will confuse the roller — it can't determine which family's noise config to use for sampling. If you want an end-themed void, use only end-family biomes from `references/biome-catalogue.md`.
 
+## Cross-family biomes and surface composition
+
+A biome from another family generates on THIS dimension's terrain wearing its
+OWN family's surface blocks. A nether biome in a `multi_biome` world comes out
+as nylium and basalt on overworld terrain, and brings its mob spawns with it.
+That is deliberate, and it is the pack's strongest lever.
+
+**Get the direction right — three agents have inverted it.**
+
+| biome's family vs the surface host | result |
+| --- | --- |
+| **different** (foreign) | **composed** — gets its home family's live surface rule |
+| same (native) | nothing — keeps the host's rule |
+
+`applySurfaceComposition` builds a map of biomes whose family differs from the
+host and gates each borrowed rule ahead of the host's. Native biomes are the
+ones that get left alone.
+
+**The host is `BiomeFamilies.surfaceHostFamily(type, noiseSettings)`, not
+`hostFamily`.** They differ in two cases:
+
+- `sky_islands` and `nether_islands` report **`end`** — they build on the End's
+  settings record, so an overworld biome in a `sky_islands` world is foreign
+  and does get dressed.
+- An explicit `noiseSettings` reports the preset's family (**overworld**),
+  because the preset replaces the whole settings record including its surface
+  rule.
+
+`hostFamily` answers a different question — which structure groups apply — and
+reading it here re-skins exactly the wrong biomes.
+
 ## Noise settings
 
 `noiseSettings` controls terrain shape within a given type. Creation-time-only.
