@@ -413,11 +413,13 @@ public final class RollPipeline {
         }
         STAGE.set("rolling " + id.getPath());
         int done = 0;
-        // Spends the whole budget. Ranking decides which candidates survive, so
-        // stopping at the first WANTED scored seeds would bank the first ten
-        // rather than the best ten — the search is the point, and SeedBank
-        // keeps every card for the leaderboard to sort.
-        while (done < count && !CANCEL.get()) {
+        // Stops at WANTED candidates, and that is what makes a roll finish. A
+        // seed measurement costs around a hundred core-seconds on a modded
+        // dimension, so `count` is a ceiling that never binds in practice —
+        // spending it would be 9 seeds a minute against a 5000-seed budget.
+        // The board is therefore the first WANTED that clear the gates, ranked
+        // by SeedBank's descending sort rather than chosen by a search.
+        while (done < count && !CANCEL.get() && banked(hash, dimension) < WANTED) {
             // Yield to a dimension somebody has just opened. Checked between
             // batches, so a worker grinding a slow dimension frees up in
             // seconds rather than when its whole budget is spent — a focus
