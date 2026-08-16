@@ -482,7 +482,7 @@
  "minecraft:strongholds": {
   "theme": "dungeon",
   "group": "dungeons",
-  "rarity": "common"
+  "rarity": "uncommon"
  },
  "minecraft:swamp_huts": {
   "theme": "settlement",
@@ -1527,7 +1527,7 @@
  "nova_structures:end_castle": {
   "theme": "landmark",
   "group": "landmarks",
-  "rarity": "common"
+  "rarity": "uncommon"
  },
  "nova_structures:end_lighthouses": {
   "theme": "maritime",

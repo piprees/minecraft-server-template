@@ -242,8 +242,8 @@ public final class DimensionLint {
                 String setId = setIdFor(setRegistry, id);
                 // A set whose placement is not noise-managed never reaches a
                 // pool BY DESIGN — it keeps its own grid placement and still
-                // generates. Pass-throughs are common (227 of 367 sets), not
-                // an edge case.
+                // generates. Seven of 380 sets are pass-throughs, so a want
+                // naming one is a warning rather than an error.
                 String passThroughType = passThroughPlacementType(setRegistry, setId);
                 if (passThroughType != null) {
                     out.add(new Finding(name, WARN, "want_is_passthrough", wantName,

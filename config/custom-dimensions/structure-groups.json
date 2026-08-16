@@ -12,10 +12,10 @@
    "settlements": 65
   },
   "byRarity": {
-   "common": 72,
+   "common": 70,
    "endgame": 68,
    "rare": 87,
-   "uncommon": 153
+   "uncommon": 155
   }
  },
  "groups": [
@@ -417,7 +417,7 @@
    "separation": 60,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "Epic Dungeons 1.2.3.jar"
+   "source": "epic-structures-dungeons-1.2.4.jar"
   },
   "epic:medium_dungeons": {
    "theme": "dungeon",
@@ -428,7 +428,7 @@
    "separation": 31,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "Epic Dungeons 1.2.3.jar"
+   "source": "epic-structures-dungeons-1.2.4.jar"
   },
   "epic:small_dungeons": {
    "theme": "dungeon",
@@ -439,7 +439,7 @@
    "separation": 4,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "Epic Dungeons 1.2.3.jar"
+   "source": "epic-structures-dungeons-1.2.4.jar"
   },
   "explorify:badlands_pyramids": {
    "theme": "landmark",
@@ -604,7 +604,7 @@
    "separation": 8,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar"
+   "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar"
   },
   "friendsandfoes:iceologer_cabin": {
    "theme": "dungeon",
@@ -615,7 +615,7 @@
    "separation": 10,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar"
+   "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar"
   },
   "friendsandfoes:illusioner_shack": {
    "theme": "dungeon",
@@ -626,7 +626,7 @@
    "separation": 10,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar"
+   "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar"
   },
   "friendsandfoes:illusioner_training_grounds": {
    "theme": "dungeon",
@@ -637,7 +637,7 @@
    "separation": 10,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar"
+   "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar"
   },
   "incendium:greater_structures": {
    "theme": "dungeon",
@@ -1093,10 +1093,10 @@
   "minecraft:strongholds": {
    "theme": "dungeon",
    "group": "dungeons",
-   "rarity": "common",
-   "spacing": 0,
+   "rarity": "uncommon",
+   "spacing": null,
    "themeSource": "curated",
-   "separation": 0,
+   "separation": null,
    "frequency": 1.0,
    "dimension": "overworld",
    "source": "vanilla"
@@ -3392,10 +3392,10 @@
   "nova_structures:end_castle": {
    "theme": "landmark",
    "group": "landmarks",
-   "rarity": "common",
-   "spacing": 0,
+   "rarity": "uncommon",
+   "spacing": null,
    "themeSource": "dials",
-   "separation": 0,
+   "separation": null,
    "frequency": 1.0,
    "dimension": "end",
    "source": "dungeons-and-taverns-v4.4.4.jar"
@@ -4091,7 +4091,7 @@
    "separation": 19,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "supplementaries-fabric-1.21.1-3.8.2.jar"
+   "source": "supplementaries-1.21.1-3.8.10-fabric.jar"
   },
   "supplementaries:road_signs": {
    "theme": "deco",
@@ -4102,7 +4102,7 @@
    "separation": 10,
    "frequency": 1.0,
    "dimension": "overworld",
-   "source": "supplementaries-fabric-1.21.1-3.8.2.jar"
+   "source": "supplementaries-1.21.1-3.8.10-fabric.jar"
   },
   "terralith:mage": {
    "theme": "landmark",

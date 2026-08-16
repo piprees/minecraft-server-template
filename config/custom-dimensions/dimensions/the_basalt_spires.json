@@ -44,12 +44,11 @@
       "incendium:volcanic_deltas"
     ],
     "wants": {
-      "blackstone_pillars": "near_spawn",
+      "blackstone_pillars": "spread",
       "bastion": "spread",
-      "nether_bridge": "spread",
       "warped_greatsword": "spread",
       "crimson_forge": "near_border",
-      "nether_tower": "near_border",
+      "nether_tower": "spread",
       "pipeline": "spread"
     },
     "shuns": [

@@ -74,11 +74,15 @@
   },
   "seedRoll": {
     "mood": "adventurous",
-    "spawnFilter": ["paradise_lost:continental_plateau"],
+    "spawnFilter": [
+      "paradise_lost:calcite_craglands",
+      "paradise_lost:continental_plateau",
+      "paradise_lost:highlands_grand_glade"
+    ],
     "water": "sea",
     "wants": {
       "para_vault": "near_spawn",
-      "monument": "near_spawn",
+      "monument": "spread",
       "para_palace": "spread",
       "deepwater_dungeon": "spread",
       "sculk_dungeon": "near_border"

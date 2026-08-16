@@ -58,7 +58,10 @@ class SeedFactsCodecTest {
                         Measured.of(129.0),
                         Measured.of(8),
                         Measured.of(Map.of("#minecraft:village",
-                                List.of("minecraft:village_plains", "minecraft:village_taiga")))),
+                                List.of("minecraft:village_plains", "minecraft:village_taiga"))),
+                        Measured.of(Map.of("betterfortresses:fortress", 2)),
+                        Measured.of(Map.of("betterfortresses:fortress", 640.0)),
+                        Measured.of(List.of("minecraft:strongholds"))),
                 Measured.of(gridFixture()));
     }
 
@@ -105,7 +108,10 @@ class SeedFactsCodecTest {
                                 + "distance is undefined"),
                         Measured.absent("no hostile placement in this dimension"),
                         f.structures().totalPositions(),
-                        f.structures().tagMembers()),
+                        f.structures().tagMembers(),
+                        f.structures().passThroughByStructure(),
+                        f.structures().passThroughNearestByStructure(),
+                        f.structures().passThroughUnmodelledSets()),
                 f.grid());
     }
 
@@ -150,7 +156,10 @@ class SeedFactsCodecTest {
                         a.structures().clusteringByGroup(),
                         Measured.of(0.8123456789 + 1e-12),
                         a.structures().nearestHostile(), a.structures().totalPositions(),
-                        a.structures().tagMembers()),
+                        a.structures().tagMembers(),
+                        a.structures().passThroughByStructure(),
+                        a.structures().passThroughNearestByStructure(),
+                        a.structures().passThroughUnmodelledSets()),
                 a.grid());
 
         assertTrue(a.structures().clustering().orThrow()

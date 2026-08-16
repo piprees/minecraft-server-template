@@ -122,7 +122,7 @@ class CriteriaTest {
                                 .mapToDouble(Double::doubleValue).average().orElse(1.0)),
                 nearestHostile == null ? gone() : Measured.of(nearestHostile),
                 Measured.of(total),
-                gone());
+                gone(), gone(), gone(), gone());
     }
 
     private static DimensionConfig config(List<String> spawnFilter, String terrainWord,
@@ -161,7 +161,7 @@ class CriteriaTest {
                 Measured.of(1.0),
                 Measured.of(900.0),
                 Measured.of(10),
-                gone());
+                gone(), gone(), gone(), gone());
     }
 
     private static SeedFacts withStructures(SeedFacts.StructureFacts structures, int radius) {
@@ -902,7 +902,7 @@ class CriteriaTest {
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone(), gone(), gone()),
+                        gone(), gone(), gone(), gone(), gone(), gone(), gone()),
                 4096, gone());
     }
 
@@ -919,7 +919,7 @@ class CriteriaTest {
                 new SeedFacts.BiomeFacts(gone(), gone(), gone(), gone()),
                 new SeedFacts.TerrainFacts(gone(), gone(), gone(), gone(), gone(), gone()),
                 new SeedFacts.StructureFacts(gone(), gone(), gone(), gone(), gone(),
-                        gone(), gone(), gone(), gone()),
+                        gone(), gone(), gone(), gone(), gone(), gone(), gone()),
                 4096, gone());
     }
 
@@ -1123,7 +1123,8 @@ class CriteriaTest {
                 Measured.of(Map.of("deco", 10)), Measured.of(Map.of()), Measured.of(Map.of()),
                 Measured.of(Map.of("deco", 1.0)), Measured.of(1.0), Measured.of(900.0),
                 Measured.of(10),
-                Measured.of(Map.of("#minecraft:village", List.<String>of()))), 4096);
+                Measured.of(Map.of("#minecraft:village", List.<String>of())),
+                gone(), gone(), gone()), 4096);
 
         Criterion.Result.Unmeasured u = assertInstanceOf(Criterion.Result.Unmeasured.class,
                 c.evaluate(empty, radius(4096)));
@@ -1169,7 +1170,8 @@ class CriteriaTest {
                 Measured.of(900.0),
                 Measured.of(10),
                 Measured.of(Map.of("#minecraft:village",
-                        List.of("minecraft:village_plains", "minecraft:village_taiga")))),
+                        List.of("minecraft:village_plains", "minecraft:village_taiga"))),
+                gone(), gone(), gone()),
                 radius);
     }
 

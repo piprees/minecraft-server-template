@@ -80,7 +80,11 @@ public final class SeedFactsCodec {
                         measured(structures, "clustering", JsonElement::getAsDouble),
                         measured(structures, "nearestHostile", JsonElement::getAsDouble),
                         measured(structures, "totalPositions", JsonElement::getAsInt),
-                        measured(structures, "tagMembers", SeedFactsCodec::stringListMap)),
+                        measured(structures, "tagMembers", SeedFactsCodec::stringListMap),
+                        measured(structures, "passThroughByStructure", SeedFactsCodec::intMap),
+                        measured(structures, "passThroughNearestByStructure", SeedFactsCodec::doubleMap),
+                        measured(structures, "passThroughUnmodelledSets",
+                                e -> stringList(e.getAsJsonArray()))),
                 measured(root, "grid", SeedFactsCodec::grid));
     }
 

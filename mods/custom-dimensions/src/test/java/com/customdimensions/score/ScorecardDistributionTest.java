@@ -68,7 +68,10 @@ class ScorecardDistributionTest {
                 Measured.of(Map.of(WANTED, wantedAt, SHUNNED, shunnedAt)),
                 Measured.of(spacing), Measured.of(clustering), Measured.of(nearestHostile),
                 Measured.of(20),
-                Measured.absent("this fixture's wants name no tags"));
+                Measured.absent("this fixture's wants name no tags"),
+                Measured.absent("not measured in this fixture"),
+                Measured.absent("not measured in this fixture"),
+                Measured.absent("not measured in this fixture"));
     }
 
     private static final String WANTED = "minecraft:igloo";

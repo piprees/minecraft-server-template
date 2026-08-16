@@ -49,6 +49,9 @@ class SeedBankTest {
                         Measured.absent("not measured in this fixture"),
                         Measured.absent("not measured in this fixture"),
                         goneDouble, goneDouble, goneInt,
+                        Measured.absent("not measured in this fixture"),
+                        Measured.absent("not measured in this fixture"),
+                        Measured.absent("not measured in this fixture"),
                         Measured.absent("not measured in this fixture")),
                 Measured.absent("not measured in this fixture"));
     }

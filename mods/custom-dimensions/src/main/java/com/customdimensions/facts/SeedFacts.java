@@ -203,6 +203,27 @@ public record SeedFacts(
      *                           of it. Membership is the tag's, not the pool's —
      *                           whether a member can generate here is the pool's
      *                           question, and the criterion asks it separately.
+     * @param passThroughByStructure structure id -> grid positions computed for
+     *                           structure sets {@code NoisePoolBuilder} does not
+     *                           absorb (their own class, never
+     *                           {@code minecraft:random_spread} or an absorbed
+     *                           subclass) but which still generate on vanilla's
+     *                           random-spread grid — {@code betterfortresses:fortress}
+     *                           on this stack, for one. UNMANAGED: no density,
+     *                           radial, rarity or difficulty control applies to
+     *                           these, unlike {@code byStructure}, which is why
+     *                           the two are separate fields and never merged.
+     * @param passThroughNearestByStructure structure id -> distance in blocks
+     *                           from spawn, over the same pass-through positions.
+     * @param passThroughUnmodelledSets set ids that generate on their own
+     *                           placement but carry no grid this engine can
+     *                           compute — concentric rings
+     *                           ({@code minecraft:strongholds}), any set with
+     *                           {@code spacing <= 0}, and anything not shaped like
+     *                           {@code RandomSpreadStructurePlacement} at all.
+     *                           These remain genuinely invisible; everything else
+     *                           a pass-through set could hold is in
+     *                           {@code passThroughByStructure} instead.
      */
     public record StructureFacts(
             Measured<Map<String, Integer>> pool,
@@ -213,7 +234,10 @@ public record SeedFacts(
             Measured<Double> clustering,
             Measured<Double> nearestHostile,
             Measured<Integer> totalPositions,
-            Measured<Map<String, List<String>>> tagMembers) {
+            Measured<Map<String, List<String>>> tagMembers,
+            Measured<Map<String, Integer>> passThroughByStructure,
+            Measured<Map<String, Double>> passThroughNearestByStructure,
+            Measured<List<String>> passThroughUnmodelledSets) {
     }
 
     /**
@@ -308,7 +332,13 @@ public record SeedFacts(
         field(b, "nearestHostile", structures.nearestHostile().toJson(Json::number), true);
         field(b, "totalPositions",
                 structures.totalPositions().toJson(v -> Json.number((long) v)), true);
-        field(b, "tagMembers", structures.tagMembers().toJson(SeedFacts::stringListMap), false);
+        field(b, "tagMembers", structures.tagMembers().toJson(SeedFacts::stringListMap), true);
+        field(b, "passThroughByStructure",
+                structures.passThroughByStructure().toJson(SeedFacts::intMap), true);
+        field(b, "passThroughNearestByStructure",
+                structures.passThroughNearestByStructure().toJson(SeedFacts::doubleMap), true);
+        field(b, "passThroughUnmodelledSets",
+                structures.passThroughUnmodelledSets().toJson(SeedFacts::stringList), false);
         b.append(" },\n");
 
         b.append(" \"grid\": ").append(grid.toJson(SeedFacts::grid)).append("\n}\n");
@@ -433,6 +463,10 @@ public record SeedFacts(
         absent(out, "structures.nearestHostile", structures.nearestHostile());
         absent(out, "structures.totalPositions", structures.totalPositions());
         absent(out, "structures.tagMembers", structures.tagMembers());
+        absent(out, "structures.passThroughByStructure", structures.passThroughByStructure());
+        absent(out, "structures.passThroughNearestByStructure",
+                structures.passThroughNearestByStructure());
+        absent(out, "structures.passThroughUnmodelledSets", structures.passThroughUnmodelledSets());
         absent(out, "grid", grid);
         return out;
     }

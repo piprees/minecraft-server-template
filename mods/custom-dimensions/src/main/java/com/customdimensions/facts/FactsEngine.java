@@ -6,6 +6,7 @@ import com.customdimensions.command.SpikeSampler;
 import com.customdimensions.config.DimensionConfig;
 import com.customdimensions.config.MultiverseConfig;
 import com.customdimensions.dimension.DimensionStructures;
+import com.customdimensions.dimension.FixedStructurePlacement;
 import com.customdimensions.dimension.NoiseGroupPlan;
 import com.customdimensions.dimension.NoisePoolBuilder;
 import com.customdimensions.dimension.NoiseStructurePlacement;
@@ -20,8 +21,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.random.ChunkRandom;
+import net.minecraft.util.math.random.CheckedRandom;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
 import net.minecraft.world.gen.chunk.VerticalBlockSample;
+import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement;
+import net.minecraft.world.gen.chunk.placement.StructurePlacement;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -829,6 +834,14 @@ public final class FactsEngine {
         NoisePoolBuilder.Result pools = NoisePoolBuilder.build(
                 def, sets, base.generator().getBiomeSource(), plan, exclude, null, wanted);
 
+        // Independent of the noise pools above: a set NoisePoolBuilder does not
+        // absorb still generates on its own grid, and its grid is computable
+        // from the same registry entries — see passThroughFacts.
+        PassThrough passThrough = passThroughFacts(sets, def, exclude, seed, radius);
+        Measured<Map<String, Integer>> passThroughByStructure = Measured.of(passThrough.byStructure());
+        Measured<Map<String, Double>> passThroughNearestByStructure = Measured.of(passThrough.nearest());
+        Measured<List<String>> passThroughUnmodelledSets = Measured.of(passThrough.unmodelledSets());
+
         int radiusChunks = radius / 16;
         long dimensionSalt = DimensionStructures.saltOf(def.getName());
 
@@ -892,7 +905,8 @@ public final class FactsEngine {
             return new SeedFacts.StructureFacts(
                     Measured.of(poolWeights), Measured.of(byGroup), Measured.of(byStructure),
                     Measured.of(nearest), Measured.absent(why),
-                    Measured.absent(why), Measured.absent(why), Measured.of(0), tagMembers);
+                    Measured.absent(why), Measured.absent(why), Measured.of(0), tagMembers,
+                    passThroughByStructure, passThroughNearestByStructure, passThroughUnmodelledSets);
         }
 
         return new SeedFacts.StructureFacts(
@@ -906,7 +920,154 @@ public final class FactsEngine {
                         ? Measured.absent("this dimension places no dungeons or endgame structures")
                         : Measured.of(nearestDistanceBlocks(hostilePositions)),
                 Measured.of(total),
-                tagMembers);
+                tagMembers,
+                passThroughByStructure, passThroughNearestByStructure, passThroughUnmodelledSets);
+    }
+
+    /**
+     * Grid positions for structure sets {@link NoisePoolBuilder} does not
+     * absorb — {@code betterfortresses:fortress} and its siblings on this
+     * stack. These still generate on vanilla's random-spread grid; nothing
+     * here changes that, it only reads it.
+     *
+     * <p>Positions come from the REAL vanilla method, called on the actual
+     * placement object drawn from the registry —
+     * {@link RandomSpreadStructurePlacement#getStartChunk} and
+     * {@link StructurePlacement#applyFrequencyReduction} are both public and
+     * are not reimplemented here, so this is exact by construction rather
+     * than by a arithmetic transcription that could drift from a future MC
+     * version. {@code structureSeed} is the candidate {@code seed} itself —
+     * the same convention {@link NoiseStructurePlacement}'s own salting
+     * already uses for a world that does not exist yet.
+     *
+     * <p>Walks the SAME prefiltered set list the noise pool above is built
+     * from, and applies the SAME {@code structures.mode}/{@code exclude}
+     * filter {@code DimensionStructures}'s live pass-through loop applies —
+     * one shared {@code keepSet}, so a set the live world would drop never
+     * shows up here as placed.
+     *
+     * <p>What this does NOT model: {@code applyExclusionZone} (needs a live
+     * {@code StructurePlacementCalculator}, which a headless seed-roll has
+     * none of — a cross-set exclusion a live world would honour can only
+     * make a computed position here an OVERCOUNT, never an undercount) and
+     * vanilla's retry-on-terrain-rejection for a multi-structure set (see
+     * {@link #pickStructure} — the same simplification
+     * {@code StructurePick.assignedStructure} already makes for
+     * noise-managed positions). "Placed" here means "the grid assigns a site
+     * and passes frequency reduction", not "the terrain accepted it" — the
+     * same promise {@code NoisePoolBuilder}'s own javadoc already makes for
+     * noise-managed positions.
+     */
+    private static PassThrough passThroughFacts(
+            Iterable<RegistryEntry<StructureSet>> sets, DimensionConfig def,
+            java.util.Set<String> exclude, long structureSeed, int radius) {
+        DimensionConfig.Structures structBlock = def.getStructures();
+        String mode = DimensionStructures.normalizedMode(def.getName(), structBlock);
+        java.util.Set<String> modeList = structBlock != null && structBlock.list != null
+                ? new java.util.HashSet<>(structBlock.list) : java.util.Set.of();
+        int radiusChunks = radius / 16;
+
+        Map<String, Integer> byStructure = new TreeMap<>();
+        Map<String, Double> nearest = new TreeMap<>();
+        java.util.Set<String> unmodelled = new java.util.TreeSet<>();
+
+        for (RegistryEntry<StructureSet> entry : sets) {
+            String setId = entry.getKey().map(k -> k.getValue().toString()).orElse(null);
+            if (setId == null || "adventure:exit_shrines".equals(setId)) {
+                continue;   // infrastructure, handled elsewhere, belongs to no group
+            }
+            StructureSet set = entry.value();
+            StructurePlacement placement = set.placement();
+            if (NoisePoolBuilder.noiseManaged(placement)) {
+                continue;   // already counted by the noise pool above
+            }
+            if (!DimensionStructures.keepSet(setId, mode, modeList, exclude)) {
+                continue;   // the live world drops this set too
+            }
+            if (!(placement instanceof RandomSpreadStructurePlacement rsp)
+                    || placement instanceof FixedStructurePlacement) {
+                unmodelled.add(setId);   // concentric rings, or another shape entirely
+                continue;
+            }
+            int spacing = rsp.getSpacing();
+            if (spacing <= 0) {
+                unmodelled.add(setId);   // no grid to walk
+                continue;
+            }
+            List<StructureSet.WeightedEntry> weighted = set.structures();
+            int lowRegion = Math.floorDiv(-radiusChunks, spacing);
+            int highRegion = Math.floorDiv(radiusChunks, spacing);
+            for (int rx = lowRegion; rx <= highRegion; rx++) {
+                for (int rz = lowRegion; rz <= highRegion; rz++) {
+                    // Any chunk coordinate in the region resolves to the same
+                    // start chunk — getStartChunk floor-divides by spacing
+                    // internally — so the region's own anchor is as good as
+                    // any other point in it.
+                    ChunkPos pos = rsp.getStartChunk(structureSeed, rx * spacing, rz * spacing);
+                    double blocks = Math.hypot(pos.x * 16.0, pos.z * 16.0);
+                    if (blocks > radius) {
+                        continue;   // outside the playable disc
+                    }
+                    if (!placement.applyFrequencyReduction(pos.x, pos.z, structureSeed)) {
+                        continue;   // this region's start chunk does not fire
+                    }
+                    String structureId = pickStructure(weighted, structureSeed, pos.x, pos.z);
+                    if (structureId == null) {
+                        continue;
+                    }
+                    byStructure.merge(structureId, 1, Integer::sum);
+                    nearest.merge(structureId, blocks, Math::min);
+                }
+            }
+        }
+        return new PassThrough(byStructure, nearest, new ArrayList<>(unmodelled));
+    }
+
+    /**
+     * Vanilla's weighted pick among a set's structures at one start chunk —
+     * read off the 1.21.1 {@code ChunkGenerator} bytecode, not reimplemented
+     * from memory: a {@code ChunkRandom} seeded with
+     * {@code setCarverSeed(structureSeed, chunkX, chunkZ)}, then one
+     * {@code nextInt(totalWeight)} draw walks the weighted list exactly as
+     * vanilla's own selection does. Vanilla RETRIES against a shrinking pool
+     * when a draw's {@code Structure.createStructureStart} declines the
+     * position (biome or terrain mismatch); that retry needs the same
+     * terrain checks {@code NoisePoolBuilder}'s weighted pick already
+     * declines to make (see its own "wanted" javadoc), so this is always
+     * vanilla's FIRST draw — the structure the grid assigns, not a promise
+     * the terrain accepts it.
+     */
+    private static String pickStructure(List<StructureSet.WeightedEntry> weighted,
+                                        long structureSeed, int chunkX, int chunkZ) {
+        if (weighted.isEmpty()) {
+            return null;
+        }
+        if (weighted.size() == 1) {
+            return weighted.get(0).structure().getKey()
+                    .map(k -> k.getValue().toString()).orElse(null);
+        }
+        int totalWeight = 0;
+        for (StructureSet.WeightedEntry w : weighted) {
+            totalWeight += w.weight();
+        }
+        if (totalWeight <= 0) {
+            return null;
+        }
+        ChunkRandom random = new ChunkRandom(new CheckedRandom(0L));
+        random.setCarverSeed(structureSeed, chunkX, chunkZ);
+        int roll = random.nextInt(totalWeight);
+        for (StructureSet.WeightedEntry w : weighted) {
+            roll -= w.weight();
+            if (roll < 0) {
+                return w.structure().getKey().map(k -> k.getValue().toString()).orElse(null);
+            }
+        }
+        return null;   // unreachable: roll < totalWeight by construction
+    }
+
+    /** What {@link #passThroughFacts} found, before wrapping as {@link Measured}. */
+    private record PassThrough(Map<String, Integer> byStructure, Map<String, Double> nearest,
+                               List<String> unmodelledSets) {
     }
 
     /**
@@ -972,6 +1133,7 @@ public final class FactsEngine {
 
     private static SeedFacts.StructureFacts absentStructures(String why) {
         return new SeedFacts.StructureFacts(
+                Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why),
                 Measured.absent(why), Measured.absent(why), Measured.absent(why));

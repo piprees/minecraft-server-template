@@ -48,23 +48,33 @@ public final class RollPipeline {
     private static final int RECONCILE_EVERY = 5;
 
     /**
-     * The score a candidate must reach to be worth keeping, as a percentage.
+     * The score below which a banked candidate is flagged in the viewer as
+     * the best available rather than a good seed, as a percentage. Display
+     * only: it gates nothing here. {@link #banked} counts every scored
+     * candidate regardless of where it sits against this number, because the
+     * score is not comparable BETWEEN dimensions — {@link
+     * com.customdimensions.score.Criterion#applicable} scores each dimension
+     * out of its own ceiling, and of the winners already picked by hand across
+     * the bank, most sit under this bar.
      *
-     * <p>One definition, read by the roll target here and by the card's
+     * <p>One definition, read by the STARVED log line here and by the card's
      * flagged state in {@link ViewerPage} — two numbers would let a board look
-     * full while the roller thought otherwise.
+     * flagged on the page while the log told a different story.
      */
     public static final double SCORE_THRESHOLD = 80.0;
 
     /**
-     * Candidates ABOVE {@link #SCORE_THRESHOLD} a dimension needs before a roll
-     * leaves it alone, matched to {@link RenderQueue#KEEP} — a dimension shows
-     * only that many ranked seeds beside its named ones, so a sixth costs
-     * seeds and shows nobody anything.
+     * Scored candidates a dimension needs before a roll leaves it alone,
+     * matched to {@link RenderQueue#KEEP} — a dimension shows only that many
+     * ranked seeds beside its named ones, so a sixth costs seeds and shows
+     * nobody anything.
      *
-     * <p>Counting only the good ones is the point: a board of five mediocre
-     * candidates is not a choice, and stopping at five of anything would leave
-     * it that way for good.
+     * <p>Rank decides what counts, not an absolute score: {@link #banked}
+     * returns every seed that cleared this dimension's gates, ranked
+     * descending by {@link com.customdimensions.roll.SeedBank#leaderboard}, so
+     * a roll stops once it holds its best {@code WANTED} rather than spending
+     * its whole per-dimension seed budget chasing {@link #SCORE_THRESHOLD} on
+     * every roll.
      */
     private static final int WANTED = RenderQueue.KEEP;
 
@@ -403,7 +413,11 @@ public final class RollPipeline {
         }
         STAGE.set("rolling " + id.getPath());
         int done = 0;
-        while (done < count && !CANCEL.get() && banked(hash, dimension) < WANTED) {
+        // Spends the whole budget. Ranking decides which candidates survive, so
+        // stopping at the first WANTED scored seeds would bank the first ten
+        // rather than the best ten — the search is the point, and SeedBank
+        // keeps every card for the leaderboard to sort.
+        while (done < count && !CANCEL.get()) {
             // Yield to a dimension somebody has just opened. Checked between
             // batches, so a worker grinding a slow dimension frees up in
             // seconds rather than when its whole budget is spent — a focus
@@ -437,9 +451,8 @@ public final class RollPipeline {
         if (got < WANTED && !CANCEL.get()) {
             STARVED.add(id.getPath() + " (" + got + "/" + WANTED + " from " + done + " seeds)");
             MultiverseServer.LOGGER.warn(
-                    "roll: {} kept {}/{} candidates at {}%+ from {} seeds — either its gates "
-                    + "reject nearly everything or nothing it makes scores that well",
-                    id.getPath(), got, WANTED, (int) SCORE_THRESHOLD, done);
+                    "roll: {} kept only {}/{} candidates from {} seeds — its gates reject nearly everything",
+                    id.getPath(), got, WANTED, done);
         }
         RenderQueue.reconcile(server, def);
         SURVEYED.incrementAndGet();
@@ -448,16 +461,15 @@ public final class RollPipeline {
         GENERATION.incrementAndGet();
     }
 
-    /** Candidates at or above {@link #SCORE_THRESHOLD} — the only ones that count. */
+    /**
+     * Every scored candidate for this dimension — what a roll stops against,
+     * by rank rather than by {@link #SCORE_THRESHOLD}. A gate-rejected seed
+     * never reaches {@link com.customdimensions.roll.SeedBank#leaderboard}
+     * (it lands in {@code rejected.json} instead), so this counts only what
+     * cleared every gate; nothing here weakens a gate.
+     */
     private static int banked(String hash, String dimension) {
-        int good = 0;
-        for (com.customdimensions.roll.SeedBank.CandidateSummary c
-                : com.customdimensions.roll.SeedBank.leaderboard(hash, dimension)) {
-            if (c.percentage() >= SCORE_THRESHOLD) {
-                good++;
-            }
-        }
-        return good;
+        return com.customdimensions.roll.SeedBank.leaderboard(hash, dimension).size();
     }
 
     /**

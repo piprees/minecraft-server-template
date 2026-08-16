@@ -45,7 +45,6 @@
       "crimson_forge": "spread",
       "fortress": "spread",
       "crimson_well": "near_spawn",
-      "nether_bridge": "spread",
       "pipeline": "near_border",
       "ruined_lab": "spread"
     },

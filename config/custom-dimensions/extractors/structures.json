@@ -7,6 +7,7 @@
       "structures": [
         "adventure:exit_shrine"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 0.001,
@@ -19,6 +20,7 @@
       "structures": [
         "adventuredungeons:bygonedungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -31,6 +33,7 @@
       "structures": [
         "adventuredungeons:coldlair"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -43,6 +46,7 @@
       "structures": [
         "adventuredungeons:murkydungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 12,
       "frequency": 1.0,
@@ -55,6 +59,7 @@
       "structures": [
         "adventuredungeons:ruins_desert"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -67,6 +72,7 @@
       "structures": [
         "adventuredungeons:ruins_snow"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -79,6 +85,7 @@
       "structures": [
         "adventuredungeons:ruins_standard"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -91,6 +98,7 @@
       "structures": [
         "adventuredungeons:trialrooms"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -103,6 +111,7 @@
       "structures": [
         "adventuredungeons:underground_camp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -136,6 +145,7 @@
         "ati_structures:old_residence",
         "ati_structures:catalonian_castle"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 69,
       "frequency": 0.85,
@@ -157,6 +167,7 @@
         "ati_structures:wither_keep",
         "ati_structures:dark_keep"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 55,
       "separation": 3,
       "frequency": 0.85,
@@ -180,6 +191,7 @@
         "ati_structures:storage_house",
         "ati_structures:storage_shack"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 33,
       "separation": 1,
       "frequency": 1.0,
@@ -194,6 +206,7 @@
         "ati_structures:warden_monument",
         "ati_structures:ancient_vessel"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 111,
       "separation": 99,
       "frequency": 0.85,
@@ -208,6 +221,7 @@
         "ati_structures:spider_nest",
         "ati_structures:wither_cavern"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 20,
       "frequency": 1.0,
@@ -224,6 +238,7 @@
         "ati_structures:rotting_temple_underground",
         "ati_structures:pufferfish_cave"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 15,
       "separation": 10,
       "frequency": 0.6,
@@ -236,6 +251,7 @@
       "structures": [
         "betterdeserttemples:desert_temple"
       ],
+      "placementType": "betterdeserttemples:desert_temple",
       "spacing": 30,
       "separation": 20,
       "frequency": 1.0,
@@ -248,6 +264,7 @@
       "structures": [
         "betterdungeons:skeleton_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 46,
       "separation": 23,
       "frequency": 1.0,
@@ -260,6 +277,7 @@
       "structures": [
         "betterdungeons:small_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 10,
       "separation": 6,
       "frequency": 0.6,
@@ -272,6 +290,7 @@
       "structures": [
         "betterdungeons:small_nether_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 10,
       "frequency": 1.0,
@@ -284,6 +303,7 @@
       "structures": [
         "betterdungeons:spider_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 44,
       "separation": 22,
       "frequency": 1.0,
@@ -296,6 +316,7 @@
       "structures": [
         "betterdungeons:zombie_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 1.0,
@@ -308,6 +329,7 @@
       "structures": [
         "betterfortresses:fortress"
       ],
+      "placementType": "yungsapi:enhanced_random_spread",
       "spacing": 30,
       "separation": 20,
       "frequency": 1.0,
@@ -320,6 +342,7 @@
       "structures": [
         "betterjungletemples:jungle_temple"
       ],
+      "placementType": "betterjungletemples:jungle_temple",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -344,6 +367,7 @@
         "bettermineshafts:mineshaft_overgrown",
         "bettermineshafts:mineshaft_dripstone"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.003,
@@ -356,6 +380,7 @@
       "structures": [
         "betteroceanmonuments:ocean_monument"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 20,
       "frequency": 1.0,
@@ -368,6 +393,7 @@
       "structures": [
         "betterstrongholds:stronghold"
       ],
+      "placementType": "betterstrongholds:stronghold",
       "spacing": 85,
       "separation": 50,
       "frequency": 1.0,
@@ -380,6 +406,7 @@
       "structures": [
         "betterwitchhuts:witch_circle"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -392,6 +419,7 @@
       "structures": [
         "betterwitchhuts:witch_hut"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 8,
       "frequency": 1.0,
@@ -405,6 +433,7 @@
         "ddd:monolithic_tower",
         "ddd:monolithic_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 43,
       "separation": 32,
       "frequency": 1.0,
@@ -423,6 +452,7 @@
         "ddd:minor_dungeon_frozen",
         "ddd:minor_dungeon_frozen"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -466,6 +496,7 @@
         "dungeons_arise:mechanical_nest",
         "dungeons_arise:kisegi_sanctuary"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 45,
       "frequency": 0.5,
@@ -483,6 +514,7 @@
         "dungeons_arise:abandoned_temple",
         "dungeons_arise:lighthouse"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 45,
       "separation": 40,
       "frequency": 1.0,
@@ -504,6 +536,7 @@
         "dungeons_plus:dusty_tomb",
         "dungeons_plus:scorched_tomb"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 8,
       "separation": 3,
       "frequency": 0.5,
@@ -516,6 +549,7 @@
       "structures": [
         "dungeons_plus:dungeon_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 18,
       "separation": 10,
       "frequency": 0.5,
@@ -523,13 +557,14 @@
       "rarity": "common"
     },
     "epic:large_dungeons": {
-      "source": "Epic Dungeons 1.2.3.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
       "structures": [
         "epic:large_dungeon",
         "epic:large_ice_dungeon",
         "epic:large_sand_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 61,
       "separation": 60,
       "frequency": 1.0,
@@ -537,13 +572,14 @@
       "rarity": "endgame"
     },
     "epic:medium_dungeons": {
-      "source": "Epic Dungeons 1.2.3.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
       "structures": [
         "epic:medium_sand_dungeon",
         "epic:medium_ice_dungeon",
         "epic:medium_plains_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 45,
       "separation": 31,
       "frequency": 1.0,
@@ -551,13 +587,14 @@
       "rarity": "uncommon"
     },
     "epic:small_dungeons": {
-      "source": "Epic Dungeons 1.2.3.jar",
+      "source": "epic-structures-dungeons-1.2.4.jar",
       "theme": "dungeon",
       "structures": [
         "epic:small_ice_dungeon",
         "epic:small_plains_dungeon",
         "epic:small_sand_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 31,
       "separation": 4,
       "frequency": 1.0,
@@ -570,6 +607,7 @@
       "structures": [
         "explorify:badlands_pyramid"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 12,
       "frequency": 0.75,
@@ -582,6 +620,7 @@
       "structures": [
         "explorify:black_spiral"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 18,
       "frequency": 1.0,
@@ -594,6 +633,7 @@
       "structures": [
         "explorify:campsite"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 0.8,
@@ -606,6 +646,7 @@
       "structures": [
         "explorify:dark_forest_settlement"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 0.8,
@@ -618,6 +659,7 @@
       "structures": [
         "explorify:desert_shrine"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -630,6 +672,7 @@
       "structures": [
         "explorify:end_shipwreck"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 6,
       "frequency": 0.5,
@@ -642,6 +685,7 @@
       "structures": [
         "explorify:farmstead"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 38,
       "separation": 28,
       "frequency": 0.8,
@@ -655,6 +699,7 @@
         "explorify:guide_post_cold",
         "explorify:guide_post_warm"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 10,
       "frequency": 0.75,
@@ -667,6 +712,7 @@
       "structures": [
         "explorify:mangrove_hut"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 12,
       "frequency": 1.0,
@@ -679,6 +725,7 @@
       "structures": [
         "explorify:mausoleum"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 16,
       "frequency": 0.8,
@@ -691,6 +738,7 @@
       "structures": [
         "explorify:ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 0.8,
@@ -709,6 +757,7 @@
         "explorify:supply_cache/mangrove",
         "explorify:supply_cache/taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 20,
       "frequency": 0.75,
@@ -721,6 +770,7 @@
       "structures": [
         "explorify:tavern"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 36,
       "separation": 18,
       "frequency": 0.8,
@@ -735,6 +785,7 @@
         "explorify:watchtower/taiga",
         "explorify:watchtower/savanna"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 24,
       "frequency": 0.75,
@@ -742,11 +793,12 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:citadel": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
       "structures": [
         "friendsandfoes:citadel"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 8,
       "frequency": 1.0,
@@ -754,11 +806,12 @@
       "rarity": "endgame"
     },
     "friendsandfoes:iceologer_cabin": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
       "structures": [
         "friendsandfoes:iceologer_cabin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -766,11 +819,12 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:illusioner_shack": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
       "structures": [
         "friendsandfoes:illusioner_shack"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -778,11 +832,12 @@
       "rarity": "uncommon"
     },
     "friendsandfoes:illusioner_training_grounds": {
-      "source": "friendsandfoes-fabric-4.0.26+mc1.21.1.jar",
+      "source": "friendsandfoes-fabric-4.0.27+mc1.21.1.jar",
       "theme": "landmark",
       "structures": [
         "friendsandfoes:illusioner_training_grounds"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 1.0,
@@ -797,6 +852,7 @@
         "incendium:forbidden_castle",
         "incendium:nether_reactor"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 16,
       "frequency": 1.0,
@@ -814,6 +870,7 @@
         "incendium:infernal_altar",
         "incendium:ruined_lab"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 12,
       "frequency": 1.0,
@@ -826,6 +883,7 @@
       "structures": [
         "mes:astral_hideaway"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 40,
       "separation": 18,
       "frequency": 1.0,
@@ -838,6 +896,7 @@
       "structures": [
         "mes:astral_meteorite"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 12,
       "frequency": 1.0,
@@ -850,6 +909,7 @@
       "structures": [
         "mes:ender_spire"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 38,
       "frequency": 1.0,
@@ -862,6 +922,7 @@
       "structures": [
         "mes:enderbloom_grove"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 12,
       "frequency": 1.0,
@@ -874,6 +935,7 @@
       "structures": [
         "mes:enderkeep_courtyard"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 25,
       "frequency": 1.0,
@@ -886,6 +948,7 @@
       "structures": [
         "mes:enderpin_spikes"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 8,
       "frequency": 1.0,
@@ -898,6 +961,7 @@
       "structures": [
         "mes:enderskog"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 52,
       "separation": 22,
       "frequency": 1.0,
@@ -910,6 +974,7 @@
       "structures": [
         "mes:enderwatch_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 12,
       "frequency": 1.0,
@@ -922,6 +987,7 @@
       "structures": [
         "mes:endscraps"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 37,
       "separation": 7,
       "frequency": 1.0,
@@ -934,6 +1000,7 @@
       "structures": [
         "mes:manuscript_shrine"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 41,
       "separation": 27,
       "frequency": 1.0,
@@ -946,6 +1013,7 @@
       "structures": [
         "mes:mega_ship"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 77,
       "separation": 15,
       "frequency": 1.0,
@@ -958,6 +1026,7 @@
       "structures": [
         "mes:mega_ship_basic"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 80,
       "separation": 60,
       "frequency": 1.0,
@@ -970,6 +1039,7 @@
       "structures": [
         "mes:mega_ship_crashed"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 75,
       "separation": 46,
       "frequency": 1.0,
@@ -982,6 +1052,7 @@
       "structures": [
         "mes:mega_ship_crashed_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 48,
       "frequency": 1.0,
@@ -994,6 +1065,7 @@
       "structures": [
         "mes:mega_ship_crashed_deepslate"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 79,
       "separation": 52,
       "frequency": 1.0,
@@ -1006,6 +1078,7 @@
       "structures": [
         "mes:mega_ship_deepslate"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 88,
       "separation": 65,
       "frequency": 1.0,
@@ -1018,6 +1091,7 @@
       "structures": [
         "mes:mega_ship_deepslate_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 82,
       "separation": 46,
       "frequency": 1.0,
@@ -1030,6 +1104,7 @@
       "structures": [
         "mes:mega_ship_deepslate_3"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 84,
       "separation": 52,
       "frequency": 1.0,
@@ -1042,6 +1117,7 @@
       "structures": [
         "mes:monolith"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 21,
       "frequency": 1.0,
@@ -1054,6 +1130,7 @@
       "structures": [
         "mes:mystical_archway"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -1066,6 +1143,7 @@
       "structures": [
         "mes:mythic_garden"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 27,
       "frequency": 1.0,
@@ -1078,6 +1156,7 @@
       "structures": [
         "mes:phantom_citadel"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 14,
       "frequency": 1.0,
@@ -1090,6 +1169,7 @@
       "structures": [
         "mes:placid_prairie"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 22,
       "frequency": 1.0,
@@ -1102,6 +1182,7 @@
       "structures": [
         "mes:ruined_pillar"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 12,
       "separation": 7,
       "frequency": 1.0,
@@ -1114,6 +1195,7 @@
       "structures": [
         "mes:starlight_voyager"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 17,
       "frequency": 1.0,
@@ -1126,6 +1208,7 @@
       "structures": [
         "minecraft:ancient_city"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 8,
       "frequency": 1.0,
@@ -1138,6 +1221,7 @@
       "structures": [
         "minecraft:buried_treasure"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.01,
@@ -1150,6 +1234,7 @@
       "structures": [
         "minecraft:desert_pyramid"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -1162,6 +1247,7 @@
       "structures": [
         "minecraft:end_city"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 18,
       "frequency": 1.0,
@@ -1174,6 +1260,7 @@
       "structures": [
         "minecraft:igloo"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -1186,6 +1273,7 @@
       "structures": [
         "minecraft:jungle_pyramid"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -1199,6 +1287,7 @@
         "minecraft:mineshaft",
         "minecraft:mineshaft_mesa"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 1,
       "separation": 0,
       "frequency": 0.004,
@@ -1212,6 +1301,7 @@
         "minecraft:fortress",
         "minecraft:bastion_remnant"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 16,
       "separation": 8,
       "frequency": 1.0,
@@ -1224,6 +1314,7 @@
       "structures": [
         "minecraft:nether_fossil"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 2,
       "separation": 1,
       "frequency": 1.0,
@@ -1236,6 +1327,7 @@
       "structures": [
         "minecraft:monument"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 5,
       "frequency": 1.0,
@@ -1249,6 +1341,7 @@
         "minecraft:ocean_ruin_cold",
         "minecraft:ocean_ruin_warm"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 8,
       "frequency": 1.0,
@@ -1261,6 +1354,7 @@
       "structures": [
         "minecraft:pillager_outpost"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 0.2,
@@ -1279,6 +1373,7 @@
         "minecraft:ruined_portal_ocean",
         "minecraft:ruined_portal_nether"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -1292,6 +1387,7 @@
         "minecraft:shipwreck",
         "minecraft:shipwreck_beached"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 4,
       "frequency": 1.0,
@@ -1304,8 +1400,9 @@
       "structures": [
         "minecraft:stronghold"
       ],
-      "spacing": 0,
-      "separation": 0,
+      "placementType": "minecraft:concentric_rings",
+      "spacing": null,
+      "separation": null,
       "frequency": 1.0,
       "dimension": "overworld",
       "rarity": "endgame"
@@ -1316,6 +1413,7 @@
       "structures": [
         "minecraft:swamp_hut"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -1328,6 +1426,7 @@
       "structures": [
         "minecraft:trail_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 34,
       "separation": 8,
       "frequency": 1.0,
@@ -1340,6 +1439,7 @@
       "structures": [
         "minecraft:trial_chambers"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 34,
       "separation": 12,
       "frequency": 1.0,
@@ -1356,6 +1456,7 @@
         "minecraft:village_snowy",
         "minecraft:village_taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -1369,6 +1470,7 @@
         "minecraft:mansion",
         "nova_structures:illager_manor"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 20,
       "frequency": 1.0,
@@ -1381,6 +1483,7 @@
       "structures": [
         "mns:bridge_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1393,6 +1496,7 @@
       "structures": [
         "mns:bridge_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1405,6 +1509,7 @@
       "structures": [
         "mns:bridge_3"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1417,6 +1522,7 @@
       "structures": [
         "mns:bridge_4"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1429,6 +1535,7 @@
       "structures": [
         "mns:bridge_5"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1441,6 +1548,7 @@
       "structures": [
         "mns:bridge_6"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 90,
       "separation": 70,
       "frequency": 1.0,
@@ -1453,6 +1561,7 @@
       "structures": [
         "mns:circle_blackstone"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 15,
       "frequency": 1.0,
@@ -1465,6 +1574,7 @@
       "structures": [
         "mns:circle_nether_brick"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 11,
       "frequency": 1.0,
@@ -1477,6 +1587,7 @@
       "structures": [
         "mns:copper_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 37,
       "frequency": 1.0,
@@ -1489,6 +1600,7 @@
       "structures": [
         "mns:crimson_forge"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1501,6 +1613,7 @@
       "structures": [
         "mns:crimson_lava_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1513,6 +1626,7 @@
       "structures": [
         "mns:giant_skull"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 54,
       "separation": 46,
       "frequency": 1.0,
@@ -1525,6 +1639,7 @@
       "structures": [
         "mns:grave_yard"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 22,
       "frequency": 1.0,
@@ -1537,6 +1652,7 @@
       "structures": [
         "mns:large_blackstone_pillars"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 18,
       "frequency": 1.0,
@@ -1549,6 +1665,7 @@
       "structures": [
         "mns:large_blackstone_walls"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 29,
       "separation": 11,
       "frequency": 1.0,
@@ -1561,6 +1678,7 @@
       "structures": [
         "mns:large_house_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1573,6 +1691,7 @@
       "structures": [
         "mns:large_nether_brick"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -1585,6 +1704,7 @@
       "structures": [
         "mns:lava_pool"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 41,
       "separation": 26,
       "frequency": 1.0,
@@ -1597,6 +1717,7 @@
       "structures": [
         "mns:leafy_rubble"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 15,
       "frequency": 1.0,
@@ -1609,6 +1730,7 @@
       "structures": [
         "mns:medium_blackstone"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 18,
       "frequency": 1.0,
@@ -1622,6 +1744,7 @@
         "mns:medium_crimson_fungus",
         "mns:medium_crimson_fungus_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 19,
       "frequency": 1.0,
@@ -1634,6 +1757,7 @@
       "structures": [
         "mns:medium_crimson_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -1646,6 +1770,7 @@
       "structures": [
         "mns:medium_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 43,
       "separation": 34,
       "frequency": 1.0,
@@ -1658,6 +1783,7 @@
       "structures": [
         "mns:medium_house_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 36,
       "frequency": 1.0,
@@ -1671,6 +1797,7 @@
         "mns:medium_warped_fungus",
         "mns:medium_warped_fungus_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 13,
       "frequency": 1.0,
@@ -1683,6 +1810,7 @@
       "structures": [
         "mns:medium_warped_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 14,
       "frequency": 1.0,
@@ -1697,6 +1825,7 @@
         "mns:large_arena",
         "mns:dragon_arena"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 100,
       "frequency": 1.0,
@@ -1709,6 +1838,7 @@
       "structures": [
         "mns:mega_fortress"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 116,
       "separation": 76,
       "frequency": 1.0,
@@ -1721,6 +1851,7 @@
       "structures": [
         "mns:nether_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 115,
       "separation": 56,
       "frequency": 1.0,
@@ -1733,6 +1864,7 @@
       "structures": [
         "mns:nether_wart_farm"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 85,
       "separation": 25,
       "frequency": 1.0,
@@ -1745,6 +1877,7 @@
       "structures": [
         "mns:ruined_portal"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 30,
       "separation": 28,
       "frequency": 1.0,
@@ -1757,6 +1890,7 @@
       "structures": [
         "mns:sandy_skull"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 40,
       "separation": 36,
       "frequency": 1.0,
@@ -1770,6 +1904,7 @@
         "mns:shrine",
         "mns:smoking_shrine"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 17,
       "frequency": 1.0,
@@ -1782,6 +1917,7 @@
       "structures": [
         "mns:small_nether_brick"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 20,
       "frequency": 1.0,
@@ -1794,6 +1930,7 @@
       "structures": [
         "mns:soul_fire"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 25,
       "separation": 16,
       "frequency": 1.0,
@@ -1806,6 +1943,7 @@
       "structures": [
         "mns:sword"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 42,
       "frequency": 1.0,
@@ -1818,6 +1956,7 @@
       "structures": [
         "mns:train"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 65,
       "separation": 50,
       "frequency": 1.0,
@@ -1833,6 +1972,7 @@
         "mns:very_small_blackstone_3",
         "mns:very_small_blackstone_4"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 12,
       "frequency": 1.0,
@@ -1847,6 +1987,7 @@
         "mns:very_small_nether_brick_2",
         "mns:very_small_nether_brick_3"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -1859,6 +2000,7 @@
       "structures": [
         "mns:warped_dome"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1871,6 +2013,7 @@
       "structures": [
         "mns:warped_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 38,
       "frequency": 1.0,
@@ -1883,6 +2026,7 @@
       "structures": [
         "mns:warped_pool"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 33,
       "separation": 21,
       "frequency": 1.0,
@@ -1895,6 +2039,7 @@
       "structures": [
         "mss:arena"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 158,
       "separation": 92,
       "frequency": 1.0,
@@ -1907,6 +2052,7 @@
       "structures": [
         "mss:birch_river"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 96,
       "separation": 34,
       "frequency": 1.0,
@@ -1919,6 +2065,7 @@
       "structures": [
         "mss:calcite_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 27,
       "frequency": 1.0,
@@ -1931,6 +2078,7 @@
       "structures": [
         "mss:castle_ruin"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 107,
       "separation": 56,
       "frequency": 1.0,
@@ -1943,6 +2091,7 @@
       "structures": [
         "mss:castle_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 114,
       "separation": 52,
       "frequency": 1.0,
@@ -1955,6 +2104,7 @@
       "structures": [
         "mss:cherry_river"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 53,
       "separation": 17,
       "frequency": 1.0,
@@ -1967,6 +2117,7 @@
       "structures": [
         "mss:desert_pyramid"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 80,
       "separation": 42,
       "frequency": 1.0,
@@ -1979,6 +2130,7 @@
       "structures": [
         "mss:desert_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 66,
       "separation": 15,
       "frequency": 1.0,
@@ -1991,6 +2143,7 @@
       "structures": [
         "mss:diorite_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 156,
       "separation": 97,
       "frequency": 1.0,
@@ -2003,6 +2156,7 @@
       "structures": [
         "mss:frozen_pond"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 94,
       "separation": 31,
       "frequency": 1.0,
@@ -2015,6 +2169,7 @@
       "structures": [
         "mss:jungle"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 72,
       "separation": 36,
       "frequency": 1.0,
@@ -2027,6 +2182,7 @@
       "structures": [
         "mss:large_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 140,
       "separation": 96,
       "frequency": 1.0,
@@ -2039,6 +2195,7 @@
       "structures": [
         "mss:leaf_hollow"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 104,
       "separation": 62,
       "frequency": 1.0,
@@ -2051,6 +2208,7 @@
       "structures": [
         "mss:mangrove"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 32,
       "frequency": 1.0,
@@ -2063,6 +2221,7 @@
       "structures": [
         "mss:muddy_water_hole"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 132,
       "separation": 72,
       "frequency": 1.0,
@@ -2075,6 +2234,7 @@
       "structures": [
         "mss:mushroom"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 124,
       "separation": 48,
       "frequency": 1.0,
@@ -2087,6 +2247,7 @@
       "structures": [
         "mss:nether_portal"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 99,
       "separation": 52,
       "frequency": 1.0,
@@ -2099,6 +2260,7 @@
       "structures": [
         "mss:palm_island"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 102,
       "separation": 46,
       "frequency": 1.0,
@@ -2111,6 +2273,7 @@
       "structures": [
         "mss:red_sand"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 142,
       "separation": 72,
       "frequency": 1.0,
@@ -2123,6 +2286,7 @@
       "structures": [
         "mss:small_deepslate_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 124,
       "separation": 36,
       "frequency": 1.0,
@@ -2135,6 +2299,7 @@
       "structures": [
         "mss:small_oak_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 105,
       "separation": 35,
       "frequency": 1.0,
@@ -2147,6 +2312,7 @@
       "structures": [
         "mss:small_pond"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 92,
       "separation": 18,
       "frequency": 1.0,
@@ -2159,6 +2325,7 @@
       "structures": [
         "mss:small_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 108,
       "separation": 46,
       "frequency": 1.0,
@@ -2171,6 +2338,7 @@
       "structures": [
         "mss:spruce_huts"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 134,
       "separation": 48,
       "frequency": 1.0,
@@ -2183,6 +2351,7 @@
       "structures": [
         "mss:taiga"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 95,
       "separation": 42,
       "frequency": 1.0,
@@ -2195,6 +2364,7 @@
       "structures": [
         "mss:tree_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 147,
       "separation": 73,
       "frequency": 1.0,
@@ -2207,6 +2377,7 @@
       "structures": [
         "mss:tree_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 148,
       "separation": 74,
       "frequency": 1.0,
@@ -2219,6 +2390,7 @@
       "structures": [
         "mss:tree_3"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 176,
       "separation": 68,
       "frequency": 1.0,
@@ -2231,6 +2403,7 @@
       "structures": [
         "mss:tree_4"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 159,
       "separation": 82,
       "frequency": 1.0,
@@ -2243,6 +2416,7 @@
       "structures": [
         "mss:tree_5"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 175,
       "separation": 99,
       "frequency": 1.0,
@@ -2255,6 +2429,7 @@
       "structures": [
         "mss:tree_6"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 182,
       "separation": 67,
       "frequency": 1.0,
@@ -2267,6 +2442,7 @@
       "structures": [
         "mss:tree_7"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 186,
       "separation": 82,
       "frequency": 1.0,
@@ -2279,6 +2455,7 @@
       "structures": [
         "mss:tree_8"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 156,
       "separation": 64,
       "frequency": 1.0,
@@ -2291,6 +2468,7 @@
       "structures": [
         "mss:volcano"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 158,
       "separation": 78,
       "frequency": 1.0,
@@ -2303,6 +2481,7 @@
       "structures": [
         "mss:white_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 145,
       "separation": 92,
       "frequency": 1.0,
@@ -2315,6 +2494,7 @@
       "structures": [
         "mtr:badlands_temple"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 55,
       "separation": 6,
       "frequency": 1.0,
@@ -2327,6 +2507,7 @@
       "structures": [
         "mtr:desert_temple"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 8,
       "frequency": 1.0,
@@ -2339,6 +2520,7 @@
       "structures": [
         "mtr:jungle_temple"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 30,
       "frequency": 1.0,
@@ -2351,6 +2533,7 @@
       "structures": [
         "mtr:nether_temple"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 40,
       "frequency": 1.0,
@@ -2363,6 +2546,7 @@
       "structures": [
         "mtr:ocean_temple"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 60,
       "separation": 30,
       "frequency": 1.0,
@@ -2375,6 +2559,7 @@
       "structures": [
         "mtr:stronghold"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 150,
       "separation": 90,
       "frequency": 1.0,
@@ -2387,6 +2572,7 @@
       "structures": [
         "mvs:acacia_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2399,6 +2585,7 @@
       "structures": [
         "mvs:acacia_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2411,6 +2598,7 @@
       "structures": [
         "mvs:azelea_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 31,
       "frequency": 1.0,
@@ -2423,6 +2611,7 @@
       "structures": [
         "mvs:barn"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 26,
       "frequency": 1.0,
@@ -2435,6 +2624,7 @@
       "structures": [
         "mvs:beach_bar"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 20,
       "frequency": 1.0,
@@ -2447,6 +2637,7 @@
       "structures": [
         "mvs:bee_dome"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 12,
       "frequency": 1.0,
@@ -2459,6 +2650,7 @@
       "structures": [
         "mvs:bench"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 14,
       "frequency": 1.0,
@@ -2471,6 +2663,7 @@
       "structures": [
         "mvs:big_oak_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 39,
       "separation": 26,
       "frequency": 1.0,
@@ -2483,6 +2676,7 @@
       "structures": [
         "mvs:birch_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2495,6 +2689,7 @@
       "structures": [
         "mvs:birch_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2507,6 +2702,7 @@
       "structures": [
         "mvs:boulder"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -2519,6 +2715,7 @@
       "structures": [
         "mvs:campsite"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 37,
       "separation": 30,
       "frequency": 1.0,
@@ -2531,6 +2728,7 @@
       "structures": [
         "mvs:cart"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 26,
       "frequency": 1.0,
@@ -2543,6 +2741,7 @@
       "structures": [
         "mvs:cartographer_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 83,
       "separation": 46,
       "frequency": 1.0,
@@ -2555,6 +2754,7 @@
       "structures": [
         "mvs:castle_ruins"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 30,
       "frequency": 1.0,
@@ -2567,6 +2767,7 @@
       "structures": [
         "mvs:cathedral"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 105,
       "separation": 98,
       "frequency": 1.0,
@@ -2579,6 +2780,7 @@
       "structures": [
         "mvs:cherry_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2591,6 +2793,7 @@
       "structures": [
         "mvs:crimson_enchanting_table"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 77,
       "separation": 58,
       "frequency": 1.0,
@@ -2603,6 +2806,7 @@
       "structures": [
         "mvs:crystal"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 112,
       "separation": 62,
       "frequency": 1.0,
@@ -2615,6 +2819,7 @@
       "structures": [
         "mvs:dark_oak_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2627,6 +2832,7 @@
       "structures": [
         "mvs:dark_oak_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2639,6 +2845,7 @@
       "structures": [
         "mvs:dead_tree_acacia"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2651,6 +2858,7 @@
       "structures": [
         "mvs:dead_tree_birch"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2663,6 +2871,7 @@
       "structures": [
         "mvs:dead_tree_cherry"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2675,6 +2884,7 @@
       "structures": [
         "mvs:dead_tree_dark_oak"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2687,6 +2897,7 @@
       "structures": [
         "mvs:dead_tree_jungle"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2699,6 +2910,7 @@
       "structures": [
         "mvs:dead_tree_mangrove"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2711,6 +2923,7 @@
       "structures": [
         "mvs:dead_tree_oak"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -2723,6 +2936,7 @@
       "structures": [
         "mvs:deepslate_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 34,
       "frequency": 1.0,
@@ -2735,6 +2949,7 @@
       "structures": [
         "mvs:desert_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 22,
       "frequency": 1.0,
@@ -2747,6 +2962,7 @@
       "structures": [
         "mvs:desert_pump"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -2759,6 +2975,7 @@
       "structures": [
         "mvs:diorite_and_deepslate_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 34,
       "frequency": 1.0,
@@ -2771,6 +2988,7 @@
       "structures": [
         "mvs:diorite_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 50,
       "separation": 38,
       "frequency": 1.0,
@@ -2783,6 +3001,7 @@
       "structures": [
         "mvs:duck"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 94,
       "separation": 46,
       "frequency": 1.0,
@@ -2795,6 +3014,7 @@
       "structures": [
         "mvs:fire_camp"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 17,
       "frequency": 1.0,
@@ -2807,6 +3027,7 @@
       "structures": [
         "mvs:floating_islands"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 38,
       "frequency": 1.0,
@@ -2819,6 +3040,7 @@
       "structures": [
         "mvs:flower_hole"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 28,
       "frequency": 1.0,
@@ -2831,6 +3053,7 @@
       "structures": [
         "mvs:fox_hut"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 8,
       "frequency": 1.0,
@@ -2843,6 +3066,7 @@
       "structures": [
         "mvs:gallows"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 28,
       "frequency": 1.0,
@@ -2855,6 +3079,7 @@
       "structures": [
         "mvs:haystack"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 16,
       "separation": 7,
       "frequency": 1.0,
@@ -2867,6 +3092,7 @@
       "structures": [
         "mvs:horse_campsite"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 19,
       "separation": 17,
       "frequency": 1.0,
@@ -2879,6 +3105,7 @@
       "structures": [
         "mvs:horse_pen"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 26,
       "frequency": 1.0,
@@ -2891,6 +3118,7 @@
       "structures": [
         "mvs:house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 31,
       "frequency": 1.0,
@@ -2903,6 +3131,7 @@
       "structures": [
         "mvs:jungle_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -2915,6 +3144,7 @@
       "structures": [
         "mvs:jungle_palm_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2927,6 +3157,7 @@
       "structures": [
         "mvs:jungle_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 96,
       "separation": 80,
       "frequency": 1.0,
@@ -2939,6 +3170,7 @@
       "structures": [
         "mvs:jungle_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -2951,6 +3183,7 @@
       "structures": [
         "mvs:lamp_chest"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 45,
       "separation": 14,
       "frequency": 1.0,
@@ -2963,6 +3196,7 @@
       "structures": [
         "mvs:large_cart_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 20,
       "frequency": 1.0,
@@ -2975,6 +3209,7 @@
       "structures": [
         "mvs:large_cart_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 20,
       "frequency": 1.0,
@@ -2987,6 +3222,7 @@
       "structures": [
         "mvs:large_floating_island"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 65,
       "separation": 49,
       "frequency": 1.0,
@@ -2999,6 +3235,7 @@
       "structures": [
         "mvs:large_mushroom"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 98,
       "separation": 36,
       "frequency": 1.0,
@@ -3011,6 +3248,7 @@
       "structures": [
         "mvs:large_warped_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 51,
       "separation": 28,
       "frequency": 1.0,
@@ -3023,6 +3261,7 @@
       "structures": [
         "mvs:lecturn_garden"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 16,
       "frequency": 1.0,
@@ -3035,6 +3274,7 @@
       "structures": [
         "mvs:log_ruin"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 55,
       "separation": 30,
       "frequency": 1.0,
@@ -3047,6 +3287,7 @@
       "structures": [
         "mvs:medium_bamboo_cart"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 12,
       "separation": 8,
       "frequency": 1.0,
@@ -3059,6 +3300,7 @@
       "structures": [
         "mvs:medium_igloo_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 27,
       "separation": 21,
       "frequency": 1.0,
@@ -3071,6 +3313,7 @@
       "structures": [
         "mvs:medium_oak_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -3083,6 +3326,7 @@
       "structures": [
         "mvs:mine_with_campsite"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 31,
       "frequency": 1.0,
@@ -3095,6 +3339,7 @@
       "structures": [
         "mvs:mud_brick_house_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 32,
       "frequency": 1.0,
@@ -3107,6 +3352,7 @@
       "structures": [
         "mvs:mushroom_pond"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 12,
       "frequency": 1.0,
@@ -3119,6 +3365,7 @@
       "structures": [
         "mvs:mushroom_statue"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 92,
       "separation": 16,
       "frequency": 1.0,
@@ -3131,6 +3378,7 @@
       "structures": [
         "mvs:mushroom_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 84,
       "separation": 18,
       "frequency": 1.0,
@@ -3143,6 +3391,7 @@
       "structures": [
         "mvs:nether_devil"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 64,
       "separation": 16,
       "frequency": 1.0,
@@ -3155,6 +3404,7 @@
       "structures": [
         "mvs:nether_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -3167,6 +3417,7 @@
       "structures": [
         "mvs:oak_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -3179,6 +3430,7 @@
       "structures": [
         "mvs:oak_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -3191,6 +3443,7 @@
       "structures": [
         "mvs:ocean_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 20,
       "frequency": 1.0,
@@ -3214,6 +3467,7 @@
         "mvs:jungle_well",
         "mvs:acacia_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 18,
       "frequency": 1.0,
@@ -3226,6 +3480,7 @@
       "structures": [
         "mvs:out_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -3238,6 +3493,7 @@
       "structures": [
         "mvs:paths"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -3250,6 +3506,7 @@
       "structures": [
         "mvs:pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 13,
       "separation": 7,
       "frequency": 1.0,
@@ -3262,6 +3519,7 @@
       "structures": [
         "mvs:prismarine_house_1"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -3274,6 +3532,7 @@
       "structures": [
         "mvs:prismarine_house_2"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 44,
       "separation": 32,
       "frequency": 1.0,
@@ -3286,6 +3545,7 @@
       "structures": [
         "mvs:railway"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 46,
       "separation": 27,
       "frequency": 1.0,
@@ -3298,6 +3558,7 @@
       "structures": [
         "mvs:rare_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 68,
       "separation": 38,
       "frequency": 1.0,
@@ -3310,6 +3571,7 @@
       "structures": [
         "mvs:red_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 14,
       "frequency": 1.0,
@@ -3322,6 +3584,7 @@
       "structures": [
         "mvs:ruined_beacon"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 75,
       "separation": 60,
       "frequency": 1.0,
@@ -3334,6 +3597,7 @@
       "structures": [
         "mvs:shed"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 23,
       "frequency": 1.0,
@@ -3346,6 +3610,7 @@
       "structures": [
         "mvs:small_acacia_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3358,6 +3623,7 @@
       "structures": [
         "mvs:small_bamboo_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3370,6 +3636,7 @@
       "structures": [
         "mvs:small_birch_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3382,6 +3649,7 @@
       "structures": [
         "mvs:small_campfire_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3394,6 +3662,7 @@
       "structures": [
         "mvs:small_cherry_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3406,6 +3675,7 @@
       "structures": [
         "mvs:small_dark_oak_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3418,6 +3688,7 @@
       "structures": [
         "mvs:small_igloo"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 31,
       "separation": 26,
       "frequency": 1.0,
@@ -3430,6 +3701,7 @@
       "structures": [
         "mvs:small_jungle_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3442,6 +3714,7 @@
       "structures": [
         "mvs:small_mangrove_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3454,6 +3727,7 @@
       "structures": [
         "mvs:small_oak_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3466,6 +3740,7 @@
       "structures": [
         "mvs:small_oak_pond"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 35,
       "separation": 12,
       "frequency": 1.0,
@@ -3478,6 +3753,7 @@
       "structures": [
         "mvs:small_pillager_tower"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 28,
       "frequency": 1.0,
@@ -3490,6 +3766,7 @@
       "structures": [
         "mvs:small_ruin"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 26,
       "frequency": 1.0,
@@ -3502,6 +3779,7 @@
       "structures": [
         "mvs:small_ship"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 34,
       "separation": 28,
       "frequency": 1.0,
@@ -3514,6 +3792,7 @@
       "structures": [
         "mvs:small_spruce_lantern"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 24,
       "separation": 12,
       "frequency": 1.0,
@@ -3526,6 +3805,7 @@
       "structures": [
         "mvs:small_swamp_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 78,
       "separation": 20,
       "frequency": 1.0,
@@ -3538,6 +3818,7 @@
       "structures": [
         "mvs:small_tower_well"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 23,
       "separation": 15,
       "frequency": 1.0,
@@ -3550,6 +3831,7 @@
       "structures": [
         "mvs:snowy_dog_hut"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 28,
       "separation": 24,
       "frequency": 1.0,
@@ -3562,6 +3844,7 @@
       "structures": [
         "mvs:snowy_fossil"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 13,
       "frequency": 1.0,
@@ -3574,6 +3857,7 @@
       "structures": [
         "mvs:spruce_log_pile"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 16,
       "frequency": 1.0,
@@ -3586,6 +3870,7 @@
       "structures": [
         "mvs:spruce_tree"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -3601,6 +3886,7 @@
         "mvs:pink_stall",
         "mvs:blue_stall"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -3613,6 +3899,7 @@
       "structures": [
         "mvs:statue_ruins"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 38,
       "separation": 30,
       "frequency": 1.0,
@@ -3625,6 +3912,7 @@
       "structures": [
         "mvs:stone_fountain"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 36,
       "separation": 12,
       "frequency": 1.0,
@@ -3637,6 +3925,7 @@
       "structures": [
         "mvs:stone_pillars"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 36,
       "frequency": 1.0,
@@ -3649,6 +3938,7 @@
       "structures": [
         "mvs:stone_rock"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 18,
       "separation": 13,
       "frequency": 1.0,
@@ -3661,6 +3951,7 @@
       "structures": [
         "mvs:sunzi_gate"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 54,
       "separation": 20,
       "frequency": 1.0,
@@ -3673,6 +3964,7 @@
       "structures": [
         "mvs:tall_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 42,
       "separation": 34,
       "frequency": 1.0,
@@ -3685,6 +3977,7 @@
       "structures": [
         "mvs:tree_monument"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 76,
       "separation": 65,
       "frequency": 1.0,
@@ -3697,6 +3990,7 @@
       "structures": [
         "mvs:villager_statue"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 56,
       "separation": 40,
       "frequency": 1.0,
@@ -3709,6 +4003,7 @@
       "structures": [
         "mvs:warped_house"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 48,
       "separation": 30,
       "frequency": 1.0,
@@ -3721,6 +4016,7 @@
       "structures": [
         "mvs:wheat_grain_bin"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3733,6 +4029,7 @@
       "structures": [
         "mvs:windmill"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3745,6 +4042,7 @@
       "structures": [
         "mvs:wooden_wheat_farm"
       ],
+      "placementType": "moogs_structures:advanced_random_spread",
       "spacing": 26,
       "separation": 14,
       "frequency": 1.0,
@@ -3757,6 +4055,7 @@
       "structures": [
         "nova_structures:badlands_miner_outpost"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 12,
       "frequency": 1.0,
@@ -3769,6 +4068,7 @@
       "structures": [
         "minecraft:mineshaft_mesa"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 12,
       "frequency": 1.0,
@@ -3781,6 +4081,7 @@
       "structures": [
         "nova_structures:bunker"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 10,
       "frequency": 1.0,
@@ -3793,6 +4094,7 @@
       "structures": [
         "nova_structures:conduit_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 140,
       "separation": 90,
       "frequency": 1.0,
@@ -3805,6 +4107,7 @@
       "structures": [
         "nova_structures:creeping_crypt"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 10,
       "frequency": 1.0,
@@ -3817,6 +4120,7 @@
       "structures": [
         "nova_structures:deepslate_camp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 15,
       "separation": 7,
       "frequency": 0.7,
@@ -3829,6 +4133,7 @@
       "structures": [
         "nova_structures:desert_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 12,
       "frequency": 1.0,
@@ -3841,11 +4146,12 @@
       "structures": [
         "nova_structures:end_castle"
       ],
-      "spacing": 0,
-      "separation": 0,
+      "placementType": "minecraft:concentric_rings",
+      "spacing": null,
+      "separation": null,
       "frequency": 1.0,
       "dimension": "end",
-      "rarity": "common"
+      "rarity": "uncommon"
     },
     "nova_structures:end_lighthouses": {
       "source": "dungeons-and-taverns-v4.4.4.jar",
@@ -3853,6 +4159,7 @@
       "structures": [
         "nova_structures:end_lighthouse"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 22,
       "frequency": 1.0,
@@ -3865,6 +4172,7 @@
       "structures": [
         "nova_structures:end_ship"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 0.25,
@@ -3885,6 +4193,7 @@
         "nova_structures:firewatch_tower_swamp",
         "nova_structures:firewatch_tower_taiga"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 15,
       "frequency": 1.0,
@@ -3897,6 +4206,7 @@
       "structures": [
         "nova_structures:illager_camp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 32,
       "frequency": 1.0,
@@ -3909,6 +4219,7 @@
       "structures": [
         "nova_structures:illager_hideout"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 200,
       "separation": 12,
       "frequency": 1.0,
@@ -3921,6 +4232,7 @@
       "structures": [
         "nova_structures:jungle_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 12,
       "frequency": 1.0,
@@ -3933,6 +4245,7 @@
       "structures": [
         "nova_structures:mangrove_witch_hut"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 8,
       "frequency": 1.0,
@@ -3949,6 +4262,7 @@
         "nova_structures:skeleton_camp_soul",
         "nova_structures:piglin_camp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 10,
       "frequency": 1.0,
@@ -3964,6 +4278,7 @@
         "nova_structures:nether_skeleton_tower_crimson",
         "nova_structures:nether_skeleton_tower_soul"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 20,
       "frequency": 1.0,
@@ -3980,6 +4295,7 @@
         "nova_structures:piglin_outstation",
         "nova_structures:piglin_donjon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 85,
       "separation": 40,
       "frequency": 1.0,
@@ -4015,6 +4331,7 @@
         "nova_structures:remnant_zombie_horse_ranch",
         "nova_structures:remnant_classic_village"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 120,
       "separation": 30,
       "frequency": 1.0,
@@ -4027,6 +4344,7 @@
       "structures": [
         "nova_structures:ruin_town"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 72,
       "separation": 30,
       "frequency": 1.0,
@@ -4039,6 +4357,7 @@
       "structures": [
         "nova_structures:shrine_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 600,
       "separation": 312,
       "frequency": 1.0,
@@ -4055,6 +4374,7 @@
         "nova_structures:shrine_combat_tier_4",
         "nova_structures:shrine_combat_tier_5"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 26,
       "frequency": 1.0,
@@ -4068,6 +4388,7 @@
         "nova_structures:stray_fort",
         "nova_structures:lone_citadel"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 16,
       "frequency": 1.0,
@@ -4081,6 +4402,7 @@
         "nova_structures:witch_villa",
         "nova_structures:toxic_lair"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 20,
       "frequency": 1.0,
@@ -4103,6 +4425,7 @@
         "nova_structures:tavern_spruce",
         "nova_structures:tavern_swamp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -4115,6 +4438,7 @@
       "structures": [
         "nova_structures:trident_trial_monument"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 200,
       "separation": 190,
       "frequency": 1.0,
@@ -4127,6 +4451,7 @@
       "structures": [
         "nova_structures:undead_crypt"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 100,
       "separation": 20,
       "frequency": 1.0,
@@ -4139,6 +4464,7 @@
       "structures": [
         "nova_structures:underground_house"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 10,
       "frequency": 1.0,
@@ -4151,6 +4477,7 @@
       "structures": [
         "nova_structures:village_birch"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -4163,6 +4490,7 @@
       "structures": [
         "nova_structures:village_jungle"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -4175,6 +4503,7 @@
       "structures": [
         "nova_structures:village_swamp"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 8,
       "frequency": 1.0,
@@ -4192,6 +4521,7 @@
         "nova_structures:well_oak",
         "nova_structures:well_savana"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 15,
       "frequency": 1.0,
@@ -4204,6 +4534,7 @@
       "structures": [
         "nova_structures:wild_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 27,
       "separation": 18,
       "frequency": 1.0,
@@ -4216,6 +4547,7 @@
       "structures": [
         "nullscape:dragon_skeleton"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 22,
       "separation": 12,
       "frequency": 1.0,
@@ -4228,6 +4560,7 @@
       "structures": [
         "nullscape:rift"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 20,
       "separation": 12,
       "frequency": 1.0,
@@ -4240,6 +4573,7 @@
       "structures": [
         "paradise_lost:aurel_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 7,
       "frequency": 1.0,
@@ -4252,6 +4586,7 @@
       "structures": [
         "paradise_lost:birdcage"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 18,
       "frequency": 1.0,
@@ -4264,6 +4599,7 @@
       "structures": [
         "paradise_lost:palace"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 23,
       "frequency": 1.0,
@@ -4276,6 +4612,7 @@
       "structures": [
         "paradise_lost:remains"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 24,
       "separation": 6,
       "frequency": 1.0,
@@ -4288,6 +4625,7 @@
       "structures": [
         "paradise_lost:vault"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 16,
       "frequency": 1.0,
@@ -4300,6 +4638,7 @@
       "structures": [
         "philipsruins:ancient_crypt"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 50,
       "frequency": 1.0,
@@ -4312,6 +4651,7 @@
       "structures": [
         "philipsruins:ancient_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 10,
       "separation": 3,
       "frequency": 0.5,
@@ -4324,6 +4664,7 @@
       "structures": [
         "philipsruins:ancient_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 30,
       "frequency": 1.0,
@@ -4336,6 +4677,7 @@
       "structures": [
         "philipsruins:ancient_towers"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 0.85,
@@ -4348,6 +4690,7 @@
       "structures": [
         "philipsruins:antiquus_crypta"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 90,
       "separation": 40,
       "frequency": 1.0,
@@ -4362,6 +4705,7 @@
         "philipsruins:badlands_structures",
         "philipsruins:desert_structures"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 39,
       "separation": 15,
       "frequency": 1.0,
@@ -4375,6 +4719,7 @@
         "philipsruins:end_ruins",
         "philipsruins:end_gate_fortress"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 35,
       "separation": 25,
       "frequency": 1.0,
@@ -4387,6 +4732,7 @@
       "structures": [
         "philipsruins:field_stone_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 75,
       "separation": 35,
       "frequency": 1.0,
@@ -4399,6 +4745,7 @@
       "structures": [
         "philipsruins:field_stone_ruins_rocks"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 27,
       "frequency": 1.0,
@@ -4411,6 +4758,7 @@
       "structures": [
         "philipsruins:level_one_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 75,
       "separation": 40,
       "frequency": 1.0,
@@ -4423,6 +4771,7 @@
       "structures": [
         "philipsruins:level_three_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 85,
       "separation": 45,
       "frequency": 1.0,
@@ -4436,6 +4785,7 @@
         "philipsruins:level_two_ruins",
         "philipsruins:level_two_ruins_pool"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 50,
       "frequency": 1.0,
@@ -4448,6 +4798,7 @@
       "structures": [
         "philipsruins:lost_soul_city"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 65,
       "frequency": 1.0,
@@ -4460,6 +4811,7 @@
       "structures": [
         "philipsruins:start_nether_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 310,
       "separation": 90,
       "frequency": 1.0,
@@ -4474,6 +4826,7 @@
         "philipsruins:sealedruinedghaststatue1",
         "philipsruins:nether_lava_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 25,
       "frequency": 1.0,
@@ -4486,6 +4839,7 @@
       "structures": [
         "philipsruins:ocean_fortress"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 70,
       "separation": 50,
       "frequency": 1.0,
@@ -4498,6 +4852,7 @@
       "structures": [
         "philipsruins:ocean_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -4510,6 +4865,7 @@
       "structures": [
         "philipsruins:pumpkin_ruins"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 50,
       "separation": 40,
       "frequency": 1.0,
@@ -4522,6 +4878,7 @@
       "structures": [
         "philipsruins:rare_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 360,
       "separation": 130,
       "frequency": 1.0,
@@ -4537,6 +4894,7 @@
         "philipsruins:underground_structures",
         "philipsruins:sculk_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 60,
       "separation": 35,
       "frequency": 1.0,
@@ -4551,6 +4909,7 @@
         "structory:taiga_ruin_underground",
         "structory:northern_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 16,
       "frequency": 0.7,
@@ -4564,6 +4923,7 @@
         "structory:old_manor",
         "structory:dense_forest_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 42,
       "separation": 16,
       "frequency": 1.0,
@@ -4583,6 +4943,7 @@
         "structory:outcast_villager_desert",
         "structory:boat"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 44,
       "separation": 14,
       "frequency": 1.0,
@@ -4595,6 +4956,7 @@
       "structures": [
         "structory:jungle_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 30,
       "separation": 10,
       "frequency": 1.0,
@@ -4607,6 +4969,7 @@
       "structures": [
         "structory:swamp_ruin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 23,
       "separation": 10,
       "frequency": 1.0,
@@ -4619,6 +4982,7 @@
       "structures": [
         "structory_towers:end/end_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 82,
       "separation": 10,
       "frequency": 0.4,
@@ -4633,6 +4997,7 @@
         "structory_towers:nether/warped_outpost",
         "structory_towers:nether/fortress_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 33,
       "separation": 10,
       "frequency": 0.9,
@@ -4648,6 +5013,7 @@
         "structory_towers:mirage_outpost",
         "structory_towers:pillager_lookout"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 55,
       "separation": 16,
       "frequency": 0.5312,
@@ -4672,6 +5038,7 @@
         "structory_towers:taiga_outpost",
         "structory_towers:wizard_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 40,
       "separation": 10,
       "frequency": 0.6162,
@@ -4684,6 +5051,7 @@
       "structures": [
         "structory_towers:warped_greatsword"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 80,
       "separation": 42,
       "frequency": 0.5737,
@@ -4691,11 +5059,12 @@
       "rarity": "very_rare"
     },
     "supplementaries:galleons": {
-      "source": "supplementaries-fabric-1.21.1-3.8.2.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "theme": "landmark",
       "structures": [
         "supplementaries:galleon"
       ],
+      "placementType": "supplementaries:random_spread_with_exclusion",
       "spacing": 31,
       "separation": 19,
       "frequency": 1.0,
@@ -4703,11 +5072,12 @@
       "rarity": "common"
     },
     "supplementaries:road_signs": {
-      "source": "supplementaries-fabric-1.21.1-3.8.2.jar",
+      "source": "supplementaries-1.21.1-3.8.10-fabric.jar",
       "theme": "deco",
       "structures": [
         "supplementaries:road_sign"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 19,
       "separation": 10,
       "frequency": 1.0,
@@ -4725,6 +5095,7 @@
         "terralith:mage_tower_winter",
         "terralith:mage_tower_spring"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 28,
       "separation": 16,
       "frequency": 0.85,
@@ -4737,6 +5108,7 @@
       "structures": [
         "terralith:spire"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 36,
       "separation": 28,
       "frequency": 1.0,
@@ -4750,6 +5122,7 @@
         "terralith:fortified_village",
         "terralith:fortified_desert_village"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 46,
       "separation": 18,
       "frequency": 1.0,
@@ -4766,6 +5139,7 @@
         "terralith:glacial_hut",
         "terralith:igloo"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 27,
       "separation": 15,
       "frequency": 1.0,
@@ -4783,6 +5157,7 @@
         "terralith:rubble_mountain",
         "terralith:rubble_desert"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 26,
       "separation": 20,
       "frequency": 1.0,
@@ -4799,6 +5174,7 @@
         "terralith:underground/old_refinery",
         "terralith:underground/sunken_tower"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 11,
       "separation": 3,
       "frequency": 0.7,
@@ -4811,6 +5187,7 @@
       "structures": [
         "terralith:underground/frosted_dungeon"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 9,
       "separation": 6,
       "frequency": 0.6,
@@ -4824,6 +5201,7 @@
         "towns_and_towers:mimic_desert",
         "towns_and_towers:wreckage_ocean"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 32,
       "separation": 16,
       "frequency": 1.0,
@@ -4866,6 +5244,7 @@
         "towns_and_towers:exclusives/pillager_outpost_rustic",
         "towns_and_towers:exclusives/pillager_outpost_nilotic"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 48,
       "separation": 12,
       "frequency": 0.2,
@@ -4904,6 +5283,7 @@
         "towns_and_towers:exclusives/village_nilotic",
         "towns_and_towers:exclusives/village_piglin"
       ],
+      "placementType": "minecraft:random_spread",
       "spacing": 51,
       "separation": 12,
       "frequency": 1.0,

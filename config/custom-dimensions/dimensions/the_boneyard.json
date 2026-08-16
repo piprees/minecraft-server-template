@@ -78,12 +78,10 @@
     ],
     "wants": {
       "giant_skull": "near_spawn",
-      "nether_graveyard": "near_spawn",
+      "nether_graveyard": "spread",
       "bone_dungeon": "near_spawn",
-      "lost_soul_dungeon": "spread",
-      "nether_bridge": "spread",
       "nether_dungeon": "spread",
-      "infernal_altar": "near_border"
+      "infernal_altar": "spread"
     },
     "shuns": [
       "piglin_village",

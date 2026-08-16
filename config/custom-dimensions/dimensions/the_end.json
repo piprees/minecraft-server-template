@@ -25,6 +25,8 @@
   },
   "seedRoll": {
     "mood": "hard",
+    "terrain": "islands",
+    "water": "none",
     "description": "The end \u2014 the endermen's current home, not their origin. Cities and citadels within honest reach of the gateways, built after they moved on from the older void dimensions.",
     "spawnFilter": [
       "minecraft:end_highlands",
@@ -32,9 +34,9 @@
       "minecraft:end_midlands"
     ],
     "wants": {
-      "end_city": "spread",
-      "phantom_citadel": "near_border",
-      "enderkeep": "near_border",
+      "end_city": "near_spawn",
+      "phantom_citadel": "near_spawn",
+      "enderkeep": "spread",
       "monolith": "spread"
     },
     "shuns": []

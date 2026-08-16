@@ -1,0 +1,3 @@
+[general]
+disableVanillaPyramids = false
+applyMiningFatigue = true

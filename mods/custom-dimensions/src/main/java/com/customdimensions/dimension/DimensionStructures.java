@@ -669,12 +669,14 @@ public final class DimensionStructures {
      * Whether an organic set survives the dimension's set-id filters:
      * structures.exclude, then structures.mode allow/reject over
      * structures.list. Shared by the legacy path's mode filter (empty
-     * exclude — legacy semantics unchanged) and the noise path's
-     * pass-through loop. The global suppress list (settings.json, planned)
+     * exclude — legacy semantics unchanged), the noise path's pass-through
+     * loop, and {@code FactsEngine}'s headless pass-through walk — one
+     * definition so a seed's facts never disagree with what the live world
+     * would actually keep. The global suppress list (settings.json, planned)
      * plugs in here. Exclude entries are pre-lowercased
      * (NoisePoolBuilder.lowerSet); mode list entries match exactly.
      */
-    static boolean keepSet(String setId, String mode, java.util.Set<String> modeList,
+    public static boolean keepSet(String setId, String mode, java.util.Set<String> modeList,
                            java.util.Set<String> exclude) {
         if (setId != null && exclude.contains(setId.toLowerCase(java.util.Locale.ROOT))) {
             return false;
@@ -831,8 +833,9 @@ public final class DimensionStructures {
     }
 
     /** Validated structures.mode: allow | reject | none, or null (off).
-     *  Package-private for unit tests (same pattern as derivedShrineSpacing). */
-    static String normalizedMode(String dimName, DimensionConfig.Structures block) {
+     *  Public so the facts layer can apply the identical filter to
+     *  pass-through positions that {@link #keepSet} applies live. */
+    public static String normalizedMode(String dimName, DimensionConfig.Structures block) {
         if (block == null || block.mode == null || block.mode.isEmpty()) {
             return null;
         }

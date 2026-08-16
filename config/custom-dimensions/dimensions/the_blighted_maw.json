@@ -57,7 +57,6 @@
       "nether_reactor": "spread",
       "bastion": "spread",
       "fortress": "spread",
-      "lost_soul_dungeon": "near_border",
       "pipeline": "spread"
     },
     "shuns": [

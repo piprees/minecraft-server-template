@@ -35,24 +35,14 @@
   },
   "seedRoll": {
     "mood": "dramatic",
-    "spawnFilter": [
-      "minecraft:jagged_peaks",
-      "minecraft:stony_peaks",
-      "minecraft:windswept_hills",
-      "minecraft:windswept_gravelly_hills",
-      "terralith:rocky_mountains",
-      "terralith:yosemite_cliffs",
-      "terralith:emerald_peaks",
-      "terralith:granite_cliffs"
-    ],
     "wants": {
       "firetower": "near_spawn",
       "engineer_tower": "spread",
       "wizard_tower": "spread",
       "ancient_temple": "spread",
-      "keep_kayra": "near_border",
+      "keep_kayra": "spread",
       "nomad_outpost": "spread",
-      "campsite": "near_spawn"
+      "campsite": "spread"
     },
     "shuns": [
       "monument"

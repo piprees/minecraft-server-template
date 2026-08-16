@@ -20,9 +20,11 @@ Usage:
     --check exits 1 if the committed outputs are stale instead of
     rewriting them (CI / pre-release gate, matches gen-structure-groups.py).
 
-Gotchas: - Not currently run by any .github/workflows/*.yml — nothing keeps
-           this census in step with mod-updates.yml's weekly re-pins. Re-run
-           by hand after a pin bump, same as gen-structure-groups.py.
+Gotchas: - Run weekly by .github/workflows/mod-updates.yml (the "Regenerate
+           the structure census" step, right after pin-mod-versions.sh
+           --apply), so it stays in step with the pinned mod list with no
+           manual re-run needed. Re-run by hand after a pin bump made
+           outside that workflow, same as gen-structure-groups.py.
          - An in-house mod with no build/libs/*.jar is skipped with a
            warning, not a failure — the platform's own mods aren't always
            freshly built when this runs.
@@ -155,14 +157,22 @@ def classify_theme(structure_set_id, structures_list):
 
 
 def classify_rarity(spacing, separation, frequency, structure_set_id, structures_list):
-    """Classify rarity based on effective attempts per 1000 chunks."""
+    """Classify rarity based on effective attempts per 1000 chunks.
+
+    spacing is None for a placement type that carries no spacing field at
+    all (concentric_rings, fixed) — it isn't grid-spread, so there is no
+    density to score. placement_type is what records that fact; rarity
+    falls back to "uncommon" (the same default gen-structure-groups.py
+    uses for a set with no known spacing) rather than inventing a tier
+    for "not spread", or — the previous bug — coercing it to "common".
+    """
     all_text = (structure_set_id + " " + " ".join(structures_list)).lower()
 
     if ENDGAME_PATTERNS.search(all_text):
         return "endgame"
 
-    if spacing <= 0:
-        return "common"
+    if spacing is None or spacing <= 0:
+        return "uncommon"
 
     attempts = (1000.0 / (spacing * spacing)) * frequency
     if attempts > 1.0:
@@ -188,8 +198,9 @@ def parse_structure_set(data, file_path, source_name):
         structure_ids.append(f"{sid}(w={weight})")
 
     placement = data.get("placement", {})
-    spacing = placement.get("spacing", 0)
-    separation = placement.get("separation", 0)
+    placement_type = placement.get("type", "")
+    spacing = placement.get("spacing")
+    separation = placement.get("separation")
     frequency = placement.get("frequency", 1.0)
 
     # Derive the structure set ID from the file path
@@ -213,6 +224,7 @@ def parse_structure_set(data, file_path, source_name):
         "structure_set_id": structure_set_id,
         "theme": theme,
         "structures": "; ".join(structure_ids),
+        "placement_type": placement_type,
         "spacing": spacing,
         "separation": separation,
         "frequency": frequency,
@@ -395,7 +407,8 @@ def build(cache_dir):
 def render_extracted(final):
     fields = [
         "mod_source", "structure_set_id", "theme", "structures",
-        "spacing", "separation", "frequency", "dimensions", "rarity_class",
+        "placement_type", "spacing", "separation", "frequency",
+        "dimensions", "rarity_class",
     ]
     rows_out = [{field: str(r[field]) for field in fields} for r in final]
     return json.dumps(rows_out, indent=1) + "\n"
@@ -408,6 +421,7 @@ def render_extractors_json(final):
             "source": r["mod_source"],
             "theme": r["theme"],
             "structures": [s.split("(w=")[0] for s in r["structures"].split("; ") if s],
+            "placementType": r["placement_type"],
             "spacing": r["spacing"],
             "separation": r["separation"],
             "frequency": r["frequency"],

@@ -48,6 +48,13 @@ COPY config/lootr/                     /defaults/config/lootr/
 COPY config/groundclear/               /defaults/config/groundclear/
 COPY config/nametagtweaks/             /defaults/config/nametagtweaks/
 COPY config/betterdays/                /defaults/config/betterdays/
+COPY config/betterfortresses-fabric-1_21.toml     /defaults/config/betterfortresses-fabric-1_21.toml
+COPY config/betterjungletemples-fabric-1_21.toml  /defaults/config/betterjungletemples-fabric-1_21.toml
+COPY config/bettermineshafts-fabric-1_21.toml     /defaults/config/bettermineshafts-fabric-1_21.toml
+COPY config/betteroceanmonuments-fabric-1_21.toml /defaults/config/betteroceanmonuments-fabric-1_21.toml
+COPY config/betterdeserttemples-fabric-1_21.toml  /defaults/config/betterdeserttemples-fabric-1_21.toml
+COPY config/betterwitchhuts-fabric-1_21.toml      /defaults/config/betterwitchhuts-fabric-1_21.toml
+COPY config/betterdungeons-fabric-1_21.toml       /defaults/config/betterdungeons-fabric-1_21.toml
 COPY config/openpartiesandclaims/      /defaults/config/openpartiesandclaims/
 COPY config/boring_default_game_rules/ /defaults/config/boring_default_game_rules/
 COPY config/voicechat/                 /defaults/config/voicechat/

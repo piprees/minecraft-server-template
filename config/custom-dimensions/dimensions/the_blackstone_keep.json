@@ -62,9 +62,9 @@
     ],
     "wants": {
       "bastion": "near_spawn",
-      "blackstone_walls": "near_spawn",
+      "blackstone_walls": "spread",
       "blackstone_pillars": "spread",
-      "forbidden_castle": "near_border",
+      "forbidden_castle": "spread",
       "nether_tower": "spread",
       "copper_tower": "spread"
     },
