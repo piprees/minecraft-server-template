@@ -4,7 +4,7 @@
 
 | Prefix | Range | What it covers |
 | --- | --- | --- |
-| **T** | [T1–T14, T16–T19, T22–T27, T30–T32](#architecture-traps) | Architecture traps — each has caused a real production incident |
+| **T** | [T1–T14, T16–T19, T22–T27, T30–T34](#architecture-traps) | Architecture traps — each has caused a real production incident |
 | **P** | [P1–P4](#macos-local-dev) | macOS local-dev quirks (BSD tooling, toolchain) |
 | **D** | [D1–D6, D8–D9](#dimension-lifecycle) | Custom-dimension lifecycle on a live world |
 | **K** | [K1–K2, K5](#known-issues) | Open issues — unfixed, on the watch list |
@@ -67,6 +67,7 @@ Run this first. It covers deploy drift, disk, every expected container, `ONLINE_
 | New seed set but the world regenerates the old terrain; an overlay `seed`/`spawn` override looks ignored | [T31](#t31) |
 | A seed's map and its banked facts contradict each other | [T32](#t32) |
 | Forced structures generate nothing in a `void` dimension; `produced no start` | [T33](#t33) |
+| A dimension generates biomes its `biomes` list never named; `structure-census` reports `FACTS ENGINE DISAGREES` | [T34](#t34) |
 | Mod build fails with a misleading Gradle task error | [P4](#p4) |
 | A worldgen config change had no effect | [D2](#d2) |
 | `Tried to read NBT tag that was too big`; `level.dat` growing every boot | [D9](#d9) |
@@ -250,6 +251,14 @@ A world regenerates with the old terrain after a reset that set a new seed, or t
 - **Fix (in place):** `structures.force[].y`. Set it and `ForcedGroundLevel` pins every height query for the duration of that one start attempt, so the structure places at that height with nothing beneath it. Omit it and the old behaviour stands, which is what a placement meant to sit on terrain wants. `customdim lint` reports `force_needs_y` (ERROR) for a `void` dimension whose force entry omits it.
 - **Known limit:** a structure whose start height is an absolute constant never asks for ground, so `y` cannot move it. The WARN says so explicitly when a pinned attempt still fails.
 - **History worth keeping:** this is the residue of K3, which was *"structures.force generates no starts in fresh chunks"* — one symptom, two causes. [T25](#t25) fixed the third-party-cancel cause and closed the whole issue; the no-ground cause survived unnamed and untested for a release. Both causes looked identical before T25 added the WARN that distinguishes them.
+
+<a id="t34"></a>
+### T34 — A region-injecting mod repaints managed dimensions from the second boot onwards
+
+- **Symptom:** `customdim structure-census <dim>` reports `FACTS ENGINE DISAGREES WITH THE LIVE WORLD` with hundreds of mismatches on a world with no fingerprint drift, and the dimension generates biomes its `biomes` list never named. It is clean on the boot that CREATES the world and wrong on every boot after — so a wipe appears to fix it and the next restart brings it back.
+- **Cause:** TerraBlender (pulled in by `naturespirit`) walks the whole DIMENSION registry from a `MinecraftServer` mixin on `[main]`, before `registerDimensions` runs on `[Server thread]`. On the first boot our dimensions are not in the registry yet; on every later boot they are, decoded from `level.dat`, and any level stem whose dimension TYPE is in `terrablender:overworld_regions`/`nether_regions` over a `MultiNoiseBiomeSource` gets mutated in place — one search tree per registered region, picked by region-uniqueness noise in `getNoiseBiome`, plus every region's biomes appended to the source's memoised biome set. That set is what filters structure pools, so the pool is filtered against a biome list several times wider than the dimension's. Dimensions with an `environment` block escape: their runtime `{slug}_type` is in no tag.
+- **Fix (in place):** `ConfiguredBiomeSource.restore` rebuilds the source from its own parameter entries — which the injection leaves untouched — before the `ServerWorld` is built, and WARNs with both counts. The four reserved worlds have no config here and keep whatever the pack's biome mods give them. To put another mod's biomes in a managed dimension, name them in `biomes`; `buildMixedSource` deals them hypercubes in this mod's own noise.
+- **Verifying a wipe:** `./dev clean --yes world` with the stack UP is undone by the container's shutdown save. `./dev down` first, or the world you test is the old one.
 
 <a id="t32"></a>
 ### T32 — A candidate's thumbnail is a window on spawn, not a picture of the world

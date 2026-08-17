@@ -1130,6 +1130,7 @@ public class DimensionManager {
                     def.getDimensionIdentifier());
             return null;
         }
+        options = ConfiguredBiomeSource.restore(options, def);
 
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();
@@ -1335,6 +1336,8 @@ public class DimensionManager {
             MultiverseServer.LOGGER.error("No dimension options registered for {}", dimId);
             return null;
         }
+
+        options = ConfiguredBiomeSource.restore(options, this.resolveDefinition(dimName));
 
         ServerWorld overworld = this.server.getOverworld();
         SaveProperties saveProperties = serverAccessor.getSaveProperties();

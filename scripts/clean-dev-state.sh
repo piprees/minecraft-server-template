@@ -35,6 +35,9 @@
 # --all asks for a typed CLEAN. The default target set deletes nothing that
 # takes human effort to recreate, so it just runs.
 #
+# The world target refuses while the mc container runs: mc rewrites data/world
+# on shutdown, so the delete looks done and is undone by the next stop (T34).
+#
 # A linked platform checkout is never cleaned implicitly. Deleting its
 # mods/*/build leaves `./dev link`'s jar symlinks pointing at nothing, and the
 # next `./dev up` aborts copying local-mods — so it takes an explicit
@@ -157,6 +160,15 @@ TARGETS="$(echo "${TARGETS:-$DEFAULT_TARGETS}" | tr ' ' '\n' | grep -v '^$' | so
 # path deleting a data/ or cache/ that belongs to something else entirely.
 if [[ ! -f "$CONSUMER/dev" && ! -f "$CONSUMER/ops" ]]; then
   echo "Not a consumer repo (no dev or ops entry point): $CONSUMER" >&2
+  exit 1
+fi
+
+# mc writes data/world on shutdown, so cleaning it under a live stack frees the
+# space and hands the same world back on the next stop (see TROUBLESHOOTING T34).
+if has_target world && [[ $DRY_RUN -eq 0 ]] \
+  && docker ps --format '{{.Names}}' 2> /dev/null | grep -qE 'mc$'; then
+  echo "Refusing to clean 'world': the mc container is running and its shutdown" >&2
+  echo "save restores data/world. Run ./dev down first." >&2
   exit 1
 fi
 

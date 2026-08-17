@@ -459,6 +459,40 @@ jobs:
           }
           echo "Custom dimensions + noise presets verified"
 
+      # Everything above runs on the boot that CREATES the world, where our
+      # dimensions reach the DIMENSION registry after every other mod has read
+      # it. Restarting is what makes them visible to a mod that rewrites level
+      # stems, and structure-census is the one instrument that compares the live
+      # world against the headless facts engine ([T34]).
+      - name: Assert the second boot generates the same world as the first
+        if: matrix.variant == 'default'
+        run: |
+          docker restart mc
+          for _ in $(seq 1 60); do
+            [ "$(docker inspect mc --format '{{.State.Health.Status}}')" = "healthy" ] && break
+            sleep 10
+          done
+          docker inspect mc --format 'Health={{.State.Health.Status}} Restarts={{.RestartCount}}'
+
+          for dim in the_claymarsh the_blossom_gardens; do
+            docker exec mc rcon-cli "customdim load $dim" > /dev/null 2>&1 || true
+          done
+          for dim in the_claymarsh the_blossom_gardens; do
+            OUT=""
+            for _ in $(seq 1 20); do
+              OUT=$(docker exec mc rcon-cli "customdim structure-census $dim" 2>&1 || true)
+              echo "$OUT" | grep -qE 'live and facts agree|DISAGREES' && break
+              sleep 5
+            done
+            echo "census($dim): $OUT"
+            echo "$OUT" | grep -q "live and facts agree" || {
+              echo "::error::$dim generates a different world on its second boot — the live"
+              echo "::error::structure placement disagrees with the facts engine: $OUT"
+              exit 1
+            }
+          done
+          docker logs mc 2>&1 | grep -F "injected regions into the persisted source" || true
+
       - name: Assert removed mods are gone and locate fails cleanly (removal variant)
         if: matrix.variant == 'removal'
         run: |
