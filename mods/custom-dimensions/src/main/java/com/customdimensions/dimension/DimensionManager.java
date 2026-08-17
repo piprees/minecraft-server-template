@@ -434,6 +434,28 @@ public class DimensionManager {
         return null;
     }
 
+    /**
+     * The multi-noise source a generator composes from, past any biome-injector
+     * wrapper.
+     *
+     * <p>Lithostitched wraps a base world's source when a mod ships a biome
+     * injector — Regions Unexplored is one — and the wrapper publishes no
+     * parameter entries, so composing from it is impossible and refusing drops
+     * the dimension's whole biome list. The original underneath is what this
+     * mod builds from; anything the wrapper injected reaches a managed
+     * dimension by being named in its {@code biomes} list, like any other biome.
+     *
+     * <p>Null when no multi-noise source is reachable, which the caller reports.
+     */
+    static MultiNoiseBiomeSource multiNoiseOf(ChunkGenerator generator) {
+        if (generator == null) {
+            return null;
+        }
+        BiomeSource source = com.customdimensions.compat.LithostitchedCompat
+                .unwrap(generator.getBiomeSource());
+        return source instanceof MultiNoiseBiomeSource multiNoise ? multiNoise : null;
+    }
+
     // Resolve the biome source for a dimension with a biome list: prefer the
     // dimension's own family source as the base (natural placements), fall
     // back to the overworld's. Null biome list -> null (caller keeps base).
@@ -443,12 +465,24 @@ public class DimensionManager {
         if (biomeList == null || biomeList.isEmpty()) {
             return null;
         }
-        if (baseGenerator != null && baseGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource base) {
+        MultiNoiseBiomeSource base = multiNoiseOf(baseGenerator);
+        if (base != null) {
             return buildMixedSource(base, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
-        if (overworldGenerator != null && overworldGenerator.getBiomeSource() instanceof MultiNoiseBiomeSource owBase) {
+        MultiNoiseBiomeSource owBase = multiNoiseOf(overworldGenerator);
+        if (owBase != null) {
             return buildMixedSource(owBase, biomeRegistry, biomeList, def.getName(), def.getBiomeParameters());
         }
+        // Silent here meant a whole dimension quietly generating the base
+        // world's biomes instead of its own — name the class, because the mod
+        // that replaced it is the only thing that can be removed to fix it.
+        MultiverseServer.LOGGER.error(
+                "Dimension {}: biome list IGNORED — no multi-noise source to build from "
+                + "(own generator {}, overworld generator {}). A mod has replaced the base "
+                + "biome source; this dimension will generate the base world's biomes.",
+                def.getName(),
+                baseGenerator == null ? "absent" : baseGenerator.getBiomeSource().getClass().getName(),
+                overworldGenerator == null ? "absent" : overworldGenerator.getBiomeSource().getClass().getName());
         return null;
     }
 

@@ -15,7 +15,9 @@ API="https://api.modrinth.com/v2"
 # --- defaults from server.env ------------------------------------------------
 DEFAULT_VERSION=""
 if [[ -f "$SERVER_ENV" ]]; then
-  DEFAULT_VERSION=$(grep -E '^MC_VERSION=' "$SERVER_ENV" | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"')
+  # MC_VERSION ships commented out, so the grep finding nothing is the normal
+  # case, not an error — without `|| true` set -e ends the script right here.
+  DEFAULT_VERSION=$(grep -E '^MC_VERSION=' "$SERVER_ENV" | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"' || true)
 fi
 DEFAULT_VERSION="${DEFAULT_VERSION:-1.21.1}"
 

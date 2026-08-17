@@ -104,6 +104,36 @@
   "group": "dungeons",
   "rarity": "rare"
  },
+ "betterend:end_village": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "betterend:eternal_portal": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "uncommon"
+ },
+ "betterend:giant_ice_star": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "betterend:giant_mossy_glowshroom": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "betterend:megalake": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "betterend:mountain": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
  "betterfortresses:fortress": {
   "theme": "dungeon",
   "group": "dungeons",
@@ -158,6 +188,11 @@
   "theme": "settlement",
   "group": "settlements",
   "rarity": "uncommon"
+ },
+ "dungeons_arise_seven_seas:minor_structures": {
+  "theme": "maritime",
+  "group": "maritime",
+  "rarity": "rare"
  },
  "dungeons_plus:dungeons": {
   "theme": "dungeon",
@@ -272,6 +307,21 @@
  "friendsandfoes:illusioner_training_grounds": {
   "theme": "dungeon",
   "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "galosphere:forgotten_ruins": {
+  "theme": "ruins",
+  "group": "deco",
+  "rarity": "uncommon"
+ },
+ "galosphere:pink_salt_shrine": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "hellish_trials:minor_structures": {
+  "theme": "landmark",
+  "group": "landmarks",
   "rarity": "uncommon"
  },
  "incendium:greater_structures": {
@@ -1789,6 +1839,26 @@
   "group": "dungeons",
   "rarity": "rare"
  },
+ "simply_houses:simply_structures": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "skyvillages:skyvillage": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "rare"
+ },
+ "stoneholm:underground_village": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "stoneholm:underground_village_deepslate": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
  "structory:mid_rare_ruin": {
   "theme": "deco",
   "group": "deco",
@@ -1838,6 +1908,66 @@
   "theme": "landmark",
   "group": "landmarks",
   "rarity": "rare"
+ },
+ "subsurface:cave_blocker": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:coral_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:foliage_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:fungal_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:icicle_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:mesa_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:quartz_canyons": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "subsurface:sand_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:soul_canyons": {
+  "theme": "landmark",
+  "group": "landmarks",
+  "rarity": "common"
+ },
+ "subsurface:swamp_caves": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:underground_forest": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "subsurface:underground_taiga": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
  },
  "supplementaries:galleons": {
   "theme": "maritime",
@@ -1898,5 +2028,55 @@
   "theme": "settlement",
   "group": "settlements",
   "rarity": "rare"
+ },
+ "underground_bunkers:minor_structures": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "uncommon"
+ },
+ "undergroundworlds:archives": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "endgame"
+ },
+ "undergroundworlds:chillager_outposts": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "uncommon"
+ },
+ "undergroundworlds:desert_pyramids": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "undergroundworlds:ice_dungeons": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "undergroundworlds:jungle_temples": {
+  "theme": "dungeon",
+  "group": "dungeons",
+  "rarity": "common"
+ },
+ "undergroundworlds:jungle_treehouses": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "undergroundworlds:spider_caves_houses": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "undergroundworlds:swamp_houses": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
+ },
+ "undergroundworlds:tundra_houses": {
+  "theme": "settlement",
+  "group": "settlements",
+  "rarity": "common"
  }
 }
