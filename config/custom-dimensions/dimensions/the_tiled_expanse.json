@@ -1,36 +1,51 @@
 {
   "type": "end",
-  "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
+  "description": "The endermen's first construction \u2014 a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
   "seed": 3962981317763428010,
   "biomes": [
     {
       "id": "minecraft:end_midlands",
       "parameters": {
-        "continentalness": [-0.0085, 0.1296]
+        "continentalness": [
+          -0.0085,
+          0.1296
+        ]
       }
     },
     {
       "id": "nullscape:void_barrens",
       "parameters": {
-        "continentalness": [0.1296, 0.2753]
+        "continentalness": [
+          0.1296,
+          0.2753
+        ]
       }
     },
     {
       "id": "nullscape:crystal_peaks",
       "parameters": {
-        "continentalness": [0.2753, 2.0]
+        "continentalness": [
+          0.2753,
+          2.0
+        ]
       }
     },
     {
       "id": "minecraft:end_barrens",
       "parameters": {
-        "continentalness": [-2.0, -0.1522]
+        "continentalness": [
+          -2.0,
+          -0.1522
+        ]
       }
     },
     {
       "id": "minecraft:the_end",
       "parameters": {
-        "continentalness": [-0.1522, -0.0085]
+        "continentalness": [
+          -0.1522,
+          -0.0085
+        ]
       }
     }
   ],
@@ -71,7 +86,9 @@
   "seedRoll": {
     "mood": "desolate",
     "allowHazardousSpawn": true,
-    "spawnFilter": ["minecraft:end_midlands"],
+    "spawnFilter": [
+      "minecraft:end_midlands"
+    ],
     "wants": {
       "monolith": "spread",
       "ruined_pillar": "near_spawn",
@@ -85,11 +102,12 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant."
+    "description": "The endermen's first construction \u2014 a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant."
   },
   "spawn": [
     0,
     64,
     0
-  ]
+  ],
+  "noiseSettings": "adventure:end_open"
 }

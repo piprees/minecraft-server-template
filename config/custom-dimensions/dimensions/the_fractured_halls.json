@@ -1,36 +1,51 @@
 {
   "type": "end",
-  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
+  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
   "seed": 9185324862121826233,
   "biomes": [
     {
       "id": "minecraft:end_highlands",
       "parameters": {
-        "continentalness": [0.1296, 0.2753]
+        "continentalness": [
+          0.1296,
+          0.2753
+        ]
       }
     },
     {
       "id": "nullscape:crystal_peaks",
       "parameters": {
-        "continentalness": [0.2753, 2.0]
+        "continentalness": [
+          0.2753,
+          2.0
+        ]
       }
     },
     {
       "id": "nullscape:shadowlands",
       "parameters": {
-        "continentalness": [-2.0, -0.1522]
+        "continentalness": [
+          -2.0,
+          -0.1522
+        ]
       }
     },
     {
       "id": "minecraft:end_midlands",
       "parameters": {
-        "continentalness": [-0.0085, 0.1296]
+        "continentalness": [
+          -0.0085,
+          0.1296
+        ]
       }
     },
     {
       "id": "minecraft:small_end_islands",
       "parameters": {
-        "continentalness": [-0.1522, -0.0085]
+        "continentalness": [
+          -0.1522,
+          -0.0085
+        ]
       }
     }
   ],
@@ -64,7 +79,9 @@
   "seedRoll": {
     "mood": "hard",
     "allowHazardousSpawn": true,
-    "spawnFilter": ["minecraft:end_highlands"],
+    "spawnFilter": [
+      "minecraft:end_highlands"
+    ],
     "wants": {
       "end_gate_fortress": "near_spawn",
       "enderkeep": "spread",
@@ -79,7 +96,7 @@
       "phantom_citadel",
       "monolith"
     ],
-    "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
+    "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
   },
   "spawn": [
     0,
@@ -90,5 +107,6 @@
     "noise": {
       "settlements": "dense"
     }
-  }
+  },
+  "noiseSettings": "adventure:end_open"
 }
