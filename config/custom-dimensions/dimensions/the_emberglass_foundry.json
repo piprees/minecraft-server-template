@@ -6,7 +6,43 @@
     "terralith:cave/thermal_caves",
     "terralith:cave/granite_caves",
     "terralith:cave/tuff_caves",
-    "minecraft:dripstone_caves"
+    "minecraft:dripstone_caves",
+    {
+      "id": "regions_unexplored:redstone_caves",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.2
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:prismachasm",
+      "parameters": {
+        "temperature": [
+          -0.1,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "galosphere:crystal_canyons",
+      "parameters": {
+        "temperature": [
+          0.15,
+          0.4
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:scorching_caves",
+      "parameters": {
+        "temperature": [
+          0.55,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 256,

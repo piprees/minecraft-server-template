@@ -8,7 +8,34 @@
     "terralith:cave/mantle_caves",
     "terralith:cave/fungal_caves",
     "terralith:cave/tuff_caves",
-    "terralith:cave/deep_caves"
+    "terralith:cave/deep_caves",
+    {
+      "id": "regions_unexplored:redstone_abyss",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.2
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:mycotoxic_undergrowth",
+      "parameters": {
+        "temperature": [
+          -0.05,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "regions_unexplored:bioshroom_caves",
+      "parameters": {
+        "temperature": [
+          0.3,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,

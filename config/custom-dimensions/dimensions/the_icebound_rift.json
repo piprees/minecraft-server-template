@@ -9,7 +9,34 @@
     "terralith:glacial_chasm",
     "terralith:frozen_cliffs",
     "terralith:cave/frostfire_caves",
-    "terralith:alpha_islands_winter"
+    "terralith:alpha_islands_winter",
+    {
+      "id": "yungscavebiomes:frosted_caves",
+      "parameters": {
+        "weirdness": [
+          -2.0,
+          -0.06
+        ]
+      }
+    },
+    {
+      "id": "undergroundworlds:underground_tundra",
+      "parameters": {
+        "weirdness": [
+          -0.02,
+          0.02
+        ]
+      }
+    },
+    {
+      "id": "wilderwild:frozen_caves",
+      "parameters": {
+        "weirdness": [
+          0.06,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 512,
