@@ -157,9 +157,11 @@ jobs:
         # presets (adventure:wide / adventure:compressed) baked into the jar.
         #
         # The default variant additionally carries the render-check matrix —
-        # one dimension per world TYPE. Those are registered, never created:
-        # render-check-headless builds the generator from config and reads no
-        # world, so the cost is the config parse and nothing else.
+        # one dimension per world TYPE. Registering them is free: they are
+        # never created, and render-check-headless builds the generator from
+        # config and reads no world. The render-check step is not free —
+        # it walks 1313 columns per pair, which is why the default variant
+        # runs ~43m against removal's ~8m. Budget minutes per entry added.
         env:
           RENDER_CHECK_MATRIX: ${{ matrix.variant == 'default' && '1' || '' }}
         run: |
