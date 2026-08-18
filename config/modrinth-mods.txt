@@ -57,7 +57,9 @@ galosphere:jviVa3qz
 yungs-cave-biomes:geZa9lJS
 yungs-better-caves:72UkhXm7
 subsurface:JdF0yLTy
-# re-adds the andesite/diorite/granite blobs Terralith's cave generation removes
+# re-adds the andesite/diorite/granite blobs Terralith's cave generation removes.
+# Hard-depends on terralith >=2.0.0 despite Modrinth declaring no dependency —
+# a consumer removing terralith must remove this too or the boot dies.
 terralith-restoned:9wwdRqkT
 stoneholm:4nZqBkRD
 underground-worlds:nQP9l4bd

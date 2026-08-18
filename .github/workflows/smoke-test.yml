@@ -87,8 +87,11 @@ jobs:
         if: matrix.variant == 'removal'
         # Representative consumer removal set: three structure mods plus BOTH
         # worldgen mods the adventure:wide/compressed noise presets reference.
-        # fabric-seasons-terralith-compat hard-depends on terralith, so a real
-        # consumer removing terralith must remove it too — same here.
+        # fabric-seasons-terralith-compat and terralith-restoned both
+        # hard-depend on terralith, so a real consumer removing terralith must
+        # remove them too — same here. Modrinth declares no dependency for
+        # restoned; its jar declares `terralith >=2.0.0`, and the boot is a
+        # FormattedException, not a warning.
         run: |
           mkdir -p overlay
           cat > overlay/mods-remove.txt <<'EOF'
@@ -98,6 +101,7 @@ jobs:
           tectonic
           terralith
           fabric-seasons-terralith-compat
+          terralith-restoned
           EOF
 
       - name: Create bind-mount directories
