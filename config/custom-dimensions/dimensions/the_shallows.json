@@ -8,8 +8,8 @@
       "id": "terralith:mirage_isles",
       "parameters": {
         "weirdness": [
-          -0.1028,
-          -0.0628
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "minecraft:warm_ocean",
       "parameters": {
         "weirdness": [
-          -0.0628,
-          -0.0245
+          -0.19,
+          -0.1486
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "minecraft:lukewarm_ocean",
       "parameters": {
         "weirdness": [
-          -0.1461,
-          -0.1028
+          -0.1486,
+          -0.1071
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "natures_spirit:tropical_shores",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1461
+          -0.1071,
+          -0.0657
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "terralith:deep_warm_ocean",
       "parameters": {
         "weirdness": [
-          -0.0245,
-          0.0147
+          -0.0657,
+          -0.0243
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:beach",
       "parameters": {
         "weirdness": [
-          0.0147,
-          2.0
+          -0.0243,
+          0.0171
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "regions_unexplored:tropical_river",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.0933
+          0.0171,
+          0.0586
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "regions_unexplored:rocky_reef",
       "parameters": {
         "weirdness": [
-          -0.0933,
-          0.0033
+          0.0586,
+          0.1
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "wilderwild:warm_beach",
       "parameters": {
         "weirdness": [
-          0.0033,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

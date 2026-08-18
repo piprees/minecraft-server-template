@@ -25,8 +25,8 @@
           1.0
         ],
         "weirdness": [
-          -0.0915,
-          -0.0463
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -43,8 +43,8 @@
           1.0
         ],
         "weirdness": [
-          -0.1401,
-          -0.0915
+          -0.19,
+          -0.1578
         ]
       }
     },
@@ -62,8 +62,8 @@
           -0.1
         ],
         "weirdness": [
-          0.0896,
-          0.1357
+          -0.1578,
+          -0.1256
         ]
       }
     },
@@ -80,8 +80,8 @@
           0.1
         ],
         "weirdness": [
-          -0.0463,
-          -0.0021
+          -0.1256,
+          -0.0933
         ]
       }
     },
@@ -97,8 +97,8 @@
           1.0
         ],
         "weirdness": [
-          -0.0021,
-          0.0455
+          -0.0933,
+          -0.0611
         ]
       }
     },
@@ -114,8 +114,8 @@
           0.1
         ],
         "weirdness": [
-          0.0455,
-          0.0896
+          -0.0611,
+          -0.0289
         ]
       }
     },
@@ -123,8 +123,8 @@
       "id": "regions_unexplored:redwoods",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1401
+          -0.0289,
+          0.0033
         ]
       }
     },
@@ -132,8 +132,8 @@
       "id": "regions_unexplored:old_growth_forest",
       "parameters": {
         "weirdness": [
-          0.1357,
-          0.165
+          0.0033,
+          0.0356
         ]
       }
     },
@@ -141,8 +141,8 @@
       "id": "regions_unexplored:silver_birch_forest",
       "parameters": {
         "weirdness": [
-          0.165,
-          0.19
+          0.0356,
+          0.0678
         ]
       }
     },
@@ -150,8 +150,8 @@
       "id": "regions_unexplored:sparse_redwoods",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0678,
+          0.1
         ]
       }
     },
@@ -159,8 +159,8 @@
       "id": "regions_unexplored:alpha_grove",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

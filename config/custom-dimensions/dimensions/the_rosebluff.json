@@ -7,8 +7,8 @@
       "id": "natures_spirit:wisteria_forest",
       "parameters": {
         "weirdness": [
-          0.0571,
-          0.0996
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "terralith:sakura_grove",
       "parameters": {
         "weirdness": [
-          -0.1933,
-          -0.1404
+          -0.19,
+          -0.1578
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:cherry_grove",
       "parameters": {
         "weirdness": [
-          0.0996,
-          2.0
+          -0.1578,
+          -0.1256
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "terralith:lavender_forest",
       "parameters": {
         "weirdness": [
-          -0.0187,
-          0.017
+          -0.1256,
+          -0.0933
         ]
       }
     },
@@ -47,8 +47,8 @@
           -0.05
         ],
         "weirdness": [
-          -0.0951,
-          -0.0597
+          -0.0933,
+          -0.0611
         ]
       }
     },
@@ -56,8 +56,8 @@
       "id": "minecraft:flower_forest",
       "parameters": {
         "weirdness": [
-          0.017,
-          0.0571
+          -0.0611,
+          -0.0289
         ]
       }
     },
@@ -65,8 +65,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1933
+          -0.0289,
+          0.0033
         ]
       }
     },
@@ -74,8 +74,8 @@
       "id": "terralith:blooming_valley",
       "parameters": {
         "weirdness": [
-          -0.0597,
-          -0.0187
+          0.0033,
+          0.0356
         ]
       }
     },
@@ -83,8 +83,8 @@
       "id": "minecraft:birch_forest",
       "parameters": {
         "weirdness": [
-          -0.1404,
-          -0.0951
+          0.0356,
+          0.0678
         ]
       }
     },
@@ -92,8 +92,8 @@
       "id": "regions_unexplored:wisteria_grove",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0678,
+          0.1
         ]
       }
     },
@@ -101,8 +101,8 @@
       "id": "regions_unexplored:magnolia_woodland",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

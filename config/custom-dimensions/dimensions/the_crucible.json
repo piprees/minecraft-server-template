@@ -25,8 +25,8 @@
       "id": "wilderwild:rainforest",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "wilderwild:birch_jungle",
       "parameters": {
         "weirdness": [
-          -0.1,
-          -0.03
+          -0.19,
+          -0.0933
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "regions_unexplored:tropics",
       "parameters": {
         "weirdness": [
-          -0.03,
-          0.04
+          -0.0933,
+          0.0033
         ]
       }
     },
@@ -52,7 +52,7 @@
       "id": "regions_unexplored:tropical_river",
       "parameters": {
         "weirdness": [
-          0.04,
+          0.0033,
           0.1
         ]
       }
@@ -61,8 +61,8 @@
       "id": "regions_unexplored:sparse_rainforest",
       "parameters": {
         "weirdness": [
-          -0.19,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

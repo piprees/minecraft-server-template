@@ -12,8 +12,8 @@
           -0.05
         ],
         "weirdness": [
-          -0.1649,
-          -0.0951
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -25,8 +25,8 @@
           -0.05
         ],
         "weirdness": [
-          -2.0,
-          -0.1649
+          -0.19,
+          -0.1417
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "terralith:warm_river",
       "parameters": {
         "weirdness": [
-          -0.0951,
-          -0.0398
+          -0.1417,
+          -0.0933
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:river",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.017
+          -0.0933,
+          -0.045
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:plains",
       "parameters": {
         "weirdness": [
-          0.017,
-          0.0777
+          -0.045,
+          0.0033
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          0.0777,
-          2.0
+          0.0033,
+          0.0517
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "regions_unexplored:cold_river",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0517,
+          0.1
         ]
       }
     },
@@ -79,8 +79,8 @@
       "id": "wilderwild:warm_river",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

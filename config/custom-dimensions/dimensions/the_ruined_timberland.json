@@ -7,8 +7,8 @@
       "id": "natures_spirit:aspen_forest",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.017
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "natures_spirit:maple_woodlands",
       "parameters": {
         "weirdness": [
-          -0.1649,
-          -0.0951
+          -0.19,
+          -0.1417
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          0.017,
-          0.0777
+          -0.1417,
+          -0.0933
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "minecraft:forest",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1649
+          -0.0933,
+          -0.045
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "weirdness": [
-          0.0777,
-          2.0
+          -0.045,
+          0.0033
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:birch_forest",
       "parameters": {
         "weirdness": [
-          -0.0951,
-          -0.0398
+          0.0033,
+          0.0517
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "regions_unexplored:autumnal_maple_forest",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0517,
+          0.1
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "wilderwild:maple_forest",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

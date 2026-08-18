@@ -7,8 +7,8 @@
       "id": "natures_spirit:heather_fields",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.0053
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "natures_spirit:carnation_fields",
       "parameters": {
         "weirdness": [
-          -0.1308,
-          -0.0825
+          -0.19,
+          -0.1537
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "terralith:blooming_plateau",
       "parameters": {
         "weirdness": [
-          -0.0825,
-          -0.0398
+          -0.1537,
+          -0.1175
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "minecraft:meadow",
       "parameters": {
         "weirdness": [
-          0.0948,
-          2.0
+          -0.1175,
+          -0.0812
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:plains",
       "parameters": {
         "weirdness": [
-          0.0498,
-          0.0948
+          -0.0812,
+          -0.045
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:sunflower_plains",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1868
+          -0.045,
+          -0.0087
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "minecraft:flower_forest",
       "parameters": {
         "weirdness": [
-          0.0053,
-          0.0498
+          -0.0087,
+          0.0275
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "natures_spirit:lavender_fields",
       "parameters": {
         "weirdness": [
-          -0.1868,
-          -0.1308
+          0.0275,
+          0.0638
         ]
       }
     },
@@ -79,8 +79,8 @@
       "id": "regions_unexplored:chalk_cliffs",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0638,
+          0.1
         ]
       }
     },
@@ -88,8 +88,8 @@
       "id": "regions_unexplored:clover_plains",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

@@ -7,8 +7,8 @@
       "id": "terralith:orchid_swamp",
       "parameters": {
         "weirdness": [
-          -0.0825,
-          -0.0398
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:mangrove_swamp",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.0053
+          -0.19,
+          -0.1537
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "natures_spirit:marsh",
       "parameters": {
         "weirdness": [
-          -0.1308,
-          -0.0825
+          -0.1537,
+          -0.1175
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "minecraft:swamp",
       "parameters": {
         "weirdness": [
-          0.0053,
-          0.0498
+          -0.1175,
+          -0.0812
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:river",
       "parameters": {
         "weirdness": [
-          -0.1868,
-          -0.1308
+          -0.0812,
+          -0.045
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          0.0948,
-          2.0
+          -0.045,
+          -0.0087
         ]
       }
     },
@@ -65,8 +65,8 @@
           -0.05
         ],
         "weirdness": [
-          0.0498,
-          0.0948
+          -0.0087,
+          0.0275
         ]
       }
     },
@@ -74,8 +74,8 @@
       "id": "terralith:moonlight_valley",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1868
+          0.0275,
+          0.0638
         ]
       }
     },
@@ -83,8 +83,8 @@
       "id": "regions_unexplored:bayou",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0638,
+          0.1
         ]
       }
     },
@@ -92,8 +92,8 @@
       "id": "regions_unexplored:old_growth_bayou",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

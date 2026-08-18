@@ -17,7 +17,7 @@
       "parameters": {
         "weirdness": [
           -2.0,
-          -0.1
+          -0.19
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "regions_unexplored:barley_fields",
       "parameters": {
         "weirdness": [
-          -0.1,
-          -0.06
+          -0.19,
+          -0.1175
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "regions_unexplored:poppy_fields",
       "parameters": {
         "weirdness": [
-          -0.06,
-          2.0
+          -0.1175,
+          -0.045
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "regions_unexplored:prairie",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.0933
+          -0.045,
+          0.0275
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "regions_unexplored:grassland",
       "parameters": {
         "weirdness": [
-          -0.0933,
-          0.0033
+          0.0275,
+          0.1
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "regions_unexplored:pumpkin_fields",
       "parameters": {
         "weirdness": [
-          0.0033,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

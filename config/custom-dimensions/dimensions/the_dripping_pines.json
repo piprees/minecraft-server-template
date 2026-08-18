@@ -7,8 +7,8 @@
       "id": "terralith:siberian_taiga",
       "parameters": {
         "weirdness": [
-          -0.0951,
-          -0.0398
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "natures_spirit:boreal_taiga",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.017
+          -0.19,
+          -0.1417
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "minecraft:old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.1649,
-          -0.0951
+          -0.1417,
+          -0.0933
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "minecraft:taiga",
       "parameters": {
         "weirdness": [
-          0.017,
-          0.0777
+          -0.0933,
+          -0.045
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "minecraft:old_growth_spruce_taiga",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1649
+          -0.045,
+          0.0033
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "natures_spirit:fir_forest",
       "parameters": {
         "weirdness": [
-          0.0777,
-          2.0
+          0.0033,
+          0.0517
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "regions_unexplored:pine_slopes",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0517,
+          0.1
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "wilderwild:temperate_rainforest",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

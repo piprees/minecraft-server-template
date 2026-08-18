@@ -22,8 +22,8 @@
           0.1
         ],
         "weirdness": [
-          0.0619,
-          0.1009
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -35,8 +35,8 @@
           0.55
         ],
         "weirdness": [
-          -0.1491,
-          -0.107
+          -0.19,
+          -0.1636
         ]
       }
     },
@@ -55,8 +55,8 @@
           1.0
         ],
         "weirdness": [
-          -0.0245,
-          0.0221
+          -0.1636,
+          -0.1373
         ]
       }
     },
@@ -72,8 +72,8 @@
           0.565
         ],
         "weirdness": [
-          0.0221,
-          0.0619
+          -0.1373,
+          -0.1109
         ]
       }
     },
@@ -91,8 +91,8 @@
           -0.1
         ],
         "weirdness": [
-          0.1009,
-          0.1457
+          -0.1109,
+          -0.0845
         ]
       }
     },
@@ -108,8 +108,8 @@
           -0.35
         ],
         "weirdness": [
-          -0.107,
-          -0.0646
+          -0.0845,
+          -0.0582
         ]
       }
     },
@@ -121,8 +121,8 @@
           -0.155
         ],
         "weirdness": [
-          -0.0646,
-          -0.0245
+          -0.0582,
+          -0.0318
         ]
       }
     },
@@ -130,8 +130,8 @@
       "id": "regions_unexplored:pine_slopes",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.1491
+          -0.0318,
+          -0.0055
         ]
       }
     },
@@ -139,8 +139,8 @@
       "id": "regions_unexplored:mauve_hills",
       "parameters": {
         "weirdness": [
-          0.1457,
-          0.17
+          -0.0055,
+          0.0209
         ]
       }
     },
@@ -148,8 +148,8 @@
       "id": "regions_unexplored:mountains",
       "parameters": {
         "weirdness": [
-          0.17,
-          0.19
+          0.0209,
+          0.0473
         ]
       }
     },
@@ -157,8 +157,8 @@
       "id": "regions_unexplored:towering_cliffs",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.0933
+          0.0473,
+          0.0736
         ]
       }
     },
@@ -166,8 +166,8 @@
       "id": "regions_unexplored:highland_fields",
       "parameters": {
         "weirdness": [
-          -0.0933,
-          0.0033
+          0.0736,
+          0.1
         ]
       }
     },
@@ -175,8 +175,8 @@
       "id": "regions_unexplored:spires",
       "parameters": {
         "weirdness": [
-          0.0033,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

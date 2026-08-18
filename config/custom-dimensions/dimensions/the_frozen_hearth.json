@@ -22,8 +22,8 @@
           0.55
         ],
         "weirdness": [
-          -0.1299,
-          -0.0783
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -40,8 +40,8 @@
           1.0
         ],
         "weirdness": [
-          0.0763,
-          0.1251
+          -0.19,
+          -0.1486
         ]
       }
     },
@@ -59,8 +59,8 @@
           0.1
         ],
         "weirdness": [
-          -0.0783,
-          -0.0282
+          -0.1486,
+          -0.1071
         ]
       }
     },
@@ -76,8 +76,8 @@
           1.0
         ],
         "weirdness": [
-          -0.0282,
-          0.0269
+          -0.1071,
+          -0.0657
         ]
       }
     },
@@ -93,8 +93,8 @@
           1.0
         ],
         "weirdness": [
-          0.0269,
-          0.0763
+          -0.0657,
+          -0.0243
         ]
       }
     },
@@ -102,8 +102,8 @@
       "id": "regions_unexplored:frozen_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.2,
-          -0.1299
+          -0.0243,
+          0.0171
         ]
       }
     },
@@ -111,8 +111,8 @@
       "id": "regions_unexplored:cold_boreal_taiga",
       "parameters": {
         "weirdness": [
-          0.1251,
-          0.165
+          0.0171,
+          0.0586
         ]
       }
     },
@@ -120,8 +120,8 @@
       "id": "regions_unexplored:golden_boreal_taiga",
       "parameters": {
         "weirdness": [
-          0.165,
-          0.2
+          0.0586,
+          0.1
         ]
       }
     },
@@ -129,8 +129,8 @@
       "id": "wilderwild:snowy_old_growth_pine_taiga",
       "parameters": {
         "weirdness": [
-          -0.19,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

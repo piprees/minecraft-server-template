@@ -7,8 +7,8 @@
       "id": "natures_spirit:cedar_thicket",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.017
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -16,8 +16,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          -0.1649,
-          -0.0951
+          -0.19,
+          -0.1486
         ]
       }
     },
@@ -25,8 +25,8 @@
       "id": "terralith:birch_taiga",
       "parameters": {
         "weirdness": [
-          0.0777,
-          2.0
+          -0.1486,
+          -0.1071
         ]
       }
     },
@@ -34,8 +34,8 @@
       "id": "natures_spirit:fir_forest",
       "parameters": {
         "weirdness": [
-          0.017,
-          0.0777
+          -0.1071,
+          -0.0657
         ]
       }
     },
@@ -43,8 +43,8 @@
       "id": "terralith:moonlight_grove",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1649
+          -0.0657,
+          -0.0243
         ]
       }
     },
@@ -52,8 +52,8 @@
       "id": "minecraft:swamp",
       "parameters": {
         "weirdness": [
-          -0.0951,
-          -0.0398
+          -0.0243,
+          0.0171
         ]
       }
     },
@@ -61,8 +61,8 @@
       "id": "regions_unexplored:fungal_fen",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.0933
+          0.0171,
+          0.0586
         ]
       }
     },
@@ -70,8 +70,8 @@
       "id": "wilderwild:dying_forest",
       "parameters": {
         "weirdness": [
-          -0.0933,
-          0.0033
+          0.0586,
+          0.1
         ]
       }
     },
@@ -79,8 +79,8 @@
       "id": "wilderwild:dark_birch_forest",
       "parameters": {
         "weirdness": [
-          0.0033,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }

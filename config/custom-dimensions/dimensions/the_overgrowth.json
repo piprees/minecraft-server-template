@@ -8,8 +8,8 @@
       "id": "terralith:rocky_jungle",
       "parameters": {
         "weirdness": [
-          0.0948,
-          2.0
+          -2.0,
+          -0.19
         ]
       }
     },
@@ -17,8 +17,8 @@
       "id": "terralith:jungle_mountains",
       "parameters": {
         "weirdness": [
-          -0.0825,
-          -0.0398
+          -0.19,
+          -0.1537
         ]
       }
     },
@@ -26,8 +26,8 @@
       "id": "natures_spirit:tropical_basin",
       "parameters": {
         "weirdness": [
-          -0.0398,
-          0.0053
+          -0.1537,
+          -0.1175
         ]
       }
     },
@@ -35,8 +35,8 @@
       "id": "terralith:cloud_forest",
       "parameters": {
         "weirdness": [
-          -0.1308,
-          -0.0825
+          -0.1175,
+          -0.0812
         ]
       }
     },
@@ -44,8 +44,8 @@
       "id": "minecraft:jungle",
       "parameters": {
         "weirdness": [
-          0.0053,
-          0.0498
+          -0.0812,
+          -0.045
         ]
       }
     },
@@ -53,8 +53,8 @@
       "id": "minecraft:sparse_jungle",
       "parameters": {
         "weirdness": [
-          -0.1868,
-          -0.1308
+          -0.045,
+          -0.0087
         ]
       }
     },
@@ -62,8 +62,8 @@
       "id": "minecraft:bamboo_jungle",
       "parameters": {
         "weirdness": [
-          0.0498,
-          0.0948
+          -0.0087,
+          0.0275
         ]
       }
     },
@@ -71,8 +71,8 @@
       "id": "minecraft:dark_forest",
       "parameters": {
         "weirdness": [
-          -2.0,
-          -0.1868
+          0.0275,
+          0.0638
         ]
       }
     },
@@ -80,8 +80,8 @@
       "id": "regions_unexplored:rainforest",
       "parameters": {
         "weirdness": [
-          -0.19,
-          -0.045
+          0.0638,
+          0.1
         ]
       }
     },
@@ -89,8 +89,8 @@
       "id": "wilderwild:rainforest",
       "parameters": {
         "weirdness": [
-          -0.045,
-          0.1
+          0.1,
+          2.0
         ]
       }
     }
