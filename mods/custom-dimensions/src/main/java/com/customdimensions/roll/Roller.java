@@ -14,13 +14,18 @@ import net.minecraft.util.Identifier;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.function.LongPredicate;
 import java.util.function.LongSupplier;
 
@@ -39,9 +44,11 @@ import java.util.function.LongSupplier;
  * <p>{@link FactsEngine#measure} builds its rig headlessly — no
  * {@code ServerWorld} is created and no chunk is loaded — so a roll never
  * touches the tick loop or the world the server is actually running.
- * {@code web/RollPipeline} drives it with a worker per dimension on its own
- * threads, so the server stays playable and RCON keeps answering throughout;
- * this class is single-threaded per call and holds no shared state.
+ * {@code web/RollPipeline} orchestrates dimensions on their own threads and
+ * shares one bounded pool across all of them for the actual seed
+ * measurement ({@link #screenShortlist}), so the server stays playable
+ * throughout. Per-call state ({@code tried}, the draw {@link Random}, the
+ * shortlist) is touched only by the calling thread — see {@link #screenShortlist}.
  *
  * <p>Rendering is NOT part of the search. A map costs orders of magnitude
  * more than a measurement and only the top of a board is ever opened, so
@@ -143,6 +150,72 @@ public final class Roller {
         return measured;
     }
 
+    /**
+     * The same draw/measure/sink shape as {@link #roll}, but {@code
+     * measurer} runs on {@code pool} — up to {@code parallelism} seeds in
+     * flight at once — instead of the calling thread. {@code pool} is
+     * shared with every other dimension currently screening, so it is the
+     * one thing that bounds TOTAL seed-measurement concurrency across all
+     * of them; this method only ever asks it for up to {@code parallelism}
+     * seeds of its own.
+     *
+     * <p>Sink calls land in DRAW order, never completion order: a future is
+     * only applied once every future submitted before it has been applied,
+     * so {@link TopN}'s tie-break (draw order) and {@code screened}'s
+     * insertion order come out identical to what {@link #roll} would have
+     * produced for the same drawn sequence, whatever order the pool
+     * actually finished the measurements in.
+     *
+     * <p>{@code alreadyTried} alone cannot catch a seed drawn twice while
+     * its first draw is still in flight — the sink has not run yet, so
+     * nothing has told {@code alreadyTried} about it. {@code inFlight}
+     * covers that gap, so a duplicate draw is skipped exactly as {@link
+     * #roll}'s fully sequential loop would skip it.
+     */
+    private static int rollParallel(LongPredicate alreadyTried, LongSupplier seeds,
+                                    Measurer measurer, Sink sink, Budget budget,
+                                    java.util.function.BooleanSupplier abandonIf,
+                                    ExecutorService pool, int parallelism) {
+        int attempts = 0;
+        int measured = 0;
+        Set<Long> inFlight = new LinkedHashSet<>();
+        Deque<Future<Draw>> window = new ArrayDeque<>();
+        while (true) {
+            while (window.size() < parallelism && !budget.exceeded(attempts)
+                    && !abandonIf.getAsBoolean()) {
+                attempts++;
+                long seed = seeds.getAsLong();
+                if (alreadyTried.test(seed) || !inFlight.add(seed)) {
+                    continue;
+                }
+                window.addLast(pool.submit(() -> measurer.measure(seed)));
+            }
+            if (window.isEmpty()) {
+                break;
+            }
+            Draw draw;
+            try {
+                draw = window.pollFirst().get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof RuntimeException re) {
+                    throw re;
+                }
+                throw new RuntimeException(e.getCause());
+            }
+            inFlight.remove(draw.seed());
+            measured++;
+            if (draw.verdict() == Scorecard.Verdict.SCORED) {
+                sink.scored(draw.seed(), draw.achieved(), draw.ceiling());
+            } else {
+                sink.rejected(draw.seed(), draw.verdictReason());
+            }
+        }
+        return measured;
+    }
+
     /** How many tier-1 survivors a shortlist carries into a full tier-2 measurement. */
     public static final int SHORTLIST = 10;
 
@@ -176,7 +249,10 @@ public final class Roller {
      * grows past capacity rather than keeping a heap — capacity is {@link
      * #SHORTLIST}, ten, so the whole list is cheaper to re-sort each time
      * than a heap is to code correctly for a size this small. Not
-     * thread-safe: one per {@link #screenShortlist} call, on one thread.
+     * thread-safe: one per {@link #screenShortlist} call, and {@code add} is
+     * only ever called from the thread running that call — seed measurement
+     * itself may run on a shared pool, but every {@code add} is applied back
+     * on the caller in draw order, never from a pool thread.
      */
     static final class TopN {
         private final int capacity;
@@ -234,10 +310,28 @@ public final class Roller {
      * of the same scorecard rather than a heuristic standing in for it.
      * Deterministic: the same seed against the same config always gets the
      * same cheap facts and the same rank.
+     *
+     * <p>The sweep itself runs on {@code measurePool} — up to {@code
+     * parallelism} seeds measured at once, shared with every other
+     * dimension currently screening (see {@link #rollParallel}) — while the
+     * seed draw, the gate check and every shortlist mutation stay on the
+     * calling thread, so the result is identical to a fully sequential
+     * sweep of the same drawn sequence. {@link SpikeSampler.Base} and
+     * everything {@link FactsEngine#measureCheap} reads from it are safe to
+     * share across those threads: {@code base} carries only the seed-
+     * independent generator/biome-source/registry lookups, each seed's own
+     * {@link SpikeSampler.Rig} (built fresh inside {@code measureCheap} via
+     * {@link SpikeSampler#forSeedClimate}) is never shared, and {@code
+     * criteria}, {@code def} and the jar-baked registries
+     * ({@code StructureGroupRegistry}, {@code MultiverseConfig}) are read-only
+     * for the run's duration — the same sharing rule {@link CandidateRender}
+     * already relies on for its own per-worker rigs over one shared
+     * {@code Base}.
      */
     public static Screen screenShortlist(MinecraftServer server, Identifier dimensionId,
                                              DimensionConfig def, int count,
-                                             java.util.function.BooleanSupplier abandonIf) {
+                                             java.util.function.BooleanSupplier abandonIf,
+                                             ExecutorService measurePool, int parallelism) {
         String dimension = dimensionId.toString();
         String inputHash = InputHash.of(def, server);
         Set<Long> tried = new LinkedHashSet<>(SeedBank.alreadyTriedSeeds(inputHash, dimension));
@@ -279,8 +373,8 @@ public final class Roller {
                 tried.add(seed);
             }
         };
-        int screenedCount = roll(seed -> tried.contains(seed), random::nextLong, tier1, sink,
-                Budget.seeds(count), abandonIf);
+        int screenedCount = rollParallel(seed -> tried.contains(seed), random::nextLong, tier1, sink,
+                Budget.seeds(count), abandonIf, measurePool, Math.max(1, parallelism));
         // A screen that measured nothing has nothing to say about the pool, and
         // the record it would write is indistinguishable from one whose every
         // seed was rejected. Writing it destroys the previous screen's ranks,

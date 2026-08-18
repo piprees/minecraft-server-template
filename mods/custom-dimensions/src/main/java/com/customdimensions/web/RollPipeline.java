@@ -22,13 +22,19 @@ import java.util.concurrent.atomic.AtomicReference;
  * run never touches the tick loop; the server stays playable and a try-out
  * running beside it is unaffected.
  *
- * <p>The tier-1 sweep is one call over the whole per-dimension pool — cheap
- * enough, by design, that it is not worth chopping into batches for
- * responsiveness. CANCEL and a FOCUS-yield are instead checked at the
- * granularity that costs something: once per shortlisted seed, in the tier-2
- * loop below it, where a single measurement still runs to about a hundred
- * core-seconds on a modded dimension. {@code generation} is bumped each time
- * a dimension finishes, which is the browser's cue to refetch the grid.
+ * <p>Tier-1 measurement is budgeted per SEED, not per dimension: every
+ * dimension's {@link Roller#screenShortlist} call shares one {@code
+ * ExecutorService} sized by {@link #workers()}, so one dimension in flight
+ * gets the whole budget and eighty share it, rather than each dimension
+ * claiming a core of its own regardless of how many others are running.
+ * Dimension orchestration itself is cheap — each of its threads mostly
+ * waits on that shared pool — so {@link #run} gives every target dimension
+ * its own orchestration thread rather than capping that count too. CANCEL
+ * and a FOCUS-yield are checked once per tier-1 batch and once per
+ * shortlisted seed in the tier-2 loop below it, where a single measurement
+ * still runs to about a hundred core-seconds on a modded dimension.
+ * {@code generation} is bumped each time a dimension finishes, which is the
+ * browser's cue to refetch the grid.
  *
  * <p>One run at a time. Two concurrent searches would compete for the same
  * candidate directory and neither would be faster.
@@ -320,13 +326,13 @@ public final class RollPipeline {
     }
 
     /**
-     * How many dimensions are measured at once.
-     *
-     * <p>A measurement is pure CPU with no {@code ServerWorld} and no shared
-     * mutable state — each dimension reads its own candidate directory and
-     * writes only into it — so the search is embarrassingly parallel across
-     * dimensions. It takes what the renderer is not using: two cores are left
-     * for the server thread and everything else, and
+     * The CPU budget for tier-1 seed measurement — one number shared by
+     * every dimension currently screening, via the single {@code
+     * ExecutorService} {@link #run} builds. Each measurement is pure CPU
+     * with no {@code ServerWorld} and no state shared between seeds, so the
+     * pool can run any of them at once whatever dimension they belong to.
+     * It takes what the renderer is not using: two cores are left for the
+     * server thread and everything else, and
      * {@link com.customdimensions.roll.CandidateRender#renderCores()} for the
      * maps, which run beside the search rather than after it.
      */
@@ -337,15 +343,28 @@ public final class RollPipeline {
 
     private static void run(MinecraftServer server, List<DimensionConfig> targets, int count,
                             boolean topUp) {
-        int workers = Math.min(workers(), targets.size());
+        int budget = workers();
+        // One thread per target dimension. These threads mostly block on
+        // measurePool below rather than doing CPU work themselves, so their
+        // count is not the CPU budget and does not need to be capped by it.
+        int orchestrators = targets.size();
         java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(
-                workers, r -> {
+                orchestrators, r -> {
                     Thread t = new Thread(r, "customdim-roll");
                     t.setDaemon(true);
                     return t;
                 });
-        MultiverseServer.LOGGER.info("roll: {} dimension(s) x {} seed(s) across {} worker(s)",
-                targets.size(), count, workers);
+        // The actual CPU budget: every dimension's tier-1 sweep measures its
+        // seeds here, so one dimension in flight can use all of it and eighty
+        // share it, whatever orchestrators is.
+        java.util.concurrent.ExecutorService measurePool =
+                java.util.concurrent.Executors.newFixedThreadPool(budget, r -> {
+                    Thread t = new Thread(r, "customdim-measure");
+                    t.setDaemon(true);
+                    return t;
+                });
+        MultiverseServer.LOGGER.info("roll: {} dimension(s) x {} seed(s), {} measure worker(s)",
+                targets.size(), count, budget);
         // Pulled, not pre-submitted. Submitting every dimension up front fixes
         // the order at start, and the order has to be able to change: opening a
         // dimension in the viewer is a statement that it is the one being
@@ -353,11 +372,11 @@ public final class RollPipeline {
         final java.util.Deque<DimensionConfig> pending = new java.util.ArrayDeque<>(targets);
         try {
             List<java.util.concurrent.Future<?>> futures = new ArrayList<>();
-            for (int i = 0; i < workers; i++) {
+            for (int i = 0; i < orchestrators; i++) {
                 futures.add(pool.submit(() -> {
                     DimensionConfig def;
                     while ((def = nextTarget(pending)) != null) {
-                        rollOne(server, def, count, topUp);
+                        rollOne(server, def, count, topUp, measurePool, budget);
                     }
                 }));
             }
@@ -373,6 +392,7 @@ public final class RollPipeline {
             }
         } finally {
             pool.shutdownNow();
+            measurePool.shutdownNow();
             RUNNING.set(false);
             com.customdimensions.roll.CandidateRender.rolling(false);
             // No detail maps at the end of a run. One covers the world edge to
@@ -490,15 +510,15 @@ public final class RollPipeline {
      *
      * <p>Two tiers, not a flat search. {@link Roller#screenShortlist} sweeps
      * {@code count} seeds cheaply — no per-seed terrain router — and ranks
-     * the best {@link Roller#SHORTLIST}; that sweep is one call, since a
-     * single tier-1 screen is cheap enough that CANCEL and a FOCUS-yield are
-     * checked at the coarser, per-seed granularity of what actually costs
-     * something: the loop below, over the shortlist alone, calls {@link
-     * Roller#measureOne} — a full measurement, ~a hundred core-seconds on a
-     * modded dimension — one at a time, exactly as a roll always has, and
-     * stops the moment {@link #WANTED} is banked rather than spending the
-     * rest of the shortlist. A dimension that already has enough is skipped
-     * before either tier runs.
+     * the best {@link Roller#SHORTLIST}, measuring on {@code measurePool}
+     * (up to {@code measureParallelism} seeds at once, shared with every
+     * other dimension currently screening — see {@link #run}); the loop
+     * below, over the shortlist alone, calls {@link Roller#measureOne} — a
+     * full measurement, ~a hundred core-seconds on a modded dimension — one
+     * at a time, exactly as a roll always has, and stops the moment
+     * {@link #WANTED} is banked rather than spending the rest of the
+     * shortlist. A dimension that already has enough is skipped before
+     * either tier runs.
      *
      * <p>{@code count} is now the tier-1 POOL size, not a ceiling that never
      * bound: the sweep is a search over the whole pool, not a stream that
@@ -507,7 +527,8 @@ public final class RollPipeline {
      * {@link #STARVED} records a dimension that fell short even so.
      */
     private static void rollOne(MinecraftServer server, DimensionConfig def, int count,
-                                boolean topUp) {
+                                boolean topUp, java.util.concurrent.ExecutorService measurePool,
+                                int measureParallelism) {
         Identifier id = def.getDimensionIdentifier();
         String hash = com.customdimensions.command.InputHash.of(def, server);
         String dimension = id.toString();
@@ -533,7 +554,8 @@ public final class RollPipeline {
         // the end of the pool regardless.
         java.util.function.BooleanSupplier abandonScreen = () -> CANCEL.get() || yieldTo(def);
         try {
-            Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandonScreen);
+            Roller.Screen screen = Roller.screenShortlist(server, id, def, count, abandonScreen,
+                    measurePool, measureParallelism);
             shortlist = screen.shortlist();
             screened = screen.screened();
         } catch (RuntimeException e) {
