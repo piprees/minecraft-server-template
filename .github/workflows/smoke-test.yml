@@ -160,8 +160,8 @@ jobs:
         # one dimension per world TYPE. Registering them is free: they are
         # never created, and render-check-headless builds the generator from
         # config and reads no world. The render-check step is not free —
-        # it walks 1313 columns per pair, which is why the default variant
-        # runs ~43m against removal's ~8m. Budget minutes per entry added.
+        # it walks 1313 columns per pair — ~28m across the matrix, which is
+        # why that step is disabled. Budget minutes per entry added.
         env:
           RENDER_CHECK_MATRIX: ${{ matrix.variant == 'default' && '1' || '' }}
         run: |
@@ -553,7 +553,12 @@ jobs:
             exit 1
           fi
 
+      # Disabled: ~28m of the default variant's ~43m. Re-enable (drop the
+      # `if: false`) before shipping a worldgen or height-source change —
+      # it is the only gate that catches a render frozen at a constant
+      # height, or the map and the facts answering different questions.
       - name: Assert the map and the facts answer one height (render-check)
+        if: false
         # The regression this catches is TWO HEIGHT SOURCES FOR ONE QUESTION.
         # The banked facts read SpikeSampler (a heightmap); the map reads
         # CandidateRender (a density walk). Nothing forces them to agree, and

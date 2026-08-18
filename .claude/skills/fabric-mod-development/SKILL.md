@@ -54,7 +54,7 @@ CI runs the identical check twice, so a local pass should never surprise it: `mo
 
 ## 3. Fast local loop
 
-Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs ~50–60 minutes and restarts production; this costs about a minute.
+Link a consumer repo to this checkout once, then build and `./dev up`. A release → deploy cycle costs ~25–35 minutes and restarts production; this costs about a minute.
 
 **The canonical workflow — first-time setup, what the link reaches, and the three development cases — is `.claude/skills/local-stack-testing/SKILL.md` § Linked local development.** Read it there; what follows is the mod-shaped summary.
 
