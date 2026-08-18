@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "The red monument \u2014 a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away.",
+  "description": "The red monument — a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away.",
   "seed": 847731309170024191,
   "biomes": [
     {
@@ -112,7 +112,7 @@
       "ruined_pillar",
       "end_ruins"
     ],
-    "description": "The red monument \u2014 a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away."
+    "description": "The red monument — a single monolith bleeding scarlet into the end barrens. The endermen's temple, their holiest site. Manuscript shrines and mythic gardens surround it; cities were deliberately kept away."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "Piglin architecture at its most dramatic \u2014 basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark.",
+  "description": "Piglin architecture at its most dramatic — basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark.",
   "seed": 9194112441437988152,
   "biomes": [
     {
@@ -120,7 +120,7 @@
     "shuns": [
       "piglin_village"
     ],
-    "description": "Piglin architecture at its most dramatic \u2014 basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark."
+    "description": "Piglin architecture at its most dramatic — basalt pillars, bridges slung between columns, a bastion anchoring the centre. They built upward here, into the dark."
   },
   "spawn": [
     0,

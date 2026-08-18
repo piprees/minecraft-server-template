@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden \u2014 everything was built around it.",
+  "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it.",
   "seed": -2033868061535873206,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -225,7 +225,7 @@
       "coliseum",
       "monument"
     ],
-    "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden \u2014 everything was built around it."
+    "description": "Cherry-blossom gardens where the first villagers planted a life worth protecting. Villages and taverns grew among the petals, peaceful by decree. The portal at the centre is the oldest gate in the garden — everything was built around it."
   },
   "spawn": [
     0,

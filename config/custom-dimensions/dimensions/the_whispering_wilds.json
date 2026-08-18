@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
+  "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut.",
   "seed": 3367832196571995414,
   "biomes": [
     "minecraft:dark_forest",
@@ -219,7 +219,7 @@
       "mansion",
       "coliseum"
     ],
-    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay \u2014 the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
+    "description": "Untouched wilds that whisper. Redwoods, moon groves, abandoned camps of those who didn't stay — the forest was here before anyone arrived and it'll be here after everyone leaves. The whisper is the wind in old growth that's never been cut."
   },
   "spawn": [
     0,

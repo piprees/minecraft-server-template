@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
+  "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris.",
   "seed": 9197150989084124586,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -137,7 +137,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water \u2014 ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
+    "description": "Broad warm shallows and mirage isles. Wrecks and drowned ruins under clear water — ships that tried to cross and didn't make it. The ocean doesn't care about civilisation; it just collects the debris."
   },
   "spawn": [
     0,

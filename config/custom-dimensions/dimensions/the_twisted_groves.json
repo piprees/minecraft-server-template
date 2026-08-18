@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "Warped groves and a greatsword in the fog \u2014 the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left.",
+  "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left.",
   "seed": 8276490801986154035,
   "biomes": [
     {
@@ -80,7 +80,7 @@
       "fortress",
       "sanctum"
     ],
-    "description": "Warped groves and a greatsword in the fog \u2014 the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left."
+    "description": "Warped groves and a greatsword in the fog — the nether's strange, quiet corner. The piglins avoided this place; the fungus here is older than their civilisation. The greatsword belongs to someone who came looking and never left."
   },
   "spawn": [
     0,

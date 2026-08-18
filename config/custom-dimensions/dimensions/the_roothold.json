@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here \u2014 overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own.",
+  "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own.",
   "seed": -1157745575203996945,
   "biomes": [
     {
@@ -125,7 +125,7 @@
       "monument",
       "coliseum"
     ],
-    "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here \u2014 overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own."
+    "description": "Deep old-growth forest with roots in everything. The witches' experiments took hold here — overgrown manors, spider dens, creeping crypts under a closed canopy. The forest grew around their work and made it its own."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story.",
+  "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story.",
   "seed": 9222271493615113425,
   "biomes": [
     {
@@ -112,7 +112,7 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone \u2014 only wreckage tells the story."
+    "description": "What happens when the endermen leave and nobody maintains the infrastructure. Crystal peaks shearing into shadow, crashed ships in the rubble. Everything intact is already gone — only wreckage tells the story."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
+  "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured.",
   "seed": 9185324862121826233,
   "biomes": [
     {
@@ -96,7 +96,7 @@
       "phantom_citadel",
       "monolith"
     ],
-    "description": "Fractured halls \u2014 endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
+    "description": "Fractured halls — endermen gate fortresses and enderkeeps in broken crystal country. No cities survived whatever happened here; only the military architecture endured."
   },
   "spawn": [
     0,

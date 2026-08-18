@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
+  "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained.",
   "seed": 9063126249592024391,
   "biomes": [
     {
@@ -117,7 +117,7 @@
       "ruined_pillar",
       "end_ruins"
     ],
-    "description": "Citadel country \u2014 where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
+    "description": "Citadel country — where the endermen built their densest urban centres. End cities and phantom citadels saturate the highlands. No ruins here; this is still maintained."
   },
   "spawn": [
     0,

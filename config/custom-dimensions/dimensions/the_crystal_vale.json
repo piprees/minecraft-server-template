@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
+  "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin.",
   "seed": 7030276223102451156,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -112,7 +112,7 @@
       "trial_chambers",
       "ancient_city"
     ],
-    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks \u2014 wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
+    "description": "Where the endermen first taught the villagers. Amethyst rainforest and emerald peaks — wizard towers mark where the lessons happened. No war was ever fought here; this place was too beautiful to ruin."
   },
   "spawn": [
     0,

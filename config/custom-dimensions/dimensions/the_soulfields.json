@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "Soul-sand meadows and grave fields \u2014 the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
+  "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome.",
   "seed": 8788869748950071596,
   "biomes": [
     {
@@ -99,7 +99,7 @@
       "warped_outpost",
       "bastion"
     ],
-    "description": "Soul-sand meadows and grave fields \u2014 the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
+    "description": "Soul-sand meadows and grave fields — the piglin memorial dimension. The dead are the crop. Giant skulls and nether graveyards mark where the fallen from the boneyard war were brought to rest. Nothing living is welcome."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight.",
+  "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight.",
   "seed": 948538165005714500,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -119,7 +119,7 @@
       "coliseum",
       "mansion"
     ],
-    "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts \u2014 a place to live, not to fight."
+    "description": "The breadbasket. Rolling prairie and sunflowers where villagers and humans built the first joint settlements. Taverns close to spawn, honest mineshafts — a place to live, not to fight."
   },
   "spawn": [
     0,

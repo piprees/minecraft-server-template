@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "Industrial lava flats \u2014 piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
+  "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care.",
   "seed": -8522992867091947329,
   "biomes": [
     "minecraft:nether_wastes",
@@ -65,7 +65,7 @@
       "piglin_village",
       "warped_outpost"
     ],
-    "description": "Industrial lava flats \u2014 piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care."
+    "description": "Industrial lava flats — piglin pipelines and reactors built over the melt. The infrastructure still runs, still pumps, still processes. The workers are gone. The machines don't care."
   },
   "spawn": [
     0,

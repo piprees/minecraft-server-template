@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "The endermen's first construction \u2014 a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
+  "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant.",
   "seed": 3962981317763428010,
   "biomes": [
     {
@@ -102,7 +102,7 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "The endermen's first construction \u2014 a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant."
+    "description": "The endermen's first construction — a quartz-and-void expanse of monoliths and archways in geometric silence. No cities, no habitation. Pure mathematical architecture, built before they understood what living in a place meant."
   },
   "spawn": [
     0,

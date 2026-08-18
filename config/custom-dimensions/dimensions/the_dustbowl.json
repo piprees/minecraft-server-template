@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A tiny, exhausted dust plain. One farmstead stands in the north \u2014 the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
+  "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away.",
   "seed": -6585932694360697170,
   "biomes": [
     {
@@ -162,7 +162,7 @@
       "ancient_city",
       "trial_chambers"
     ],
-    "description": "A tiny, exhausted dust plain. One farmstead stands in the north \u2014 the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away."
+    "description": "A tiny, exhausted dust plain. One farmstead stands in the north — the last holdout of someone who refused to leave. The wind owns everything else. Whatever was here dried up and blew away."
   },
   "spawn": [
     0,

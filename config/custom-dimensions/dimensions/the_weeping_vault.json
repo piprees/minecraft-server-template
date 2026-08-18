@@ -1,6 +1,6 @@
 {
   "type": "nether",
-  "description": "A vault of crying obsidian \u2014 castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
+  "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside.",
   "seed": 8939242886241437506,
   "biomes": [
     {
@@ -105,7 +105,7 @@
       "crimson_fungus",
       "warped_outpost"
     ],
-    "description": "A vault of crying obsidian \u2014 castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
+    "description": "A vault of crying obsidian — castle dungeons and a sanctum at the edge of a small dense world. The piglins sealed something in here; the crying obsidian is the lock. Whatever it is, it's still inside."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate.",
+  "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate.",
   "seed": 9202718971865095650,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -127,7 +127,7 @@
       "tavern",
       "farmstead"
     ],
-    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago \u2014 the jungle doesn't negotiate."
+    "description": "A compressed jungle gauntlet where the wild reclaimed everything. Infested temples and webbed dungeons in terrain that fights back. Whatever was built here was consumed long ago — the jungle doesn't negotiate."
   },
   "spawn": [
     0,

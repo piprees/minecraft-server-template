@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
+  "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes.",
   "seed": -6748313849734002813,
   "noiseSettings": "adventure:compressed",
   "biomes": [
@@ -233,7 +233,7 @@
     "shuns": [
       "monument"
     ],
-    "description": "The mountain crossing \u2014 guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
+    "description": "The mountain crossing — guide posts and fire towers marking passes between dramatic highlands. The human-villager trade route, built to connect the sun kingdoms to the frozen hearth. The keeps at the border guarded the passes."
   },
   "spawn": [
     0,

@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Blossom cliffs over white stone \u2014 wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
+  "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences.",
   "seed": -8536168897606233021,
   "biomes": [
     {
@@ -148,7 +148,7 @@
       "ancient_city",
       "coliseum"
     ],
-    "description": "Blossom cliffs over white stone \u2014 wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences."
+    "description": "Blossom cliffs over white stone — wisteria, sakura and chapels on the bluffs. Villager country at its most scenic, where people built for beauty rather than survival. The shrine towers are pilgrimage sites, not defences."
   },
   "spawn": [
     0,

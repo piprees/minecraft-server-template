@@ -1,6 +1,6 @@
 {
   "type": "multi_biome",
-  "description": "Vast desert kingdoms \u2014 what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
+  "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat.",
   "seed": -4889960454287639919,
   "noiseSettings": "adventure:wide",
   "biomes": [
@@ -282,7 +282,7 @@
     "shuns": [
       "monument"
     ],
-    "description": "Vast desert kingdoms \u2014 what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat."
+    "description": "Vast desert kingdoms — what humans and villagers built together at their peak. Walled villages, sand dungeons, desert shrines, and a keep on the horizon. The civilisation here still stands; the bandits at its edges are the only threat."
   },
   "spawn": [
     0,

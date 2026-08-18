@@ -1,6 +1,6 @@
 {
   "type": "end",
-  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+  "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
   "seed": 9223110004402776460,
   "biomes": [
     {
@@ -112,7 +112,7 @@
       "phantom_citadel",
       "enderkeep"
     ],
-    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else \u2014 the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
+    "description": "Lonely pillars in the void. Spires, a dragon's skeleton, nothing else — the endermen's oldest construction, predating even the tiled expanse. Whatever they built here, they built it for a dragon. The dragon is dead.",
     "terrain": "void"
   },
   "spawn": [
