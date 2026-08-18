@@ -20,6 +20,10 @@ Usage:
   ./scripts/extract-blocks.py [consumer_dir]     # default: ~/Projects/elfydd
 """
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+import mcjson
 import sys
 import zipfile
 from pathlib import Path
@@ -51,7 +55,7 @@ def scan_jar(path, out):
                 if (len(parts) == 4 and parts[0] == "assets" and parts[2] == "lang"
                         and parts[3] == "en_us.json"):
                     try:
-                        langs.update(json.loads(zf.read(entry)))
+                        langs.update(mcjson.loads(zf.read(entry)))
                     except json.JSONDecodeError:
                         pass
     except (zipfile.BadZipFile, FileNotFoundError) as e:

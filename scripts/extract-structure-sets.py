@@ -33,6 +33,10 @@ Gotchas: - Run weekly by .github/workflows/mod-updates.yml (the "Regenerate
 import argparse
 import io
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+import mcjson
 import os
 import re
 import sys
@@ -241,7 +245,7 @@ def _scan_zip(zf, source_name):
     for entry in zf.namelist():
         if "worldgen/structure_set/" in entry and entry.endswith(".json"):
             try:
-                data = json.loads(zf.read(entry))
+                data = mcjson.loads(zf.read(entry))
                 if "structures" in data and "placement" in data:
                     rows.append(parse_structure_set(data, entry, source_name))
             except (json.JSONDecodeError, KeyError):
@@ -349,7 +353,7 @@ def extract_vanilla(cache_dir):
     req = urllib.request.Request(MCMETA_CONTENTS, headers={"User-Agent": "extract-structure-sets.py"})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
-            listing = json.loads(r.read())
+            listing = mcjson.loads(r.read())
     except Exception as e:
         raise SystemExit(f"could not list vanilla structure sets from {MCMETA_CONTENTS}: {e}")
     rows = []
@@ -357,7 +361,7 @@ def extract_vanilla(cache_dir):
         name = entry.get("name", "")
         if not name.endswith(".json"):
             continue
-        body = json.loads(modrinth_pins.fetch(f"{MCMETA_RAW}/{name}", cache_dir, f"vanilla-{name}"))
+        body = mcjson.loads(modrinth_pins.fetch(f"{MCMETA_RAW}/{name}", cache_dir, f"vanilla-{name}"))
         if "structures" in body and "placement" in body:
             rows.append(parse_structure_set(
                 body, f"data/minecraft/worldgen/structure_set/{name}", "vanilla"))

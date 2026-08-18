@@ -1,6 +1,6 @@
 {
   "type": "cave",
-  "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
+  "description": "Serene glowing caverns \u2014 lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed.",
   "seed": 5405923286239551039,
   "biomes": [
     "minecraft:lush_caves",
@@ -8,7 +8,52 @@
     "terralith:cave/tuff_caves",
     "minecraft:dripstone_caves",
     "terralith:cave/andesite_caves",
-    "terralith:cave/diorite_caves"
+    "terralith:cave/diorite_caves",
+    {
+      "id": "yungscavebiomes:frosted_caves",
+      "parameters": {
+        "temperature": [
+          -2.0,
+          -0.45
+        ]
+      }
+    },
+    {
+      "id": "galosphere:lichen_caves",
+      "parameters": {
+        "temperature": [
+          -0.45,
+          -0.15
+        ]
+      }
+    },
+    {
+      "id": "galosphere:crystal_canyons",
+      "parameters": {
+        "temperature": [
+          0.3,
+          0.55
+        ]
+      }
+    },
+    {
+      "id": "galosphere:pink_salt_caves",
+      "parameters": {
+        "temperature": [
+          0.7,
+          0.95
+        ]
+      }
+    },
+    {
+      "id": "yungscavebiomes:lost_caves",
+      "parameters": {
+        "temperature": [
+          0.95,
+          2.0
+        ]
+      }
+    }
   ],
   "borders": {
     "player": 1024,
@@ -56,7 +101,7 @@
       "bastion",
       "sanctum"
     ],
-    "description": "Serene glowing caverns — lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed."
+    "description": "Serene glowing caverns \u2014 lush moss and quartz light under a bedrock roof. No armies ever found this place. The copper towers and strange outposts were built by someone who came for the light and stayed."
   },
   "spawn": [
     0,
